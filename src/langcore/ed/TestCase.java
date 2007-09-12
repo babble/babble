@@ -2,6 +2,7 @@
 
 package ed;
 
+import java.io.*;
 import java.util.*;
 import java.lang.reflect.*;
 
@@ -65,7 +66,6 @@ public class TestCase extends MyAsserts {
             if ( m.getName().startsWith( "test" ) )
                 _tests.add( new Test( this , m ) );
         }
-        System.out.println( _tests );
     }
 
     public TestCase( Object o , String m )
@@ -169,7 +169,34 @@ public class TestCase extends MyAsserts {
         }
     }
 
-    public static void main( String args[] ){
-        System.err.println( "Running all tests not implemented yet" );
+    public static void main( String args[] )
+        throws Exception {
+        
+        Process p = Runtime.getRuntime().exec( "find src/test/" );
+        BufferedReader in = new BufferedReader( new InputStreamReader( p.getInputStream() ) );
+
+        TestCase theTestCase = new TestCase();
+        
+        String line;
+        while ( ( line = in.readLine() ) != null ){
+            if ( ! line.endsWith( "Test.java" ) )
+                continue;
+            line = line.substring( 9 );
+            line = line.substring( 0 , line.length() - 5 );
+            line = line.replace( '/' , '.' );
+            
+            System.out.println( line );
+            try {
+                Class c = Class.forName( line );
+                Object o = c.newInstance();
+                TestCase tc = (TestCase)o;
+                theTestCase._tests.addAll( tc._tests );
+            }
+            catch ( Exception e ){
+                e.printStackTrace();
+            }
+        }
+        
+        theTestCase.runConsole();
     }
 }
