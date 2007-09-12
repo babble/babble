@@ -1,0 +1,54 @@
+<?xml version='1.0'?>
+<project name="ED" default="compile" basedir=".">
+
+  <path id="classpath">
+    <fileset dir="include">
+      <include name="**/*.jar"/>
+    </fileset>
+    <pathelement path="conf" />
+    <pathelement path="build" />
+  </path>
+
+
+  <target name="init">
+    <mkdir dir="build" />
+    <mkdir dir="log" />
+  </target>
+
+  <target name="langcore" depends="init">
+    <copy todir="build">
+      <fileset dir="src/langcore" includes="**/*.java"/>
+    </copy>
+
+    <javac srcdir="build"
+	   destdir="build"
+	   optimize="off"
+	   deprecation="off"
+	   source="1.5"
+           encoding="ISO-8859-1"
+	   debug="on" >
+      <classpath refid="classpath"/>
+    </javac>
+  </target>
+
+  
+  <target name="compile" depends="langcore">
+
+    <copy todir="build">
+      <fileset dir="src/main" includes="**/*.java"/>
+      <fileset dir="src/test" includes="**/*.java"/>
+    </copy>
+
+    <javac srcdir="build"
+	   destdir="build"
+	   optimize="off"
+	   deprecation="off"
+	   source="1.5"
+           encoding="ISO-8859-1"
+	   debug="on" >
+      <classpath refid="classpath"/>
+    </javac>
+
+  </target>
+
+</project>

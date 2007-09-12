@@ -1,0 +1,18 @@
+*.[oa]
+*~
+*.pyc
+*CVS
+*.so
+*.d
+*.class*
+.cvsignore*
+.#*
+.git
+*#
+
+#os x stuff
+*Thumbs.db*
+*.DS_Store
+
+log
+build
