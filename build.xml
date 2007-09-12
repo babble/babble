@@ -16,11 +16,8 @@
   </target>
 
   <target name="langcore" depends="init">
-    <copy todir="build">
-      <fileset dir="src/langcore" includes="**/*.java"/>
-    </copy>
 
-    <javac srcdir="build"
+    <javac srcdir="src/langcore"
 	   destdir="build"
 	   optimize="off"
 	   deprecation="off"
@@ -37,6 +34,7 @@
     <copy todir="build">
       <fileset dir="src/main" includes="**/*.java"/>
       <fileset dir="src/test" includes="**/*.java"/>
+      <fileset dir="src/langcore" includes="**/*.java"/>
     </copy>
 
     <javac srcdir="build"
