@@ -9,6 +9,9 @@
     <pathelement path="build" />
   </path>
 
+  <target name="clean">
+    <delete dir="build"/>
+  </target>
 
   <target name="init">
     <mkdir dir="build" />
@@ -28,16 +31,33 @@
     </javac>
   </target>
 
+  <target name="oss" depends="langcore">
+
+    <javac srcdir="src/oss"
+	   destdir="build"
+	   optimize="off"
+	   deprecation="off"
+	   source="1.5"
+           encoding="ISO-8859-1"
+	   debug="on" >
+      <classpath refid="classpath"/>
+    </javac>
+  </target>
+
   
-  <target name="compile" depends="langcore">
+  <target name="compile" depends="oss">
 
-    <copy todir="build">
-      <fileset dir="src/main" includes="**/*.java"/>
-      <fileset dir="src/test" includes="**/*.java"/>
-      <fileset dir="src/langcore" includes="**/*.java"/>
-    </copy>
+    <javac srcdir="src/main"
+	   destdir="build"
+	   optimize="off"
+	   deprecation="off"
+	   source="1.5"
+           encoding="ISO-8859-1"
+	   debug="on" >
+      <classpath refid="classpath"/>
+    </javac>
 
-    <javac srcdir="build"
+    <javac srcdir="src/test"
 	   destdir="build"
 	   optimize="off"
 	   deprecation="off"
