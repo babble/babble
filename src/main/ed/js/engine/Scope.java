@@ -15,8 +15,13 @@ public class Scope {
         _parent = parent;
     }
 
-    public void put( String name , Object o ){
-        _objects.put( name , o );
+    public void put( String name , Object o , boolean local ){
+        if ( local || _parent == null || _objects.containsKey( name ) ){
+            _objects.put( name , o );
+            return;
+        }
+        
+        _parent.put( name , o , false );
     }
 
     public Object get( String name ){

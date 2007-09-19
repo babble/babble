@@ -110,7 +110,7 @@ public class Convert {
     private void _setVar( String name , Node val ){
         _append( "scope.put( \"" + name + "\" , " );
         _add( val );
-        _append( " ) " );
+        _append( " , false  ) " );
     }
     
     private void _assertOne( Node n ){
