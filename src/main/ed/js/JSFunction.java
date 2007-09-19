@@ -4,7 +4,14 @@ package ed.js;
 
 public abstract class JSFunction {
 
-    public abstract void call();
+    public JSFunction(){
+    }
+
+    public JSFunction( String name ){
+        _name = name;
+    }
+
+    public abstract Object call();
     /*
     public abstract void call( Object p1 );
     public abstract void call( Object p1 , Object p2 );
@@ -21,4 +28,14 @@ public abstract class JSFunction {
             System.out.print( o + " " );
         System.out.println();
     }
+    
+    public void setName( String name ){
+        _name = name;
+    }
+
+    public String toString(){
+        return "JSFunction : " + _name;
+    }
+
+    String _name = "NO NAME SET";
 }
