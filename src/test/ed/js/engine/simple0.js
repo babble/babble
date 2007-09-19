@@ -22,4 +22,6 @@ function bar(){ SYSOUT( "yay" ); return 5; }
 
 bar();
 
-
+var hehe = function(){ return 9; };
+SYSOUT( hehe );
+SYSOUT( hehe() );
