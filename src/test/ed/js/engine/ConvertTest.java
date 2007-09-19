@@ -13,10 +13,7 @@ public class ConvertTest extends TestCase {
     }
 
     public void testConvertStatement(){
-        assertClose( "Object a = 5;" , convertStatement( "var a = 5;" ) );
-        assertClose( "return null;" , convertStatement( "return ;" ) );
-        assertClose( "return null;" , convertStatement( "return;" ) );
-        assertClose( "return null;" , convertStatement( "return; " ) );
+
     }
 
     public static void main( String args[] ){
