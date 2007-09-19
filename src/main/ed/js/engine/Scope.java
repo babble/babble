@@ -16,7 +16,7 @@ public class Scope {
     }
 
     public void put( String name , Object o , boolean local ){
-        if ( local || _parent == null || _objects.containsKey( name ) ){
+        if ( local || _parent == null || ! _parentWritable || _objects.containsKey( name ) ){
             _objects.put( name , o );
             return;
         }
@@ -48,6 +48,8 @@ public class Scope {
     
     final String _name;
     final Scope _parent;
+
+    boolean _parentWritable = true;
 
     final Map<String,Object> _objects = new HashMap<String,Object>();
 }
