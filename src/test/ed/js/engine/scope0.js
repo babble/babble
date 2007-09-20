@@ -6,7 +6,8 @@ function foo(){
     return a + b;
 }
 
-print( "3=" + foo() );
+SYSOUT( "3=" + foo() );
 a = 2;
 b = 3;
-print( "5=" + foo() );
+SYSOUT( "5=" + foo() );
+

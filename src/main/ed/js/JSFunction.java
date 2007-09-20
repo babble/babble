@@ -2,7 +2,7 @@
 
 package ed.js;
 
-public abstract class JSFunction {
+public abstract class JSFunction extends JSInternalFunctions {
 
     public JSFunction(){
     }

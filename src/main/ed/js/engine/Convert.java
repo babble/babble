@@ -13,13 +13,14 @@ import ed.util.*;
 
 public class Convert {
 
-    static boolean D = true;
+    static boolean D = false;
 
-    public Convert(){
+    public Convert( ScriptOrFnNode sn ){
         _className = "anon_" + _id;
+        add( sn );
     }
 
-    void add( ScriptOrFnNode sn ){
+    private void add( ScriptOrFnNode sn ){
         if ( _it != null )
             throw new RuntimeException( "too late" );
         
@@ -33,14 +34,16 @@ public class Convert {
             
             _functionIdToName.put( i , name );
 
-            System.out.println( "***************" );
-            System.out.println( i + " : " +  name );
+            if ( D ){
+                System.out.println( "***************" );
+                System.out.println( i + " : " +  name );
+            }
 
             _setVar( name , fn );
             _append( "scope.getFunction( \"" + name + "\" ).setName( \"" + name + "\" );" );
 
         }
-        System.out.println( "***************" );
+        if ( D ) System.out.println( "***************" );
 
         Node n = sn.getFirstChild();
         while ( n != null ){
@@ -69,9 +72,11 @@ public class Convert {
             else {
                 System.out.println( n.toStringTree( sn ) );
             }
+
+            _printTree( n , 0 );
+        
         }
 
-        _printTree( n , 0 );
 
         switch ( n.getType() ){
         case Token.EXPR_RESULT:
@@ -119,7 +124,15 @@ public class Convert {
             _add( n.getFirstChild() );
             _append( ";" );
             break;
+        case Token.ADD:
+            _append( "JS_add( " );
+            _add( n.getFirstChild() );
+            _append( " , " );
+            _add( n.getFirstChild().getNext() );
+            _append( " ) " );
+            break;
         default:
+            _printTree( n , 0 );
             throw new RuntimeException( "can't handle : " + n.getType() + ":" + Token.name( n.getType() ) + ":" + n.getClass().getName() );
         }
 
@@ -220,9 +233,6 @@ public class Convert {
     }
 
     private void _printTree( Node n , int indent ){
-        if ( ! D )
-            return;
-        
         if ( n == null )
             return;
 
@@ -252,7 +262,7 @@ public class Convert {
         
         buf.append( "\tpublic Object call(){\n" );
         
-        buf.append( "ed.js.engine.Scope scope = ed.js.engine.Scope.GLOBAL;\n\n" );
+        buf.append( "final ed.js.engine.Scope scope = ed.js.engine.Scope.GLOBAL;\n\n" );
         
         buf.append( _mainJavaCode );
         
@@ -291,16 +301,19 @@ public class Convert {
     public static void main( String args[] )
         throws Exception {
         
-        CompilerEnvirons ce = new CompilerEnvirons();
-        Parser p = new Parser( ce , ce.getErrorReporter() );
-        
-        String raw = StreamUtil.readFully( new java.io.FileInputStream( args[0] ) );
-        ScriptOrFnNode ss = p.parse( raw , args[0] , 0 );
+        for ( String s : args ){
+            System.out.println( "-----" );
+            System.out.println( s );
 
-        Convert c = new Convert();
-        c.add( ss );
+            CompilerEnvirons ce = new CompilerEnvirons();
+            Parser p = new Parser( ce , ce.getErrorReporter() );
+            
+            String raw = StreamUtil.readFully( new java.io.FileInputStream( s ) );
+            ScriptOrFnNode ss = p.parse( raw , s , 0 );
 
-        c.get().call();
+            Convert c = new Convert( ss );
+            c.get().call();
+        }
     }
     
 }
