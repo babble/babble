@@ -53,7 +53,7 @@ public class Convert {
             }
 
             _setVar( name , fn );
-            _append( "scope.getFunction( \"" + name + "\" ).setName( \"" + name + "\" );" );
+            _append( "scope.getFunction( \"" + name + "\" ).setName( \"" + name + "\" );" , fn );
 
         }
         if ( D ) System.out.println( "***************" );
@@ -61,12 +61,11 @@ public class Convert {
         Node n = sn.getFirstChild();
         while ( n != null ){
             _add( n , sn );
-            _append( ";" );
-            _append( "\n" );
+            _append( ";\n" , n );
             n = n.getNext();
         }
 
-        _append( "return null;" );
+        _append( "return null;" , sn );
     }
 
     private void _add( Node n ){
@@ -100,16 +99,16 @@ public class Convert {
             _addCall( n );
             break;
         case Token.NUMBER:
-            _append( String.valueOf( n.getDouble() ) );
+            _append( String.valueOf( n.getDouble() ) , n );
             break;
         case Token.STRING:
-            _append( "\"" + n.getString() + "\"" );
+            _append( "\"" + n.getString() + "\"" , n );
             break;
         case Token.VAR:
             _addVar( n );
             break;
         case Token.NAME:
-            _append( "scope.get( \"" + n.getString() + "\" )" );
+            _append( "scope.get( \"" + n.getString() + "\" )" , n );
             break;
         case Token.SETNAME:
             _addSet( n );
@@ -118,31 +117,31 @@ public class Convert {
             _addFunction( n );
             break;
         case Token.BLOCK:
-            _append( "{" );
+            _append( "{" , n );
             Node child = n.getFirstChild();
             while ( child != null ){
                 _add( child );
                 child = child.getNext();
             }
-            _append( "}" );
+            _append( "}" , n );
             break;
         case Token.EXPR_VOID:
             _assertOne( n );
             _add( n.getFirstChild() );
-            _append( ";" );
+            _append( ";" , n );
             break;
         case Token.RETURN:
             _assertOne( n );
-            _append( "return " );
+            _append( "return " , n );
             _add( n.getFirstChild() );
-            _append( ";" );
+            _append( ";" , n );
             break;
         case Token.ADD:
-            _append( "JS_add( " );
+            _append( "JS_add( " , n );
             _add( n.getFirstChild() );
-            _append( " , " );
+            _append( " , " , n );
             _add( n.getFirstChild().getNext() );
-            _append( " ) " );
+            _append( " ) " , n );
             break;
         default:
             _printTree( n , 0 );
@@ -153,18 +152,18 @@ public class Convert {
     
     private void _addFunction( Node n ){
         if ( ! ( n instanceof FunctionNode ) ){
-            _append( "scope.getFunction( \"" + getFunc( n ) + "\" ) " );
+            _append( "scope.getFunction( \"" + getFunc( n ) + "\" ) " , n );
             return;
         }
 
         
         _assertOne( n );
         
-        _append( "new JSFunction(){ \n" );
-        _append( "public Object call(){\n" );
+        _append( "new JSFunction(){ \n" , n );
+        _append( "public Object call(){\n" , n );
         _add( n.getFirstChild() );
-        _append( "}\n" );
-        _append( "}\n" );
+        _append( "}\n" , n );
+        _append( "}\n" , n );
     }
     
     private void _addSet( Node n ){
@@ -189,26 +188,26 @@ public class Convert {
         String fName = getFunc( name );
         
         if ( fName.startsWith( "SYSOUT" ) )
-            _append( "SYSOUT(" );
+            _append( "SYSOUT(" , n );
         else
-            _append( "scope.getFunction(\"" + fName + "\").call( " );
+            _append( "scope.getFunction(\"" + fName + "\").call( " , n );
         
         Node param = name.getNext();
         while ( param != null ){
             _add( param );
             param = param.getNext();
             if ( param != null ){
-                _append( " , " );
+                _append( " , " , param );
             }
         }
 
-        _append( " ) " );
+        _append( " ) " , n );
     }
 
     private void _setVar( String name , Node val ){
-        _append( "scope.put( \"" + name + "\" , " );
+        _append( "scope.put( \"" + name + "\" , " , val);
         _add( val );
-        _append( " , false  ); " );
+        _append( " , false  ); " , val );
     }
     
     private void _assertOne( Node n ){
@@ -223,8 +222,27 @@ public class Convert {
             throw new RuntimeException( "wrong type" );
     }
 
-    private void _append( String s ){
+    private void _append( String s , Node n ){
         _mainJavaCode.append( s );
+        
+        int numLines = 0;
+        for ( int i=0; i<s.length(); i++ )
+            if ( s.charAt( i ) == '\n' )
+                numLines++;
+        
+        final int start = _currentLineNumber;
+        final int end = _currentLineNumber + numLines;
+        
+        for ( int i=start; i<end; i++ ){
+            List<Node> l = _javaCodeToLines.get( i );
+            if ( l == null ){
+                l = new ArrayList<Node>();
+                _javaCodeToLines.put( i , l );
+            }
+            l.add( n );
+        }
+
+        _currentLineNumber = end;
     }
 
     private String getFunc( Node n ){
@@ -304,9 +322,12 @@ public class Convert {
     final String _package = "ed.js.gen";
     final int _id = ID++;    
 
-    private final Map<Integer,String> _functionIdToName = new HashMap<Integer,String>();
+    private int _currentLineNumber = 0;
     
-    private StringBuilder _mainJavaCode = new StringBuilder();
+    private final Map<Integer,String> _functionIdToName = new HashMap<Integer,String>();
+    private final Map<Integer,List<Node>> _javaCodeToLines = new TreeMap<Integer,List<Node>>();
+    private final StringBuilder _mainJavaCode = new StringBuilder();
+    
     private JSFunction _it;
     
     private static int ID = 1;
