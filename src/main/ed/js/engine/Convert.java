@@ -15,6 +15,19 @@ public class Convert {
 
     static boolean D = false;
 
+    public Convert( File f )
+        throws IOException {
+        
+        _className = f.toString().replaceAll(".*/(.*?)","").replaceAll( "[^\\w]+" , "_" );
+
+        String raw = StreamUtil.readFully( f );
+        
+        CompilerEnvirons ce = new CompilerEnvirons();
+        Parser p = new Parser( ce , ce.getErrorReporter() );
+
+        add( p.parse( raw , f.toString() , 0 ) );
+    }
+
     public Convert( ScriptOrFnNode sn ){
         _className = "anon_" + _id;
         add( sn );
@@ -304,14 +317,8 @@ public class Convert {
         for ( String s : args ){
             System.out.println( "-----" );
             System.out.println( s );
-
-            CompilerEnvirons ce = new CompilerEnvirons();
-            Parser p = new Parser( ce , ce.getErrorReporter() );
             
-            String raw = StreamUtil.readFully( new java.io.FileInputStream( s ) );
-            ScriptOrFnNode ss = p.parse( raw , s , 0 );
-
-            Convert c = new Convert( ss );
+            Convert c = new Convert( new File( s ) );
             c.get().call();
         }
     }

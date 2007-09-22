@@ -18,7 +18,7 @@ SYSOUT( function(){ return 6; } );
 SYSOUT( function(){ return 7; }() );
 
 function(){ SYSOUT( "yay" ); return 5; }
-function bar(){ SYSOUT( "yay" ); return 5; }
+function bar(){ return 5; }
 
 bar();
 

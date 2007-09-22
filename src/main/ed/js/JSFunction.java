@@ -2,6 +2,8 @@
 
 package ed.js;
 
+import java.io.*;
+
 public abstract class JSFunction extends JSInternalFunctions {
 
     public JSFunction(){
@@ -20,13 +22,13 @@ public abstract class JSFunction extends JSInternalFunctions {
     public abstract void call( Object p1 , Object p2 , Object p3 , Object p4 , Object p5 );
     */
     protected void SYSOUT( Number n ){
-        System.out.println( n );
+        _sysout.println( n );
     }
 
     protected void SYSOUT( Object ... os ){
         for ( Object o : os )
-            System.out.print( o + " " );
-        System.out.println();
+            _sysout.print( o + " " );
+        _sysout.println();
     }
     
     public void setName( String name ){
@@ -37,5 +39,10 @@ public abstract class JSFunction extends JSInternalFunctions {
         return "JSFunction : " + _name;
     }
 
+    public void setSysOut( PrintStream out ){
+        _sysout = out;
+    }
+
     String _name = "NO NAME SET";
+    PrintStream _sysout = System.out;
 }

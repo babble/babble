@@ -28,8 +28,13 @@ public class TestCase extends MyAsserts {
         }
 
         public String toString(){
-            return _o.getClass().getName() + "." + _m.getName();
+            String foo = _o.getClass().getName() + "." + _m.getName();
+            if ( _name == null )
+                return foo;
+            return _name + "(" + foo + ")";
         }
+
+        protected String _name = null;
 
         final Object _o;
         final Method _m;
@@ -61,10 +66,18 @@ public class TestCase extends MyAsserts {
     /**
      * this is for normal class tests
      */
-    protected TestCase(){
+
+    public TestCase(){ 
+        this( null );
+    }
+
+    public TestCase( String name ){
         for ( Method m : getClass().getDeclaredMethods() ){
-            if ( m.getName().startsWith( "test" ) )
-                _tests.add( new Test( this , m ) );
+            if ( m.getName().startsWith( "test" ) ){
+                Test t = new Test( this , m );
+                t._name = name;
+                _tests.add( t );
+            }
         }
     }
 
@@ -75,6 +88,10 @@ public class TestCase extends MyAsserts {
 
     public TestCase( Object o , Method m ){
         _tests.add( new Test( o , m ) );
+    }
+
+    public void add( TestCase tc ){
+        _tests.addAll( tc._tests );
     }
 
     public void runConsole(){
@@ -103,7 +120,7 @@ public class TestCase extends MyAsserts {
 
         int pass = _tests.size() - ( errors.size() + fails.size() );
 
-        System.out.println( "% Pass : " + ( ((double)pass) / _tests.size() ) );
+        System.out.println( "% Pass : " + ( ((double)pass*100) / _tests.size() ) );
         if ( pass == _tests.size() ){
             System.out.println( "SUCCESS" );
             return;

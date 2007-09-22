@@ -2,21 +2,57 @@
 
 package ed.js.engine;
 
+import java.io.*;
+
 import ed.*;
-import static ed.js.engine.Convert.*;
+import ed.js.*;
+import ed.io.*;
 
-public class ConvertTest extends TestCase {
+public class ConvertTest {
 
-    public void testFoo(){
-        Object a = 5;
-        Object b = 6;
+    public static class FileTest extends TestCase {
+        FileTest( File f ){
+            super( f.toString() );
+            _file = f;
+        }
+
+        public void test()
+            throws IOException {
+            Convert c = new Convert( _file );
+            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+            PrintStream out = new PrintStream( bout );
+            
+            JSFunction f = c.get();
+            f.setSysOut( out );
+            System.out.println( "START" );
+            f.call();
+            System.out.println( "END" );
+
+            String outString = _clean( bout.toString() );
+            
+            File correct = new File( _file.toString().replaceAll( ".js$" , ".out" ) );
+            if ( ! correct.exists() ){
+                assertTrue( correct.exists() );
+            }
+            String correctOut = _clean( StreamUtil.readFully( correct ) );
+            
+            assertClose( correctOut , outString );
+        }
+        
+        final File _file;
     }
 
-    public void testConvertStatement(){
-
+    static String _clean( String s ){
+        s = s.replaceAll( "tempFunc_\\d+_" , "tempFunc_" );
+        return s;
     }
-
+    
     public static void main( String args[] ){
-        TestCase.run( args );
+        if ( args.length > 0 ){
+            TestCase all = new TestCase();
+            for ( String s : args )
+                all.add( new FileTest( new File( s ) ) );
+            all.runConsole();
+        }
     }
 }

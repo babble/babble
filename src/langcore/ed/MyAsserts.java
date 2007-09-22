@@ -17,6 +17,11 @@ public class MyAsserts {
         final String _s;
     }
 
+    public static void assertTrue( boolean b ){
+        if ( ! b )
+            throw new MyAssert( "false" );
+    }
+
     public static void assertEquals( int a , int b ){
         if ( a != b )
             throw new MyAssert( "" + a + " != " + b );

@@ -7,6 +7,8 @@ import java.net.*;
 
 class CompileUtil {
     
+    static boolean D = Convert.D;
+    
     static final String TMP_DIR = "/tmp/jxp/" + Math.random() + "/";
 
     // TODO: delete when done
@@ -14,7 +16,7 @@ class CompileUtil {
     static Class compile( String p , String c , String source )
         throws IOException , ClassNotFoundException {
         
-        System.out.println( source );
+        if ( D ) System.out.println( source );
         
         File dir = new File( TMP_DIR + p.replace( '.' , '/' ) + "/" );
         dir.mkdirs();
@@ -28,7 +30,9 @@ class CompileUtil {
         PrintWriter pw = new PrintWriter( sw ); 
         
         int res = com.sun.tools.javac.Main.compile( new String[]{ f.toString() } , pw );
-        System.out.println( f + " : " + res );
+        
+        if ( D ) System.out.println( f + " : " + res );
+        
         if ( res != 0 )
             throw new RuntimeException( sw.toString() );
         

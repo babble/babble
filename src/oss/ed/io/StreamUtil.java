@@ -17,7 +17,7 @@ public class StreamUtil {
     }
 
     public static String[] exec( String command )
-    throws IOException {
+        throws IOException {
         Process p = Runtime.getRuntime().exec( command );
         String out = StreamUtil.readFully( p.getInputStream() );
         String err = StreamUtil.readFully( p.getErrorStream() );
@@ -25,18 +25,26 @@ public class StreamUtil {
         return new String[]{ out , err };
     }
 
+    public static String readFully( File f )
+        throws IOException {
+        FileInputStream fin = new FileInputStream( f );
+        String s = readFully( fin );
+        fin.close();
+        return s;
+    }
+
     public static String readFully(InputStream is) 
-    throws IOException {
+        throws IOException {
         return readFully(new InputStreamReader(is));
     }
 
     public static String readFully(InputStreamReader isr) 
-    throws IOException {
+        throws IOException {
         return readFully(new BufferedReader(isr));
     }
-
+    
     public static String readFully(BufferedReader br) 
-    throws IOException {
+        throws IOException {
         StringBuilder buf = new StringBuilder();
         String line;
         while ((line = br.readLine()) != null) {
@@ -47,19 +55,19 @@ public class StreamUtil {
     }
 
     public static byte[] readBytesFully( InputStream is )
-    throws IOException {
+        throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         pipe( is , baos );
         return baos.toByteArray();
     }
-
+    
     public static int pipe( InputStream is , OutputStream out )
-    throws IOException {
+        throws IOException {
         return pipe( is , out , -1 );
     }
-
+    
     public static int pipe( InputStream is , OutputStream out , int maxSize )
-    throws IOException {
+        throws IOException {
         byte buf[] = new byte [4096];
         int len = -1;
         int total = 0;
@@ -73,24 +81,22 @@ public class StreamUtil {
     }
 
     public static int send( byte[] b , OutputStream out )
-    throws IOException {
+        throws IOException {
         ByteArrayInputStream in = new ByteArrayInputStream( b );
         return pipe( in , out );
     }
-
+    
     public static byte readByte( InputStream in )
-    throws IOException {
+        throws IOException {
         int b = in.read();
         if ( b < 0 )
             throw new IOException("end of stream");
         return (byte)( b & 0x000000ff );
     }
-
+    
     public static char readChar( InputStream in )
-    throws IOException {
+        throws IOException {
         return (char)readByte( in );
     }
-
-
 
 }
