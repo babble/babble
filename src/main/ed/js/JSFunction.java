@@ -2,7 +2,7 @@
 
 package ed.js;
 
-import java.io.*;
+import ed.js.engine.Scope;
 
 public abstract class JSFunction extends JSFunctionBase {
 
@@ -15,28 +15,25 @@ public abstract class JSFunction extends JSFunctionBase {
         _name = name;
     }
 
-    protected void SYSOUT( Number n ){
-        _sysout.println( n );
-    }
-
-    protected void SYSOUT( Object ... os ){
-        for ( Object o : os )
-            _sysout.print( o + " " );
-        _sysout.println();
-    }
-    
     public void setName( String name ){
         _name = name;
     }
 
+    public String getName(){
+        return _name;
+    }
+    
     public String toString(){
         return "JSFunction : " + _name;
     }
 
-    public void setSysOut( PrintStream out ){
-        _sysout = out;
+    public Scope getScope(){
+        if ( _scope == null )
+            _scope = new Scope( "temp score for : " + _name , Scope.GLOBAL );
+        return _scope;
     }
 
+    private Scope _scope = null;
+
     String _name = "NO NAME SET";
-    PrintStream _sysout = System.out;
 }

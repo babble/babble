@@ -174,7 +174,7 @@ public class Convert {
 
         FunctionNode fn = (FunctionNode)n;
         _assertOne( n );
-        _printTree( fn , 0 );
+        //_printTree( fn , 0 );
 
         Set<String> mySymbols = new HashSet<String>();
         _localSymbols.push( mySymbols );
@@ -220,10 +220,7 @@ public class Convert {
 
         String fName = getFunc( name );
         
-        if ( fName.startsWith( "SYSOUT" ) )
-            _append( "SYSOUT(" , n );
-        else
-            _append( "scope.getFunction(\"" + fName + "\").call( " , n );
+        _append( "scope.getFunction(\"" + fName + "\").call( " , n );
         
         Node param = name.getNext();
         while ( param != null ){
@@ -279,6 +276,14 @@ public class Convert {
     }
 
     private String getFunc( Node n ){
+        //System.err.println( Token.name( n.getType() ) );
+        try {
+            n.getString();
+        }
+        catch ( Exception e ){
+            _printTree( n , 0 );
+            throw new RuntimeException( "can't get string : " + Token.name( n.getType() ) );
+        }
         String name = n.getString();
         if ( name == null || name.length() == 0 ){
             int id = n.getIntProp( Node.FUNCTION_PROP , -1 );
@@ -328,7 +333,7 @@ public class Convert {
 
         buf.append( "\tpublic Object call(){\n" );
         
-        buf.append( "final ed.js.engine.Scope scope = ed.js.engine.Scope.GLOBAL;\n\n" );
+        buf.append( "final ed.js.engine.Scope scope = getScope();\n\n" );
         
         buf.append( _mainJavaCode );
         

@@ -8,9 +8,12 @@ import ed.js.*;
 
 public class Scope {
     
-    public static Scope GLOBAL = new Scope( "GLOBAL" , null );
-
-    Scope( String name , Scope parent ){
+    public static Scope GLOBAL = new Scope( "GLOBAL" , JSBuiltInFunctions._myScope  );
+    static {
+        GLOBAL._parentWritable = false;
+    }
+    
+    public Scope( String name , Scope parent ){
         _name = name;
         _parent = parent;
     }

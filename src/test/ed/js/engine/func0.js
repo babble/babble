@@ -1,4 +1,3 @@
-/*
 function foo(){
     return 5;
 }
@@ -21,8 +20,8 @@ function foo4( a ){
     return b;
 }
 SYSOUT( foo4( 10 ) );
-*/
 
+/*
 function foo5( a ){
     a = a + 1;
     var c = a + 2;
@@ -30,6 +29,8 @@ function foo5( a ){
     return c;
 }
 SYSOUT( foo5( 10 ) );
+*/
+
 /*
 function foo6( a ){
     var c = a + 2;

@@ -19,12 +19,23 @@ public class ConvertTest {
         public void test()
             throws IOException {
             Convert c = new Convert( _file );
+
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
-            PrintStream out = new PrintStream( bout );
+            final PrintStream out = new PrintStream( bout );
             
             JSFunction f = c.get();
-            f.setSysOut( out );
+
+            JSFunction myout = new JSFunction( "print" , 1 ){
+                    public Object call( Object o ){
+                        out.println( o );
+                        return null;
+                    }
+                };
+            f.getScope().put( "print" , myout , true );
+            f.getScope().put( "SYSOUT" , myout , true );
+
             f.call();
+
 
             String outString = _clean( bout.toString() );
             
