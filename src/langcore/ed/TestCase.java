@@ -55,7 +55,15 @@ public class TestCase extends MyAsserts {
         }
 
         public String toString(){
-            return _test.toString() + "\t " + _error.toString();
+            StringBuilder buf = new StringBuilder();
+            buf.append( _test );
+            if ( _error != null ){
+                buf.append( "\n\t" + _error + "\n" );
+                for ( StackTraceElement ste : _error.getStackTrace() ){
+                    buf.append( "\t\t" + ste + "\n" );
+                }
+            }
+            return buf.toString();
         }
 
         final Test _test;

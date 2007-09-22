@@ -33,8 +33,10 @@ class CompileUtil {
         
         if ( D ) System.out.println( f + " : " + res );
         
-        if ( res != 0 )
+        if ( res != 0 ){
+            System.err.println( "**" + sw );
             throw new RuntimeException( sw.toString() );
+        }
         
         URLClassLoader cl = new URLClassLoader( new URL[]{ (new File( TMP_DIR )).toURL() } );
         return cl.loadClass( p + "." + c );

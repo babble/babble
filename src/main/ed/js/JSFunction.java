@@ -4,23 +4,17 @@ package ed.js;
 
 import java.io.*;
 
-public abstract class JSFunction extends JSInternalFunctions {
+public abstract class JSFunction extends JSFunctionBase {
 
-    public JSFunction(){
+    public JSFunction( int num ){
+        this( null , num );
     }
 
-    public JSFunction( String name ){
+    public JSFunction( String name , int num ){
+        super( num );
         _name = name;
     }
 
-    public abstract Object call();
-    /*
-    public abstract void call( Object p1 );
-    public abstract void call( Object p1 , Object p2 );
-    public abstract void call( Object p1 , Object p2 , Object p3 );
-    public abstract void call( Object p1 , Object p2 , Object p3 , Object p4 );
-    public abstract void call( Object p1 , Object p2 , Object p3 , Object p4 , Object p5 );
-    */
     protected void SYSOUT( Number n ){
         _sysout.println( n );
     }

@@ -24,9 +24,7 @@ public class ConvertTest {
             
             JSFunction f = c.get();
             f.setSysOut( out );
-            System.out.println( "START" );
             f.call();
-            System.out.println( "END" );
 
             String outString = _clean( bout.toString() );
             

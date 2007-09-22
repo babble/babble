@@ -11,3 +11,11 @@ a = 2;
 b = 3;
 SYSOUT( "5=" + foo() );
 
+var v = 13;
+function bar(){
+    v = v + 2;
+    return v;
+}
+SYSOUT( bar() );
+SYSOUT( bar() );
+SYSOUT( v );

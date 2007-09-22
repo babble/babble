@@ -37,6 +37,9 @@ public class Convert {
         if ( _it != null )
             throw new RuntimeException( "too late" );
         
+        NodeTransformer nf = new NodeTransformer();
+        nf.transform( sn );
+
         for ( int i=0; i<sn.getFunctionCount(); i++ ){
 
             FunctionNode fn = sn.getFunctionNode( i );
@@ -107,6 +110,19 @@ public class Convert {
         case Token.VAR:
             _addVar( n );
             break;
+        case Token.GETVAR:
+            _append( n.getString() , n );
+            break;
+        case Token.SETVAR:
+            String foo = n.getFirstChild().getString();
+            if ( ! _localSymbols.peek().contains( foo ) ){
+                _localSymbols.peek().add( foo );
+                _append( "Object " , n );
+            }
+            _append( n.getFirstChild().getString() + " = " , n );
+            _add( n.getFirstChild().getNext() );
+            _append( ";" , n );
+            break;
         case Token.NAME:
             _append( "scope.get( \"" + n.getString() + "\" )" , n );
             break;
@@ -156,14 +172,31 @@ public class Convert {
             return;
         }
 
-        
+        FunctionNode fn = (FunctionNode)n;
         _assertOne( n );
+        _printTree( fn , 0 );
+
+        Set<String> mySymbols = new HashSet<String>();
+        _localSymbols.push( mySymbols );
+
+        _append( "new JSFunction(" + fn.getParamCount() + "){ \n" , n );
+        String callLine = "public Object call(";
+        for ( int i=0; i<fn.getParamCount(); i++ ){
+            final String foo = fn.getParamOrVarName( i );
+            mySymbols.add( foo );
+            if ( i > 0 )
+                callLine += " , ";
+            callLine += " Object " + foo + " ";
+        }
+        callLine += "){\n" ;
         
-        _append( "new JSFunction(){ \n" , n );
-        _append( "public Object call(){\n" , n );
+        _append( callLine , n );
+        
         _add( n.getFirstChild() );
         _append( "}\n" , n );
         _append( "}\n" , n );
+
+        _localSymbols.pop();
     }
     
     private void _addSet( Node n ){
@@ -291,6 +324,8 @@ public class Convert {
 
         buf.append( "public class " ).append( _className ).append( " extends JSFunction {\n" );
         
+        buf.append( "\tpublic " + _className + "(){\n\t\tsuper(0);\n\t}" );
+
         buf.append( "\tpublic Object call(){\n" );
         
         buf.append( "final ed.js.engine.Scope scope = ed.js.engine.Scope.GLOBAL;\n\n" );
@@ -313,7 +348,11 @@ public class Convert {
             _it = it;
             return _it;
         }
+        catch ( RuntimeException re ){
+            throw re;
+        }
         catch ( Exception e ){
+            e.printStackTrace();
             throw new RuntimeException( e );
         }
     }
@@ -323,6 +362,8 @@ public class Convert {
     final int _id = ID++;    
 
     private int _currentLineNumber = 0;
+
+    private final Stack<Set<String>> _localSymbols = new Stack<Set<String>>();
     
     private final Map<Integer,String> _functionIdToName = new HashMap<Integer,String>();
     private final Map<Integer,List<Node>> _javaCodeToLines = new TreeMap<Integer,List<Node>>();
