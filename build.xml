@@ -31,21 +31,7 @@
     </javac>
   </target>
 
-  <target name="oss" depends="langcore">
-
-    <javac srcdir="src/oss"
-	   destdir="build"
-	   optimize="off"
-	   deprecation="off"
-	   source="1.5"
-           encoding="ISO-8859-1"
-	   debug="on" >
-      <classpath refid="classpath"/>
-    </javac>
-  </target>
-
-  
-  <target name="compile" depends="oss">
+  <target name="compile" depends="langcore">
 
     <javac srcdir="src/main"
 	   destdir="build"
