@@ -17,7 +17,7 @@ function foobar( a , b ){
     }
     return v();
 }
-
+/*
 function foobar2( a , b ){
     var v = function(){
         return a + b;
@@ -33,12 +33,16 @@ function foobar3( a , b ){
     }
     return v;
 }
+*/
 
 var c = foo( a , b );
 print( "3 = " + c );
-
 print( "3 = " + bar( b , a ) );
+
+print( "NaN = " + foo( 11 ) );
+
 print( "12 = " + foobar( 5 , 7 ) );
+/*
 print( "101 = " + foobar2( 5 , 7 ) );
 
 a = 3; b = 4;
@@ -48,3 +52,4 @@ var f = foobar3( a , b );
 a = 4; b = 5;
 print( "7 = " + f() );
 
+*/

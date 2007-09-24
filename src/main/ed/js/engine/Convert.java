@@ -133,13 +133,7 @@ public class Convert {
             _addFunction( n );
             break;
         case Token.BLOCK:
-            _append( "{" , n );
-            Node child = n.getFirstChild();
-            while ( child != null ){
-                _add( child );
-                child = child.getNext();
-            }
-            _append( "}" , n );
+            _addBlock( n );
             break;
         case Token.EXPR_VOID:
             _assertOne( n );
@@ -168,13 +162,12 @@ public class Convert {
     
     private void _addFunction( Node n ){
         if ( ! ( n instanceof FunctionNode ) ){
-            _append( "scope.getFunction( \"" + getFunc( n ) + "\" ) " , n );
+            _append( getFunc( n ) , n );
             return;
         }
 
         FunctionNode fn = (FunctionNode)n;
         _assertOne( n );
-        //_printTree( fn , 0 );
 
         Set<String> mySymbols = new HashSet<String>();
         _localSymbols.push( mySymbols );
@@ -199,6 +192,30 @@ public class Convert {
         _localSymbols.pop();
     }
     
+    private void _addBlock( Node n ){
+        _assertType( n , Token.BLOCK );
+
+        if ( n.getFirstChild() == null )
+            return;
+        
+        // this is weird.  look at bracing0.js
+        if ( n.getFirstChild().getNext() == null && 
+             n.getFirstChild().getType() == Token.EXPR_VOID &&
+             n.getFirstChild().getFirstChild().getNext() == null ){
+            _add( n.getFirstChild() );
+            return;
+        }
+        
+        _append( "{" , n );
+        Node child = n.getFirstChild();
+        while ( child != null ){
+            _add( child );
+            child = child.getNext();
+        }
+        _append( "}" , n );
+        
+    }
+    
     private void _addSet( Node n ){
         _assertType( n , Token.SETNAME );
         Node name = n.getFirstChild();
@@ -218,10 +235,9 @@ public class Convert {
         _assertType( n , Token.CALL );
         Node name = n.getFirstChild();
 
-        String fName = getFunc( name );
-        
-        _append( "scope.getFunction(\"" + fName + "\").call( " , n );
-        
+        String f = getFunc( name );
+        _append( f + ".call( " , n );
+
         Node param = name.getNext();
         while ( param != null ){
             _add( param );
@@ -276,14 +292,13 @@ public class Convert {
     }
 
     private String getFunc( Node n ){
-        //System.err.println( Token.name( n.getType() ) );
-        try {
-            n.getString();
+        if ( n.getClass().getName().indexOf( "StringNode" ) < 0 ){
+            _append( "((JSFunction)" , n);
+            _add( n );
+            _append( ")" , n );
+            return "";
         }
-        catch ( Exception e ){
-            _printTree( n , 0 );
-            throw new RuntimeException( "can't get string : " + Token.name( n.getType() ) );
-        }
+
         String name = n.getString();
         if ( name == null || name.length() == 0 ){
             int id = n.getIntProp( Node.FUNCTION_PROP , -1 );
@@ -294,7 +309,10 @@ public class Convert {
                 throw new RuntimeException( "no name for this id " );
         }
         
-        return name;
+        if ( _localSymbols.size() > 0 && _localSymbols.peek().contains( name ) )
+            return "((JSFunction)" + name + ")";
+        
+        return "scope.getFunction( \"" + name + "\" )";
     }
 
     public String getClassName(){

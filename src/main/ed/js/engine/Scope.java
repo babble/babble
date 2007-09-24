@@ -41,7 +41,7 @@ public class Scope {
     public JSFunction getFunction( String name ){
         Object o = get( name );
         if ( o == null )
-            throw new RuntimeException( "no function named : " + name );
+            return null;
         
         if ( ! ( o instanceof JSFunction ) )
             throw new RuntimeException( "not a function : " + name );
