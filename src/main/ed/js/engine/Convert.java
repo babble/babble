@@ -56,7 +56,7 @@ public class Convert {
             if ( name.length() == 0 )
                 name = "tempFunc_" + _id + "_" + i;
             
-            _functionIdToName.put( i , name );
+            state._functionIdToName.put( i , name );
 
             if ( D ){
                 System.out.println( "***************" );
@@ -292,7 +292,7 @@ public class Convert {
             int id = n.getIntProp( Node.FUNCTION_PROP , -1 );
             if ( id == -1 )
                 throw new RuntimeException( "no name or id for this thing" );
-            name = _functionIdToName.get( id );
+            name = state._functionIdToName.get( id );
             if ( name == null || name.length() == 0 )
                 throw new RuntimeException( "no name for this id " );
         }
@@ -352,42 +352,6 @@ public class Convert {
     final String _className;
     final String _package = "ed.js.gen";
     final int _id = ID++;    
-    
-    class State {
-        
-        State(){
-            _parent = null;
-        }
-
-        State( State s ){
-            _parent = s;
-        }
-                        
-        State child(){
-            return new State( this );
-        }
-
-        State parent(){
-            return _parent;
-        }
-
-        boolean hasSymbol( String s ){
-            return _localSymbols.contains( s );
-        }
-        
-        boolean addSymbol( String s ){
-            return _localSymbols.add( s );
-        }
-
-        final Set<String> _localSymbols = new HashSet<String>();
-        final State _parent;
-        
-    }
-
-    // need to get rid of this and create a State class or somethin
-    //private final Stack<Set<String>> _localSymbols = new Stack<Set<String>>();
-    private final Map<Integer,String> _functionIdToName = new HashMap<Integer,String>();
-    
 
     // these 3 variables should only be use by _append
     private int _currentLineNumber = 0;    
