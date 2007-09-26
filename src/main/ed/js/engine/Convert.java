@@ -48,25 +48,8 @@ public class Convert {
 
         State state = new State();
 
-        for ( int i=0; i<sn.getFunctionCount(); i++ ){
-
-            FunctionNode fn = sn.getFunctionNode( i );
-
-            String name = fn.getFunctionName();
-            if ( name.length() == 0 )
-                name = "tempFunc_" + _id + "_" + i;
-            
-            state._functionIdToName.put( i , name );
-
-            if ( D ){
-                System.out.println( "***************" );
-                System.out.println( i + " : " +  name );
-            }
-
-            _setVar( name , fn , state );
-            _append( "\nscope.getFunction( \"" + name + "\" ).setName( \"" + name + "\" );\n\n" , fn );
-
-        }
+        _addFunctionNodes( sn , state );
+        
         if ( D ) System.out.println( "***************" );
 
         Node n = sn.getFirstChild();
@@ -150,6 +133,28 @@ public class Convert {
 
     }
     
+    private void _addFunctionNodes( ScriptOrFnNode sn , State state ){
+        for ( int i=0; i<sn.getFunctionCount(); i++ ){
+            
+            FunctionNode fn = sn.getFunctionNode( i );
+
+            String name = fn.getFunctionName();
+            if ( name.length() == 0 )
+                name = "tempFunc_" + _id + "_" + i;
+            
+            state._functionIdToName.put( i , name );
+            
+            if ( D ){
+                System.out.println( "***************" );
+                System.out.println( i + " : " +  name );
+            }
+
+            _setVar( name , fn , state );
+            _append( "\nscope.getFunction( \"" + name + "\" ).setName( \"" + name + "\" );\n\n" , fn );
+
+        }
+    }
+    
     private void _addFunction( Node n , State state ){
         if ( ! ( n instanceof FunctionNode ) ){
             _append( getFunc( n , state ) , n );
@@ -174,6 +179,8 @@ public class Convert {
         
         _append( callLine , n );
         
+        _addFunctionNodes( fn , state );
+
         _add( n.getFirstChild() , state );
         _append( "}\n" , n );
         _append( "}\n" , n );
