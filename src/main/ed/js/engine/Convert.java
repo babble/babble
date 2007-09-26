@@ -310,10 +310,6 @@ public class Convert {
         return _className;
     }
 
-    private static boolean _hasString( Node n ){
-        return n.getClass().getName().indexOf( "StringNode" ) >= 0;
-    }
-
     String getClassString(){
         StringBuilder buf = new StringBuilder();
         
@@ -337,7 +333,7 @@ public class Convert {
         return buf.toString();
     }
 
-    JSFunction get(){
+    public JSFunction get(){
         if ( _it != null )
             return _it;
         
@@ -371,17 +367,5 @@ public class Convert {
     private JSFunction _it;
     
     private static int ID = 1;
-    
-    public static void main( String args[] )
-        throws Exception {
-        
-        for ( String s : args ){
-            System.out.println( "-----" );
-            System.out.println( s );
-            
-            Convert c = new Convert( new File( s ) );
-            c.get().call();
-        }
-    }
     
 }
