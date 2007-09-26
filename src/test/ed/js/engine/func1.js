@@ -7,8 +7,15 @@ function foo( a , b ){
 
 function bar(){
     return function(){
-        print( "asd" );
+        return print( "asd" );
     };
+}
+
+function zoo(){
+    function bar(){
+        return 1;
+    }
+    return a;
 }
 
 print( foo( 1 , 2 ) );

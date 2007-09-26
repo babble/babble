@@ -19,3 +19,11 @@ function bar(){
 SYSOUT( bar() );
 SYSOUT( bar() );
 SYSOUT( v );
+
+function asdads( a ){
+    a = 5;
+    var b = a + 2;
+    return a + b;
+}
+
+    

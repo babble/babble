@@ -43,18 +43,17 @@ public class Convert {
         nf.transform( sn );
         
         if ( true ){
-            _printTree( sn );
+            _print( sn , 0 );
             System.exit(0);
         }
 
-        int num = 0;
         for ( int i=0; i<sn.getFunctionCount(); i++ ){
 
             FunctionNode fn = sn.getFunctionNode( i );
-            
+
             String name = fn.getFunctionName();
             if ( name.length() == 0 )
-                name = "tempFunc_" + _id + "_" + num++;
+                name = "tempFunc_" + _id + "_" + i;
             
             _functionIdToName.put( i , name );
 
@@ -331,11 +330,12 @@ public class Convert {
         return n.getClass().getName().indexOf( "StringNode" ) >= 0;
     }
 
-    private static void _printTree( ScriptOrFnNode sn ){
+    private static void _print( ScriptOrFnNode sn , int indent ){
         for ( int i=0; i<sn.getFunctionCount(); i++ ){
-            _printTree( sn.getFunctionNode( i ) , 0 );
+            FunctionNode fn = sn.getFunctionNode( i );
+            _print( fn , indent );
         }
-        _printTree( sn , 0 );
+        _printTree( sn , indent );
     }
 
     private static void _printTree( Node n , int indent ){
@@ -346,6 +346,11 @@ public class Convert {
             System.out.print( "  " );
 
         System.out.print( Token.name( n.getType() ) + " [" + n.getClass().getName().replaceAll( "org.mozilla.javascript." , "" ) + "]"  );
+
+        if ( n instanceof FunctionNode )
+            System.out.print( " " + ((FunctionNode)n).getFunctionName() );
+
+
         if ( n.getType() == Token.FUNCTION ){
             int id = n.getIntProp( Node.FUNCTION_PROP , -17 );
             if ( id != -17 )
@@ -353,10 +358,13 @@ public class Convert {
         }
         
         if ( _hasString( n ) )
-            System.out.print( " " + n.getString() );
-        if ( n.getType() == Token.NUMBER )
-            System.out.print( " " + n.getDouble() );
+            System.out.print( " [" + n.getString() + "]" );
         
+        if ( n.getType() == Token.NUMBER )
+            System.out.print( " NUMBER:" + n.getDouble() );
+        
+        //System.out.print( " " + n.toString().replaceAll( "^\\w+ " , "" ) );
+
         System.out.println();
         
         _printTree( n.getFirstChild() , indent + 1 );
