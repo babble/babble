@@ -43,7 +43,7 @@ public class Convert {
         nf.transform( sn );
         
         if ( true ){
-            _print( sn , 0 );
+            Debug.print( sn , 0 );
             System.exit(0);
         }
 
@@ -84,22 +84,6 @@ public class Convert {
     
     private void _add( Node n , ScriptOrFnNode sn ){
         
-        if ( false ){
-            
-            System.out.println( "------  has base : " + ( sn != null ) );
-            
-            if ( sn == null ){
-                System.out.println( Token.name( n.getType() ) );
-            }
-            else {
-                System.out.println( n.toStringTree( sn ) );
-            }
-
-            _printTree( n , 0 );
-        
-        }
-
-
         switch ( n.getType() ){
         case Token.EXPR_RESULT:
             _assertOne( n );
@@ -161,7 +145,7 @@ public class Convert {
             _append( " ) " , n );
             break;
         default:
-            _printTree( n , 0 );
+            Debug.printTree( n , 0 );
             throw new RuntimeException( "can't handle : " + n.getType() + ":" + Token.name( n.getType() ) + ":" + n.getClass().getName() );
         }
 
@@ -330,47 +314,6 @@ public class Convert {
         return n.getClass().getName().indexOf( "StringNode" ) >= 0;
     }
 
-    private static void _print( ScriptOrFnNode sn , int indent ){
-        for ( int i=0; i<sn.getFunctionCount(); i++ ){
-            FunctionNode fn = sn.getFunctionNode( i );
-            _print( fn , indent );
-        }
-        _printTree( sn , indent );
-    }
-
-    private static void _printTree( Node n , int indent ){
-        if ( n == null )
-            return;
-
-        for ( int i=0; i<indent; i++ )
-            System.out.print( "  " );
-
-        System.out.print( Token.name( n.getType() ) + " [" + n.getClass().getName().replaceAll( "org.mozilla.javascript." , "" ) + "]"  );
-
-        if ( n instanceof FunctionNode )
-            System.out.print( " " + ((FunctionNode)n).getFunctionName() );
-
-
-        if ( n.getType() == Token.FUNCTION ){
-            int id = n.getIntProp( Node.FUNCTION_PROP , -17 );
-            if ( id != -17 )
-                System.out.print( " functionId=" + id );
-        }
-        
-        if ( _hasString( n ) )
-            System.out.print( " [" + n.getString() + "]" );
-        
-        if ( n.getType() == Token.NUMBER )
-            System.out.print( " NUMBER:" + n.getDouble() );
-        
-        //System.out.print( " " + n.toString().replaceAll( "^\\w+ " , "" ) );
-
-        System.out.println();
-        
-        _printTree( n.getFirstChild() , indent + 1 );
-        _printTree( n.getNext() , indent );
-    }
-    
     String getClassString(){
         StringBuilder buf = new StringBuilder();
         
