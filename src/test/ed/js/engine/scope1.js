@@ -13,7 +13,7 @@ function bar( a , b ){
 
 function foobar( a , b ){
     var v = function(){
-        return a + b;
+        return a + 1 + b;
     }
     return v();
 }

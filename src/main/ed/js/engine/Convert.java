@@ -13,7 +13,7 @@ import ed.util.*;
 
 public class Convert {
 
-    static boolean D = false;
+    static boolean D = true;
 
     public Convert( File f )
         throws IOException {
@@ -34,19 +34,27 @@ public class Convert {
     }
 
     private void add( ScriptOrFnNode sn ){
+
+        
         if ( _it != null )
             throw new RuntimeException( "too late" );
         
         NodeTransformer nf = new NodeTransformer();
         nf.transform( sn );
+        
+        if ( true ){
+            _printTree( sn );
+            System.exit(0);
+        }
 
+        int num = 0;
         for ( int i=0; i<sn.getFunctionCount(); i++ ){
 
             FunctionNode fn = sn.getFunctionNode( i );
             
             String name = fn.getFunctionName();
             if ( name.length() == 0 )
-                name = "tempFunc_" + _id + "_" + i;
+                name = "tempFunc_" + _id + "_" + num++;
             
             _functionIdToName.put( i , name );
 
@@ -56,7 +64,7 @@ public class Convert {
             }
 
             _setVar( name , fn );
-            _append( "scope.getFunction( \"" + name + "\" ).setName( \"" + name + "\" );" , fn );
+            _append( "\nscope.getFunction( \"" + name + "\" ).setName( \"" + name + "\" );\n\n" , fn );
 
         }
         if ( D ) System.out.println( "***************" );
@@ -77,7 +85,7 @@ public class Convert {
     
     private void _add( Node n , ScriptOrFnNode sn ){
         
-        if ( D ){
+        if ( false ){
             
             System.out.println( "------  has base : " + ( sn != null ) );
             
@@ -319,7 +327,18 @@ public class Convert {
         return _className;
     }
 
-    private void _printTree( Node n , int indent ){
+    private static boolean _hasString( Node n ){
+        return n.getClass().getName().indexOf( "StringNode" ) >= 0;
+    }
+
+    private static void _printTree( ScriptOrFnNode sn ){
+        for ( int i=0; i<sn.getFunctionCount(); i++ ){
+            _printTree( sn.getFunctionNode( i ) , 0 );
+        }
+        _printTree( sn , 0 );
+    }
+
+    private static void _printTree( Node n , int indent ){
         if ( n == null )
             return;
 
@@ -332,6 +351,12 @@ public class Convert {
             if ( id != -17 )
                 System.out.print( " functionId=" + id );
         }
+        
+        if ( _hasString( n ) )
+            System.out.print( " " + n.getString() );
+        if ( n.getType() == Token.NUMBER )
+            System.out.print( " " + n.getDouble() );
+        
         System.out.println();
         
         _printTree( n.getFirstChild() , indent + 1 );
@@ -347,7 +372,7 @@ public class Convert {
 
         buf.append( "public class " ).append( _className ).append( " extends JSFunction {\n" );
         
-        buf.append( "\tpublic " + _className + "(){\n\t\tsuper(0);\n\t}" );
+        buf.append( "\tpublic " + _className + "(){\n\t\tsuper(0);\n\t}\n\n" );
 
         buf.append( "\tpublic Object call(){\n" );
         
