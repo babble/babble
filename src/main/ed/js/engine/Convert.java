@@ -25,16 +25,15 @@ public class Convert {
         CompilerEnvirons ce = new CompilerEnvirons();
         Parser p = new Parser( ce , ce.getErrorReporter() );
 
-        add( p.parse( raw , f.toString() , 0 ) );
+        init( p.parse( raw , f.toString() , 0 ) );
     }
 
     public Convert( ScriptOrFnNode sn ){
         _className = "anon_" + _id;
-        add( sn );
+        init( sn );
     }
 
-    private void add( ScriptOrFnNode sn ){
-
+    private void init( ScriptOrFnNode sn ){
         
         if ( _it != null )
             throw new RuntimeException( "too late" );
