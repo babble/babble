@@ -5,18 +5,5 @@ function foo( a , b ){
     return v();   
 }
 
-function bar(){
-    return function(){
-        return print( "asd" );
-    };
-}
-
-function zoo(){
-    function bar(){
-        return 1;
-    }
-    return a;
-}
-
 print( foo( 1 , 2 ) );
 

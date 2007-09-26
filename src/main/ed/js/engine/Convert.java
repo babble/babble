@@ -41,10 +41,12 @@ public class Convert {
         NodeTransformer nf = new NodeTransformer();
         nf.transform( sn );
         
-        if ( true ){
+        if ( false ){
             Debug.print( sn , 0 );
             System.exit(0);
         }
+
+        State state = new State();
 
         for ( int i=0; i<sn.getFunctionCount(); i++ ){
 
@@ -61,7 +63,7 @@ public class Convert {
                 System.out.println( i + " : " +  name );
             }
 
-            _setVar( name , fn );
+            _setVar( name , fn , state );
             _append( "\nscope.getFunction( \"" + name + "\" ).setName( \"" + name + "\" );\n\n" , fn );
 
         }
@@ -69,7 +71,7 @@ public class Convert {
 
         Node n = sn.getFirstChild();
         while ( n != null ){
-            _add( n , sn );
+            _add( n , sn , state );
             _append( ";\n" , n );
             n = n.getNext();
         }
@@ -77,19 +79,19 @@ public class Convert {
         _append( "return null;" , sn );
     }
 
-    private void _add( Node n ){
-        _add( n , null );
+    private void _add( Node n , State s ){
+        _add( n , null , s );
     }
     
-    private void _add( Node n , ScriptOrFnNode sn ){
+    private void _add( Node n , ScriptOrFnNode sn , State state ){
         
         switch ( n.getType() ){
         case Token.EXPR_RESULT:
             _assertOne( n );
-            _add( n.getFirstChild() );
+            _add( n.getFirstChild() , state );
             break;
         case Token.CALL:
-            _addCall( n );
+            _addCall( n , state );
             break;
         case Token.NUMBER:
             _append( String.valueOf( n.getDouble() ) , n );
@@ -98,49 +100,47 @@ public class Convert {
             _append( "\"" + n.getString() + "\"" , n );
             break;
         case Token.VAR:
-            _addVar( n );
+            _addVar( n , state );
             break;
         case Token.GETVAR:
             _append( n.getString() , n );
             break;
         case Token.SETVAR:
             String foo = n.getFirstChild().getString();
-            if ( ! _localSymbols.peek().contains( foo ) ){
-                _localSymbols.peek().add( foo );
+            if ( state.addSymbol( foo ) )
                 _append( "Object " , n );
-            }
             _append( n.getFirstChild().getString() + " = " , n );
-            _add( n.getFirstChild().getNext() );
+            _add( n.getFirstChild().getNext() , state );
             _append( ";" , n );
             break;
         case Token.NAME:
             _append( "scope.get( \"" + n.getString() + "\" )" , n );
             break;
         case Token.SETNAME:
-            _addSet( n );
+            _addSet( n , state );
             break;
         case Token.FUNCTION:
-            _addFunction( n );
+            _addFunction( n , state );
             break;
         case Token.BLOCK:
-            _addBlock( n );
+            _addBlock( n , state );
             break;
         case Token.EXPR_VOID:
             _assertOne( n );
-            _add( n.getFirstChild() );
+            _add( n.getFirstChild() , state );
             _append( ";" , n );
             break;
         case Token.RETURN:
             _assertOne( n );
             _append( "return " , n );
-            _add( n.getFirstChild() );
+            _add( n.getFirstChild() , state );
             _append( ";" , n );
             break;
         case Token.ADD:
             _append( "JS_add( " , n );
-            _add( n.getFirstChild() );
+            _add( n.getFirstChild() , state );
             _append( " , " , n );
-            _add( n.getFirstChild().getNext() );
+            _add( n.getFirstChild().getNext() , state );
             _append( " ) " , n );
             break;
         default:
@@ -150,23 +150,22 @@ public class Convert {
 
     }
     
-    private void _addFunction( Node n ){
+    private void _addFunction( Node n , State state ){
         if ( ! ( n instanceof FunctionNode ) ){
-            _append( getFunc( n ) , n );
+            _append( getFunc( n , state ) , n );
             return;
         }
 
         FunctionNode fn = (FunctionNode)n;
         _assertOne( n );
 
-        Set<String> mySymbols = new HashSet<String>();
-        _localSymbols.push( mySymbols );
+        state = state.child();
 
         _append( "new JSFunction(" + fn.getParamCount() + "){ \n" , n );
         String callLine = "public Object call(";
         for ( int i=0; i<fn.getParamCount(); i++ ){
             final String foo = fn.getParamOrVarName( i );
-            mySymbols.add( foo );
+            state.addSymbol( foo );
             if ( i > 0 )
                 callLine += " , ";
             callLine += " Object " + foo + " ";
@@ -175,14 +174,13 @@ public class Convert {
         
         _append( callLine , n );
         
-        _add( n.getFirstChild() );
+        _add( n.getFirstChild() , state );
         _append( "}\n" , n );
         _append( "}\n" , n );
 
-        _localSymbols.pop();
     }
     
-    private void _addBlock( Node n ){
+    private void _addBlock( Node n , State state ){
         _assertType( n , Token.BLOCK );
 
         if ( n.getFirstChild() == null )
@@ -192,45 +190,45 @@ public class Convert {
         if ( n.getFirstChild().getNext() == null && 
              n.getFirstChild().getType() == Token.EXPR_VOID &&
              n.getFirstChild().getFirstChild().getNext() == null ){
-            _add( n.getFirstChild() );
+            _add( n.getFirstChild() , state );
             return;
         }
         
         _append( "{" , n );
         Node child = n.getFirstChild();
         while ( child != null ){
-            _add( child );
+            _add( child , state );
             child = child.getNext();
         }
         _append( "}" , n );
         
     }
     
-    private void _addSet( Node n ){
+    private void _addSet( Node n , State state ){
         _assertType( n , Token.SETNAME );
         Node name = n.getFirstChild();
-        _setVar( name.getString() , name.getNext() );
+        _setVar( name.getString() , name.getNext() , state );
     }
     
-    private void _addVar( Node n ){
+    private void _addVar( Node n , State state ){
         _assertType( n , Token.VAR );
         _assertOne( n );
         
         Node name = n.getFirstChild();
         _assertOne( name );
-        _setVar( name.getString() , name.getFirstChild() );
+        _setVar( name.getString() , name.getFirstChild() , state );
     }
     
-    private void _addCall( Node n ){
+    private void _addCall( Node n , State state ){
         _assertType( n , Token.CALL );
         Node name = n.getFirstChild();
 
-        String f = getFunc( name );
+        String f = getFunc( name , state );
         _append( f + ".call( " , n );
 
         Node param = name.getNext();
         while ( param != null ){
-            _add( param );
+            _add( param , state );
             param = param.getNext();
             if ( param != null ){
                 _append( " , " , param );
@@ -240,9 +238,9 @@ public class Convert {
         _append( " ) " , n );
     }
 
-    private void _setVar( String name , Node val ){
+    private void _setVar( String name , Node val , State state ){
         _append( "scope.put( \"" + name + "\" , " , val);
-        _add( val );
+        _add( val , state );
         _append( " , false  ); " , val );
     }
     
@@ -281,10 +279,10 @@ public class Convert {
         _currentLineNumber = end;
     }
 
-    private String getFunc( Node n ){
+    private String getFunc( Node n , State state ){
         if ( n.getClass().getName().indexOf( "StringNode" ) < 0 ){
             _append( "((JSFunction)" , n);
-            _add( n );
+            _add( n , state );
             _append( ")" , n );
             return "";
         }
@@ -299,7 +297,7 @@ public class Convert {
                 throw new RuntimeException( "no name for this id " );
         }
         
-        if ( _localSymbols.size() > 0 && _localSymbols.peek().contains( name ) )
+        if ( state.hasSymbol( name ) )
             return "((JSFunction)" + name + ")";
         
         return "scope.getFunction( \"" + name + "\" )";
@@ -354,12 +352,45 @@ public class Convert {
     final String _className;
     final String _package = "ed.js.gen";
     final int _id = ID++;    
-
-    private int _currentLineNumber = 0;
-
-    private final Stack<Set<String>> _localSymbols = new Stack<Set<String>>();
     
+    class State {
+        
+        State(){
+            _parent = null;
+        }
+
+        State( State s ){
+            _parent = s;
+        }
+                        
+        State child(){
+            return new State( this );
+        }
+
+        State parent(){
+            return _parent;
+        }
+
+        boolean hasSymbol( String s ){
+            return _localSymbols.contains( s );
+        }
+        
+        boolean addSymbol( String s ){
+            return _localSymbols.add( s );
+        }
+
+        final Set<String> _localSymbols = new HashSet<String>();
+        final State _parent;
+        
+    }
+
+    // need to get rid of this and create a State class or somethin
+    //private final Stack<Set<String>> _localSymbols = new Stack<Set<String>>();
     private final Map<Integer,String> _functionIdToName = new HashMap<Integer,String>();
+    
+
+    // these 3 variables should only be use by _append
+    private int _currentLineNumber = 0;    
     private final Map<Integer,List<Node>> _javaCodeToLines = new TreeMap<Integer,List<Node>>();
     private final StringBuilder _mainJavaCode = new StringBuilder();
     
