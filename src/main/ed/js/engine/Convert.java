@@ -86,19 +86,29 @@ public class Convert {
             _addVar( n , state );
             break;
         case Token.GETVAR:
-            _append( n.getString() , n );
-            break;
-        case Token.SETVAR:
-            String foo = n.getFirstChild().getString();
-            if ( state.addSymbol( foo ) )
-                _append( "Object " , n );
-            _append( n.getFirstChild().getString() + " = " , n );
-            _add( n.getFirstChild().getNext() , state );
-            _append( ";" , n );
-            break;
+            if ( state.useLocalVariable( n.getString() ) ){
+                _append( n.getString() , n );
+                break;
+            }
         case Token.NAME:
             _append( "scope.get( \"" + n.getString() + "\" )" , n );
             break;
+        case Token.SETVAR:
+            final String foo = n.getFirstChild().getString();
+            if ( state.useLocalVariable( foo ) ){
+                if ( state.addSymbol( foo ) )
+                    _append( "Object " , n );
+                _append( foo + " = " , n );
+                _add( n.getFirstChild().getNext() , state );
+                _append( ";" , n );
+            }
+            else {
+                _setVar( foo , 
+                         n.getFirstChild().getNext() ,
+                         state );
+            }
+            break;
+
         case Token.SETNAME:
             _addSet( n , state );
             break;
@@ -165,19 +175,27 @@ public class Convert {
         _assertOne( n );
 
         state = state.child();
-
+        
         _append( "new JSFunction(" + fn.getParamCount() + "){ \n" , n );
+        
         String callLine = "public Object call(";
+        String varSetup = "";
+        
         for ( int i=0; i<fn.getParamCount(); i++ ){
             final String foo = fn.getParamOrVarName( i );
             state.addSymbol( foo );
             if ( i > 0 )
                 callLine += " , ";
-            callLine += " Object " + foo + " ";
+            callLine += " Object " + foo;
+            if ( ! state.useLocalVariable( foo ) ){
+                callLine += "INNNNN";
+                varSetup += " \nscope.put(\"" + foo + "\"," + foo + "INNNNN , true  );\n ";
+            }
+            callLine += " ";
         }
         callLine += "){\n" ;
         
-        _append( callLine , n );
+        _append( callLine + varSetup , n );
         
         _addFunctionNodes( fn , state );
 

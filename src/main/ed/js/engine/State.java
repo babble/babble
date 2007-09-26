@@ -33,6 +33,10 @@ class State {
     boolean addSymbol( String s ){
         return _localSymbols.add( s );
     }
+
+    boolean useLocalVariable( String name ){
+        return false;
+    }
     
     final Set<String> _localSymbols = new HashSet<String>();
     final Map<Integer,String> _functionIdToName = new HashMap<Integer,String>();
