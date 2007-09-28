@@ -10,7 +10,6 @@ public class Scope {
     
     public static Scope GLOBAL = new Scope( "GLOBAL" , JSBuiltInFunctions._myScope  );
     static {
-        GLOBAL._parentWritable = false;
         GLOBAL._locked = true;
     }
 
@@ -36,7 +35,6 @@ public class Scope {
         if ( local
              || _parent == null
              || _parent._locked 
-             || ! _parentWritable 
              || _objects.containsKey( name ) 
              ){
             
@@ -78,7 +76,6 @@ public class Scope {
     final String _name;
     final Scope _parent;
 
-    boolean _parentWritable = true;
     boolean _locked = false;
 
     final Map<String,Object> _objects = new HashMap<String,Object>();
