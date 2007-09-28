@@ -11,26 +11,52 @@ public class Scope {
     public static Scope GLOBAL = new Scope( "GLOBAL" , JSBuiltInFunctions._myScope  );
     static {
         GLOBAL._parentWritable = false;
+        GLOBAL._locked = true;
     }
+
+    static class _NULL {
+        
+    }
+    static _NULL NULL = new _NULL();
     
     public Scope( String name , Scope parent ){
         _name = name;
         _parent = parent;
     }
 
+    public Scope child(){
+        return new Scope( _name + ".child" , this );
+    }
+
     public void put( String name , Object o , boolean local ){
-        if ( local || _parent == null || ! _parentWritable || _objects.containsKey( name ) ){
+        
+        if ( _locked )
+            throw new RuntimeException( "locked" );
+        
+        if ( local
+             || _parent == null
+             || _parent._locked 
+             || ! _parentWritable 
+             || _objects.containsKey( name ) 
+             ){
+            
+            if ( o == null )
+                o = NULL;
             _objects.put( name , o );
             return;
         }
         
+        
         _parent.put( name , o , false );
     }
-
+    
     public Object get( String name ){
         Object foo = _objects.get( name );
-        if ( foo != null )
+        if ( foo != null ){
+            if ( foo == NULL )
+                return null;
             return foo;
+        }
         
         if ( _parent == null )
             return null;
@@ -53,6 +79,7 @@ public class Scope {
     final Scope _parent;
 
     boolean _parentWritable = true;
+    boolean _locked = false;
 
     final Map<String,Object> _objects = new HashMap<String,Object>();
 }
