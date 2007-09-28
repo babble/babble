@@ -8,10 +8,10 @@ public class JSBuiltInFunctions {
 
     public static class print extends JSFunction {
         print(){
-            super( "print" , 1 );
+            super( null , "print" , 1 );
         }
 
-        public Object call( Object foo ){
+        public Object call( Scope scope , Object foo ){
             System.out.println( foo );
             return null;
         }

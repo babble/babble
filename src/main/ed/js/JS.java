@@ -15,7 +15,7 @@ public class JS {
             System.out.println( s );
             
             Convert c = new Convert( new File( s ) );
-            c.get().call();
+            c.get().call( Scope.GLOBAL.child() );
         }
     }
 }

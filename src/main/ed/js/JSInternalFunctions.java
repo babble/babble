@@ -15,6 +15,11 @@ public class JSInternalFunctions {
             return d1 + d2;
         }
         
+        if ( ( a != null && ( a instanceof Number ) && b == null ) ||
+             ( b != null && ( b instanceof Number ) && a == null ) ){
+            return Double.NaN;
+        }
+
         String s1 = a == null ? "null" : a.toString();
         String s2 = b == null ? "null" : b.toString();
         

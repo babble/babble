@@ -176,16 +176,15 @@ public class Convert {
 
         state = state.child();
         
-        _append( "new JSFunction(" + fn.getParamCount() + "){ \n" , n );
+        _append( "new JSFunction( scope , null , " + fn.getParamCount() + "){ \n" , n );
         
-        String callLine = "public Object call(";
+        String callLine = "public Object call( final Scope passedIn ";
         String varSetup = "";
         
         for ( int i=0; i<fn.getParamCount(); i++ ){
             final String foo = fn.getParamOrVarName( i );
             state.addSymbol( foo );
-            if ( i > 0 )
-                callLine += " , ";
+            callLine += " , ";
             callLine += " Object " + foo;
             if ( ! state.useLocalVariable( foo ) ){
                 callLine += "INNNNN";
@@ -195,8 +194,10 @@ public class Convert {
         }
         callLine += "){\n" ;
         
-        _append( callLine + varSetup , n );
+        _append( callLine + " final Scope scope = new Scope( \"temp scope\" , _scope ); " + varSetup , n );
         
+        //_append( "final ed.js.engine.Scope oldScope = scope;\n final ed.js.engine.Scope scope = oldScope.child();\n" , n );
+
         _addFunctionNodes( fn , state );
 
         _add( n.getFirstChild() , state );
@@ -249,15 +250,13 @@ public class Convert {
         Node name = n.getFirstChild();
 
         String f = getFunc( name , state );
-        _append( f + ".call( " , n );
+        _append( f + ".call( scope " , n );
 
         Node param = name.getNext();
         while ( param != null ){
+            _append( " , " , param );
             _add( param , state );
             param = param.getNext();
-            if ( param != null ){
-                _append( " , " , param );
-            }
         }
 
         _append( " ) " , n );
@@ -338,14 +337,13 @@ public class Convert {
         buf.append( "package " + _package + ";\n" );
         
         buf.append( "import ed.js.*;\n" );
+        buf.append( "import ed.js.engine.Scope;\n" );
 
         buf.append( "public class " ).append( _className ).append( " extends JSFunction {\n" );
         
         buf.append( "\tpublic " + _className + "(){\n\t\tsuper(0);\n\t}\n\n" );
 
-        buf.append( "\tpublic Object call(){\n" );
-        
-        buf.append( "final ed.js.engine.Scope scope = getScope();\n\n" );
+        buf.append( "\tpublic Object call( Scope scope ){\n" );
         
         buf.append( _mainJavaCode );
         

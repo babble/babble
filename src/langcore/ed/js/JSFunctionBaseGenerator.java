@@ -19,6 +19,7 @@ public class JSFunctionBaseGenerator {
         StringBuilder buf = new StringBuilder();
         buf.append( "// JSFunctionBase.java\n\n" );
         buf.append( "package ed.js;\n\n" );
+        buf.append( "import ed.js.engine.Scope;\n" );
         buf.append( "public abstract class JSFunctionBase extends JSInternalFunctions { \n" );
         
         buf.append( _i( 1 ) + "public JSFunctionBase( int num ){\n" );
@@ -29,11 +30,9 @@ public class JSFunctionBaseGenerator {
         int max = 30;
 
         for ( int i=0; i<=max; i++ ){
-            buf.append( _i( 1 ) + "public Object call(" );
+            buf.append( _i( 1 ) + "public Object call( Scope scope " );
             for ( int j=0; j<i; j++ ){
-                if ( j > 0 )
-                    buf.append( " , " );
-                buf.append( " Object p" + j );
+                buf.append( " , Object p" + j );
             }
             buf.append( " ){\n" );
             
@@ -44,10 +43,10 @@ public class JSFunctionBaseGenerator {
                 buf.append( _i(2) + "throw new RuntimeException( \"fuck\" );\n " );
             }
             else {
-                buf.append( _i( 2 ) + "return call(" );
+                buf.append( _i( 2 ) + "return call( scope " );
                 for ( int j=0; j<i; j++ )
-                    buf.append( "p" + j + "," );
-                buf.append( "null" );
+                    buf.append( " , " + "p" + j );
+                buf.append( " , null" );
                 buf.append( ");\n" );
                 
                 buf.append( _i( 1 ) + "\n" );

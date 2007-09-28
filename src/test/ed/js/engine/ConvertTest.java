@@ -25,16 +25,18 @@ public class ConvertTest {
             
             JSFunction f = c.get();
 
-            JSFunction myout = new JSFunction( "print" , 1 ){
-                    public Object call( Object o ){
+            JSFunction myout = new JSFunction( null , "print" , 1 ){
+                    public Object call( Scope scope ,Object o ){
                         out.println( o );
                         return null;
                     }
                 };
-            f.getScope().put( "print" , myout , true );
-            f.getScope().put( "SYSOUT" , myout , true );
+            
+            Scope scope = Scope.GLOBAL.child();
+            scope.put( "print" , myout , true );
+            scope.put( "SYSOUT" , myout , true );
 
-            f.call();
+            f.call( scope );
 
 
             String outString = _clean( bout.toString() );

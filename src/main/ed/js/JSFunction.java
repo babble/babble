@@ -7,11 +7,12 @@ import ed.js.engine.Scope;
 public abstract class JSFunction extends JSFunctionBase {
 
     public JSFunction( int num ){
-        this( null , num );
+        this( null , null , num );
     }
-
-    public JSFunction( String name , int num ){
+    
+    public JSFunction( Scope scope , String name , int num ){
         super( num );
+        _scope = scope;
         _name = name;
     }
 
@@ -27,13 +28,7 @@ public abstract class JSFunction extends JSFunctionBase {
         return "JSFunction : " + _name;
     }
 
-    public Scope getScope(){
-        if ( _scope == null )
-            _scope = new Scope( "temp score for : " + _name , Scope.GLOBAL );
-        return _scope;
-    }
-
-    private Scope _scope = null;
+    protected final Scope _scope;
 
     String _name = "NO NAME SET";
 }
