@@ -17,10 +17,22 @@ public class JSBuiltInFunctions {
         }
     }
 
+    public static class NewObject extends JSFunction {
+        NewObject(){
+            super( null , "Object" , 0 );
+        }
+
+        public Object call( Scope scope ){
+            return new JSObject();
+        }
+    }
+
     static Scope _myScope = new Scope( "Built-Ins" , null );
     static {
         _myScope.put( "print" , new print() , true );
         _myScope.put( "SYSOUT" , new print() , true );
+
+        _myScope.put( "Object" , new NewObject() , true );
     }
     
 }

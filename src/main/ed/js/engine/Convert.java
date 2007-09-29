@@ -69,6 +69,26 @@ public class Convert {
     private void _add( Node n , ScriptOrFnNode sn , State state ){
         
         switch ( n.getType() ){
+        case Token.SETPROP:
+        case Token.SETELEM:
+            _append( "((JSObject)" , n );
+            _add( n.getFirstChild() , state );
+            _append( ").set( " , n );
+            _add( n.getFirstChild().getNext() , state );
+            _append( " , " , n );
+            _add( n.getFirstChild().getNext().getNext() , state );
+            _append( " ); " , n );
+            break;
+
+        case Token.GETPROP:
+        case Token.GETELEM:
+            _append( "((JSObject)" , n );
+            _add( n.getFirstChild() , state );
+            _append( ").get( " , n );
+            _add( n.getFirstChild().getNext() , state );
+            _append( " )" , n );
+            break;
+
         case Token.EXPR_RESULT:
             _assertOne( n );
             _add( n.getFirstChild() , state );
