@@ -40,6 +40,14 @@ public class Debug {
             System.out.print( " NUMBER:" + n.getDouble() );
         
         //System.out.print( " " + n.toString().replaceAll( "^\\w+ " , "" ) );
+        
+        if ( n instanceof Node.Jump ){
+            Node.Jump j = (Node.Jump)n;
+            if ( j.target != null )
+                System.out.print( " -> " + j.target.hashCode() );
+        }
+
+        System.out.print( " (" + n.hashCode() + ")" );
 
         System.out.println();
         

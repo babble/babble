@@ -96,12 +96,14 @@ public class Convert {
         case Token.CALL:
             _addCall( n , state );
             break;
+
         case Token.NUMBER:
             _append( String.valueOf( n.getDouble() ) , n );
             break;
         case Token.STRING:
             _append( "\"" + n.getString() + "\"" , n );
             break;
+
         case Token.VAR:
             _addVar( n , state );
             break;
@@ -149,8 +151,13 @@ public class Convert {
             _add( n.getFirstChild() , state );
             _append( ";" , n );
             break;
+
+            // 2 thing things
         case Token.ADD:
-            _append( "JS_add( " , n );
+        case Token.EQ:
+            _append( "JS_" , n );
+            _append( _2ThingThings.get( n.getType() ) , n );
+            _append( "( " , n );
             _add( n.getFirstChild() , state );
             _append( " , " , n );
             _add( n.getFirstChild().getNext() , state );
@@ -405,4 +412,9 @@ public class Convert {
     
     private static int ID = 1;
     
+    private final static Map<Integer,String> _2ThingThings = new HashMap<Integer,String>();
+    static {
+        _2ThingThings.put( Token.ADD , "add" );
+        _2ThingThings.put( Token.EQ , "eq" );
+    }
 }

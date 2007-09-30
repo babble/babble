@@ -1,12 +1,17 @@
 var a = 4;
+var b = 4;
 
-if ( a == 4 ){
+var c = a == b;
+print( c );
+
+while ( c )
+    print( "a" );
+
+/*
+if ( c ){
     print( "1" );
 }
-else if ( a == 5 ){
+else {
     print( "2" );
 }
-else {
-    print( "3" );
-}
-
+*/

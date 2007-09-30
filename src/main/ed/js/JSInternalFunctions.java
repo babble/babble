@@ -25,4 +25,14 @@ public class JSInternalFunctions {
         
         return s1 + s2;
     }
+
+    public Boolean JS_eq( Object a , Object b ){
+        if ( a == null && b == null )
+            return true;
+        
+        if ( a == null || b == null )
+            return false;
+        
+        return a.equals( b );
+    }
 }
