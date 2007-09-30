@@ -10,10 +10,11 @@ do {
     print( foo );
 } while ( foo );
 
-print( "split" );
 /*
-while( ){
+t1:
+while( bar ){
     print( "once" );
-    break;
+    break t1;
 }
+
 */

@@ -41,8 +41,9 @@ public class Convert {
         NodeTransformer nf = new NodeTransformer();
         nf.transform( sn );
         
-        if ( D )
+        if ( D ){
             Debug.print( sn , 0 );
+        }
 
         State state = new State();
 
@@ -178,7 +179,14 @@ public class Convert {
         case Token.LOOP:
             _addLoop( n , state );
             break;
-
+            
+        case Token.WHILE:
+            _append( "while( JS_evalToBool( " , n );
+            _add( n.getFirstChild() , state );
+            _append( " ) ) " , n );
+            _add( n.getFirstChild().getNext() , state );
+            break;
+            
         case Token.TARGET:
             break;
             
@@ -226,8 +234,8 @@ public class Convert {
             _add( main , state );
         }
         else if ( ( nodes = _matches( n , _doWhile1 ) ) != null ){
-            Node main = node[1];
-            Node predicate = node[3];
+            Node main = nodes[1];
+            Node predicate = nodes[3];
             _assertType( predicate , Token.IFEQ );
 
             _append( "do  \n " , theLoop );
@@ -533,8 +541,8 @@ public class Convert {
         _2ThingThings.put( Token.EQ , "eq" );
     }
 
-    private static final int _while1[] = new int{ Token.GOTO , Token.TARGET , 0 , 0 , TARGET , IFEQ , TARGET };
-    private static final int _doWhile1[] = new int{ Token.TARGET , 0 , TARGET , Token.IFEQ , TARGET };
+    private static final int _while1[] = new int[]{ Token.GOTO , Token.TARGET , 0 , 0 , Token.TARGET , Token.IFEQ , Token.TARGET };
+    private static final int _doWhile1[] = new int[]{ Token.TARGET , 0 , Token.TARGET , Token.IFEQ , Token.TARGET };
 
     private static Node[] _matches( Node n , int types[] ){
         Node foo[] = new Node[types.length];
