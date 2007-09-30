@@ -4,6 +4,16 @@ package ed.js;
 
 public class JSInternalFunctions {
 
+    public boolean JS_evalToBool( Object foo ){
+        if ( foo == null )
+            return false;
+        
+        if ( foo instanceof Boolean )
+            return (Boolean)foo;
+        
+        return true;
+    }
+
     public Object JS_add( Object a , Object b ){
         
         if ( a != null && ( a instanceof Number ) &&

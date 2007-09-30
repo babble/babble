@@ -41,10 +41,8 @@ public class Convert {
         NodeTransformer nf = new NodeTransformer();
         nf.transform( sn );
         
-        if ( false ){
+        if ( D )
             Debug.print( sn , 0 );
-            System.exit(0);
-        }
 
         State state = new State();
 
@@ -92,6 +90,7 @@ public class Convert {
         case Token.EXPR_RESULT:
             _assertOne( n );
             _add( n.getFirstChild() , state );
+            _append( ";" , n );
             break;
         case Token.CALL:
             _addCall( n , state );
@@ -146,9 +145,14 @@ public class Convert {
             _append( ";" , n );
             break;
         case Token.RETURN:
-            _assertOne( n );
             _append( "return " , n );
-            _add( n.getFirstChild() , state );
+            if ( n.getFirstChild() != null ){
+                _assertOne( n );
+                _add( n.getFirstChild() , state );
+            }
+            else {
+                _append( " null " , n );
+            }
             _append( ";" , n );
             break;
 
@@ -163,11 +167,61 @@ public class Convert {
             _add( n.getFirstChild().getNext() , state );
             _append( " ) " , n );
             break;
+
+        case Token.IFNE:
+            _addIFNE( n , state );
+            break;
+
+        case Token.TARGET:
+            break;
+            
+        case Token.NOT:
+            _assertOne( n );
+            _append( " ! JS_evalToBool( " , n );
+            _add( n.getFirstChild() , state );
+            _append( " ) " , n );
+            break;
+
         default:
             Debug.printTree( n , 0 );
             throw new RuntimeException( "can't handle : " + n.getType() + ":" + Token.name( n.getType() ) + ":" + n.getClass().getName() );
         }
+        
+    }
+    
+    private void _addIFNE( Node n , State state ){
+        _assertType( n , Token.IFNE );
 
+        final Node.Jump theIf = (Node.Jump)n;
+        
+        _assertOne( n ); // this is the predicate
+        _assertOne( n.getNext() ); // if statement 
+
+        _append( "if ( JS_evalToBool( " , n );
+        _add( n.getFirstChild() , state );
+        _append( " ) )\n" , n );
+        _add( n.getNext() , state );
+        n = n.getNext().getNext();
+        
+        if ( n.getType() == Token.TARGET ){
+            if ( n.getNext() != null )
+                throw new RuntimeException( "something is wrong" );
+            return;
+        }
+        
+        _assertType( n , Token.GOTO );
+        _assertType( n.getNext() , Token.TARGET );
+        if ( theIf.target.hashCode() != n.getNext().hashCode() )
+            throw new RuntimeException( "hashes don't match" );
+        
+        n = n.getNext().getNext();
+
+        _append( " else " , n );
+        _add( n , state );
+        
+        _assertType( n.getNext() , Token.TARGET );
+        if ( n.getNext().getNext() != null )
+            throw new RuntimeException( "something is wrong" );
     }
     
     private void _addFunctionNodes( ScriptOrFnNode sn , State state ){
@@ -251,6 +305,10 @@ public class Convert {
         Node child = n.getFirstChild();
         while ( child != null ){
             _add( child , state );
+            
+            if ( child.getType() == Token.IFNE )
+                break;
+
             child = child.getNext();
         }
         _append( "}" , n );
@@ -296,10 +354,14 @@ public class Convert {
     }
     
     private void _assertOne( Node n ){
-        if ( n.getFirstChild() == null )
+        if ( n.getFirstChild() == null ){
+            Debug.printTree( n , 0 );
             throw new RuntimeException( "no child" );
-        if ( n.getFirstChild().getNext() != null )
+        }
+        if ( n.getFirstChild().getNext() != null ){
+            Debug.printTree( n , 0 );
             throw new RuntimeException( "more than 1 child" );
+        }
     }
 
     private void _assertType( Node n , int type ){
