@@ -128,6 +128,7 @@ public class TestCase extends MyAsserts {
 
         int pass = _tests.size() - ( errors.size() + fails.size() );
 
+        System.out.println( "Passes : " + pass + " / " + _tests.size() );
         System.out.println( "% Pass : " + ( ((double)pass*100) / _tests.size() ) );
         if ( pass == _tests.size() ){
             System.out.println( "SUCCESS" );

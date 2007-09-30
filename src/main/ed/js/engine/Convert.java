@@ -102,6 +102,9 @@ public class Convert {
         case Token.STRING:
             _append( "\"" + n.getString() + "\"" , n );
             break;
+        case Token.TRUE:
+            _append( " true " , n );
+            break;
 
         case Token.VAR:
             _addVar( n , state );
@@ -171,6 +174,10 @@ public class Convert {
         case Token.IFNE:
             _addIFNE( n , state );
             break;
+            
+        case Token.LOOP:
+            _addLoop( n , state );
+            break;
 
         case Token.TARGET:
             break;
@@ -182,14 +189,74 @@ public class Convert {
             _append( " ) " , n );
             break;
 
+        case Token.AND:
+            _append( " ( " , n );
+            Node c = n.getFirstChild();
+            while ( c != null ){
+                if ( c != n.getFirstChild() )
+                    _append( " && " , n );
+                _append( " JS_evalToBool( " , n );
+                _add( c , state );
+                _append( " ) " , n );
+                c = c.getNext();
+            }
+            _append( " ) " , n );
+            break;
         default:
             Debug.printTree( n , 0 );
             throw new RuntimeException( "can't handle : " + n.getType() + ":" + Token.name( n.getType() ) + ":" + n.getClass().getName() );
         }
         
     }
+
+    private void _addLoop( Node n , State state ){
+        _assertType( n , Token.LOOP );
+
+        final Node theLoop = n;
+        n = n.getFirstChild();
+        
+        
+        if ( n.getType() == Token.GOTO ){
+            n = n.getNext();
+            _assertType( n , Token.TARGET );
+            Node main = n.getNext();
+            n = main.getNext().getNext();
+            _assertType( n , Token.TARGET );
+            Node predicate = n.getNext();
+            _assertType( predicate , Token.IFEQ );
+            _assertOne( predicate );
+                
+            _assertType( predicate.getNext() , Token.TARGET );
+            
+            _append( "while ( JS_evalToBool( " , theLoop );
+            _add( predicate.getFirstChild() , state );
+            _append( " ) ) " , theLoop );
+            _add( main , state );
+        }
+        else if ( n.getType() == Token.TARGET ){
+            Node main = n.getNext();
+            n = main.getNext();
+            _assertType( n , Token.TARGET );
+
+            Node predicate = n.getNext();
+            _assertType( predicate , Token.IFEQ );
+            _assertOne( predicate );
+            
+            _assertType( predicate.getNext() , Token.TARGET );
+
+            _append( "do  \n " , theLoop );
+            _add( main , state );
+            _append( " while ( JS_evalToBool( " , n );
+            _add( predicate.getFirstChild() , state );
+            _append( " ) ) " , n );
+        }
+        else {
+            throw new RuntimeException( "what?" );
+        }
+    }
     
     private void _addIFNE( Node n , State state ){
+
         _assertType( n , Token.IFNE );
 
         final Node.Jump theIf = (Node.Jump)n;
@@ -308,7 +375,7 @@ public class Convert {
             
             if ( child.getType() == Token.IFNE )
                 break;
-
+            
             child = child.getNext();
         }
         _append( "}" , n );

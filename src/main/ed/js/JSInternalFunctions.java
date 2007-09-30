@@ -11,6 +11,9 @@ public class JSInternalFunctions {
         if ( foo instanceof Boolean )
             return (Boolean)foo;
         
+        if ( foo instanceof Number )
+            return ((Number)foo).doubleValue() != 0;
+
         return true;
     }
 
