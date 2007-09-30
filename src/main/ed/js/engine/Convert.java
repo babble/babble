@@ -211,38 +211,24 @@ public class Convert {
 
     private void _addLoop( Node n , State state ){
         _assertType( n , Token.LOOP );
-
+        
         final Node theLoop = n;
         n = n.getFirstChild();
         
-        
-        if ( n.getType() == Token.GOTO ){
-            n = n.getNext();
-            _assertType( n , Token.TARGET );
-            Node main = n.getNext();
-            n = main.getNext().getNext();
-            _assertType( n , Token.TARGET );
-            Node predicate = n.getNext();
-            _assertType( predicate , Token.IFEQ );
-            _assertOne( predicate );
+        Node nodes[] = null;
+        if ( ( nodes = _matches( n , _while1 ) ) != null ){
+            Node main = nodes[1];
+            Node predicate = nodes[5];
                 
-            _assertType( predicate.getNext() , Token.TARGET );
-            
             _append( "while ( JS_evalToBool( " , theLoop );
             _add( predicate.getFirstChild() , state );
             _append( " ) ) " , theLoop );
             _add( main , state );
         }
-        else if ( n.getType() == Token.TARGET ){
-            Node main = n.getNext();
-            n = main.getNext();
-            _assertType( n , Token.TARGET );
-
-            Node predicate = n.getNext();
+        else if ( ( nodes = _matches( n , _doWhile1 ) ) != null ){
+            Node main = node[1];
+            Node predicate = node[3];
             _assertType( predicate , Token.IFEQ );
-            _assertOne( predicate );
-            
-            _assertType( predicate.getNext() , Token.TARGET );
 
             _append( "do  \n " , theLoop );
             _add( main , state );
@@ -545,5 +531,21 @@ public class Convert {
     static {
         _2ThingThings.put( Token.ADD , "add" );
         _2ThingThings.put( Token.EQ , "eq" );
+    }
+
+    private static final int _while1[] = new int{ Token.GOTO , Token.TARGET , 0 , 0 , TARGET , IFEQ , TARGET };
+    private static final int _doWhile1[] = new int{ Token.TARGET , 0 , TARGET , Token.IFEQ , TARGET };
+
+    private static Node[] _matches( Node n , int types[] ){
+        Node foo[] = new Node[types.length];
+        
+        for ( int i=0; i<types.length; i++ ){
+            foo[i] = n;
+            if ( types[i] > 0 && n.getType() != types[i] ) 
+                return null;
+            n = n.getNext();
+        }
+
+        return n == null ? foo : null;
     }
 }
