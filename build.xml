@@ -43,6 +43,10 @@
       <classpath refid="classpath"/>
     </javac>
 
+    <copy todir="build">
+      <fileset dir="src/main" includes="**/*.properties"/>
+    </copy>
+
     <javac srcdir="src/test"
 	   destdir="build"
 	   optimize="off"
