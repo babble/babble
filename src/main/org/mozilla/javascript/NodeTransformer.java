@@ -235,6 +235,8 @@ public class NodeTransformer
               case Token.BREAK:
                   break;
               case Token.CONTINUE:
+                  break;
+                  /*
               {
                 Node.Jump jump = (Node.Jump)node;
                 Node.Jump jumpStatement = jump.getJumpStatement();
@@ -276,6 +278,7 @@ public class NodeTransformer
 
                 break;
               }
+                  */
 
               case Token.CALL:
                 visitCall(node, tree);

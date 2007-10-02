@@ -1086,6 +1086,17 @@ public class Parser
             int lineno = ts.getLineno();
 
             decompiler.addToken(Token.CONTINUE);
+            
+            if ( ED_HACK ){
+                int tempTT = peekTokenOrEOL();
+                if ( tempTT == Token.NAME ){
+                    consumeToken();
+                    String name = ts.getString();
+                    decompiler.addName( name );
+                    return Node.newString( Token.CONTINUE , name );
+                }
+                return Node.newString( Token.CONTINUE , "" );
+            }
 
             Node loop;
             // matchJumpLabelName only matches if there is one

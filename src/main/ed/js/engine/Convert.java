@@ -162,9 +162,11 @@ public class Convert {
             _append( ";\n" , n );
             break;
 
-            // 2 thing things
+        case Token.NE:
+            _append( " ! " , n );
         case Token.ADD:
         case Token.EQ:
+        case Token.GE:
             _append( "JS_" , n );
             _append( _2ThingThings.get( n.getType() ) , n );
             _append( "( " , n );
@@ -183,8 +185,10 @@ public class Convert {
             break;
 
         case Token.EMPTY:
-            if ( n.getNext() != null || n.getFirstChild() != null )
+            if ( n.getFirstChild() != null ){
+                Debug.printTree( n , 0 );
                 throw new RuntimeException( "not really empty" );
+            }
             break;
 
         case Token.LABEL:
@@ -192,6 +196,9 @@ public class Convert {
             break;
         case Token.BREAK:
             _append( "break " + n.getString() + ";\n" , n );
+            break;
+        case Token.CONTINUE:
+            _append( "continue " + n.getString() + ";\n" , n );
             break;
             
         case Token.WHILE:
@@ -270,12 +277,15 @@ public class Convert {
         final Node.Jump theIf = (Node.Jump)n;
         
         _assertOne( n ); // this is the predicate
-        _assertOne( n.getNext() ); // if statement 
+        Node ifBlock = n.getNext();
+        if ( ifBlock.getFirstChild() != null && 
+             ifBlock.getFirstChild().getNext() != null )
+            throw new RuntimeException( "bad if" );
 
         _append( "if ( JS_evalToBool( " , n );
         _add( n.getFirstChild() , state );
         _append( " ) )\n" , n );
-        _add( n.getNext() , state );
+        _add( ifBlock , state );
         n = n.getNext().getNext();
         
         if ( n.getType() == Token.TARGET ){
@@ -553,6 +563,8 @@ public class Convert {
     static {
         _2ThingThings.put( Token.ADD , "add" );
         _2ThingThings.put( Token.EQ , "eq" );
+        _2ThingThings.put( Token.NE , "eq" );
+        _2ThingThings.put( Token.GE , "ge" );
     }
 
     private static final int _while1[] = new int[]{ Token.GOTO , Token.TARGET , 0 , 0 , Token.TARGET , Token.IFEQ , Token.TARGET };

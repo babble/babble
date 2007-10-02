@@ -48,4 +48,20 @@ public class JSInternalFunctions {
         
         return a.equals( b );
     }
+
+    public Boolean JS_ge( Object a , Object b ){
+        if ( a == null && b == null )
+            return true;
+
+        if ( a == null || b == null )
+            return false;
+        
+        if ( a instanceof Number && 
+             b instanceof Number ){
+            return ((Number)a).doubleValue() >= ((Number)b).doubleValue();
+        }
+
+        return a.toString().compareTo( b.toString() ) >= 1;
+    }
+
 }
