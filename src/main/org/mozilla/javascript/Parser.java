@@ -1057,6 +1057,17 @@ public class Parser
 
             decompiler.addToken(Token.BREAK);
 
+            if ( ED_HACK ){
+                int tempTT = peekTokenOrEOL();
+                if ( tempTT == Token.NAME ){
+                    consumeToken();
+                    String name = ts.getString();
+                    decompiler.addName( name );
+                    return Node.newString( Token.BREAK , name );
+                }
+                return Node.newString( Token.BREAK , "" );
+            }
+
             // matchJumpLabelName only matches if there is one
             Node breakStatement = matchJumpLabelName();
             if (breakStatement == null) {
@@ -1230,6 +1241,9 @@ public class Parser
                 // last name was a label.
                 decompiler.addName(name);
                 decompiler.addEOL(Token.COLON);
+                
+                if ( ED_HACK )
+                    return Node.newString( Token.LABEL , name );
 
                 if (labelSet == null) {
                     labelSet = new Hashtable();

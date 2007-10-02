@@ -131,8 +131,10 @@ public class NodeTransformer
             switch (type) {
 
               case Token.LABEL:
+                  break;
               case Token.SWITCH:
               case Token.LOOP:
+                  ed.js.engine.Debug.printTree( node , 0 );
                 loops.push(node);
                 loopEnds.push(((Node.Jump)node).target);
                 break;
@@ -231,6 +233,7 @@ public class NodeTransformer
               }
 
               case Token.BREAK:
+                  break;
               case Token.CONTINUE:
               {
                 Node.Jump jump = (Node.Jump)node;

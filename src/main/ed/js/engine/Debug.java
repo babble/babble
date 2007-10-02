@@ -6,7 +6,7 @@ import org.mozilla.javascript.*;
 
 public class Debug {
 
-    static void print( ScriptOrFnNode sn , int indent ){
+    public static void print( ScriptOrFnNode sn , int indent ){
         for ( int i=0; i<sn.getFunctionCount(); i++ ){
             FunctionNode fn = sn.getFunctionNode( i );
             print( fn , indent );
@@ -14,10 +14,10 @@ public class Debug {
         printTree( sn , indent );
     }
 
-    static void printTree( Node n , int indent ){
+    public static void printTree( Node n , int indent ){
         if ( n == null )
             return;
-
+        
         for ( int i=0; i<indent; i++ )
             System.out.print( "  " );
 

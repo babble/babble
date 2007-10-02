@@ -10,11 +10,9 @@ do {
     print( foo );
 } while ( foo );
 
-/*
 t1:
 while( bar ){
     print( "once" );
     break t1;
 }
 
-*/

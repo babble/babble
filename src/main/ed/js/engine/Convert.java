@@ -53,8 +53,10 @@ public class Convert {
 
         Node n = sn.getFirstChild();
         while ( n != null ){
-            _add( n , sn , state );
-            _append( ";\n" , n );
+            if ( n.getType() != Token.FUNCTION ){
+                _add( n , sn , state );
+                _append( "\n" , n );
+            }
             n = n.getNext();
         }
 
@@ -91,7 +93,7 @@ public class Convert {
         case Token.EXPR_RESULT:
             _assertOne( n );
             _add( n.getFirstChild() , state );
-            _append( ";" , n );
+            _append( ";\n" , n );
             break;
         case Token.CALL:
             _addCall( n , state );
@@ -125,7 +127,7 @@ public class Convert {
                     _append( "Object " , n );
                 _append( foo + " = " , n );
                 _add( n.getFirstChild().getNext() , state );
-                _append( ";" , n );
+                _append( ";\n" , n );
             }
             else {
                 _setVar( foo , 
@@ -146,7 +148,7 @@ public class Convert {
         case Token.EXPR_VOID:
             _assertOne( n );
             _add( n.getFirstChild() , state );
-            _append( ";" , n );
+            _append( ";\n" , n );
             break;
         case Token.RETURN:
             _append( "return " , n );
@@ -157,7 +159,7 @@ public class Convert {
             else {
                 _append( " null " , n );
             }
-            _append( ";" , n );
+            _append( ";\n" , n );
             break;
 
             // 2 thing things
@@ -178,6 +180,18 @@ public class Convert {
             
         case Token.LOOP:
             _addLoop( n , state );
+            break;
+
+        case Token.EMPTY:
+            if ( n.getNext() != null || n.getFirstChild() != null )
+                throw new RuntimeException( "not really empty" );
+            break;
+
+        case Token.LABEL:
+            _append( n.getString() + ":" , n );
+            break;
+        case Token.BREAK:
+            _append( "break " + n.getString() + ";\n" , n );
             break;
             
         case Token.WHILE:
@@ -240,9 +254,9 @@ public class Convert {
 
             _append( "do  \n " , theLoop );
             _add( main , state );
-            _append( " while ( JS_evalToBool( " , n );
+            _append( " \n while ( JS_evalToBool( " , n );
             _add( predicate.getFirstChild() , state );
-            _append( " ) ) " , n );
+            _append( " ) );\n " , n );
         }
         else {
             throw new RuntimeException( "what?" );
@@ -375,7 +389,7 @@ public class Convert {
         _append( "}" , n );
         
     }
-    
+
     private void _addSet( Node n , State state ){
         _assertType( n , Token.SETNAME );
         Node name = n.getFirstChild();
