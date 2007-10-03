@@ -70,6 +70,37 @@ public class Convert {
     private void _add( Node n , ScriptOrFnNode sn , State state ){
         
         switch ( n.getType() ){
+
+        case Token.USE_STACK:
+            _append( "__tempObject.get( " + state._tempOpNames.pop() + " ) "  , n );
+            break;
+
+        case Token.SETPROP_OP:
+        case Token.SETELEM_OP:
+            _append( "\n { \n" , n );
+            
+            _append( "JSObject __tempObject = (JSObject)" , n );
+            _add( n.getFirstChild() , state );
+            _append( ";\n" , n );
+
+            
+            String tempName = "__temp" + (int)(Math.random() * 10000);
+            state._tempOpNames.push( tempName );
+            
+            _append( "Object " + tempName + " = " , n );
+            _add( n.getFirstChild().getNext() , state );
+            _append( ";\n" , n );
+            
+            _append( " __tempObject.set(" , n );
+            _append( tempName , n );
+            _append( " , " , n );
+            _add( n.getFirstChild().getNext().getNext() , state );
+            _append( " ); \n" , n );
+
+            _append( " } \n" , n );
+            
+            break;
+
         case Token.SETPROP:
         case Token.SETELEM:
             _append( "((JSObject)" , n );

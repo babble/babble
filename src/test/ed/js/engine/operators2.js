@@ -1,4 +1,3 @@
-
 var a = 5;
 a |= 11;
 print( a );
@@ -26,3 +25,8 @@ print( a );
 print( 5 | 11 );
 print( 5 | "11" );
 print( 5 | "a11" );
+
+foo = Object();
+foo.a = 5;
+foo.a |= 11;
+print( foo.a );
