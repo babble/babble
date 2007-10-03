@@ -173,6 +173,7 @@ public class Convert {
         case Token.SUB:
         case Token.EQ:
         case Token.GE:
+        case Token.BITOR:
             _append( "JS_" , n );
             _append( _2ThingThings.get( n.getType() ) , n );
             _append( "( " , n );
@@ -585,6 +586,8 @@ public class Convert {
         _2ThingThings.put( Token.EQ , "eq" );
         _2ThingThings.put( Token.NE , "eq" );
         _2ThingThings.put( Token.GE , "ge" );
+
+        _2ThingThings.put( Token.BITOR , "bitor" );
     }
 
     private static final int _while1[] = new int[]{ Token.GOTO , Token.TARGET , 0 , 0 , Token.TARGET , Token.IFEQ , Token.TARGET };

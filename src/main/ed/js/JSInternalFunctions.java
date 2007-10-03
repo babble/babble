@@ -67,5 +67,43 @@ public class JSInternalFunctions {
 
         return a.toString().compareTo( b.toString() ) >= 1;
     }
+    
+    public Number JS_bitor( Object a , Object b ){
+        
+        a = _parseNumber( a );
+        b = _parseNumber( b );
+        
+        if ( a != null && a instanceof Number && 
+             b != null && b instanceof Number )
+            return ((Number)a).intValue() | ((Number)b).intValue();
+        
+        if ( a != null && a instanceof Number )
+            return (Number)a;
 
+        if ( b != null && b instanceof Number )
+            return (Number)b;
+
+        return 0;
+    }
+
+    static Object _parseNumber( Object o ){
+        if ( o == null )
+            return null;
+        
+        if ( o instanceof Number )
+            return o;
+        
+        if ( ! ( o instanceof String ) )
+            return o;
+
+        String s = (String)o;
+        if ( s.length() > 9 )
+            return s;
+
+        for ( int i=0; i<s.length(); i++ )
+            if ( ! Character.isDigit( s.charAt( i ) ) )
+                return o;
+        
+        return Integer.parseInt( s );
+    }
 }
