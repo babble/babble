@@ -100,7 +100,10 @@ public class Convert {
             break;
 
         case Token.NUMBER:
-            _append( String.valueOf( n.getDouble() ) , n );
+            String temp = String.valueOf( n.getDouble() );
+            if ( temp.endsWith( ".0" ) )
+                temp = temp.substring( 0 , temp.length() - 2 );
+            _append( temp , n );
             break;
         case Token.STRING:
             _append( "\"" + n.getString() + "\"" , n );

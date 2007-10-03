@@ -22,10 +22,14 @@ public class JSInternalFunctions {
         if ( a != null && ( a instanceof Number ) &&
              b != null && ( b instanceof Number ) ){
             
-            double d1 = (Double)a;
-            double d2 = (Double)b;
+            Number an = (Number)a;
+            Number bn = (Number)b;
+
+            if ( an instanceof Double ||
+                 bn instanceof Double )
+                return an.doubleValue() + bn.doubleValue();
             
-            return d1 + d2;
+            return an.intValue() + bn.intValue();
         }
         
         if ( ( a != null && ( a instanceof Number ) && b == null ) ||
