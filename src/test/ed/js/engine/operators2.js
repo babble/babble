@@ -42,3 +42,9 @@ print( a << b );
 print( 11 % 5 );
 print( "a" % 5 );
 print( 11 % "a" );
+
+print( ( 4 >> 1 ) );
+print( ( 4 >>> 1 ) );
+
+print( 5 > 6 );
+print( 5 < 6 );

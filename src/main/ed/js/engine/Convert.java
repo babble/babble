@@ -204,7 +204,10 @@ public class Convert {
         case Token.SUB:
         case Token.EQ:
         case Token.GE:
+        case Token.LT:
+        case Token.GT:
         case Token.BITOR:
+        case Token.URSH:
         case Token.RSH:
         case Token.LSH:
         case Token.MOD:
@@ -619,10 +622,14 @@ public class Convert {
         
         _2ThingThings.put( Token.EQ , "eq" );
         _2ThingThings.put( Token.NE , "eq" );
+        
         _2ThingThings.put( Token.GE , "ge" );
+        _2ThingThings.put( Token.LT , "lt" );
+        _2ThingThings.put( Token.GT , "gt" );
 
         _2ThingThings.put( Token.BITOR , "bitor" );
 
+        _2ThingThings.put( Token.URSH , "ursh" );
         _2ThingThings.put( Token.RSH , "rsh" );
         _2ThingThings.put( Token.LSH , "lsh" );
         _2ThingThings.put( Token.MOD , "mod" );

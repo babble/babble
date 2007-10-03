@@ -54,18 +54,40 @@ public class JSInternalFunctions {
     }
 
     public Boolean JS_ge( Object a , Object b ){
-        if ( a == null && b == null )
-            return true;
+        return _compare( a , b ) >= 0;
+    }
 
-        if ( a == null || b == null )
-            return false;
+    public Boolean JS_lt( Object a , Object b ){
+        return _compare( a , b ) < 0;
+    }
+
+    public Boolean JS_gt( Object a , Object b ){
+        return _compare( a , b ) > 0;
+    }
+    
+    int _compare( Object a , Object b ){
+        if ( a == null && b == null )
+            return 0;
+
+        if ( a == null )
+            return 1;
+        
+        if (  b == null )
+            return -1;
+        
+        if ( a.equals( b ) )
+            return 0;
         
         if ( a instanceof Number && 
              b instanceof Number ){
-            return ((Number)a).doubleValue() >= ((Number)b).doubleValue();
+            double aVal = ((Number)a).doubleValue();
+            double bVal = ((Number)b).doubleValue();
+            if ( aVal == bVal )
+                return 0;
+            return aVal < bVal ? -1 : 1;
         }
 
-        return a.toString().compareTo( b.toString() ) >= 1;
+        return a.toString().compareTo( b.toString() );
     }
     
     public Number JS_bitor( Object a , Object b ){
@@ -118,6 +140,20 @@ public class JSInternalFunctions {
         if ( a != null && a instanceof Number && 
              b != null && b instanceof Number )
             return ((Number)a).intValue() >> ((Number)b).intValue();
+        
+        if ( a == null || ! ( a instanceof Number ) )
+            return 0;
+        
+        return (Number)a;
+    }
+
+    public Number JS_ursh( Object a , Object b ){
+        a = _parseNumber( a );
+        b = _parseNumber( b );
+
+        if ( a != null && a instanceof Number && 
+             b != null && b instanceof Number )
+            return ((Number)a).intValue() >>> ((Number)b).intValue();
         
         if ( a == null || ! ( a instanceof Number ) )
             return 0;
