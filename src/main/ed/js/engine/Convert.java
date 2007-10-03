@@ -164,7 +164,10 @@ public class Convert {
 
         case Token.NE:
             _append( " ! " , n );
+            
+        case Token.MUL:
         case Token.ADD:
+        case Token.SUB:
         case Token.EQ:
         case Token.GE:
             _append( "JS_" , n );
@@ -244,7 +247,7 @@ public class Convert {
             break;
         default:
             Debug.printTree( n , 0 );
-            throw new RuntimeException( "can't handle : " + n.getType() + ":" + Token.name( n.getType() ) + ":" + n.getClass().getName() );
+            throw new RuntimeException( "can't handle : " + n.getType() + ":" + Token.name( n.getType() ) + ":" + n.getClass().getName() + " line no : " + n.getLineno() );
         }
         
     }
@@ -573,6 +576,9 @@ public class Convert {
     private final static Map<Integer,String> _2ThingThings = new HashMap<Integer,String>();
     static {
         _2ThingThings.put( Token.ADD , "add" );
+        _2ThingThings.put( Token.MUL , "mul" );
+        _2ThingThings.put( Token.MUL , "sub" );
+        
         _2ThingThings.put( Token.EQ , "eq" );
         _2ThingThings.put( Token.NE , "eq" );
         _2ThingThings.put( Token.GE , "ge" );
