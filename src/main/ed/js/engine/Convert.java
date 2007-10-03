@@ -207,6 +207,17 @@ public class Convert {
             _append( " ) ) " , n );
             _add( n.getFirstChild().getNext() , state );
             break;
+        case Token.FOR:
+            _append( "\n for ( " , n );
+            _add( n.getFirstChild() , state );
+            _append( "  \n " , n );
+            _add( n.getFirstChild().getNext() , state );
+            _append( " ; \n" , n );
+            _add( n.getFirstChild().getNext().getNext() , state );
+            _append( " )\n " , n );
+            _add( n.getFirstChild().getNext().getNext().getNext() , state );
+            
+            break;
             
         case Token.TARGET:
             break;
@@ -326,7 +337,7 @@ public class Convert {
             }
 
             _setVar( name , fn , state );
-            _append( "\nscope.getFunction( \"" + name + "\" ).setName( \"" + name + "\" );\n\n" , fn );
+            _append( "; \n scope.getFunction( \"" + name + "\" ).setName( \"" + name + "\" );\n\n" , fn );
 
         }
     }
@@ -435,7 +446,7 @@ public class Convert {
     private void _setVar( String name , Node val , State state ){
         _append( "scope.put( \"" + name + "\" , " , val);
         _add( val , state );
-        _append( " , false  ); " , val );
+        _append( " , false  ) " , val );
     }
     
     private void _assertOne( Node n ){

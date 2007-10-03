@@ -886,88 +886,12 @@ public class Parser
             consumeToken();
             boolean isForEach = false;
             decompiler.addToken(Token.FOR);
-
-            if ( ED_HACK ){
-                Node forNode = new Node( Token.FOR );
-                try {
-                    Node init;  // Node init is also foo in 'foo in object'
-                    Node cond;  // Node cond is also object in 'foo in object'
-                    Node incr = null;
-                    Node body;
-                    int declType = -1;
-                    
-                    // See if this is a for each () instead of just a for ()
-                    if (matchToken(Token.NAME)) {
-                        decompiler.addName(ts.getString());
-                        if (ts.getString().equals("each")) {
-                            isForEach = true;
-                        } else {
-                            reportError("msg.no.paren.for");
-                        }
-                    }
-                    
-                    mustMatchToken(Token.LP, "msg.no.paren.for");
-                    decompiler.addToken(Token.LP);
-                    tt = peekToken();
-                    if (tt == Token.SEMI) {
-                        init = nf.createLeaf(Token.EMPTY);
-                    } else {
-                        if (tt == Token.VAR || tt == Token.LET) {
-                            // set init to a var list or initial
-                            consumeToken();    // consume the token
-                            decompiler.addToken(tt);
-                            init = variables(true, true, tt);
-                            declType = tt;
-                        }
-                        else {
-                            init = expr(true);
-                        }
-                    }
-                    
-                    if (matchToken(Token.IN)) {
-                        decompiler.addToken(Token.IN);
-                        // 'cond' is the object over which we're iterating
-                        cond = expr(false);
-                    } else {  // ordinary for loop
-                        mustMatchToken(Token.SEMI, "msg.no.semi.for");
-                        decompiler.addToken(Token.SEMI);
-                        if (peekToken() == Token.SEMI) {
-                            // no loop condition
-                            cond = nf.createLeaf(Token.EMPTY);
-                        } else {
-                            cond = expr(false);
-                        }
-                        
-                        mustMatchToken(Token.SEMI, "msg.no.semi.for.cond");
-                        decompiler.addToken(Token.SEMI);
-                        if (peekToken() == Token.RP) {
-                            incr = nf.createLeaf(Token.EMPTY);
-                        } else {
-                            incr = expr(false);
-                        }
-                    }
-                    
-                    mustMatchToken(Token.RP, "msg.no.paren.for.ctrl");
-                    decompiler.addToken(Token.RP);
-                    decompiler.addEOL(Token.LC);
-                    body = statement();
-                    decompiler.addEOL(Token.RC);
-                    
-                    if (incr == null) {
-                        // cond could be null if 'in obj' got eaten
-                        // by the init node.
-                        pn = nf.createForIn(declType, loop, init, cond, body,
-                                            isForEach);
-                    } else {
-                        pn = nf.createFor(loop, init, cond, incr, body);
-                    }
-                } finally {
-                    exitLoop(true);
-                }
-                return pn;
-            }
             
-            Node loop = enterLoop(statementLabel, true);
+            Node loop = 
+                ED_HACK ? 
+                new Node( Token.FOR ) : 
+                enterLoop(statementLabel, true);
+            
             try {
                 Node init;  // Node init is also foo in 'foo in object'
                 Node cond;  // Node cond is also object in 'foo in object'
@@ -1038,10 +962,20 @@ public class Parser
                     pn = nf.createForIn(declType, loop, init, cond, body,
                                         isForEach);
                 } else {
-                    pn = nf.createFor(loop, init, cond, incr, body);
+                    if ( ED_HACK ){
+                        pn = loop;
+                        pn.addChildToBack( init );
+                        pn.addChildToBack( cond );
+                        pn.addChildToBack( incr );
+                        pn.addChildToBack( body );
+                    }
+                    else {
+                        pn = nf.createFor(loop, init, cond, incr, body);
+                    }
                 }
             } finally {
-                exitLoop(true);
+                if ( ! ED_HACK )
+                    exitLoop(true);
             }
             return pn;
         }

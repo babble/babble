@@ -28,7 +28,7 @@ public class Scope {
         return new Scope( _name + ".child" , this );
     }
 
-    public void put( String name , Object o , boolean local ){
+    public Object put( String name , Object o , boolean local ){
         
         if ( _locked )
             throw new RuntimeException( "locked" );
@@ -43,11 +43,12 @@ public class Scope {
             if ( o == null )
                 o = NULL;
             _objects.put( name , o );
-            return;
+            return o;
         }
         
         
         _parent.put( name , o , false );
+        return o;
     }
     
     public Object get( String name ){
