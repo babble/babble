@@ -30,3 +30,15 @@ foo = Object();
 foo.a = 5;
 foo.a |= 11;
 print( foo.a );
+
+a = 4;
+b = 1;
+print( a >> b );
+
+a = 4;
+b = 1;
+print( a << b );
+
+print( 11 % 5 );
+print( "a" % 5 );
+print( 11 % "a" );

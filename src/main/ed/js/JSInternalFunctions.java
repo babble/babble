@@ -86,6 +86,45 @@ public class JSInternalFunctions {
         return 0;
     }
 
+    public Number JS_mod( Object a , Object b ){
+        a = _parseNumber( a );
+        b = _parseNumber( b );
+
+        if ( a != null && a instanceof Number && 
+             b != null && b instanceof Number )
+            return ((Number)a).intValue() % ((Number)b).intValue();
+        
+        return Double.NaN;
+    }
+
+    public Number JS_lsh( Object a , Object b ){
+        a = _parseNumber( a );
+        b = _parseNumber( b );
+
+        if ( a != null && a instanceof Number && 
+             b != null && b instanceof Number )
+            return ((Number)a).intValue() << ((Number)b).intValue();
+        
+        if ( a == null || ! ( a instanceof Number ) )
+            return 0;
+        
+        return (Number)a;
+    }
+
+    public Number JS_rsh( Object a , Object b ){
+        a = _parseNumber( a );
+        b = _parseNumber( b );
+
+        if ( a != null && a instanceof Number && 
+             b != null && b instanceof Number )
+            return ((Number)a).intValue() >> ((Number)b).intValue();
+        
+        if ( a == null || ! ( a instanceof Number ) )
+            return 0;
+        
+        return (Number)a;
+    }
+
     static Object _parseNumber( Object o ){
         if ( o == null )
             return null;
