@@ -196,6 +196,13 @@ public class Convert {
             _append( ";\n" , n );
             break;
 
+        case Token.BITNOT:
+            _assertOne( n );
+            _append( "JS_bitnot( " , n );
+            _add( n.getFirstChild() , state );
+            _append( " ) " , n );
+            break;
+
         case Token.NE:
             _append( " ! " , n );
             
@@ -207,6 +214,8 @@ public class Convert {
         case Token.LT:
         case Token.GT:
         case Token.BITOR:
+        case Token.BITAND:
+        case Token.BITXOR:
         case Token.URSH:
         case Token.RSH:
         case Token.LSH:
@@ -628,6 +637,8 @@ public class Convert {
         _2ThingThings.put( Token.GT , "gt" );
 
         _2ThingThings.put( Token.BITOR , "bitor" );
+        _2ThingThings.put( Token.BITAND , "bitand" );
+        _2ThingThings.put( Token.BITXOR , "bitxor" );
 
         _2ThingThings.put( Token.URSH , "ursh" );
         _2ThingThings.put( Token.RSH , "rsh" );

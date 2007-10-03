@@ -108,6 +108,42 @@ public class JSInternalFunctions {
         return 0;
     }
 
+    public Number JS_bitand( Object a , Object b ){
+        
+        a = _parseNumber( a );
+        b = _parseNumber( b );
+        
+        if ( a != null && a instanceof Number && 
+             b != null && b instanceof Number )
+            return ((Number)a).intValue() & ((Number)b).intValue();
+        
+        if ( a != null && a instanceof Number )
+            return (Number)a;
+
+        if ( b != null && b instanceof Number )
+            return (Number)b;
+
+        return 0;
+    }
+
+    public Number JS_bitxor( Object a , Object b ){
+        
+        a = _parseNumber( a );
+        b = _parseNumber( b );
+        
+        if ( a != null && a instanceof Number && 
+             b != null && b instanceof Number )
+            return ((Number)a).intValue() ^ ((Number)b).intValue();
+        
+        if ( a != null && a instanceof Number )
+            return (Number)a;
+
+        if ( b != null && b instanceof Number )
+            return (Number)b;
+
+        return 0;
+    }
+
     public Number JS_mod( Object a , Object b ){
         a = _parseNumber( a );
         b = _parseNumber( b );
@@ -159,6 +195,13 @@ public class JSInternalFunctions {
             return 0;
         
         return (Number)a;
+    }
+
+    public Number JS_bitnot( Object a ){
+        a = _parseNumber( a );
+        if ( a instanceof Number )
+            return ~((Number)a).intValue();
+        return -1;
     }
 
     static Object _parseNumber( Object o ){

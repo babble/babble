@@ -48,3 +48,7 @@ print( ( 4 >>> 1 ) );
 
 print( 5 > 6 );
 print( 5 < 6 );
+print( 2 & 10 );
+print( ~10 );
+print( ~"aasd" );
+print( 2 ^ 10 );
