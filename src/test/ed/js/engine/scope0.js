@@ -6,19 +6,19 @@ function foo(){
     return a + b;
 }
 
-SYSOUT( "3=" + foo() );
+print( "3=" + foo() );
 a = 2;
 b = 3;
-SYSOUT( "5=" + foo() );
+print( "5=" + foo() );
 
 var v = 13;
 function bar(){
     v = v + 2;
     return v;
 }
-SYSOUT( bar() );
-SYSOUT( bar() );
-SYSOUT( v );
+print( bar() );
+print( bar() );
+print( v );
 
 function asdads( a ){
     a = 5;

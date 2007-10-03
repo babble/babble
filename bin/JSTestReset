@@ -1,0 +1,8 @@
+#!/bin/tcsh
+    
+foreach f ( `ls src/test/ed/js/engine/*.js` )
+    echo $f
+    set o = `echo $f | grep -o "[a-zA-Z0-9/]\+\."`out
+    echo $o
+    js $f > $o
+end

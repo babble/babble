@@ -1,27 +1,24 @@
 
-SYSOUT( 5 );
+print( 5 );
 
 var a = 3;
-SYSOUT( a );
+print( a );
 
 a = 4;
-SYSOUT( a );
+print( a );
 
 function foo(){
     return 5;
 }
 
-SYSOUT( foo );
-SYSOUT( foo() );
+print( foo() );
 
-SYSOUT( function(){ return 6; } );
-SYSOUT( function(){ return 7; }() );
+print( function(){ return 7; }() );
 
-function(){ SYSOUT( "yay" ); return 5; }
+function(){ print( "yay" ); return 5; }
 function bar(){ return 5; }
 
 bar();
 
 var hehe = function(){ return 9; };
-SYSOUT( hehe );
-SYSOUT( hehe() );
+print( hehe() );
