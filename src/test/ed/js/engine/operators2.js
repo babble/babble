@@ -52,3 +52,7 @@ print( 2 & 10 );
 print( ~10 );
 print( ~"aasd" );
 print( 2 ^ 10 );
+
+var a = 12;
+print( a * 2 );
+print( a * "asd" );

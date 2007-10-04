@@ -37,11 +37,11 @@ public class JSObject {
     }
 
     public void setInt( int n , Object v ){
-        throw new RuntimeException( "illegal" );
+        set( String.valueOf( n ) , v );
     }
 
     public Object getInt( int n ){
-        throw new RuntimeException( "illegal" );
+        return get( String.valueOf( n ) );
     }
 
     private Map<String,Object> _map = new TreeMap<String,Object>();

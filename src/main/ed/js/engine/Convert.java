@@ -203,10 +203,21 @@ public class Convert {
             _append( " ) " , n );
             break;
 
+        case Token.INC:
+            _assertOne( n );
+            _append( " { \n " , n );
+            _append( "Object __tempInc = " , n );
+            _add( n.getFirstChild() , state );
+            _append( ";\n" , n );
+            
+            _append( " } \n " , n );
+            break;
+
         case Token.NE:
             _append( " ! " , n );
             
         case Token.MUL:
+        case Token.DIV:
         case Token.ADD:
         case Token.SUB:
         case Token.EQ:
@@ -221,7 +232,10 @@ public class Convert {
         case Token.LSH:
         case Token.MOD:
             _append( "JS_" , n );
-            _append( _2ThingThings.get( n.getType() ) , n );
+            String fooooo = _2ThingThings.get( n.getType() );
+            if ( fooooo == null )
+                throw new RuntimeException( "noting for : " + n );
+            _append( fooooo , n );
             _append( "( " , n );
             _add( n.getFirstChild() , state );
             _append( " , " , n );
@@ -627,7 +641,8 @@ public class Convert {
     static {
         _2ThingThings.put( Token.ADD , "add" );
         _2ThingThings.put( Token.MUL , "mul" );
-        _2ThingThings.put( Token.MUL , "sub" );
+        _2ThingThings.put( Token.SUB , "sub" );
+        _2ThingThings.put( Token.DIV , "div" );
         
         _2ThingThings.put( Token.EQ , "eq" );
         _2ThingThings.put( Token.NE , "eq" );
