@@ -51,6 +51,25 @@ public class JSInternalFunctions {
         return Double.NaN;
     }
 
+    public Object JS_sub( Object a , Object b ){
+        
+
+        if ( a != null && ( a instanceof Number ) &&
+             b != null && ( b instanceof Number ) ){
+            
+            Number an = (Number)a;
+            Number bn = (Number)b;
+
+            if ( an instanceof Double ||
+                 bn instanceof Double )
+                return an.doubleValue() - bn.doubleValue();
+            
+            return an.intValue() - bn.intValue();
+        }
+        
+        return Double.NaN;
+    }
+
     public Object JS_add( Object a , Object b ){
         
         if ( a != null && ( a instanceof Number ) &&

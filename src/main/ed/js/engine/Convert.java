@@ -133,7 +133,9 @@ public class Convert {
         case Token.NUMBER:
             String temp = String.valueOf( n.getDouble() );
             if ( temp.endsWith( ".0" ) )
-                temp = temp.substring( 0 , temp.length() - 2 );
+                temp = "Integer.valueOf( " + temp.substring( 0 , temp.length() - 2 ) + " ) ";
+            else
+                temp = "Double.valueOf( " + temp + " ) ";
             _append( temp , n );
             break;
         case Token.STRING:
@@ -205,7 +207,7 @@ public class Convert {
 
 
         case Token.HOOK:
-            _append( " ( ( " , n );
+            _append( " ( JS_evalToBool( " , n );
             _add( n.getFirstChild() , state );
             _append( " ) ? ( " , n );
             _add( n.getFirstChild().getNext() , state );
