@@ -56,3 +56,6 @@ print( 2 ^ 10 );
 var a = 12;
 print( a * 2 );
 print( a * "asd" );
+
+print( a == 12 ? "good" : "bad" );
+print( a != 12 ? "bad" : "good" );

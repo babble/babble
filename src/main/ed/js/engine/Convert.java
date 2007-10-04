@@ -203,16 +203,18 @@ public class Convert {
             _append( " ) " , n );
             break;
 
-        case Token.INC:
-            _assertOne( n );
-            _append( " { \n " , n );
-            _append( "Object __tempInc = " , n );
-            _add( n.getFirstChild() , state );
-            _append( ";\n" , n );
-            
-            _append( " } \n " , n );
-            break;
 
+        case Token.HOOK:
+            _append( " ( ( " , n );
+            _add( n.getFirstChild() , state );
+            _append( " ) ? ( " , n );
+            _add( n.getFirstChild().getNext() , state );
+            _append( " ) : ( " , n );
+            _add( n.getFirstChild().getNext().getNext() , state );
+            _append( " ) ) " , n );
+                     
+            break;
+            
         case Token.NE:
             _append( " ! " , n );
             
