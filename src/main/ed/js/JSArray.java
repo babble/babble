@@ -14,6 +14,8 @@ public class JSArray extends JSObject {
     }
 
     public Object getInt( int pos ){
+        if ( pos >= _array.size() )
+            return null;
         return _array.get( pos );
     }
 
