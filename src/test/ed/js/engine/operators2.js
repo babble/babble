@@ -59,3 +59,8 @@ print( a * "asd" );
 
 print( a == 12 ? "good" : "bad" );
 print( a != 12 ? "bad" : "good" );
+
+a = b;
+print( a & 5 );
+a = "qsdsad";
+print( a & 5 );

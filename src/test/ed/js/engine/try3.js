@@ -1,3 +1,4 @@
+/*
 try {
     print(5);
 }
@@ -7,3 +8,4 @@ catch( foo ){
 finally {
     print( "f" );
 }
+*/

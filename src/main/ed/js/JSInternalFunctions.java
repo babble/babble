@@ -170,12 +170,13 @@ public class JSInternalFunctions {
              b != null && b instanceof Number )
             return ((Number)a).intValue() & ((Number)b).intValue();
         
+        /*
         if ( a != null && a instanceof Number )
             return (Number)a;
 
         if ( b != null && b instanceof Number )
             return (Number)b;
-
+        */
         return 0;
     }
 
