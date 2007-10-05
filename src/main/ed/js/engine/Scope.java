@@ -42,6 +42,8 @@ public class Scope {
             
             if ( o == null )
                 o = NULL;
+            if ( o instanceof String) 
+                o = new JSString( (String)o );
             _objects.put( name , o );
             return o;
         }
