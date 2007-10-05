@@ -103,6 +103,12 @@ public class JSInternalFunctions {
         if ( a == null || b == null )
             return false;
         
+        if ( a instanceof JSString )
+            a = a.toString();
+
+        if ( b instanceof JSString )
+            b = b.toString();
+
         return a.equals( b );
     }
 

@@ -29,8 +29,17 @@ public class JSString extends JSObject {
     }
 
     public boolean equals( Object o ){
-        return _s.equals( o );
+
+        System.out.println( "me [" + _s + "] them [" + o + "]" );
+        
+        if ( o == null )
+            return _s == null;
+        
+        if ( _s == null )
+            return false;
+        
+        return _s.equals( o.toString() );
     }
 
-    private String _s;
+    String _s;
 }
