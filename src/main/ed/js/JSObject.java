@@ -38,6 +38,9 @@ public class JSObject {
         if ( n instanceof Number )
             return getInt( ((Number)n).intValue() );
         
+        if ( n instanceof JSString )
+            return _map.get( n.toString() );
+
         throw new RuntimeException( "what?" );
     }
 

@@ -832,8 +832,6 @@ public class Parser
             if ( ED_HACK ){
                 pn = new Node.Scope( Token.WHILE , ts.getLineno() );
                 
-                System.out.println( "pn : " + pn );
-                
                 Node cond = condition();
                 decompiler.addEOL(Token.LC);
                 Node body = statement();

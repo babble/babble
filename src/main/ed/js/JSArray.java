@@ -35,7 +35,7 @@ public class JSArray extends JSObject {
         StringBuilder buf = new StringBuilder();
         for ( int i=0; i<_array.size(); i++ ){
             if ( i > 0 )
-                buf.append( " , " );
+                buf.append( "," );
             buf.append( _array.get( i ) );
         }
         return buf.toString();

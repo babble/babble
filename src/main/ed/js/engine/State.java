@@ -35,7 +35,7 @@ class State {
     }
 
     boolean useLocalVariable( String name ){
-        return false;
+        return ! _hasLambdaExpressions;
     }
     
     final Set<String> _localSymbols = new HashSet<String>();
@@ -44,5 +44,6 @@ class State {
 
     final State _parent;
     
-
+    boolean _hasLambdaExpressions = true;
+    
 }

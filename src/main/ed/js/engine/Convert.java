@@ -139,7 +139,7 @@ public class Convert {
             _append( temp , n );
             break;
         case Token.STRING:
-            _append( "\"" + n.getString() + "\"" , n );
+            _append( " new JSString( \"" + n.getString() + "\" )" , n );
             break;
         case Token.TRUE:
             _append( " true " , n );
@@ -163,7 +163,7 @@ public class Convert {
                     _append( "Object " , n );
                 _append( foo + " = " , n );
                 _add( n.getFirstChild().getNext() , state );
-                _append( ";\n" , n );
+                _append( "\n" , n );
             }
             else {
                 _setVar( foo , 
@@ -280,7 +280,11 @@ public class Convert {
             break;
         case Token.FOR:
             _append( "\n for ( " , n );
-            _add( n.getFirstChild() , state );
+            _assertOne( n.getFirstChild() );
+            if ( n.getFirstChild().getType() == Token.BLOCK )
+                _add( n.getFirstChild().getFirstChild() , state );
+            else
+                _add( n.getFirstChild() , state );
             _append( "  \n " , n );
             _add( n.getFirstChild().getNext() , state );
             _append( " ; \n" , n );
@@ -423,7 +427,8 @@ public class Convert {
         _assertOne( n );
 
         state = state.child();
-        
+        state._hasLambdaExpressions = fn.getFunctionCount() > 0;
+
         _append( "new JSFunctionCalls" + fn.getParamCount() + "( scope , null ){ \n" , n );
         
         String callLine = "public Object call( final Scope passedIn ";
@@ -459,12 +464,41 @@ public class Convert {
 
         if ( n.getFirstChild() == null )
             return;
-        
+
         // this is weird.  look at bracing0.js
-        if ( n.getFirstChild().getNext() == null && 
-             n.getFirstChild().getType() == Token.EXPR_VOID &&
-             n.getFirstChild().getFirstChild().getNext() == null ){
-            _add( n.getFirstChild() , state );
+        
+        boolean bogusBrace = true;
+        Node c = n.getFirstChild();
+        while ( c != null ){
+            if ( c.getType() != Token.EXPR_VOID ){
+                bogusBrace = false;
+                break;
+            }
+            
+            if ( c.getFirstChild().getNext() != null ){
+                bogusBrace = false;
+                break;
+            }
+
+            if ( c.getFirstChild().getType() != Token.SETVAR ){
+                bogusBrace = false;
+                break;
+            }
+
+            c = c.getNext();
+        }
+
+        bogusBrace = bogusBrace ||
+            ( n.getFirstChild().getNext() == null &&
+              n.getFirstChild().getType() == Token.EXPR_VOID &&
+              n.getFirstChild().getFirstChild() == null );
+        
+        if ( bogusBrace ){
+            c = n.getFirstChild();
+            while ( c != null ){
+                _add( c  , state );
+                c = c.getNext();
+            }
             return;
         }
         
