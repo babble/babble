@@ -4,7 +4,7 @@ package ed.js;
 
 public class JSFunctionBaseGenerator {
 
-    static int MAX = 30;
+    static int MAX = 28;
     
     static String _i( int i ){
         String s = "";
@@ -19,7 +19,7 @@ public class JSFunctionBaseGenerator {
         throws Exception {
         
         StringBuilder buf = new StringBuilder();
-        buf.append( "// JSFunctionBase.java\n\n" );
+        buf.append( "//JSFunctionBase.java\n\n" );
         buf.append( "package ed.js;\n\n" );
         buf.append( "import ed.js.engine.Scope;\n" );
         buf.append( "public abstract class JSFunctionBase extends JSInternalFunctions { \n" );
@@ -30,28 +30,23 @@ public class JSFunctionBaseGenerator {
         buf.append( _i( 1 ) + "final int _num;\n\n" );
 
         for ( int i=0; i<=MAX; i++ ){
-            buf.append( _i( 1 ) + "public Object call( Scope scope " );
-            for ( int j=0; j<i; j++ ){
-                buf.append( " , Object p" + j );
-            }
-            buf.append( " ){\n" );
             
-            buf.append( _i( 2 ) + "if ( _num == " + i + " )\n" + _i( 3 ) + "throw new RuntimeException( \"this should not happen\" );\n" );
-            buf.append( _i( 2 ) + "if ( _num < " + i + " )\n" + _i( 3 ) + "throw new RuntimeException( \"too many params\" );\n" );
+            // main one
+            buf.append( _i( 1 ) + "public abstract Object call( Scope scope " );
+            for ( int j=0; j<i; j++ )
+                buf.append( " , Object p" + j );
+            buf.append( " , Object[] extra );\n" );
 
-            if ( i == MAX ){
-                buf.append( _i(2) + "throw new RuntimeException( \"fuck\" );\n " );
-            }
-            else {
-                buf.append( _i( 2 ) + "return call( scope " );
-                for ( int j=0; j<i; j++ )
-                    buf.append( " , " + "p" + j );
-                buf.append( " , null" );
-                buf.append( ");\n" );
-                
-                buf.append( _i( 1 ) + "\n" );
-            }
-            buf.append( _i(1) + "}\n" );
+            // no extra
+            buf.append( _i( 1 ) + "public Object call( Scope scope " );
+            for ( int j=0; j<i; j++ )
+                buf.append( " , Object p" + j );
+            buf.append( " ){\n" );
+            buf.append( _i(2) + "return call( scope" );
+            for ( int j=0; j<i; j++ )
+                buf.append( " , p" + j );
+            buf.append( " , null );\n" + _i(1) + "}\n" );
+
         }
 
         buf.append( "\n}\n" );
@@ -64,10 +59,97 @@ public class JSFunctionBaseGenerator {
 
     }
 
+    public static void doFunc( int num )
+        throws Exception {
+        
+        StringBuilder buf = new StringBuilder();
+        buf.append( "//JSFunctionCalls" + num + ".java\n\n" );
+        buf.append( "package ed.js;\n\n" );
+        buf.append( "import ed.js.engine.Scope;\n" );
+        buf.append( "public abstract class JSFunctionCalls" + num + " extends JSFunction { \n" );
+        
+        buf.append( _i( 1 ) + "public JSFunctionCalls" + num + "(){\n" );
+        buf.append( _i( 2 ) + "super( " + num + " );\n" );
+        buf.append( _i( 1 ) + "}\n\n" );
+
+        buf.append( _i( 1 ) + "public JSFunctionCalls" + num + "( Scope scope , String name ){\n" );
+        buf.append( _i( 2 ) + "super( scope , name , " + num + " );\n" );
+        buf.append( _i( 1 ) + "}\n\n" );
+
+        for ( int i=0; i<=MAX; i++ ){
+            if ( i == num )
+                continue;
+            
+            buf.append( _i( 1 ) + "public Object call( Scope scope " );
+            for ( int j=0; j<i; j++ ){
+                buf.append( " , Object p" + j );
+            }
+            buf.append( " , Object extra[] ){\n" );
+            
+            if ( i < num ){
+                for ( int j=i; j<num; j++ )
+                    buf.append( _i(3) + "Object p" + j + " = extra == null || extra.length < " + ( j - i ) + " ? null : extra[" + ( j - i ) + "];\n" );
+                
+                buf.append( _i(3) + "Object newExtra[] = extra == null || extra.length <= " + ( num - i ) + " ? null : new Object[ extra.length - " + ( num -i ) + "];\n" );
+                buf.append( _i(3) + "if ( newExtra != null )\n" );
+                buf.append( _i(4) + "for ( int i=0; i<newExtra.length; i++ )\n" );
+                buf.append( _i(5) + "newExtra[i] = extra[i+" + ( num - i ) + "];\n" );
+                
+                buf.append( _i(3) + "return call( scope" );
+                for ( int j=0; j<num; j++ )
+                    buf.append( " , p" + j );
+                buf.append( " , newExtra );\n" );
+            }
+            else {
+                buf.append( _i(3) + "boolean needExtra = " );
+                for ( int j=num; j<i; j++ ){
+                    if ( j > num )
+                        buf.append( " || " );
+                    buf.append( " p" + j + " != null " );
+                }
+                buf.append( " || ( extra != null && extra.length > 0 ) ;\n" );
+                
+                buf.append( _i(3) + "Object newExtra[] = needExtra ? new Object[" + ( i - num ) + " + ( extra == null ? 0 : extra.length ) ] : null;\n" );
+                
+                
+                buf.append( _i(3) + "if ( newExtra != null ){\n" );
+                for ( int j=num; j<i; j++ )
+                    buf.append( _i(4) + "newExtra[" + ( j - num ) + "] = p" + j + ";\n" );
+                buf.append( _i(4) + "for ( int i=0; extra != null && i<extra.length; i++ )\n" );
+                buf.append( _i(5) + "newExtra[i + " + ( i - num ) + "] = extra[i];\n" );
+                buf.append( _i(3) + "}\n" );
+                
+                buf.append( _i(3) + "return call( scope" );
+                for ( int j=0; j<num; j++ )
+                    buf.append( " , p" + j );
+                buf.append( " , newExtra );\n" );
+            }
+            
+            
+            buf.append( _i(1) + "}\n\n" );
+            
+        }
+
+        buf.append( "\n}\n" );
+
+        System.out.println( buf );
+
+        java.io.FileOutputStream fout = new java.io.FileOutputStream( "src/main/ed/js/func/JSFunctionCalls" + num + ".java" );
+        fout.write( buf.toString().getBytes() );
+        fout.close();
+
+    }
+    
+    
+
     public static void main( String args[] )
         throws Exception {
+        
+        for ( int i=0; i<=MAX; i++ ){
+            doFunc( i );
+        }
+
         doInterface();
-        
-        
+
     }
 }

@@ -25,8 +25,8 @@ public class ConvertTest {
             
             JSFunction f = c.get();
 
-            JSFunction myout = new JSFunction( null , "print" , 1 ){
-                    public Object call( Scope scope ,Object o ){
+            JSFunction myout = new JSFunctionCalls1(){
+                    public Object call( Scope scope ,Object o , Object extra[] ){
                         out.println( o );
                         return null;
                     }

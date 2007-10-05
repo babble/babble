@@ -240,11 +240,11 @@ public class Convert {
             if ( fooooo == null )
                 throw new RuntimeException( "noting for : " + n );
             _append( fooooo , n );
-            _append( "( " , n );
+            _append( "\n( " , n );
             _add( n.getFirstChild() , state );
             _append( " , " , n );
             _add( n.getFirstChild().getNext() , state );
-            _append( " ) " , n );
+            _append( " )\n " , n );
             break;
 
         case Token.IFNE:
@@ -424,7 +424,7 @@ public class Convert {
 
         state = state.child();
         
-        _append( "new JSFunction( scope , null , " + fn.getParamCount() + "){ \n" , n );
+        _append( "new JSFunctionCalls" + fn.getParamCount() + "( scope , null ){ \n" , n );
         
         String callLine = "public Object call( final Scope passedIn ";
         String varSetup = "";
@@ -440,7 +440,7 @@ public class Convert {
             }
             callLine += " ";
         }
-        callLine += "){\n" ;
+        callLine += " , Object extra[] ){\n" ;
         
         _append( callLine + " final Scope scope = new Scope( \"temp scope\" , _scope ); " + varSetup , n );
         
@@ -595,11 +595,11 @@ public class Convert {
         buf.append( "import ed.js.*;\n" );
         buf.append( "import ed.js.engine.Scope;\n" );
 
-        buf.append( "public class " ).append( _className ).append( " extends JSFunction {\n" );
+        buf.append( "public class " ).append( _className ).append( " extends JSFunctionCalls0 {\n" );
         
-        buf.append( "\tpublic " + _className + "(){\n\t\tsuper(0);\n\t}\n\n" );
+        //buf.append( "\tpublic " + _className + "(){\n\t\tsuper(0);\n\t}\n\n" );
 
-        buf.append( "\tpublic Object call( Scope scope ){\n" );
+        buf.append( "\tpublic Object call( Scope scope , Object extra[] ){\n" );
         
         buf.append( _mainJavaCode );
         

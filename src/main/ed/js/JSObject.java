@@ -24,6 +24,11 @@ public class JSObject {
     }
 
     public Object get( Object n ){
+        final Object r = _get( n );
+        return r;
+    }
+
+    Object _get( Object n ){
         if ( n == null )
             throw new NullPointerException();
 

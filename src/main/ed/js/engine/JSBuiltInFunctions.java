@@ -6,34 +6,57 @@ import ed.js.*;
 
 public class JSBuiltInFunctions {
 
-    public static class print extends JSFunction {
+    public static class print extends JSFunctionCalls1 {
         print(){
-            super( null , "print" , 1 );
+            super();
         }
 
-        public Object call( Scope scope , Object foo ){
+        public Object call( Scope scope , Object foo , Object extra[] ){
             System.out.println( foo );
             return null;
         }
     }
 
-    public static class NewObject extends JSFunction {
+    public static class NewObject extends JSFunctionCalls0 {
         NewObject(){
-            super( null , "Object" , 0 );
+            super();
         }
 
-        public Object call( Scope scope ){
+        public Object call( Scope scope , Object extra[] ){
             return new JSObject();
         }
     }
 
-    public static class NewArray extends JSFunction {
+    public static class NewArray extends JSFunctionCalls1 {
         NewArray(){
-            super( null , "Array" , 0 );
+            super();
         }
 
-        public Object call( Scope scope ){
-            return new JSArray();
+        public Object call( Scope scope , Object a , Object[] extra ){
+            int len = 0;
+            if ( extra == null || extra.length == 0 ){
+                if ( a instanceof Number )
+                    len = ((Number)a).intValue();
+            }
+            else {
+                len = 1 + extra.length;
+            }
+            
+            JSArray arr = new JSArray( len );
+            
+            if ( extra != null && extra.length > 0 ){
+                arr.setInt( 0 , a );
+                for ( int i=0; i<extra.length; i++)
+                    arr.setInt( 1 + i , extra[i] );
+            }
+            
+            return arr;
+        }
+    }
+
+    public static class NewDate extends JSFunctionCalls0 {
+        public Object call( Scope scope , Object extra[] ){
+            return new JSDate();
         }
     }
 
@@ -44,6 +67,7 @@ public class JSBuiltInFunctions {
 
         _myScope.put( "Object" , new NewObject() , true );
         _myScope.put( "Array" , new NewArray() , true );
+        _myScope.put( "Date" , new NewDate() , true );
     }
     
 }

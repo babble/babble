@@ -5,6 +5,17 @@ package ed.js;
 import java.util.*;
 
 public class JSArray extends JSObject {
+    
+    public JSArray(){
+        this( 0 );
+    }
+
+    public JSArray( int init ){
+        _array = new ArrayList( Math.max( 16 , init ) );
+        
+        for ( int i=0; i<init; i++ )
+            _array.add( null );
+    }
 
     public void setInt( int pos , Object v ){
         while ( _array.size() <= pos )
@@ -14,10 +25,21 @@ public class JSArray extends JSObject {
     }
 
     public Object getInt( int pos ){
-        if ( pos >= _array.size() )
+        if ( pos >= _array.size() ){
             return null;
+        }
         return _array.get( pos );
     }
 
-    List<Object> _array = new ArrayList<Object>();
+    public String toString(){
+        StringBuilder buf = new StringBuilder();
+        for ( int i=0; i<_array.size(); i++ ){
+            if ( i > 0 )
+                buf.append( " , " );
+            buf.append( _array.get( i ) );
+        }
+        return buf.toString();
+    }
+
+    final List<Object> _array;
 }
