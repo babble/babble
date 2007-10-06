@@ -279,18 +279,7 @@ public class Convert {
             _add( n.getFirstChild().getNext() , state );
             break;
         case Token.FOR:
-            _append( "\n for ( " , n );
-            _assertOne( n.getFirstChild() );
-            if ( n.getFirstChild().getType() == Token.BLOCK )
-                _add( n.getFirstChild().getFirstChild() , state );
-            else
-                _add( n.getFirstChild() , state );
-            _append( "  \n " , n );
-            _add( n.getFirstChild().getNext() , state );
-            _append( " ; \n" , n );
-            _add( n.getFirstChild().getNext().getNext() , state );
-            _append( " )\n " , n );
-            _add( n.getFirstChild().getNext().getNext().getNext() , state );
+            _addFor( n , state );
             
             break;
             
@@ -323,6 +312,41 @@ public class Convert {
         }
         
     }
+    
+    private void _addFor( Node n , State state ){
+        _assertType( n , Token.FOR );
+    
+        final int numChildren = countChildren( n );
+        if ( numChildren == 4 ){
+            _append( "\n for ( " , n );
+            _assertOne( n.getFirstChild() );
+            if ( n.getFirstChild().getType() == Token.BLOCK )
+                _add( n.getFirstChild().getFirstChild() , state );
+            else
+                _add( n.getFirstChild() , state );
+            _append( "  \n " , n );
+            _add( n.getFirstChild().getNext() , state );
+            _append( " ; \n" , n );
+            _add( n.getFirstChild().getNext().getNext() , state );
+            _append( " )\n " , n );
+            _add( n.getFirstChild().getNext().getNext().getNext() , state );
+        }
+        else if ( numChildren == 3 ){
+            String name = n.getFirstChild().getString();
+            String tempName = name + "TEMP";
+            _append( "\n for ( Object " , n );
+            _append( tempName , n );
+            _append( " : ((JSObject)" , n );
+            _add( n.getFirstChild().getNext() , state );
+            _append( " ).keySet() ){\n " , n );
+            _append( "scope.put( \"" + name + "\" , " + tempName + " , true );\n" , n );
+            _add( n.getFirstChild().getNext().getNext() , state );
+            _append( "\n}\n" , n );
+        }
+        else {
+            throw new RuntimeException( "wtf?" );
+        }
+    }
 
     private void _addLoop( Node n , State state ){
         _assertType( n , Token.LOOP );
@@ -344,7 +368,7 @@ public class Convert {
             Node main = nodes[1];
             Node predicate = nodes[3];
             _assertType( predicate , Token.IFEQ );
-
+            
             _append( "do  \n " , theLoop );
             _add( main , state );
             _append( " \n while ( JS_evalToBool( " , n );
@@ -554,6 +578,16 @@ public class Convert {
         _append( " , false  ) " , val );
     }
     
+    private int countChildren( Node n ){
+        int num = 0;
+        Node c = n.getFirstChild();
+        while ( c != null ){
+            num++;
+            c = c.getNext();
+        }
+        return num;
+    }
+
     private void _assertOne( Node n ){
         if ( n.getFirstChild() == null ){
             Debug.printTree( n , 0 );
@@ -627,6 +661,7 @@ public class Convert {
         buf.append( "package " + _package + ";\n" );
         
         buf.append( "import ed.js.*;\n" );
+        buf.append( "import ed.js.func.*;\n" );
         buf.append( "import ed.js.engine.Scope;\n" );
 
         buf.append( "public class " ).append( _className ).append( " extends JSFunctionCalls0 {\n" );

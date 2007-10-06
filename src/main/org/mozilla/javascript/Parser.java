@@ -957,8 +957,16 @@ public class Parser
                 if (incr == null) {
                     // cond could be null if 'in obj' got eaten
                     // by the init node.
-                    pn = nf.createForIn(declType, loop, init, cond, body,
-                                        isForEach);
+                    if ( ED_HACK ){
+                        pn = loop;
+                        pn.addChildToBack( init );
+                        pn.addChildToBack( cond );
+                        pn.addChildToBack( body );
+                    }
+                    else {
+                        pn = nf.createForIn(declType, loop, init, cond, body,
+                                            isForEach);
+                    }
                 } else {
                     if ( ED_HACK ){
                         pn = loop;

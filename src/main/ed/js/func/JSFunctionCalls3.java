@@ -1,8 +1,9 @@
 //JSFunctionCalls3.java
 
-package ed.js;
+package ed.js.func;
 
-import ed.js.engine.Scope;
+import ed.js.engine.*;
+import ed.js.*;
 public abstract class JSFunctionCalls3 extends JSFunction { 
     public JSFunctionCalls3(){
         super( 3 );

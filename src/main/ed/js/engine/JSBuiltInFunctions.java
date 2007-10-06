@@ -3,6 +3,7 @@
 package ed.js.engine;
 
 import ed.js.*;
+import ed.js.func.*;
 
 public class JSBuiltInFunctions {
 

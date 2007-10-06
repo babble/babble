@@ -6,6 +6,7 @@ import java.io.*;
 
 import ed.*;
 import ed.js.*;
+import ed.js.func.*;
 import ed.io.*;
 
 public class ConvertTest {
@@ -47,7 +48,15 @@ public class ConvertTest {
             }
             String correctOut = _clean( StreamUtil.readFully( correct ) );
             
-            assertClose( correctOut , outString );
+            try {
+                assertClose( correctOut , outString );
+            }
+            catch ( MyAssert a ){
+                System.out.println();
+                System.out.println( correctOut.replaceAll( "[\r\n ]+" , " " ) );
+                System.out.println( outString.replaceAll( "[\r\n ]+" , " " ) );
+                throw a;
+            }
         }
         
         final File _file;

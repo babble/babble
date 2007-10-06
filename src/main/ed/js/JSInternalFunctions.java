@@ -271,10 +271,15 @@ public class JSInternalFunctions {
         if ( o instanceof Number )
             return o;
         
-        if ( ! ( o instanceof String ) )
+        String s = null;
+        if ( o instanceof JSString )
+            s = o.toString();
+        else if ( ! ( o instanceof String ) )
+            s = o.toString();
+        
+        if ( s == null )
             return o;
 
-        String s = (String)o;
         if ( s.length() > 9 )
             return s;
 

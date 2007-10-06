@@ -1,8 +1,9 @@
 //JSFunctionCalls19.java
 
-package ed.js;
+package ed.js.func;
 
-import ed.js.engine.Scope;
+import ed.js.engine.*;
+import ed.js.*;
 public abstract class JSFunctionCalls19 extends JSFunction { 
     public JSFunctionCalls19(){
         super( 19 );

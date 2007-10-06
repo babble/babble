@@ -9,6 +9,9 @@ public class JSObject {
     public void set( Object n , Object v ){
         if ( n == null )
             throw new NullPointerException();
+
+        if ( n instanceof JSString )
+            n = n.toString();
         
         if ( n instanceof String ){
             _map.put( (String)n , v );
@@ -20,7 +23,7 @@ public class JSObject {
             return;
         }
         
-        throw new RuntimeException( "what?" );
+        throw new RuntimeException( "what - " + n.getClass() );
     }
 
     public Object get( Object n ){
@@ -41,7 +44,7 @@ public class JSObject {
         if ( n instanceof JSString )
             return _map.get( n.toString() );
 
-        throw new RuntimeException( "what?" );
+        throw new RuntimeException( "what - " + n.getClass() );
     }
 
     public void setInt( int n , Object v ){
@@ -50,6 +53,10 @@ public class JSObject {
 
     public Object getInt( int n ){
         return get( String.valueOf( n ) );
+    }
+
+    public Set<String> keySet(){
+        return _map.keySet();
     }
 
     private Map<String,Object> _map = new TreeMap<String,Object>();

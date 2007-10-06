@@ -6,10 +6,11 @@ for ( var i = 5 ; i >= 0 ; i = i + -1 ){
 }
 print( b );
 
-/*
+
 var o = Object();
 o.a = 5;
+o.b = 6;
 for ( bar in o ){
     print( bar );
 }
-*/
+

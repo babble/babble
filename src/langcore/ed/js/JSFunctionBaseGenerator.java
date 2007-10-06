@@ -64,8 +64,9 @@ public class JSFunctionBaseGenerator {
         
         StringBuilder buf = new StringBuilder();
         buf.append( "//JSFunctionCalls" + num + ".java\n\n" );
-        buf.append( "package ed.js;\n\n" );
-        buf.append( "import ed.js.engine.Scope;\n" );
+        buf.append( "package ed.js.func;\n\n" );
+        buf.append( "import ed.js.engine.*;\n" );
+        buf.append( "import ed.js.*;\n" );
         buf.append( "public abstract class JSFunctionCalls" + num + " extends JSFunction { \n" );
         
         buf.append( _i( 1 ) + "public JSFunctionCalls" + num + "(){\n" );

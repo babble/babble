@@ -2,6 +2,8 @@
 
 package ed.js;
 
+import ed.js.func.*;
+
 public class JSDate extends JSObject {
     public JSDate(){
         _time = System.currentTimeMillis();

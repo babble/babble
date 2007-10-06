@@ -2,6 +2,8 @@
 
 package ed.js;
 
+import ed.js.func.*;
+
 public class JSString extends JSObject {
     public JSString( String s ){
         _s = s;
