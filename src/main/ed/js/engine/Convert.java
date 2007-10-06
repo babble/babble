@@ -13,7 +13,7 @@ import ed.util.*;
 
 public class Convert {
 
-    static boolean D = true;
+    static boolean D = false;
 
     public Convert( File f )
         throws IOException {

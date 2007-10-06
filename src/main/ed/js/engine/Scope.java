@@ -36,7 +36,7 @@ public class Scope {
         if ( local
              || _parent == null
              || _parent._locked 
-             || _objects.containsKey( name ) 
+             || ( _objects != null && _objects.containsKey( name ) )
              || _global
              ){
             
@@ -44,6 +44,8 @@ public class Scope {
                 o = NULL;
             if ( o instanceof String) 
                 o = new JSString( (String)o );
+            if ( _objects == null )
+                _objects = new TreeMap<String,Object>();
             _objects.put( name , o );
             return o;
         }
@@ -59,7 +61,7 @@ public class Scope {
     }
 
     Object _get( String name ){
-        Object foo = _objects.get( name );
+        Object foo = _objects == null ? null : _objects.get( name );
         if ( foo != null ){
             if ( foo == NULL )
                 return null;
@@ -89,5 +91,5 @@ public class Scope {
     boolean _locked = false;
     boolean _global = false;
 
-    final Map<String,Object> _objects = new HashMap<String,Object>();
+    Map<String,Object> _objects;
 }

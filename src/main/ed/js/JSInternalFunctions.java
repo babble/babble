@@ -264,7 +264,7 @@ public class JSInternalFunctions {
         return -1;
     }
 
-    static Object _parseNumber( Object o ){
+    static final Object _parseNumber( final Object o ){
         if ( o == null )
             return null;
         

@@ -29,7 +29,7 @@ class CompileUtil {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter( sw ); 
         
-        int res = com.sun.tools.javac.Main.compile( new String[]{ f.toString() } , pw );
+        int res = com.sun.tools.javac.Main.compile( new String[]{ "-g" ,  f.toString() } , pw );
         
         if ( D ) System.out.println( f + " : " + res );
         
