@@ -47,9 +47,7 @@ print( "101 = " + foobar2( 5 , 7 ) );
 
 a = 3; b = 4;
 print( "7 = " + foobar3( a , b )() );
-/*
+
 var f = foobar3( a , b );
 a = 4; b = 5;
 print( "7 = " + f() );
-
-*/
