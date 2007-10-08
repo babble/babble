@@ -1,5 +1,5 @@
 
 TODO
- a++ a+=
+ a++ a+= i thikn all i need to do is convert ++ to SETELEM_OP ?
  this in classes
  
