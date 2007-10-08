@@ -70,6 +70,21 @@ public class Convert {
     private void _add( Node n , ScriptOrFnNode sn , State state ){
         
         switch ( n.getType() ){
+            
+        case Token.NEW:
+            // create new object
+            // add it to scope
+            // call constuctore
+            // remove from scope
+            // scope.clearThis( XXX.call( scope.newThis() , ... )
+            _append( "scope.clearThis( " , n );
+            _addCall( n , state , " scope.newThis() " );
+            _append( " ) " , n );
+            break;
+            
+        case Token.THIS:
+            _append( "_scope.getThis()" , n );
+            break;
 
         case Token.INC:
             _assertOne( n );
@@ -641,11 +656,14 @@ public class Convert {
     }
     
     private void _addCall( Node n , State state ){
-        _assertType( n , Token.CALL );
+        _addCall( n , state , "scope" );
+    }
+
+    private void _addCall( Node n , State state , String scopeCall ){
         Node name = n.getFirstChild();
 
         String f = getFunc( name , state );
-        _append( f + ".call( scope " , n );
+        _append( f + ".call( " + scopeCall + " " , n );
 
         Node param = name.getNext();
         while ( param != null ){

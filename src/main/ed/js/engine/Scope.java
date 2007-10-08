@@ -84,6 +84,21 @@ public class Scope {
         
         return (JSFunction)o;
     }
+
+    public Scope newThis(){
+        _this = new JSObject();
+        return this;
+    }
+
+    public JSObject getThis(){
+        return _this;
+    }
+
+    public JSObject clearThis( Object whoCares ){
+        JSObject foo = _this;
+        _this = null;
+        return foo;
+    }
     
     final String _name;
     final Scope _parent;
@@ -92,4 +107,5 @@ public class Scope {
     boolean _global = false;
 
     Map<String,Object> _objects;
+    JSObject _this;
 }
