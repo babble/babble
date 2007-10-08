@@ -35,9 +35,17 @@ class State {
     }
 
     boolean useLocalVariable( String name ){
-        return ! _hasLambdaExpressions;
+        return 
+            ! _hasLambdaExpressions && 
+            ( _badLocals == null || ! _badLocals.contains( name ) );
     }
     
+    void addBadLocal( String s ){
+        if ( _badLocals == null )
+            _badLocals = new HashSet<String>();
+        _badLocals.add( s );
+    }
+
     final Set<String> _localSymbols = new HashSet<String>();
     final Map<Integer,String> _functionIdToName = new HashMap<Integer,String>();
     final Stack<String> _tempOpNames = new Stack<String>();
@@ -45,5 +53,5 @@ class State {
     final State _parent;
     
     boolean _hasLambdaExpressions = true;
-    
+    private  Set<String> _badLocals;
 }

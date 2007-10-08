@@ -1,4 +1,3 @@
 #!/bin/tcsh
 
 ./runLight.bash ed.js.engine.ConvertTest src/test/ed/js/engine/*[01234].js
-# src/test/ed/js/engine/*1.js src/test/ed/js/engine/*2.js src/test/ed/js/engine/*3.js 

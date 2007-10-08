@@ -71,6 +71,16 @@ public class Convert {
         
         switch ( n.getType() ){
 
+        case Token.INC:
+            _assertOne( n );
+            
+            _append( "JS_inc( " , n );
+            _createRef( n.getFirstChild() , state );
+            _append( " , " , n );
+            _append( String.valueOf( ( n.getIntProp( Node.INCRDECR_PROP , 0 ) & Node.POST_FLAG ) > 0 ) , n );
+            _append( ")" , n );
+            break;
+            
         case Token.USE_STACK:
             _append( "__tempObject.get( " + state._tempOpNames.pop() + " ) "  , n );
             break;
@@ -331,6 +341,36 @@ public class Convert {
         
     }
     
+    private void _createRef( Node n , State state ){
+        if ( n.getType() == Token.NAME || 
+             ( n.getType() == Token.GETVAR && ! state.useLocalVariable( n.getString() ) ) ){
+            _append( " new JSRef( scope , null , " , n );
+            _append( "\"" + n.getString() + "\"" , n );
+            _append( " ) " , n );
+            return;
+        }
+        
+        if ( n.getType() == Token.GETVAR )
+            throw new RuntimeException( "can't create a JSRef from a local variable " );
+        
+        if ( n.getType() == Token.GETPROP || 
+             n.getType() == Token.GETELEM ){
+            _append( " new JSRef( scope , (JSObject)" , n );
+            _add( n.getFirstChild() , state );
+            _append( " , " , n );
+            _add( n.getFirstChild().getNext() , state );
+            _append( " ) " , n );
+            return;
+        }
+        
+        
+        
+        System.err.println( "**************" );
+        Debug.printTree( n , 2 );
+
+        throw new RuntimeException( "can't handle" );
+    }
+    
     private void _addFor( Node n , State state ){
         _assertType( n , Token.FOR );
     
@@ -470,7 +510,33 @@ public class Convert {
 
         state = state.child();
         state._hasLambdaExpressions = fn.getFunctionCount() > 0;
+        
+        if ( ! state._hasLambdaExpressions ){
+            List<Node> toSearch = new ArrayList<Node>();
+            toSearch.add( n );
+            while ( toSearch.size() > 0 ){
+                Node cur = toSearch.remove( toSearch.size() - 1 );
+                
+                // pretty sure i can ignore leaf nods
+                if ( cur.getFirstChild() == null )
+                    continue;
+                
+                if ( cur.getType() == Token.INC ){
+                    if ( cur.getFirstChild().getType() == Token.GETVAR ){
+                        state.addBadLocal( cur.getFirstChild().getString() );
+                    }
+                }
+                
 
+                if ( cur.getNext() != null )
+                    toSearch.add( cur.getNext() );
+                if ( cur.getFirstChild() != null )
+                    toSearch.add( cur.getFirstChild() );
+                
+            }
+            
+        }
+        
         _append( "new JSFunctionCalls" + fn.getParamCount() + "( scope , null ){ \n" , n );
         
         String callLine = "public Object call( final Scope passedIn ";
@@ -481,6 +547,7 @@ public class Convert {
             state.addSymbol( foo );
             callLine += " , ";
             callLine += " Object " + foo;
+
             if ( ! state.useLocalVariable( foo ) ){
                 callLine += "INNNNN";
                 varSetup += " \nscope.put(\"" + foo + "\"," + foo + "INNNNN , true  );\n ";

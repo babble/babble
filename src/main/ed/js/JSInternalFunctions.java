@@ -2,12 +2,26 @@
 
 package ed.js;
 
+import ed.js.engine.*;
+
 public class JSInternalFunctions {
 
     public Object JS_setDefferedPlus( JSObject obj , Object place , Object other ){
         return obj.set( place , JS_add( obj.get( place ) , other ) );
     }
     
+    public Object JS_inc( JSRef ref , boolean post ){
+        Object obj = ref.get();
+        if ( obj == null || ! ( obj instanceof Number ) ){
+            System.err.println( "got a non number : " + obj + " from : " + ref  );
+            ref.set( Double.NaN );
+            return Double.NaN;
+        }
+        Object n = JS_add( 1 , obj );
+        ref.set( n );
+        return post ? obj : n;
+    }
+
     public boolean JS_evalToBool( Object foo ){
         if ( foo == null )
             return false;

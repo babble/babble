@@ -34,7 +34,31 @@ print( f );
 print( a );
 
 a = Object();
-a.a = 5;
+a.a = 32;
 f = ( a.a += 1 );
 print( f );
 print( a.a );
+
+a = 5;
+print( a++ + " " + a++ );
+
+a = 17;
+print( ++a );
+print( a );
+
+a = Object();
+a.a = 100;
+print( a.a++ );
+
+function bar( stupid ){
+    print( stupid );
+    stupid++;
+    print( stupid );
+}
+
+bar( 500 );
+
+
+
+
+
