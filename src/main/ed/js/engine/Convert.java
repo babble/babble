@@ -13,7 +13,7 @@ import ed.util.*;
 
 public class Convert {
 
-    static boolean D = false;
+    static boolean D = true;
 
     public Convert( File f )
         throws IOException {
@@ -77,6 +77,24 @@ public class Convert {
 
         case Token.SETPROP_OP:
         case Token.SETELEM_OP:
+            Node theOp = n.getFirstChild().getNext().getNext();
+            if ( theOp.getType() == Token.ADD &&
+                 ( theOp.getFirstChild().getType() == Token.USE_STACK || 
+                   theOp.getFirstChild().getNext().getType() == Token.USE_STACK ) ){
+                _append( "\n" , n );
+                _append( "JS_setDefferedPlus( (JSObject) " , n );
+                _add( n.getFirstChild() , state );
+                _append( " , " , n );
+                _add( n.getFirstChild().getNext() , state );
+                _append( " , " , n );
+                _add( theOp.getFirstChild().getType() == Token.USE_STACK ? 
+                      theOp.getFirstChild().getNext() : 
+                      theOp.getFirstChild() ,
+                      state );
+                _append( " \n ) \n" , n );
+                break;
+            }
+                   
             _append( "\n { \n" , n );
             
             _append( "JSObject __tempObject = (JSObject)" , n );

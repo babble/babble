@@ -4,6 +4,10 @@ package ed.js;
 
 public class JSInternalFunctions {
 
+    public Object JS_setDefferedPlus( JSObject obj , Object place , Object other ){
+        return obj.set( place , JS_add( obj.get( place ) , other ) );
+    }
+    
     public boolean JS_evalToBool( Object foo ){
         if ( foo == null )
             return false;

@@ -26,3 +26,15 @@ function foo(){
 }
 b[ foo() ] += 4;
 print( b.a );
+
+
+a = 5;
+f = ( a += 1 );
+print( f );
+print( a );
+
+a = Object();
+a.a = 5;
+f = ( a.a += 1 );
+print( f );
+print( a.a );

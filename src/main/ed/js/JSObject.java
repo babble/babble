@@ -6,7 +6,7 @@ import java.util.*;
 
 public class JSObject {
 
-    public void set( Object n , Object v ){
+    public Object set( Object n , Object v ){
         if ( n == null )
             throw new NullPointerException();
 
@@ -15,12 +15,12 @@ public class JSObject {
         
         if ( n instanceof String ){
             _map.put( (String)n , v );
-            return;
+            return v;
         }
         
         if ( n instanceof Number ){
             setInt( ((Number)n).intValue() , v );
-            return;
+            return v;
         }
         
         throw new RuntimeException( "what - " + n.getClass() );
