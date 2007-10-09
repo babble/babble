@@ -72,7 +72,7 @@ public class Convert {
         switch ( n.getType() ){
             
         case Token.NEW:
-            _append( "scope.clearThis( " , n );
+            _append( "scope.clearThisNew( " , n );
             _addCall( n , state , true );
             _append( " ) " , n );
             break;
@@ -657,6 +657,9 @@ public class Convert {
     private void _addCall( Node n , State state , boolean isClass ){
         Node name = n.getFirstChild();
 
+        if ( ! isClass )
+            _append( "scope.clearThisNormal( " , n );
+
         String f = getFunc( name , state );
         _append( f + ".call( scope" + ( isClass ? ".newThis( " + f + " )" : "" ) + " " , n );
 
@@ -668,6 +671,8 @@ public class Convert {
         }
 
         _append( " ) " , n );
+        if ( ! isClass )
+            _append( " ) " , n );
     }
 
     private void _setVar( String name , Node val , State state ){
@@ -726,7 +731,18 @@ public class Convert {
     }
 
     private String getFunc( Node n , State state ){
+        return getFunc( n , state , null );
+    }
+    private String getFunc( Node n , State state , String asdad ){
         if ( n.getClass().getName().indexOf( "StringNode" ) < 0 ){
+            if ( n.getType() == Token.GETPROP ){
+                _append( "scope.getFunctionAndSetThis( (JSObject)" , n );
+                _add( n.getFirstChild() , state );
+                _append( " , " , n );
+                _add( n.getFirstChild().getNext() , state );
+                _append( ".toString() ) " , n );
+                return "";
+            }
             _append( "((JSFunction)" , n);
             _add( n , state );
             _append( ")" , n );

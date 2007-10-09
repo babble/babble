@@ -3,7 +3,7 @@
 package ed.js;
 
 public class JSClass extends JSObject {
-
+    
     public JSClass( JSFunction constructor ){
         _constructor = constructor;
     }

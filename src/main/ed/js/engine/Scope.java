@@ -90,14 +90,29 @@ public class Scope {
         return this;
     }
 
+    public Scope setThis( JSObject o ){
+        _this = o;
+        return this;
+    }
+
+    public JSFunction getFunctionAndSetThis( JSObject obj , String name ){
+        _this = obj;
+        return (JSFunction)(obj.get( name ));
+    }
+
     public JSObject getThis(){
         return _this;
     }
 
-    public JSObject clearThis( Object whoCares ){
+    public JSObject clearThisNew( Object whoCares ){
         JSObject foo = _this;
         _this = null;
         return foo;
+    }
+
+    public Object clearThisNormal( Object o ){
+        _this = null;
+        return o;
     }
     
     final String _name;
