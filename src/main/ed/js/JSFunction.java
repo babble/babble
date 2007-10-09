@@ -14,6 +14,16 @@ public abstract class JSFunction extends JSFunctionBase {
         super( num );
         _scope = scope;
         _name = name;
+        
+        _prototype = new JSObject();
+        set( "prototype" , _prototype );
+    }
+
+    public Object get( Object n ){
+        Object foo = super.get( n );
+        if ( foo != null ) 
+            return foo;
+        return _prototype.get( n );
     }
 
     public void setName( String name ){
@@ -29,6 +39,7 @@ public abstract class JSFunction extends JSFunctionBase {
     }
 
     protected final Scope _scope;
+    protected final JSObject _prototype;
 
     String _name = "NO NAME SET";
 }

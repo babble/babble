@@ -4,7 +4,7 @@ package ed.js;
 
 import ed.js.engine.*;
 
-public class JSInternalFunctions {
+public class JSInternalFunctions extends JSObject {
 
     public Object JS_setDefferedPlus( JSObject obj , Object place , Object other ){
         return obj.set( place , JS_add( obj.get( place ) , other ) );

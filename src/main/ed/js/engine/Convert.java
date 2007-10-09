@@ -72,13 +72,8 @@ public class Convert {
         switch ( n.getType() ){
             
         case Token.NEW:
-            // create new object
-            // add it to scope
-            // call constuctore
-            // remove from scope
-            // scope.clearThis( XXX.call( scope.newThis() , ... )
             _append( "scope.clearThis( " , n );
-            _addCall( n , state , " scope.newThis() " );
+            _addCall( n , state , true );
             _append( " ) " , n );
             break;
             
@@ -656,14 +651,14 @@ public class Convert {
     }
     
     private void _addCall( Node n , State state ){
-        _addCall( n , state , "scope" );
+        _addCall( n , state , false );
     }
 
-    private void _addCall( Node n , State state , String scopeCall ){
+    private void _addCall( Node n , State state , boolean isClass ){
         Node name = n.getFirstChild();
 
         String f = getFunc( name , state );
-        _append( f + ".call( " + scopeCall + " " , n );
+        _append( f + ".call( scope" + ( isClass ? ".newThis( " + f + " )" : "" ) + " " , n );
 
         Node param = name.getNext();
         while ( param != null ){

@@ -85,8 +85,8 @@ public class Scope {
         return (JSFunction)o;
     }
 
-    public Scope newThis(){
-        _this = new JSObject();
+    public Scope newThis( JSFunction f ){
+        _this = new JSClass( f );
         return this;
     }
 
