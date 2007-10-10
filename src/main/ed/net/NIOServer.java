@@ -113,7 +113,7 @@ public abstract class NIOServer extends Thread {
 
     protected abstract SocketHandler accept( SocketChannel sc );
     
-    abstract class SocketHandler {
+    protected abstract class SocketHandler {
 
         protected SocketHandler( SocketChannel sc ){
             _channel = sc;
@@ -122,10 +122,10 @@ public abstract class NIOServer extends Thread {
         /**
          * @return true if the selector thread should stop paying attention to this
          */
-        abstract boolean gotData( ByteBuffer inBuf )
+        protected abstract boolean gotData( ByteBuffer inBuf )
             throws IOException ;
 
-        abstract boolean shouldClose();
+        protected abstract boolean shouldClose();
 
         protected final SocketChannel _channel;
     }

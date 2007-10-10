@@ -10,7 +10,7 @@ import java.util.*;
 
 public class EchoServer extends NIOServer {
 
-    EchoServer( int port )
+    public EchoServer( int port )
         throws IOException {
         super( port );
         start();
@@ -25,11 +25,11 @@ public class EchoServer extends NIOServer {
             super( sc );
         }
         
-        boolean shouldClose(){
+        protected boolean shouldClose(){
             return false;
         }
         
-        boolean gotData( ByteBuffer inBuf )
+        protected boolean gotData( ByteBuffer inBuf )
             throws IOException {
             
             byte bb[] = new byte[inBuf.remaining()];
