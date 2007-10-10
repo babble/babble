@@ -13,5 +13,5 @@ if [ $?gui ]; then
     export headless=""
 fi
 
-ant && java -Xprof -ea $headless -ea -Xmx2000m "$@"
+ant && java -ea $headless -ea -Xmx2000m "$@"
 
