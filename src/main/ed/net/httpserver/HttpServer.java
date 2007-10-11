@@ -25,24 +25,37 @@ public class HttpServer extends NIOServer {
     
     protected boolean handle( HttpRequest request )
         throws IOException {
+
+        HttpResponse response = new HttpResponse( request );
+        for ( int i=0; i<_handlers.size(); i++ ){
+            if ( _handlers.get( i ).handles( request ) ){
+                if ( _handlers.get( i ).fork() ){
+                    throw new RuntimeException( "need to do this" );
+                    //return true;
+                }
+                _handlers.get( i ).handle( request , response );
+                response.flush();
+                return false;
+            }
+        }
+        response.setResponseCode( 404 );
+        System.out.println( response );
+        response.flush();
+        return false;
+        /*
         ByteBuffer out = ByteBuffer.allocateDirect( 1024 );
         CharBuffer cout = out.asCharBuffer();
-        cout.append( "HTTP/1.1 200 OK\nConnection: Close\n\nfoo\n" );
+        cout.append( "HTTP/1.1 404 OK\nConnection: Close\n\nfoo\n" );
         
         out.position( cout.position() * 2 );
         out.flip();
         request._handler.getChannel().write( out );
         
-        {
-            FileInputStream foo = new FileInputStream( "/home/erh/.cshrc" );
-            foo.getChannel().transferTo( 0 , 1000 , request._handler.getChannel() );
-            foo.close();
-        }
-        
         if ( true )
             request._handler.getChannel().register( _selector , SelectionKey.OP_WRITE , request._handler );
         
         return false;
+        */
     }
     
     class HttpSocketHandler extends SocketHandler {
@@ -107,9 +120,22 @@ public class HttpServer extends NIOServer {
         protected SocketChannel getChannel(){
             return _channel;
         }
+
+        protected Selector getSelector(){
+            return _selector;
+        }
         
         ByteBuffer _in = ByteBuffer.allocateDirect( 2048 );
         int _thisDataStart = 0;
+    }
+
+    public static void addGlobalHandler( HttpHandler h ){
+        _handlers.add( h );
+    }
+    static List<HttpHandler> _handlers = new ArrayList<HttpHandler>();
+
+    static {
+        DummyHttpHandler.setup();
     }
 
     public static void main( String args[] )

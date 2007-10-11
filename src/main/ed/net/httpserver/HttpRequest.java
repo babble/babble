@@ -14,6 +14,7 @@ public class HttpRequest {
             throw new RuntimeException( "something is very wrong" );
         
         _firstLine = header.substring( 0 , idx ).trim();
+        
         _headers = new TreeMap<String,String>();
         
         int start = idx + 1;
@@ -26,15 +27,37 @@ public class HttpRequest {
                               line.substring( foo + 1 ).trim() );
         }
         
+        // parse first line
+        idx = _firstLine.indexOf( " " );
+        if ( idx < 0 )
+            throw new RuntimeException( "malformed" );
+        
+        _command = _firstLine.substring( 0 , idx );
+        int endURI = _firstLine.indexOf( " " , idx + 1 );
+        if ( endURI < 0 ){
+            _uri = _firstLine.substring( idx + 1 ).trim();
+            _http11 = false;
+        }
+        else {
+            _uri = _firstLine.substring( idx + 1 , endURI ).trim();
+            _http11 = _firstLine.indexOf( "1.1" , endURI ) > 0;
+        }
+    }
+
+    public String getURI(){
+        return _uri;
     }
     
-    
     public String toString(){
-        return _firstLine + " : " + _headers;
+        return _command + " " + _uri + " HTTP/1." + ( _http11 ? "1" : "" ) + " : " + _headers;
     }
     
     final HttpServer.HttpSocketHandler _handler;
     final String _firstLine;
     final Map<String,String> _headers;
+
+    final String _command;
+    final String _uri;
+    final boolean _http11;
 }
 
