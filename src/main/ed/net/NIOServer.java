@@ -62,7 +62,7 @@ public abstract class NIOServer extends Thread {
                         sc.configureBlocking( false );
                         
                         SocketHandler sh = accept( sc );
-                        sc.register( _selector , SelectionKey.OP_READ , sh );
+                        sh._key = sc.register( _selector , SelectionKey.OP_READ , sh );
                         
                         if ( D ) System.out.println( sc );
                         i.remove();
@@ -127,7 +127,32 @@ public abstract class NIOServer extends Thread {
 
         protected abstract boolean shouldClose();
 
+        public void registerForWrites()
+            throws IOException {
+            _register( SelectionKey.OP_WRITE );
+        }
+
+        public void registerForReads()
+            throws IOException {
+            _register( SelectionKey.OP_READ );
+        }
+
+        private void _register( int ops )
+            throws IOException {
+            _channel.register( _selector , ops , this );            
+        }
+        
+        public void cancel(){
+            _key.cancel();
+        }
+
+        public void pause(){
+            _key.interestOps( 0 );
+        }
+        
         protected final SocketChannel _channel;
+        private SelectionKey _key = null;
+        
     }
 
     protected final int _port;

@@ -9,6 +9,7 @@ import java.nio.channels.*;
 import java.util.*;
 
 import ed.net.*;
+import ed.util.*;
 
 public class HttpServer extends NIOServer {
 
@@ -29,33 +30,27 @@ public class HttpServer extends NIOServer {
         HttpResponse response = new HttpResponse( request );
         for ( int i=0; i<_handlers.size(); i++ ){
             if ( _handlers.get( i ).handles( request ) ){
+                request._handler.pause();
                 if ( _handlers.get( i ).fork() ){
-                    throw new RuntimeException( "need to do this" );
-                    //return true;
+                    if ( _forkThreads.offer( new Task( request , response , _handlers.get( i ) ) ) ){
+                        if ( D ) System.out.println( "successfully gave thing to a forked thing" );
+                        return false;
+                    }
+                    
+                    response.setResponseCode( 501 );
+                    response.getWriter().print( "no more threads\n" );
+                    response.done();
+                    return false;
                 }
                 _handlers.get( i ).handle( request , response );
-                response.flush();
+                response.done();
                 return false;
             }
         }
         response.setResponseCode( 404 );
         System.out.println( response );
-        response.flush();
+        response.done();
         return false;
-        /*
-        ByteBuffer out = ByteBuffer.allocateDirect( 1024 );
-        CharBuffer cout = out.asCharBuffer();
-        cout.append( "HTTP/1.1 404 OK\nConnection: Close\n\nfoo\n" );
-        
-        out.position( cout.position() * 2 );
-        out.flip();
-        request._handler.getChannel().write( out );
-        
-        if ( true )
-            request._handler.getChannel().register( _selector , SelectionKey.OP_WRITE , request._handler );
-        
-        return false;
-        */
     }
     
     class HttpSocketHandler extends SocketHandler {
@@ -128,6 +123,33 @@ public class HttpServer extends NIOServer {
         ByteBuffer _in = ByteBuffer.allocateDirect( 2048 );
         int _thisDataStart = 0;
     }
+
+    class Task {
+        Task( HttpRequest req , HttpResponse res , HttpHandler han ){
+            _request = req;
+            _response = res;
+            _handler = han;
+        }
+
+        final HttpRequest _request;
+        final HttpResponse _response;
+        final HttpHandler _handler;
+    }
+
+    private final ThreadPool<Task> _forkThreads = 
+        new ThreadPool<Task>( "HttpServer" , 250 ){
+        
+        public void handle( Task t ) throws IOException {
+            System.out.println( "handler" );
+            t._handler.handle( t._request , t._response );
+            t._response.done();
+        }
+        
+        public void handleError( Task t , Exception e ){
+            e.printStackTrace();
+        }
+
+    };
 
     public static void addGlobalHandler( HttpHandler h ){
         _handlers.add( h );

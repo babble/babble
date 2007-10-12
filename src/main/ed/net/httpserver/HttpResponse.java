@@ -19,6 +19,12 @@ public class HttpResponse {
             throw new RuntimeException( "already sent header " );
         _responseCode = rc;
     }
+
+    public void done()
+        throws IOException {
+        _done = true;
+        flush();
+    }
     
     public void flush()
         throws IOException {
@@ -48,9 +54,8 @@ public class HttpResponse {
             }
         }
 
-        if ( true )
-            _handler.getChannel().register( _handler.getSelector() , SelectionKey.OP_WRITE , _handler );
-        
+        _handler.registerForWrites();
+        System.out.println( "should have handed off write" );
     }
 
     private Appendable _genHeader( Appendable a )
@@ -110,6 +115,7 @@ public class HttpResponse {
     List<ByteBuffer> _byteBuffers = null;
     ReadableByteChannel _channelData = null;
 
+    boolean _done = false;
     MyJxpWriter _writer = null;
 
     class MyJxpWriter implements JxpWriter {
@@ -138,6 +144,8 @@ public class HttpResponse {
         }
         
         public JxpWriter print( String s ){
+            if ( _done )
+                throw new RuntimeException( "already done" );
             _ccur.append( s );
             _bcur.position( _ccur.position() * 2 );
             return this;
