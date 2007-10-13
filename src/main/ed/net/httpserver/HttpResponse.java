@@ -12,6 +12,11 @@ public class HttpResponse {
     HttpResponse( HttpRequest request ){
         _request = request;
         _handler = _request._handler;
+
+        _headers = new TreeMap<String,String>();
+        _headers.put( "Content-Type" , "text/html; charset=" + getContentEncoding() );
+        _headers.put( "Server" , "ED" );
+        _headers.put( "Date" , "Sat, 13 Oct 2007 02:31:32 GMT" );
     }
 
     public void setResponseCode( int rc ){
@@ -30,39 +35,46 @@ public class HttpResponse {
         throws IOException {
 
         if ( ! _sentHeader ){
+            StringBuilder buf = new StringBuilder();
+            _genHeader( buf );
+            
             ByteBuffer headOut = ByteBuffer.allocateDirect( 1024 );
-            CharBuffer cout = headOut.asCharBuffer();
-            _genHeader( cout );
-            headOut.position( cout.position() * 2 );
+            headOut.put( buf.toString().getBytes() );
             headOut.flip();
             _handler.getChannel().write( headOut );
             _sentHeader = true;
         }
         
 
-        if ( _byteBuffers != null && _channelData != null )
+        if ( _stringContent != null && _channelData != null )
             throw new RuntimeException( "can't have both :( " );
         
         if ( _channelData != null )
             throw new RuntimeException( "not implemented" );
         
-        if ( _byteBuffers != null ){
-            while ( _byteBuffers.size() > 0 ){
-                ByteBuffer bb = _byteBuffers.remove(0);
+        if ( _stringContent != null ){
+            while ( _stringContent.size() > 0 ){
+                StringBuilder buf = _stringContent.remove(0);
+                byte bs[] = buf.toString().getBytes( getContentEncoding() );
+                ByteBuffer bb = ByteBuffer.allocateDirect( bs.length + 10 );
+                bb.put( bs );
                 bb.flip();
-                _handler.getChannel().write( bb );
+                int written = _handler.getChannel().write( bb );
             }
         }
-
-        _handler.registerForWrites();
-        System.out.println( "should have handed off write" );
+        
+        if ( keepAlive() )
+            _handler.registerForReads();
+        else 
+            _handler.registerForWrites();
     }
 
     private Appendable _genHeader( Appendable a )
         throws IOException {
         // first line
         a.append( "HTTP/1.1 " );
-        a.append( String.valueOf( _responseCode ) );
+        a.append( String.valueOf( _responseCode ) ).append( " " );
+        a.append( "OK" );
         a.append( "\n" );
 
         // headers
@@ -71,20 +83,20 @@ public class HttpResponse {
                 a.append( v.getKey() );
                 a.append( ": " );
                 a.append( v.getValue() );
-                a.append( "\n" );
+                a.append( "\r\n" );
             }
         }
         
         // need to only do this if not chunked
-        if ( _byteBuffers != null ){
+        if ( _done && _stringContent != null ){
             int cl = 0;
-            for ( ByteBuffer bb : _byteBuffers )
-                cl += bb.position();
-            a.append( "Content-Length: " ).append( String.valueOf( cl ) ).append( "\n" );
+            for ( StringBuilder buf : _stringContent )
+                cl += buf.length();
+            a.append( "Content-Length: " ).append( String.valueOf( cl ) ).append( "\r\n" );
         }
         
         // empty line
-        a.append( "\n" );
+        a.append( "\r\n" );
         return a;
     }
     
@@ -102,6 +114,17 @@ public class HttpResponse {
             _writer = new MyJxpWriter();
         return _writer;
     }
+
+    public boolean keepAlive(){
+        if ( ! _request.keepAlive() )
+            return false;
+        // TODO make sure we can send Content-Length or are chunking
+        return true;
+    }
+
+    public String getContentEncoding(){
+        return "UTF-8";
+    }
     
     final HttpRequest _request;
     final HttpServer.HttpSocketHandler _handler;
@@ -112,23 +135,23 @@ public class HttpResponse {
     boolean _sentHeader = false;
 
     // data
-    List<ByteBuffer> _byteBuffers = null;
+    List<StringBuilder> _stringContent = null;
     ReadableByteChannel _channelData = null;
 
     boolean _done = false;
     MyJxpWriter _writer = null;
-
+    
     class MyJxpWriter implements JxpWriter {
         MyJxpWriter(){
             if ( _channelData != null )
                 throw new RuntimeException( "can't do this if there is alredy _channelData " );
-            if ( _byteBuffers != null )
+            if ( _stringContent != null )
                 throw new RuntimeException( "already created it!" );
-            _byteBuffers = new LinkedList<ByteBuffer>();
 
-            _bcur = ByteBuffer.allocateDirect( 1024 * 64 );
-            _ccur = _bcur.asCharBuffer();
-            _byteBuffers.add( _bcur );
+            _stringContent = new LinkedList<StringBuilder>();
+
+            _cur = new StringBuilder();
+            _stringContent.add( _cur );
         }
 
         public JxpWriter print( int i ){
@@ -146,8 +169,7 @@ public class HttpResponse {
         public JxpWriter print( String s ){
             if ( _done )
                 throw new RuntimeException( "already done" );
-            _ccur.append( s );
-            _bcur.position( _ccur.position() * 2 );
+            _cur.append( s );
             return this;
         }
         
@@ -156,10 +178,9 @@ public class HttpResponse {
         }
 
         public void reset(){
-            _byteBuffers.clear();
+            _stringContent.clear();
         }
 
-        private ByteBuffer _bcur;
-        private CharBuffer _ccur;
+        private StringBuilder _cur;
     }
 }

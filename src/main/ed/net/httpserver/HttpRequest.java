@@ -23,7 +23,7 @@ public class HttpRequest {
             start = idx + 1;
             int foo = line.indexOf( ":" );
             if ( foo > 0 )
-                _headers.put( line.substring( 0 , foo ).trim() , 
+                _headers.put( line.substring( 0 , foo ).trim().toLowerCase() , 
                               line.substring( foo + 1 ).trim() );
         }
         
@@ -50,6 +50,17 @@ public class HttpRequest {
     
     public String toString(){
         return _command + " " + _uri + " HTTP/1." + ( _http11 ? "1" : "" ) + " : " + _headers;
+    }
+    
+    public boolean keepAlive(){
+        String c = getHeader( "connection" );
+        if ( c != null )
+            return ! c.equalsIgnoreCase( "close" );
+        return _http11;
+    }
+
+    public String getHeader( String h ){
+        return _headers.get( h.toLowerCase() );
     }
     
     final HttpServer.HttpSocketHandler _handler;

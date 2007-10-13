@@ -24,10 +24,9 @@ public class HttpServer extends NIOServer {
         return new HttpSocketHandler( sc );
     }
     
-    protected boolean handle( HttpRequest request )
+    protected boolean handle( HttpRequest request , HttpResponse response )
         throws IOException {
 
-        HttpResponse response = new HttpResponse( request );
         for ( int i=0; i<_handlers.size(); i++ ){
             if ( _handlers.get( i ).handles( request ) ){
                 request._handler.pause();
@@ -48,8 +47,9 @@ public class HttpServer extends NIOServer {
             }
         }
         response.setResponseCode( 404 );
-        System.out.println( response );
+        response.getWriter().print( "go away\n" );
         response.done();
+        
         return false;
     }
     
@@ -59,7 +59,9 @@ public class HttpServer extends NIOServer {
         }
         
         protected boolean shouldClose(){
-            return _thisDataStart > 0;
+            if ( _lastResponse != null )
+                return ! _lastResponse.keepAlive();
+            return _thisDataStart > 0 ;
         }
         
         protected boolean gotData( ByteBuffer inBuf )
@@ -98,7 +100,7 @@ public class HttpServer extends NIOServer {
             if ( ! finishedHeader )
                 return false;
                 
-            _thisDataStart = end;                
+            _thisDataStart = end + 1; 
 
             final int headerSize = end - dataStart;
             byte bb[] = new byte[headerSize];
@@ -106,10 +108,12 @@ public class HttpServer extends NIOServer {
                 bb[i] = _in.get( i + dataStart );
                           
             String header = new String( bb );
-            HttpRequest request = new HttpRequest( this , header );
-            if ( D ) System.out.println( request );
+            if ( D ) System.out.println( "---\n" + header + "\n---" );
+            _lastRequest = new HttpRequest( this , header );
+            _lastResponse = new HttpResponse( _lastRequest );
+            if ( D ) System.out.println( _lastRequest );
                 
-            return handle( request );
+            return handle( _lastRequest , _lastResponse );
         }
         
         protected SocketChannel getChannel(){
@@ -122,6 +126,8 @@ public class HttpServer extends NIOServer {
         
         ByteBuffer _in = ByteBuffer.allocateDirect( 2048 );
         int _thisDataStart = 0;
+        HttpRequest _lastRequest;
+        HttpResponse _lastResponse;
     }
 
     class Task {

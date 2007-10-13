@@ -48,8 +48,12 @@ public abstract class NIOServer extends Thread {
             }
             
             for ( Iterator<SelectionKey> i = _selector.selectedKeys().iterator() ; i.hasNext() ;  ){
+                SelectionKey key = i.next();
+                
+                SocketChannel sc = null;
+                SocketHandler sh = null;
+                
                 try {
-                    SelectionKey key = i.next();
                     
                     if ( D ) System.out.println( key + " read : " + key.isReadable() + " write : " + key.isWritable() );
                     
@@ -57,11 +61,11 @@ public abstract class NIOServer extends Thread {
                         
                         ServerSocketChannel ssc = (ServerSocketChannel)key.channel();
                         
-                        SocketChannel sc = ssc.accept();
+                        sc = ssc.accept();
                         
                         sc.configureBlocking( false );
                         
-                        SocketHandler sh = accept( sc );
+                        sh = accept( sc );
                         sh._key = sc.register( _selector , SelectionKey.OP_READ , sh );
                         
                         if ( D ) System.out.println( sc );
@@ -69,8 +73,8 @@ public abstract class NIOServer extends Thread {
                         continue;
                     }
                     
-                    SocketChannel sc = (SocketChannel)key.channel();
-                    SocketHandler sh = (SocketHandler)key.attachment();
+                    sc = (SocketChannel)key.channel();
+                    sh = (SocketHandler)key.attachment();
                     
                     if ( sh.shouldClose() ){
                         if ( D ) System.out.println( "want to close" );
@@ -103,8 +107,16 @@ public abstract class NIOServer extends Thread {
                         
                     }
                 }
-                catch ( IOException ioe ){
-                    ioe.printStackTrace();
+                catch ( Exception e ){
+                    e.printStackTrace();
+                    if ( sc != null ){
+                        try {
+                            sc.close();
+                        }
+                        catch ( Exception ee ){
+                        }
+                    }
+                    
                 }
                 
             }
