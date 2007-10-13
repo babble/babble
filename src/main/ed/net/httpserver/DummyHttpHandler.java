@@ -12,7 +12,7 @@ public class DummyHttpHandler {
 
     public static class EchoNonFork implements HttpHandler {
 
-        public boolean handles( HttpRequest request , HttpResponse response , Box<Boolean> fork ){
+        public boolean handles( HttpRequest request , Box<Boolean> fork ){
             fork.set( false );
             return request.getURI().equals( "/~echo" );
         }
@@ -29,7 +29,7 @@ public class DummyHttpHandler {
 
     public static class EchoFork implements HttpHandler {
 
-        public boolean handles( HttpRequest request , HttpResponse response , Box<Boolean> fork ){
+        public boolean handles( HttpRequest request , Box<Boolean> fork ){
             fork.set( true );
             return request.getURI().equals( "/~echoFork" );
         }

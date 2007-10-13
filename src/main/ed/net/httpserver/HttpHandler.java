@@ -6,7 +6,7 @@ import ed.util.*;
 
 public interface HttpHandler {
 
-    public boolean handles( HttpRequest request , HttpResponse response , Box<Boolean> fork );
+    public boolean handles( HttpRequest request , Box<Boolean> fork );
     public void handle( HttpRequest request , HttpResponse response );
     /**
      * @larger means later

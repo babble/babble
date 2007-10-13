@@ -29,7 +29,7 @@ public class HttpServer extends NIOServer {
 
         Box<Boolean> fork = new Box<Boolean>(true);
         for ( int i=0; i<_handlers.size(); i++ ){
-            if ( _handlers.get( i ).handles( request , response , fork ) ){
+            if ( _handlers.get( i ).handles( request , fork ) ){
                 request._handler.pause();
                 if ( fork.get() ){
                     if ( _forkThreads.offer( new Task( request , response , _handlers.get( i ) ) ) ){

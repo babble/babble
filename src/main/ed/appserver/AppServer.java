@@ -8,7 +8,7 @@ import ed.net.httpserver.*;
 
 public class AppServer implements HttpHandler {
     
-    public boolean handles( HttpRequest request , HttpResponse response , Box<Boolean> fork ){
+    public boolean handles( HttpRequest request , Box<Boolean> fork ){
         fork.set( true );
         return true;
     }
