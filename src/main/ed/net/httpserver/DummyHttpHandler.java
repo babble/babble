@@ -2,6 +2,8 @@
 
 package ed.net.httpserver;
 
+import ed.util.*;
+
 public class DummyHttpHandler {
 
     static void _handle( HttpRequest request , HttpResponse response ){
@@ -10,7 +12,8 @@ public class DummyHttpHandler {
 
     public static class EchoNonFork implements HttpHandler {
 
-        public boolean handles( HttpRequest request ){
+        public boolean handles( HttpRequest request , HttpResponse response , Box<Boolean> fork ){
+            fork.set( false );
             return request.getURI().equals( "/~echo" );
         }
 
@@ -18,10 +21,6 @@ public class DummyHttpHandler {
             _handle( request , response );
         }
         
-        public boolean fork( HttpRequest request ){
-            return false;
-        }
-
         public double priority(){
             return 0;
         }
@@ -29,16 +28,14 @@ public class DummyHttpHandler {
     }
 
     public static class EchoFork implements HttpHandler {
-        public boolean handles( HttpRequest request ){
+
+        public boolean handles( HttpRequest request , HttpResponse response , Box<Boolean> fork ){
+            fork.set( true );
             return request.getURI().equals( "/~echoFork" );
         }
 
         public void handle( HttpRequest request , HttpResponse response ){
             _handle( request , response );
-        }
-
-        public boolean fork( HttpRequest request ){        
-            return true;
         }
 
         public double priority(){

@@ -2,11 +2,12 @@
 
 package ed.net.httpserver;
 
+import ed.util.*;
+
 public interface HttpHandler {
 
-    public boolean handles( HttpRequest request );
+    public boolean handles( HttpRequest request , HttpResponse response , Box<Boolean> fork );
     public void handle( HttpRequest request , HttpResponse response );
-    public boolean fork( HttpRequest request );
     /**
      * @larger means later
      */

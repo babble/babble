@@ -27,10 +27,11 @@ public class HttpServer extends NIOServer {
     protected boolean handle( HttpRequest request , HttpResponse response )
         throws IOException {
 
+        Box<Boolean> fork = new Box<Boolean>(true);
         for ( int i=0; i<_handlers.size(); i++ ){
-            if ( _handlers.get( i ).handles( request ) ){
+            if ( _handlers.get( i ).handles( request , response , fork ) ){
                 request._handler.pause();
-                if ( _handlers.get( i ).fork( request ) ){
+                if ( fork.get() ){
                     if ( _forkThreads.offer( new Task( request , response , _handlers.get( i ) ) ) ){
                         if ( D ) System.out.println( "successfully gave thing to a forked thing" );
                         return false;

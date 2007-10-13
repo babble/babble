@@ -2,12 +2,14 @@
 
 package ed.appserver;
 
+import ed.util.*;
 import ed.net.*;
 import ed.net.httpserver.*;
 
 public class AppServer implements HttpHandler {
     
-    public boolean handles( HttpRequest request ){
+    public boolean handles( HttpRequest request , HttpResponse response , Box<Boolean> fork ){
+        fork.set( true );
         return true;
     }
     
@@ -15,10 +17,6 @@ public class AppServer implements HttpHandler {
         response.getWriter().print( "yo" );
     }
     
-    public boolean fork( HttpRequest request ){
-        return true;
-    }
-
     public double priority(){
         return 10000;
     }
