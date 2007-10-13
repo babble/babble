@@ -45,7 +45,6 @@ public class HttpResponse {
             _sentHeader = true;
         }
         
-
         if ( _stringContent != null && _channelData != null )
             throw new RuntimeException( "can't have both :( " );
         

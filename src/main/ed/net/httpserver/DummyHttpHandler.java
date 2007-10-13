@@ -18,9 +18,14 @@ public class DummyHttpHandler {
             _handle( request , response );
         }
         
-        public boolean fork(){
+        public boolean fork( HttpRequest request ){
             return false;
         }
+
+        public double priority(){
+            return 0;
+        }
+
     }
 
     public static class EchoFork implements HttpHandler {
@@ -31,9 +36,13 @@ public class DummyHttpHandler {
         public void handle( HttpRequest request , HttpResponse response ){
             _handle( request , response );
         }
-        
-        public boolean fork(){
+
+        public boolean fork( HttpRequest request ){        
             return true;
+        }
+
+        public double priority(){
+            return 0;
         }
         
     }

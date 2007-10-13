@@ -30,7 +30,7 @@ public class HttpServer extends NIOServer {
         for ( int i=0; i<_handlers.size(); i++ ){
             if ( _handlers.get( i ).handles( request ) ){
                 request._handler.pause();
-                if ( _handlers.get( i ).fork() ){
+                if ( _handlers.get( i ).fork( request ) ){
                     if ( _forkThreads.offer( new Task( request , response , _handlers.get( i ) ) ) ){
                         if ( D ) System.out.println( "successfully gave thing to a forked thing" );
                         return false;
@@ -159,6 +159,13 @@ public class HttpServer extends NIOServer {
 
     public static void addGlobalHandler( HttpHandler h ){
         _handlers.add( h );
+        Collections.sort( _handlers , new Comparator<HttpHandler>(){
+                public int compare( HttpHandler a , HttpHandler b ){
+                    return a.priority() > b.priority() ? 1 : -1;
+                }
+            } 
+            );
+        
     }
     static List<HttpHandler> _handlers = new ArrayList<HttpHandler>();
 
