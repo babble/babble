@@ -62,6 +62,16 @@ public class HttpRequest {
     public String getHeader( String h ){
         return _headers.get( h.toLowerCase() );
     }
+
+    public Object getAttachment(){
+        return _attachment;
+    }
+
+    public void setAttachment( Object o ){
+        if ( _attachment != null )
+            throw new RuntimeException( "attachment already set" );
+        _attachment = o;
+    }
     
     final HttpServer.HttpSocketHandler _handler;
     final String _firstLine;
@@ -70,5 +80,7 @@ public class HttpRequest {
     final String _command;
     final String _uri;
     final boolean _http11;
+
+    private Object _attachment;
 }
 

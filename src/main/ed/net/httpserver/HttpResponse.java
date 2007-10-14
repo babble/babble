@@ -25,13 +25,13 @@ public class HttpResponse {
         _responseCode = rc;
     }
 
-    public void done()
+    public boolean done()
         throws IOException {
         _done = true;
-        flush();
+        return flush();
     }
     
-    public void flush()
+    public boolean flush()
         throws IOException {
 
         if ( ! _sentHeader ){
@@ -45,11 +45,19 @@ public class HttpResponse {
             _sentHeader = true;
         }
         
-        if ( _stringContent != null && _channelData != null )
-            throw new RuntimeException( "can't have both :( " );
+        if ( _numDataThings() == 0 )
+            throw new RuntimeException( "need data" );
+        if ( _numDataThings() > 1 )
+            throw new RuntimeException( "too much data" );
         
-        if ( _channelData != null )
-            throw new RuntimeException( "not implemented" );
+        if ( _file != null ){
+            FileChannel f = (new FileInputStream(_file)).getChannel();
+            _fileSent += f.transferTo( _fileSent , Long.MAX_VALUE , _handler.getChannel() );
+            if ( _fileSent < _file.length() ){
+                _handler.registerForWrites();
+                return false;
+            }
+        }
         
         if ( _stringContent != null ){
             while ( _stringContent.size() > 0 ){
@@ -66,6 +74,8 @@ public class HttpResponse {
             _handler.registerForReads();
         else 
             _handler.registerForWrites();
+
+        return true;
     }
 
     private Appendable _genHeader( Appendable a )
@@ -86,8 +96,13 @@ public class HttpResponse {
             }
         }
         
+        if ( keepAlive() )
+            a.append( "Connection: keep-alive\r\n" );
+        else
+            a.append( "Connection: close\r\n" );
+
         // need to only do this if not chunked
-        if ( _done && _stringContent != null ){
+        if ( _done && _stringContent != null && _headers.get( "Content-Length") == null ){
             int cl = 0;
             for ( StringBuilder buf : _stringContent )
                 cl += buf.length();
@@ -117,12 +132,48 @@ public class HttpResponse {
     public boolean keepAlive(){
         if ( ! _request.keepAlive() )
             return false;
-        // TODO make sure we can send Content-Length or are chunking
-        return true;
+
+        if ( _stringContent != null ){
+            // TODO: chunking
+            return _done;
+        }
+        return _headers.get( "Content-Length" ) != null;
     }
 
     public String getContentEncoding(){
         return "UTF-8";
+    }
+
+    public void sendFile( File f ){
+        if ( ! f.exists() )
+            throw new IllegalArgumentException( "file doesn't exist" );
+        _file = f;
+        _headers.put( "Content-Length" , String.valueOf( f.length() ) );
+    }
+    
+    private int _numDataThings(){
+        int num = 0;
+
+        if ( _stringContent != null )
+            num++;
+        if ( _file != null )
+            num++;
+
+        return num;
+    }
+
+    private boolean _hasData(){
+        return _numDataThings() > 0;
+    }
+
+    private void _checkNoContent(){
+        if ( _hasData() )
+            throw new RuntimeException( "already have data set" );
+    }
+
+    private void _checkContent(){
+        if ( ! _hasData() )
+            throw new RuntimeException( "no data set" );
     }
     
     final HttpRequest _request;
@@ -135,17 +186,15 @@ public class HttpResponse {
 
     // data
     List<StringBuilder> _stringContent = null;
-    ReadableByteChannel _channelData = null;
+    File _file;
+    long _fileSent = 0;
 
     boolean _done = false;
     MyJxpWriter _writer = null;
     
     class MyJxpWriter implements JxpWriter {
         MyJxpWriter(){
-            if ( _channelData != null )
-                throw new RuntimeException( "can't do this if there is alredy _channelData " );
-            if ( _stringContent != null )
-                throw new RuntimeException( "already created it!" );
+            _checkNoContent();
 
             _stringContent = new LinkedList<StringBuilder>();
 

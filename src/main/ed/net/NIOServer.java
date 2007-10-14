@@ -82,6 +82,9 @@ public abstract class NIOServer extends Thread {
                         continue;
                     }
                     
+                    if ( key.isWritable() )
+                        sh.writeMoreIfWant();
+                    
                     if ( key.isReadable() ){
                         i.remove();
                         
@@ -138,6 +141,9 @@ public abstract class NIOServer extends Thread {
             throws IOException ;
 
         protected abstract boolean shouldClose();
+
+        protected abstract void writeMoreIfWant() 
+            throws IOException;
 
         public void registerForWrites()
             throws IOException {

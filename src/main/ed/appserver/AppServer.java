@@ -2,6 +2,8 @@
 
 package ed.appserver;
 
+import java.io.*;
+
 import ed.util.*;
 import ed.net.*;
 import ed.net.httpserver.*;
@@ -9,12 +11,34 @@ import ed.net.httpserver.*;
 public class AppServer implements HttpHandler {
     
     public boolean handles( HttpRequest request , Box<Boolean> fork ){
-        fork.set( true );
+        String uri = request.getURI();
+        
+        if ( ! uri.startsWith( "/" ) || uri.endsWith( "~" ) || uri.contains( "/.#" ) )
+            return false;
+        
+        AppRequest ar = new AppRequest( request );
+        request.setAttachment( ar );
+        fork.set( ar.fork() );
         return true;
     }
     
     public void handle( HttpRequest request , HttpResponse response ){
-        response.getWriter().print( "yo" );
+        AppRequest ar = (AppRequest)request.getAttachment();
+        if ( ar == null )
+            ar = new AppRequest( request );
+        
+        if ( ar.isStatic() ){
+            File f = ar.getFile();
+            System.out.println( f );
+            if ( ! f.exists() ){
+                response.setResponseCode( 404 );
+                response.getWriter().print( "file not found\n" );
+                return;
+            }
+            response.sendFile( f );
+            return;
+        }
+
     }
     
     public double priority(){
