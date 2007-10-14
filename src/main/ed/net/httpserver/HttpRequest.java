@@ -2,6 +2,8 @@
 
 package ed.net.httpserver;
 
+import ed.util.*;
+
 import java.util.*;
 
 public class HttpRequest {
@@ -15,15 +17,13 @@ public class HttpRequest {
         
         _firstLine = header.substring( 0 , idx ).trim();
         
-        _headers = new TreeMap<String,String>();
-        
         int start = idx + 1;
         while ( ( idx = header.indexOf( "\n" , start ) ) >= 0 ) {
             final String line = header.substring( start , idx ).trim();
             start = idx + 1;
             int foo = line.indexOf( ":" );
             if ( foo > 0 )
-                _headers.put( line.substring( 0 , foo ).trim().toLowerCase() , 
+                _headers.put( line.substring( 0 , foo ).trim() , 
                               line.substring( foo + 1 ).trim() );
         }
         
@@ -33,14 +33,24 @@ public class HttpRequest {
             throw new RuntimeException( "malformed" );
         
         _command = _firstLine.substring( 0 , idx );
-        int endURI = _firstLine.indexOf( " " , idx + 1 );
-        if ( endURI < 0 ){
-            _uri = _firstLine.substring( idx + 1 ).trim();
+        int endURL = _firstLine.indexOf( " " , idx + 1 );
+        if ( endURL < 0 ){
+            _url = _firstLine.substring( idx + 1 ).trim();
             _http11 = false;
         }
         else {
-            _uri = _firstLine.substring( idx + 1 , endURI ).trim();
-            _http11 = _firstLine.indexOf( "1.1" , endURI ) > 0;
+            _url = _firstLine.substring( idx + 1 , endURL ).trim();
+            _http11 = _firstLine.indexOf( "1.1" , endURL ) > 0;
+        }
+
+        int endURI = _url.indexOf( "?" );
+        if ( endURI < 0 ){
+            _uri = _url;
+            _queryString = null;
+        }
+        else {
+            _uri = _url.substring( 0 , endURI );
+            _queryString = _url.substring( endURI + 1 );
         }
     }
 
@@ -49,7 +59,8 @@ public class HttpRequest {
     }
     
     public String toString(){
-        return _command + " " + _uri + " HTTP/1." + ( _http11 ? "1" : "" ) + " : " + _headers;
+        _finishParsing();
+        return _command + " " + _uri + " HTTP/1." + ( _http11 ? "1" : "" ) + " : " + _headers + "  " + _parameters;
     }
     
     public boolean keepAlive(){
@@ -59,8 +70,52 @@ public class HttpRequest {
         return _http11;
     }
 
+    public boolean getBoolean( String n , boolean b ){
+        return StringParseUtil.parseBoolean( getParameter( n ) , b );
+    }
+
     public String getHeader( String h ){
-        return _headers.get( h.toLowerCase() );
+        return _headers.get( h );
+    }
+
+    public String getParameter( String name ){
+        return getParameter( name , null );
+    }
+
+    public String getParameter( String name , String def ){
+        _finishParsing();
+        return null;
+    }
+
+    private void _finishParsing(){
+        
+        if ( ! _parsedURL ){
+            _parsedURL = true;
+            if ( _queryString != null ){
+                int start = 0;
+                while ( start < _queryString.length() ){
+
+                    int amp = _queryString.indexOf("&",start );
+                    String thing = null;
+                    if ( amp < 0 ){
+                        thing = _queryString.substring( start );
+                        start = _queryString.length();
+                    }
+                    else {
+                        thing = _queryString.substring( start , amp );
+                        start = amp + 1;
+                        while ( start < _queryString.length() && _queryString.charAt( start ) == '&' )
+                            start++;
+                    }
+                    
+                    int eq = thing.indexOf( "=" );
+                    if ( eq < 0 )
+                        _parameters.put( thing , null );
+                    else
+                        _parameters.put( thing.substring( 0 , eq ) , thing.substring( eq + 1 ) );
+                }
+            }
+        }
     }
 
     public Object getAttachment(){
@@ -75,10 +130,15 @@ public class HttpRequest {
     
     final HttpServer.HttpSocketHandler _handler;
     final String _firstLine;
-    final Map<String,String> _headers;
+    final Map<String,String> _headers = new StringMap<String>();
+
+    boolean _parsedURL = false;
+    final Map<String,String> _parameters = new StringMap<String>();
 
     final String _command;
+    final String _url;
     final String _uri;
+    final String _queryString;
     final boolean _http11;
 
     private Object _attachment;

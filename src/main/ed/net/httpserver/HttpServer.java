@@ -160,6 +160,12 @@ public class HttpServer extends NIOServer {
         
         public void handleError( Task t , Exception e ){
             e.printStackTrace();
+            try {
+                t._response.done();
+            }
+            catch ( IOException ioe ){
+                ioe.printStackTrace();
+            }
         }
 
     };

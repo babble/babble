@@ -35,6 +35,11 @@ public class AppServer implements HttpHandler {
                 response.getWriter().print( "file not found\n" );
                 return;
             }
+            if ( f.isDirectory() ){
+                response.setResponseCode( 301 );
+                response.getWriter().print( "listing not allowed\n" );
+                return;
+            }
             response.sendFile( f );
             return;
         }
