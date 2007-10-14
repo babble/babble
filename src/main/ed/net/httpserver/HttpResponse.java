@@ -60,13 +60,18 @@ public class HttpResponse {
         }
         
         if ( _stringContent != null ){
-            while ( _stringContent.size() > 0 ){
-                StringBuilder buf = _stringContent.remove(0);
-                byte bs[] = buf.toString().getBytes( getContentEncoding() );
+            for ( ; _stringContentSent < _stringContent.size() ; _stringContentSent++ ){
+                StringBuilder buf = _stringContent.get( _stringContentSent );
+                byte bs[] = buf.toString().substring( _stringContentPos ).getBytes( getContentEncoding() );
                 ByteBuffer bb = ByteBuffer.allocateDirect( bs.length + 10 );
                 bb.put( bs );
                 bb.flip();
                 int written = _handler.getChannel().write( bb );
+                if ( written < bs.length ){
+                    _stringContentPos += written;
+                    _handler.registerForWrites();
+                    return false;
+                }
             }
         }
         
@@ -186,6 +191,9 @@ public class HttpResponse {
 
     // data
     List<StringBuilder> _stringContent = null;
+    int _stringContentSent = 0;
+    int _stringContentPos = 0;
+
     File _file;
     long _fileSent = 0;
 

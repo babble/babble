@@ -14,7 +14,10 @@ public class DummyHttpHandler {
         }
 
         public void handle( HttpRequest request , HttpResponse response ){
-            response.getWriter().print( "abcdefghijklmnopqrstuvwxyv0123456789\n" );
+            JxpWriter w = response.getWriter();
+            int copies = request.getInt( "copies" , 1 );
+            for ( int i=0; i<copies; i++ )
+                w.print( "abcdefghijklmnopqrstuvwxyv0123456789\n" );
         }
         
         public double priority(){

@@ -70,8 +70,12 @@ public class HttpRequest {
         return _http11;
     }
 
-    public boolean getBoolean( String n , boolean b ){
-        return StringParseUtil.parseBoolean( getParameter( n ) , b );
+    public boolean getBoolean( String n , boolean def ){
+        return StringParseUtil.parseBoolean( getParameter( n ) , def );
+    }
+
+    public int getInt( String n , int def ){
+        return StringParseUtil.parseInt( getParameter( n ) , def );
     }
 
     public String getHeader( String h ){
@@ -84,7 +88,10 @@ public class HttpRequest {
 
     public String getParameter( String name , String def ){
         _finishParsing();
-        return null;
+        String s = _parameters.get( name );
+        if ( s != null )
+            return s;
+        return def;
     }
 
     private void _finishParsing(){
