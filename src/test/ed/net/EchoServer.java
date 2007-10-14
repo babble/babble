@@ -29,6 +29,9 @@ public class EchoServer extends NIOServer {
             return false;
         }
         
+        protected void writeMoreIfWant(){
+        }
+
         protected boolean gotData( ByteBuffer inBuf )
             throws IOException {
             

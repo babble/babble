@@ -43,7 +43,8 @@ public class AppServer implements HttpHandler {
             response.sendFile( f );
             return;
         }
-
+        
+        
     }
     
     public double priority(){
