@@ -71,6 +71,20 @@ public class Convert {
         
         switch ( n.getType() ){
 
+        case Token.ARRAYLIT:
+            {
+                _append( "( new JSArray( " , n );
+                Node c = n.getFirstChild();
+                while ( c != null ){
+                    if ( c != n.getFirstChild() )
+                        _append( " , " , n );
+                    _add( c , state );
+                    c = c.getNext();
+                }
+                _append( " ) ) " , n );
+            }
+            break;
+
         case Token.OBJECTLIT:
             {
                 _append( "JS_buildLiteralObject( new String[]{ " , n );

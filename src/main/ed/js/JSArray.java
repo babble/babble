@@ -17,6 +17,12 @@ public class JSArray extends JSObject {
             _array.add( null );
     }
 
+    public JSArray( Object ... obj ){
+        _array = new ArrayList( obj.length );
+        for ( Object o : obj )
+            _array.add( o );
+    }
+
     public void setInt( int pos , Object v ){
         while ( _array.size() <= pos )
             _array.add( null );
