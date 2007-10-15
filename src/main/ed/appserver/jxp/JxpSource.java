@@ -52,7 +52,8 @@ public abstract class JxpSource {
                 _func = c.get();
             }
             finally {
-                temp.delete();
+                if ( temp != null && temp.exists() )
+                    temp.delete();
             }
         }
         return _func;
