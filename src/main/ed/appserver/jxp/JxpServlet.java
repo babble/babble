@@ -19,8 +19,12 @@ public class JxpServlet {
     public void handle( HttpRequest request , HttpResponse response , AppRequest ar ){
         
         final JxpWriter writer = response.getWriter();
+
         final Scope scope = Scope.GLOBAL.child();
 
+        scope.put( "request" , request , true );
+        scope.put( "response" , response , true );
+        
         scope.put( "print" , 
                    new JSFunctionCalls1(){
                        public Object call( Scope scope , Object o , Object extra[] ){
@@ -32,7 +36,7 @@ public class JxpServlet {
                        }
                    } ,
                    true );
-
+        
         _theFunction.call( scope );
     }
 

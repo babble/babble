@@ -56,13 +56,16 @@ public class AppServer implements HttpHandler {
         JxpServlet servlet = null;
         try {
             servlet = source.getServlet();
+            servlet.handle( request , response , ar );
         }
         catch ( Exception e ){
+            e.printStackTrace();
             response.setResponseCode( 501 );
+            response.getWriter().print( "<br><br><hr>" );
             response.getWriter().print( e.toString() );
             return;
         }
-        servlet.handle( request , response , ar );
+
     }
     
     public double priority(){

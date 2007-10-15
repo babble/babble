@@ -2,9 +2,11 @@
 
 package ed.js.engine;
 
+import java.lang.reflect.*;
 import java.util.*;
 
 import ed.js.*;
+import ed.js.func.*;
 
 public class Scope {
     
@@ -95,9 +97,57 @@ public class Scope {
         return this;
     }
 
-    public JSFunction getFunctionAndSetThis( JSObject obj , String name ){
-        _this = obj;
-        return (JSFunction)(obj.get( name ));
+    public JSFunction getFunctionAndSetThis( final Object obj , final String name ){
+        if ( obj instanceof JSObject ){
+            JSObject jsobj = (JSObject)obj;
+            _this = jsobj;
+            return (JSFunction)(jsobj.get( name ));
+        }
+        
+        return new JSFunctionCalls0(){
+            public Object call( Scope s , Object params[] ){
+                Method all[] = obj.getClass().getMethods();
+                
+                methods:
+                for ( Method m : all ){
+                
+                    if ( ! name.equals( m.getName() ) )
+                        continue;
+                    
+                    Class myClasses[] = m.getParameterTypes();
+                    if ( myClasses != null ){
+                        
+                        if ( params == null )
+                            params = EMPTY_OBJET_ARRAY;
+                        
+                        if ( myClasses.length != params.length )
+                            continue;
+                        
+                        for ( int i=0; i<myClasses.length; i++ ){
+                            // null is fine with me
+                            if ( params[i] == null ) 
+                                continue;
+                            
+                            if ( myClasses[i] == String.class )
+                                params[i] = params[i].toString();
+                            
+                            if ( ! myClasses[i].isAssignableFrom( params[i].getClass() ) )
+                                continue methods;
+                            
+                        }
+                    }
+                    
+                    m.setAccessible( true );
+                    try {
+                        return m.invoke( obj , params );
+                    }
+                    catch ( Exception e ){
+                        throw new RuntimeException( e );
+                    }
+                }
+                throw new RuntimeException( "can't find a valid native method for : " + name );
+            }
+        };
     }
 
     public JSObject getThis(){
@@ -123,4 +173,7 @@ public class Scope {
 
     Map<String,Object> _objects;
     JSObject _this;
+
+
+    private static final Object[] EMPTY_OBJET_ARRAY = new Object[0];
 }

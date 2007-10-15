@@ -773,7 +773,7 @@ public class Convert {
     private String getFunc( Node n , State state , String asdad ){
         if ( n.getClass().getName().indexOf( "StringNode" ) < 0 ){
             if ( n.getType() == Token.GETPROP ){
-                _append( "scope.getFunctionAndSetThis( (JSObject)" , n );
+                _append( "scope.getFunctionAndSetThis( " , n );
                 _add( n.getFirstChild() , state );
                 _append( " , " , n );
                 _add( n.getFirstChild().getNext() , state );
