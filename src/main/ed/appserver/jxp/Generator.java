@@ -41,7 +41,7 @@ public class Generator {
         for ( String line : b.getRaw().split( "[\r\n]+" ) ){
             _buf.append( "print( \"" );
             _buf.append( line );
-            _buf.append( " \\n\" );\n " );
+            _buf.append( " \\\\n\" );\n " );
         }
     }
 

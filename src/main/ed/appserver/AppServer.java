@@ -3,10 +3,12 @@
 package ed.appserver;
 
 import java.io.*;
+import java.util.*;
 
 import ed.util.*;
 import ed.net.*;
 import ed.net.httpserver.*;
+import ed.appserver.jxp.*;
 
 public class AppServer implements HttpHandler {
     
@@ -27,8 +29,9 @@ public class AppServer implements HttpHandler {
         if ( ar == null )
             ar = new AppRequest( request );
         
+        File f = ar.getFile();
+        
         if ( ar.isStatic() ){
-            File f = ar.getFile();
             System.out.println( f );
             if ( ! f.exists() ){
                 response.setResponseCode( 404 );
@@ -45,11 +48,29 @@ public class AppServer implements HttpHandler {
         }
         
         
+        JxpSource source = _sources.get( f );
+        if ( source == null ){
+            source = JxpSource.getSource( f );
+            _sources.put( f , source );
+        }
+        JxpServlet servlet = null;
+        try {
+            servlet = source.getServlet();
+        }
+        catch ( Exception e ){
+            response.setResponseCode( 501 );
+            response.getWriter().print( e.toString() );
+            return;
+        }
+        servlet.handle( request , response , ar );
     }
     
     public double priority(){
         return 10000;
     }
+
+
+    private Map<File,JxpSource> _sources = new HashMap<File,JxpSource>();
 
     public static void main( String args[] )
         throws Exception {
