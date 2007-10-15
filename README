@@ -1,5 +1,26 @@
 
-TODO
- a++ a+= i thikn all i need to do is convert ++ to SETELEM_OP ?
- this in classes
+
+Phase 1
+  javascript 
+    - exceptions
+    - subclasses
+    - debugging
+    - native java calls
+
+  http
+    - pipelining
+    - long live keep alive
+    - chunking
+
+  jxp
+    - includes
+    - debugging
+    - request/response wrapping
+
+
+Phase 2
+  javascript
+    - js -> xml -> js for ajax
+    - XMLHttpRequest
+
  
