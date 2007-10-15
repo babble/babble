@@ -70,7 +70,30 @@ public class Convert {
     private void _add( Node n , ScriptOrFnNode sn , State state ){
         
         switch ( n.getType() ){
-            
+
+        case Token.OBJECTLIT:
+            {
+                _append( "JS_buildLiteralObject( new String[]{ " , n );
+                boolean first = true;
+                for ( Object id : (Object[])n.getProp( Node.OBJECT_IDS_PROP ) ){
+                    if ( first )
+                        first = false;
+                    else 
+                        _append( " , " , n );
+                    _append( "\"" + id.toString() + "\"" , n );
+                }
+                _append( " } " , n );
+                
+                Node c = n.getFirstChild();
+                while ( c != null ){
+                    _append( " , " , n );
+                    _add( c , state  );
+                    c = c.getNext();
+                }
+                _append( " ) " , n );
+            }
+            break;
+
         case Token.NEW:
             _append( "scope.clearThisNew( " , n );
             _addCall( n , state , true );

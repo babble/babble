@@ -6,6 +6,13 @@ import ed.js.engine.*;
 
 public class JSInternalFunctions extends JSObject {
 
+    public JSObject JS_buildLiteralObject( String names[] , Object ... fields ){
+        JSObject o = new JSObject();
+        for ( int i=0; i<names.length && i < fields.length; i++ )
+            o.set( names[i] , fields[i] );
+        return o;
+    }
+
     public Object JS_setDefferedPlus( JSObject obj , Object place , Object other ){
         return obj.set( place , JS_add( obj.get( place ) , other ) );
     }
