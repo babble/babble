@@ -144,24 +144,40 @@ public class Scope {
     private static final Object[] EMPTY_OBJET_ARRAY = new Object[0];
     
     private static final JSFunctionCalls0 _nativeFuncCall = new JSFunctionCalls0(){
-        public Object call( Scope s , Object params[] ){
+            Map< Class , Map< String , List<Method> > > _classToMethods = new HashMap< Class , Map< String , List<Method> > >();
             
-            final Object obj = s._nThis;
-            final String name = s._nThisFunc;
-            
-            Method all[] = obj.getClass().getMethods();
-            
-            methods:
-            for ( Method m : all ){
+            List<Method> getMethods( Class c , String n ){
+                Map<String,List<Method>> m = _classToMethods.get( c );
+                if ( m == null ){
+                    m = new HashMap<String,List<Method>>();
+                    _classToMethods.put( c , m );
+                }
                 
-                if ( ! name.equals( m.getName() ) )
-                    continue;
+                List<Method> l = m.get( n );
+                if ( l != null )
+                    return l;
+
+                l = new ArrayList<Method>();
+                for ( Method method : c.getMethods() )
+                    if ( method.getName().equals( n ) )
+                        l.add( method );
+                m.put( n , l );
+                return l;
+            }
+
+            public Object call( Scope s , Object params[] ){
                 
-                Class myClasses[] = m.getParameterTypes();
-                if ( myClasses != null ){
+                final Object obj = s._nThis;
+                final String name = s._nThisFunc;
+                
+                methods:
+                for ( Method m : getMethods( obj.getClass() , name ) ){
+                
+                    Class myClasses[] = m.getParameterTypes();
+                    if ( myClasses != null ){
                     
-                    if ( params == null )
-                        params = EMPTY_OBJET_ARRAY;
+                        if ( params == null )
+                            params = EMPTY_OBJET_ARRAY;
                     
                         if ( myClasses.length != params.length )
                             continue;
@@ -178,17 +194,17 @@ public class Scope {
                                 continue methods;
                             
                         }
-                }
+                    }
                 
-                m.setAccessible( true );
-                try {
-                    return m.invoke( obj , params );
+                    m.setAccessible( true );
+                    try {
+                        return m.invoke( obj , params );
+                    }
+                    catch ( Exception e ){
+                        throw new RuntimeException( e );
+                    }
                 }
-                catch ( Exception e ){
-                    throw new RuntimeException( e );
-                }
+                throw new RuntimeException( "can't find a valid native method for : " + name );
             }
-            throw new RuntimeException( "can't find a valid native method for : " + name );
-        }
-    };
+        };
 }
