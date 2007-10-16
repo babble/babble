@@ -9,14 +9,18 @@ import ed.net.httpserver.*;
 
 public class AppRequest {
     
-    AppRequest( HttpRequest request ){
+    AppRequest( AppContext context , HttpRequest request ){
+        _context = context;
         _request = request;
     }
 
-    String getRoot(){
-        return "crap/www";
+    public AppContext getContext(){
+        return _context;
     }
-    
+
+    String getRoot(){
+        return _context.getRoot();
+    }
 
     String getCustomer(){
         return "";
@@ -41,4 +45,5 @@ public class AppRequest {
 
 
     final HttpRequest _request;
+    final AppContext _context;
 }

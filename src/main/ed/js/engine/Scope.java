@@ -125,6 +125,10 @@ public class Scope {
         _nThisFunc = null;
         return o;
     }
+
+    public void lock(){
+        _locked = true;
+    }
     
     final String _name;
     final Scope _parent;

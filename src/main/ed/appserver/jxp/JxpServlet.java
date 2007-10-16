@@ -20,7 +20,7 @@ public class JxpServlet {
         
         final JxpWriter writer = response.getWriter();
 
-        final Scope scope = Scope.GLOBAL.child();
+        final Scope scope = ar.getContext().scope().child();
 
         scope.put( "request" , request , true );
         scope.put( "response" , response , true );

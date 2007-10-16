@@ -11,6 +11,18 @@ import ed.net.httpserver.*;
 import ed.appserver.jxp.*;
 
 public class AppServer implements HttpHandler {
+
+    public AppServer( AppContext defaultContext ){
+        _defaultContext = defaultContext;
+    }
+
+    public AppContext getContext( HttpRequest request ){
+        return _defaultContext;
+    }
+
+    public AppRequest createRequest( HttpRequest request ){
+        return getContext( request ).createRequest( request );
+    }
     
     public boolean handles( HttpRequest request , Box<Boolean> fork ){
         String uri = request.getURI();
@@ -18,7 +30,7 @@ public class AppServer implements HttpHandler {
         if ( ! uri.startsWith( "/" ) || uri.endsWith( "~" ) || uri.contains( "/.#" ) )
             return false;
         
-        AppRequest ar = new AppRequest( request );
+        AppRequest ar = createRequest( request );
         request.setAttachment( ar );
         fork.set( ar.fork() );
         return true;
@@ -27,7 +39,7 @@ public class AppServer implements HttpHandler {
     public void handle( HttpRequest request , HttpResponse response ){
         AppRequest ar = (AppRequest)request.getAttachment();
         if ( ar == null )
-            ar = new AppRequest( request );
+            ar = createRequest( request );
         
         File f = ar.getFile();
         
@@ -72,13 +84,16 @@ public class AppServer implements HttpHandler {
         return 10000;
     }
 
-
+    
+    private final AppContext _defaultContext;
     private Map<File,JxpSource> _sources = new HashMap<File,JxpSource>();
 
     public static void main( String args[] )
         throws Exception {
         
-        AppServer as = new AppServer();
+        AppContext ac = new AppContext( "crap/www" );
+        AppServer as = new AppServer( ac );
+        
         HttpServer.addGlobalHandler( as );
         
         HttpServer hs = new HttpServer( 8080 );
