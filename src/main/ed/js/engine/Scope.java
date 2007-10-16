@@ -129,6 +129,15 @@ public class Scope {
     public void lock(){
         _locked = true;
     }
+
+    public void reset(){
+        if ( _locked )
+            throw new RuntimeException( "can't reset locked scope" );
+        _objects.clear();
+        _this = null;
+        _nThis = null;
+        _nThisFunc = null;
+    }
     
     final String _name;
     final Scope _parent;

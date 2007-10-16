@@ -17,7 +17,23 @@ public class AppContext {
     }
 
     public Scope scope(){
+        if ( _scopeInited )
+            return _publicScope;
+        
+        synchronized ( _realScope ){
+            if ( _scopeInited )
+                return _publicScope;
+            
+            _initScope();
+            
+            _scopeInited = true;
+        }
         return _publicScope;
+    }
+
+    public void resetScope(){
+        _scopeInited = false;
+        _realScope.reset();
     }
     
     public String getRoot(){
@@ -27,9 +43,14 @@ public class AppContext {
     public AppRequest createRequest( HttpRequest request ){
         return new AppRequest( this , request  );
     }
+
+    private void _initScope(){
         
+    }
 
     final String _root;
     final Scope _realScope;
     final Scope _publicScope;
+
+    boolean _scopeInited = false;
 }
