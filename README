@@ -2,25 +2,35 @@
 
 Phase 1
   javascript 
-    - exceptions
-    - subclasses
     - debugging
-    - native java calls
+    X native java calls
+    ? make string native
 
   http
     - pipelining
     - long live keep alive
     - chunking
+    - some buffer pooling
 
   jxp
+    - AppContext 
+       - scope
     - includes
     - debugging
     - request/response wrapping
-
 
 Phase 2
   javascript
     - js -> xml -> js for ajax
     - XMLHttpRequest
+    - regex
+    - subclasses
+    - switch
+    - throw
+    - try,catch,finally
 
+Phase 3
+  javascript
+    - with
+    - arguments
  
