@@ -40,7 +40,7 @@ public class AppRequest {
     }
 
     File getFile(){
-        return new File( getRoot() + _request.getURI() );
+        return _context.getFile( _request.getURI() );
     }
 
 

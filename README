@@ -1,9 +1,34 @@
 
+Option 1
+  - file permissions
+    - user readable = can only be seen by webserver - imports, configs, passwords, etc..
+    - group readable = project admins - admin files
+    - global readable = can be loaded by anyone - normal jxp, js, images, etc...
+  - /init.js 660 - this is loaded first
+  - then people can do whatever they want
+  
 
-/_init.js
-/lib/_
-/CONF/init.js
+Option 2
+  /
+  /init.js - 
+  /www/
+  /include/
+  /import/
+  /logs/
 
+Option 3
+  /
+  /CONF
+  /CONF/init.js
+  /CONF/lib/
+  ...
+
+Option 4
+  /
+  /_init.js
+  
+
+----------------
 
 Phase 1
   javascript 

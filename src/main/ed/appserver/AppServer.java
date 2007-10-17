@@ -59,15 +59,8 @@ public class AppServer implements HttpHandler {
             return;
         }
         
-        
-        JxpSource source = _sources.get( f );
-        if ( source == null ){
-            source = JxpSource.getSource( f );
-            _sources.put( f , source );
-        }
-        JxpServlet servlet = null;
         try {
-            servlet = source.getServlet();
+            JxpServlet servlet = ar.getContext().getServlet( f );
             servlet.handle( request , response , ar );
         }
         catch ( Exception e ){
@@ -86,7 +79,6 @@ public class AppServer implements HttpHandler {
 
     
     private final AppContext _defaultContext;
-    private Map<File,JxpSource> _sources = new HashMap<File,JxpSource>();
 
     public static void main( String args[] )
         throws Exception {

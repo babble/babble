@@ -58,11 +58,6 @@ public class Scope {
     }
     
     public Object get( String name ){
-        final Object r = _get( name );
-        return r;
-    }
-
-    Object _get( String name ){
         Object foo = _objects == null ? null : _objects.get( name );
         if ( foo != null ){
             if ( foo == NULL )
@@ -73,7 +68,7 @@ public class Scope {
         if ( _parent == null )
             return null;
         
-        return _parent._get( name );
+        return _parent.get( name );
     }
 
     public JSFunction getFunction( String name ){
