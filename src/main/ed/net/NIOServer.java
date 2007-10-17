@@ -144,6 +144,8 @@ public abstract class NIOServer extends Thread {
 
         protected abstract void writeMoreIfWant() 
             throws IOException;
+        
+        // other stuff
 
         public void registerForWrites()
             throws IOException {

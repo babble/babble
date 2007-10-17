@@ -83,7 +83,9 @@ public class AppContext {
         }
 
         public Object get( String name ){
+
             if ( name.startsWith( "jxp_" ) ){
+            
                 String jxp = name.substring( 3 ).replace( '_' , '/' ) + ".jxp";
                 File f = getFile( jxp );
 
@@ -95,7 +97,9 @@ public class AppContext {
                         throw new RuntimeException( jxp + ioe );
                     }
                 }
+
             }
+
             return super.get( name );
         }
     }
