@@ -4,7 +4,7 @@ package ed.js;
 
 import java.util.*;
 
-public class JSArray extends JSObject {
+public class JSArray extends JSObjectBase {
     
     public JSArray(){
         this( 0 );

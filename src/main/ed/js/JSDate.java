@@ -4,7 +4,7 @@ package ed.js;
 
 import ed.js.func.*;
 
-public class JSDate extends JSObject {
+public class JSDate extends JSObjectBase {
     public JSDate(){
         _time = System.currentTimeMillis();
         set( "getTime" , new JSFunctionCalls0(){

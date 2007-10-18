@@ -4,10 +4,10 @@ package ed.js;
 
 import ed.js.engine.*;
 
-public class JSInternalFunctions extends JSObject {
+public class JSInternalFunctions extends JSObjectBase {
 
     public JSObject JS_buildLiteralObject( String names[] , Object ... fields ){
-        JSObject o = new JSObject();
+        JSObject o = new JSObjectBase();
         for ( int i=0; i<names.length && i < fields.length; i++ )
             o.set( names[i] , fields[i] );
         return o;

@@ -24,7 +24,7 @@ public class JSBuiltInFunctions {
         }
 
         public Object call( Scope scope , Object extra[] ){
-            return new JSObject();
+            return new JSObjectBase();
         }
     }
 

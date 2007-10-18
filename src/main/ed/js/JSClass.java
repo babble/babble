@@ -2,7 +2,7 @@
 
 package ed.js;
 
-public class JSClass extends JSObject {
+public class JSClass extends JSObjectBase {
     
     public JSClass( JSFunction constructor ){
         _constructor = constructor;

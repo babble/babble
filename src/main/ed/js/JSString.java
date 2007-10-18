@@ -4,7 +4,7 @@ package ed.js;
 
 import ed.js.func.*;
 
-public class JSString extends JSObject {
+public class JSString extends JSObjectBase {
     public JSString( String s ){
         _s = s;
         set( "length" , Integer.valueOf( _s.length() ) );
