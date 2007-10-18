@@ -14,9 +14,12 @@ public class AppContext {
 
     public AppContext( String root ){
         _root = root;
+        _rootFile = new File( _root );
+        _jxpObject = new JxpObject( _rootFile );
 
-        _realScope = new MyScope( "AppContext:" + root , Scope.GLOBAL );
-        
+        _realScope = new Scope( "AppContext:" + root , Scope.GLOBAL );
+        _realScope.put( "jxp" , _jxpObject , true );
+
         _publicScope = _realScope.child();
         _publicScope.lock();
     }
@@ -77,34 +80,76 @@ public class AppContext {
         
     }
     
-    class MyScope extends Scope {
-        MyScope( String name , Scope s ){
-            super( name , s );
+    class JxpObject extends JSObjectBase {
+        
+        JxpObject( File base ){
+            _base = base;
         }
-
-        public Object get( String name ){
-
-            if ( name.startsWith( "jxp_" ) ){
+        
+        public Object get( final Object n ){
+            Object foo = _get( n );
+            if ( foo instanceof JxpSource ){
+                try {
+                    foo = ((JxpSource)foo).getFunction();
+                }
+                catch ( IOException ioe ){
+                    throw new RuntimeException( ioe );
+                }
+            }
+            return foo;
+        }
+        
+        Object _get( final Object n ){
+            Object v = super.get( n );
+            if ( v != null )
+                return v;
             
-                String jxp = name.substring( 3 ).replace( '_' , '/' ) + ".jxp";
-                File f = getFile( jxp );
+            if ( ! ( n instanceof JSString ) && 
+                 ! ( n instanceof String ) )
+                return null;
+            
+            File dir = new File( _base , n.toString() );
+            File js = new File( _base , n + ".js" );
+            File jxp = new File( _base , n + ".jxp" );
+            
+            if ( dir.exists() && js.exists() )
+                throw new RuntimeException( "can't have directory and .js with same name" );
 
-                if ( f.exists() ){
-                    try {
-                        return getSource( f ).getFunction();
-                    }
-                    catch ( IOException ioe ){
-                        throw new RuntimeException( jxp + ioe );
-                    }
+            if ( dir.exists() && jxp.exists() )
+                throw new RuntimeException( "can't have directory and .jxp with same name.  " + dir + "  " + jxp  );
+
+            if ( js.exists() && jxp.exists() )
+                throw new RuntimeException( "can't have .js and .jxp with same name" );
+
+            if ( dir.exists() ){
+                return set( n , new JxpObject( dir ) );
+            }
+
+            if ( jxp.exists() ){
+                try {
+                    return set( n , getSource( jxp ) );
+                }
+                catch ( IOException ioe ){
+                    throw new RuntimeException( ioe );
                 }
 
             }
 
-            return super.get( name );
+            if ( js.exists() ){
+                throw new RuntimeException( "can't handle js files yet" );
+            }
+            
+            throw new RuntimeException( n + " not found " );
         }
+        
+        final File _base;
+        
     }
 
     final String _root;
+    final File _rootFile;
+    final JxpObject _jxpObject;
+
     final Scope _realScope;
     final Scope _publicScope;
     

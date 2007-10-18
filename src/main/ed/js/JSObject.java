@@ -6,6 +6,7 @@ import java.util.*;
 
 public interface JSObject {
 
+    // returns v
     public Object set( Object n , Object v );
     public Object get( Object n );
 
