@@ -49,7 +49,7 @@ public class Convert {
 
         State state = new State();
 
-        _setLineNumbers( sn );        
+        _setLineNumbers( sn , sn );
         _addFunctionNodes( sn , state );
 
         if ( D ) System.out.println( "***************" );
@@ -531,7 +531,7 @@ public class Convert {
         for ( int i=0; i<sn.getFunctionCount(); i++ ){
             
             FunctionNode fn = sn.getFunctionNode( i );
-            _setLineNumbers( fn );
+            _setLineNumbers( fn , fn );
 
             String name = fn.getFunctionName();
             if ( name.length() == 0 )
@@ -748,7 +748,7 @@ public class Convert {
             throw new RuntimeException( "wrong type" );
     }
 
-    private void _setLineNumbers( Node n ){
+    private void _setLineNumbers( Node n , final ScriptOrFnNode sof ){
         final int line = n.getLineno();
 
         if ( line < 0 )
@@ -757,6 +757,8 @@ public class Convert {
         List<Node> todo = new LinkedList<Node>();
         
         _nodeToSourceLine.put( n , line );
+        _nodeToSOR.put( n , sof );
+
         if ( n.getFirstChild() != null )
             todo.add( n.getFirstChild() );
         if ( n.getNext() != null )
@@ -765,12 +767,13 @@ public class Convert {
         while ( todo.size() > 0 ){
             n = todo.remove(0);
             if ( n.getLineno() > 0 ){
-                _setLineNumbers( n );
+                _setLineNumbers( n , n instanceof ScriptOrFnNode ? (ScriptOrFnNode)n : sof );
                 continue;
             }
 
             _nodeToSourceLine.put( n , line );
-            
+            _nodeToSOR.put( n , sof );            
+
             if ( n.getFirstChild() != null )
                 todo.add( n.getFirstChild() );
             if ( n.getNext() != null )
@@ -894,6 +897,7 @@ public class Convert {
     private int _currentLineNumber = 0;    
     final Map<Integer,List<Node>> _javaCodeToLines = new TreeMap<Integer,List<Node>>();
     final Map<Node,Integer> _nodeToSourceLine = new HashMap<Node,Integer>();
+    final Map<Node,ScriptOrFnNode> _nodeToSOR = new HashMap<Node,ScriptOrFnNode>();
     int _preMainLines = -1;
     private final StringBuilder _mainJavaCode = new StringBuilder();
     

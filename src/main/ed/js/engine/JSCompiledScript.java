@@ -41,7 +41,13 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
                 // the +1 is for the way rhino stuff
                 line = _convert._nodeToSourceLine.get( nodes.get(0) ) + 1;
                 
-                stack[i] = new StackTraceElement( _convert._file.toString() , "XXX" , _convert._file.toString() , line );
+                ScriptOrFnNode sof = _convert._nodeToSOR.get( nodes.get(0) );
+                String method = "___";
+                if ( sof instanceof FunctionNode )
+                    method = ((FunctionNode)sof).getFunctionName();
+
+
+                stack[i] = new StackTraceElement( _convert._file.toString() , method , _convert._file.toString() , line );
                 changed = true;
             }
             

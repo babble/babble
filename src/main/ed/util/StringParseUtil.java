@@ -26,7 +26,6 @@ public final class StringParseUtil {
     }
 
     public static int parseInt( String s , int def ){
-        System.out.println( s );
         if ( s == null )
             return def;
         
