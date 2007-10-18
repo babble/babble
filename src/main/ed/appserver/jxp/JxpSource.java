@@ -20,6 +20,7 @@ public abstract class JxpSource {
 
     abstract String getContent() throws IOException;
     abstract long lastUpdated();
+    abstract String getName();
     
     synchronized List<Block> getBlocks()
         throws IOException {
@@ -39,11 +40,15 @@ public abstract class JxpSource {
         if ( _func == null ){
             File temp = null;
             try {
-                String jsCode = Generator.genJavaScript( getBlocks() );
+                Generator g = Generator.genJavaScript( getBlocks() );
+                _jsCodeToLines = g._jsCodeToLines;
+                String jsCode = g.toString();
                 
                 System.out.println( jsCode );
 
                 temp = File.createTempFile( "jxp_js_" , ".js" );
+                _lastFileName = temp.toString();
+                
                 FileOutputStream fout = new FileOutputStream( temp );
                 fout.write( jsCode.getBytes() );
                 fout.close();
@@ -84,10 +89,17 @@ public abstract class JxpSource {
     private List<Block> _blocks;
     private JSFunction _func;
     private JxpServlet _servlet;
+    
+    Map<Integer,List<Block>> _jsCodeToLines = new TreeMap<Integer,List<Block>>();
+    String _lastFileName;
             
     static class JxpFileSource extends JxpSource {
         JxpFileSource( File f ){
             _f = f;
+        }
+
+        String getName(){
+            return _f.toString();
         }
 
         String getContent()

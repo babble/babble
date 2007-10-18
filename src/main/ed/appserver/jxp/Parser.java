@@ -14,6 +14,8 @@ public class Parser {
         throws IOException {
 
         String data = s.getContent();
+        int lastline = 1;
+        int line = 1;
         
         Block.Type curType = Block.Type.HTML;
         StringBuilder buf = new StringBuilder();
@@ -22,16 +24,19 @@ public class Parser {
 
         for ( int i=0; i<data.length(); i++ ){
             char c = data.charAt( i );
-            
+            if ( c == '\n' )
+                line++;
+
             if ( curType == Block.Type.HTML ){
                 
                 if ( c == '<' && 
                      i + 1 < data.length() &&
                      data.charAt( i + 1 ) == '%' ){
                     
-                    blocks.add( Block.create( curType , buf.toString() ) );
+                    blocks.add( Block.create( curType , buf.toString() , lastline ) );
                     buf.setLength( 0 );
-                    
+
+                    lastline = line;
                     curType = Block.Type.CODE;
                     i++;
                     if ( i + 1 < data.length() &&
@@ -64,8 +69,9 @@ public class Parser {
                      i + 1 < data.length() &&
                      data.charAt( i + 1 ) == '>' ){
                     
-                    blocks.add( Block.create( curType , buf.toString() ) );
-                    
+                    blocks.add( Block.create( curType , buf.toString() , lastline ) );
+
+                    lastline = line;
                     buf.setLength( 0 );
                     i++;
                     curType = Block.Type.HTML;
@@ -78,7 +84,7 @@ public class Parser {
             buf.append( c );
         }
 
-        blocks.add( Block.create( curType , buf.toString() ) );
+        blocks.add( Block.create( curType , buf.toString() , lastline ) );
         
         return blocks;
     }

@@ -4,8 +4,8 @@ package ed.appserver.jxp;
 
 class CodeBlock extends Block {
 
-    CodeBlock( Type t , String raw ){
-        super( t , raw );
+    CodeBlock( Type t , String raw , int lineno ){
+        super( t , raw , lineno );
         
         if ( t != Type.CODE &&
              t != Type.OUTPUT )

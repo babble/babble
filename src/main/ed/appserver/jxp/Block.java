@@ -6,19 +6,20 @@ abstract class Block {
 
     static enum Type { HTML , CODE , OUTPUT };
 
-    static Block create( Type t , String raw ){
+    static Block create( Type t , String raw , int lineno ){
         if ( t == Type.HTML )
-            return new HtmlBlock( raw );
+            return new HtmlBlock( raw , lineno );
         if ( t == Type.CODE )
-            return new CodeBlock( t , raw );
+            return new CodeBlock( t , raw , lineno );
         if ( t == Type.OUTPUT )
-            return new CodeBlock( t , raw );
+            return new CodeBlock( t , raw , lineno );
         throw new RuntimeException( "wtf" );
     }
     
-    protected Block( Type t , String raw ){
+    protected Block( Type t , String raw , int lineno ){
         _type = t;
         _raw = raw;
+        _lineno = lineno;
     }
 
     String getRaw(){
@@ -35,4 +36,5 @@ abstract class Block {
 
     final Type _type;
     final String _raw;
+    final int _lineno;
 }

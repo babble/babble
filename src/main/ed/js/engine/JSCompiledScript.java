@@ -19,7 +19,7 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
         }
         catch ( RuntimeException re ){
             StackTraceElement stack[] = re.getStackTrace();
-
+            
             boolean changed = false;
             for ( int i=0; i<stack.length; i++ ){
 
