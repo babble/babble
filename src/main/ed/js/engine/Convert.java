@@ -18,6 +18,7 @@ public class Convert {
     public Convert( File f )
         throws IOException {
         
+        _file = f;
         _className = f.toString().replaceAll(".*/(.*?)","").replaceAll( "[^\\w]+" , "_" );
 
         String raw = StreamUtil.readFully( f );
@@ -29,6 +30,7 @@ public class Convert {
     }
 
     public Convert( ScriptOrFnNode sn ){
+        _file = null;
         _className = "anon_" + _id;
         init( sn );
     }
@@ -883,6 +885,7 @@ public class Convert {
         }
     }
     
+    final File _file;
     final String _className;
     final String _package = "ed.js.gen";
     final int _id = ID++;    

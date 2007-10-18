@@ -19,6 +19,8 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
         }
         catch ( RuntimeException re ){
             StackTraceElement stack[] = re.getStackTrace();
+
+            boolean changed = false;
             for ( int i=0; i<stack.length; i++ ){
 
                 StackTraceElement element = stack[i];
@@ -39,11 +41,13 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
                 // the +1 is for the way rhino stuff
                 line = _convert._nodeToSourceLine.get( nodes.get(0) ) + 1;
                 
-                System.out.println( nodes );
-                System.out.println( "line:" + line );
-                System.out.println( element );
-                
+                stack[i] = new StackTraceElement( _convert._file.toString() , "XXX" , _convert._file.toString() , line );
+                changed = true;
             }
+            
+            if ( changed )
+                re.setStackTrace( stack );
+            
             throw re;
         }
     }
