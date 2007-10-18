@@ -887,7 +887,7 @@ public class Parser
             
             Node loop = 
                 ED_HACK ? 
-                new Node( Token.FOR ) : 
+                new Node( Token.FOR , ts.getLineno() ) : 
                 enterLoop(statementLabel, true);
             
             try {

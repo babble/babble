@@ -47,8 +47,9 @@ public class Convert {
 
         State state = new State();
 
+        _setLineNumbers( sn );        
         _addFunctionNodes( sn , state );
-        
+
         if ( D ) System.out.println( "***************" );
 
         Node n = sn.getFirstChild();
@@ -528,6 +529,7 @@ public class Convert {
         for ( int i=0; i<sn.getFunctionCount(); i++ ){
             
             FunctionNode fn = sn.getFunctionNode( i );
+            _setLineNumbers( fn );
 
             String name = fn.getFunctionName();
             if ( name.length() == 0 )
@@ -744,6 +746,36 @@ public class Convert {
             throw new RuntimeException( "wrong type" );
     }
 
+    private void _setLineNumbers( Node n ){
+        final int line = n.getLineno();
+
+        if ( line < 0 )
+            throw new RuntimeException( "something is wrong" );
+        
+        List<Node> todo = new LinkedList<Node>();
+        
+        _nodeToSourceLine.put( n , line );
+        if ( n.getFirstChild() != null )
+            todo.add( n.getFirstChild() );
+        if ( n.getNext() != null )
+            todo.add( n.getNext() );
+        
+        while ( todo.size() > 0 ){
+            n = todo.remove(0);
+            if ( n.getLineno() > 0 ){
+                _setLineNumbers( n );
+                continue;
+            }
+
+            _nodeToSourceLine.put( n , line );
+            
+            if ( n.getFirstChild() != null )
+                todo.add( n.getFirstChild() );
+            if ( n.getNext() != null )
+                todo.add( n.getNext() );
+        }
+    }
+
     private void _append( String s , Node n ){
         _mainJavaCode.append( s );
         
@@ -814,15 +846,17 @@ public class Convert {
         buf.append( "import ed.js.*;\n" );
         buf.append( "import ed.js.func.*;\n" );
         buf.append( "import ed.js.engine.Scope;\n" );
+        buf.append( "import ed.js.engine.JSCompiledScript;\n" );
 
-        buf.append( "public class " ).append( _className ).append( " extends JSFunctionCalls0 {\n" );
-        
-        //buf.append( "\tpublic " + _className + "(){\n\t\tsuper(0);\n\t}\n\n" );
+        buf.append( "public class " ).append( _className ).append( " extends JSCompiledScript {\n" );
 
-        buf.append( "\tpublic Object call( Scope scope , Object extra[] ){\n" );
+        buf.append( "\tpublic Object _call( Scope scope , Object extra[] ){\n" );
         
+        _preMainLines = StringUtil.count( buf.toString() , "\n" );
+
         buf.append( _mainJavaCode );
-        
+
+
         buf.append( "\n\n\t}\n\n" );
         
         buf.append( "\n}\n\n" );
@@ -835,7 +869,8 @@ public class Convert {
         
         try {
             Class c = CompileUtil.compile( _package , getClassName() , getClassString() );
-            JSFunction it = (JSFunction)c.newInstance();
+            JSCompiledScript it = (JSCompiledScript)c.newInstance();
+            it._convert = this;
             _it = it;
             return _it;
         }
@@ -854,7 +889,9 @@ public class Convert {
 
     // these 3 variables should only be use by _append
     private int _currentLineNumber = 0;    
-    private final Map<Integer,List<Node>> _javaCodeToLines = new TreeMap<Integer,List<Node>>();
+    final Map<Integer,List<Node>> _javaCodeToLines = new TreeMap<Integer,List<Node>>();
+    final Map<Node,Integer> _nodeToSourceLine = new HashMap<Node,Integer>();
+    int _preMainLines = -1;
     private final StringBuilder _mainJavaCode = new StringBuilder();
     
     private JSFunction _it;

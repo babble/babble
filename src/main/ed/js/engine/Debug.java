@@ -49,6 +49,8 @@ public class Debug {
 
         System.out.print( " (" + n.hashCode() + ")" );
 
+        System.out.print( " line:" + n.getLineno() );
+
         System.out.println();
         
         printTree( n.getFirstChild() , indent + 1 );
