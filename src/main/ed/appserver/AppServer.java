@@ -83,7 +83,7 @@ public class AppServer implements HttpHandler {
     public static void main( String args[] )
         throws Exception {
         
-        AppContext ac = new AppContext( "crap/www" );
+        AppContext ac = new AppContext( "src/test/samplewww" );
         AppServer as = new AppServer( ac );
         
         HttpServer.addGlobalHandler( as );

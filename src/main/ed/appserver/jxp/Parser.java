@@ -17,7 +17,8 @@ public class Parser {
         int lastline = 1;
         int line = 1;
         
-        Block.Type curType = Block.Type.HTML;
+        Block.Type curType = 
+            s.getName().endsWith( ".jxp" ) ? Block.Type.HTML : Block.Type.CODE;
         StringBuilder buf = new StringBuilder();
         
         List<Block> blocks = new ArrayList<Block>();

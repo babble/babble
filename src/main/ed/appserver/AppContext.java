@@ -20,6 +20,16 @@ public class AppContext {
         _realScope = new Scope( "AppContext:" + root , Scope.GLOBAL );
         _realScope.put( "jxp" , _jxpObject , true );
 
+        try {
+            File f = getFile( "_init.js" );
+            JxpSource s = getSource( f );
+            JSFunction func = s.getFunction();
+            func.call( _realScope );
+        }
+        catch ( Exception e ){
+            throw new RuntimeException( e );
+        }
+
         _publicScope = _realScope.child();
         _publicScope.lock();
     }
@@ -42,7 +52,7 @@ public class AppContext {
     public File getFile( String uri ){
         File f = _files.get( uri );
         if ( f == null ) {
-            f = new File( getRoot() + uri );
+            f = new File( _rootFile , uri );
             _files.put( uri , f );
         }
         return f;
@@ -136,9 +146,15 @@ public class AppContext {
             }
 
             if ( js.exists() ){
-                throw new RuntimeException( "can't handle js files yet" );
+                try {
+                    return set( n , getSource( js ) );
+                }
+                catch ( IOException ioe ){
+                    throw new RuntimeException( ioe );
+                }
+
             }
-            
+
             throw new RuntimeException( n + " not found " );
         }
         
