@@ -17,6 +17,10 @@ public abstract class ThreadPool<T> {
         throws Exception ;
     public abstract void handleError( T t , Exception e );
 
+    public int queueSize(){
+        return _queue.size();
+    }
+
     public boolean offer( T t ){
         if ( _queue.size() > 0 && _threads.size() < _maxThreads )
             _threads.add( new MyThread() );

@@ -1,4 +1,4 @@
-// HttpServer.java
+// HttpServer
 
 package ed.net.httpserver;
 
@@ -21,7 +21,7 @@ public class HttpServer extends NIOServer {
     }
     
     protected HttpSocketHandler accept( SocketChannel sc ){
-        return new HttpSocketHandler( sc );
+        return new HttpSocketHandler( this , sc );
     }
     
     protected boolean handle( HttpRequest request , HttpResponse response )
@@ -55,8 +55,9 @@ public class HttpServer extends NIOServer {
     }
     
     class HttpSocketHandler extends SocketHandler {
-        HttpSocketHandler( SocketChannel sc ){
+        HttpSocketHandler( HttpServer server , SocketChannel sc ){
             super( sc );
+            _server = server;
         }
         
         protected boolean shouldClose(){
@@ -130,7 +131,8 @@ public class HttpServer extends NIOServer {
         protected Selector getSelector(){
             return _selector;
         }
-        
+
+        final HttpServer _server;
         ByteBuffer _in = ByteBuffer.allocateDirect( 2048 );
         int _thisDataStart = 0;
         HttpRequest _lastRequest;
@@ -182,8 +184,33 @@ public class HttpServer extends NIOServer {
     }
     static List<HttpHandler> _handlers = new ArrayList<HttpHandler>();
 
+    static final HttpHandler _stats = new HttpHandler(){
+
+            public boolean handles( HttpRequest request , Box<Boolean> fork ){
+                return request.getURI().equals( "/~stats" );
+            }
+            
+            public void handle( HttpRequest request , HttpResponse response ){
+                response.setHeader( "Content-Type" , "text/plain" );
+                
+                JxpWriter out = response.getWriter();
+
+                
+                out.print( "stats\n" );
+                out.print( "---\n" );
+                
+                out.print( "forked queue length : " + request._handler._server._forkThreads.queueSize()  + "\n" );
+                
+            }
+            
+            public double priority(){
+                return Double.MIN_VALUE;
+            }
+        };
+    
     static {
         DummyHttpHandler.setup();
+        addGlobalHandler( _stats );
     }
 
     public static void main( String args[] )

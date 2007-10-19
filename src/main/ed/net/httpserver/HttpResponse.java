@@ -24,6 +24,10 @@ public class HttpResponse {
             throw new RuntimeException( "already sent header " );
         _responseCode = rc;
     }
+    
+    public void setHeader( String n , String v ){
+        _headers.put( n , v );
+    }
 
     public boolean done()
         throws IOException {
