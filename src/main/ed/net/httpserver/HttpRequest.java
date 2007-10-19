@@ -6,7 +6,7 @@ import ed.util.*;
 
 import java.util.*;
 
-public class HttpRequest {
+public class HttpRequest implements ed.js.JSObject {
     
     HttpRequest( HttpServer.HttpSocketHandler handler , String header ){
         _handler = handler;
@@ -92,6 +92,24 @@ public class HttpRequest {
         if ( s != null )
             return s;
         return def;
+    }
+
+    public Object set( Object n , Object v ){
+        throw new RuntimeException( "can't set things on an HttpRequest" );
+    }
+    public Object get( Object n ){
+        return getParameter( n.toString() , null );
+    }
+
+    public void setInt( int n , Object v ){
+        throw new RuntimeException( "can't set things on an HttpRequest" );
+    }
+    public Object getInt( int n ){
+        throw new RuntimeException( "you're stupid" );
+    }
+
+    public Set<String> keySet(){
+        throw new RuntimeException( "not implemented yet" );
     }
 
     private void _finishParsing(){

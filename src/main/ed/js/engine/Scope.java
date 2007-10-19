@@ -96,7 +96,16 @@ public class Scope {
         if ( obj instanceof JSObject ){
             JSObject jsobj = (JSObject)obj;
             _this = jsobj;
-            return (JSFunction)(jsobj.get( name ));
+
+            JSFunction func = (JSFunction)(jsobj.get( name ));
+            
+            if ( func != null )
+                return func;
+
+            _this = null;
+            
+            if ( obj instanceof JSObjectBase )
+                return null;
         }
         
         _nThis = obj;

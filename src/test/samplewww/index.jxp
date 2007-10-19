@@ -1,12 +1,13 @@
 <html>
   <body>
-    if this is 150 then jxp works : <%= 5 * 30 %>
-    <%= request.getURI() %><br>
-    <%= request.getParameter( "p" ) %>
-    <% jxp.foo(); %>
-    <% jxp.lib.a(); %>
-    <% jxp.lib.foo(); %>
-    <% food(); %>
-    <%= barrrr() %>
+    if this is 150 then jxp works : <%= 5 * 30 %><br>
+    uri : <%= request.getURI() %><br><br>
+    <%= request.getParameter( "p" ) %><br>
+    <%= request["p"] %><br>
+    <% jxp.foo(); %><br>
+    <% jxp.lib.a(); %><bR>
+    <% jxp.lib.foo(); %><br>
+    <% food(); %><br>
+    <%= barrrr() %><br>
   </body>
 </html>
