@@ -20,21 +20,15 @@ public class AppContext {
         _realScope = new Scope( "AppContext:" + root , Scope.GLOBAL );
         _realScope.put( "jxp" , _jxpObject , true );
 
-        try {
-            File f = getFile( "_init.js" );
-            JxpSource s = getSource( f );
-            JSFunction func = s.getFunction();
-            func.call( _realScope );
-        }
-        catch ( Exception e ){
-            throw new RuntimeException( e );
-        }
-
         _publicScope = _realScope.child();
         _publicScope.lock();
     }
 
     public Scope scope(){
+        
+        if ( _getScopeTime() > _lastScopeInitTime )
+            _scopeInited = false;
+
         if ( _scopeInited )
             return _publicScope;
         
@@ -73,6 +67,10 @@ public class AppContext {
     
     public JxpSource getSource( File f )
         throws IOException {
+
+        if ( _inScopeInit )
+            _initFlies.add( f );
+
         JxpSource source = _sources.get( f );
         if ( source == null ){
             source = JxpSource.getSource( f );
@@ -87,7 +85,30 @@ public class AppContext {
     }
 
     private void _initScope(){
+        _inScopeInit = true;
         
+        try {
+            File f = getFile( "_init.js" );
+            JxpSource s = getSource( f );
+            JSFunction func = s.getFunction();
+            func.call( _realScope );
+
+            _lastScopeInitTime = _getScopeTime();
+        }
+        catch ( Exception e ){
+            throw new RuntimeException( e );
+        }
+        finally {
+            _inScopeInit = false;
+        }
+        
+    }
+    
+    long _getScopeTime(){
+        long last = 0;
+        for ( File f : _initFlies )
+            last = Math.max( last , f.lastModified() );
+        return last;
     }
     
     class JxpObject extends JSObjectBase {
@@ -169,8 +190,11 @@ public class AppContext {
     final Scope _realScope;
     final Scope _publicScope;
     
-    private Map<File,JxpSource> _sources = new HashMap<File,JxpSource>();
-    private Map<String,File> _files = new HashMap<String,File>();
-    
+    private final Map<File,JxpSource> _sources = new HashMap<File,JxpSource>();
+    private final Map<String,File> _files = new HashMap<String,File>();
+    private final Set<File> _initFlies = new HashSet<File>();
+
     boolean _scopeInited = false;
+    boolean _inScopeInit = false;
+    long _lastScopeInitTime = 0;
 }

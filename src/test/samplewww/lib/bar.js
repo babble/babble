@@ -1,5 +1,5 @@
 print( "loading bar" );
 
 function barrrr(){
-    return "barrrr";
+    return "<br> barrrr is good<br>";
 }
