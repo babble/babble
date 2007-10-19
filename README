@@ -1,55 +1,11 @@
 
-Option 1
-  - file permissions
-    - user readable = can only be seen by webserver - imports, configs, passwords, etc..
-    - group readable = project admins - admin files
-    - global readable = can be loaded by anyone - normal jxp, js, images, etc...
-  - /init.js 660 - this is loaded first
-  - then people can do whatever they want
-  
+Phase 3 - 11/15
+  javascript
+    - with
+    - arguments
+ 
 
-Option 2
-  /
-  /init.js - 
-  /www/
-  /include/
-  /import/
-  /logs/
-
-Option 3
-  /
-  /CONF
-  /CONF/init.js
-  /CONF/lib/
-  ...
-
-Option 4
-  /
-  /_init.js
-  
-
-----------------
-
-Phase 1
-  javascript 
-    - debugging
-    X native java calls
-    ? make string native
-
-  http
-    - pipelining
-    - long live keep alive
-    - chunking
-    - some buffer pooling
-
-  jxp
-    - AppContext 
-       - scope
-    - includes
-    - debugging
-    - request/response wrapping
-
-Phase 2
+Phase 2 - 11/1
   javascript
     - js -> xml -> js for ajax
     - XMLHttpRequest
@@ -58,9 +14,34 @@ Phase 2
     - switch
     - throw
     - try,catch,finally
+    - scope with exceptions
 
-Phase 3
-  javascript
-    - with
-    - arguments
- 
+    - jxp
+       - access()
+          - file.header.indexof
+          - isMedia
+
+  http
+    - pipelining
+    - chunking
+
+Phase 1 - 10/21
+  javascript 
+    X line numbers
+    X native java calls
+    - make string native ???
+
+  http
+    - fix keep alive
+    - some buffer pooling
+
+  jxp
+    X AppContext 
+       X scope
+    X includes
+    X line numbers
+    X request/response wrapping
+
+
+
+
