@@ -40,7 +40,7 @@ public abstract class NIOServer extends Thread {
         while ( true ){
 
             try {
-                _selector.select();
+                _selector.select( 10 );
             }
             catch ( IOException ioe ){
                 ioe.printStackTrace();
@@ -77,8 +77,13 @@ public abstract class NIOServer extends Thread {
                     sh = (SocketHandler)key.attachment();
                     
                     if ( sh.shouldClose() ){
-                        if ( D ) System.out.println( "want to close" );
+                        if ( D ) System.out.println( "\t want to close : " + sc );
+                        Socket temp = sc.socket();
+                        temp.shutdownInput();
+                        temp.shutdownOutput();
+                        temp.close();
                         sc.close();
+                        key.cancel();
                         continue;
                     }
                     
@@ -117,6 +122,7 @@ public abstract class NIOServer extends Thread {
                             sc.close();
                         }
                         catch ( Exception ee ){
+                            ee.printStackTrace();
                         }
                     }
                     
@@ -149,17 +155,22 @@ public abstract class NIOServer extends Thread {
 
         public void registerForWrites()
             throws IOException {
+            if ( D ) System.out.println( "registerForWrites" );
             _register( SelectionKey.OP_WRITE );
         }
 
         public void registerForReads()
             throws IOException {
+            if ( D ) System.out.println( "registerForReads" );
             _register( SelectionKey.OP_READ );
         }
 
         private void _register( int ops )
             throws IOException {
-            _channel.register( _selector , ops , this );            
+            SelectionKey key = _channel.register( _selector , ops , this );
+            _selector.wakeup();
+            if ( D ) System.out.println( key + " : " + key.isValid() );
+
         }
         
         public void cancel(){

@@ -65,7 +65,7 @@ public class HttpServer extends NIOServer {
                 return ! _lastResponse.keepAlive();
             return _thisDataStart > 0 ;
         }
-
+        
         protected void writeMoreIfWant()
             throws IOException {
             if ( _lastResponse != null )
