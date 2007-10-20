@@ -12,7 +12,6 @@ public class ByteBufferPool extends SimplePool<ByteBuffer> {
     }
 
     public ByteBuffer createNew(){
-        System.out.println( "creating new buffer" );
         return ByteBuffer.allocateDirect( _size );
     }
 
