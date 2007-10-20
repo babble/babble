@@ -34,7 +34,7 @@ Phase 1 - 10/21
   javascript 
     X line numbers
     X native java calls
-    - make string native ???
+    X make string native - no - but made it a lot faster
 
   http
     - fix keep alive
