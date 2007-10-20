@@ -21,6 +21,8 @@ public class JSObjectBase implements JSObject {
             n = n.toString();
         
         if ( n instanceof String ){
+            if ( _map == null )
+                _map = new TreeMap<String,Object>();
             _map.put( (String)n , v );
             return v;
         }
@@ -41,7 +43,7 @@ public class JSObjectBase implements JSObject {
             n = n.toString();
 
         if ( n instanceof String ){
-            Object res = _map.get( ((String)n) );
+            Object res = _map == null ? null : _map.get( ((String)n) );
             if ( res == null && _constructor != null )
                 res = _constructor._prototype.get( n );
             return res;
@@ -63,9 +65,13 @@ public class JSObjectBase implements JSObject {
     }
 
     public Set<String> keySet(){
+        if ( _map == null )
+            return EMPTY_SET;
         return _map.keySet();
     }
 
-    private Map<String,Object> _map = new TreeMap<String,Object>();
+    private Map<String,Object> _map = null;// = new TreeMap<String,Object>();
     private JSFunction _constructor;
+
+    static final Set<String> EMPTY_SET = Collections.unmodifiableSet( new HashSet<String>() );
 }

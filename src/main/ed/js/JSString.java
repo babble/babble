@@ -38,7 +38,17 @@ public class JSString extends JSObjectBase {
     public JSString( String s ){
         super( _cons );
         _s = s;
-        set( "length" , Integer.valueOf( _s.length() ) );
+    }
+    
+    public Object get( Object name ){
+        
+        if ( name instanceof JSString )
+            name = name.toString();
+        
+        if ( name instanceof String && name.toString().equals( "length" ) )
+            return Integer.valueOf( _s.length() );
+
+        return super.get( name );
     }
     
     public String toString(){
