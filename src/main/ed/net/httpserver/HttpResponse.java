@@ -6,6 +6,7 @@ import java.io.*;
 import java.util.*;
 import java.nio.*;
 import java.nio.channels.*;
+import java.nio.charset.*;
 
 import ed.util.*;
 
@@ -31,10 +32,22 @@ public class HttpResponse {
         _headers.put( n , v );
     }
 
+    void cleanup(){
+        _cleaned = true;
+        if ( _stringContent != null ){
+            for ( ByteBuffer bb : _stringContent )
+                _bbPool.done( bb );
+            _stringContent = null;
+        }
+    }
+
     public boolean done()
         throws IOException {
         _done = true;
-        return flush();
+        boolean f = flush();
+        if ( f )
+            cleanup();
+        return f;
     }
 
     public boolean flush()
@@ -44,6 +57,9 @@ public class HttpResponse {
     
     boolean _flush()
         throws IOException {
+
+        if ( _cleaned )
+            throw new RuntimeException( "already cleaned" );
 
         if ( ! _sentHeader ){
             final String header = _genHeader();
@@ -68,16 +84,16 @@ public class HttpResponse {
                 return false;
             }
         }
+
+        if ( _writer != null )
+            _writer._push();
         
         if ( _stringContent != null ){
             for ( ; _stringContentSent < _stringContent.size() ; _stringContentSent++ ){
-                StringBuilder buf = _stringContent.get( _stringContentSent );
-                byte bs[] = buf.toString().substring( _stringContentPos ).getBytes( getContentEncoding() );
-                ByteBuffer bb = ByteBuffer.allocateDirect( bs.length + 10 );
-                bb.put( bs );
-                bb.flip();
+                
+                ByteBuffer bb = _stringContent.get( _stringContentSent );
                 int written = _handler.getChannel().write( bb );
-                if ( written < bs.length ){
+                if ( written < bb.position() ){
                     _stringContentPos += written;
                     _handler.registerForWrites();
                     return false;
@@ -101,7 +117,6 @@ public class HttpResponse {
         _headerBufferPool.done( buf );
         return header;
     }
-    static StringBuilderPool _headerBufferPool = new StringBuilderPool( 25 , 1024 );
     
     private Appendable _genHeader( Appendable a )
         throws IOException {
@@ -126,11 +141,14 @@ public class HttpResponse {
         else
             a.append( "Connection: close\r\n" );
 
+        if ( _writer != null )
+            _writer._push();
+
         // need to only do this if not chunked
         if ( _done && _stringContent != null && _headers.get( "Content-Length") == null ){
             int cl = 0;
-            for ( StringBuilder buf : _stringContent )
-                cl += buf.length();
+            for ( ByteBuffer buf : _stringContent )
+                cl += buf.limit();
             a.append( "Content-Length: " ).append( String.valueOf( cl ) ).append( "\r\n" );
         }
         
@@ -210,7 +228,7 @@ public class HttpResponse {
     boolean _sentHeader = false;
 
     // data
-    List<StringBuilder> _stringContent = null;
+    List<ByteBuffer> _stringContent = null;
     int _stringContentSent = 0;
     int _stringContentPos = 0;
 
@@ -218,18 +236,19 @@ public class HttpResponse {
     long _fileSent = 0;
 
     boolean _done = false;
+    boolean _cleaned = false;
     MyJxpWriter _writer = null;
     
     class MyJxpWriter implements JxpWriter {
         MyJxpWriter(){
             _checkNoContent();
 
-            _stringContent = new LinkedList<StringBuilder>();
+            _stringContent = new LinkedList<ByteBuffer>();
 
-            _cur = new StringBuilder();
-            _stringContent.add( _cur );
+            _cur = _tlCharBuffer.get();
+            _cur.position( 0 );
         }
-
+        
         public JxpWriter print( int i ){
             return print( String.valueOf( i ) );
         }
@@ -245,8 +264,30 @@ public class HttpResponse {
         public JxpWriter print( String s ){
             if ( _done )
                 throw new RuntimeException( "already done" );
+            if ( _cur.position() + s.length() > _cur.capacity() )
+                _push();
             _cur.append( s );
             return this;
+        }
+
+        void _push(){
+            if ( _cur.position() == 0 )
+                return;
+            
+            _cur.flip();
+            ByteBuffer bb = _bbPool.get();
+            
+            CharsetEncoder encoder = _utf8.newEncoder();
+            try {
+                encoder.encode( _cur , bb , true );
+                bb.flip();
+
+                _stringContent.add( bb );
+                _cur.position( 0 );
+            }
+            catch ( Exception e ){
+                throw new RuntimeException( "no" , e );
+            }
         }
         
         public void flush()
@@ -258,6 +299,16 @@ public class HttpResponse {
             _stringContent.clear();
         }
         
-        private StringBuilder _cur;
+        private CharBuffer _cur;
     }
+
+    static ThreadLocal<CharBuffer> _tlCharBuffer = new ThreadLocal<CharBuffer>(){
+        protected CharBuffer initialValue(){
+            return CharBuffer.allocate( 1024 * 32 );
+        }
+    };
+    static ByteBufferPool _bbPool = new ByteBufferPool( 50 , _tlCharBuffer.get().capacity() * 2 );
+    static StringBuilderPool _headerBufferPool = new StringBuilderPool( 25 , 1024 );
+    static Charset _utf8 = Charset.forName( "UTF-8" );
+    
 }
