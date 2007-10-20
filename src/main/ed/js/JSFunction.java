@@ -17,7 +17,11 @@ public abstract class JSFunction extends JSFunctionBase {
         
         _prototype = new JSObjectBase();
         set( "prototype" , _prototype );
+
+        init();
     }
+
+    protected void init(){}
 
     public Object get( Object n ){
         Object foo = super.get( n );

@@ -3,23 +3,42 @@
 package ed.js;
 
 import ed.js.func.*;
+import ed.js.engine.*;
 
 public class JSString extends JSObjectBase {
+
+    static JSFunction _cons = new JSFunctionCalls0(){
+
+            public Object call( Scope s , Object[] args ){
+                throw new RuntimeException( "can't be here" );
+            }
+
+            protected void init(){
+
+                _prototype.set( "charCodeAt" , new JSFunctionCalls1() {
+                        public Object call( Scope s , Object o , Object foo[] ){
+                            String str = s.getThis().toString();
+                            int idx = ((Number)o).intValue();
+                            return Integer.valueOf( str.charAt( idx ) );
+                        }
+                    } );
+
+                
+                _prototype.set( "charAt" , new JSFunctionCalls1() {
+                        public Object call( Scope s , Object o , Object foo[] ){
+                            String str = s.getThis().toString();
+                            int idx = ((Number)o).intValue();
+                            return str.substring( idx , idx + 1 );
+                        }
+                    } );
+
+            }
+        };
+    
     public JSString( String s ){
+        super( _cons );
         _s = s;
         set( "length" , Integer.valueOf( _s.length() ) );
-        set( "charCodeAt" , new JSFunctionCalls1() {
-                public Object call( ed.js.engine.Scope s , Object o , Object foo[] ){
-                    int idx = ((Number)o).intValue();
-                    return Integer.valueOf( _s.charAt( idx ) );
-                }
-            } );
-        set( "charAt" , new JSFunctionCalls1() {
-                public Object call( ed.js.engine.Scope s , Object o , Object foo[] ){
-                    int idx = ((Number)o).intValue();
-                    return _s.substring( idx , idx + 1 );
-                }
-            } );
     }
     
     public String toString(){
