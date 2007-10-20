@@ -17,6 +17,7 @@ public class ByteBufferPool extends SimplePool<ByteBuffer> {
 
     public boolean ok( ByteBuffer buf ){
         buf.position( 0 );
+        buf.limit( buf.capacity() );
         return true;
     }    
 

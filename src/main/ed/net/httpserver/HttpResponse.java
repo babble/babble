@@ -37,7 +37,13 @@ public class HttpResponse {
         if ( _stringContent != null ){
             for ( ByteBuffer bb : _stringContent )
                 _bbPool.done( bb );
+            
             _stringContent = null;
+            if ( _writer != null ){
+                _charBufPool.done( _writer._cur );
+                _writer._cur = null;
+                _writer = null;
+            }
         }
     }
 
@@ -245,8 +251,8 @@ public class HttpResponse {
 
             _stringContent = new LinkedList<ByteBuffer>();
 
-            _cur = _tlCharBuffer.get();
-            _cur.position( 0 );
+            _cur = _charBufPool.get();
+            _resetBuf();
         }
         
         public JxpWriter print( int i ){
@@ -264,8 +270,10 @@ public class HttpResponse {
         public JxpWriter print( String s ){
             if ( _done )
                 throw new RuntimeException( "already done" );
-            if ( _cur.position() + s.length() > _cur.capacity() )
+
+            if ( _cur.position() + s.length() > _cur.capacity() ){
                 _push();
+            }
             _cur.append( s );
             return this;
         }
@@ -283,7 +291,7 @@ public class HttpResponse {
                 bb.flip();
 
                 _stringContent.add( bb );
-                _cur.position( 0 );
+                _resetBuf();
             }
             catch ( Exception e ){
                 throw new RuntimeException( "no" , e );
@@ -298,16 +306,22 @@ public class HttpResponse {
         public void reset(){
             _stringContent.clear();
         }
+
+        void _resetBuf(){
+            _cur.position( 0 );
+            _cur.limit( _cur.capacity() );
+        }
         
         private CharBuffer _cur;
     }
-
-    static ThreadLocal<CharBuffer> _tlCharBuffer = new ThreadLocal<CharBuffer>(){
-        protected CharBuffer initialValue(){
-            return CharBuffer.allocate( 1024 * 32 );
-        }
-    };
-    static ByteBufferPool _bbPool = new ByteBufferPool( 50 , _tlCharBuffer.get().capacity() * 2 );
+    
+    static final int CHAR_BUFFER_SIZE = 1024 * 32;
+    static SimplePool<CharBuffer> _charBufPool = new SimplePool( "Response.CharBufferPool" , 50 , -1 ){
+            public CharBuffer createNew(){
+                return CharBuffer.allocate( CHAR_BUFFER_SIZE );
+            }
+        };
+    static ByteBufferPool _bbPool = new ByteBufferPool( 50 , CHAR_BUFFER_SIZE * 2 );
     static StringBuilderPool _headerBufferPool = new StringBuilderPool( 25 , 1024 );
     static Charset _utf8 = Charset.forName( "UTF-8" );
     
