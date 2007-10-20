@@ -607,7 +607,7 @@ public class Convert {
         }
         callLine += " , Object extra[] ){\n" ;
         
-        _append( callLine + " final Scope scope = new Scope( \"temp scope\" , _scope ); " + varSetup , n );
+        _append( callLine + " final Scope scope = new Scope( \"temp scope\" , _scope , passedIn ); " + varSetup , n );
         
         //_append( "final ed.js.engine.Scope oldScope = scope;\n final ed.js.engine.Scope scope = oldScope.child();\n" , n );
 

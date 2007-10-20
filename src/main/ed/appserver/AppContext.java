@@ -17,30 +17,34 @@ public class AppContext {
         _rootFile = new File( _root );
         _jxpObject = new JxpObject( _rootFile );
 
-        _realScope = new Scope( "AppContext:" + root , Scope.GLOBAL );
-        _realScope.put( "jxp" , _jxpObject , true );
-
-        _publicScope = _realScope.child();
-        _publicScope.lock();
+        _scope = new Scope( "AppContext:" + root , Scope.GLOBAL );
+        _scope.put( "jxp" , _jxpObject , true );
+        _scope.setGlobal( true );
     }
 
-    public Scope scope(){
+    public Scope scopeChild(){
+        Scope s = _scope().child();
+        s.setGlobal( true );
+        return s;
+    }
+    
+    private Scope _scope(){
         
         if ( _getScopeTime() > _lastScopeInitTime )
             _scopeInited = false;
 
         if ( _scopeInited )
-            return _publicScope;
+            return _scope;
         
-        synchronized ( _realScope ){
+        synchronized ( _scope ){
             if ( _scopeInited )
-                return _publicScope;
+                return _scope;
             
             _initScope();
             
             _scopeInited = true;
         }
-        return _publicScope;
+        return _scope;
     }
     
     public File getFile( String uri ){
@@ -54,7 +58,7 @@ public class AppContext {
     
     public void resetScope(){
         _scopeInited = false;
-        _realScope.reset();
+        _scope.reset();
     }
     
     public String getRoot(){
@@ -91,7 +95,7 @@ public class AppContext {
             File f = getFile( "_init.js" );
             JxpSource s = getSource( f );
             JSFunction func = s.getFunction();
-            func.call( _realScope );
+            func.call( _scope );
 
             _lastScopeInitTime = _getScopeTime();
         }
@@ -187,8 +191,7 @@ public class AppContext {
     final File _rootFile;
     final JxpObject _jxpObject;
 
-    final Scope _realScope;
-    final Scope _publicScope;
+    final Scope _scope;
     
     private final Map<File,JxpSource> _sources = new HashMap<File,JxpSource>();
     private final Map<String,File> _files = new HashMap<String,File>();

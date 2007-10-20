@@ -22,8 +22,24 @@ public class Scope {
     static _NULL NULL = new _NULL();
     
     public Scope( String name , Scope parent ){
+        this( name , parent , null );
+    }
+
+    public Scope( String name , Scope parent , Scope alternate ){
         _name = name;
         _parent = parent;
+        
+        Scope alt = null;
+        if ( alternate != null ){
+            Scope me = getGlobal();
+            Scope them = alternate.getGlobal();
+            if ( me != them ){
+                if ( them.hasParent( me ) ){
+                    alt = them;
+                }
+            }
+        }
+        _alternate = alt;
     }
 
     public Scope child(){
@@ -58,6 +74,10 @@ public class Scope {
     }
     
     public Object get( String name ){
+        return get( name , _alternate );
+    }
+    
+    public Object get( String name , Scope alt ){
         Object foo = _objects == null ? null : _objects.get( name );
         if ( foo != null ){
             if ( foo == NULL )
@@ -65,10 +85,35 @@ public class Scope {
             return foo;
         }
         
+        if ( alt != null && _global ){
+            if ( ! alt._global )
+                throw new RuntimeException( "i fucked up" );
+            return alt.get( name , null );
+        }
+
         if ( _parent == null )
             return null;
         
-        return _parent.get( name );
+        return _parent.get( name , alt );
+    }
+
+    public final Scope getGlobal(){
+        if ( _global )
+            return this;
+        if ( _parent != null )
+            return _parent.getGlobal();
+        return null;
+    }
+    
+    /**
+     * @return true if s is a parent of this
+     */
+    public final boolean hasParent( Scope s ){
+        if ( this == s )
+            return true;
+        if ( _parent == null )
+            return false;
+        return _parent.hasParent( s );
     }
 
     public JSFunction getFunction( String name ){
@@ -142,9 +187,14 @@ public class Scope {
         _nThis = null;
         _nThisFunc = null;
     }
+
+    public void setGlobal( boolean g ){
+        _global = g;
+    }
     
     final String _name;
     final Scope _parent;
+    final Scope _alternate;
 
     boolean _locked = false;
     boolean _global = false;

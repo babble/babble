@@ -29,6 +29,7 @@ Phase 2 - 11/1
   http
     - pipelining
     - chunking
+    - fix keep alive
 
 Phase 1 - 10/21
   javascript 
@@ -37,7 +38,6 @@ Phase 1 - 10/21
     X make string native - no - but made it a lot faster
 
   http
-    - fix keep alive
     X some buffer pooling
 
   jxp

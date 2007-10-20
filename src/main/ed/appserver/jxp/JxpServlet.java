@@ -23,7 +23,7 @@ public class JxpServlet {
         
         final JxpWriter writer = response.getWriter();
 
-        final Scope scope = ar.getContext().scope().child();
+        final Scope scope = ar.getContext().scopeChild();
 
         scope.put( "request" , request , true );
         scope.put( "response" , response , true );
