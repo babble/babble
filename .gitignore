@@ -14,6 +14,8 @@
 *Thumbs.db*
 *.DS_Store
 
+src/main/Foo.java
+
 log
 build
 crap

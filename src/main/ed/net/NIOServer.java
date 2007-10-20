@@ -10,7 +10,7 @@ import java.util.*;
 
 public abstract class NIOServer extends Thread {
 
-    final static boolean D = true;
+    final static boolean D = false;
 
     public NIOServer( int port )
         throws IOException {

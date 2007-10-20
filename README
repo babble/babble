@@ -4,6 +4,9 @@ Phase 3 - 11/15
     - with
     - arguments
  
+ jxp/app server
+    - git system
+    - webdav ?
 
 Phase 2 - 11/1
   javascript
@@ -15,11 +18,13 @@ Phase 2 - 11/1
     - throw
     - try,catch,finally
     - scope with exceptions
+    - fix string class
 
-    - jxp
-       - access()
-          - file.header.indexof
-          - isMedia
+  jxp/app server
+    - access()
+       - file.header.indexof
+       - isMedia
+    - correct mime types for images/etc...
 
   http
     - pipelining

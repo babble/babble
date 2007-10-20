@@ -7,6 +7,8 @@ import java.util.*;
 import java.nio.*;
 import java.nio.channels.*;
 
+import ed.util.*;
+
 public class HttpResponse {
 
     HttpResponse( HttpRequest request ){
@@ -34,16 +36,20 @@ public class HttpResponse {
         _done = true;
         return flush();
     }
-    
+
     public boolean flush()
+        throws IOException {
+        return _flush();
+    }
+    
+    boolean _flush()
         throws IOException {
 
         if ( ! _sentHeader ){
-            StringBuilder buf = new StringBuilder();
-            _genHeader( buf );
+            final String header = _genHeader();
             
             ByteBuffer headOut = ByteBuffer.allocateDirect( 1024 );
-            headOut.put( buf.toString().getBytes() );
+            headOut.put( header.getBytes() );
             headOut.flip();
             _handler.getChannel().write( headOut );
             _sentHeader = true;
@@ -87,6 +93,16 @@ public class HttpResponse {
         return true;
     }
 
+    private String _genHeader()
+        throws IOException {
+        StringBuilder buf = _headerBufferPool.get();
+        _genHeader( buf );
+        String header = buf.toString();
+        _headerBufferPool.done( buf );
+        return header;
+    }
+    static StringBuilderPool _headerBufferPool = new StringBuilderPool( 25 , 1024 );
+    
     private Appendable _genHeader( Appendable a )
         throws IOException {
         // first line
@@ -125,7 +141,7 @@ public class HttpResponse {
     
     public String toString(){
         try {
-            return _genHeader( new StringBuilder() ).toString();
+            return _genHeader();
         }
         catch ( Exception e ){
             throw new RuntimeException( e );
@@ -233,14 +249,15 @@ public class HttpResponse {
             return this;
         }
         
-        public void flush(){
-            throw new RuntimeException( "not implemented" );
+        public void flush()
+            throws IOException {
+            _flush();
         }
 
         public void reset(){
             _stringContent.clear();
         }
-
+        
         private StringBuilder _cur;
     }
 }

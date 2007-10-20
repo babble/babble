@@ -13,7 +13,7 @@ import ed.util.*;
 
 public class HttpServer extends NIOServer {
 
-    static final boolean D = true;
+    static final boolean D = false;
 
     public HttpServer( int port )
         throws IOException {
@@ -155,7 +155,6 @@ public class HttpServer extends NIOServer {
         new ThreadPool<Task>( "HttpServer" , 250 ){
         
         public void handle( Task t ) throws IOException {
-            System.out.println( "handler" );
             t._handler.handle( t._request , t._response );
             t._response.done();
         }
