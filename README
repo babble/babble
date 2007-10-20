@@ -38,7 +38,7 @@ Phase 1 - 10/21
 
   http
     - fix keep alive
-    - some buffer pooling
+    X some buffer pooling
 
   jxp
     X AppContext 

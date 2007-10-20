@@ -83,7 +83,7 @@ public class Scope {
     }
 
     public Scope newThis( JSFunction f ){
-        _this = new JSClass( f );
+        _this = new JSObjectBase( f );
         return this;
     }
 

@@ -6,6 +6,13 @@ import java.util.*;
 
 public class JSObjectBase implements JSObject {
 
+    public JSObjectBase(){
+    }
+
+    public JSObjectBase( JSFunction constructor ){
+        _constructor = constructor;
+    }
+
     public Object set( Object n , Object v ){
         if ( n == null )
             throw new NullPointerException();
@@ -30,14 +37,19 @@ public class JSObjectBase implements JSObject {
         if ( n == null )
             throw new NullPointerException();
 
-        if ( n instanceof String )
-            return _map.get( ((String)n) );
+        if ( n instanceof JSString )
+            n = n.toString();
+
+        if ( n instanceof String ){
+            Object res = _map.get( ((String)n) );
+            if ( res == null && _constructor != null )
+                res = _constructor._prototype.get( n );
+            return res;
+        }
         
         if ( n instanceof Number )
             return getInt( ((Number)n).intValue() );
         
-        if ( n instanceof JSString )
-            return _map.get( n.toString() );
 
         throw new RuntimeException( "what - " + n.getClass() );
     }
@@ -55,4 +67,5 @@ public class JSObjectBase implements JSObject {
     }
 
     private Map<String,Object> _map = new TreeMap<String,Object>();
+    private JSFunction _constructor;
 }
