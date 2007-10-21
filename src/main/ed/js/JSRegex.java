@@ -2,6 +2,8 @@
 
 package ed.js;
 
+import java.util.regex.*;
+
 import ed.js.func.*;
 import ed.js.engine.*;
 
@@ -22,6 +24,19 @@ public class JSRegex extends JSObjectBase {
         super( _cons );
         _p = p;
         _f = f;
+        
+        {
+            int compilePatterns = 0;
+            if ( f.contains( "i" ) )
+                compilePatterns |= Pattern.CASE_INSENSITIVE;
+            if ( f.contains( "m" ) )
+                compilePatterns |= Pattern.DOTALL;
+            _compilePatterns = compilePatterns;
+        }
+        
+        _replaceAll = f.contains( "g" );
+        
+        _patt = Pattern.compile( p , _compilePatterns );
     }
     
     public String toString(){
@@ -38,4 +53,9 @@ public class JSRegex extends JSObjectBase {
 
     final String _p;
     final String _f;
+
+    final int _compilePatterns;
+    final Pattern _patt;
+
+    final boolean _replaceAll;
 }
