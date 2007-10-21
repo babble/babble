@@ -244,6 +244,12 @@ public class Convert {
         case Token.TRUE:
             _append( " true " , n );
             break;
+        case Token.FALSE:
+            _append( " false " , n );
+            break;
+        case Token.NULL:
+            _append( " null " , n );
+            break;
 
         case Token.VAR:
             _addVar( n , state );
