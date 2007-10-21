@@ -73,6 +73,15 @@ public class Convert {
     private void _add( Node n , ScriptOrFnNode sn , State state ){
         
         switch ( n.getType() ){
+            
+        case Token.REGEXP:
+            int myId = _regex.size();
+            ScriptOrFnNode parent  = _nodeToSOR.get( n );
+            int rId = n.getIntProp( Node.REGEXP_PROP , -1 );
+            
+            _regex.add( new Pair<String,String>( parent.getRegexpString( rId ) , parent.getRegexpFlags( rId ) ) );
+            _append( " REGEX_" + myId , n );
+            break;
 
         case Token.ARRAYLIT:
             {
@@ -864,6 +873,11 @@ public class Convert {
 
         buf.append( "\n\n\t}\n\n" );
         
+        for ( int i=0; i<_regex.size(); i++ ){
+            Pair<String,String> p = _regex.get( i );
+            buf.append( "\t static final JSRegex REGEX_" + i + " = new JSRegex( \"" + p.first + "\" , \"" + p.second + "\" );\n" );
+        }
+
         buf.append( "\n}\n\n" );
         return buf.toString();
     }
@@ -898,6 +912,7 @@ public class Convert {
     final Map<Integer,List<Node>> _javaCodeToLines = new TreeMap<Integer,List<Node>>();
     final Map<Node,Integer> _nodeToSourceLine = new HashMap<Node,Integer>();
     final Map<Node,ScriptOrFnNode> _nodeToSOR = new HashMap<Node,ScriptOrFnNode>();
+    final List<Pair<String,String>> _regex = new ArrayList<Pair<String,String>>();
     int _preMainLines = -1;
     private final StringBuilder _mainJavaCode = new StringBuilder();
     

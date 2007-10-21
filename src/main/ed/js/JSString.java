@@ -61,8 +61,6 @@ public class JSString extends JSObjectBase {
 
     public boolean equals( Object o ){
 
-        System.out.println( "me [" + _s + "] them [" + o + "]" );
-        
         if ( o == null )
             return _s == null;
         
