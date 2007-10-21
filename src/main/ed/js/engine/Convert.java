@@ -73,7 +73,20 @@ public class Convert {
     private void _add( Node n , ScriptOrFnNode sn , State state ){
         
         switch ( n.getType() ){
-            
+        
+        case Token.TYPEOF:
+            _append( "JS_typeof( " , n );
+            _assertOne( n );
+            _add( n.getFirstChild() , state );
+            _append( " ) " , n );
+            break;
+
+        case Token.TYPEOFNAME:
+            _append( "JS_typeof( " , n );
+            _append( "scope.get( \"" + n.getString() + "\" )" , n );
+            _append( " ) " , n );
+            break;
+    
         case Token.REGEXP:
             int myId = _regex.size();
             ScriptOrFnNode parent  = _nodeToSOR.get( n );

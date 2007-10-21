@@ -6,6 +6,30 @@ import ed.js.engine.*;
 
 public class JSInternalFunctions extends JSObjectBase {
 
+    public final static JSString TYPE_STRING = new JSString( "string" );
+    public final static JSString TYPE_NUMBER = new JSString( "number" );
+    public final static JSString TYPE_UNDEFINED = new JSString( "undefined" );
+    public final static JSString TYPE_OBJECT = new JSString( "object" );
+    public final static JSString TYPE_NATIVE = new JSString( "native" );
+
+    public JSString JS_typeof( Object obj ){
+
+        if ( obj == null )
+            return TYPE_UNDEFINED;
+        
+        if ( obj instanceof JSString ||
+             obj instanceof String )
+            return TYPE_STRING;
+
+        if ( obj instanceof Number )
+            return TYPE_NUMBER;
+        
+        if ( obj instanceof JSObject )
+            return TYPE_OBJECT;
+        
+        return TYPE_NATIVE;
+    }
+
     public JSObject JS_buildLiteralObject( String names[] , Object ... fields ){
         JSObject o = new JSObjectBase();
         for ( int i=0; i<names.length && i < fields.length; i++ )
