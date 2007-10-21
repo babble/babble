@@ -3,6 +3,10 @@ for ( var i=0; i<2; i = i + 1 ){
     var b = i;
     print( b );
 }
+for ( var ii=0; ii<2; ii = ii + 1 ){
+    var b = ii;
+    print( b );
+}
 print( i );
 
 var i = 17;
