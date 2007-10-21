@@ -959,6 +959,11 @@ public class Parser
                     // by the init node.
                     if ( ED_HACK ){
                         pn = loop;
+                        if ( init.getType() == Token.VAR &&
+                             init.getFirstChild() != null &&
+                             init.getFirstChild().getType() == Token.NAME ){
+                            init = init.getFirstChild();
+                        }
                         pn.addChildToBack( init );
                         pn.addChildToBack( cond );
                         pn.addChildToBack( body );

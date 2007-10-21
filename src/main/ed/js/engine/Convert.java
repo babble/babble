@@ -381,11 +381,13 @@ public class Convert {
             break;
 
         case Token.AND:
+        case Token.OR:
             _append( " ( " , n );
             Node c = n.getFirstChild();
             while ( c != null ){
-                if ( c != n.getFirstChild() )
-                    _append( " && " , n );
+                if ( c != n.getFirstChild() ){
+                    _append( n.getType() == Token.AND ? " && " : " || " , n );
+                }
                 _append( " JS_evalToBool( " , n );
                 _add( c , state );
                 _append( " ) " , n );
@@ -436,11 +438,14 @@ public class Convert {
         final int numChildren = countChildren( n );
         if ( numChildren == 4 ){
             _append( "\n for ( " , n );
-            _assertOne( n.getFirstChild() );
+
             if ( n.getFirstChild().getType() == Token.BLOCK )
                 _add( n.getFirstChild().getFirstChild() , state );
-            else
+            else {
                 _add( n.getFirstChild() , state );
+                _append( " ; " , n );
+            }
+            
             _append( "  \n " , n );
             _add( n.getFirstChild().getNext() , state );
             _append( " ; \n" , n );
@@ -449,6 +454,7 @@ public class Convert {
             _add( n.getFirstChild().getNext().getNext().getNext() , state );
         }
         else if ( numChildren == 3 ){
+            Debug.printTree( n , 0 );
             String name = n.getFirstChild().getString();
             String tempName = name + "TEMP";
             _append( "\n for ( Object " , n );
@@ -502,12 +508,8 @@ public class Convert {
         _assertType( n , Token.IFNE );
 
         final Node.Jump theIf = (Node.Jump)n;
-        
         _assertOne( n ); // this is the predicate
         Node ifBlock = n.getNext();
-        if ( ifBlock.getFirstChild() != null && 
-             ifBlock.getFirstChild().getNext() != null )
-            throw new RuntimeException( "bad if" );
 
         _append( "if ( JS_evalToBool( " , n );
         _add( n.getFirstChild() , state );
