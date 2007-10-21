@@ -53,6 +53,25 @@ public class JSString extends JSObjectBase {
                         }
                     } );
                 
+
+                _prototype.set( "replace" , new JSFunctionCalls2() {
+                        public Object call( Scope s , Object o , Object repl , Object foo[] ){
+                            String str = s.getThis().toString();
+
+                            if ( o instanceof String || o instanceof JSString )
+                                o = new JSRegex( o.toString() , "" );
+                            
+                            if ( ! ( o instanceof JSRegex ) )
+                                throw new RuntimeException( "not a regex : " + o.getClass() );
+                            
+                            JSRegex r = (JSRegex)o;
+                            Matcher m = r._patt.matcher( str );
+                            
+                            if ( r._replaceAll )
+                                return m.replaceAll( repl.toString() );
+                            return m.replaceFirst( repl.toString() );
+                        }
+                    } );
             }
         };
     
