@@ -2,6 +2,8 @@
 
 package ed.js;
 
+import java.util.regex.*;
+
 import ed.js.func.*;
 import ed.js.engine.*;
 
@@ -32,6 +34,25 @@ public class JSString extends JSObjectBase {
                         }
                     } );
 
+
+                _prototype.set( "match" , new JSFunctionCalls1() {
+                        public Object call( Scope s , Object o , Object foo[] ){
+                            String str = s.getThis().toString();
+
+                            if ( o instanceof String || o instanceof JSString )
+                                o = new JSRegex( o.toString() , "" );
+                            
+                            if ( ! ( o instanceof JSRegex ) )
+                                throw new RuntimeException( "not a regex : " + o.getClass() );
+                            
+                            JSRegex r = (JSRegex)o;
+                            Matcher m = r._patt.matcher( str );
+                            if ( ! m.find() )
+                                return null;
+                            return m.group(0);
+                        }
+                    } );
+                
             }
         };
     
