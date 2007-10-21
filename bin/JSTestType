@@ -1,0 +1,3 @@
+#!/bin/tcsh
+
+ant && ./bin/JSTestReset && ./runLight.bash ed.js.engine.ConvertTest src/test/ed/js/engine/$1*.js

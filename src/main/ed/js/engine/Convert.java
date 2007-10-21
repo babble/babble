@@ -93,7 +93,7 @@ public class Convert {
             int rId = n.getIntProp( Node.REGEXP_PROP , -1 );
             
             _regex.add( new Pair<String,String>( parent.getRegexpString( rId ) , parent.getRegexpFlags( rId ) ) );
-            _append( " REGEX_" + myId , n );
+            _append( " _regex[" + myId + "] " , n );
             break;
 
         case Token.ARRAYLIT:
@@ -239,7 +239,10 @@ public class Convert {
             _append( temp , n );
             break;
         case Token.STRING:
-            _append( " new JSString( \"" + n.getString() + "\" )" , n );
+            int stringId = _strings.size();
+            _strings.add( n.getString() );
+            _append( "_strings[" + stringId + "]" ,n );
+            //_append( " new JSString( \"" + n.getString() + "\" )" , n );
             break;
         case Token.TRUE:
             _append( " true " , n );
@@ -894,11 +897,6 @@ public class Convert {
 
         buf.append( "\n\n\t}\n\n" );
         
-        for ( int i=0; i<_regex.size(); i++ ){
-            Pair<String,String> p = _regex.get( i );
-            buf.append( "\t static final JSRegex REGEX_" + i + " = new JSRegex( \"" + p.first + "\" , \"" + p.second + "\" );\n" );
-        }
-
         buf.append( "\n}\n\n" );
         return buf.toString();
     }
@@ -911,6 +909,18 @@ public class Convert {
             Class c = CompileUtil.compile( _package , getClassName() , getClassString() );
             JSCompiledScript it = (JSCompiledScript)c.newInstance();
             it._convert = this;
+            
+            it._regex = new JSRegex[ _regex.size() ];
+            for ( int i=0; i<_regex.size(); i++ ){
+                Pair<String,String> p = _regex.get( i );
+                JSRegex foo = new JSRegex( p.first , p.second );
+                it._regex[i] = foo;
+            }
+            
+            it._strings = new JSString[ _strings.size() ];
+            for ( int i=0; i<_strings.size(); i++ )
+                it._strings[i] = new JSString( _strings.get( i ) );
+
             _it = it;
             return _it;
         }
@@ -934,6 +944,7 @@ public class Convert {
     final Map<Node,Integer> _nodeToSourceLine = new HashMap<Node,Integer>();
     final Map<Node,ScriptOrFnNode> _nodeToSOR = new HashMap<Node,ScriptOrFnNode>();
     final List<Pair<String,String>> _regex = new ArrayList<Pair<String,String>>();
+    final List<String> _strings = new ArrayList<String>();
     int _preMainLines = -1;
     private final StringBuilder _mainJavaCode = new StringBuilder();
     

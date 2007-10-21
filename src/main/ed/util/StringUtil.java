@@ -14,4 +14,26 @@ public final class StringUtil{
         }
         return c;
     }
+
+    public static final String replace( String str , String from , String to ){
+        if ( from == null || from.length() == 0 )
+            return str;
+        
+	StringBuffer buf = null;
+	int idx;
+	int start = 0;
+	while ( ( idx = str.indexOf( from , start ) ) >= 0 ){
+	    if ( buf == null )
+		buf = new StringBuffer();
+	    buf.append( str.substring( start , idx ) );
+	    buf.append( to );
+	    start = idx + from.length();
+	}
+	if ( buf == null )
+	    return str;
+	
+	buf.append( str.substring( start ) );
+
+	return buf.toString();
+    }
 }
