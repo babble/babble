@@ -16,7 +16,7 @@ public class HttpResponse {
         _request = request;
         _handler = _request._handler;
 
-        _headers = new TreeMap<String,String>();
+        _headers = new StringMap<String>();
         _headers.put( "Content-Type" , "text/html; charset=" + getContentEncoding() );
         _headers.put( "Server" , "ED" );
         _headers.put( "Date" , "Sat, 13 Oct 2007 02:31:32 GMT" );
@@ -33,20 +33,24 @@ public class HttpResponse {
     }
 
     void cleanup(){
+        _handler._done = ! keepAlive();
+        
         _cleaned = true;
         if ( _stringContent != null ){
             for ( ByteBuffer bb : _stringContent )
                 _bbPool.done( bb );
             
-            _stringContent = null;
+            _stringContent.clear();
+
             if ( _writer != null ){
                 _charBufPool.done( _writer._cur );
                 _writer._cur = null;
                 _writer = null;
             }
         }
+        
     }
-
+    
     public boolean done()
         throws IOException {
 
@@ -115,7 +119,7 @@ public class HttpResponse {
             }
         }
         
-        if ( keepAlive() )
+        if ( keepAlive() && ! _handler.hasData() )
             _handler.registerForReads();
         else 
             _handler.registerForWrites();
@@ -190,11 +194,15 @@ public class HttpResponse {
         if ( ! _request.keepAlive() )
             return false;
 
+        if ( _headers.get( "Content-Length" ) != null )
+            return true;
+
         if ( _stringContent != null ){
             // TODO: chunking
             return _done;
         }
-        return _headers.get( "Content-Length" ) != null;
+
+        return false;
     }
 
     public String getContentEncoding(){

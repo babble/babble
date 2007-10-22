@@ -60,68 +60,96 @@ public class HttpServer extends NIOServer {
             _server = server;
         }
         
-        protected boolean shouldClose(){
-            if ( _lastResponse != null )
-                return ! _lastResponse.keepAlive();
-            return _thisDataStart > 0 ;
+        protected boolean shouldClose()
+            throws IOException {
+            writeMoreIfWant();
+            return _done;
         }
         
         protected void writeMoreIfWant()
             throws IOException {
             if ( _lastResponse != null )
-                _lastResponse.done();
+                if ( _lastResponse.done() )
+                    if ( _in.position() > 0 )
+                        gotData( null );
+        }
+
+        boolean hasData(){
+            return _in.position() > 0;
         }
         
         protected boolean gotData( ByteBuffer inBuf )
             throws IOException {
             
-            if ( inBuf.remaining() > _in.remaining() ){
-                throw new RuntimeException( "problem" );
+            if ( inBuf != null ){
+                if ( inBuf.remaining() > _in.remaining() ){
+                    throw new RuntimeException( "problem" );
+                }
+                
+                _in.put( inBuf );
             }
-            
-            _in.put( inBuf );
             if ( D ) System.out.println( _in );
             
-            boolean lastWasNewLine = false;
-            boolean finishedHeader = false;
+            int end = endOfHeader( _in , 0 );
+            boolean finishedHeader = end >= 0;
+            
+            if ( ! finishedHeader ){
+                registerForReads();
+                return false;
+            }
+            
+            /*
+            if ( end + 1 < _in.position() )
+                throw new RuntimeException( "why is there more.  end:" + end + "pos:" + _in.position() );
+            */
+            
+            byte bb[] = new byte[end];
+            for ( int i=0; i<bb.length; i++ )
+                bb[i] = _in.get( i );
+            
+            String header = new String( bb );
+            
+            _lastRequest = new HttpRequest( this , header );
+            if ( D ) System.out.println( _lastRequest );
 
-            final int dataStart = _thisDataStart;
-            final int dataEnd = _in.position();
-            int end = dataStart;
+            _lastResponse = new HttpResponse( _lastRequest );
+
+            
+            end++;
+            int np = 0;
+            while ( end < _in.position() ){
+                _in.put( np++ , _in.get( end ) );
+                end++;
+            }
+                         
+            _in.position( np );
+            
+                
+            return handle( _lastRequest , _lastResponse );
+        }
+
+        int endOfHeader( ByteBuffer buf , final int start ){
+
+            boolean lastWasNewLine = false;
+
+            final int dataEnd = buf.position();
+            int end = start;
             for ( ; end < dataEnd ; end++ ){
                 byte b = _in.get(end);
                 if ( b == '\r' )
                     continue;
-                    
+                
                 if ( b == '\n' ){
                     if ( lastWasNewLine ){
-                        finishedHeader = true;
                         if ( D ) System.err.println( "got end of header! " );
-                        break;
+                        return end;
                     }
                     lastWasNewLine = true;
                 }
                 else
                     lastWasNewLine = false;
-            }
-                
-            if ( ! finishedHeader )
-                return false;
-                
-            _thisDataStart = end + 1; 
-
-            final int headerSize = end - dataStart;
-            byte bb[] = new byte[headerSize];
-            for ( int i=0; i<bb.length; i++ )
-                bb[i] = _in.get( i + dataStart );
-                          
-            String header = new String( bb );
-            if ( D ) System.out.println( "---\n" + header + "\n---" );
-            _lastRequest = new HttpRequest( this , header );
-            _lastResponse = new HttpResponse( _lastRequest );
-            if ( D ) System.out.println( _lastRequest );
-                
-            return handle( _lastRequest , _lastResponse );
+            }       
+            return -1;
         }
         
         protected SocketChannel getChannel(){
@@ -134,7 +162,7 @@ public class HttpServer extends NIOServer {
 
         final HttpServer _server;
         ByteBuffer _in = ByteBuffer.allocateDirect( 2048 );
-        int _thisDataStart = 0;
+        boolean _done = false;
         HttpRequest _lastRequest;
         HttpResponse _lastResponse;
     }

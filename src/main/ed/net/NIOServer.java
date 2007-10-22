@@ -146,7 +146,8 @@ public abstract class NIOServer extends Thread {
         protected abstract boolean gotData( ByteBuffer inBuf )
             throws IOException ;
 
-        protected abstract boolean shouldClose();
+        protected abstract boolean shouldClose()
+            throws IOException ;
 
         protected abstract void writeMoreIfWant() 
             throws IOException;
