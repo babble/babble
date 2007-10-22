@@ -9,6 +9,8 @@ import ed.js.engine.*;
 
 public class JSString extends JSObjectBase {
 
+    static JSString EMPTY = new JSString("");
+
     static JSFunction _cons = new JSFunctionCalls0(){
 
             public Object call( Scope s , Object[] args ){
@@ -30,6 +32,8 @@ public class JSString extends JSObjectBase {
                         public Object call( Scope s , Object o , Object foo[] ){
                             String str = s.getThis().toString();
                             int idx = ((Number)o).intValue();
+                            if ( idx >= str.length() || idx < 0 )
+                                return EMPTY;
                             return new JSString( str.substring( idx , idx + 1 ) );
                         }
                     } );
