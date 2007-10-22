@@ -240,6 +240,9 @@ public class Scope {
                 final Object obj = s._nThis;
                 final String name = s._nThisFunc;
                 
+                if ( obj == null )
+                    throw new NullPointerException( "object was null.  name was:" + name );
+
                 methods:
                 for ( Method m : getMethods( obj.getClass() , name ) ){
                 

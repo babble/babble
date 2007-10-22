@@ -69,6 +69,8 @@ public class JSBuiltInFunctions {
         _myScope.put( "Object" , new NewObject() , true );
         _myScope.put( "Array" , new NewArray() , true );
         _myScope.put( "Date" , new NewDate() , true );
+
+        _myScope.put( "Math" , JSMath.getInstance() , true );
     }
     
 }
