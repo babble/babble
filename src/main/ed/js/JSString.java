@@ -111,9 +111,9 @@ public class JSString extends JSObjectBase {
                                 }
                                 else if ( repl instanceof JSFunction ){
                                     if ( replArgs == null )
-                                        replArgs = new Object[ m.groupCount() ];
-                                    for ( int i=0; i<m.groupCount(); i++ )
-                                        replArgs[i] = new JSString( m.group( i + 1 ) );
+                                        replArgs = new Object[ m.groupCount() + 1 ];
+                                    for ( int i=0; i<replArgs.length; i++ )
+                                        replArgs[i] = new JSString( m.group( i ) );
                                     buf.append( ((JSFunction)repl).call( s , replArgs ) );
                                 }
                                 else {

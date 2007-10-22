@@ -21,3 +21,9 @@ print( "the 123 food".replace( /(\d+)/ ,
        );
 
 
+print( "===a===".replace( /(?:^|\xB6)(={1,6})(.*?)[=]*(?=\xB6|$)/g, 
+                          function($0,$1,$2){ 
+                              var h=$1.length; 
+                              return "<h"+h+">"+$2+"</h"+h+">";
+                          } ) );
+

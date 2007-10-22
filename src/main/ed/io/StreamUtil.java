@@ -27,15 +27,28 @@ public class StreamUtil {
 
     public static String readFully( File f )
         throws IOException {
+        return readFully( f , null );
+    }
+    
+    public static String readFully( File f , String encoding )
+        throws IOException {
         FileInputStream fin = new FileInputStream( f );
-        String s = readFully( fin );
+        String s = readFully( fin , encoding );
         fin.close();
         return s;
     }
 
     public static String readFully(InputStream is) 
         throws IOException {
-        return readFully(new InputStreamReader(is));
+        return readFully( is , null );
+    }
+
+    public static String readFully(InputStream is , String encoding ) 
+        throws IOException {
+        System.out.println( "encoding: " + encoding );
+        return readFully( encoding == null ? 
+                          new InputStreamReader( is ) : 
+                          new InputStreamReader( is , encoding ) );
     }
 
     public static String readFully(InputStreamReader isr) 

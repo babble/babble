@@ -21,7 +21,7 @@ public class Convert {
         _file = f;
         _className = f.toString().replaceAll(".*/(.*?)","").replaceAll( "[^\\w]+" , "_" );
 
-        String raw = StreamUtil.readFully( f );
+        String raw = StreamUtil.readFully( f , "UTF-8" );
         
         CompilerEnvirons ce = new CompilerEnvirons();
         Parser p = new Parser( ce , ce.getErrorReporter() );
