@@ -7,6 +7,7 @@ import ed.js.engine.*;
 public class JSInternalFunctions extends JSObjectBase {
 
     public final static JSString TYPE_STRING = new JSString( "string" );
+    public final static JSString TYPE_NATIVE_STRING = new JSString( "native_string" );
     public final static JSString TYPE_NUMBER = new JSString( "number" );
     public final static JSString TYPE_UNDEFINED = new JSString( "undefined" );
     public final static JSString TYPE_OBJECT = new JSString( "object" );
@@ -17,10 +18,12 @@ public class JSInternalFunctions extends JSObjectBase {
         if ( obj == null )
             return TYPE_UNDEFINED;
         
-        if ( obj instanceof JSString ||
-             obj instanceof String )
+        if ( obj instanceof JSString )
             return TYPE_STRING;
 
+        if ( obj instanceof String )
+            return TYPE_NATIVE_STRING;
+        
         if ( obj instanceof Number )
             return TYPE_NUMBER;
         
@@ -323,7 +326,7 @@ public class JSInternalFunctions extends JSObjectBase {
         String s = null;
         if ( o instanceof JSString )
             s = o.toString();
-        else if ( ! ( o instanceof String ) )
+        else if ( o instanceof String )
             s = o.toString();
         
         if ( s == null )

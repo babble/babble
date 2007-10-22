@@ -271,7 +271,7 @@ public class Scope {
                         throw new RuntimeException( e );
                     }
                 }
-                throw new RuntimeException( "can't find a valid native method for : " + name );
+                throw new RuntimeException( "can't find a valid native method for : " + name + " which  is a : " + obj.getClass()  );
             }
         };
 }

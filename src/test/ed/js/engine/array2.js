@@ -6,3 +6,8 @@ print( a[0] );
 print( a[1] );
 print( a.length );
 
+a.b = "eliot";
+
+for( i in a ){
+    print( i + " : " + a[i] );
+}

@@ -83,7 +83,10 @@ public class Convert {
 
         case Token.TYPEOFNAME:
             _append( "JS_typeof( " , n );
-            _append( "scope.get( \"" + n.getString() + "\" )" , n );
+            if ( state.hasSymbol( n.getString() ) )
+                _append( n.getString() , n );
+            else
+                _append( "scope.get( \"" + n.getString() + "\" )" , n );
             _append( " ) " , n );
             break;
     
@@ -262,7 +265,10 @@ public class Convert {
                 break;
             }
         case Token.NAME:
-            _append( "scope.get( \"" + n.getString() + "\" )" , n );
+            if ( state.useLocalVariable( n.getString() ) && state.hasSymbol( n.getString() ) )
+                _append( n.getString() , n );
+            else
+                _append( "scope.get( \"" + n.getString() + "\" )" , n );
             break;
         case Token.SETVAR:
             final String foo = n.getFirstChild().getString();
@@ -634,7 +640,6 @@ public class Convert {
         
         for ( int i=0; i<fn.getParamCount(); i++ ){
             final String foo = fn.getParamOrVarName( i );
-            state.addSymbol( foo );
             callLine += " , ";
             callLine += " Object " + foo;
 
@@ -642,6 +647,10 @@ public class Convert {
                 callLine += "INNNNN";
                 varSetup += " \nscope.put(\"" + foo + "\"," + foo + "INNNNN , true  );\n ";
             }
+            else {
+                state.addSymbol( foo );
+            }
+            
             callLine += " ";
         }
         callLine += " , Object extra[] ){\n" ;

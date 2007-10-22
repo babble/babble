@@ -17,6 +17,8 @@ public class JSObjectBase implements JSObject {
         if ( n == null )
             throw new NullPointerException();
 
+        n = JSInternalFunctions._parseNumber( n );
+
         if ( n instanceof JSString )
             n = n.toString();
         
@@ -38,9 +40,13 @@ public class JSObjectBase implements JSObject {
     public Object get( Object n ){
         if ( n == null )
             throw new NullPointerException();
+        
+        n = JSInternalFunctions._parseNumber( n );
 
         if ( n instanceof JSString )
             n = n.toString();
+        
+        //System.out.println( "n:" + n + " : " + n.getClass() );
 
         if ( n instanceof String ){
             Object res = _map == null ? null : _map.get( ((String)n) );
@@ -64,7 +70,7 @@ public class JSObjectBase implements JSObject {
         return get( String.valueOf( n ) );
     }
 
-    public Set<String> keySet(){
+    public Collection<String> keySet(){
         if ( _map == null )
             return EMPTY_SET;
         return _map.keySet();

@@ -13,6 +13,6 @@ public interface JSObject {
     public void setInt( int n , Object v );
     public Object getInt( int n );
 
-    public Set<String> keySet();
+    public Collection<String> keySet();
 
 }

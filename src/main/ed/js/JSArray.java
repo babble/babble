@@ -27,7 +27,6 @@ public class JSArray extends JSObjectBase {
         while ( _array.size() <= pos )
             _array.add( null );
         _array.set( pos , v );
-        set( "length" , new Integer( _array.size() ) );
     }
 
     public Object getInt( int pos ){
@@ -35,6 +34,27 @@ public class JSArray extends JSObjectBase {
             return null;
         }
         return _array.get( pos );
+    }
+
+    public Object get( Object n ){
+        if ( n != null )
+            if ( n instanceof JSString || n instanceof String )
+                if ( n.toString().equals( "length" ) )
+                    return _array.size();
+        return super.get( n );
+    }
+
+    public Collection<String> keySet(){
+        Collection<String> p = super.keySet();
+        
+        List<String> keys = new ArrayList<String>( p.size() + _array.size() );
+        
+        for ( int i=0; i<_array.size(); i++ )
+            keys.add( String.valueOf( i ) );
+
+        keys.addAll( p );
+        
+        return keys;
     }
 
     public String toString(){
@@ -48,4 +68,5 @@ public class JSArray extends JSObjectBase {
     }
 
     final List<Object> _array;
+
 }

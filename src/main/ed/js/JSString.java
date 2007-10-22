@@ -68,8 +68,8 @@ public class JSString extends JSObjectBase {
                             Matcher m = r._patt.matcher( str );
                             
                             if ( r._replaceAll )
-                                return m.replaceAll( repl.toString() );
-                            return m.replaceFirst( repl.toString() );
+                                return new JSString( m.replaceAll( repl.toString() ) );
+                            return new JSString( m.replaceFirst( repl.toString() ) );
                         }
                     } );
             }
