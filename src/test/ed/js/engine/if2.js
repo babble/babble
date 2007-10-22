@@ -45,3 +45,22 @@ if ( e ){
     print( "bad 5" );
 }
 
+if ( e ){
+    print( "e" );
+}
+else if ( a ){
+    print( "a" );
+}
+else {
+    print( "else" );
+}
+
+
+if ( e ) print( "e" );
+else if ( a ) print( "a" );
+else if ( c );
+else if ( d ) print( "a" );
+
+
+
+

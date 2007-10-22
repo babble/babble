@@ -14,3 +14,10 @@ for ( bar in o ){
     print( bar );
 }
 
+function silly( ooo ){
+    for ( var i in ooo ){
+        print( i + " : " + ooo[i] );
+    }
+}
+
+silly( o );
