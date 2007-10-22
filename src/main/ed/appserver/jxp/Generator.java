@@ -41,11 +41,15 @@ public class Generator {
     }
 
     void addHtmlBlock( HtmlBlock b ){
-        for ( String line : b.getRaw().split( "[\r\n]+" ) ){
+        String lines[] = b.getRaw().split( "[\r\n]+" );
+        for ( int i=0; i<lines.length; i++ ){
+            String line = lines[i];
             _append( "print( \"" , b );
             line = StringUtil.replace( line , "\"" , "\\\"" );
             _append( line , b );
-            _append( " \\n\" );\n " , b );
+            if ( i + 1 < lines.length )
+                _append( " \\n " , b );
+            _append( "\" );\n " , b );
         }
     }
 
@@ -56,7 +60,7 @@ public class Generator {
     void addOutputBlock( CodeBlock b ){
         _append( "print( " , b );
         _append( b.getRaw()   , b);
-        _append( " );\n  " , b );
+        _append( " );  " , b );
     }
 
     public String toString(){

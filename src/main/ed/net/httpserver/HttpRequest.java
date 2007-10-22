@@ -2,9 +2,10 @@
 
 package ed.net.httpserver;
 
-import ed.util.*;
-
+import java.net.*;
 import java.util.*;
+
+import ed.util.*;
 
 public class HttpRequest implements ed.js.JSObject {
     
@@ -112,6 +113,20 @@ public class HttpRequest implements ed.js.JSObject {
         throw new RuntimeException( "not implemented yet" );
     }
 
+    private final String _urlDecode( String s ){
+	try {
+	    return URLDecoder.decode( s , _characterEncoding );
+	}
+	catch ( Exception e ){}
+        
+        try {
+            return URLDecoder.decode( s , "UTF-8" );
+        }
+        catch ( Exception ee ){}
+
+        return s;
+    }
+
     private void _finishParsing(){
         
         if ( ! _parsedURL ){
@@ -137,7 +152,7 @@ public class HttpRequest implements ed.js.JSObject {
                     if ( eq < 0 )
                         _parameters.put( thing , null );
                     else
-                        _parameters.put( thing.substring( 0 , eq ) , thing.substring( eq + 1 ) );
+                        _parameters.put( thing.substring( 0 , eq ) , _urlDecode( thing.substring( eq + 1 ) ) );
                 }
             }
         }
@@ -167,5 +182,7 @@ public class HttpRequest implements ed.js.JSObject {
     final boolean _http11;
 
     private Object _attachment;
+
+    private String _characterEncoding = "ISO-8859-1";
 }
 
