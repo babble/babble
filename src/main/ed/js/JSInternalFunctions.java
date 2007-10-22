@@ -145,7 +145,7 @@ public class JSInternalFunctions extends JSObjectBase {
         String s1 = a == null ? "null" : a.toString();
         String s2 = b == null ? "null" : b.toString();
         
-        return s1 + s2;
+        return new JSString( s1 + s2 );
     }
 
     public Boolean JS_eq( Object a , Object b ){
