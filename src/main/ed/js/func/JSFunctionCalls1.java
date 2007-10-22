@@ -14,7 +14,7 @@ public abstract class JSFunctionCalls1 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object extra[] ){
-            Object p0 = extra == null || extra.length < 0 ? null : extra[0];
+            Object p0 = extra == null || extra.length <= 0 ? null : extra[0];
             Object newExtra[] = extra == null || extra.length <= 1 ? null : new Object[ extra.length - 1];
             if ( newExtra != null )
                 for ( int i=0; i<newExtra.length; i++ )

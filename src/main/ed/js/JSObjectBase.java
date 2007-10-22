@@ -17,7 +17,8 @@ public class JSObjectBase implements JSObject {
         if ( n == null )
             throw new NullPointerException();
 
-        n = JSInternalFunctions._parseNumber( n );
+        if ( v instanceof String )
+            throw new RuntimeException( "why are you using a java.lang.String" );
 
         if ( n instanceof JSString )
             n = n.toString();
@@ -41,8 +42,6 @@ public class JSObjectBase implements JSObject {
         if ( n == null )
             throw new NullPointerException();
         
-        n = JSInternalFunctions._parseNumber( n );
-
         if ( n instanceof JSString )
             n = n.toString();
         
@@ -62,8 +61,8 @@ public class JSObjectBase implements JSObject {
         throw new RuntimeException( "what - " + n.getClass() );
     }
 
-    public void setInt( int n , Object v ){
-        set( String.valueOf( n ) , v );
+    public Object setInt( int n , Object v ){
+        return set( String.valueOf( n ) , v );
     }
 
     public Object getInt( int n ){

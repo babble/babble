@@ -48,6 +48,9 @@ public class Scope {
 
     public Object put( String name , Object o , boolean local ){
         
+        if ( o != null && o instanceof String ) 
+            o = new JSString( o.toString() );
+
         if ( _locked )
             throw new RuntimeException( "locked" );
         

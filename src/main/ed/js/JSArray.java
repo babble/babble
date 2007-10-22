@@ -23,10 +23,11 @@ public class JSArray extends JSObjectBase {
             _array.add( o );
     }
 
-    public void setInt( int pos , Object v ){
+    public Object setInt( int pos , Object v ){
         while ( _array.size() <= pos )
             _array.add( null );
         _array.set( pos , v );
+        return v;
     }
 
     public Object getInt( int pos ){
@@ -41,9 +42,22 @@ public class JSArray extends JSObjectBase {
             if ( n instanceof JSString || n instanceof String )
                 if ( n.toString().equals( "length" ) )
                     return _array.size();
+        
+        int idx = _getInt( n );
+        if ( idx >=0 )
+            return getInt( idx );
+        
         return super.get( n );
     }
 
+    public Object set( Object n , Object v ){
+        int idx = _getInt( n );
+        if ( idx < 0 )
+            return super.set( n , v );
+        
+        return setInt( idx , v );
+    }
+    
     public Collection<String> keySet(){
         Collection<String> p = super.keySet();
         
@@ -65,6 +79,24 @@ public class JSArray extends JSObjectBase {
             buf.append( _array.get( i ) );
         }
         return buf.toString();
+    }
+
+    int _getInt( Object o ){
+        if ( o == null )
+            return -1;
+
+        if ( o instanceof JSString )
+            o = o.toString();
+        
+        if ( ! ( o instanceof String ) )
+            return -1;
+        
+        String str = o.toString();
+        for ( int i=0; i<str.length(); i++ )
+            if ( ! Character.isDigit( str.charAt( i ) ) )
+                return -1;
+        
+        return Integer.parseInt( str );
     }
 
     final List<Object> _array;

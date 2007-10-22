@@ -101,7 +101,7 @@ public class HttpRequest implements ed.js.JSObject {
         return getParameter( n.toString() , null );
     }
 
-    public void setInt( int n , Object v ){
+    public Object setInt( int n , Object v ){
         throw new RuntimeException( "can't set things on an HttpRequest" );
     }
     public Object getInt( int n ){

@@ -14,12 +14,12 @@ public abstract class JSFunctionCalls6 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object extra[] ){
-            Object p0 = extra == null || extra.length < 0 ? null : extra[0];
-            Object p1 = extra == null || extra.length < 1 ? null : extra[1];
-            Object p2 = extra == null || extra.length < 2 ? null : extra[2];
-            Object p3 = extra == null || extra.length < 3 ? null : extra[3];
-            Object p4 = extra == null || extra.length < 4 ? null : extra[4];
-            Object p5 = extra == null || extra.length < 5 ? null : extra[5];
+            Object p0 = extra == null || extra.length <= 0 ? null : extra[0];
+            Object p1 = extra == null || extra.length <= 1 ? null : extra[1];
+            Object p2 = extra == null || extra.length <= 2 ? null : extra[2];
+            Object p3 = extra == null || extra.length <= 3 ? null : extra[3];
+            Object p4 = extra == null || extra.length <= 4 ? null : extra[4];
+            Object p5 = extra == null || extra.length <= 5 ? null : extra[5];
             Object newExtra[] = extra == null || extra.length <= 6 ? null : new Object[ extra.length - 6];
             if ( newExtra != null )
                 for ( int i=0; i<newExtra.length; i++ )
@@ -28,11 +28,11 @@ public abstract class JSFunctionCalls6 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object extra[] ){
-            Object p1 = extra == null || extra.length < 0 ? null : extra[0];
-            Object p2 = extra == null || extra.length < 1 ? null : extra[1];
-            Object p3 = extra == null || extra.length < 2 ? null : extra[2];
-            Object p4 = extra == null || extra.length < 3 ? null : extra[3];
-            Object p5 = extra == null || extra.length < 4 ? null : extra[4];
+            Object p1 = extra == null || extra.length <= 0 ? null : extra[0];
+            Object p2 = extra == null || extra.length <= 1 ? null : extra[1];
+            Object p3 = extra == null || extra.length <= 2 ? null : extra[2];
+            Object p4 = extra == null || extra.length <= 3 ? null : extra[3];
+            Object p5 = extra == null || extra.length <= 4 ? null : extra[4];
             Object newExtra[] = extra == null || extra.length <= 5 ? null : new Object[ extra.length - 5];
             if ( newExtra != null )
                 for ( int i=0; i<newExtra.length; i++ )
@@ -41,10 +41,10 @@ public abstract class JSFunctionCalls6 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object extra[] ){
-            Object p2 = extra == null || extra.length < 0 ? null : extra[0];
-            Object p3 = extra == null || extra.length < 1 ? null : extra[1];
-            Object p4 = extra == null || extra.length < 2 ? null : extra[2];
-            Object p5 = extra == null || extra.length < 3 ? null : extra[3];
+            Object p2 = extra == null || extra.length <= 0 ? null : extra[0];
+            Object p3 = extra == null || extra.length <= 1 ? null : extra[1];
+            Object p4 = extra == null || extra.length <= 2 ? null : extra[2];
+            Object p5 = extra == null || extra.length <= 3 ? null : extra[3];
             Object newExtra[] = extra == null || extra.length <= 4 ? null : new Object[ extra.length - 4];
             if ( newExtra != null )
                 for ( int i=0; i<newExtra.length; i++ )
@@ -53,9 +53,9 @@ public abstract class JSFunctionCalls6 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object extra[] ){
-            Object p3 = extra == null || extra.length < 0 ? null : extra[0];
-            Object p4 = extra == null || extra.length < 1 ? null : extra[1];
-            Object p5 = extra == null || extra.length < 2 ? null : extra[2];
+            Object p3 = extra == null || extra.length <= 0 ? null : extra[0];
+            Object p4 = extra == null || extra.length <= 1 ? null : extra[1];
+            Object p5 = extra == null || extra.length <= 2 ? null : extra[2];
             Object newExtra[] = extra == null || extra.length <= 3 ? null : new Object[ extra.length - 3];
             if ( newExtra != null )
                 for ( int i=0; i<newExtra.length; i++ )
@@ -64,8 +64,8 @@ public abstract class JSFunctionCalls6 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object extra[] ){
-            Object p4 = extra == null || extra.length < 0 ? null : extra[0];
-            Object p5 = extra == null || extra.length < 1 ? null : extra[1];
+            Object p4 = extra == null || extra.length <= 0 ? null : extra[0];
+            Object p5 = extra == null || extra.length <= 1 ? null : extra[1];
             Object newExtra[] = extra == null || extra.length <= 2 ? null : new Object[ extra.length - 2];
             if ( newExtra != null )
                 for ( int i=0; i<newExtra.length; i++ )
@@ -74,7 +74,7 @@ public abstract class JSFunctionCalls6 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object extra[] ){
-            Object p5 = extra == null || extra.length < 0 ? null : extra[0];
+            Object p5 = extra == null || extra.length <= 0 ? null : extra[0];
             Object newExtra[] = extra == null || extra.length <= 1 ? null : new Object[ extra.length - 1];
             if ( newExtra != null )
                 for ( int i=0; i<newExtra.length; i++ )

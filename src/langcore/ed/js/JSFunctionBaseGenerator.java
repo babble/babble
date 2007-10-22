@@ -89,7 +89,7 @@ public class JSFunctionBaseGenerator {
             
             if ( i < num ){
                 for ( int j=i; j<num; j++ )
-                    buf.append( _i(3) + "Object p" + j + " = extra == null || extra.length < " + ( j - i ) + " ? null : extra[" + ( j - i ) + "];\n" );
+                    buf.append( _i(3) + "Object p" + j + " = extra == null || extra.length <= " + ( j - i ) + " ? null : extra[" + ( j - i ) + "];\n" );
                 
                 buf.append( _i(3) + "Object newExtra[] = extra == null || extra.length <= " + ( num - i ) + " ? null : new Object[ extra.length - " + ( num -i ) + "];\n" );
                 buf.append( _i(3) + "if ( newExtra != null )\n" );

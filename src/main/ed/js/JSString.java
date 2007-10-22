@@ -30,7 +30,7 @@ public class JSString extends JSObjectBase {
                         public Object call( Scope s , Object o , Object foo[] ){
                             String str = s.getThis().toString();
                             int idx = ((Number)o).intValue();
-                            return str.substring( idx , idx + 1 );
+                            return new JSString( str.substring( idx , idx + 1 ) );
                         }
                     } );
 
@@ -109,7 +109,7 @@ public class JSString extends JSObjectBase {
                                     if ( replArgs == null )
                                         replArgs = new Object[ m.groupCount() ];
                                     for ( int i=0; i<m.groupCount(); i++ )
-                                        replArgs[i] = m.group( i + 1 );
+                                        replArgs[i] = new JSString( m.group( i + 1 ) );
                                     buf.append( ((JSFunction)repl).call( s , replArgs ) );
                                 }
                                 else {
