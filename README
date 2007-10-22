@@ -25,6 +25,7 @@ Phase 2 - 11/1
        - file.header.indexof
        - isMedia
     - correct mime types for images/etc...
+    - servlets
 
   http
     - pipelining

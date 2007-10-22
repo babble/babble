@@ -93,11 +93,16 @@ public class AppContext {
         
         try {
             File f = getFile( "_init.js" );
-            JxpSource s = getSource( f );
-            JSFunction func = s.getFunction();
-            func.call( _scope );
+            if ( f.exists() ){
+                JxpSource s = getSource( f );
+                JSFunction func = s.getFunction();
+                func.call( _scope );
+            }
 
             _lastScopeInitTime = _getScopeTime();
+        }
+        catch ( RuntimeException re ){
+            throw re;
         }
         catch ( Exception e ){
             throw new RuntimeException( e );

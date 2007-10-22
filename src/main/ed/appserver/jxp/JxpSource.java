@@ -57,13 +57,14 @@ public abstract class JxpSource {
                 _func = c.get();
             }
             finally {
-                if ( temp != null && temp.exists() )
+                if ( temp != null && temp.exists() ){
                     temp.delete();
+                }
             }
         }
         return _func;
     }
-
+    
 
     public JxpServlet getServlet()
         throws IOException {

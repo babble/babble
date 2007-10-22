@@ -7,6 +7,7 @@ import java.util.*;
 
 import org.mozilla.javascript.*;
 
+import ed.util.*;
 import ed.appserver.jxp.Block.Type.*;
 
 public class Generator {
@@ -42,8 +43,9 @@ public class Generator {
     void addHtmlBlock( HtmlBlock b ){
         for ( String line : b.getRaw().split( "[\r\n]+" ) ){
             _append( "print( \"" , b );
+            line = StringUtil.replace( line , "\"" , "\\\"" );
             _append( line , b );
-            _append( " \\\\n\" );\n " , b );
+            _append( " \\n\" );\n " , b );
         }
     }
 
