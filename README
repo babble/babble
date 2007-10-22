@@ -7,6 +7,10 @@ Phase 3 - 11/15
  jxp/app server
     - git system
     - webdav ?
+    - debugging
+
+ http
+    - multipart/post
 
 Phase 2 - 11/1
   javascript
@@ -24,10 +28,11 @@ Phase 2 - 11/1
     - access()
        - file.header.indexof
        - isMedia
-    - correct mime types for images/etc...
+    X correct mime types for images/etc...
     - servlets
 
   http
+    - post
     - pipelining
     - chunking
     - fix keep alive
