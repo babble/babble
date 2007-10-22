@@ -12,13 +12,13 @@ Phase 2 - 11/1
   javascript
     - js -> xml -> js for ajax
     - XMLHttpRequest
-    - regex
+    X regex
     - subclasses
     - switch
     - throw
     - try,catch,finally
     - scope with exceptions
-    - fix string class
+    X fix string class
 
   jxp/app server
     - access()

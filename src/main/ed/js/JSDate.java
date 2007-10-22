@@ -14,5 +14,9 @@ public class JSDate extends JSObjectBase {
             } );
     }
 
+    public String toString(){
+        return new java.util.Date( _time ).toString();
+    }
+
     long _time;
 }
