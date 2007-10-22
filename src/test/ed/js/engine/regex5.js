@@ -10,3 +10,14 @@ print( "foo the the the cow".replace( /the/g , "___" ) );
 
 print( "the 123 food".match( /\d+/ ) );
 
+print( "the 123 food".replace( /(\d+)/ , "__$_$1__") );
+
+
+print( "the 123 food".replace( /(\d+)/ , 
+                               function( $0 ){ 
+                                   return "* " + $0 + " *" ; 
+                               } 
+                               ) 
+       );
+
+

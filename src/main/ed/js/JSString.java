@@ -55,7 +55,7 @@ public class JSString extends JSObjectBase {
                 
 
                 _prototype.set( "replace" , new JSFunctionCalls2() {
-                        public Object call( Scope s , Object o , Object repl , Object foo[] ){
+                        public Object call( Scope s , Object o , Object repl , Object crap[] ){
                             String str = s.getThis().toString();
 
                             if ( o instanceof String || o instanceof JSString )
@@ -66,10 +66,67 @@ public class JSString extends JSObjectBase {
                             
                             JSRegex r = (JSRegex)o;
                             Matcher m = r._patt.matcher( str );
+                          
+                            StringBuffer buf = null;
+                            int start = 0;
+
+                            Object replArgs[] = null;
+                                        
+                            while ( m.find() ){
+                                if ( buf == null )
+                                    buf = new StringBuffer( str.length() );
+                                
+                                buf.append( str.substring( start , m.start() ) );
+                                
+                                if ( repl instanceof JSString ){
+                                    String foo = repl.toString();
+                                    for ( int i=0; i<foo.length(); i++ ){
+                                        char c = foo.charAt( i );
+
+                                        if ( c != '$' ){
+                                            buf.append( c );
+                                            continue;
+                                        }
+                                        
+                                        if ( i + 1 >= foo.length() ||
+                                             ! Character.isDigit( foo.charAt( i + 1 ) ) ){
+                                            buf.append( c );
+                                            continue;
+                                        }
+                                        
+                                        i++;
+                                        int end = i;
+                                        while ( end < foo.length() && Character.isDigit( foo.charAt( end ) ) )
+                                            end++;
+                                        
+                                        int num = Integer.parseInt( foo.substring( i , end ) );
+                                        buf.append( m.group( num ) );
+                                        
+                                        i = end - 1;
+                                    } 
+                                }
+                                else if ( repl instanceof JSFunction ){
+                                    if ( replArgs == null )
+                                        replArgs = new Object[ m.groupCount() ];
+                                    for ( int i=0; i<m.groupCount(); i++ )
+                                        replArgs[i] = m.group( i + 1 );
+                                    buf.append( ((JSFunction)repl).call( s , replArgs ) );
+                                }
+                                else {
+                                    throw new RuntimeException( "can't use replace with : " + repl.getClass() );
+                                }
+                                
+                                start = m.end();
+
+                                if ( ! r._replaceAll )
+                                    break;
+                            }
                             
-                            if ( r._replaceAll )
-                                return new JSString( m.replaceAll( repl.toString() ) );
-                            return new JSString( m.replaceFirst( repl.toString() ) );
+                            if ( buf == null )
+                                return new JSString( str );
+                            
+                            buf.append( str.substring( start ) );
+                            return new JSString( buf.toString() );
                         }
                     } );
             }
