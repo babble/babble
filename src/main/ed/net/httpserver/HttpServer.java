@@ -8,6 +8,7 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
 
+import ed.io.*;
 import ed.net.*;
 import ed.util.*;
 
@@ -111,10 +112,17 @@ public class HttpServer extends NIOServer {
             
             _lastRequest = new HttpRequest( this , header );
             if ( D ) System.out.println( _lastRequest );
+            
+            final int cl = _lastRequest.getIntHeader( "Content-Length" , 0 );
+            if ( cl > 0 ){
+                if ( cl > ( 1024 * 1024 * 10  ) )
+                    throw new RuntimeException( "content-length way too big" );
+                _endOfHeader = end;
+                throw new RuntimeException( "got cl of : " + cl );
+            }
 
             _lastResponse = new HttpResponse( _lastRequest );
 
-            
             end++;
             int np = 0;
             while ( end < _in.position() ){
@@ -128,7 +136,7 @@ public class HttpServer extends NIOServer {
             return handle( _lastRequest , _lastResponse );
         }
 
-        int endOfHeader( ByteBuffer buf , final int start ){
+        int endOfHeader( ByteBufferHolder buf , final int start ){
 
             boolean lastWasNewLine = false;
 
@@ -161,7 +169,8 @@ public class HttpServer extends NIOServer {
         }
 
         final HttpServer _server;
-        ByteBuffer _in = ByteBuffer.allocateDirect( 2048 );
+        ByteBufferHolder _in = new ByteBufferHolder();
+        int _endOfHeader = 0;
         boolean _done = false;
         HttpRequest _lastRequest;
         HttpResponse _lastResponse;

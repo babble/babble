@@ -83,6 +83,10 @@ public class HttpRequest implements ed.js.JSObject {
         return _headers.get( h );
     }
 
+    public int getIntHeader( String h , int def ){
+        return StringParseUtil.parseInt( getHeader( h ) , def );
+    }
+
     public String getParameter( String name ){
         return getParameter( name , null );
     }
