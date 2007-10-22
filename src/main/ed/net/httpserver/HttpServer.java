@@ -13,7 +13,7 @@ import ed.util.*;
 
 public class HttpServer extends NIOServer {
 
-    static final boolean D = false;
+    static final boolean D = Boolean.getBoolean( "DEBUG.HTTP" );
 
     public HttpServer( int port )
         throws IOException {

@@ -10,7 +10,7 @@ import java.util.*;
 
 public abstract class NIOServer extends Thread {
 
-    final static boolean D = false;
+    final static boolean D = Boolean.getBoolean( "DEBUG.NIO" );
 
     public NIOServer( int port )
         throws IOException {
@@ -167,7 +167,15 @@ public abstract class NIOServer extends Thread {
 
         private void _register( int ops )
             throws IOException {
-            SelectionKey key = _channel.register( _selector , ops , this );
+            
+            SelectionKey key = _channel.keyFor( _selector );
+            if ( key == null || key.attachment() != this )
+                throw new RuntimeException( "somethins is wrong" );
+
+            if ( key.interestOps() == ops )
+                return;
+
+            key.interestOps( ops );
             _selector.wakeup();
             if ( D ) System.out.println( key + " : " + key.isValid() );
 

@@ -55,6 +55,16 @@ public class AppServer implements HttpHandler {
                 response.getWriter().print( "listing not allowed\n" );
                 return;
             }
+            
+            final String fileString = f.toString();
+            int idx = fileString.lastIndexOf( "." );
+            if ( idx > 0 ){
+                String ext = fileString.substring( idx + 1 );
+                System.out.println( ext );
+                String type = _mimeTypes.getProperty( ext );
+                if ( type != null )
+                    response.setHeader( "Content-Type" , type );
+            }
             response.sendFile( f );
             return;
         }
@@ -79,6 +89,17 @@ public class AppServer implements HttpHandler {
 
     
     private final AppContext _defaultContext;
+    
+    static final Properties _mimeTypes;
+    static {
+        try {
+            _mimeTypes = new Properties();
+            _mimeTypes.load( ClassLoader.getSystemClassLoader().getResourceAsStream( "mimetypes.properties" ) );
+        }
+        catch ( Exception e ){
+            throw new RuntimeException( e );
+        }
+    }
 
     public static void main( String args[] )
         throws Exception {

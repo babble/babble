@@ -49,6 +49,10 @@ public class HttpResponse {
 
     public boolean done()
         throws IOException {
+
+        if ( _cleaned )
+            return true;
+
         _done = true;
         boolean f = flush();
         if ( f )
@@ -83,9 +87,12 @@ public class HttpResponse {
             throw new RuntimeException( "too much data" );
         
         if ( _file != null ){
-            FileChannel f = (new FileInputStream(_file)).getChannel();
-            _fileSent += f.transferTo( _fileSent , Long.MAX_VALUE , _handler.getChannel() );
+            if ( _fileChannel == null )
+                _fileChannel = (new FileInputStream(_file)).getChannel();
+            System.out.println( _fileChannel );
+            _fileSent += _fileChannel.transferTo( _fileSent , Long.MAX_VALUE , _handler.getChannel() );
             if ( _fileSent < _file.length() ){
+                if ( HttpServer.D ) System.out.println( "only sent : " + _fileSent );
                 _handler.registerForWrites();
                 return false;
             }
@@ -98,12 +105,13 @@ public class HttpResponse {
             for ( ; _stringContentSent < _stringContent.size() ; _stringContentSent++ ){
                 
                 ByteBuffer bb = _stringContent.get( _stringContentSent );
-                int written = _handler.getChannel().write( bb );
-                if ( written < bb.position() ){
-                    _stringContentPos += written;
+                _stringContentPos += _handler.getChannel().write( bb );
+                if ( _stringContentPos < bb.limit() ){
+                    if ( HttpServer.D ) System.out.println( "only wrote " + _stringContentPos + " out of " + bb );
                     _handler.registerForWrites();
                     return false;
                 }
+                _stringContentPos = 0;
             }
         }
         
@@ -239,6 +247,7 @@ public class HttpResponse {
     int _stringContentPos = 0;
 
     File _file;
+    FileChannel _fileChannel;
     long _fileSent = 0;
 
     boolean _done = false;
