@@ -215,6 +215,7 @@ public class Convert {
             _append( " ); " , n );
             break;
 
+        case Token.GETPROPNOWARN:
         case Token.GETPROP:
         case Token.GETELEM:
             _append( "((JSObject)" , n );
