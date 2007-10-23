@@ -65,6 +65,7 @@ public class HttpRequest implements ed.js.JSObject {
     }
     
     public boolean keepAlive(){
+        if ( true ) return false;
         String c = getHeader( "connection" );
         if ( c != null )
             return ! c.equalsIgnoreCase( "close" );
@@ -154,12 +155,74 @@ public class HttpRequest implements ed.js.JSObject {
                     
                     int eq = thing.indexOf( "=" );
                     if ( eq < 0 )
-                        _parameters.put( thing , null );
+                        _addParm( thing , null );
                     else
-                        _parameters.put( thing.substring( 0 , eq ) , _urlDecode( thing.substring( eq + 1 ) ) );
+                        _addParm( thing.substring( 0 , eq ) , thing.substring( eq + 1 ) );
                 }
             }
         }
+
+        if ( ! _parsedPost && _postData != null && _command.equalsIgnoreCase( "POST" ) ){
+            _parsedPost = true;
+             
+            if ( getHeader("Content-Type") != null &&
+                 getHeader("Content-Type").toLowerCase().trim().startsWith("multipart/form-data") ){
+                _handleMultipartPost();
+            }
+            else {
+                _handleRegularPost();
+            }
+            
+        }
+    }
+
+    private void _handleMultipartPost(){
+        throw new RuntimeException( "can't do multipart yet" );
+    }
+    
+    private void _handleRegularPost(){
+        for ( int i=0; i<_postData.length; i++ ){
+            int start = i;
+            for ( ; i<_postData.length; i++ )
+                if ( _postData[i] == '=' ||
+                     _postData[i] == '\n' ||
+                     _postData[i] == '&' )
+                    break;
+
+            if ( i == _postData.length ){
+                _addParm( new String( _postData , start , _postData.length - start ) , null );
+                break;
+            }
+            
+            if ( _postData[i] == '\n' ||
+                 _postData[i] == '&' ){
+                _addParm( new String( _postData , start , i - start ) , null );
+                continue;
+            }
+
+            int eq = i;
+            
+            for ( ; i<_postData.length; i++ )
+                if ( _postData[i] == '\n' ||
+                     _postData[i] == '&' )
+                    break;
+            
+            _addParm( new String( _postData , start , eq - start ) ,
+                      new String( _postData , eq + 1 , i - ( eq + 1 ) ) );
+                
+        }
+    }
+
+    private void _addParm( String n , String val ){
+        n = n.trim();
+
+        if ( val == null ){
+            _parameters.put( n , val );
+            return;
+        }
+        val = val.trim();
+        val = _urlDecode( val );
+        _parameters.put( n , val );
     }
 
     public Object getAttachment(){
@@ -176,6 +239,7 @@ public class HttpRequest implements ed.js.JSObject {
     final String _firstLine;
     final Map<String,String> _headers = new StringMap<String>();
 
+    boolean _parsedPost = false;
     byte _postData[];
 
     boolean _parsedURL = false;
