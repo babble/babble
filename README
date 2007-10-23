@@ -56,3 +56,36 @@ Phase 1 - 10/21
 
 
 
+----------
+
+
+
+a = Object();
+db.make( "person" , a );
+a.save();
+
+var cursor = db.person.find( { name : "eliot" } );
+var eliot = db.person.findOne( { name : "eliot" } );
+eliot.age++;
+eliot.save();
+eliot.delete();
+
+
+var arr = db.person.findArr();
+db.search( "person", function(x) { return x.name==eliot; } ) ;
+
+var people = db.collection("people");
+var people = db.people;
+
+var x = people.query( { name : "eliot" } );
+
+for( p in x ) { 
+}
+
+people.length
+
+a = person.new();
+
+oid = person.save(a);
+
+

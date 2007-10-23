@@ -13,7 +13,7 @@ import ed.util.*;
 
 public class Convert {
 
-    static boolean D = true;
+    static boolean D = Boolean.getBoolean( "DEBUG.JS" );
 
     public Convert( File f )
         throws IOException {
@@ -21,18 +21,14 @@ public class Convert {
         _file = f;
         _className = f.toString().replaceAll(".*/(.*?)","").replaceAll( "[^\\w]+" , "_" );
 
-        String raw = StreamUtil.readFully( f , "UTF-8" );
+        _source = StreamUtil.readFully( f , "UTF-8" );
         
         CompilerEnvirons ce = new CompilerEnvirons();
+        
         Parser p = new Parser( ce , ce.getErrorReporter() );
-
-        init( p.parse( raw , f.toString() , 0 ) );
-    }
-
-    public Convert( ScriptOrFnNode sn ){
-        _file = null;
-        _className = "anon_" + _id;
-        init( sn );
+        ScriptOrFnNode theNode = p.parse( _source , f.toString() , 0 );
+        _encodedSource = p.getEncodedSource();
+        init( theNode );
     }
 
     private void init( ScriptOrFnNode sn ){
@@ -666,12 +662,15 @@ public class Convert {
             }
         }
 
-        //_append( "final ed.js.engine.Scope oldScope = scope;\n final ed.js.engine.Scope scope = oldScope.child();\n" , n );
-
         _addFunctionNodes( fn , state );
 
         _add( n.getFirstChild() , state );
         _append( "}\n" , n );
+        
+        int myStringId = _strings.size();
+        _strings.add( getSource( fn ) );
+        _append( "\t public String toString(){ return _strings[" + myStringId + "].toString(); }" , fn );
+        
         _append( "}\n" , n );
 
     }
@@ -1001,8 +1000,20 @@ public class Convert {
         if ( changed )
             e.setStackTrace( stack );
     }
+
+    String getSource( FunctionNode fn ){
+        final int start = fn.getEncodedSourceStart();
+        final int end = fn.getEncodedSourceEnd();
+
+        final String encoded =  _encodedSource.substring( start , end );
+        final String realSource = Decompiler.decompile( encoded , 0 , new UintMap() );
+        
+        return realSource;
+    }
     
     final File _file;
+    final String _source;
+    final String _encodedSource;
     final String _className;
     final String _package = "ed.js.gen";
     final int _id = ID++;    

@@ -45,7 +45,6 @@ public class StreamUtil {
 
     public static String readFully(InputStream is , String encoding ) 
         throws IOException {
-        System.out.println( "encoding: " + encoding );
         return readFully( encoding == null ? 
                           new InputStreamReader( is ) : 
                           new InputStreamReader( is , encoding ) );
