@@ -38,6 +38,12 @@ public class ByteBufferHolder {
 
     public void position( int p ){
         _pos = p;
+        int num = _pos / _bufSize;
+        int pos = _pos & _bufSize;
+        ByteBuffer bb = _buffers.get( num );
+        bb.position( pos );
+        for ( int i=num+1; i<_buffers.size(); i++ )
+            _buffers.get( i ).position( 0 );
     }
 
     public int remaining(){

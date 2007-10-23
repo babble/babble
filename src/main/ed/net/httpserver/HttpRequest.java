@@ -65,7 +65,6 @@ public class HttpRequest implements ed.js.JSObject {
     }
     
     public boolean keepAlive(){
-        if ( true ) return false;
         String c = getHeader( "connection" );
         if ( c != null )
             return ! c.equalsIgnoreCase( "close" );
