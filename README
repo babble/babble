@@ -32,10 +32,10 @@ Phase 2 - 11/1
     - servlets
 
   http
-    - post
-    P pipelining
+    X post - regular
+    X pipelining
     - chunking
-    - fix keep alive
+    X fix keep alive
 
 Phase 1 - 10/21
   javascript 
