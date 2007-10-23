@@ -33,7 +33,7 @@ Phase 2 - 11/1
 
   http
     - post
-    - pipelining
+    P pipelining
     - chunking
     - fix keep alive
 

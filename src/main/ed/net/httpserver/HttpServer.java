@@ -69,10 +69,18 @@ public class HttpServer extends NIOServer {
         
         protected void writeMoreIfWant()
             throws IOException {
-            if ( _lastResponse != null )
-                if ( _lastResponse.done() )
-                    if ( _in.position() > 0 )
-                        gotData( null );
+            if ( _lastResponse == null )
+                return;
+            
+            if ( ! _lastResponse.done() )
+                return;
+            
+            _lastRequest = null;
+            _lastResponse = null;
+
+            if ( _in.position() > 0 )
+                gotData( null );
+
         }
 
         boolean hasData(){
@@ -91,6 +99,38 @@ public class HttpServer extends NIOServer {
             }
             if ( D ) System.out.println( _in );
             
+            if ( _lastRequest != null && _lastResponse == null ){
+                int end = _endOfHeader;
+                end++;
+                                
+                final int cl = _lastRequest.getIntHeader( "Content-Length" , 0 );
+                if ( cl > 0 ){
+                    if ( cl > ( 1024 * 1024 * 10  ) )
+                        throw new RuntimeException( "content-length way too big" );
+                    
+                    int dataReady = _in.position() - _endOfHeader;
+                    if ( dataReady < cl )
+                        return false;
+                    
+                    byte postData[] = new byte[cl];
+                    for ( int i=0; i<postData.length; i++ )
+                        postData[i] = _in.get( i + end );
+                    _lastRequest._postData = postData;
+                    
+                    end += cl;
+                }
+
+                int np = 0;
+                while ( end < _in.position() ){
+                    _in.put( np++ , _in.get( end ) );
+                    end++;
+                }
+                
+                _in.position( np );
+                _lastResponse = new HttpResponse( _lastRequest );
+                return handle( _lastRequest , _lastResponse );
+            }
+
             int end = endOfHeader( _in , 0 );
             boolean finishedHeader = end >= 0;
             
@@ -99,41 +139,18 @@ public class HttpServer extends NIOServer {
                 return false;
             }
             
-            /*
-            if ( end + 1 < _in.position() )
-                throw new RuntimeException( "why is there more.  end:" + end + "pos:" + _in.position() );
-            */
-            
             byte bb[] = new byte[end];
             for ( int i=0; i<bb.length; i++ )
                 bb[i] = _in.get( i );
             
+            _endOfHeader = end;
             String header = new String( bb );
             
             _lastRequest = new HttpRequest( this , header );
+            _lastResponse = null;
             if ( D ) System.out.println( _lastRequest );
             
-            final int cl = _lastRequest.getIntHeader( "Content-Length" , 0 );
-            if ( cl > 0 ){
-                if ( cl > ( 1024 * 1024 * 10  ) )
-                    throw new RuntimeException( "content-length way too big" );
-                _endOfHeader = end;
-                throw new RuntimeException( "got cl of : " + cl );
-            }
-
-            _lastResponse = new HttpResponse( _lastRequest );
-
-            end++;
-            int np = 0;
-            while ( end < _in.position() ){
-                _in.put( np++ , _in.get( end ) );
-                end++;
-            }
-                         
-            _in.position( np );
-            
-                
-            return handle( _lastRequest , _lastResponse );
+            return gotData( null );
         }
 
         int endOfHeader( ByteBufferHolder buf , final int start ){

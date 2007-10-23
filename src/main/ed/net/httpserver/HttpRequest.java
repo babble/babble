@@ -176,6 +176,8 @@ public class HttpRequest implements ed.js.JSObject {
     final String _firstLine;
     final Map<String,String> _headers = new StringMap<String>();
 
+    byte _postData[];
+
     boolean _parsedURL = false;
     final Map<String,String> _parameters = new StringMap<String>();
 
