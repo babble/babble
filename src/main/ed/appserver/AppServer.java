@@ -12,6 +12,8 @@ import ed.appserver.jxp.*;
 
 public class AppServer implements HttpHandler {
 
+    static boolean D = Boolean.getBoolean( "DEBUG.APP" );
+
     public AppServer( AppContext defaultContext ){
         _defaultContext = defaultContext;
     }
@@ -44,7 +46,7 @@ public class AppServer implements HttpHandler {
         File f = ar.getFile();
         
         if ( ar.isStatic() ){
-            System.out.println( f );
+            if ( D ) System.out.println( f );
             if ( ! f.exists() ){
                 response.setResponseCode( 404 );
                 response.getWriter().print( "file not found\n" );
@@ -60,7 +62,6 @@ public class AppServer implements HttpHandler {
             int idx = fileString.lastIndexOf( "." );
             if ( idx > 0 ){
                 String ext = fileString.substring( idx + 1 );
-                System.out.println( ext );
                 String type = _mimeTypes.getProperty( ext );
                 if ( type != null )
                     response.setHeader( "Content-Type" , type );
