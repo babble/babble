@@ -52,8 +52,8 @@ public abstract class DBCollection extends JSObjectLame {
         _find = new JSFunctionCalls1() {
                 public Object call( Scope s , Object o , Object foo[] ){
                     
-                    if ( o instanceof ObjectId )
-                        return find( (ObjectId)o );
+                    if ( o == null )
+                        throw new NullPointerException();
                     
                     if ( o instanceof JSObject ){
                         List<JSObject> l = find( (JSObject)o );
@@ -61,8 +61,10 @@ public abstract class DBCollection extends JSObjectLame {
                             return null;
                         return new JSArray( l );
                     }
-                        
-                    
+
+                    if ( o instanceof ObjectId )
+                        return find( (ObjectId)o );
+                                        
                     throw new RuntimeException( "wtf : " + o.getClass() );
                 }
             };
