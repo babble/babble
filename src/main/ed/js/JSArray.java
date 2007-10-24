@@ -41,6 +41,10 @@ public class JSArray extends JSObjectBase {
         return _array.get( pos );
     }
 
+    public int size(){
+        return _array.size();
+    }
+
     public Object get( Object n ){
         if ( n != null )
             if ( n instanceof JSString || n instanceof String )

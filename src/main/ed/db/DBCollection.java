@@ -68,6 +68,26 @@ public abstract class DBCollection extends JSObjectLame {
             };
         _entries.put( "find" , _find );
 
+        _entries.put( "findOne" , 
+                      new JSFunctionCalls1() {
+                          public Object call( Scope s , Object o , Object foo[] ){
+                              Object res = _find.call( s , o , foo );
+                              if ( res == null )
+                                  return null;
+                              
+                              if ( res instanceof JSArray ){
+                                  JSArray a = (JSArray)res;
+                                  if ( a.size() == 0 )
+                                      return null;
+                                  return a.getInt( 0 );
+                              }
+                              
+                              if ( res instanceof JSObject )
+                                  return res;
+                              
+                              throw new RuntimeException( "wtf : " + res.getClass() );
+                          }
+                      } );
     }
 
     public Object get( Object n ){

@@ -16,10 +16,10 @@ public class JSObjectBase implements JSObject {
     public Object set( Object n , Object v ){
         if ( n == null )
             throw new NullPointerException();
-
-        if ( v instanceof String )
-            throw new RuntimeException( "why are you using a java.lang.String" );
-
+        
+        if ( v != null && v instanceof String )
+            v = new JSString( v.toString() );
+        
         if ( n instanceof JSString )
             n = n.toString();
         
@@ -45,8 +45,6 @@ public class JSObjectBase implements JSObject {
         if ( n instanceof JSString )
             n = n.toString();
         
-        //System.out.println( "n:" + n + " : " + n.getClass() );
-
         if ( n instanceof String ){
             Object res = _map == null ? null : _map.get( ((String)n) );
             if ( res == null && _constructor != null )
