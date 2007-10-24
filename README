@@ -58,6 +58,13 @@ Phase 1 - 10/21
 
 ----------
 
+db
+ getCollection
+
+collection
+ - save
+ - find
+ - lookup
 
 
 a = Object();
