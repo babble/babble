@@ -56,6 +56,25 @@ public class TestDB extends DBBase {
             return _objects.get( id );
         }
 
+        public List<JSObject> find( JSObject obj ){
+
+            List<JSObject> lst = null;
+            
+            all:
+            for ( JSObject foo : _objects.values() ){
+                for ( String p : obj.keySet() ){
+                    if ( ! JSInternalFunctions.JS_eq( obj.get( p ) , foo.get( p ) ) )
+                        continue all;
+                }
+
+                if ( lst == null )
+                    lst = new ArrayList<JSObject>();
+                lst.add( foo );
+            }
+            
+            return lst;
+        }
+        
         Map<ObjectId,JSObject> _objects = new HashMap<ObjectId,JSObject>();
     }
     

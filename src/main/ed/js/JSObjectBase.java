@@ -75,6 +75,10 @@ public class JSObjectBase implements JSObject {
         return _map.keySet();
     }
 
+    public String toString(){
+        return "Object";
+    }
+
     private Map<String,Object> _map = null;// = new TreeMap<String,Object>();
     private JSFunction _constructor;
 

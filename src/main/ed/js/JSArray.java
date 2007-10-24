@@ -23,6 +23,10 @@ public class JSArray extends JSObjectBase {
             _array.add( o );
     }
 
+    public JSArray( List lst ){
+        _array = lst;
+    }
+
     public Object setInt( int pos , Object v ){
         while ( _array.size() <= pos )
             _array.add( null );

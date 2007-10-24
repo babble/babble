@@ -148,7 +148,7 @@ public class JSInternalFunctions extends JSObjectBase {
         return new JSString( s1 + s2 );
     }
 
-    public Boolean JS_eq( Object a , Object b ){
+    public static Boolean JS_eq( Object a , Object b ){
         if ( a == null && b == null )
             return true;
         
