@@ -302,7 +302,7 @@ public class HttpResponse {
             _cur.flip();
             ByteBuffer bb = _bbPool.get();
             
-            CharsetEncoder encoder = _utf8.newEncoder();
+            CharsetEncoder encoder = _utf8.newEncoder(); // TODO: pool
             try {
                 encoder.encode( _cur , bb , true );
                 bb.flip();
