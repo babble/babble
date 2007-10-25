@@ -9,7 +9,16 @@ import ed.js.*;
 import ed.js.func.*;
 import ed.io.*;
 
-public class ConvertTest {
+public class ConvertTest extends TestCase {
+
+    public ConvertTest(){
+        
+        File dir = new File( "src/test/ed/js/engine/" );
+        for ( File f : dir.listFiles() )
+            if ( f.toString().endsWith( ".js" ) )
+                add( new FileTest( f ) );
+        
+    }
 
     public static class FileTest extends TestCase {
         FileTest( File f ){
@@ -73,6 +82,10 @@ public class ConvertTest {
             for ( String s : args )
                 all.add( new FileTest( new File( s ) ) );
             all.runConsole();
+        }
+        else {
+            ConvertTest ct = new ConvertTest();
+            ct.runConsole();
         }
     }
 }
