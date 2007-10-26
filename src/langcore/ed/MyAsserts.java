@@ -46,7 +46,7 @@ public class MyAsserts {
         if ( Math.abs( a - b ) > diff )
             throw new MyAssert( "" + a + " != " + b );
     }
-    
+
     public static void assertEquals( Object a , Object b ){
         if ( a == null ){
             if ( b == null )
@@ -54,8 +54,10 @@ public class MyAsserts {
             throw new MyAssert( "left null, right not" );
         }
         
-        if ( ! a.equals( b ) )
-            throw new MyAssert( "[" + a + "] != [" + b + "]" );
+        if ( a.equals( b ) )
+            return;
+        
+        throw new MyAssert( "[" + a + "] != [" + b + "] " + a.getClass() + " , " + b.getClass()  );
     }
 
     public static void assertClose( String a , String b ){

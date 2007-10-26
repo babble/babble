@@ -8,11 +8,11 @@ import ed.js.*;
 
 public class Bytes {
     
-    static byte NUMBER = 1;
-    static byte STRING = 2;
-    static byte ARRAY = 3;
-    static byte OBJECT = 4;
-    static byte OID = 5;
+    static final byte NUMBER = 1;
+    static final byte STRING = 2;
+    static final byte ARRAY = 3;
+    static final byte OBJECT = 4;
+    static final byte OID = 5;
     
     static protected Charset _utf8 = Charset.forName( "UTF-8" );
     

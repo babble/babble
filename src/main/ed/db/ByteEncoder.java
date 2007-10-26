@@ -13,21 +13,26 @@ public class ByteEncoder extends Bytes {
         
     }
     
-    protected int put( ByteBuffer buf , String name , Number n ){
+    protected int putNumber( ByteBuffer buf , String name , Number n ){
         int start = buf.position();
         _put( buf , NUMBER , name );
         buf.putDouble( n.doubleValue() );
         return buf.position() - start;
     }
 
-    protected int put( ByteBuffer buf , String name , String s ){
+    protected int putString( ByteBuffer buf , String name , String s ){
         int start = buf.position();
-        _put( buf , NUMBER , name );
-        _put( buf , s );
+        _put( buf , STRING , name );
+        
+        int lenPos = buf.position();
+        buf.putInt( 0 ); // making space for size
+        int strLen = _put( buf , s );
+        buf.putInt( lenPos , strLen );
+        
         return buf.position() - start;
     }
 
-    protected int put( ByteBuffer buf , String name , ObjectId oid ){
+    protected int putObjectId( ByteBuffer buf , String name , ObjectId oid ){
         int start = buf.position();
         _put( buf , OID , name );
         buf.putLong( oid._base );
@@ -43,15 +48,19 @@ public class ByteEncoder extends Bytes {
         _put( buf , name );
     }
     
-    private void _put( ByteBuffer buf , String name ){
+    private int _put( ByteBuffer buf , String name ){
 
         _cbuf.position( 0 );
         _cbuf.limit( _cbuf.capacity() );
         _cbuf.append( name );
         
         _cbuf.flip();
+        final int start = buf.position();
         _encoder.encode( _cbuf , buf , false );
 
+        buf.put( (byte)0 );
+
+        return buf.position() - start;
     }
     
     private CharBuffer _cbuf = CharBuffer.allocate( 1024 );
