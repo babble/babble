@@ -17,9 +17,9 @@ public class ByteDecoder extends Bytes {
         final int start = buf.position();
         final byte type = buf.get();
 
-
         String name = readName( buf );
-        
+        System.out.println( "[" + name + "]"  );
+
         switch ( type ){
         case NUMBER:
             double val = buf.getDouble();
@@ -28,10 +28,13 @@ public class ByteDecoder extends Bytes {
 
         case STRING:
             int size = buf.getInt() - 1;
-            System.out.println( "need to read:" + size );
             buf.get( _namebuf , 0 , size );
             o.set( name , new JSString( new String( _namebuf , 0 , size ) ) );
             buf.get();
+            break;
+
+        case OID:
+            o.set( name , new ObjectId( buf.getLong() , buf.getInt() ) );
             break;
 
         default:

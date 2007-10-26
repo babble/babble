@@ -63,6 +63,31 @@ public class ByteTest extends TestCase {
         assertEquals( "hello" , o.get( "something" ).toString() );
     }
 
+    public void testObjectId(){
+        ByteEncoder encoder = new ByteEncoder();
+        ByteBuffer buf = ByteBuffer.allocateDirect( 1024 );
+
+        ObjectId id = ObjectId.get();
+
+        encoder.putString( buf , "eliot" , "s1" );
+        encoder.putObjectId( buf , "_id" , id );
+        encoder.putString( buf , "something" , "hello" );
+
+
+        buf.flip();
+        
+        JSObject o = new JSObjectBase();
+        ByteDecoder decoder = new ByteDecoder();
+
+        decoder.decodeNext( buf , o );
+        decoder.decodeNext( buf , o );
+        decoder.decodeNext( buf , o );
+        
+        assertEquals( "s1" , o.get( "eliot" ).toString() );
+        assertEquals( "hello" , o.get( "something" ).toString() );
+        assertEquals( id , o.get( "_id" ) );
+    }
+
     public static void main( String args[] ){
         (new ByteTest()).runConsole();
     }
