@@ -28,7 +28,10 @@ public class ByteEncoder extends Bytes {
         
         for ( String s : o.keySet() ){
             Object val = o.get( s );
-            if ( val instanceof Number )
+
+            if ( val == null )
+                putNull( buf , s );
+            else if ( val instanceof Number )
                 putNumber( buf , s , (Number)val );
             else if ( val instanceof String || val instanceof JSString )
                 putString( buf , s , val.toString() );
@@ -37,7 +40,7 @@ public class ByteEncoder extends Bytes {
             else if ( val instanceof JSObject )
                 putObject( buf , s , (JSObject)val );
             else 
-                throw new RuntimeException( "can't serialize " + o.getClass() );
+                throw new RuntimeException( "can't serialize " + val.getClass() );
 
         }
         buf.put( EOO );
@@ -45,7 +48,13 @@ public class ByteEncoder extends Bytes {
         buf.putInt( sizePos , buf.position() - dataStart );
         return buf.position() - start;
     }
-    
+
+    protected int putNull( ByteBuffer buf , String name ){
+        int start = buf.position();
+        _put( buf , NULL , name );
+        return buf.position() - start;
+    }
+
     protected int putNumber( ByteBuffer buf , String name , Number n ){
         int start = buf.position();
         _put( buf , NUMBER , name );

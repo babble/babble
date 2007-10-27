@@ -43,6 +43,10 @@ public class ByteDecoder extends Bytes {
         String name = readName( buf );
 
         switch ( type ){
+        case NULL:
+            o.set( name , null );
+            break;
+
         case NUMBER:
             double val = buf.getDouble();
             o.set( name , val );

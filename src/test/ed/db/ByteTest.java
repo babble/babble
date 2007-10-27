@@ -117,6 +117,7 @@ public class ByteTest extends TestCase {
         o.set( "eliot" , "horowitz" );
         o.set( "num" , 517 );
         o.set( "z" , "y" );
+        o.set( "asd" , null );
         
         JSObject o2 = new JSObjectBase();
         o2.set( "a" , "b" );
@@ -135,6 +136,7 @@ public class ByteTest extends TestCase {
         assertEquals( "b" , ((JSObject)read.get( "next" ) ).get( "a" ).toString() );
         assertEquals( "a" , ((JSObject)read.get( "next" ) ).get( "b" ).toString() );
         assertEquals( "y" , read.get( "z" ).toString() );
+        assertEquals( o.keySet().size() , read.keySet().size() );
 
         assertEquals( buf.limit() , buf.position() );
     }

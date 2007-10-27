@@ -14,6 +14,9 @@ public class Bytes {
     static final byte OBJECT = 4;
     static final byte OID = 5;
     static final byte EOO = 6;
+    static final byte BOOLEAN = 7;
+    static final byte DATE = 8;
+    static final byte NULL = 9;
 
     static protected Charset _utf8 = Charset.forName( "UTF-8" );
     
