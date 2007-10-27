@@ -13,7 +13,8 @@ public class Bytes {
     static final byte ARRAY = 3;
     static final byte OBJECT = 4;
     static final byte OID = 5;
-    
+    static final byte EOO = 6;
+
     static protected Charset _utf8 = Charset.forName( "UTF-8" );
     
 }

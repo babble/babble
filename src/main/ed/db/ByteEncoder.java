@@ -13,6 +13,39 @@ public class ByteEncoder extends Bytes {
         
     }
     
+    protected int putObject( ByteBuffer buf , String name , JSObject o ){
+        final int start = buf.position();
+        if ( name == null ){
+            buf.put( OBJECT );
+            buf.put( (byte)0x00 );
+        }
+        else {
+            _put( buf , OBJECT , name );
+        }
+        final int sizePos = buf.position();
+        buf.putInt( 0 ); // will need to fix this later
+        final int dataStart = buf.position();
+        
+        for ( String s : o.keySet() ){
+            Object val = o.get( s );
+            if ( val instanceof Number )
+                putNumber( buf , s , (Number)val );
+            else if ( val instanceof String || val instanceof JSString )
+                putString( buf , s , val.toString() );
+            else if ( val instanceof ObjectId )
+                putObjectId( buf , s , (ObjectId)val );
+            else if ( val instanceof JSObject )
+                putObject( buf , s , (JSObject)val );
+            else 
+                throw new RuntimeException( "can't serialize " + o.getClass() );
+
+        }
+        buf.put( EOO );
+        
+        buf.putInt( sizePos , buf.position() - dataStart );
+        return buf.position() - start;
+    }
+    
     protected int putNumber( ByteBuffer buf , String name , Number n ){
         int start = buf.position();
         _put( buf , NUMBER , name );
