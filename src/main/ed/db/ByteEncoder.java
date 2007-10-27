@@ -15,12 +15,20 @@ public class ByteEncoder extends Bytes {
     
     protected int putObject( ByteBuffer buf , String name , JSObject o ){
         final int start = buf.position();
+        
+        byte myType = OBJECT;
+        if ( o instanceof JSArray )
+            myType = ARRAY;
+
+        if ( _handleSpecialObjects( buf , name , o ) )
+            return buf.position() - start;
+        
         if ( name == null ){
-            buf.put( OBJECT );
+            buf.put( myType );
             buf.put( (byte)0x00 );
         }
         else {
-            _put( buf , OBJECT , name );
+            _put( buf , myType , name );
         }
         final int sizePos = buf.position();
         buf.putInt( 0 ); // will need to fix this later
@@ -28,6 +36,9 @@ public class ByteEncoder extends Bytes {
         
         for ( String s : o.keySet() ){
             Object val = o.get( s );
+
+            if ( val instanceof JSFunction )
+                continue;
 
             if ( val == null )
                 putNull( buf , s );
@@ -39,6 +50,8 @@ public class ByteEncoder extends Bytes {
                 putObjectId( buf , s , (ObjectId)val );
             else if ( val instanceof JSObject )
                 putObject( buf , s , (JSObject)val );
+            else if ( val instanceof Boolean )
+                putBoolean( buf , s , (Boolean)val );
             else 
                 throw new RuntimeException( "can't serialize " + val.getClass() );
 
@@ -49,9 +62,27 @@ public class ByteEncoder extends Bytes {
         return buf.position() - start;
     }
 
+    private boolean _handleSpecialObjects( ByteBuffer buf , String name , JSObject o ){
+
+        if ( o instanceof JSDate ){
+            _put( buf , DATE , name );
+            buf.putLong( ((JSDate)o).getTime() );
+            return true;
+        }
+
+        return false;
+    }
+
     protected int putNull( ByteBuffer buf , String name ){
         int start = buf.position();
         _put( buf , NULL , name );
+        return buf.position() - start;
+    }
+
+    protected int putBoolean( ByteBuffer buf , String name , Boolean b ){
+        int start = buf.position();
+        _put( buf , BOOLEAN , name );
+        buf.put( b ? (byte)0x1 : (byte)0x0 );
         return buf.position() - start;
     }
 

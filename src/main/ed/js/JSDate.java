@@ -5,13 +5,22 @@ package ed.js;
 import ed.js.func.*;
 
 public class JSDate extends JSObjectBase {
+
     public JSDate(){
-        _time = System.currentTimeMillis();
+        this( System.currentTimeMillis() );
+    }
+
+    public JSDate( long t ){
+        _time = t;
         set( "getTime" , new JSFunctionCalls0(){
                 public Object call( ed.js.engine.Scope s, Object foo[] ){
                     return _time;
                 }
             } );
+    }
+
+    public long getTime(){
+        return _time;
     }
 
     public String toString(){

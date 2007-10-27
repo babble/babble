@@ -42,9 +42,15 @@ public class ByteDecoder extends Bytes {
         
         String name = readName( buf );
 
+        JSObject created = null;
+
         switch ( type ){
         case NULL:
             o.set( name , null );
+            break;
+
+        case BOOLEAN:
+            o.set( name , buf.get() > 0 );
             break;
 
         case NUMBER:
@@ -62,10 +68,18 @@ public class ByteDecoder extends Bytes {
         case OID:
             o.set( name , new ObjectId( buf.getLong() , buf.getInt() ) );
             break;
+
+        case DATE:
+            o.set( name , new JSDate( buf.getLong() ) );
+            break;
             
+        case ARRAY:
+            if ( created == null )
+                created = new JSArray();
         case OBJECT:
             int embeddedSize = buf.getInt();
-            JSObject created = new JSObjectBase();
+            if ( created == null )
+                created = new JSObjectBase();
             while ( decodeNext( buf , created ) > 1 );
             o.set( name , created );
             break;

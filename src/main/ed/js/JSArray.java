@@ -59,6 +59,12 @@ public class JSArray extends JSObjectBase {
     }
 
     public Object set( Object n , Object v ){
+        
+        if ( n.toString().equals( "" ) ){
+            _array.add( v );
+            return v;
+        }
+
         int idx = _getInt( n );
         if ( idx < 0 )
             return super.set( n , v );
