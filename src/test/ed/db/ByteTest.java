@@ -13,6 +13,7 @@ public class ByteTest extends TestCase {
     public void testNumber1(){
         ByteEncoder encoder = new ByteEncoder();
         ByteBuffer buf = ByteBuffer.allocateDirect( 1024 );
+        buf.order( ByteOrder.LITTLE_ENDIAN );
         
         encoder.putNumber( buf , "eliot" , 5 );
 
@@ -28,6 +29,7 @@ public class ByteTest extends TestCase {
     public void testNumber2(){
         ByteEncoder encoder = new ByteEncoder();
         ByteBuffer buf = ByteBuffer.allocateDirect( 1024 );
+        buf.order( ByteOrder.LITTLE_ENDIAN );
         
         encoder.putNumber( buf , "eliot" , 5 );
         encoder.putNumber( buf , "something" , 123.123 );
@@ -47,6 +49,7 @@ public class ByteTest extends TestCase {
     public void testString(){
         ByteEncoder encoder = new ByteEncoder();
         ByteBuffer buf = ByteBuffer.allocateDirect( 1024 );
+        buf.order( ByteOrder.LITTLE_ENDIAN );
 
         encoder.putString( buf , "eliot" , "s1" );
         encoder.putString( buf , "something" , "hello" );
@@ -66,6 +69,7 @@ public class ByteTest extends TestCase {
     public void testObjectId(){
         ByteEncoder encoder = new ByteEncoder();
         ByteBuffer buf = ByteBuffer.allocateDirect( 1024 );
+        buf.order( ByteOrder.LITTLE_ENDIAN );
 
         ObjectId id = ObjectId.get();
 
@@ -91,6 +95,7 @@ public class ByteTest extends TestCase {
     public void testObject1(){
         ByteEncoder encoder = new ByteEncoder();
         ByteBuffer buf = ByteBuffer.allocateDirect( 1024 );
+        buf.order( ByteOrder.LITTLE_ENDIAN );
         
         JSObject o = new JSObjectBase();
         o.set( "eliot" , "horowitz" );
@@ -112,6 +117,7 @@ public class ByteTest extends TestCase {
     public void testObject2(){
         ByteEncoder encoder = new ByteEncoder();
         ByteBuffer buf = ByteBuffer.allocateDirect( 1024 );
+        buf.order( ByteOrder.LITTLE_ENDIAN );
         
         JSObject o = new JSObjectBase();
         o.set( "eliot" , "horowitz" );
@@ -144,6 +150,7 @@ public class ByteTest extends TestCase {
     public void testArray1(){
         ByteEncoder encoder = new ByteEncoder();
         ByteBuffer buf = ByteBuffer.allocateDirect( 1024 );
+        buf.order( ByteOrder.LITTLE_ENDIAN );
         
         JSObject o = new JSObjectBase();
         o.set( "eliot" , "horowitz" );

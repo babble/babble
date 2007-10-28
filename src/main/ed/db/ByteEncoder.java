@@ -14,6 +14,8 @@ public class ByteEncoder extends Bytes {
     }
     
     protected int putObject( ByteBuffer buf , String name , JSObject o ){
+        buf.order( ByteOrder.LITTLE_ENDIAN );
+        
         final int start = buf.position();
         
         byte myType = OBJECT;
@@ -23,16 +25,11 @@ public class ByteEncoder extends Bytes {
         if ( _handleSpecialObjects( buf , name , o ) )
             return buf.position() - start;
         
-        if ( name == null ){
-            buf.put( myType );
-            buf.put( (byte)0x00 );
-        }
-        else {
+        if ( name != null ){
             _put( buf , myType , name );
         }
         final int sizePos = buf.position();
         buf.putInt( 0 ); // will need to fix this later
-        final int dataStart = buf.position();
         
         for ( String s : o.keySet() ){
             Object val = o.get( s );
@@ -58,7 +55,7 @@ public class ByteEncoder extends Bytes {
         }
         buf.put( EOO );
         
-        buf.putInt( sizePos , buf.position() - dataStart );
+        buf.putInt( sizePos , buf.position() - sizePos );
         return buf.position() - start;
     }
 
@@ -121,7 +118,7 @@ public class ByteEncoder extends Bytes {
         _put( buf , name );
     }
     
-    private int _put( ByteBuffer buf , String name ){
+    int _put( ByteBuffer buf , String name ){
 
         _cbuf.position( 0 );
         _cbuf.limit( _cbuf.capacity() );

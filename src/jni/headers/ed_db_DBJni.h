@@ -9,11 +9,19 @@ extern "C" {
 #endif
 /*
  * Class:     ed_db_DBJni
- * Method:    test1
- * Signature: ()V
+ * Method:    msg
+ * Signature: ()Ljava/lang/String;
  */
-JNIEXPORT void JNICALL Java_ed_db_DBJni_test1
+JNIEXPORT jstring JNICALL Java_ed_db_DBJni_msg
   (JNIEnv *, jclass);
+
+/*
+ * Class:     ed_db_DBJni
+ * Method:    insert
+ * Signature: (Ljava/nio/ByteBuffer;II)V
+ */
+JNIEXPORT void JNICALL Java_ed_db_DBJni_insert
+  (JNIEnv *, jclass, jobject, jint, jint);
 
 #ifdef __cplusplus
 }

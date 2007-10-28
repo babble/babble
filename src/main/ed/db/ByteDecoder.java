@@ -14,16 +14,11 @@ public class ByteDecoder extends Bytes {
     }
 
     protected JSObject readObject( ByteBuffer buf ){
-        final byte objectType = buf.get();
-        if ( objectType != OBJECT )
-            throw new RuntimeException( "something is wrong : not an object " );
-        final byte nameLen = buf.get();
-        if ( nameLen != 0 )
-            throw new RuntimeException( "something is wrong : name not empty" );
+        buf.order( ByteOrder.LITTLE_ENDIAN );
 
+        final int start = buf.position();
         final int len = buf.getInt();
         
-        final int start = buf.position();
         JSObjectBase created = new JSObjectBase();
         while ( decodeNext( buf , created ) > 1 );
         
@@ -34,6 +29,7 @@ public class ByteDecoder extends Bytes {
     }
 
     protected int decodeNext( ByteBuffer buf , JSObject o ){
+        buf.order( ByteOrder.LITTLE_ENDIAN );
         final int start = buf.position();
         final byte type = buf.get();
         
