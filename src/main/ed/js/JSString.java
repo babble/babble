@@ -11,7 +11,9 @@ public class JSString extends JSObjectBase {
 
     static JSString EMPTY = new JSString("");
 
-    public static JSFunction _cons = new JSFunctionCalls0(){
+    public static JSFunction _cons = new JSStringCons();
+    
+    static class JSStringCons extends JSFunctionCalls0{
 
             public Object call( Scope s , Object[] args ){
                 throw new RuntimeException( "can't be here" );

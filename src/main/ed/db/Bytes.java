@@ -13,17 +13,19 @@ import ed.js.*;
  
  */
 public class Bytes {
-    
+
+    static final byte EOO = 0;    
     static final byte NUMBER = 1;
     static final byte STRING = 2;
-    static final byte ARRAY = 3;
-    static final byte OBJECT = 4;
-    static final byte OID = 5;
-    static final byte EOO = 6;
-    static final byte BOOLEAN = 7;
-    static final byte DATE = 8;
-    static final byte NULL = 9;
-
+    static final byte OBJECT = 3;    
+    static final byte ARRAY = 4;
+    static final byte BINARY = 5;
+    static final byte UNDEFINED = 6;
+    static final byte OID = 7;
+    static final byte BOOLEAN = 8;
+    static final byte DATE = 9;
+    static final byte NULL = 10;
+    
     static protected Charset _utf8 = Charset.forName( "UTF-8" );
     
 }
