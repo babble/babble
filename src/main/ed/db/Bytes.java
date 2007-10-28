@@ -25,6 +25,7 @@ public class Bytes {
     static final byte BOOLEAN = 8;
     static final byte DATE = 9;
     static final byte NULL = 10;
+    static final byte REGEX = 11;
     
     static protected Charset _utf8 = Charset.forName( "UTF-8" );
     

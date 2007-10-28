@@ -167,6 +167,7 @@ public class ByteTest extends TestCase {
         o.set( "a" , a );
 
         o.set( "d" , new JSDate() );
+        o.set( "r" , new JSRegex( "\\d+" , "i" ) );
 
         encoder.putObject( buf , null , o );
         
@@ -187,6 +188,7 @@ public class ByteTest extends TestCase {
         assertEquals( ((JSDate)o.get("d")).getTime() , ((JSDate)read.get("d")).getTime() );
         assertEquals( true , (Boolean)o.get("myt") );
         assertEquals( false , (Boolean)o.get("myf") );
+        assertEquals( o.get( "r" ).toString() , read.get("r").toString() );
 
         assertEquals( buf.limit() , buf.position() );
     }

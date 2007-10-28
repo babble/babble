@@ -67,6 +67,14 @@ public class ByteEncoder extends Bytes {
             return true;
         }
 
+        if ( o instanceof JSRegex ){
+            JSRegex r = (JSRegex)o;
+            _put( buf , REGEX , name );
+            _put( buf , r.getPattern() );
+            _put( buf , r.getFlags() );
+            return true;
+        }
+
         return false;
     }
 

@@ -36,7 +36,7 @@ public class ByteDecoder extends Bytes {
         if ( type == EOO )
             return 1;
         
-        String name = readName( buf );
+        String name = readCStr( buf );
 
         JSObject created = null;
 
@@ -64,11 +64,15 @@ public class ByteDecoder extends Bytes {
         case OID:
             o.set( name , new ObjectId( buf.getLong() , buf.getInt() ) );
             break;
-
+            
         case DATE:
             o.set( name , new JSDate( buf.getLong() ) );
             break;
             
+        case REGEX:
+            o.set( name , new JSRegex( readCStr( buf ) , readCStr( buf ) ) );
+            break;
+
         case ARRAY:
             if ( created == null )
                 created = new JSArray();
@@ -87,7 +91,7 @@ public class ByteDecoder extends Bytes {
         return buf.position() - start;
     }
 
-    private String readName( ByteBuffer buf ){
+    private String readCStr( ByteBuffer buf ){
         int pos = 0;
         while ( true ){
             byte b = buf.get();

@@ -38,6 +38,14 @@ public class JSRegex extends JSObjectBase {
         
         _patt = Pattern.compile( p , _compilePatterns );
     }
+
+    public String getPattern(){
+        return _p;
+    }
+    
+    public String getFlags(){
+        return _f;
+    }
     
     public String toString(){
         return "/" + _p + "/" + _f;
