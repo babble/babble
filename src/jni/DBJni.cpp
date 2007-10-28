@@ -76,19 +76,11 @@ JNIEXPORT void JNICALL Java_ed_db_DBJni_insert(JNIEnv * env , jclass, jobject bb
   SockAddr db("10.0.21.60", MessagingPort::DBPort);
   
   Message send;
-  Message response;
   
   send.setData( dbInsert , start , ( end - start ) );
 
   cout << "contacting DB..." << endl;
-  bool ok = p.call(db, send, response);
-  cout << "ok: " << ok << endl;
-  cout << "  " << response.data->id << endl;
-  cout << "  " << response.data->len << endl;
-  cout << "  " << response.data->operation << endl;
-  cout << "  " << response.data->reserved << endl;
-  cout << "  " << response.data->responseTo << endl;
-  cout << "  " << response.data->_data << endl;
+  p.say(db, send );
 
   return;
 }

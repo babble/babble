@@ -21,7 +21,8 @@ public class DBJni {
 
         ByteEncoder encoder = new ByteEncoder();
         
-        buf.putInt( 0 );
+        buf.putInt( 0 ); // reserved
+
         encoder._put( buf , collection );
 
         encoder.putObject( buf , null , o );
