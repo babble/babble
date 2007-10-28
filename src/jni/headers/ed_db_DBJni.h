@@ -23,6 +23,14 @@ JNIEXPORT jstring JNICALL Java_ed_db_DBJni_msg
 JNIEXPORT void JNICALL Java_ed_db_DBJni_insert
   (JNIEnv *, jclass, jobject, jint, jint);
 
+/*
+ * Class:     ed_db_DBJni
+ * Method:    query
+ * Signature: (Ljava/nio/ByteBuffer;IILjava/nio/ByteBuffer;)I
+ */
+JNIEXPORT jint JNICALL Java_ed_db_DBJni_query
+  (JNIEnv *, jclass, jobject, jint, jint, jobject);
+
 #ifdef __cplusplus
 }
 #endif
