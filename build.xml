@@ -59,4 +59,13 @@
 
   </target>
 
+ <target name="headers" depends="compile">
+
+   <javah destdir="src/jni/headers/" verbose="yes" force="yes">
+     <class name="ed.db.DBJni"/>
+     <classpath refid="classpath"/>
+   </javah>
+
+ </target>
+ 
 </project>
