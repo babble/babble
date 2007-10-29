@@ -52,7 +52,7 @@ JNIEXPORT void JNICALL Java_ed_db_DBJni_insert(JNIEnv * env , jclass, jobject bb
 }
 
 
-JNIEXPORT int JNICALL Java_ed_db_DBJni_query(JNIEnv * env , jclass, jobject bb , jint position , jint limit , jobject res ){
+JNIEXPORT jint JNICALL Java_ed_db_DBJni_query(JNIEnv * env , jclass, jobject bb , jint position , jint limit , jobject res ){
   
   char * start = (char*)env->GetDirectBufferAddress( bb ) + position;
   char * end = (char*)env->GetDirectBufferAddress( bb ) + limit;

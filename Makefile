@@ -11,3 +11,6 @@ clean:
 
 jni: $(DB_CORE_OBJ) src/jni/DBJni.o
 	g++ -shared $(DB_CORE_OBJ) src/jni/DBJni.o -o build/libdb.so
+
+jnimac: $(DB_CORE_OBJ) src/jni/DBJni.o
+	g++ -dynamiclib -noprebind -single_module $(DB_CORE_OBJ) src/jni/DBJni.o -o build/libdb.jnilib

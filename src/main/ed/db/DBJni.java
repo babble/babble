@@ -9,7 +9,10 @@ import ed.js.*;
 public class DBJni {
 
     static {
-        System.load( ( new java.io.File( "build/libdb.so" ) ).getAbsolutePath() );
+        String ext = "so";
+        if ( System.getenv( "OSTYPE" ).equals( "darwin" ) )
+            ext = "jnilib";
+        System.load( ( new java.io.File( "build/libdb." + ext ) ).getAbsolutePath() );
     }
 
     public static native String msg();
