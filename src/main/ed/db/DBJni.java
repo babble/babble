@@ -121,6 +121,11 @@ public class DBJni {
         o.set( "jumpy" , "yes" );
         o.set( "name"  , "ab" );
         insert( "eliot.t1" , o );
+
+        o = new JSObjectBase();
+        o.set( "jumpyasd" , "no" );
+        o.set( "name"  , "ce" );
+        insert( "eliot.t1" , o );
      
         JSObject q = new JSObjectBase();
         q.set( "name" , "ab" );
