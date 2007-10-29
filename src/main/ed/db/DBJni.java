@@ -3,23 +3,100 @@
 package ed.db;
 
 import java.nio.*;
+import java.util.*;
 
 import ed.js.*;
 
-public class DBJni {
-
-    static {
-        String ext = "so";
-        if ( System.getenv( "OSTYPE" ).equals( "darwin" ) )
-            ext = "jnilib";
-        System.load( ( new java.io.File( "build/libdb." + ext ) ).getAbsolutePath() );
+public class DBJni extends DBBase {
+    
+    
+    public DBJni( String root ){
+        _root = root;
     }
 
-    public static native String msg();
+
+    public MyCollection getCollection( String name ){
+        MyCollection c = _collections.get( name );
+        if ( c != null )
+            return c;
+
+        synchronized ( _collections ){
+            c = _collections.get( name );
+            if ( c != null )
+                return c;
+            
+            c = new MyCollection( name );
+            _collections.put( name , c );
+        }
+        
+        return c;
+    }
+
+    
+    public Collection<String> getCollectionNames(){
+        throw new RuntimeException( "not implemented yet" );
+    }
+    
+    class MyCollection extends DBCollection {
+        MyCollection( String name ){
+            super( name );
+            _fullNameSpace = _root + "." + name;
+        }
+
+        public JSObject save( JSObject o ){
+            apply( o );
+            insert( _fullNameSpace , o );
+            return o;
+        }
+        
+        public ObjectId apply( JSObject o ){
+            ObjectId id = (ObjectId)o.get( "_id" );
+            
+            if ( id == null ){
+                id = ObjectId.get();
+                o.set( "_id" , id );
+            }
+            
+            return id;
+        }
+
+        public JSObject find( ObjectId id ){
+            JSObject lookup = new JSObjectBase();
+            lookup.set( "_id" , id );
+            
+            List<JSObject> res = find( lookup );
+            if ( res == null || res.size() == 0 )
+                return null;
+            
+            if ( res.size() > 1 )
+                throw new RuntimeException( "something is wrong" );
+            
+            return res.get( 0 );
+        }
+        
+        public List<JSObject> find( JSObject ref ){
+            Result res = query( _fullNameSpace , ref );
+            if ( res._lst.size() == 0 )
+                return null;
+            
+            return res._lst;
+        }
+
+        final String _fullNameSpace;
+    }
+    
+    final Map<String,MyCollection> _collections = Collections.synchronizedMap( new HashMap<String,MyCollection>() );
+    final String _root;
+
+    // ----------------------------------
+    
+
+    
+    private static native String msg();
 
     // ----- INSERT    
 
-    public static void insert( String collection , JSObject o ){
+    private static void insert( String collection , JSObject o ){
         ByteBuffer buf = ByteBuffer.allocateDirect( 1024 );
         buf.order( ByteOrder.LITTLE_ENDIAN );
         
@@ -32,10 +109,6 @@ public class DBJni {
         encoder.putObject( buf , null , o );
         buf.flip();
         
-        insert( buf );
-    }
-
-    private static void insert( ByteBuffer buf ){
         insert( buf , buf.position() , buf.limit() );
     }
 
@@ -52,16 +125,25 @@ public class DBJni {
             _num = buf.getInt();
 
             ByteDecoder decoder = new ByteDecoder();
-
-            int num = 0;
             
-            while( buf.position() < buf.limit() && num < _num ){
-                JSObject o = decoder.readObject( buf );
-                num++;
-
-                System.out.println( "-- : " + o.keySet().size() );
-                for ( String s : o.keySet() )
-                    System.out.println( "\t " + s + " : " + o.get( s ) );
+            if ( _num == 0 )
+                _lst = EMPTY;
+            else if ( _num < 3 )
+                _lst = new LinkedList<JSObject>();
+            else 
+                _lst = new ArrayList<JSObject>();
+            
+            if ( _num > 0 ){    
+                int num = 0;
+                
+                while( buf.position() < buf.limit() && num < _num ){
+                    JSObject o = decoder.readObject( buf );
+                    num++;
+                    
+                    System.out.println( "-- : " + o.keySet().size() );
+                    for ( String s : o.keySet() )
+                        System.out.println( "\t " + s + " : " + o.get( s ) );
+                }
             }
         }
 
@@ -71,13 +153,16 @@ public class DBJni {
         
         
 
-        int _reserved;
-        long _cursor;
-        int _startingFrom;
-        int _num;
+        final int _reserved;
+        final long _cursor;
+        final int _startingFrom;
+        final int _num;
+        
+        final List<JSObject> _lst;
     }
+    
 
-    public static void query( String collection , JSObject o ){
+    private static Result query( String collection , JSObject o ){
         ByteBuffer buf = ByteBuffer.allocateDirect( 1024 );
         buf.order( ByteOrder.LITTLE_ENDIAN );
         
@@ -95,44 +180,45 @@ public class DBJni {
         ByteBuffer res = ByteBuffer.allocateDirect( 1024 * 1024 );
         res.order( ByteOrder.LITTLE_ENDIAN );
         
-        int len = query( buf , res );
+        int len = query( buf , buf.position() , buf.limit() , res );
         res.position( len );
         res.flip();
         
-        System.out.println( res );
-        
-        Result r = new Result( res );
-        System.out.println( r );
-
-
-        System.out.println( res );
-    }
-
-    private static int query( ByteBuffer buf , ByteBuffer res ){
-        return query( buf , buf.position() , buf.limit() , res );
+        return new Result( res );
     }
 
     private static native int query( ByteBuffer buf , int position , int limit , ByteBuffer res );
 
+    // library init
+
+    static {
+        String ext = "so";
+        if ( System.getenv( "OSTYPE" ).equals( "darwin" ) )
+            ext = "jnilib";
+        System.load( ( new java.io.File( "build/libdb." + ext ) ).getAbsolutePath() );
+    }
+
+    static final List<JSObject> EMPTY = Collections.unmodifiableList( new LinkedList<JSObject>() );
+    
     // ----- TESTING
     
     public static void main( String args[] ){
         
-        //System.out.println( "msg:" + msg() );
-
+        DBCollection c = (new DBJni( "eliot" ) ).getCollection( "t1" );
+        
         JSObject o = new JSObjectBase();
         o.set( "jumpy" , "yes" );
         o.set( "name"  , "ab" );
-        insert( "eliot.t1" , o );
+        c.save( o );
 
         o = new JSObjectBase();
         o.set( "jumpyasd" , "no" );
         o.set( "name"  , "ce" );
-        insert( "eliot.t1" , o );
+        c.save( o );
      
         JSObject q = new JSObjectBase();
         q.set( "name" , "ab" );
-        query( "eliot.t1" , q );
+        c.find( q );
     }
     
 }

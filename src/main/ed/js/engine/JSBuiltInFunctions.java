@@ -73,7 +73,6 @@ public class JSBuiltInFunctions {
 
         _myScope.put( "Math" , JSMath.getInstance() , true );
         
-        _myScope.put( "db" , new ed.db.TestDB() , true );
     }
     
 }

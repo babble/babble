@@ -101,5 +101,5 @@ public abstract class DBCollection extends JSObjectLame {
     final JSFunction _find;
 
     protected Map _entries = new TreeMap();
-    final String _name;
+    final protected String _name;
 }
