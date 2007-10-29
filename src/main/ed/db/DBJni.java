@@ -118,10 +118,13 @@ public class DBJni {
         //System.out.println( "msg:" + msg() );
 
         JSObject o = new JSObjectBase();
-        o.set( "fasd" , 5.17 );
-        //insert( "eliot.t1" , o );
+        o.set( "jumpy" , "yes" );
+        o.set( "name"  , "ab" );
+        insert( "eliot.t1" , o );
      
-        query( "eliot.t1" , new JSObjectBase() );
+        JSObject q = new JSObjectBase();
+        q.set( "name" , "ab" );
+        query( "eliot.t1" , q );
     }
     
 }

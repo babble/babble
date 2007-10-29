@@ -9,7 +9,7 @@ using namespace std;
 
 #include "grid/message.h"
 
-SockAddr db("10.0.21.60", MessagingPort::DBPort);
+SockAddr db("127.0.0.1", MessagingPort::DBPort);
 
 JNIEXPORT jstring JNICALL Java_ed_db_DBJni_msg(JNIEnv *, jclass){
   MessagingPort p;
