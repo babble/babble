@@ -110,6 +110,7 @@ public class AppServer implements HttpHandler {
             root = args[0];
 
         AppContext ac = new AppContext( root );
+
         AppServer as = new AppServer( ac );
         
         HttpServer.addGlobalHandler( as );

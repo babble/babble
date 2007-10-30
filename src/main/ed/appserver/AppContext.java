@@ -13,13 +13,46 @@ import ed.appserver.jxp.*;
 public class AppContext {
 
     public AppContext( String root ){
+        this( root , guessName( root ) );
+    }
+
+    public AppContext( String root , String name ){
+        _name = name;
         _root = root;
         _rootFile = new File( _root );
         _jxpObject = new JxpObject( _rootFile );
 
         _scope = new Scope( "AppContext:" + root , Scope.GLOBAL );
+        
         _scope.put( "jxp" , _jxpObject , true );
+        _scope.put( "db" , new ed.db.DBJni( _name ) , true );
+
         _scope.setGlobal( true );
+    }
+
+    private static String guessName( String root ){
+        String pcs[] = root.split("/");
+
+        if ( pcs.length == 0 )
+            throw new RuntimeException( "no root for : " + root );
+        
+        for ( int i=pcs.length-1; i>0; i-- ){
+            String s = pcs[i];
+
+            if ( s.equals("master" ) || 
+                 s.equals("test") || 
+                 s.equals("staging") || 
+                 s.equals("dev" ) )
+                continue;
+            
+            return s;
+        }
+        
+        return pcs[0];
+    }
+    
+    public String getName(){
+        return _name;
     }
 
     public Scope scopeChild(){
@@ -192,6 +225,7 @@ public class AppContext {
         
     }
 
+    final String _name;
     final String _root;
     final File _rootFile;
     final JxpObject _jxpObject;
