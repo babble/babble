@@ -15,18 +15,23 @@ public class Convert {
 
     static boolean D = Boolean.getBoolean( "DEBUG.JS" );
 
-    public Convert( File f )
+    public Convert( File sourceFile )
+        throws IOException {
+        this( sourceFile.toString() , StreamUtil.readFully( sourceFile , "UTF-8" ) );
+    }
+    
+    public Convert( String name , String source )
         throws IOException {
         
-        _file = f;
-        _className = f.toString().replaceAll(".*/(.*?)","").replaceAll( "[^\\w]+" , "_" );
-
-        _source = StreamUtil.readFully( f , "UTF-8" );
+        _name = name;
+        _source = source;
+        
+        _className = _name.replaceAll(".*/(.*?)","").replaceAll( "[^\\w]+" , "_" );
         
         CompilerEnvirons ce = new CompilerEnvirons();
         
         Parser p = new Parser( ce , ce.getErrorReporter() );
-        ScriptOrFnNode theNode = p.parse( _source , f.toString() , 0 );
+        ScriptOrFnNode theNode = p.parse( _source , _name , 0 );
         _encodedSource = p.getEncodedSource();
         init( theNode );
     }
@@ -448,11 +453,6 @@ public class Convert {
             return;
         }
         
-        
-        
-        System.err.println( "**************" );
-        Debug.printTree( n , 2 );
-
         throw new RuntimeException( "can't handle" );
     }
     
@@ -478,7 +478,6 @@ public class Convert {
             _add( n.getFirstChild().getNext().getNext().getNext() , state );
         }
         else if ( numChildren == 3 ){
-            Debug.printTree( n , 0 );
             String name = n.getFirstChild().getString();
             String tempName = name + "TEMP";
 
@@ -993,7 +992,7 @@ public class Convert {
                 method = ((FunctionNode)sof).getFunctionName();
             
             
-            stack[i] = new StackTraceElement( _file.toString() , method , _file.toString() , line );
+            stack[i] = new StackTraceElement( _name , method , _name , line );
             changed = true;
         }
             
@@ -1011,7 +1010,8 @@ public class Convert {
         return realSource;
     }
     
-    final File _file;
+    //final File _file;
+    final String _name;
     final String _source;
     final String _encodedSource;
     final String _className;

@@ -1,0 +1,50 @@
+// Shell.java
+
+package ed.js;
+
+import java.io.*;
+import java.util.*;
+
+import ed.db.*;
+import ed.js.func.*;
+import ed.js.engine.*;
+
+public class Shell {
+
+    public static void main( String args[] )
+        throws Exception {
+
+        Scope s = Scope.GLOBAL.child();
+        s.put( "connect" , new JSFunctionCalls2(){
+                public Object call( Scope s , Object name , Object ip , Object crap[] ){
+                    String key = ip + ":" + name;
+                    DBJni db = _dbs.get( key );
+                    if ( db != null )
+                        return db;
+                    
+                    db = new DBJni( ip == null ? null : ip.toString() , name.toString() );
+                    _dbs.put( key , db );
+                    return db;
+                }
+
+                Map<String,DBJni> _dbs = new HashMap<String,DBJni>();
+            } , true  );
+        
+
+        
+        BufferedReader in = new BufferedReader( new InputStreamReader( System.in ) );
+
+        String line;
+
+        System.out.print( "> " );
+        while ( ( line = in.readLine() ) != null ){
+            
+            Convert c = new Convert( "lastline" , line );
+            JSFunction f = c.get();
+
+            f.call( s );
+
+            System.out.print( "> " );
+        }
+    }
+}

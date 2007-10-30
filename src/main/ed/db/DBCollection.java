@@ -53,12 +53,12 @@ public abstract class DBCollection extends JSObjectLame {
                 public Object call( Scope s , Object o , Object foo[] ){
                     
                     if ( o == null )
-                        throw new NullPointerException();
+                        o = new JSObjectBase();
                     
                     if ( o instanceof JSObject ){
                         List<JSObject> l = find( (JSObject)o );
                         if ( l == null )
-                            return null;
+                            return new JSArray();
                         return new JSArray( l );
                     }
 

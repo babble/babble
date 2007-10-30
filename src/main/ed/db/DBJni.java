@@ -8,13 +8,21 @@ import java.util.*;
 import ed.js.*;
 
 public class DBJni extends DBBase {
-    
-    
+
+    static final boolean D = false;
+
     public DBJni( String root ){
-        _root = root;
+        this( null , root );
     }
 
-
+    
+    public DBJni( String ip , String root ){
+        if ( ip != null && ip.length() > 0 )
+            System.err.println( "warning, ip ignored, using 127.0.0.1" );
+        _ip = ip;
+        _root = root;
+    }
+    
     public MyCollection getCollection( String name ){
         MyCollection c = _collections.get( name );
         if ( c != null )
@@ -85,12 +93,16 @@ public class DBJni extends DBBase {
         final String _fullNameSpace;
     }
     
+    public String toString(){
+        return "DBConnection " + _ip + ":" + _root;
+    }
+
     final Map<String,MyCollection> _collections = Collections.synchronizedMap( new HashMap<String,MyCollection>() );
+    final String _ip;
     final String _root;
 
     // ----------------------------------
     
-
     
     private static native String msg();
 
@@ -137,12 +149,15 @@ public class DBJni extends DBBase {
                 int num = 0;
                 
                 while( buf.position() < buf.limit() && num < _num ){
-                    JSObject o = decoder.readObject( buf );
+                    final JSObject o = decoder.readObject( buf );
+                    _lst.add( o );
                     num++;
-                    
-                    System.out.println( "-- : " + o.keySet().size() );
-                    for ( String s : o.keySet() )
-                        System.out.println( "\t " + s + " : " + o.get( s ) );
+
+                    if ( D ) {
+                        System.out.println( "-- : " + o.keySet().size() );
+                        for ( String s : o.keySet() )
+                            System.out.println( "\t " + s + " : " + o.get( s ) );
+                    }
                 }
             }
         }
