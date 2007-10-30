@@ -14,7 +14,6 @@ public class DBJni extends DBBase {
     public DBJni( String root ){
         this( root , null );
     }
-
     
     public DBJni( String root , String ip ){
         if ( ip != null || ip.length() > 0 )
@@ -160,7 +159,6 @@ public class DBJni extends DBBase {
         public String toString(){
             return "reserved:" + _reserved + " _cursor:" + _cursor + " _startingFrom:" + _startingFrom + " _num:" + _num ;
         }
-        
         
 
         final int _reserved;

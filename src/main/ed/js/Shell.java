@@ -24,7 +24,7 @@ public class Shell {
                     if ( db != null )
                         return db;
                     
-                    db = new DBJni( ip == null ? null : ip.toString() , name.toString() );
+                    db = new DBJni( name.toString() , ip == null ? null : ip.toString() );
                     _dbs.put( key , db );
                     return db;
                 }
