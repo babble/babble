@@ -5,6 +5,8 @@ package ed.js;
 import java.io.*;
 import java.util.*;
 
+import jline.*;
+
 import ed.db.*;
 import ed.js.func.*;
 import ed.js.engine.*;
@@ -31,20 +33,13 @@ public class Shell {
             } , true  );
         
 
-        
-        BufferedReader in = new BufferedReader( new InputStreamReader( System.in ) );
-
         String line;
+        ConsoleReader console = new ConsoleReader();
 
-        System.out.print( "> " );
-        while ( ( line = in.readLine() ) != null ){
-            
+        while ( ( line = console.readLine( "> " ) ) != null ){
             Convert c = new Convert( "lastline" , line );
             JSFunction f = c.get();
-
             f.call( s );
-
-            System.out.print( "> " );
         }
     }
 }
