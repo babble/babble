@@ -35,7 +35,8 @@ public class Shell {
 
         String line;
         ConsoleReader console = new ConsoleReader();
-
+        console.setHistory( new History( new File( ".jsshell" ) ) );
+        
         while ( ( line = console.readLine( "> " ) ) != null ){
             try {
                 Convert c = new Convert( "lastline" , line );
