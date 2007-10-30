@@ -12,15 +12,16 @@ public class DBJni extends DBBase {
     static final boolean D = false;
 
     public DBJni( String root ){
-        this( null , root );
+        this( root , null );
     }
 
     
-    public DBJni( String ip , String root ){
-        if ( ip != null && ip.length() > 0 )
-            System.err.println( "warning, ip ignored, using 127.0.0.1" );
+    public DBJni( String root , String ip ){
+        if ( ip != null || ip.length() > 0 )
+            ip = "127.0.0.1";
         _ip = ip;
         _root = root;
+        _sock = getSockAddr( _ip );
     }
     
     public MyCollection getCollection( String name ){
@@ -100,15 +101,11 @@ public class DBJni extends DBBase {
     final Map<String,MyCollection> _collections = Collections.synchronizedMap( new HashMap<String,MyCollection>() );
     final String _ip;
     final String _root;
-
-    // ----------------------------------
-    
-    
-    private static native String msg();
+    final long _sock;
 
     // ----- INSERT    
 
-    private static void insert( String collection , JSObject o ){
+    private void insert( String collection , JSObject o ){
         ByteBuffer buf = ByteBuffer.allocateDirect( 1024 );
         buf.order( ByteOrder.LITTLE_ENDIAN );
         
@@ -121,10 +118,8 @@ public class DBJni extends DBBase {
         encoder.putObject( buf , null , o );
         buf.flip();
         
-        insert( buf , buf.position() , buf.limit() );
+        insert( _sock , buf , buf.position() , buf.limit() );
     }
-
-    private static native void insert( ByteBuffer buf , int position , int limit );
 
     // ----- QUERY
 
@@ -177,7 +172,7 @@ public class DBJni extends DBBase {
     }
     
 
-    private static Result query( String collection , JSObject o ){
+    private Result query( String collection , JSObject o ){
         ByteBuffer buf = ByteBuffer.allocateDirect( 1024 );
         buf.order( ByteOrder.LITTLE_ENDIAN );
         
@@ -195,14 +190,12 @@ public class DBJni extends DBBase {
         ByteBuffer res = ByteBuffer.allocateDirect( 1024 * 1024 );
         res.order( ByteOrder.LITTLE_ENDIAN );
         
-        int len = query( buf , buf.position() , buf.limit() , res );
+        int len = query( _sock , buf , buf.position() , buf.limit() , res );
         res.position( len );
         res.flip();
         
         return new Result( res );
     }
-
-    private static native int query( ByteBuffer buf , int position , int limit , ByteBuffer res );
 
     // library init
 
@@ -211,9 +204,29 @@ public class DBJni extends DBBase {
         if ( System.getenv( "OSTYPE" ).equals( "darwin" ) )
             ext = "jnilib";
         System.load( ( new java.io.File( "build/libdb." + ext ) ).getAbsolutePath() );
+
+        _defaultIp = createSock( "127.0.0.1" );
     }
 
+    static long getSockAddr( String name ){
+        Long addr = _ipToSockAddr.get( name );
+        if ( addr != null )
+            return addr;
+        
+        addr = createSock( name );
+        _ipToSockAddr.put( name, addr );
+        return addr;
+    }
+
+    private static native long createSock( String name );
+
+    private static native String msg( long sock );
+    private static native void insert( long sock , ByteBuffer buf , int position , int limit );
+    private static native int query( long sock , ByteBuffer buf , int position , int limit , ByteBuffer res );
+
+    static final Map<String,Long> _ipToSockAddr = Collections.synchronizedMap( new HashMap<String,Long>() );
     static final List<JSObject> EMPTY = Collections.unmodifiableList( new LinkedList<JSObject>() );
+    static final long _defaultIp;
     
     // ----- TESTING
     

@@ -37,9 +37,15 @@ public class Shell {
         ConsoleReader console = new ConsoleReader();
 
         while ( ( line = console.readLine( "> " ) ) != null ){
-            Convert c = new Convert( "lastline" , line );
-            JSFunction f = c.get();
-            f.call( s );
+            try {
+                Convert c = new Convert( "lastline" , line );
+                JSFunction f = c.get();
+                Object res = f.call( s );
+            }
+            catch ( Exception e ){
+                e.printStackTrace();
+                System.out.println();
+            }
         }
     }
 }

@@ -145,7 +145,11 @@ public class Scope {
             JSObject jsobj = (JSObject)obj;
             _this = jsobj;
 
-            JSFunction func = (JSFunction)(jsobj.get( name ));
+            Object shouldBeFunc = jsobj.get( name );
+            if ( ! ( shouldBeFunc instanceof JSFunction ) )
+                throw new RuntimeException( name + " is not a function" );
+            
+            JSFunction func = (JSFunction)shouldBeFunc;
             
             if ( func != null )
                 return func;

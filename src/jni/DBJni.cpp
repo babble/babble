@@ -9,9 +9,10 @@ using namespace std;
 
 #include "grid/message.h"
 
-SockAddr db("127.0.0.1", MessagingPort::DBPort);
+#define CHECK_SA assert( sa ); SockAddr db = ((SockAddr*)sa)[0];
 
-JNIEXPORT jstring JNICALL Java_ed_db_DBJni_msg(JNIEnv *, jclass){
+JNIEXPORT jstring JNICALL Java_ed_db_DBJni_msg(JNIEnv *, jclass , jlong sa ){
+  CHECK_SA;
   MessagingPort p;
   p.init(29999);
   
@@ -21,7 +22,7 @@ JNIEXPORT jstring JNICALL Java_ed_db_DBJni_msg(JNIEnv *, jclass){
   send.setData( dbMsg , "ping" );
   
   cout << "contacting DB..." << endl;
-  bool ok = p.call(db, send, response);
+  bool ok = p.call( db , send, response);
   cout << "ok: " << ok << endl;
   cout << "  " << response.data->id << endl;
   cout << "  " << response.data->len << endl;
@@ -33,7 +34,8 @@ JNIEXPORT jstring JNICALL Java_ed_db_DBJni_msg(JNIEnv *, jclass){
   return 0;
 }
 
-JNIEXPORT void JNICALL Java_ed_db_DBJni_insert(JNIEnv * env , jclass, jobject bb , jint position , jint limit ){
+JNIEXPORT void JNICALL Java_ed_db_DBJni_insert(JNIEnv * env , jclass, jlong sa  , jobject bb , jint position , jint limit ){
+  CHECK_SA;
   
   char * start = (char*)env->GetDirectBufferAddress( bb ) + position;
   char * end = (char*)env->GetDirectBufferAddress( bb ) + limit;
@@ -52,7 +54,8 @@ JNIEXPORT void JNICALL Java_ed_db_DBJni_insert(JNIEnv * env , jclass, jobject bb
 }
 
 
-JNIEXPORT jint JNICALL Java_ed_db_DBJni_query(JNIEnv * env , jclass, jobject bb , jint position , jint limit , jobject res ){
+JNIEXPORT jint JNICALL Java_ed_db_DBJni_query(JNIEnv * env , jclass, jlong sa , jobject bb , jint position , jint limit , jobject res ){
+  CHECK_SA;
   
   char * start = (char*)env->GetDirectBufferAddress( bb ) + position;
   char * end = (char*)env->GetDirectBufferAddress( bb ) + limit;
@@ -81,4 +84,11 @@ JNIEXPORT jint JNICALL Java_ed_db_DBJni_query(JNIEnv * env , jclass, jobject bb 
   memcpy( env->GetDirectBufferAddress( res ) , response.data->_data , response.data->len );
 
   return response.data->dataLen();
+}
+
+JNIEXPORT jlong JNICALL Java_ed_db_DBJni_createSock(JNIEnv * env , jclass, jstring hostJ ){
+  const char * host = env->GetStringUTFChars( hostJ , 0 );
+  SockAddr * s = new SockAddr( host , MessagingPort::DBPort );
+  env->ReleaseStringUTFChars( hostJ , host );
+  return (jlong)s;
 }

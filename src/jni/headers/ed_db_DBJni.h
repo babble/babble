@@ -7,29 +7,42 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#undef ed_db_DBJni_D
+#define ed_db_DBJni_D 0L
+/* Inaccessible static: _ipToSockAddr */
+/* Inaccessible static: EMPTY */
+/* Inaccessible static: _defaultIp */
+/*
+ * Class:     ed_db_DBJni
+ * Method:    createSock
+ * Signature: (Ljava/lang/String;)J
+ */
+JNIEXPORT jlong JNICALL Java_ed_db_DBJni_createSock
+  (JNIEnv *, jclass, jstring);
+
 /*
  * Class:     ed_db_DBJni
  * Method:    msg
- * Signature: ()Ljava/lang/String;
+ * Signature: (J)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_ed_db_DBJni_msg
-  (JNIEnv *, jclass);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     ed_db_DBJni
  * Method:    insert
- * Signature: (Ljava/nio/ByteBuffer;II)V
+ * Signature: (JLjava/nio/ByteBuffer;II)V
  */
 JNIEXPORT void JNICALL Java_ed_db_DBJni_insert
-  (JNIEnv *, jclass, jobject, jint, jint);
+  (JNIEnv *, jclass, jlong, jobject, jint, jint);
 
 /*
  * Class:     ed_db_DBJni
  * Method:    query
- * Signature: (Ljava/nio/ByteBuffer;IILjava/nio/ByteBuffer;)I
+ * Signature: (JLjava/nio/ByteBuffer;IILjava/nio/ByteBuffer;)I
  */
 JNIEXPORT jint JNICALL Java_ed_db_DBJni_query
-  (JNIEnv *, jclass, jobject, jint, jint, jobject);
+  (JNIEnv *, jclass, jlong, jobject, jint, jint, jobject);
 
 #ifdef __cplusplus
 }
