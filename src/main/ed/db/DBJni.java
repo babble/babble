@@ -51,22 +51,6 @@ public class DBJni extends DBBase {
             _fullNameSpace = _root + "." + name;
         }
 
-        public JSObject save( JSObject o ){
-            apply( o );
-
-            ByteEncoder encoder = new ByteEncoder();
-            
-            encoder._buf.putInt( 0 ); // reserved
-            encoder._put( _fullNameSpace );
-            
-            encoder.putObject( null , o );
-            encoder.flip();
-            
-            insert( _sock , encoder._buf , encoder._buf.position() , encoder._buf.limit() );
-            
-            return o;
-        }
-        
         public ObjectId apply( JSObject o ){
             ObjectId id = (ObjectId)o.get( "_id" );
             
@@ -91,7 +75,43 @@ public class DBJni extends DBBase {
             
             return res.get( 0 );
         }
+
+        public JSObject save( JSObject o ){
+            apply( o );
+
+            ByteEncoder encoder = new ByteEncoder();
+            
+            encoder._buf.putInt( 0 ); // reserved
+            encoder._put( _fullNameSpace );
+            
+            encoder.putObject( null , o );
+            encoder.flip();
+            
+            insert( _sock , encoder._buf , encoder._buf.position() , encoder._buf.limit() );
+            
+            return o;
+        }
         
+        public void delete( JSObject o ){
+            ByteBuffer buf = ByteBuffer.allocateDirect( 1024 );
+            buf.order( ByteOrder.LITTLE_ENDIAN );
+        
+            ByteEncoder encoder = new ByteEncoder();
+            buf.putInt( 0 ); // reserved
+            encoder._put( _fullNameSpace );            
+            
+            if ( o.keySet().size() == 1 && 
+                 o.get( o.keySet().iterator().next() ) instanceof ObjectId )
+                buf.putInt( 1 );
+            else
+                buf.putInt( 0 );
+            
+            encoder.putObject( null , o );
+            buf.flip();
+            
+            doDelete( _sock , buf , buf.position() , buf.limit() );
+        }
+
         public List<JSObject> find( JSObject ref ){
 
             ByteEncoder encoder = new ByteEncoder();
@@ -116,25 +136,6 @@ public class DBJni extends DBBase {
             return res._lst;
         }
         
-        public void delete( JSObject o ){
-            ByteBuffer buf = ByteBuffer.allocateDirect( 1024 );
-            buf.order( ByteOrder.LITTLE_ENDIAN );
-        
-            ByteEncoder encoder = new ByteEncoder();
-            buf.putInt( 0 ); // reserved
-            encoder._put( _fullNameSpace );            
-            
-            if ( o.keySet().size() == 1 && 
-                 o.get( o.keySet().iterator().next() ) instanceof ObjectId )
-                buf.putInt( 1 );
-            else
-                buf.putInt( 0 );
-            
-            encoder.putObject( null , o );
-            buf.flip();
-            
-            doDelete( _sock , buf , buf.position() , buf.limit() );
-        }
 
         final String _fullNameSpace;
     }
