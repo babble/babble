@@ -255,7 +255,6 @@ public class DBJni extends DBBase {
         c.save( o );
      
         JSObject q = new JSObjectBase();
-        q.set( "name" , "ab" );
         System.out.println( c.find( q ) );
 
         c.delete( new JSObjectBase() );
