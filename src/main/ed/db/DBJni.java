@@ -16,7 +16,7 @@ public class DBJni extends DBBase {
     }
     
     public DBJni( String root , String ip ){
-        if ( ip != null || ip.length() > 0 )
+        if ( ip == null || ip.length() == 0 )
             ip = "127.0.0.1";
         _ip = ip;
         _root = root;
@@ -126,6 +126,26 @@ public class DBJni extends DBBase {
             
             return res._lst;
         }
+        
+        public void delete( JSObject o ){
+            ByteBuffer buf = ByteBuffer.allocateDirect( 1024 );
+            buf.order( ByteOrder.LITTLE_ENDIAN );
+        
+            ByteEncoder encoder = new ByteEncoder();
+            buf.putInt( 0 ); // reserved
+            encoder._put( buf , _fullNameSpace );            
+            
+            if ( o.keySet().size() == 1 && 
+                 o.get( o.keySet().iterator().next() ) instanceof ObjectId )
+                buf.putInt( 1 );
+            else
+                buf.putInt( 0 );
+            
+            encoder.putObject( buf , null , o );
+            buf.flip();
+            
+            doDelete( _sock , buf , buf.position() , buf.limit() );
+        }
 
         final String _fullNameSpace;
     }
@@ -185,8 +205,6 @@ public class DBJni extends DBBase {
         
         final List<JSObject> _lst;
     }
-    
-
 
     // library init
 
@@ -213,6 +231,7 @@ public class DBJni extends DBBase {
 
     private static native String msg( long sock );
     private static native void insert( long sock , ByteBuffer buf , int position , int limit );
+    private static native void doDelete( long sock , ByteBuffer buf , int position , int limit );
     private static native int query( long sock , ByteBuffer buf , int position , int limit , ByteBuffer res );
 
     static final Map<String,Long> _ipToSockAddr = Collections.synchronizedMap( new HashMap<String,Long>() );
@@ -223,7 +242,7 @@ public class DBJni extends DBBase {
     
     public static void main( String args[] ){
         
-        DBCollection c = (new DBJni( "eliot" ) ).getCollection( "t1" );
+        MyCollection c = (new DBJni( "eliot" ) ).getCollection( "t1" );
         
         JSObject o = new JSObjectBase();
         o.set( "jumpy" , "yes" );
@@ -237,7 +256,10 @@ public class DBJni extends DBBase {
      
         JSObject q = new JSObjectBase();
         q.set( "name" , "ab" );
-        c.find( q );
+        System.out.println( c.find( q ) );
+
+        c.delete( new JSObjectBase() );
+        System.out.println( c.find( new JSObjectBase() ) );
     }
     
 }
