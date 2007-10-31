@@ -48,7 +48,7 @@ JNIEXPORT void JNICALL Java_ed_db_DBJni_insert(JNIEnv * env , jclass, jlong sa  
   p.init(29999);
   
   Message send;
-  setData( & send , dbQuery , env , bb , position , limit );  
+  setData( & send , dbInsert , env , bb , position , limit );  
 
   p.say(db, send );
 
@@ -62,7 +62,7 @@ JNIEXPORT void JNICALL Java_ed_db_DBJni_doDelete(JNIEnv * env , jclass, jlong sa
   p.init(29999);
   
   Message send;
-  setData( & send , dbQuery , env , bb , position , limit );  
+  setData( & send , dbDelete , env , bb , position , limit );  
 
   p.say(db, send );
 
