@@ -199,7 +199,8 @@ public class DBJni extends DBBase {
 
     static {
         String ext = "so";
-        if ( System.getenv( "OSTYPE" ).equals( "darwin" ) )
+        String os = System.getenv("OSTYPE" );
+        if ( "darwin".equals( os ) )
             ext = "jnilib";
         System.load( ( new java.io.File( "build/libdb." + ext ) ).getAbsolutePath() );
 
