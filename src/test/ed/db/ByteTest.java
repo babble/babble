@@ -21,8 +21,8 @@ public class ByteTest extends TestCase {
         
         encoder.flip();
         
-        ByteDecoder decoder = new ByteDecoder();
-        JSObject read = decoder.readObject( encoder._buf );
+        ByteDecoder decoder = new ByteDecoder( encoder._buf );
+        JSObject read = decoder.readObject();
         
         assertEquals( "horowitz" , read.get( "eliot" ).toString() );
         assertEquals( 517.0 , ((Double)read.get( "num" )).doubleValue() );
@@ -48,8 +48,8 @@ public class ByteTest extends TestCase {
 
         encoder.flip();
         
-        ByteDecoder decoder = new ByteDecoder();
-        JSObject read = decoder.readObject( encoder._buf );
+        ByteDecoder decoder = new ByteDecoder( encoder._buf );
+        JSObject read = decoder.readObject();
         
         assertEquals( "horowitz" , read.get( "eliot" ).toString() );
         assertEquals( 517.0 , ((Double)read.get( "num" )).doubleValue() );
@@ -85,8 +85,8 @@ public class ByteTest extends TestCase {
         
         encoder.flip();
         
-        ByteDecoder decoder = new ByteDecoder();
-        JSObject read = decoder.readObject( encoder._buf );
+        ByteDecoder decoder = new ByteDecoder( encoder._buf );
+        JSObject read = decoder.readObject();
         
         assertEquals( "horowitz" , read.get( "eliot" ).toString() );
         assertEquals( 517.0 , ((Double)read.get( "num" )).doubleValue() );

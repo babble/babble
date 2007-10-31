@@ -103,14 +103,12 @@ public class DBJni extends DBBase {
             encoder.putObject( null , ref );
             encoder.flip();
             
-            ByteBuffer resbb = ByteBuffer.allocateDirect( 1024 * 1024 );
-            resbb.order( ByteOrder.LITTLE_ENDIAN );
+            ByteDecoder decoder = new ByteDecoder();
             
-            int len = query( _sock , encoder._buf , encoder._buf.position() , encoder._buf.limit() , resbb );
-            resbb.position( len );
-            resbb.flip();
+            int len = query( _sock , encoder._buf , encoder._buf.position() , encoder._buf.limit() , decoder._buf );
+            decoder.doneReading( len );
             
-            Result res = new Result( resbb );
+            Result res = new Result( decoder );
             
             if ( res._lst.size() == 0 )
                 return null;
@@ -152,13 +150,12 @@ public class DBJni extends DBBase {
 
     class Result {
 
-        Result( ByteBuffer buf ){
-            _reserved = buf.getInt();
-            _cursor = buf.getLong();
-            _startingFrom = buf.getInt();
-            _num = buf.getInt();
-
-            ByteDecoder decoder = new ByteDecoder();
+        Result( ByteDecoder decoder ){
+            
+            _reserved = decoder.getInt();
+            _cursor = decoder.getLong();
+            _startingFrom = decoder.getInt();
+            _num = decoder.getInt();
             
             if ( _num == 0 )
                 _lst = EMPTY;
@@ -170,8 +167,8 @@ public class DBJni extends DBBase {
             if ( _num > 0 ){    
                 int num = 0;
                 
-                while( buf.position() < buf.limit() && num < _num ){
-                    final JSObject o = decoder.readObject( buf );
+                while( decoder.more() && num < _num ){
+                    final JSObject o = decoder.readObject();
                     _lst.add( o );
                     num++;
 

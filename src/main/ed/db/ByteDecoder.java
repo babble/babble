@@ -9,34 +9,36 @@ import ed.js.*;
 
 public class ByteDecoder extends Bytes {
 
-    protected ByteDecoder(){
-        
+    protected ByteDecoder( ByteBuffer buf ){
+        _buf = buf;
     }
 
-    protected JSObject readObject( ByteBuffer buf ){
-        buf.order( ByteOrder.LITTLE_ENDIAN );
+    protected ByteDecoder(){
+        _buf = ByteBuffer.allocateDirect( 1024 * 1024 );
+        _buf.order( ByteOrder.LITTLE_ENDIAN );
+    }
 
-        final int start = buf.position();
-        final int len = buf.getInt();
+    protected JSObject readObject(){
+        final int start = _buf.position();
+        final int len = _buf.getInt();
         
         JSObjectBase created = new JSObjectBase();
-        while ( decodeNext( buf , created ) > 1 );
+        while ( decodeNext( created ) > 1 );
         
-        if ( buf.position() - start != len )
+        if ( _buf.position() - start != len )
             throw new RuntimeException( "lengths don't match" );
         
         return created;
     }
 
-    protected int decodeNext( ByteBuffer buf , JSObject o ){
-        buf.order( ByteOrder.LITTLE_ENDIAN );
-        final int start = buf.position();
-        final byte type = buf.get();
+    protected int decodeNext( JSObject o ){
+        final int start = _buf.position();
+        final byte type = _buf.get();
         
         if ( type == EOO )
             return 1;
         
-        String name = readCStr( buf );
+        String name = readCStr();
 
         JSObject created = null;
 
@@ -46,41 +48,41 @@ public class ByteDecoder extends Bytes {
             break;
 
         case BOOLEAN:
-            o.set( name , buf.get() > 0 );
+            o.set( name , _buf.get() > 0 );
             break;
 
         case NUMBER:
-            double val = buf.getDouble();
+            double val = _buf.getDouble();
             o.set( name , val );
             break;
 
         case STRING:
-            int size = buf.getInt() - 1;
-            buf.get( _namebuf , 0 , size );
+            int size = _buf.getInt() - 1;
+            _buf.get( _namebuf , 0 , size );
             o.set( name , new JSString( new String( _namebuf , 0 , size ) ) );
-            buf.get();
+            _buf.get();
             break;
 
         case OID:
-            o.set( name , new ObjectId( buf.getLong() , buf.getInt() ) );
+            o.set( name , new ObjectId( _buf.getLong() , _buf.getInt() ) );
             break;
             
         case DATE:
-            o.set( name , new JSDate( buf.getLong() ) );
+            o.set( name , new JSDate( _buf.getLong() ) );
             break;
             
         case REGEX:
-            o.set( name , new JSRegex( readCStr( buf ) , readCStr( buf ) ) );
+            o.set( name , new JSRegex( readCStr() , readCStr() ) );
             break;
 
         case ARRAY:
             if ( created == null )
                 created = new JSArray();
         case OBJECT:
-            int embeddedSize = buf.getInt();
+            int embeddedSize = _buf.getInt();
             if ( created == null )
                 created = new JSObjectBase();
-            while ( decodeNext( buf , created ) > 1 );
+            while ( decodeNext( created ) > 1 );
             o.set( name , created );
             break;
 
@@ -88,13 +90,13 @@ public class ByteDecoder extends Bytes {
             throw new RuntimeException( "can't handle : " + type );
         }
         
-        return buf.position() - start;
+        return _buf.position() - start;
     }
 
-    private String readCStr( ByteBuffer buf ){
+    private String readCStr(){
         int pos = 0;
         while ( true ){
-            byte b = buf.get();
+            byte b = _buf.get();
             if ( b == 0 )
                 break;
             _namebuf[pos++] = b;
@@ -102,7 +104,25 @@ public class ByteDecoder extends Bytes {
         return new String( _namebuf , 0 , pos );
     }
 
-    private CharBuffer _cbuf = CharBuffer.allocate( 1024 );
-    private CharsetDecoder _decoder = _utf8.newDecoder();
-    private byte _namebuf[] = new byte[1024];
+    int getInt(){
+        return _buf.getInt();
+    }
+
+    long getLong(){
+        return _buf.getLong();
+    }
+
+    boolean more(){
+        return _buf.position() < _buf.limit();
+    }
+
+    void doneReading( int len ){
+        _buf.position( len );
+        _buf.flip();
+    }
+
+    private final CharsetDecoder _decoder = _utf8.newDecoder();
+    private final byte _namebuf[] = new byte[1024];
+
+    final ByteBuffer _buf;
 }
