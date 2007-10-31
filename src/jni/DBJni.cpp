@@ -65,7 +65,7 @@ JNIEXPORT void JNICALL Java_ed_db_DBJni_doDelete(JNIEnv * env , jclass, jlong sa
   setData( & send , dbDelete , env , bb , position , limit );  
 
   p.say(db, send );
-
+  cout << "should have deleted" << endl;
   return;
 }
 

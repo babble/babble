@@ -54,19 +54,15 @@ public class DBJni extends DBBase {
         public JSObject save( JSObject o ){
             apply( o );
 
-            ByteBuffer buf = ByteBuffer.allocateDirect( 1024 );
-            buf.order( ByteOrder.LITTLE_ENDIAN );
-            
             ByteEncoder encoder = new ByteEncoder();
             
-            buf.putInt( 0 ); // reserved
+            encoder._buf.putInt( 0 ); // reserved
+            encoder._put( _fullNameSpace );
             
-            encoder._put( buf , _fullNameSpace );
+            encoder.putObject( null , o );
+            encoder.flip();
             
-            encoder.putObject( buf , null , o );
-            buf.flip();
-            
-            insert( _sock , buf , buf.position() , buf.limit() );
+            insert( _sock , encoder._buf , encoder._buf.position() , encoder._buf.limit() );
             
             return o;
         }
@@ -98,24 +94,19 @@ public class DBJni extends DBBase {
         
         public List<JSObject> find( JSObject ref ){
 
-            ByteBuffer buf = ByteBuffer.allocateDirect( 1024 );
-            buf.order( ByteOrder.LITTLE_ENDIAN );
-        
             ByteEncoder encoder = new ByteEncoder();
             
-            buf.putInt( 0 ); // reserved
+            encoder._buf.putInt( 0 ); // reserved
+            encoder._put( _fullNameSpace );
             
-            encoder._put( buf , _fullNameSpace );
-            
-            buf.putInt( 0 ); // num to return
-            
-            encoder.putObject( buf , null , ref );
-            buf.flip();
+            encoder._buf.putInt( 0 ); // num to return
+            encoder.putObject( null , ref );
+            encoder.flip();
             
             ByteBuffer resbb = ByteBuffer.allocateDirect( 1024 * 1024 );
             resbb.order( ByteOrder.LITTLE_ENDIAN );
             
-            int len = query( _sock , buf , buf.position() , buf.limit() , resbb );
+            int len = query( _sock , encoder._buf , encoder._buf.position() , encoder._buf.limit() , resbb );
             resbb.position( len );
             resbb.flip();
             
@@ -133,7 +124,7 @@ public class DBJni extends DBBase {
         
             ByteEncoder encoder = new ByteEncoder();
             buf.putInt( 0 ); // reserved
-            encoder._put( buf , _fullNameSpace );            
+            encoder._put( _fullNameSpace );            
             
             if ( o.keySet().size() == 1 && 
                  o.get( o.keySet().iterator().next() ) instanceof ObjectId )
@@ -141,7 +132,7 @@ public class DBJni extends DBBase {
             else
                 buf.putInt( 0 );
             
-            encoder.putObject( buf , null , o );
+            encoder.putObject( null , o );
             buf.flip();
             
             doDelete( _sock , buf , buf.position() , buf.limit() );
@@ -257,7 +248,9 @@ public class DBJni extends DBBase {
         JSObject q = new JSObjectBase();
         System.out.println( c.find( q ) );
 
-        c.delete( new JSObjectBase() );
+        JSObjectBase d = new JSObjectBase();
+        d.set( "name" , "ab" );
+        c.delete( d );
         System.out.println( c.find( new JSObjectBase() ) );
     }
     
