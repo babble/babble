@@ -53,7 +53,21 @@ public class DBJni extends DBBase {
 
         public JSObject save( JSObject o ){
             apply( o );
-            insert( _fullNameSpace , o );
+
+            ByteBuffer buf = ByteBuffer.allocateDirect( 1024 );
+            buf.order( ByteOrder.LITTLE_ENDIAN );
+            
+            ByteEncoder encoder = new ByteEncoder();
+            
+            buf.putInt( 0 ); // reserved
+            
+            encoder._put( buf , _fullNameSpace );
+            
+            encoder.putObject( buf , null , o );
+            buf.flip();
+            
+            insert( _sock , buf , buf.position() , buf.limit() );
+            
             return o;
         }
         
@@ -83,7 +97,30 @@ public class DBJni extends DBBase {
         }
         
         public List<JSObject> find( JSObject ref ){
-            Result res = query( _fullNameSpace , ref );
+
+            ByteBuffer buf = ByteBuffer.allocateDirect( 1024 );
+            buf.order( ByteOrder.LITTLE_ENDIAN );
+        
+            ByteEncoder encoder = new ByteEncoder();
+            
+            buf.putInt( 0 ); // reserved
+            
+            encoder._put( buf , _fullNameSpace );
+            
+            buf.putInt( 0 ); // num to return
+            
+            encoder.putObject( buf , null , ref );
+            buf.flip();
+            
+            ByteBuffer resbb = ByteBuffer.allocateDirect( 1024 * 1024 );
+            resbb.order( ByteOrder.LITTLE_ENDIAN );
+            
+            int len = query( _sock , buf , buf.position() , buf.limit() , resbb );
+            resbb.position( len );
+            resbb.flip();
+            
+            Result res = new Result( resbb );
+            
             if ( res._lst.size() == 0 )
                 return null;
             
@@ -102,27 +139,7 @@ public class DBJni extends DBBase {
     final String _root;
     final long _sock;
 
-    // ----- INSERT    
-
-    private void insert( String collection , JSObject o ){
-        ByteBuffer buf = ByteBuffer.allocateDirect( 1024 );
-        buf.order( ByteOrder.LITTLE_ENDIAN );
-        
-        ByteEncoder encoder = new ByteEncoder();
-        
-        buf.putInt( 0 ); // reserved
-
-        encoder._put( buf , collection );
-
-        encoder.putObject( buf , null , o );
-        buf.flip();
-        
-        insert( _sock , buf , buf.position() , buf.limit() );
-    }
-
-    // ----- QUERY
-
-    static class Result {
+    class Result {
 
         Result( ByteBuffer buf ){
             _reserved = buf.getInt();
@@ -170,30 +187,6 @@ public class DBJni extends DBBase {
     }
     
 
-    private Result query( String collection , JSObject o ){
-        ByteBuffer buf = ByteBuffer.allocateDirect( 1024 );
-        buf.order( ByteOrder.LITTLE_ENDIAN );
-        
-        ByteEncoder encoder = new ByteEncoder();
-        
-        buf.putInt( 0 ); // reserved
-
-        encoder._put( buf , collection );
-
-        buf.putInt( 0 ); // num to return
-
-        encoder.putObject( buf , null , o );
-        buf.flip();
-        
-        ByteBuffer res = ByteBuffer.allocateDirect( 1024 * 1024 );
-        res.order( ByteOrder.LITTLE_ENDIAN );
-        
-        int len = query( _sock , buf , buf.position() , buf.limit() , res );
-        res.position( len );
-        res.flip();
-        
-        return new Result( res );
-    }
 
     // library init
 
