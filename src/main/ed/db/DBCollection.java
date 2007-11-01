@@ -11,6 +11,8 @@ import ed.js.engine.*;
 public abstract class DBCollection extends JSObjectLame {
     
     public abstract JSObject save( JSObject o );
+    public abstract JSObject update( JSObject q , JSObject o , boolean upsert );
+
     public abstract ObjectId apply( JSObject o );
     public abstract JSObject find( ObjectId id );
     public abstract int remove( JSObject id );
@@ -34,10 +36,31 @@ public abstract class DBCollection extends JSObjectLame {
                     if ( ! ( o instanceof JSObject ) )
                         throw new RuntimeException( "can't only save JSObject" );
                     
-                    return save( (JSObject)o );
+                    JSObject jo = (JSObject)o;
+                    if ( jo.get( "_id" ) != null ){
+                        JSObject q = new JSObjectBase();
+                        q.set( "_id" , jo.get( "_id" ) );
+                        return update( q , jo , true );
+                    }
+                    
+                    return save( jo );
                 }
             };
         _entries.put( "save" , _save );
+
+        _update = new JSFunctionCalls2() {
+                public Object call( Scope s , Object q , Object o , Object foo[] ){
+                    
+                    if ( ! ( o instanceof JSObject ) )
+                        throw new RuntimeException( "can't only save JSObject" );
+                    
+                    if ( ! ( q instanceof JSObject ) )
+                        throw new RuntimeException( "can't only save JSObject" );
+                    
+                    return update( (JSObject)q , (JSObject)o , false );
+                }
+            };
+        _entries.put( "update" , _update );
 
         _entries.put( "remove" , 
                       new JSFunctionCalls1(){
@@ -119,6 +142,7 @@ public abstract class DBCollection extends JSObjectLame {
     }
 
     final JSFunction _save;
+    final JSFunction _update;
     final JSFunction _apply;
     final JSFunction _find;
 
