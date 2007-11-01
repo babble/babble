@@ -93,23 +93,20 @@ public class DBJni extends DBBase {
         }
         
         public int remove( JSObject o ){
-            ByteBuffer buf = ByteBuffer.allocateDirect( 1024 );
-            buf.order( ByteOrder.LITTLE_ENDIAN );
-        
             ByteEncoder encoder = new ByteEncoder();
-            buf.putInt( 0 ); // reserved
+            encoder._buf.putInt( 0 ); // reserved
             encoder._put( _fullNameSpace );            
             
             if ( o.keySet().size() == 1 && 
                  o.get( o.keySet().iterator().next() ) instanceof ObjectId )
-                buf.putInt( 1 );
+                encoder._buf.putInt( 1 );
             else
-                buf.putInt( 0 );
+                encoder._buf.putInt( 0 );
             
             encoder.putObject( null , o );
-            buf.flip();
+            encoder.flip();
             
-            doDelete( _sock , buf , buf.position() , buf.limit() );
+            doDelete( _sock , encoder._buf , encoder._buf.position() , encoder._buf.limit() );
 
             return -1;
         }
