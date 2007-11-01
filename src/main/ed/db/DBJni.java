@@ -92,7 +92,7 @@ public class DBJni extends DBBase {
             return o;
         }
         
-        public void delete( JSObject o ){
+        public int remove( JSObject o ){
             ByteBuffer buf = ByteBuffer.allocateDirect( 1024 );
             buf.order( ByteOrder.LITTLE_ENDIAN );
         
@@ -110,6 +110,8 @@ public class DBJni extends DBBase {
             buf.flip();
             
             doDelete( _sock , buf , buf.position() , buf.limit() );
+
+            return -1;
         }
 
         public List<JSObject> find( JSObject ref ){
@@ -249,7 +251,7 @@ public class DBJni extends DBBase {
 
         JSObjectBase d = new JSObjectBase();
         d.set( "name" , "ab" );
-        c.delete( d );
+        c.remove( d );
         System.out.println( c.find( new JSObjectBase() ) );
     }
     

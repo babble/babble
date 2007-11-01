@@ -34,6 +34,10 @@ public class TestDB extends DBBase {
 
                 } );
         }
+
+        public int remove( JSObject o ){
+            throw new RuntimeException( "not implemented" );
+        }
         
         public JSObject save( JSObject o ){
             ObjectId id = apply( o );

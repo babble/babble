@@ -13,6 +13,7 @@ public abstract class DBCollection extends JSObjectLame {
     public abstract JSObject save( JSObject o );
     public abstract ObjectId apply( JSObject o );
     public abstract JSObject find( ObjectId id );
+    public abstract int remove( JSObject id );
     
     /**
      * this should either be a hard list or some sort of cursor
@@ -37,6 +38,24 @@ public abstract class DBCollection extends JSObjectLame {
                 }
             };
         _entries.put( "save" , _save );
+
+        _entries.put( "remove" , 
+                      new JSFunctionCalls1(){
+                          public Object call( Scope s , Object o , Object foo[] ){
+                              
+                              if ( o == null && s.getThis() != null )
+                                  o = s.getThis();
+                              
+                              if ( ! ( o instanceof JSObject ) )
+                                  throw new RuntimeException( "can't only save JSObject" );
+                              
+                              return remove( (JSObject)o );
+                              
+                          }
+                      } );
+
+                          
+        
         
         _apply = new JSFunctionCalls1() {
                 public Object call( Scope s , Object o , Object foo[] ){
@@ -90,10 +109,13 @@ public abstract class DBCollection extends JSObjectLame {
                               throw new RuntimeException( "wtf : " + res.getClass() );
                           }
                       } );
+        
     }
 
     public Object get( Object n ){
-        return _entries.get( n );
+        if ( n == null )
+            return null;
+        return _entries.get( n.toString() );
     }
 
     final JSFunction _save;
