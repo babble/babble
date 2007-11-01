@@ -69,6 +69,20 @@ JNIEXPORT void JNICALL Java_ed_db_DBJni_doDelete(JNIEnv * env , jclass, jlong sa
   return;
 }
 
+JNIEXPORT void JNICALL Java_ed_db_DBJni_doUpdate(JNIEnv * env , jclass, jlong sa  , jobject bb , jint position , jint limit ){
+  CHECK_SA;
+  
+  MessagingPort p;
+  p.init(29999);
+  
+  Message send;
+  setData( & send , dbUpdate , env , bb , position , limit );  
+
+  p.say(db, send );
+  cout << "should have updated" << endl;
+  return;
+}
+
 
 JNIEXPORT jint JNICALL Java_ed_db_DBJni_query(JNIEnv * env , jclass, jlong sa , jobject bb , jint position , jint limit , jobject res ){
   CHECK_SA;

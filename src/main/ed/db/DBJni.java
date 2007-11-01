@@ -134,7 +134,25 @@ public class DBJni extends DBBase {
             
             return res._lst;
         }
-        
+
+        public JSObject update( JSObject query , JSObject o , boolean upsert ){
+            apply( o );
+            
+            ByteEncoder encoder = new ByteEncoder();
+            encoder._buf.putInt( 0 ); // reserved
+            encoder._put( _fullNameSpace );            
+            
+            encoder._buf.putInt( upsert ? 1 : 0 );
+            
+            encoder.putObject( null , query );
+            encoder.putObject( null , o );
+            
+            encoder.flip();
+            
+            doUpdate( _sock , encoder._buf , encoder._buf.position() , encoder._buf.limit() );
+            
+            return o;
+        }
 
         final String _fullNameSpace;
     }
@@ -221,6 +239,7 @@ public class DBJni extends DBBase {
     private static native String msg( long sock );
     private static native void insert( long sock , ByteBuffer buf , int position , int limit );
     private static native void doDelete( long sock , ByteBuffer buf , int position , int limit );
+    private static native void doUpdate( long sock , ByteBuffer buf , int position , int limit );
     private static native int query( long sock , ByteBuffer buf , int position , int limit , ByteBuffer res );
 
     static final Map<String,Long> _ipToSockAddr = Collections.synchronizedMap( new HashMap<String,Long>() );
@@ -231,7 +250,7 @@ public class DBJni extends DBBase {
     
     public static void main( String args[] ){
         
-        MyCollection c = (new DBJni( "eliot" ) ).getCollection( "t1" );
+        MyCollection c = (new DBJni( "eliot" , "10.0.21.60" ) ).getCollection( "t1" );
         
         JSObject o = new JSObjectBase();
         o.set( "jumpy" , "yes" );
@@ -246,10 +265,16 @@ public class DBJni extends DBBase {
         JSObject q = new JSObjectBase();
         System.out.println( c.find( q ) );
 
+        c.update( o , o , true );
+
+        System.out.println( c.find( q ) );
+
         JSObjectBase d = new JSObjectBase();
         d.set( "name" , "ab" );
         c.remove( d );
         System.out.println( c.find( new JSObjectBase() ) );
+
+        
     }
     
 }

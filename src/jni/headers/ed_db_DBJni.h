@@ -46,6 +46,14 @@ JNIEXPORT void JNICALL Java_ed_db_DBJni_doDelete
 
 /*
  * Class:     ed_db_DBJni
+ * Method:    doUpdate
+ * Signature: (JLjava/nio/ByteBuffer;II)V
+ */
+JNIEXPORT void JNICALL Java_ed_db_DBJni_doUpdate
+  (JNIEnv *, jclass, jlong, jobject, jint, jint);
+
+/*
+ * Class:     ed_db_DBJni
  * Method:    query
  * Signature: (JLjava/nio/ByteBuffer;IILjava/nio/ByteBuffer;)I
  */
