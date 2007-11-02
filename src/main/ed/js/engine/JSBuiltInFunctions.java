@@ -73,6 +73,7 @@ public class JSBuiltInFunctions {
 
         _myScope.put( "Math" , JSMath.getInstance() , true );
         
+        JSON.init( _myScope );
     }
     
 }

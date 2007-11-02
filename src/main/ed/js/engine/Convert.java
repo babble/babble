@@ -56,17 +56,27 @@ public class Convert {
         if ( D ) System.out.println( "***************" );
 
         Node n = sn.getFirstChild();
+        
         while ( n != null ){
             if ( n.getType() != Token.FUNCTION ){
+
+                if ( n.getNext() == null && 
+                     n.getType() == Token.EXPR_RESULT ){
+                    _append( "return " , n );
+                    _hasReturn = true;
+                }
+                
                 _add( n , sn , state );
+                
                 _append( "\n" , n );
             }
             n = n.getNext();
         }
-
-        _append( "return null;" , sn );
+        
+        if ( ! _hasReturn )
+            _append( "return null;" , sn );
     }
-
+    
     private void _add( Node n , State s ){
         _add( n , null , s );
     }
@@ -1011,6 +1021,10 @@ public class Convert {
         
         return realSource;
     }
+
+    public boolean hasReturn(){
+        return _hasReturn;
+    }
     
     //final File _file;
     final String _name;
@@ -1029,8 +1043,10 @@ public class Convert {
     final List<String> _strings = new ArrayList<String>();
     int _preMainLines = -1;
     private final StringBuilder _mainJavaCode = new StringBuilder();
-    
+
+    private boolean _hasReturn = false;
     private JSFunction _it;
+
     
     private static int ID = 1;
     

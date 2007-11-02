@@ -42,6 +42,8 @@ public class Shell {
                 Convert c = new Convert( "lastline" , line );
                 JSFunction f = c.get();
                 Object res = f.call( s );
+                if ( c.hasReturn() )
+                    System.out.println( res );
             }
             catch ( Exception e ){
                 e.printStackTrace();
