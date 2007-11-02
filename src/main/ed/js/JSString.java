@@ -60,6 +60,28 @@ public class JSString extends JSObjectBase {
                     } );
                 
 
+                _prototype.set( "split" , new JSFunctionCalls1(){
+                        public Object call( Scope s , Object o , Object crap[] ){                        
+                            
+                            String str = s.getThis().toString();
+
+                            if ( o instanceof String || o instanceof JSString )
+                                o = new JSRegex( o.toString() , "" );
+                            
+                            if ( ! ( o instanceof JSRegex ) )
+                                throw new RuntimeException( "not a regex : " + o.getClass() );
+                            
+                            JSRegex r = (JSRegex)o;
+                            
+                            JSArray a = new JSArray();
+                            for ( String pc : r._patt.split( str ) )
+                                a.add( new JSString( pc ) );
+                            
+                            return a;
+                        }
+                    }
+                    );
+                
                 _prototype.set( "replace" , new JSFunctionCalls2() {
                         public Object call( Scope s , Object o , Object repl , Object crap[] ){
                             String str = s.getThis().toString();

@@ -95,6 +95,10 @@ public class JSArray extends JSObjectBase {
         return buf.toString();
     }
 
+    public void add( Object o ){
+        _array.add( o );
+    }
+
     int _getInt( Object o ){
         if ( o == null )
             return -1;

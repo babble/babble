@@ -127,6 +127,7 @@ public class AppContext {
         try {
             File f = getFile( "_init.js" );
             if ( f.exists() ){
+                _initFlies.add( f );
                 JxpSource s = getSource( f );
                 JSFunction func = s.getFunction();
                 func.call( _scope );
@@ -149,7 +150,8 @@ public class AppContext {
     long _getScopeTime(){
         long last = 0;
         for ( File f : _initFlies )
-            last = Math.max( last , f.lastModified() );
+            if ( f.exists() )
+                last = Math.max( last , f.lastModified() );
         return last;
     }
     

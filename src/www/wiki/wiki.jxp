@@ -1,0 +1,5 @@
+<html>
+  <body>
+    <%= Wiky.toHtml( "===a===" ) %>
+  </body>
+</html>

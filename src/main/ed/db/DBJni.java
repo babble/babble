@@ -263,7 +263,7 @@ public class DBJni extends DBBase {
         c.save( o );
      
         JSObject q = new JSObjectBase();
-        System.out.println( c.find( q ) );
+        System.out.println( "2 things : " + c.find( q ) );
 
         c.update( o , o , true );
 

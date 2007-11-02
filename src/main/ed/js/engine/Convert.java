@@ -440,8 +440,10 @@ public class Convert {
             return;
         }
         
-        if ( n.getType() == Token.GETVAR )
+        if ( n.getType() == Token.GETVAR ){
+            Debug.printTree( n , 1 );
             throw new RuntimeException( "can't create a JSRef from a local variable " );
+        }
         
         if ( n.getType() == Token.GETPROP || 
              n.getType() == Token.GETELEM ){
