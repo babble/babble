@@ -72,7 +72,7 @@ public class JSString extends JSObjectBase {
                                 throw new RuntimeException( "not a regex : " + o.getClass() );
                             
                             JSRegex r = (JSRegex)o;
-                            
+
                             JSArray a = new JSArray();
                             for ( String pc : r._patt.split( str ) )
                                 a.add( new JSString( pc ) );

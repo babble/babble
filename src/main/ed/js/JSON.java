@@ -83,6 +83,18 @@ public class JSON {
                 a.append( something.toString() );
                 return;
             }
+            
+            if ( something instanceof JSArray ){
+                JSArray arr = (JSArray)something;
+                a.append( "[ " );
+                for ( int i=0; i<arr._array.size(); i++ ){
+                    if ( i > 0 )
+                        a.append( " , " );
+                    go( a , arr._array.get( i ) , indent );
+                }
+                a.append( " ]" );
+                return;
+            }
 
             JSObject o = (JSObject)something;
 
