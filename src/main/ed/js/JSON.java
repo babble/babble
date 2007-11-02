@@ -78,6 +78,11 @@ public class JSON {
                 a.append( something.toString() );
                 return;
             }
+            
+            if ( ! ( something instanceof JSObject ) ){
+                a.append( something.toString() );
+                return;
+            }
 
             JSObject o = (JSObject)something;
 

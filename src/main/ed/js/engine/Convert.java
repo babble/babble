@@ -73,8 +73,32 @@ public class Convert {
             n = n.getNext();
         }
         
-        if ( ! _hasReturn )
+        if ( ! _hasReturn ) {
             _append( "return null;" , sn );
+        }
+        else {
+            int end = _mainJavaCode.length() - 1;
+            boolean alreadyHaveOne = false;
+            for ( ; end >= 0; end-- ){
+                char c = _mainJavaCode.charAt( end );
+                
+                if ( Character.isWhitespace( c ) )
+                    continue;
+
+                if ( c == ';' ){
+                    if ( ! alreadyHaveOne ){
+                        alreadyHaveOne = true;
+                        continue;
+                    }
+                    
+                    _mainJavaCode.setLength( end + 1 );
+                }
+
+                break;
+                    
+            }
+            
+        }
     }
     
     private void _add( Node n , State s ){

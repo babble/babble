@@ -43,7 +43,7 @@ public class Shell {
                 JSFunction f = c.get();
                 Object res = f.call( s );
                 if ( c.hasReturn() )
-                    System.out.println( res );
+                    System.out.println( JSON.serialize( res ) );
             }
             catch ( Exception e ){
                 e.printStackTrace();
