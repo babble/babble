@@ -121,7 +121,7 @@ public class JSON {
             }
 
             a.append( _i( indent + 1 ) );
-            a.append( "\n}\n" );
+            a.append( " }\n" );
         }
 
     }
