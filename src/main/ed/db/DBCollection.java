@@ -22,6 +22,8 @@ public abstract class DBCollection extends JSObjectLame {
      */
     public abstract List<JSObject> find( JSObject ref );
 
+    // ------
+
     protected DBCollection( String name ){
         _name = name;
 

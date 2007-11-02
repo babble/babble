@@ -79,6 +79,11 @@ public class JSON {
                 return;
             }
             
+            if ( something instanceof ed.db.ObjectId ){
+                a.append( "CrID( \"" + something + "\" )" );
+                return;
+            }
+
             if ( ! ( something instanceof JSObject ) ){
                 a.append( something.toString() );
                 return;

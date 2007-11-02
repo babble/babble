@@ -61,6 +61,12 @@ public class JSBuiltInFunctions {
         }
     }
 
+    public static class CrID extends JSFunctionCalls1 {
+        public Object call( Scope scope , Object idString , Object extra[] ){
+            return new ed.db.ObjectId( idString.toString() );
+        }
+    }
+
     static Scope _myScope = new Scope( "Built-Ins" , null );
     static {
         _myScope.put( "print" , new print() , true );
@@ -72,6 +78,8 @@ public class JSBuiltInFunctions {
         _myScope.put( "String" , JSString._cons , true );
 
         _myScope.put( "Math" , JSMath.getInstance() , true );
+
+        _myScope.put( "CrID" , new CrID() , true );
         
         JSON.init( _myScope );
     }

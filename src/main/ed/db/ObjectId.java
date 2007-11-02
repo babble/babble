@@ -30,6 +30,14 @@ public class ObjectId {
         return new ObjectId();
     }
     
+    public ObjectId( String s ){
+        String baseString = s.substring( 0 , 16 );
+        String incString = s.substring( 16 );
+
+        _base = Long.parseLong( baseString , 16 );
+        _inc = Integer.parseInt( incString , 16 );
+    }
+    
     ObjectId( long base , int inc ){
         _base = base;
         _inc = inc;
@@ -117,6 +125,10 @@ public class ObjectId {
             if ( s.contains( i ) )
                 throw new RuntimeException( "fuck" );
             s.add( i );
+
+            ObjectId o = new ObjectId( i.toString() );
+            if ( ! i.equals( o ) )
+                throw new RuntimeException( o.toString() + " != " + i.toString() );
         }
 
     }
