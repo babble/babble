@@ -209,10 +209,10 @@ public class Scope {
     Map<String,Object> _objects;
     
     // js this
-    JSObject _this;
+    private JSObject _this;
     // native this
-    Object _nThis;
-    String _nThisFunc;
+    private Object _nThis;
+    private String _nThisFunc;
 
 
     private static final Object[] EMPTY_OBJET_ARRAY = new Object[0];
