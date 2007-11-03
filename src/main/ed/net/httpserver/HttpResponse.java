@@ -92,8 +92,14 @@ public class HttpResponse {
         if ( _file != null ){
             if ( _fileChannel == null )
                 _fileChannel = (new FileInputStream(_file)).getChannel();
-
-            _fileSent += _fileChannel.transferTo( _fileSent , Long.MAX_VALUE , _handler.getChannel() );
+            
+            try {
+                _fileSent += _fileChannel.transferTo( _fileSent , Long.MAX_VALUE , _handler.getChannel() );
+            }
+            catch ( IOException ioe ){
+                if ( ioe.toString().indexOf( "Resource temporarily unavailable" ) < 0 )
+                    throw ioe;
+            }
             if ( _fileSent < _file.length() ){
                 if ( HttpServer.D ) System.out.println( "only sent : " + _fileSent );
                 _handler.registerForWrites();
