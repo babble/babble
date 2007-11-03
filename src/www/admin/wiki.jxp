@@ -79,6 +79,7 @@
     </div>
 
     <hr>
+    <b>All Articles</b>
     <ul>
       <%
 {
@@ -89,8 +90,18 @@
     }
 }
        %>
+
     </ul>
 
+    <hr>
+    <pre>
+      e - edits
+      s - saves after editing
+      
+      note: there seems to be a little issue with the editor.  
+            may fail the first time, just hit abort and try again
+    </pre>
+    
     <hr>
     
     Hi <b><%= user %></b>

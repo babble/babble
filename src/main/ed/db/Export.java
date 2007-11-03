@@ -49,8 +49,11 @@ public class Export {
                 out.println( "var t = " + root + "." + t + ";" );
                 
                 List<JSObject> all = c.find( new JSObjectBase() );
-                for( JSObject o : all )
-                    out.println( "t.save( " + JSON.serialize( o ).replace( '\n' , ' ' ) + ");" );
+                for( JSObject o : all ){
+                    String nice = JSON.serialize( o ).replace( '\r' , ' ' );
+                    nice = nice.replaceAll( "\n" , "\\\\n" );
+                    out.println( "t.save( " + nice  + ");" );
+                }
                 
             }
         }
