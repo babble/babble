@@ -131,20 +131,23 @@ public class Scope {
     }
 
     public Scope newThis( JSFunction f ){
-        _this = new JSObjectBase( f );
+        _this.push( new This( new JSObjectBase( f ) ) );
         return this;
     }
 
     public Scope setThis( JSObject o ){
-        _this = o;
+        _this.push( new This( o ) );
         return this;
     }
 
     public JSFunction getFunctionAndSetThis( final Object obj , final String name ){
+        boolean added = false;
+        
         if ( obj instanceof JSObject ){
             JSObject jsobj = (JSObject)obj;
-            _this = jsobj;
-
+            _this.push( new This( jsobj ) );
+            added = true;
+            
             Object shouldBeFunc = jsobj.get( name );
             if ( ! ( shouldBeFunc instanceof JSFunction ) )
                 throw new RuntimeException( name + " is not a function" );
@@ -154,31 +157,34 @@ public class Scope {
             if ( func != null )
                 return func;
 
-            _this = null;
+            _this.pop();
+            added = false;
             
             if ( obj instanceof JSObjectBase )
                 return null;
         }
         
-        _nThis = obj;
-        _nThisFunc = name;
+        if ( added ){
+            _this.peek()._nThis = obj;
+            _this.peek()._nThisFunc = name;
+        }
+        else {
+            _this.push( new This( obj , name ) );
+        }
         return _nativeFuncCall;
     }
 
     public JSObject getThis(){
-        return _this;
+        return _this.peek()._this;
     }
 
     public JSObject clearThisNew( Object whoCares ){
-        JSObject foo = _this;
-        _this = null;
-        return foo;
+        return _this.pop()._this;
     }
 
     public Object clearThisNormal( Object o ){
-        _this = null;
-        _nThis = null;
-        _nThisFunc = null;
+        if ( _this.size() > 0 )
+            _this.pop();
         return o;
     }
 
@@ -190,9 +196,7 @@ public class Scope {
         if ( _locked )
             throw new RuntimeException( "can't reset locked scope" );
         _objects.clear();
-        _this = null;
-        _nThis = null;
-        _nThisFunc = null;
+        _this.clear();
     }
 
     public void setGlobal( boolean g ){
@@ -208,12 +212,24 @@ public class Scope {
 
     Map<String,Object> _objects;
     
-    // js this
-    private JSObject _this;
-    // native this
-    private Object _nThis;
-    private String _nThisFunc;
+    Stack<This> _this = new Stack<This>();
 
+    static class This {
+        This( JSObject o ){
+            _this = o;
+        }
+        
+        This( Object o , String n ){
+            _nThis = o;
+            _nThisFunc = n;
+        }
+        
+        // js this
+        JSObject _this;
+        // native this
+        Object _nThis;
+        String _nThisFunc;
+    }
 
     private static final Object[] EMPTY_OBJET_ARRAY = new Object[0];
     
@@ -241,8 +257,9 @@ public class Scope {
 
             public Object call( Scope s , Object params[] ){
                 
-                final Object obj = s._nThis;
-                final String name = s._nThisFunc;
+                This temp = s._this.peek();
+                final Object obj = temp._nThis;
+                final String name = temp._nThisFunc;
                 
                 if ( obj == null )
                     throw new NullPointerException( "object was null.  name was:" + name );

@@ -20,7 +20,6 @@ public class JSArray extends JSObjectBase {
             _prototype.set( "push" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object o , Object foo[] ){
                         JSArray a = (JSArray)(s.getThis());
-                        System.out.println( "a:" + a );
                         a.add( o );
                         return a.size();
                     }
