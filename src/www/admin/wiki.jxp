@@ -7,7 +7,7 @@
     
     var lookup = { name : name };
     if ( ! lookup.name )
-        lookup.name = "dummy";
+        lookup.name = "Main";
 
     var wo = wiki.findOne( lookup );
 
