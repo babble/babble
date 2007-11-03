@@ -46,9 +46,11 @@ public class AppServer implements HttpHandler {
         if ( ar == null )
             ar = createRequest( request );
 
+	JSString jsURI = new JSString( request.getURI() );
+	
         JSFunction allowed = ar.getScope().getFunction( "allowed" );
         if ( allowed != null ){
-            Object foo = allowed.call( ar.getScope() , request , response , request.getURI() );
+            Object foo = allowed.call( ar.getScope() , request , response , jsURI );
             if ( foo != null ){
                 response.setResponseCode( 401 );
                 response.getWriter().print( "not allowed" );
@@ -76,6 +78,10 @@ public class AppServer implements HttpHandler {
                 return;
             }
             
+	    int cacheTime = getCacheTime( ar , jsURI );
+	    if ( cacheTime >= 0 )
+		response.setCacheTime( cacheTime );
+
             final String fileString = f.toString();
             int idx = fileString.lastIndexOf( "." );
             if ( idx > 0 ){
@@ -102,6 +108,21 @@ public class AppServer implements HttpHandler {
 
     }
     
+    int getCacheTime( AppRequest ar , JSString jsURI ){
+	JSFunction f = ar.getScope().getFunction( "staticCacheTime" );
+	if ( f == null )
+	    return -1;
+	
+	Object ret = f.call( ar.getScope() , jsURI );
+	if ( ret == null )
+	    return -1;
+	
+	if ( ret instanceof Number )
+	    return ((Number)ret).intValue();
+
+	return -1;
+    }
+
     void handleCGI( HttpRequest request , HttpResponse response , AppRequest ar , File f ){
         try {
             

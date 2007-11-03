@@ -1,7 +1,14 @@
 
 jxp.lib.wiky();
 
+function staticCacheTime( uri ){
+    return 3600;
+}		
+
 function allowed( req , res , uri ){
+	
+    if ( uri.match( /\.css$/ ) )
+	return;
     
     var auth = req.getHeader("Authorization");
 

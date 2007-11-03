@@ -4,6 +4,7 @@ package ed.net.httpserver;
 
 import java.io.*;
 import java.util.*;
+import java.text.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.nio.charset.*;
@@ -12,6 +13,12 @@ import ed.util.*;
 
 public class HttpResponse {
 
+    public static final DateFormat HeaderTimeFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
+    static {
+	HeaderTimeFormat.setTimeZone( TimeZone.getTimeZone("GMT") );
+    }
+
+
     HttpResponse( HttpRequest request ){
         _request = request;
         _handler = _request._handler;
@@ -19,7 +26,7 @@ public class HttpResponse {
         _headers = new StringMap<String>();
         _headers.put( "Content-Type" , "text/html; charset=" + getContentEncoding() );
         _headers.put( "Server" , "ED" );
-        _headers.put( "Date" , "Sat, 13 Oct 2007 02:31:32 GMT" );
+	setDateHeader( "Date" , System.currentTimeMillis() );
     }
 
     public void setResponseCode( int rc ){
@@ -27,7 +34,18 @@ public class HttpResponse {
             throw new RuntimeException( "already sent header " );
         _responseCode = rc;
     }
+
+    public void setCacheTime( int seconds ){
+	setHeader("Cache-Control" , "max-age=" + seconds );
+	setDateHeader( "Expires" , System.currentTimeMillis() + ( 1000 * seconds ) );
+    }
     
+    public void setDateHeader( String n , long t ){
+	synchronized( HeaderTimeFormat ) {
+	    setHeader( n , HeaderTimeFormat.format( new Date(t) ) );
+	}
+    }
+
     public void setHeader( String n , String v ){
         _headers.put( n , v );
     }
