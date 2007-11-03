@@ -134,6 +134,13 @@ public abstract class DBCollection extends JSObjectLame {
                               throw new RuntimeException( "wtf : " + res.getClass() );
                           }
                       } );
+
+        _entries.put( "tojson" , 
+                      new JSFunctionCalls0() {
+                          public Object call( Scope s , Object foo[] ){
+                              return "{DBCollection:" + _name + "}";
+                          }
+                      } );
         
     }
 

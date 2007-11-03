@@ -2,6 +2,8 @@
 
 package ed.db;
 
+import java.io.*;
+import java.net.*;
 import java.nio.*;
 import java.util.*;
 
@@ -18,6 +20,14 @@ public class DBJni extends DBBase {
     public DBJni( String root , String ip ){
         if ( ip == null || ip.length() == 0 )
             ip = "127.0.0.1";
+        else {
+            try {
+                ip = InetAddress.getByName( ip ).getHostAddress();
+            }
+            catch ( IOException ioe ){
+                throw new RuntimeException( "can't get ip for:" + ip );
+            }
+        }
         _ip = ip;
         _root = root;
         _sock = getSockAddr( _ip );
