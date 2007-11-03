@@ -6,6 +6,8 @@ import java.io.*;
 import java.util.*;
 
 import ed.io.*;
+import ed.js.*;
+import ed.js.engine.*;
 import ed.net.*;
 import ed.util.*;
 import ed.net.httpserver.*;
@@ -43,6 +45,16 @@ public class AppServer implements HttpHandler {
         AppRequest ar = (AppRequest)request.getAttachment();
         if ( ar == null )
             ar = createRequest( request );
+
+        JSFunction allowed = ar.getScope().getFunction( "allowed" );
+        if ( allowed != null ){
+            Object foo = allowed.call( ar.getScope() , request , response , request.getURI() );
+            if ( foo != null ){
+                response.setResponseCode( 401 );
+                response.getWriter().print( "not allowed" );
+                return;
+            }
+        }
         
         File f = ar.getFile();
 

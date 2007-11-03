@@ -55,7 +55,7 @@ public class AppContext {
         return _name;
     }
 
-    public Scope scopeChild(){
+    Scope scopeChild(){
         Scope s = _scope().child();
         s.setGlobal( true );
         return s;
