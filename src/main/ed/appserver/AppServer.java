@@ -5,8 +5,9 @@ package ed.appserver;
 import java.io.*;
 import java.util.*;
 
-import ed.util.*;
+import ed.io.*;
 import ed.net.*;
+import ed.util.*;
 import ed.net.httpserver.*;
 import ed.appserver.jxp.*;
 
@@ -44,6 +45,11 @@ public class AppServer implements HttpHandler {
             ar = createRequest( request );
         
         File f = ar.getFile();
+
+        if ( f.toString().endsWith( ".cgi" ) ){
+            handleCGI( request , response , ar , f );
+            return;
+        }
         
         if ( ar.isStatic() ){
             if ( D ) System.out.println( f );
@@ -82,6 +88,55 @@ public class AppServer implements HttpHandler {
             return;
         }
 
+    }
+    
+    void handleCGI( HttpRequest request , HttpResponse response , AppRequest ar , File f ){
+        try {
+            
+            if ( ! f.exists() ){
+                response.setResponseCode( 404 );
+                response.getWriter().print("file not found" );
+                return;
+            }
+
+            List<String> env = new ArrayList<String>();
+            env.add( "REQUEST_METHOD=" + request.getMethod() );
+            env.add( "SCRIPT_NAME=" + request.getURI() );
+            env.add( "QUERY_STRING=" + request.getQueryString() );
+
+            String envarr[] = new String[env.size()];
+            env.toArray( envarr );
+
+            Process p = Runtime.getRuntime().exec( new String[]{ f.getAbsolutePath() } , envarr , f.getParentFile() );
+
+            boolean inHeader = true;
+
+            BufferedReader in = new BufferedReader( new InputStreamReader( p.getInputStream() ) );
+            String line;
+            while ( ( line = in.readLine() ) != null ){
+                if ( inHeader ){
+                    if ( line.trim().length() == 0 ){
+                        inHeader = false;
+                        continue;
+                    }
+                    continue;
+                }
+                response.getWriter().print( line );
+                response.getWriter().print( "\n" );
+            }
+
+            in = new BufferedReader( new InputStreamReader( p.getErrorStream() ) );
+            while ( ( line = in.readLine() ) != null ){
+                response.getWriter().print( line );
+                response.getWriter().print( "\n" );
+            }
+        }
+        catch ( Exception e ){
+            e.printStackTrace();
+            response.setResponseCode( 501 );
+            response.getWriter().print( "<br><br><hr>" );
+            response.getWriter().print( e.toString() );
+        }
     }
     
     public double priority(){

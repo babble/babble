@@ -74,6 +74,10 @@ public class HttpResponse {
 
         if ( _cleaned )
             throw new RuntimeException( "already cleaned" );
+        
+        if ( _numDataThings() > 1 )
+            throw new RuntimeException( "too much data" );
+
 
         if ( ! _sentHeader ){
             final String header = _genHeader();
@@ -85,15 +89,10 @@ public class HttpResponse {
             _sentHeader = true;
         }
         
-        if ( _numDataThings() == 0 )
-            throw new RuntimeException( "need data" );
-        if ( _numDataThings() > 1 )
-            throw new RuntimeException( "too much data" );
-        
         if ( _file != null ){
             if ( _fileChannel == null )
                 _fileChannel = (new FileInputStream(_file)).getChannel();
-            System.out.println( _fileChannel );
+
             _fileSent += _fileChannel.transferTo( _fileSent , Long.MAX_VALUE , _handler.getChannel() );
             if ( _fileSent < _file.length() ){
                 if ( HttpServer.D ) System.out.println( "only sent : " + _fileSent );
@@ -163,11 +162,18 @@ public class HttpResponse {
             _writer._push();
 
         // need to only do this if not chunked
-        if ( _done && _stringContent != null && _headers.get( "Content-Length") == null ){
-            int cl = 0;
-            for ( ByteBuffer buf : _stringContent )
-                cl += buf.limit();
-            a.append( "Content-Length: " ).append( String.valueOf( cl ) ).append( "\r\n" );
+        if ( _done && _headers.get( "Content-Length") == null ){
+            
+            if ( _stringContent != null ){
+                int cl = 0;
+                for ( ByteBuffer buf : _stringContent )
+                    cl += buf.limit();
+                a.append( "Content-Length: " ).append( String.valueOf( cl ) ).append( "\r\n" );
+            }
+            else if ( _numDataThings() == 0 ) {
+                a.append( "Content-Length: 0\r\n" );
+            }
+            
         }
         
         // empty line
@@ -271,7 +277,7 @@ public class HttpResponse {
             _cur = _charBufPool.get();
             _resetBuf();
         }
-        
+
         public JxpWriter print( int i ){
             return print( String.valueOf( i ) );
         }

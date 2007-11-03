@@ -11,6 +11,7 @@ public class HttpRequest implements ed.js.JSObject {
     
     HttpRequest( HttpServer.HttpSocketHandler handler , String header ){
         _handler = handler;
+        _rawHeader = header;
 
         int idx = header.indexOf( "\n" );
         if ( idx < 0 )
@@ -58,7 +59,19 @@ public class HttpRequest implements ed.js.JSObject {
     public String getURI(){
         return _uri;
     }
+
+    public String getRawHeader(){
+        return _rawHeader;
+    }
+
+    public String getMethod(){
+        return _command;
+    }
     
+    public String getQueryString(){
+        return _queryString;
+    }
+
     public String toString(){
         _finishParsing();
         return _command + " " + _uri + " HTTP/1." + ( _http11 ? "1" : "" ) + " : " + _headers + "  " + _parameters;
@@ -244,6 +257,7 @@ public class HttpRequest implements ed.js.JSObject {
     boolean _parsedURL = false;
     final Map<String,String> _parameters = new StringMap<String>();
 
+    final String _rawHeader;
     final String _command;
     final String _url;
     final String _uri;

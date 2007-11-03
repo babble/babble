@@ -28,8 +28,8 @@
     <script src="lib/wiky.js"></script>
     <script src="lib/vi.js"></script>
 
-    <link rel="stylesheet" href="/lib/wiky.css" type="text/css">
-    <link rel="stylesheet" href="/lib/vi.css" type="text/css">
+    <link rel="stylesheet" href="lib/wiky.css" type="text/css">
+    <link rel="stylesheet" href="lib/vi.css" type="text/css">
 
     <script>
       
