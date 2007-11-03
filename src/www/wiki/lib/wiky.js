@@ -203,10 +203,6 @@ var Wiky = {
    },
        
    store: function(str, unresolved) {
-       print( "here:" + Wiky.blocks.push );
-       Wiky.blocks.push("a");
-       print( Wiky.blocks[ Wiky.blocks.length - 1 ] );
-       print( "---" );
       return unresolved ? "@" + (Wiky.blocks.push(str)-1) + "@"
                         : "@" + (Wiky.blocks.push(str.replace(/@([0-9]+)@/g, function($0,$1){return Wiky.restore($1);}))-1) + "@";
    },
@@ -386,7 +382,3 @@ var Wiky = {
    }
 }
 
-Wiky.blocks = [];
-print( Wiky.blocks.push( "asd" ) );
-print( Wiky.blocks[0] );
-print( Wiky.toHtml( "==11==\n* a\n** b\n[[as]]\n" ) );

@@ -67,7 +67,7 @@
     <h3 style="color:red;" id="msg"></h3>
 
     <div style="border: 1px solid green;" id="main_content" >
-      <%= wo.text ? wo.text : "No Article Yet" %>
+      <%= wo.text ? Wiky.toHtml( wo.text ) : "No Article Yet" %>
     </div>
         
     <div style="display:none;">
