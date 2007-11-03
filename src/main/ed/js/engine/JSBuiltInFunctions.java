@@ -80,6 +80,8 @@ public class JSBuiltInFunctions {
         _myScope.put( "Math" , JSMath.getInstance() , true );
 
         _myScope.put( "CrID" , new CrID() , true );
+
+        _myScope.put( "Base64" , new ed.util.Base64() , true );
         
         JSON.init( _myScope );
     }

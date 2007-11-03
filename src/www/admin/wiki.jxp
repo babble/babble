@@ -91,5 +91,9 @@
        %>
     </ul>
 
+    <hr>
+    
+    Hi <b><%= user %></b>
+
   </body>
 </html>

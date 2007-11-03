@@ -40,6 +40,37 @@ public class JSString extends JSObjectBase {
                     }
                 } );
 
+            _prototype.set( "indexOf" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object o , Object foo[] ){
+                        String str = s.getThis().toString();
+                        String thing = o.toString();
+                        
+                        int start = 0;
+                        if ( foo != null && foo.length > 0 )
+                            start = ((Number)foo[0]).intValue();
+
+                        return str.indexOf( thing , start );
+                    }
+                } );
+
+            _prototype.set( "substring" , new JSFunctionCalls2() {
+                    public Object call( Scope s , Object startO , Object endO , Object foo[] ){
+                        String str = s.getThis().toString();
+
+                        int start = ((Number)startO).intValue();
+                        if ( start >= str.length() || start < 0 )
+                            return EMPTY;
+                        
+                        int end = -1;
+                        if ( endO != null && endO instanceof Number )
+                            end = ((Number)endO).intValue();
+                        
+                        if ( end < 0 )
+                            return new JSString( str.substring( start) );
+                        return new JSString( str.substring( start , end ) );
+                    }
+                } );
+
 
             _prototype.set( "match" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object o , Object foo[] ){

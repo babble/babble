@@ -149,8 +149,8 @@ public class Scope {
             added = true;
             
             Object shouldBeFunc = jsobj.get( name );
-            if ( ! ( shouldBeFunc instanceof JSFunction ) )
-                throw new RuntimeException( name + " is not a function" );
+            if ( shouldBeFunc != null && ! ( shouldBeFunc instanceof JSFunction ) )
+                throw new RuntimeException( name + " is not a function.  is a:" + shouldBeFunc.getClass()  );
             
             JSFunction func = (JSFunction)shouldBeFunc;
             
@@ -292,7 +292,12 @@ public class Scope {
                 
                     m.setAccessible( true );
                     try {
-                        return m.invoke( obj , params );
+                        Object ret = m.invoke( obj , params );
+                        if ( ret != null ){
+                            if ( ret instanceof String )
+                                ret = new JSString( ret.toString() );
+                        }
+                        return ret;
                     }
                     catch ( Exception e ){
                         throw new RuntimeException( e );
