@@ -42,6 +42,18 @@ public class AppServer implements HttpHandler {
     }
     
     public void handle( HttpRequest request , HttpResponse response ){
+        try {
+            _handle( request , response );
+        }
+        catch ( Exception e ){
+            e.printStackTrace();
+            response.setResponseCode( 501 );
+            response.getWriter().print( "<br><br><hr>" );
+            response.getWriter().print( e.toString() );
+        }
+    }
+
+    private void _handle( HttpRequest request , HttpResponse response ){
         AppRequest ar = (AppRequest)request.getAttachment();
         if ( ar == null )
             ar = createRequest( request );

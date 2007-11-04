@@ -276,16 +276,30 @@ public class Scope {
                         if ( myClasses.length != params.length )
                             continue;
                         
+                        System.out.println( "found match with same name and # : " + m.getName() );
+                        
                         for ( int i=0; i<myClasses.length; i++ ){
                             // null is fine with me
                             if ( params[i] == null ) 
                                 continue;
                             
-                            if ( myClasses[i] == String.class )
+                            Class myClass = myClasses[i];
+
+                            if ( myClass == String.class )
                                 params[i] = params[i].toString();
                             
-                            if ( ! myClasses[i].isAssignableFrom( params[i].getClass() ) )
+                            if ( myClass.isPrimitive() ){
+                                if ( myClass == Integer.TYPE || 
+                                     myClass == Long.TYPE || 
+                                     myClass == Double.TYPE ){
+                                    myClass = Number.class;
+                                }
+                            }
+
+                            if ( ! myClass.isAssignableFrom( params[i].getClass() ) ){
+                                System.out.println( "\t faile b/c " + myClasses[i] + " " + params[i].getClass() );
                                 continue methods;
+                            }
                             
                         }
                     }
