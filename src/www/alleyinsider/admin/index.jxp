@@ -1,0 +1,7 @@
+<% jxp.admin.pieces.header(); %>
+
+Welcome
+
+<% jxp.admin.pieces.footer(); %>
+
+

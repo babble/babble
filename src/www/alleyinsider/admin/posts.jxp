@@ -1,0 +1,15 @@
+<% jxp.admin.pieces.header(); %>
+
+Posts - <a href="/admin/editPost.jxp">new</a>
+
+<% var allPosts = db.posts.find(); %>
+<ul>
+<% for ( var idx in allPosts ){ 
+    var tempName = allPosts[idx].name; %>
+  <li><a href="editPost.jxp?name=<%= tempName %>"><%= tempName %></a></li>
+<% } %>
+</ul>
+
+<% jxp.admin.pieces.footer(); %>
+
+
