@@ -29,10 +29,10 @@ our $my_uri = $cgi->url(-absolute => 1);
 
 # core git executable to use
 # this can just be "git" if your webserver has a sensible PATH
-our $GIT = "/opt/git/bin/git";
+our $GIT = "/usr/bin/git";
 
 # absolute fs-path which will be prepended to the project path
-our $projectroot = "/Users/erh/gitroot/";
+our $projectroot = "/data/gitroot/";
 
 # target of the home link on top of all pages
 our $home_link = $my_uri || "/";
