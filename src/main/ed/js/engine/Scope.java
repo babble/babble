@@ -276,8 +276,6 @@ public class Scope {
                         if ( myClasses.length != params.length )
                             continue;
                         
-                        System.out.println( "found match with same name and # : " + m.getName() );
-                        
                         for ( int i=0; i<myClasses.length; i++ ){
                             // null is fine with me
                             if ( params[i] == null ) 
