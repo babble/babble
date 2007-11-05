@@ -54,6 +54,8 @@ public class AppServer implements HttpHandler {
     }
 
     private void _handle( HttpRequest request , HttpResponse response ){
+        final long startTime = System.currentTimeMillis();
+        
         AppRequest ar = (AppRequest)request.getAttachment();
         if ( ar == null )
             ar = createRequest( request );
@@ -117,7 +119,11 @@ public class AppServer implements HttpHandler {
             response.getWriter().print( e.toString() );
             return;
         }
-
+        finally {
+            final long endTime = System.currentTimeMillis();
+            response.getWriter().print( "\n<!-- full page exec time : " + ( endTime - startTime ) + "ms -->\n" );
+        }
+        
     }
     
     int getCacheTime( AppRequest ar , JSString jsURI ){
