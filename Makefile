@@ -1,6 +1,8 @@
 
 all: jni
 
+INCS=-I src/p/boost
+
 include src/p/db/makefile
 
 DB_CORE_OBJ = $(foreach o,$(OBJS),src/p/db/$o)
