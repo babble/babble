@@ -334,7 +334,7 @@ public class DBJni extends DBBase {
         o.set( "name"  , "ab" );
         c.save( o );
 
-        for ( int i=0; i<1; i++ ){
+        for ( int i=0; i<100; i++ ){
             System.out.println( i );
             o = new JSObjectBase();
             o.set( "jumpyasd" , "no" );
