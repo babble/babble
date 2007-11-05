@@ -105,6 +105,15 @@ public class AppContext {
     public JxpSource getSource( File f )
         throws IOException {
 
+        if ( ! f.exists() ){
+            if ( f.toString().indexOf( "." ) < 0 ){
+                File temp = new File( f.toString() + ".jxp" );
+                if ( temp.exists() )
+                    f = temp;
+            }
+        }
+                
+
         if ( _inScopeInit )
             _initFlies.add( f );
 

@@ -43,6 +43,9 @@ public class AppRequest {
         if ( uri.endsWith( ".jxp" ) )
             return false;
         
+        if ( uri.indexOf( "." ) < 0 )
+            return false;
+
         return true;
     }
 
