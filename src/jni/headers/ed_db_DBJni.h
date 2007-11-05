@@ -60,6 +60,14 @@ JNIEXPORT void JNICALL Java_ed_db_DBJni_doUpdate
 JNIEXPORT jint JNICALL Java_ed_db_DBJni_query
   (JNIEnv *, jclass, jlong, jobject, jint, jint, jobject);
 
+/*
+ * Class:     ed_db_DBJni
+ * Method:    getMore
+ * Signature: (JLjava/nio/ByteBuffer;IILjava/nio/ByteBuffer;)I
+ */
+JNIEXPORT jint JNICALL Java_ed_db_DBJni_getMore
+  (JNIEnv *, jclass, jlong, jobject, jint, jint, jobject);
+
 #ifdef __cplusplus
 }
 #endif

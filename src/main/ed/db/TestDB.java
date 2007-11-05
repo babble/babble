@@ -64,7 +64,7 @@ public class TestDB extends DBBase {
             return _objects.get( id );
         }
 
-        public List<JSObject> find( JSObject obj ){
+        public Iterator<JSObject> find( JSObject obj ){
 
             List<JSObject> lst = null;
             
@@ -80,7 +80,7 @@ public class TestDB extends DBBase {
                 lst.add( foo );
             }
             
-            return lst;
+            return lst.iterator();
         }
         
         Map<ObjectId,JSObject> _objects = new HashMap<ObjectId,JSObject>();

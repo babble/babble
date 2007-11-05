@@ -76,14 +76,16 @@ public class DBJni extends DBBase {
             JSObject lookup = new JSObjectBase();
             lookup.set( "_id" , id );
             
-            List<JSObject> res = find( lookup );
-            if ( res == null || res.size() == 0 )
+            Iterator<JSObject> res = find( lookup );
+            if ( res == null )
                 return null;
+
+            JSObject o = res.next();
             
-            if ( res.size() > 1 )
+            if ( res.hasNext() )
                 throw new RuntimeException( "something is wrong" );
             
-            return res.get( 0 );
+            return o;
         }
 
         public JSObject save( JSObject o ){
@@ -121,7 +123,7 @@ public class DBJni extends DBBase {
             return -1;
         }
 
-        public List<JSObject> find( JSObject ref ){
+        public Iterator<JSObject> find( JSObject ref ){
 
             ByteEncoder encoder = new ByteEncoder();
             
@@ -137,12 +139,12 @@ public class DBJni extends DBBase {
             int len = query( _sock , encoder._buf , encoder._buf.position() , encoder._buf.limit() , decoder._buf );
             decoder.doneReading( len );
             
-            Result res = new Result( decoder );
+            SingleResult res = new SingleResult( _fullNameSpace , decoder );
             
             if ( res._lst.size() == 0 )
                 return null;
             
-            return res._lst;
+            return new Result( res );
         }
 
         public JSObject update( JSObject query , JSObject o , boolean upsert ){
@@ -176,15 +178,17 @@ public class DBJni extends DBBase {
     final String _root;
     final long _sock;
 
-    class Result {
+    class SingleResult {
 
-        Result( ByteDecoder decoder ){
-            
+        SingleResult( String fullNameSpace , ByteDecoder decoder ){
+            _fullNameSpace = fullNameSpace;
             _reserved = decoder.getInt();
             _cursor = decoder.getLong();
             _startingFrom = decoder.getInt();
             _num = decoder.getInt();
             
+            System.out.println( "cursor:" + _cursor );
+
             if ( _num == 0 )
                 _lst = EMPTY;
             else if ( _num < 3 )
@@ -213,13 +217,75 @@ public class DBJni extends DBBase {
             return "reserved:" + _reserved + " _cursor:" + _cursor + " _startingFrom:" + _startingFrom + " _num:" + _num ;
         }
         
-
+        final String _fullNameSpace;
         final int _reserved;
         final long _cursor;
         final int _startingFrom;
         final int _num;
         
         final List<JSObject> _lst;
+    }
+
+    class Result implements Iterator<JSObject> {
+        
+        Result( SingleResult res ){
+            init( res );
+        }
+
+
+        private void init( SingleResult res ){
+            _curResult = res;
+            _cur = res._lst.iterator();
+            _all.add( res );
+        }
+
+        public JSObject next(){
+            if ( _cur.hasNext() )
+                return _cur.next();
+            
+            if ( _curResult._cursor > 0 ){
+                ByteEncoder encoder = new ByteEncoder();
+                
+                encoder._buf.putInt( 0 ); // reserved
+                encoder._put( _curResult._fullNameSpace );
+                encoder._buf.putInt( 0 ); // num to return
+                encoder._buf.putLong( _curResult._cursor );
+                encoder.flip();
+            
+                ByteDecoder decoder = new ByteDecoder();
+                int len = getMore( _sock , encoder._buf , encoder._buf.position() , encoder._buf.limit() , decoder._buf );
+                decoder.doneReading( len );
+                
+                SingleResult res = new SingleResult( _curResult._fullNameSpace , decoder );
+                init( res );
+                
+                return next();
+            }
+            
+            throw new RuntimeException( "no more" );
+        }
+
+        public boolean hasNext(){
+            if ( _cur.hasNext() )
+                return true;
+            
+            if ( _curResult._cursor > 0 )
+                return true;
+            
+            return false;
+        }
+
+        public void remove(){
+            throw new RuntimeException( "can't remove this way" );
+        }
+
+        public String toString(){
+            return "DBCursor";
+        }
+
+        SingleResult _curResult;
+        Iterator<JSObject> _cur;
+        final List<SingleResult> _all = new LinkedList<SingleResult>();
     }
 
     // library init
@@ -251,6 +317,7 @@ public class DBJni extends DBBase {
     private static native void doDelete( long sock , ByteBuffer buf , int position , int limit );
     private static native void doUpdate( long sock , ByteBuffer buf , int position , int limit );
     private static native int query( long sock , ByteBuffer buf , int position , int limit , ByteBuffer res );
+    private static native int getMore( long sock , ByteBuffer buf , int position , int limit , ByteBuffer res );
 
     static final Map<String,Long> _ipToSockAddr = Collections.synchronizedMap( new HashMap<String,Long>() );
     static final List<JSObject> EMPTY = Collections.unmodifiableList( new LinkedList<JSObject>() );
@@ -260,17 +327,22 @@ public class DBJni extends DBBase {
     
     public static void main( String args[] ){
         
-        MyCollection c = (new DBJni( "eliot" , "10.0.21.60" ) ).getCollection( "t1" );
+        MyCollection c = (new DBJni( "eliot" ) ).getCollection( "t1" );
         
         JSObject o = new JSObjectBase();
         o.set( "jumpy" , "yes" );
         o.set( "name"  , "ab" );
         c.save( o );
 
-        o = new JSObjectBase();
-        o.set( "jumpyasd" , "no" );
-        o.set( "name"  , "ce" );
-        c.save( o );
+        for ( int i=0; i<1; i++ ){
+            System.out.println( i );
+            o = new JSObjectBase();
+            o.set( "jumpyasd" , "no" );
+            o.set( "name"  , "ce" );
+            c.save( o );
+        }
+        
+        System.out.println( "done saving" );
      
         JSObject q = new JSObjectBase();
         System.out.println( "2 things : " + c.find( q ) );
