@@ -338,7 +338,7 @@ public class DBJni extends DBBase {
             System.out.println( i );
             o = new JSObjectBase();
             o.set( "jumpyasd" , "no" );
-            o.set( "name"  , "ce" );
+            o.set( "name"  , "asd" + Math.random() );
             c.save( o );
         }
         

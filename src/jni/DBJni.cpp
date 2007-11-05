@@ -103,3 +103,23 @@ JNIEXPORT jint JNICALL Java_ed_db_DBJni_query(JNIEnv * env , jclass, jlong sa , 
   return response.data->dataLen();
 }
 
+
+JNIEXPORT jint JNICALL Java_ed_db_DBJni_getMore(JNIEnv * env , jclass, jlong sa , jobject bb , jint position , jint limit , jobject res ){
+  CHECK_SA;
+  
+  MessagingPort p;
+  p.init(29999);
+  
+  Message send;
+  setData( & send , dbGetMore , env , bb , position , limit );
+
+  Message response;
+  
+  bool ok = p.call(db, send, response);
+
+  assert( env->GetDirectBufferCapacity( res ) >= response.data->len );
+  
+  memcpy( env->GetDirectBufferAddress( res ) , response.data->_data , response.data->len );
+  return response.data->dataLen();
+}
+
