@@ -62,7 +62,7 @@ public abstract class NIOServer extends Thread {
                         ServerSocketChannel ssc = (ServerSocketChannel)key.channel();
                         
                         sc = ssc.accept();
-                        
+                        sc.socket().setTcpNoDelay( true );
                         sc.configureBlocking( false );
                         
                         sh = accept( sc );
