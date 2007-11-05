@@ -507,9 +507,9 @@ public class Convert {
                 _append( " ; " , n );
             }
             
-            _append( "  \n " , n );
+            _append( "  \n JS_evalToBool( " , n );
             _add( n.getFirstChild().getNext() , state );
-            _append( " ; \n" , n );
+            _append( " ) ; \n" , n );
             _add( n.getFirstChild().getNext().getNext() , state );
             _append( " )\n " , n );
             _add( n.getFirstChild().getNext().getNext().getNext() , state );

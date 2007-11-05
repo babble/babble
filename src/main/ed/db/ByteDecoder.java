@@ -26,15 +26,15 @@ public class ByteDecoder extends Bytes {
         while ( decodeNext( created ) > 1 );
         
         if ( _buf.position() - start != len )
-            throw new RuntimeException( "lengths don't match" );
-        
+            throw new RuntimeException( "lengths don't match " + (_buf.position() - start) + " != " + len );
+
         return created;
     }
 
     protected int decodeNext( JSObject o ){
         final int start = _buf.position();
         final byte type = _buf.get();
-        
+
         if ( type == EOO )
             return 1;
         

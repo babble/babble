@@ -22,6 +22,8 @@ public abstract class DBCollection extends JSObjectLame {
 
     // ------
 
+    // ------
+
     protected DBCollection( String name ){
         _name = name;
 
@@ -129,6 +131,13 @@ public abstract class DBCollection extends JSObjectLame {
                               if ( res instanceof JSObject )
                                   return res;
                               
+                              if ( res instanceof Iterator ){
+                                  Iterator<JSObject> it = (Iterator<JSObject>)res;
+                                  if ( ! it.hasNext() )
+                                      return null;
+                                  return it.next();
+                              }
+
                               throw new RuntimeException( "wtf : " + res.getClass() );
                           }
                       } );
