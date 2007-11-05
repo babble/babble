@@ -25,7 +25,7 @@ public class AppContext {
         _scope = new Scope( "AppContext:" + root , Scope.GLOBAL );
         
         _scope.put( "jxp" , _jxpObject , true );
-        _scope.put( "db" , new ed.db.DBJni( _name ) , true );
+        _scope.put( "db" , new ed.db.DBJni( _name , System.getenv("db_ip") ) , true );
 
         _scope.setGlobal( true );
     }
@@ -55,7 +55,7 @@ public class AppContext {
         return _name;
     }
 
-    public Scope scopeChild(){
+    Scope scopeChild(){
         Scope s = _scope().child();
         s.setGlobal( true );
         return s;

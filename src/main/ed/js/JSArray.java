@@ -4,13 +4,36 @@ package ed.js;
 
 import java.util.*;
 
+import ed.js.func.*;
+import ed.js.engine.*;
+
 public class JSArray extends JSObjectBase {
+    
+    public static JSFunction _cons = new JSArrayCons();
+    static class JSArrayCons extends JSFunctionCalls0{
+        
+        public Object call( Scope s , Object[] args ){
+            throw new RuntimeException( "can't be here" );
+        }
+
+        protected void init(){
+            _prototype.set( "push" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object o , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        a.add( o );
+                        return a.size();
+                    }
+                } );
+        }
+    }
     
     public JSArray(){
         this( 0 );
     }
 
     public JSArray( int init ){
+        super( _cons );
+
         _array = new ArrayList( Math.max( 16 , init ) );
         
         for ( int i=0; i<init; i++ )

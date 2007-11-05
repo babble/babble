@@ -168,6 +168,10 @@ public class JSInternalFunctions extends JSObjectBase {
         return _compare( a , b ) >= 0;
     }
 
+    public Boolean JS_le( Object a , Object b ){
+        return _compare( a , b ) <= 0;
+    }
+
     public Boolean JS_lt( Object a , Object b ){
         return _compare( a , b ) < 0;
     }

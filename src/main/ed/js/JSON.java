@@ -103,6 +103,14 @@ public class JSON {
 
             JSObject o = (JSObject)something;
 
+            { 
+                Object foo = o.get( "tojson" );
+                if ( foo != null && foo instanceof JSFunction ){
+                    a.append( ((JSFunction)foo).call( Scope.GLOBAL ).toString() );
+                    return;
+                }
+            }
+
             a.append( _i( indent ) );
             a.append( "{" );
             

@@ -1,0 +1,52 @@
+<% jxp.admin.pieces.header(); %>
+
+<% 
+
+    var name = request.name;
+if ( name && name.length == 0 )
+    name = null;
+
+var thePost = null;
+
+if ( name ){
+    thePost = db.posts.findOne( { name : name } );
+}
+
+if ( ! thePost )
+    thePost = {};
+
+
+if ( ! thePost.content  )
+    thePost.content = "write stuff here";
+
+if ( request.name && request.name.length > 0 && request.content ){
+    thePost.name = request.name;
+    thePost.content = request.content;
+    db.posts.save( thePost );
+}
+
+if ( request.content )
+    thePost.content = request.content;
+%>
+
+<form method="post" action="editPost.jxp">
+
+  <% if ( name ){  %>
+  <b><%= name %></b>
+  <input type="hidden" name="name" value="<%= name %>">
+  <% } else { %>
+  Name:<input name="name" >
+  <% } %>
+
+  <br>
+  
+  <textarea name="content" rows="30" cols="100" ><%= thePost.content %></textarea>
+  <br>
+  <input type="submit" value="save">
+</form>
+
+<%= tojson( thePost ) %>
+
+<% jxp.admin.pieces.footer(); %>
+
+

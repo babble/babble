@@ -14,13 +14,11 @@ public abstract class DBCollection extends JSObjectLame {
     public abstract JSObject update( JSObject q , JSObject o , boolean upsert );
 
     public abstract ObjectId apply( JSObject o );
-    public abstract JSObject find( ObjectId id );
     public abstract int remove( JSObject id );
     
-    /**
-     * this should either be a hard list or some sort of cursor
-     */
-    public abstract List<JSObject> find( JSObject ref );
+    public abstract JSObject find( ObjectId id );    
+    
+    public abstract Iterator<JSObject> find( JSObject ref );
 
     // ------
 
@@ -99,16 +97,16 @@ public abstract class DBCollection extends JSObjectLame {
                     if ( o == null )
                         o = new JSObjectBase();
                     
-                    if ( o instanceof JSObject ){
-                        List<JSObject> l = find( (JSObject)o );
-                        if ( l == null )
-                            return new JSArray();
-                        return new JSArray( l );
-                    }
-
                     if ( o instanceof ObjectId )
                         return find( (ObjectId)o );
-                                        
+
+                    if ( o instanceof JSObject ){
+                        Iterator<JSObject> l = find( (JSObject)o );
+                        if ( l == null )
+                            return (new LinkedList<JSObject>()).iterator();
+                        return l;
+                    }
+                    
                     throw new RuntimeException( "wtf : " + o.getClass() );
                 }
             };
@@ -132,6 +130,13 @@ public abstract class DBCollection extends JSObjectLame {
                                   return res;
                               
                               throw new RuntimeException( "wtf : " + res.getClass() );
+                          }
+                      } );
+
+        _entries.put( "tojson" , 
+                      new JSFunctionCalls0() {
+                          public Object call( Scope s , Object foo[] ){
+                              return "{DBCollection:" + _name + "}";
                           }
                       } );
         

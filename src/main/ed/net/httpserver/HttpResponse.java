@@ -4,6 +4,7 @@ package ed.net.httpserver;
 
 import java.io.*;
 import java.util.*;
+import java.text.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.nio.charset.*;
@@ -12,6 +13,12 @@ import ed.util.*;
 
 public class HttpResponse {
 
+    public static final DateFormat HeaderTimeFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
+    static {
+	HeaderTimeFormat.setTimeZone( TimeZone.getTimeZone("GMT") );
+    }
+
+
     HttpResponse( HttpRequest request ){
         _request = request;
         _handler = _request._handler;
@@ -19,7 +26,7 @@ public class HttpResponse {
         _headers = new StringMap<String>();
         _headers.put( "Content-Type" , "text/html; charset=" + getContentEncoding() );
         _headers.put( "Server" , "ED" );
-        _headers.put( "Date" , "Sat, 13 Oct 2007 02:31:32 GMT" );
+	setDateHeader( "Date" , System.currentTimeMillis() );
     }
 
     public void setResponseCode( int rc ){
@@ -27,7 +34,18 @@ public class HttpResponse {
             throw new RuntimeException( "already sent header " );
         _responseCode = rc;
     }
+
+    public void setCacheTime( int seconds ){
+	setHeader("Cache-Control" , "max-age=" + seconds );
+	setDateHeader( "Expires" , System.currentTimeMillis() + ( 1000 * seconds ) );
+    }
     
+    public void setDateHeader( String n , long t ){
+	synchronized( HeaderTimeFormat ) {
+	    setHeader( n , HeaderTimeFormat.format( new Date(t) ) );
+	}
+    }
+
     public void setHeader( String n , String v ){
         _headers.put( n , v );
     }
@@ -74,6 +92,10 @@ public class HttpResponse {
 
         if ( _cleaned )
             throw new RuntimeException( "already cleaned" );
+        
+        if ( _numDataThings() > 1 )
+            throw new RuntimeException( "too much data" );
+
 
         if ( ! _sentHeader ){
             final String header = _genHeader();
@@ -85,16 +107,17 @@ public class HttpResponse {
             _sentHeader = true;
         }
         
-        if ( _numDataThings() == 0 )
-            throw new RuntimeException( "need data" );
-        if ( _numDataThings() > 1 )
-            throw new RuntimeException( "too much data" );
-        
         if ( _file != null ){
             if ( _fileChannel == null )
                 _fileChannel = (new FileInputStream(_file)).getChannel();
-            System.out.println( _fileChannel );
-            _fileSent += _fileChannel.transferTo( _fileSent , Long.MAX_VALUE , _handler.getChannel() );
+            
+            try {
+                _fileSent += _fileChannel.transferTo( _fileSent , Long.MAX_VALUE , _handler.getChannel() );
+            }
+            catch ( IOException ioe ){
+                if ( ioe.toString().indexOf( "Resource temporarily unavailable" ) < 0 )
+                    throw ioe;
+            }
             if ( _fileSent < _file.length() ){
                 if ( HttpServer.D ) System.out.println( "only sent : " + _fileSent );
                 _handler.registerForWrites();
@@ -163,11 +186,18 @@ public class HttpResponse {
             _writer._push();
 
         // need to only do this if not chunked
-        if ( _done && _stringContent != null && _headers.get( "Content-Length") == null ){
-            int cl = 0;
-            for ( ByteBuffer buf : _stringContent )
-                cl += buf.limit();
-            a.append( "Content-Length: " ).append( String.valueOf( cl ) ).append( "\r\n" );
+        if ( _done && _headers.get( "Content-Length") == null ){
+            
+            if ( _stringContent != null ){
+                int cl = 0;
+                for ( ByteBuffer buf : _stringContent )
+                    cl += buf.limit();
+                a.append( "Content-Length: " ).append( String.valueOf( cl ) ).append( "\r\n" );
+            }
+            else if ( _numDataThings() == 0 ) {
+                a.append( "Content-Length: 0\r\n" );
+            }
+            
         }
         
         // empty line
@@ -271,7 +301,7 @@ public class HttpResponse {
             _cur = _charBufPool.get();
             _resetBuf();
         }
-        
+
         public JxpWriter print( int i ){
             return print( String.valueOf( i ) );
         }

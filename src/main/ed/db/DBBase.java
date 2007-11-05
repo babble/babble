@@ -5,20 +5,25 @@ package ed.db;
 import java.util.*;
 
 import ed.js.*;
+import ed.js.engine.*;
+import ed.js.func.*;
 
 public abstract class DBBase extends JSObjectLame {
 
     public abstract DBCollection getCollection( String name );
     public abstract Collection<String> getCollectionNames();
-    
+
     public Object get( Object n ){
         if ( n == null )
             return null;
         
+        if ( n.toString().equals( "tojson" ) )
+            return _tojson;
+
         if ( n instanceof String || 
              n instanceof JSString )
             return getCollection( n.toString() );
-        
+
         return null;
     }
 
@@ -26,5 +31,10 @@ public abstract class DBBase extends JSObjectLame {
         return getCollectionNames();
     }
 
-
+    class tojson extends JSFunctionCalls0{
+        public Object call( Scope s , Object foo[] ){
+            return toString();
+        }
+    }
+    tojson _tojson = new tojson();
 }
