@@ -105,8 +105,8 @@ public abstract class DBCollection extends JSObjectLame {
                     if ( o instanceof JSObject ){
                         Iterator<JSObject> l = find( (JSObject)o );
                         if ( l == null )
-                            return (new LinkedList<JSObject>()).iterator();
-                        return l;
+                            l = (new LinkedList<JSObject>()).iterator();
+                        return new DBCursor( l );
                     }
                     
                     throw new RuntimeException( "wtf : " + o.getClass() );
