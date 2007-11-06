@@ -4,10 +4,10 @@
     var wiki = db.wiki;
     
     var name = request.name;
-    
+    if ( ! name )
+	name = "Main";    
+
     var lookup = { name : name };
-    if ( ! lookup.name )
-        lookup.name = "Main";
 
     var wo = wiki.findOne( lookup );
 
@@ -26,35 +26,24 @@
     <title><%= wo.name %></title>
 
     <script src="lib/wiky.js"></script>
-    <script src="lib/vi.js"></script>
-
     <link rel="stylesheet" href="lib/wiky.css" type="text/css">
-    <link rel="stylesheet" href="lib/vi.css" type="text/css">
+    <link rel="stylesheet" href="git/gitweb.css" type="text/css">
 
     <script>
       
-      var editing = false;
+      var editing = <%= request.e ? "true" : "false" %>;
       
-      function doneEditing(){
-         editing = false;
-         document.getElementById( "main_content" ).innerHTML = Wiky.toHtml( document.getElementById( "the_area" ).value );
-         document.getElementById( "msg" ).innerHTML = "Not Saved";
-      }
-
       function edit(){
-         editor( document.getElementById( "the_area" ) , doneEditing );
+	 window.location = "wiki.jxp?name=" + "<%= name %>" + "&e=t";
       }
       
       window.onkeydown = function( e ){
-         if ( editing )
-            return;
       
-         if ( e.which == 69 ){
-            editing = true;
+         if ( ! editing && e.which == 69 ){
             edit();
          }
 
-         if ( e.which == 83 ){
+         if ( editing && e.ctrlKey && ( e.which == 13 || e.which == 77 ) ){
             document.getElementById( "the_form" ).submit();
          }
       }
@@ -64,26 +53,26 @@
   <body>
     <h2><%= wo.name %></h2>
     
-    <h3 style="color:red;" id="msg"></h3>
-
+    <% if ( ! request.e ){ %>
     <div style="border: 1px solid green;" id="main_content" >
       <%= wo.text ? Wiky.toHtml( wo.text ) : "No Article Yet" %>
     </div>
-        
-    <div style="display:none;">
+    <% } else { %>
+    <div>
       <form id="the_form" method="POST" action="wiki.jxp">
         <input name="name" type="hidden" value="<%= wo.name %>">
-        <textarea name="new_text" id="the_area"><%= wo.text %></textarea>
+        <textarea rows=20 cols=100 name="new_text" id="the_area"><%= wo.text %></textarea>
         <input name="action" type="submit" value="save">
       </form>
     </div>
+    <% } %>
 
     <hr>
     <b>All Articles</b>
     <ul>
       <%
 {
-    var all = wiki.find();
+    var all = wiki.find( null , { name : true } );
     for ( ; all.hasNext() ; ){
         var temp = all.next().name;
         print( "<li><a href='wiki.jxp?name=" + temp + "'>" + temp + "</a></li>" );
@@ -96,7 +85,7 @@
     <hr>
     <pre>
       e - edits
-      s - saves after editing
+      ctrl-enter - saves after editing
       
       note: there seems to be a little issue with the editor.  
             may fail the first time, just hit abort and try again

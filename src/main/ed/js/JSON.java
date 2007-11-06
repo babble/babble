@@ -79,7 +79,9 @@ public class JSON {
 
             if ( something instanceof JSString || 
                  something instanceof String ){
-                a.append( "\"" + something + "\"" );
+		String foo = something.toString();
+		foo = foo.replaceAll( "\"" , "\\\\\"" );
+                a.append( "\"" + foo + "\"" );
                 return;
             }
 
