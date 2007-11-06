@@ -133,9 +133,6 @@ public abstract class DBCollection extends JSObjectLame {
                                   return a.getInt( 0 );
                               }
                               
-                              if ( res instanceof JSObject )
-                                  return res;
-                              
                               if ( res instanceof Iterator ){
                                   Iterator<JSObject> it = (Iterator<JSObject>)res;
                                   if ( ! it.hasNext() )
@@ -143,6 +140,9 @@ public abstract class DBCollection extends JSObjectLame {
                                   return it.next();
                               }
 
+                              if ( res instanceof JSObject )
+                                  return res;
+                              
                               throw new RuntimeException( "wtf : " + res.getClass() );
                           }
                       } );
