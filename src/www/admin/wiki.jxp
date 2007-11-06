@@ -72,7 +72,7 @@
     <ul>
       <%
 {
-    var all = wiki.find();
+    var all = wiki.find( null , { name : true } );
     for ( ; all.hasNext() ; ){
         var temp = all.next().name;
         print( "<li><a href='wiki.jxp?name=" + temp + "'>" + temp + "</a></li>" );
