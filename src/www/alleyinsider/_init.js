@@ -39,7 +39,7 @@ function allowed( req , res , uri ){
     var auth = Auth.getUserAndPass( req );
     if ( auth ){
         if ( auth.user == "abc" && auth.pass == "17" ){
-            user = auth.user;x
+            user = auth.user;
             return;
         }
     }
