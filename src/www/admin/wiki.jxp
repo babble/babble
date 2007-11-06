@@ -1,6 +1,8 @@
 <%
 {
-
+	
+    request.applyServletParams( /^\/wiki\/([^\/]+)/ , [ "name" ] );
+	
     var wiki = db.wiki;
     
     var name = request.name;
@@ -25,16 +27,16 @@
   <head>
     <title><%= wo.name %></title>
 
-    <script src="lib/wiky.js"></script>
-    <link rel="stylesheet" href="lib/wiky.css" type="text/css">
-    <link rel="stylesheet" href="git/gitweb.css" type="text/css">
+    <script src="/lib/wiky.js"></script>
+    <link rel="stylesheet" href="/lib/wiky.css" type="text/css">
+    <link rel="stylesheet" href="/git/gitweb.css" type="text/css">
 
     <script>
       
       var editing = <%= request.e ? "true" : "false" %>;
       
       function edit(){
-	 window.location = "wiki.jxp?name=" + "<%= name %>" + "&e=t";
+	 window.location = "/wiki/" + "<%= name %>" + "?e=t";
       }
       
       window.onkeydown = function( e ){
@@ -59,8 +61,7 @@
     </div>
     <% } else { %>
     <div>
-      <form id="the_form" method="POST" action="wiki.jxp">
-        <input name="name" type="hidden" value="<%= wo.name %>">
+      <form id="the_form" method="POST" action="/wiki/<%= name %>">
         <textarea rows=20 cols=100 name="new_text" id="the_area"><%= wo.text %></textarea>
         <input name="action" type="submit" value="save">
       </form>
@@ -75,7 +76,7 @@
     var all = wiki.find( null , { name : true } );
     for ( ; all.hasNext() ; ){
         var temp = all.next().name;
-        print( "<li><a href='wiki.jxp?name=" + temp + "'>" + temp + "</a></li>" );
+        print( "<li><a href='/wiki/" + temp + "'>" + temp + "</a></li>" );
     }
 }
        %>

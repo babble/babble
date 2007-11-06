@@ -56,7 +56,7 @@ var Wiky = {
        { rex:/%(.*?)%/g, tmplt:function($0,$1){return Wiky.store("<code>" + Wiky.apply($2, Wiky.rules.code) + "</code>");} }
      ],
      wikiinlines: [
-       { rex:/\[\[(.+)\]\]/g, tmplt:function($0,$1){return Wiky.store("<a href=\"wiki.jxp?name="+$1+"\">"+$1+"</a>");}},  // ERH [[asd]]
+       { rex:/\[\[(.+)\]\]/g, tmplt:function($0,$1){return Wiky.store("<a href=\"/wiki/"+$1+"\">"+$1+"</a>");}},  // ERH [[asd]]
        { rex:/\*([^*]+)\*/g, tmplt:"<strong>$1</strong>" },  // .. strong ..
        { rex:/_([^_]+)_/g, tmplt:"<em>$1</em>" },
        { rex:/\^([^^]+)\^/g, tmplt:"<sup>$1</sup>" },
