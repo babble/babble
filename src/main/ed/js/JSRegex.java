@@ -59,6 +59,10 @@ public class JSRegex extends JSObjectBase {
         return toString().equals( o.toString() );
     }
 
+    public Pattern getCompiled(){
+        return _patt;
+    }
+
     final String _p;
     final String _f;
 
