@@ -18,9 +18,14 @@ public abstract class DBCollection extends JSObjectLame {
     
     public abstract JSObject find( ObjectId id );    
     
-    public abstract Iterator<JSObject> find( JSObject ref );
+    public abstract Iterator<JSObject> find( JSObject ref , JSObject fields );
 
     // ------
+
+    public Iterator<JSObject> find( JSObject ref ){
+        return find( ref , null );
+    }
+
 
     // ------
 
@@ -93,8 +98,8 @@ public abstract class DBCollection extends JSObjectLame {
             };
         _entries.put( "apply" , _apply );
 
-        _find = new JSFunctionCalls1() {
-                public Object call( Scope s , Object o , Object foo[] ){
+        _find = new JSFunctionCalls2() {
+                public Object call( Scope s , Object o , Object fieldsWantedO , Object foo[] ){
                     
                     if ( o == null )
                         o = new JSObjectBase();
@@ -103,7 +108,7 @@ public abstract class DBCollection extends JSObjectLame {
                         return find( (ObjectId)o );
 
                     if ( o instanceof JSObject ){
-                        Iterator<JSObject> l = find( (JSObject)o );
+                        Iterator<JSObject> l = find( (JSObject)o , (JSObject)fieldsWantedO );
                         if ( l == null )
                             l = (new LinkedList<JSObject>()).iterator();
                         return new DBCursor( l );

@@ -19,7 +19,7 @@ public class Export {
 
         Map<String,List<String>> m = new HashMap<String,List<String>>();
         
-        for ( Iterator<JSObject> i = namespaces.find( new JSObjectBase() ) ; i.hasNext() ;  ){
+        for ( Iterator<JSObject> i = namespaces.find( new JSObjectBase() , null ) ; i.hasNext() ;  ){
             JSObject o = i.next();
             String n = o.get( "name" ).toString();
             int idx = n.indexOf( "." );
@@ -49,7 +49,7 @@ public class Export {
                 DBCollection c = db.getCollection( t );
                 out.println( "var t = " + root + "." + t + ";" );
                 
-                Iterator<JSObject> all = c.find( new JSObjectBase() );
+                Iterator<JSObject> all = c.find( new JSObjectBase() , null );
                 for( ; all.hasNext(); ){
                     JSObject o = all.next();
                     String nice = JSON.serialize( o ).replace( '\r' , ' ' );

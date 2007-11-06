@@ -64,7 +64,7 @@ public class TestDB extends DBBase {
             return _objects.get( id );
         }
 
-        public Iterator<JSObject> find( JSObject obj ){
+        public Iterator<JSObject> find( JSObject obj , JSObject fields ){
 
             List<JSObject> lst = null;
             

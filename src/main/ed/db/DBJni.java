@@ -123,7 +123,7 @@ public class DBJni extends DBBase {
             return -1;
         }
 
-        public Iterator<JSObject> find( JSObject ref ){
+        public Iterator<JSObject> find( JSObject ref , JSObject fields ){
 
             ByteEncoder encoder = new ByteEncoder();
             
@@ -131,7 +131,9 @@ public class DBJni extends DBBase {
             encoder._put( _fullNameSpace );
             
             encoder._buf.putInt( 0 ); // num to return
-            encoder.putObject( null , ref );
+            encoder.putObject( null , ref ); // ref
+            if ( fields != null )
+                encoder.putObject( null , fields ); // fields to return
             encoder.flip();
             
             ByteDecoder decoder = new ByteDecoder();
