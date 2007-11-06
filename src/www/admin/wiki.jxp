@@ -27,6 +27,7 @@
 
     <script src="lib/wiky.js"></script>
     <link rel="stylesheet" href="lib/wiky.css" type="text/css">
+    <link rel="stylesheet" href="git/gitweb.css" type="text/css">
 
     <script>
       
