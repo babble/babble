@@ -4,10 +4,10 @@
     var wiki = db.wiki;
     
     var name = request.name;
-    
+    if ( ! name )
+	name = "Main";    
+
     var lookup = { name : name };
-    if ( ! lookup.name )
-        lookup.name = "Main";
 
     var wo = wiki.findOne( lookup );
 
