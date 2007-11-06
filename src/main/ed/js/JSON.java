@@ -21,9 +21,13 @@ public class JSON {
     }
 
     public static String serialize( Object o ){
+        return serialize( o , "\n" );
+    }
+
+    public static String serialize( Object o , String nl ){
         StringBuilder buf = new StringBuilder();
         try {
-            serialize( buf , o );
+            serialize( buf , o , nl );
         }
         catch ( java.io.IOException e ){
             throw new RuntimeException( e );
@@ -33,7 +37,12 @@ public class JSON {
 
     public static void serialize( Appendable a , Object o )
         throws java.io.IOException {
-        Serializer.go( a , o , 0 );
+        serialize( a , o , "\n" );
+    }
+
+    public static void serialize( Appendable a , Object o , String nl )
+        throws java.io.IOException {
+        Serializer.go( a , o , 0 , nl );
     }
     
     static class Serializer {
@@ -51,7 +60,7 @@ public class JSON {
             return s;
         }
         
-        static void go( Appendable a , Object something , int indent )
+        static void go( Appendable a , Object something , int indent , String nl )
             throws java.io.IOException {
             
             if ( something == null ){
@@ -95,7 +104,7 @@ public class JSON {
                 for ( int i=0; i<arr._array.size(); i++ ){
                     if ( i > 0 )
                         a.append( " , " );
-                    go( a , arr._array.get( i ) , indent );
+                    go( a , arr._array.get( i ) , indent , nl );
                 }
                 a.append( " ]" );
                 return;
@@ -120,16 +129,16 @@ public class JSON {
                 if ( first )
                     first = false;
                 else 
-                    a.append( " ,\n" );
+                    a.append( " ," + nl );
                 
                 a.append( _i( indent + 1 ) );
                 a.append( s );
                 a.append( " : " );
-                go( a , o.get( s ) , indent + 1 );
+                go( a , o.get( s ) , indent + 1 , nl );
             }
 
             a.append( _i( indent + 1 ) );
-            a.append( " }\n" );
+            a.append( " }" + nl );
         }
 
     }

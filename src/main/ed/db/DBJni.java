@@ -189,8 +189,6 @@ public class DBJni extends DBBase {
             _startingFrom = decoder.getInt();
             _num = decoder.getInt();
             
-            System.out.println( "cursor:" + _cursor );
-
             if ( _num == 0 )
                 _lst = EMPTY;
             else if ( _num < 3 )
