@@ -123,6 +123,7 @@ public class AppContext {
         
         int start = 0;
         while ( true ){
+
             int idx = uri.indexOf( "/" , start );
             if ( idx < 0 )
                 break; 

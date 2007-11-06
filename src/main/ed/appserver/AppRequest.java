@@ -43,7 +43,12 @@ public class AppRequest {
         if ( uri.endsWith( ".jxp" ) )
             return false;
         
-        if ( uri.indexOf( "." ) < 0 )
+        int period = uri.indexOf( "." );
+        if ( period < 0 )
+            return false;
+
+        String ext = uri.substring( period + 1 );
+        if ( AppServer._mimeTypes.get( ext.toLowerCase() ) == null )
             return false;
 
         return true;
