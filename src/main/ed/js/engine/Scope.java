@@ -281,11 +281,23 @@ public class Scope {
                             if ( params[i] == null ) 
                                 continue;
                             
-                            if ( myClasses[i] == String.class )
+                            Class myClass = myClasses[i];
+
+                            if ( myClass == String.class )
                                 params[i] = params[i].toString();
                             
-                            if ( ! myClasses[i].isAssignableFrom( params[i].getClass() ) )
+                            if ( myClass.isPrimitive() ){
+                                if ( myClass == Integer.TYPE || 
+                                     myClass == Long.TYPE || 
+                                     myClass == Double.TYPE ){
+                                    myClass = Number.class;
+                                }
+                            }
+
+                            if ( ! myClass.isAssignableFrom( params[i].getClass() ) ){
+                                System.out.println( "\t faile b/c " + myClasses[i] + " " + params[i].getClass() );
                                 continue methods;
+                            }
                             
                         }
                     }

@@ -19,7 +19,8 @@ public class Export {
 
         Map<String,List<String>> m = new HashMap<String,List<String>>();
         
-        for ( JSObject o : namespaces.find( new JSObjectBase() ) ){
+        for ( Iterator<JSObject> i = namespaces.find( new JSObjectBase() , null ) ; i.hasNext() ;  ){
+            JSObject o = i.next();
             String n = o.get( "name" ).toString();
             int idx = n.indexOf( "." );
             
@@ -41,16 +42,17 @@ public class Export {
                 continue;
 
             DBJni db = new DBJni( root , ip );
-            out.println( "var " + root + " = db." + root + ";" );
+            out.println( "var " + root + " = connect( \"" + root + "\" );" );
             
             List<String> tables = m.get( root );
             for ( String t : tables ){
                 DBCollection c = db.getCollection( t );
                 out.println( "var t = " + root + "." + t + ";" );
                 
-                List<JSObject> all = c.find( new JSObjectBase() );
-                for( JSObject o : all ){
-                    String nice = JSON.serialize( o ).replace( '\r' , ' ' );
+                Iterator<JSObject> all = c.find( new JSObjectBase() , null );
+                for( ; all.hasNext(); ){
+                    JSObject o = all.next();
+                    String nice = JSON.serialize( o , "" ).replace( '\r' , ' ' );
                     nice = nice.replaceAll( "\n" , "\\\\n" );
                     out.println( "t.save( " + nice  + ");" );
                 }
@@ -62,7 +64,15 @@ public class Export {
     public static void main( String args[] )
         throws Exception {
 
-        export( args[0] , System.out );
+        String ip = "127.0.0.1";
+        if ( args.length > 0 )
+            ip = args[0];
+        
+        OutputStream out = System.out;
+        if ( args.length > 1 )
+            out = new FileOutputStream( args[1] );
+        
+        export( ip , out );
         
     }
     

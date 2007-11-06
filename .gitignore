@@ -22,3 +22,4 @@ src/main/Foo.java
 log
 build
 crap
+hs_err_*

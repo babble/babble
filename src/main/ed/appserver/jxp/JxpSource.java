@@ -43,6 +43,7 @@ public abstract class JxpSource {
                 Generator g = Generator.genJavaScript( getBlocks() );
                 _jsCodeToLines = g._jsCodeToLines;
                 String jsCode = g.toString();
+                jsCode += "\n print( \"\\n\" );";
                 
                 System.out.println( jsCode );
 

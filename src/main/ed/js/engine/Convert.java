@@ -376,6 +376,7 @@ public class Convert {
         case Token.SUB:
         case Token.EQ:
         case Token.GE:
+        case Token.LE:
         case Token.LT:
         case Token.GT:
         case Token.BITOR:
@@ -506,9 +507,9 @@ public class Convert {
                 _append( " ; " , n );
             }
             
-            _append( "  \n " , n );
+            _append( "  \n JS_evalToBool( " , n );
             _add( n.getFirstChild().getNext() , state );
-            _append( " ; \n" , n );
+            _append( " ) ; \n" , n );
             _add( n.getFirstChild().getNext().getNext() , state );
             _append( " )\n " , n );
             _add( n.getFirstChild().getNext().getNext().getNext() , state );
@@ -1085,6 +1086,7 @@ public class Convert {
         _2ThingThings.put( Token.NE , "eq" );
         
         _2ThingThings.put( Token.GE , "ge" );
+        _2ThingThings.put( Token.LE , "le" );
         _2ThingThings.put( Token.LT , "lt" );
         _2ThingThings.put( Token.GT , "gt" );
 

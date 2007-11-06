@@ -75,13 +75,12 @@ public class JxpServlet {
                 
                 if ( changed ){
                     re.setStackTrace( stack );
-                    System.out.println( "yay" );
                 }
             }
             throw re;
         }
     }
-
+    
     final JxpSource _source;
     final JSFunction _theFunction;
 }

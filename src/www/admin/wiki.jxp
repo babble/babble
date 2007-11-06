@@ -73,8 +73,8 @@
       <%
 {
     var all = wiki.find();
-    for ( var i=0; i<all.length; i++ ){
-        var temp = all[i].name;
+    for ( ; all.hasNext() ; ){
+        var temp = all.next().name;
         print( "<li><a href='wiki.jxp?name=" + temp + "'>" + temp + "</a></li>" );
     }
 }
