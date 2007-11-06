@@ -101,18 +101,48 @@ public class AppContext {
     public AppRequest createRequest( HttpRequest request ){
         return new AppRequest( this , request  );
     }
+
+    File tryNoJXP( File f ){
+        if ( f.exists() )
+            return f;
+
+        if ( f.toString().indexOf( "." ) >= 0 )
+            return f;
+        
+        File temp = new File( f.toString() + ".jxp" );
+        return temp.exists() ? temp : f;
+    }
+
+    File tryServlet( File f ){
+        if ( f.exists() )
+            return f;
+        
+        String uri = f.toString().substring( _rootFile.toString().length() );
+        while ( uri.startsWith( "/" ) )
+            uri = uri.substring( 1 );
+        
+        int start = 0;
+        while ( true ){
+            int idx = uri.indexOf( "/" , start );
+            if ( idx < 0 )
+                break; 
+            String foo = uri.substring( 0 , idx );
+            File temp = getFile( foo + ".jxp" );
+
+            if ( temp.exists() )
+                f = temp;
+            
+            start = idx + 1;
+        }
+
+        return f;
+    }
     
     public JxpSource getSource( File f )
         throws IOException {
-
-        if ( ! f.exists() ){
-            if ( f.toString().indexOf( "." ) < 0 ){
-                File temp = new File( f.toString() + ".jxp" );
-                if ( temp.exists() )
-                    f = temp;
-            }
-        }
-                
+    
+        f = tryNoJXP( f );
+        f = tryServlet( f );
 
         if ( _inScopeInit )
             _initFlies.add( f );
