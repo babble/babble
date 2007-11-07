@@ -45,6 +45,7 @@
 
     <copy todir="build">
       <fileset dir="src/main" includes="**/*.properties"/>
+      <fileset dir="src/main" includes="**/*.js"/>
     </copy>
 
     <javac srcdir="src/test"
