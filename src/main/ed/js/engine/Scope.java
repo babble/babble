@@ -6,6 +6,7 @@ import java.io.*;
 import java.lang.reflect.*;
 import java.util.*;
 
+import ed.io.*;
 import ed.js.*;
 import ed.js.func.*;
 
@@ -204,6 +205,20 @@ public class Scope {
         _global = g;
     }
 
+    public Object evalFromPath( String file , String name )
+        throws IOException {
+        return eval( ClassLoader.getSystemClassLoader().getResourceAsStream( file ) , name );
+    }
+
+    public Object eval( File f , String name )
+        throws IOException {
+        return eval( new FileInputStream( f ) , name );
+    }
+
+    public Object eval( InputStream in , String name )
+        throws IOException {
+        return eval( StreamUtil.readFully( in ) , name );
+    }
 
     public Object eval( String code )
         throws IOException {

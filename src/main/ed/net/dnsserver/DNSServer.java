@@ -29,10 +29,7 @@ public class DNSServer extends Thread {
         _scope = Scope.GLOBAL.child();
         _scope.setGlobal( true );
 
-        String dnsCode = StreamUtil.readFully( ClassLoader.getSystemClassLoader().getResourceAsStream( "ed/net/dnsserver/dns.js" ) );
-        Convert c = new Convert( "dns.js" , dnsCode );
-        c.get().call( _scope );
-        
+        _scope.evalFromPath( "ed/net/dnsserver/dns.js" , "dns.js" );
         _function = _scope.getFunction( "eval" );
         
         _scope.put( "add" , 
