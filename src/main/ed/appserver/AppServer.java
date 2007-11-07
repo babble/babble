@@ -16,15 +16,91 @@ import ed.appserver.jxp.*;
 public class AppServer implements HttpHandler {
 
     static boolean D = Boolean.getBoolean( "DEBUG.APP" );
+    static String OUR_DOMAINS[] = new String[]{ ".latenightcoders.com" };
 
     public AppServer( AppContext defaultContext ){
+        this( defaultContext , null );
+    }
+    
+    public AppServer( String defaultContext , String root ){
+        this( new AppContext( defaultContext ) , root );
+    }
+
+    public AppServer( AppContext defaultContext , String root ){
         _defaultContext = defaultContext;
+        _root = root;
+        _rootFile = _root == null ? null : new File( _root );
     }
 
     public AppContext getContext( HttpRequest request ){
+        return getContext( request.getHeader( "Host" ) );
+    }
+    
+    public AppContext getContext( String host ){
+        if ( host == null || _root == null )
+            return _defaultContext;
+
+        AppContext ac = _context.get( host );
+        if ( ac != null )
+            return ac;
+
+        {
+            int colon = host.indexOf( ":" );
+            if ( colon > 0 )
+                host = host.substring( 0 , colon );
+        }
+
+        // raw {admin.latenightcoders.com}
+        File temp = new File( _root , host );
+        if ( temp.exists() )
+            return getFinalContext( temp , host );
+        
+        // check for virtual hosting under us 
+        // foo.latenightcoders.com -> foo.com
+        String useHost = host;
+        for ( String d : OUR_DOMAINS ){
+            if ( useHost.endsWith( d ) ){
+                useHost = useHost.substring( 0 , useHost.length() - d.length() ) + ".com";
+                break;
+            }
+        }
+        if ( useHost.startsWith( "www." ) )
+            useHost = useHost.substring( 4 );
+        
+        
+        // check for full host
+        temp = new File( _root , useHost );
+        if ( temp.exists() )
+            return getFinalContext( temp , host );
+        
+        // domain www.{alleyinsider.com}
+        String domain = DNSUtil.getDomain( useHost );
+        temp = new File( _rootFile , domain );
+        if ( temp.exists() )
+            return getFinalContext( temp , host );
+
+        // just name www.{alleyinsider}.com
+        int idx = domain.indexOf( "." );
+        if ( idx > 0 ){
+            temp = new File( _rootFile , domain.substring( 0 , idx ) );
+            if ( temp.exists() )
+                return getFinalContext( temp , host );
+        }
+
         return _defaultContext;
     }
 
+    AppContext getFinalContext( File f , String host ){
+        AppContext ac = _context.get( host );
+        if ( ac != null )
+            return ac;
+        
+        // TODO: branches, etc...
+        ac = new AppContext( f );
+        _context.put( host , ac );
+        return ac;
+    }
+    
     public AppRequest createRequest( HttpRequest request ){
         return getContext( request ).createRequest( request );
     }
@@ -196,6 +272,9 @@ public class AppServer implements HttpHandler {
 
     
     private final AppContext _defaultContext;
+    private final String _root;
+    private final File _rootFile;
+    private final Map<String,AppContext> _context = Collections.synchronizedMap( new StringMap<AppContext>() );
     
     static final Properties _mimeTypes;
     static {
@@ -217,7 +296,7 @@ public class AppServer implements HttpHandler {
 
         AppContext ac = new AppContext( root );
 
-        AppServer as = new AppServer( ac );
+        AppServer as = new AppServer( ac , "src/www/" );
         
         HttpServer.addGlobalHandler( as );
         

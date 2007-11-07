@@ -12,6 +12,10 @@ import ed.appserver.jxp.*;
 
 public class AppContext {
 
+    public AppContext( File f ){
+        this( f.toString() );
+    }
+
     public AppContext( String root ){
         this( root , guessName( root ) );
     }
@@ -265,6 +269,10 @@ public class AppContext {
         
         final File _base;
         
+    }
+
+    public String toString(){
+        return _rootFile.toString();
     }
 
     final String _name;
