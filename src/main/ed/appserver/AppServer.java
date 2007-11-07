@@ -37,8 +37,12 @@ public class AppServer implements HttpHandler {
     }
     
     public AppContext getContext( String host ){
-        if ( host == null || _root == null )
+        if ( host != null )
+            host = host.trim();
+        if ( host == null || _root == null || host.length() == 0 )
             return _defaultContext;
+        
+
 
         AppContext ac = _context.get( host );
         if ( ac != null )
