@@ -37,12 +37,12 @@ public class Shell {
         ConsoleReader console = new ConsoleReader();
         console.setHistory( new History( new File( ".jsshell" ) ) );
         
+        boolean hasReturn[] = new boolean[1];
+
         while ( ( line = console.readLine( "> " ) ) != null ){
             try {
-                Convert c = new Convert( "lastline" , line );
-                JSFunction f = c.get();
-                Object res = f.call( s );
-                if ( c.hasReturn() )
+                Object res = s.eval( line , "lastline" , hasReturn );
+                if ( hasReturn[0] )
                     System.out.println( JSON.serialize( res ) );
             }
             catch ( Exception e ){

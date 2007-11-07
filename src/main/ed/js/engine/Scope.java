@@ -2,6 +2,7 @@
 
 package ed.js.engine;
 
+import java.io.*;
 import java.lang.reflect.*;
 import java.util.*;
 
@@ -201,6 +202,26 @@ public class Scope {
 
     public void setGlobal( boolean g ){
         _global = g;
+    }
+
+
+    public Object eval( String code )
+        throws IOException {
+        return eval( code , "anon" );
+    }
+
+    public Object eval( String code , String name )
+        throws IOException {
+        return eval( code , name , null );
+    }
+    
+    public Object eval( String code , String name , boolean hasReturn[] )
+        throws IOException {
+        Convert c = new Convert( name , code );
+        JSFunction f = c.get();
+        if ( hasReturn != null && hasReturn.length > 0 )
+            hasReturn[0] = c.hasReturn();
+        return f.call( this );
     }
     
     final String _name;
