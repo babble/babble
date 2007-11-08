@@ -62,7 +62,22 @@ public class JSON {
         
         static void go( Appendable a , Object something , int indent , String nl )
             throws java.io.IOException {
+            go( a , something , indent , nl , 0 );
+        }
+        
+        private static void go( Appendable a , Object something , int indent , String nl , int lastNL )
+            throws java.io.IOException {
             
+            if ( nl.length() > 0 ){
+                if ( a instanceof StringBuilder ){
+                    StringBuilder sb = (StringBuilder)a;
+                    if ( sb.length() - lastNL > 60 ){
+                        a.append( nl );
+                        lastNL = sb.length();
+                    }
+                }
+            }
+
             if ( something == null ){
                 a.append( "null" );
                 return;
@@ -106,7 +121,7 @@ public class JSON {
                 for ( int i=0; i<arr._array.size(); i++ ){
                     if ( i > 0 )
                         a.append( " , " );
-                    go( a , arr._array.get( i ) , indent , nl );
+                    go( a , arr._array.get( i ) , indent , nl , lastNL );
                 }
                 a.append( " ]" );
                 return;
@@ -131,16 +146,16 @@ public class JSON {
                 if ( first )
                     first = false;
                 else 
-                    a.append( " ," + nl );
+                    a.append( " ,"  );
                 
                 a.append( _i( indent + 1 ) );
                 a.append( s );
                 a.append( " : " );
-                go( a , o.get( s ) , indent + 1 , nl );
+                go( a , o.get( s ) , indent + 1 , nl , lastNL );
             }
 
             a.append( _i( indent + 1 ) );
-            a.append( " }" + nl );
+            a.append( " }"  );
         }
 
     }

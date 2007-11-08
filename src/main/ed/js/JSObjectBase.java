@@ -24,8 +24,14 @@ public class JSObjectBase implements JSObject {
             n = n.toString();
         
         if ( n instanceof String ){
-            if ( _map == null )
+            if ( _map == null ){
                 _map = new TreeMap<String,Object>();
+                _keys = new ArrayList<String>();
+            }
+            
+            if ( ! _map.containsKey( n ) )
+                _keys.add( (String)n );
+            
             _map.put( (String)n , v );
             return v;
         }
@@ -68,16 +74,17 @@ public class JSObjectBase implements JSObject {
     }
 
     public Collection<String> keySet(){
-        if ( _map == null )
+        if ( _keys == null )
             return EMPTY_SET;
-        return _map.keySet();
+        return _keys;
     }
 
     public String toString(){
         return "Object";
     }
 
-    private Map<String,Object> _map = null;// = new TreeMap<String,Object>();
+    private Map<String,Object> _map = null;
+    private List<String> _keys = null;
     private JSFunction _constructor;
 
     static final Set<String> EMPTY_SET = Collections.unmodifiableSet( new HashSet<String>() );
