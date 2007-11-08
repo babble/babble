@@ -99,27 +99,30 @@ public class HttpServer extends NIOServer {
             }
             if ( D ) System.out.println( _in );
             
+            // this gets called when the header is parsed, but we may have content
             if ( _lastRequest != null && _lastResponse == null ){
                 int end = _endOfHeader;
                 end++;
                                 
                 final int cl = _lastRequest.getIntHeader( "Content-Length" , 0 );
-                if ( cl > 0 ){
-                    if ( cl > ( 1024 * 1024 * 10  ) )
-                        throw new RuntimeException( "content-length way too big" );
-                    
-                    int dataReady = _in.position() - _endOfHeader;
-                    if ( dataReady < cl )
-                        return false;
-                    
-                    byte postData[] = new byte[cl];
-                    for ( int i=0; i<postData.length; i++ )
-                        postData[i] = _in.get( i + end );
-                    _lastRequest._postData = postData;
-                    
-                    end += cl;
-                }
+                PostData pd = null;
 
+                if ( cl > 0 ){
+                    if ( _lastRequest._postData == null )
+                        _lastRequest._postData = PostData.create( _lastRequest );
+                    
+                    pd = _lastRequest._postData;
+                    
+                    while ( end < _in.position() && ! pd.done() )
+                        pd.put( _in.get( end++ ) );
+                    
+                    if ( ! pd.done() ){
+                        _in.position( _endOfHeader + 1 );
+                        return false;
+                    }
+                }
+                
+                // move anything extraneous to the front for pipelining, etc...
                 int np = 0;
                 while ( end < _in.position() ){
                     _in.put( np++ , _in.get( end ) );

@@ -197,58 +197,15 @@ public class HttpRequest implements ed.js.JSObject {
 
         if ( ! _parsedPost && _postData != null && _command.equalsIgnoreCase( "POST" ) ){
             _parsedPost = true;
-             
-            if ( getHeader("Content-Type") != null &&
-                 getHeader("Content-Type").toLowerCase().trim().startsWith("multipart/form-data") ){
-                _handleMultipartPost();
-            }
-            else {
-                _handleRegularPost();
-            }
-            
+            _postData.go( this );
         }
+
     }
 
-    private void _handleMultipartPost(){
-        throw new RuntimeException( "can't do multipart yet" );
-    }
-    
-    private void _handleRegularPost(){
-        for ( int i=0; i<_postData.length; i++ ){
-            int start = i;
-            for ( ; i<_postData.length; i++ )
-                if ( _postData[i] == '=' ||
-                     _postData[i] == '\n' ||
-                     _postData[i] == '&' )
-                    break;
-
-            if ( i == _postData.length ){
-                _addParm( new String( _postData , start , _postData.length - start ) , null );
-                break;
-            }
-            
-            if ( _postData[i] == '\n' ||
-                 _postData[i] == '&' ){
-                _addParm( new String( _postData , start , i - start ) , null );
-                continue;
-            }
-
-            int eq = i;
-            
-            for ( ; i<_postData.length; i++ )
-                if ( _postData[i] == '\n' ||
-                     _postData[i] == '&' )
-                    break;
-            
-            _addParm( new String( _postData , start , eq - start ) ,
-                      new String( _postData , eq + 1 , i - ( eq + 1 ) ) );
-                
-        }
-    }
-
-    private void _addParm( String n , String val ){
+    void _addParm( String n , String val ){
+        
         n = n.trim();
-
+        
         if ( val == null ){
             _parameters.put( n , val );
             return;
@@ -273,7 +230,7 @@ public class HttpRequest implements ed.js.JSObject {
     final Map<String,String> _headers = new StringMap<String>();
 
     boolean _parsedPost = false;
-    byte _postData[];
+    PostData _postData;
 
     boolean _parsedURL = false;
     final Map<String,String> _parameters = new StringMap<String>();

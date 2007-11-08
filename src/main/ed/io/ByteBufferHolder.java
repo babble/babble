@@ -39,7 +39,7 @@ public class ByteBufferHolder {
     public void position( int p ){
         _pos = p;
         int num = _pos / _bufSize;
-        int pos = _pos & _bufSize;
+        int pos = _pos % _bufSize;
         ByteBuffer bb = _buffers.get( num );
         bb.position( pos );
         for ( int i=num+1; i<_buffers.size(); i++ )
@@ -77,7 +77,11 @@ public class ByteBufferHolder {
     }
     
     public String toString(){
-        return "ByteBufferHolder pos:" + _pos;
+        StringBuilder buf = new StringBuilder();
+        buf.append( "{ ByteBufferHolder pos:" + _pos + " " );
+        for ( ByteBuffer bb : _buffers )
+            buf.append( bb ).append( " " );
+        return buf.append( "}" ).toString();
     }
 
     List<ByteBuffer> _buffers = new ArrayList<ByteBuffer>();
