@@ -33,6 +33,11 @@ public class Shell {
             } , true  );
         
 
+        File init = new File( System.getenv( "HOME" ) + "/.init.js" );
+        System.out.println( init );
+        if ( init.exists() )
+            s.eval( init );
+        
         String line;
         ConsoleReader console = new ConsoleReader();
         console.setHistory( new History( new File( ".jsshell" ) ) );

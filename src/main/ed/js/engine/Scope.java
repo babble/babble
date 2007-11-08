@@ -210,6 +210,11 @@ public class Scope {
         return eval( ClassLoader.getSystemClassLoader().getResourceAsStream( file ) , name );
     }
 
+    public Object eval( File f )
+        throws IOException {
+        return eval( f , f.toString() );
+    }
+
     public Object eval( File f , String name )
         throws IOException {
         return eval( new FileInputStream( f ) , name );
