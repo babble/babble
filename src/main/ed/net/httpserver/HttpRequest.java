@@ -150,14 +150,10 @@ public class HttpRequest implements ed.js.JSObject {
     }
     
     public boolean applyServletParams( JSRegex regex , JSArray names ){
-        System.out.println( regex.getCompiled() );
+
         Matcher m = regex.getCompiled().matcher( getURI() );
-        System.out.println( "m : " + m );
-        if ( ! m.find() ){
-            System.out.println( "no match" );
+        if ( ! m.find() )
             return false;
-        }
-        
 
         for ( int i=1; i<=m.groupCount() && ( i - 1 ) < names.size() ; i++ )
             _addParm( names.get( i - 1 ).toString() , m.group( i ) );

@@ -4,6 +4,9 @@ package ed.net.httpserver;
 
 import java.io.*;
 import java.nio.*;
+import java.util.*;
+
+import ed.util.*;
 
 public abstract class PostData {
 
@@ -19,18 +22,37 @@ public abstract class PostData {
         if ( ! multipart ){
             if ( cl > InMemory.MAX )
                 throw new RuntimeException( "can't have regular post greater than 10 mb" );
-            return new InMemory( cl , multipart );
+            return new InMemory( cl , multipart , ct );
         }
         
         if ( cl > InMemory.MAX )
             throw new RuntimeException( "can't handle huge stuff yet" );
         
-        return new InMemory( cl , multipart );
+        return new InMemory( cl , multipart , ct );
     }
 
-    PostData( int len , boolean multipart ){
+    static byte[] _parseBoundary( String ct ){
+        if ( ct == null )
+            return null;
+
+        final String thing = "boundary=";
+
+        int start = ct.indexOf( thing );
+        if ( start <= 0 )
+            return null;
+        
+        int end = ct.indexOf( ";" , start );
+        if ( end < 0 )
+            end = ct.length();
+        
+        return ( "--" + ct.substring( start + thing.length() , end ) ).getBytes();
+    }
+
+    PostData( int len , boolean multipart , String contentType ){
         _len = len;
         _multipart = multipart;
+        _contentType = contentType;
+        _boundary = _parseBoundary( _contentType );
     }
 
     abstract int position();
@@ -38,8 +60,20 @@ public abstract class PostData {
     abstract void put( byte b );
 
     abstract String string( int start , int end );
+    
+    int indexOf( byte b[] , int start ){
+        
+        outer:
+        for ( int i=start; i<_len-b.length; i++ ){
+            for ( int j=0; j<b.length; j++ )
+                if ( b[j] != get( i + j ) )
+                    continue outer;
 
-
+            return i;
+        }
+        return -1;
+    }
+    
     boolean done(){
         final int pos = position();
         if ( pos > _len )
@@ -52,8 +86,68 @@ public abstract class PostData {
             addRegularParams( req );
             return;
         }
+        
+        parseMultiPart( req );
+    }
 
-        throw new RuntimeException( "can't do multi part yet" );
+    private void parseMultiPart( HttpRequest req ){
+        
+        int start = indexOf( _boundary , 0 );
+        if ( start < 0 )
+            return;
+        
+        start += _boundary.length + 1;
+
+        while ( start < _len ){
+            
+            if ( get( start ) == '\n' )
+                start++;
+            
+            int end = indexOf( _boundary , start );
+            if ( end < 0 ){
+                if ( get( start ) == '-' )
+                    break;
+                end = position();
+            }
+
+            
+            Map<String,String> headers = new StringMap<String>();
+            String cd = null;
+            while ( true ){
+                int eol = start;
+                for ( ; eol < _len; eol++ )
+                    if ( get( eol ) == '\n' )
+                        break;
+
+                String line = string( start , eol - start ).trim();
+                start = eol + 1;
+                if ( line.length() == 0 )
+                    break;
+                
+                int col = line.indexOf( ":" );
+                if ( col < 0 )
+                    continue;
+                
+                final String name = line.substring( 0 , col ).trim();
+                final String value = line.substring( col + 1 ).trim();
+                if ( name.equalsIgnoreCase( "Content-Disposition" ) )
+                    cd = value;
+                headers.put( name , value );
+            }
+            
+            if ( cd.startsWith( "form-data;" ) ){
+                int idx = cd.indexOf( "name=\"" );
+                int idx2 = cd.indexOf( "\"" , idx + 6 );
+                String name = cd.substring( idx + 6 , idx2 ).trim();
+                req._addParm( name , string( start , end - start ).trim() );
+            }
+            else {
+                throw new RuntimeException( "can't handle : " + cd );
+            }
+            
+            start = end + _boundary.length + 1;
+        }
+        
     }
 
     private void addRegularParams( HttpRequest req ){
@@ -89,12 +183,18 @@ public abstract class PostData {
         }
     }
 
+    String status(){
+        return "{" + position() + "/" + _len + " mp:" + _multipart + "}";
+    }
+
     final int _len;
     final boolean _multipart;
+    final String _contentType;
+    final byte[] _boundary;
 
     static class InMemory extends PostData {
-        InMemory( int cl , boolean multipart ){
-            super( cl , multipart );
+        InMemory( int cl , boolean multipart , String ct ){
+            super( cl , multipart , ct );
             _data = new byte[cl];
             _pos = 0;
         }
