@@ -5,6 +5,7 @@ package ed.net.httpserver;
 import java.io.*;
 import java.nio.*;
 import java.util.*;
+import java.util.regex.*;
 
 import ed.util.*;
 
@@ -59,7 +60,7 @@ public abstract class PostData {
     abstract byte get( int pos );
     abstract void put( byte b );
 
-    abstract String string( int start , int end );
+    abstract String string( int start , int len );
     
     int indexOf( byte b[] , int start ){
         
@@ -112,7 +113,8 @@ public abstract class PostData {
 
             
             Map<String,String> headers = new StringMap<String>();
-            String inputName = null;
+            Map<String,String> mainPieces = new StringMap<String>();
+
             String type = null;
             while ( true ){
                 int eol = start;
@@ -133,9 +135,9 @@ public abstract class PostData {
                 final String value = line.substring( col + 1 ).trim();
 
                 if ( name.equalsIgnoreCase( "Content-Disposition" ) ){
-                    final int idx = value.indexOf( "name=\"" );
-                    final int idx2 = value.indexOf( "\"" , idx + 6 );
-                    inputName = value.substring( idx + 6 , idx2 ).trim();
+                    Matcher temp = Pattern.compile( "; (\\w+)=\"(.*?)\"" ).matcher( value );
+                    while ( temp.find() )
+                        mainPieces.put( temp.group(1) , temp.group(2) );
                 }
                 
                 if ( name.equalsIgnoreCase( "content-type" ) )
@@ -144,11 +146,16 @@ public abstract class PostData {
                 headers.put( name , value );
             }
             
-            if ( type == null ){
-                req._addParm( inputName , string( start , end - start ).trim() );
+            if ( mainPieces.get( "filename" ) != null && type != null  ){
+                String fn = mainPieces.get( "filename" ).trim();
+                UploadFile uf = new UploadFile( fn , type , this , start , end - 1 );
+                _files.put( fn , uf );
+            }
+            else if ( type == null ){
+                req._addParm( mainPieces.get( "name" ) , string( start , end - start ).trim() );
             }
             else {
-                throw new RuntimeException( "can't handle : " + type );
+                throw new RuntimeException( "can't handle : " + type + " " + headers );
             }
             
             start = end + _boundary.length + 1;
@@ -197,7 +204,8 @@ public abstract class PostData {
     final boolean _multipart;
     final String _contentType;
     final byte[] _boundary;
-
+    final Map<String,UploadFile> _files = new TreeMap<String,UploadFile>();
+    
     static class InMemory extends PostData {
         InMemory( int cl , boolean multipart , String ct ){
             super( cl , multipart , ct );
@@ -219,10 +227,8 @@ public abstract class PostData {
             _data[_pos++] = b;
         }
 
-        String string( int start , int end ){
-            if ( end > _pos )
-                throw new RuntimeException( "end > _pos " + end + " > " + _pos );
-            return new String( _data , start , end );
+        String string( int start , int len ){
+            return new String( _data , start , len );
         }
 
         public String toString(){

@@ -96,6 +96,8 @@ public class HttpServer extends NIOServer {
                 throw ioe;
             }
             catch ( RuntimeException re ){
+                re.printStackTrace();
+                
                 if ( _lastRequest == null )
                     throw re;
                 
