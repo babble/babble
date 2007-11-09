@@ -89,6 +89,29 @@ public class HttpServer extends NIOServer {
         
         protected boolean gotData( ByteBuffer inBuf )
             throws IOException {
+            try {
+                return _gotData( inBuf );
+            }
+            catch ( IOException ioe ){
+                throw ioe;
+            }
+            catch ( RuntimeException re ){
+                if ( _lastRequest == null )
+                    throw re;
+                
+                if ( _lastResponse == null )
+                    _lastResponse = new HttpResponse( _lastRequest );
+
+                _lastResponse.setResponseCode( 501 );
+                _lastResponse.getWriter().print( "error : " + re + "\n\n" );
+                _lastResponse.done();
+            }
+            
+            return false;
+        }
+        
+        protected boolean _gotData( ByteBuffer inBuf )
+            throws IOException {
             
             if ( inBuf != null ){
                 if ( inBuf.remaining() > _in.remaining() ){

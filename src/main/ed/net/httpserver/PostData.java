@@ -112,7 +112,8 @@ public abstract class PostData {
 
             
             Map<String,String> headers = new StringMap<String>();
-            String cd = null;
+            String inputName = null;
+            String type = null;
             while ( true ){
                 int eol = start;
                 for ( ; eol < _len; eol++ )
@@ -130,19 +131,24 @@ public abstract class PostData {
                 
                 final String name = line.substring( 0 , col ).trim();
                 final String value = line.substring( col + 1 ).trim();
-                if ( name.equalsIgnoreCase( "Content-Disposition" ) )
-                    cd = value;
+
+                if ( name.equalsIgnoreCase( "Content-Disposition" ) ){
+                    final int idx = value.indexOf( "name=\"" );
+                    final int idx2 = value.indexOf( "\"" , idx + 6 );
+                    inputName = value.substring( idx + 6 , idx2 ).trim();
+                }
+                
+                if ( name.equalsIgnoreCase( "content-type" ) )
+                    type = value;
+                
                 headers.put( name , value );
             }
             
-            if ( cd.startsWith( "form-data;" ) ){
-                int idx = cd.indexOf( "name=\"" );
-                int idx2 = cd.indexOf( "\"" , idx + 6 );
-                String name = cd.substring( idx + 6 , idx2 ).trim();
-                req._addParm( name , string( start , end - start ).trim() );
+            if ( type == null ){
+                req._addParm( inputName , string( start , end - start ).trim() );
             }
             else {
-                throw new RuntimeException( "can't handle : " + cd );
+                throw new RuntimeException( "can't handle : " + type );
             }
             
             start = end + _boundary.length + 1;
