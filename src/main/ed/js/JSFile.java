@@ -6,7 +6,9 @@ import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
 
-public abstract class JSFile {
+import ed.db.*;
+
+public abstract class JSFile extends JSObjectLame {
 
     public static final int CHUNK_SIZE = 1024; // * 512;  making 1k for testing, will make 1 meg
     
@@ -42,10 +44,40 @@ public abstract class JSFile {
         return "{ JSFile.  filename:" + _filename + " contentType:" + _contentType + " length:" + _length + " }";
     }
     
+    public Object set( Object n , Object v ){
+        if ( ! ( n instanceof JSString ) &&
+             ! ( n instanceof String ) )
+            throw new RuntimeException( "you're annoying" );
+
+        final String s = n.toString();
+        
+        if ( s.equalsIgnoreCase( "_id" ) ){
+            _id = (ObjectId)v;
+            return _id;
+        }
+
+        throw new RuntimeException( "can't set : " + n + " which is a " + v.getClass() );
+    }
+    
+    public Object get( Object n ){
+        if ( ! ( n instanceof JSString ) &&
+             ! ( n instanceof String ) )
+            return null;
+        
+        final String s = n.toString();
+        
+        if ( s.equalsIgnoreCase( "_id" ) )
+            return _id;
+
+        return null;
+    }
+
     protected final String _filename;
     protected final String _contentType;
     protected final long _length;
-    
+
+    private ObjectId _id;
+
     public static class Local extends JSFile {
 
         Local( String s ){
