@@ -48,7 +48,7 @@ public class AppRequest {
             return false;
 
         String ext = uri.substring( period + 1 );
-        if ( AppServer._mimeTypes.get( ext.toLowerCase() ) == null )
+        if ( MimeTypes.get( ext.toLowerCase() ) == null )
             return false;
 
         return true;

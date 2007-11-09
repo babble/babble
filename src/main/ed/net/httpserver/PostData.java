@@ -59,9 +59,10 @@ public abstract class PostData {
     abstract int position();
     abstract byte get( int pos );
     abstract void put( byte b );
-
-    abstract String string( int start , int len );
     
+    abstract String string( int start , int len );
+    abstract void fillIn( ByteBuffer buf , int start , int end );
+
     int indexOf( byte b[] , int start ){
         
         outer:
@@ -149,7 +150,7 @@ public abstract class PostData {
             if ( mainPieces.get( "filename" ) != null && type != null  ){
                 String fn = mainPieces.get( "filename" ).trim();
                 UploadFile uf = new UploadFile( fn , type , this , start , end - 1 );
-                _files.put( fn , uf );
+                _files.put( mainPieces.get( "name" ) , uf );
             }
             else if ( type == null ){
                 req._addParm( mainPieces.get( "name" ) , string( start , end - start ).trim() );
@@ -229,6 +230,11 @@ public abstract class PostData {
 
         String string( int start , int len ){
             return new String( _data , start , len );
+        }
+
+        void fillIn( ByteBuffer buf , int start , int end ){
+            while ( start < end )
+                buf.put( _data[start++] );
         }
 
         public String toString(){

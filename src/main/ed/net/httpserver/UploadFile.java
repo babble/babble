@@ -2,10 +2,13 @@
 
 package ed.net.httpserver;
 
-public class UploadFile {
+import java.nio.*;
+
+import ed.js.*;
+
+public class UploadFile extends JSFile {
     UploadFile( String filename , String contentType , PostData pd , int start , int end ){
-        _filename = filename;
-        _contentType = contentType;
+        super( filename , contentType , end - start );
         _data = pd;
         _start = start;
         _end = end;
@@ -15,12 +18,12 @@ public class UploadFile {
         return _data.string( _start , _end - _start );
     }
 
-    public String toString(){
-        return "{UploadFile.  _filename:" + _filename + " _contentType:" + _contentType + " _start:" + _start + " _end:" + _end + "}";
+    public void fillIn( int chunkNumber , ByteBuffer buf ){
+        final int start = _start + ( chunkNumber * CHUNK_SIZE );
+        final int end = Math.min( _end , start + CHUNK_SIZE );
+        _data.fillIn( buf , start , end );
     }
 
-    final String _filename;
-    final String _contentType;
     final PostData _data;
     final int _start;
     final int _end;

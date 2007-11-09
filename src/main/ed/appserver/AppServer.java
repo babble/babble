@@ -180,7 +180,7 @@ public class AppServer implements HttpHandler {
             int idx = fileString.lastIndexOf( "." );
             if ( idx > 0 ){
                 String ext = fileString.substring( idx + 1 );
-                String type = _mimeTypes.getProperty( ext );
+                String type = MimeTypes.get( ext );
                 if ( type != null )
                     response.setHeader( "Content-Type" , type );
             }
@@ -280,17 +280,6 @@ public class AppServer implements HttpHandler {
     private final File _rootFile;
     private final Map<String,AppContext> _context = Collections.synchronizedMap( new StringMap<AppContext>() );
     
-    static final Properties _mimeTypes;
-    static {
-        try {
-            _mimeTypes = new Properties();
-            _mimeTypes.load( ClassLoader.getSystemClassLoader().getResourceAsStream( "mimetypes.properties" ) );
-        }
-        catch ( Exception e ){
-            throw new RuntimeException( e );
-        }
-    }
-
     public static void main( String args[] )
         throws Exception {
         

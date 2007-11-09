@@ -124,6 +124,13 @@ public class HttpRequest implements ed.js.JSObject {
         return new ed.js.JSString( foo );
     }
 
+    public UploadFile getFile( String name ){
+        if ( _postData == null )
+            return null;
+        
+        return _postData._files.get( name );
+    }
+
     public Object setInt( int n , Object v ){
         throw new RuntimeException( "can't set things on an HttpRequest" );
     }
