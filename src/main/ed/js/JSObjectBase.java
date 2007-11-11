@@ -13,7 +13,10 @@ public class JSObjectBase implements JSObject {
         _constructor = constructor;
     }
 
+    public void prefunc(){}
+
     public Object set( Object n , Object v ){
+        prefunc();
         if ( n == null )
             throw new NullPointerException();
         
@@ -45,6 +48,7 @@ public class JSObjectBase implements JSObject {
     }
 
     public Object get( Object n ){
+        prefunc();
         if ( n == null )
             throw new NullPointerException();
         
@@ -66,14 +70,17 @@ public class JSObjectBase implements JSObject {
     }
 
     public Object setInt( int n , Object v ){
+        prefunc();
         return set( String.valueOf( n ) , v );
     }
 
     public Object getInt( int n ){
+        prefunc();
         return get( String.valueOf( n ) );
     }
 
     public Collection<String> keySet(){
+        prefunc();
         if ( _keys == null )
             return EMPTY_SET;
         return _keys;

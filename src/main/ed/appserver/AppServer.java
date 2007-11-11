@@ -78,7 +78,7 @@ public class AppServer implements HttpHandler {
             return getFinalContext( temp , host );
         
         // domain www.{alleyinsider.com}
-        String domain = DNSUtil.getDomain( useHost );
+        String domain = useHost.indexOf(".") >= 0 ? DNSUtil.getDomain( useHost ) : useHost;
         temp = new File( _rootFile , domain );
         if ( temp.exists() )
             return getFinalContext( temp , host );

@@ -34,8 +34,9 @@ public class ByteEncoder extends Bytes {
         if ( name != null ){
             _put( myType , name );
         }
+
         final int sizePos = _buf.position();
-        _buf.putInt( 0 ); // will need to fix this later
+        _buf.putInt( 0 ); // leaving space for this.  set it at the end
         
         for ( String s : o.keySet() ){
             Object val = o.get( s );
@@ -81,6 +82,16 @@ public class ByteEncoder extends Bytes {
             return true;
         }
 
+        if ( o instanceof DBRef ){
+            putObjectId( name , ((DBRef)o)._oid );
+            return true;
+        }
+
+        if ( name != null && o.get( "_id" ) != null ){ // this means i 
+            putObjectId( name , (ObjectId)(o.get( "_id" ) ) );
+            return true;
+        }
+        
         return false;
     }
 

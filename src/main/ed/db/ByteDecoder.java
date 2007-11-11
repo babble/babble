@@ -64,7 +64,11 @@ public class ByteDecoder extends Bytes {
             break;
 
         case OID:
-            o.set( name , new ObjectId( _buf.getLong() , _buf.getInt() ) );
+            ObjectId theOID = new ObjectId( _buf.getLong() , _buf.getInt() );
+            if ( name.equals( "_id" ) )
+                o.set( name , theOID );
+            else
+                o.set( name , new DBRef( theOID ) );
             break;
             
         case DATE:

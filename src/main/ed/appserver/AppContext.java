@@ -24,7 +24,7 @@ public class AppContext {
         _name = name;
         _root = root;
         _rootFile = new File( _root );
-        _jxpObject = new JxpObject( _rootFile );
+        _jxpObject = new JxpObject( _rootFile , "" );
 
         _scope = new Scope( "AppContext:" + root , Scope.GLOBAL );
         
@@ -201,15 +201,19 @@ public class AppContext {
     
     class JxpObject extends JSObjectBase {
         
-        JxpObject( File base ){
+        JxpObject( File base , String uriBase ){
             _base = base;
+            _uriBase = uriBase;
         }
         
         public Object get( final Object n ){
+
             Object foo = _get( n );
             if ( foo instanceof JxpSource ){
                 try {
-                    foo = ((JxpSource)foo).getFunction();
+                    JSFunction func = ((JxpSource)foo).getFunction();
+                    func.setName( "jxp" + _uriBase + "." + n.toString() );
+                    foo = func;
                 }
                 catch ( IOException ioe ){
                     throw new RuntimeException( ioe );
@@ -241,7 +245,7 @@ public class AppContext {
                 throw new RuntimeException( "can't have .js and .jxp with same name" );
 
             if ( dir.exists() ){
-                return set( n , new JxpObject( dir ) );
+                return set( n , new JxpObject( dir , _uriBase + "." + n.toString() ) );
             }
 
             if ( jxp.exists() ){
@@ -268,7 +272,7 @@ public class AppContext {
         }
         
         final File _base;
-        
+        final String _uriBase;
     }
 
     public String toString(){

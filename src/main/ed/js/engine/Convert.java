@@ -983,6 +983,8 @@ public class Convert {
             it._strings = new JSString[ _strings.size() ];
             for ( int i=0; i<_strings.size(); i++ )
                 it._strings[i] = new JSString( _strings.get( i ) );
+
+            it.setName( _name );
             
             _it = it;
             return _it;

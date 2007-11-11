@@ -92,7 +92,7 @@ public abstract class DBCollection extends JSObjectLame {
                     if ( ! ( o instanceof JSObject ) )
                         throw new RuntimeException( "can't only apply JSObject" );
                     JSObject jo = (JSObject)o;
-                    jo.set( "save" , _save );
+                    //jo.set( "save" , _save );
                     return apply( jo );
                 }
             };

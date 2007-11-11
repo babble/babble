@@ -1,7 +1,7 @@
 
 all: jni
 
-INCS=-I src/p/boost
+INCS=-I src/p/boost -I/sw/include
 
 include src/p/db/makefile
 
