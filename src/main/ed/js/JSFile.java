@@ -67,6 +67,42 @@ public abstract class JSFile extends JSObjectBase {
         return "{ JSFile.  filename:" + getFileName() + " contentType:" + getContentType() + " length:" + getLength() + " }";
     }
 
+    public Sender sender(){
+        return new Sender( getFirstChunk() );
+    }        
+    
+    public static class Sender {
+        
+        Sender( JSFileChunk chunk ){
+            _chunk = chunk;
+            _buf = _chunk.getData().asByteBuffer();
+        }
+
+        /**
+         * @return true if we're all done
+         */
+        public boolean write( WritableByteChannel out )
+            throws IOException {
+            if ( _chunk == null )
+                return true;
+            
+            if ( _buf.remaining() == 0 ){
+                _buf = null;
+                _chunk = _chunk.getNext();
+                
+                if ( _chunk == null )
+                    return true;
+                
+                _buf = _chunk.getData().asByteBuffer();
+            }
+            
+            out.write( _buf );
+            return false;
+        }
+        
+        JSFileChunk _chunk;
+        ByteBuffer _buf;
+    }
 }
 
 

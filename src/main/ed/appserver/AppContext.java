@@ -5,6 +5,7 @@ package ed.appserver;
 import java.io.*;
 import java.util.*;
 
+import ed.db.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.net.httpserver.*;
@@ -57,6 +58,17 @@ public class AppContext {
     
     public String getName(){
         return _name;
+    }
+
+    JSFile getJSFile( String id ){
+        System.out.println( "id:" + id );
+
+        if ( id == null )
+            return null;
+        
+        DBBase db = (DBBase)_scope.get( "db" );
+        DBCollection f = db.getCollection( "_files" );
+        return (JSFile)(f.find( new ObjectId( id ) ));
     }
 
     Scope scopeChild(){

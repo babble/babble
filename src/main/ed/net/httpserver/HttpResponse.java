@@ -9,6 +9,7 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.nio.charset.*;
 
+import ed.js.*;
 import ed.util.*;
 
 public class HttpResponse {
@@ -141,6 +142,13 @@ public class HttpResponse {
                 _stringContentPos = 0;
             }
         }
+
+        if ( _jsfile != null ){
+            if ( ! _jsfile.write( _handler.getChannel() ) ){
+                _handler.registerForWrites();
+                return false;
+            }
+        }
         
         if ( keepAlive() && ! _handler.hasData() )
             _handler.registerForReads();
@@ -245,6 +253,12 @@ public class HttpResponse {
         _file = f;
         _headers.put( "Content-Length" , String.valueOf( f.length() ) );
     }
+
+    public void sendFile( JSFile f ){
+        _jsfile = f.sender();
+        _headers.put( "Content-Length" , String.valueOf( f.getLength() ) );
+        _headers.put( "Content-Type" , f.getContentType() );
+    }
     
     private int _numDataThings(){
         int num = 0;
@@ -252,6 +266,8 @@ public class HttpResponse {
         if ( _stringContent != null )
             num++;
         if ( _file != null )
+            num++;
+        if ( _jsfile != null )
             num++;
 
         return num;
@@ -291,6 +307,8 @@ public class HttpResponse {
     boolean _done = false;
     boolean _cleaned = false;
     MyJxpWriter _writer = null;
+    
+    JSFile.Sender _jsfile;
     
     class MyJxpWriter implements JxpWriter {
         MyJxpWriter(){

@@ -94,6 +94,15 @@ public abstract class JSNewFile extends JSFile {
                             throw new RuntimeException( "can't read file " + _file , ioe );
                         }
                     }
+                    
+                    public void write( OutputStream out ) 
+                        throws IOException {
+                        throw new RuntimeException( "not implemented" );
+                    }
+                    
+                    public ByteBuffer asByteBuffer(){
+                        throw new RuntimeException( "not implemented" );
+                    }
 
                 };
             }

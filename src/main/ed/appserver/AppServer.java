@@ -152,6 +152,17 @@ public class AppServer implements HttpHandler {
             }
         }
         
+        if ( request.getURI().equals( "/~f" ) ){
+            JSFile f = ar.getContext().getJSFile( request.getParameter( "id" ) );
+            if ( f == null ){
+                response.setResponseCode( 404 );
+                response.getWriter().print( "not found\n\n" );
+                return;
+            }
+            response.sendFile( f );
+            return;
+        }
+
         File f = ar.getFile();
 
         if ( f.toString().endsWith( ".cgi" ) ){

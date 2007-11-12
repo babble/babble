@@ -9,9 +9,10 @@ public abstract class JSBinaryData {
 
     public abstract int length();
 
-    // just the raw data
     public abstract void put( ByteBuffer buf );
     public abstract void write( OutputStream out ) throws IOException;
+    // this should be newly created
+    public abstract ByteBuffer asByteBuffer();
 
 
     public String toString(){
@@ -36,6 +37,10 @@ public abstract class JSBinaryData {
         public void write( OutputStream out )
             throws IOException {
             out.write( _data );
+        }
+
+        public ByteBuffer asByteBuffer(){
+            return ByteBuffer.wrap( _data );
         }
         
         final byte[] _data;
