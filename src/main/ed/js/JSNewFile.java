@@ -11,9 +11,8 @@ import ed.db.*;
 
 public abstract class JSNewFile extends JSFile {
 
-    JSNewFile( String filename , String contentType , long length ){
+    protected JSNewFile( String filename , String contentType , long length ){
         super( filename , contentType , length );
-        _me = this;
 
         final int nc = numChunks();
         System.out.println( "nc: " + nc );
@@ -43,7 +42,6 @@ public abstract class JSNewFile extends JSFile {
     }
 
     final List<JSFileChunk> _chunks = new ArrayList<JSFileChunk>();
-    final JSFile _me;
 
     // ----
 
@@ -64,7 +62,7 @@ public abstract class JSNewFile extends JSFile {
         
         class MyChunk extends JSFileChunk {
             MyChunk( int num ){
-                super( _me , num );
+                super( Local.this , num );
                 _num = num;
             }
             

@@ -10,7 +10,7 @@ import ed.js.*;
 public class ByteEncoder extends Bytes {
 
     protected ByteEncoder(){
-        _buf = ByteBuffer.allocateDirect( 1024 * 16 );
+        _buf = ByteBuffer.allocateDirect( BUF_SIZE );
         _buf.order( ByteOrder.LITTLE_ENDIAN );
     }
 
@@ -121,6 +121,7 @@ public class ByteEncoder extends Bytes {
         bin.put( _buf );
         int after = _buf.position();
         
+        System.out.println( _buf );
         ed.MyAsserts.assertEquals( after - before , bin.length() );
     }
 

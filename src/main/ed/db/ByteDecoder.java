@@ -21,7 +21,7 @@ public class ByteDecoder extends Bytes {
     }
 
     private ByteDecoder(){
-        _buf = ByteBuffer.allocateDirect( 1024 * 1024 );
+        _buf = ByteBuffer.allocateDirect( BUF_SIZE );
         _buf.order( ByteOrder.LITTLE_ENDIAN );
     }
 
