@@ -13,6 +13,7 @@ public abstract class JSFile extends JSObjectBase {
     public static final int CHUNK_SIZE = 1024; // * 512;  making 1k for testing, will make 1 meg
 
     protected JSFile(){
+        set( "_ns" , "_files" );
     }
     
     protected JSFile( String filename , String contentType , long length ){
@@ -20,18 +21,29 @@ public abstract class JSFile extends JSObjectBase {
     }
 
     protected JSFile( ObjectId id , String filename , String contentType , long length ){
+        this();
         if ( id != null )
             set( "_id" , id );
         
         set( "filename" , filename );
         set( "contentType" , contentType );
         set( "length" , length );
-        
-        set( "_ns" , "_files" );
     }
     
-    public abstract ObjectId getChunkID( int num );
-    public abstract JSFileChunk getChunk( int num );
+    public JSFileChunk getFirstChunk(){
+        ((JSObject)get( "next" )).keySet();
+        return (JSFileChunk)get( "next" );
+    }
+
+    public void write( OutputStream out )
+        throws IOException {
+        
+        JSFileChunk chunk = getFirstChunk();
+        while ( chunk != null ){
+            chunk.getData().write( out );
+            chunk = chunk.getNext();
+        }
+    }
 
     public String getFileName(){
         return getJavaString( "filename" );

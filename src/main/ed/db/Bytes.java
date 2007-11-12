@@ -33,9 +33,10 @@ public class Bytes {
        so the format would look like
        <BINARY><name><BINARY_TYPE><...>
     */
-    
-    static final byte B_BINARY = 0;
-    static final byte B_FUNC = 1; // ??????
+
+    static final byte B_FUNC = 1;
+    static final byte B_BINARY = 2;
+
 
     
     static protected Charset _utf8 = Charset.forName( "UTF-8" );

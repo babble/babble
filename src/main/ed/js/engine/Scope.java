@@ -162,7 +162,7 @@ public class Scope {
             _this.pop();
             added = false;
             
-            if ( obj instanceof JSObjectBase )
+            if ( obj.getClass().equals( JSObjectBase.class ) )
                 return null;
         }
         

@@ -11,6 +11,8 @@ public abstract class JSBinaryData {
 
     // just the raw data
     public abstract void put( ByteBuffer buf );
+    public abstract void write( OutputStream out ) throws IOException;
+
 
     public String toString(){
         return "JSBinaryData";
@@ -29,6 +31,11 @@ public abstract class JSBinaryData {
         
         public void put( ByteBuffer buf ){
             buf.put( _data );
+        }
+
+        public void write( OutputStream out )
+            throws IOException {
+            out.write( _data );
         }
         
         final byte[] _data;

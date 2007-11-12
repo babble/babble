@@ -64,6 +64,9 @@ public class Shell {
         boolean hasReturn[] = new boolean[1];
         
         while ( ( line = console.readLine( "> " ) ) != null ){
+            line = line.trim();
+            if ( line.length() == 0 )
+                continue;
             try {
                 Object res = s.eval( line , "lastline" , hasReturn );
                 if ( hasReturn[0] )

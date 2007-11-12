@@ -29,7 +29,15 @@ public class ByteDecoder extends Bytes {
         final int start = _buf.position();
         final int len = _buf.getInt();
         
-        JSObjectBase created = new JSObjectBase();
+        JSObjectBase created = null;
+        if ( _ns.endsWith( "._files" ) ){
+            created = new JSDBFile();
+        }
+        else if ( _ns.endsWith( "._chunks" ) ){
+            created = new JSFileChunk();
+        }
+        else 
+            created = new JSObjectBase();
         while ( decodeNext( created ) > 1 );
         
         if ( _buf.position() - start != len )
@@ -75,6 +83,7 @@ public class ByteDecoder extends Bytes {
             break;
             
         case REF:
+            int stringSize = _buf.getInt();
             String ns = readCStr();
             ObjectId theOID = new ObjectId( _buf.getLong() , _buf.getInt() );
             o.set( name , new DBRef( o , name , _base , ns , theOID ) );

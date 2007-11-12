@@ -113,11 +113,15 @@ public class ByteEncoder extends Bytes {
 
     protected void putBinary( String name , JSBinaryData bin ){
         _put( BINARY , name );
-        _buf.putInt( 1 + bin.length() );
+        _buf.putInt( 4 + bin.length() );
 
         _buf.put( B_BINARY );
         _buf.putInt( bin.length() );
+        int before = _buf.position();
         bin.put( _buf );
+        int after = _buf.position();
+        
+        ed.MyAsserts.assertEquals( after - before , bin.length() );
     }
 
     protected int putBoolean( String name , Boolean b ){
@@ -137,12 +141,7 @@ public class ByteEncoder extends Bytes {
     protected int putString( String name , String s ){
         int start = _buf.position();
         _put( STRING , name );
-        
-        int lenPos = _buf.position();
-        _buf.putInt( 0 ); // making space for size
-        int strLen = _put( s );
-        _buf.putInt( lenPos , strLen );
-        
+        _putValueString( s );
         return _buf.position() - start;
     }
 
@@ -157,8 +156,8 @@ public class ByteEncoder extends Bytes {
     protected int putDBRef( String name , String ns , ObjectId oid ){
         int start = _buf.position();
         _put( REF , name );
-
-        _put( ns );
+        
+        _putValueString( ns );
         _buf.putLong( oid._base );
         _buf.putInt( oid._inc );
 
@@ -170,6 +169,13 @@ public class ByteEncoder extends Bytes {
     private void _put( byte type , String name ){
         _buf.put( type );
         _put( name );
+    }
+
+    void _putValueString( String s ){
+        int lenPos = _buf.position();
+        _buf.putInt( 0 ); // making space for size
+        int strLen = _put( s );
+        _buf.putInt( lenPos , strLen );
     }
     
     int _put( String name ){

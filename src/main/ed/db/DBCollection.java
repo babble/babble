@@ -31,7 +31,6 @@ public abstract class DBCollection extends JSObjectLame {
         if ( ! ( o instanceof JSObject ) )
             throw new RuntimeException( "can't only apply JSObject" );
         
-        System.out.println( "here" );
         JSObject jo = (JSObject)o;
         jo.set( "_save" , _save );
         
@@ -48,7 +47,7 @@ public abstract class DBCollection extends JSObjectLame {
 
         _save = new JSFunctionCalls1() {
                 public Object call( Scope s , Object o , Object fooasd[] ){
-                    
+                    System.out.println( "call called" );
                     if ( o == null && s.getThis() != null )
                         o = s.getThis();
                     
@@ -56,11 +55,7 @@ public abstract class DBCollection extends JSObjectLame {
                         throw new RuntimeException( "can't only save JSObject" );
                     
                     JSObject jo = (JSObject)o;
-                    if ( jo.get( "_id" ) != null ){
-                        JSObject q = new JSObjectBase();
-                        q.set( "_id" , jo.get( "_id" ) );
-                        return update( q , jo , true );
-                    }
+
                     
                     LinkedList<JSObject> toSearch = new LinkedList();
                     toSearch.add( jo );
@@ -70,6 +65,10 @@ public abstract class DBCollection extends JSObjectLame {
                             Object foo = n.get( name );
                             if ( foo == null )
                                 continue;
+
+                            System.out.println( name + "\t" + foo.getClass() );
+                            
+
                             if ( ! ( foo instanceof JSObject ) )
                                 continue;
                             
@@ -77,7 +76,6 @@ public abstract class DBCollection extends JSObjectLame {
                             if ( e instanceof JSFileChunk ){
                                 System.out.println( "found a chunk" );
                                 _base.getCollection( "_chunks" ).apply( e );
-                                System.out.println( e.get( "_save" ) );
                             }
                             
                             if ( e.get( "_save" ) == null ){
@@ -88,8 +86,14 @@ public abstract class DBCollection extends JSObjectLame {
                             JSFunction otherSave = (JSFunction)e.get( "_save" );
                             System.out.println( "saving embedded object : " + e.getClass() );
                             otherSave.call( s , e , null );
-                                
+                            
                         }
+                    }
+
+                    if ( jo.get( "_id" ) != null ){
+                        JSObject q = new JSObjectBase();
+                        q.set( "_id" , jo.get( "_id" ) );
+                        return update( q , jo , true );
                     }
                     
                     return save( jo );
