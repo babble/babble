@@ -57,6 +57,7 @@ public class ObjectId {
             
             _inc = myb | myi;
         }
+
     }
 
     public int hashCode(){

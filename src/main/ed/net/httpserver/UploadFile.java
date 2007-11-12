@@ -34,6 +34,9 @@ public class UploadFile extends JSNewFile  {
 
             final int start = _start + ( _num * CHUNK_SIZE );
             final int end = Math.min( _end , start + CHUNK_SIZE );
+
+            if ( start > _end )
+                throw new RuntimeException( "this chunk shouldn't exists" );
             
             return new JSBinaryData(){
 

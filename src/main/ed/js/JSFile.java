@@ -10,7 +10,7 @@ import ed.db.*;
 
 public abstract class JSFile extends JSObjectBase {
 
-    public static final int CHUNK_SIZE = 1024; // * 512;  making 1k for testing, will make 1 meg
+    public static final int CHUNK_SIZE = 1024 * 5; // * 512;  making 1k for testing, will make 1 meg
 
     protected JSFile(){
         set( "_ns" , "_files" );
@@ -58,8 +58,6 @@ public abstract class JSFile extends JSObjectBase {
     }
     
     public int numChunks(){
-        System.out.println( "length : " + getLength() );
-        System.out.println( "length / CHUNK_SIZE : " + ( getLength() / CHUNK_SIZE ) );
         return (int)Math.ceil( (double)getLength() / CHUNK_SIZE );
     }
 

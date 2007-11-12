@@ -112,6 +112,10 @@ public class ByteEncoder extends Bytes {
     }
 
     protected void putBinary( String name , JSBinaryData bin ){
+        
+        if ( bin.length() < 0 )
+            throw new RuntimeException( "wtf?" );
+        
         _put( BINARY , name );
         _buf.putInt( 4 + bin.length() );
 
@@ -121,7 +125,6 @@ public class ByteEncoder extends Bytes {
         bin.put( _buf );
         int after = _buf.position();
         
-        System.out.println( _buf );
         ed.MyAsserts.assertEquals( after - before , bin.length() );
     }
 

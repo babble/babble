@@ -13,7 +13,6 @@ public class JSFileChunk extends JSObjectBase {
 
     public JSFileChunk(){
         set( "_ns" , "_chunks" );
-        System.out.println( "created chunk" );
     }
     
     protected JSBinaryData getData(){

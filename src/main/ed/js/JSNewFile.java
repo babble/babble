@@ -26,8 +26,9 @@ public abstract class JSNewFile extends JSFile {
             _chunks.add( c );
             if ( i > 0 )
                 _chunks.get( i - 1 ).set( "next" , c );
-
+            
         }
+        
     }
 
     
