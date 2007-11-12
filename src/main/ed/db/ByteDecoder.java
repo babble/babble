@@ -9,11 +9,18 @@ import ed.js.*;
 
 public class ByteDecoder extends Bytes {
 
+    static protected ByteDecoder get( DBBase base , String ns ){
+        ByteDecoder bd = new ByteDecoder();
+        bd._base = base;
+        bd._ns = ns;
+        return bd;
+    }
+
     protected ByteDecoder( ByteBuffer buf ){
         _buf = buf;
     }
 
-    protected ByteDecoder(){
+    private ByteDecoder(){
         _buf = ByteBuffer.allocateDirect( 1024 * 1024 );
         _buf.order( ByteOrder.LITTLE_ENDIAN );
     }
@@ -64,11 +71,13 @@ public class ByteDecoder extends Bytes {
             break;
 
         case OID:
+            o.set( name , new ObjectId( _buf.getLong() , _buf.getInt() ) );
+            break;
+            
+        case REF:
+            String ns = readCStr();
             ObjectId theOID = new ObjectId( _buf.getLong() , _buf.getInt() );
-            if ( name.equals( "_id" ) )
-                o.set( name , theOID );
-            else
-                o.set( name , new DBRef( theOID ) );
+            o.set( name , new DBRef( _base , ns , theOID ) );
             break;
             
         case DATE:
@@ -94,6 +103,9 @@ public class ByteDecoder extends Bytes {
             throw new RuntimeException( "can't handle : " + type );
         }
         
+        if ( created != null )
+            created.set( "_ns" , _ns );
+
         return _buf.position() - start;
     }
 
@@ -129,4 +141,8 @@ public class ByteDecoder extends Bytes {
     private final byte _namebuf[] = new byte[1024];
 
     final ByteBuffer _buf;
+
+    String _ns;
+    DBBase _base;
 }
+

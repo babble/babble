@@ -9,6 +9,10 @@ import ed.js.func.*;
 import ed.js.engine.*;
 
 public class TestDB extends DBBase {
+
+    public DBCollection getCollectionFromFull( String fullNameSpace ){
+        throw new RuntimeException( "not implemented" );
+    }
     
     public DBCollection getCollection( String name ){
         DBCollection c = _collections.get( name );

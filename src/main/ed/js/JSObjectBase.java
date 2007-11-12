@@ -90,6 +90,11 @@ public class JSObjectBase implements JSObject {
         return "Object";
     }
 
+    protected void addAll( JSObject other ){
+        for ( String s : other.keySet() )
+            set( s , other.get( s ) );
+    }
+
     private Map<String,Object> _map = null;
     private List<String> _keys = null;
     private JSFunction _constructor;

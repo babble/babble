@@ -39,6 +39,10 @@ public class ByteEncoder extends Bytes {
         _buf.putInt( 0 ); // leaving space for this.  set it at the end
         
         for ( String s : o.keySet() ){
+
+            if ( s.equals( "_ns" ) )
+                continue;
+
             Object val = o.get( s );
 
             if ( val instanceof JSFunction )
@@ -83,12 +87,16 @@ public class ByteEncoder extends Bytes {
         }
 
         if ( o instanceof DBRef ){
-            putObjectId( name , ((DBRef)o)._oid );
+            DBRef r = (DBRef)o;
+            putDBRef( name , r._ns , r._oid );
             return true;
         }
-
+        
         if ( name != null && o.get( "_id" ) != null ){ // this means i 
-            putObjectId( name , (ObjectId)(o.get( "_id" ) ) );
+            if ( o.get( "_ns" ) == null )
+                throw new RuntimeException( "this should be impossible" );
+            
+            putDBRef( name , o.get( "_ns" ).toString() , (ObjectId)(o.get( "_id" ) ) );
             return true;
         }
         
@@ -134,7 +142,17 @@ public class ByteEncoder extends Bytes {
         _buf.putInt( oid._inc );
         return _buf.position() - start;
     }
+    
+    protected int putDBRef( String name , String ns , ObjectId oid ){
+        int start = _buf.position();
+        _put( REF , name );
 
+        _put( ns );
+        _buf.putLong( oid._base );
+        _buf.putInt( oid._inc );
+
+        return _buf.position() - start;
+    }
 
     // ----------------------------------------------
     
