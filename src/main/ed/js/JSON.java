@@ -8,6 +8,11 @@ import ed.js.func.*;
 import ed.js.engine.*;
 
 public class JSON {
+
+    static Set<String> IGNORE_NAMES = new HashSet<String>();
+    static {
+        IGNORE_NAMES.add( "_save" );
+    }
     
     public static void init( Scope s ){
         s.put( "tojson" , new JSFunctionCalls1(){
@@ -60,20 +65,15 @@ public class JSON {
             return s;
         }
         
-        static void go( Appendable a , Object something , int indent , String nl )
-            throws java.io.IOException {
-            go( a , something , indent , nl , 0 );
-        }
-        
-        private static void go( Appendable a , Object something , int indent , String nl , int lastNL )
+        static void go( Appendable a , Object something , int indent , String nl  )
             throws java.io.IOException {
             
             if ( nl.length() > 0 ){
                 if ( a instanceof StringBuilder ){
                     StringBuilder sb = (StringBuilder)a;
+                    int lastNL = sb.lastIndexOf( nl );
                     if ( sb.length() - lastNL > 60 ){
                         a.append( nl );
-                        lastNL = sb.length();
                     }
                 }
             }
@@ -82,7 +82,6 @@ public class JSON {
                 a.append( "null" );
                 return;
             }
-                
     
             if ( something instanceof Number || 
                  something instanceof Boolean ||
@@ -121,7 +120,7 @@ public class JSON {
                 for ( int i=0; i<arr._array.size(); i++ ){
                     if ( i > 0 )
                         a.append( " , " );
-                    go( a , arr._array.get( i ) , indent , nl , lastNL );
+                    go( a , arr._array.get( i ) , indent , nl );
                 }
                 a.append( " ]" );
                 return;
@@ -143,6 +142,17 @@ public class JSON {
             boolean first = true;
 
             for ( String s : o.keySet() ){
+                
+                if ( IGNORE_NAMES.contains( s ) )
+                    continue;
+
+                Object val = o.get( s );
+                if ( val instanceof JSObjectBase ){
+                    ((JSObjectBase)val).prefunc();
+                    if ( o.get( s ) == null )
+                        continue;
+                }
+
                 if ( first )
                     first = false;
                 else 
@@ -151,7 +161,7 @@ public class JSON {
                 a.append( _i( indent + 1 ) );
                 a.append( s );
                 a.append( " : " );
-                go( a , o.get( s ) , indent + 1 , nl , lastNL );
+                go( a , val , indent + 1 , nl );
             }
 
             a.append( _i( indent + 1 ) );

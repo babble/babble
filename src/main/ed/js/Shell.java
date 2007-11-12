@@ -33,7 +33,7 @@ public class Shell {
         
         s.put( "openFile" , new JSFunctionCalls1(){
                 public Object call( Scope s , Object fileName , Object crap[] ){
-                    return new JSFile.Local( fileName.toString() );
+                    return new JSNewFile.Local( fileName.toString() );
                 }
             } , true );
         

@@ -95,6 +95,13 @@ public class JSObjectBase implements JSObject {
             set( s , other.get( s ) );
     }
 
+    public String getJavaString( Object name ){
+        Object foo = get( name );
+        if ( foo == null )
+            return null;
+        return foo.toString();
+    }
+
     private Map<String,Object> _map = null;
     private List<String> _keys = null;
     private JSFunction _constructor;

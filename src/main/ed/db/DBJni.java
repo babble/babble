@@ -61,8 +61,10 @@ public class DBJni extends DBBase {
     public DBCollection getCollectionFromFull( String fullNameSpace ){
         // TOOD security
         
-        if ( fullNameSpace.indexOf( "." ) < 0 )
-            throw new RuntimeException( "invalid fullNameSpace:" + fullNameSpace );
+        if ( fullNameSpace.indexOf( "." ) < 0 ) {
+            // assuming local
+            return getCollection( fullNameSpace );
+        }
 
         final int idx = fullNameSpace.indexOf( "." );        
 
@@ -85,11 +87,11 @@ public class DBJni extends DBBase {
     
     class MyCollection extends DBCollection {
         MyCollection( String name ){
-            super( name );
+            super( DBJni.this , name );
             _fullNameSpace = _root + "." + name;
         }
 
-        public ObjectId apply( JSObject o ){
+        public ObjectId doapply( JSObject o ){
             ObjectId id = (ObjectId)o.get( "_id" );
             
             if ( id == null ){
@@ -232,6 +234,7 @@ public class DBJni extends DBBase {
                 
                 while( decoder.more() && num < _num ){
                     final JSObject o = decoder.readObject();
+                    o.set( "_ns" , _fullNameSpace );
                     _lst.add( o );
                     num++;
 
@@ -276,6 +279,7 @@ public class DBJni extends DBBase {
                 return _cur.next();
             
             if ( _curResult._cursor > 0 ){
+                System.out.println( "following cursor: " + _curResult._cursor );
                 ByteEncoder encoder = new ByteEncoder();
                 
                 encoder._buf.putInt( 0 ); // reserved

@@ -8,102 +8,55 @@ import java.nio.channels.*;
 
 import ed.db.*;
 
-public abstract class JSFile extends JSObjectLame {
+public abstract class JSFile extends JSObjectBase {
 
     public static final int CHUNK_SIZE = 1024; // * 512;  making 1k for testing, will make 1 meg
-    
-    protected JSFile( String filename , String contentType , long length ){
-        _filename = filename;
-        _contentType = contentType;
-        _length = length;
+
+    protected JSFile(){
     }
     
-    /**
-     * will throw an exception if there is not enough room
-     */
-    public abstract void fillIn( int chunkNumber , ByteBuffer buf )
-        throws IOException ;
+    protected JSFile( String filename , String contentType , long length ){
+        this( null , filename , contentType , length );
+    }
+
+    protected JSFile( ObjectId id , String filename , String contentType , long length ){
+        if ( id != null )
+            set( "_id" , id );
+        
+        set( "filename" , filename );
+        set( "contentType" , contentType );
+        set( "length" , length );
+        
+        set( "_ns" , "_files" );
+    }
+    
+    public abstract ObjectId getChunkID( int num );
+    public abstract JSFileChunk getChunk( int num );
 
     public String getFileName(){
-        return _filename;
+        return getJavaString( "filename" );
     }
     
     public String getContentType(){
-        return _contentType;
+        return getJavaString( "contentType" );
     }
 
     public long getLength(){
-        return _length;
+        return ((Number)get( "length" )).longValue();
     }
-
+    
     public int numChunks(){
-        return (int)Math.ceil( _length / CHUNK_SIZE );
+        System.out.println( "length : " + getLength() );
+        System.out.println( "length / CHUNK_SIZE : " + ( getLength() / CHUNK_SIZE ) );
+        return (int)Math.ceil( (double)getLength() / CHUNK_SIZE );
     }
 
     public String toString(){
-        return "{ JSFile.  filename:" + _filename + " contentType:" + _contentType + " length:" + _length + " }";
-    }
-    
-    public Object set( Object n , Object v ){
-        if ( ! ( n instanceof JSString ) &&
-             ! ( n instanceof String ) )
-            throw new RuntimeException( "you're annoying" );
-
-        final String s = n.toString();
-        
-        if ( s.equalsIgnoreCase( "_id" ) ){
-            _id = (ObjectId)v;
-            return _id;
-        }
-
-        throw new RuntimeException( "can't set : " + n + " which is a " + v.getClass() );
-    }
-    
-    public Object get( Object n ){
-        if ( ! ( n instanceof JSString ) &&
-             ! ( n instanceof String ) )
-            return null;
-        
-        final String s = n.toString();
-        
-        if ( s.equalsIgnoreCase( "_id" ) )
-            return _id;
-
-        return null;
+        return "{ JSFile.  filename:" + getFileName() + " contentType:" + getContentType() + " length:" + getLength() + " }";
     }
 
-    protected final String _filename;
-    protected final String _contentType;
-    protected final long _length;
-
-    private ObjectId _id;
-
-    public static class Local extends JSFile {
-
-        Local( String s ){
-            this( new File( s ) );
-        }
-        
-        Local( File f ){
-            super( f.getName() , ed.appserver.MimeTypes.get( f ) , f.length() );
-            _file = f;
-        }
-        
-        public void fillIn( int chunkNumber , ByteBuffer buf )
-            throws IOException {
-            if ( _fc == null )
-                _fc = (new FileInputStream( _file )).getChannel();
-            
-
-            final int oldLimit = buf.limit();
-            buf.limit( buf.position() + CHUNK_SIZE );
-            
-            _fc.read( buf , chunkNumber * CHUNK_SIZE );
-            buf.limit( oldLimit );
-        }
-        
-        final File _file;
-        int _curChunk = 0;
-        FileChannel _fc;
-    }
 }
+
+
+
+

@@ -60,6 +60,8 @@ public class ByteEncoder extends Bytes {
                 putObject( s , (JSObject)val );
             else if ( val instanceof Boolean )
                 putBoolean( s , (Boolean)val );
+            else if ( val instanceof JSBinaryData )
+                throw new RuntimeException( "can't handle JSBinaryData yet" );
             else 
                 throw new RuntimeException( "can't serialize " + val.getClass() );
 
@@ -88,7 +90,7 @@ public class ByteEncoder extends Bytes {
 
         if ( o instanceof DBRef ){
             DBRef r = (DBRef)o;
-            putDBRef( name , r._ns , r._oid );
+            putDBRef( name , r._ns , r._id );
             return true;
         }
         

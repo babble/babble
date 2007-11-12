@@ -30,7 +30,7 @@ public class TestDB extends DBBase {
     class MyCollection extends DBCollection {
 
         MyCollection( String name ){
-            super( name );
+            super( TestDB.this , name );
             _entries.put( "debug" , new JSFunctionCalls0(){
                     public Object call( Scope s , Object foo[] ){
                         return _objects.keySet().toString();
@@ -53,7 +53,7 @@ public class TestDB extends DBBase {
             return o;
         }
 
-        public ObjectId apply( JSObject o ){
+        public ObjectId doapply( JSObject o ){
             ObjectId id = (ObjectId)o.get( "_id" );
 
             if ( id == null ){

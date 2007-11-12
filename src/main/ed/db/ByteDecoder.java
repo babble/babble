@@ -77,7 +77,7 @@ public class ByteDecoder extends Bytes {
         case REF:
             String ns = readCStr();
             ObjectId theOID = new ObjectId( _buf.getLong() , _buf.getInt() );
-            o.set( name , new DBRef( _base , ns , theOID ) );
+            o.set( name , new DBRef( o , name , _base , ns , theOID ) );
             break;
             
         case DATE:
@@ -103,9 +103,6 @@ public class ByteDecoder extends Bytes {
             throw new RuntimeException( "can't handle : " + type );
         }
         
-        if ( created != null )
-            created.set( "_ns" , _ns );
-
         return _buf.position() - start;
     }
 

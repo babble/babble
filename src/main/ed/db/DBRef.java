@@ -7,13 +7,16 @@ import ed.js.*;
 
 public class DBRef extends JSObjectBase {
 
-    DBRef( DBBase db , String ns , ObjectId oid ){
+    DBRef( JSObject parent , String fieldName , DBBase db , String ns , ObjectId id ){
+        _parent = parent;
+        _fieldName = fieldName;
+        
         _ns = ns;
-        _oid = oid;
+        _id = id;
         _db = db;
         
         super.set( "_ns" , ns );
-        super.set( "_oid" , oid );
+        super.set( "_id" , id );
         _inited = true;
     }
     
@@ -28,18 +31,25 @@ public class DBRef extends JSObjectBase {
             throw new RuntimeException( "db is null" );
         
         DBCollection coll = _db.getCollectionFromFull( _ns );
-        JSObject o = coll.find( _oid );
-        if ( o == null )
-            throw new RuntimeException( "null reference, what should we do?" );
+        JSObject o = coll.find( _id );
+        if ( o == null ){
+            _parent.set( _fieldName , null );
+            return;
+        }
         
-        MyAsserts.assertEquals( _oid , o.get( "_oid" ) );
-        MyAsserts.assertEquals( _ns , o.get( "_ns" ) );
+        MyAsserts.assertEquals( _id , o.get( "_id" ) );
+        MyAsserts.assertEquals( _ns.toString() , o.get( "_ns" ).toString() );
+
+        _loaded = true; // this technically makes a race condition...
         
         addAll( o );
         //throw new RuntimeException( "need to load" );
     }
 
-    final ObjectId _oid;
+    final JSObject _parent;
+    final String _fieldName;
+
+    final ObjectId _id;
     final String _ns;
     final DBBase _db;
     

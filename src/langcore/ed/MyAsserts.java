@@ -57,7 +57,7 @@ public class MyAsserts {
         if ( a.equals( b ) )
             return;
         
-        throw new MyAssert( "[" + a + "] != [" + b + "] " + a.getClass() + " , " + b.getClass()  );
+        throw new MyAssert( "[" + a + "] != [" + b + "] " );
     }
 
     public static void assertClose( String a , String b ){
