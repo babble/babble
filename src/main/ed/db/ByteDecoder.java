@@ -88,6 +88,10 @@ public class ByteDecoder extends Bytes {
             o.set( name , new JSRegex( readCStr() , readCStr() ) );
             break;
 
+        case BINARY:
+            o.set( name , parseBinary() );
+            break;
+
         case ARRAY:
             if ( created == null )
                 created = new JSArray();
@@ -104,6 +108,21 @@ public class ByteDecoder extends Bytes {
         }
         
         return _buf.position() - start;
+    }
+
+    Object parseBinary(){
+        final int totalLen = _buf.getInt();
+        final byte bType = _buf.get();
+
+        switch ( bType ){
+        case B_BINARY:
+            final int len = _buf.getInt();
+            final byte[] data = new byte[len];
+            _buf.get( data );
+            return new JSBinaryData.ByteArray( data );
+        }
+     
+        throw new RuntimeException( "can't handle binary type : " + bType );
     }
 
     private String readCStr(){

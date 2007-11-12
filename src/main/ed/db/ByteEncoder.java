@@ -61,7 +61,7 @@ public class ByteEncoder extends Bytes {
             else if ( val instanceof Boolean )
                 putBoolean( s , (Boolean)val );
             else if ( val instanceof JSBinaryData )
-                throw new RuntimeException( "can't handle JSBinaryData yet" );
+                putBinary( s , (JSBinaryData)val );
             else 
                 throw new RuntimeException( "can't serialize " + val.getClass() );
 
@@ -109,6 +109,15 @@ public class ByteEncoder extends Bytes {
         int start = _buf.position();
         _put( NULL , name );
         return _buf.position() - start;
+    }
+
+    protected void putBinary( String name , JSBinaryData bin ){
+        _put( BINARY , name );
+        _buf.putInt( 1 + bin.length() );
+
+        _buf.put( B_BINARY );
+        _buf.putInt( bin.length() );
+        bin.put( _buf );
     }
 
     protected int putBoolean( String name , Boolean b ){

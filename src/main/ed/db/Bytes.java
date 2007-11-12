@@ -27,6 +27,16 @@ public class Bytes {
     static final byte NULL = 10;
     static final byte REGEX = 11;
     static final byte REF = 12;
+
+    /* 
+       these are binary types
+       so the format would look like
+       <BINARY><name><BINARY_TYPE><...>
+    */
+    
+    static final byte B_BINARY = 0;
+    static final byte B_FUNC = 1; // ??????
+
     
     static protected Charset _utf8 = Charset.forName( "UTF-8" );
     

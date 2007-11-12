@@ -78,16 +78,21 @@ public abstract class JSNewFile extends JSFile {
                         return (int)( end - start );
                     }
                     
-                    public void put( ByteBuffer buf )
-                        throws IOException {
-                        if ( _fc == null )
-                            _fc = (new FileInputStream( _file )).getChannel();
+                    public void put( ByteBuffer buf ){
                         
-                        final int oldLimit = buf.limit();
-                        buf.limit( buf.position() + CHUNK_SIZE );
-                        
-                        _fc.read( buf , _num * CHUNK_SIZE );
-                        buf.limit( oldLimit );
+                        try {
+                            if ( _fc == null )
+                                _fc = (new FileInputStream( _file )).getChannel();
+                            
+                            final int oldLimit = buf.limit();
+                            buf.limit( buf.position() + CHUNK_SIZE );
+                            
+                            _fc.read( buf , _num * CHUNK_SIZE );
+                            buf.limit( oldLimit );
+                        }
+                        catch ( IOException ioe ){
+                            throw new RuntimeException( "can't read file " + _file , ioe );
+                        }
                     }
 
                 };
