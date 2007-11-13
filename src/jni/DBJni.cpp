@@ -8,8 +8,9 @@
 using namespace std;
 
 #include "grid/message.h"
+#include "util/goodies.h"
 
-#define CHECK_SA assert( sa ); sleep(1); SockAddr db = ((SockAddr*)sa)[0];
+#define CHECK_SA assert( sa ); sleepmillis(10); SockAddr db = ((SockAddr*)sa)[0];
 
 void setData( Message * m , int type , JNIEnv * env , jobject bb , int position , int limit ){
   
