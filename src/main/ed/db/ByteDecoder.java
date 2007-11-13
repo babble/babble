@@ -30,14 +30,19 @@ public class ByteDecoder extends Bytes {
         final int len = _buf.getInt();
         
         JSObjectBase created = null;
-        if ( _ns.endsWith( "._files" ) ){
-            created = new JSDBFile();
+
+        if ( _ns != null ){
+            if ( _ns.endsWith( "._files" ) ){
+                created = new JSDBFile();
+            }
+            else if ( _ns.endsWith( "._chunks" ) ){
+                created = new JSFileChunk();
+            }
         }
-        else if ( _ns.endsWith( "._chunks" ) ){
-            created = new JSFileChunk();
-        }
-        else 
+
+        if ( created == null )
             created = new JSObjectBase();
+        
         while ( decodeNext( created ) > 1 );
         
         if ( _buf.position() - start != len )

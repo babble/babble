@@ -37,12 +37,20 @@ public class ByteEncoder extends Bytes {
 
         final int sizePos = _buf.position();
         _buf.putInt( 0 ); // leaving space for this.  set it at the end
-        
+
+        Object possibleId = o.get( "_id" );
+        if ( possibleId != null ){
+            if ( ! ( possibleId instanceof ObjectId ) )
+                throw new RuntimeException( "_id is not an ObjectId" );
+            putObjectId( "_id" , (ObjectId)possibleId );
+        }
+            
         for ( String s : o.keySet() ){
 
-            if ( s.equals( "_ns" ) )
+            if ( s.equals( "_ns" ) || 
+                 s.equals( "_id" ) )
                 continue;
-
+            
             Object val = o.get( s );
 
             if ( val instanceof JSFunction )
