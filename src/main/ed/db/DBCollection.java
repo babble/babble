@@ -83,14 +83,17 @@ public abstract class DBCollection extends JSObjectLame {
                         }
                     }
 
-                    if ( jo.get( "_id" ) != null ){
-                        System.out.println( jo.get( "_id" ) );
-                        JSObject q = new JSObjectBase();
-                        q.set( "_id" , jo.get( "_id" ) );
-                        return update( q , jo , true );
+                    ObjectId id = (ObjectId)jo.get( "_id" );
+
+                    if ( id == null || id._new ){
+                        id._new = false;
+                        save( jo );
                     }
                     
-                    return save( jo );
+                    System.out.println( jo.get( "_id" ) );
+                    JSObject q = new JSObjectBase();
+                    q.set( "_id" , jo.get( "_id" ) );
+                    return update( q , jo , true );
                 }
             };
         _entries.put( "save" , _save );
