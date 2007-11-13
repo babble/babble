@@ -27,13 +27,13 @@ public class DBJni extends DBBase {
             if ( ip == null )
                 ip = "127.0.0.1";
         }
-        else {
-            try {
-                ip = InetAddress.getByName( ip ).getHostAddress();
-            }
-            catch ( IOException ioe ){
-                throw new RuntimeException( "can't get ip for:" + ip );
-            }
+
+        
+        try {
+            ip = InetAddress.getByName( ip ).getHostAddress();
+        }
+        catch ( IOException ioe ){
+            throw new RuntimeException( "can't get ip for:" + ip );
         }
         
         _dbbase = this;

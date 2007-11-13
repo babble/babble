@@ -36,11 +36,15 @@ public class ObjectId {
 
         _base = Long.parseLong( baseString , 16 );
         _inc = Integer.parseInt( incString , 16 );
+
+        _new = false;
     }
     
     ObjectId( long base , int inc ){
         _base = base;
         _inc = inc;
+        
+        _new = false;
     }
     
     private ObjectId(){
@@ -57,7 +61,8 @@ public class ObjectId {
             
             _inc = myb | myi;
         }
-
+        
+        _new = true;
     }
 
     public int hashCode(){
@@ -84,7 +89,9 @@ public class ObjectId {
 
     final long _base;
     final int _inc;
-
+    
+    boolean _new;
+    
     private static byte _nextByte = (byte)(new java.util.Random()).nextInt();
     private static short _nextShort = (short)(new java.util.Random()).nextInt();
     private static final String _incLock = new String( "ObjectId._incLock" );
