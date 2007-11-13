@@ -22,8 +22,11 @@ public class DBJni extends DBBase {
         if ( _roots.get( root ) != null )
             throw new RuntimeException( "already have an instance for : " + root );
 
-        if ( ip == null || ip.length() == 0 )
-            ip = "127.0.0.1";
+        if ( ip == null || ip.length() == 0 ){
+            ip = System.getenv( "db_ip" );
+            if ( ip == null )
+                ip = "127.0.0.1";
+        }
         else {
             try {
                 ip = InetAddress.getByName( ip ).getHostAddress();
