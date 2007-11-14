@@ -20,7 +20,20 @@ public abstract class DBCollection extends JSObjectLame {
     
     public abstract Iterator<JSObject> find( JSObject ref , JSObject fields );
 
+    public abstract void ensureIndex( JSObject keys , String name );
+
     // ------
+
+    public void ensureIndex( JSObject keys ){
+        ensureIndex( keys , genIndexName( keys ) );
+    }
+
+    public String genIndexName( JSObject keys ){
+        String name = _name + ".";
+        for ( String s : keys.keySet() )
+            name += s + "-";
+        return name;
+    }
 
     public Iterator<JSObject> find( JSObject ref ){
         return find( ref , null );

@@ -13,11 +13,22 @@ public class DBJni extends DBBase {
     
     static final boolean D = false;
 
-    public DBJni( String root ){
+    public static DBJni get( String root ){
+        return get( root , null );
+    }
+    
+    public static DBJni get( String root , String ip ){
+        DBJni db = _roots.get( root );
+        if ( db != null )
+            return db;
+        return new DBJni( root , ip );
+    }
+    
+    private DBJni( String root ){
         this( root , null );
     }
     
-    public DBJni( String root , String ip ){
+    private DBJni( String root , String ip ){
         
         if ( _roots.get( root ) != null )
             throw new RuntimeException( "already have an instance for : " + root );
@@ -42,6 +53,9 @@ public class DBJni extends DBBase {
         _sock = getSockAddr( _ip );
         
         _roots.put( _root , this );
+
+        if ( _roots.get( "system" ) == null )
+            new DBJni( "system" , ip );
     }
     
     public MyCollection getCollection( String name ){
@@ -61,7 +75,7 @@ public class DBJni extends DBBase {
         return c;
     }
 
-    public DBCollection getCollectionFromFull( String fullNameSpace ){
+    public MyCollection getCollectionFromFull( String fullNameSpace ){
         // TOOD security
         
         if ( fullNameSpace.indexOf( "." ) < 0 ) {
@@ -124,7 +138,12 @@ public class DBJni extends DBBase {
         }
 
         public JSObject save( JSObject o ){
-            apply( o );
+            return save( o , true );
+        }
+                
+        public JSObject save( JSObject o , boolean shouldApply ){
+            if ( shouldApply )
+                apply( o );
 
             ByteEncoder encoder = new ByteEncoder();
             
@@ -201,6 +220,15 @@ public class DBJni extends DBBase {
             doUpdate( _sock , encoder._buf , encoder._buf.position() , encoder._buf.limit() );
             
             return o;
+        }
+
+        public void ensureIndex( JSObject keys , String name ){
+            JSObject o = new JSObjectBase();
+            o.set( "name" , name );
+            o.set( "ns" , _fullNameSpace );
+            o.set( "key" , keys );
+            
+            getCollectionFromFull( "system.indexes" ).save( o , false );
         }
 
         final String _fullNameSpace;

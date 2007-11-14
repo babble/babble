@@ -14,7 +14,7 @@ public class Export {
 
         PrintStream out = new PrintStream( raw );
         
-        DBJni system = new DBJni( "system" , ip );
+        DBJni system = DBJni.get( "system" , ip );
         DBCollection namespaces = system.getCollection( "namespaces" );
 
         Map<String,List<String>> m = new HashMap<String,List<String>>();
@@ -41,7 +41,7 @@ public class Export {
             if ( root.equals( "sys" ) )
                 continue;
 
-            DBJni db = new DBJni( root , ip );
+            DBJni db = DBJni.get( root , ip );
             out.println( "var " + root + " = connect( \"" + root + "\" );" );
             
             List<String> tables = m.get( root );
