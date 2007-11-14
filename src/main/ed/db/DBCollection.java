@@ -86,7 +86,8 @@ public abstract class DBCollection extends JSObjectLame {
                     ObjectId id = (ObjectId)jo.get( "_id" );
 
                     if ( id == null || id._new ){
-                        id._new = false;
+                        if ( id != null )
+                            id._new = false;
                         save( jo );
                     }
                     

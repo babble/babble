@@ -47,7 +47,16 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
         _fill( n );
         return _all.get( n );
     }
+
+    public int length(){
+        _fill( Integer.MAX_VALUE );
+        return _all.size();
+    }
     
+    public JSArray toArray(){
+        return toArray( Integer.MAX_VALUE );
+    }
+
     public JSArray toArray( int min ){
         _fill( min );
         return new JSArray( _all );
