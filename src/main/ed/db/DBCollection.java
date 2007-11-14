@@ -17,7 +17,6 @@ public abstract class DBCollection extends JSObjectLame {
     public abstract int remove( JSObject id );
     
     public abstract JSObject find( ObjectId id );    
-    
     public abstract Iterator<JSObject> find( JSObject ref , JSObject fields );
 
     public abstract void ensureIndex( JSObject keys , String name );
@@ -161,10 +160,13 @@ public abstract class DBCollection extends JSObjectLame {
                         return find( (ObjectId)o );
 
                     if ( o instanceof JSObject ){
+                        /*
                         Iterator<JSObject> l = find( (JSObject)o , (JSObject)fieldsWantedO );
                         if ( l == null )
                             l = (new LinkedList<JSObject>()).iterator();
                         return new DBCursor( l );
+                        */
+                        return new DBCursor( DBCollection.this , (JSObject)o , (JSObject)fieldsWantedO );
                     }
                     
                     throw new RuntimeException( "wtf : " + o.getClass() );
