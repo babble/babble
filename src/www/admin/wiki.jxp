@@ -73,7 +73,7 @@
     <ul>
       <%
 {
-    var all = wiki.find( null , { name : true } );
+    var all = wiki.find( null , { name : true } ).sort( { name : 1 } );
     for ( ; all.hasNext() ; ){
         var temp = all.next().name;
         print( "<li><a href='/wiki/" + temp + "'>" + temp + "</a></li>" );
