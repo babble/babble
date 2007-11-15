@@ -10,6 +10,7 @@ import ed.js.func.*;
 
 public abstract class DBBase extends JSObjectLame {
 
+    public abstract DBCollection getCollectionFromFull( String fullNameSpace );
     public abstract DBCollection getCollection( String name );
     public abstract Collection<String> getCollectionNames();
 

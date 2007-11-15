@@ -10,27 +10,52 @@ import java.util.*;
 import ed.js.*;
 
 public class DBJni extends DBBase {
-
+    
     static final boolean D = false;
 
-    public DBJni( String root ){
+    public static DBJni get( String root ){
+        return get( root , null );
+    }
+    
+    public static DBJni get( String root , String ip ){
+        DBJni db = _roots.get( root );
+        if ( db != null )
+            return db;
+        return new DBJni( root , ip );
+    }
+    
+    private DBJni( String root ){
         this( root , null );
     }
     
-    public DBJni( String root , String ip ){
-        if ( ip == null || ip.length() == 0 )
-            ip = "127.0.0.1";
-        else {
-            try {
-                ip = InetAddress.getByName( ip ).getHostAddress();
-            }
-            catch ( IOException ioe ){
-                throw new RuntimeException( "can't get ip for:" + ip );
-            }
+    private DBJni( String root , String ip ){
+        
+        if ( _roots.get( root ) != null )
+            throw new RuntimeException( "already have an instance for : " + root );
+
+        if ( ip == null || ip.length() == 0 ){
+            ip = System.getenv( "db_ip" );
+            if ( ip == null )
+                ip = "127.0.0.1";
         }
+
+        
+        try {
+            ip = InetAddress.getByName( ip ).getHostAddress();
+        }
+        catch ( IOException ioe ){
+            throw new RuntimeException( "can't get ip for:" + ip );
+        }
+        
+        _dbbase = this;
         _ip = ip;
         _root = root;
         _sock = getSockAddr( _ip );
+        
+        _roots.put( _root , this );
+
+        if ( _roots.get( "system" ) == null )
+            new DBJni( "system" , ip );
     }
     
     public MyCollection getCollection( String name ){
@@ -50,6 +75,28 @@ public class DBJni extends DBBase {
         return c;
     }
 
+    public MyCollection getCollectionFromFull( String fullNameSpace ){
+        // TOOD security
+        
+        if ( fullNameSpace.indexOf( "." ) < 0 ) {
+            // assuming local
+            return getCollection( fullNameSpace );
+        }
+
+        final int idx = fullNameSpace.indexOf( "." );        
+
+        final String root = fullNameSpace.substring( 0 , idx );
+        final String table = fullNameSpace.substring( idx + 1 );
+        
+        if ( _root.equals( root ) )
+            return getCollection( table );
+        
+        DBJni base = _roots.get( root );
+        if ( base != null )
+            return base.getCollection( table );
+        
+        throw new RuntimeException( "don't know how to create things yet" );
+    }
     
     public Collection<String> getCollectionNames(){
         throw new RuntimeException( "not implemented yet" );
@@ -57,11 +104,11 @@ public class DBJni extends DBBase {
     
     class MyCollection extends DBCollection {
         MyCollection( String name ){
-            super( name );
+            super( DBJni.this , name );
             _fullNameSpace = _root + "." + name;
         }
 
-        public ObjectId apply( JSObject o ){
+        public ObjectId doapply( JSObject o ){
             ObjectId id = (ObjectId)o.get( "_id" );
             
             if ( id == null ){
@@ -69,6 +116,8 @@ public class DBJni extends DBBase {
                 o.set( "_id" , id );
             }
             
+            o.set( "_ns" , _fullNameSpace );
+
             return id;
         }
 
@@ -89,7 +138,12 @@ public class DBJni extends DBBase {
         }
 
         public JSObject save( JSObject o ){
-            apply( o );
+            return save( o , true );
+        }
+                
+        public JSObject save( JSObject o , boolean shouldApply ){
+            if ( shouldApply )
+                apply( o );
 
             ByteEncoder encoder = new ByteEncoder();
             
@@ -136,7 +190,7 @@ public class DBJni extends DBBase {
                 encoder.putObject( null , fields ); // fields to return
             encoder.flip();
             
-            ByteDecoder decoder = new ByteDecoder();
+            ByteDecoder decoder = ByteDecoder.get( _dbbase , _fullNameSpace );
             
             int len = query( _sock , encoder._buf , encoder._buf.position() , encoder._buf.limit() , decoder._buf );
             decoder.doneReading( len );
@@ -146,7 +200,7 @@ public class DBJni extends DBBase {
             if ( res._lst.size() == 0 )
                 return null;
             
-            return new Result( res );
+            return new Result( this , res );
         }
 
         public JSObject update( JSObject query , JSObject o , boolean upsert ){
@@ -168,6 +222,15 @@ public class DBJni extends DBBase {
             return o;
         }
 
+        public void ensureIndex( JSObject keys , String name ){
+            JSObject o = new JSObjectBase();
+            o.set( "name" , name );
+            o.set( "ns" , _fullNameSpace );
+            o.set( "key" , keys );
+            
+            getCollectionFromFull( "system.indexes" ).save( o , false );
+        }
+
         final String _fullNameSpace;
     }
     
@@ -179,7 +242,8 @@ public class DBJni extends DBBase {
     final String _ip;
     final String _root;
     final long _sock;
-
+    final DBBase _dbbase;
+    
     class SingleResult {
 
         SingleResult( String fullNameSpace , ByteDecoder decoder ){
@@ -201,6 +265,7 @@ public class DBJni extends DBBase {
                 
                 while( decoder.more() && num < _num ){
                     final JSObject o = decoder.readObject();
+                    o.set( "_ns" , _fullNameSpace );
                     _lst.add( o );
                     num++;
 
@@ -228,8 +293,9 @@ public class DBJni extends DBBase {
 
     class Result implements Iterator<JSObject> {
         
-        Result( SingleResult res ){
+        Result( MyCollection coll , SingleResult res ){
             init( res );
+            _collection = coll;
         }
 
 
@@ -244,6 +310,7 @@ public class DBJni extends DBBase {
                 return _cur.next();
             
             if ( _curResult._cursor > 0 ){
+                System.out.println( "following cursor: " + _curResult._cursor );
                 ByteEncoder encoder = new ByteEncoder();
                 
                 encoder._buf.putInt( 0 ); // reserved
@@ -252,7 +319,7 @@ public class DBJni extends DBBase {
                 encoder._buf.putLong( _curResult._cursor );
                 encoder.flip();
             
-                ByteDecoder decoder = new ByteDecoder();
+                ByteDecoder decoder = ByteDecoder.get( _dbbase , _collection._fullNameSpace );
                 int len = getMore( _sock , encoder._buf , encoder._buf.position() , encoder._buf.limit() , decoder._buf );
                 decoder.doneReading( len );
                 
@@ -285,6 +352,7 @@ public class DBJni extends DBBase {
 
         SingleResult _curResult;
         Iterator<JSObject> _cur;
+        final MyCollection _collection;
         final List<SingleResult> _all = new LinkedList<SingleResult>();
     }
 
@@ -318,7 +386,8 @@ public class DBJni extends DBBase {
     private static native void doUpdate( long sock , ByteBuffer buf , int position , int limit );
     private static native int query( long sock , ByteBuffer buf , int position , int limit , ByteBuffer res );
     private static native int getMore( long sock , ByteBuffer buf , int position , int limit , ByteBuffer res );
-
+    
+    static final Map<String,DBJni> _roots = new HashMap<String,DBJni>();
     static final Map<String,Long> _ipToSockAddr = Collections.synchronizedMap( new HashMap<String,Long>() );
     static final List<JSObject> EMPTY = Collections.unmodifiableList( new LinkedList<JSObject>() );
     static final long _defaultIp;

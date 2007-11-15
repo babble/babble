@@ -10,7 +10,7 @@ import ed.js.*;
 public class ByteEncoder extends Bytes {
 
     protected ByteEncoder(){
-        _buf = ByteBuffer.allocateDirect( 1024 * 16 );
+        _buf = ByteBuffer.allocateDirect( BUF_SIZE );
         _buf.order( ByteOrder.LITTLE_ENDIAN );
     }
 
@@ -34,10 +34,23 @@ public class ByteEncoder extends Bytes {
         if ( name != null ){
             _put( myType , name );
         }
+
         final int sizePos = _buf.position();
-        _buf.putInt( 0 ); // will need to fix this later
-        
+        _buf.putInt( 0 ); // leaving space for this.  set it at the end
+
+        Object possibleId = o.get( "_id" );
+        if ( possibleId != null ){
+            if ( ! ( possibleId instanceof ObjectId ) )
+                throw new RuntimeException( "_id is not an ObjectId" );
+            putObjectId( "_id" , (ObjectId)possibleId );
+        }
+            
         for ( String s : o.keySet() ){
+
+            if ( s.equals( "_ns" ) || 
+                 s.equals( "_id" ) )
+                continue;
+            
             Object val = o.get( s );
 
             if ( val instanceof JSFunction )
@@ -55,6 +68,8 @@ public class ByteEncoder extends Bytes {
                 putObject( s , (JSObject)val );
             else if ( val instanceof Boolean )
                 putBoolean( s , (Boolean)val );
+            else if ( val instanceof JSBinaryData )
+                putBinary( s , (JSBinaryData)val );
             else 
                 throw new RuntimeException( "can't serialize " + val.getClass() );
 
@@ -81,6 +96,20 @@ public class ByteEncoder extends Bytes {
             return true;
         }
 
+        if ( o instanceof DBRef ){
+            DBRef r = (DBRef)o;
+            putDBRef( name , r._ns , r._id );
+            return true;
+        }
+        
+        if ( name != null && o.get( "_id" ) != null ){ // this means i 
+            if ( o.get( "_ns" ) == null )
+                throw new RuntimeException( "this should be impossible" );
+            
+            putDBRef( name , o.get( "_ns" ).toString() , (ObjectId)(o.get( "_id" ) ) );
+            return true;
+        }
+        
         return false;
     }
 
@@ -88,6 +117,23 @@ public class ByteEncoder extends Bytes {
         int start = _buf.position();
         _put( NULL , name );
         return _buf.position() - start;
+    }
+
+    protected void putBinary( String name , JSBinaryData bin ){
+        
+        if ( bin.length() < 0 )
+            throw new RuntimeException( "wtf?" );
+        
+        _put( BINARY , name );
+        _buf.putInt( 4 + bin.length() );
+
+        _buf.put( B_BINARY );
+        _buf.putInt( bin.length() );
+        int before = _buf.position();
+        bin.put( _buf );
+        int after = _buf.position();
+        
+        ed.MyAsserts.assertEquals( after - before , bin.length() );
     }
 
     protected int putBoolean( String name , Boolean b ){
@@ -107,12 +153,7 @@ public class ByteEncoder extends Bytes {
     protected int putString( String name , String s ){
         int start = _buf.position();
         _put( STRING , name );
-        
-        int lenPos = _buf.position();
-        _buf.putInt( 0 ); // making space for size
-        int strLen = _put( s );
-        _buf.putInt( lenPos , strLen );
-        
+        _putValueString( s );
         return _buf.position() - start;
     }
 
@@ -123,13 +164,30 @@ public class ByteEncoder extends Bytes {
         _buf.putInt( oid._inc );
         return _buf.position() - start;
     }
+    
+    protected int putDBRef( String name , String ns , ObjectId oid ){
+        int start = _buf.position();
+        _put( REF , name );
+        
+        _putValueString( ns );
+        _buf.putLong( oid._base );
+        _buf.putInt( oid._inc );
 
+        return _buf.position() - start;
+    }
 
     // ----------------------------------------------
     
     private void _put( byte type , String name ){
         _buf.put( type );
         _put( name );
+    }
+
+    void _putValueString( String s ){
+        int lenPos = _buf.position();
+        _buf.putInt( 0 ); // making space for size
+        int strLen = _put( s );
+        _buf.putInt( lenPos , strLen );
     }
     
     int _put( String name ){

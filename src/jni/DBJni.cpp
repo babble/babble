@@ -8,8 +8,9 @@
 using namespace std;
 
 #include "grid/message.h"
+#include "util/goodies.h"
 
-#define CHECK_SA assert( sa ); SockAddr db = ((SockAddr*)sa)[0];
+#define CHECK_SA assert( sa ); sleepmillis(1); SockAddr db = ((SockAddr*)sa)[0];
 
 void setData( Message * m , int type , JNIEnv * env , jobject bb , int position , int limit ){
   
@@ -29,7 +30,7 @@ JNIEXPORT jlong JNICALL Java_ed_db_DBJni_createSock(JNIEnv * env , jclass, jstri
 JNIEXPORT jstring JNICALL Java_ed_db_DBJni_msg(JNIEnv *, jclass , jlong sa ){
   CHECK_SA;
   MessagingPort p;
-  p.init(29999);
+  p.init();
   
   Message send;
   Message response;
@@ -45,7 +46,7 @@ JNIEXPORT void JNICALL Java_ed_db_DBJni_insert(JNIEnv * env , jclass, jlong sa  
   CHECK_SA;
   
   MessagingPort p;
-  p.init(29999);
+  p.init();
   
   Message send;
   setData( & send , dbInsert , env , bb , position , limit );  
@@ -59,13 +60,13 @@ JNIEXPORT void JNICALL Java_ed_db_DBJni_doDelete(JNIEnv * env , jclass, jlong sa
   CHECK_SA;
   
   MessagingPort p;
-  p.init(29999);
+  p.init();
   
   Message send;
   setData( & send , dbDelete , env , bb , position , limit );  
 
   p.say(db, send );
-  cout << "should have deleted" << endl;
+
   return;
 }
 
@@ -73,13 +74,13 @@ JNIEXPORT void JNICALL Java_ed_db_DBJni_doUpdate(JNIEnv * env , jclass, jlong sa
   CHECK_SA;
   
   MessagingPort p;
-  p.init(29999);
+  p.init();
   
   Message send;
   setData( & send , dbUpdate , env , bb , position , limit );  
 
   p.say(db, send );
-  cout << "should have updated" << endl;
+
   return;
 }
 
@@ -88,7 +89,7 @@ JNIEXPORT jint JNICALL Java_ed_db_DBJni_query(JNIEnv * env , jclass, jlong sa , 
   CHECK_SA;
   
   MessagingPort p;
-  p.init(29999);
+  p.init();
   
   Message send;
   setData( & send , dbQuery , env , bb , position , limit );
@@ -108,7 +109,7 @@ JNIEXPORT jint JNICALL Java_ed_db_DBJni_getMore(JNIEnv * env , jclass, jlong sa 
   CHECK_SA;
   
   MessagingPort p;
-  p.init(29999);
+  p.init();
   
   Message send;
   setData( & send , dbGetMore , env , bb , position , limit );

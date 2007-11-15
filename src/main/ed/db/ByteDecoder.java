@@ -9,12 +9,19 @@ import ed.js.*;
 
 public class ByteDecoder extends Bytes {
 
+    static protected ByteDecoder get( DBBase base , String ns ){
+        ByteDecoder bd = new ByteDecoder();
+        bd._base = base;
+        bd._ns = ns;
+        return bd;
+    }
+
     protected ByteDecoder( ByteBuffer buf ){
         _buf = buf;
     }
 
-    protected ByteDecoder(){
-        _buf = ByteBuffer.allocateDirect( 1024 * 1024 );
+    private ByteDecoder(){
+        _buf = ByteBuffer.allocateDirect( BUF_SIZE );
         _buf.order( ByteOrder.LITTLE_ENDIAN );
     }
 
@@ -22,7 +29,20 @@ public class ByteDecoder extends Bytes {
         final int start = _buf.position();
         final int len = _buf.getInt();
         
-        JSObjectBase created = new JSObjectBase();
+        JSObjectBase created = null;
+
+        if ( _ns != null ){
+            if ( _ns.endsWith( "._files" ) ){
+                created = new JSDBFile();
+            }
+            else if ( _ns.endsWith( "._chunks" ) ){
+                created = new JSFileChunk();
+            }
+        }
+
+        if ( created == null )
+            created = new JSObjectBase();
+        
         while ( decodeNext( created ) > 1 );
         
         if ( _buf.position() - start != len )
@@ -67,12 +87,23 @@ public class ByteDecoder extends Bytes {
             o.set( name , new ObjectId( _buf.getLong() , _buf.getInt() ) );
             break;
             
+        case REF:
+            int stringSize = _buf.getInt();
+            String ns = readCStr();
+            ObjectId theOID = new ObjectId( _buf.getLong() , _buf.getInt() );
+            o.set( name , new DBRef( o , name , _base , ns , theOID ) );
+            break;
+            
         case DATE:
             o.set( name , new JSDate( _buf.getLong() ) );
             break;
             
         case REGEX:
             o.set( name , new JSRegex( readCStr() , readCStr() ) );
+            break;
+
+        case BINARY:
+            o.set( name , parseBinary() );
             break;
 
         case ARRAY:
@@ -91,6 +122,21 @@ public class ByteDecoder extends Bytes {
         }
         
         return _buf.position() - start;
+    }
+
+    Object parseBinary(){
+        final int totalLen = _buf.getInt();
+        final byte bType = _buf.get();
+
+        switch ( bType ){
+        case B_BINARY:
+            final int len = _buf.getInt();
+            final byte[] data = new byte[len];
+            _buf.get( data );
+            return new JSBinaryData.ByteArray( data );
+        }
+     
+        throw new RuntimeException( "can't handle binary type : " + bType );
     }
 
     private String readCStr(){
@@ -125,4 +171,8 @@ public class ByteDecoder extends Bytes {
     private final byte _namebuf[] = new byte[ MAX_STRING ];
 
     final ByteBuffer _buf;
+
+    String _ns;
+    DBBase _base;
 }
+

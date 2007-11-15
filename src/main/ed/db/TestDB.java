@@ -9,6 +9,10 @@ import ed.js.func.*;
 import ed.js.engine.*;
 
 public class TestDB extends DBBase {
+
+    public DBCollection getCollectionFromFull( String fullNameSpace ){
+        throw new RuntimeException( "not implemented" );
+    }
     
     public DBCollection getCollection( String name ){
         DBCollection c = _collections.get( name );
@@ -26,13 +30,16 @@ public class TestDB extends DBBase {
     class MyCollection extends DBCollection {
 
         MyCollection( String name ){
-            super( name );
+            super( TestDB.this , name );
             _entries.put( "debug" , new JSFunctionCalls0(){
                     public Object call( Scope s , Object foo[] ){
                         return _objects.keySet().toString();
                     }
 
                 } );
+        }
+
+        public void ensureIndex( JSObject keys , String name ){
         }
 
         public int remove( JSObject o ){
@@ -49,7 +56,7 @@ public class TestDB extends DBBase {
             return o;
         }
 
-        public ObjectId apply( JSObject o ){
+        public ObjectId doapply( JSObject o ){
             ObjectId id = (ObjectId)o.get( "_id" );
 
             if ( id == null ){

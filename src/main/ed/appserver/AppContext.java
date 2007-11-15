@@ -5,12 +5,17 @@ package ed.appserver;
 import java.io.*;
 import java.util.*;
 
+import ed.db.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.net.httpserver.*;
 import ed.appserver.jxp.*;
 
 public class AppContext {
+
+    public AppContext( File f ){
+        this( f.toString() );
+    }
 
     public AppContext( String root ){
         this( root , guessName( root ) );
@@ -20,12 +25,12 @@ public class AppContext {
         _name = name;
         _root = root;
         _rootFile = new File( _root );
-        _jxpObject = new JxpObject( _rootFile );
+        _jxpObject = new JxpObject( _rootFile , "" );
 
         _scope = new Scope( "AppContext:" + root , Scope.GLOBAL );
         
         _scope.put( "jxp" , _jxpObject , true );
-        _scope.put( "db" , new ed.db.DBJni( _name , System.getenv("db_ip") ) , true );
+        _scope.put( "db" , DBJni.get( _name ) , true );
 
         _scope.setGlobal( true );
     }
@@ -53,6 +58,17 @@ public class AppContext {
     
     public String getName(){
         return _name;
+    }
+
+    JSFile getJSFile( String id ){
+        System.out.println( "id:" + id );
+
+        if ( id == null )
+            return null;
+        
+        DBBase db = (DBBase)_scope.get( "db" );
+        DBCollection f = db.getCollection( "_files" );
+        return (JSFile)(f.find( new ObjectId( id ) ));
     }
 
     Scope scopeChild(){
@@ -197,15 +213,19 @@ public class AppContext {
     
     class JxpObject extends JSObjectBase {
         
-        JxpObject( File base ){
+        JxpObject( File base , String uriBase ){
             _base = base;
+            _uriBase = uriBase;
         }
         
         public Object get( final Object n ){
+
             Object foo = _get( n );
             if ( foo instanceof JxpSource ){
                 try {
-                    foo = ((JxpSource)foo).getFunction();
+                    JSFunction func = ((JxpSource)foo).getFunction();
+                    func.setName( "jxp" + _uriBase + "." + n.toString() );
+                    foo = func;
                 }
                 catch ( IOException ioe ){
                     throw new RuntimeException( ioe );
@@ -237,7 +257,7 @@ public class AppContext {
                 throw new RuntimeException( "can't have .js and .jxp with same name" );
 
             if ( dir.exists() ){
-                return set( n , new JxpObject( dir ) );
+                return set( n , new JxpObject( dir , _uriBase + "." + n.toString() ) );
             }
 
             if ( jxp.exists() ){
@@ -264,7 +284,11 @@ public class AppContext {
         }
         
         final File _base;
-        
+        final String _uriBase;
+    }
+
+    public String toString(){
+        return _rootFile.toString();
     }
 
     final String _name;

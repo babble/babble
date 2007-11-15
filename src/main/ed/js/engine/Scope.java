@@ -2,9 +2,11 @@
 
 package ed.js.engine;
 
+import java.io.*;
 import java.lang.reflect.*;
 import java.util.*;
 
+import ed.io.*;
 import ed.js.*;
 import ed.js.func.*;
 
@@ -160,7 +162,7 @@ public class Scope {
             _this.pop();
             added = false;
             
-            if ( obj instanceof JSObjectBase )
+            if ( obj.getClass().equals( JSObjectBase.class ) )
                 return null;
         }
         
@@ -201,6 +203,45 @@ public class Scope {
 
     public void setGlobal( boolean g ){
         _global = g;
+    }
+
+    public Object evalFromPath( String file , String name )
+        throws IOException {
+        return eval( ClassLoader.getSystemClassLoader().getResourceAsStream( file ) , name );
+    }
+
+    public Object eval( File f )
+        throws IOException {
+        return eval( f , f.toString() );
+    }
+
+    public Object eval( File f , String name )
+        throws IOException {
+        return eval( new FileInputStream( f ) , name );
+    }
+
+    public Object eval( InputStream in , String name )
+        throws IOException {
+        return eval( StreamUtil.readFully( in ) , name );
+    }
+
+    public Object eval( String code )
+        throws IOException {
+        return eval( code , "anon" );
+    }
+
+    public Object eval( String code , String name )
+        throws IOException {
+        return eval( code , name , null );
+    }
+    
+    public Object eval( String code , String name , boolean hasReturn[] )
+        throws IOException {
+        Convert c = new Convert( name , code );
+        JSFunction f = c.get();
+        if ( hasReturn != null && hasReturn.length > 0 )
+            hasReturn[0] = c.hasReturn();
+        return f.call( this );
     }
     
     final String _name;

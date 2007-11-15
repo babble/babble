@@ -13,10 +13,9 @@ import ed.js.engine.*;
 
 public class Shell {
 
-    public static void main( String args[] )
-        throws Exception {
+    public static void addNiceShellStuff( Scope s ){
 
-        Scope s = Scope.GLOBAL.child();
+
         s.put( "connect" , new JSFunctionCalls2(){
                 public Object call( Scope s , Object name , Object ip , Object crap[] ){
                     String key = ip + ":" + name;
@@ -24,25 +23,53 @@ public class Shell {
                     if ( db != null )
                         return db;
                     
-                    db = new DBJni( name.toString() , ip == null ? null : ip.toString() );
+                    db = DBJni.get( name.toString() , ip == null ? null : ip.toString() );
                     _dbs.put( key , db );
                     return db;
                 }
-
+                
                 Map<String,DBJni> _dbs = new HashMap<String,DBJni>();
             } , true  );
         
+        s.put( "openFile" , new JSFunctionCalls1(){
+                public Object call( Scope s , Object fileName , Object crap[] ){
+                    return new JSNewFile.Local( fileName.toString() );
+                }
+            } , true );
+        
+            
+    }
+    
+    public static void main( String args[] )
+        throws Exception {
+        
+        Scope s = Scope.GLOBAL.child();
+
+        addNiceShellStuff( s );
+
+        File init = new File( System.getenv( "HOME" ) + "/.init.js" );
+        System.out.println( init );
+        if ( init.exists() )
+            s.eval( init );
+        
+        for ( String a : args ){
+            File temp = new File( a );
+            s.eval( temp );
+        }
 
         String line;
         ConsoleReader console = new ConsoleReader();
         console.setHistory( new History( new File( ".jsshell" ) ) );
         
+        boolean hasReturn[] = new boolean[1];
+        
         while ( ( line = console.readLine( "> " ) ) != null ){
+            line = line.trim();
+            if ( line.length() == 0 )
+                continue;
             try {
-                Convert c = new Convert( "lastline" , line );
-                JSFunction f = c.get();
-                Object res = f.call( s );
-                if ( c.hasReturn() )
+                Object res = s.eval( line , "lastline" , hasReturn );
+                if ( hasReturn[0] )
                     System.out.println( JSON.serialize( res ) );
             }
             catch ( Exception e ){
