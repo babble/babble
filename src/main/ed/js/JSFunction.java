@@ -21,6 +21,10 @@ public abstract class JSFunction extends JSFunctionBase {
         init();
     }
 
+    public JSObject newOne(){
+        return new JSObjectBase( this );
+    }
+
     protected void init(){}
 
     public Object get( Object n ){

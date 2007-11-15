@@ -54,10 +54,19 @@ public class JSBuiltInFunctions {
             return arr;
         }
     }
+    
+    public static class NewDate extends JSFunctionCalls1 {
+        public Object call( Scope scope , Object t , Object extra[] ){
+            
+            if ( t == null )
+                return new JSDate();
 
-    public static class NewDate extends JSFunctionCalls0 {
-        public Object call( Scope scope , Object extra[] ){
-            return new JSDate();
+            System.out.println( "t:" + t  + " " + t.getClass() );
+            
+            if ( ! ( t instanceof Number ) )
+                return new JSDate();
+            
+            return new JSDate( ((Number)t).longValue() );
         }
     }
 
@@ -74,7 +83,7 @@ public class JSBuiltInFunctions {
 
         _myScope.put( "Object" , new NewObject() , true );
         _myScope.put( "Array" , new NewArray() , true );
-        _myScope.put( "Date" , new NewDate() , true );
+        _myScope.put( "Date" , JSDate._cons , true );
         _myScope.put( "String" , JSString._cons , true );
 
         _myScope.put( "Math" , JSMath.getInstance() , true );
