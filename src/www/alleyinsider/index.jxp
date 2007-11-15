@@ -1,1 +1,39 @@
-Welcome 
+<% jxp.pieces.header(); %>
+
+<div id="main-col">
+
+<% for ( var cursor = db.posts.find().sort( { ts : -1 } ); cursor.hasNext() ; ){  var me = cursor.next(); %>
+
+  <div class="entry-asset asset">
+    
+    <div class="asset-header">
+      
+      <h1 class="asset-name"><a href=""><%= me.name %></a></h1>
+      
+      <div class="asset-meta">
+        <h3>
+          <span class="byline"><a href=""><%= me.author %></a></span> | 
+          <span class="dateline"><%= me.ts %></span>
+        </h3>
+      </div>
+      
+    </div>
+    
+    <div class="asset-content">      
+      
+      <div class="asset-body"><%= me.content %></div>
+    
+      <div class="asset-more-link">
+        <strong>Continue reading:</strong> <a href="http://www.alleyinsider.com/2007/11/warner-music-wmg-to-mobile-biz-help.html#more"><%= me.name %></a>.
+      </div>
+    </div>
+    
+    <div class="asset-footer"><div class="flare"><script src="http://feeds.feedburner.com/~s/typepad/alleyinsider/silicon_alley_insider?i=http://www.alleyinsider.com/2007/11/warner-music-wmg-to-mobile-biz-help.html" type="text/javascript" charset="utf-8"></script></div><div class="comment-number"><a href="http://www.alleyinsider.com/2007/11/warner-music-wmg-to-mobile-biz-help.html#comments">Comments (1)</a></div></div>
+  </div>
+  <hr/>
+  
+  <% } %>
+  
+</div>
+
+<% jxp.pieces.footer(); %>
