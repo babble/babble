@@ -122,7 +122,7 @@ public class ByteDecoder extends Bytes {
     }
 
     private final CharsetDecoder _decoder = _utf8.newDecoder();
-    private final byte _namebuf[] = new byte[1024];
+    private final byte _namebuf[] = new byte[ MAX_STRING ];
 
     final ByteBuffer _buf;
 }

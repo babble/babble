@@ -28,5 +28,5 @@ public class Bytes {
     static final byte REGEX = 11;
     
     static protected Charset _utf8 = Charset.forName( "UTF-8" );
-    
+    static protected final int MAX_STRING = 1024 * 512;
 }
