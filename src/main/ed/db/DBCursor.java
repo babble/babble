@@ -68,6 +68,12 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
         return foo;
     }
 
+    public JSObject curr(){
+        if ( _all.size() == 0 )
+            throw new RuntimeException( "no object" );
+        return _all.get( _all.size() - 1 );
+    }
+
     public Object get( Object n ){
         if ( n instanceof Number )
             return getInt( ((Number)n).intValue() );
