@@ -157,7 +157,7 @@ public class HttpRequest implements ed.js.JSObject {
     }
     
     public boolean applyServletParams( JSRegex regex , JSArray names ){
-
+        
         Matcher m = regex.getCompiled().matcher( getURI() );
         if ( ! m.find() )
             return false;
