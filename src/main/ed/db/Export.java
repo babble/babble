@@ -46,6 +46,8 @@ public class Export {
             
             List<String> tables = m.get( root );
             for ( String t : tables ){
+		if ( t.indexOf( ".$" ) >= 0 )
+		    continue;
                 DBCollection c = db.getCollection( t );
                 out.println( "var t = " + root + "." + t + ";" );
                 
