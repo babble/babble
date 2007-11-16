@@ -21,7 +21,7 @@ public class MT {
         ResultSet res = stmt.executeQuery( "SELECT * FROM mt_entry , mt_author WHERE entry_author_id = author_id " );
         
         while ( res.next() ){
-            
+            System.out.println( res.getString("entry_title" ) ); 
             JSObject o = new JSObjectBase();
             
             o.set( "name"  , res.getString("entry_title") );

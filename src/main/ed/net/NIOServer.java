@@ -33,6 +33,8 @@ public abstract class NIOServer extends Thread {
     }
     
     public void run(){
+        
+        System.out.println( "Listening on post: " + _port );
 
         final ByteBuffer readBuf = ByteBuffer.allocateDirect(1024);
         final ByteBuffer writeBuf = ByteBuffer.allocateDirect(1024);

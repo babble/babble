@@ -30,8 +30,6 @@ public class JSDate extends JSObjectBase {
             
             protected void init(){
                 
-                System.out.println( "init" );
-                
                 _prototype.set( "getTime" , new JSFunctionCalls0() {
                         public Object call( Scope s , Object foo[] ){
                             return ((JSDate)s.getThis())._time;

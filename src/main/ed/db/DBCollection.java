@@ -28,9 +28,12 @@ public abstract class DBCollection extends JSObjectLame {
     }
 
     public String genIndexName( JSObject keys ){
-        String name = _name + ".";
-        for ( String s : keys.keySet() )
-            name += s + "-";
+        String name = "";
+        for ( String s : keys.keySet() ){
+            if ( name.length() > 0 )
+                name += "_";
+            name += s + "_" + keys.get( s ).toString().replace( ' ' , '_' );
+        }
         return name;
     }
 
