@@ -42,5 +42,5 @@ public class Bytes {
 
     
     static protected Charset _utf8 = Charset.forName( "UTF-8" );
-    
+    static protected final int MAX_STRING = 1024 * 512;
 }

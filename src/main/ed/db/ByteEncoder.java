@@ -205,7 +205,7 @@ public class ByteEncoder extends Bytes {
         return _buf.position() - start;
     }
     
-    private final CharBuffer _cbuf = CharBuffer.allocate( 1024 );
+    private final CharBuffer _cbuf = CharBuffer.allocate( MAX_STRING );
     private final CharsetEncoder _encoder = _utf8.newEncoder();
 
     private boolean _flipped = false;

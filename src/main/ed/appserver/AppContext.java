@@ -30,7 +30,7 @@ public class AppContext {
         _scope = new Scope( "AppContext:" + root , Scope.GLOBAL );
         
         _scope.put( "jxp" , _jxpObject , true );
-        _scope.put( "db" , new ed.db.DBJni( _name ) , true );
+        _scope.put( "db" , DBJni.get( _name ) , true );
 
         _scope.setGlobal( true );
     }

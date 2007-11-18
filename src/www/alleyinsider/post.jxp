@@ -1,0 +1,6 @@
+<% jxp.pieces.header(); %>
+<% request.applyServletParams( /^.post.(.+)/ , [ "name" ] ); %>
+
+<%= request.name %>
+
+<% jxp.pieces.footer(); %>

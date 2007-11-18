@@ -39,6 +39,9 @@ public class TestDB extends DBBase {
                 } );
         }
 
+        public void ensureIndex( JSObject keys , String name ){
+        }
+
         public int remove( JSObject o ){
             throw new RuntimeException( "not implemented" );
         }

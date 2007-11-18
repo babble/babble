@@ -41,7 +41,7 @@ JNIEXPORT jlong JNICALL Java_ed_db_DBJni_createSock(JNIEnv * env , jclass, jstri
 }
 
 JNIEXPORT jstring JNICALL Java_ed_db_DBJni_msg(JNIEnv *, jclass , jlong sa ){
-  CHECK_SA
+  CHECK_SA;
   
   Message send;
   Message response;

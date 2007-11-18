@@ -34,3 +34,5 @@ function allowed( req , res , uri ){
     res.setHeader( "WWW-Authenticate" , "Basic realm=\"LNC\"" );
     return "no";
 }
+
+db.wiki.ensureIndex( { name : 1 } );

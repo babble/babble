@@ -17,10 +17,25 @@ public abstract class DBCollection extends JSObjectLame {
     public abstract int remove( JSObject id );
     
     public abstract JSObject find( ObjectId id );    
-    
     public abstract Iterator<JSObject> find( JSObject ref , JSObject fields );
 
+    public abstract void ensureIndex( JSObject keys , String name );
+
     // ------
+
+    public void ensureIndex( JSObject keys ){
+        ensureIndex( keys , genIndexName( keys ) );
+    }
+
+    public String genIndexName( JSObject keys ){
+        String name = "";
+        for ( String s : keys.keySet() ){
+            if ( name.length() > 0 )
+                name += "_";
+            name += s + "_" + keys.get( s ).toString().replace( ' ' , '_' );
+        }
+        return name;
+    }
 
     public Iterator<JSObject> find( JSObject ref ){
         return find( ref , null );
@@ -86,7 +101,8 @@ public abstract class DBCollection extends JSObjectLame {
                     ObjectId id = (ObjectId)jo.get( "_id" );
 
                     if ( id == null || id._new ){
-                        id._new = false;
+                        if ( id != null )
+                            id._new = false;
                         save( jo );
                     }
                     
@@ -147,10 +163,13 @@ public abstract class DBCollection extends JSObjectLame {
                         return find( (ObjectId)o );
 
                     if ( o instanceof JSObject ){
+                        /*
                         Iterator<JSObject> l = find( (JSObject)o , (JSObject)fieldsWantedO );
                         if ( l == null )
                             l = (new LinkedList<JSObject>()).iterator();
                         return new DBCursor( l );
+                        */
+                        return new DBCursor( DBCollection.this , (JSObject)o , (JSObject)fieldsWantedO );
                     }
                     
                     throw new RuntimeException( "wtf : " + o.getClass() );
