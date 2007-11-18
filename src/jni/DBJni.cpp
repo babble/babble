@@ -13,7 +13,15 @@ using namespace std;
 
 #define CHECK_SA assert( sa ); SockAddr db = ((SockAddr*)sa)[0]; MessagingPort& p = getPort(sa);
 
-map<SockAddr,MessagingPort*> ports;
+map<SockAddr,MessagingPort*> &ports = *(new map<SockAddr,MessagingPort*>);
+
+class DBJniShutdown { 
+public:
+  ~DBJniShutdown() {
+    for( map<SockAddr,MessagingPort*>::iterator i = ports.begin(); i != ports.end(); i++ )
+      i->second->shutdown();
+  }
+} dbjnishutdown;
 
 inline MessagingPort& getPort(jlong sa) { 
   assert(sa);
