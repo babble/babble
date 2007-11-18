@@ -2,6 +2,8 @@
 
 package ed.js;
 
+import java.util.*;
+
 import ed.js.func.*;
 import ed.js.engine.*;
 
@@ -67,9 +69,32 @@ public class JSDate extends JSObjectBase {
         return _time;
     }
 
+    public int getYear(){
+        _cal();
+        return _c.get( Calendar.YEAR );
+    }
+
+    public int getMonth(){
+        _cal();
+        return 1 + _c.get( Calendar.MONTH );
+    }
+
+    public int getDay(){
+        _cal();
+        return _c.get( Calendar.DAY_OF_MONTH );
+    }
+
     public String toString(){
         return new java.util.Date( _time ).toString();
     }
 
+    private void _cal(){
+        if ( _c != null )
+            return;
+        _c = Calendar.getInstance();
+        _c.setTimeInMillis( _time );
+    }
+
     long _time;
+    Calendar _c;
 }
