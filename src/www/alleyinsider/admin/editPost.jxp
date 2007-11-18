@@ -2,25 +2,31 @@
 
 <% 
 
-    var name = request.name;
-if ( name && name.length == 0 )
-    name = null;
-
+var id = request.id;
 var thePost = null;
 
-if ( name ){
-    thePost = db.posts.findOne( { name : name } );
+if ( id ){
+    thePost = db.posts.findOne( CrID( id ) );
 }
 
-if ( ! thePost )
+var newPost = ! thePost;
+
+if ( ! thePost ){
     thePost = {};
+    id = null;
+}
 
 if ( ! thePost.content  )
     thePost.content = "write stuff here";
 
-if ( request.name && request.name.length > 0 && request.content ){
-    thePost.name = request.name;
+if ( request.action == "save" ){
+
+    if ( ! thePost.name )
+        thePost.name = request.name;
+    
+    thePost.title = request.title;
     thePost.content = request.content;
+    thePost.live = parseBool( request.live );
 
     if ( ! thePost.ts )
         thePost.ts = Date();
@@ -28,6 +34,10 @@ if ( request.name && request.name.length > 0 && request.content ){
         thePost.author = user;
     
     db.posts.save( thePost );
+
+    id = thePost._id;
+    if ( ! id )
+        print( "something is fucked up" );
 }
 
 if ( request.content )
@@ -58,20 +68,44 @@ tinyMCE.init({
 });
 </script>
 
+<script>
+  var newPost = <%= id ? "false" : "true" %>;
+  function titleChange(){
+    if ( ! newPost ) return;
+    
+    var t = document.getElementById( "title" ).value;
+    t = t.replace( /[^a-zA-Z0-9]/g , "_" );
+    document.getElementById( "name" ).value = t;
+  }
+</script>
+
 <form method="post" action="editPost.jxp">
 
-  <% if ( name ){  %>
-  <b><%= name %></b>
-  <input type="hidden" name="name" value="<%= name %>">
-  <% } else { %>
-  Name:<input name="name" >
-  <% } %>
+  Title:<input id="title" name="title" value="<%= thePost.title %>" size="60" onChange="titleChange()" onKeyUp="titleChange()" >
 
   <br>
   
-  <textarea name="content" rows="25" cols="80" ><%= thePost.content %></textarea>
+  <textarea name="content" rows="15" cols="80" ><%= thePost.content %></textarea>
+
   <br>
+  <hr>
+  
+  Live: <select name="live">
+    <option value="false">Not Live</option>
+    <option value="true" <%= thePost.live ? "selected" : "" %> >Live</option>
+    </select>
+  <br>
+
+  Name: <input id="name" name="name" value="<%= thePost.name %>" <%= newPost ? "" : "disabled" %> ><br>
+
+  <% if ( id ){ %>
+  ID: <%= id %><br>
+  <input type="hidden" name="id" value="<%= id %>">
+  <% } %>
+  
+  <input type="hidden" name="action" value="save">
   <input type="submit" value="save">
+  
 </form>
 
 <% jxp.admin.pieces.footer(); %>

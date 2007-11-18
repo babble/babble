@@ -18,16 +18,18 @@ public class MT {
         DBCollection coll = db.getCollection( "posts" );
 
         Statement stmt = conn.createStatement();
-        ResultSet res = stmt.executeQuery( "SELECT * FROM mt_entry , mt_author WHERE entry_author_id = author_id " );
+        ResultSet res = stmt.executeQuery( "SELECT * FROM mt_entry , mt_author WHERE entry_author_id = author_id LIMIT 1" );
         
         while ( res.next() ){
             System.out.println( res.getString("entry_title" ) ); 
             JSObject o = new JSObjectBase();
             
-            o.set( "name"  , res.getString("entry_title") );
+            o.set( "name"  , res.getString("entry_basename") );
+            o.set( "title"  , res.getString("entry_title") );
             o.set( "content" , res.getString( "entry_text" ) + "\n\n---JUMP---\n\n" + res.getString( "entry_text_more" ) );
             o.set( "author" , res.getString( "author_name" ) );
             o.set( "ts" , new JSDate( res.getTimestamp( "entry_authored_on" ).getTime() ) );
+            o.set( "live" , true );
 
             coll.save( o );
         }

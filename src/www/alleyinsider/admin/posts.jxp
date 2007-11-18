@@ -1,14 +1,19 @@
 <% jxp.admin.pieces.header(); %>
 
-Posts - <a href="/admin/editPost.jxp">new</a>
-
+Posts - <a href="/admin/editPost">new</a>
+ 
 <% var allPosts = db.posts.find(); %>
-<ul>
-<% for ( var idx in allPosts ){ 
-    var tempName = allPosts[idx].name; %>
-  <li><a href="editPost.jxp?name=<%= tempName %>"><%= tempName %></a></li>
-<% } %>
-</ul>
+<table border="1">
+  <% for ( var idx in allPosts ){ var thePost = allPosts[idx]; %>
+  <tr>
+    <td><a href="editPost?id=<%= thePost._id %>"><%= thePost.name %></a></td>
+    <td><%= thePost.title %></td>
+    <td><%= thePost.author %></td>
+    <td><%= thePost.ts %></td>
+    <td><%= thePost.live ? "live" : "not live" %></td>
+  </tr>
+  <% } %>
+</table>
 
 <% jxp.admin.pieces.footer(); %>
 
