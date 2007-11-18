@@ -87,11 +87,26 @@ public class JSBuiltInFunctions {
         _myScope.put( "String" , JSString._cons , true );
 
         _myScope.put( "Math" , JSMath.getInstance() , true );
-
+        
         _myScope.put( "CrID" , new CrID() , true );
 
         _myScope.put( "Base64" , new ed.util.Base64() , true );
         
+        _myScope.put( "parseBool" , new JSFunctionCalls1(){
+                public Object call( Scope scope , Object b , Object extra[] ){
+                    if ( b == null )
+                        return false;
+                    
+                    String s = b.toString();
+                    if ( s.length() == 0 )
+                        return false;
+                    
+                    char c = s.charAt( 0 );
+                    return c == 't' || c == 'T';
+                }
+            } , true );
+        
+
         JSON.init( _myScope );
     }
     

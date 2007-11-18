@@ -2,7 +2,7 @@
 
 <div id="main-col">
 
-<% for ( var cursor = db.posts.find().sort( { ts : -1 } ); cursor.hasNext() ; ){  
+  <% for ( var cursor = db.posts.find( { live : true } ).sort( { ts : -1 } ); cursor.hasNext() ; ){  
        var me = cursor.next(); 
        var fullUrl = "http://" + request.getHeader( "host" ) + "/post/" + me.name.replace( / /g , "_" );
        %>
@@ -11,7 +11,7 @@
     
     <div class="asset-header">
       
-      <h1 class="asset-name"><a href="<%= fullUrl %>"><%= me.name %></a></h1>
+      <h1 class="asset-name"><a href="<%= fullUrl %>"><%= me.title %></a></h1>
       
       <div class="asset-meta">
         <h3>
