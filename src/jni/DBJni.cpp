@@ -4,13 +4,26 @@
 
 #include <iostream>
 #include <assert.h>
+#include <map>
 
 using namespace std;
 
 #include "grid/message.h"
 #include "util/goodies.h"
 
-#define CHECK_SA assert( sa ); sleepmillis(10); SockAddr db = ((SockAddr*)sa)[0];
+#define CHECK_SA assert( sa ); SockAddr db = ((SockAddr*)sa)[0]; MessagingPort& p = getPort(sa);
+
+map<SockAddr,MessagingPort*> ports;
+
+inline MessagingPort& getPort(jlong sa) { 
+  assert(sa);
+  MessagingPort *& mp = ports[((SockAddr*)sa)[0]];
+  if( mp == 0 ) {
+    mp = new MessagingPort();
+    mp->init(29999);
+  }
+  return *mp;
+}
 
 void setData( Message * m , int type , JNIEnv * env , jobject bb , int position , int limit ){
   
@@ -28,9 +41,7 @@ JNIEXPORT jlong JNICALL Java_ed_db_DBJni_createSock(JNIEnv * env , jclass, jstri
 }
 
 JNIEXPORT jstring JNICALL Java_ed_db_DBJni_msg(JNIEnv *, jclass , jlong sa ){
-  CHECK_SA;
-  MessagingPort p;
-  p.init(29999);
+  CHECK_SA
   
   Message send;
   Message response;
@@ -43,10 +54,7 @@ JNIEXPORT jstring JNICALL Java_ed_db_DBJni_msg(JNIEnv *, jclass , jlong sa ){
 }
 
 JNIEXPORT void JNICALL Java_ed_db_DBJni_insert(JNIEnv * env , jclass, jlong sa  , jobject bb , jint position , jint limit ){
-  CHECK_SA;
-  
-  MessagingPort p;
-  p.init(29999);
+  CHECK_SA
   
   Message send;
   setData( & send , dbInsert , env , bb , position , limit );  
@@ -57,10 +65,7 @@ JNIEXPORT void JNICALL Java_ed_db_DBJni_insert(JNIEnv * env , jclass, jlong sa  
 }
 
 JNIEXPORT void JNICALL Java_ed_db_DBJni_doDelete(JNIEnv * env , jclass, jlong sa  , jobject bb , jint position , jint limit ){
-  CHECK_SA;
-  
-  MessagingPort p;
-  p.init(29999);
+  CHECK_SA
   
   Message send;
   setData( & send , dbDelete , env , bb , position , limit );  
@@ -71,10 +76,7 @@ JNIEXPORT void JNICALL Java_ed_db_DBJni_doDelete(JNIEnv * env , jclass, jlong sa
 }
 
 JNIEXPORT void JNICALL Java_ed_db_DBJni_doUpdate(JNIEnv * env , jclass, jlong sa  , jobject bb , jint position , jint limit ){
-  CHECK_SA;
-  
-  MessagingPort p;
-  p.init(29999);
+  CHECK_SA
   
   Message send;
   setData( & send , dbUpdate , env , bb , position , limit );  
@@ -86,10 +88,7 @@ JNIEXPORT void JNICALL Java_ed_db_DBJni_doUpdate(JNIEnv * env , jclass, jlong sa
 
 
 JNIEXPORT jint JNICALL Java_ed_db_DBJni_query(JNIEnv * env , jclass, jlong sa , jobject bb , jint position , jint limit , jobject res ){
-  CHECK_SA;
-  
-  MessagingPort p;
-  p.init(29999);
+  CHECK_SA
   
   Message send;
   setData( & send , dbQuery , env , bb , position , limit );
@@ -106,10 +105,7 @@ JNIEXPORT jint JNICALL Java_ed_db_DBJni_query(JNIEnv * env , jclass, jlong sa , 
 
 
 JNIEXPORT jint JNICALL Java_ed_db_DBJni_getMore(JNIEnv * env , jclass, jlong sa , jobject bb , jint position , jint limit , jobject res ){
-  CHECK_SA;
-  
-  MessagingPort p;
-  p.init(29999);
+  CHECK_SA
   
   Message send;
   setData( & send , dbGetMore , env , bb , position , limit );
