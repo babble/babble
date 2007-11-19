@@ -1,4 +1,6 @@
 
+jxp.lib.post();
+
 var Auth = {
     
     /**
@@ -38,7 +40,7 @@ function allowed( req , res , uri ){
     
     var auth = Auth.getUserAndPass( req );
     if ( auth ){
-        if ( auth.user == "abc" && auth.pass == "17" ){
+        if ( auth.user && auth.user.length > 0 && auth.pass == "17" ){
             user = auth.user;
             return;
         }
@@ -48,3 +50,4 @@ function allowed( req , res , uri ){
 }
 
 db.posts.ensureIndex( { ts : 1 } );
+db.posts.setConstructor( Post );

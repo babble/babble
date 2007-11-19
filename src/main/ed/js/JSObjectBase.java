@@ -102,6 +102,10 @@ public class JSObjectBase implements JSObject {
         return foo.toString();
     }
 
+    public void setConstructor( JSFunction cons ){
+        _constructor = cons;
+    }
+
     private Map<String,Object> _map = null;
     private List<String> _keys = null;
     private JSFunction _constructor;

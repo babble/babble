@@ -28,9 +28,12 @@ public abstract class DBCollection extends JSObjectLame {
     }
 
     public String genIndexName( JSObject keys ){
-        String name = _name + ".";
-        for ( String s : keys.keySet() )
-            name += s + "-";
+        String name = "";
+        for ( String s : keys.keySet() ){
+            if ( name.length() > 0 )
+                name += "_";
+            name += s + "_" + keys.get( s ).toString().replace( ' ' , '_' );
+        }
         return name;
     }
 
@@ -47,6 +50,10 @@ public abstract class DBCollection extends JSObjectLame {
         jo.set( "_save" , _save );
         
         return doapply( jo );
+    }
+
+    public void setConstructor( JSFunction cons ){
+        _constructor = cons;
     }
 
     // ------
@@ -101,6 +108,7 @@ public abstract class DBCollection extends JSObjectLame {
                         if ( id != null )
                             id._new = false;
                         save( jo );
+                        return jo;
                     }
                     
                     System.out.println( jo.get( "_id" ) );
@@ -160,13 +168,7 @@ public abstract class DBCollection extends JSObjectLame {
                         return find( (ObjectId)o );
 
                     if ( o instanceof JSObject ){
-                        /*
-                        Iterator<JSObject> l = find( (JSObject)o , (JSObject)fieldsWantedO );
-                        if ( l == null )
-                            l = (new LinkedList<JSObject>()).iterator();
-                        return new DBCursor( l );
-                        */
-                        return new DBCursor( DBCollection.this , (JSObject)o , (JSObject)fieldsWantedO );
+                        return new DBCursor( DBCollection.this , (JSObject)o , (JSObject)fieldsWantedO , _constructor );
                     }
                     
                     throw new RuntimeException( "wtf : " + o.getClass() );
@@ -226,4 +228,6 @@ public abstract class DBCollection extends JSObjectLame {
 
     protected Map _entries = new TreeMap();
     final protected String _name;
+
+    private JSFunction _constructor;
 }

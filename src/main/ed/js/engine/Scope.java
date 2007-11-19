@@ -133,7 +133,14 @@ public class Scope {
     }
 
     public Scope newThis( JSFunction f ){
-        _this.push( new This( new JSObjectBase( f ) ) );
+        JSObject o = null;
+
+        if ( f != null )
+            o = f.newOne();
+        else 
+            o = new JSObjectBase();
+
+        _this.push( new This( o ) );
         return this;
     }
 
@@ -162,8 +169,6 @@ public class Scope {
             _this.pop();
             added = false;
             
-            if ( obj.getClass().equals( JSObjectBase.class ) )
-                return null;
         }
         
         if ( added ){
@@ -177,6 +182,8 @@ public class Scope {
     }
 
     public JSObject getThis(){
+        if ( _this.size() == 0 )
+            return null;
         return _this.peek()._this;
     }
 

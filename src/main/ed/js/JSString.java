@@ -13,10 +13,29 @@ public class JSString extends JSObjectBase {
 
     public static JSFunction _cons = new JSStringCons();
     
-    static class JSStringCons extends JSFunctionCalls0{
+    static class JSStringCons extends JSFunctionCalls1{
+
+        public JSObject newOne(){
+            return new JSString("");
+        }
         
-        public Object call( Scope s , Object[] args ){
-            throw new RuntimeException( "can't be here" );
+        public Object call( Scope s , Object foo , Object[] args ){
+
+            JSObject o = s.getThis();
+            if ( o == null ){
+                if ( foo == null )
+                    return new JSString( "" );
+                return new JSString( foo.toString() );
+            }
+            
+            if ( ! ( o instanceof JSString ) )
+                throw new RuntimeException( "something is very broken" );
+            
+            JSString str = (JSString)o;
+            if ( foo != null )
+                str._s = foo.toString();
+            
+            return o;
         }
         
         protected void init(){
