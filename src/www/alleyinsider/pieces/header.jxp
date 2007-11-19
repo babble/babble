@@ -1,3 +1,6 @@
+<% jxp.lib.post(); %>
+<% db.posts.setConstructor( Post ); %>
+
 <html xmlns="http://www.w3.org/1999/xhtml" id="sixapart-standard">
   <head>
     

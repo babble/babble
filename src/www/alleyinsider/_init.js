@@ -1,4 +1,6 @@
 
+jxp.lib.post();
+
 var Auth = {
     
     /**
@@ -48,3 +50,4 @@ function allowed( req , res , uri ){
 }
 
 db.posts.ensureIndex( { ts : 1 } );
+db.posts.setConstructor( Post );

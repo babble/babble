@@ -17,8 +17,10 @@ public class MT {
 
         DBCollection coll = db.getCollection( "posts" );
 
-        Statement stmt = conn.createStatement();
-        ResultSet res = stmt.executeQuery( "SELECT * FROM mt_entry , mt_author WHERE entry_author_id = author_id " );
+        Statement stmt = conn.createStatement( ResultSet.TYPE_FORWARD_ONLY,
+                                               ResultSet.CONCUR_READ_ONLY);
+        stmt.setFetchSize(Integer.MIN_VALUE);
+        ResultSet res = stmt.executeQuery( "SELECT * FROM mt_entry , mt_author WHERE entry_author_id = author_id ORDER BY entry_authored_on DESC " );
         
         while ( res.next() ){
             System.out.println( res.getString("entry_title" ) ); 

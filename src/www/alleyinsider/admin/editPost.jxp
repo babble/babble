@@ -21,17 +21,21 @@ if ( ! thePost.content  )
 
 if ( request.action == "save" ){
 
-    if ( ! thePost.name )
-        thePost.name = request.name;
+    if ( ! thePost.ts )
+        thePost.ts = Date();
+
+    if ( ! thePost.author )
+        thePost.author = user;
+
+    if ( ! thePost.name ){
+        thePost.name = thePost.ts.getYear() + "/" + thePost.ts.getMonth() + "/" + request.name;
+    }
     
     thePost.title = request.title;
     thePost.content = request.content;
     thePost.live = parseBool( request.live );
 
-    if ( ! thePost.ts )
-        thePost.ts = Date();
-    if ( ! thePost.author )
-        thePost.author = user;
+
     
     db.posts.save( thePost );
 
