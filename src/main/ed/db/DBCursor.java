@@ -9,14 +9,17 @@ import ed.util.*;
 
 public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
 
+    /*
     DBCursor( Iterator<JSObject> i ){
         _it = i;
     }
+    */
 
-    DBCursor( DBCollection collection , JSObject q , JSObject k ){
+    DBCursor( DBCollection collection , JSObject q , JSObject k , JSFunction cons ){
         _collection = collection;
         _query = q;
         _keysWanted = k;
+        _constructor = cons;
     }
 
     private void _check(){
@@ -63,6 +66,8 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
     public JSObject next(){
         _check();
         JSObject foo = _it.next();
+        if ( _constructor != null && foo instanceof JSObjectBase )
+            ((JSObjectBase)foo).setConstructor( _constructor );
         _nums.add( String.valueOf( _all.size() ) );
         _all.add( foo );
         return foo;
@@ -115,6 +120,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
     private JSObject _query;
     private JSObject _keysWanted;
     private JSObject _orderBy;
+    private JSFunction _constructor;
 
     private final List<JSObject> _all = new ArrayList<JSObject>();
     private final List<String> _nums = new ArrayList<String>();

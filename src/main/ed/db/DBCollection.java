@@ -52,6 +52,10 @@ public abstract class DBCollection extends JSObjectLame {
         return doapply( jo );
     }
 
+    public void setConstructor( JSFunction cons ){
+        _constructor = cons;
+    }
+
     // ------
 
     protected DBCollection( DBBase base , String name ){
@@ -164,13 +168,7 @@ public abstract class DBCollection extends JSObjectLame {
                         return find( (ObjectId)o );
 
                     if ( o instanceof JSObject ){
-                        /*
-                        Iterator<JSObject> l = find( (JSObject)o , (JSObject)fieldsWantedO );
-                        if ( l == null )
-                            l = (new LinkedList<JSObject>()).iterator();
-                        return new DBCursor( l );
-                        */
-                        return new DBCursor( DBCollection.this , (JSObject)o , (JSObject)fieldsWantedO );
+                        return new DBCursor( DBCollection.this , (JSObject)o , (JSObject)fieldsWantedO , _constructor );
                     }
                     
                     throw new RuntimeException( "wtf : " + o.getClass() );
@@ -230,4 +228,6 @@ public abstract class DBCollection extends JSObjectLame {
 
     protected Map _entries = new TreeMap();
     final protected String _name;
+
+    private JSFunction _constructor;
 }
