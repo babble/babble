@@ -17,10 +17,14 @@ public class MT {
 
         DBCollection coll = db.getCollection( "posts" );
 
-        Statement stmt = conn.createStatement( ResultSet.TYPE_FORWARD_ONLY,
-                                               ResultSet.CONCUR_READ_ONLY);
-        stmt.setFetchSize(Integer.MIN_VALUE);
-        ResultSet res = stmt.executeQuery( "SELECT * FROM mt_entry , mt_author WHERE entry_author_id = author_id ORDER BY entry_authored_on DESC " );
+        Statement stmt = conn.createStatement();
+        ResultSet res = stmt.executeQuery( "SELECT * FROM mt_entry , mt_author WHERE entry_author_id = author_id ORDER BY entry_id DESC LIMIT 10 " );
+        
+        Statement commentsStmt = conn.createStatement();
+        ResultSet comments = commentsStmt.executeQuery( "SELECT * FROM mt_comment WHERE comment_visible = 1 ORDER BY comment_entry_id DESC" ); 
+        comments.next();
+
+        boolean moreComments = true;
         
         while ( res.next() ){
             System.out.println( res.getString("entry_title" ) ); 
@@ -33,8 +37,35 @@ public class MT {
             o.set( "content" , res.getString( "entry_text" ) + "\n\n---JUMP---\n\n" + res.getString( "entry_text_more" ) );
             o.set( "author" , res.getString( "author_name" ) );
             o.set( "ts" , d );
-            o.set( "live" , true );
+            o.set( "live" , res.getInt( "entry_status" ) == 2 );
+            
+            while ( moreComments && comments.getInt( "comment_entry_id" ) > res.getInt( "entry_id" ) ){
+                if ( ! comments.next() )
+                    moreComments = false;
+            }
 
+            JSArray ca = null;
+            
+            while ( moreComments && comments.getInt( "comment_entry_id" ) == res.getInt( "entry_id" ) ){
+                System.out.println( "\t found a comment" );
+                if ( ca == null ){
+                    ca = new JSArray();
+                    o.set( "comments" , ca );
+                }
+                
+                JSObject c = new JSObjectBase();
+                c.set( "author" , comments.getString( "comment_author" ) );
+                c.set( "email" , comments.getString( "comment_email" ) );
+                c.set( "ip" , comments.getString( "comment_ip" ) );
+                c.set( "text" , comments.getString( "comment_text" ) );
+                c.set( "ts" , new JSDate( comments.getTimestamp( "comment_created_on" ).getTime() ) );
+                ca.add( c );
+                
+                if ( ! comments.next() )
+                    moreComments = false;
+            }
+            
+            //System.out.println( JSON.serialize( o ) );
             coll.save( o );
         }
         
