@@ -35,3 +35,7 @@ Post.prototype.getNumComments = function(){
     
     return this.comments.length;
 }
+
+
+db.posts.ensureIndex( { ts : 1 } );
+db.posts.setConstructor( Post );

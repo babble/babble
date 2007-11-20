@@ -28,7 +28,7 @@ inline MessagingPort& getPort(jlong sa) {
   MessagingPort *& mp = ports[((SockAddr*)sa)[0]];
   if( mp == 0 ) {
     mp = new MessagingPort();
-    mp->init(29999);
+    mp->init();
   }
   return *mp;
 }
