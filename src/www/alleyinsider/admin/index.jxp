@@ -1,6 +1,0 @@
-<% jxp.admin.pieces.header(); %>
-
-Welcome to the admin world
-
-<% jxp.admin.pieces.footer(); %>
-

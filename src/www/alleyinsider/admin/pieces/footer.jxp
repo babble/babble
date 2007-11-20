@@ -1,4 +1,0 @@
-    <hr>
-    Hi, <%= user %>
-  </body>
-</html>

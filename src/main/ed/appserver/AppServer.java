@@ -294,13 +294,13 @@ public class AppServer implements HttpHandler {
     public static void main( String args[] )
         throws Exception {
         
-        String root = "src/test/samplewww";
+        String root = "/data/sites/admin/";
         if ( args != null && args.length > 0 ) 
             root = args[0];
 
         AppContext ac = new AppContext( root );
 
-        AppServer as = new AppServer( ac , "src/www/" );
+        AppServer as = new AppServer( ac , "/data/sites/" );
         
         HttpServer.addGlobalHandler( as );
         

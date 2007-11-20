@@ -1,7 +1,0 @@
-<% jxp.pieces.header(); %>
-
-<% jxp.pieces.left(); %>
-<% jxp.pieces.posts(); %>
-<% jxp.pieces.right(); %>
-
-<% jxp.pieces.footer(); %>
