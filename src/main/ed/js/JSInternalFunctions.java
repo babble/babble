@@ -192,7 +192,7 @@ public class JSInternalFunctions extends JSObjectBase {
         
         if ( a.equals( b ) )
             return 0;
-        
+
         if ( a instanceof Number && 
              b instanceof Number ){
             double aVal = ((Number)a).doubleValue();
@@ -201,6 +201,9 @@ public class JSInternalFunctions extends JSObjectBase {
                 return 0;
             return aVal < bVal ? -1 : 1;
         }
+
+        if ( a instanceof Comparable )
+            return ((Comparable)a).compareTo( b );
 
         return a.toString().compareTo( b.toString() );
     }

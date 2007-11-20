@@ -7,7 +7,7 @@ import java.util.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 
-public class JSDate extends JSObjectBase {
+public class JSDate extends JSObjectBase implements Comparable {
 
     public static JSFunction _cons = 
         new JSFunctionCalls1(){
@@ -93,6 +93,22 @@ public class JSDate extends JSObjectBase {
             return;
         _c = Calendar.getInstance();
         _c.setTimeInMillis( _time );
+    }
+
+    public int compareTo( Object o ){
+        long t = -1;
+        if ( o instanceof JSDate )
+            t = ((JSDate)o)._time;
+        
+        if ( t < 0 )
+            return 0;
+        
+        long diff = _time - t;
+        if ( diff == 0 )
+            return 0;
+        if ( diff < 0 )
+            return -1;
+        return 1;
     }
 
     long _time;
