@@ -49,5 +49,3 @@ function allowed( req , res , uri ){
     return Auth.reject( res , "Alley Insider");
 }
 
-db.posts.ensureIndex( { ts : 1 } );
-db.posts.setConstructor( Post );
