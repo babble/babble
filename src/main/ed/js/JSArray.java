@@ -140,6 +140,10 @@ public class JSArray extends JSObjectBase {
         return Integer.parseInt( str );
     }
 
+    public void shuffle(){
+        Collections.shuffle( _array );
+    }
+
     final List<Object> _array;
 
 }
