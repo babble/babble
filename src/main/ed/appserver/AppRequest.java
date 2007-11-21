@@ -11,10 +11,15 @@ import ed.net.httpserver.*;
 
 public class AppRequest {
     
-    AppRequest( AppContext context , HttpRequest request ){
+    AppRequest( AppContext context , HttpRequest request , String uri ){
         _context = context;
         _request = request;
         _scope = _context.scopeChild();
+        
+        if ( uri == null )
+            uri = _request.getURI();
+
+        _uri = uri.equals( "/" ) ? "/index" : uri;
     }
 
     public AppContext getContext(){
@@ -23,6 +28,10 @@ public class AppRequest {
 
     public Scope getScope(){
         return _scope;
+    }
+
+    public String getURI(){
+        return _uri;
     }
 
     String getRoot(){
@@ -38,7 +47,7 @@ public class AppRequest {
     }
 
     boolean isStatic(){
-        String uri = _request.getURI();
+        String uri = getURI();
         
         if ( uri.endsWith( ".jxp" ) )
             return false;
@@ -55,10 +64,10 @@ public class AppRequest {
     }
 
     File getFile(){
-        return _context.getFile( _request.getURI() );
+        return _context.getFile( getURI() );
     }
 
-
+    final String _uri;
     final HttpRequest _request;
     final AppContext _context;
     final Scope _scope;

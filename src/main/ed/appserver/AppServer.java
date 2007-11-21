@@ -16,7 +16,8 @@ import ed.appserver.jxp.*;
 public class AppServer implements HttpHandler {
 
     static boolean D = Boolean.getBoolean( "DEBUG.APP" );
-    static String OUR_DOMAINS[] = new String[]{ ".latenightcoders.com" };
+    static String OUR_DOMAINS[] = new String[]{ ".latenightcoders.com" , ".10gen.com" };
+    static String CDN_HOST[] = new String[]{ "origin." , "origin-local." , "static." };
 
     public AppServer( AppContext defaultContext ){
         this( defaultContext , null );
@@ -32,17 +33,15 @@ public class AppServer implements HttpHandler {
         _rootFile = _root == null ? null : new File( _root );
     }
 
-    public AppContext getContext( HttpRequest request ){
-        return getContext( request.getHeader( "Host" ) );
-    }
-    
-    public AppContext getContext( String host ){
+    AppContext getContext( String host , String uri , String newUri[] ){
+        if ( newUri != null )
+            newUri[0] = null;
+
         if ( host != null )
             host = host.trim();
+
         if ( host == null || _root == null || host.length() == 0 )
             return _defaultContext;
-        
-
 
         AppContext ac = _context.get( host );
         if ( ac != null )
@@ -71,6 +70,21 @@ public class AppServer implements HttpHandler {
         if ( useHost.startsWith( "www." ) )
             useHost = useHost.substring( 4 );
         
+        if ( uri != null && uri.length() > 0 && uri.indexOf( "/" , 1 ) > 0 ){
+            for ( String d : CDN_HOST ){
+                if ( useHost.startsWith( d ) ){
+                    String thing = uri.substring(1);
+
+                    int idx = thing.indexOf( "/" );
+                    String newUriNow = thing.substring( idx );                    
+                    thing = thing.substring( 0 , thing.indexOf( "/" ) );
+                    
+                    if ( newUri != null )
+                        newUri[0] = newUriNow;
+                    return getContext( thing + ".com" , newUriNow , null );
+                }
+            }
+        }
         
         // check for full host
         temp = new File( _root , useHost );
@@ -99,14 +113,22 @@ public class AppServer implements HttpHandler {
         if ( ac != null )
             return ac;
         
+        ac = _context.get( f.toString() );
+        if ( ac != null )
+            return ac;
+
         // TODO: branches, etc...
         ac = new AppContext( f );
         _context.put( host , ac );
+        _context.put( f.toString() , ac );
         return ac;
     }
     
     public AppRequest createRequest( HttpRequest request ){
-        return getContext( request ).createRequest( request );
+
+        String newUri[] = new String[1];
+        AppContext ac = getContext( request.getHeader( "Host" ) , request.getURI() , newUri );
+        return ac.createRequest( request , newUri[0] );
     }
     
     public boolean handles( HttpRequest request , Box<Boolean> fork ){
@@ -140,7 +162,7 @@ public class AppServer implements HttpHandler {
         if ( ar == null )
             ar = createRequest( request );
 
-	JSString jsURI = new JSString( request.getURI() );
+	JSString jsURI = new JSString( ar.getURI() );
 	
         JSFunction allowed = ar.getScope().getFunction( "allowed" );
         if ( allowed != null ){
@@ -152,7 +174,7 @@ public class AppServer implements HttpHandler {
             }
         }
         
-        if ( request.getURI().equals( "/~f" ) ){
+        if ( ar.getURI().equals( "/~f" ) ){
             JSFile f = ar.getContext().getJSFile( request.getParameter( "id" ) );
             if ( f == null ){
                 response.setResponseCode( 404 );

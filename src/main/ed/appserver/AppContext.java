@@ -115,7 +115,11 @@ public class AppContext {
     }
 
     public AppRequest createRequest( HttpRequest request ){
-        return new AppRequest( this , request  );
+        return createRequest( request , request.getURI() );
+    }
+    
+    public AppRequest createRequest( HttpRequest request , String uri ){
+        return new AppRequest( this , request , uri );
     }
 
     File tryNoJXP( File f ){
