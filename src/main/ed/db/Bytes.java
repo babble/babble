@@ -14,7 +14,7 @@ import ed.js.*;
  */
 public class Bytes {
 
-    static final int BUF_SIZE = 1024 * 1024;
+    static final int BUF_SIZE = 1024 * 1024 * 5;
 
     static final byte EOO = 0;    
     static final byte NUMBER = 1;

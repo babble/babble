@@ -3,6 +3,7 @@
 package ed.db;
 
 import java.util.*;
+import java.lang.reflect.*;
 
 import ed.js.*;
 import ed.js.func.*;
@@ -219,7 +220,21 @@ public abstract class DBCollection extends JSObjectLame {
         Object foo = _entries.get( n.toString() );
         if ( foo != null )
             return foo;
-        return _base.getCollection( _name + "." + n.toString() );
+        
+        if ( _methods.size() == 0 )
+            for ( Method m : this.getClass().getMethods() )
+                _methods.add( m.getName() );
+
+        String s = n.toString();
+
+        if ( _methods.contains( s ) )
+            return null;
+
+        return getCollection( s );
+    }
+
+    public DBCollection getCollection( String n ){
+        return _base.getCollection( _name + "." + n );
     }
 
     final DBBase _base;
@@ -228,6 +243,8 @@ public abstract class DBCollection extends JSObjectLame {
     final JSFunction _update;
     final JSFunction _apply;
     final JSFunction _find;
+
+    final Set<String> _methods = new HashSet<String>();
 
     protected Map _entries = new TreeMap();
     final protected String _name;

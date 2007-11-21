@@ -15,7 +15,7 @@ public class MT {
     public static void migrate( Connection conn , DBBase db )
         throws Exception {
 
-        DBCollection coll = db.getCollection( "posts" );
+        DBCollection coll = db.getCollection( "blog" ).getCollection( "posts" );
 
         Statement stmt = conn.createStatement();
         ResultSet res = stmt.executeQuery( "SELECT * FROM mt_entry , mt_author WHERE entry_author_id = author_id ORDER BY entry_id DESC  " );

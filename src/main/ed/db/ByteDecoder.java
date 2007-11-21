@@ -11,18 +11,25 @@ public class ByteDecoder extends Bytes {
 
     static protected ByteDecoder get( DBBase base , String ns ){
         ByteDecoder bd = new ByteDecoder();
+        bd.reset();
         bd._base = base;
         bd._ns = ns;
         return bd;
     }
-
+    
     protected ByteDecoder( ByteBuffer buf ){
         _buf = buf;
     }
 
     private ByteDecoder(){
         _buf = ByteBuffer.allocateDirect( BUF_SIZE );
-        _buf.order( ByteOrder.LITTLE_ENDIAN );
+        reset();
+    }
+
+    void reset(){
+        _buf.position( 0 );
+        _buf.limit( _buf.capacity() );
+        _buf.order( ByteOrder.LITTLE_ENDIAN );        
     }
 
     protected JSObject readObject(){
