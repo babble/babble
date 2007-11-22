@@ -34,7 +34,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
                     foo.set( "query" , _query );
                 foo.set( "orderby" , _orderBy );
             }
-            _it = _collection.find( foo , _keysWanted );
+            _it = _collection.find( foo , _keysWanted , _numWanted );
         }
 
         if ( _it == null )
@@ -46,6 +46,14 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
             throw new RuntimeException( "can't sort after executing query" );
         
         _orderBy = orderBy;
+        return this;
+    }
+
+    public DBCursor num( int n ){
+        if ( _it != null )
+            throw new RuntimeException( "can't set num after executing query" );
+
+        _numWanted = n;
         return this;
     }
 
@@ -121,6 +129,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
     private JSObject _keysWanted;
     private JSObject _orderBy;
     private JSFunction _constructor;
+    private int _numWanted = 0;
 
     private final List<JSObject> _all = new ArrayList<JSObject>();
     private final List<String> _nums = new ArrayList<String>();

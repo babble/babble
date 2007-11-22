@@ -177,14 +177,14 @@ public class DBJni extends DBBase {
             return -1;
         }
 
-        public Iterator<JSObject> find( JSObject ref , JSObject fields ){
+        public Iterator<JSObject> find( JSObject ref , JSObject fields , int numToReturn ){
 
             ByteEncoder encoder = new ByteEncoder();
             
             encoder._buf.putInt( 0 ); // reserved
             encoder._put( _fullNameSpace );
             
-            encoder._buf.putInt( 0 ); // num to return
+            encoder._buf.putInt( numToReturn ); // num to return
             encoder.putObject( null , ref ); // ref
             if ( fields != null )
                 encoder.putObject( null , fields ); // fields to return
@@ -200,7 +200,7 @@ public class DBJni extends DBBase {
             if ( res._lst.size() == 0 )
                 return null;
             
-            return new Result( this , res );
+            return new Result( this , res , numToReturn );
         }
 
         public JSObject update( JSObject query , JSObject o , boolean upsert ){
@@ -293,11 +293,11 @@ public class DBJni extends DBBase {
 
     class Result implements Iterator<JSObject> {
         
-        Result( MyCollection coll , SingleResult res ){
+        Result( MyCollection coll , SingleResult res , int numToReturn ){
             init( res );
             _collection = coll;
+            _numToReturn = numToReturn;
         }
-
 
         private void init( SingleResult res ){
             _curResult = res;
@@ -315,7 +315,7 @@ public class DBJni extends DBBase {
                 
                 encoder._buf.putInt( 0 ); // reserved
                 encoder._put( _curResult._fullNameSpace );
-                encoder._buf.putInt( 0 ); // num to return
+                encoder._buf.putInt( _numToReturn ); // num to return
                 encoder._buf.putLong( _curResult._cursor );
                 encoder.flip();
             
@@ -354,6 +354,7 @@ public class DBJni extends DBBase {
         Iterator<JSObject> _cur;
         final MyCollection _collection;
         final List<SingleResult> _all = new LinkedList<SingleResult>();
+        final int _numToReturn;
     }
 
     // library init
