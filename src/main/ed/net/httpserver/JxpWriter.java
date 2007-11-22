@@ -11,6 +11,47 @@ public interface JxpWriter {
     
     public void flush()
         throws java.io.IOException ;
-    public void reset();
     
+    public void reset();
+
+    public String getContent();
+
+    // ----------
+
+    public static class Basic implements JxpWriter {
+        
+        public JxpWriter print( String s ){
+            _buf.append( s );
+            return this;
+        }
+
+        public JxpWriter print( int i ){
+            _buf.append( i );
+            return this;
+        }
+        
+        public JxpWriter print( double d ){
+            _buf.append( d );
+            return this;
+        }
+        
+        public JxpWriter print( boolean b ){
+            _buf.append( b );
+            return this;
+        }
+        
+        public void flush()
+            throws java.io.IOException {
+        }
+
+        public void reset(){
+            _buf.setLength( 0 );
+        }
+        
+        public String getContent(){
+            return _buf.toString();
+        }
+
+        final StringBuilder _buf = new StringBuilder();
+    }
 }

@@ -372,6 +372,10 @@ public class HttpResponse {
             _stringContent.clear();
         }
 
+        public String getContent(){
+            throw new RuntimeException( "not implemented" );
+        }
+
         void _resetBuf(){
             _cur.position( 0 );
             _cur.limit( _cur.capacity() );
