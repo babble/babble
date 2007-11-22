@@ -4,6 +4,13 @@ package ed.util;
 
 public final class StringUtil{
 
+    public static int indexOf( String big , String small , boolean ignoreCase , int start ){
+        for ( int i=start; i< ( big.length() - small.length() ) ; i++ )
+            if ( big.regionMatches( ignoreCase , i , small , 0 , small.length() ) )
+                return i;
+        return -1;
+    }
+
     public static int count( String big , String small ){
         int c = 0;
         
