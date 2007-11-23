@@ -81,7 +81,7 @@ public class AppServer implements HttpHandler {
                     
                     if ( newUri != null )
                         newUri[0] = newUriNow;
-                    return getContext( thing + ".com" , newUriNow , null );
+                    return getContext( thing , newUriNow , null );
                 }
             }
         }
