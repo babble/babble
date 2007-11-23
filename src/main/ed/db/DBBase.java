@@ -22,8 +22,12 @@ public abstract class DBBase extends JSObjectLame {
             return _tojson;
 
         if ( n instanceof String || 
-             n instanceof JSString )
-            return getCollection( n.toString() );
+             n instanceof JSString ){
+            String s = n.toString();
+            if ( s.startsWith( "." ) )
+                return getCollectionFromFull( s.substring(1) );
+            return getCollection( s );
+        }
 
         return null;
     }
