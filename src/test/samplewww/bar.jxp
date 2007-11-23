@@ -1,0 +1,27 @@
+<html>
+  <body>
+
+{
+   fo = "asd";
+}
+
+<h4>eliot</h4>
+<%= fo %>
+abc
+
+{  fo += "123";  }
+{= fo  }
+
+{
+  for ( i=0; i<10; i++ ) {
+   print( i );
+  }
+
+}
+
+<hr>
+
+before<wiki>==abc==</wiki>after
+
+</body>
+</html>
