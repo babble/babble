@@ -156,6 +156,8 @@ public class JxpServlet {
             if ( tag.equalsIgnoreCase( "img" ) ||
                  tag.equalsIgnoreCase( "script" ) )
                 srcName = "src";
+	    else if ( tag.equalsIgnoreCase( "link" ) )
+		srcName = "href";
             else 
                 throw new RuntimeException( "no name for : " + tag );
             
@@ -236,7 +238,7 @@ public class JxpServlet {
             return -1;
         }
         
-        static final Pattern _tagPattern = Pattern.compile( "<(img|script) " , Pattern.CASE_INSENSITIVE );
+        static final Pattern _tagPattern = Pattern.compile( "<(img|script|link) " , Pattern.CASE_INSENSITIVE );
         final Matcher _matcher = _tagPattern.matcher("");
         final StringBuilder _extra = new StringBuilder();
 
