@@ -34,9 +34,27 @@ public class Parser {
             if ( c == '\n' )
                 line++;
             newLine = lastChar == '\n';
+            
+            if ( curType == Block.Type.WIKI && data.startsWith( "</wiki>" , i ) ){
+                blocks.add( Block.create( curType , buf.toString() , lastline ) );
+                buf.setLength( 0 );
+                lastline = line;
+                curType = Block.Type.HTML;
+                i += 6;
+                continue;
+            }
 
             if ( curType == Block.Type.HTML ){
                 
+                if ( data.startsWith( "<wiki>" , i ) ){
+                    blocks.add( Block.create( curType , buf.toString() , lastline ) );
+                    buf.setLength( 0 );
+                    lastline = line;
+                    curType = Block.Type.WIKI;
+                    i += 5;
+                    continue;
+                }
+
                 if ( 
                     ( newLine && c == '{' ) 
                     || 

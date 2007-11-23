@@ -4,7 +4,7 @@ package ed.appserver.jxp;
 
 abstract class Block {
 
-    static enum Type { HTML , CODE , OUTPUT };
+    static enum Type { HTML , CODE , OUTPUT , WIKI };
 
     static Block create( Type t , String raw , int lineno ){
         if ( t == Type.HTML )
@@ -13,6 +13,8 @@ abstract class Block {
             return new CodeBlock( t , raw , lineno );
         if ( t == Type.OUTPUT )
             return new CodeBlock( t , raw , lineno );
+        if ( t == Type.WIKI )
+            return new WikiBlock( raw , lineno );
         throw new RuntimeException( "wtf" );
     }
     

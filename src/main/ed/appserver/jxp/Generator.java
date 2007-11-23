@@ -34,12 +34,20 @@ public class Generator {
         case OUTPUT:
             addOutputBlock( (CodeBlock)b );
             break;
-            
+        case WIKI:
+            addWikiBlock( (WikiBlock)b );
+            break;
         default :
             throw new RuntimeException( "can't handle : " + b.getType() );
         }
     }
-
+    
+    void addWikiBlock( WikiBlock b ){
+        _append( "print( \"<div style='border: red 1px solid;'>\" );" , b );
+        _append( "print( \"" + b.getRaw().replaceAll( "[\r\n]+" , "" ) + "\" ); " , b );
+        _append( "print( \"</div>\" );" , b );
+    }
+    
     void addHtmlBlock( HtmlBlock b ){
         String lines[] = b.getRaw().split( "[\r\n]+" );
         for ( int i=0; i<lines.length; i++ ){
