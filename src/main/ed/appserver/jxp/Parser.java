@@ -100,9 +100,13 @@ public class Parser {
                     continue;
                 }
                 
-                if ( numBrackets > 0 && codeOpening == '{' && c == '}')
-                    numBrackets --;
-
+                if ( codeOpening == '{' ){
+                    if ( c == '}' && numBrackets > 0 )
+                        numBrackets --;
+                    if ( c == '{' )
+                        numBrackets++;
+                }
+                
             }
 
             buf.append( c );
