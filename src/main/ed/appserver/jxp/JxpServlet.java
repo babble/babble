@@ -146,17 +146,29 @@ public class JxpServlet {
             _writer.print( s.substring( 0 , m.start(1) ) );
             String src = m.group(1);
             
-            if ( src.length() > 0 ){
-                if ( ! src.startsWith( "/" ) ){
-                    _writer.print( src );
-                }
-                else {
-                    _writer.print( _cdnPrefix );
-                    _writer.print( src );
-                }
-            }
+            printSRC( src );
+            
             _writer.print( s.substring( m.end(1) ) );
             
+        }
+    
+        void printSRC( String src ){
+            if ( src == null || src.length() == 0 )
+                return;
+
+            if ( src.startsWith( "CDN/" ) ){
+                _writer.print( _cdnPrefix );
+                _writer.print( src.substring( 3 ) );
+                return;
+            }
+            
+            if ( ! src.startsWith( "/" ) ){
+                _writer.print( src );
+                return;
+            }
+            
+            _writer.print( _cdnPrefix );
+            _writer.print( src );
         }
 
         int endOfTag( String s ){
