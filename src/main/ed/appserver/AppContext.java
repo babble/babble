@@ -25,7 +25,7 @@ public class AppContext {
         _name = name;
         _root = root;
         _rootFile = new File( _root );
-        _jxpObject = new JxpObject( _rootFile , "" );
+        _jxpObject = new JSFileLibrary( _rootFile , "jxp" );
 
         _scope = new Scope( "AppContext:" + root , Scope.GLOBAL );
         
@@ -168,12 +168,7 @@ public class AppContext {
         if ( _inScopeInit )
             _initFlies.add( f );
 
-        JxpSource source = _sources.get( f );
-        if ( source == null ){
-            source = JxpSource.getSource( f );
-            _sources.put( f , source );
-        }
-        return source;
+        return _jxpObject.getSource( f );
     }
 
     public JxpServlet getServlet( File f )
@@ -215,81 +210,6 @@ public class AppContext {
         return last;
     }
     
-    class JxpObject extends JSObjectBase {
-        
-        JxpObject( File base , String uriBase ){
-            _base = base;
-            _uriBase = uriBase;
-        }
-        
-        public Object get( final Object n ){
-
-            Object foo = _get( n );
-            if ( foo instanceof JxpSource ){
-                try {
-                    JSFunction func = ((JxpSource)foo).getFunction();
-                    func.setName( "jxp" + _uriBase + "." + n.toString() );
-                    foo = func;
-                }
-                catch ( IOException ioe ){
-                    throw new RuntimeException( ioe );
-                }
-            }
-            return foo;
-        }
-        
-        Object _get( final Object n ){
-            Object v = super.get( n );
-            if ( v != null )
-                return v;
-            
-            if ( ! ( n instanceof JSString ) && 
-                 ! ( n instanceof String ) )
-                return null;
-            
-            File dir = new File( _base , n.toString() );
-            File js = new File( _base , n + ".js" );
-            File jxp = new File( _base , n + ".jxp" );
-            
-            if ( dir.exists() && js.exists() )
-                throw new RuntimeException( "can't have directory and .js with same name" );
-
-            if ( dir.exists() && jxp.exists() )
-                throw new RuntimeException( "can't have directory and .jxp with same name.  " + dir + "  " + jxp  );
-
-            if ( js.exists() && jxp.exists() )
-                throw new RuntimeException( "can't have .js and .jxp with same name" );
-
-            if ( dir.exists() ){
-                return set( n , new JxpObject( dir , _uriBase + "." + n.toString() ) );
-            }
-
-            if ( jxp.exists() ){
-                try {
-                    return set( n , getSource( jxp ) );
-                }
-                catch ( IOException ioe ){
-                    throw new RuntimeException( ioe );
-                }
-
-            }
-
-            if ( js.exists() ){
-                try {
-                    return set( n , getSource( js ) );
-                }
-                catch ( IOException ioe ){
-                    throw new RuntimeException( ioe );
-                }
-
-            }
-
-            throw new RuntimeException( n + " not found " );
-        }
-        
-        final File _base;
-        final String _uriBase;
-    }
 
     public String toString(){
         return _rootFile.toString();
@@ -298,11 +218,10 @@ public class AppContext {
     final String _name;
     final String _root;
     final File _rootFile;
-    final JxpObject _jxpObject;
+    final JSFileLibrary _jxpObject;
 
     final Scope _scope;
     
-    private final Map<File,JxpSource> _sources = new HashMap<File,JxpSource>();
     private final Map<String,File> _files = new HashMap<String,File>();
     private final Set<File> _initFlies = new HashSet<File>();
 

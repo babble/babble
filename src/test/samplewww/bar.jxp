@@ -23,5 +23,9 @@ abc
 
 before<wiki>==abc==</wiki>after
 
+<hr>
+
+<% jxp.lib.a(); %>
+
 </body>
 </html>
