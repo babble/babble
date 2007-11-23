@@ -20,26 +20,41 @@ public class Parser {
         Block.Type curType = 
             s.getName().endsWith( ".jxp" ) ? Block.Type.HTML : Block.Type.CODE;
         StringBuilder buf = new StringBuilder();
-        
-        List<Block> blocks = new ArrayList<Block>();
 
+        boolean newLine = true;
+        char lastChar = '\n';
+        char codeOpening = ' ';
+        int numBrackets = 0;
+
+        List<Block> blocks = new ArrayList<Block>();
+        
         for ( int i=0; i<data.length(); i++ ){
+            lastChar =  i == 0 ? '\n' : data.charAt( i - 1 );
             char c = data.charAt( i );
             if ( c == '\n' )
                 line++;
+            newLine = lastChar == '\n';
 
             if ( curType == Block.Type.HTML ){
                 
-                if ( c == '<' && 
-                     i + 1 < data.length() &&
-                     data.charAt( i + 1 ) == '%' ){
+                if ( 
+                    ( newLine && c == '{' ) 
+                    || 
+                    ( c == '<' && 
+                      i + 1 < data.length() &&
+                      data.charAt( i + 1 ) == '%' ) 
+                     ) {
                     
+                    codeOpening = c;
+                    numBrackets = 0;
+
                     blocks.add( Block.create( curType , buf.toString() , lastline ) );
                     buf.setLength( 0 );
-
+                    
                     lastline = line;
                     curType = Block.Type.CODE;
-                    i++;
+                    if ( c == '<' )
+                        i++;
                     if ( i + 1 < data.length() &&
                          data.charAt( i + 1 ) == '=' ){
                         i++;
@@ -65,21 +80,29 @@ public class Parser {
                     
                     continue;
                 }
-
-                if ( c == '%' &&
-                     i + 1 < data.length() &&
-                     data.charAt( i + 1 ) == '>' ){
+                
+                if ( ( numBrackets == 0 && codeOpening == '{' && c == '}' ) 
+                     ||
+                     ( codeOpening == '<' &&
+                       c == '%' &&
+                       i + 1 < data.length() &&
+                       data.charAt( i + 1 ) == '>' )
+                     ) {
                     
                     blocks.add( Block.create( curType , buf.toString() , lastline ) );
 
                     lastline = line;
                     buf.setLength( 0 );
-                    i++;
+                    if ( codeOpening == '<' )
+                        i++;
                     curType = Block.Type.HTML;
 
                     continue;
                 }
-                     
+                
+                if ( numBrackets > 0 && codeOpening == '{' && c == '}')
+                    numBrackets --;
+
             }
 
             buf.append( c );
