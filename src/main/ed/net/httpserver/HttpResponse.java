@@ -327,6 +327,10 @@ public class HttpResponse {
         public JxpWriter print( double d ){
             return print( String.valueOf( d ) );
         }
+
+        public JxpWriter print( long l ){
+            return print( String.valueOf( l ) );
+        }
         
         public JxpWriter print( boolean b ){
             return print( String.valueOf( b ) );

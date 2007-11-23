@@ -7,6 +7,7 @@ public interface JxpWriter {
     public JxpWriter print( String s );
     public JxpWriter print( int i );
     public JxpWriter print( double d );
+    public JxpWriter print( long l );
     public JxpWriter print( boolean b );
     
     public void flush()
@@ -32,6 +33,11 @@ public interface JxpWriter {
         
         public JxpWriter print( double d ){
             _buf.append( d );
+            return this;
+        }
+
+        public JxpWriter print( long l ){
+            _buf.append( l );
             return this;
         }
         

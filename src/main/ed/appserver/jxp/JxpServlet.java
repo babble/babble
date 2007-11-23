@@ -2,6 +2,7 @@
 
 package ed.appserver.jxp;
 
+import java.io.*;
 import java.util.*;
 import java.util.regex.*;
 
@@ -29,7 +30,7 @@ public class JxpServlet {
         scope.put( "request" , request , true );
         scope.put( "response" , response , true );
         
-        scope.put( "print" , new MyWriter( writer , null ) , true );
+        scope.put( "print" , new MyWriter( writer , null , ar.getContext() ) , true );
         
         try {
             _theFunction.call( scope );
@@ -74,9 +75,10 @@ public class JxpServlet {
     
     public static class MyWriter extends JSFunctionCalls1 {
 
-        public MyWriter( JxpWriter writer , String cdnPrefix ){
+        public MyWriter( JxpWriter writer , String cdnPrefix , AppContext context ){
             _writer = writer;
             _cdnPrefix = cdnPrefix;
+            _context = context;
         }
         
         public Object call( Scope scope , Object o , Object extra[] ){
@@ -167,7 +169,33 @@ public class JxpServlet {
                 return;
             }
             
-            _writer.print( _cdnPrefix );
+            String uri = src;
+            int questionIndex = src.indexOf( "?" );
+            if ( questionIndex >= 0 )
+                uri = uri.substring( 0 , questionIndex );
+            
+            if ( _context != null ){
+                File f = _context.getFile( uri );
+                
+                boolean exists = f.exists();
+                
+                if ( exists )
+                    _writer.print( _cdnPrefix );
+
+                _writer.print( src );
+                
+                if ( exists ){
+                    if ( questionIndex < 0 )
+                        _writer.print( "?" );
+                    else
+                        _writer.print( "&" );
+                    _writer.print( "lm=" );
+                    _writer.print( f.lastModified() );
+                }
+                
+                return;
+            }
+
             _writer.print( src );
         }
 
@@ -188,10 +216,12 @@ public class JxpServlet {
         
         static final Pattern _tagPattern = Pattern.compile( "<(img|script) " , Pattern.CASE_INSENSITIVE );
         final Matcher _matcher = _tagPattern.matcher("");
+        final StringBuilder _extra = new StringBuilder();
+
         final JxpWriter _writer;
         final String _cdnPrefix;
+        final AppContext _context;
 
-        final StringBuilder _extra = new StringBuilder();
     }
     
     final JxpSource _source;
