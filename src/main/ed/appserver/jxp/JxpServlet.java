@@ -30,7 +30,7 @@ public class JxpServlet {
         scope.put( "request" , request , true );
         scope.put( "response" , response , true );
         
-        scope.put( "print" , new MyWriter( writer , null , ar.getContext() ) , true );
+        scope.put( "print" , new MyWriter( writer , getStaticPrefix( request , ar ) , ar.getContext() ) , true );
         
         try {
             _theFunction.call( scope );
@@ -71,6 +71,28 @@ public class JxpServlet {
             }
             throw re;
         }
+    }
+    
+    String getStaticPrefix( HttpRequest request , AppRequest ar ){
+
+        String host = request.getHost();
+        
+        if ( host == null )
+            return null;
+
+        if ( host.indexOf( "." ) < 0 )
+            return null;
+
+        if ( request.getPort() > 0 )
+            return null;
+
+        String prefix= "http://static";
+
+        if ( host.indexOf( "local." ) >= 0 )
+            prefix += "-local";
+        
+        prefix += ".10gen.com/" + host;
+        return prefix;
     }
     
     public static class MyWriter extends JSFunctionCalls1 {

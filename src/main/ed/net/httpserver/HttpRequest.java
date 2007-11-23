@@ -86,12 +86,38 @@ public class HttpRequest implements ed.js.JSObject {
         return _http11;
     }
 
-    public boolean getBoolean( String n , boolean def ){
-        return StringParseUtil.parseBoolean( getParameter( n ) , def );
+    // header stuff
+
+    public String getHost(){
+        String host = getHeader( "Host" );
+        if ( host == null )
+            return null;
+        host = host.trim();
+        if ( host.length() == 0 )
+            return null;
+
+        int idx = host.indexOf( ":" );
+        if ( idx == 0 )
+            return null;
+        if ( idx > 0 ){
+            host = host.substring( 0 , idx ).trim();
+            if ( host.length() == 0 )
+                return null;
+        }
+        
+        return host;
     }
 
-    public int getInt( String n , int def ){
-        return StringParseUtil.parseInt( getParameter( n ) , def );
+    public int getPort(){
+        String host = getHeader( "Host" );
+        if ( host == null )
+            return 0;
+
+        int idx = host.indexOf( ":" );
+        if ( idx < 0 )
+            return 0;
+        
+        return StringParseUtil.parseInt( host.substring( idx + 1 ) , 0 );
     }
 
     public String getHeader( String h ){
@@ -101,6 +127,17 @@ public class HttpRequest implements ed.js.JSObject {
     public int getIntHeader( String h , int def ){
         return StringParseUtil.parseInt( getHeader( h ) , def );
     }
+
+    // param stuff
+
+    public boolean getBoolean( String n , boolean def ){
+        return StringParseUtil.parseBoolean( getParameter( n ) , def );
+    }
+
+    public int getInt( String n , int def ){
+        return StringParseUtil.parseInt( getParameter( n ) , def );
+    }
+
 
     public String getParameter( String name ){
         return getParameter( name , null );
