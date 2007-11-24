@@ -32,6 +32,8 @@ public class AppContext {
         _scope.put( "jxp" , _jxpObject , true );
         _scope.put( "db" , DBJni.get( _name ) , true );
 
+        _scope.put( "core" , new JSFileLibrary( new File( "/data/corejs" ) ,  "core" ) , true );
+
         _scope.setGlobal( true );
     }
 
