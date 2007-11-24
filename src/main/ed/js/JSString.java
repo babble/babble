@@ -77,6 +77,8 @@ public class JSString extends JSObjectBase {
                         String str = s.getThis().toString();
 
                         int start = ((Number)startO).intValue();
+                        if ( start < 0 )
+                            start = 0;
                         if ( start >= str.length() || start < 0 )
                             return EMPTY;
                         
@@ -84,6 +86,9 @@ public class JSString extends JSObjectBase {
                         if ( endO != null && endO instanceof Number )
                             end = ((Number)endO).intValue();
                         
+                        if ( end > str.length() )
+                            end = str.length();
+
                         if ( end < 0 )
                             return new JSString( str.substring( start) );
                         return new JSString( str.substring( start , end ) );
