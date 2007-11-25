@@ -60,8 +60,6 @@ public class JSBuiltInFunctions {
             
             if ( t == null )
                 return new JSDate();
-
-            System.out.println( "t:" + t  + " " + t.getClass() );
             
             if ( ! ( t instanceof Number ) )
                 return new JSDate();
@@ -85,6 +83,7 @@ public class JSBuiltInFunctions {
         _myScope.put( "Array" , new NewArray() , true );
         _myScope.put( "Date" , JSDate._cons , true );
         _myScope.put( "String" , JSString._cons , true );
+        _myScope.put( "RegExp" , JSRegex._cons , true );
 
         _myScope.put( "Math" , JSMath.getInstance() , true );
         

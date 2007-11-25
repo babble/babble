@@ -9,10 +9,24 @@ import ed.js.engine.*;
 
 public class JSRegex extends JSObjectBase {
 
-    static JSFunction _cons = new JSFunctionCalls0(){
+    public final static JSFunction _cons = new JSFunctionCalls2(){
 
-            public Object call( Scope s , Object[] args ){
-                throw new RuntimeException( "can't be here" );
+            public JSObject newOne(){
+                return new JSRegex();
+            }
+
+            public Object call( Scope s , Object a , Object b , Object[] args ){
+
+                String p = a.toString();
+                String f = b == null ? "" : b.toString();
+
+                JSObject o = s.getThis();
+                if ( o == null )
+                    return new JSRegex( p , f );
+                
+                JSRegex r = (JSRegex)o;
+                r.init( p , f );
+                return r;
             }
 
             protected void init(){
@@ -20,8 +34,16 @@ public class JSRegex extends JSObjectBase {
             }
         };
     
+    public JSRegex(){
+        super( _cons );
+    }
+
     public JSRegex( String p , String f ){
         super( _cons );
+        init( p , f );
+    }
+    
+    void init( String p , String f ){
         _p = p;
         _f = f;
         
@@ -63,11 +85,11 @@ public class JSRegex extends JSObjectBase {
         return _patt;
     }
 
-    final String _p;
-    final String _f;
+    String _p;
+    String _f;
 
-    final int _compilePatterns;
-    final Pattern _patt;
+    int _compilePatterns;
+    Pattern _patt;
 
-    final boolean _replaceAll;
+    boolean _replaceAll;
 }
