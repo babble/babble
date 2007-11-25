@@ -148,10 +148,7 @@ public class AppServer implements HttpHandler {
             _handle( request , response );
         }
         catch ( Exception e ){
-            e.printStackTrace();
-            response.setResponseCode( 501 );
-            response.getWriter().print( "<br><br><hr>" );
-            response.getWriter().print( e.toString() );
+            handleError( response , e );
         }
     }
 
@@ -226,15 +223,27 @@ public class AppServer implements HttpHandler {
             servlet.handle( request , response , ar );
         }
         catch ( Exception e ){
-            e.printStackTrace();
-            response.setResponseCode( 501 );
-            response.getWriter().print( "<br><br><hr>" );
-            response.getWriter().print( e.toString() );
+            handleError( response , e );
             return;
         }
         finally {
             final long endTime = System.currentTimeMillis();
             response.getWriter().print( "\n<!-- full page exec time : " + ( endTime - startTime ) + "ms -->\n" );
+        }
+        
+    }
+
+    void handleError( HttpResponse response , Throwable t ){
+        t.printStackTrace();
+        response.setResponseCode( 501 );
+        
+        JxpWriter writer = response.getWriter();
+            
+        writer.print( "\n<br><br><hr><b>Error</b><br>" );
+        writer.print( t.toString() + "<BR>" );
+        
+        for ( StackTraceElement element : t.getStackTrace() ){
+            writer.print( element + "<BR>" );
         }
         
     }

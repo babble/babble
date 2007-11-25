@@ -1,0 +1,10 @@
+a
+b
+c
+d
+<%
+    var a = 5;
+a++;
+%>
+<%= foo.a %>
+the cat was here

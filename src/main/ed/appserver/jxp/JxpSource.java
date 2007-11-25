@@ -85,7 +85,45 @@ public abstract class JxpSource {
         _servlet = null;
     }
 
+    public void fix( Throwable t ){
+        if ( _jsCodeToLines == null )
+            return;
+        
+        System.out.println( _jsCodeToLines );
 
+        StackTraceElement stack[] = t.getStackTrace();
+        
+        boolean changed = false;
+        for ( int i=0; i<stack.length; i++ ){
+            
+            StackTraceElement element = stack[i];
+            if ( element == null )
+                continue;
+            
+            String es = element.toString();
+            if ( ! es.contains( _lastFileName ) )
+                continue;
+            
+            int line = StringParseUtil.parseInt( es.substring( es.lastIndexOf( ":" ) + 1 ) , -1 );
+            List<Block> blocks = _jsCodeToLines.get( line );
+            
+            System.out.println( line + " : " + blocks );
+            
+            if ( blocks == null )
+                continue;
+            
+            stack[i] = new StackTraceElement( getName() , stack[i].getMethodName() , getName() , blocks.get( 0 )._lineno );
+            changed = true;
+            System.out.println( stack[i] );
+            
+        }
+        
+        if ( ! changed )
+            return;
+        
+        t.setStackTrace( stack );
+    }
+    
     private long _lastParse = 0;
     
     private List<Block> _blocks;
@@ -94,7 +132,9 @@ public abstract class JxpSource {
     
     Map<Integer,List<Block>> _jsCodeToLines = new TreeMap<Integer,List<Block>>();
     String _lastFileName;
-            
+
+    // -------------------
+    
     static class JxpFileSource extends JxpSource {
         JxpFileSource( File f ){
             _f = f;

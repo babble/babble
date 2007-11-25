@@ -68,7 +68,7 @@ public class Generator {
     void addOutputBlock( CodeBlock b ){
         _append( "print( " , b );
         _append( b.getRaw()   , b);
-        _append( " );  " , b );
+        _append( " );\n" , b );
     }
 
     public String toString(){
@@ -103,7 +103,7 @@ public class Generator {
 
     final StringBuilder _secretBuf = new StringBuilder();
     
-    private int _currentLineNumber = 0;
+    private int _currentLineNumber = 1;
     final Map<Integer,List<Block>> _jsCodeToLines = new TreeMap<Integer,List<Block>>();
 
     public static void main( String args[] )
