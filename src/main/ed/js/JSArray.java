@@ -6,10 +6,11 @@ import java.util.*;
 
 import ed.js.func.*;
 import ed.js.engine.*;
+import static ed.js.JSInternalFunctions.*;
 
 public class JSArray extends JSObjectBase {
     
-    public static JSFunction _cons = new JSArrayCons();
+    public final static JSFunction _cons = new JSArrayCons();
     static class JSArrayCons extends JSFunctionCalls0{
         
         public Object call( Scope s , Object[] args ){
@@ -24,6 +25,68 @@ public class JSArray extends JSObjectBase {
                         return a.size();
                     }
                 } );
+
+            _prototype.set( "filter" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object fo , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        JSFunction f = (JSFunction)fo;
+
+                        JSArray n = new JSArray();
+                        for ( Object o : a._array )
+                            if ( JS_evalToBool( f.call( s , o ) ) )
+                                n.add( o );
+                        return n;
+                    }
+                } );
+
+            _prototype.set( "forEach" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object fo , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        JSFunction f = (JSFunction)fo;
+                        
+                        for ( Object o : a._array )
+                            f.call( s , o );
+                        
+                        return null;
+                    }
+                } );
+
+            _prototype.set( "every" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object fo , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        JSFunction f = (JSFunction)fo;
+
+                        for ( Object o : a._array )
+                            if ( ! JS_evalToBool( f.call( s , o ) ) )
+                                return false;
+                        return true;
+                    }
+                } );
+
+            _prototype.set( "some" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object fo , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        JSFunction f = (JSFunction)fo;
+
+                        for ( Object o : a._array )
+                            if ( JS_evalToBool( f.call( s , o ) ) )
+                                return true;
+                        return false;
+                    }
+                } );
+
+            _prototype.set( "map" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object fo , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        JSFunction f = (JSFunction)fo;
+
+                        JSArray n = new JSArray();
+                        for ( Object o : a._array )
+                            n.add( f.call( s , o ) );
+                        return n;
+                    }
+                } );
+            
         }
     }
     
@@ -41,12 +104,14 @@ public class JSArray extends JSObjectBase {
     }
 
     public JSArray( Object ... obj ){
+        super( _cons );
         _array = new ArrayList( obj.length );
         for ( Object o : obj )
             _array.add( o );
     }
 
     public JSArray( List lst ){
+        super( _cons );
         _array = lst;
     }
 

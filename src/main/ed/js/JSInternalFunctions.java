@@ -59,7 +59,7 @@ public class JSInternalFunctions extends JSObjectBase {
         return post ? obj : n;
     }
 
-    public boolean JS_evalToBool( Object foo ){
+    public static boolean JS_evalToBool( Object foo ){
         if ( foo == null )
             return false;
         

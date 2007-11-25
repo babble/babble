@@ -57,8 +57,9 @@ public class JSObjectBase implements JSObject {
         
         if ( n instanceof String ){
             Object res = _map == null ? null : _map.get( ((String)n) );
-            if ( res == null && _constructor != null )
+            if ( res == null && _constructor != null ){
                 res = _constructor._prototype.get( n );
+            }
             return res;
         }
         
