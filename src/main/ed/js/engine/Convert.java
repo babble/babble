@@ -182,12 +182,15 @@ public class Convert {
             break;
 
         case Token.INC:
+        case Token.DEC:
             _assertOne( n );
             
             _append( "JS_inc( " , n );
             _createRef( n.getFirstChild() , state );
             _append( " , " , n );
             _append( String.valueOf( ( n.getIntProp( Node.INCRDECR_PROP , 0 ) & Node.POST_FLAG ) > 0 ) , n );
+            _append( " , " , n );
+            _append( String.valueOf( n.getType() == Token.INC ? 1 : -1 ) , n );
             _append( ")" , n );
             break;
             
