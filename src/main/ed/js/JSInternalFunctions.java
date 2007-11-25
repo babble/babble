@@ -35,8 +35,11 @@ public class JSInternalFunctions extends JSObjectBase {
 
     public JSObject JS_buildLiteralObject( String names[] , Object ... fields ){
         JSObject o = new JSObjectBase();
-        for ( int i=0; i<names.length && i < fields.length; i++ )
-            o.set( names[i] , fields[i] );
+        int max = names.length;
+        if ( fields != null )
+            max = Math.min( fields.length , max );
+        for ( int i=0; i<max; i++ )
+            o.set( names[i] , fields == null ? null : fields[i] );
         return o;
     }
 
