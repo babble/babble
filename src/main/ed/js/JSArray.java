@@ -8,6 +8,29 @@ import ed.js.func.*;
 import ed.js.engine.*;
 import static ed.js.JSInternalFunctions.*;
 
+
+/**
+ * http://developer.mozilla.org/en/docs/Core_JavaScript_1.5_Reference:Global_Objects:Array#Iteration_methods
+ * 
+ * TODO: 
+ * reduce
+ * redeceRight
+
+ * concat
+ * indexOf (JS 1.6+)
+ * join
+ * lastIndexOf (JS 1.6+)
+ * slice
+ * toSource
+ * valueOf 
+ 
+ * pop
+ * reverse
+ * shift
+ * sort
+ * splice
+ * unshift 
+ */
 public class JSArray extends JSObjectBase {
     
     public final static JSFunction _cons = new JSArrayCons();
