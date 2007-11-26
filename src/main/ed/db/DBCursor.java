@@ -64,7 +64,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
 
     public boolean hasNext(){
         _check();
-        if ( _all.size() >= _numWanted )
+        if ( _numWanted > 0 && _all.size() >= _numWanted )
             return false;
         return _it.hasNext();
     }
