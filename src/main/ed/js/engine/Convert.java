@@ -642,23 +642,23 @@ public class Convert {
         state = state.child();
         state._hasLambdaExpressions = fn.getFunctionCount() > 0;
         
-        if ( ! state._hasLambdaExpressions ){
+
+        boolean hasArguments = false;
+        {
             List<Node> toSearch = new ArrayList<Node>();
             toSearch.add( n );
             while ( toSearch.size() > 0 ){
                 Node cur = toSearch.remove( toSearch.size() - 1 );
                 
-                // pretty sure i can ignore leaf nods
-                if ( cur.getFirstChild() == null )
-                    continue;
+                if ( cur.getType() == Token.NAME ||
+                     cur.getType() == Token.GETVAR )
+                    if ( cur.getString().equals( "arguments" ) )
+                        hasArguments = true;
                 
-                if ( cur.getType() == Token.INC ){
-                    if ( cur.getFirstChild().getType() == Token.GETVAR ){
+                if ( cur.getType() == Token.INC )
+                    if ( cur.getFirstChild().getType() == Token.GETVAR )
                         state.addBadLocal( cur.getFirstChild().getString() );
-                    }
-                }
                 
-
                 if ( cur.getNext() != null )
                     toSearch.add( cur.getNext() );
                 if ( cur.getFirstChild() != null )
@@ -673,7 +673,6 @@ public class Convert {
         String callLine = "public Object call( final Scope passedIn ";
         String varSetup = "";
         
-        
         for ( int i=0; i<fn.getParamCount(); i++ ){
             final String foo = fn.getParamOrVarName( i );
             callLine += " , ";
@@ -682,17 +681,28 @@ public class Convert {
             if ( ! state.useLocalVariable( foo ) ){
                 callLine += "INNNNN";
                 varSetup += " \nscope.put(\"" + foo + "\"," + foo + "INNNNN , true  );\n ";
+                if ( hasArguments )
+                    varSetup += "arguments.add( " + foo + "INNNNN );\n";
             }
             else {
                 state.addSymbol( foo );
+                if ( hasArguments )
+                    varSetup += "arguments.add( " + foo + " );\n";
             }
             
             callLine += " ";
         }
         callLine += " , Object extra[] ){\n" ;
-        
-        _append( callLine + " final Scope scope = new Scope( \"temp scope\" , _scope , passedIn ); " + varSetup , n );
-        
+
+        _append( callLine + " final Scope scope = new Scope( \"temp scope\" , _scope , passedIn ); " , n );
+        if ( hasArguments ){
+            _append( "JSArray arguments = new JSArray();\n" , n );
+            _append( "scope.put( \"arguments\" , arguments , true );\n" , n );
+        }
+        _append(  varSetup , n );
+        if ( hasArguments )
+            _append( "if ( extra != null ) for ( Object TTTT : extra ) arguments.add( TTTT );\n" , n );
+
         for ( int i=fn.getParamCount(); i<fn.getParamAndVarCount(); i++ ){
             final String foo = fn.getParamOrVarName( i );
             if ( state.useLocalVariable( foo ) ){
