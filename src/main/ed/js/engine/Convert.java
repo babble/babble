@@ -965,7 +965,11 @@ public class Convert {
         buf.append( "public class " ).append( _className ).append( " extends JSCompiledScript {\n" );
 
         buf.append( "\tpublic Object _call( Scope scope , Object extra[] ){\n" );
-        
+        buf.append( "\t\t scope = new Scope( \"temp scope\" , scope ); " );
+
+        buf.append( "\t\t JSArray arguments = new JSArray(); scope.put( \"arguments\" , arguments , true );\n " );
+        buf.append( "\t\t if ( extra != null ) for ( Object TTTT : extra ) arguments.add( TTTT );\n" );
+
         _preMainLines = StringUtil.count( buf.toString() , "\n" );
 
         buf.append( _mainJavaCode );
