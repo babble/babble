@@ -18,11 +18,14 @@ public class MT {
         DBCollection coll = db.getCollection( "blog" ).getCollection( "posts" );
 
         Statement stmt = conn.createStatement();
-        ResultSet res = stmt.executeQuery( "SELECT * FROM mt_entry , mt_author WHERE entry_author_id = author_id ORDER BY entry_id DESC  " );
+        ResultSet res = stmt.executeQuery( "SELECT * FROM mt_entry , mt_author WHERE entry_author_id = author_id ORDER BY entry_id DESC LIMIT 20 " );
         
         Statement commentsStmt = conn.createStatement();
         ResultSet comments = commentsStmt.executeQuery( "SELECT * FROM mt_comment WHERE comment_visible = 1 ORDER BY comment_entry_id DESC" ); 
         comments.next();
+
+        PreparedStatement catQuery = conn.prepareStatement( "SELECT category_basename FROM mt_placement , mt_category " + 
+                                                            " WHERE placement_category_id = category_id AND placement_entry_id = ? " );
 
         boolean moreComments = true;
         
@@ -65,7 +68,18 @@ public class MT {
                     moreComments = false;
             }
             
-            //System.out.println( JSON.serialize( o ) );
+
+
+            catQuery.setInt( 1 , res.getInt( "entry_id" ) );
+            ResultSet catRS = catQuery.executeQuery();
+            JSArray cats = new JSArray();
+            while ( catRS.next() )
+                cats.add( catRS.getString(1) );
+            catRS.close();
+            
+            o.set( "categories" , cats );
+                
+            System.out.println( JSON.serialize( o ) );
             coll.save( o );
         }
         
