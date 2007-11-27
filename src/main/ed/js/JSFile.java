@@ -32,7 +32,10 @@ public abstract class JSFile extends JSObjectBase {
     
     public JSFileChunk getFirstChunk(){
         ((JSObject)get( "next" )).keySet();
-        return (JSFileChunk)get( "next" );
+        JSFileChunk chunk = (JSFileChunk)get( "next" );        
+        if ( chunk == null )
+            throw new NullPointerException( "first chunk is null :(" );
+        return chunk;
     }
 
     public void write( OutputStream out )
@@ -72,6 +75,10 @@ public abstract class JSFile extends JSObjectBase {
     public static class Sender {
         
         Sender( JSFileChunk chunk ){
+            if ( chunk == null )
+                throw new NullPointerException("chunk can't be null" );
+            if ( chunk.getData() == null )
+                throw new NullPointerException("chunk data can't be null" );
             _chunk = chunk;
             _buf = _chunk.getData().asByteBuffer();
         }
