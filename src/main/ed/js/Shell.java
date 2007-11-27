@@ -30,6 +30,8 @@ public class Shell {
                 
                 Map<String,DBJni> _dbs = new HashMap<String,DBJni>();
             } , true  );
+
+        ed.db.migrate.Drivers.init( s );
         
         s.put( "openFile" , new JSFunctionCalls1(){
                 public Object call( Scope s , Object fileName , Object crap[] ){

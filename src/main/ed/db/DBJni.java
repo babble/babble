@@ -177,7 +177,8 @@ public class DBJni extends DBBase {
             return -1;
         }
 
-        public Iterator<JSObject> find( JSObject ref , JSObject fields , int numToReturn ){
+        // TODO: remove synchronized
+        public synchronized Iterator<JSObject> find( JSObject ref , JSObject fields , int numToReturn ){
 
             ByteEncoder encoder = new ByteEncoder();
             
