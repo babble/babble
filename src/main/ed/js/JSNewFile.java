@@ -15,7 +15,6 @@ public abstract class JSNewFile extends JSFile {
         super( filename , contentType , length );
 
         final int nc = numChunks();
-        System.out.println( "nc: " + nc );
 
         for ( int i=0; i<nc; i++ ){
             JSFileChunk c = newChunk( i );
