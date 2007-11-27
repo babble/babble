@@ -66,7 +66,7 @@ public abstract class JSNewFile extends JSFile {
                 _num = num;
             }
             
-            protected JSBinaryData getData(){
+            public JSBinaryData getData(){
                 final long start = _num * CHUNK_SIZE;
                 final long end = Math.min( _file.length() , ( _num + 1 ) * CHUNK_SIZE );
                 
