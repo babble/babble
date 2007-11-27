@@ -116,7 +116,7 @@ public class DBJni extends DBBase {
                 o.set( "_id" , id );
             }
             
-            o.set( "_ns" , _fullNameSpace );
+            o.set( "_ns" , _removeRoot( _fullNameSpace ) );
 
             return id;
         }
@@ -265,7 +265,7 @@ public class DBJni extends DBBase {
                 
                 while( decoder.more() && num < _num ){
                     final JSObject o = decoder.readObject();
-                    o.set( "_ns" , _fullNameSpace );
+                    o.set( "_ns" , _removeRoot( _fullNameSpace ) );
                     _lst.add( o );
                     num++;
 
@@ -377,6 +377,12 @@ public class DBJni extends DBBase {
         addr = createSock( name );
         _ipToSockAddr.put( name, addr );
         return addr;
+    }
+
+    String _removeRoot( String ns ){
+        if ( ! ns.startsWith( _root + "." ) )
+            return ns;
+        return ns.substring( _root.length() + 1 );
     }
 
     private static native long createSock( String name );
