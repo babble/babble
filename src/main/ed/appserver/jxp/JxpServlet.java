@@ -167,22 +167,29 @@ public class JxpServlet {
                 uri = uri.substring( 0 , questionIndex );
             
             if ( _context != null ){
-                File f = _context.getFile( uri );
                 
-                boolean exists = f.exists();
+                String cdnTags = null;
+                if ( uri.equals( "/~f" ) ){
+                    cdnTags = "";
+                }
+                else {
+                    File f = _context.getFile( uri );
+                    if ( f.exists() ){
+                        cdnTags = "lm=" + f.lastModified();
+                    }
+                }
                 
-                if ( exists )
+                if ( cdnTags != null )
                     _writer.print( _cdnPrefix );
 
                 _writer.print( src );
                 
-                if ( exists ){
+                if ( cdnTags != null ){
                     if ( questionIndex < 0 )
                         _writer.print( "?" );
                     else
                         _writer.print( "&" );
-                    _writer.print( "lm=" );
-                    _writer.print( f.lastModified() );
+                    _writer.print( cdnTags );
                 }
                 
                 return;
