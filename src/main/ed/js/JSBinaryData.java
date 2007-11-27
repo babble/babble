@@ -23,26 +23,34 @@ public abstract class JSBinaryData {
 
     public static class ByteArray extends JSBinaryData{
         public ByteArray( byte[] data ){
-            _data = data;
+            this( data , 0 , data.length );
         }
         
+        public ByteArray( byte[] data , int offset , int len ){
+            _data = data;
+            _offset = offset;
+            _len = len;
+        }
+
         public int length(){
-            return _data.length;
+            return _len;
         }
         
         public void put( ByteBuffer buf ){
-            buf.put( _data );
+            buf.put( _data , _offset , _len );
         }
 
         public void write( OutputStream out )
             throws IOException {
-            out.write( _data );
+            out.write( _data , _offset , _len );
         }
 
         public ByteBuffer asByteBuffer(){
-            return ByteBuffer.wrap( _data );
+            return ByteBuffer.wrap( _data , _offset , _len );
         }
         
         final byte[] _data;
+        final int _offset;
+        final int _len;
     }
 }

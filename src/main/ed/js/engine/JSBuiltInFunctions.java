@@ -4,6 +4,7 @@ package ed.js.engine;
 
 import ed.js.*;
 import ed.js.func.*;
+import ed.net.*;
 
 public class JSBuiltInFunctions {
 
@@ -105,6 +106,7 @@ public class JSBuiltInFunctions {
                 }
             } , true );
         
+        _myScope.put( "download" , HttpDownload.DOWNLOAD , true );
 
         JSON.init( _myScope );
     }
