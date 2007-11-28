@@ -10,6 +10,7 @@ import jline.*;
 import ed.db.*;
 import ed.js.func.*;
 import ed.js.engine.*;
+import ed.appserver.*;
 
 public class Shell {
 
@@ -39,6 +40,7 @@ public class Shell {
                 }
             } , true );
         
+        s.put( "core" , new JSFileLibrary( new File( "/data/corejs" ) ,  "core" ) , true );
             
     }
     
