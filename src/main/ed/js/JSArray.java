@@ -122,7 +122,21 @@ public class JSArray extends JSObjectBase {
                         return false;
                     }
                 } );
+
+            _prototype.set( "sort" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object func , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        
+                        if ( func == null )
+                            Collections.sort( a._array , _normalComparator );
+                        else
+                            Collections.sort( a._array , new MyComparator( s , (JSFunction)func ) );
+                        
+                        return a;
+                    }
+                } );
             
+
 
         }
     }
@@ -248,4 +262,28 @@ public class JSArray extends JSObjectBase {
 
     final List<Object> _array;
 
+    static class MyComparator implements Comparator {
+        MyComparator( Scope s , JSFunction func ){
+            _scope = s;
+            _func = func;
+        }
+        
+        public int compare( Object l , Object r ){
+            if ( _func == null ){
+                if ( l == null && r == null )
+                    return 0;
+                if ( l == null )
+                    return 1;
+                if ( r == null )
+                    return -1;
+                return l.toString().compareTo( r.toString() );
+            }
+            
+            return (Integer)(_func.call( _scope , l , r , null ));
+        }
+
+        private final Scope _scope;
+        private final JSFunction _func;
+    }
+    static final MyComparator _normalComparator = new MyComparator( null , null );
 }
