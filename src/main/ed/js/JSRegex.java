@@ -85,6 +85,11 @@ public class JSRegex extends JSObjectBase {
         return _patt;
     }
 
+    public boolean test( String s ){
+        Matcher m = _patt.matcher( s );
+        return m.matches();
+    }
+
     String _p;
     String _f;
 

@@ -27,3 +27,8 @@ print( "===a===".replace( /(?:^|\xB6)(={1,6})(.*?)[=]*(?=\xB6|$)/g,
                               return "<h"+h+">"+$2+"</h"+h+">";
                           } ) );
 
+
+
+/123/.test( "the 123 is here" );
+/123/.test( "the 12 is here" );
+/(is)/.test( "the 12 is here" );
