@@ -32,3 +32,9 @@ print( "===a===".replace( /(?:^|\xB6)(={1,6})(.*?)[=]*(?=\xB6|$)/g,
 /123/.test( "the 123 is here" );
 /123/.test( "the 12 is here" );
 /(is)/.test( "the 12 is here" );
+
+p = /(\d)\.(\d)/g;
+t = "abc 123.23 sj 41.2";
+while ( ( result = p.exec( t ) ) != null ){
+    print( result.index + " : " + result[0] + "," + result[1] + "," + result[2] );
+}

@@ -89,7 +89,38 @@ public class JSRegex extends JSObjectBase {
         Matcher m = _patt.matcher( s );
         return m.matches();
     }
+    
+    public JSArray exec( String s ){
+        JSArray a = _last.get();
+        String oldString = a == null ? null : a.get( "input" ).toString();
+        Matcher m = null;
 
+        if ( a != null && s.equals( oldString ) ){
+            m = (Matcher)a.get( "_matcher" );
+        }
+        else {
+            m = _patt.matcher( s );
+        }
+
+        if ( ! m.find() )
+            return null;
+        
+        a = new JSArray();
+        for ( int i=0; i<=m.groupCount(); i++ )
+            a.add( m.group(i) );
+
+        a.set( "_matcher" , m );
+        a.set( "input" , new JSString( s ) );
+        a.set( "index" , m.start() );
+        
+        if ( _replaceAll )
+            _last.set( a );
+        else
+            _last.set( null );
+        
+        return a;
+    }
+    
     String _p;
     String _f;
 
@@ -97,4 +128,6 @@ public class JSRegex extends JSObjectBase {
     Pattern _patt;
 
     boolean _replaceAll;
+
+    ThreadLocal<JSArray> _last = new ThreadLocal<JSArray>();
 }
