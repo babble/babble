@@ -57,11 +57,13 @@ public class TestCase extends MyAsserts {
         public String toString(){
             StringBuilder buf = new StringBuilder();
             buf.append( _test );
-            if ( _error != null ){
-                buf.append( "\n\t" + _error + "\n" );
-                for ( StackTraceElement ste : _error.getStackTrace() ){
+            Throwable error = _error;
+            if ( error != null ){
+                buf.append( "\n\t" + error + "\n" );
+                for ( StackTraceElement ste : error.getStackTrace() ){
                     buf.append( "\t\t" + ste + "\n" );
                 }
+                error = error.getCause();
             }
             return buf.toString();
         }
