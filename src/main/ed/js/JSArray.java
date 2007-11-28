@@ -109,7 +109,21 @@ public class JSArray extends JSObjectBase {
                         return n;
                     }
                 } );
+
+
+            _prototype.set( "contains" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object test , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+
+                        for ( Object o : a._array )
+                            if ( JSInternalFunctions.JS_eq( o ,test ) )
+                                return true;
+                        
+                        return false;
+                    }
+                } );
             
+
         }
     }
     
