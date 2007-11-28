@@ -47,6 +47,19 @@ public class JSString extends JSObjectBase {
                 } );
 
 
+            _prototype.set( "toLowerCase" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object o , Object foo[] ){
+                        return new JSString( s.getThis().toString().toLowerCase() );
+                    }
+                } );
+
+            _prototype.set( "toUpperCase" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object o , Object foo[] ){
+                        return new JSString( s.getThis().toString().toUpperCase() );
+                    }
+                } );
+
+
             _prototype.set( "charCodeAt" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object o , Object foo[] ){
                         String str = s.getThis().toString();
