@@ -40,6 +40,13 @@ public class JSString extends JSObjectBase {
         
         protected void init(){
             
+            _prototype.set( "trim" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object o , Object foo[] ){
+                        return new JSString( s.getThis().toString().trim() );
+                    }
+                } );
+
+
             _prototype.set( "charCodeAt" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object o , Object foo[] ){
                         String str = s.getThis().toString();
@@ -256,6 +263,10 @@ public class JSString extends JSObjectBase {
     
     public String toString(){
         return _s;
+    }
+    
+    public int length(){
+        return _s.length();
     }
     
     public int hashCode(){
