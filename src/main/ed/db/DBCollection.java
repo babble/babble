@@ -75,6 +75,13 @@ public abstract class DBCollection extends JSObjectLame {
                     
                     JSObject jo = (JSObject)o;
                     
+                    Object presaveObject = (JSFunction)jo.get( "presave" );
+                    if ( presaveObject != null && presaveObject instanceof JSFunction ){
+                        s.setThis( jo );
+                        ((JSFunction)presaveObject).call( s );
+                        s.clearThisNormal( null );
+                    }
+
                     LinkedList<JSObject> toSearch = new LinkedList();
                     toSearch.add( jo );
                     while ( toSearch.size() > 0 ){
