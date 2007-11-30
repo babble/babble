@@ -67,8 +67,8 @@ public abstract class JSNewFile extends JSFile {
             }
             
             public JSBinaryData getData(){
-                final long start = _num * CHUNK_SIZE;
-                final long end = Math.min( _file.length() , ( _num + 1 ) * CHUNK_SIZE );
+                final long start = _num * getChunkSize();
+                final long end = Math.min( _file.length() , ( _num + 1 ) * getChunkSize() );
                 
                 return new JSBinaryData(){
 
@@ -83,9 +83,9 @@ public abstract class JSNewFile extends JSFile {
                                 _fc = (new FileInputStream( _file )).getChannel();
                             
                             final int oldLimit = buf.limit();
-                            buf.limit( buf.position() + CHUNK_SIZE );
+                            buf.limit( buf.position() + getChunkSize() );
                             
-                            _fc.read( buf , _num * CHUNK_SIZE );
+                            _fc.read( buf , _num * getChunkSize() );
                             buf.limit( oldLimit );
                         }
                         catch ( IOException ioe ){

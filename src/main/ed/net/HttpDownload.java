@@ -36,8 +36,8 @@ public class HttpDownload {
         return new JSNewFile( url.getFile() , conn.getContentType() , data.length ){
             protected JSFileChunk newChunk( int num ){
 
-                final int start = num * JSFile.CHUNK_SIZE;
-                final int end = Math.min( start + JSFile.CHUNK_SIZE , data.length );
+                final int start = num * getChunkSize();
+                final int end = Math.min( start + getChunkSize() , data.length );
 
                 JSFileChunk chunk = new JSFileChunk( (JSFile)this , num );
                 chunk.setData( new JSBinaryData.ByteArray( data , start , end - start ) );
