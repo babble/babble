@@ -27,7 +27,6 @@ import static ed.js.JSInternalFunctions.*;
  * pop
  * reverse
  * shift
- * sort
  * splice
  * unshift 
  */
