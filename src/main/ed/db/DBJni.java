@@ -99,7 +99,25 @@ public class DBJni extends DBBase {
     }
     
     public Collection<String> getCollectionNames(){
-        throw new RuntimeException( "not implemented yet" );
+        List<String> tables = new ArrayList<String>();
+        
+        DBCollection namespaces = getCollectionFromFull( "system.namespaces" );
+        
+        for ( Iterator<JSObject> i = namespaces.find( new JSObjectBase() , null , 0 ) ; i.hasNext() ;  ){
+            JSObject o = i.next();
+            String n = o.get( "name" ).toString();
+            int idx = n.indexOf( "." );
+            
+            String root = n.substring( 0 , idx );
+            if ( ! root.equals( _root ) )
+                continue;
+            
+            String table = n.substring( idx + 1 );
+
+            tables.add( table );
+        }
+
+        return tables;
     }
     
     class MyCollection extends DBCollection {
@@ -134,6 +152,9 @@ public class DBJni extends DBBase {
             if ( res.hasNext() )
                 throw new RuntimeException( "something is wrong" );
             
+            if ( _constructor != null && o instanceof JSObjectBase )
+                ((JSObjectBase)o).setConstructor( _constructor );
+
             return o;
         }
 
@@ -384,6 +405,28 @@ public class DBJni extends DBBase {
         if ( ! ns.startsWith( _root + "." ) )
             return ns;
         return ns.substring( _root.length() + 1 );
+    }
+
+    public static Collection<String> getRootNamespaces( String ip ){
+
+        DBJni system = get( "system" , ip );
+        DBCollection namespaces = system.getCollection( "namespaces" );
+
+        Set<String> roots = new HashSet<String>();
+        
+        for ( Iterator<JSObject> i = namespaces.find( new JSObjectBase() , null , 0 ) ; i.hasNext() ;  ){
+            JSObject o = i.next();
+            String n = o.get( "name" ).toString();
+            int idx = n.indexOf( "." );
+            
+            String root = n.substring( 0 , idx );
+            if ( root.equals( "sys" ) )
+                continue;
+
+            roots.add( root );
+        }
+
+        return roots;
     }
 
     private static native long createSock( String name );
