@@ -356,6 +356,8 @@ public class Scope {
                         if ( ret != null ){
                             if ( ret instanceof String )
                                 ret = new JSString( ret.toString() );
+                            else if ( ret instanceof java.util.Date ) 
+                                ret = new JSDate( (java.util.Date)ret );
                         }
                         return ret;
                     }

@@ -3,11 +3,13 @@
 package ed.db.migrate;
 
 import java.sql.*;
+import java.net.*;
 import java.util.*;
 import java.util.regex.*;
 
 import ed.db.*;
 import ed.js.*;
+import ed.net.*;
 
 public class MT {
     static { 
@@ -18,6 +20,9 @@ public class MT {
         throws Exception {
 
         DBCollection coll = db.getCollection( "blog" ).getCollection( "posts" );
+        JSObjectBase postsIndex = new JSObjectBase();
+        postsIndex.set( "name" , 1 );
+        coll.ensureIndex( postsIndex );
 
         Statement stmt = conn.createStatement();
         ResultSet res = stmt.executeQuery( "SELECT * FROM mt_entry , mt_author WHERE entry_author_id = author_id ORDER BY entry_id DESC LIMIT 100 " );
@@ -85,7 +90,7 @@ public class MT {
             o.set( "categories" , cats );
             
             // images
-            doImages( o.get( "content" ).toString() );
+            o.set( "content" , doImages( db , o.get( "content" ).toString() ) );
 
             //System.out.println( JSON.serialize( o ) );
             coll.update( search , o , true );
@@ -96,20 +101,90 @@ public class MT {
         
     }
 
-    static void doImages( String content ){
+    static String doImages( DBBase db , String content ){
+        
+        DBCollection files = db.getCollection( "_files" );
+        DBCollection chunks = db.getCollection( "_chunks" );
+
+        DBCollection images = db.getCollection( "blog" ).getCollection( "images" );
+        {
+            JSObjectBase imagesIndex = new JSObjectBase();
+            imagesIndex.set( "filename" , 1 );
+            images.ensureIndex( imagesIndex );
+        }
+
+        StringBuilder newContent = new StringBuilder();
+        int last = 0;
+        
         Matcher m = Pattern.compile( "<img.*?src=['\"](.*?)['\"]" , Pattern.CASE_INSENSITIVE ).matcher( content );
         while ( m.find() ){
+            
+            newContent.append( content.substring( last , m.start(1) ) );
+            last = m.end(1);
+
             String url = m.group(1);
+
             System.out.println( url );
             if (  url.startsWith( "/" ) )
                 url = "http://static.alleyinsider.com" + url;
             else
                 url = url.replaceAll( "www." , "static." );
+
             System.out.println( url );
             
-        }
-    }
+            String imgId = null;
 
+            try {
+                URL u = new URL( url );
+                String f = u.getFile();
+                
+                JSObjectBase imgObj = new JSObjectBase();
+                imgObj.set( "filename" , f );
+                
+                Iterator<JSObject> res = images.find( imgObj , null , 1 );
+                if ( res != null && res.hasNext() ){
+                    imgId = res.next().get( "fileId" ).toString();
+                    System.out.println( "already has : " + f );
+                }
+                else {
+                    JSNewFile theFile = HttpDownload.downloadToJS( u );
+                    files.apply( theFile );
+                    System.out.println( JSON.serialize( theFile ) );
+                    files.save( theFile );
+                    
+                    {
+                        JSFileChunk chunk = theFile.getFirstChunk();
+                        while ( chunk != null ){
+                            System.out.println( chunk.get( "_ns" ) );
+                            chunks.save( chunk );
+                            chunk = chunk.getNext();
+                        }
+                    }
+                    
+                    imgId = theFile.get( "_id" ).toString();
+                    imgObj.set( "fileId" , imgId );
+                    System.out.println( JSON.serialize( imgObj ) );
+                    images.save( imgObj );
+                }
+                
+                
+            }
+            catch ( Exception e ){
+                throw new RuntimeException( "can't deal with image:" + url , e );
+            }
+
+            url = "/~f?id=" + imgId;
+
+            System.out.println( url );
+            newContent.append( url );
+            
+        }
+        
+        newContent.append( content.substring( last ) );
+        
+        return newContent.toString();
+    }
+    
     public static void main( String args[] )
         throws Exception {
         migrate( DriverManager.getConnection( "jdbc:mysql://www.alleyinsider.com/alleyinsider_mt" , "dev" , "dv12" ) ,

@@ -10,6 +10,7 @@ import jline.*;
 import ed.db.*;
 import ed.js.func.*;
 import ed.js.engine.*;
+import ed.appserver.*;
 
 public class Shell {
 
@@ -30,6 +31,8 @@ public class Shell {
                 
                 Map<String,DBJni> _dbs = new HashMap<String,DBJni>();
             } , true  );
+
+        ed.db.migrate.Drivers.init( s );
         
         s.put( "openFile" , new JSFunctionCalls1(){
                 public Object call( Scope s , Object fileName , Object crap[] ){
@@ -37,6 +40,7 @@ public class Shell {
                 }
             } , true );
         
+        s.put( "core" , new JSFileLibrary( new File( "/data/corejs" ) ,  "core" ) , true );
             
     }
     

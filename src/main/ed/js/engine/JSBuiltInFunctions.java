@@ -71,6 +71,8 @@ public class JSBuiltInFunctions {
 
     public static class CrID extends JSFunctionCalls1 {
         public Object call( Scope scope , Object idString , Object extra[] ){
+            if ( idString == null )
+                return ed.db.ObjectId.get();
             return new ed.db.ObjectId( idString.toString() );
         }
     }
