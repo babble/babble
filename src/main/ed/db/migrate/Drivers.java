@@ -92,7 +92,7 @@ public class Drivers {
                     if ( foo instanceof String) 
                         foo = new JSString( foo.toString() );
                     else if ( foo instanceof java.util.Date )
-                        foo = new JSDate( (java.util.Date)foo);
+                        foo = new JSDate( (java.util.Date)foo );
                     return foo;
                 }
                 catch ( SQLException se ){
