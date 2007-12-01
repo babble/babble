@@ -48,6 +48,8 @@ public class JSDate extends JSObjectBase implements Comparable {
     static long parse( Object o , long def ){
         if ( o == null )
             return def;
+	if ( o instanceof java.util.Date )
+	    return ((java.util.Date)o).getTime();
         if ( ! ( o instanceof Number ) )
             return def;
         return ((Number)o).longValue();

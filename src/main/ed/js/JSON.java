@@ -166,7 +166,7 @@ public class JSON {
             }
 
             a.append( _i( indent + 1 ) );
-            a.append( " }"  );
+            a.append( " }\n"  );
         }
 
     }
