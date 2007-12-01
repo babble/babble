@@ -31,7 +31,7 @@ public class JSMath extends JSObjectBase {
 
                      if ( b == null )
                          return a;
-
+                     
                      return ((Number)a).doubleValue() > ((Number)b).doubleValue() ? a : b;
                  }
              } );

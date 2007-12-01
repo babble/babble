@@ -1,0 +1,15 @@
+<% jxp.lib.foo(); %>
+<%
+
+
+%>
+<html>
+  <body>
+    <%= Foo %><br>
+    <% f = new Foo(); %><br>
+    <%= f.go %><br>
+    <%= f.go() %><br>
+  </body>
+</html>
+
+    

@@ -6,7 +6,7 @@ import java.util.*;
 
 public class JSFileChunk extends JSObjectBase {
 
-    protected JSFileChunk( JSFile f , int chunkNumber ){
+    public JSFileChunk( JSFile f , int chunkNumber ){
         this();
         set( "cn" , chunkNumber );
     }
@@ -14,8 +14,12 @@ public class JSFileChunk extends JSObjectBase {
     public JSFileChunk(){
         set( "_ns" , "_chunks" );
     }
+
+    public void setData( JSBinaryData data ){
+        set( "data" , data );
+    }
     
-    protected JSBinaryData getData(){
+    public JSBinaryData getData(){
         if ( get( "data" ) != null )
             return (JSBinaryData)get("data");
         

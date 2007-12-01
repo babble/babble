@@ -178,7 +178,7 @@ public class Convert {
             break;
             
         case Token.THIS:
-            _append( "_scope.getThis()" , n );
+            _append( "passedIn.getThis()" , n );
             break;
 
         case Token.INC:
@@ -965,7 +965,13 @@ public class Convert {
         buf.append( "public class " ).append( _className ).append( " extends JSCompiledScript {\n" );
 
         buf.append( "\tpublic Object _call( Scope scope , Object extra[] ){\n" );
-        
+
+        buf.append( "\t\t final Scope passedIn = scope; \n" );
+        buf.append( "\t\t scope = new Scope( \"temp scope\" , scope ); \n" );
+
+        buf.append( "\t\t JSArray arguments = new JSArray(); scope.put( \"arguments\" , arguments , true );\n " );
+        buf.append( "\t\t if ( extra != null ) for ( Object TTTT : extra ) arguments.add( TTTT );\n" );
+
         _preMainLines = StringUtil.count( buf.toString() , "\n" );
 
         buf.append( _mainJavaCode );

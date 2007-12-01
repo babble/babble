@@ -40,6 +40,26 @@ public class JSString extends JSObjectBase {
         
         protected void init(){
             
+            _prototype.set( "trim" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object o , Object foo[] ){
+                        return new JSString( s.getThis().toString().trim() );
+                    }
+                } );
+
+
+            _prototype.set( "toLowerCase" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object o , Object foo[] ){
+                        return new JSString( s.getThis().toString().toLowerCase() );
+                    }
+                } );
+
+            _prototype.set( "toUpperCase" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object o , Object foo[] ){
+                        return new JSString( s.getThis().toString().toUpperCase() );
+                    }
+                } );
+
+
             _prototype.set( "charCodeAt" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object o , Object foo[] ){
                         String str = s.getThis().toString();
@@ -92,6 +112,29 @@ public class JSString extends JSObjectBase {
                         if ( end < 0 )
                             return new JSString( str.substring( start) );
                         return new JSString( str.substring( start , end ) );
+                    }
+                } );
+
+            _prototype.set( "substr" , new JSFunctionCalls2() {
+                    public Object call( Scope s , Object startO , Object lengthO , Object foo[] ){
+                        String str = s.getThis().toString();
+
+                        int start = ((Number)startO).intValue();
+                        if ( start < 0 )
+                            start = 0;
+                        if ( start >= str.length() || start < 0 )
+                            return EMPTY;
+                        
+                        int length = -1;
+                        if ( lengthO != null && lengthO instanceof Number )
+                            length = ((Number)lengthO).intValue();
+                        
+                        if ( start + length > str.length() )
+                            length = str.length() - start;
+
+                        if ( length < 0 )
+                            return new JSString( str.substring( start) );
+                        return new JSString( str.substring( start , start + length ) );
                     }
                 } );
 
@@ -233,6 +276,10 @@ public class JSString extends JSObjectBase {
     
     public String toString(){
         return _s;
+    }
+    
+    public int length(){
+        return _s.length();
     }
     
     public int hashCode(){

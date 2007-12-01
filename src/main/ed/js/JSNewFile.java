@@ -15,7 +15,6 @@ public abstract class JSNewFile extends JSFile {
         super( filename , contentType , length );
 
         final int nc = numChunks();
-        System.out.println( "nc: " + nc );
 
         for ( int i=0; i<nc; i++ ){
             JSFileChunk c = newChunk( i );
@@ -67,9 +66,9 @@ public abstract class JSNewFile extends JSFile {
                 _num = num;
             }
             
-            protected JSBinaryData getData(){
-                final long start = _num * CHUNK_SIZE;
-                final long end = Math.min( _file.length() , ( _num + 1 ) * CHUNK_SIZE );
+            public JSBinaryData getData(){
+                final long start = _num * getChunkSize();
+                final long end = Math.min( _file.length() , ( _num + 1 ) * getChunkSize() );
                 
                 return new JSBinaryData(){
 
@@ -84,9 +83,9 @@ public abstract class JSNewFile extends JSFile {
                                 _fc = (new FileInputStream( _file )).getChannel();
                             
                             final int oldLimit = buf.limit();
-                            buf.limit( buf.position() + CHUNK_SIZE );
+                            buf.limit( buf.position() + getChunkSize() );
                             
-                            _fc.read( buf , _num * CHUNK_SIZE );
+                            _fc.read( buf , _num * getChunkSize() );
                             buf.limit( oldLimit );
                         }
                         catch ( IOException ioe ){

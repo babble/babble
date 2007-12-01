@@ -49,9 +49,9 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
         return this;
     }
 
-    public DBCursor num( int n ){
+    public DBCursor limit( int n ){
         if ( _it != null )
-            throw new RuntimeException( "can't set num after executing query" );
+            throw new RuntimeException( "can't set limit after executing query" );
 
         _numWanted = n;
         return this;
@@ -64,6 +64,8 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
 
     public boolean hasNext(){
         _check();
+        if ( _numWanted > 0 && _all.size() >= _numWanted )
+            return false;
         return _it.hasNext();
     }
 
