@@ -20,7 +20,7 @@ public class MT {
         DBCollection coll = db.getCollection( "blog" ).getCollection( "posts" );
 
         Statement stmt = conn.createStatement();
-        ResultSet res = stmt.executeQuery( "SELECT * FROM mt_entry , mt_author WHERE entry_author_id = author_id ORDER BY entry_id DESC LIMIT 10 " );
+        ResultSet res = stmt.executeQuery( "SELECT * FROM mt_entry , mt_author WHERE entry_author_id = author_id ORDER BY entry_id DESC LIMIT 100 " );
         
         Statement commentsStmt = conn.createStatement();
         ResultSet comments = commentsStmt.executeQuery( "SELECT * FROM mt_comment WHERE comment_visible = 1 ORDER BY comment_entry_id DESC" ); 
