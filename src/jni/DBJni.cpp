@@ -25,10 +25,11 @@ public:
 
 inline MessagingPort& getPort(jlong sa) { 
   assert(sa);
-  MessagingPort *& mp = ports[((SockAddr*)sa)[0]];
+  SockAddr *addr = (SockAddr*) sa;
+  MessagingPort *& mp = ports[*addr];
   if( mp == 0 ) {
     mp = new MessagingPort();
-    mp->init();
+    mp->init(0, addr);
   }
   return *mp;
 }
