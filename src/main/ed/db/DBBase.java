@@ -18,6 +18,9 @@ public abstract class DBBase extends JSObjectLame {
         if ( n == null )
             return null;
         
+	if ( MethodHolder.isMethodName( this.getClass() , n.toString() ) )
+	    return null;
+
         if ( n.toString().equals( "tojson" ) )
             return _tojson;
 
