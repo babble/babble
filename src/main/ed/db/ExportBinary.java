@@ -28,7 +28,7 @@ public class ExportBinary {
             
             DBCollection c = db.getCollection( t );
             
-            File f = new File( myRoot , t );
+            File f = new File( myRoot , t + ".bin" );
             FileOutputStream fout = new FileOutputStream( f );
             FileChannel fc = fout.getChannel();
             

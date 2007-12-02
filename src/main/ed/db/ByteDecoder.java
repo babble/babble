@@ -35,6 +35,9 @@ public class ByteDecoder extends Bytes {
     }
 
     protected JSObject readObject(){
+        if ( _buf.position() >= _buf.limit() )
+            return null;
+
         final int start = _buf.position();
         final int len = _buf.getInt();
         
