@@ -14,6 +14,12 @@ public class ByteEncoder extends Bytes {
         _buf.order( ByteOrder.LITTLE_ENDIAN );
     }
 
+    protected void reset(){
+        _buf.position( 0 );
+        _buf.limit( _buf.capacity() );
+        _flipped = false;
+    }
+
     protected void flip(){
         _buf.flip();
         _flipped = true;
