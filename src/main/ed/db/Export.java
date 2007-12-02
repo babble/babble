@@ -14,51 +14,33 @@ public class Export {
 
         PrintStream out = new PrintStream( raw );
         
-        DBJni system = DBJni.get( "system" , ip );
-        DBCollection namespaces = system.getCollection( "namespaces" );
-
-        Map<String,List<String>> m = new HashMap<String,List<String>>();
-        
-        for ( Iterator<JSObject> i = namespaces.find( new JSObjectBase() , null , 0 ) ; i.hasNext() ;  ){
-            JSObject o = i.next();
-            String n = o.get( "name" ).toString();
-            int idx = n.indexOf( "." );
-            
-            String root = n.substring( 0 , idx );
-            String table = n.substring( idx + 1 );
-            
-            List<String> lst = m.get( root );
-            if ( lst == null ){
-                lst = new ArrayList<String>();
-                m.put( root , lst );
-            }
-            lst.add( table );
+        for ( String root : DBJni.getRootNamespaces( ip ) ){
+            export( root , ip , out );
         }
+    }
+
+    static void export( String root , String ip , PrintStream out )
+        throws IOException {
+        DBJni db = DBJni.get( root , ip );
+        out.println( "var " + root + " = connect( \"" + root + "\" );" );
         
-        
-        for ( String root : m.keySet() ){
+        for ( String t : db.getCollectionNames() ){
             
-            if ( root.equals( "sys" ) )
+            if ( t.indexOf( ".$" ) >= 0 )
+                continue;
+            
+            DBCollection c = db.getCollection( t );
+            out.println( "var t = " + root + "." + t + ";" );
+            
+            Iterator<JSObject> all = c.find( new JSObjectBase() , null , 0 );
+            if ( all == null )
                 continue;
 
-            DBJni db = DBJni.get( root , ip );
-            out.println( "var " + root + " = connect( \"" + root + "\" );" );
-            
-            List<String> tables = m.get( root );
-            for ( String t : tables ){
-		if ( t.indexOf( ".$" ) >= 0 )
-		    continue;
-                DBCollection c = db.getCollection( t );
-                out.println( "var t = " + root + "." + t + ";" );
-                
-                Iterator<JSObject> all = c.find( new JSObjectBase() , null , 0 );
-                for( ; all.hasNext(); ){
-                    JSObject o = all.next();
-                    String nice = JSON.serialize( o , "" ).replace( '\r' , ' ' );
-                    nice = nice.replaceAll( "\n" , "\\\\n" );
-                    out.println( "t.save( " + nice  + ");" );
-                }
-                
+            for( ; all.hasNext(); ){
+                JSObject o = all.next();
+                String nice = JSON.serialize( o , "" ).replace( '\r' , ' ' );
+                nice = nice.replaceAll( "\n" , "\\\\n" );
+                out.println( "t.save( " + nice  + ");" );
             }
         }
     }
@@ -70,11 +52,22 @@ public class Export {
         if ( args.length > 0 )
             ip = args[0];
         
-        OutputStream out = System.out;
-        if ( args.length > 1 )
-            out = new FileOutputStream( args[1] );
+        if ( args.length <= 1 ){
+            export( ip , System.out );
+            return;
+        }
+
+        File dir = new File( args[1] );
+        dir.mkdirs();
         
-        export( ip , out );
+        for ( String root : DBJni.getRootNamespaces( ip ) ){
+            FileOutputStream raw = new FileOutputStream( new File( dir , root + ".txt" ) );
+            PrintStream out = new PrintStream( raw );
+            export( root , ip , out );
+            out.close();
+            raw.close();
+        }
+        
         
     }
     
