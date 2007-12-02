@@ -12,6 +12,7 @@ public class JSInternalFunctions extends JSObjectBase {
     public final static JSString TYPE_UNDEFINED = new JSString( "undefined" );
     public final static JSString TYPE_OBJECT = new JSString( "object" );
     public final static JSString TYPE_NATIVE = new JSString( "native" );
+    public final static JSString TYPE_FUNCTION = new JSString( "function" );
 
     public JSString JS_typeof( Object obj ){
 
@@ -27,9 +28,14 @@ public class JSInternalFunctions extends JSObjectBase {
         if ( obj instanceof Number )
             return TYPE_NUMBER;
         
+        if ( obj instanceof JSFunction )
+            return TYPE_FUNCTION;
+
         if ( obj instanceof JSObject )
             return TYPE_OBJECT;
         
+        
+
         return TYPE_NATIVE;
     }
 
