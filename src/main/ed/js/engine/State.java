@@ -47,6 +47,14 @@ class State {
         _badLocals.add( s );
     }
 
+    public void debug(){
+        System.out.println( "---" );
+        System.out.println( "STATE" );
+        System.out.println( "\t _hasLambdaExpressions : " + _hasLambdaExpressions );
+        System.out.println( "\t _badLocals : " + _badLocals );
+        System.out.println( "---" );
+    }
+
     final Set<String> _localSymbols = new HashSet<String>();
     final Map<Integer,String> _functionIdToName = new HashMap<Integer,String>();
     final Stack<String> _tempOpNames = new Stack<String>();

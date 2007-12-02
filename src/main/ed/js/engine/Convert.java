@@ -668,6 +668,8 @@ public class Convert {
             
         }
         
+        //state.debug();
+
         _append( "new JSFunctionCalls" + fn.getParamCount() + "( scope , null ){ \n" , n );
         
         String callLine = "public Object call( final Scope passedIn ";
@@ -826,6 +828,12 @@ public class Convert {
     }
     
     private void _setVar( String name , Node val , State state , boolean local ){
+        if ( state.useLocalVariable( name ) && state.hasSymbol( name ) ){
+            _append( name + " = " , val );
+            _add( val , state );
+            _append( ";\n" , val );
+            return;
+        }
         _append( "scope.put( \"" + name + "\" , " , val);
         _add( val , state );
         _append( " , " + local + "  ) " , val );
