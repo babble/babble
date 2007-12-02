@@ -35,6 +35,13 @@ public class JSMath extends JSObjectBase {
                      return ((Number)a).doubleValue() > ((Number)b).doubleValue() ? a : b;
                  }
              } );
+
+        set( "random" ,
+             new JSFunctionCalls0(){
+                 public Object call( Scope s , Object foo[] ){
+                     return Math.random();
+                 }
+             } );
     }
     
 
