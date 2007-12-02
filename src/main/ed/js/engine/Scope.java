@@ -358,6 +358,12 @@ public class Scope {
                                 ret = new JSString( ret.toString() );
                             else if ( ret instanceof java.util.Date ) 
                                 ret = new JSDate( (java.util.Date)ret );
+			    else if ( ret instanceof java.util.Collection ){
+				JSArray a = new JSArray();
+				for ( Object o : (Collection)ret )
+				    a.add( o );
+				ret = a;
+			    }
                         }
                         return ret;
                     }

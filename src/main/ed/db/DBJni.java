@@ -112,6 +112,9 @@ public class DBJni extends DBBase {
             if ( ! root.equals( _root ) )
                 continue;
             
+	    if ( n.indexOf( "$" ) >= 0 )
+		continue;
+
             String table = n.substring( idx + 1 );
 
             tables.add( table );
