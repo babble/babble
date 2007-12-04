@@ -462,6 +462,20 @@ public class Convert {
             }
             _append( " ) " , n );
             break;
+            
+        case Token.LOCAL_BLOCK:
+            _assertOne( n );
+            if ( n.getFirstChild().getType() != Token.TRY )
+                throw new RuntimeException("only know about LOCAL_BLOCK with try" );
+            _addTry( n.getFirstChild() , state );
+            break;
+            
+        case Token.THROW:
+            _append( "throw new JSException( " , n );
+            _add( n.getFirstChild() , state );
+            _append( " ); " , n );
+            break;
+            
         default:
             Debug.printTree( n , 0 );
             throw new RuntimeException( "can't handle : " + n.getType() + ":" + Token.name( n.getType() ) + ":" + n.getClass().getName() + " line no : " + n.getLineno() );
@@ -494,6 +508,77 @@ public class Convert {
         }
         
         throw new RuntimeException( "can't handle" );
+    }
+
+    private void _addTry( Node n , State state ){
+        _assertType( n , Token.TRY );
+
+        Node mainBlock = n.getFirstChild();
+        _assertType( mainBlock , Token.BLOCK );
+
+        _append( "try { \n " , n );
+        _add( mainBlock , state );
+        _append( " \n } \n " , n );
+        
+        n = mainBlock.getNext();
+
+        while ( n != null ){
+
+            if ( n.getType() == Token.FINALLY ){
+                _assertType( n.getFirstChild() , Token.BLOCK );
+                _append( "finally { \n" , n );
+                _add( n.getFirstChild() , state );
+                _append( " \n } \n " , n );
+                n = n.getNext();
+                continue;
+            }
+            
+            if ( n.getType() == Token.LOCAL_BLOCK &&
+                 n.getFirstChild().getType() == Token.CATCH_SCOPE ){
+                
+                Node c = n.getFirstChild();
+                Node b = c.getNext();
+                
+                _assertType( b , Token.BLOCK );
+                _assertType( b.getFirstChild() , Token.ENTERWITH );
+                _assertType( b.getFirstChild().getNext() , Token.WITH );
+                
+                b = b.getFirstChild().getNext().getFirstChild();
+                _assertType( b , Token.BLOCK );
+                                
+                Debug.printTree( b , 0 );
+                
+                String jsName = c.getFirstChild().getString();
+                String javaName = "javaEEE" + jsName;
+                _append( " catch ( Throwable " + javaName + " ){ \n " , c );
+
+                _append( " if ( " + javaName + " instanceof JSException ) " , c );
+                _append( " scope.put( \"" + jsName + "\" , ((JSException)" + javaName + ").getObject() , true ); " , c );
+                _append( " else \n " , c );
+                _append( " scope.put( \"" + jsName + "\" , " + javaName + " , true ); " , c );
+                
+                b = b.getFirstChild();
+                while ( b != null ){
+                    if ( b.getType() == Token.LEAVEWITH )
+                        break;
+                    _add( b , state );
+                    b = b.getNext();
+                }
+                _append( " } \n " , c );
+
+                n = n.getNext();
+                continue;
+            }
+            
+            if ( n.getType() == Token.GOTO ||
+                 n.getType() == Token.TARGET ||
+                 n.getType() == Token.JSR ){
+                n = n.getNext();
+                continue;
+            }
+
+            throw new RuntimeException( "what : " + n.getType() );
+        }
     }
     
     private void _addFor( Node n , State state ){
