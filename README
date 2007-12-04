@@ -2,97 +2,27 @@
 Phase 3 - 11/15
   javascript
     - with
-    - arguments
  
  jxp/app server
     - git system
     - webdav ?
     - debugging
 
- http
-    - multipart/post
 
 Phase 2 - 11/1
   javascript
     - js -> xml -> js for ajax
     - XMLHttpRequest
-    X regex
     - subclasses
     - switch
-    - throw
-    - try,catch,finally
     - scope with exceptions
-    X fix string class
 
   jxp/app server
     - access()
        - file.header.indexof
        - isMedia
-    X correct mime types for images/etc...
     - servlets
 
   http
-    X post - regular
-    X pipelining
     - chunking
-    X fix keep alive
-
-Phase 1 - 10/21
-  javascript 
-    X line numbers
-    X native java calls
-    X make string native - no - but made it a lot faster
-
-  http
-    X some buffer pooling
-
-  jxp
-    X AppContext 
-       X scope
-    X includes
-    X line numbers
-    X request/response wrapping
-
-
-
-
-----------
-
-db
- getCollection
-
-collection
- - save
- - find
- - lookup
-
-
-a = Object();
-db.make( "person" , a );
-a.save();
-
-var cursor = db.person.find( { name : "eliot" } );
-var eliot = db.person.findOne( { name : "eliot" } );
-eliot.age++;
-eliot.save();
-eliot.delete();
-
-
-var arr = db.person.findArr();
-db.search( "person", function(x) { return x.name==eliot; } ) ;
-
-var people = db.collection("people");
-var people = db.people;
-
-var x = people.query( { name : "eliot" } );
-
-for( p in x ) { 
-}
-
-people.length
-
-a = person.new();
-
-oid = person.save(a);
-
 
