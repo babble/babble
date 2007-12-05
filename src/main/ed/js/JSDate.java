@@ -19,7 +19,7 @@ public class JSDate extends JSObjectBase implements Comparable {
             public Object call( Scope s , Object foo , Object[] args ){
                 
                 JSObject o = s.getThis();
-                if ( o == null )
+                if ( o == null || ! ( o instanceof JSDate ) )
                     return new JSDate( foo );
 
                 JSDate d = (JSDate)o;
