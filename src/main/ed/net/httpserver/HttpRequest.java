@@ -128,6 +128,43 @@ public class HttpRequest implements ed.js.JSObject {
         return StringParseUtil.parseInt( getHeader( h ) , def );
     }
 
+    public JSArray getHeaderNames(){
+        JSArray a = new JSArray();
+        a.addAll( _headers.keySet() );
+        return a;
+    }
+
+    // cookies
+
+    public String getCookie( String s ){
+        if ( _cookies == null ){
+            Map<String,String> m = new StringMap<String>();
+            String temp = getHeader( "Cookie" );
+            if ( temp != null ){
+
+                for ( String thing : temp.split( ";" ) ){
+                    
+                    int idx = thing.indexOf("=");
+                    
+                    if ( idx < 0 )
+                        continue;
+
+                    m.put( thing.substring( 0 , idx ).trim() , 
+                           thing.substring( idx + 1 ).trim() );
+                }
+            }
+            _cookies = m;
+        }
+        return _cookies.get( s );
+    }
+
+    public JSArray getCookieNames(){
+        getCookie( "" );
+        JSArray a = new JSArray();
+        a.addAll( _cookies.keySet() );
+        return a;
+    }
+    
     // param stuff
 
     public boolean getBoolean( String n , boolean def ){
@@ -268,6 +305,7 @@ public class HttpRequest implements ed.js.JSObject {
     final HttpServer.HttpSocketHandler _handler;
     final String _firstLine;
     final Map<String,String> _headers = new StringMap<String>();
+    Map<String,String> _cookies;
 
     boolean _parsedPost = false;
     PostData _postData;

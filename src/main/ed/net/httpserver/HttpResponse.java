@@ -36,6 +36,10 @@ public class HttpResponse {
         _responseCode = rc;
     }
 
+    public void addCookie( String name , String value ){
+        _cookies.add( new Cookie( name , value ) );
+    }
+
     public void setCacheTime( int seconds ){
 	setHeader("Cache-Control" , "max-age=" + seconds );
 	setDateHeader( "Expires" , System.currentTimeMillis() + ( 1000 * seconds ) );
@@ -184,6 +188,13 @@ public class HttpResponse {
                 a.append( "\r\n" );
             }
         }
+
+        // cookies
+        for ( Cookie c : _cookies ){
+            a.append( "Set-Cookie: " );
+            a.append( c._name ).append( "=" ).append( c._value ).append( ";" );
+            a.append( "\r\n" );
+        }
         
         if ( keepAlive() )
             a.append( "Connection: keep-alive\r\n" );
@@ -226,6 +237,11 @@ public class HttpResponse {
         if ( _writer == null )
             _writer = new MyJxpWriter();
         return _writer;
+    }
+
+    public void setData( ByteBuffer bb ){
+        _stringContent = new LinkedList<ByteBuffer>();
+        _stringContent.add( bb );
     }
 
     public boolean keepAlive(){
@@ -293,6 +309,7 @@ public class HttpResponse {
     // header
     int _responseCode = 200;
     Map<String,String> _headers;
+    List<Cookie> _cookies = new ArrayList<Cookie>();
     boolean _sentHeader = false;
 
     // data
@@ -314,7 +331,8 @@ public class HttpResponse {
         MyJxpWriter(){
             _checkNoContent();
 
-            _stringContent = new LinkedList<ByteBuffer>();
+            _myStringContent = new LinkedList<ByteBuffer>();
+            _stringContent = _myStringContent;
 
             _cur = _charBufPool.get();
             _resetBuf();
@@ -359,7 +377,7 @@ public class HttpResponse {
                 encoder.encode( _cur , bb , true );
                 bb.flip();
 
-                _stringContent.add( bb );
+                _myStringContent.add( bb );
                 _resetBuf();
             }
             catch ( Exception e ){
@@ -373,7 +391,7 @@ public class HttpResponse {
         }
 
         public void reset(){
-            _stringContent.clear();
+            _myStringContent.clear();
         }
 
         public String getContent(){
@@ -386,6 +404,7 @@ public class HttpResponse {
         }
         
         private CharBuffer _cur;
+        private List<ByteBuffer> _myStringContent = null;
     }
     
     static final int CHAR_BUFFER_SIZE = 1024 * 32;

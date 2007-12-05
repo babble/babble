@@ -110,6 +110,8 @@ public class JSBuiltInFunctions {
         
         _myScope.put( "download" , HttpDownload.DOWNLOAD , true );
 
+        _myScope.put( "JSCaptcha" , new JSCaptcha() , true );
+
         JSON.init( _myScope );
     }
     

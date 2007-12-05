@@ -237,6 +237,10 @@ public class JSArray extends JSObjectBase {
         _array.add( o );
     }
 
+    public void addAll( Collection c ){
+        _array.addAll( c );
+    }
+
     int _getInt( Object o ){
         if ( o == null )
             return -1;
