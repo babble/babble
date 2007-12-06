@@ -158,18 +158,24 @@ public class JSInternalFunctions extends JSObjectBase {
     }
 
     public static Boolean JS_eq( Object a , Object b ){
+        //System.out.println( "comaparing " + _debug( a ) + " " + _debug( b ) );
         if ( a == null && b == null )
             return true;
         
         if ( a == null || b == null )
             return false;
+
+        if ( a instanceof Number && b instanceof Number ){
+            return ((Number)a).doubleValue() == ((Number)b).doubleValue();
+        }
         
         if ( a instanceof JSString )
             a = a.toString();
 
         if ( b instanceof JSString )
             b = b.toString();
-
+        
+        System.out.println( "\t here" );
         return a.equals( b );
     }
 
@@ -356,5 +362,12 @@ public class JSInternalFunctions extends JSObjectBase {
                 return o;
         
         return Integer.parseInt( s );
+    }
+
+    static String _debug( Object o ){
+        if ( o == null )
+            return "null";
+        
+        return "[" + o + "](" + o.getClass() + ")" ;
     }
 }
