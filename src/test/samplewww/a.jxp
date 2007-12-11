@@ -1,0 +1,24 @@
+<% core.content.forms(); %>
+a<br>
+<%= tojson( Forms.fillInObject( "aa" ) ) %>
+
+<br>
+
+<% print.setFormObject( { a : 17 } ); %>
+17:<input name="a"><br>
+
+
+<% print.setFormObject( { a : 17 } ); %>
+null:<input name="aa"><br>
+
+
+<% print.setFormObject( { a : 17 } , "a" ); %>
+17:<input name="aa"><br>
+
+<% print.setFormObject( { a : 17 } ); %>
+16:<input name="aa" value="16"><br>
+
+
+<% print.setFormObject( { a : 17 } , "a" ); %>
+17:<input name="aa" value="16"><br>
+

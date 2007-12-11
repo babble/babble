@@ -69,6 +69,26 @@ public class JxpServlet {
             _writer = writer;
             _cdnPrefix = cdnPrefix;
             _context = context;
+
+            set( "setFormObject" , new JSFunctionCalls1(){ 
+                    public Object call( Scope scope , Object o , Object extra[] ){
+                        if ( o == null ){
+                            _formInput = null;
+                            return null;
+                        }
+                        
+                        if ( ! ( o instanceof JSObject ) )
+                            throw new RuntimeException( "must be a JSObject" );
+                        
+                        _formInput = (JSObject)o;
+                        _formInputPrefix = null;
+                        
+                        if ( extra != null && extra.length > 0 )
+                            _formInputPrefix = extra[0].toString();
+                        
+                        return o;
+                    }
+                } );
         }
         
         public Object call( Scope scope , Object o , Object extra[] ){
@@ -109,43 +129,80 @@ public class JxpServlet {
             
             String wholeTag = s.substring( 0 , end + 1 );
             
-            printTag( _matcher.group(1) , wholeTag );
+            if ( ! printTag( _matcher.group(1) , wholeTag ) )
+                _writer.print( wholeTag );
 
             print( s.substring( end + 1 ) );
             
         }
 
-        void printTag( String tag , String s ){
-            _writer.print( "<" );
-            _writer.print( tag );
-            _writer.print( " " );
+        boolean printTag( String tag , String s ){
             
-            String srcName = null;
-            if ( tag.equalsIgnoreCase( "img" ) ||
-                 tag.equalsIgnoreCase( "script" ) )
-                srcName = "src";
-	    else if ( tag.equalsIgnoreCase( "link" ) )
-		srcName = "href";
-            else 
-                throw new RuntimeException( "no name for : " + tag );
-            
-            s = s.substring( 2 + tag.length() );
-            
-            Matcher m = Pattern.compile( srcName + " *= *['\"](.+?)['\"]" , Pattern.CASE_INSENSITIVE ).matcher( s );
-            if ( ! m.find() ){
-                _writer.print( s );
-                return;
+            { // CDN stuff
+                String srcName = null;
+                if ( tag.equalsIgnoreCase( "img" ) ||
+                     tag.equalsIgnoreCase( "script" ) )
+                    srcName = "src";
+                else if ( tag.equalsIgnoreCase( "link" ) )
+                    srcName = "href";
+                
+                if ( srcName != null ){
+                    
+                    _writer.print( "<" );
+                    _writer.print( tag );
+                    _writer.print( " " );
+                    
+                    
+                    s = s.substring( 2 + tag.length() );
+                    
+                    // TODO: cache pattern or something
+                    Matcher m = Pattern.compile( srcName + " *= *['\"](.+?)['\"]" , Pattern.CASE_INSENSITIVE ).matcher( s );
+                    if ( ! m.find() )
+                        return false;
+                    
+                    _writer.print( s.substring( 0 , m.start(1) ) );
+                    String src = m.group(1);
+                    
+                    printSRC( src );
+                    
+                    _writer.print( s.substring( m.end(1) ) );
+
+                    return true;
+                }
+                
             }
             
-            _writer.print( s.substring( 0 , m.start(1) ) );
-            String src = m.group(1);
-            
-            printSRC( src );
-            
-            _writer.print( s.substring( m.end(1) ) );
-            
+            if ( _formInput != null && tag.equalsIgnoreCase( "input" ) ){
+                Matcher m = Pattern.compile( "\\bname *= *['\"](.+?)[\"']" ).matcher( s );
+
+                if ( ! m.find() )
+                    return false;
+                
+                String name = m.group(1);
+                if ( name.length() == 0 )
+                    return false;
+                
+                if ( _formInputPrefix != null )
+                    name = name.substring( _formInputPrefix.length() );
+                
+                Object val = _formInput.get( name );
+                if ( val == null )
+                    return false;
+                
+                s = s.toString().replaceAll( "value *= *['\"].+['\"]" , " " );
+
+                _writer.print( s.substring( 0 , s.length() - 1 ) );
+                _writer.print( " value=\"" );
+                _writer.print( val.toString() );
+                _writer.print( "\" >" );
+                
+                return true;
+            }
+
+            return false;
         }
-    
+
+        
         void printSRC( String src ){
             if ( src == null || src.length() == 0 )
                 return;
@@ -213,13 +270,16 @@ public class JxpServlet {
             return -1;
         }
         
-        static final Pattern _tagPattern = Pattern.compile( "<(img|script|link) " , Pattern.CASE_INSENSITIVE );
+        static final Pattern _tagPattern = Pattern.compile( "<(\\w+) " , Pattern.CASE_INSENSITIVE );
         final Matcher _matcher = _tagPattern.matcher("");
         final StringBuilder _extra = new StringBuilder();
 
         final JxpWriter _writer;
         final String _cdnPrefix;
         final AppContext _context;
+
+        JSObject _formInput = null;
+        String _formInputPrefix = null;
 
     }
     
