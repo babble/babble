@@ -29,7 +29,7 @@ inline MessagingPort& getPort(jlong sa) {
   MessagingPort *& mp = ports[*addr];
   if( mp == 0 ) {
     mp = new MessagingPort();
-    mp->init(0, addr);
+    mp->connect(*addr);
   }
   return *mp;
 }
@@ -44,7 +44,7 @@ void setData( Message * m , int type , JNIEnv * env , jobject bb , int position 
 
 JNIEXPORT jlong JNICALL Java_ed_db_DBJni_createSock(JNIEnv * env , jclass, jstring hostJ ){
   const char * host = env->GetStringUTFChars( hostJ , 0 );
-  SockAddr * s = new SockAddr( host , MessagingPort::DBPort );
+  SockAddr * s = new SockAddr( host , DBPort /* + 1  temp dwight dev mode */ );
   env->ReleaseStringUTFChars( hostJ , host );
   return (jlong)s;
 }
