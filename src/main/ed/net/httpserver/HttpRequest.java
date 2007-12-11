@@ -167,6 +167,14 @@ public class HttpRequest implements ed.js.JSObject {
     
     // param stuff
 
+    public JSArray getParameterNames(){
+        _finishParsing();
+        
+        JSArray a = new JSArray();
+        a.addAll( _parameters.keySet() );
+        return a;
+    }
+
     public boolean getBoolean( String n , boolean def ){
         return StringParseUtil.parseBoolean( getParameter( n ) , def );
     }
@@ -213,7 +221,7 @@ public class HttpRequest implements ed.js.JSObject {
     }
 
     public Set<String> keySet(){
-        throw new RuntimeException( "not implemented yet" );
+        return _parameters.keySet();
     }
 
     private final String _urlDecode( String s ){

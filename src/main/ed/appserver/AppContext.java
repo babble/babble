@@ -25,14 +25,16 @@ public class AppContext {
         _name = name;
         _root = root;
         _rootFile = new File( _root );
-        _jxpObject = new JSFileLibrary( _rootFile , "jxp" );
 
         _scope = new Scope( "AppContext:" + root , Scope.GLOBAL );
         
+        _jxpObject = new JSFileLibrary( _rootFile , "jxp" );
         _scope.put( "jxp" , _jxpObject , true );
+        
         _scope.put( "db" , DBJni.get( _name ) , true );
 
-        _scope.put( "core" , new JSFileLibrary( new File( "/data/corejs" ) ,  "core" ) , true );
+        _core = new JSFileLibrary( new File( "/data/corejs" ) ,  "core" );
+        _scope.put( "core" , _core , true );
 
         _scope.setGlobal( true );
     }
@@ -98,12 +100,18 @@ public class AppContext {
         return _scope;
     }
     
-    public File getFile( String uri ){
+    public File getFile( final String uri ){
         File f = _files.get( uri );
-        if ( f == null ) {
+        
+        if ( f != null )
+            return f;
+        
+        if ( uri.startsWith( "/~~/" ) )
+            f = new File( _core._base , uri.substring( 3 ) );
+        else
             f = new File( _rootFile , uri );
-            _files.put( uri , f );
-        }
+
+        _files.put( uri , f );
         return f;
     }
     
@@ -170,7 +178,13 @@ public class AppContext {
         if ( _inScopeInit )
             _initFlies.add( f );
 
-        return _jxpObject.getSource( f );
+        if ( _jxpObject.isIn( f ) )
+            return _jxpObject.getSource( f );
+
+        if ( _core.isIn( f ) )
+            return _core.getSource( f );
+        
+        throw new RuntimeException( "what?  can't find:" + f );
     }
 
     public JxpServlet getServlet( File f )
@@ -220,7 +234,9 @@ public class AppContext {
     final String _name;
     final String _root;
     final File _rootFile;
+
     final JSFileLibrary _jxpObject;
+    final JSFileLibrary _core;
 
     final Scope _scope;
     

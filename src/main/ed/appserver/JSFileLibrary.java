@@ -33,6 +33,11 @@ public class JSFileLibrary extends JSObjectBase {
         return foo;
     }
 
+    public boolean isIn( File f ){
+        // TODO make less slow
+        return f.toString().startsWith( _base.toString() );
+    }
+
     JxpSource getSource( File f )
         throws IOException {
         
@@ -91,7 +96,8 @@ public class JSFileLibrary extends JSObjectBase {
             
         }
         
-        throw new RuntimeException( n + " not found " );
+        //throw new RuntimeException( n + " not found " );
+        return null;
     }
     
     final File _base;
