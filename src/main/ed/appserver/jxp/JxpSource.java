@@ -13,6 +13,11 @@ import ed.js.engine.*;
 
 public abstract class JxpSource {
 
+    static final File _tmpDir = new File( "/tmp/jxp/s/" + Math.random() + "/" );
+    static {
+        _tmpDir.mkdirs();
+    }
+
     public static JxpSource getSource( File f ){
         return new JxpFileSource( f );
     }
@@ -46,7 +51,7 @@ public abstract class JxpSource {
                 String jsCode = g.toString();
                 jsCode += "\n print( \"\\n\" );";
                 
-                temp = File.createTempFile( "jxp_js_" , ".js" );
+                temp = new File( _tmpDir , getName().replaceAll( "[^\\w]" , "_" ) + ".js" );
                 _lastFileName = temp.toString();
                 
                 FileOutputStream fout = new FileOutputStream( temp );
@@ -64,7 +69,7 @@ public abstract class JxpSource {
             }
             finally {
                 if ( temp != null && temp.exists() ){
-                    temp.delete();
+                    //temp.delete();
                 }
             }
         }
