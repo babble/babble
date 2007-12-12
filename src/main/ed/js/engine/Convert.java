@@ -546,7 +546,7 @@ public class Convert {
                 b = b.getFirstChild().getNext().getFirstChild();
                 _assertType( b , Token.BLOCK );
                                 
-                Debug.printTree( b , 0 );
+                //Debug.printTree( b , 0 );
                 
                 String jsName = c.getFirstChild().getString();
                 String javaName = "javaEEE" + jsName;
