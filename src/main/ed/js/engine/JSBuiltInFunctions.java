@@ -94,6 +94,11 @@ public class JSBuiltInFunctions {
 
         _myScope.put( "Base64" , new ed.util.Base64() , true );
         
+        _myScope.put( "download" , HttpDownload.DOWNLOAD , true );
+
+        _myScope.put( "JSCaptcha" , new JSCaptcha() , true );
+
+
         _myScope.put( "parseBool" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object b , Object extra[] ){
                     if ( b == null )
@@ -108,10 +113,12 @@ public class JSBuiltInFunctions {
                 }
             } , true );
         
-        _myScope.put( "download" , HttpDownload.DOWNLOAD , true );
-
-        _myScope.put( "JSCaptcha" , new JSCaptcha() , true );
-
+        _myScope.put( "isArray" , new JSFunctionCalls1(){
+                public Object call( Scope scope , Object b , Object extra[] ){
+                    return b instanceof JSArray;
+                }
+            }, true );
+        
         JSON.init( _myScope );
     }
     
