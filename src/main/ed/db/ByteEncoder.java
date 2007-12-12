@@ -6,10 +6,28 @@ import java.nio.*;
 import java.nio.charset.*;
 
 import ed.js.*;
+import ed.util.*;
 
 public class ByteEncoder extends Bytes {
 
-    protected ByteEncoder(){
+    static ByteEncoder get(){
+        return _pool.get();
+    }
+
+    protected void done(){
+        reset();
+        _pool.done( this );
+    }
+    
+    private final static SimplePool<ByteEncoder> _pool = new SimplePool( "ByteEncoders" , 10 , -1 ){
+            protected ByteEncoder createNew(){
+                return new ByteEncoder();
+            }
+        };
+
+    // ----
+
+    private ByteEncoder(){
         _buf = ByteBuffer.allocateDirect( BUF_SIZE );
         _buf.order( ByteOrder.LITTLE_ENDIAN );
     }

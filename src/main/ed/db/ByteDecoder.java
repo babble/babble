@@ -6,16 +6,29 @@ import java.nio.*;
 import java.nio.charset.*;
 
 import ed.js.*;
+import ed.util.*;
 
 public class ByteDecoder extends Bytes {
 
     static protected ByteDecoder get( DBBase base , String ns ){
-        ByteDecoder bd = new ByteDecoder();
+        ByteDecoder bd = _pool.get();
         bd.reset();
         bd._base = base;
         bd._ns = ns;
         return bd;
     }
+
+    protected void done(){
+        _pool.done( this );
+    }
+
+    private final static SimplePool<ByteDecoder> _pool = new SimplePool<ByteDecoder>( "ByteDecoders" , 10 , -1 ){
+        protected ByteDecoder createNew(){
+            return new ByteDecoder();
+        }
+    };
+
+    // ---
     
     protected ByteDecoder( ByteBuffer buf ){
         _buf = buf;

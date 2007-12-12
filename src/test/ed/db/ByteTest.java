@@ -11,7 +11,7 @@ import ed.js.*;
 public class ByteTest extends TestCase {
 
     public void testObject1(){
-        ByteEncoder encoder = new ByteEncoder();
+        ByteEncoder encoder = ByteEncoder.get();
         
         JSObject o = new JSObjectBase();
         o.set( "eliot" , "horowitz" );
@@ -31,7 +31,7 @@ public class ByteTest extends TestCase {
     }
 
     public void testObject2(){
-        ByteEncoder encoder = new ByteEncoder();
+        ByteEncoder encoder = ByteEncoder.get();
         
         JSObject o = new JSObjectBase();
         o.set( "eliot" , "horowitz" );
@@ -62,7 +62,7 @@ public class ByteTest extends TestCase {
     }
 
     public void testArray1(){
-        ByteEncoder encoder = new ByteEncoder();
+        ByteEncoder encoder = ByteEncoder.get();
         
         JSObject o = new JSObjectBase();
         o.set( "eliot" , "horowitz" );

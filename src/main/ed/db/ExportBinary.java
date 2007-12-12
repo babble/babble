@@ -14,7 +14,7 @@ public class ExportBinary {
     static void export( String root , String ip , File baseDir )
         throws IOException {
 
-        ByteEncoder encoder = new ByteEncoder();
+        ByteEncoder encoder = ByteEncoder.get();
 
         File myRoot = new File( baseDir , root );
         myRoot.mkdirs();

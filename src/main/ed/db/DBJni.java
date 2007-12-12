@@ -169,7 +169,7 @@ public class DBJni extends DBBase {
             if ( shouldApply )
                 apply( o );
 
-            ByteEncoder encoder = new ByteEncoder();
+            ByteEncoder encoder = ByteEncoder.get();
             
             encoder._buf.putInt( 0 ); // reserved
             encoder._put( _fullNameSpace );
@@ -179,11 +179,13 @@ public class DBJni extends DBBase {
             
             insert( _sock , encoder._buf , encoder._buf.position() , encoder._buf.limit() );
             
+            encoder.done();
+            
             return o;
         }
         
         public int remove( JSObject o ){
-            ByteEncoder encoder = new ByteEncoder();
+            ByteEncoder encoder = ByteEncoder.get();
             encoder._buf.putInt( 0 ); // reserved
             encoder._put( _fullNameSpace );            
             
@@ -197,14 +199,15 @@ public class DBJni extends DBBase {
             encoder.flip();
             
             doDelete( _sock , encoder._buf , encoder._buf.position() , encoder._buf.limit() );
-
+            encoder.done();
+            
             return -1;
         }
 
         // TODO: remove synchronized
         public synchronized Iterator<JSObject> find( JSObject ref , JSObject fields , int numToReturn ){
 
-            ByteEncoder encoder = new ByteEncoder();
+            ByteEncoder encoder = ByteEncoder.get();
             
             encoder._buf.putInt( 0 ); // reserved
             encoder._put( _fullNameSpace );
@@ -222,6 +225,9 @@ public class DBJni extends DBBase {
             
             SingleResult res = new SingleResult( _fullNameSpace , decoder );
             
+            decoder.done();
+            encoder.done();
+            
             if ( res._lst.size() == 0 )
                 return null;
             
@@ -231,7 +237,7 @@ public class DBJni extends DBBase {
         public JSObject update( JSObject query , JSObject o , boolean upsert ){
             apply( o );
             
-            ByteEncoder encoder = new ByteEncoder();
+            ByteEncoder encoder = ByteEncoder.get();
             encoder._buf.putInt( 0 ); // reserved
             encoder._put( _fullNameSpace );            
             
@@ -243,6 +249,8 @@ public class DBJni extends DBBase {
             encoder.flip();
             
             doUpdate( _sock , encoder._buf , encoder._buf.position() , encoder._buf.limit() );
+            
+            encoder.done();
             
             return o;
         }
@@ -336,7 +344,7 @@ public class DBJni extends DBBase {
             
             if ( _curResult._cursor > 0 ){
                 System.out.println( "following cursor: " + _curResult._cursor );
-                ByteEncoder encoder = new ByteEncoder();
+                ByteEncoder encoder = ByteEncoder.get();
                 
                 encoder._buf.putInt( 0 ); // reserved
                 encoder._put( _curResult._fullNameSpace );
@@ -350,7 +358,10 @@ public class DBJni extends DBBase {
                 
                 SingleResult res = new SingleResult( _curResult._fullNameSpace , decoder );
                 init( res );
-                
+
+                decoder.done();
+                encoder.done();
+
                 return next();
             }
             
