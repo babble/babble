@@ -4,6 +4,7 @@ package ed.appserver.jxp;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.*;
 
 import ed.io.*;
 import ed.util.*;
@@ -11,6 +12,11 @@ import ed.js.*;
 import ed.js.engine.*;
 
 public abstract class JxpSource {
+
+    static final File _tmpDir = new File( "/tmp/jxp/s/" + Math.random() + "/" );
+    static {
+        _tmpDir.mkdirs();
+    }
 
     public static JxpSource getSource( File f ){
         return new JxpFileSource( f );
@@ -45,21 +51,25 @@ public abstract class JxpSource {
                 String jsCode = g.toString();
                 jsCode += "\n print( \"\\n\" );";
                 
-                System.out.println( jsCode );
-
-                temp = File.createTempFile( "jxp_js_" , ".js" );
+                temp = new File( _tmpDir , getName().replaceAll( "[^\\w]" , "_" ) + ".js" );
                 _lastFileName = temp.toString();
                 
                 FileOutputStream fout = new FileOutputStream( temp );
                 fout.write( jsCode.getBytes() );
                 fout.close();
                 
-                Convert c = new Convert( temp );
-                _func = c.get();
+                try {
+                    Convert c = new Convert( temp );
+                    _func = c.get();
+                }
+                catch ( Exception e ){
+                    System.out.println( e );
+                    throw new RuntimeException( "couldn't compile [" + getName() + "] : " + getCompileMessage( e ) );
+                }
             }
             finally {
                 if ( temp != null && temp.exists() ){
-                    temp.delete();
+                    //temp.delete();
                 }
             }
         }
@@ -89,7 +99,7 @@ public abstract class JxpSource {
         if ( _jsCodeToLines == null )
             return;
         
-        System.out.println( _jsCodeToLines );
+        //System.out.println( _jsCodeToLines );
 
         StackTraceElement stack[] = t.getStackTrace();
         
@@ -105,14 +115,8 @@ public abstract class JxpSource {
                 continue;
             
             int line = StringParseUtil.parseInt( es.substring( es.lastIndexOf( ":" ) + 1 ) , -1 );
-            List<Block> blocks = _jsCodeToLines.get( line );
             
-            System.out.println( line + " : " + blocks );
-            
-            if ( blocks == null )
-                continue;
-            
-            stack[i] = new StackTraceElement( getName() , stack[i].getMethodName() , getName() , blocks.get( 0 )._lineno );
+            stack[i] = new StackTraceElement( getName() , stack[i].getMethodName() , getName() , getSourceLine( line ) );
             changed = true;
             System.out.println( stack[i] );
             
@@ -123,7 +127,37 @@ public abstract class JxpSource {
         
         t.setStackTrace( stack );
     }
+
+    public String getCompileMessage( Exception e ){
+        String msg = e.getMessage();
+        
+        Matcher m = Pattern.compile( "^(.+) \\(.*#(\\d+)\\)$" ).matcher( msg );
+        if ( ! m.find() )
+            return msg;
+        
+        return m.group(1) + "  Line Number : " + getSourceLine( 1 + Integer.parseInt( m.group(2) ) );
+    }
     
+    public int getSourceLine( int line ){
+        List<Block> blocks = _jsCodeToLines.get( line );
+        
+        if ( blocks == null || blocks.size() == 0 )
+            return line;
+        
+        int thisBlockStart = line - 1;
+        while ( thisBlockStart >= 0 ){
+            List<Block> temp = _jsCodeToLines.get( thisBlockStart );
+            if ( temp == null || temp.size() == 0 )
+                break;
+            if ( ! temp.contains( blocks.get(0) ) )
+                break;
+            thisBlockStart--;
+        }
+        thisBlockStart++;
+        
+        return blocks.get( 0 )._lineno + ( line - thisBlockStart );
+    }
+
     private long _lastParse = 0;
     
     private List<Block> _blocks;
