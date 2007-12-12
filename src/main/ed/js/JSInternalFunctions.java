@@ -175,7 +175,6 @@ public class JSInternalFunctions extends JSObjectBase {
         if ( b instanceof JSString )
             b = b.toString();
         
-        System.out.println( "\t here" );
         return a.equals( b );
     }
 
