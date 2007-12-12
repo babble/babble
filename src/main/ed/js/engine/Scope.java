@@ -10,7 +10,7 @@ import ed.io.*;
 import ed.js.*;
 import ed.js.func.*;
 
-public class Scope {
+public class Scope implements JSObject {
     
     public static Scope GLOBAL = new Scope( "GLOBAL" , JSBuiltInFunctions._myScope  );
     static {
@@ -48,6 +48,24 @@ public class Scope {
         return new Scope( _name + ".child" , this );
     }
 
+    public Object set( Object n , Object v ){
+        return put( n.toString() , v , true );
+    }
+    public Object get( Object n ){
+        return get( n.toString() );
+    }
+
+    public Object setInt( int n , Object v ){
+        throw new RuntimeException( "no" );
+    }
+    public Object getInt( int n ){
+        throw new RuntimeException( "no" );
+    }
+
+    public Collection<String> keySet(){
+        return new HashSet<String>( _objects.keySet() );
+    }
+
     public Object put( String name , Object o , boolean local ){
         
         if ( o != null && o instanceof String ) 
@@ -83,6 +101,25 @@ public class Scope {
     }
     
     public Object get( String name , Scope alt ){
+        if ( "scope".equals( name ) ){
+            System.out.println( "return this" );
+            return this;
+        }
+
+        if ( "globals".equals( name ) ){
+            Scope foo = this;
+            while ( true ){
+                if ( foo._global )
+                    break;
+                if ( foo._parent == null )
+                    break;
+                if ( foo._parent._locked )
+                    break;
+                foo = foo._parent;
+            }
+            return foo;
+        }
+        
         Object foo = _objects == null ? null : _objects.get( name );
         if ( foo != null ){
             if ( foo == NULL )
