@@ -362,6 +362,9 @@ public class DBJni extends DBBase {
                 decoder.done();
                 encoder.done();
 
+                if ( ! _cur.hasNext() )
+                    throw new RuntimeException( "no more after cursor" );
+
                 return next();
             }
             
