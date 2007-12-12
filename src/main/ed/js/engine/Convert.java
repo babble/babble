@@ -1113,7 +1113,7 @@ public class Convert {
         }
     }
 
-    void fixStack( Exception e ){
+    public void fixStack( Throwable e ){
         StackTraceElement stack[] = e.getStackTrace();
         
         boolean changed = false;

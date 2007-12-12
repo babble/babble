@@ -10,6 +10,7 @@ import ed.io.*;
 import ed.util.*;
 import ed.js.*;
 import ed.js.engine.*;
+import ed.appserver.*;
 
 public abstract class JxpSource {
 
@@ -52,15 +53,15 @@ public abstract class JxpSource {
                 jsCode += "\n print( \"\\n\" );";
                 
                 temp = new File( _tmpDir , getName().replaceAll( "[^\\w]" , "_" ) + ".js" );
-                _lastFileName = temp.toString();
-                
+                _lastFileName = temp.getName();
+
                 FileOutputStream fout = new FileOutputStream( temp );
                 fout.write( jsCode.getBytes() );
                 fout.close();
                 
                 try {
-                    Convert c = new Convert( temp );
-                    _func = c.get();
+                    _convert = new Convert( temp );
+                    _func = _convert.get();
                 }
                 catch ( Exception e ){
                     System.out.println( e );
@@ -77,11 +78,11 @@ public abstract class JxpSource {
     }
     
 
-    public JxpServlet getServlet()
+    public JxpServlet getServlet( AppContext context )
         throws IOException {
         _checkTime();
         if ( _servlet == null )
-            _servlet = new JxpServlet( this , getFunction() );
+            _servlet = new JxpServlet( context , this , getFunction() );
         return _servlet;
     }
     
@@ -96,11 +97,12 @@ public abstract class JxpSource {
     }
 
     public void fix( Throwable t ){
+        
+        _convert.fixStack( t );
+        
         if ( _jsCodeToLines == null )
             return;
         
-        //System.out.println( _jsCodeToLines );
-
         StackTraceElement stack[] = t.getStackTrace();
         
         boolean changed = false;
@@ -111,6 +113,7 @@ public abstract class JxpSource {
                 continue;
             
             String es = element.toString();
+
             if ( ! es.contains( _lastFileName ) )
                 continue;
             
@@ -118,8 +121,6 @@ public abstract class JxpSource {
             
             stack[i] = new StackTraceElement( getName() , stack[i].getMethodName() , getName() , getSourceLine( line ) );
             changed = true;
-            System.out.println( stack[i] );
-            
         }
         
         if ( ! changed )
@@ -157,13 +158,14 @@ public abstract class JxpSource {
         
         return blocks.get( 0 )._lineno + ( line - thisBlockStart );
     }
-
+    
     private long _lastParse = 0;
     
     private List<Block> _blocks;
     private JSFunction _func;
     private JxpServlet _servlet;
-    
+    private Convert _convert;
+
     Map<Integer,List<Block>> _jsCodeToLines = new TreeMap<Integer,List<Block>>();
     String _lastFileName;
 

@@ -99,6 +99,17 @@ public class JSFileLibrary extends JSObjectBase {
         //throw new RuntimeException( n + " not found " );
         return null;
     }
+
+    public void fix( Throwable t ){
+        for ( JxpSource s : _sources.values() )
+            s.fix( t );
+
+        for ( String s : keySet() ){
+            Object foo = get( s );
+            if ( foo instanceof JSFileLibrary )
+                ((JSFileLibrary)foo).fix( t );
+        }
+    }
     
     final File _base;
     final String _uriBase;
