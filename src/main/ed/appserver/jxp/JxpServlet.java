@@ -148,17 +148,16 @@ public class JxpServlet {
                 
                 if ( srcName != null ){
                     
-                    _writer.print( "<" );
-                    _writer.print( tag );
-                    _writer.print( " " );
-                    
-                    
                     s = s.substring( 2 + tag.length() );
                     
                     // TODO: cache pattern or something
                     Matcher m = Pattern.compile( srcName + " *= *['\"](.+?)['\"]" , Pattern.CASE_INSENSITIVE ).matcher( s );
                     if ( ! m.find() )
                         return false;
+                    
+                    _writer.print( "<" );
+                    _writer.print( tag );
+                    _writer.print( " " );
                     
                     _writer.print( s.substring( 0 , m.start(1) ) );
                     String src = m.group(1);
