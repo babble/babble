@@ -164,6 +164,11 @@ public class JSInternalFunctions extends JSObjectBase {
         
         if ( a == null || b == null )
             return false;
+        
+        if ( a instanceof Number || b instanceof Number ){
+            a = _parseNumber( a );
+            b = _parseNumber( b );
+        }
 
         if ( a instanceof Number && b instanceof Number ){
             return ((Number)a).doubleValue() == ((Number)b).doubleValue();
@@ -356,11 +361,23 @@ public class JSInternalFunctions extends JSObjectBase {
         if ( s.length() > 9 )
             return s;
 
-        for ( int i=0; i<s.length(); i++ )
-            if ( ! Character.isDigit( s.charAt( i ) ) )
-                return o;
+        boolean allDigits = true;
+        for ( int i=0; i<s.length(); i++ ){
+            final char c = s.charAt( i );
+            if ( ! Character.isDigit( c ) ){
+                allDigits = false;
+                if ( c != '.' )
+                    return o;
+            }
+        }
         
-        return Integer.parseInt( s );
+        if ( allDigits )
+            return Integer.parseInt( s );
+        
+        if ( s.matches( "\\d+\\.\\d+" ) )
+            return Double.parseDouble( s );
+
+        return o;
     }
 
     static String _debug( Object o ){
