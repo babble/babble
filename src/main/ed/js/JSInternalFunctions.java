@@ -9,6 +9,7 @@ public class JSInternalFunctions extends JSObjectBase {
     public final static JSString TYPE_STRING = new JSString( "string" );
     public final static JSString TYPE_NATIVE_STRING = new JSString( "native_string" );
     public final static JSString TYPE_NUMBER = new JSString( "number" );
+    public final static JSString TYPE_BOOLEAN = new JSString( "boolean" );
     public final static JSString TYPE_UNDEFINED = new JSString( "undefined" );
     public final static JSString TYPE_OBJECT = new JSString( "object" );
     public final static JSString TYPE_NATIVE = new JSString( "native" );
@@ -31,6 +32,9 @@ public class JSInternalFunctions extends JSObjectBase {
         
         if ( obj instanceof Number )
             return TYPE_NUMBER;
+
+        if ( obj instanceof Boolean )
+            return TYPE_BOOLEAN;
         
         if ( obj instanceof JSFunction )
             return TYPE_FUNCTION;

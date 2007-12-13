@@ -11,6 +11,8 @@ import ed.js.*;
 import ed.js.func.*;
 
 public class Scope implements JSObject {
+
+    static final boolean DEBUG = false;
     
     public static Scope GLOBAL = new Scope( "GLOBAL" , JSBuiltInFunctions._myScope  );
     static {
@@ -187,12 +189,11 @@ public class Scope implements JSObject {
     }
 
     public JSFunction getFunctionAndSetThis( final Object obj , final String name ){
-        boolean added = false;
         
+        if ( DEBUG ) System.out.println( _id + " getFunctionAndSetThis.  name:" + name );
+
         if ( obj instanceof JSObject ){
             JSObject jsobj = (JSObject)obj;
-            _this.push( new This( jsobj ) );
-            added = true;
             
             Object shouldBeFunc = jsobj.get( name );
             if ( shouldBeFunc != null && ! ( shouldBeFunc instanceof JSFunction ) )
@@ -200,24 +201,19 @@ public class Scope implements JSObject {
             
             JSFunction func = (JSFunction)shouldBeFunc;
             
-            if ( func != null )
+            if ( func != null ){
+                if ( DEBUG ) System.out.println( "\t pushing js" );
+                _this.push( new This( jsobj ) );
                 return func;
-
-            _this.pop();
-            added = false;
+            }
             
         }
         
-        if ( added ){
-            _this.peek()._nThis = obj;
-            _this.peek()._nThisFunc = name;
-        }
-        else {
-            _this.push( new This( obj , name ) );
-        }
+        if ( DEBUG ) System.out.println( "\t pushing native" );
+        _this.push( new This( obj , name ) );
         return _nativeFuncCall;
     }
-
+    
     public JSObject getThis(){
         if ( _this.size() == 0 )
             return null;
@@ -225,12 +221,15 @@ public class Scope implements JSObject {
     }
 
     public JSObject clearThisNew( Object whoCares ){
+        if ( DEBUG ) System.out.println( "popping this from (clearThisNew) : " + _id );
         return _this.pop()._this;
     }
 
     public Object clearThisNormal( Object o ){
-        if ( _this.size() > 0 )
+        //if ( _this.size() > 0 ){
+            if ( DEBUG ) System.out.println( "popping this from (clearThisNormal) : " + _id );
             _this.pop();
+            //}
         return o;
     }
 
@@ -291,10 +290,13 @@ public class Scope implements JSObject {
     final String _name;
     final Scope _parent;
     final Scope _alternate;
+    public final int _id = ID++;
+    
+    private static int ID = 1;
 
     boolean _locked = false;
     boolean _global = false;
-
+    
     Map<String,Object> _objects;
     
     Stack<This> _this = new Stack<This>();

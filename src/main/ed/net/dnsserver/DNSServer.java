@@ -38,6 +38,7 @@ public class DNSServer extends Thread {
                             
                             try {
                                 final Message result = (Message)(s.get( "result" ));
+                                final Message query = (Message)(s.get( "query" ));
 
                                 final String from = fromObject.toString();
                                 final String type = typeObject.toString();
@@ -46,11 +47,20 @@ public class DNSServer extends Thread {
                                                                     
                                 final Name base = new Name( from );
                                 
-                                if ( type.equalsIgnoreCase( "C" ) ){
+                                if ( type.equalsIgnoreCase( "C" ) || type.equalsIgnoreCase( "CNAME" ) ){
                                     result.addRecord( new CNAMERecord( base , DClass.IN , ttl , new Name( to , base ) ) , Section.ANSWER );
                                 }
                                 else if ( type.equalsIgnoreCase( "A" ) ){
                                     result.addRecord( new ARecord( base , DClass.IN , ttl , InetAddress.getByName( to ) ) , Section.ANSWER );
+                                }
+                                else if ( type.equalsIgnoreCase( "NS" ) ){
+                                    if ( query.getQuestion().getType() == Type.NS )
+                                        result.addRecord( new NSRecord( base , DClass.IN , ttl , new Name( to , base ) ) , Section.ANSWER );
+                                    else
+                                        result.addRecord( new NSRecord( base , DClass.IN , ttl , new Name( to , base ) ) , Section.AUTHORITY );
+                                }
+                                else {
+                                    throw new RuntimeException( "can't handle type : " + type );
                                 }
                                     
                             }
@@ -62,6 +72,14 @@ public class DNSServer extends Thread {
                         }
                     } ,
                     true );
+
+        {
+            List<InetAddress> lst = DNSUtil.getPublicAddresses();
+            if ( lst == null || lst.size() == 0 )
+                _scope.put( "local" , "127.0.0.1" , true );
+            else
+                _scope.put( "local" , lst.get(0).getHostAddress() , true );
+        }
     }
     
     Message process( Message query ){
@@ -78,8 +96,11 @@ public class DNSServer extends Thread {
         
         Scope temp = _scope.child();
         temp.setGlobal( true );
+        temp.put( "query" , query , true );
         temp.put( "result" , result , true );
-        _function.call( temp , result , n.toString() , Type.string( question.getType() ) );
+        
+        String host = n.toString();
+        _function.call( temp , host , Type.string( question.getType() ) , DNSUtil.getDomain( host ) );
         
         return result;
     }

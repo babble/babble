@@ -629,15 +629,16 @@ public class Convert {
             String name = n.getFirstChild().getString();
             String tempName = name + "TEMP";
 
-            _append( "\n for ( Object " , n );
+            _append( "\n for ( String " , n );
             _append( tempName , n );
             _append( " : ((JSObject)" , n );
             _add( n.getFirstChild().getNext() , state );
             _append( " ).keySet() ){\n " , n );
+
             if ( state.useLocalVariable( name ) )
-                _append( name + " = " + tempName + " ; " , n );
+                _append( name + " = new JSString( " + tempName + ") ; " , n );
             else
-                _append( "scope.put( \"" + name + "\" , " + tempName + " , true );\n" , n );
+                _append( "scope.put( \"" + name + "\" , new JSString( " + tempName + " ) , true );\n" , n );
             _add( n.getFirstChild().getNext().getNext() , state );
             _append( "\n}\n" , n );
         }
@@ -912,8 +913,10 @@ public class Convert {
 
     private void _addCall( Node n , State state , boolean isClass ){
         Node name = n.getFirstChild();
-
-        if ( ! isClass )
+        
+        boolean useThis = name.getType() == Token.GETPROP;
+        
+        if ( useThis )
             _append( "scope.clearThisNormal( " , n );
 
         String f = getFunc( name , state );
@@ -927,7 +930,7 @@ public class Convert {
         }
 
         _append( " ) " , n );
-        if ( ! isClass )
+        if ( useThis )
             _append( " ) " , n );
     }
 

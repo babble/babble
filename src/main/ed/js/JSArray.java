@@ -43,6 +43,8 @@ public class JSArray extends JSObjectBase {
             _prototype.set( "push" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object o , Object foo[] ){
                         JSArray a = (JSArray)(s.getThis());
+                        if ( a == null )
+                            throw new RuntimeException( "this shouldn't be possible.  scope id = " + s._id );
                         a.add( o );
                         return a.size();
                     }
