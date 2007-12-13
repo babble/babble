@@ -700,7 +700,7 @@ public class Convert {
 
             String name = fn.getFunctionName();
             if ( name.length() == 0 )
-                name = "tempFunc_" + _id + "_" + i;
+                name = "tempFunc_" + _id + "_" + i + "_" + _methodId++;
             
             state._functionIdToName.put( i , name );
             
@@ -1114,6 +1114,8 @@ public class Convert {
     }
 
     public void fixStack( Throwable e ){
+        boolean removeThings = false;
+        
         StackTraceElement stack[] = e.getStackTrace();
         
         boolean changed = false;
@@ -1122,6 +1124,16 @@ public class Convert {
             StackTraceElement element = stack[i];
             if ( element == null )
                 continue;
+
+            if ( element.toString().contains( ".call(JSFunctionCalls" ) || 
+                 element.toString().contains( "ed.js.JSFunctionBase.call(" ) ||
+                 element.toString().contains( "ed.js.engine.JSCompiledScript.call" ) ){
+                removeThings = true;
+                changed = true;
+                stack[i] = null;
+                continue;
+            }
+
             final String file = getClassName() + ".java";
             
             String es = element.toString();
@@ -1145,6 +1157,18 @@ public class Convert {
             
             stack[i] = new StackTraceElement( _name , method , _name , line );
             changed = true;
+        }
+
+        if ( removeThings ){
+            List<StackTraceElement> lst = new ArrayList<StackTraceElement>();
+            for ( StackTraceElement s : stack ){
+                if ( s == null )
+                    continue;
+                lst.add( s );
+            }
+            stack = new StackTraceElement[lst.size()];
+            for ( int i=0; i<stack.length; i++ )
+                stack[i] = lst.get(i);
         }
             
         if ( changed )
@@ -1185,7 +1209,8 @@ public class Convert {
 
     private boolean _hasReturn = false;
     private JSFunction _it;
-
+    
+    private int _methodId = 0;
     
     private static int ID = 1;
     

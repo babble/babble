@@ -14,6 +14,24 @@ import ed.appserver.*;
 
 public class Shell {
 
+    static final PrintStream _originalPrintStream = System.out;
+
+    static OutputStream _myOutputStream = new OutputStream(){
+            
+            public void write( byte b[] , int off , int len ){
+                RuntimeException re = new RuntimeException();
+                re.fillInStackTrace();
+                re.printStackTrace();
+                _originalPrintStream.write( b , off , len );
+            }
+            
+            public void write( int b ){
+                _originalPrintStream.write( b );
+                throw new RuntimeException("sad" );
+            }
+        };
+    
+
     public static void addNiceShellStuff( Scope s ){
 
 
@@ -47,18 +65,28 @@ public class Shell {
     public static void main( String args[] )
         throws Exception {
         
+        //System.setOut( new PrintStream( _myOutputStream ) );
+        
         Scope s = Scope.GLOBAL.child();
-
+        
         addNiceShellStuff( s );
 
         File init = new File( System.getenv( "HOME" ) + "/.init.js" );
-        System.out.println( init );
+
         if ( init.exists() )
             s.eval( init );
         
         for ( String a : args ){
             File temp = new File( a );
-            s.eval( temp );
+            try {
+                s.eval( temp );
+            }
+            catch ( Exception e ){
+                ((JSFileLibrary)s.get("core")).fix( e );
+                e.printStackTrace();
+                return;
+            }
+
         }
 
         String line;
@@ -77,6 +105,8 @@ public class Shell {
                     System.out.println( JSON.serialize( res ) );
             }
             catch ( Exception e ){
+                System.out.println( "what" );
+                ((JSFileLibrary)s.get("core")).fix( e );
                 e.printStackTrace();
                 System.out.println();
             }
