@@ -448,19 +448,34 @@ public class Convert {
             break;
 
         case Token.AND:
-        case Token.OR:
             _append( " ( " , n );
             Node c = n.getFirstChild();
             while ( c != null ){
-                if ( c != n.getFirstChild() ){
-                    _append( n.getType() == Token.AND ? " && " : " || " , n );
-                }
+                if ( c != n.getFirstChild() )
+                    _append( " && " , n );
+
                 _append( " JS_evalToBool( " , n );
                 _add( c , state );
                 _append( " ) " , n );
                 c = c.getNext();
             }
             _append( " ) " , n );
+            break;
+            
+        case Token.OR:
+            Node cc = n.getFirstChild();
+
+            if ( cc.getNext() == null )
+                throw new RuntimeException( "what?" );
+            if ( cc.getNext().getNext() != null )
+                throw new RuntimeException( "what?" );
+            
+            _append( " JS_or( " , n );
+            _add( cc , state );
+            _append( " , " , n );
+            _add( cc.getNext() , state );
+            _append( " ) " , n);
+
             break;
             
         case Token.LOCAL_BLOCK:

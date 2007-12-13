@@ -68,6 +68,12 @@ public class JSInternalFunctions extends JSObjectBase {
         return post ? obj : n;
     }
 
+    public static Object JS_or( Object a , Object b ){
+        if ( JS_evalToBool( a ) )
+            return a;
+        return b;
+    }
+
     public static boolean JS_evalToBool( Object foo ){
         if ( foo == null )
             return false;
