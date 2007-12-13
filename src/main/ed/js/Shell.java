@@ -105,7 +105,7 @@ public class Shell {
                     System.out.println( JSON.serialize( res ) );
             }
             catch ( Exception e ){
-                System.out.println( "what" );
+                e.printStackTrace();
                 ((JSFileLibrary)s.get("core")).fix( e );
                 e.printStackTrace();
                 System.out.println();

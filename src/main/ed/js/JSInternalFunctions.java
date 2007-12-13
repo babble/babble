@@ -14,6 +14,10 @@ public class JSInternalFunctions extends JSObjectBase {
     public final static JSString TYPE_NATIVE = new JSString( "native" );
     public final static JSString TYPE_FUNCTION = new JSString( "function" );
 
+    public boolean JS_instanceof( Object thing , Object type ){
+        throw new RuntimeException( "the spec for instanceof is weird and broken - deferring" );
+    }
+
     public JSString JS_typeof( Object obj ){
 
         if ( obj == null )
@@ -33,7 +37,6 @@ public class JSInternalFunctions extends JSObjectBase {
 
         if ( obj instanceof JSObject )
             return TYPE_OBJECT;
-        
         
 
         return TYPE_NATIVE;

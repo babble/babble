@@ -7,16 +7,26 @@ import ed.js.func.*;
 import ed.net.*;
 
 public class JSBuiltInFunctions {
-
+    
     public static class print extends JSFunctionCalls1 {
         print(){
+            this( true );
+        }
+        
+        print( boolean newLine ){
             super();
+            _newLine = newLine;
         }
 
         public Object call( Scope scope , Object foo , Object extra[] ){
-            System.out.println( foo );
+            if ( _newLine )
+                System.out.println( foo );
+            else
+                System.out.print( foo );
             return null;
         }
+
+        final boolean _newLine;
     }
 
     public static class NewObject extends JSFunctionCalls0 {
@@ -80,6 +90,7 @@ public class JSBuiltInFunctions {
     static Scope _myScope = new Scope( "Built-Ins" , null );
     static {
         _myScope.put( "print" , new print() , true );
+        _myScope.put( "printnoln" , new print( false ) , true );
         _myScope.put( "SYSOUT" , new print() , true );
 
         _myScope.put( "Object" , new NewObject() , true );
