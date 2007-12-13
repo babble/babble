@@ -78,13 +78,40 @@ public class JSBuiltInFunctions {
             return new JSDate( ((Number)t).longValue() );
         }
     }
-
+    
     public static class CrID extends JSFunctionCalls1 {
         public Object call( Scope scope , Object idString , Object extra[] ){
             if ( idString == null )
                 return ed.db.ObjectId.get();
             return new ed.db.ObjectId( idString.toString() );
         }
+    }
+    
+    public static class isXXX extends JSFunctionCalls1 {
+        isXXX( Class c ){
+            _c = c;
+        }
+
+        public Object call( Scope scope , Object o , Object extra[] ){
+            return _c.isInstance( o );
+        }
+        
+        final Class _c;
+    }
+
+    public static class isXXXs extends JSFunctionCalls1 {
+        isXXXs( Class ... c ){
+            _c = c;
+        }
+
+        public Object call( Scope scope , Object o , Object extra[] ){
+            for ( int i=0; i<_c.length; i++ )
+                if ( _c[i].isInstance( o ) )
+                    return true;
+            return false;
+        }
+        
+        final Class _c[];
     }
 
     static Scope _myScope = new Scope( "Built-Ins" , null );
@@ -124,11 +151,11 @@ public class JSBuiltInFunctions {
                 }
             } , true );
         
-        _myScope.put( "isArray" , new JSFunctionCalls1(){
-                public Object call( Scope scope , Object b , Object extra[] ){
-                    return b instanceof JSArray;
-                }
-            }, true );
+        _myScope.put( "isArray" , new isXXX( JSArray.class ) , true );
+        _myScope.put( "isNumber" , new isXXX( Number.class ) , true );
+        _myScope.put( "isObject" , new isXXX( JSObject.class ) , true );
+
+        _myScope.put( "isString" , new isXXXs( String.class , JSString.class ) , true );
         
         JSON.init( _myScope );
     }
