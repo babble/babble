@@ -1,9 +1,12 @@
 
-function eval( response , host , type ){
-    //print( "host:" + host );
-    //print( "type:" + type );
+function eval( host , type , domain ){
+    print( "host: " + host + " type: " + type );
     
-    add( host , "C" , 30 , "foo.com." );
-    add( host , "C" , 3600 , "bar.com" );
-    add( "asdom.shop.com." , "A" , 3600 , "127.0.0.1" );
+    if ( type == "A" || type == "CNAME" ){
+        add( host , "A" , 30 , local );
+    }
+
+    add( domain , "NS" , 7200 , "ns1.10gen.com." );
+    add( domain , "NS" , 7200 , "ns2.10gen.com." );
+
 }
