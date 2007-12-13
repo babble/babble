@@ -2,6 +2,8 @@
 
 package ed.js.engine;
 
+import com.twmacinta.util.*;
+
 import ed.js.*;
 import ed.js.func.*;
 import ed.net.*;
@@ -153,6 +155,18 @@ public class JSBuiltInFunctions {
                     char c = s.charAt( 0 );
                     return c == 't' || c == 'T';
                 }
+            } , true );
+        _myScope.put( "md5" , new JSFunctionCalls1(){
+                public Object call( Scope scope , Object b , Object extra[] ){
+                    synchronized ( _myMd5 ){
+                        _myMd5.Init();
+                        _myMd5.Update( b.toString() );
+                        return new JSString( _myMd5.asHex() );
+                    }
+                }
+
+                private final MD5 _myMd5 = new MD5();
+                
             } , true );
         
         _myScope.put( "isArray" , new isXXX( JSArray.class ) , true );
