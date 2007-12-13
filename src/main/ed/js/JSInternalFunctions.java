@@ -14,6 +14,10 @@ public class JSInternalFunctions extends JSObjectBase {
     public final static JSString TYPE_NATIVE = new JSString( "native" );
     public final static JSString TYPE_FUNCTION = new JSString( "function" );
 
+    public boolean JS_instanceof( Object thing , Object type ){
+        throw new RuntimeException( "the spec for instanceof is weird and broken - deferring" );
+    }
+
     public JSString JS_typeof( Object obj ){
 
         if ( obj == null )
@@ -33,7 +37,6 @@ public class JSInternalFunctions extends JSObjectBase {
 
         if ( obj instanceof JSObject )
             return TYPE_OBJECT;
-        
         
 
         return TYPE_NATIVE;
@@ -63,6 +66,12 @@ public class JSInternalFunctions extends JSObjectBase {
         Object n = JS_add( num , obj );
         ref.set( n );
         return post ? obj : n;
+    }
+
+    public static Object JS_or( Object a , Object b ){
+        if ( JS_evalToBool( a ) )
+            return a;
+        return b;
     }
 
     public static boolean JS_evalToBool( Object foo ){
@@ -164,6 +173,11 @@ public class JSInternalFunctions extends JSObjectBase {
         
         if ( a == null || b == null )
             return false;
+        
+        if ( a instanceof Number || b instanceof Number ){
+            a = _parseNumber( a );
+            b = _parseNumber( b );
+        }
 
         if ( a instanceof Number && b instanceof Number ){
             return ((Number)a).doubleValue() == ((Number)b).doubleValue();
@@ -356,11 +370,23 @@ public class JSInternalFunctions extends JSObjectBase {
         if ( s.length() > 9 )
             return s;
 
-        for ( int i=0; i<s.length(); i++ )
-            if ( ! Character.isDigit( s.charAt( i ) ) )
-                return o;
+        boolean allDigits = true;
+        for ( int i=0; i<s.length(); i++ ){
+            final char c = s.charAt( i );
+            if ( ! Character.isDigit( c ) ){
+                allDigits = false;
+                if ( c != '.' )
+                    return o;
+            }
+        }
         
-        return Integer.parseInt( s );
+        if ( allDigits )
+            return Integer.parseInt( s );
+        
+        if ( s.matches( "\\d+\\.\\d+" ) )
+            return Double.parseDouble( s );
+
+        return o;
     }
 
     static String _debug( Object o ){

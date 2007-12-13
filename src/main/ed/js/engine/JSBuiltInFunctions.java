@@ -7,16 +7,26 @@ import ed.js.func.*;
 import ed.net.*;
 
 public class JSBuiltInFunctions {
-
+    
     public static class print extends JSFunctionCalls1 {
         print(){
+            this( true );
+        }
+        
+        print( boolean newLine ){
             super();
+            _newLine = newLine;
         }
 
         public Object call( Scope scope , Object foo , Object extra[] ){
-            System.out.println( foo );
+            if ( _newLine )
+                System.out.println( foo );
+            else
+                System.out.print( foo );
             return null;
         }
+
+        final boolean _newLine;
     }
 
     public static class NewObject extends JSFunctionCalls0 {
@@ -68,7 +78,7 @@ public class JSBuiltInFunctions {
             return new JSDate( ((Number)t).longValue() );
         }
     }
-
+    
     public static class CrID extends JSFunctionCalls1 {
         public Object call( Scope scope , Object idString , Object extra[] ){
             if ( idString == null )
@@ -76,10 +86,38 @@ public class JSBuiltInFunctions {
             return new ed.db.ObjectId( idString.toString() );
         }
     }
+    
+    public static class isXXX extends JSFunctionCalls1 {
+        isXXX( Class c ){
+            _c = c;
+        }
+
+        public Object call( Scope scope , Object o , Object extra[] ){
+            return _c.isInstance( o );
+        }
+        
+        final Class _c;
+    }
+
+    public static class isXXXs extends JSFunctionCalls1 {
+        isXXXs( Class ... c ){
+            _c = c;
+        }
+
+        public Object call( Scope scope , Object o , Object extra[] ){
+            for ( int i=0; i<_c.length; i++ )
+                if ( _c[i].isInstance( o ) )
+                    return true;
+            return false;
+        }
+        
+        final Class _c[];
+    }
 
     static Scope _myScope = new Scope( "Built-Ins" , null );
     static {
         _myScope.put( "print" , new print() , true );
+        _myScope.put( "printnoln" , new print( false ) , true );
         _myScope.put( "SYSOUT" , new print() , true );
 
         _myScope.put( "Object" , new NewObject() , true );
@@ -113,11 +151,11 @@ public class JSBuiltInFunctions {
                 }
             } , true );
         
-        _myScope.put( "isArray" , new JSFunctionCalls1(){
-                public Object call( Scope scope , Object b , Object extra[] ){
-                    return b instanceof JSArray;
-                }
-            }, true );
+        _myScope.put( "isArray" , new isXXX( JSArray.class ) , true );
+        _myScope.put( "isNumber" , new isXXX( Number.class ) , true );
+        _myScope.put( "isObject" , new isXXX( JSObject.class ) , true );
+
+        _myScope.put( "isString" , new isXXXs( String.class , JSString.class ) , true );
         
         JSON.init( _myScope );
     }

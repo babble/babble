@@ -448,19 +448,34 @@ public class Convert {
             break;
 
         case Token.AND:
-        case Token.OR:
             _append( " ( " , n );
             Node c = n.getFirstChild();
             while ( c != null ){
-                if ( c != n.getFirstChild() ){
-                    _append( n.getType() == Token.AND ? " && " : " || " , n );
-                }
+                if ( c != n.getFirstChild() )
+                    _append( " && " , n );
+
                 _append( " JS_evalToBool( " , n );
                 _add( c , state );
                 _append( " ) " , n );
                 c = c.getNext();
             }
             _append( " ) " , n );
+            break;
+            
+        case Token.OR:
+            Node cc = n.getFirstChild();
+
+            if ( cc.getNext() == null )
+                throw new RuntimeException( "what?" );
+            if ( cc.getNext().getNext() != null )
+                throw new RuntimeException( "what?" );
+            
+            _append( " JS_or( " , n );
+            _add( cc , state );
+            _append( " , " , n );
+            _add( cc.getNext() , state );
+            _append( " ) " , n);
+
             break;
             
         case Token.LOCAL_BLOCK:
@@ -475,7 +490,15 @@ public class Convert {
             _add( n.getFirstChild() , state );
             _append( " ); " , n );
             break;
-            
+        case Token.INSTANCEOF:
+            _append( "JS_instanceof( " , n );
+            _add( n.getFirstChild() , state );
+            _append( " , " , n );
+            _add( n.getFirstChild().getNext() , state );
+            _append( " ) " , n );
+            if ( n.getFirstChild().getNext().getNext() != null )
+                throw new RuntimeException( "something is wrong" );
+            break;
         default:
             Debug.printTree( n , 0 );
             throw new RuntimeException( "can't handle : " + n.getType() + ":" + Token.name( n.getType() ) + ":" + n.getClass().getName() + " line no : " + n.getLineno() );
@@ -700,7 +723,7 @@ public class Convert {
 
             String name = fn.getFunctionName();
             if ( name.length() == 0 )
-                name = "tempFunc_" + _id + "_" + i;
+                name = "tempFunc_" + _id + "_" + i + "_" + _methodId++;
             
             state._functionIdToName.put( i , name );
             
@@ -1113,7 +1136,9 @@ public class Convert {
         }
     }
 
-    void fixStack( Exception e ){
+    public void fixStack( Throwable e ){
+        boolean removeThings = false;
+        
         StackTraceElement stack[] = e.getStackTrace();
         
         boolean changed = false;
@@ -1122,6 +1147,16 @@ public class Convert {
             StackTraceElement element = stack[i];
             if ( element == null )
                 continue;
+
+            if ( element.toString().contains( ".call(JSFunctionCalls" ) || 
+                 element.toString().contains( "ed.js.JSFunctionBase.call(" ) ||
+                 element.toString().contains( "ed.js.engine.JSCompiledScript.call" ) ){
+                removeThings = true;
+                changed = true;
+                stack[i] = null;
+                continue;
+            }
+
             final String file = getClassName() + ".java";
             
             String es = element.toString();
@@ -1145,6 +1180,18 @@ public class Convert {
             
             stack[i] = new StackTraceElement( _name , method , _name , line );
             changed = true;
+        }
+
+        if ( removeThings ){
+            List<StackTraceElement> lst = new ArrayList<StackTraceElement>();
+            for ( StackTraceElement s : stack ){
+                if ( s == null )
+                    continue;
+                lst.add( s );
+            }
+            stack = new StackTraceElement[lst.size()];
+            for ( int i=0; i<stack.length; i++ )
+                stack[i] = lst.get(i);
         }
             
         if ( changed )
@@ -1185,7 +1232,8 @@ public class Convert {
 
     private boolean _hasReturn = false;
     private JSFunction _it;
-
+    
+    private int _methodId = 0;
     
     private static int ID = 1;
     

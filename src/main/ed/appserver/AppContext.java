@@ -189,7 +189,7 @@ public class AppContext {
 
     public JxpServlet getServlet( File f )
         throws IOException {
-        return getSource( f ).getServlet();
+        return getSource( f ).getServlet( this );
     }
 
     private void _initScope(){
@@ -229,6 +229,11 @@ public class AppContext {
 
     public String toString(){
         return _rootFile.toString();
+    }
+
+    public void fix( Throwable t ){
+        _jxpObject.fix( t );
+        _core.fix( t );
     }
 
     final String _name;

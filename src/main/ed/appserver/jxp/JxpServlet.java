@@ -16,7 +16,8 @@ import ed.net.httpserver.*;
 
 public class JxpServlet {
     
-    JxpServlet( JxpSource source , JSFunction func ){
+    JxpServlet( AppContext context , JxpSource source , JSFunction func ){
+        _context = context;
         _source = source;
         _theFunction = func;
     }
@@ -37,6 +38,7 @@ public class JxpServlet {
         }
         catch ( RuntimeException re ){
             _source.fix( re );
+            _context.fix( re );
             throw re;
         }
     }
@@ -282,6 +284,7 @@ public class JxpServlet {
 
     }
     
+    final AppContext _context;
     final JxpSource _source;
     final JSFunction _theFunction;
 }
