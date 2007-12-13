@@ -282,7 +282,7 @@ public class JSArray extends JSObjectBase {
                 return l.toString().compareTo( r.toString() );
             }
             
-            return (Integer)(_func.call( _scope , l , r , null ));
+            return ((Number)(_func.call( _scope , l , r , null ))).intValue();
         }
 
         private final Scope _scope;
