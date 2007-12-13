@@ -406,6 +406,12 @@ public class Scope implements JSObject {
                         }
                         return ret;
                     }
+		    catch ( InvocationTargetException e ){
+			throw new RuntimeException( e.getCause() );
+		    }
+		    catch ( RuntimeException e ){
+			throw e;
+		    }
                     catch ( Exception e ){
                         throw new RuntimeException( e );
                     }

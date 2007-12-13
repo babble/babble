@@ -342,44 +342,47 @@ public class DBJni extends DBBase {
             if ( _cur.hasNext() )
                 return _cur.next();
             
-            if ( _curResult._cursor > 0 ){
-                System.out.println( "following cursor: " + _curResult._cursor );
-                ByteEncoder encoder = ByteEncoder.get();
-                
-                encoder._buf.putInt( 0 ); // reserved
-                encoder._put( _curResult._fullNameSpace );
-                encoder._buf.putInt( _numToReturn ); // num to return
-                encoder._buf.putLong( _curResult._cursor );
-                encoder.flip();
-            
-                ByteDecoder decoder = ByteDecoder.get( _dbbase , _collection._fullNameSpace );
-                int len = getMore( _sock , encoder._buf , encoder._buf.position() , encoder._buf.limit() , decoder._buf );
-                decoder.doneReading( len );
-                
-                SingleResult res = new SingleResult( _curResult._fullNameSpace , decoder );
-                init( res );
-
-                decoder.done();
-                encoder.done();
-
-                if ( ! _cur.hasNext() )
-                    throw new RuntimeException( "no more after cursor" );
-
-                return next();
-            }
-            
-            throw new RuntimeException( "no more" );
+            if ( _curResult._cursor <= 0 )
+		throw new RuntimeException( "no more" );
+	    
+	    _advance();
+	    return next();
         }
 
         public boolean hasNext(){
             if ( _cur.hasNext() )
                 return true;
-            
-            if ( _curResult._cursor > 0 )
-                return true;
-            
-            return false;
+	    
+            if ( _curResult._cursor <= 0 )
+		return false;
+	    
+	    _advance();
+	    return hasNext();
         }
+
+	private void _advance(){
+	    if ( _curResult._cursor <= 0 )
+		throw new RuntimeException( "can't advance a cursor <= 0" );
+	    
+	    ByteEncoder encoder = ByteEncoder.get();
+            
+	    encoder._buf.putInt( 0 ); // reserved
+	    encoder._put( _curResult._fullNameSpace );
+	    encoder._buf.putInt( _numToReturn ); // num to return
+	    encoder._buf.putLong( _curResult._cursor );
+	    encoder.flip();
+            
+	    ByteDecoder decoder = ByteDecoder.get( _dbbase , _collection._fullNameSpace );
+	    int len = getMore( _sock , encoder._buf , encoder._buf.position() , encoder._buf.limit() , decoder._buf );
+	    decoder.doneReading( len );
+            
+	    SingleResult res = new SingleResult( _curResult._fullNameSpace , decoder );
+	    init( res );
+	    
+	    decoder.done();
+	    encoder.done();
+	    
+	}
 
         public void remove(){
             throw new RuntimeException( "can't remove this way" );

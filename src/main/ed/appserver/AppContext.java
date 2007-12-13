@@ -7,6 +7,7 @@ import java.util.*;
 
 import ed.db.*;
 import ed.js.*;
+import ed.js.func.*;
 import ed.js.engine.*;
 import ed.net.httpserver.*;
 import ed.appserver.jxp.*;
@@ -32,6 +33,13 @@ public class AppContext {
         _scope.put( "jxp" , _jxpObject , true );
         
         _scope.put( "db" , DBJni.get( _name ) , true );
+	_scope.put( "setDB" , new JSFunctionCalls1(){
+		public Object call( Scope s , Object name , Object extra[] ){
+		    System.out.println( "name:" + name + " _scope:" + _scope );
+		    s.put( "db" , DBJni.get( name.toString() ) , false );
+		    return true;
+		}
+	    } , true );
 
         _core = new JSFileLibrary( new File( "/data/corejs" ) ,  "core" );
         _scope.put( "core" , _core , true );
