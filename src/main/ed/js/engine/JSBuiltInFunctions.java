@@ -38,10 +38,14 @@ public class JSBuiltInFunctions {
             return new JSObjectBase();
         }
     }
-
+    
     public static class NewArray extends JSFunctionCalls1 {
         NewArray(){
             super();
+        }
+
+        public JSObject newOne(){
+            return new JSArray();
         }
 
         public Object call( Scope scope , Object a , Object[] extra ){
