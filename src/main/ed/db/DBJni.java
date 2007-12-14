@@ -451,12 +451,12 @@ public class DBJni extends DBBase {
 
     private static native long createSock( String name );
 
-    private static native String msg( long sock );
-    private static native void insert( long sock , ByteBuffer buf , int position , int limit );
-    private static native void doDelete( long sock , ByteBuffer buf , int position , int limit );
-    private static native void doUpdate( long sock , ByteBuffer buf , int position , int limit );
-    private static native int query( long sock , ByteBuffer buf , int position , int limit , ByteBuffer res );
-    private static native int getMore( long sock , ByteBuffer buf , int position , int limit , ByteBuffer res );
+    private synchronized static native String msg( long sock );
+    private synchronized  static native void insert( long sock , ByteBuffer buf , int position , int limit );
+    private synchronized static native void doDelete( long sock , ByteBuffer buf , int position , int limit );
+    private synchronized static native void doUpdate( long sock , ByteBuffer buf , int position , int limit );
+    private synchronized static native int query( long sock , ByteBuffer buf , int position , int limit , ByteBuffer res );
+    private synchronized static native int getMore( long sock , ByteBuffer buf , int position , int limit , ByteBuffer res );
     
     static final Map<String,DBJni> _roots = new HashMap<String,DBJni>();
     static final Map<String,Long> _ipToSockAddr = Collections.synchronizedMap( new HashMap<String,Long>() );
