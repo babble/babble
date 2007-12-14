@@ -73,7 +73,6 @@ public class AppContext {
     }
 
     JSFile getJSFile( String id ){
-        System.out.println( "id:" + id );
 
         if ( id == null )
             return null;
