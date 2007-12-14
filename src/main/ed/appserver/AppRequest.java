@@ -63,8 +63,30 @@ public class AppRequest {
         return true;
     }
 
+    String getOverrideURI(){
+        Object o = _scope.get( "mapUrlToJxpFile" );
+        if ( o == null )
+            return null;
+        
+        if ( ! ( o instanceof JSFunction ) )
+            return null;
+        
+        Object res = ((JSFunction)o).call( _scope , new JSString( getURI() ) );
+        if ( res == null )
+            return null;
+        return res.toString();
+    }
+    
+    String getWantedURI(){
+        String override = getOverrideURI();
+        if ( override != null )
+            return override;
+        return getURI();
+    }
+    
+
     File getFile(){
-        return _context.getFile( getURI() );
+        return _context.getFile( getWantedURI() );
     }
 
     final String _uri;
