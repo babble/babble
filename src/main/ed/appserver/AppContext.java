@@ -154,7 +154,14 @@ public class AppContext {
         if ( f.exists() )
             return f;
         
-        String uri = f.toString().substring( _rootFile.toString().length() );
+        String uri = f.toString();
+	
+	if ( uri.startsWith( _rootFile.toString() ) )
+	    uri = uri.substring( _rootFile.toString().length() );
+	
+	if ( uri.startsWith( _core._base.toString() ) )
+	    uri = uri.substring( _core._base.toString().length() );
+
         while ( uri.startsWith( "/" ) )
             uri = uri.substring( 1 );
         
