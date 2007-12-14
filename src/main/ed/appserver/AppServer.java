@@ -324,6 +324,9 @@ public class AppServer implements HttpHandler {
     
     public static void main( String args[] )
         throws Exception {
+
+        //System.setOut( Shell._myPrintStream );
+        //System.setErr( Shell._myPrintStream );
         
         String root = "/data/sites/admin/";
         if ( args != null && args.length > 0 ) 

@@ -14,6 +14,8 @@ import ed.util.*;
 
 public class HttpResponse {
 
+    static final boolean USE_POOL = true;
+
     public static final DateFormat HeaderTimeFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
     static {
 	HeaderTimeFormat.setTimeZone( TimeZone.getTimeZone("GMT") );
@@ -59,11 +61,14 @@ public class HttpResponse {
         _handler._done = ! keepAlive();
         
         _cleaned = true;
-        if ( _stringContent != null ){
-            for ( ByteBuffer bb : _stringContent )
-                _bbPool.done( bb );
+        if ( _myStringContent != null ){
+
+            for ( ByteBuffer bb : _myStringContent ){
+                if ( USE_POOL )
+                    _bbPool.done( bb );
+            }
             
-            _stringContent.clear();
+            _myStringContent.clear();
 
             if ( _writer != null ){
                 _charBufPool.done( _writer._cur );
@@ -211,6 +216,7 @@ public class HttpResponse {
                 int cl = 0;
                 for ( ByteBuffer buf : _stringContent )
                     cl += buf.limit();
+                if ( HttpServer.D ) System.out.println( "_stringContent.length : " + cl );
                 a.append( "Content-Length: " ).append( String.valueOf( cl ) ).append( "\r\n" );
             }
             else if ( _numDataThings() == 0 ) {
@@ -234,8 +240,12 @@ public class HttpResponse {
     }
 
     public JxpWriter getWriter(){
-        if ( _writer == null )
+        if ( _writer == null ){
+            if ( _cleaned )
+                throw new RuntimeException( "already cleaned" );
+            
             _writer = new MyJxpWriter();
+        }
         return _writer;
     }
 
@@ -316,6 +326,8 @@ public class HttpResponse {
 
     // data
     List<ByteBuffer> _stringContent = null;
+    private List<ByteBuffer> _myStringContent = null; // tihs is the real one
+    
     int _stringContentSent = 0;
     int _stringContentPos = 0;
 
@@ -359,11 +371,13 @@ public class HttpResponse {
         public JxpWriter print( String s ){
             if ( _done )
                 throw new RuntimeException( "already done" );
-
-            if ( _cur.position() + s.length() > _cur.capacity() ){
+            
+            if ( _cur.position() + s.length() > _cur.capacity() )
                 _push();
-            }
+            
+            
             _cur.append( s );
+            _javaLength += s.length();
             return this;
         }
 
@@ -372,7 +386,7 @@ public class HttpResponse {
                 return;
             
             _cur.flip();
-            ByteBuffer bb = _bbPool.get();
+            ByteBuffer bb = USE_POOL ? _bbPool.get() : ByteBuffer.allocateDirect( _cur.position() * 2 );
             
             CharsetEncoder encoder = _utf8.newEncoder(); // TODO: pool
             try {
@@ -405,8 +419,16 @@ public class HttpResponse {
             _cur.limit( _cur.capacity() );
         }
         
+        public int getJavaLength(){
+            return _javaLength;
+        }
+
+        public String toString(){
+            return "java length : " + _javaLength;
+        }
+
+        private int _javaLength = 0;
         private CharBuffer _cur;
-        private List<ByteBuffer> _myStringContent = null;
     }
     
     static final int CHAR_BUFFER_SIZE = 1024 * 32;

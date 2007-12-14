@@ -98,11 +98,14 @@ public class JxpServlet {
                 print( "null" );
             else
                 print( o.toString() );
+            
             return null;
         }
         
         public void print( String s ){
-
+            
+            //System.out.println( "---\n" + s + "\n---" );
+            
             if ( _extra.length() > 0 ){
                 _extra.append( s );
                 s = _extra.toString();

@@ -13,10 +13,10 @@ import ed.js.engine.*;
 import ed.appserver.*;
 
 public class Shell {
-
+    
     static final PrintStream _originalPrintStream = System.out;
 
-    static OutputStream _myOutputStream = new OutputStream(){
+    final static OutputStream _myOutputStream = new OutputStream(){
             
             public void write( byte b[] , int off , int len ){
                 RuntimeException re = new RuntimeException();
@@ -30,7 +30,8 @@ public class Shell {
                 throw new RuntimeException("sad" );
             }
         };
-    
+
+    public final static PrintStream _myPrintStream = new PrintStream( _myOutputStream );
 
     public static void addNiceShellStuff( Scope s ){
 
