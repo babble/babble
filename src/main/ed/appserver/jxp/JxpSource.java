@@ -98,35 +98,36 @@ public abstract class JxpSource {
 
     public void fix( Throwable t ){
         
-        _convert.fixStack( t );
+        if ( _convert != null )
+            _convert.fixStack( t );
         
-        if ( _jsCodeToLines == null )
-            return;
-        
-        StackTraceElement stack[] = t.getStackTrace();
-        
-        boolean changed = false;
-        for ( int i=0; i<stack.length; i++ ){
+        if ( _jsCodeToLines != null ){
             
-            StackTraceElement element = stack[i];
-            if ( element == null )
-                continue;
+            StackTraceElement stack[] = t.getStackTrace();
             
-            String es = element.toString();
-
-            if ( ! es.contains( _lastFileName ) )
-                continue;
+            boolean changed = false;
+            for ( int i=0; i<stack.length; i++ ){
+                
+                StackTraceElement element = stack[i];
+                if ( element == null )
+                    continue;
+                
+                String es = element.toString();
+                
+                if ( ! es.contains( _lastFileName ) )
+                    continue;
+                
+                int line = StringParseUtil.parseInt( es.substring( es.lastIndexOf( ":" ) + 1 ) , -1 );
+                
+                stack[i] = new StackTraceElement( getName() , stack[i].getMethodName() , getName() , getSourceLine( line ) );
+                changed = true;
+            }
             
-            int line = StringParseUtil.parseInt( es.substring( es.lastIndexOf( ":" ) + 1 ) , -1 );
+            if ( ! changed )
+                return;
             
-            stack[i] = new StackTraceElement( getName() , stack[i].getMethodName() , getName() , getSourceLine( line ) );
-            changed = true;
+            t.setStackTrace( stack );
         }
-        
-        if ( ! changed )
-            return;
-        
-        t.setStackTrace( stack );
     }
 
     public String getCompileMessage( Exception e ){
