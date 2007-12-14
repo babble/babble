@@ -69,12 +69,13 @@ public class HttpResponse {
             }
             
             _myStringContent.clear();
-
-            if ( _writer != null ){
-                _charBufPool.done( _writer._cur );
-                _writer._cur = null;
-                _writer = null;
-            }
+            _myStringContent = null;
+        }
+        
+        if ( _writer != null ){
+            _charBufPool.done( _writer._cur );
+            _writer._cur = null;
+            _writer = null;
         }
         
     }
@@ -432,9 +433,15 @@ public class HttpResponse {
     }
     
     static final int CHAR_BUFFER_SIZE = 1024 * 32;
-    static SimplePool<CharBuffer> _charBufPool = new SimplePool( "Response.CharBufferPool" , 50 , -1 ){
+    static SimplePool<CharBuffer> _charBufPool = new SimplePool<CharBuffer>( "Response.CharBufferPool" , 50 , -1 ){
             public CharBuffer createNew(){
                 return CharBuffer.allocate( CHAR_BUFFER_SIZE );
+            }
+            
+            public boolean ok( CharBuffer buf ){
+                buf.position( 0 );
+                buf.limit( buf.capacity() );
+                return true;
             }
         };
     static ByteBufferPool _bbPool = new ByteBufferPool( 50 , CHAR_BUFFER_SIZE * 2 );
