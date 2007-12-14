@@ -4,6 +4,8 @@ package ed.js;
 
 import java.util.regex.*;
 
+import com.twmacinta.util.*;
+
 import ed.js.func.*;
 import ed.js.engine.*;
 
@@ -40,21 +42,34 @@ public class JSString extends JSObjectBase {
         
         protected void init(){
             
-            _prototype.set( "trim" , new JSFunctionCalls1() {
-                    public Object call( Scope s , Object o , Object foo[] ){
+            _prototype.set( "trim" , new JSFunctionCalls0() {
+                    public Object call( Scope s , Object foo[] ){
                         return new JSString( s.getThis().toString().trim() );
                     }
                 } );
 
 
-            _prototype.set( "toLowerCase" , new JSFunctionCalls1() {
-                    public Object call( Scope s , Object o , Object foo[] ){
+            _prototype.set( "md5" , new JSFunctionCalls0() {
+                    public Object call( Scope s , Object extra[] ){
+                        synchronized ( _myMd5 ){
+                            _myMd5.Init();
+                            _myMd5.Update( s.getThis().toString() );
+                            return new JSString( _myMd5.asHex() );
+                        }
+                    }
+                    
+                    private final MD5 _myMd5 = new MD5();
+                } );
+
+
+            _prototype.set( "toLowerCase" , new JSFunctionCalls0() {
+                    public Object call( Scope s , Object foo[] ){
                         return new JSString( s.getThis().toString().toLowerCase() );
                     }
                 } );
 
-            _prototype.set( "toUpperCase" , new JSFunctionCalls1() {
-                    public Object call( Scope s , Object o , Object foo[] ){
+            _prototype.set( "toUpperCase" , new JSFunctionCalls0() {
+                    public Object call( Scope s , Object foo[] ){
                         return new JSString( s.getThis().toString().toUpperCase() );
                     }
                 } );
