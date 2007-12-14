@@ -7,7 +7,7 @@ import java.io.*;
 public class JSDBFile extends JSFile {
 
     public JSDBFile(){
-        System.out.println( "creating file" );
+        
     }
 
     public JSFileChunk getChunk( int num ){

@@ -18,8 +18,6 @@ public class DBRef extends JSObjectBase {
         super.set( "_ns" , ns );
         super.set( "_id" , id );
         _inited = true;
-        
-        System.out.println( "created new dbref" );
     }
     
     public void prefunc(){
@@ -31,8 +29,6 @@ public class DBRef extends JSObjectBase {
         
         if ( _db == null )
             throw new RuntimeException( "db is null" );
-        
-        System.out.println( "following ref. " + _id + " : " + hashCode() + " : " + _loaded );
         
         DBCollection coll = _db.getCollectionFromFull( _ns );
         JSObject o = coll.find( _id );
