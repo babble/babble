@@ -268,12 +268,14 @@ public class HttpResponse {
             throw new IllegalArgumentException( "file doesn't exist" );
         _file = f;
         _headers.put( "Content-Length" , String.valueOf( f.length() ) );
+	_stringContent = null;
     }
 
     public void sendFile( JSFile f ){
         _jsfile = f.sender();
         _headers.put( "Content-Length" , String.valueOf( f.getLength() ) );
         _headers.put( "Content-Type" , f.getContentType() );
+	_stringContent = null;
     }
     
     private int _numDataThings(){
