@@ -47,7 +47,7 @@ public class AppRequest {
     }
 
     boolean isStatic(){
-        String uri = getURI();
+        String uri = getWantedURI();
         
         if ( uri.endsWith( ".jxp" ) )
             return false;
