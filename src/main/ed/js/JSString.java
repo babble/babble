@@ -107,6 +107,24 @@ public class JSString extends JSObjectBase {
                     }
                 } );
 
+            _prototype.set( "startsWith" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object o , Object foo[] ){
+                        String str = s.getThis().toString();
+                        String thing = o.toString();
+                        
+                        return str.startsWith( thing );
+                    }
+                } );
+
+            _prototype.set( "endsWith" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object o , Object foo[] ){
+                        String str = s.getThis().toString();
+                        String thing = o.toString();
+                        
+                        return str.endsWith( thing );
+                    }
+                } );
+
             _prototype.set( "substring" , new JSFunctionCalls2() {
                     public Object call( Scope s , Object startO , Object endO , Object foo[] ){
                         String str = s.getThis().toString();

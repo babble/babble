@@ -1358,8 +1358,7 @@ public class Parser
         throws IOException, ParserException
     {
         if (!insideFunction()) {
-            reportError(tt == Token.RETURN ? "msg.bad.return"
-                        : "msg.bad.yield");
+            //reportError(tt == Token.RETURN ? "msg.bad.return" : "msg.bad.yield");
         }
         consumeToken();
         decompiler.addToken(tt);
