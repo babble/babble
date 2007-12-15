@@ -206,6 +206,7 @@ public class HttpResponse {
         for ( Cookie c : _cookies ){
             a.append( "Set-Cookie: " );
             a.append( c._name ).append( "=" ).append( c._value ).append( ";" );
+	    a.append( " " ).append( "Path=" ).append( c._path ).append( ";" );
             a.append( "\r\n" );
         }
         

@@ -211,6 +211,11 @@ public class JxpServlet {
             if ( src == null || src.length() == 0 )
                 return;
 
+            if ( src.startsWith( "NOCDN/" ) ){
+                _writer.print( src.substring( 5 ) );
+                return;
+            }
+
             if ( src.startsWith( "CDN/" ) ){
                 _writer.print( _cdnPrefix );
                 _writer.print( src.substring( 3 ) );
