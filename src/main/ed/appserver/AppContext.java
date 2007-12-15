@@ -40,10 +40,16 @@ public class AppContext {
 		    return true;
 		}
 	    } , true );
+        
+        _scope.put( "getFile" , new JSFunctionCalls1(){
+		public Object call( Scope s , Object name , Object extra[] ){
+                    return new File( _rootFile , name.toString() );
+                }
+            } , true );
 
         _core = new JSFileLibrary( new File( "/data/corejs" ) ,  "core" );
         _scope.put( "core" , _core , true );
-
+        
         _scope.setGlobal( true );
     }
 
@@ -113,7 +119,7 @@ public class AppContext {
         if ( f != null )
             return f;
         
-        if ( uri.startsWith( "/~~/" ) )
+        if ( uri.startsWith( "/~~/" ) || uri.startsWith( "~~/" ) )
             f = new File( _core._base , uri.substring( 3 ) );
         else
             f = new File( _rootFile , uri );
@@ -160,18 +166,22 @@ public class AppContext {
 	    uri = uri.substring( _rootFile.toString().length() );
 	
 	if ( uri.startsWith( _core._base.toString() ) )
-	    uri = uri.substring( _core._base.toString().length() );
+	    uri = "/~~" + uri.substring( _core._base.toString().length() );
 
+        
         while ( uri.startsWith( "/" ) )
             uri = uri.substring( 1 );
+
+        System.out.println( "uri:" + uri );
         
         int start = 0;
         while ( true ){
-
+            
             int idx = uri.indexOf( "/" , start );
             if ( idx < 0 )
                 break; 
             String foo = uri.substring( 0 , idx );
+            System.out.println( "\t " + foo + ".jxp" );
             File temp = getFile( foo + ".jxp" );
 
             if ( temp.exists() )
@@ -189,6 +199,9 @@ public class AppContext {
         f = tryNoJXP( f );
         f = tryServlet( f );
 
+        if ( ! f.exists() )
+            return null;
+
         if ( _inScopeInit )
             _initFlies.add( f );
 
@@ -203,7 +216,10 @@ public class AppContext {
 
     public JxpServlet getServlet( File f )
         throws IOException {
-        return getSource( f ).getServlet( this );
+        JxpSource source = getSource( f );
+        if ( source == null )
+            return null;
+        return source.getServlet( this );
     }
 
     private void _initScope(){

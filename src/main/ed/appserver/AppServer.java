@@ -189,13 +189,17 @@ public class AppServer implements HttpHandler {
             return;
         }
         
-        if ( ar.isStatic() ){
+        if ( ar.isStatic() && f.exists() ){
             if ( D ) System.out.println( f );
+
+            /*
             if ( ! f.exists() ){
                 response.setResponseCode( 404 );
                 response.getWriter().print( "file not found\n" );
                 return;
             }
+            */
+
             if ( f.isDirectory() ){
                 response.setResponseCode( 301 );
                 response.getWriter().print( "listing not allowed\n" );
@@ -220,7 +224,13 @@ public class AppServer implements HttpHandler {
         
         try {
             JxpServlet servlet = ar.getContext().getServlet( f );
-            servlet.handle( request , response , ar );
+            if ( servlet == null ){
+                response.setResponseCode( 404 );
+                response.getWriter().print( "not found" );
+            }
+            else {
+                servlet.handle( request , response , ar );
+            }
         }
         catch ( Exception e ){
             handleError( response , e );
@@ -228,7 +238,6 @@ public class AppServer implements HttpHandler {
         }
         finally {
             final long endTime = System.currentTimeMillis();
-            response.getWriter().print( "\n<!-- full page exec time : " + ( endTime - startTime ) + "ms -->\n" );
         }
         
     }

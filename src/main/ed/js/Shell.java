@@ -58,6 +58,12 @@ public class Shell {
                     return new JSNewFile.Local( fileName.toString() );
                 }
             } , true );
+
+        s.put( "getFile" , new JSFunctionCalls1(){
+		public Object call( Scope s , Object name , Object extra[] ){
+                    return new File( name.toString() );
+                }
+            } , true );
         
         s.put( "core" , new JSFileLibrary( new File( "/data/corejs" ) ,  "core" ) , true );
             

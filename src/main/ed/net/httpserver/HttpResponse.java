@@ -181,9 +181,16 @@ public class HttpResponse {
         throws IOException {
         // first line
         a.append( "HTTP/1.1 " );
-        a.append( String.valueOf( _responseCode ) ).append( " " );
-        a.append( "OK" );
-        a.append( "\n" );
+        {
+            String rc = String.valueOf( _responseCode );
+            a.append( rc ).append( " " );
+            Object msg = _responseMessages.get( rc );
+            if ( msg == null )
+                a.append( "OK" );
+            else
+                a.append( msg.toString() );
+            a.append( "\n" );
+        }
 
         // headers
         if ( _headers != null ){
@@ -447,5 +454,15 @@ public class HttpResponse {
     static ByteBufferPool _bbPool = new ByteBufferPool( 50 , CHAR_BUFFER_SIZE * 2 );
     static StringBuilderPool _headerBufferPool = new StringBuilderPool( 25 , 1024 );
     static Charset _utf8 = Charset.forName( "UTF-8" );
+
+    static final Properties _responseMessages = new Properties();
+    static {
+        try {
+            _responseMessages.load( ClassLoader.getSystemClassLoader().getResourceAsStream( "ed/net/httpserver/responseCodes.properties" ) );
+        }
+        catch ( IOException ioe ){
+            throw new RuntimeException( ioe );
+        }
+    }
     
 }
