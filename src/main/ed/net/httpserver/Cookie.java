@@ -10,4 +10,6 @@ public class Cookie {
 
     final String _name;
     final String _value;
+
+    String _path = "/";
 }
