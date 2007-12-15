@@ -309,6 +309,10 @@ public class HttpRequest implements ed.js.JSObject {
             throw new RuntimeException( "attachment already set" );
         _attachment = o;
     }
+
+    public PostData getPostData(){
+        return _postData;
+    }
     
     final HttpServer.HttpSocketHandler _handler;
     final String _firstLine;

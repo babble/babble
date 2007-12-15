@@ -172,8 +172,10 @@ public class JSBuiltInFunctions {
         _myScope.put( "isArray" , new isXXX( JSArray.class ) , true );
         _myScope.put( "isNumber" , new isXXX( Number.class ) , true );
         _myScope.put( "isObject" , new isXXX( JSObject.class ) , true );
+        _myScope.put( "isDate" , new isXXX( JSDate.class ) , true );
 
         _myScope.put( "isString" , new isXXXs( String.class , JSString.class ) , true );
+
         
         JSON.init( _myScope );
     }

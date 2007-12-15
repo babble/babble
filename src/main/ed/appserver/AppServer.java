@@ -244,7 +244,7 @@ public class AppServer implements HttpHandler {
 
     void handleError( HttpResponse response , Throwable t ){
         t.printStackTrace();
-        response.setResponseCode( 501 );
+        response.setResponseCode( 500 );
         
         JxpWriter writer = response.getWriter();
             

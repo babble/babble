@@ -75,7 +75,7 @@ public abstract class JSFile extends JSObjectBase {
        
     
     public String toString(){
-        return "{ JSFile.  filename:" + getFileName() + " contentType:" + getContentType() + " length:" + getLength() + " }";
+        return getFileName();
     }
 
     public Sender sender(){

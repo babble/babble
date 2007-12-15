@@ -291,6 +291,10 @@ public class HttpResponse {
     }
 
     public void sendFile( JSFile f ){
+        if ( f instanceof JSLocalFile ){
+            sendFile( ((JSLocalFile)f).getRealFile() );
+            return;
+        }
         _jsfile = f.sender();
         _headers.put( "Content-Length" , String.valueOf( f.getLength() ) );
         _headers.put( "Content-Type" , f.getContentType() );

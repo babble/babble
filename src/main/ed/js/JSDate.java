@@ -3,6 +3,7 @@
 package ed.js;
 
 import java.util.*;
+import java.text.*;
 
 import ed.js.func.*;
 import ed.js.engine.*;
@@ -48,8 +49,8 @@ public class JSDate extends JSObjectBase implements Comparable {
     static long parse( Object o , long def ){
         if ( o == null )
             return def;
-	if ( o instanceof java.util.Date )
-	    return ((java.util.Date)o).getTime();
+	if ( o instanceof Date )
+	    return ((Date)o).getTime();
         if ( ! ( o instanceof Number ) )
             return def;
         return ((Number)o).longValue();
@@ -90,7 +91,18 @@ public class JSDate extends JSObjectBase implements Comparable {
     }
 
     public String toString(){
-        return new java.util.Date( _time ).toString();
+        return new Date( _time ).toString();
+    }
+
+    public String format( String theFormat ){
+        SimpleDateFormat df = new SimpleDateFormat( theFormat );
+        return df.format( new Date( _time ) );
+    }
+
+    public String webFormat(){
+        synchronized ( _webFormat ){
+            return _webFormat.format( new Date( _time ) );
+        }
     }
 
     private void _cal(){
@@ -118,4 +130,9 @@ public class JSDate extends JSObjectBase implements Comparable {
 
     long _time;
     Calendar _c;
+
+    public static final DateFormat _webFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
+    static {
+	_webFormat.setTimeZone( TimeZone.getTimeZone("GMT") );
+    }
 }

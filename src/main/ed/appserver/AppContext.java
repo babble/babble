@@ -41,9 +41,9 @@ public class AppContext {
 		}
 	    } , true );
         
-        _scope.put( "getFile" , new JSFunctionCalls1(){
+        _scope.put( "openFile" , new JSFunctionCalls1(){
 		public Object call( Scope s , Object name , Object extra[] ){
-                    return new File( _rootFile , name.toString() );
+                    return new JSLocalFile( _rootFile , name.toString() );
                 }
             } , true );
 

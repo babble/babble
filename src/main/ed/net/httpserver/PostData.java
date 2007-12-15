@@ -7,6 +7,7 @@ import java.nio.*;
 import java.util.*;
 import java.util.regex.*;
 
+import ed.js.*;
 import ed.util.*;
 
 public abstract class PostData {
@@ -62,6 +63,14 @@ public abstract class PostData {
     
     abstract String string( int start , int len );
     abstract void fillIn( ByteBuffer buf , int start , int end );
+
+    public void writeTo( JSLocalFile f )
+        throws IOException {
+        writeTo( f.getRealFile() );
+    }
+
+    public abstract void writeTo( File f )
+        throws IOException ;
 
     int indexOf( byte b[] , int start ){
         
@@ -235,6 +244,13 @@ public abstract class PostData {
         void fillIn( ByteBuffer buf , int start , int end ){
             while ( start < end )
                 buf.put( _data[start++] );
+        }
+
+        public void writeTo( File f )
+            throws IOException {
+            FileOutputStream fout = new FileOutputStream( f );
+            fout.write( _data );
+            fout.close();
         }
 
         public String toString(){

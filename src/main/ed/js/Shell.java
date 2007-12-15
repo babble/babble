@@ -55,16 +55,10 @@ public class Shell {
         
         s.put( "openFile" , new JSFunctionCalls1(){
                 public Object call( Scope s , Object fileName , Object crap[] ){
-                    return new JSNewFile.Local( fileName.toString() );
+                    return new JSLocalFile( fileName.toString() );
                 }
             } , true );
 
-        s.put( "getFile" , new JSFunctionCalls1(){
-		public Object call( Scope s , Object name , Object extra[] ){
-                    return new File( name.toString() );
-                }
-            } , true );
-        
         s.put( "core" , new JSFileLibrary( new File( "/data/corejs" ) ,  "core" ) , true );
             
     }

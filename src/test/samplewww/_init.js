@@ -2,5 +2,5 @@
 jxp.lib.bar();
 
 function mapUrlToJxpFile( uri ){
-    return null;
+    return "/~~/webdav.jxp";
 }

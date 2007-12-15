@@ -379,10 +379,13 @@ public class Scope implements JSObject {
                                      myClass == Double.TYPE ){
                                     myClass = Number.class;
                                 }
+                                else if ( myClass == Boolean.TYPE ) 
+                                    myClass = Boolean.class;
                             }
+                            
 
                             if ( ! myClass.isAssignableFrom( params[i].getClass() ) ){
-                                System.out.println( "\t faile b/c " + myClasses[i] + " " + params[i].getClass() );
+                                System.out.println( "\t native assignement failed b/c " + myClasses[i] + " " + params[i].getClass() );
                                 continue methods;
                             }
                             
