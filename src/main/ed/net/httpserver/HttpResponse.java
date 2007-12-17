@@ -421,6 +421,7 @@ public class HttpResponse {
 
         public void reset(){
             _myStringContent.clear();
+            _resetBuf();
         }
 
         public String getContent(){
