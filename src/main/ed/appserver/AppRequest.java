@@ -64,11 +64,11 @@ public class AppRequest {
     }
 
     String getOverrideURI(){
-        String foo = getOverrideURI( "mapUrlToJxpFile" );
+        String foo = getOverrideURI( "mapUrlToJxpFileCore" );
         if ( foo != null )
             return foo;
 
-        foo = getOverrideURI( "mapUrlToJxpFileCore" );
+        foo = getOverrideURI( "mapUrlToJxpFile" );
         if ( foo != null )
             return foo;
         
