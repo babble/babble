@@ -60,7 +60,7 @@ public class ImportBinary {
     public static void main( String args[] )
         throws Exception {
         
-        load( new File( "crap/foo/" ) );
+        load( new File( args[0] ) );
         
     }
 }
