@@ -14,6 +14,8 @@ import ed.appserver.jxp.*;
 
 public class AppContext {
 
+    static final String INIT_FILES[] = new String[]{ "_init.js" , "/~~/core/init.js" };
+
     public AppContext( File f ){
         this( f.toString() );
     }
@@ -226,12 +228,14 @@ public class AppContext {
         _inScopeInit = true;
         
         try {
-            File f = getFile( "_init.js" );
-            if ( f.exists() ){
-                _initFlies.add( f );
-                JxpSource s = getSource( f );
-                JSFunction func = s.getFunction();
-                func.call( _scope );
+            for ( int i=0; i<INIT_FILES.length; i++ ){
+                File f = getFile( INIT_FILES[i] );
+                if ( f.exists() ){
+                    _initFlies.add( f );
+                    JxpSource s = getSource( f );
+                    JSFunction func = s.getFunction();
+                    func.call( _scope );
+                }
             }
 
             _lastScopeInitTime = _getScopeTime();
