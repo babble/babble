@@ -114,7 +114,7 @@ public abstract class JxpSource {
                 
                 String es = element.toString();
                 
-                if ( ! es.contains( _lastFileName ) )
+                if ( _lastFileName != null && ! es.contains( _lastFileName ) )
                     continue;
                 
                 int line = StringParseUtil.parseInt( es.substring( es.lastIndexOf( ":" ) + 1 ) , -1 );

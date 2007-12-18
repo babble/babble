@@ -205,8 +205,11 @@ public class JSInternalFunctions extends JSObjectBase {
     public static Boolean JS_eq( Object a , Object b ){
         if ( JS_sheq( a , b ) )
             return true;
-        
-        return a.equals( b );
+	
+	if ( a == null || b == null )
+	    return false;
+
+	return a.equals( b );
     }
 
     public Boolean JS_ge( Object a , Object b ){
