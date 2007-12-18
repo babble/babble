@@ -185,6 +185,11 @@ public class Convert {
         case Token.DEC:
             _assertOne( n );
             
+            Node tempChild = n.getFirstChild();
+            if ( ( tempChild.getType() == Token.NAME || tempChild.getType() == Token.GETVAR ) &&
+                 state.useLocalVariable( tempChild.getString() ) )
+                throw new RuntimeException( "can't increment local variables" );
+
             _append( "JS_inc( " , n );
             _createRef( n.getFirstChild() , state );
             _append( " , " , n );
@@ -507,17 +512,16 @@ public class Convert {
     }
     
     private void _createRef( Node n , State state ){
-        if ( n.getType() == Token.NAME || 
-             ( n.getType() == Token.GETVAR && ! state.useLocalVariable( n.getString() ) ) ){
+        
+        if ( n.getType() == Token.NAME || n.getType() == Token.GETVAR ){
+
+            if ( state.useLocalVariable( n.getString() ) )
+                throw new RuntimeException( "can't create a JSRef from a local variable : " + n.getString() );                
+
             _append( " new JSRef( scope , null , " , n );
             _append( "\"" + n.getString() + "\"" , n );
             _append( " ) " , n );
             return;
-        }
-        
-        if ( n.getType() == Token.GETVAR ){
-            Debug.printTree( n , 1 );
-            throw new RuntimeException( "can't create a JSRef from a local variable " );
         }
         
         if ( n.getType() == Token.GETPROP || 
@@ -765,7 +769,8 @@ public class Convert {
                         hasArguments = true;
                 
                 if ( cur.getType() == Token.INC )
-                    if ( cur.getFirstChild().getType() == Token.GETVAR )
+                    if ( cur.getFirstChild().getType() == Token.GETVAR || 
+                         cur.getFirstChild().getType() == Token.NAME )
                         state.addBadLocal( cur.getFirstChild().getString() );
                 
                 if ( cur.getNext() != null )
