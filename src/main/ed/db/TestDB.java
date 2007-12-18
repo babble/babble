@@ -10,6 +10,10 @@ import ed.js.engine.*;
 
 public class TestDB extends DBBase {
 
+    public TestDB(){
+	super( "stupid" );
+    }
+
     public DBCollection getCollectionFromFull( String fullNameSpace ){
         throw new RuntimeException( "not implemented" );
     }

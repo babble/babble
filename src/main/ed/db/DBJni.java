@@ -29,7 +29,8 @@ public class DBJni extends DBBase {
     }
     
     private DBJni( String root , String ip ){
-        
+	super( root );
+
         if ( _roots.get( root ) != null )
             throw new RuntimeException( "already have an instance for : " + root );
 

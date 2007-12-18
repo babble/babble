@@ -10,9 +10,17 @@ import ed.js.func.*;
 
 public abstract class DBBase extends JSObjectLame {
 
+    public DBBase( String name ){
+	_name = name;
+    }
+
     public abstract DBCollection getCollectionFromFull( String fullNameSpace );
     public abstract DBCollection getCollection( String name );
     public abstract Collection<String> getCollectionNames();
+
+    public String getName(){
+	return _name;
+    }
 
     public Object get( Object n ){
         if ( n == null )
@@ -45,4 +53,6 @@ public abstract class DBBase extends JSObjectLame {
         }
     }
     tojson _tojson = new tojson();
+
+    final String _name;
 }
