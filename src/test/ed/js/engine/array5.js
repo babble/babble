@@ -19,3 +19,8 @@ print( [ 6 , 123 , 1239 ,1231 ,129 , -123 , 91012 , -12 , 5 ].sort() );
 
 print( [ 6 , 123 , 1239 ,1231 ,129 , -123 , 91012 , -12 , 5 ].sort( function( l , r ){ return l - r; } ) );
 print( [ 6 , 123 , 1239 ,1231 ,129 , -123 , 91012 , -12 , 5 ].sort( function( l , r ){ return r - l; } ) );
+
+print( [ 6 , 3 , 2 , 3 , 3 ].indexOf( 3 ) );
+print( [ 6 , 3 , 2 , 3 , 3 ].indexOf( 3 , 2 ) );
+print( [ 6 , 3 , 2 , 3 , 3 , 1 ].indexOf( 3 , 10 ) );
+

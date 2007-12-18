@@ -169,6 +169,10 @@ public class JSInternalFunctions extends JSObjectBase {
 
     public static Boolean JS_eq( Object a , Object b ){
         //System.out.println( "comaparing " + _debug( a ) + " " + _debug( b ) );
+        
+        if ( a == b )
+            return true;
+        
         if ( a == null && b == null )
             return true;
         

@@ -124,6 +124,22 @@ public class JSArray extends JSObjectBase {
                     }
                 } );
 
+            _prototype.set( "indexOf" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object test , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        
+                        int start = 0;
+                        if ( foo != null && foo.length > 0 && foo[0] instanceof Number )
+                            start = ((Number)foo[0]).intValue();
+
+                        for ( int i=start; i<a._array.size(); i++ )
+                            if ( test == a._array.get( i ) )
+                                return i;
+                        
+                        return -1;
+                    }
+                } );
+
             _prototype.set( "sort" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object func , Object foo[] ){
                         JSArray a = (JSArray)(s.getThis());
