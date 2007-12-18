@@ -3,8 +3,13 @@
 package ed.js;
 
 public class JSException extends RuntimeException {
+
     public JSException( Object o ){
-        super( o.toString() );
+        this( o , null );
+    }
+    
+    public JSException( Object o , Throwable t ){
+        super( o.toString() , t );
         _object = o;
     }
 
