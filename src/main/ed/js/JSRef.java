@@ -26,7 +26,7 @@ public class JSRef {
     }
 
     public String toString(){
-        return "Scope: " + ( _scope != null ) + " Object : " + ( _object != null ) + " Key : " + _key ;
+        return "[[JSRef Scope: " + ( _scope != null ) + " Object : " + ( _object != null ) + " Key : " + _key + " ]]";
     }
 
     private final Scope _scope;
