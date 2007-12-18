@@ -84,6 +84,10 @@ public class JSInternalFunctions extends JSObjectBase {
         
         if ( foo instanceof Number )
             return ((Number)foo).doubleValue() != 0;
+        
+        if ( foo instanceof String || 
+             foo instanceof JSString )
+            return foo.toString().length() > 0 ;
 
         return true;
     }
