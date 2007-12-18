@@ -62,6 +62,10 @@ public class HttpRequest implements ed.js.JSObject {
         return _uri;
     }
 
+    public String getURL(){
+        return _url;
+    }
+
     public String getRawHeader(){
         return _rawHeader;
     }
