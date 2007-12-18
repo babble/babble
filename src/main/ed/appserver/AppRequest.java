@@ -90,10 +90,16 @@ public class AppRequest {
     }
     
     String getWantedURI(){
+        if ( _wantedURI != null )
+            return _wantedURI;
+        
         String override = getOverrideURI();
         if ( override != null )
-            return override;
-        return getURI();
+            _wantedURI = override;
+        else
+            _wantedURI = getURI();
+        
+        return _wantedURI;
     }
     
 
@@ -105,4 +111,6 @@ public class AppRequest {
     final HttpRequest _request;
     final AppContext _context;
     final Scope _scope;
+
+    String _wantedURI = null;
 }
