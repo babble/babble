@@ -383,6 +383,7 @@ public class Convert {
         case Token.ADD:
         case Token.SUB:
         case Token.EQ:
+        case Token.SHEQ:
         case Token.GE:
         case Token.LE:
         case Token.LT:
@@ -1252,6 +1253,7 @@ public class Convert {
         _2ThingThings.put( Token.SUB , "sub" );
         _2ThingThings.put( Token.DIV , "div" );
         
+        _2ThingThings.put( Token.SHEQ , "sheq" );
         _2ThingThings.put( Token.EQ , "eq" );
         _2ThingThings.put( Token.NE , "eq" );
         

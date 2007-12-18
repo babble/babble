@@ -133,7 +133,7 @@ public class JSArray extends JSObjectBase {
                             start = ((Number)foo[0]).intValue();
 
                         for ( int i=start; i<a._array.size(); i++ )
-                            if ( test == a._array.get( i ) )
+                            if ( JSInternalFunctions.JS_sheq( test , a._array.get( i )  ) )
                                 return i;
                         
                         return -1;

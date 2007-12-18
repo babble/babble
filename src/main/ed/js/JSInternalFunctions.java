@@ -171,9 +171,7 @@ public class JSInternalFunctions extends JSObjectBase {
         return new JSString( s1 + s2 );
     }
 
-    public static Boolean JS_eq( Object a , Object b ){
-        //System.out.println( "comaparing " + _debug( a ) + " " + _debug( b ) );
-        
+    public static Boolean JS_sheq( Object a , Object b ){
         if ( a == b )
             return true;
         
@@ -194,9 +192,19 @@ public class JSInternalFunctions extends JSObjectBase {
         
         if ( a instanceof JSString )
             a = a.toString();
-
+        
         if ( b instanceof JSString )
             b = b.toString();
+        
+        if ( a instanceof String && b instanceof String )
+            return a.equals( b );
+        
+        return false;
+    }
+    
+    public static Boolean JS_eq( Object a , Object b ){
+        if ( JS_sheq( a , b ) )
+            return true;
         
         return a.equals( b );
     }
