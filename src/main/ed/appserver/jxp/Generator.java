@@ -53,6 +53,7 @@ public class Generator {
         for ( int i=0; i<lines.length; i++ ){
             String line = lines[i];
             _append( "print( \"" , b );
+            line = StringUtil.replace( line , "\\" , "\\\\" );
             line = StringUtil.replace( line , "\"" , "\\\"" );
             _append( line , b );
             if ( i + 1 < lines.length )
