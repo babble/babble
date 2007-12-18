@@ -2,6 +2,9 @@
 
 package ed.js;
 
+import ed.io.*;
+import ed.util.*;
+
 import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
@@ -76,6 +79,15 @@ public class JSLocalFile extends JSNewFile {
     }
 
     // ----- 
+
+    public String getDataAsString(){
+	try {
+	    return StreamUtil.readFully( new FileInputStream( _file ) );
+	}
+	catch ( IOException ioe ){
+	    throw new JSException( "couldn't read : " + _file , ioe );
+	}
+    }
 
     public String getName(){
         return _file.getName();
