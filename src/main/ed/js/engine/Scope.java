@@ -28,10 +28,16 @@ public class Scope implements JSObject {
     public Scope( String name , Scope parent ){
         this( name , parent , null );
     }
-
+    
     public Scope( String name , Scope parent , Scope alternate ){
+        this( name , parent , alternate , null );
+    }
+
+    
+    public Scope( String name , Scope parent , Scope alternate , File root ){
         _name = name;
         _parent = parent;
+        _root = root;
         
         Scope alt = null;
         if ( alternate != null ){
@@ -47,7 +53,11 @@ public class Scope implements JSObject {
     }
 
     public Scope child(){
-        return new Scope( _name + ".child" , this );
+        return child( null );
+    }
+    
+    public Scope child( File f ){
+        return new Scope( _name + ".child" , this , null , f );
     }
 
     public Object set( Object n , Object v ){
@@ -287,13 +297,27 @@ public class Scope implements JSObject {
         return f.call( this );
     }
     
+    /**
+     * returns my root.  if i have none, returns my parent's root
+     */
+    public File getRoot(){
+        if ( _root != null )
+            return _root;
+        
+        if ( _parent == null )
+            return null;
+        
+        return _parent.getRoot();
+    }
+
     final String _name;
     final Scope _parent;
     final Scope _alternate;
+    final File _root;
     public final int _id = ID++;
     
     private static int ID = 1;
-
+    
     boolean _locked = false;
     boolean _global = false;
     

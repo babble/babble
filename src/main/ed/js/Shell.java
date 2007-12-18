@@ -68,8 +68,8 @@ public class Shell {
         
         //System.setOut( new PrintStream( _myOutputStream ) );
         
-        Scope s = Scope.GLOBAL.child();
-        
+        Scope s = Scope.GLOBAL.child( new File("." ) );
+
         addNiceShellStuff( s );
 
         File init = new File( System.getenv( "HOME" ) + "/.init.js" );

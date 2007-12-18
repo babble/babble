@@ -29,7 +29,7 @@ public class AppContext {
         _root = root;
         _rootFile = new File( _root );
 
-        _scope = new Scope( "AppContext:" + root , Scope.GLOBAL );
+        _scope = new Scope( "AppContext:" + root , Scope.GLOBAL , null , _rootFile );
         
         _jxpObject = new JSFileLibrary( _rootFile , "jxp" );
         _scope.put( "jxp" , _jxpObject , true );

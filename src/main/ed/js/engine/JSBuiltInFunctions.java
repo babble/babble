@@ -2,10 +2,14 @@
 
 package ed.js.engine;
 
+import java.io.*;
+import java.util.*;
+
 import com.twmacinta.util.*;
 
 import ed.js.*;
 import ed.js.func.*;
+import ed.io.*;
 import ed.net.*;
 
 public class JSBuiltInFunctions {
@@ -120,8 +124,39 @@ public class JSBuiltInFunctions {
         final Class _c[];
     }
 
+    public static class sysexec extends JSFunctionCalls1 {
+        public Object call( Scope scope , Object o , Object extra[] ){
+            if ( o == null )
+                return null;
+            
+            // TODO: security
+
+            File root = scope.getRoot();
+            if ( root == null )
+                throw new JSException( "no root" );
+            
+            String cmd = o.toString();
+            String env[] = new String[]{};
+            
+            try {
+                Process p = Runtime.getRuntime().exec( cmd , env , root );
+                
+                JSObject res = new JSObjectBase();
+                res.set( "out" , StreamUtil.readFully( p.getInputStream() ) );
+                res.set( "err" , StreamUtil.readFully( p.getErrorStream() ) );
+                
+                return res;
+            }
+            catch ( Throwable t ){
+                throw new JSException( t.toString() , t );
+            }
+            
+        }        
+    }
+    
     static Scope _myScope = new Scope( "Built-Ins" , null );
     static {
+        _myScope.put( "sysexec" , new sysexec() , true );
         _myScope.put( "print" , new print() , true );
         _myScope.put( "printnoln" , new print( false ) , true );
         _myScope.put( "SYSOUT" , new print() , true );
