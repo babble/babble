@@ -476,11 +476,11 @@ public class Convert {
             if ( cc.getNext().getNext() != null )
                 throw new RuntimeException( "what?" );
             
-            _append( " JS_or( " , n );
+            _append( "( scope.orSave( " , n );
             _add( cc , state );
-            _append( " , " , n );
+            _append( " ) ? scope.getOrSave() : ( " , n );
             _add( cc.getNext() , state );
-            _append( " ) " , n);
+            _append( " ) ) " , n );
 
             break;
             

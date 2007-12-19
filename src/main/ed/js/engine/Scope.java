@@ -310,6 +310,19 @@ public class Scope implements JSObject {
         return _parent.getRoot();
     }
 
+    public boolean orSave( Object a ){
+
+        boolean res = JSInternalFunctions.JS_evalToBool( a );
+        if ( res )
+            _orSave = a;
+
+        return res;
+    }
+
+    public Object getOrSave(){
+        return _orSave;
+    }
+
     final String _name;
     final Scope _parent;
     final Scope _alternate;
@@ -324,6 +337,7 @@ public class Scope implements JSObject {
     Map<String,Object> _objects;
     
     Stack<This> _this = new Stack<This>();
+    Object _orSave;
 
     static class This {
         This( JSObject o ){

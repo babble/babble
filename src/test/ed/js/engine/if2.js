@@ -61,6 +61,14 @@ else if ( a ) print( "a" );
 else if ( c );
 else if ( d ) print( "a" );
 
+var a = 5;
+var b = 6;
+print( a || b );
 
+a = { };
+print( ! ( a || a.b.c ) );
+
+a = null;
+print( ( ! a || a.asd ) );
 
 
