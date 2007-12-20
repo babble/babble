@@ -11,8 +11,6 @@ import ed.js.engine.*;
 
 public class JSString extends JSObjectBase {
 
-    static JSString EMPTY = new JSString("");
-
     public static JSFunction _cons = new JSStringCons();
     
     static class JSStringCons extends JSFunctionCalls1{
@@ -291,6 +289,8 @@ public class JSString extends JSObjectBase {
         }
     };
     
+    static JSString EMPTY = new JSString("");
+
     public JSString( String s ){
         super( _cons );
         _s = s;
