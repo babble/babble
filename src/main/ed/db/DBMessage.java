@@ -31,13 +31,10 @@ public class DBMessage {
     }
 
     void putHeader( ByteBuffer buf ){
-        
         buf.putInt( _len );
         buf.putInt( _id ) ;
         buf.putInt( _responseTo );
         buf.putInt( _operation );
-        
-        buf.putInt( 0 , buf.position() );
     }
 
     ByteBuffer getData(){
