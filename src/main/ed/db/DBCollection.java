@@ -60,9 +60,10 @@ public abstract class DBCollection extends JSObjectLame {
     // ------
 
     protected DBCollection( DBBase base , String name ){
-        _base =  base;
+        _base = base;
         _name = name;
 
+        _entries.put( "base" , _base.getName() );
         _entries.put( "name" , _name );
 
         _save = new JSFunctionCalls1() {

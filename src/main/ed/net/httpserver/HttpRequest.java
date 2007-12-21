@@ -187,6 +187,9 @@ public class HttpRequest implements ed.js.JSObject {
         return StringParseUtil.parseInt( getParameter( n ) , def );
     }
 
+    public List<String> getParameters( String name ){
+	return _parameters.get( name );
+    }
 
     public String getParameter( String name ){
         return getParameter( name , null );
@@ -194,9 +197,9 @@ public class HttpRequest implements ed.js.JSObject {
 
     public String getParameter( String name , String def ){
         _finishParsing();
-        String s = _parameters.get( name );
-        if ( s != null )
-            return s;
+        List<String> s = _parameters.get( name );
+        if ( s != null && s.size() > 0 )
+            return s.get(0);
         return def;
     }
 
@@ -294,14 +297,20 @@ public class HttpRequest implements ed.js.JSObject {
     void _addParm( String n , String val ){
         
         n = n.trim();
-        
+	
+	List<String> lst = _parameters.get( n );
+	if ( lst == null ){
+	    lst = new ArrayList<String>();
+	    _parameters.put( n , lst );
+	}
+
         if ( val == null ){
-            _parameters.put( n , val );
+            lst.add( val );
             return;
         }
         val = val.trim();
         val = _urlDecode( val );
-        _parameters.put( n , val );
+	lst.add( val );
     }
 
     public Object getAttachment(){
@@ -327,7 +336,7 @@ public class HttpRequest implements ed.js.JSObject {
     PostData _postData;
 
     boolean _parsedURL = false;
-    final Map<String,String> _parameters = new StringMap<String>();
+    final Map<String,List<String>> _parameters = new StringMap<List<String>>();
 
     final String _rawHeader;
     final String _command;
