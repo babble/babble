@@ -218,11 +218,25 @@ public class DBJni extends DBBase {
             if ( fields != null )
                 encoder.putObject( null , fields ); // fields to return
             encoder.flip();
-            
+
             ByteDecoder decoder = ByteDecoder.get( _dbbase , _fullNameSpace );
-            
-            int len = query( _sock , encoder._buf , encoder._buf.position() , encoder._buf.limit() , decoder._buf );
-            decoder.doneReading( len );
+
+            if ( false ){
+                try {
+                    System.out.println( "using this thing" );
+                    DBPort port = new DBPort();
+                    DBMessage a = new DBMessage( 2004 , encoder._buf );
+                    DBMessage b = port.call( a , decoder._buf );
+                    decoder.doneReading( b.dataLen() );
+                }
+                catch ( Exception ee ){
+                    throw new RuntimeException( "adasd" , ee );
+                }
+            }
+            else {
+                int len = query( _sock , encoder._buf , encoder._buf.position() , encoder._buf.limit() , decoder._buf );
+                decoder.doneReading( len );
+            }
             
             SingleResult res = new SingleResult( _fullNameSpace , decoder );
             
@@ -454,7 +468,7 @@ public class DBJni extends DBBase {
     private static native long createSock( String name );
 
     private synchronized static native String msg( long sock );
-    private synchronized  static native void insert( long sock , ByteBuffer buf , int position , int limit );
+    private synchronized static native void insert( long sock , ByteBuffer buf , int position , int limit );
     private synchronized static native void doDelete( long sock , ByteBuffer buf , int position , int limit );
     private synchronized static native void doUpdate( long sock , ByteBuffer buf , int position , int limit );
     private synchronized static native int query( long sock , ByteBuffer buf , int position , int limit , ByteBuffer res );
