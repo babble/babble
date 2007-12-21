@@ -50,7 +50,7 @@ public class TestDB extends DBBase {
             throw new RuntimeException( "not implemented" );
         }
 
-        public JSObject update( JSObject q , JSObject o , boolean upsert ){
+        public JSObject update( JSObject q , JSObject o , boolean upsert , boolean apply ){
             throw new RuntimeException( "not implemented" );
         }
         

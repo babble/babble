@@ -235,7 +235,7 @@ public class DBJni extends DBBase {
             return new Result( this , res , numToReturn );
         }
 
-        public JSObject update( JSObject query , JSObject o , boolean upsert ){
+        public JSObject update( JSObject query , JSObject o , boolean upsert , boolean apply ){
             apply( o );
             
             ByteEncoder encoder = ByteEncoder.get();
@@ -464,40 +464,5 @@ public class DBJni extends DBBase {
     static final List<JSObject> EMPTY = Collections.unmodifiableList( new LinkedList<JSObject>() );
     static final long _defaultIp;
     
-    // ----- TESTING
-    
-    public static void main( String args[] ){
-        
-        MyCollection c = (new DBJni( "eliot" ) ).getCollection( "t1" );
-        
-        JSObject o = new JSObjectBase();
-        o.set( "jumpy" , "yes" );
-        o.set( "name"  , "ab" );
-        c.save( o );
-
-        for ( int i=0; i<100; i++ ){
-            System.out.println( i );
-            o = new JSObjectBase();
-            o.set( "jumpyasd" , "no" );
-            o.set( "name"  , "asd" + Math.random() );
-            c.save( o );
-        }
-        
-        System.out.println( "done saving" );
-     
-        JSObject q = new JSObjectBase();
-        System.out.println( "2 things : " + c.find( q ) );
-
-        c.update( o , o , true );
-
-        System.out.println( c.find( q ) );
-
-        JSObjectBase d = new JSObjectBase();
-        d.set( "name" , "ab" );
-        c.remove( d );
-        System.out.println( c.find( new JSObjectBase() ) );
-
-        
-    }
     
 }

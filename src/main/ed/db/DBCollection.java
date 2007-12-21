@@ -12,7 +12,7 @@ import ed.js.engine.*;
 public abstract class DBCollection extends JSObjectLame {
     
     public abstract JSObject save( JSObject o );
-    public abstract JSObject update( JSObject q , JSObject o , boolean upsert );
+    public abstract JSObject update( JSObject q , JSObject o , boolean upsert , boolean apply );
 
     protected abstract ObjectId doapply( JSObject o );
     public abstract int remove( JSObject id );
@@ -123,7 +123,7 @@ public abstract class DBCollection extends JSObjectLame {
                     System.out.println( jo.get( "_id" ) );
                     JSObject q = new JSObjectBase();
                     q.set( "_id" , jo.get( "_id" ) );
-                    return update( q , jo , true );
+                    return update( q , jo , true , true );
                 }
             };
         _entries.put( "save" , _save );
@@ -138,13 +138,17 @@ public abstract class DBCollection extends JSObjectLame {
                         throw new RuntimeException( "can't only save JSObject" );
                     
                     boolean upsert = false;
-
+                    boolean apply = true;
+                    
                     if ( foo != null && foo.length > 0 && foo[0] instanceof JSObject ){
                         JSObject params = (JSObject)foo[0];
+                        
                         upsert = JSInternalFunctions.JS_evalToBool( params.get( "upsert" ) );
+                        if ( params.get( "ids" ) != null )
+                            apply = JSInternalFunctions.JS_evalToBool( params.get( "ids" ) );
                     }
 
-                    return update( (JSObject)q , (JSObject)o , upsert );
+                    return update( (JSObject)q , (JSObject)o , upsert , apply );
                 }
             };
         _entries.put( "update" , _update );
