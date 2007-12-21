@@ -236,7 +236,8 @@ public class DBJni extends DBBase {
         }
 
         public JSObject update( JSObject query , JSObject o , boolean upsert , boolean apply ){
-            apply( o );
+            if ( apply )
+                apply( o );
             
             ByteEncoder encoder = ByteEncoder.get();
             encoder._buf.putInt( 0 ); // reserved
