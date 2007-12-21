@@ -136,7 +136,14 @@ public abstract class DBCollection extends JSObjectLame {
                     if ( ! ( q instanceof JSObject ) )
                         throw new RuntimeException( "can't only save JSObject" );
                     
-                    return update( (JSObject)q , (JSObject)o , false );
+                    boolean upsert = false;
+
+                    if ( foo != null && foo.length > 0 && foo[0] instanceof JSObject ){
+                        JSObject params = (JSObject)foo[0];
+                        upsert = JSInternalFunctions.JS_evalToBool( params.get( "upsert" ) );
+                    }
+
+                    return update( (JSObject)q , (JSObject)o , upsert );
                 }
             };
         _entries.put( "update" , _update );
