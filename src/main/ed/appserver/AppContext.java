@@ -34,11 +34,11 @@ public class AppContext {
         _jxpObject = new JSFileLibrary( _rootFile , "jxp" );
         _scope.put( "jxp" , _jxpObject , true );
         
-        _scope.put( "db" , DBJni.get( _name ) , true );
+        _scope.put( "db" , DBProvider.get( _name ) , true );
 	_scope.put( "setDB" , new JSFunctionCalls1(){
 		public Object call( Scope s , Object name , Object extra[] ){
 		    System.out.println( "name:" + name + " _scope:" + _scope );
-		    s.put( "db" , DBJni.get( name.toString() ) , false );
+		    s.put( "db" , DBProvider.get( name.toString() ) , false );
 		    return true;
 		}
 	    } , true );

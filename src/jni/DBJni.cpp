@@ -62,7 +62,7 @@ JNIEXPORT jstring JNICALL Java_ed_db_DBJni_msg(JNIEnv *, jclass , jlong sa ){
   return 0;
 }
 
-JNIEXPORT void JNICALL Java_ed_db_DBJni_insert(JNIEnv * env , jclass, jlong sa  , jobject bb , jint position , jint limit ){
+JNIEXPORT void JNICALL Java_ed_db_DBJni_native_insert(JNIEnv * env , jclass, jlong sa  , jobject bb , jint position , jint limit ){
   CHECK_SA
   
   Message send;
@@ -73,7 +73,7 @@ JNIEXPORT void JNICALL Java_ed_db_DBJni_insert(JNIEnv * env , jclass, jlong sa  
   return;
 }
 
-JNIEXPORT void JNICALL Java_ed_db_DBJni_doDelete(JNIEnv * env , jclass, jlong sa  , jobject bb , jint position , jint limit ){
+JNIEXPORT void JNICALL Java_ed_db_DBJni_native_delete(JNIEnv * env , jclass, jlong sa  , jobject bb , jint position , jint limit ){
   CHECK_SA
   
   Message send;
@@ -84,7 +84,7 @@ JNIEXPORT void JNICALL Java_ed_db_DBJni_doDelete(JNIEnv * env , jclass, jlong sa
   return;
 }
 
-JNIEXPORT void JNICALL Java_ed_db_DBJni_doUpdate(JNIEnv * env , jclass, jlong sa  , jobject bb , jint position , jint limit ){
+JNIEXPORT void JNICALL Java_ed_db_DBJni_native_update(JNIEnv * env , jclass, jlong sa  , jobject bb , jint position , jint limit ){
   CHECK_SA
   
   Message send;
@@ -96,7 +96,7 @@ JNIEXPORT void JNICALL Java_ed_db_DBJni_doUpdate(JNIEnv * env , jclass, jlong sa
 }
 
 
-JNIEXPORT jint JNICALL Java_ed_db_DBJni_query(JNIEnv * env , jclass, jlong sa , jobject bb , jint position , jint limit , jobject res ){
+JNIEXPORT jint JNICALL Java_ed_db_DBJni_native_query(JNIEnv * env , jclass, jlong sa , jobject bb , jint position , jint limit , jobject res ){
   CHECK_SA
   
   Message send;
@@ -113,7 +113,7 @@ JNIEXPORT jint JNICALL Java_ed_db_DBJni_query(JNIEnv * env , jclass, jlong sa , 
 }
 
 
-JNIEXPORT jint JNICALL Java_ed_db_DBJni_getMore(JNIEnv * env , jclass, jlong sa , jobject bb , jint position , jint limit , jobject res ){
+JNIEXPORT jint JNICALL Java_ed_db_DBJni_native_getMore(JNIEnv * env , jclass, jlong sa , jobject bb , jint position , jint limit , jobject res ){
   CHECK_SA
   
   Message send;
