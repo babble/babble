@@ -80,6 +80,8 @@ public class DBPort {
         throws IOException {
         _sock = SocketChannel.open();
         _sock.connect( _addr );
+
+        _sock.socket().setTcpNoDelay( true );
     }
     
     public String toString(){
