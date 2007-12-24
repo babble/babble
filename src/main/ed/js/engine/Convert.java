@@ -966,7 +966,7 @@ public class Convert {
         return num;
     }
 
-    private void _assertOne( Node n ){
+    public static void _assertOne( Node n ){
         if ( n.getFirstChild() == null ){
             Debug.printTree( n , 0 );
             throw new RuntimeException( "no child" );
@@ -977,7 +977,7 @@ public class Convert {
         }
     }
 
-    private void _assertType( Node n , int type ){
+    public static void _assertType( Node n , int type ){
         if ( type != n.getType() )
             throw new RuntimeException( "wrong type" );
     }

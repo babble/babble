@@ -4,6 +4,8 @@ package ed.js;
 
 import java.util.*;
 
+import org.mozilla.javascript.*;
+
 import ed.js.func.*;
 import ed.js.engine.*;
 
@@ -16,14 +18,19 @@ public class JSON {
     }
     
     public static void init( Scope s ){
+
         s.put( "tojson" , new JSFunctionCalls1(){
                 public Object call( Scope s , Object o , Object foo[] ){
                     return serialize( o );
                 }
-            }
-            , true
+            } , true
             );
         
+        s.put( "fromjson" , new JSFunctionCalls1(){
+                public Object call( Scope s , Object o , Object foo[] ){
+                    return parse( o.toString() );
+                }
+            } , true );
     }
 
     public static String serialize( Object o ){
@@ -169,6 +176,67 @@ public class JSON {
             a.append( " }\n"  );
         }
 
+    }
+
+
+    public static Object parse( String s ){
+        CompilerEnvirons ce = new CompilerEnvirons();
+        Parser p = new Parser( ce , ce.getErrorReporter() );
+
+        ScriptOrFnNode theNode = p.parse( "return " + s + ";" , "foo" , 0 );
+        
+        Node ret = theNode.getFirstChild();
+        Convert._assertType( ret , Token.RETURN );
+        Convert._assertOne( ret );
+        
+        Node lit = ret.getFirstChild();
+        if ( lit.getType() != Token.OBJECTLIT && lit.getType() != Token.ARRAYLIT ){
+            Debug.printTree( lit , 0 );
+            throw new JSException( "not a literal" );
+        }
+        
+        return build( lit );
+    }
+
+    private static Object build( Node n ){
+        if ( n == null )
+            return null;
+        
+        Node c;
+
+        switch ( n.getType() ){
+            
+        case Token.OBJECTLIT:
+            JSObject o = new JSObjectBase();
+            Object[] names = (Object[])n.getProp( Node.OBJECT_IDS_PROP );
+            int i=0;
+            
+            c = n.getFirstChild();
+            while ( c != null ){
+                o.set( names[i++].toString() , build( c ) );
+                c = c.getNext();
+            }            
+
+            return o;
+
+        case Token.ARRAYLIT:
+            JSArray a = new JSArray();
+            c = n.getFirstChild();
+            while ( c != null ){
+                a.add( build( c ) );
+                c = c.getNext();
+            }
+            return a;
+        
+        case Token.NUMBER:
+            return n.getDouble();
+        case Token.STRING:
+            return new JSString( n.getString() );
+
+        }
+        
+        Debug.printTree( n , 0 );
+        throw new RuntimeException( "what: " + n.getType() );
     }
 }
 
