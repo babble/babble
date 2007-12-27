@@ -194,12 +194,27 @@ public class AppContext {
 
         return f;
     }
+
+    File tryIndex( File f ){
+        if ( f.exists() )
+            return f;
+        
+        if ( ! f.isDirectory() )
+            return f;
+        
+        File temp = new File( f , "index.jxp" );
+        if ( temp.exists() )
+            return temp;
+        
+        return f;
+    }
     
     public JxpSource getSource( File f )
         throws IOException {
     
         f = tryNoJXP( f );
         f = tryServlet( f );
+        f = tryIndex( f );
 
         if ( ! f.exists() )
             return null;
