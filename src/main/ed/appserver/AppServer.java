@@ -169,8 +169,10 @@ public class AppServer implements HttpHandler {
         if ( allowed != null ){
             Object foo = allowed.call( ar.getScope() , request , response , jsURI );
             if ( foo != null ){
-                response.setResponseCode( 401 );
-                response.getWriter().print( "not allowed" );
+                if ( response.getResponseCode() == 200 ){
+                    response.setResponseCode( 401 );
+                    response.getWriter().print( "not allowed" );
+                }
                 return;
             }
         }

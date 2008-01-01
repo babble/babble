@@ -38,14 +38,7 @@ public class Shell {
 
         s.put( "connect" , new JSFunctionCalls2(){
                 public Object call( Scope s , Object name , Object ip , Object crap[] ){
-                    String key = ip + ":" + name;
-                    DBJni db = _dbs.get( key );
-                    if ( db != null )
-                        return db;
-                    
-                    db = DBJni.get( name.toString() , ip == null ? null : ip.toString() );
-                    _dbs.put( key , db );
-                    return db;
+                    return DBProvider.get( name.toString() , ip == null ? null : ip.toString() );
                 }
                 
                 Map<String,DBJni> _dbs = new HashMap<String,DBJni>();

@@ -50,6 +50,9 @@ public class Scope implements JSObject {
             }
         }
         _alternate = alt;
+
+        if ( _parent == null )
+            _globalThis = new JSObjectBase();
     }
 
     public Scope child(){
@@ -226,8 +229,16 @@ public class Scope implements JSObject {
     
     public JSObject getThis(){
         if ( _this.size() == 0 )
-            return null;
+            return getGlobalThis();
         return _this.peek()._this;
+    }
+
+    public JSObject getGlobalThis(){
+        if ( _globalThis != null )
+            return _globalThis;
+        if ( _parent != null )
+            return _parent.getGlobalThis();
+        return null;
     }
 
     public JSObject clearThisNew( Object whoCares ){
@@ -256,6 +267,15 @@ public class Scope implements JSObject {
 
     public void setGlobal( boolean g ){
         _global = g;
+
+        if ( _global ){
+            if ( _globalThis == null )
+                _globalThis = new JSObjectBase();
+        }
+        else {
+            _globalThis = null;
+        }
+            
     }
 
     public Object evalFromPath( String file , String name )
@@ -338,6 +358,7 @@ public class Scope implements JSObject {
     
     Stack<This> _this = new Stack<This>();
     Object _orSave;
+    JSObject _globalThis;
 
     static class This {
         This( JSObject o ){

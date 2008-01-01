@@ -34,11 +34,11 @@ public class AppContext {
         _jxpObject = new JSFileLibrary( _rootFile , "jxp" );
         _scope.put( "jxp" , _jxpObject , true );
         
-        _scope.put( "db" , DBJni.get( _name ) , true );
+        _scope.put( "db" , DBProvider.get( _name ) , true );
 	_scope.put( "setDB" , new JSFunctionCalls1(){
 		public Object call( Scope s , Object name , Object extra[] ){
 		    System.out.println( "name:" + name + " _scope:" + _scope );
-		    s.put( "db" , DBJni.get( name.toString() ) , false );
+		    s.put( "db" , DBProvider.get( name.toString() ) , false );
 		    return true;
 		}
 	    } , true );
@@ -194,12 +194,27 @@ public class AppContext {
 
         return f;
     }
+
+    File tryIndex( File f ){
+        if ( f.exists() )
+            return f;
+        
+        if ( ! f.isDirectory() )
+            return f;
+        
+        File temp = new File( f , "index.jxp" );
+        if ( temp.exists() )
+            return temp;
+        
+        return f;
+    }
     
     public JxpSource getSource( File f )
         throws IOException {
     
         f = tryNoJXP( f );
         f = tryServlet( f );
+        f = tryIndex( f );
 
         if ( ! f.exists() )
             return null;

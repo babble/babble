@@ -34,7 +34,7 @@ public class ImportBinary {
         final String ns = f.getName().replaceAll( "\\.bin$" , "" );
         final String root = f.getParentFile().getName();
         
-        DBJni db = DBJni.get( root );
+        DBApiLayer db = DBProvider.get( root );
         DBCollection coll = db.getCollection( ns );
         
         System.out.println( "full ns : " + root + "." + ns );

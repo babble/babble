@@ -14,14 +14,14 @@ public class Export {
 
         PrintStream out = new PrintStream( raw );
         
-        for ( String root : DBJni.getRootNamespaces( ip ) ){
+        for ( String root : DBApiLayer.getRootNamespaces( ip ) ){
             export( root , ip , out );
         }
     }
 
     static void export( String root , String ip , PrintStream out )
         throws IOException {
-        DBJni db = DBJni.get( root , ip );
+        DBApiLayer db = DBProvider.get( root , ip );
         out.println( "var " + root + " = connect( \"" + root + "\" );" );
         
         for ( String t : db.getCollectionNames() ){
@@ -60,7 +60,7 @@ public class Export {
         File dir = new File( args[1] );
         dir.mkdirs();
         
-        for ( String root : DBJni.getRootNamespaces( ip ) ){
+        for ( String root : DBApiLayer.getRootNamespaces( ip ) ){
             FileOutputStream raw = new FileOutputStream( new File( dir , root + ".txt" ) );
             PrintStream out = new PrintStream( raw );
             export( root , ip , out );

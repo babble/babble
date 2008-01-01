@@ -38,6 +38,10 @@ public class HttpResponse {
         _responseCode = rc;
     }
 
+    public int getResponseCode(){
+        return _responseCode;
+    }
+
     public void addCookie( String name , String value ){
         _cookies.add( new Cookie( name , value ) );
     }
