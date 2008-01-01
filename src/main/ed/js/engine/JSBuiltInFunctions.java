@@ -125,6 +125,47 @@ public class JSBuiltInFunctions {
     }
 
     public static class sysexec extends JSFunctionCalls1 {
+
+	static String[] fix( String s ){
+	    String base[] = s.split( "\\s+" );
+        
+	    List<String> fixed = new ArrayList();
+	    boolean changed = false;
+        
+	    for ( int i=0; i<base.length; i++ ){
+
+		if ( ! base[i].startsWith( "\"" ) ){
+		    fixed.add( base[i] );
+		    continue;
+		}
+            
+		int end = i;
+		while( end < base.length && ! base[end].endsWith( "\"" ) )
+		    end++;
+            
+		String foo = base[i++].substring( 1 );
+		for ( ; i<=end && i < base.length; i++ )
+		    foo += " " + base[i];
+
+		i--;
+
+		if ( foo.endsWith( "\"" ) )
+		    foo = foo.substring( 0 , foo.length() - 1 );
+            
+		fixed.add( foo );
+		changed = true;
+	    }
+
+	    if ( changed ){
+		System.out.println( fixed );
+		base = new String[fixed.size()];
+		for ( int i=0; i<fixed.size(); i++ )
+		    base[i] = fixed.get(i);
+	    }
+
+	    return base;
+	}
+
         public Object call( Scope scope , Object o , Object extra[] ){
             if ( o == null )
                 return null;
@@ -135,12 +176,34 @@ public class JSBuiltInFunctions {
             if ( root == null )
                 throw new JSException( "no root" );
             
-            String cmd = o.toString();
+            String cmd[] = fix( o.toString() );
             String env[] = new String[]{};
-            
+	    
+	    String toSend = null;
+	    if ( extra != null && extra.length > 0 )
+		toSend = extra[0].toString();
+
+	    if ( extra != null && extra.length > 1 && extra[1] instanceof JSObject ){
+		JSObject foo = (JSObject)extra[1];
+		env = new String[ foo.keySet().size() ];
+		int pos = 0;
+		for ( String name : foo.keySet() ){
+		    Object val = foo.get( name );
+		    if ( val == null )
+			val = "";
+		    env[pos++] = name + "=" + val.toString();
+		}
+	    }
+
             try {
                 Process p = Runtime.getRuntime().exec( cmd , env , root );
-                
+		
+		if ( toSend != null ){
+		    OutputStream out = p.getOutputStream();
+		    out.write( toSend.getBytes() );
+		    out.close();
+		}
+
                 JSObject res = new JSObjectBase();
                 res.set( "out" , StreamUtil.readFully( p.getInputStream() ) );
                 res.set( "err" , StreamUtil.readFully( p.getErrorStream() ) );
