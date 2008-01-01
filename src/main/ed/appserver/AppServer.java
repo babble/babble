@@ -162,7 +162,8 @@ public class AppServer implements HttpHandler {
         AppRequest ar = (AppRequest)request.getAttachment();
         if ( ar == null )
             ar = createRequest( request );
-
+	ar.setResponse( response );
+	
 	JSString jsURI = new JSString( ar.getURI() );
 	
         JSFunction allowed = ar.getScope().getFunction( "allowed" );

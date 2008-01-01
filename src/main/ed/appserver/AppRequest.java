@@ -15,11 +15,16 @@ public class AppRequest {
         _context = context;
         _request = request;
         _scope = _context.scopeChild();
-        
+        _scope.put( "request" , request , true );
+
         if ( uri == null )
             uri = _request.getURI();
 
         _uri = uri.equals( "/" ) ? "/index" : uri;
+    }
+
+    void setResponse( HttpResponse response ){
+	_scope.put( "response" , response , true );
     }
 
     public AppContext getContext(){
