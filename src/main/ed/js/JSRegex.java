@@ -21,7 +21,7 @@ public class JSRegex extends JSObjectBase {
                 String f = b == null ? "" : b.toString();
 
                 JSObject o = s.getThis();
-                if ( o == null )
+                if ( o == null || ! ( o instanceof JSRegex ) )
                     return new JSRegex( p , f );
                 
                 JSRegex r = (JSRegex)o;
