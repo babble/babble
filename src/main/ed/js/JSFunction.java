@@ -49,5 +49,5 @@ public abstract class JSFunction extends JSFunctionBase {
     protected final Scope _scope;
     protected final JSObject _prototype;
 
-    String _name = "NO NAME SET";
+    protected String _name = "NO NAME SET";
 }
