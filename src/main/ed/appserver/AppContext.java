@@ -91,7 +91,7 @@ public class AppContext {
     }
 
     Scope scopeChild(){
-        Scope s = _scope().child();
+        Scope s = _scope().child( "AppRequest" );
         s.setGlobal( true );
         return s;
     }
