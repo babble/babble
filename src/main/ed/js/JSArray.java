@@ -117,7 +117,7 @@ public class JSArray extends JSObjectBase {
                         JSArray a = (JSArray)(s.getThis());
 
                         for ( Object o : a._array )
-                            if ( JSInternalFunctions.JS_eq( o ,test ) )
+                            if ( JSInternalFunctions.JS_eq( o , test ) )
                                 return true;
                         
                         return false;
@@ -156,6 +156,10 @@ public class JSArray extends JSObjectBase {
 
 
         }
+    }
+    
+    public static JSArray create( Object ... obj ){
+        return new JSArray( obj );
     }
     
     public JSArray(){

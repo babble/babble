@@ -136,7 +136,7 @@ public class Convert {
 
         case Token.ARRAYLIT:
             {
-                _append( "( new JSArray( " , n );
+                _append( "( JSArray.create( " , n );
                 Node c = n.getFirstChild();
                 while ( c != null ){
                     if ( c != n.getFirstChild() )
@@ -1092,7 +1092,7 @@ public class Convert {
         buf.append( "\tpublic Object _call( Scope scope , Object extra[] ){\n" );
 
         buf.append( "\t\t final Scope passedIn = scope; \n" );
-        buf.append( "\t\t scope = new Scope( \"temp scope\" , scope ); \n" );
+        buf.append( "\t\t scope = new Scope( \"compiled script for:" + _name.replaceAll( "/tmp/jxp/s?/?0\\.\\d+/" , "" ) + "\" , scope ); \n" );
 
         buf.append( "\t\t JSArray arguments = new JSArray(); scope.put( \"arguments\" , arguments , true );\n " );
         buf.append( "\t\t if ( extra != null ) for ( Object TTTT : extra ) arguments.add( TTTT );\n" );
