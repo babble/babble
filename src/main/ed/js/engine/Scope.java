@@ -13,6 +13,7 @@ import ed.js.func.*;
 public class Scope implements JSObject {
 
     static final boolean DEBUG = false;
+    private static int ID = 1;
     
     public static Scope GLOBAL = new Scope( "GLOBAL" , JSBuiltInFunctions._myScope  );
     static {
@@ -56,9 +57,13 @@ public class Scope implements JSObject {
     }
 
     public Scope child(){
-        return child( null );
+        return child( (File)null );
     }
-    
+
+    public Scope child( String name ){
+        return new Scope( name , this , null , null );
+    }
+
     public Scope child( File f ){
         return new Scope( _name + ".child" , this , null , f );
     }
@@ -343,13 +348,34 @@ public class Scope implements JSObject {
         return _orSave;
     }
 
+    public void debug(){
+        debug( 0 );
+    }
+    
+    public void debug( int indent ){
+        for ( int i=0; i<indent; i++ )
+            System.out.print( "  " );
+        System.out.print( _id + ":" + _name + ":" );
+        if ( _global )
+            System.out.print( "G:" );
+        if ( _objects != null )
+            System.out.print( _objects.keySet() );
+        System.out.println();
+
+        if ( _alternate != null ){
+            System.out.println( "  ALT:" );
+            _alternate.debug( indent + 1 );
+        }
+        
+        if ( _parent != null )
+            _parent.debug( indent + 1 );
+    }
+
     final String _name;
     final Scope _parent;
     final Scope _alternate;
     final File _root;
     public final int _id = ID++;
-    
-    private static int ID = 1;
     
     boolean _locked = false;
     boolean _global = false;
