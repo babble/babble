@@ -14,7 +14,7 @@ public class DBProvider {
         
         if ( ip == null || ip.trim().length() == 0 ){
             ip = System.getenv( "db_ip" );
-            if ( ip == null )
+            if ( ip == null || ip.trim().length() == 0 )
                 ip = "127.0.0.1";
         }
 
