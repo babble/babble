@@ -11,7 +11,6 @@ public class DBProvider {
     }
     
     public static DBApiLayer get( String root , String ip ){
-        
         if ( ip == null || ip.trim().length() == 0 ){
             ip = System.getenv( "db_ip" );
             if ( ip == null || ip.trim().length() == 0 )
