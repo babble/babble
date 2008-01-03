@@ -6,6 +6,7 @@ import java.io.*;
 import java.net.*;
 import java.nio.*;
 import java.nio.channels.*;
+import java.util.*;
 
 import ed.js.func.*;
 import ed.js.engine.*;
@@ -157,8 +158,18 @@ public class XMLHttpRequest extends JSObjectBase {
         
         buf.append( "Connection: Close\r\n"  );
 
+	for( String x : _extraHeaders ) 
+	    buf.append(x);
+
         buf.append( "\r\n" );
+
         return buf.toString();
+    }
+
+    List<String> _extraHeaders = new ArrayList<String>();
+
+    public void setRequestHeader(String label, String value) { 
+	_extraHeaders.add(label + ": " + value + "\r\n");
     }
 
     public String getLocalURL(){
