@@ -64,6 +64,10 @@ public class JSDate extends JSObjectBase implements Comparable {
         _time = t;
     }
 
+    public JSDate( Calendar c ){
+        this( c.getTimeInMillis() );
+    }
+
     public JSDate( Object foo ){
         this( parse( foo ) );
     }
@@ -103,6 +107,39 @@ public class JSDate extends JSObjectBase implements Comparable {
         synchronized ( _webFormat ){
             return _webFormat.format( new Date( _time ) );
         }
+    }
+
+    public JSDate roundMonth(){
+        return new JSDate( _roundMonth() );
+    }
+    
+    public JSDate roundDay(){
+        return new JSDate( _roundDay() );
+    }
+    
+    public JSDate roundHour(){
+        return new JSDate( _roundHour() );
+    }
+    
+    public Calendar _roundMonth(){
+        Calendar c = _roundDay();
+        c.set( c.DAY_OF_MONTH , 1 );
+        return c;
+    }
+
+    public Calendar _roundDay(){
+        Calendar c = _roundHour();
+        c.set( c.HOUR_OF_DAY , 0 );
+        return c;
+    }
+
+    public Calendar _roundHour(){
+        Calendar c = Calendar.getInstance();
+        c.setTimeInMillis( _time );
+        c.set( c.MILLISECOND , 0 );
+        c.set( c.SECOND , 0 );
+        c.set( c.MINUTE , 0 );
+        return c;
     }
 
     private void _cal(){
