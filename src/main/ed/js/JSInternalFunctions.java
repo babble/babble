@@ -371,6 +371,13 @@ public class JSInternalFunctions extends JSObjectBase {
         return -1;
     }
 
+    public static final Object parseNumber( final Object o , final Object def ){
+	Object r = _parseNumber( o );
+	if ( r instanceof Number )
+	    return r;
+	return _parseNumber( def );
+    }
+
     static final Object _parseNumber( final Object o ){
         if ( o == null )
             return null;

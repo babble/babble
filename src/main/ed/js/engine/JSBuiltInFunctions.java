@@ -255,6 +255,13 @@ public class JSBuiltInFunctions {
                     return c == 't' || c == 'T';
                 }
             } , true );
+	
+	_myScope.put( "parseNumber" , new JSFunctionCalls2(){
+		public Object call( Scope scope , Object a , Object b , Object extra[] ){
+		    return JSInternalFunctions.parseNumber( a , b );
+		}
+	    } , true );
+	
         _myScope.put( "md5" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object b , Object extra[] ){
                     synchronized ( _myMd5 ){
