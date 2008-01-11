@@ -8,5 +8,8 @@
     <% jxp.lib.foo(); %><br>
     <% food(); %><br>
     <%= barrrr() %><br>
+    <hr>
+    <%= request %>
+    <% core.foo(); zzz(); %>
   </body>
 </html>

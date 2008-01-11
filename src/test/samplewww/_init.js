@@ -1,6 +1,8 @@
 
 jxp.lib.bar();
+core.bar();
 
 function mapUrlToJxpFile( uri ){
-    return "/~~/webdav.jxp";
+    scope.debug();
+    print( test1() );
 }
