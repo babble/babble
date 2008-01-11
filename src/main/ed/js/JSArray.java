@@ -40,6 +40,24 @@ public class JSArray extends JSObjectBase {
         }
 
         protected void init(){
+
+            _prototype.set( "splice" , new JSFunctionCalls2() {
+                    // TODO: this is still broken
+                    public Object call( Scope s , Object startObj , Object numObj , Object foo[] ){
+                        
+                        JSArray a = (JSArray)(s.getThis());
+                        JSArray n = new JSArray();
+
+                        int start = ((Number)startObj).intValue();
+                        int num = numObj == null ? 0 : ((Number)numObj).intValue();
+                        
+                        for ( int i=start; i<a._array.size() && ( num == 0 || i < start + num ); i++ ){
+                            n.add( a._array.get( i ) );
+                        }
+                        return n;
+                    }
+                } );
+            
             _prototype.set( "push" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object o , Object foo[] ){
                         JSArray a = (JSArray)(s.getThis());
@@ -54,7 +72,7 @@ public class JSArray extends JSObjectBase {
                     public Object call( Scope s , Object fo , Object foo[] ){
                         JSArray a = (JSArray)(s.getThis());
                         JSFunction f = (JSFunction)fo;
-
+                        
                         JSArray n = new JSArray();
                         for ( Object o : a._array )
                             if ( JS_evalToBool( f.call( s , o ) ) )
