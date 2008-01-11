@@ -14,13 +14,7 @@ public class DBTCP extends DBApiLayer {
 
     DBTCP( String root , String ip ){
         super( root );
-        
-        try {
-            _port = new DBPort( ip );
-        }
-        catch ( IOException ioe ){
-            throw new JSException( "can't connect to : " + ip );
-        }
+        _portPool = DBPortPool.get( ip );
     }
 
     protected void doInsert( ByteBuffer buf ){
@@ -40,10 +34,12 @@ public class DBTCP extends DBApiLayer {
         return call( 2005 , out , in );
     }
 
-
     private void say( int op , ByteBuffer buf ){
+        DBPort port = _portPool.get();
+                
         try {
-            _port.say( new DBMessage( op , buf ) );
+            port.say( new DBMessage( op , buf ) );
+            _portPool.done( port );
         }
         catch ( IOException ioe ){
             throw new JSException( "can't say something" );
@@ -51,9 +47,12 @@ public class DBTCP extends DBApiLayer {
     }
     
     private int call( int op , ByteBuffer out , ByteBuffer in ){
+        DBPort port = _portPool.get();
+        
         try {
             DBMessage a = new DBMessage( op , out );
-            DBMessage b = _port.call( a , in );
+            DBMessage b = port.call( a , in );
+            _portPool.done( port );
             return b.dataLen();
         }
         catch ( IOException ioe ){
@@ -61,5 +60,5 @@ public class DBTCP extends DBApiLayer {
         }
     }
 
-    private final DBPort _port;
+    private final DBPortPool _portPool;
 }

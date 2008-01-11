@@ -28,6 +28,8 @@ public class DBPort {
         _array[0].order( ByteOrder.LITTLE_ENDIAN );
         _addr = new InetSocketAddress( _host , _port );
 
+        _hashCode = _host.hashCode() + _port;
+
         _open();
     }
 
@@ -83,6 +85,10 @@ public class DBPort {
 
         _sock.socket().setTcpNoDelay( true );
     }
+
+    public int hashCode(){
+        return _hashCode;
+    }
     
     public String toString(){
         return "{DBPort  host:" + _host + " port:" + _port + "}";
@@ -90,6 +96,7 @@ public class DBPort {
     
     final String _host;
     final int _port;
+    final int _hashCode;
     final InetSocketAddress _addr;
     
     private final ByteBuffer[] _array = new ByteBuffer[]{ ByteBuffer.allocateDirect( DBMessage.HEADER_LENGTH ) , null };
