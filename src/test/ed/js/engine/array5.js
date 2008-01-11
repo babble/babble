@@ -24,3 +24,8 @@ print( [ 6 , 3 , 2 , 3 , 3 ].indexOf( 3 ) );
 print( [ 6 , 3 , 2 , 3 , 3 ].indexOf( 3 , 2 ) );
 print( [ 6 , 3 , 2 , 3 , 3 , 1 ].indexOf( 3 , 10 ) );
 
+
+
+print( [ 1 , 2 , 3 , 4 , 5 ].splice( 2 ) );
+print( [ 1 , 2 , 3 , 4 , 5 ].splice( 2 , 1 ) );
+print( [ 1 , 2 , 3 , 4 , 5 ].splice( 2 , 1 , "a" ) );
