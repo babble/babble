@@ -236,7 +236,7 @@ public class JxpServlet {
                 
                 String cdnTags = null;
                 if ( uri.equals( "/~f" ) ){
-                    cdnTags = "";
+                    cdnTags = ""; // TODO: should i put a version or timestamp here?
                 }
                 else {
                     File f = _context.getFile( uri );
