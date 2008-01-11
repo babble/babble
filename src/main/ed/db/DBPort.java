@@ -44,7 +44,7 @@ public class DBPort {
         go( msg , null );
     }
 
-    private DBMessage go( DBMessage msg , ByteBuffer response )
+    private synchronized DBMessage go( DBMessage msg , ByteBuffer response )
         throws IOException {
         
         _reset( _array[0] );
