@@ -14,6 +14,7 @@ import ed.appserver.jxp.*;
 
 public class AppContext {
 
+    static final boolean DEBUG = false;
     static final String INIT_FILES[] = new String[]{ "_init.js" , "/~~/core/init.js" };
 
     public AppContext( File f ){
@@ -151,7 +152,7 @@ public class AppContext {
         if ( f.exists() )
             return f;
 
-        if ( f.toString().indexOf( "." ) >= 0 )
+        if ( f.getName().indexOf( "." ) >= 0 )
             return f;
         
         File temp = new File( f.toString() + ".jxp" );
@@ -174,8 +175,6 @@ public class AppContext {
         while ( uri.startsWith( "/" ) )
             uri = uri.substring( 1 );
 
-        System.out.println( "uri:" + uri );
-        
         int start = 0;
         while ( true ){
             
@@ -183,7 +182,7 @@ public class AppContext {
             if ( idx < 0 )
                 break; 
             String foo = uri.substring( 0 , idx );
-            System.out.println( "\t " + foo + ".jxp" );
+
             File temp = getFile( foo + ".jxp" );
 
             if ( temp.exists() )
@@ -196,10 +195,8 @@ public class AppContext {
     }
 
     File tryIndex( File f ){
-        if ( f.exists() )
-            return f;
-        
-        if ( ! f.isDirectory() )
+
+        if ( ! ( f.isDirectory() && f.exists() ) )
             return f;
         
         File temp = new File( f , "index.jxp" );
@@ -212,10 +209,12 @@ public class AppContext {
     public JxpSource getSource( File f )
         throws IOException {
     
+        if ( DEBUG ) System.err.println( "getSource\n\t " + f );
         f = tryNoJXP( f );
         f = tryServlet( f );
         f = tryIndex( f );
-
+        if ( DEBUG ) System.err.println( "\t " + f );
+        
         if ( ! f.exists() )
             return null;
 
