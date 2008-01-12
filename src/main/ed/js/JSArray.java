@@ -58,6 +58,17 @@ public class JSArray extends JSObjectBase {
                     }
                 } );
             
+            _prototype.set( "remove" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object idxObj , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        int idx = ((Number)idxObj).intValue();
+                        if ( idx >= a._array.size() )
+                            return null;
+                        return a._array.remove( idx );
+                    }
+                } );
+
+
             _prototype.set( "push" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object o , Object foo[] ){
                         JSArray a = (JSArray)(s.getThis());
