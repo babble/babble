@@ -27,7 +27,9 @@ public abstract class JSNewFile extends JSFile {
                 _chunks.get( i - 1 ).set( "next" , c );
             
         }
-        
+	
+	set( "uploadDate" , new JSDate() );
+	
     }
 
     
