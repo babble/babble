@@ -27,7 +27,6 @@ import static ed.js.JSInternalFunctions.*;
  * pop
  * reverse
  * shift
- * splice
  * unshift 
  */
 public class JSArray extends JSObjectBase {
@@ -40,9 +39,8 @@ public class JSArray extends JSObjectBase {
         }
 
         protected void init(){
-
+            
             _prototype.set( "splice" , new JSFunctionCalls2() {
-                    // TODO: this is still broken
                     public Object call( Scope s , Object startObj , Object numObj , Object foo[] ){
                         
                         JSArray a = (JSArray)(s.getThis());
