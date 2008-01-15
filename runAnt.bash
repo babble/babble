@@ -9,9 +9,9 @@ for j in `ls include/*.jar`; do
 done
 
 export headless="-Djava.awt.headless=true"
-if [ $?gui ]; then
+#if [ $?gui ]; then
     #export headless="" #was having issue so commented this out
-fi
+#fi
 
 ant && java -ea $headless -Xmx2000m "$@"
 
