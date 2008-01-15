@@ -10,8 +10,8 @@ done
 
 export headless="-Djava.awt.headless=true"
 if [ $?gui ]; then
-    export headless=""
+    #export headless="" #was having issue so commented this out
 fi
 
-ant && java -ea $headless -ea -Xmx2000m "$@"
+ant && java -ea $headless -Xmx2000m "$@"
 
