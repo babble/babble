@@ -20,6 +20,8 @@ public abstract class JxpSource {
     }
 
     public static JxpSource getSource( File f ){
+        if ( f == null )
+            throw new NullPointerException( "can't have null file" );
         return new JxpFileSource( f );
     }
 
@@ -176,7 +178,7 @@ public abstract class JxpSource {
         JxpFileSource( File f ){
             _f = f;
         }
-
+        
         String getName(){
             return _f.toString();
         }

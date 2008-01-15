@@ -12,13 +12,15 @@ public class Parser {
     
     static List<Block> parse( JxpSource s )
         throws IOException {
-
+        
         String data = s.getContent();
         int lastline = 1;
         int line = 1;
         
-        Block.Type curType = 
-            s.getName().endsWith( ".jxp" ) ? Block.Type.HTML : Block.Type.CODE;
+        if ( s.getName().endsWith( ".html" ) )
+            return parseTemplate( s , data );
+        
+        Block.Type curType = s.getName().endsWith( ".jxp" ) ? Block.Type.HTML : Block.Type.CODE;
         StringBuilder buf = new StringBuilder();
 
         boolean newLine = true;
@@ -131,6 +133,37 @@ public class Parser {
         }
 
         blocks.add( Block.create( curType , buf.toString() , lastline ) );
+        
+        return blocks;
+    }
+
+    static List<Block> parseTemplate( JxpSource s , String data ){
+        List<Block> blocks = new ArrayList<Block>();
+        blocks.add( Block.create( Block.Type.CODE , "var obj = arguments[0];\n" , -1 ) );
+        
+        int pos = 0;
+        int idx = data.indexOf( "$" );
+        while ( idx >= 0 ){
+            blocks.add( Block.create( Block.Type.HTML , data.substring( pos , idx ) , -1 ) );
+
+            pos = ++idx;
+            
+            while ( idx < data.length() && Character.isLetterOrDigit( data.charAt( idx ) ) )
+                idx++;
+            
+            if ( idx < data.length() && data.charAt( idx ) == '(' ){
+                while ( idx < data.length() && data.charAt( idx ) != ')' )
+                    idx++;
+                if ( idx < data.length() && data.charAt( idx ) == ')' )
+                    idx++;
+            }
+
+            blocks.add( Block.create( Block.Type.OUTPUT , "obj." + data.substring( pos , idx ) , -1 ) );
+
+            pos = idx;
+            idx = data.indexOf( "$" , pos );
+        }
+        blocks.add( Block.create( Block.Type.HTML , data.substring( pos ) , -1 ) );
         
         return blocks;
     }

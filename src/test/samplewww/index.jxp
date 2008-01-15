@@ -7,9 +7,9 @@
     <% jxp.lib.a(); %><bR>
     <% jxp.lib.foo(); %><br>
     <% food(); %><br>
-    <%= barrrr() %><br>
+    <hr>
+    <%= jxp.lib.stupid( { a : 5 , c : 1 , foo : function(){ return "hia"; } } ) %>
     <hr>
     <%= request %>
-    <% core.foo(); zzz(); %>
   </body>
 </html>

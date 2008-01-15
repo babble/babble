@@ -60,46 +60,35 @@ public class JSFileLibrary extends JSObjectBase {
             return null;
         
         File dir = new File( _base , n.toString() );
-        File js = new File( _base , n + ".js" );
-        File jxp = new File( _base , n + ".jxp" );
-        
-        if ( dir.exists() && js.exists() )
-            throw new RuntimeException( "can't have directory and .js with same name" );
-        
-        if ( dir.exists() && jxp.exists() )
-            throw new RuntimeException( "can't have directory and .jxp with same name.  " + dir + "  " + jxp  );
-        
-        if ( js.exists() && jxp.exists() )
-            throw new RuntimeException( "can't have .js and .jxp with same name" );
-        
-        if ( dir.exists() ){
-            return set( n , new JSFileLibrary( dir , _uriBase + "." + n.toString() ) );
-        }
-        
-        if ( jxp.exists() ){
-            try {
-                return set( n , getSource( jxp ) );
-            }
-            catch ( IOException ioe ){
-                throw new RuntimeException( ioe );
-            }
-            
-        }
-        
-        if ( js.exists() ){
-            try {
-                return set( n , getSource( js ) );
-            }
-            catch ( IOException ioe ){
-                throw new RuntimeException( ioe );
-            }
-            
-        }
-        
-        //throw new RuntimeException( n + " not found " );
-        return null;
-    }
+        File f = null;
+        for ( int i=0; i<_srcExtensions.length; i++ ){
+            File temp = new File( _base , n + _srcExtensions[i] );
 
+            if ( ! temp.exists() )
+                continue;
+            
+            if ( dir.exists() || f != null )
+                throw new RuntimeException( "file collision on : " + dir + " " + _base + " " + n  );
+
+            f = temp;
+        }
+        
+        if ( dir.exists() )
+            return set( n , new JSFileLibrary( dir , _uriBase + "." + n.toString() ) );
+        
+        if ( f == null )
+            return null;
+
+        try {
+            return set( n , getSource( f ) );
+        }
+        catch ( IOException ioe ){
+            throw new RuntimeException( ioe );
+        }
+        
+    }
+    static String _srcExtensions[] = new String[] { ".js" , ".jxp" , ".html" };
+    
     public void fix( Throwable t ){
         for ( JxpSource s : _sources.values() )
             s.fix( t );
