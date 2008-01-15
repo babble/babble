@@ -5,15 +5,12 @@ package ed.db;
 import java.util.*;
 
 import ed.js.*;
+import ed.js.func.*;
+import ed.js.engine.*;
 import ed.util.*;
 
 public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
 
-    /*
-    DBCursor( Iterator<JSObject> i ){
-        _it = i;
-    }
-    */
 
     DBCursor( DBCollection collection , JSObject q , JSObject k , JSFunction cons ){
         _collection = collection;
@@ -21,7 +18,29 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
         _keysWanted = k;
         _constructor = cons;
     }
+    
+    static enum CursorType { ITERATOR , ARRAY };
 
+    // ---- querty modifiers --------
+    
+    public DBCursor sort( JSObject orderBy ){
+        if ( _it != null )
+            throw new RuntimeException( "can't sort after executing query" );
+        
+        _orderBy = orderBy;
+        return this;
+    }
+
+    public DBCursor limit( int n ){
+        if ( _it != null )
+            throw new RuntimeException( "can't set limit after executing query" );
+
+        _numWanted = n;
+        return this;
+    }
+    
+    // ----  internal stuff ------
+    
     private void _check(){
         if ( _it != null )
             return;
@@ -41,71 +60,99 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
             _it = (new LinkedList<JSObject>()).iterator();
     }
 
-    public DBCursor sort( JSObject orderBy ){
-        if ( _it != null )
-            throw new RuntimeException( "can't sort after executing query" );
+    void _checkType( CursorType type ){
+        if ( _cursorType == null ){
+            _cursorType = type;
+            return;
+        }
+
+        if ( type == _cursorType )
+            return;
         
-        _orderBy = orderBy;
-        return this;
+        throw new RuntimeException( "can't switch cursor access methods" );
     }
 
-    public DBCursor limit( int n ){
-        if ( _it != null )
-            throw new RuntimeException( "can't set limit after executing query" );
+    private JSObject _next(){
+        if ( _cursorType == null )
+            _checkType( CursorType.ITERATOR );
 
-        _numWanted = n;
-        return this;
+        _check();
+        
+        _cur = null;
+        _cur = _it.next();
+        _num++;
+        
+        if ( _constructor != null && _cur instanceof JSObjectBase )
+            ((JSObjectBase)_cur).setConstructor( _constructor );
+        
+        if ( _cursorType == CursorType.ARRAY ){
+            _nums.add( String.valueOf( _all.size() ) );
+            _all.add( _cur );
+        }
+        return _cur;
     }
 
-    public Collection<String> keySet(){
-        _fill( 2 );
-        return _nums;
+    private boolean _hasNext(){
+        _check();
+        
+        if ( _numWanted > 0 && _num >= _numWanted )
+            return false;
+
+        return _it.hasNext();
     }
+
+
+    // ----- iterator api -----
 
     public boolean hasNext(){
-        _check();
-        if ( _numWanted > 0 && _all.size() >= _numWanted )
-            return false;
-        return _it.hasNext();
+        _checkType( CursorType.ITERATOR );
+        return _hasNext();
+    }
+
+    public JSObject next(){
+        _checkType( CursorType.ITERATOR );
+        return _next();
+    }
+
+    public JSObject curr(){
+        _checkType( CursorType.ITERATOR );
+        return _cur;
     }
 
     public void remove(){
         throw new RuntimeException( "no" );
     }
 
-    public JSObject next(){
-        _check();
-        JSObject foo = _it.next();
-        if ( _constructor != null && foo instanceof JSObjectBase )
-            ((JSObjectBase)foo).setConstructor( _constructor );
-        _nums.add( String.valueOf( _all.size() ) );
-        _all.add( foo );
-        return foo;
-    }
+    //  ---- array api  -----
 
-    public JSObject curr(){
-        if ( _all.size() == 0 )
-            throw new RuntimeException( "no object" );
-        return _all.get( _all.size() - 1 );
+    void _fill( int n ){
+        while ( n >= _all.size() && _hasNext() )
+            _next();
     }
-
+    
     public Object get( Object n ){
+
+        if ( n == null )
+            return null;
+        
         if ( n instanceof Number )
             return getInt( ((Number)n).intValue() );
         
         int i = StringParseUtil.parseInt( n.toString() , -1 );
-        if ( i >=0 )
+        if ( i >= 0 )
             return getInt( i );
         
-        return null;
+        return _staticMehods.get( n.toString() );
     }
 
     public Object getInt( int n ){
+        _checkType( CursorType.ARRAY );
         _fill( n );
         return _all.get( n );
     }
 
     public int length(){
+        _checkType( CursorType.ARRAY );
         _fill( Integer.MAX_VALUE );
         return _all.size();
     }
@@ -115,14 +162,36 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
     }
 
     public JSArray toArray( int min ){
+        _checkType( CursorType.ARRAY );
         _fill( min );
         return new JSArray( _all );
     }
 
-    void _fill( int n ){
-        while ( n >= _all.size() && hasNext() )
-            next();
+    public Collection<String> keySet(){
+        _fill( 2 );
+        return _nums;
     }
+
+    // ---- js methods ----
+    private static Map<String,JSFunction> _staticMehods = new TreeMap<String,JSFunction>();
+    static {
+        _staticMehods.put( "forEach" , new JSFunctionCalls1(){
+                public Object call( Scope s , Object fo , Object foo[] ){
+                    DBCursor c = (DBCursor)(s.getThis());
+                    JSFunction f = (JSFunction)fo;
+                    
+                    while ( c.hasNext() ){
+                        f.call( s , c.next() );
+                    }
+                    
+                    return null;
+                }
+            } );
+        
+
+    }
+    
+    // ----  members ----
 
     private Iterator<JSObject> _it;
 
@@ -132,6 +201,11 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
     private JSObject _orderBy;
     private JSFunction _constructor;
     private int _numWanted = 0;
+
+    private CursorType _cursorType;
+    
+    private JSObject _cur = null;
+    private int _num = 0;
 
     private final List<JSObject> _all = new ArrayList<JSObject>();
     private final List<String> _nums = new ArrayList<String>();
