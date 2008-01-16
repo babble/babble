@@ -75,7 +75,13 @@ public class Parser {
                             parens--;
                             continue;
                         }
-                        if ( Character.isWhitespace( temp ) || temp == '<' && parens == 0 )
+                        if ( ( Character.isWhitespace( temp ) 
+                               || ! ( Character.isLetterOrDigit( temp ) || temp == '_' )
+                               || temp == '\''
+                               || temp == '"'
+                               || temp == '>'
+                               || temp == '<' ) 
+                             && parens == 0 )
                             break;
                     }
                     

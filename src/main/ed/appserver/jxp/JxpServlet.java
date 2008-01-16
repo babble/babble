@@ -48,13 +48,13 @@ public class JxpServlet {
         String host = request.getHost();
         
         if ( host == null )
-            return null;
+            return "";
 
         if ( host.indexOf( "." ) < 0 )
-            return null;
+            return "";
 
         if ( request.getPort() > 0 )
-            return null;
+            return "";
 
         String prefix= "http://static";
 
@@ -112,11 +112,6 @@ public class JxpServlet {
                 _extra.setLength( 0 );
             }
 
-            if ( _cdnPrefix == null ){
-                _writer.print( s );
-                return;
-            }
-            
             _matcher.reset( s );
             if ( ! _matcher.find() ){
                 _writer.print( s );
@@ -208,6 +203,7 @@ public class JxpServlet {
 
         
         void printSRC( String src ){
+
             if ( src == null || src.length() == 0 )
                 return;
 
