@@ -17,18 +17,20 @@ public class Parser {
         int lastline = 1;
         int line = 1;
         
-        if ( s.getName().endsWith( ".html" ) )
-            return parseTemplate( s , data );
-        
-        Block.Type curType = s.getName().endsWith( ".jxp" ) ? Block.Type.HTML : Block.Type.CODE;
-        StringBuilder buf = new StringBuilder();
+        final boolean isTemplate = s.getName().endsWith( ".html" );
 
+        Block.Type curType = s.getName().endsWith( ".jxp" ) || s.getName().endsWith( ".html" ) ? Block.Type.HTML : Block.Type.CODE;
+        StringBuilder buf = new StringBuilder();
+        
         boolean newLine = true;
         char lastChar = '\n';
         char codeOpening = ' ';
         int numBrackets = 0;
-
+        
         List<Block> blocks = new ArrayList<Block>();
+
+        if ( isTemplate )
+            blocks.add( Block.create( Block.Type.CODE , "var obj = arguments[0];\n" , -1 ) );
         
         for ( int i=0; i<data.length(); i++ ){
             lastChar =  i == 0 ? '\n' : data.charAt( i - 1 );
@@ -45,7 +47,7 @@ public class Parser {
                 i += 6;
                 continue;
             }
-
+            
             if ( curType == Block.Type.HTML ){
                 
                 if ( data.startsWith( "<wiki>" , i ) ){
@@ -56,7 +58,33 @@ public class Parser {
                     i += 5;
                     continue;
                 }
-
+                
+                if ( isTemplate && c == '$' ){
+                    blocks.add( Block.create( curType , buf.toString() , lastline ) );
+                    buf.setLength( 0 );
+                    i++;
+                    int end = i;
+                    int parens = 0;
+                    for ( ; end < data.length(); end ++ ){
+                        char temp = data.charAt( end );
+                        if ( temp == '(' ){
+                            parens++;
+                            continue;
+                        }
+                        if ( temp == ')' ){
+                            parens--;
+                            continue;
+                        }
+                        if ( Character.isWhitespace( temp ) || temp == '<' && parens == 0 )
+                            break;
+                    }
+                    
+                    blocks.add( Block.create( Block.Type.OUTPUT , "obj." + data.substring( i , end ) , lastline ) );
+                    i = end - 1;
+                    curType = Block.Type.HTML;
+                    continue;
+                }
+                
                 if ( 
                     ( newLine && c == '{' ) 
                     || 
@@ -67,7 +95,7 @@ public class Parser {
                     
                     codeOpening = c;
                     numBrackets = 0;
-
+                    
                     blocks.add( Block.create( curType , buf.toString() , lastline ) );
                     buf.setLength( 0 );
                     
@@ -137,36 +165,6 @@ public class Parser {
         return blocks;
     }
 
-    static List<Block> parseTemplate( JxpSource s , String data ){
-        List<Block> blocks = new ArrayList<Block>();
-        blocks.add( Block.create( Block.Type.CODE , "var obj = arguments[0];\n" , -1 ) );
-        
-        int pos = 0;
-        int idx = data.indexOf( "$" );
-        while ( idx >= 0 ){
-            blocks.add( Block.create( Block.Type.HTML , data.substring( pos , idx ) , -1 ) );
-
-            pos = ++idx;
-            
-            while ( idx < data.length() && Character.isLetterOrDigit( data.charAt( idx ) ) )
-                idx++;
-            
-            if ( idx < data.length() && data.charAt( idx ) == '(' ){
-                while ( idx < data.length() && data.charAt( idx ) != ')' )
-                    idx++;
-                if ( idx < data.length() && data.charAt( idx ) == ')' )
-                    idx++;
-            }
-
-            blocks.add( Block.create( Block.Type.OUTPUT , "obj." + data.substring( pos , idx ) , -1 ) );
-
-            pos = idx;
-            idx = data.indexOf( "$" , pos );
-        }
-        blocks.add( Block.create( Block.Type.HTML , data.substring( pos ) , -1 ) );
-        
-        return blocks;
-    }
 
     public static void main( String args[] )
         throws Exception {
