@@ -34,11 +34,18 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
     public DBCursor limit( int n ){
         if ( _it != null )
             throw new RuntimeException( "can't set limit after executing query" );
-
+        
         _numWanted = n;
         return this;
     }
     
+    public DBCursor skip( int n ){
+        if ( _it != null )
+            throw new RuntimeException( "can't set skip after executing query" );
+        _skip = n;
+        return this;
+    }
+
     // ----  internal stuff ------
     
     private void _check(){
@@ -78,6 +85,14 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
 
         _check();
         
+        
+        if ( _skip > 0 && ! _skipped ){ // TODO: this needs to move to the DB!!!!
+            System.err.println( "doing skip in the app server.  needs to movem to DB. when it does, need to remove this code (DBCursor._next)" );
+            _skipped = true;
+            for ( int i=0; i<_skip && _it.hasNext(); i++ )
+                _it.next();
+        }
+
         _cur = null;
         _cur = _it.next();
         _num++;
@@ -130,6 +145,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
     //  ---- array api  -----
 
     void _fill( int n ){
+        _checkType( CursorType.ARRAY );
         while ( n >= _all.size() && _hasNext() )
             _next();
     }
@@ -205,11 +221,13 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
     private JSObject _orderBy;
     private JSFunction _constructor;
     private int _numWanted = 0;
-
+    private int _skip = 0;
+    
     private CursorType _cursorType;
     
     private JSObject _cur = null;
     private int _num = 0;
+    private boolean _skipped = false;
 
     private final List<JSObject> _all = new ArrayList<JSObject>();
     private final List<String> _nums = new ArrayList<String>();
