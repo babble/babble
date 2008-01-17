@@ -101,6 +101,9 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
         return _it.hasNext();
     }
 
+    public int numSeen(){
+	return _num;
+    }
 
     // ----- iterator api -----
 
@@ -122,6 +125,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
     public void remove(){
         throw new RuntimeException( "no" );
     }
+
 
     //  ---- array api  -----
 
