@@ -27,5 +27,7 @@ before<wiki>==abc==</wiki>after
 
 <% jxp.lib.a(); %>
 
+<script src="/~~/analytics/track.js"></script>
+
 </body>
 </html>
