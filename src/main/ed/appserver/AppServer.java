@@ -213,7 +213,7 @@ public class AppServer implements HttpHandler {
                 return;
             }
             
-	    int cacheTime = getCacheTime( ar , jsURI );
+	    int cacheTime = getCacheTime( ar , jsURI , request , response );
 	    if ( cacheTime >= 0 )
 		response.setCacheTime( cacheTime );
 
@@ -264,12 +264,12 @@ public class AppServer implements HttpHandler {
         
     }
     
-    int getCacheTime( AppRequest ar , JSString jsURI ){
+    int getCacheTime( AppRequest ar , JSString jsURI , HttpRequest request , HttpResponse response ){
 	JSFunction f = ar.getScope().getFunction( "staticCacheTime" );
 	if ( f == null )
 	    return -1;
 	
-	Object ret = f.call( ar.getScope() , jsURI );
+	Object ret = f.call( ar.getScope() , jsURI , request , response );
 	if ( ret == null )
 	    return -1;
 	

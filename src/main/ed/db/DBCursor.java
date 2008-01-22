@@ -188,7 +188,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
     }
 
     public Collection<String> keySet(){
-        _fill( 2 );
+        _fill( Integer.MAX_VALUE );
         return _nums;
     }
 
