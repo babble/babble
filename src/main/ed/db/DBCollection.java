@@ -259,6 +259,10 @@ public abstract class DBCollection extends JSObjectLame {
         return _base.getCollection( _name + "." + n );
     }
 
+    public String getName(){
+        return _name;
+    }
+    
     final DBBase _base;
     
     final JSFunction _save;
