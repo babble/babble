@@ -72,8 +72,10 @@ public abstract class DBApiLayer extends DBBase {
     public Collection<String> getCollectionNames(){
         List<String> tables = new ArrayList<String>();
         
-        DBCollection namespaces = getCollectionFromFull( "system.namespaces" );
-        
+        DBCollection namespaces = getCollection( "system.namespaces" );
+        if ( namespaces == null )
+            throw new RuntimeException( "this is impossible" );
+             
         for ( Iterator<JSObject> i = namespaces.find( new JSObjectBase() , null , 0 ) ; i.hasNext() ;  ){
             JSObject o = i.next();
             String n = o.get( "name" ).toString();
@@ -95,7 +97,8 @@ public abstract class DBApiLayer extends DBBase {
     }
     
     public static Collection<String> getRootNamespaces( String ip ){
-
+        if ( true )
+            throw new RuntimeException( "getRootNamespaces isn't working right now" );
         DBApiLayer system = DBProvider.get( "system" , ip );
         DBCollection namespaces = system.getCollection( "namespaces" );
 
@@ -255,7 +258,7 @@ public abstract class DBApiLayer extends DBBase {
             o.set( "ns" , _fullNameSpace );
             o.set( "key" , keys );
             
-            getCollectionFromFull( "system.indexes" ).save( o , false );
+            ((MyCollection)getCollection( "system.indexes" )).save( o , false );
         }
 
         final String _fullNameSpace;

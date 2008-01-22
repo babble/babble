@@ -42,8 +42,16 @@ public class HttpResponse {
         return _responseCode;
     }
 
+    public void addCookie( String name , String value , int maxAge ){
+        _cookies.add( new Cookie( name , value , maxAge ) );
+    }
+
     public void addCookie( String name , String value ){
         _cookies.add( new Cookie( name , value ) );
+    }
+    
+    public void removeCookie( String name ){
+        _cookies.add( new Cookie( name , "asd" , 0 ) );
     }
 
     public void setCacheTime( int seconds ){
@@ -211,6 +219,9 @@ public class HttpResponse {
             a.append( "Set-Cookie: " );
             a.append( c._name ).append( "=" ).append( c._value ).append( ";" );
 	    a.append( " " ).append( "Path=" ).append( c._path ).append( ";" );
+            String expires = c.getExpires();
+            if ( expires != null )
+                a.append( "Expires=" ).append( expires ).append( "; " );
             a.append( "\r\n" );
         }
         

@@ -279,6 +279,7 @@ public class JSBuiltInFunctions {
         _myScope.put( "isNumber" , new isXXX( Number.class ) , true );
         _myScope.put( "isObject" , new isXXX( JSObject.class ) , true );
         _myScope.put( "isDate" , new isXXX( JSDate.class ) , true );
+        _myScope.put( "isFunction" , new isXXX( JSFunction.class ) , true );
 
         _myScope.put( "isString" , new isXXXs( String.class , JSString.class ) , true );
 

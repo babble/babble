@@ -326,15 +326,20 @@ public class HttpRequest implements ed.js.JSObject {
     public PostData getPostData(){
         return _postData;
     }
+
+    public JSDate getStart(){
+        return _start;
+    }
     
     final HttpServer.HttpSocketHandler _handler;
     final String _firstLine;
     final Map<String,String> _headers = new StringMap<String>();
+    final JSDate _start = new JSDate();
     Map<String,String> _cookies;
 
     boolean _parsedPost = false;
     PostData _postData;
-
+    
     boolean _parsedURL = false;
     final Map<String,List<String>> _parameters = new StringMap<List<String>>();
 

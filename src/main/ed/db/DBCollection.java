@@ -45,7 +45,7 @@ public abstract class DBCollection extends JSObjectLame {
     public ObjectId apply( Object o ){
 
         if ( ! ( o instanceof JSObject ) )
-            throw new RuntimeException( "can't only apply JSObject" );
+            throw new RuntimeException( "can only apply JSObject" );
         
         JSObject jo = (JSObject)o;
         jo.set( "_save" , _save );
@@ -72,7 +72,7 @@ public abstract class DBCollection extends JSObjectLame {
                         o = s.getThis();
                     
                     if ( ! ( o instanceof JSObject ) )
-                        throw new RuntimeException( "can't only save JSObject" );
+                        throw new RuntimeException( "can only save JSObject" );
                     
                     JSObject jo = (JSObject)o;
                     
@@ -131,11 +131,14 @@ public abstract class DBCollection extends JSObjectLame {
         _update = new JSFunctionCalls2() {
                 public Object call( Scope s , Object q , Object o , Object foo[] ){
                     
+                    if ( o == null )
+                        throw new RuntimeException( "object can't be null" );
+
                     if ( ! ( o instanceof JSObject ) )
-                        throw new RuntimeException( "can't only save JSObject" );
+                        throw new RuntimeException( "can only save JSObject not : " + o.getClass() );
                     
                     if ( ! ( q instanceof JSObject ) )
-                        throw new RuntimeException( "can't only save JSObject" );
+                        throw new RuntimeException( "can only save JSObject" );
                     
                     boolean upsert = false;
                     boolean apply = true;
