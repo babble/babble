@@ -107,7 +107,7 @@ public class JSRegex extends JSObjectBase {
         
         a = new JSArray();
         for ( int i=0; i<=m.groupCount(); i++ )
-            a.add( m.group(i) );
+            a.add( new JSString( m.group(i) ) );
 
         a.set( "_matcher" , m );
         a.set( "input" , new JSString( s ) );
