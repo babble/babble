@@ -258,7 +258,8 @@ public abstract class DBApiLayer extends DBBase {
             o.set( "ns" , _fullNameSpace );
             o.set( "key" , keys );
             
-            ((MyCollection)getCollection( "system.indexes" )).save( o , false );
+	    //dm-system isnow in our database 
+	    DBApiLayer.this.getCollection( "system.indexes" ).save( o , false );
         }
 
         final String _fullNameSpace;
