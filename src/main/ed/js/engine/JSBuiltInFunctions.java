@@ -256,11 +256,21 @@ public class JSBuiltInFunctions {
                 }
             } , true );
 	
-	_myScope.put( "parseNumber" , new JSFunctionCalls2(){
+        JSFunctionCalls2 parseNumber = new JSFunctionCalls2(){
 		public Object call( Scope scope , Object a , Object b , Object extra[] ){
-		    return JSInternalFunctions.parseNumber( a , b );
+                    Object r = JSInternalFunctions.parseNumber( a , b );
+                    if ( r instanceof Number )
+                        return r;
+                    if ( b != null )
+                        return b;
+                    throw new RuntimeException( "not a number [" + a + "]" );
 		}
-	    } , true );
+            };
+
+	_myScope.put( "parseNumber" , parseNumber , true );
+	_myScope.put( "parseFloat" , parseNumber , true );
+	_myScope.put( "parseInt" , parseNumber , true );
+	_myScope.put( "Number" , parseNumber , true );
 	
         _myScope.put( "md5" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object b , Object extra[] ){

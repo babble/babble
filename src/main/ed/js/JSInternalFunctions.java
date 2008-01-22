@@ -93,7 +93,8 @@ public class JSInternalFunctions extends JSObjectBase {
     }
 
     public Object JS_mul( Object a , Object b ){
-        
+        a = _parseNumber( a );
+        b = _parseNumber( b );
 
         if ( a != null && ( a instanceof Number ) &&
              b != null && ( b instanceof Number ) ){
@@ -112,7 +113,8 @@ public class JSInternalFunctions extends JSObjectBase {
     }
 
     public Object JS_div( Object a , Object b ){
-        
+        a = _parseNumber( a );
+        b = _parseNumber( b ) ;       
 
         if ( a != null && ( a instanceof Number ) &&
              b != null && ( b instanceof Number ) ){
@@ -127,7 +129,8 @@ public class JSInternalFunctions extends JSObjectBase {
     }
 
     public Object JS_sub( Object a , Object b ){
-        
+        a = _parseNumber( a );
+        b = _parseNumber( b );        
 
         if ( a != null && ( a instanceof Number ) &&
              b != null && ( b instanceof Number ) ){
@@ -240,6 +243,11 @@ public class JSInternalFunctions extends JSObjectBase {
         
         if ( a.equals( b ) )
             return 0;
+
+        if ( a instanceof Number || b instanceof Number ){
+            a = _parseNumber( a );
+            b = _parseNumber( b );
+        }
 
         if ( a instanceof Number && 
              b instanceof Number ){
@@ -378,7 +386,8 @@ public class JSInternalFunctions extends JSObjectBase {
 	return _parseNumber( def );
     }
 
-    static final Object _parseNumber( final Object o ){
+    static final Object _parseNumber( final Object orig ){
+        Object o = orig;
         if ( o == null )
             return null;
         
@@ -392,7 +401,7 @@ public class JSInternalFunctions extends JSObjectBase {
             s = o.toString();
         
         if ( s == null )
-            return o;
+            return orig;
 
         if ( s.length() > 9 )
             return s;
@@ -403,7 +412,7 @@ public class JSInternalFunctions extends JSObjectBase {
             if ( ! Character.isDigit( c ) ){
                 allDigits = false;
                 if ( c != '.' )
-                    return o;
+                    return orig;
             }
         }
         
@@ -413,7 +422,7 @@ public class JSInternalFunctions extends JSObjectBase {
         if ( s.matches( "\\d+\\.\\d+" ) )
             return Double.parseDouble( s );
 
-        return o;
+        return orig;
     }
 
     static String _debug( Object o ){
