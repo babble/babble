@@ -233,7 +233,12 @@ public class JSBuiltInFunctions {
 
         _myScope.put( "Math" , JSMath.getInstance() , true );
         
-        _myScope.put( "CrID" , new CrID() , true );
+        CrID crid = new CrID();
+        _myScope.put( "CrID" , crid , true );
+        _myScope.put( "ObjID" , crid , true );
+        _myScope.put( "ObjId" , crid , true );
+        _myScope.put( "ObjectID" , crid , true );
+        _myScope.put( "ObjectId" , crid , true );
 
         _myScope.put( "Base64" , new ed.util.Base64() , true );
         

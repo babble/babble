@@ -4,6 +4,8 @@ package ed.js;
 
 import java.util.*;
 
+import ed.db.*;
+
 public class JSObjectBase implements JSObject {
 
     public JSObjectBase(){
@@ -26,6 +28,11 @@ public class JSObjectBase implements JSObject {
         if ( n instanceof JSString )
             n = n.toString();
         
+        if ( v != null &&  "_id".equals( n ) && ! ( v instanceof ObjectId ) ){
+            v = new ObjectId( v.toString() );
+        }
+            
+
         if ( n instanceof String ){
             if ( _map == null ){
                 _map = new TreeMap<String,Object>();
