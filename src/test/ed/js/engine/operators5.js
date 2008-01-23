@@ -31,3 +31,10 @@ print( "12" + 5 );
 
 print( 5 - "12" );
 print( 5 - "a" );
+
+for ( var i=0; i<=25; i++ ){
+    print( (i/5).toFixed() );
+    print( (i/5).toFixed(1) );
+    print( (i/5).toFixed(2) );
+    print( (i/5).toFixed(3) );
+}

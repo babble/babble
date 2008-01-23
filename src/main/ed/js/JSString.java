@@ -21,7 +21,7 @@ public class JSString extends JSObjectBase {
         
         public Object call( Scope s , Object foo , Object[] args ){
 
-            JSObject o = s.getThis();
+            Object o = s.getThis();
             if ( o == null ){
                 if ( foo == null )
                     return new JSString( "" );

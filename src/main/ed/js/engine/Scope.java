@@ -209,6 +209,14 @@ public class Scope implements JSObject {
     public JSFunction getFunctionAndSetThis( final Object obj , final String name ){
         
         if ( DEBUG ) System.out.println( _id + " getFunctionAndSetThis.  name:" + name );
+        
+        if ( obj instanceof Number ){
+            JSFunction func = JSNumber.getFunction( name );
+            if ( func != null ){
+                _this.push( new This( obj ) );
+                return func;
+            }
+        }
 
         if ( obj instanceof JSObject ){
             JSObject jsobj = (JSObject)obj;
@@ -232,7 +240,7 @@ public class Scope implements JSObject {
         return _nativeFuncCall;
     }
     
-    public JSObject getThis(){
+    public Object getThis(){
         if ( _this.size() == 0 )
             return getGlobalThis();
         return _this.peek()._this;
@@ -246,7 +254,7 @@ public class Scope implements JSObject {
         return null;
     }
 
-    public JSObject clearThisNew( Object whoCares ){
+    public Object clearThisNew( Object whoCares ){
         if ( DEBUG ) System.out.println( "popping this from (clearThisNew) : " + _id );
         return _this.pop()._this;
     }
@@ -385,9 +393,9 @@ public class Scope implements JSObject {
     Stack<This> _this = new Stack<This>();
     Object _orSave;
     JSObject _globalThis;
-
+    
     static class This {
-        This( JSObject o ){
+        This( Object o ){
             _this = o;
         }
         
@@ -397,7 +405,7 @@ public class Scope implements JSObject {
         }
         
         // js this
-        JSObject _this;
+        Object _this;
         // native this
         Object _nThis;
         String _nThisFunc;

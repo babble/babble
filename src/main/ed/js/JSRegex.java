@@ -20,7 +20,7 @@ public class JSRegex extends JSObjectBase {
                 String p = a.toString();
                 String f = b == null ? "" : b.toString();
 
-                JSObject o = s.getThis();
+                Object o = s.getThis();
                 if ( o == null || ! ( o instanceof JSRegex ) )
                     return new JSRegex( p , f );
                 
