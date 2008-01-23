@@ -20,13 +20,19 @@ public class JSNumber {
     }
     
     public static JSFunction toFixed = new JSFunctionCalls1(){
-            public Object call( Scope sc , Object pointsInt , Object foo[] ){
+            public Object call( Scope sc , Object pointsInt , Object fo00000o[] ){
                 Number n = (Number)(sc.getThis());
                 int num = 0;
                 if ( pointsInt != null && pointsInt instanceof Number )
                     num = ((Number)pointsInt).intValue();
                 
-                String s = n.toString();
+                double mult = Math.pow( 10 , num );
+                
+                long foo = Math.round( n.doubleValue() * mult );
+                double d = foo;
+                d = d / mult ;
+                
+                String s = String.valueOf( d );
                 int idx = s.indexOf( "." );
                 
                 if ( idx < 0 ){
@@ -40,8 +46,8 @@ public class JSNumber {
                     return s;
                 }
 
-                if ( s.length() - idx < num ){ // need more
-                    int toAdd = ( s.length() - idx ) - num;
+                if ( s.length() - idx <= num ){ // need more
+                    int toAdd = ( num + 1 ) - ( s.length() - idx );
                     for ( int i=0; i<toAdd; i++ )
                         s += "0";
                     return s;
