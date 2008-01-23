@@ -118,13 +118,13 @@ public abstract class NIOServer extends Thread {
                     }
                 }
                 catch ( Exception e ){
-                    e.printStackTrace();
+                    //e.printStackTrace();
                     if ( sc != null ){
                         try {
                             sc.close();
                         }
                         catch ( Exception ee ){
-                            ee.printStackTrace();
+                            //ee.printStackTrace();
                         }
                     }
                     
