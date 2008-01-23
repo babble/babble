@@ -76,7 +76,9 @@ public class Parser {
                             continue;
                         }
                         if ( ( Character.isWhitespace( temp ) 
-                               || ! ( Character.isLetterOrDigit( temp ) || temp == '_' )
+                               || ! ( Character.isLetterOrDigit( temp )
+				      || temp == '.' 
+				      || temp == '_' )
                                || temp == '\''
                                || temp == '"'
                                || temp == '>'
