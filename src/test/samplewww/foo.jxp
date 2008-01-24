@@ -17,29 +17,23 @@
       this should NOT be here
     </div>
 
-    <div if="7 > 3" style="color: red;" >
-      this should be here and red
-    </div>
-
      <% if ( 7 > 3 ){ %>
      <div style="color: red;" >
        this should be here and red
      </div>
      <% } %>
 
-     <if '7 > 3'>
+     <if (7 > 3) >
      <div style="color: red;" >
        this should be here and red
      </div>
      </if>
-     
-     <div # post.comments  >
-       $a
-     </div>
 
-     <foreach "">
+     <% a = [ { z : 1 } , { z : 2 } ]; %>
+     
+     <foreach a >
        <div>
-         a
+         $z
        </div>
      </foreach>
 
