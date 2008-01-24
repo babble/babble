@@ -9,6 +9,8 @@ import ed.io.*;
 import ed.util.*;
 
 public class Parser {
+
+    static final boolean DEBUG = false;
     
     static List<Block> parse( JxpSource s )
         throws IOException {
@@ -67,7 +69,7 @@ public class Parser {
                         tag = tag.substring( 1 );
                     tag = tag.toLowerCase();
                     
-                    System.out.println( "found tag [" + tag + "] start : " + startTag );
+                    if ( DEBUG ) System.out.println( "found tag [" + tag + "] start : " + startTag );
                     
                     Stack<Block> stk = tagToStack.get( tag );
                     if ( stk == null ){
@@ -81,14 +83,50 @@ public class Parser {
                         Block mySpecial = null;
                     
                         int skip = 0;
+                        
+                        if ( TagMacros.getBlocks( tag ) != null ){
+                            String temp[] = TagMacros.getBlocks( tag );
+                            String open = temp[0];
+                            String close = temp[1];
 
-                        if ( i + tag.length() + 2 < data.length() && 
+                            if ( DEBUG ) System.out.println( "found tag macro for : " + tag );
+                            
+                            int tokenNumbers = 1;
+                            
+                            int start = i + tag.length() + 2;
+                            while ( true ){
+                                
+                                while ( Character.isWhitespace( data.charAt( start ) ) )
+                                    start++;
+                                
+                                if ( data.charAt( start ) == '>' )
+                                    break;
+                                
+                                int end = getJSTokenEnd( data , start );
+                                String token = data.substring( start , end ).trim();
+
+                                if ( token.length() == 0 )
+                                    break;
+                                
+                                if ( DEBUG ) System.out.println( "TOKEN:" + token );
+                                open = open.replaceAll( "\\$" + tokenNumbers , token );
+                                
+                                start = end;
+                                tokenNumbers++;
+                            }
+                            
+                            skip = ( start - i ) + tag.length();
+
+                            mySpecial = Block.create( Block.Type.CODE , open , lastline );
+                            special = Block.create( Block.Type.CODE , close , lastline );
+                        }
+                        else if ( i + tag.length() + 2 < data.length() && 
                              data.charAt( i + tag.length() + 1 ) == ' ' ){
                             
                             char temp = data.charAt( i + tag.length() + 2 );
                             
                             if ( temp == '?' ){
-                                System.out.println( "found ?" );
+                                if ( DEBUG ) System.out.println( "found ?" );
                                 
                                 skip = 2;
                                 int end = getJSTokenEnd( data , i + tag.length() + 2 + skip );
@@ -116,7 +154,7 @@ public class Parser {
                         
                         if ( stk.size() > 0 ){
                             Block special = stk.pop();
-                            System.out.println( "\t" + special );
+                            if ( DEBUG ) System.out.println( "\t" + special );
                             
                             if ( special != null ){
                                 while ( i < data.length() && data.charAt( i ) != '>' ){
@@ -238,12 +276,12 @@ public class Parser {
 
         for ( ; end < data.length(); end++ ){
             char temp = data.charAt( end );
-
+            
             if ( temp == '(' ){
                 parens++;
                 continue;
             }
-
+            
             if ( temp == ')' ){
                 parens--;
                 continue;
