@@ -2,43 +2,43 @@
   <body>
     
     <div class="as">
-      this is normal div 1
+      1
     </div>
 
     <div>
-      this is normal div 2
+      2
     </div>
     
     <div ? true  >
-      this should be here
+      3
     </div>
 
     <div ? ( 5 > 6 )  >
-      this should NOT be here
+      X1
     </div>
 
      <% if ( 7 > 3 ){ %>
      <div style="color: red;" >
-       this should be here and red
+       4
      </div>
      <% } %>
      
 
      <if (7 > 3) 8>
      <div style="color: red;" >
-       this should be here and red
+       5
      </div>
      </if>
 
      <if (7 > 8) >
      <div style="color: red;" >
-       this should NOT NOT be here and red
+       X2
      </div>
      </if>
 
      <if ( request ) >
      <div style="color: green;" >
-       this should be here and green
+       6
      </div>
      </if>
 
@@ -51,8 +51,10 @@
      </foreach>
 
     <div ? false class=asd  >
-      this should NOT be here
+      X3
     </div>
+
+    <div>7</div>
 
   </body>
 </html>
