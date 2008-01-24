@@ -387,6 +387,9 @@ public abstract class DBApiLayer extends DBBase {
         final int _numToReturn;
     }
 
+    public String toString(){
+        return _root;
+    }
 
     final String _root;
     final Map<String,MyCollection> _collections = Collections.synchronizedMap( new HashMap<String,MyCollection>() );
