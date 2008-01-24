@@ -298,7 +298,8 @@ public class Parser {
             if ( Character.isWhitespace( temp ) )
                 return end;
             
-            if ( temp == '\'' 
+            if ( temp == '\''
+		 || temp == '#' 
                  || temp == '<'
                  || temp == '>'
                  || temp == '"' )
