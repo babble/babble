@@ -1,0 +1,51 @@
+<html>
+  <body>
+    
+    <div class="as">
+      this is normal div 1
+    </div>
+
+    <div>
+      this is normal div 2
+    </div>
+    
+    <div ? true  >
+      this should be here
+    </div>
+
+    <div ? ( 5 > 6 )  >
+      this should NOT be here
+    </div>
+
+    <div if="7 > 3" style="color: red;" >
+      this should be here and red
+    </div>
+
+     <% if ( 7 > 3 ){ %>
+     <div style="color: red;" >
+       this should be here and red
+     </div>
+     <% } %>
+
+     <if '7 > 3'>
+     <div style="color: red;" >
+       this should be here and red
+     </div>
+     </if>
+     
+     <div # post.comments  >
+       $a
+     </div>
+
+     <foreach "">
+       <div>
+         a
+       </div>
+     </foreach>
+
+    <div ? false class=asd  >
+      this should NOT be here
+    </div>
+
+  </body>
+</html>
