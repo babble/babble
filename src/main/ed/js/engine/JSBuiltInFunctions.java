@@ -96,6 +96,22 @@ public class JSBuiltInFunctions {
             return new ed.db.ObjectId( idString.toString() );
         }
     }
+
+    public static class sleep extends JSFunctionCalls1 {
+        public Object call( Scope scope , Object timeObj , Object extra[] ){
+            if ( ! ( timeObj instanceof Number ) )
+                return false;
+            
+            try {
+                Thread.sleep( ((Number)timeObj).longValue() );
+            }
+            catch ( Exception e ){
+                return false;
+            }
+            
+            return true;
+        }
+    }
     
     public static class isXXX extends JSFunctionCalls1 {
         isXXX( Class c ){
@@ -216,6 +232,7 @@ public class JSBuiltInFunctions {
             
         }        
     }
+
     
     static Scope _myScope = new Scope( "Built-Ins" , null );
     static {
@@ -223,6 +240,7 @@ public class JSBuiltInFunctions {
         _myScope.put( "print" , new print() , true );
         _myScope.put( "printnoln" , new print( false ) , true );
         _myScope.put( "SYSOUT" , new print() , true );
+        _myScope.put( "sleep" , new sleep() , true );
 
         _myScope.put( "Object" , new NewObject() , true );
         _myScope.put( "Array" , new NewArray() , true );
