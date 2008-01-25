@@ -28,7 +28,9 @@ public class JSObjectBase implements JSObject {
         if ( n instanceof JSString )
             n = n.toString();
         
-        if ( v != null &&  "_id".equals( n ) && ! ( v instanceof ObjectId ) ){
+        if ( v != null &&  "_id".equals( n ) &&
+	     ( ( v instanceof String ) || ( v instanceof JSString ) )
+	     ){
             v = new ObjectId( v.toString() );
         }
             
