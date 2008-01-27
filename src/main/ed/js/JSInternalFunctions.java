@@ -106,7 +106,7 @@ public class JSInternalFunctions extends JSObjectBase {
                  bn instanceof Double )
                 return an.doubleValue() * bn.doubleValue();
             
-            return an.intValue() * bn.intValue();
+            return an.longValue() * bn.longValue();
         }
         
         return Double.NaN;
@@ -142,7 +142,7 @@ public class JSInternalFunctions extends JSObjectBase {
                  bn instanceof Double )
                 return an.doubleValue() - bn.doubleValue();
             
-            return an.intValue() - bn.intValue();
+            return an.longValue() - bn.longValue();
         }
         
         return Double.NaN;
@@ -160,7 +160,7 @@ public class JSInternalFunctions extends JSObjectBase {
                  bn instanceof Double )
                 return an.doubleValue() + bn.doubleValue();
             
-            return an.intValue() + bn.intValue();
+            return an.longValue() + bn.longValue();
         }
         
         if ( ( a != null && ( a instanceof Number ) && b == null ) ||
@@ -271,7 +271,7 @@ public class JSInternalFunctions extends JSObjectBase {
         
         if ( a != null && a instanceof Number && 
              b != null && b instanceof Number )
-            return ((Number)a).intValue() | ((Number)b).intValue();
+            return ((Number)a).longValue() | ((Number)b).longValue();
         
         if ( a != null && a instanceof Number )
             return (Number)a;
@@ -289,7 +289,7 @@ public class JSInternalFunctions extends JSObjectBase {
         
         if ( a != null && a instanceof Number && 
              b != null && b instanceof Number )
-            return ((Number)a).intValue() & ((Number)b).intValue();
+            return ((Number)a).longValue() & ((Number)b).longValue();
         
         /*
         if ( a != null && a instanceof Number )
@@ -308,7 +308,7 @@ public class JSInternalFunctions extends JSObjectBase {
         
         if ( a != null && a instanceof Number && 
              b != null && b instanceof Number )
-            return ((Number)a).intValue() ^ ((Number)b).intValue();
+            return ((Number)a).longValue() ^ ((Number)b).longValue();
         
         if ( a != null && a instanceof Number )
             return (Number)a;
@@ -325,7 +325,7 @@ public class JSInternalFunctions extends JSObjectBase {
 
         if ( a != null && a instanceof Number && 
              b != null && b instanceof Number )
-            return ((Number)a).intValue() % ((Number)b).intValue();
+            return ((Number)a).longValue() % ((Number)b).longValue();
         
         return Double.NaN;
     }
@@ -336,7 +336,7 @@ public class JSInternalFunctions extends JSObjectBase {
 
         if ( a != null && a instanceof Number && 
              b != null && b instanceof Number )
-            return ((Number)a).intValue() << ((Number)b).intValue();
+            return ((Number)a).longValue() << ((Number)b).longValue();
         
         if ( a == null || ! ( a instanceof Number ) )
             return 0;
@@ -350,7 +350,7 @@ public class JSInternalFunctions extends JSObjectBase {
 
         if ( a != null && a instanceof Number && 
              b != null && b instanceof Number )
-            return ((Number)a).intValue() >> ((Number)b).intValue();
+            return ((Number)a).longValue() >> ((Number)b).longValue();
         
         if ( a == null || ! ( a instanceof Number ) )
             return 0;
@@ -364,7 +364,7 @@ public class JSInternalFunctions extends JSObjectBase {
 
         if ( a != null && a instanceof Number && 
              b != null && b instanceof Number )
-            return ((Number)a).intValue() >>> ((Number)b).intValue();
+            return ((Number)a).longValue() >>> ((Number)b).longValue();
         
         if ( a == null || ! ( a instanceof Number ) )
             return 0;
@@ -375,7 +375,7 @@ public class JSInternalFunctions extends JSObjectBase {
     public Number JS_bitnot( Object a ){
         a = _parseNumber( a );
         if ( a instanceof Number )
-            return ~((Number)a).intValue();
+            return ~((Number)a).longValue();
         return -1;
     }
 
