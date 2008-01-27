@@ -11,6 +11,16 @@ import ed.util.*;
 public class Parser {
 
     static final boolean DEBUG = false;
+
+    static class MacroEnd {
+        MacroEnd( Block b , boolean printTag ){
+            _block = b;
+            _printTag = printTag;
+        }
+
+        final Block _block;
+        final boolean _printTag;
+    }
     
     static List<Block> parse( JxpSource s )
         throws IOException {
@@ -29,7 +39,7 @@ public class Parser {
         char codeOpening = ' ';
         int numBrackets = 0;
         
-        Map<String,Stack<Block>> tagToStack = new HashMap<String,Stack<Block>>();
+        Map<String,Stack<MacroEnd>> tagToStack = new HashMap<String,Stack<MacroEnd>>();
         List<Block> blocks = new ArrayList<Block>();
         
         if ( isTemplate )
@@ -71,9 +81,9 @@ public class Parser {
                     
                     if ( DEBUG ) System.out.println( "found tag [" + tag + "] start : " + startTag );
                     
-                    Stack<Block> stk = tagToStack.get( tag );
+                    Stack<MacroEnd> stk = tagToStack.get( tag );
                     if ( stk == null ){
-                        stk = new Stack<Block>();
+                        stk = new Stack<MacroEnd>();
                         tagToStack.put( tag , stk );
                     }
 
@@ -83,7 +93,8 @@ public class Parser {
                         Block mySpecial = null;
                     
                         int skip = 0;
-                        
+                        boolean printTag = true;
+
                         if ( TagMacros.getBlocks( tag ) != null ){
                             String temp[] = TagMacros.getBlocks( tag );
                             String open = temp[0];
@@ -115,8 +126,9 @@ public class Parser {
                                 tokenNumbers++;
                             }
                             
-                            skip = ( start - i ) + tag.length();
-
+                            skip = ( start - ( i + tag.length() + 1 ) );
+                            printTag = false;
+                            
                             mySpecial = Block.create( Block.Type.CODE , open , lastline );
                             special = Block.create( Block.Type.CODE , close , lastline );
                         }
@@ -139,13 +151,14 @@ public class Parser {
                             }
                         }
                         
-                        stk.push( special );
+                        stk.push( new MacroEnd( special , printTag ) );
                         
                         if ( mySpecial != null ){
                             blocks.add( Block.create( curType , buf.toString() , lastline ) );
                             buf.setLength( 0 );
                             blocks.add( mySpecial );
-                            blocks.add( Block.create( Block.Type.HTML , data.substring( i , i + tag.length() + 1 ) , lastline ) );
+                            if ( printTag )
+                                blocks.add( Block.create( Block.Type.HTML , data.substring( i , i + tag.length() + 1 ) , lastline ) );
                             i += tag.length() + 1 + skip;
                             continue;
                         }
@@ -153,19 +166,21 @@ public class Parser {
                     else {
                         
                         if ( stk.size() > 0 ){
-                            Block special = stk.pop();
+                            MacroEnd special = stk.pop();
                             if ( DEBUG ) System.out.println( "\t" + special );
                             
-                            if ( special != null ){
+                            if ( special != null && special._block != null ){
                                 while ( i < data.length() && data.charAt( i ) != '>' ){
-                                    buf.append( data.charAt( i ) );
+                                    if ( special._printTag )
+                                        buf.append( data.charAt( i ) );
                                     i++;
                                 }
-                                buf.append( data.charAt( i ) );
+                                if ( special._printTag )
+                                    buf.append( data.charAt( i ) );
                                 
                                 blocks.add( Block.create( curType , buf.toString() , lastline ) );
                                 buf.setLength( 0 );
-                                blocks.add( special );
+                                blocks.add( special._block );
                                 
                                 continue;
                             }
