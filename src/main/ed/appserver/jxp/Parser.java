@@ -314,6 +314,7 @@ public class Parser {
                 return end;
             
             if ( temp == '\''
+		 || temp == ';' 
 		 || temp == '#' 
                  || temp == '<'
                  || temp == '>'
