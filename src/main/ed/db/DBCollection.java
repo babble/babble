@@ -205,14 +205,17 @@ public abstract class DBCollection extends JSObjectLame {
                               Object res = _find.call( s , o , foo );
                               if ( res == null )
                                   return null;
-                              
+			      
+			      if ( res instanceof DBCursor )
+				  ((DBCursor)res).limit( 1 );
+
                               if ( res instanceof JSArray ){
                                   JSArray a = (JSArray)res;
                                   if ( a.size() == 0 )
                                       return null;
                                   return a.getInt( 0 );
                               }
-                              
+			      
                               if ( res instanceof Iterator ){
                                   Iterator<JSObject> it = (Iterator<JSObject>)res;
                                   if ( ! it.hasNext() )
