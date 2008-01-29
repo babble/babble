@@ -91,6 +91,10 @@ public class AppContext {
         return (JSFile)(f.find( new ObjectId( id ) ));
     }
 
+    public Scope getScope(){
+	return _scope();
+    }
+
     Scope scopeChild(){
         Scope s = _scope().child( "AppRequest" );
         s.setGlobal( true );

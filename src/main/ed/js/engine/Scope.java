@@ -167,6 +167,10 @@ public class Scope implements JSObject {
         return null;
     }
     
+    public Scope getParent(){
+	return _parent;
+    }
+
     /**
      * @return true if s is a parent of this
      */
