@@ -77,6 +77,24 @@ public class JSArray extends JSObjectBase {
                     }
                 } );
 
+            _prototype.set( "concat" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object o , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        if ( a == null )
+                            throw new RuntimeException( "this shouldn't be possible.  scope id = " + s._id );
+                        if ( o == null )
+                            return a;
+                        
+                        if ( ! ( o instanceof JSArray ) )
+                            throw new RuntimeException( "trying to concat a non-array");
+                        
+                        JSArray tempArray = (JSArray)o;
+                        for ( Object temp : tempArray._array )
+                            a.add( temp );
+                        return a;
+                    }
+                } );
+
             _prototype.set( "filter" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object fo , Object foo[] ){
                         JSArray a = (JSArray)(s.getThis());
@@ -86,6 +104,24 @@ public class JSArray extends JSObjectBase {
                         for ( Object o : a._array )
                             if ( JS_evalToBool( f.call( s , o ) ) )
                                 n.add( o );
+                        return n;
+                    }
+                } );
+
+
+            _prototype.set( "unique" , new JSFunctionCalls0() {
+                    public Object call( Scope s , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        JSArray n = new JSArray();
+    
+                        Set seen = new HashSet();
+                        for ( Object o : a._array ){
+                            if ( seen.contains( o ) )
+                                continue;
+                            seen.add( o );
+                            n.add( o ); 
+                        }
+                        
                         return n;
                     }
                 } );
