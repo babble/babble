@@ -6,15 +6,17 @@ import java.nio.*;
 import java.nio.charset.*;
 
 import ed.js.*;
+import ed.js.engine.*;
 import ed.util.*;
 
 public class ByteDecoder extends Bytes {
 
-    static protected ByteDecoder get( DBBase base , String ns ){
+    static protected ByteDecoder get( DBBase base , String ns , JSFunction cons ){
         ByteDecoder bd = _pool.get();
         bd.reset();
         bd._base = base;
         bd._ns = ns;
+        bd._constructor = cons;
         return bd;
     }
 
@@ -65,8 +67,12 @@ public class ByteDecoder extends Bytes {
             }
         }
 
-        if ( created == null )
+        if ( created == null ){
             created = new JSObjectBase();
+            if ( _constructor != null ){
+                created.setConstructor( _constructor , true );
+            }
+        }
         
         while ( decodeNext( created ) > 1 );
         
@@ -199,5 +205,6 @@ public class ByteDecoder extends Bytes {
 
     String _ns;
     DBBase _base;
+    JSFunction _constructor;
 }
 

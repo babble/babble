@@ -41,6 +41,10 @@ public abstract class JSFunction extends JSFunctionBase {
     public String getName(){
         return _name;
     }
+
+    public Scope getScope(){
+        return _scope;
+    }
     
     public String toString(){
         return "JSFunction : " + _name;

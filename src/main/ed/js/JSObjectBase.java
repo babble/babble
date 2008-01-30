@@ -5,6 +5,7 @@ package ed.js;
 import java.util.*;
 
 import ed.db.*;
+import ed.js.engine.*;
 
 public class JSObjectBase implements JSObject {
 
@@ -112,8 +113,28 @@ public class JSObjectBase implements JSObject {
         return foo.toString();
     }
 
-    public void setConstructor( JSFunction cons ){
+    public void setConstructor( JSFunction cons , boolean exec ){
         _constructor = cons;
+        if ( exec ){
+            
+            Scope s = _constructor.getScope();
+            
+            if ( s == null )
+                s = Scope.GLOBAL;
+            
+            s = s.child();
+            
+            s.setThis( this );
+            _constructor.call( s );
+        }
+    }
+
+    public void setConstructor( JSFunction cons ){
+        setConstructor( cons , false );
+    }
+
+    public JSFunction getConstructor(){
+        return _constructor;
     }
 
     private Map<String,Object> _map = null;

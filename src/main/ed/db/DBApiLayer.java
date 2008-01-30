@@ -214,7 +214,7 @@ public abstract class DBApiLayer extends DBBase {
                 encoder.putObject( null , fields ); // fields to return
             encoder.flip();
 
-            ByteDecoder decoder = ByteDecoder.get( DBApiLayer.this , _fullNameSpace );
+            ByteDecoder decoder = ByteDecoder.get( DBApiLayer.this , _fullNameSpace , _constructor );
 
             int len = doQuery( encoder._buf , decoder._buf );
             decoder.doneReading( len );
@@ -360,7 +360,7 @@ public abstract class DBApiLayer extends DBBase {
 	    encoder._buf.putLong( _curResult._cursor );
 	    encoder.flip();
             
-	    ByteDecoder decoder = ByteDecoder.get( DBApiLayer.this , _collection._fullNameSpace );
+	    ByteDecoder decoder = ByteDecoder.get( DBApiLayer.this , _collection._fullNameSpace , _collection._constructor );
 	    int len = doGetMore( encoder._buf , decoder._buf );
 	    decoder.doneReading( len );
             

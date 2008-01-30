@@ -97,8 +97,15 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
         _cur = _it.next();
         _num++;
         
-        if ( _constructor != null && _cur instanceof JSObjectBase )
-            ((JSObjectBase)_cur).setConstructor( _constructor );
+        if ( _constructor != null && 
+             _cur instanceof JSObjectBase ){
+            
+            JSObjectBase job = (JSObjectBase)_cur;
+            
+            if ( job.getConstructor() == null )
+                job.setConstructor( _constructor , true );
+            
+        }
         
         if ( _cursorType == CursorType.ARRAY ){
             _nums.add( String.valueOf( _all.size() ) );
