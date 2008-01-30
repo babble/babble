@@ -131,8 +131,8 @@ public class JSArray extends JSObjectBase {
                         JSArray a = (JSArray)(s.getThis());
                         JSFunction f = (JSFunction)fo;
                         
-                        for ( Object o : a._array )
-                            f.call( s , o );
+                        for ( int i=0; i<a._array.size(); i++ )
+                            f.call( s , a._array.get( i ) , i , a._array.size() );
                         
                         return null;
                     }
