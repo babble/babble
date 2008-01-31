@@ -36,7 +36,6 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
             throw new RuntimeException( "can't set limit after executing query" );
         
         _numWanted = n;
-        _tempLimitSkipWorkTogether();
         return this;
     }
     
@@ -44,16 +43,15 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
         if ( _it != null )
             throw new RuntimeException( "can't set skip after executing query" );
         _skip = n;
-        _tempLimitSkipWorkTogether();
         return this;
     }
     
-    private void _tempLimitSkipWorkTogether(){
+    private int _tempLimitSkipWorkTogether(){
         if ( _numWanted == 0 || _skip == 0 )
-            return;
-
+            return _numWanted;
+        
         System.err.println( "trying to use skip and limit together.  hacking for now" );
-        _numWanted = _skip + _numWanted;
+        return _skip + _numWanted;
     }
 
     // ----  internal stuff ------
@@ -70,7 +68,8 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
                     foo.set( "query" , _query );
                 foo.set( "orderby" , _orderBy );
             }
-            _it = _collection.find( foo , _keysWanted , _numWanted );
+            int numWantedToSend = _tempLimitSkipWorkTogether();
+            _it = _collection.find( foo , _keysWanted , numWantedToSend );
         }
 
         if ( _it == null )
