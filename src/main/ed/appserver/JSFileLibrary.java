@@ -12,9 +12,10 @@ import ed.appserver.jxp.*;
 
 public class JSFileLibrary extends JSObjectBase {
     
-    public JSFileLibrary( File base , String uriBase ){
+    public JSFileLibrary( File base , String uriBase , AppContext context ){
         _base = base;
         _uriBase = uriBase;
+        _context = context;
     }
     
     public Object get( final Object n ){
@@ -41,6 +42,9 @@ public class JSFileLibrary extends JSObjectBase {
     JxpSource getSource( File f )
         throws IOException {
         
+        if ( _context != null )
+            _context.loadedFile( f );
+
         JxpSource source = _sources.get( f );
         if ( source == null ){
             source = JxpSource.getSource( f );
@@ -74,7 +78,7 @@ public class JSFileLibrary extends JSObjectBase {
         }
         
         if ( dir.exists() )
-            return set( n , new JSFileLibrary( dir , _uriBase + "." + n.toString() ) );
+            return set( n , new JSFileLibrary( dir , _uriBase + "." + n.toString() , _context ) );
         
         if ( f == null )
             return null;
@@ -102,6 +106,7 @@ public class JSFileLibrary extends JSObjectBase {
     
     final File _base;
     final String _uriBase;
+    final AppContext _context;
     private final Map<File,JxpSource> _sources = new HashMap<File,JxpSource>();
     
 }
