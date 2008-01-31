@@ -25,5 +25,9 @@ public class JSObjectLame implements JSObject {
     public Object getInt( int n ){
         throw new UnsupportedOperationException();
     }
+
+    public void removeField( Object n ){
+        throw new UnsupportedOperationException();
+    }
 }
 

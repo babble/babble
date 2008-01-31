@@ -12,7 +12,9 @@ public interface JSObject {
 
     public Object setInt( int n , Object v );
     public Object getInt( int n );
+    
+    public void removeField( Object n );
 
     public Collection<String> keySet();
-
+    
 }

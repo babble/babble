@@ -80,6 +80,22 @@ public class JSObjectBase implements JSObject {
         throw new RuntimeException( "what - " + n.getClass() );
     }
 
+    public void removeField( Object n ){
+        if ( n == null )
+            return;
+        
+
+        if ( n instanceof JSString )
+            n = n.toString();
+        
+        if ( n instanceof String ){
+            _map.remove( (String)n );
+            _keys.remove( n );
+        }
+        
+    }
+
+
     public Object setInt( int n , Object v ){
         prefunc();
         return set( String.valueOf( n ) , v );
@@ -89,6 +105,7 @@ public class JSObjectBase implements JSObject {
         prefunc();
         return get( String.valueOf( n ) );
     }
+
 
     public Collection<String> keySet(){
         prefunc();

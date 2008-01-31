@@ -505,6 +505,13 @@ public class Convert {
             if ( n.getFirstChild().getNext().getNext() != null )
                 throw new RuntimeException( "something is wrong" );
             break;
+        case Token.DELPROP:
+            _append( "((JSObject)" , n );
+            _add( n.getFirstChild() , state );
+            _append( " ).removeField( "  , n );
+            _add( n.getFirstChild().getNext() , state );
+            _append( " ) " , n );
+            break;
         default:
             Debug.printTree( n , 0 );
             throw new RuntimeException( "can't handle : " + n.getType() + ":" + Token.name( n.getType() ) + ":" + n.getClass().getName() + " line no : " + n.getLineno() );
