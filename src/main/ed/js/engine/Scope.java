@@ -466,7 +466,8 @@ public class Scope implements JSObject {
                                 continue;
                             
                             Class myClass = myClasses[i];
-
+                            final Class origMyClass = myClass;
+                            
                             if ( myClass == String.class )
                                 params[i] = params[i].toString();
                             
@@ -480,12 +481,28 @@ public class Scope implements JSObject {
                                     myClass = Boolean.class;
                             }
                             
-
+                            
                             if ( ! myClass.isAssignableFrom( params[i].getClass() ) ){
                                 System.out.println( "\t native assignement failed b/c " + myClasses[i] + " " + params[i].getClass() );
                                 continue methods;
                             }
                             
+                            if ( myClass == Number.class && origMyClass != params[i].getClass() ){
+                                Number theNumber = (Number)params[i];
+                                
+                                if ( origMyClass == Double.class || origMyClass == Double.TYPE )
+                                    params[i] = theNumber.doubleValue(); 
+                                else if ( origMyClass == Integer.class || origMyClass == Integer.TYPE )
+                                    params[i] = theNumber.intValue(); 
+                                else if ( origMyClass == Float.class || origMyClass == Float.TYPE )
+                                    params[i] = theNumber.floatValue(); 
+                                else if ( origMyClass == Long.class || origMyClass == Long.TYPE )
+                                    params[i] = theNumber.longValue(); 
+                                else if ( origMyClass == Short.class || origMyClass == Short.TYPE )
+                                    params[i] = theNumber.shortValue(); 
+                                else
+                                    throw new RuntimeException( "what is : " + origMyClass );
+                            }
                         }
                     }
                 
