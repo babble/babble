@@ -13,9 +13,32 @@ import ed.appserver.jxp.*;
 public class JSFileLibrary extends JSObjectBase {
     
     public JSFileLibrary( File base , String uriBase , AppContext context ){
+        this( base , uriBase , context , null , uriBase.equals( "core" ) );
+    }
+
+    public JSFileLibrary( File base , String uriBase , Scope scope ){
+        this( base , uriBase , null , scope , uriBase.equals( "core" ) );
+    }
+
+    public JSFileLibrary( File base , String uriBase , AppContext context , Scope scope , boolean doInit ){
         _base = base;
         _uriBase = uriBase;
         _context = context;
+        _scope = scope;
+        _didInit = doInit;
+        if ( _didInit ){
+            Object foo = get( "_init" );
+            if ( foo instanceof JSFunction ){
+                Scope s = null;
+                if ( context != null )
+                    s = context.getScope();
+                else if ( scope != null )
+                    s = scope;
+                else 
+                    throw new RuntimeException( "no scope :(" );
+                ((JSFunction)foo).call( s );
+            }
+        }
     }
     
     public Object get( final Object n ){
@@ -78,7 +101,7 @@ public class JSFileLibrary extends JSObjectBase {
         }
         
         if ( dir.exists() )
-            return set( n , new JSFileLibrary( dir , _uriBase + "." + n.toString() , _context ) );
+            return set( n , new JSFileLibrary( dir , _uriBase + "." + n.toString() , _context , _scope , _didInit ) );
         
         if ( f == null )
             return null;
@@ -107,6 +130,8 @@ public class JSFileLibrary extends JSObjectBase {
     final File _base;
     final String _uriBase;
     final AppContext _context;
+    final Scope _scope;
+    final boolean _didInit;
     private final Map<File,JxpSource> _sources = new HashMap<File,JxpSource>();
     
 }

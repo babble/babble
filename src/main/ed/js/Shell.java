@@ -52,7 +52,7 @@ public class Shell {
                 }
             } , true );
 
-        s.put( "core" , new JSFileLibrary( new File( "/data/corejs" ) ,  "core" , null ) , true );
+        s.put( "core" , new JSFileLibrary( new File( "/data/corejs" ) ,  "core" , s ) , true );
             
     }
     
