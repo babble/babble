@@ -74,6 +74,10 @@ public class Scope implements JSObject {
     public Object get( Object n ){
         return get( n.toString() );
     }
+    
+    public void removeField( Object n ){
+        removeField( n.toString() );
+    }
 
     public Object setInt( int n , Object v ){
         throw new RuntimeException( "no" );
@@ -84,6 +88,10 @@ public class Scope implements JSObject {
 
     public Collection<String> keySet(){
         return new HashSet<String>( _objects.keySet() );
+    }
+
+    public void removeField( String name ){
+        _objects.remove( name );
     }
 
     public Object put( String name , Object o , boolean local ){

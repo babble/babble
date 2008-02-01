@@ -9,7 +9,7 @@ import java.util.regex.*;
 import ed.js.*;
 import ed.util.*;
 
-public class HttpRequest implements ed.js.JSObject {
+public class HttpRequest extends JSObjectLame {
     
     HttpRequest( HttpServer.HttpSocketHandler handler , String header ){
         _handler = handler;
