@@ -244,12 +244,12 @@ public class JSArray extends JSObjectBase {
         for ( Object o : obj )
             _array.add( o );
     }
-
+    
     public JSArray( List lst ){
         super( _cons );
-        _array = lst;
+        _array = lst == null ? new ArrayList() : lst;
     }
-
+    
     public Object setInt( int pos , Object v ){
         while ( _array.size() <= pos )
             _array.add( null );
