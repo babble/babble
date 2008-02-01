@@ -15,34 +15,44 @@ public class JSFileLibrary extends JSObjectBase {
     public JSFileLibrary( File base , String uriBase , AppContext context ){
         this( base , uriBase , context , null , uriBase.equals( "core" ) );
     }
-
+    
     public JSFileLibrary( File base , String uriBase , Scope scope ){
         this( base , uriBase , null , scope , uriBase.equals( "core" ) );
     }
-
+    
     public JSFileLibrary( File base , String uriBase , AppContext context , Scope scope , boolean doInit ){
         _base = base;
         _uriBase = uriBase;
         _context = context;
         _scope = scope;
-        _didInit = doInit;
-        if ( _didInit ){
-            Object foo = get( "_init" );
-            if ( foo instanceof JSFunction ){
-                Scope s = null;
-                if ( context != null )
-                    s = context.getScope();
-                else if ( scope != null )
-                    s = scope;
-                else 
-                    throw new RuntimeException( "no scope :(" );
-                ((JSFunction)foo).call( s );
-            }
-        }
+        _doInit = doInit;
     }
     
-    public Object get( final Object n ){
+    private void _init(){
+        if ( _didInit )
+            return;
         
+        if ( ! _doInit )
+            return;
+        
+        _didInit = true;
+        
+        Object foo = get( "_init" );
+        if ( foo instanceof JSFunction ){
+            Scope s = null;
+            if ( _context != null )
+                s = _context.getScope();
+            else if ( _scope != null )
+                s = _scope;
+            else 
+                throw new RuntimeException( "no scope :(" );
+            ((JSFunction)foo).call( s );
+        }
+    }
+
+    public Object get( final Object n ){
+        _init();
+
         Object foo = _get( n );
         if ( foo instanceof JxpSource ){
             try {
@@ -56,7 +66,7 @@ public class JSFileLibrary extends JSObjectBase {
         }
         return foo;
     }
-
+    
     public boolean isIn( File f ){
         // TODO make less slow
         return f.toString().startsWith( _base.toString() );
@@ -101,7 +111,7 @@ public class JSFileLibrary extends JSObjectBase {
         }
         
         if ( dir.exists() )
-            return set( n , new JSFileLibrary( dir , _uriBase + "." + n.toString() , _context , _scope , _didInit ) );
+            return set( n , new JSFileLibrary( dir , _uriBase + "." + n.toString() , _context , _scope , _doInit ) );
         
         if ( f == null )
             return null;
@@ -131,7 +141,8 @@ public class JSFileLibrary extends JSObjectBase {
     final String _uriBase;
     final AppContext _context;
     final Scope _scope;
-    final boolean _didInit;
+    final boolean _doInit;
+    boolean _didInit = false;
     private final Map<File,JxpSource> _sources = new HashMap<File,JxpSource>();
     
 }
