@@ -33,4 +33,13 @@ p.foo = function() {
 p.foo();
 
 
+a = {};
+a.a = {};
+a.a.b = function(){
+    this.z = 1;
+};
+
+foo = new a.a.b();
+print( foo.z );
+
 
