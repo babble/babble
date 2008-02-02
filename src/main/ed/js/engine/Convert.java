@@ -927,13 +927,14 @@ public class Convert {
     private void _addCall( Node n , State state , boolean isClass ){
         Node name = n.getFirstChild();
         
-        boolean useThis = name.getType() == Token.GETPROP;
+        boolean useThis = name.getType() == Token.GETPROP && ! isClass;
         
         if ( useThis )
             _append( "scope.clearThisNormal( " , n );
 
-        String f = getFunc( name , state );
-        _append( f + ".call( scope" + ( isClass ? ".newThis( " + f + " )" : "" ) + " " , n );
+        Boolean inc[] = new Boolean[]{ true };
+        String f = getFunc( name , state , isClass , inc  );
+        _append( ( inc[0] ? f : "" ) + ".call( scope" + ( isClass ? ".newThis( " + f + " )" : "" ) + " " , n );
 
         Node param = name.getNext();
         while ( param != null ){
@@ -1044,13 +1045,13 @@ public class Convert {
 
         _currentLineNumber = end;
     }
-
+    
     private String getFunc( Node n , State state ){
-        return getFunc( n , state , null );
+        return getFunc( n , state , false , null );
     }
-    private String getFunc( Node n , State state , String asdad ){
+    private String getFunc( Node n , State state , boolean isClass , Boolean inc[] ){
         if ( n.getClass().getName().indexOf( "StringNode" ) < 0 ){
-            if ( n.getType() == Token.GETPROP ){
+            if ( n.getType() == Token.GETPROP && ! isClass ){
                 _append( "scope.getFunctionAndSetThis( " , n );
                 _add( n.getFirstChild() , state );
                 _append( " , " , n );
@@ -1058,12 +1059,21 @@ public class Convert {
                 _append( ".toString() ) " , n );
                 return "";
             }
+            
+            int start = _mainJavaCode.length();
             _append( "((JSFunction )" , n);
             _add( n , state );
             _append( ")" , n );
+            int end = _mainJavaCode.length();
+            if( isClass ){
+                if ( inc == null )
+                    throw new RuntimeException( "inc is null and can't be here" );
+                inc[0] = false;
+                return "(" + _mainJavaCode.substring( start , end ) + ")";
+            }
             return "";
         }
-
+        
         String name = n.getString();
         if ( name == null || name.length() == 0 ){
             int id = n.getIntProp( Node.FUNCTION_PROP , -1 );
