@@ -10,6 +10,8 @@ import ed.js.func.*;
 import ed.js.engine.*;
 
 public abstract class DBCollection extends JSObjectLame {
+
+    final static DEBUG = false;
     
     public abstract JSObject save( JSObject o );
     public abstract JSObject update( JSObject q , JSObject o , boolean upsert , boolean apply );
@@ -85,24 +87,26 @@ public abstract class DBCollection extends JSObjectLame {
                     }
                     
                     _findSubObject( s , jo );
-
+                    
                     ObjectId id = (ObjectId)jo.get( "_id" );
-
+                    if ( DEBUG ) System.out.println( "id : " + id );
+                    
                     if ( id == null || id._new ){
+                        if ( DEBUG ) System.out.println( "saving new object" );
                         if ( id != null )
                             id._new = false;
                         save( jo );
                         return jo;
                     }
                     
-                    System.out.println( "doing implicit upsert : " + jo.get( "_id" ) );
+                    if ( DEBUG ) System.out.println( "doing implicit upsert : " + jo.get( "_id" ) );
                     JSObject q = new JSObjectBase();
-                    q.set( "_id" , jo.get( "_id" ) );
+                    q.set( "_id" , id );
                     return _update.call( s , q , jo , _upsertOptions );
                 }
             };
         _entries.put( "save" , _save );
-
+        
         _update = new JSFunctionCalls2() {
                 public Object call( Scope s , Object q , Object o , Object foo[] ){
                     
