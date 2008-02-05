@@ -1221,60 +1221,64 @@ public class Node
                 sb.append(' ');
                 sb.append(lineno);
             }
+            
+            handlePropList( sb );
+        }
+    }
 
-            for (PropListItem x = propListHead; x != null; x = x.next) {
-                int type = x.type;
-                sb.append(" [");
-                sb.append(propToString(type));
-                sb.append(": ");
-                String value;
-                switch (type) {
-                  case TARGETBLOCK_PROP : // can't add this as it recurses
-                    value = "target block property";
+    public void handlePropList( StringBuffer sb ){
+        for (PropListItem x = propListHead; x != null; x = x.next) {
+            int type = x.type;
+            sb.append(" [");
+            sb.append(propToString(type));
+            sb.append(": ");
+            String value;
+            switch (type) {
+            case TARGETBLOCK_PROP : // can't add this as it recurses
+                value = "target block property";
+                break;
+            case LOCAL_BLOCK_PROP :     // can't add this as it is dull
+                value = "last local block";
+                break;
+            case ISNUMBER_PROP:
+                switch (x.intValue) {
+                case BOTH:
+                    value = "both";
                     break;
-                  case LOCAL_BLOCK_PROP :     // can't add this as it is dull
-                    value = "last local block";
+                case RIGHT:
+                    value = "right";
                     break;
-                  case ISNUMBER_PROP:
-                    switch (x.intValue) {
-                      case BOTH:
-                        value = "both";
-                        break;
-                      case RIGHT:
-                        value = "right";
-                        break;
-                      case LEFT:
-                        value = "left";
-                        break;
-                      default:
-                        throw Kit.codeBug();
-                    }
+                case LEFT:
+                    value = "left";
                     break;
-                  case SPECIALCALL_PROP:
-                    switch (x.intValue) {
-                      case SPECIALCALL_EVAL:
-                        value = "eval";
-                        break;
-                      case SPECIALCALL_WITH:
-                        value = "with";
-                        break;
-                      default:
-                        // NON_SPECIALCALL should not be stored
-                        throw Kit.codeBug();
-                    }
-                    break;
-                  default :
-                    Object obj = x.objectValue;
-                    if (obj != null) {
-                        value = obj.toString();
-                    } else {
-                        value = String.valueOf(x.intValue);
-                    }
-                    break;
+                default:
+                    throw Kit.codeBug();
                 }
-                sb.append(value);
-                sb.append(']');
+                break;
+            case SPECIALCALL_PROP:
+                switch (x.intValue) {
+                case SPECIALCALL_EVAL:
+                    value = "eval";
+                    break;
+                case SPECIALCALL_WITH:
+                    value = "with";
+                    break;
+                default:
+                    // NON_SPECIALCALL should not be stored
+                    throw Kit.codeBug();
+                }
+                break;
+            default :
+                Object obj = x.objectValue;
+                if (obj != null) {
+                    value = obj.toString();
+                } else {
+                    value = String.valueOf(x.intValue);
+                }
+                break;
             }
+            sb.append(value);
+            sb.append(']');
         }
     }
 
