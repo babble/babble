@@ -232,6 +232,8 @@ public class HttpRequest extends JSObjectLame {
     }
 
     private final String _urlDecode( String s ){
+        System.out.println( "IN : " + s + " : " + URLDecoder.decode( s ) );
+        if ( true ) return URLDecoder.decode( s );
 	try {
 	    return URLDecoder.decode( s , _characterEncoding );
 	}
