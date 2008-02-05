@@ -83,49 +83,8 @@ public abstract class DBCollection extends JSObjectLame {
                         ((JSFunction)presaveObject).call( s );
                         s.clearThisNormal( null );
                     }
-
-                    LinkedList<JSObject> toSearch = new LinkedList();
-                    toSearch.add( jo );
-                    while ( toSearch.size() > 0 ){
-                        JSObject n = toSearch.remove(0);
-                        for ( String name : n.keySet() ){
-                            Object foo = n.get( name );
-                            if ( foo == null )
-                                continue;
-
-                            if ( ! ( foo instanceof JSObject ) )
-                                continue;
-                            
-                            JSObject e = (JSObject)foo;
-                            if ( e instanceof JSFileChunk ){
-                                _base.getCollection( "_chunks" ).apply( e );
-                            }
-                            
-                            if ( e.get( "_save" ) == null ){
-                                toSearch.add( e );
-                                continue;
-                            }
-                            
-                            // ok - now we knows its a reference
-
-                            if ( e.get( "_id" ) == null ){ // new object, lets save it
-                                JSFunction otherSave = (JSFunction)e.get( "_save" );
-                                otherSave.call( s , e , null );
-                                continue;
-                            }
-
-                            // old object, lets update TODO: dirty tracking
-                            JSObject lookup = new JSObjectBase();
-                            lookup.set( "_id" , e.get( "_id" ) );
-                            
-                            JSFunction otherUpdate = (JSFunction)e.get( "_update" );
-                            if ( otherUpdate == null )
-                                throw new RuntimeException( "_update is null :(" );
-                            
-                            otherUpdate.call( s , lookup , e , _upsertOptions );
-                            
-                        }
-                    }
+                    
+                    _findSubObject( s , jo );
 
                     ObjectId id = (ObjectId)jo.get( "_id" );
 
@@ -136,10 +95,10 @@ public abstract class DBCollection extends JSObjectLame {
                         return jo;
                     }
                     
-                    System.out.println( jo.get( "_id" ) );
+                    System.out.println( "doing implicit upsert : " + jo.get( "_id" ) );
                     JSObject q = new JSObjectBase();
                     q.set( "_id" , jo.get( "_id" ) );
-                    return update( q , jo , true , true );
+                    return _update.call( s , q , jo , _upsertOptions );
                 }
             };
         _entries.put( "save" , _save );
@@ -156,6 +115,8 @@ public abstract class DBCollection extends JSObjectLame {
                     if ( ! ( q instanceof JSObject ) )
                         throw new RuntimeException( "can only save JSObject" );
                     
+                    _findSubObject( s , (JSObject)o );
+
                     boolean upsert = false;
                     boolean apply = true;
                     
@@ -253,6 +214,56 @@ public abstract class DBCollection extends JSObjectLame {
                           }
                       } );
         
+    }
+
+    private void _findSubObject( Scope s , JSObject jo ){
+
+        LinkedList<JSObject> toSearch = new LinkedList();
+        toSearch.add( jo );
+        
+        while ( toSearch.size() > 0 ){
+            JSObject n = toSearch.remove(0);
+            for ( String name : n.keySet() ){
+                Object foo = n.get( name );
+                if ( foo == null )
+                    continue;
+                
+                if ( ! ( foo instanceof JSObject ) )
+                    continue;
+                
+                JSObject e = (JSObject)foo;
+                if ( e instanceof JSFileChunk ){
+                    _base.getCollection( "_chunks" ).apply( e );
+                }
+                
+                if ( e.get( "_ns" ) == null ){
+                    toSearch.add( e );
+                    continue;
+                }
+                
+                // ok - now we knows its a reference
+                
+                if ( e.get( "_id" ) == null ){ // new object, lets save it
+                    JSFunction otherSave = (JSFunction)e.get( "_save" );
+                    if ( otherSave == null )
+                        throw new RuntimeException( "no save :(" );
+                    otherSave.call( s , e , null );
+                    continue;
+                }
+                
+                // old object, lets update TODO: dirty tracking
+                JSObject lookup = new JSObjectBase();
+                lookup.set( "_id" , e.get( "_id" ) );
+                
+                JSFunction otherUpdate = (JSFunction)e.get( "_update" );
+                if ( otherUpdate == null )
+                    throw new RuntimeException( "_update is null :(" );
+                
+                System.out.println( "calling upsert" );
+                otherUpdate.call( s , lookup , e , _upsertOptions );
+                
+            }
+        }
     }
 
     public Object get( Object n ){
