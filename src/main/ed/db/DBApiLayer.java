@@ -110,6 +110,8 @@ public abstract class DBApiLayer extends DBBase {
 	for ( String s : dir.list() ){
 	    if ( ! s.endsWith( ".ns" ) )
 		continue;
+	    if ( s.startsWith( "sys." ) )
+		continue;
 	    lst.add( s.substring( 0 , s.length() - 3 ) );
 	}
 
