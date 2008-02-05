@@ -110,7 +110,12 @@ public class ByteDecoder extends Bytes {
         case STRING:
             int size = _buf.getInt() - 1;
             _buf.get( _namebuf , 0 , size );
-            o.set( name , new JSString( new String( _namebuf , 0 , size ) ) );
+            try {
+                o.set( name , new JSString( new String( _namebuf , 0 , size , "UTF-8" ) ) );
+            }
+            catch ( java.io.UnsupportedEncodingException uee ){
+                throw new RuntimeException( "impossible" , uee );
+            }
             _buf.get();
             break;
 
