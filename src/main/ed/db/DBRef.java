@@ -30,7 +30,7 @@ public class DBRef extends JSObjectBase {
         if ( _db == null )
             throw new RuntimeException( "db is null" );
         
-        DBCollection coll = _db.getCollectionFromFull( _ns );
+        DBCollection coll = _db.getCollectionFromString( _ns );
         JSObject o = coll.find( _id );
         if ( o == null ){
             System.out.println( "can't find ref.  ns:" + _ns + " id:" + _id );
