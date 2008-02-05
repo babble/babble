@@ -19,6 +19,7 @@ public class JSObjectBase implements JSObject {
     public void prefunc(){}
 
     public Object set( Object n , Object v ){
+        _readOnlyCheck();
         prefunc();
         if ( n == null )
             throw new NullPointerException();
@@ -54,7 +55,7 @@ public class JSObjectBase implements JSObject {
             return v;
         }
         
-        throw new RuntimeException( "what - " + n.getClass() );
+        throw new RuntimeException( "object key can't be a [" + n.getClass() + "]" );
     }
 
     public Object get( Object n ){
@@ -76,8 +77,7 @@ public class JSObjectBase implements JSObject {
         if ( n instanceof Number )
             return getInt( ((Number)n).intValue() );
         
-
-        throw new RuntimeException( "what - " + n.getClass() );
+        throw new RuntimeException( "object key can't be a [" + n.getClass() + "]" );
     }
 
     public void removeField( Object n ){
@@ -97,6 +97,7 @@ public class JSObjectBase implements JSObject {
 
 
     public Object setInt( int n , Object v ){
+        _readOnlyCheck();
         prefunc();
         return set( String.valueOf( n ) , v );
     }
@@ -131,6 +132,8 @@ public class JSObjectBase implements JSObject {
     }
 
     public void setConstructor( JSFunction cons , boolean exec ){
+        _readOnlyCheck();
+        
         _constructor = cons;
         if ( exec ){
             
@@ -154,9 +157,19 @@ public class JSObjectBase implements JSObject {
         return _constructor;
     }
 
+    public void setReadOnly( boolean readOnly ){
+        _readOnly = readOnly;
+    }
+
+    private final void _readOnlyCheck(){
+        if ( _readOnly )
+            throw new RuntimeException( "can't modify JSObject - read only" );
+    }
+
     private Map<String,Object> _map = null;
     private List<String> _keys = null;
     private JSFunction _constructor;
+    private boolean _readOnly = false;
 
     static final Set<String> EMPTY_SET = Collections.unmodifiableSet( new HashSet<String>() );
 }
