@@ -14,6 +14,7 @@ public class JSON {
     static Set<String> IGNORE_NAMES = new HashSet<String>();
     static {
         IGNORE_NAMES.add( "_save" );
+        IGNORE_NAMES.add( "_update" );
         IGNORE_NAMES.add( "_ns" );
     }
     
