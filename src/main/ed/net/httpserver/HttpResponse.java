@@ -15,7 +15,7 @@ import ed.util.*;
 public class HttpResponse {
 
     static final boolean USE_POOL = true;
-    static final String DEFAULT_CHARSET = "UTF-8";
+    static final String DEFAULT_CHARSET = "utf-8";
 
     public static final DateFormat HeaderTimeFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
     static {
@@ -420,6 +420,8 @@ public class HttpResponse {
             CharsetEncoder encoder = _defaultCharset.newEncoder(); // TODO: pool
             try {
                 CoderResult cr = encoder.encode( _cur , bb , true );
+                if ( cr.isUnmappable() )
+                    throw new RuntimeException( "can't map some character" );
                 bb.flip();
 
                 _myStringContent.add( bb );
