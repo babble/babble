@@ -56,7 +56,7 @@ public class DBTCP extends DBApiLayer {
             return b.dataLen();
         }
         catch ( IOException ioe ){
-            throw new JSException( "can't call something" );
+            throw new JSException( "can't call something" , ioe );
         }
     }
 

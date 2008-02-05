@@ -49,6 +49,7 @@ public abstract class DBCollection extends JSObjectLame {
         
         JSObject jo = (JSObject)o;
         jo.set( "_save" , _save );
+        jo.set( "_update" , _update );
         
         return doapply( jo );
     }
@@ -105,8 +106,23 @@ public abstract class DBCollection extends JSObjectLame {
                                 continue;
                             }
                             
-                            JSFunction otherSave = (JSFunction)e.get( "_save" );
-                            otherSave.call( s , e , null );
+                            // ok - now we knows its a reference
+
+                            if ( e.get( "_id" ) == null ){ // new object, lets save it
+                                JSFunction otherSave = (JSFunction)e.get( "_save" );
+                                otherSave.call( s , e , null );
+                                continue;
+                            }
+
+                            // old object, lets update TODO: dirty tracking
+                            JSObject lookup = new JSObjectBase();
+                            lookup.set( "_id" , e.get( "_id" ) );
+                            
+                            JSFunction otherUpdate = (JSFunction)e.get( "_update" );
+                            if ( otherUpdate == null )
+                                throw new RuntimeException( "_update is null :(" );
+                            
+                            otherUpdate.call( s , lookup , e , _upsertOptions );
                             
                         }
                     }
@@ -205,14 +221,17 @@ public abstract class DBCollection extends JSObjectLame {
                               Object res = _find.call( s , o , foo );
                               if ( res == null )
                                   return null;
-                              
+			      
+			      if ( res instanceof DBCursor )
+				  ((DBCursor)res).limit( 1 );
+
                               if ( res instanceof JSArray ){
                                   JSArray a = (JSArray)res;
                                   if ( a.size() == 0 )
                                       return null;
                                   return a.getInt( 0 );
                               }
-                              
+			      
                               if ( res instanceof Iterator ){
                                   Iterator<JSObject> it = (Iterator<JSObject>)res;
                                   if ( ! it.hasNext() )
@@ -259,6 +278,10 @@ public abstract class DBCollection extends JSObjectLame {
         return _base.getCollection( _name + "." + n );
     }
 
+    public String getName(){
+        return _name;
+    }
+    
     final DBBase _base;
     
     final JSFunction _save;
@@ -272,4 +295,10 @@ public abstract class DBCollection extends JSObjectLame {
     final protected String _name;
 
     protected JSFunction _constructor;
+
+    private final static JSObjectBase _upsertOptions = new JSObjectBase();
+    static {
+        _upsertOptions.set( "upsert" , true );
+        _upsertOptions.setReadOnly( true );
+    }
 }

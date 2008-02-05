@@ -126,10 +126,9 @@ public class ByteEncoder extends Bytes {
             return true;
         }
         
-        if ( name != null && o.get( "_id" ) != null ){ // this means i 
-            if ( o.get( "_ns" ) == null )
-                throw new RuntimeException( "this should be impossible" );
-            
+        if ( name != null && 
+             ( o.get( "_id" ) != null && 
+               o.get( "_ns" ) != null ) ){ 
             putDBRef( name , o.get( "_ns" ).toString() , (ObjectId)(o.get( "_id" ) ) );
             return true;
         }

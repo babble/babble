@@ -113,7 +113,7 @@ public class JSON {
             }
             
             if ( something instanceof ed.db.ObjectId ){
-                a.append( "CrID( \"" + something + "\" )" );
+                a.append( "ObjectId( \"" + something + "\" )" );
                 return;
             }
 

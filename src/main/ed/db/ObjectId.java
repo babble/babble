@@ -31,6 +31,19 @@ public class ObjectId {
     }
     
     public ObjectId( String s ){
+        if ( s.length() < 18 )
+            throw new RuntimeException( "invalid ObjectId : bad length : " + s.length() );
+
+        for ( int i=0; i<s.length(); i++ ){
+            char c = s.charAt( i );
+            if ( c >= '0' && c <= '9' )
+                continue;
+            if ( c >= 'a' && c <= 'f' )
+                continue;
+            if ( c >= 'A' && c <= 'F' )
+                continue;
+            throw new RuntimeException( "invalid ObjectId : bad character : " + c );
+        }
         String baseString = s.substring( 0 , 16 );
         String incString = s.substring( 16 );
 

@@ -45,6 +45,14 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
         _skip = n;
         return this;
     }
+    
+    private int _tempLimitSkipWorkTogether(){
+        if ( _numWanted == 0 || _skip == 0 )
+            return _numWanted;
+        
+        System.err.println( "trying to use skip and limit together.  hacking for now" );
+        return _skip + _numWanted;
+    }
 
     // ----  internal stuff ------
     
@@ -60,7 +68,8 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
                     foo.set( "query" , _query );
                 foo.set( "orderby" , _orderBy );
             }
-            _it = _collection.find( foo , _keysWanted , _numWanted );
+            int numWantedToSend = _tempLimitSkipWorkTogether();
+            _it = _collection.find( foo , _keysWanted , numWantedToSend );
         }
 
         if ( _it == null )
@@ -92,13 +101,20 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
             for ( int i=0; i<_skip && _it.hasNext(); i++ )
                 _it.next();
         }
-
+        
         _cur = null;
         _cur = _it.next();
         _num++;
         
-        if ( _constructor != null && _cur instanceof JSObjectBase )
-            ((JSObjectBase)_cur).setConstructor( _constructor );
+        if ( _constructor != null && 
+             _cur instanceof JSObjectBase ){
+            
+            JSObjectBase job = (JSObjectBase)_cur;
+            
+            if ( job.getConstructor() == null )
+                job.setConstructor( _constructor , true );
+            
+        }
         
         if ( _cursorType == CursorType.ARRAY ){
             _nums.add( String.valueOf( _all.size() ) );

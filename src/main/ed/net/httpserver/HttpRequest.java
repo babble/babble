@@ -9,7 +9,7 @@ import java.util.regex.*;
 import ed.js.*;
 import ed.util.*;
 
-public class HttpRequest implements ed.js.JSObject {
+public class HttpRequest extends JSObjectLame {
     
     HttpRequest( HttpServer.HttpSocketHandler handler , String header ){
         _handler = handler;
@@ -232,15 +232,21 @@ public class HttpRequest implements ed.js.JSObject {
     }
 
     private final String _urlDecode( String s ){
+
 	try {
-	    return URLDecoder.decode( s , _characterEncoding );
+            return URLDecoder.decode( s , "UTF-8" );
 	}
 	catch ( Exception e ){}
         
         try {
-            return URLDecoder.decode( s , "UTF-8" );
+            return URLDecoder.decode( s , _characterEncoding );
         }
-        catch ( Exception ee ){}
+        catch ( Exception e ){}
+
+        try {
+            return URLDecoder.decode( s );
+        }
+        catch ( Exception e ){}
 
         return s;
     }

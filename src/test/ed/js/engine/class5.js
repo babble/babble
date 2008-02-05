@@ -33,4 +33,23 @@ p.foo = function() {
 p.foo();
 
 
+a = {};
+a.a = {};
+a.a.b = function(){
+    this.z = 1;
+};
 
+foo = new a.a.b();
+print( foo.z );
+
+
+function Post() {
+    this.x = 5;
+};
+
+ns = {Post: Post};
+
+p1 = new Post();
+p2 = new ns.Post();
+print(p1.x);
+print(p2.x);

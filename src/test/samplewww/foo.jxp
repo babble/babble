@@ -1,0 +1,59 @@
+<html>
+  <body>
+    
+    <div class="as">
+      1
+    </div>
+
+    <div>
+      2
+    </div>
+    
+    <div ? true  >
+      3
+    </div>
+
+    <div ? ( 5 > 6 )  >
+      X1
+    </div>
+
+     <% if ( 7 > 3 ){ %>
+     <div style="color: red;" >
+       4
+     </div>
+     <% } %>
+     
+
+     <if (7 > 3) 8><div style="color: green;" >
+       5(green)
+     </div>
+     </if>
+
+     <if (7 > 8) >
+     <div style="color: red;" >
+       X2
+     </div>
+     </if>
+
+     <if ( request ) >
+     <div style="color: green;" >
+       6
+     </div>
+     </if>
+
+     <% a = [ { z : 1 } , { z : 2 } ]; %>
+     
+     <foreach a >
+       <div>
+         $z
+       </div>
+     </foreach>
+
+    <div ? false class=asd  >
+      X3
+    </div>
+
+    <div>7</div>
+
+  </body>
+</html>

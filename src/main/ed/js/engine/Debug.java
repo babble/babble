@@ -49,6 +49,10 @@ public class Debug {
 
         System.out.print( " (" + n.hashCode() + ")" );
 
+        StringBuffer sb = new StringBuffer();
+        n.handlePropList( sb );
+        System.out.print( " " + sb );
+
         System.out.print( " line:" + n.getLineno() );
 
         System.out.println();

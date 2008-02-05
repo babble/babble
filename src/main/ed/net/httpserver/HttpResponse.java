@@ -15,6 +15,7 @@ import ed.util.*;
 public class HttpResponse {
 
     static final boolean USE_POOL = true;
+    static final String DEFAULT_CHARSET = "utf-8";
 
     public static final DateFormat HeaderTimeFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
     static {
@@ -27,7 +28,7 @@ public class HttpResponse {
         _handler = _request._handler;
 
         _headers = new StringMap<String>();
-        _headers.put( "Content-Type" , "text/html; charset=" + getContentEncoding() );
+        _headers.put( "Content-Type" , "text/html;charset=" + getContentEncoding() );
         _headers.put( "Server" , "ED" );
 	setDateHeader( "Date" , System.currentTimeMillis() );
     }
@@ -294,7 +295,7 @@ public class HttpResponse {
     }
 
     public String getContentEncoding(){
-        return "UTF-8";
+        return DEFAULT_CHARSET;
     }
 
     public void sendFile( File f ){
@@ -414,11 +415,13 @@ public class HttpResponse {
                 return;
             
             _cur.flip();
-            ByteBuffer bb = USE_POOL ? _bbPool.get() : ByteBuffer.allocateDirect( _cur.position() * 2 );
+            ByteBuffer bb = USE_POOL ? _bbPool.get() : ByteBuffer.wrap( new byte[ _cur.limit() * 2 ] );
             
-            CharsetEncoder encoder = _utf8.newEncoder(); // TODO: pool
+            CharsetEncoder encoder = _defaultCharset.newEncoder(); // TODO: pool
             try {
-                encoder.encode( _cur , bb , true );
+                CoderResult cr = encoder.encode( _cur , bb , true );
+                if ( cr.isUnmappable() )
+                    throw new RuntimeException( "can't map some character" );
                 bb.flip();
 
                 _myStringContent.add( bb );
@@ -456,8 +459,21 @@ public class HttpResponse {
             return "java length : " + _javaLength;
         }
 
+        public void mark( int m ){
+            _mark = m;
+        }
+
+        public void clearToMark(){
+            throw new RuntimeException( "not implemented yet" );
+        }
+        
+        public String fromMark(){
+            throw new RuntimeException( "not implemented yet" );
+        }
+        
         private int _javaLength = 0;
         private CharBuffer _cur;
+        private int _mark = 0;
     }
     
     static final int CHAR_BUFFER_SIZE = 1024 * 32;
@@ -472,9 +488,9 @@ public class HttpResponse {
                 return true;
             }
         };
-    static ByteBufferPool _bbPool = new ByteBufferPool( 50 , CHAR_BUFFER_SIZE * 2 );
+    static ByteBufferPool _bbPool = new ByteBufferPool( 50 , CHAR_BUFFER_SIZE * 2  );
     static StringBuilderPool _headerBufferPool = new StringBuilderPool( 25 , 1024 );
-    static Charset _utf8 = Charset.forName( "UTF-8" );
+    static Charset _defaultCharset = Charset.forName( DEFAULT_CHARSET );
 
     static final Properties _responseMessages = new Properties();
     static {

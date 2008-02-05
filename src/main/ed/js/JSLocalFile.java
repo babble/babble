@@ -53,7 +53,7 @@ public class JSLocalFile extends JSNewFile {
                             _fc = (new FileInputStream( _file )).getChannel();
                             
                         final int oldLimit = buf.limit();
-                        buf.limit( buf.position() + getChunkSize() );
+                        buf.limit( buf.position() + Math.min( getChunkSize() , length() ) );
                             
                         _fc.read( buf , _num * getChunkSize() );
                         buf.limit( oldLimit );
@@ -69,9 +69,12 @@ public class JSLocalFile extends JSNewFile {
                 }
                     
                 public ByteBuffer asByteBuffer(){
-                    throw new RuntimeException( "not implemented" );
+                    ByteBuffer bb = ByteBuffer.allocateDirect( length() );
+                    put( bb );
+                    bb.flip();
+                    return bb;
                 }
-
+                
             };
         }
             

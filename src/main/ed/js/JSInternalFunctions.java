@@ -93,7 +93,8 @@ public class JSInternalFunctions extends JSObjectBase {
     }
 
     public Object JS_mul( Object a , Object b ){
-        
+        a = _parseNumber( a );
+        b = _parseNumber( b );
 
         if ( a != null && ( a instanceof Number ) &&
              b != null && ( b instanceof Number ) ){
@@ -105,14 +106,15 @@ public class JSInternalFunctions extends JSObjectBase {
                  bn instanceof Double )
                 return an.doubleValue() * bn.doubleValue();
             
-            return an.intValue() * bn.intValue();
+            return an.longValue() * bn.longValue();
         }
         
         return Double.NaN;
     }
 
     public Object JS_div( Object a , Object b ){
-        
+        a = _parseNumber( a );
+        b = _parseNumber( b ) ;       
 
         if ( a != null && ( a instanceof Number ) &&
              b != null && ( b instanceof Number ) ){
@@ -127,7 +129,8 @@ public class JSInternalFunctions extends JSObjectBase {
     }
 
     public Object JS_sub( Object a , Object b ){
-        
+        a = _parseNumber( a );
+        b = _parseNumber( b );        
 
         if ( a != null && ( a instanceof Number ) &&
              b != null && ( b instanceof Number ) ){
@@ -139,7 +142,7 @@ public class JSInternalFunctions extends JSObjectBase {
                  bn instanceof Double )
                 return an.doubleValue() - bn.doubleValue();
             
-            return an.intValue() - bn.intValue();
+            return an.longValue() - bn.longValue();
         }
         
         return Double.NaN;
@@ -157,7 +160,7 @@ public class JSInternalFunctions extends JSObjectBase {
                  bn instanceof Double )
                 return an.doubleValue() + bn.doubleValue();
             
-            return an.intValue() + bn.intValue();
+            return an.longValue() + bn.longValue();
         }
         
         if ( ( a != null && ( a instanceof Number ) && b == null ) ||
@@ -241,6 +244,11 @@ public class JSInternalFunctions extends JSObjectBase {
         if ( a.equals( b ) )
             return 0;
 
+        if ( a instanceof Number || b instanceof Number ){
+            a = _parseNumber( a );
+            b = _parseNumber( b );
+        }
+
         if ( a instanceof Number && 
              b instanceof Number ){
             double aVal = ((Number)a).doubleValue();
@@ -263,7 +271,7 @@ public class JSInternalFunctions extends JSObjectBase {
         
         if ( a != null && a instanceof Number && 
              b != null && b instanceof Number )
-            return ((Number)a).intValue() | ((Number)b).intValue();
+            return ((Number)a).longValue() | ((Number)b).longValue();
         
         if ( a != null && a instanceof Number )
             return (Number)a;
@@ -281,7 +289,7 @@ public class JSInternalFunctions extends JSObjectBase {
         
         if ( a != null && a instanceof Number && 
              b != null && b instanceof Number )
-            return ((Number)a).intValue() & ((Number)b).intValue();
+            return ((Number)a).longValue() & ((Number)b).longValue();
         
         /*
         if ( a != null && a instanceof Number )
@@ -300,7 +308,7 @@ public class JSInternalFunctions extends JSObjectBase {
         
         if ( a != null && a instanceof Number && 
              b != null && b instanceof Number )
-            return ((Number)a).intValue() ^ ((Number)b).intValue();
+            return ((Number)a).longValue() ^ ((Number)b).longValue();
         
         if ( a != null && a instanceof Number )
             return (Number)a;
@@ -317,7 +325,7 @@ public class JSInternalFunctions extends JSObjectBase {
 
         if ( a != null && a instanceof Number && 
              b != null && b instanceof Number )
-            return ((Number)a).intValue() % ((Number)b).intValue();
+            return ((Number)a).longValue() % ((Number)b).longValue();
         
         return Double.NaN;
     }
@@ -328,7 +336,7 @@ public class JSInternalFunctions extends JSObjectBase {
 
         if ( a != null && a instanceof Number && 
              b != null && b instanceof Number )
-            return ((Number)a).intValue() << ((Number)b).intValue();
+            return ((Number)a).longValue() << ((Number)b).longValue();
         
         if ( a == null || ! ( a instanceof Number ) )
             return 0;
@@ -342,7 +350,7 @@ public class JSInternalFunctions extends JSObjectBase {
 
         if ( a != null && a instanceof Number && 
              b != null && b instanceof Number )
-            return ((Number)a).intValue() >> ((Number)b).intValue();
+            return ((Number)a).longValue() >> ((Number)b).longValue();
         
         if ( a == null || ! ( a instanceof Number ) )
             return 0;
@@ -356,7 +364,7 @@ public class JSInternalFunctions extends JSObjectBase {
 
         if ( a != null && a instanceof Number && 
              b != null && b instanceof Number )
-            return ((Number)a).intValue() >>> ((Number)b).intValue();
+            return ((Number)a).longValue() >>> ((Number)b).longValue();
         
         if ( a == null || ! ( a instanceof Number ) )
             return 0;
@@ -367,7 +375,7 @@ public class JSInternalFunctions extends JSObjectBase {
     public Number JS_bitnot( Object a ){
         a = _parseNumber( a );
         if ( a instanceof Number )
-            return ~((Number)a).intValue();
+            return ~((Number)a).longValue();
         return -1;
     }
 
@@ -378,7 +386,8 @@ public class JSInternalFunctions extends JSObjectBase {
 	return _parseNumber( def );
     }
 
-    static final Object _parseNumber( final Object o ){
+    static final Object _parseNumber( final Object orig ){
+        Object o = orig;
         if ( o == null )
             return null;
         
@@ -392,7 +401,7 @@ public class JSInternalFunctions extends JSObjectBase {
             s = o.toString();
         
         if ( s == null )
-            return o;
+            return orig;
 
         if ( s.length() > 9 )
             return s;
@@ -403,7 +412,7 @@ public class JSInternalFunctions extends JSObjectBase {
             if ( ! Character.isDigit( c ) ){
                 allDigits = false;
                 if ( c != '.' )
-                    return o;
+                    return orig;
             }
         }
         
@@ -413,7 +422,7 @@ public class JSInternalFunctions extends JSObjectBase {
         if ( s.matches( "\\d+\\.\\d+" ) )
             return Double.parseDouble( s );
 
-        return o;
+        return orig;
     }
 
     static String _debug( Object o ){

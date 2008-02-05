@@ -77,6 +77,24 @@ public class JSArray extends JSObjectBase {
                     }
                 } );
 
+            _prototype.set( "concat" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object o , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        if ( a == null )
+                            throw new RuntimeException( "this shouldn't be possible.  scope id = " + s._id );
+                        if ( o == null )
+                            return a;
+                        
+                        if ( ! ( o instanceof JSArray ) )
+                            throw new RuntimeException( "trying to concat a non-array");
+                        
+                        JSArray tempArray = (JSArray)o;
+                        for ( Object temp : tempArray._array )
+                            a.add( temp );
+                        return a;
+                    }
+                } );
+
             _prototype.set( "filter" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object fo , Object foo[] ){
                         JSArray a = (JSArray)(s.getThis());
@@ -90,13 +108,31 @@ public class JSArray extends JSObjectBase {
                     }
                 } );
 
+
+            _prototype.set( "unique" , new JSFunctionCalls0() {
+                    public Object call( Scope s , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        JSArray n = new JSArray();
+    
+                        Set seen = new HashSet();
+                        for ( Object o : a._array ){
+                            if ( seen.contains( o ) )
+                                continue;
+                            seen.add( o );
+                            n.add( o ); 
+                        }
+                        
+                        return n;
+                    }
+                } );
+
             _prototype.set( "forEach" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object fo , Object foo[] ){
                         JSArray a = (JSArray)(s.getThis());
                         JSFunction f = (JSFunction)fo;
                         
-                        for ( Object o : a._array )
-                            f.call( s , o );
+                        for ( int i=0; i<a._array.size(); i++ )
+                            f.call( s , a._array.get( i ) , i , a._array.size() );
                         
                         return null;
                     }
@@ -208,12 +244,12 @@ public class JSArray extends JSObjectBase {
         for ( Object o : obj )
             _array.add( o );
     }
-
+    
     public JSArray( List lst ){
         super( _cons );
-        _array = lst;
+        _array = lst == null ? new ArrayList() : lst;
     }
-
+    
     public Object setInt( int pos , Object v ){
         while ( _array.size() <= pos )
             _array.add( null );

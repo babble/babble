@@ -206,19 +206,21 @@ public abstract class DBApiLayer extends DBBase {
 
         // TODO: remove synchronized
         public synchronized Iterator<JSObject> find( JSObject ref , JSObject fields , int numToReturn ){
+	    int numToSkip = 0; // ERH FINISH ME NOW
 
             ByteEncoder encoder = ByteEncoder.get();
             
             encoder._buf.putInt( 0 ); // reserved
             encoder._put( _fullNameSpace );
             
-            encoder._buf.putInt( numToReturn ); // num to return
+            encoder._buf.putInt( numToSkip ); 
+            encoder._buf.putInt( numToReturn );
             encoder.putObject( null , ref ); // ref
             if ( fields != null )
                 encoder.putObject( null , fields ); // fields to return
             encoder.flip();
 
-            ByteDecoder decoder = ByteDecoder.get( DBApiLayer.this , _fullNameSpace );
+            ByteDecoder decoder = ByteDecoder.get( DBApiLayer.this , _fullNameSpace , _constructor );
 
             int len = doQuery( encoder._buf , decoder._buf );
             decoder.doneReading( len );
@@ -364,7 +366,7 @@ public abstract class DBApiLayer extends DBBase {
 	    encoder._buf.putLong( _curResult._cursor );
 	    encoder.flip();
             
-	    ByteDecoder decoder = ByteDecoder.get( DBApiLayer.this , _collection._fullNameSpace );
+	    ByteDecoder decoder = ByteDecoder.get( DBApiLayer.this , _collection._fullNameSpace , _collection._constructor );
 	    int len = doGetMore( encoder._buf , decoder._buf );
 	    decoder.doneReading( len );
             
@@ -391,6 +393,9 @@ public abstract class DBApiLayer extends DBBase {
         final int _numToReturn;
     }
 
+    public String toString(){
+        return _root;
+    }
 
     final String _root;
     final Map<String,MyCollection> _collections = Collections.synchronizedMap( new HashMap<String,MyCollection>() );

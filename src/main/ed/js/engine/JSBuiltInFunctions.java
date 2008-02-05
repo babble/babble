@@ -96,6 +96,22 @@ public class JSBuiltInFunctions {
             return new ed.db.ObjectId( idString.toString() );
         }
     }
+
+    public static class sleep extends JSFunctionCalls1 {
+        public Object call( Scope scope , Object timeObj , Object extra[] ){
+            if ( ! ( timeObj instanceof Number ) )
+                return false;
+            
+            try {
+                Thread.sleep( ((Number)timeObj).longValue() );
+            }
+            catch ( Exception e ){
+                return false;
+            }
+            
+            return true;
+        }
+    }
     
     public static class isXXX extends JSFunctionCalls1 {
         isXXX( Class c ){
@@ -216,6 +232,7 @@ public class JSBuiltInFunctions {
             
         }        
     }
+
     
     static Scope _myScope = new Scope( "Built-Ins" , null );
     static {
@@ -223,6 +240,7 @@ public class JSBuiltInFunctions {
         _myScope.put( "print" , new print() , true );
         _myScope.put( "printnoln" , new print( false ) , true );
         _myScope.put( "SYSOUT" , new print() , true );
+        _myScope.put( "sleep" , new sleep() , true );
 
         _myScope.put( "Object" , new NewObject() , true );
         _myScope.put( "Array" , new NewArray() , true );
@@ -233,7 +251,12 @@ public class JSBuiltInFunctions {
 
         _myScope.put( "Math" , JSMath.getInstance() , true );
         
-        _myScope.put( "CrID" , new CrID() , true );
+        CrID crid = new CrID();
+        _myScope.put( "CrID" , crid , true );
+        _myScope.put( "ObjID" , crid , true );
+        _myScope.put( "ObjId" , crid , true );
+        _myScope.put( "ObjectID" , crid , true );
+        _myScope.put( "ObjectId" , crid , true );
 
         _myScope.put( "Base64" , new ed.util.Base64() , true );
         
@@ -256,11 +279,21 @@ public class JSBuiltInFunctions {
                 }
             } , true );
 	
-	_myScope.put( "parseNumber" , new JSFunctionCalls2(){
+        JSFunctionCalls2 parseNumber = new JSFunctionCalls2(){
 		public Object call( Scope scope , Object a , Object b , Object extra[] ){
-		    return JSInternalFunctions.parseNumber( a , b );
+                    Object r = JSInternalFunctions.parseNumber( a , b );
+                    if ( r instanceof Number )
+                        return r;
+                    if ( b != null )
+                        return b;
+                    throw new RuntimeException( "not a number [" + a + "]" );
 		}
-	    } , true );
+            };
+
+	_myScope.put( "parseNumber" , parseNumber , true );
+	_myScope.put( "parseFloat" , parseNumber , true );
+	_myScope.put( "parseInt" , parseNumber , true );
+	_myScope.put( "Number" , parseNumber , true );
 	
         _myScope.put( "md5" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object b , Object extra[] ){

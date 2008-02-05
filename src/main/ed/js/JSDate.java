@@ -19,7 +19,7 @@ public class JSDate extends JSObjectBase implements Comparable {
             
             public Object call( Scope s , Object foo , Object[] args ){
                 
-                JSObject o = s.getThis();
+                Object o = s.getThis();
                 if ( o == null || ! ( o instanceof JSDate ) )
                     return new JSDate( foo );
 
@@ -113,6 +113,10 @@ public class JSDate extends JSObjectBase implements Comparable {
         return new JSDate( _roundMonth() );
     }
     
+    public JSDate roundWeek(){
+	return new JSDate( _roundWeek() );
+    }
+
     public JSDate roundDay(){
         return new JSDate( _roundDay() );
     }
@@ -125,6 +129,13 @@ public class JSDate extends JSObjectBase implements Comparable {
         Calendar c = _roundDay();
         c.set( c.DAY_OF_MONTH , 1 );
         return c;
+    }
+
+    public Calendar _roundWeek(){
+	Calendar c = _roundDay();
+	while ( c.get( c.DAY_OF_WEEK ) != c.MONDAY )
+	    c.setTimeInMillis( c.getTimeInMillis() - ( 1000 * 60 * 60 * 24 ) );
+	return c;
     }
 
     public Calendar _roundDay(){

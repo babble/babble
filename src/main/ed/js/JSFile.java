@@ -7,6 +7,7 @@ import java.nio.*;
 import java.nio.channels.*;
 
 import ed.db.*;
+import ed.io.*;
 
 public abstract class JSFile extends JSObjectBase {
 
@@ -73,6 +74,17 @@ public abstract class JSFile extends JSObjectBase {
         return ((Number)foo).intValue();
     }
        
+
+    public String asString(){
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        try {
+            sender().write( new WritableByteChannelConnector( bout ) );
+        }
+        catch ( IOException ioe ){
+            throw new RuntimeException( "should be impossible" , ioe );
+        }
+        return new String( bout.toByteArray() );
+    }
     
     public String toString(){
         return getFileName();
@@ -98,6 +110,7 @@ public abstract class JSFile extends JSObjectBase {
          */
         public boolean write( WritableByteChannel out )
             throws IOException {
+            
             if ( _chunk == null )
                 return true;
             

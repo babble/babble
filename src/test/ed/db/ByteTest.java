@@ -10,6 +10,7 @@ import ed.js.*;
 
 public class ByteTest extends TestCase {
 
+
     public void testObject1(){
         ByteEncoder encoder = ByteEncoder.get();
         
@@ -25,6 +26,29 @@ public class ByteTest extends TestCase {
         JSObject read = decoder.readObject();
         
         assertEquals( "horowitz" , read.get( "eliot" ).toString() );
+        assertEquals( 517.0 , ((Double)read.get( "num" )).doubleValue() );
+        
+        assertEquals( encoder._buf.limit() , encoder._buf.position() );
+    }
+
+    public void testString()
+        throws Exception {
+        ByteEncoder encoder = ByteEncoder.get();
+        
+        String eliot = java.net.URLDecoder.decode( "horowitza%C3%BCa" , "UTF-8" );
+
+        JSObject o = new JSObjectBase();
+        o.set( "eliot" , eliot );
+        o.set( "num" , 517 );
+        
+        encoder.putObject( null , o );
+        
+        encoder.flip();
+        
+        ByteDecoder decoder = new ByteDecoder( encoder._buf );
+        JSObject read = decoder.readObject();
+        
+        assertEquals( eliot , read.get( "eliot" ).toString() );
         assertEquals( 517.0 , ((Double)read.get( "num" )).doubleValue() );
         
         assertEquals( encoder._buf.limit() , encoder._buf.position() );
