@@ -319,7 +319,7 @@ public class NodeTransformer
                         n.setType(Token.BINDNAME);
                         n = new Node(type == Token.CONST ?
                                          Token.SETCONST :
-                                         Token.SETNAME,
+                                         Token.SETVAR,
                                      n, init);
                     } else {
                         // May be a destructuring assignment already transformed
