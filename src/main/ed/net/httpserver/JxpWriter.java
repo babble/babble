@@ -17,6 +17,11 @@ public interface JxpWriter {
 
     public String getContent();
 
+    public void mark( int mark );
+    public void clearToMark();
+    public String fromMark();
+    
+
     // ----------
 
     public static class Basic implements JxpWriter {
@@ -58,6 +63,19 @@ public interface JxpWriter {
             return _buf.toString();
         }
 
+        public void mark( int mark ){
+            _mark = mark;
+        }
+        
+        public void clearToMark(){
+            _buf.setLength( _mark );
+        }
+        
+        public String fromMark(){
+            return _buf.substring( _mark , _buf.length() );
+        }
+
         final StringBuilder _buf = new StringBuilder();
+        private int _mark;
     }
 }

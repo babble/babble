@@ -456,8 +456,21 @@ public class HttpResponse {
             return "java length : " + _javaLength;
         }
 
+        public void mark( int m ){
+            _mark = m;
+        }
+
+        public void clearToMark(){
+            throw new RuntimeException( "not implemented yet" );
+        }
+        
+        public String fromMark(){
+            throw new RuntimeException( "not implemented yet" );
+        }
+        
         private int _javaLength = 0;
         private CharBuffer _cur;
+        private int _mark = 0;
     }
     
     static final int CHAR_BUFFER_SIZE = 1024 * 32;
