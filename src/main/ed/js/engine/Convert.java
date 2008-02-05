@@ -345,6 +345,9 @@ public class Convert {
             _append( ";\n" , n );
             break;
         case Token.RETURN:
+            boolean last = n.getNext() == null;
+            if ( ! last )
+                _append( "if ( true ) { " , n );
             _append( "return " , n );
             if ( n.getFirstChild() != null ){
                 _assertOne( n );
@@ -353,7 +356,10 @@ public class Convert {
             else {
                 _append( " null " , n );
             }
-            _append( ";\n" , n );
+            _append( ";" , n );
+            if ( ! last )
+                _append( "}" , n );
+            _append( "\n" , n );
             break;
 
         case Token.BITNOT:
