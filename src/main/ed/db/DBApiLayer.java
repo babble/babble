@@ -75,8 +75,12 @@ public abstract class DBApiLayer extends DBBase {
         DBCollection namespaces = getCollection( "system.namespaces" );
         if ( namespaces == null )
             throw new RuntimeException( "this is impossible" );
-             
-        for ( Iterator<JSObject> i = namespaces.find( new JSObjectBase() , null , 0 ) ; i.hasNext() ;  ){
+	
+	Iterator<JSObject> i = namespaces.find( new JSObjectBase() , null , 0 );
+	if ( i == null )
+	    return tables;
+
+        for (  ; i.hasNext() ;  ){
             JSObject o = i.next();
             String n = o.get( "name" ).toString();
             int idx = n.indexOf( "." );
@@ -96,27 +100,27 @@ public abstract class DBApiLayer extends DBBase {
         return tables;
     }
     
+    public static Collection<String> getRootNamespacesLocal(){
+	List<String> lst = new ArrayList<String>();
+	
+	File dir = new File( "/data/db/" );
+	if ( ! dir.exists() )
+	    return lst;
+	
+	for ( String s : dir.list() ){
+	    if ( ! s.endsWith( ".ns" ) )
+		continue;
+	    lst.add( s.substring( 0 , s.length() - 3 ) );
+	}
+
+	return lst;
+    }
+
     public static Collection<String> getRootNamespaces( String ip ){
-        if ( true )
-            throw new RuntimeException( "getRootNamespaces isn't working right now" );
-        DBApiLayer system = DBProvider.get( "system" , ip );
-        DBCollection namespaces = system.getCollection( "namespaces" );
-
-        Set<String> roots = new HashSet<String>();
-        
-        for ( Iterator<JSObject> i = namespaces.find( new JSObjectBase() , null , 0 ) ; i.hasNext() ;  ){
-            JSObject o = i.next();
-            String n = o.get( "name" ).toString();
-            int idx = n.indexOf( "." );
-            
-            String root = n.substring( 0 , idx );
-            if ( root.equals( "sys" ) )
-                continue;
-
-            roots.add( root );
-        }
-
-        return roots;
+	if ( ip.equals( "127.0.0.1" ) )
+	    return getRootNamespacesLocal();
+	
+	throw new RuntimeException( "getRootNamespaces isn't working remotely right now" );
     }
 
     class MyCollection extends DBCollection {
