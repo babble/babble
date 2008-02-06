@@ -13,6 +13,18 @@ import ed.io.*;
 import ed.net.*;
 
 public class JSBuiltInFunctions {
+
+    public static class jsassert extends JSFunctionCalls1 {
+        public Object call( Scope scope , Object foo , Object extra[] ){
+            if ( JSInternalFunctions.JS_evalToBool( foo ) )
+                return Boolean.TRUE;
+                    
+            if ( extra != null && extra.length > 0 && extra[0] != null )
+                throw new JSException( "assert failed : " + extra[0] );
+
+            throw new JSException( "assert failed" );
+        }        
+    }
     
     public static class print extends JSFunctionCalls1 {
         print(){
@@ -316,6 +328,7 @@ public class JSBuiltInFunctions {
 
         _myScope.put( "isString" , new isXXXs( String.class , JSString.class ) , true );
 
+        _myScope.put( "assert" , new jsassert() , true );
         
         JSON.init( _myScope );
     }
