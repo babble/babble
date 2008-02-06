@@ -260,6 +260,6 @@ public abstract class PostData {
         int _pos = 0;
         final byte _data[];
 
-        static final int MAX = 1024 * 1024 * 10;
+        static final int MAX = 1024 * 1024 * 110;
     }
 }
