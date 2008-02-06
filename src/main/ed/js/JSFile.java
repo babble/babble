@@ -124,12 +124,13 @@ public abstract class JSFile extends JSObjectBase {
                 _buf = _chunk.getData().asByteBuffer();
             }
             
-            out.write( _buf );
+            _bytesWritten += out.write( _buf );
             return false;
         }
         
         JSFileChunk _chunk;
         ByteBuffer _buf;
+        int _bytesWritten = 0;
     }
 }
 

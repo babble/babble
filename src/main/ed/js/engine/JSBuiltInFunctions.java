@@ -4,6 +4,7 @@ package ed.js.engine;
 
 import java.io.*;
 import java.util.*;
+import java.lang.reflect.*;
 
 import com.twmacinta.util.*;
 
@@ -11,6 +12,7 @@ import ed.js.*;
 import ed.js.func.*;
 import ed.io.*;
 import ed.net.*;
+import ed.security.*;
 
 public class JSBuiltInFunctions {
 
@@ -21,11 +23,48 @@ public class JSBuiltInFunctions {
                     
             if ( extra != null && extra.length > 0 && extra[0] != null )
                 throw new JSException( "assert failed : " + extra[0] );
-
+            
             throw new JSException( "assert failed" );
         }        
     }
     
+    public static class javaCreate extends JSFunctionCalls1 {
+        public Object call( Scope scope , Object clazzNameJS , Object extra[] ){
+
+            String clazzName = clazzNameJS.toString();
+            System.out.println( "want to create a : " + clazzName );
+            
+            if ( ! Security.isCoreJS() )
+                throw new JSException( "you can't do create a :" + clazzName );
+            
+            Class clazz = null;
+            try {
+                clazz = Class.forName( clazzName );
+            }
+            catch ( Exception e ){
+                throw new JSException( "can't find class for [" + clazzName + "]" );
+            }
+            
+            Constructor[] allCons = clazz.getConstructors();
+            for ( int i=0; i<allCons.length; i++ ){
+
+                Object params[] = Scope.doParamsMatch( allCons[i].getParameterTypes() , extra );
+                
+                if ( params != null ){
+                    try {
+                        return allCons[i].newInstance( params );
+                    }
+                    catch ( Exception e ){
+                        throw new JSException( "can' instantiate" , e );
+                    }
+                }
+                    
+            }
+
+            throw new RuntimeException( "can't find valid constructor" );
+        }        
+    }
+
     public static class print extends JSFunctionCalls1 {
         print(){
             this( true );
@@ -153,13 +192,14 @@ public class JSBuiltInFunctions {
     }
 
     public static class sysexec extends JSFunctionCalls1 {
-
+        
+        // adds quotes as needed
 	static String[] fix( String s ){
 	    String base[] = s.split( "\\s+" );
-        
+            
 	    List<String> fixed = new ArrayList();
 	    boolean changed = false;
-        
+            
 	    for ( int i=0; i<base.length; i++ ){
 
 		if ( ! base[i].startsWith( "\"" ) ){
@@ -328,9 +368,10 @@ public class JSBuiltInFunctions {
         _myScope.put( "isFunction" , new isXXX( JSFunction.class ) , true );
 
         _myScope.put( "isString" , new isXXXs( String.class , JSString.class ) , true );
-
-        _myScope.put( "assert" , new jsassert() , true );
         
+        _myScope.put( "assert" , new jsassert() , true );
+        _myScope.put( "javaCreate" , new javaCreate() , true );
+
         JSON.init( _myScope );
     }
     
