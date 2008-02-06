@@ -10,6 +10,8 @@ import ed.util.*;
 
 public class ByteEncoder extends Bytes {
 
+    static final boolean DEBUG = Boolean.getBoolean( "DEBUG.BE" );
+
     static ByteEncoder get(){
         return _pool.get();
     }
@@ -44,6 +46,8 @@ public class ByteEncoder extends Bytes {
     }
     
     protected int putObject( String name , JSObject o ){
+        if ( DEBUG ) System.out.println( "putObject : " + name + " [" + o.getClass() + "]" + " # keys " + o.keySet().size() );
+            
         if ( _flipped )
             throw new RuntimeException( "already flipped" );
         final int start = _buf.position();
@@ -70,15 +74,17 @@ public class ByteEncoder extends Bytes {
         }
             
         for ( String s : o.keySet() ){
-
+            
             if ( s.equals( "_ns" )  
                  || s.equals( "_save" )
                  || s.equals( "_update" )
                  || s.equals( "_id" ) )
                 continue;
             
-            Object val = o.get( s );
+            if ( DEBUG ) System.out.println( "\t put thing : " + s );
 
+            Object val = o.get( s );
+            
             if ( val instanceof JSFunction )
                 continue;
 
@@ -122,7 +128,7 @@ public class ByteEncoder extends Bytes {
             return true;
         }
 
-        if ( o instanceof DBRef ){
+        if ( name != null && o instanceof DBRef ){
             DBRef r = (DBRef)o;
             putDBRef( name , r._ns , r._id );
             return true;
