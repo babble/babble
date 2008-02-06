@@ -115,15 +115,21 @@ public class XMLHttpRequest extends JSObjectBase {
         buf.get( headerBytes );
         String header = new String( headerBytes );
         set( "header" , header.trim() );
-
-        System.out.println( buf );
+        
+        String headerLines[] = header.split( "[\r\n]+" );
+        {
+            String firstline = headerLines[0];
+            int start = firstline.indexOf( " " ) + 1;
+            int end = firstline.indexOf( " " , start );
+            
+            set( "status" , Integer.parseInt( firstline.substring( start , end ) ) );
+            set( "statusText" , firstline.substring( end + 1 ).trim() );
+        }
 
         byte bodyBytes[] = new byte[buf.limit()-headerEnd];
         buf.get( bodyBytes );
         String body = new String( bodyBytes );
         set( "responseText" , new JSString( body ) );
-
-        set( "status" , 200 ); // FIX NOW !!!
 
         System.out.println( buf );
 
