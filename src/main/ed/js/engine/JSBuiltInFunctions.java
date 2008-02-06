@@ -321,6 +321,7 @@ public class JSBuiltInFunctions {
             } , true );
         
         _myScope.put( "isArray" , new isXXX( JSArray.class ) , true );
+        _myScope.put( "isBool" , new isXXX( Boolean.class ) , true );
         _myScope.put( "isNumber" , new isXXX( Number.class ) , true );
         _myScope.put( "isObject" , new isXXX( JSObject.class ) , true );
         _myScope.put( "isDate" , new isXXX( JSDate.class ) , true );
