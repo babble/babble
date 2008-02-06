@@ -101,7 +101,7 @@ public class AppContext {
         return s;
     }
     
-    private Scope _scope(){
+    private synchronized Scope _scope(){
         
         if ( _getScopeTime() > _lastScopeInitTime )
             _scopeInited = false;
@@ -109,14 +109,11 @@ public class AppContext {
         if ( _scopeInited )
             return _scope;
         
-        synchronized ( _scope ){
-            if ( _scopeInited )
-                return _scope;
-            
-            _initScope();
-            
-            _scopeInited = true;
-        }
+        _scopeInited = true;
+        _lastScopeInitTime = System.currentTimeMillis();
+        
+        _initScope();
+
         return _scope;
     }
     
