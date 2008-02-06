@@ -121,7 +121,7 @@ public class XMLHttpRequest extends JSObjectBase {
         byte bodyBytes[] = new byte[buf.limit()-headerEnd];
         buf.get( bodyBytes );
         String body = new String( bodyBytes );
-        set( "responseText" , body );
+        set( "responseText" , new JSString( body ) );
 
         System.out.println( buf );
 
