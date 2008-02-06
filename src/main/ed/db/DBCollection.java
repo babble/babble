@@ -11,7 +11,7 @@ import ed.js.engine.*;
 
 public abstract class DBCollection extends JSObjectLame {
 
-    final static DEBUG = false;
+    final static boolean DEBUG = Boolean.getBoolean( "DEBUG.DB" );
     
     public abstract JSObject save( JSObject o );
     public abstract JSObject update( JSObject q , JSObject o , boolean upsert , boolean apply );
@@ -71,19 +71,25 @@ public abstract class DBCollection extends JSObjectLame {
 
         _save = new JSFunctionCalls1() {
                 public Object call( Scope s , Object o , Object fooasd[] ){
-                    if ( o == null && s.getThis() != null )
+                    if ( o == null && s.getThis() != null ){
                         o = s.getThis();
+                    }
                     
                     if ( ! ( o instanceof JSObject ) )
                         throw new RuntimeException( "can only save JSObject" );
                     
                     JSObject jo = (JSObject)o;
                     
-                    Object presaveObject = (JSFunction)jo.get( "presave" );
-                    if ( presaveObject != null && presaveObject instanceof JSFunction ){
-                        s.setThis( jo );
-                        ((JSFunction)presaveObject).call( s );
-                        s.clearThisNormal( null );
+                    Object presaveObject = jo.get( "presave" );
+                    if ( presaveObject != null ){
+                        if ( presaveObject instanceof JSFunction ){
+                            s.setThis( jo );
+                            ((JSFunction)presaveObject).call( s );
+                            s.clearThisNormal( null );
+                        }
+                        else {
+                            System.out.println( "warning, presave is a " + presaveObject.getClass() );
+                        }
                     }
                     
                     _findSubObject( s , jo );
