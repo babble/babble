@@ -71,8 +71,10 @@ public class ByteEncoder extends Bytes {
             
         for ( String s : o.keySet() ){
 
-            if ( s.equals( "_ns" ) || 
-                 s.equals( "_id" ) )
+            if ( s.equals( "_ns" )  
+                 || s.equals( "_save" )
+                 || s.equals( "_update" )
+                 || s.equals( "_id" ) )
                 continue;
             
             Object val = o.get( s );
