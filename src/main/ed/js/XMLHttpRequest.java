@@ -123,6 +123,8 @@ public class XMLHttpRequest extends JSObjectBase {
         String body = new String( bodyBytes );
         set( "responseText" , new JSString( body ) );
 
+        set( "status" , 200 ); // FIX NOW !!!
+
         System.out.println( buf );
 
         return this;
