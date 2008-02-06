@@ -71,12 +71,9 @@ public abstract class DBCollection extends JSObjectLame {
 
         _save = new JSFunctionCalls1() {
                 public Object call( Scope s , Object o , Object fooasd[] ){
-                    if ( o == null && s.getThis() != null ){
-                        o = s.getThis();
-                    }
+                    o = _handleThis( s , o );
                     
-                    if ( ! ( o instanceof JSObject ) )
-                        throw new RuntimeException( "can only save JSObject" );
+                    _checkObject( o , false );
                     
                     JSObject jo = (JSObject)o;
                     
@@ -116,14 +113,8 @@ public abstract class DBCollection extends JSObjectLame {
         _update = new JSFunctionCalls2() {
                 public Object call( Scope s , Object q , Object o , Object foo[] ){
                     
-                    if ( o == null )
-                        throw new RuntimeException( "object can't be null" );
-
-                    if ( ! ( o instanceof JSObject ) )
-                        throw new RuntimeException( "can only save JSObject not : " + o.getClass() );
-                    
-                    if ( ! ( q instanceof JSObject ) )
-                        throw new RuntimeException( "can only save JSObject" );
+                    _checkObject( q , false );
+                    _checkObject( o , false );
                     
                     _findSubObject( s , (JSObject)o );
 
@@ -147,8 +138,7 @@ public abstract class DBCollection extends JSObjectLame {
                       new JSFunctionCalls1(){
                           public Object call( Scope s , Object o , Object foo[] ){
                               
-                              if ( o == null && s.getThis() != null )
-                                  o = s.getThis();
+                              o = _handleThis( s , o );
                               
                               if ( ! ( o instanceof JSObject ) )
                                   throw new RuntimeException( "can't only save JSObject" );
@@ -224,6 +214,33 @@ public abstract class DBCollection extends JSObjectLame {
                           }
                       } );
         
+    }
+
+    private final Object _handleThis( Scope s , Object o ){
+        if ( o != null )
+            return o;
+        
+        Object t = s.getThis();
+        if ( t == null )
+            return null;
+        
+        if ( t.getClass() != JSObjectBase.class )
+            return null;
+        
+        return o;
+    }
+
+    private final void _checkObject( Object o , boolean canBeNull ){
+        if ( o == null ){
+            if ( canBeNull )
+                return;
+            throw new NullPointerException( "can't be null" );
+        }
+
+        if ( o instanceof JSObject )
+            return;
+        
+        throw new IllegalArgumentException( " has to be a JSObject not : " + o.getClass() );
     }
 
     private void _findSubObject( Scope s , JSObject jo ){
