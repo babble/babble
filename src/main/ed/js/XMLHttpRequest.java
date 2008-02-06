@@ -86,8 +86,20 @@ public class XMLHttpRequest extends JSObjectBase {
         SocketChannel sock = SocketChannel.open();
         sock.connect( new InetSocketAddress( getHost() , getPort() ) );
         
-        sock.write( ByteBuffer.wrap( getRequestHeader().getBytes() ) );
+        byte postData[] = null;
+
+        if ( post != null )
+            postData = post.getBytes();
         
+        if ( postData != null )
+            setRequestHeader( "Content-Length" , String.valueOf( postData.length ) );
+
+        ByteBuffer toSend[] = new ByteBuffer[ postData == null ? 1 : 2 ];
+        toSend[0] = ByteBuffer.wrap( getRequestHeader().getBytes() );
+        if ( postData != null )
+            toSend[1] = ByteBuffer.wrap( postData );
+        sock.write( toSend );
+
         ByteBuffer buf = ByteBuffer.allocateDirect( 1024 * 1024 );
         while( sock.read( buf ) >= 0 );
         
