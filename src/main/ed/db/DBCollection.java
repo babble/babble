@@ -286,7 +286,6 @@ public abstract class DBCollection extends JSObjectLame {
                 if ( otherUpdate == null )
                     throw new RuntimeException( "_update is null :(" );
                 
-                System.out.println( "calling upsert" );
                 otherUpdate.call( s , lookup , e , _upsertOptions );
                 
             }
