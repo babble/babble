@@ -202,9 +202,28 @@ public class JSInternalFunctions extends JSObjectBase {
         if ( a instanceof String && b instanceof String )
             return a.equals( b );
         
+        if ( _charEQ( a , b ) || _charEQ( b , a ) )
+            return true;
+
         return false;
     }
     
+    private static boolean _charEQ( Object a , Object b ){
+        if ( ! ( a instanceof String ) )
+            return false;
+        
+        if ( ! ( b instanceof Character ) )
+            return false;
+        
+        String s = (String)a;
+        Character c = (Character)b;
+        
+        if ( s.length() != 1 )
+            return false;
+        
+        return s.charAt(0) == c;
+    }
+
     public static Boolean JS_eq( Object a , Object b ){
         if ( JS_sheq( a , b ) )
             return true;
