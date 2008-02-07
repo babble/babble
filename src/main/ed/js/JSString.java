@@ -105,6 +105,19 @@ public class JSString extends JSObjectBase {
                     }
                 } );
 
+            _prototype.set( "lastIndexOf" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object o , Object foo[] ){
+                        String str = s.getThis().toString();
+                        String thing = o.toString();
+                        
+                        int end = str.length();
+                        if ( foo != null && foo.length > 0 )
+                            end = ((Number)foo[0]).intValue();
+
+                        return str.lastIndexOf( thing , end );
+                    }
+                } );
+
             _prototype.set( "startsWith" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object o , Object foo[] ){
                         String str = s.getThis().toString();
