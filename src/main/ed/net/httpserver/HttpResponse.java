@@ -71,6 +71,9 @@ public class HttpResponse {
     }
 
     void cleanup(){
+        if ( _cleaned )
+            return;
+        
         _handler._done = ! keepAlive();
         
         _cleaned = true;
@@ -106,12 +109,12 @@ public class HttpResponse {
         return f;
     }
 
-    public boolean flush()
+    private boolean flush()
         throws IOException {
         return _flush();
     }
     
-    boolean _flush()
+    private boolean _flush()
         throws IOException {
 
         if ( _cleaned )
@@ -172,6 +175,8 @@ public class HttpResponse {
                 return false;
             }
         }
+        
+        cleanup();
         
         if ( keepAlive() && ! _handler.hasData() )
             _handler.registerForReads();
@@ -416,6 +421,8 @@ public class HttpResponse {
             
             _cur.flip();
             ByteBuffer bb = USE_POOL ? _bbPool.get() : ByteBuffer.wrap( new byte[ _cur.limit() * 2 ] );
+            if ( bb.position() != 0 || bb.limit() != bb.capacity() )
+                throw new RuntimeException( "something is wrong with _bbPool" );
             
             CharsetEncoder encoder = _defaultCharset.newEncoder(); // TODO: pool
             try {
@@ -423,7 +430,7 @@ public class HttpResponse {
                 if ( cr.isUnmappable() )
                     throw new RuntimeException( "can't map some character" );
                 if ( cr.isOverflow() )
-                    throw new RuntimeException( "buffer overflow here is a bad thing" );
+                    throw new RuntimeException( "buffer overflow here is a bad thing.  bb after:" + bb );
 
                 bb.flip();
 
