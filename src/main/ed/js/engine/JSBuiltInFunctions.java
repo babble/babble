@@ -369,10 +369,45 @@ public class JSBuiltInFunctions {
 
         _myScope.put( "isString" , new isXXXs( String.class , JSString.class ) , true );
         
+        _myScope.put( "isAlpha" , new JSFunctionCalls1(){
+                public Object call( Scope scope , Object o , Object extra[] ){
+                    Character c = getChar( o );
+                    return c != null && Character.isLetter( c );
+                }
+            } , true );
+        _myScope.put( "isSpace" , new JSFunctionCalls1(){
+                public Object call( Scope scope , Object o , Object extra[] ){
+                    Character c = getChar( o );
+                    return c != null && Character.isWhitespace( c );
+                }
+            } , true );
+        _myScope.put( "isDigit" , new JSFunctionCalls1(){
+                public Object call( Scope scope , Object o , Object extra[] ){
+                    Character c = getChar( o );
+                    return c != null && Character.isDigit( c );
+                }
+            } , true );
+        
         _myScope.put( "assert" , new jsassert() , true );
         _myScope.put( "javaCreate" , new javaCreate() , true );
 
         JSON.init( _myScope );
     }
-    
+
+    private static Character getChar( Object o ){
+
+        if ( o instanceof Character )
+            return (Character)o;
+        
+        if ( o instanceof JSString )
+            o = o.toString();
+        
+        if ( o instanceof String ){
+            String s = (String)o;
+            if ( s.length() == 1 )
+                return s.charAt( 0 );
+        }
+        
+        return null;
+    }
 }
