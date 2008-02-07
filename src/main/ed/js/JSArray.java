@@ -29,7 +29,7 @@ import static ed.js.JSInternalFunctions.*;
  * shift
  * unshift 
  */
-public class JSArray extends JSObjectBase {
+public class JSArray extends JSObjectBase implements Iterable {
     
     public final static JSFunction _cons = new JSArrayCons();
     static class JSArrayCons extends JSFunctionCalls0{
@@ -319,11 +319,17 @@ public class JSArray extends JSObjectBase {
     }
 
     public void add( Object o ){
+        if ( _locked )
+            throw new RuntimeException( "array locked" );
         _array.add( o );
     }
 
     public void addAll( Collection c ){
         _array.addAll( c );
+    }
+
+    public Iterator iterator(){
+        return _array.iterator();
     }
 
     int _getInt( Object o ){
@@ -348,6 +354,15 @@ public class JSArray extends JSObjectBase {
         Collections.shuffle( _array );
     }
 
+    public void lock(){
+        _locked = true;
+    }
+
+    public void clear(){
+        _array.clear();
+    }
+
+    private boolean _locked = false;
     final List<Object> _array;
 
     static class MyComparator implements Comparator {
