@@ -362,6 +362,10 @@ public class JSArray extends JSObjectBase implements Iterable {
         _array.clear();
     }
 
+    public boolean isLocked(){
+        return _locked;
+    }
+
     private boolean _locked = false;
     final List<Object> _array;
 
