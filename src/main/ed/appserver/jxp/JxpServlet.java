@@ -144,11 +144,13 @@ public class JxpServlet {
 
             if ( tag.equalsIgnoreCase( "/head" ) ){
                 
-                for ( Object foo : _context.getGlobalHead() )
-                    _writer.print( foo.toString() );
+                if ( _context != null )
+                    for ( Object foo : _context.getGlobalHead() )
+                        _writer.print( foo.toString() );
                 
-                for ( Object foo : _request.getHeadToPrint() )
-                    _writer.print( foo.toString() );
+                if ( _request != null )
+                    for ( Object foo : _request.getHeadToPrint() )
+                        _writer.print( foo.toString() );
 
                 return false;
             }
