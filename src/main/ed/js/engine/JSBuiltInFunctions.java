@@ -371,20 +371,20 @@ public class JSBuiltInFunctions {
         
         _myScope.put( "isAlpha" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object o , Object extra[] ){
-                    Character c = getChar( o );
-                    return c != null && Character.isLetter( c );
+                    char c = getChar( o );
+                    return Character.isLetter( c );
                 }
             } , true );
         _myScope.put( "isSpace" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object o , Object extra[] ){
-                    Character c = getChar( o );
-                    return c != null && Character.isWhitespace( c );
+                    char c = getChar( o );
+                    return Character.isWhitespace( c );
                 }
             } , true );
         _myScope.put( "isDigit" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object o , Object extra[] ){
-                    Character c = getChar( o );
-                    return c != null && Character.isDigit( c );
+                     char c = getChar( o );
+                    return Character.isDigit( c );
                 }
             } , true );
         
@@ -394,7 +394,7 @@ public class JSBuiltInFunctions {
         JSON.init( _myScope );
     }
 
-    private static Character getChar( Object o ){
+    private static char getChar( Object o ){
 
         if ( o instanceof Character )
             return (Character)o;
@@ -408,6 +408,6 @@ public class JSBuiltInFunctions {
                 return s.charAt( 0 );
         }
         
-        return null;
+        return 0;
     }
 }
