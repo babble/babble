@@ -314,6 +314,12 @@ public class JSString extends JSObjectBase {
     public int length(){
         return _s.length();
     }
+
+    public Object getInt( int n ){
+        if ( n >= _s.length() )
+            return null;
+        return _s.charAt( n );
+    }
     
     public int hashCode(){
         return _s.hashCode();
