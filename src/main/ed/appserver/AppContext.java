@@ -53,6 +53,8 @@ public class AppContext {
         _core = new JSFileLibrary( new File( "/data/corejs" ) ,  "core" , this );
         _scope.put( "core" , _core , true );
         
+        _scope.put( "globalHead" , _globalHead , true  );
+
         _scope.setGlobal( true );
     }
 
@@ -292,6 +294,10 @@ public class AppContext {
         _core.fix( t );
     }
 
+    public JSArray getGlobalHead(){
+        return _globalHead;
+    }
+
     final String _name;
     final String _root;
     final File _rootFile;
@@ -300,6 +306,8 @@ public class AppContext {
     final JSFileLibrary _core;
 
     final Scope _scope;
+    
+    final JSArray _globalHead = new JSArray();
     
     private final Map<String,File> _files = new HashMap<String,File>();
     private final Set<File> _initFlies = new HashSet<File>();

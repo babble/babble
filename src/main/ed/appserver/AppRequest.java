@@ -16,6 +16,7 @@ public class AppRequest {
         _request = request;
         _scope = _context.scopeChild();
         _scope.put( "request" , request , true );
+        _scope.put( "head" , _head , true );
 
         if ( uri == null )
             uri = _request.getURI();
@@ -112,10 +113,20 @@ public class AppRequest {
         return _context.getFile( getWantedURI() );
     }
 
+    public JSArray getHead(){
+        return _head;
+    }
+
+    public JSArray getHeadToPrint(){
+        _head.lock();
+        return _head;
+    }
+
     final String _uri;
     final HttpRequest _request;
     final AppContext _context;
     final Scope _scope;
-
+    final JSArray _head = new JSArray();
+    
     String _wantedURI = null;
 }

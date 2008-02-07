@@ -31,7 +31,7 @@ public class JxpServlet {
         scope.put( "request" , request , true );
         scope.put( "response" , response , true );
         
-        scope.put( "print" , new MyWriter( writer , getStaticPrefix( request , ar ) , ar.getContext() ) , true );
+        scope.put( "print" , new MyWriter( writer , getStaticPrefix( request , ar ) , ar.getContext() , ar ) , true );
         
         try {
             _theFunction.call( scope );
@@ -67,10 +67,11 @@ public class JxpServlet {
     
     public static class MyWriter extends JSFunctionCalls1 {
 
-        public MyWriter( JxpWriter writer , String cdnPrefix , AppContext context ){
+        public MyWriter( JxpWriter writer , String cdnPrefix , AppContext context , AppRequest ar ){
             _writer = writer;
             _cdnPrefix = cdnPrefix;
             _context = context;
+            _request = ar;
 
             set( "setFormObject" , new JSFunctionCalls1(){ 
                     public Object call( Scope scope , Object o , Object extra[] ){
@@ -104,14 +105,14 @@ public class JxpServlet {
         
         public void print( String s ){
             
-            //System.out.println( "---\n" + s + "\n---" );
+            //System.out.println( "***\n" + s + "\n---" );
             
             if ( _extra.length() > 0 ){
                 _extra.append( s );
                 s = _extra.toString();
                 _extra.setLength( 0 );
             }
-
+            
             _matcher.reset( s );
             if ( ! _matcher.find() ){
                 _writer.print( s );
@@ -136,8 +137,22 @@ public class JxpServlet {
             
         }
 
+        /**
+         * @return true if i printed tag so you should not
+         */
         boolean printTag( String tag , String s ){
-            
+
+            if ( tag.equalsIgnoreCase( "/head" ) ){
+                
+                for ( Object foo : _context.getGlobalHead() )
+                    _writer.print( foo.toString() );
+                
+                for ( Object foo : _request.getHeadToPrint() )
+                    _writer.print( foo.toString() );
+
+                return false;
+            }
+
             { // CDN stuff
                 String srcName = null;
                 if ( tag.equalsIgnoreCase( "img" ) ||
@@ -275,13 +290,14 @@ public class JxpServlet {
             return -1;
         }
         
-        static final Pattern _tagPattern = Pattern.compile( "<(\\w+) " , Pattern.CASE_INSENSITIVE );
+        static final Pattern _tagPattern = Pattern.compile( "<(/?\\w+)[ >]" , Pattern.CASE_INSENSITIVE );
         final Matcher _matcher = _tagPattern.matcher("");
         final StringBuilder _extra = new StringBuilder();
 
         final JxpWriter _writer;
         final String _cdnPrefix;
         final AppContext _context;
+        final AppRequest _request;
 
         JSObject _formInput = null;
         String _formInputPrefix = null;
