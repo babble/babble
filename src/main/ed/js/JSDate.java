@@ -176,6 +176,16 @@ public class JSDate extends JSObjectBase implements Comparable {
         return 1;
     }
 
+    public int hashCode(){
+        return (int)_time;
+    }
+    
+    public boolean equals( Object o ){
+        return 
+            o instanceof JSDate && 
+            _time == ((JSDate)o)._time;
+    }
+
     long _time;
     Calendar _c;
 
