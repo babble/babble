@@ -128,6 +128,8 @@ public class AppContext {
         
         if ( uri.startsWith( "/~~/" ) || uri.startsWith( "~~/" ) )
             f = new File( _core._base , uri.substring( 3 ) );
+        else if ( uri.startsWith( "/@@/" ) || uri.startsWith( "@@/" ) )
+            f = new File( "/data/external/" , uri.substring( 3 ) );
         else
             f = new File( _rootFile , uri );
 
