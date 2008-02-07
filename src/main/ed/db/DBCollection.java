@@ -10,6 +10,8 @@ import ed.js.func.*;
 import ed.js.engine.*;
 
 public abstract class DBCollection extends JSObjectLame {
+
+    final static boolean DEBUG = Boolean.getBoolean( "DEBUG.DB" );
     
     public abstract JSObject save( JSObject o );
     public abstract JSObject update( JSObject q , JSObject o , boolean upsert , boolean apply );
@@ -69,51 +71,50 @@ public abstract class DBCollection extends JSObjectLame {
 
         _save = new JSFunctionCalls1() {
                 public Object call( Scope s , Object o , Object fooasd[] ){
-                    if ( o == null && s.getThis() != null )
-                        o = s.getThis();
+                    o = _handleThis( s , o );
                     
-                    if ( ! ( o instanceof JSObject ) )
-                        throw new RuntimeException( "can only save JSObject" );
+                    _checkObject( o , false );
                     
                     JSObject jo = (JSObject)o;
                     
-                    Object presaveObject = (JSFunction)jo.get( "presave" );
-                    if ( presaveObject != null && presaveObject instanceof JSFunction ){
-                        s.setThis( jo );
-                        ((JSFunction)presaveObject).call( s );
-                        s.clearThisNormal( null );
+                    Object presaveObject = jo.get( "presave" );
+                    if ( presaveObject != null ){
+                        if ( presaveObject instanceof JSFunction ){
+                            s.setThis( jo );
+                            ((JSFunction)presaveObject).call( s );
+                            s.clearThisNormal( null );
+                        }
+                        else {
+                            System.out.println( "warning, presave is a " + presaveObject.getClass() );
+                        }
                     }
                     
                     _findSubObject( s , jo );
-
+                    
                     ObjectId id = (ObjectId)jo.get( "_id" );
-
+                    if ( DEBUG ) System.out.println( "id : " + id );
+                    
                     if ( id == null || id._new ){
+                        if ( DEBUG ) System.out.println( "saving new object" );
                         if ( id != null )
                             id._new = false;
                         save( jo );
                         return jo;
                     }
                     
-                    System.out.println( "doing implicit upsert : " + jo.get( "_id" ) );
+                    if ( DEBUG ) System.out.println( "doing implicit upsert : " + jo.get( "_id" ) );
                     JSObject q = new JSObjectBase();
-                    q.set( "_id" , jo.get( "_id" ) );
+                    q.set( "_id" , id );
                     return _update.call( s , q , jo , _upsertOptions );
                 }
             };
         _entries.put( "save" , _save );
-
+        
         _update = new JSFunctionCalls2() {
                 public Object call( Scope s , Object q , Object o , Object foo[] ){
                     
-                    if ( o == null )
-                        throw new RuntimeException( "object can't be null" );
-
-                    if ( ! ( o instanceof JSObject ) )
-                        throw new RuntimeException( "can only save JSObject not : " + o.getClass() );
-                    
-                    if ( ! ( q instanceof JSObject ) )
-                        throw new RuntimeException( "can only save JSObject" );
+                    _checkObject( q , false );
+                    _checkObject( o , false );
                     
                     _findSubObject( s , (JSObject)o );
 
@@ -137,8 +138,7 @@ public abstract class DBCollection extends JSObjectLame {
                       new JSFunctionCalls1(){
                           public Object call( Scope s , Object o , Object foo[] ){
                               
-                              if ( o == null && s.getThis() != null )
-                                  o = s.getThis();
+                              o = _handleThis( s , o );
                               
                               if ( ! ( o instanceof JSObject ) )
                                   throw new RuntimeException( "can't only save JSObject" );
@@ -216,6 +216,33 @@ public abstract class DBCollection extends JSObjectLame {
         
     }
 
+    private final Object _handleThis( Scope s , Object o ){
+        if ( o != null )
+            return o;
+        
+        Object t = s.getThis();
+        if ( t == null )
+            return null;
+        
+        if ( t.getClass() != JSObjectBase.class )
+            return null;
+        
+        return o;
+    }
+
+    private final void _checkObject( Object o , boolean canBeNull ){
+        if ( o == null ){
+            if ( canBeNull )
+                return;
+            throw new NullPointerException( "can't be null" );
+        }
+
+        if ( o instanceof JSObject )
+            return;
+        
+        throw new IllegalArgumentException( " has to be a JSObject not : " + o.getClass() );
+    }
+
     private void _findSubObject( Scope s , JSObject jo ){
 
         LinkedList<JSObject> toSearch = new LinkedList();
@@ -259,7 +286,6 @@ public abstract class DBCollection extends JSObjectLame {
                 if ( otherUpdate == null )
                     throw new RuntimeException( "_update is null :(" );
                 
-                System.out.println( "calling upsert" );
                 otherUpdate.call( s , lookup , e , _upsertOptions );
                 
             }

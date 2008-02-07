@@ -37,7 +37,7 @@ public class DBRef extends JSObjectBase {
             _parent.set( _fieldName , null );
             return;
         }
-
+        coll.apply( o );
         MyAsserts.assertEquals( _id , o.get( "_id" ) );
         MyAsserts.assertEquals( _ns.toString() , o.get( "_ns" ).toString() );
 

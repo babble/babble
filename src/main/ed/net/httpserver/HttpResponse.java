@@ -401,9 +401,9 @@ public class HttpResponse {
             if ( _done )
                 throw new RuntimeException( "already done" );
             
-            if ( _cur.position() + s.length() > _cur.capacity() )
+            if ( _cur.position() + ( 3 * s.length() ) > _cur.capacity() ){
                 _push();
-            
+            }
             
             _cur.append( s );
             _javaLength += s.length();
@@ -422,6 +422,9 @@ public class HttpResponse {
                 CoderResult cr = encoder.encode( _cur , bb , true );
                 if ( cr.isUnmappable() )
                     throw new RuntimeException( "can't map some character" );
+                if ( cr.isOverflow() )
+                    throw new RuntimeException( "buffer overflow here is a bad thing" );
+
                 bb.flip();
 
                 _myStringContent.add( bb );
@@ -488,7 +491,7 @@ public class HttpResponse {
                 return true;
             }
         };
-    static ByteBufferPool _bbPool = new ByteBufferPool( 50 , CHAR_BUFFER_SIZE * 2  );
+    static ByteBufferPool _bbPool = new ByteBufferPool( 50 , CHAR_BUFFER_SIZE * 4  );
     static StringBuilderPool _headerBufferPool = new StringBuilderPool( 25 , 1024 );
     static Charset _defaultCharset = Charset.forName( DEFAULT_CHARSET );
 

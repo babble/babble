@@ -14,6 +14,7 @@ import ed.util.*;
 public class Convert {
 
     static boolean D = Boolean.getBoolean( "DEBUG.JS" );
+    public static final String DEFAULT_PACKAGE = "ed.js.gen";
 
     public Convert( File sourceFile )
         throws IOException {
@@ -1249,7 +1250,7 @@ public class Convert {
     final String _source;
     final String _encodedSource;
     final String _className;
-    final String _package = "ed.js.gen";
+    final String _package = DEFAULT_PACKAGE;
     final int _id = ID++;    
 
     // these 3 variables should only be use by _append

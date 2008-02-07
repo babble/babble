@@ -104,6 +104,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
         
         _cur = null;
         _cur = _it.next();
+        _collection.apply( _cur );
         _num++;
         
         if ( _constructor != null && 

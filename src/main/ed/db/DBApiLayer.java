@@ -168,8 +168,10 @@ public abstract class DBApiLayer extends DBBase {
         }
                 
         public JSObject save( JSObject o , boolean shouldApply ){
-            if ( shouldApply )
+            if ( shouldApply ){
                 apply( o );
+                ((ObjectId)o.get( "_id" ) )._new = false;
+            }
 
             ByteEncoder encoder = ByteEncoder.get();
             
@@ -239,8 +241,10 @@ public abstract class DBApiLayer extends DBBase {
         }
 
         public JSObject update( JSObject query , JSObject o , boolean upsert , boolean apply ){
-            if ( apply )
+            if ( apply ){
                 apply( o );
+                ((ObjectId)o.get( "_id" ) )._new = false;
+            }
             
             ByteEncoder encoder = ByteEncoder.get();
             encoder._buf.putInt( 0 ); // reserved

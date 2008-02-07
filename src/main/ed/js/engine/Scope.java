@@ -424,6 +424,7 @@ public class Scope implements JSObject {
     }
 
     private static final Object[] EMPTY_OBJET_ARRAY = new Object[0];
+    private static final Class[] EMPTY_CLASS_ARRAY = new Class[0];
     
     private static final JSFunctionCalls0 _nativeFuncCall = new JSFunctionCalls0(){
             Map< Class , Map< String , List<Method> > > _classToMethods = new HashMap< Class , Map< String , List<Method> > >();
@@ -458,65 +459,14 @@ public class Scope implements JSObject {
 
                 methods:
                 for ( Method m : getMethods( obj.getClass() , name ) ){
-                
-                    Class myClasses[] = m.getParameterTypes();
-                    if ( myClasses != null ){
+            
+                    Object nParams[] = doParamsMatch( m.getParameterTypes() , params );
+                    if ( nParams == null )
+                        continue;
                     
-                        if ( params == null )
-                            params = EMPTY_OBJET_ARRAY;
-                    
-                        if ( myClasses.length != params.length )
-                            continue;
-                        
-                        for ( int i=0; i<myClasses.length; i++ ){
-                            // null is fine with me
-                            if ( params[i] == null ) 
-                                continue;
-                            
-                            Class myClass = myClasses[i];
-                            final Class origMyClass = myClass;
-                            
-                            if ( myClass == String.class )
-                                params[i] = params[i].toString();
-                            
-                            if ( myClass.isPrimitive() ){
-                                if ( myClass == Integer.TYPE || 
-                                     myClass == Long.TYPE || 
-                                     myClass == Double.TYPE ){
-                                    myClass = Number.class;
-                                }
-                                else if ( myClass == Boolean.TYPE ) 
-                                    myClass = Boolean.class;
-                            }
-                            
-                            
-                            if ( ! myClass.isAssignableFrom( params[i].getClass() ) ){
-                                System.out.println( "\t native assignement failed b/c " + myClasses[i] + " " + params[i].getClass() );
-                                continue methods;
-                            }
-                            
-                            if ( myClass == Number.class && origMyClass != params[i].getClass() ){
-                                Number theNumber = (Number)params[i];
-                                
-                                if ( origMyClass == Double.class || origMyClass == Double.TYPE )
-                                    params[i] = theNumber.doubleValue(); 
-                                else if ( origMyClass == Integer.class || origMyClass == Integer.TYPE )
-                                    params[i] = theNumber.intValue(); 
-                                else if ( origMyClass == Float.class || origMyClass == Float.TYPE )
-                                    params[i] = theNumber.floatValue(); 
-                                else if ( origMyClass == Long.class || origMyClass == Long.TYPE )
-                                    params[i] = theNumber.longValue(); 
-                                else if ( origMyClass == Short.class || origMyClass == Short.TYPE )
-                                    params[i] = theNumber.shortValue(); 
-                                else
-                                    throw new RuntimeException( "what is : " + origMyClass );
-                            }
-                        }
-                    }
-                
                     m.setAccessible( true );
                     try {
-                        Object ret = m.invoke( obj , params );
+                        Object ret = m.invoke( obj , nParams );
                         if ( ret != null ){
                             if ( ret instanceof String )
                                 ret = new JSString( ret.toString() );
@@ -550,4 +500,65 @@ public class Scope implements JSObject {
                 throw new RuntimeException( "can't find a valid native method for : " + name + " which  is a : " + obj.getClass()  );
             }
         };
+
+    static Object[] doParamsMatch( Class myClasses[] , Object params[] ){
+        
+        if ( myClasses == null )
+            myClasses = EMPTY_CLASS_ARRAY;
+        
+        if ( params == null )
+            params = EMPTY_OBJET_ARRAY;
+        
+        if ( myClasses.length != params.length )
+            return null;
+        
+        for ( int i=0; i<myClasses.length; i++ ){
+
+            // null is fine with me
+            if ( params[i] == null ) 
+                continue;
+            
+            Class myClass = myClasses[i];
+            final Class origMyClass = myClass;
+            
+            if ( myClass == String.class )
+                params[i] = params[i].toString();
+            
+            if ( myClass.isPrimitive() ){
+                if ( myClass == Integer.TYPE || 
+                     myClass == Long.TYPE || 
+                     myClass == Double.TYPE ){
+                    myClass = Number.class;
+                }
+                else if ( myClass == Boolean.TYPE ) 
+                    myClass = Boolean.class;
+            }
+            
+            
+            if ( ! myClass.isAssignableFrom( params[i].getClass() ) ){
+                System.out.println( "\t native assignement failed b/c " + myClasses[i] + " " + params[i].getClass() );
+                return null;
+            }
+            
+            if ( myClass == Number.class && origMyClass != params[i].getClass() ){
+                Number theNumber = (Number)params[i];
+                
+                if ( origMyClass == Double.class || origMyClass == Double.TYPE )
+                    params[i] = theNumber.doubleValue(); 
+                else if ( origMyClass == Integer.class || origMyClass == Integer.TYPE )
+                    params[i] = theNumber.intValue(); 
+                else if ( origMyClass == Float.class || origMyClass == Float.TYPE )
+                    params[i] = theNumber.floatValue(); 
+                else if ( origMyClass == Long.class || origMyClass == Long.TYPE )
+                    params[i] = theNumber.longValue(); 
+                else if ( origMyClass == Short.class || origMyClass == Short.TYPE )
+                    params[i] = theNumber.shortValue(); 
+                else
+                    throw new RuntimeException( "what is : " + origMyClass );
+            }
+        }
+        
+        return params;
+    }
+    
 }
