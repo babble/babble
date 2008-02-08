@@ -17,6 +17,7 @@ public class AppRequest {
         _scope = _context.scopeChild();
         _scope.put( "request" , request , true );
         _scope.put( "head" , _head , true );
+	_scope.put( "user" , null , true );
 
         if ( uri == null )
             uri = _request.getURI();

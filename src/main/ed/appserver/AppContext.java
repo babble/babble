@@ -56,6 +56,7 @@ public class AppContext {
         _scope.put( "globalHead" , _globalHead , true  );
 
         _scope.setGlobal( true );
+	_scope.lock( "user" );
     }
 
     private static String guessName( String root ){

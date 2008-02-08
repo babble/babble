@@ -115,6 +115,13 @@ public class Scope implements JSObject {
                 o = new JSString( (String)o );
             if ( _objects == null )
                 _objects = new TreeMap<String,Object>();
+	    
+	    if ( _lockedObject != null && _lockedObject.contains( name ) ){
+		RuntimeException re = new RuntimeException( "trying to set locked object : " + name );
+		re.fillInStackTrace();
+		re.printStackTrace();
+	    }
+
             _objects.put( name , o );
             return o;
         }
@@ -391,6 +398,12 @@ public class Scope implements JSObject {
             _parent.debug( indent + 1 );
     }
 
+    public void lock( String s ){
+	if ( _lockedObject == null )
+	    _lockedObject = new HashSet<String>();
+	_lockedObject.add( s );
+    }
+
     final String _name;
     final Scope _parent;
     final Scope _alternate;
@@ -401,7 +414,8 @@ public class Scope implements JSObject {
     boolean _global = false;
     
     Map<String,Object> _objects;
-    
+    Set<String> _lockedObject;
+
     Stack<This> _this = new Stack<This>();
     Object _orSave;
     JSObject _globalThis;
