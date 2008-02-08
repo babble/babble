@@ -15,7 +15,7 @@ public class JSCaptcha {
     public synchronized void img( String s , HttpResponse response )
         throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        _producer.createImage( out , "eliot" );
+        _producer.createImage( out , s );
         byte bb[] = out.toByteArray();
         
         response.setHeader( "Content-Type" , "image/jpeg" );
