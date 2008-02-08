@@ -127,16 +127,20 @@ public abstract class JSFile extends JSObjectBase {
 
             if ( _maxPostion > 0 ){
                 long bytesLeft = _maxPostion - _bytesWritten;
+
                 if ( ( _buf.limit() - _buf.position() ) > bytesLeft )
                     _buf.limit( _buf.position() + (int)bytesLeft );
             }
-
+            
             _bytesWritten += out.write( _buf );
             return false;
         }
 
         public void skip( final long num )
             throws IOException {
+            if ( num <= 0 )
+                return;
+
             write( new WritableByteChannel(){
                     
                     public int write ( ByteBuffer src )

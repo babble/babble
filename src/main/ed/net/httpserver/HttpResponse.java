@@ -334,11 +334,11 @@ public class HttpResponse {
                 throw new RuntimeException( "can't skip " , ioe );
             }
 
-            _jsfile.maxPosition( range[1] );
+            _jsfile.maxPosition( range[1] + 1 );
 
             setResponseCode( 206 );
             setHeader( "Content-Range" , "bytes " + range[0] + "-" + range[1] + "/" + length );
-            setHeader( "Content-Length" , String.valueOf( range[1] - ( 1 + range[0] ) ) );
+            setHeader( "Content-Length" , String.valueOf(  1 + range[1] - range[0] ) );
             System.out.println( "got range " + range[0] + " -> " + range[1] );
             
 
