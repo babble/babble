@@ -26,6 +26,14 @@ public final class StringParseUtil {
     }
 
     public static int parseInt( String s , int def ){
+        return parseInt( s , def , null , true );
+    }
+
+    public static int parseInt( String s , int def , final int[] lastIdx , final boolean allowNegative ){
+        final boolean useLastIdx = lastIdx != null && lastIdx.length > 0;
+        if ( useLastIdx )
+            lastIdx[0] = -1;
+        
         if ( s == null )
             return def;
         
@@ -48,9 +56,11 @@ public final class StringParseUtil {
         while ( lastDigit < s.length() && Character.isDigit( s.charAt( lastDigit ) ) )
             lastDigit++;
         
-        if ( firstDigit > 0 && s.charAt( firstDigit - 1 ) == '-' )
+        if ( allowNegative && firstDigit > 0 && s.charAt( firstDigit - 1 ) == '-' )
             firstDigit--;
         
+        if ( useLastIdx )
+            lastIdx[0] = lastDigit;
         return Integer.parseInt( s.substring( firstDigit , lastDigit ) );
     }
 }

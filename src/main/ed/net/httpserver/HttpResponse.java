@@ -316,10 +316,37 @@ public class HttpResponse {
             sendFile( ((JSLocalFile)f).getRealFile() );
             return;
         }
+        
+        long length = f.getLength();
         _jsfile = f.sender();
+        _stringContent = null;
+
+        long range[] = _request.getRange();
+        if ( range != null && ( range[0] > 0 || range[1] < length ) ){
+            
+            if ( range[1] > length )
+                range[1] = length;
+            
+            try {
+                _jsfile.skip( range[0] );
+            }
+            catch ( IOException ioe ){
+                throw new RuntimeException( "can't skip " , ioe );
+            }
+
+            _jsfile.maxPosition( range[1] );
+
+            setResponseCode( 206 );
+            setHeader( "Content-Range" , "bytes " + range[0] + "-" + range[1] + "/" + length );
+            setHeader( "Content-Length" , String.valueOf( range[1] - ( 1 + range[0] ) ) );
+            System.out.println( "got range " + range[0] + " -> " + range[1] );
+            
+
+            return;
+        }
         _headers.put( "Content-Length" , String.valueOf( f.getLength() ) );
         _headers.put( "Content-Type" , f.getContentType() );
-	_stringContent = null;
+
     }
     
     private int _numDataThings(){

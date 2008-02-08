@@ -336,6 +336,78 @@ public class HttpRequest extends JSObjectLame {
     public JSDate getStart(){
         return _start;
     }
+
+    public long[] getRange(){
+        if ( _rangeChecked )
+            return _range;
+        
+        String s = getHeader( "Range" );
+        if ( s != null )
+            _range = _parseRange( s );
+
+        _rangeChecked = true;
+        return _range;
+    }
+
+    public static long[] _parseRange( String s ){
+        if ( s == null )
+            return null;
+        s = s.trim();
+        if ( ! s.startsWith( "bytes=" ) )
+            return null;
+        
+        s = s.substring( 6 ).trim();
+        if ( s.length() == 0 )
+            return null;
+        
+        
+        if ( s.matches( "\\d+" ) )
+            return new long[]{ Long.parseLong( s ) , Long.MAX_VALUE };
+        
+        String pcs[] = s.split( "," );
+        if ( pcs.length == 0 )
+            return null;
+
+        if ( pcs.length == 1 ){ 
+            // either has to be 
+            // -100
+            s = pcs[0].trim();
+
+            if ( s.length() == 0 )
+                return null;
+
+            if ( s.charAt( 0 ) == '-' ) // we don't support this
+                return null;
+            
+            Matcher m = Pattern.compile( "(\\d+)\\-(\\d+)" ).matcher( s );
+            if ( m.find() )
+                return new long[]{ Long.parseLong( m.group(1) ) , Long.parseLong( m.group(2) ) };
+            return null;
+        }
+
+        long min = Long.MAX_VALUE;
+        long max = -1;
+
+        for ( int i=0; i<pcs.length; i++ ){
+            String foo = pcs[i];
+            
+            Matcher m = Pattern.compile( "(\\d+)\\-(\\d+)" ).matcher( s );
+
+            if ( ! m.find() )
+                return null;
+            
+            long l = Long.parseLong( m.group(1) );
+            long h = Long.parseLong( m.group(2) );
+            
+            min = Math.min( min , l );
+            max = Math.max( min , h );
+        }
+
+        if ( max < 0 )
+            return null;
+
+        return new long[]{ min , max };
+    }
     
     final HttpServer.HttpSocketHandler _handler;
     final String _firstLine;
@@ -358,6 +430,10 @@ public class HttpRequest extends JSObjectLame {
 
     private Object _attachment;
 
+    private boolean _rangeChecked = false;
+    private long[] _range;
+
     private String _characterEncoding = "ISO-8859-1";
+
 }
 

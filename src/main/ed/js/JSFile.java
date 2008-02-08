@@ -124,13 +124,42 @@ public abstract class JSFile extends JSObjectBase {
                 _buf = _chunk.getData().asByteBuffer();
             }
             
+
+            if ( _maxPostion > 0 ){
+                long bytesLeft = _maxPostion - _bytesWritten;
+                if ( ( _buf.limit() - _buf.position() ) > bytesLeft )
+                    _buf.limit( _buf.position() + (int)bytesLeft );
+            }
+
             _bytesWritten += out.write( _buf );
             return false;
+        }
+
+        public void skip( final long num )
+            throws IOException {
+            write( new WritableByteChannel(){
+                    
+                    public int write ( ByteBuffer src )
+                        throws IOException {
+                        for ( long i=0; i<num; i++ )
+                            src.get();
+                        return (int)num;
+                    }
+                    
+                    public void close(){}
+                    public boolean isOpen(){ return true; }
+
+                } );
+        }
+
+        public void maxPosition( long max ){
+            _maxPostion = max;
         }
         
         JSFileChunk _chunk;
         ByteBuffer _buf;
-        int _bytesWritten = 0;
+        long _bytesWritten = 0;
+        long _maxPostion = -1;
     }
 }
 
