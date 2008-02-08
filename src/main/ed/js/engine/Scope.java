@@ -536,7 +536,7 @@ public class Scope implements JSObject {
             
             
             if ( ! myClass.isAssignableFrom( params[i].getClass() ) ){
-                System.out.println( "\t native assignement failed b/c " + myClasses[i] + " " + params[i].getClass() );
+                //System.out.println( "\t native assignement failed b/c " + myClasses[i] + " " + params[i].getClass() );
                 return null;
             }
             
