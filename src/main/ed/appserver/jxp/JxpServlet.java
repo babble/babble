@@ -263,7 +263,7 @@ public class JxpServlet {
 
                 _writer.print( src );
                 
-                if ( cdnTags != null ){
+                if ( cdnTags != null && cdnTags.length() > 0 ){
                     if ( questionIndex < 0 )
                         _writer.print( "?" );
                     else
