@@ -24,23 +24,42 @@ public class JxpServlet {
 
     public void handle( HttpRequest request , HttpResponse response , AppRequest ar ){
         
-        final JxpWriter writer = response.getWriter();
-
         final Scope scope = ar.getScope();
 
         scope.put( "request" , request , true );
         scope.put( "response" , response , true );
         
-        scope.put( "print" , new MyWriter( writer , getStaticPrefix( request , ar ) , ar.getContext() , ar ) , true );
+        MyWriter writer = new MyWriter( response.getWriter() , getStaticPrefix( request , ar ) , ar.getContext() , ar);
+        scope.put( "print" , writer  , true );
         
         try {
             _theFunction.call( scope );
+            
+            if ( writer._writer.hasSpot() ){
+                writer._writer.backToSpot();
+                
+                if ( ar.getContext() != null )
+                    for ( Object foo : ar.getContext().getGlobalHead() )
+                        writer.print( foo.toString() );
+                
+                if ( ar != null )
+                    for ( Object foo : ar.getHeadToPrint() )
+                        writer.print( foo.toString() );
+                
+                writer._writer.backToEnd();
+            }
+            else {
+                if ( ( ar.getContext() != null && ar.getContext().getGlobalHead().size() > 0 ) || 
+                     ( ar != null && ar.getHeadToPrint().size() > 0  ) )
+                    throw new RuntimeException( "have head to print but no </head>" );
+            }
         }
         catch ( RuntimeException re ){
             _source.fix( re );
             _context.fix( re );
             throw re;
         }
+        
     }
     
     String getStaticPrefix( HttpRequest request , AppRequest ar ){
@@ -143,15 +162,7 @@ public class JxpServlet {
         boolean printTag( String tag , String s ){
 
             if ( tag.equalsIgnoreCase( "/head" ) ){
-                
-                if ( _context != null )
-                    for ( Object foo : _context.getGlobalHead() )
-                        _writer.print( foo.toString() );
-                
-                if ( _request != null )
-                    for ( Object foo : _request.getHeadToPrint() )
-                        _writer.print( foo.toString() );
-
+                _writer.saveSpot();
                 return false;
             }
 

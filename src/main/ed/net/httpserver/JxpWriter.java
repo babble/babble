@@ -17,10 +17,16 @@ public interface JxpWriter {
 
     public String getContent();
 
+    // for going back - doesn't work yet
     public void mark( int mark );
     public void clearToMark();
     public String fromMark();
-    
+
+    // for putting content in before
+    public void saveSpot();
+    public void backToSpot();
+    public void backToEnd();
+    public boolean hasSpot();
 
     // ----------
 
@@ -73,6 +79,19 @@ public interface JxpWriter {
         
         public String fromMark(){
             return _buf.substring( _mark , _buf.length() );
+        }
+
+        public void saveSpot(){
+            throw new RuntimeException( "not implemented yet" );
+        }
+        public boolean hasSpot(){
+            throw new RuntimeException( "not implemented yet" );
+        }
+        public void backToSpot(){
+            throw new RuntimeException( "not implemented yet" );
+        }
+        public void backToEnd(){
+            throw new RuntimeException( "not implemented yet" );
         }
 
         final StringBuilder _buf = new StringBuilder();

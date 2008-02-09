@@ -434,14 +434,15 @@ public class HttpResponse {
                 throw new RuntimeException( "already done" );
             
             if ( _cur.position() + ( 3 * s.length() ) > _cur.capacity() ){
+                if ( _inSpot )
+                    throw new RuntimeException( "can't put that much stuff in spot" );
                 _push();
             }
             
             _cur.append( s );
-            _javaLength += s.length();
             return this;
         }
-
+        
         void _push(){
             if ( _cur.position() == 0 )
                 return;
@@ -458,10 +459,13 @@ public class HttpResponse {
                     throw new RuntimeException( "can't map some character" );
                 if ( cr.isOverflow() )
                     throw new RuntimeException( "buffer overflow here is a bad thing.  bb after:" + bb );
-
+                
                 bb.flip();
-
-                _myStringContent.add( bb );
+                
+                if ( _inSpot )
+                    _myStringContent.add( _spot , bb );
+                else
+                    _myStringContent.add( bb );
                 _resetBuf();
             }
             catch ( Exception e ){
@@ -487,30 +491,46 @@ public class HttpResponse {
             _cur.position( 0 );
             _cur.limit( _cur.capacity() );
         }
-        
-        public int getJavaLength(){
-            return _javaLength;
-        }
 
-        public String toString(){
-            return "java length : " + _javaLength;
-        }
 
+        // reset
         public void mark( int m ){
             _mark = m;
         }
-
         public void clearToMark(){
             throw new RuntimeException( "not implemented yet" );
         }
-        
         public String fromMark(){
             throw new RuntimeException( "not implemented yet" );
         }
         
-        private int _javaLength = 0;
+        // going back
+        public void saveSpot(){
+            if ( _spot >= 0 )
+                throw new RuntimeException( "already have spot saved" );
+            _push();
+            _spot = _myStringContent.size();
+        }
+        public void backToSpot(){
+            if ( _spot < 0 )
+                throw new RuntimeException( "don't have spot" );
+            _push();
+            _inSpot = true;
+        }
+        public void backToEnd(){
+            _push();
+            _inSpot = false;
+            _spot = -1;
+        }        
+        public boolean hasSpot(){
+            return _spot >= 0;
+        }
+
         private CharBuffer _cur;
         private int _mark = 0;
+        
+        private int _spot = -1;
+        private boolean _inSpot = false;
     }
     
     static final int CHAR_BUFFER_SIZE = 1024 * 32;
