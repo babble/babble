@@ -17,7 +17,8 @@ public class AppRequest {
         _scope = _context.scopeChild();
         _scope.put( "request" , request , true );
         _scope.put( "head" , _head , true );
-	_scope.put( "user" , null , true );
+
+        _context.getScope().setTLPreferred( _scope );
 
         if ( uri == null )
             uri = _request.getURI();

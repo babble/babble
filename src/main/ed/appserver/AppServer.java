@@ -163,7 +163,8 @@ public class AppServer implements HttpHandler {
         if ( ar == null )
             ar = createRequest( request );
 	ar.setResponse( response );
-	
+	ar.getContext().getScope().setTLPreferred( ar.getScope() );
+
 	JSString jsURI = new JSString( ar.getURI() );
 	
         JSFunction allowed = ar.getScope().getFunction( "allowed" );

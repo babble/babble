@@ -31,6 +31,7 @@ public class AppContext {
         _rootFile = new File( _root );
 
         _scope = new Scope( "AppContext:" + root , Scope.GLOBAL , null , _rootFile );
+        _scope.setGlobal( true );
         
         _jxpObject = new JSFileLibrary( _rootFile , "jxp" , this );
         _scope.put( "jxp" , _jxpObject , true );
@@ -55,7 +56,6 @@ public class AppContext {
         
         _scope.put( "globalHead" , _globalHead , true  );
 
-        _scope.setGlobal( true );
 	_scope.lock( "user" );
     }
 
