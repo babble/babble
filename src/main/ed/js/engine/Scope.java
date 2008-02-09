@@ -95,7 +95,6 @@ public class Scope implements JSObject {
     }
 
     public Object put( String name , Object o , boolean local ){
-        
         if ( o != null && o instanceof String ) 
             o = new JSString( o.toString() );
 
@@ -115,17 +114,20 @@ public class Scope implements JSObject {
                 o = new JSString( (String)o );
             if ( _objects == null )
                 _objects = new TreeMap<String,Object>();
+
+            Scope pref = getTLPreferred();
+
+            if ( pref != null ){
+                pref._objects.put( name , o );
+                return o;
+            }
 	    
-	    if ( _lockedObject != null && _lockedObject.contains( name ) ){
-		RuntimeException re = new RuntimeException( "trying to set locked object : " + name );
-		re.fillInStackTrace();
-		re.printStackTrace();
-	    }
+	    if ( _lockedObject != null && _lockedObject.contains( name ) )
+		throw new RuntimeException( "trying to set locked object : " + name );
 
             _objects.put( name , o );
             return o;
         }
-        
         
         _parent.put( name , o , false );
         return o;
@@ -137,7 +139,6 @@ public class Scope implements JSObject {
     
     public Object get( String name , Scope alt ){
         if ( "scope".equals( name ) ){
-            System.out.println( "return this" );
             return this;
         }
 
@@ -168,6 +169,10 @@ public class Scope implements JSObject {
             return alt.get( name , null );
         }
 
+        Scope pref = getTLPreferred();
+        if ( pref != null && pref._objects.containsKey( name ) )
+            return pref._objects.get( name );
+        
         if ( _parent == null )
             return null;
         
@@ -195,6 +200,31 @@ public class Scope implements JSObject {
         if ( _parent == null )
             return false;
         return _parent.hasParent( s );
+    }
+
+    public Scope getTLPreferred(){
+        if ( _tlPreferred == null )
+            return null;
+        return _tlPreferred.get();
+    }
+    
+    public void setTLPreferred( Scope s ){
+        if ( s == null && _tlPreferred == null )
+            return;
+        
+        if ( s != null ){
+
+            if ( this != s._parent )
+                throw new RuntimeException( "_tlPreferred has to be child of this" );
+            
+            if ( s._parent._objects == null )
+                throw new RuntimeException( "this is weird" );
+            
+        }
+        
+        if ( _tlPreferred == null )
+            _tlPreferred = new ThreadLocal<Scope>();
+        _tlPreferred.set( s );
     }
 
     public JSFunction getFunction( String name ){
@@ -415,6 +445,7 @@ public class Scope implements JSObject {
     
     Map<String,Object> _objects;
     Set<String> _lockedObject;
+    private ThreadLocal<Scope> _tlPreferred = null;
 
     Stack<This> _this = new Stack<This>();
     Object _orSave;
