@@ -47,15 +47,42 @@ public class JSDate extends JSObjectBase implements Comparable {
     }
     
     static long parse( Object o , long def ){
+
         if ( o == null )
             return def;
-	if ( o instanceof Date )
+	
+        if ( o instanceof Date )
 	    return ((Date)o).getTime();
+        
+        if ( o instanceof String || o instanceof JSString )
+            return parseDate( o.toString() , def );
+        
         if ( ! ( o instanceof Number ) )
             return def;
         return ((Number)o).longValue();
     }
+
+    public static long parseDate( String s , long def ){
+        if ( s == null )
+            return def;
+        s = s.trim();
+        if ( s.length() == 0 )
+            return def;
+        
+        for ( int i=0; i<DATE_FORMATS.length; i++ ){
+            try {
+                synchronized ( DATE_FORMATS[i] ) {
+                    return DATE_FORMATS[i].parse( s ).getTime();
+                }
+            }
+            catch ( java.text.ParseException e ){
+            }
+        }
+        
+        return def;
+    }
     
+
     public JSDate(){
         this( System.currentTimeMillis() );
     }
@@ -104,8 +131,16 @@ public class JSDate extends JSObjectBase implements Comparable {
     }
 
     public String webFormat(){
-        synchronized ( _webFormat ){
-            return _webFormat.format( new Date( _time ) );
+        return format( _webFormat );
+    }
+
+    public String simpleFormat(){
+        return format( _simpleFormat );
+    }
+
+    public String format( DateFormat df ){
+        synchronized ( df ){ 
+            return df.format( new Date( _time ) );
         }
     }
 
@@ -189,8 +224,14 @@ public class JSDate extends JSObjectBase implements Comparable {
     long _time;
     Calendar _c;
 
+    public static final DateFormat _simpleFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm");
     public static final DateFormat _webFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
     static {
 	_webFormat.setTimeZone( TimeZone.getTimeZone("GMT") );
     }
+
+    private final static DateFormat[] DATE_FORMATS = new DateFormat[]{
+        _webFormat , _simpleFormat
+    };
+
 }
