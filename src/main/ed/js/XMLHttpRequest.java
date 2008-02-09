@@ -12,6 +12,8 @@ import ed.js.func.*;
 import ed.js.engine.*;
 
 public class XMLHttpRequest extends JSObjectBase {
+
+    static final boolean DEBUG = Boolean.getBoolean( "DEBUG.XHR" );
     
     public final static JSFunction _cons = new JSFunctionCalls3(){
 
@@ -96,6 +98,8 @@ public class XMLHttpRequest extends JSObjectBase {
 
         ByteBuffer toSend[] = new ByteBuffer[ postData == null ? 1 : 2 ];
         toSend[0] = ByteBuffer.wrap( getRequestHeader().getBytes() );
+        if ( DEBUG ) System.out.println( "--- Header to Send \n" + getRequestHeader() + "\n---" );
+
         if ( postData != null )
             toSend[1] = ByteBuffer.wrap( postData );
         sock.write( toSend );
@@ -106,10 +110,16 @@ public class XMLHttpRequest extends JSObjectBase {
         buf.flip();
         
         int headerEnd = startsWithHeader( buf );
-        if ( headerEnd < 0 )
+        if ( headerEnd < 0 ){
+            if ( DEBUG ){
+                byte b[] = new byte[buf.limit()];
+                buf.get( b );
+                System.out.println( new String( b ) );
+            }
             throw new JSException( "no header :(" );
+        }
         
-        System.out.println( buf );
+        if ( DEBUG ) System.out.println( buf );
 
         byte headerBytes[] = new byte[headerEnd];
         buf.get( headerBytes );
@@ -131,7 +141,7 @@ public class XMLHttpRequest extends JSObjectBase {
         String body = new String( bodyBytes );
         set( "responseText" , new JSString( body ) );
 
-        System.out.println( buf );
+        if ( DEBUG ) System.out.println( buf );
 
         return this;
     }
@@ -220,6 +230,9 @@ public class XMLHttpRequest extends JSObjectBase {
     }
 
     private void _checkURL(){
+        if ( _urlString == null || _urlString.trim().length() == 0 )
+            _urlString = "/";
+
         if ( _url == null ){
             try {
                 _url = new URL( _urlString );
