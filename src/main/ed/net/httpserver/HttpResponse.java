@@ -52,7 +52,7 @@ public class HttpResponse {
     }
     
     public void removeCookie( String name ){
-        _cookies.add( new Cookie( name , "asd" , 0 ) );
+        _cookies.add( new Cookie( name , "asd" , -1 ) );
     }
 
     public void setCacheTime( int seconds ){
