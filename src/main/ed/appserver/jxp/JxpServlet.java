@@ -50,8 +50,12 @@ public class JxpServlet {
             }
             else {
                 if ( ( ar.getContext() != null && ar.getContext().getGlobalHead().size() > 0 ) || 
-                     ( ar != null && ar.getHeadToPrint().size() > 0  ) )
-                    throw new RuntimeException( "have head to print but no </head>" );
+                     ( ar != null && ar.getHeadToPrint().size() > 0  ) ){
+		    // this is interesting
+		    // maybe i should do it only for html files
+		    // so i have to know that
+                    //throw new RuntimeException( "have head to print but no </head>" );
+		}
             }
         }
         catch ( RuntimeException re ){
