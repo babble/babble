@@ -13,7 +13,7 @@ class CompileUtil {
 
     // TODO: delete when done
 
-    static Class compile( String p , String c , String source )
+    static synchronized Class compile( String p , String c , String source )
         throws IOException , ClassNotFoundException {
         
         if ( D ) System.out.println( source );

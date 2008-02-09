@@ -46,7 +46,11 @@ public class JSFileLibrary extends JSObjectBase {
                 s = _scope;
             else 
                 throw new RuntimeException( "no scope :(" );
+	    
+	    Scope pref = s.getTLPreferred();
+	    s.setTLPreferred( null );
             ((JSFunction)foo).call( s );
+	    s.setTLPreferred( pref );
         }
     }
 
