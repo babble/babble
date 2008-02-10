@@ -220,7 +220,8 @@ public class JxpServlet {
                 if ( val == null )
                     return false;
                 
-                s = s.toString().replaceAll( "value *= *['\"].+['\"]" , " " );
+		if ( s.toString().matches( "value *=" ) )
+		    return false;
 
                 _writer.print( s.substring( 0 , s.length() - 1 ) );
                 _writer.print( " value=\"" );
