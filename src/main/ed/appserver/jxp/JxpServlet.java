@@ -165,7 +165,7 @@ public class JxpServlet {
          */
         boolean printTag( String tag , String s ){
 
-            if ( tag.equalsIgnoreCase( "/head" ) ){
+            if ( tag.equalsIgnoreCase( "/head" ) && ! _writer.hasSpot() ){
                 _writer.saveSpot();
                 return false;
             }
