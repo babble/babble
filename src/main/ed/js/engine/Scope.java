@@ -170,8 +170,12 @@ public class Scope implements JSObject {
         }
 
         Scope pref = getTLPreferred();
-        if ( pref != null && pref._objects.containsKey( name ) )
-            return pref._objects.get( name );
+        if ( pref != null && pref._objects.containsKey( name ) ){
+            Object temp = pref._objects.get( name );
+            if ( temp == NULL )
+                return null;
+            return temp;
+        }
         
         if ( _parent == null )
             return null;
