@@ -390,6 +390,12 @@ public class JSBuiltInFunctions {
         
         _myScope.put( "assert" , new jsassert() , true );
         _myScope.put( "javaCreate" , new javaCreate() , true );
+        
+        _myScope.put( "escape" , new JSFunctionCalls1(){
+                public Object call( Scope scope , Object o , Object extra[] ){
+                    return java.net.URLEncoder.encode( o.toString() ).replaceAll( "\\+" , "%20" );
+                }
+            } , true );
 
         JSON.init( _myScope );
     }

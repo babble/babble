@@ -20,6 +20,13 @@ public abstract class JSFunction extends JSFunctionBase {
 
         init();
     }
+    
+    public Object set( Object n , Object b ){
+        if ( n != null && "prototype".equals( n.toString() ) )
+            _prototype = (JSObject)b;
+        
+        return super.set( n , b );
+    }
 
     public JSObject newOne(){
         return new JSObjectBase( this );
@@ -51,7 +58,7 @@ public abstract class JSFunction extends JSFunctionBase {
     }
 
     protected final Scope _scope;
-    protected final JSObject _prototype;
+    protected JSObject _prototype;
 
     protected String _name = "NO NAME SET";
 }

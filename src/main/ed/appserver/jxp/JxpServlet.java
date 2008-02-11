@@ -50,8 +50,12 @@ public class JxpServlet {
             }
             else {
                 if ( ( ar.getContext() != null && ar.getContext().getGlobalHead().size() > 0 ) || 
-                     ( ar != null && ar.getHeadToPrint().size() > 0  ) )
-                    throw new RuntimeException( "have head to print but no </head>" );
+                     ( ar != null && ar.getHeadToPrint().size() > 0  ) ){
+		    // this is interesting
+		    // maybe i should do it only for html files
+		    // so i have to know that
+                    //throw new RuntimeException( "have head to print but no </head>" );
+		}
             }
         }
         catch ( RuntimeException re ){
@@ -161,7 +165,7 @@ public class JxpServlet {
          */
         boolean printTag( String tag , String s ){
 
-            if ( tag.equalsIgnoreCase( "/head" ) ){
+            if ( tag.equalsIgnoreCase( "/head" ) && ! _writer.hasSpot() ){
                 _writer.saveSpot();
                 return false;
             }
@@ -216,7 +220,8 @@ public class JxpServlet {
                 if ( val == null )
                     return false;
                 
-                s = s.toString().replaceAll( "value *= *['\"].+['\"]" , " " );
+		if ( s.toString().matches( "value *=" ) )
+		    return false;
 
                 _writer.print( s.substring( 0 , s.length() - 1 ) );
                 _writer.print( " value=\"" );
