@@ -157,14 +157,22 @@ public class AppServer implements HttpHandler {
     }
 
     private void _handle( HttpRequest request , HttpResponse response ){
-        final long startTime = System.currentTimeMillis();
         
         AppRequest ar = (AppRequest)request.getAttachment();
         if ( ar == null )
             ar = createRequest( request );
+
 	ar.setResponse( response );
 	ar.getContext().getScope().setTLPreferred( ar.getScope() );
-
+        try {
+            _handle( request , response , ar );
+        }
+        finally {
+            ar.getContext().getScope().setTLPreferred( null );
+        }
+    }
+    
+    private void _handle( HttpRequest request , HttpResponse response , AppRequest ar ){
 	JSString jsURI = new JSString( ar.getURI() );
 	
         JSFunction allowed = ar.getScope().getFunction( "allowed" );
