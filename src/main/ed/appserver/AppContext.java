@@ -254,6 +254,9 @@ public class AppContext {
     }
 
     private void _initScope(){
+        final Scope save = _scope.getTLPreferred();
+        _scope.setTLPreferred( null );
+        
         _inScopeInit = true;
         
         try {
@@ -277,6 +280,7 @@ public class AppContext {
         }
         finally {
             _inScopeInit = false;
+            _scope.setTLPreferred( save );
         }
         
     }
