@@ -213,6 +213,9 @@ public class Scope implements JSObject {
     }
     
     public void setTLPreferred( Scope s ){
+	if ( s == this )
+	    s = null;
+
         if ( s == null && _tlPreferred == null )
             return;
         
