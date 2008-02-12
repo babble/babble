@@ -301,6 +301,7 @@ public class AppServer implements HttpHandler {
             env.add( "REQUEST_METHOD=" + request.getMethod() );
             env.add( "SCRIPT_NAME=" + request.getURI() );
             env.add( "QUERY_STRING=" + request.getQueryString() );
+	    env.add( "SERVER_NAME=" + request.getHost() );
 
             String envarr[] = new String[env.size()];
             env.toArray( envarr );
