@@ -246,6 +246,11 @@ public class JSArray extends JSObjectBase implements Iterable {
         for ( Object o : obj )
             _array.add( o );
     }
+
+    public JSArray( JSArray a ){
+        super( _cons );
+        _array = a == null ? new ArrayList() : new ArrayList( a._array );
+    }
     
     public JSArray( List lst ){
         super( _cons );

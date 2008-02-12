@@ -39,3 +39,4 @@ b = [ 3 ];
 print( a.concat( b ) );
 print( a );
 print( b );
+print( a.concat( b ).length );
