@@ -22,7 +22,9 @@ public class Scope implements JSObject {
     }
 
     static class _NULL {
-        
+        public String toString(){
+            return "This is an internal thing for Scope.  It means something is null.  You should never seen this.";
+        }
     }
     static _NULL NULL = new _NULL();
     
