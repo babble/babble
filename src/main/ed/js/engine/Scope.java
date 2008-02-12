@@ -238,8 +238,9 @@ public class Scope implements JSObject {
 
     public JSFunction getFunction( String name ){
         Object o = get( name );
+        
         if ( o == null )
-            return null;
+            throw new NullPointerException( name );
         
         if ( ! ( o instanceof JSFunction ) )
             throw new RuntimeException( "not a function : " + name );
@@ -266,6 +267,9 @@ public class Scope implements JSObject {
 
     public JSFunction getFunctionAndSetThis( final Object obj , final String name ){
         
+        if ( obj == null )
+            throw new NullPointerException( "this should be impossible" );
+
         if ( DEBUG ) System.out.println( _id + " getFunctionAndSetThis.  name:" + name );
         
         if ( obj instanceof Number ){
@@ -551,7 +555,11 @@ public class Scope implements JSObject {
                         throw new RuntimeException( e );
                     }
                 }
-                throw new RuntimeException( "can't find a valid native method for : " + name + " which  is a : " + obj.getClass()  );
+                
+                if ( obj.getClass() == JSObjectBase.class )
+                    throw new NullPointerException( name );
+                
+                throw new NullPointerException( name + " (from a [" + obj.getClass() + "])" );
             }
         };
 
