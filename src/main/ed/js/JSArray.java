@@ -133,6 +133,9 @@ public class JSArray extends JSObjectBase implements Iterable {
                         JSArray a = (JSArray)(s.getThis());
                         JSFunction f = (JSFunction)fo;
                         
+			if ( f == null )
+			    throw new NullPointerException( "forEach needs a function" );
+			
                         for ( int i=0; i<a._array.size(); i++ )
                             f.call( s , a._array.get( i ) , i , a._array.size() );
                         
