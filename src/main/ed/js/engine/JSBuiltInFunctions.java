@@ -238,7 +238,8 @@ public class JSBuiltInFunctions {
             if ( o == null )
                 return null;
             
-            // TODO: security
+            if ( ! Security.isCoreJS() )
+                throw new JSException( "can't exec this" );
 
             File root = scope.getRoot();
             if ( root == null )
