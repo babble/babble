@@ -260,7 +260,7 @@ public class Scope implements JSObject {
         return this;
     }
 
-    public Scope setThis( JSObject o ){
+    public Scope setThis( Object o ){
         _this.push( new This( o ) );
         return this;
     }
