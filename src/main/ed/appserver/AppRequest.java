@@ -14,20 +14,15 @@ public class AppRequest {
     AppRequest( AppContext context , HttpRequest request , String uri ){
         _context = context;
         _request = request;
-        _scope = _context.scopeChild();
-        _scope.put( "request" , request , true );
-        _scope.put( "head" , _head , true );
-
-        _context.getScope().setTLPreferred( _scope );
 
         if ( uri == null )
             uri = _request.getURI();
-
+        
         _uri = uri.equals( "/" ) ? "/index" : uri;
     }
 
     void setResponse( HttpResponse response ){
-	_scope.put( "response" , response , true );
+	getScope().put( "response" , response , true );
     }
 
     public AppContext getContext(){
@@ -35,6 +30,15 @@ public class AppRequest {
     }
 
     public Scope getScope(){
+        
+        if ( _scope == null ){
+            _scope = _context.scopeChild();
+            _scope.put( "request" , _request , true );
+            _scope.put( "head" , _head , true );
+            
+            _context.getScope().setTLPreferred( _scope );
+        }
+        
         return _scope;
     }
 
@@ -84,14 +88,14 @@ public class AppRequest {
     }
     
     String getOverrideURI( String funcName ){
-        Object o = _scope.get( funcName );
+        Object o = getScope().get( funcName );
         if ( o == null )
             return null;
         
         if ( ! ( o instanceof JSFunction ) )
             return null;
         
-        Object res = ((JSFunction)o).call( _scope , new JSString( getURI() ) , _request );
+        Object res = ((JSFunction)o).call( getScope() , new JSString( getURI() ) , _request );
         if ( res == null )
             return null;
         return res.toString();
@@ -127,8 +131,9 @@ public class AppRequest {
     final String _uri;
     final HttpRequest _request;
     final AppContext _context;
-    final Scope _scope;
     final JSArray _head = new JSArray();
+
+    private Scope _scope;
     
     String _wantedURI = null;
 }
