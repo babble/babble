@@ -268,7 +268,7 @@ public class Scope implements JSObject {
     public JSFunction getFunctionAndSetThis( final Object obj , final String name ){
         
         if ( obj == null )
-            throw new NullPointerException( "this should be impossible" );
+            throw new NullPointerException( "try to get function [" + name + "] from a null object" );
 
         if ( DEBUG ) System.out.println( _id + " getFunctionAndSetThis.  name:" + name );
         
