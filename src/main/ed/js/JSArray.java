@@ -88,6 +88,8 @@ public class JSArray extends JSObjectBase implements Iterable {
                         if ( ! ( o instanceof JSArray ) )
                             throw new RuntimeException( "trying to concat a non-array");
                         
+                        a = new JSArray( a );
+
                         JSArray tempArray = (JSArray)o;
                         for ( Object temp : tempArray._array )
                             a.add( temp );
@@ -243,6 +245,11 @@ public class JSArray extends JSObjectBase implements Iterable {
         _array = new ArrayList( obj.length );
         for ( Object o : obj )
             _array.add( o );
+    }
+
+    public JSArray( JSArray a ){
+        super( _cons );
+        _array = a == null ? new ArrayList() : new ArrayList( a._array );
     }
     
     public JSArray( List lst ){

@@ -65,6 +65,47 @@ public class JSBuiltInFunctions {
         }        
     }
 
+    public static class javaStatic extends JSFunctionCalls2 {
+        public Object call( Scope scope , Object clazzNameJS , Object methodNameJS , Object extra[] ){
+            
+            
+            String clazzName = clazzNameJS.toString();
+            
+            if ( ! Security.isCoreJS() )
+                throw new JSException( "you can't use a :" + clazzName );
+            
+            Class clazz = null;
+            try {
+                clazz = Class.forName( clazzName );
+            }
+            catch ( Exception e ){
+                throw new JSException( "can't find class for [" + clazzName + "]" );
+            }
+            
+            Method[] all = clazz.getMethods();
+            for ( int i=0; i<all.length; i++ ){
+                
+                Method m = all[i];
+                if ( ( m.getModifiers() & Modifier.STATIC ) == 0  )
+                    continue;
+
+                Object params[] = Scope.doParamsMatch( m.getParameterTypes() , extra );
+                
+                if ( params != null ){
+                    try {
+                        return m.invoke( null , params );
+                    }
+                    catch ( Exception e ){
+                        throw new JSException( "can' call" , e );
+                    }
+                }
+                    
+            }
+
+            throw new RuntimeException( "can't find valid method" );
+        }        
+    }
+
     public static class print extends JSFunctionCalls1 {
         print(){
             this( true );
@@ -238,7 +279,8 @@ public class JSBuiltInFunctions {
             if ( o == null )
                 return null;
             
-            // TODO: security
+            if ( ! Security.isCoreJS() )
+                throw new JSException( "can't exec this" );
 
             File root = scope.getRoot();
             if ( root == null )
@@ -390,6 +432,13 @@ public class JSBuiltInFunctions {
         
         _myScope.put( "assert" , new jsassert() , true );
         _myScope.put( "javaCreate" , new javaCreate() , true );
+        _myScope.put( "javaStatic" , new javaStatic() , true );
+        
+        _myScope.put( "escape" , new JSFunctionCalls1(){
+                public Object call( Scope scope , Object o , Object extra[] ){
+                    return java.net.URLEncoder.encode( o.toString() ).replaceAll( "\\+" , "%20" );
+                }
+            } , true );
 
         JSON.init( _myScope );
     }

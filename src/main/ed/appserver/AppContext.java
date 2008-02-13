@@ -54,6 +54,9 @@ public class AppContext {
         _core = new JSFileLibrary( new File( "/data/corejs" ) ,  "core" , this );
         _scope.put( "core" , _core , true );
         
+        _scope.put( "external" , new JSFileLibrary( new File( "/data/external" ) ,  "external" , this ) , true );
+
+        
         _scope.put( "globalHead" , _globalHead , true  );
 
 	_scope.lock( "user" );
@@ -254,6 +257,9 @@ public class AppContext {
     }
 
     private void _initScope(){
+        final Scope save = _scope.getTLPreferred();
+        _scope.setTLPreferred( null );
+        
         _inScopeInit = true;
         
         try {
@@ -277,6 +283,7 @@ public class AppContext {
         }
         finally {
             _inScopeInit = false;
+            _scope.setTLPreferred( save );
         }
         
     }

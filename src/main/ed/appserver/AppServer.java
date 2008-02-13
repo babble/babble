@@ -157,19 +157,26 @@ public class AppServer implements HttpHandler {
     }
 
     private void _handle( HttpRequest request , HttpResponse response ){
-        final long startTime = System.currentTimeMillis();
         
         AppRequest ar = (AppRequest)request.getAttachment();
         if ( ar == null )
             ar = createRequest( request );
+
 	ar.setResponse( response );
 	ar.getContext().getScope().setTLPreferred( ar.getScope() );
-
+        try {
+            _handle( request , response , ar );
+        }
+        finally {
+            ar.getContext().getScope().setTLPreferred( null );
+        }
+    }
+    
+    private void _handle( HttpRequest request , HttpResponse response , AppRequest ar ){
 	JSString jsURI = new JSString( ar.getURI() );
 	
-        JSFunction allowed = ar.getScope().getFunction( "allowed" );
-        if ( allowed != null ){
-            Object foo = allowed.call( ar.getScope() , request , response , jsURI );
+        if ( ar.getScope().get( "allowed" ) != null ){
+            Object foo = ar.getScope().getFunction( "allowed" ).call( ar.getScope() , request , response , jsURI );
             if ( foo != null ){
                 if ( response.getResponseCode() == 200 ){
                     response.setResponseCode( 401 );
@@ -266,6 +273,9 @@ public class AppServer implements HttpHandler {
     }
     
     int getCacheTime( AppRequest ar , JSString jsURI , HttpRequest request , HttpResponse response ){
+        if ( ar.getScope().get( "staticCacheTime" ) == null )
+            return -1;
+
 	JSFunction f = ar.getScope().getFunction( "staticCacheTime" );
 	if ( f == null )
 	    return -1;
@@ -293,6 +303,7 @@ public class AppServer implements HttpHandler {
             env.add( "REQUEST_METHOD=" + request.getMethod() );
             env.add( "SCRIPT_NAME=" + request.getURI() );
             env.add( "QUERY_STRING=" + request.getQueryString() );
+	    env.add( "SERVER_NAME=" + request.getHost() );
 
             String envarr[] = new String[env.size()];
             env.toArray( envarr );

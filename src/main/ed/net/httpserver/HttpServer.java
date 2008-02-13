@@ -163,6 +163,9 @@ public class HttpServer extends NIOServer {
             boolean finishedHeader = end >= 0;
             
             if ( ! finishedHeader ){
+                if ( _in.position() > 16000 ){
+                    throw new RuntimeException( "don't have a header and buffer is already " + _in.position() + " bytes" );
+                }
                 registerForReads();
                 return false;
             }

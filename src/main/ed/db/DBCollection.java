@@ -27,7 +27,10 @@ public abstract class DBCollection extends JSObjectLame {
     // ------
 
     public void ensureIndex( JSObject keys ){
-        ensureIndex( keys , genIndexName( keys ) );
+        String name = genIndexName( keys );
+        if ( _createIndexes.contains( name ) && Math.random() < 0.999 )
+            return;
+        ensureIndex( keys , name );
     }
 
     public String genIndexName( JSObject keys ){
@@ -325,13 +328,15 @@ public abstract class DBCollection extends JSObjectLame {
     final JSFunction _update;
     final JSFunction _apply;
     final JSFunction _find;
-
+    
     final Set<String> _methods = new HashSet<String>();
 
     protected Map _entries = new TreeMap();
     final protected String _name;
-
+    
     protected JSFunction _constructor;
+
+    final private Set<String> _createIndexes = new HashSet<String>();
 
     private final static JSObjectBase _upsertOptions = new JSObjectBase();
     static {

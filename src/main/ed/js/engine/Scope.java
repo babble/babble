@@ -22,7 +22,9 @@ public class Scope implements JSObject {
     }
 
     static class _NULL {
-        
+        public String toString(){
+            return "This is an internal thing for Scope.  It means something is null.  You should never seen this.";
+        }
     }
     static _NULL NULL = new _NULL();
     
@@ -170,8 +172,12 @@ public class Scope implements JSObject {
         }
 
         Scope pref = getTLPreferred();
-        if ( pref != null && pref._objects.containsKey( name ) )
-            return pref._objects.get( name );
+        if ( pref != null && pref._objects.containsKey( name ) ){
+            Object temp = pref._objects.get( name );
+            if ( temp == NULL )
+                return null;
+            return temp;
+        }
         
         if ( _parent == null )
             return null;
@@ -209,6 +215,9 @@ public class Scope implements JSObject {
     }
     
     public void setTLPreferred( Scope s ){
+	if ( s == this )
+	    s = null;
+
         if ( s == null && _tlPreferred == null )
             return;
         
@@ -229,8 +238,9 @@ public class Scope implements JSObject {
 
     public JSFunction getFunction( String name ){
         Object o = get( name );
+        
         if ( o == null )
-            return null;
+            throw new NullPointerException( name );
         
         if ( ! ( o instanceof JSFunction ) )
             throw new RuntimeException( "not a function : " + name );
@@ -257,6 +267,9 @@ public class Scope implements JSObject {
 
     public JSFunction getFunctionAndSetThis( final Object obj , final String name ){
         
+        if ( obj == null )
+            throw new NullPointerException( "try to get function [" + name + "] from a null object" );
+
         if ( DEBUG ) System.out.println( _id + " getFunctionAndSetThis.  name:" + name );
         
         if ( obj instanceof Number ){
@@ -542,7 +555,11 @@ public class Scope implements JSObject {
                         throw new RuntimeException( e );
                     }
                 }
-                throw new RuntimeException( "can't find a valid native method for : " + name + " which  is a : " + obj.getClass()  );
+                
+                if ( obj.getClass() == JSObjectBase.class )
+                    throw new NullPointerException( name );
+                
+                throw new NullPointerException( name + " (from a [" + obj.getClass() + "])" );
             }
         };
 
