@@ -9,6 +9,7 @@ public class Security {
     final static String SECURE[] = new String[]{ 
         Convert.DEFAULT_PACKAGE + "._data_corejs_" , 
         Convert.DEFAULT_PACKAGE + "._data_sites_admin_" , 
+        Convert.DEFAULT_PACKAGE + "._data_sites_www_" , 
         Convert.DEFAULT_PACKAGE + ".lastline" 
     };
     
