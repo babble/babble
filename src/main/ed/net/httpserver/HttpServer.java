@@ -244,7 +244,13 @@ public class HttpServer extends NIOServer {
         
         public void handle( Task t ) throws IOException {
             t._handler.handle( t._request , t._response );
-            t._response.done();
+	    try {
+		t._response.done();
+	    }
+	    catch ( IOException ioe ){
+		if ( D ) ioe.printStackTrace();
+		t._response.cleanup();
+	    }
         }
         
         public void handleError( Task t , Exception e ){
@@ -253,7 +259,7 @@ public class HttpServer extends NIOServer {
                 t._response.done();
             }
             catch ( IOException ioe ){
-                ioe.printStackTrace();
+                if ( D ) ioe.printStackTrace();
             }
         }
 
