@@ -115,7 +115,7 @@ public class HttpServer extends NIOServer {
         protected boolean _gotData( ByteBuffer inBuf )
             throws IOException {
             
-	    if ( inBuf.capacity() > 1024 * 1024 * 500 )
+	    if ( inBuf != null && inBuf.capacity() > 1024 * 1024 * 500 )
 		throw new RuntimeException( "way too big" );
 
             if ( inBuf != null ){
