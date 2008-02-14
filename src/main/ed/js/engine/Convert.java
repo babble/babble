@@ -840,6 +840,9 @@ public class Convert {
                 state.addSymbol( foo );
                 _append( "Object " + foo + " = null;\n" , n );
             }
+            else {
+                _append( "scope.put( \"" + foo + "\" , null , true );\n" , n );
+            }
         }
 
         _addFunctionNodes( fn , state );
