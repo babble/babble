@@ -768,7 +768,7 @@ public class Convert {
         
         n = n.getNext().getNext();
 
-        _append( " else { " , n );
+        _append( " else if ( true ) { " , n );
         _add( n , state );
         _append( " } \n" , n );
         
