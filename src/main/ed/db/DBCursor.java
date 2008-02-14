@@ -46,14 +46,6 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
         return this;
     }
     
-    private int _tempLimitSkipWorkTogether(){
-        if ( _numWanted == 0 || _skip == 0 )
-            return _numWanted;
-        
-        System.err.println( "trying to use skip and limit together.  hacking for now" );
-        return _skip + _numWanted;
-    }
-
     // ----  internal stuff ------
     
     private void _check(){
@@ -68,8 +60,8 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
                     foo.set( "query" , _query );
                 foo.set( "orderby" , _orderBy );
             }
-            int numWantedToSend = _tempLimitSkipWorkTogether();
-            _it = _collection.find( foo , _keysWanted , numWantedToSend );
+
+            _it = _collection.find( foo , _keysWanted , _skip , _numWanted );
         }
 
         if ( _it == null )
@@ -93,14 +85,6 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
             _checkType( CursorType.ITERATOR );
 
         _check();
-        
-        
-        if ( _skip > 0 && ! _skipped ){ // TODO: this needs to move to the DB!!!!
-            System.err.println( "doing skip in the app server.  needs to movem to DB. when it does, need to remove this code (DBCursor._next)" );
-            _skipped = true;
-            for ( int i=0; i<_skip && _it.hasNext(); i++ )
-                _it.next();
-        }
         
         _cur = null;
         _cur = _it.next();
@@ -244,7 +228,6 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
     
     private JSObject _cur = null;
     private int _num = 0;
-    private boolean _skipped = false;
 
     private final List<JSObject> _all = new ArrayList<JSObject>();
     private final List<String> _nums = new ArrayList<String>();
