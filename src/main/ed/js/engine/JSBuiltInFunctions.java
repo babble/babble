@@ -88,6 +88,9 @@ public class JSBuiltInFunctions {
                 Method m = all[i];
                 if ( ( m.getModifiers() & Modifier.STATIC ) == 0  )
                     continue;
+                
+                if ( ! m.getName().equals( methodNameJS.toString() ) )
+                    continue;
 
                 Object params[] = Scope.doParamsMatch( m.getParameterTypes() , extra );
                 
