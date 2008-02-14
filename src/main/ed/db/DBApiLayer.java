@@ -154,8 +154,10 @@ public abstract class DBApiLayer extends DBBase {
 
             JSObject o = res.next();
             
-            if ( res.hasNext() )
-                throw new RuntimeException( "something is wrong" );
+            if ( res.hasNext() ){
+		System.out.println( "multiple entries with same _id" );
+                //throw new RuntimeException( "something is wrong" );
+	    }
             
             if ( _constructor != null && o instanceof JSObjectBase )
                 ((JSObjectBase)o).setConstructor( _constructor );
