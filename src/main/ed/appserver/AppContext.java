@@ -54,6 +54,9 @@ public class AppContext {
         _core = new JSFileLibrary( new File( "/data/corejs" ) ,  "core" , this );
         _scope.put( "core" , _core , true );
         
+        _scope.put( "external" , new JSFileLibrary( new File( "/data/external" ) ,  "external" , this ) , true );
+
+        
         _scope.put( "globalHead" , _globalHead , true  );
 
 	_scope.lock( "user" );

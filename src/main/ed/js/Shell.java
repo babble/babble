@@ -53,6 +53,7 @@ public class Shell {
             } , true );
 
         s.put( "core" , new JSFileLibrary( new File( "/data/corejs" ) ,  "core" , s ) , true );
+        s.put( "external" , new JSFileLibrary( new File( "/data/external" ) ,  "external" , s ) , true );
             
     }
     
