@@ -76,6 +76,10 @@ public class ByteBufferHolder {
         _buffers.add( ByteBuffer.allocateDirect( _bufSize ) );
     }
     
+    public int capacity(){
+	return _buffers.size() * _bufSize;
+    }
+
     public String toString(){
         StringBuilder buf = new StringBuilder();
         buf.append( "{ ByteBufferHolder pos:" + _pos + " " );

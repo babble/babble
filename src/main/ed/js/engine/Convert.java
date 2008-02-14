@@ -519,6 +519,9 @@ public class Convert {
             _add( n.getFirstChild().getNext() , state );
             _append( " ) " , n );
             break;
+        case Token.SWITCH:
+            _addSwitch( n , state );
+            break;
         default:
             Debug.printTree( n , 0 );
             throw new RuntimeException( "can't handle : " + n.getType() + ":" + Token.name( n.getType() ) + ":" + n.getClass().getName() + " line no : " + n.getLineno() );
@@ -526,6 +529,45 @@ public class Convert {
         
     }
     
+    private void _addSwitch( Node n , State state ){
+        _assertType( n , Token.SWITCH );
+
+        String ft = "ft" + (int)(Math.random() * 10000);
+        String val = "val" + (int)(Math.random() * 10000);
+        _append( "boolean " + ft + " = false;\n" , n );
+        _append( "do { \n " , n );
+        
+        Node caseArea = n.getFirstChild();
+        _append( "Object " + val + " = " , n );
+        _add( caseArea , state );
+        _append( " ; \n " , n );
+
+        n = n.getNext();
+        _assertType( n , Token.GOTO ); // this is default ?
+        n = n.getNext().getNext();
+        
+        caseArea = caseArea.getNext();
+        while ( caseArea != null ){
+            _append( "if ( " + ft + " || JS_eq( " + val + " , " , caseArea );
+            _add( caseArea.getFirstChild() , state );
+            _append( " ) ){\n " + ft + " = true; \n " , caseArea );
+            
+            _assertType( n , Token.BLOCK );
+            _add( n , state );
+            n = n.getNext().getNext();
+
+            _append( " } \n " , caseArea );
+            caseArea = caseArea.getNext();
+        }
+        
+        if ( n != null && n.getType() == Token.BLOCK ){
+            _add( n , state );
+        }
+
+        _append(" } while ( false );\n " , n );
+        //throw new RuntimeException( "switch not supported yet" );
+    }
+
     private void _createRef( Node n , State state ){
         
         if ( n.getType() == Token.NAME || n.getType() == Token.GETVAR ){
@@ -906,7 +948,8 @@ public class Convert {
         while ( child != null ){
             _add( child , state );
             
-            if ( child.getType() == Token.IFNE )
+            if ( child.getType() == Token.IFNE || 
+                 child.getType() == Token.SWITCH )
                 break;
             
             child = child.getNext();

@@ -32,7 +32,7 @@ public class ExportBinary {
             FileOutputStream fout = new FileOutputStream( f );
             FileChannel fc = fout.getChannel();
             
-            Iterator<JSObject> all = c.find( new JSObjectBase() , null , 0 );
+            Iterator<JSObject> all = c.find( new JSObjectBase() , null , 0 , 0 );
             if ( all == null )
                 continue;
 

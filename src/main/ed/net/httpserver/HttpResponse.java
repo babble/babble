@@ -430,8 +430,10 @@ public class HttpResponse {
         }
         
         public JxpWriter print( String s ){
-            if ( _done )
+            if ( _done ){
+                System.err.println( "bizarre already done tihng" );
                 throw new RuntimeException( "already done" );
+            }
             
             if ( _cur.position() + ( 3 * s.length() ) > _cur.capacity() ){
                 if ( _inSpot )
