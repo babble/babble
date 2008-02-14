@@ -20,7 +20,7 @@ public abstract class DBCollection extends JSObjectLame {
     public abstract int remove( JSObject id );
     
     public abstract JSObject find( ObjectId id );    
-    public abstract Iterator<JSObject> find( JSObject ref , JSObject fields , int numToReturn );
+    public abstract Iterator<JSObject> find( JSObject ref , JSObject fields , int numToSkip , int numToReturn );
 
     public abstract void ensureIndex( JSObject keys , String name );
 
@@ -41,7 +41,7 @@ public abstract class DBCollection extends JSObjectLame {
     }
 
     public Iterator<JSObject> find( JSObject ref ){
-        return find( ref , null , 0 );
+        return find( ref , null , 0 , 0 );
     }
 
     public ObjectId apply( Object o ){

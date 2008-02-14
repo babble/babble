@@ -76,7 +76,7 @@ public abstract class DBApiLayer extends DBBase {
         if ( namespaces == null )
             throw new RuntimeException( "this is impossible" );
 	
-	Iterator<JSObject> i = namespaces.find( new JSObjectBase() , null , 0 );
+	Iterator<JSObject> i = namespaces.find( new JSObjectBase() , null , 0 , 0 );
 	if ( i == null )
 	    return tables;
 
@@ -209,8 +209,7 @@ public abstract class DBApiLayer extends DBBase {
         }
 
         // TODO: remove synchronized
-        public synchronized Iterator<JSObject> find( JSObject ref , JSObject fields , int numToReturn ){
-	    int numToSkip = 0; // ERH FINISH ME NOW
+        public synchronized Iterator<JSObject> find( JSObject ref , JSObject fields , int numToSkip , int numToReturn ){
 
             ByteEncoder encoder = ByteEncoder.get();
             

@@ -32,7 +32,7 @@ public class Export {
             DBCollection c = db.getCollection( t );
             out.println( "var t = " + root + "." + t + ";" );
             
-            Iterator<JSObject> all = c.find( new JSObjectBase() , null , 0 );
+            Iterator<JSObject> all = c.find( new JSObjectBase() , null , 0 , 0 );
             if ( all == null )
                 continue;
 
