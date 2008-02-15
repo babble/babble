@@ -523,6 +523,24 @@ public class Convert {
         case Token.SWITCH:
             _addSwitch( n , state );
             break;
+
+        case Token.COMMA:
+            _append( "JS_comma( " , n );
+            boolean first = true;
+            Node inner = n.getFirstChild();
+            while ( inner != null ){
+                if ( first )
+                    first = false;
+                else
+                    _append( " , " , n );
+                _append( "\n ( " , n );
+                _add( inner , state ); 
+                _append( " )\n " , n );
+                inner = inner.getNext();
+            }
+            _append( " ) " , n );
+            break;
+            
         default:
             Debug.printTree( n , 0 );
             throw new RuntimeException( "can't handle : " + n.getType() + ":" + Token.name( n.getType() ) + ":" + n.getClass().getName() + " line no : " + n.getLineno() );

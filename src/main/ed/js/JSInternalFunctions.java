@@ -409,6 +409,12 @@ public class JSInternalFunctions extends JSObjectBase {
 	return _parseNumber( def );
     }
 
+    public static final Object JS_comma( Object ... o ){
+        if ( o == null || o.length == 0 )
+            return null;
+        return o[o.length-1];
+    }
+
     static final Object _parseNumber( final Object orig ){
         Object o = orig;
         if ( o == null )
