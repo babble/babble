@@ -33,6 +33,14 @@ public class AppContext {
         _scope = new Scope( "AppContext:" + root , Scope.GLOBAL , null , _rootFile );
         _scope.setGlobal( true );
         
+	final String appName = name;
+	_scope.put( "SYSOUT" , new JSFunctionCalls1(){
+		public Object call( Scope s , Object str , Object foo[] ){
+		    System.out.println( appName + " \t " + str );
+		    return true;
+		}
+	    } , true );
+
         _jxpObject = new JSFileLibrary( _rootFile , "jxp" , this );
         _scope.put( "jxp" , _jxpObject , true );
         
