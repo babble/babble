@@ -13,9 +13,6 @@ import static ed.js.JSInternalFunctions.*;
  * http://developer.mozilla.org/en/docs/Core_JavaScript_1.5_Reference:Global_Objects:Array#Iteration_methods
  * 
  * TODO: 
- * reduce
- * redeceRight
-
  * toSource
  * valueOf 
 
