@@ -178,6 +178,44 @@ public class JSArray extends JSObjectBase implements Iterable {
                     }
                 } );
 
+            _prototype.set( "reduce" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object fo , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        JSFunction f = (JSFunction)fo;
+                        
+                        Object val = null;
+                        if ( foo != null && foo.length > 0 )
+                            val = foo[0];
+                        
+                        Integer l = a._array.size();
+                        
+                        for ( int i=0; i<a._array.size(); i++ ){
+                            val = f.call( s , val , a._array.get(i) , i , l );
+                        }
+                        
+                        return val;
+                    }
+                } );
+
+            _prototype.set( "reduceRight" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object fo , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        JSFunction f = (JSFunction)fo;
+                        
+                        Object val = null;
+                        if ( foo != null && foo.length > 0 )
+                            val = foo[0];
+                        
+                        Integer l = a._array.size();
+                        
+                        for ( int i=a._array.size() -1 ; i >= 0; i-- ){
+                            val = f.call( s , val , a._array.get(i) , i , l );
+                        }
+                        
+                        return val;
+                    }
+                } );
+
 
             _prototype.set( "unique" , new JSFunctionCalls0() {
                     public Object call( Scope s , Object foo[] ){

@@ -82,3 +82,35 @@ print( [ 1 , 2 , 3, 4 , 5 , 6 ].slice( 1 ) );
 print( [ 1 , 2 , 3, 4 , 5 , 6 ].slice( 1 , 1 ) );
 print( [ 1 , 2 , 3, 4 , 5 , 6 ].slice( 1 , 3 ) );
 print( [ 1 , 2 , 3, 4 , 5 , 6 ].slice( 1 , -1 ) );
+
+/* uncomment when using spider monkey 1.8
+print( [ 1 , 2 , 3 , 4  , 5  ].reduce( function( a , b ){
+            if ( ! a )
+                a = 0;
+            return a + b;
+        } ) );
+
+print( [ 1 , 2 , 3 , 4  , 5  ].reduce( function( a , b ){
+            if ( ! a )
+                a = 0;
+            return a + b;
+        } , 2 ) );
+
+print( [ 1 , 2 , 3 , 4  , 5  ].reduce( function( a , b ){
+            return " " + a + " " + b;
+        }  ) );
+
+print( [ 1 , 2 , 3 , 4  , 5  ].reduceRight( function( a , b ){
+            return " " + a + " " + b;
+        }  ) );
+
+
+print( [ 1 , 2 , 3 , 4  , 5  ].reduce( function( a , b ){
+            return " " + a + " " + b;
+        } , "Z" ) );
+
+print( [ 1 , 2 , 3 , 4  , 5  ].reduceRight( function( a , b ){
+            return " " + a + " " + b;
+        } , "Z" ) );
+
+*/
