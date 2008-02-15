@@ -249,6 +249,7 @@ public abstract class DBCollection extends JSObjectLame {
     private void _findSubObject( Scope s , JSObject jo ){
 
         LinkedList<JSObject> toSearch = new LinkedList();
+        Map<JSObject,String> seen = new IdentityHashMap<JSObject,String>();
         toSearch.add( jo );
         
         while ( toSearch.size() > 0 ){
@@ -267,6 +268,9 @@ public abstract class DBCollection extends JSObjectLame {
                 }
                 
                 if ( e.get( "_ns" ) == null ){
+                    if ( seen.containsKey( e ) )
+                        throw new RuntimeException( "you have a loop" );
+                    seen.put( e , "a" );
                     toSearch.add( e );
                     continue;
                 }
