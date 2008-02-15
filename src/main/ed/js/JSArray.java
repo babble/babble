@@ -16,18 +16,10 @@ import static ed.js.JSInternalFunctions.*;
  * reduce
  * redeceRight
 
- * concat
- * indexOf (JS 1.6+)
- * join
- * lastIndexOf (JS 1.6+)
  * slice
  * toSource
  * valueOf 
- 
- * pop
- * reverse
- * shift
- * unshift 
+
  */
 public class JSArray extends JSObjectBase implements Iterable {
     
@@ -39,6 +31,48 @@ public class JSArray extends JSObjectBase implements Iterable {
         }
 
         protected void init(){
+
+            _prototype.set( "reverse" , new JSFunctionCalls0() {
+                    public Object call( Scope s , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        Collections.reverse( a._array );
+                        return a;
+                    }
+                } );
+
+            _prototype.set( "pop" , new JSFunctionCalls0() {
+                    public Object call( Scope s , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        return a._array.remove( a._array.size() - 1 );
+                    }
+                } );
+
+            _prototype.set( "shift" , new JSFunctionCalls0() {
+                    public Object call( Scope s , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        return a._array.remove( 0 );
+                    }
+                } );
+
+            _prototype.set( "join" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object strJS , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        String str = ",";
+                        if ( strJS != null )
+                            str = strJS.toString();
+                        
+                        StringBuilder buf = new StringBuilder();
+
+                        for ( int i=0; i<a._array.size(); i++ ){
+                            if ( i > 0 )
+                                buf.append( str );
+                            buf.append( a._array.get( i ).toString() );
+                        }
+                        
+                        return buf.toString();
+                    }
+                } );
+
             
             _prototype.set( "splice" , new JSFunctionCalls2() {
                     public Object call( Scope s , Object startObj , Object numObj , Object foo[] ){
@@ -73,6 +107,19 @@ public class JSArray extends JSObjectBase implements Iterable {
                         if ( a == null )
                             throw new RuntimeException( "this shouldn't be possible.  scope id = " + s._id );
                         a.add( o );
+                        return a.size();
+                    }
+                } );
+
+            _prototype.set( "unshift" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object o , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        if ( a == null )
+                            throw new RuntimeException( "this shouldn't be possible.  scope id = " + s._id );
+                        a._array.add( 0 , o );
+                        if ( foo != null )
+                            for ( int i=0; i<foo.length; i++ )
+                                a._array.add( 1 + i , foo[i] );
                         return a.size();
                     }
                 } );
@@ -201,6 +248,25 @@ public class JSArray extends JSObjectBase implements Iterable {
                             start = ((Number)foo[0]).intValue();
 
                         for ( int i=start; i<a._array.size(); i++ )
+                            if ( JSInternalFunctions.JS_sheq( test , a._array.get( i )  ) )
+                                return i;
+                        
+                        return -1;
+                    }
+                } );
+
+            _prototype.set( "lastIndexOf" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object test , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        
+                        int start = a._array.size() - 1 ;
+                        if ( foo != null && foo.length > 0 && foo[0] instanceof Number )
+                            start = ((Number)foo[0]).intValue();
+
+                        if ( start >= a._array.size() )
+                            start = a._array.size() - 1;
+
+                        for ( int i=start; i>=0; i-- )
                             if ( JSInternalFunctions.JS_sheq( test , a._array.get( i )  ) )
                                 return i;
                         

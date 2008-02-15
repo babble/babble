@@ -40,3 +40,32 @@ print( a.concat( b ) );
 print( a );
 print( b );
 print( a.concat( b ).length );
+
+
+
+print( [ 6 , 3 , 2 , 3 , 3 ].lastIndexOf( 3 ) );
+print( [ 6 , 3 , 2 , 3 , 3 ].lastIndexOf( 3 , 2 ) );
+print( [ 6 , 3 , 2 , 3 , 3 , 1 ].lastIndexOf( 3 , 10 ) );
+
+print( [ 6 , 3 , 2 , 3 , 3 ].join() );
+print( [ 6 , 3 , 2 , 3 , 3 ].join( "-") );
+
+a = [ 1 , 2 , 3 ];
+print( a.reverse() );
+print( a );
+
+print( a.pop() );
+print( a );
+
+a = [];
+print( a.unshift( 5 ) );
+print( a.unshift( 7 ) );
+print( a );
+print( a.shift() );
+print( a );
+print( a.shift() );
+print( a );
+
+a.unshift( 1 );
+print( a.unshift( 7 , 2 , 3) );
+print( a );
