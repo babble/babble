@@ -174,6 +174,10 @@ public class JSInternalFunctions extends JSObjectBase {
         return new JSString( s1 + s2 );
     }
 
+    public static Boolean JS_shne( Object a , Object b ){
+        return ! JS_sheq( a , b );
+    }
+
     public static Boolean JS_sheq( Object a , Object b ){
         if ( a == b )
             return true;
