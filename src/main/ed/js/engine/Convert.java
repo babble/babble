@@ -844,6 +844,8 @@ public class Convert {
     
     private void _addFunction( Node n , State state ){
         if ( ! ( n instanceof FunctionNode ) ){
+            if ( n.getString() != null && n.getString().length() != 0 )
+                return;
             _append( getFunc( n , state ) , n );
             return;
         }
