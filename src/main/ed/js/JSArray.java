@@ -16,7 +16,6 @@ import static ed.js.JSInternalFunctions.*;
  * reduce
  * redeceRight
 
- * slice
  * toSource
  * valueOf 
 
@@ -81,11 +80,33 @@ public class JSArray extends JSObjectBase implements Iterable {
                         JSArray n = new JSArray();
 
                         int start = ((Number)startObj).intValue();
-                        int num = numObj == null ? 0 : ((Number)numObj).intValue();
+                        int num = numObj == null ? Integer.MAX_VALUE : ((Number)numObj).intValue();
                         
-                        for ( int i=start; i<a._array.size() && ( num == 0 || i < start + num ); i++ ){
-                            n.add( a._array.get( i ) );
-                        }
+                        for ( int i=0; i<num && start < a._array.size(); i++ )
+                            n._array.add( a._array.remove( start ) );
+
+                        if ( foo != null )
+                            for ( int i=0; i<foo.length; i++ )
+                                a._array.add( i + start , foo[i] );
+
+                        return n;
+                    }
+                } );
+
+            _prototype.set( "slice" , new JSFunctionCalls2() {
+                    public Object call( Scope s , Object startObj , Object numObj , Object foo[] ){
+                        
+                        JSArray a = (JSArray)(s.getThis());
+                        JSArray n = new JSArray();
+
+                        int start = ((Number)startObj).intValue();
+                        int end = numObj == null ? Integer.MAX_VALUE : ((Number)numObj).intValue();
+                        if ( end < 0 )
+                            end = a._array.size() + end;
+                        
+                        for ( int i=start; i<end && i < a._array.size(); i++ )
+                            n._array.add( a._array.get( i ) );
+
                         return n;
                     }
                 } );

@@ -30,8 +30,16 @@ print( [ 1 , 2 , 3 , 4 , 5 ].splice( 2 ) );
 print( [ 1 , 2 , 3 , 4 , 5 ].splice( 2 , 1 ) );
 print( [ 1 , 2 , 3 , 4 , 5 ].splice( 2 , 1 , "a" ) );
 
+a = [ 1 , 2 , 3 , 4 , 5 ];
+print( a.splice( 2 ) );
+print( a );
+print( [ 1 , 2 , 3 , 4 , 5 ].splice( 2 , 1 ) );
+print( [ 1 , 2 , 3 , 4 , 5 ].splice( 2 , 1 , "a" ) );
 
 
+a = [ 1 , 2 , 3 , 4 , 5 ];
+print( a.splice( 2 , 2 , "a" , "b" ) );
+print( a );
 
 a = [ 1 , 2 ];
 print( a );
@@ -69,3 +77,8 @@ print( a );
 a.unshift( 1 );
 print( a.unshift( 7 , 2 , 3) );
 print( a );
+
+print( [ 1 , 2 , 3, 4 , 5 , 6 ].slice( 1 ) );
+print( [ 1 , 2 , 3, 4 , 5 , 6 ].slice( 1 , 1 ) );
+print( [ 1 , 2 , 3, 4 , 5 , 6 ].slice( 1 , 3 ) );
+print( [ 1 , 2 , 3, 4 , 5 , 6 ].slice( 1 , -1 ) );
