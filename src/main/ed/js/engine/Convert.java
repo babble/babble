@@ -769,7 +769,7 @@ public class Convert {
         
         n = n.getNext().getNext();
 
-        _append( " else { " , n );
+        _append( " else if ( true ) { " , n );
         _add( n , state );
         _append( " } \n" , n );
         
@@ -882,6 +882,9 @@ public class Convert {
             if ( state.useLocalVariable( foo ) ){
                 state.addSymbol( foo );
                 _append( "Object " + foo + " = null;\n" , n );
+            }
+            else {
+                _append( "scope.put( \"" + foo + "\" , null , true );\n" , n );
             }
         }
 

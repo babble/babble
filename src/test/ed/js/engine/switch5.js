@@ -9,7 +9,7 @@ default: print( "d" );
 }
 
 
-function foo( z ){
+function foo1( z ){
     a = 5;
     switch( z ){
     case 1 : print( "a" ); break;
@@ -21,13 +21,13 @@ function foo( z ){
     }
 }
 
-foo( 0 );
-foo( 1 );
-foo( 2 );
-foo( 3 );
-foo( 4 );
-foo( 6 );
-foo( 5 );
+foo1( 0 );
+foo1( 1 );
+foo1( 2 );
+foo1( 3 );
+foo1( 4 );
+foo1( 6 );
+foo1( 5 );
 
 
 function foo( z ){

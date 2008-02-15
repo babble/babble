@@ -51,15 +51,16 @@ public abstract class JxpSource {
             try {
                 Generator g = Generator.genJavaScript( getBlocks() );
                 _jsCodeToLines = g._jsCodeToLines;
-                String jsCode = g.toString();
+                _jsCode = g.toString();
                 if ( ! getName().endsWith( ".js" ) )
-                    jsCode += "\n print( \"\\n\" );";
+                    _jsCode += "\n print( \"\\n\" );";
                 
+
                 temp = new File( _tmpDir , getName().replaceAll( "[^\\w]" , "_" ) + ".js" );
                 _lastFileName = temp.getName();
 
                 FileOutputStream fout = new FileOutputStream( temp );
-                fout.write( jsCode.getBytes() );
+                fout.write( _jsCode.getBytes() );
                 fout.close();
                 
                 try {
@@ -100,10 +101,10 @@ public abstract class JxpSource {
     }
 
     public void fix( Throwable t ){
-        
+
         if ( _convert != null )
             _convert.fixStack( t );
-        
+
         if ( _jsCodeToLines != null ){
             
             StackTraceElement stack[] = t.getStackTrace();
@@ -147,9 +148,9 @@ public abstract class JxpSource {
         List<Block> blocks = _jsCodeToLines.get( line );
         
         if ( blocks == null || blocks.size() == 0 )
-            return line;
+            return -1;
         
-        int thisBlockStart = line - 1;
+        int thisBlockStart = line;
         while ( thisBlockStart >= 0 ){
             List<Block> temp = _jsCodeToLines.get( thisBlockStart );
             if ( temp == null || temp.size() == 0 )
@@ -159,7 +160,7 @@ public abstract class JxpSource {
             thisBlockStart--;
         }
         thisBlockStart++;
-        
+
         return blocks.get( 0 )._lineno + ( line - thisBlockStart );
     }
     
@@ -169,6 +170,7 @@ public abstract class JxpSource {
     private JSFunction _func;
     private JxpServlet _servlet;
     private Convert _convert;
+    String _jsCode = null;
 
     Map<Integer,List<Block>> _jsCodeToLines = new TreeMap<Integer,List<Block>>();
     String _lastFileName;

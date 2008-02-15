@@ -135,8 +135,14 @@ public class HttpResponse {
         }
         
         if ( _file != null ){
-            if ( _fileChannel == null )
-                _fileChannel = (new FileInputStream(_file)).getChannel();
+            if ( _fileChannel == null ){
+		try {
+		    _fileChannel = (new FileInputStream(_file)).getChannel();
+		}
+		catch( IOException ioe ){
+		    throw new RuntimeException( "can't get file : " + _file , ioe );
+		}
+	    }
             
             try {
                 _fileSent += _fileChannel.transferTo( _fileSent , Long.MAX_VALUE , _handler.getChannel() );

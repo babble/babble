@@ -115,13 +115,13 @@ public class HttpServer extends NIOServer {
         protected boolean _gotData( ByteBuffer inBuf )
             throws IOException {
             
-	    if ( inBuf != null && inBuf.capacity() > 1024 * 1024 * 500 )
-		throw new RuntimeException( "way too big" );
-
             if ( inBuf != null ){
-                if ( inBuf.remaining() > _in.remaining() ){
+
+		if ( inBuf.capacity() > 1024 * 1024 * 500 )
+		    throw new RuntimeException( "way too big" );
+
+                if ( inBuf.remaining() > _in.remaining() )
                     throw new RuntimeException( "problem" );
-                }
                 
                 _in.put( inBuf );
             }
@@ -220,7 +220,7 @@ public class HttpServer extends NIOServer {
         }
 
         final HttpServer _server;
-        ByteBufferHolder _in = new ByteBufferHolder();
+        ByteBufferHolder _in = new ByteBufferHolder( 1024 * 1024 * 200 ); // 200 mb
         int _endOfHeader = 0;
         boolean _done = false;
         HttpRequest _lastRequest;
@@ -244,7 +244,13 @@ public class HttpServer extends NIOServer {
         
         public void handle( Task t ) throws IOException {
             t._handler.handle( t._request , t._response );
-            t._response.done();
+	    try {
+		t._response.done();
+	    }
+	    catch ( IOException ioe ){
+		if ( D ) ioe.printStackTrace();
+		t._response.cleanup();
+	    }
         }
         
         public void handleError( Task t , Exception e ){
@@ -253,7 +259,7 @@ public class HttpServer extends NIOServer {
                 t._response.done();
             }
             catch ( IOException ioe ){
-                ioe.printStackTrace();
+                if ( D ) ioe.printStackTrace();
             }
         }
 

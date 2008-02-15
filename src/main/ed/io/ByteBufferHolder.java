@@ -9,7 +9,11 @@ import java.nio.channels.*;
 public class ByteBufferHolder {
 
     public ByteBufferHolder(){
+	this( 1024 * 1024 * 1024 ); // 1gb
+    }
 
+    public ByteBufferHolder( int max ){
+	_max = max;
     }
     
     public byte get( int i ){
@@ -73,6 +77,8 @@ public class ByteBufferHolder {
     }
 
     private void _addBucket(){
+	if ( capacity() + _bufSize > _max )
+	    throw new RuntimeException( "too big" );
         _buffers.add( ByteBuffer.allocateDirect( _bufSize ) );
     }
     
@@ -90,6 +96,7 @@ public class ByteBufferHolder {
 
     List<ByteBuffer> _buffers = new ArrayList<ByteBuffer>();
     int _pos = 0;
+    final int _max;
 
-    final int _bufSize = 4096;
+    static final int _bufSize = 4096;
 }

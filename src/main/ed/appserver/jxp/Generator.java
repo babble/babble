@@ -11,6 +11,8 @@ import ed.util.*;
 import ed.appserver.jxp.Block.Type.*;
 
 public class Generator {
+    
+    static boolean DEBUG = false;
 
     static Generator genJavaScript( List<Block> blocks ){
         Generator g = new Generator();
@@ -77,28 +79,35 @@ public class Generator {
     }
 
     final void _append( String s , Block b ){
+        if ( s.matches( ".*\n *$" ) ){
+            s = s.trim() + "\n";
+        }
         _secretBuf.append( s );
-
+        
         int numLines = 0;
-        for ( int i=0; i<s.length(); i++ )
+        for ( int i=0; i< ( s.length() - 1 ); i++ )
             if ( s.charAt( i ) == '\n' )
                 numLines++;
-
+        
+        if ( DEBUG ) System.out.println( "numLines : " + numLines );
 
         final int start = _currentLineNumber;
         final int end = _currentLineNumber + numLines;
         
-        for ( int i=start; i<end; i++ ){
+        for ( int i=start; i<=end; i++ ){
             List<Block> l = _jsCodeToLines.get( i );
             if ( l == null ){
                 l = new ArrayList<Block>();
                 _jsCodeToLines.put( i , l );
             }
             l.add( b );
+            if ( DEBUG ) System.out.println( "\t" + i + "\t" + b + " || " + s );
+            
         }
-
-
+        
         _currentLineNumber = end;
+        if ( s.endsWith( "\n" ) )
+            _currentLineNumber++;
 
     }
 
