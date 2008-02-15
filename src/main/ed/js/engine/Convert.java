@@ -258,7 +258,7 @@ public class Convert {
             _add( n.getFirstChild().getNext().getNext() , state );
             _append( " ); " , n );
             break;
-
+            
         case Token.GETPROPNOWARN:
         case Token.GETPROP:
         case Token.GETELEM:
@@ -268,7 +268,31 @@ public class Convert {
             _add( n.getFirstChild().getNext() , state );
             _append( " )" , n );
             break;
+            
+        case Token.SET_REF:
+            _assertType( n.getFirstChild() , Token.REF_SPECIAL );
+            _assertType( n.getFirstChild().getFirstChild() , Token.NAME );
+            
+            _append( "((JSObject)" , n );
+            _add( n.getFirstChild().getFirstChild() , state );
+            _append( ").set( \"" , n );
+            _append( n.getFirstChild().getProp( Node.NAME_PROP ).toString() , n );
+            _append( "\" , " , n );
+            _add( n.getFirstChild().getNext() , state );
+            _append( " )" , n );
+            break;
 
+        case Token.GET_REF:
+            _assertType( n.getFirstChild() , Token.REF_SPECIAL );
+            _assertType( n.getFirstChild().getFirstChild() , Token.NAME );
+            
+            _append( "((JSObject)" , n );
+            _add( n.getFirstChild().getFirstChild() , state );
+            _append( ").get( \"" , n );
+            _append( n.getFirstChild().getProp( Node.NAME_PROP ).toString() , n );
+            _append( "\" )" , n );
+            break;
+            
         case Token.EXPR_RESULT:
             _assertOne( n );
             _add( n.getFirstChild() , state );
