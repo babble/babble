@@ -12,10 +12,6 @@ import static ed.js.JSInternalFunctions.*;
 /**
  * http://developer.mozilla.org/en/docs/Core_JavaScript_1.5_Reference:Global_Objects:Array#Iteration_methods
  * 
- * TODO: 
- * toSource
- * valueOf 
-
  */
 public class JSArray extends JSObjectBase implements Iterable {
     
@@ -27,6 +23,18 @@ public class JSArray extends JSObjectBase implements Iterable {
         }
 
         protected void init(){
+
+            _prototype.set( "toSource" , new JSFunctionCalls0() {
+                    public Object call( Scope s , Object foo[] ){
+                        return new JSString( JSON.serialize( s.getThis() ) );
+                    }
+                } );
+
+            _prototype.set( "valueOf" , new JSFunctionCalls0() {
+                    public Object call( Scope s , Object foo[] ){
+                        return s.getThis();
+                    }
+                } );
 
             _prototype.set( "reverse" , new JSFunctionCalls0() {
                     public Object call( Scope s , Object foo[] ){

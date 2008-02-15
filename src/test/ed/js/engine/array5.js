@@ -83,6 +83,12 @@ print( [ 1 , 2 , 3, 4 , 5 , 6 ].slice( 1 , 1 ) );
 print( [ 1 , 2 , 3, 4 , 5 , 6 ].slice( 1 , 3 ) );
 print( [ 1 , 2 , 3, 4 , 5 , 6 ].slice( 1 , -1 ) );
 
+print( [ 1 , 2 ].toSource().replace( /\s+/g , "" ) );
+
+print( [ 1 , 2 ].valueOf().length );
+a = [ 1 , 2 ];
+print( a === a.valueOf() );
+
 /* uncomment when using spider monkey 1.8
 print( [ 1 , 2 , 3 , 4  , 5  ].reduce( function( a , b ){
             if ( ! a )
