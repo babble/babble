@@ -38,17 +38,21 @@ public class JSObjectBase implements JSObject {
             v = new ObjectId( v.toString() );
         }
             
-
+        
         if ( n instanceof String ){
+            String name = (String)n;
+            
             if ( _map == null ){
                 _map = new TreeMap<String,Object>();
                 _keys = new ArrayList<String>();
             }
             
-            if ( ! _map.containsKey( n ) )
-                _keys.add( (String)n );
             
-            _map.put( (String)n , v );
+            if ( ! ( name.equals( "__proto__" ) || name.equals( "__parent__" ) ) )
+                if ( ! _map.containsKey( n ) )
+                    _keys.add( name );
+            
+            _map.put( name , v );
             return v;
         }
         

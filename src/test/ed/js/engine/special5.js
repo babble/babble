@@ -20,4 +20,7 @@ g.__proto__ = b.prototype;
 print( g.__proto__.z );
 
 
+for ( n in g )
+    print( n );
+
 
