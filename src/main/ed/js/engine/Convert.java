@@ -284,7 +284,6 @@ public class Convert {
 
         case Token.GET_REF:
             _assertType( n.getFirstChild() , Token.REF_SPECIAL );
-            _assertType( n.getFirstChild().getFirstChild() , Token.NAME );
             
             _append( "((JSObject)" , n );
             _add( n.getFirstChild().getFirstChild() , state );
