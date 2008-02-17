@@ -210,8 +210,7 @@ public abstract class DBApiLayer extends DBBase {
             return -1;
         }
 
-        // TODO: remove synchronized
-        public synchronized Iterator<JSObject> find( JSObject ref , JSObject fields , int numToSkip , int numToReturn ){
+        public Iterator<JSObject> find( JSObject ref , JSObject fields , int numToSkip , int numToReturn ){
 
             ByteEncoder encoder = ByteEncoder.get();
             
