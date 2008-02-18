@@ -38,3 +38,22 @@ for ( var i=0; i<=25; i++ ){
     print( (i/5).toFixed(2) );
     print( (i/5).toFixed(3) );
 }
+
+
+print( "----" );
+
+var a = 4;
+var b = 5;
+a += 5, b = a;
+print(a);
+print(b);
+
+var a = 4;
+var b = 5;
+print( ( b = a + b , a = b ) );
+print(a);
+print(b);
+
+print( "---" );
+
+

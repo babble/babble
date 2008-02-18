@@ -256,9 +256,9 @@ public class Convert {
             _add( n.getFirstChild().getNext() , state );
             _append( " , " , n );
             _add( n.getFirstChild().getNext().getNext() , state );
-            _append( " ); " , n );
+            _append( " ) " , n );
             break;
-
+            
         case Token.GETPROPNOWARN:
         case Token.GETPROP:
         case Token.GETELEM:
@@ -268,7 +268,30 @@ public class Convert {
             _add( n.getFirstChild().getNext() , state );
             _append( " )" , n );
             break;
+            
+        case Token.SET_REF:
+            _assertType( n.getFirstChild() , Token.REF_SPECIAL );
+            _assertType( n.getFirstChild().getFirstChild() , Token.NAME );
+            
+            _append( "((JSObject)" , n );
+            _add( n.getFirstChild().getFirstChild() , state );
+            _append( ").set( \"" , n );
+            _append( n.getFirstChild().getProp( Node.NAME_PROP ).toString() , n );
+            _append( "\" , " , n );
+            _add( n.getFirstChild().getNext() , state );
+            _append( " )" , n );
+            break;
 
+        case Token.GET_REF:
+            _assertType( n.getFirstChild() , Token.REF_SPECIAL );
+            
+            _append( "((JSObject)" , n );
+            _add( n.getFirstChild().getFirstChild() , state );
+            _append( ").get( \"" , n );
+            _append( n.getFirstChild().getProp( Node.NAME_PROP ).toString() , n );
+            _append( "\" )" , n );
+            break;
+            
         case Token.EXPR_RESULT:
             _assertOne( n );
             _add( n.getFirstChild() , state );
@@ -391,6 +414,7 @@ public class Convert {
         case Token.SUB:
         case Token.EQ:
         case Token.SHEQ:
+        case Token.SHNE:
         case Token.GE:
         case Token.LE:
         case Token.LT:
@@ -499,7 +523,7 @@ public class Convert {
             break;
             
         case Token.THROW:
-            _append( "throw new JSException( " , n );
+            _append( "if ( true ) throw new JSException( " , n );
             _add( n.getFirstChild() , state );
             _append( " ); " , n );
             break;
@@ -522,6 +546,24 @@ public class Convert {
         case Token.SWITCH:
             _addSwitch( n , state );
             break;
+
+        case Token.COMMA:
+            _append( "JS_comma( " , n );
+            boolean first = true;
+            Node inner = n.getFirstChild();
+            while ( inner != null ){
+                if ( first )
+                    first = false;
+                else
+                    _append( " , " , n );
+                _append( "\n ( " , n );
+                _add( inner , state ); 
+                _append( " )\n " , n );
+                inner = inner.getNext();
+            }
+            _append( " ) " , n );
+            break;
+            
         default:
             Debug.printTree( n , 0 );
             throw new RuntimeException( "can't handle : " + n.getType() + ":" + Token.name( n.getType() ) + ":" + n.getClass().getName() + " line no : " + n.getLineno() );
@@ -802,6 +844,8 @@ public class Convert {
     
     private void _addFunction( Node n , State state ){
         if ( ! ( n instanceof FunctionNode ) ){
+            if ( n.getString() != null && n.getString().length() != 0 )
+                return;
             _append( getFunc( n , state ) , n );
             return;
         }
@@ -1324,6 +1368,7 @@ public class Convert {
         _2ThingThings.put( Token.DIV , "div" );
         
         _2ThingThings.put( Token.SHEQ , "sheq" );
+        _2ThingThings.put( Token.SHNE , "shne" );
         _2ThingThings.put( Token.EQ , "eq" );
         _2ThingThings.put( Token.NE , "eq" );
         

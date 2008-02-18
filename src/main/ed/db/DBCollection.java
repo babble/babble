@@ -249,6 +249,7 @@ public abstract class DBCollection extends JSObjectLame {
     private void _findSubObject( Scope s , JSObject jo ){
 
         LinkedList<JSObject> toSearch = new LinkedList();
+        Map<JSObject,String> seen = new IdentityHashMap<JSObject,String>();
         toSearch.add( jo );
         
         while ( toSearch.size() > 0 ){
@@ -261,12 +262,18 @@ public abstract class DBCollection extends JSObjectLame {
                 if ( ! ( foo instanceof JSObject ) )
                     continue;
                 
+                if ( foo instanceof JSFunction )
+                    continue;
+                
                 JSObject e = (JSObject)foo;
                 if ( e instanceof JSFileChunk ){
                     _base.getCollection( "_chunks" ).apply( e );
                 }
                 
                 if ( e.get( "_ns" ) == null ){
+                    if ( seen.containsKey( e ) )
+                        throw new RuntimeException( "you have a loop. key : " + name + " from a " + n.getClass()  + " whis is a : " + e.getClass() );
+                    seen.put( e , "a" );
                     toSearch.add( e );
                     continue;
                 }

@@ -37,3 +37,25 @@ function bar3( a ){
 
 bar3( 4 );
 bar3( 1 );
+
+
+function f(){
+    
+    function g(){
+        print("Hi");
+    };
+
+    g();
+};
+
+
+f();
+
+try {
+    g();
+    print( "y" );
+}
+catch( e ){
+    print( "n" );
+}
+
