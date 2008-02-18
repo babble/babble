@@ -160,6 +160,8 @@ public class AppServer implements HttpHandler {
     }
 
     private void _handle( HttpRequest request , HttpResponse response ){
+
+        final long start = System.currentTimeMillis();
         
         AppRequest ar = (AppRequest)request.getAttachment();
         if ( ar == null )
@@ -171,6 +173,10 @@ public class AppServer implements HttpHandler {
             _handle( request , response , ar );
         }
         finally {
+            final long t = System.currentTimeMillis() - start;
+            if ( t > 200 )
+                ar.getContext()._logger.getChild( "slow" ).info( request.getURL() + " " + t + "ms" );
+
             ar.getContext().getScope().setTLPreferred( null );
         }
     }
@@ -254,10 +260,6 @@ public class AppServer implements HttpHandler {
             handleError( request , response , e , ar.getContext() );
             return;
         }
-        finally {
-            final long endTime = System.currentTimeMillis();
-        }
-        
     }
 
     void handleError( HttpRequest request , HttpResponse response , Throwable t , AppContext ctxt ){
