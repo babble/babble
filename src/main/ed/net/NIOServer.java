@@ -45,7 +45,7 @@ public abstract class NIOServer extends Thread {
                 _selector.select( 10 );
             }
             catch ( IOException ioe ){
-                ioe.printStackTrace();
+                ed.log.Logger.getLogger( "nio" ).error( "couldn't select on port : " + _port , ioe );
                 continue;
             }
             
@@ -118,13 +118,11 @@ public abstract class NIOServer extends Thread {
                     }
                 }
                 catch ( Exception e ){
-                    //e.printStackTrace();
                     if ( sc != null ){
                         try {
                             sc.close();
                         }
                         catch ( Exception ee ){
-                            //ee.printStackTrace();
                         }
                     }
                     

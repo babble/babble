@@ -15,11 +15,14 @@ import ed.js.func.*;
 import ed.js.engine.*;
 import ed.io.*;
 import ed.net.*;
+import ed.log.*;
+
 
 public class DNSServer extends Thread {
     
     static boolean D = Boolean.getBoolean( "DEBUG.DNS" );
-    
+    static Logger LOGGER = Logger.getLogger( "dnsserver" );
+
     public DNSServer( int port )
         throws IOException {
 
@@ -139,12 +142,12 @@ public class DNSServer extends Thread {
                         dc.send( out , remote );
                     }
                     catch ( Exception e ){
-                        e.printStackTrace();
+                        LOGGER.error( "error handling request" , e );
                     }
                 }
             }
             catch ( Exception e ){
-                e.printStackTrace();
+                LOGGER.error( "error in inf. loop" , e );
             }
             finally {
                 if ( dc != null ){
@@ -152,8 +155,9 @@ public class DNSServer extends Thread {
                         dc.close();
                     }
                     catch ( IOException ioe ){
-                        ioe.printStackTrace();
+                        // couldn'e close - don't think we care
                     }
+                    dc = null;
                 }
             }
         }

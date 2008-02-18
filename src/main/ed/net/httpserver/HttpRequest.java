@@ -428,7 +428,7 @@ public class HttpRequest extends JSObjectLame {
     final String _queryString;
     final boolean _http11;
 
-    private Object _attachment;
+    Object _attachment;
 
     private boolean _rangeChecked = false;
     private long[] _range;

@@ -122,9 +122,17 @@ public class Logger extends JSFunctionCalls2 {
         Logger l = this;
         while ( l != null ){
 
-            if ( l._appenders != null )
-                for ( int i=0; i < l._appenders.size(); i++ )
-                    l._appenders.get(i).append( _fullName , date , level , msg , throwable , thread );
+            if ( l._appenders != null ){
+                for ( int i=0; i < l._appenders.size(); i++ ){
+                    try {
+                        l._appenders.get(i).append( _fullName , date , level , msg , throwable , thread );
+                    }
+                    catch ( Throwable t ){
+                        System.err.println( "error running appender" );
+                        t.printStackTrace(); // Logger
+                    }
+                }
+            }
             
             l = l._parent;
         }

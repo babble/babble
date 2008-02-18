@@ -60,6 +60,7 @@ public abstract class DBCollection extends JSObjectLame {
     }
 
     public void setConstructor( JSFunction cons ){
+        System.out.println( "Setting constructor for : " + _name );
         _constructor = cons;
     }
 
