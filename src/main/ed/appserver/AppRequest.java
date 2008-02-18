@@ -8,6 +8,7 @@ import java.util.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.net.httpserver.*;
+import ed.log.*;
 
 public class AppRequest {
     
@@ -126,6 +127,10 @@ public class AppRequest {
     public JSArray getHeadToPrint(){
         _head.lock();
         return _head;
+    }
+
+    public Logger getLogger(){
+        return _context._logger;
     }
 
     final String _uri;
