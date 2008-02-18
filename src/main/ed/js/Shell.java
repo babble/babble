@@ -35,6 +35,10 @@ public class Shell {
 
     public static void addNiceShellStuff( Scope s ){
 
+        ed.db.migrate.Drivers.init( s );
+
+        s.put( "core" , new JSFileLibrary( new File( "/data/corejs" ) ,  "core" , s ) , true );
+        s.put( "external" , new JSFileLibrary( new File( "/data/external" ) ,  "external" , s ) , true );
 
         s.put( "connect" , new JSFunctionCalls2(){
                 public Object call( Scope s , Object name , Object ip , Object crap[] ){
@@ -43,18 +47,21 @@ public class Shell {
                 
                 Map<String,DBJni> _dbs = new HashMap<String,DBJni>();
             } , true  );
-
-        ed.db.migrate.Drivers.init( s );
         
         s.put( "openFile" , new JSFunctionCalls1(){
                 public Object call( Scope s , Object fileName , Object crap[] ){
                     return new JSLocalFile( fileName.toString() );
                 }
             } , true );
+        
+        s.put( "exit" , new JSFunctionCalls0(){
+                public Object call( Scope s , Object crap[] ){
+                    System.exit(0);
+                    return null;
+                }
+            } , true );
 
-        s.put( "core" , new JSFileLibrary( new File( "/data/corejs" ) ,  "core" , s ) , true );
-        s.put( "external" , new JSFileLibrary( new File( "/data/external" ) ,  "external" , s ) , true );
-            
+        
     }
     
     public static void main( String args[] )
@@ -94,6 +101,12 @@ public class Shell {
             line = line.trim();
             if ( line.length() == 0 )
                 continue;
+            
+            if ( line.equals( "exit" ) ){
+                System.out.println( "bye" );
+                break;
+            }
+
             try {
                 Object res = s.eval( line , "lastline" , hasReturn );
                 if ( hasReturn[0] )
