@@ -86,6 +86,10 @@ public class Logger extends JSFunctionCalls2 {
         return null;
     }
 
+    public Logger getChild( String s ){
+        return (Logger)get( s );
+    }
+
     public Object get( Object n ){
         String s = n.toString();
         
