@@ -31,6 +31,7 @@ public abstract class DBCollection extends JSObjectLame {
         if ( _createIndexes.contains( name ) && Math.random() < 0.999 )
             return;
         ensureIndex( keys , name );
+        _createIndexes.add( name );
     }
 
     public String genIndexName( JSObject keys ){
