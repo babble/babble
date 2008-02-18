@@ -52,7 +52,7 @@ public abstract class SimplePool<T> {
     final int _maxToKeep;
     final int _maxTotal;
 
-    private List<T> _avail = new ArrayList<T>();
-    private WeakHashMap<T,String> _all = new WeakHashMap<T,String>();
+    private final List<T> _avail = new ArrayList<T>();
+    private final WeakHashMap<T,String> _all = new WeakHashMap<T,String>();
 
 }
