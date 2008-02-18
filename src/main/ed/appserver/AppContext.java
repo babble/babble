@@ -65,12 +65,6 @@ public class AppContext {
 	    } , true );
         _logger = ed.log.Logger.getLogger( _name );
         _scope.put( "log" , _logger , true );
-        try {
-            _scope.eval( "core.core.logMemoryAppender(); log.appenders.push( MemoryAppender.create() );" );
-        }
-        catch ( IOException ioe ){
-            throw new RuntimeException( "why?" , ioe );
-        }
         
         // --- random?
         
