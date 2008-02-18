@@ -65,7 +65,7 @@ public class ByteBufferHolder {
             final int canRead = Math.min( bb.remaining() , in.remaining() );
             
             final int oldLimit = in.limit();
-            in.limit( canRead );
+            in.limit( in.position() + canRead );
             
             bb.put( in );
             
@@ -78,7 +78,7 @@ public class ByteBufferHolder {
 
     private void _addBucket(){
 	if ( capacity() + _bufSize > _max )
-	    throw new RuntimeException( "too big" );
+	    throw new RuntimeException( "too big current:" + capacity() );
         _buffers.add( ByteBuffer.allocateDirect( _bufSize ) );
     }
     
