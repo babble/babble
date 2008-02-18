@@ -60,8 +60,8 @@ public class Shell {
                     return null;
                 }
             } , true );
-
         
+        s.put( "log" , ed.log.Logger.getLogger( "shell" ) ,true );
     }
     
     public static void main( String args[] )
