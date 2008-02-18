@@ -43,6 +43,17 @@ public class AppContext {
 
         _scope.put( "external" , new JSFileLibrary( new File( "/data/external" ) ,  "external" , this ) , true );
 
+        // --- db
+        
+        _scope.put( "db" , DBProvider.get( _name ) , true );
+	_scope.put( "setDB" , new JSFunctionCalls1(){
+		public Object call( Scope s , Object name , Object extra[] ){
+		    System.out.println( "name:" + name + " _scope:" + _scope );
+		    s.put( "db" , DBProvider.get( name.toString() ) , false );
+		    return true;
+		}
+	    } , true );
+
         // --- output
         
 	final String appName = name;
@@ -61,17 +72,6 @@ public class AppContext {
             throw new RuntimeException( "why?" , ioe );
         }
         
-        // --- db
-        
-        _scope.put( "db" , DBProvider.get( _name ) , true );
-	_scope.put( "setDB" , new JSFunctionCalls1(){
-		public Object call( Scope s , Object name , Object extra[] ){
-		    System.out.println( "name:" + name + " _scope:" + _scope );
-		    s.put( "db" , DBProvider.get( name.toString() ) , false );
-		    return true;
-		}
-	    } , true );
-
         // --- random?
         
         _scope.put( "openFile" , new JSFunctionCalls1(){
