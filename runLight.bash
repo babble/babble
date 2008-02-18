@@ -10,5 +10,5 @@ done
 
 export headless="-Djava.awt.headless=true"
 
-java -ea $headless -ea -Xmx2000m "$@"
+java -ea $headless -ea -Xmx1000m "$@"
 
