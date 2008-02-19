@@ -167,6 +167,8 @@ public class AppServer implements HttpHandler {
         if ( ar == null )
             ar = createRequest( request );
 
+        ar.getContext()._usage.hit( "bytes_in" , request.totalSize() );
+        
 	ar.setResponse( response );
 	ar.getContext().getScope().setTLPreferred( ar.getScope() );
         try {
@@ -176,8 +178,11 @@ public class AppServer implements HttpHandler {
             final long t = System.currentTimeMillis() - start;
             if ( t > 200 )
                 ar.getContext()._logger.getChild( "slow" ).info( request.getURL() + " " + t + "ms" );
-
+            
             ar.getContext().getScope().setTLPreferred( null );
+            
+            ar.getContext()._usage.hit( "cpu_millis" , t );
+            ar.getContext()._usage.hit( "bytes_out" , response.totalSize() );
         }
     }
     

@@ -65,7 +65,8 @@ public class AppContext {
 	    } , true );
         _logger = ed.log.Logger.getLogger( _name );
         _scope.put( "log" , _logger , true );
-        
+        _usage = new UsageTracker( _name );
+
         // --- random?
         
         _scope.put( "openFile" , new JSFunctionCalls1(){
@@ -336,6 +337,7 @@ public class AppContext {
     
     final ed.log.Logger _logger;
     final Scope _scope;
+    final UsageTracker _usage;
     
     final JSArray _globalHead = new JSArray();
     
