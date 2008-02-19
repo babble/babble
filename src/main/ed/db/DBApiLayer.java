@@ -335,7 +335,6 @@ public abstract class DBApiLayer extends DBBase {
         private void init( SingleResult res ){
             _curResult = res;
             _cur = res._lst.iterator();
-            _all.add( res );
         }
 
         public JSObject next(){
@@ -395,7 +394,6 @@ public abstract class DBApiLayer extends DBBase {
         SingleResult _curResult;
         Iterator<JSObject> _cur;
         final MyCollection _collection;
-        final List<SingleResult> _all = new LinkedList<SingleResult>();
         final int _numToReturn;
     }
 
