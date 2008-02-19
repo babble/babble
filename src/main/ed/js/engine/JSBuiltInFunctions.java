@@ -32,7 +32,6 @@ public class JSBuiltInFunctions {
         public Object call( Scope scope , Object clazzNameJS , Object extra[] ){
 
             String clazzName = clazzNameJS.toString();
-            System.out.println( "want to create a : " + clazzName );
             
             if ( ! Security.isCoreJS() )
                 throw new JSException( "you can't do create a :" + clazzName );

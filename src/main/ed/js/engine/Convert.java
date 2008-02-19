@@ -256,7 +256,7 @@ public class Convert {
             _add( n.getFirstChild().getNext() , state );
             _append( " , " , n );
             _add( n.getFirstChild().getNext().getNext() , state );
-            _append( " ); " , n );
+            _append( " ) " , n );
             break;
             
         case Token.GETPROPNOWARN:
