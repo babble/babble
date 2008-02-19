@@ -28,13 +28,15 @@ print( "===a===".replace( /(?:^|\xB6)(={1,6})(.*?)[=]*(?=\xB6|$)/g,
                           } ) );
 
 
+print( "H4" );
+print( /123/.test( "the 123 is here" ) );
+print( /.*123.*/.test( "the 123 is here" ) );
+print( /123/.test( "the 12 is here" ) );
+print( /(is)/.test( "the 12 is here" ) );
 
-/123/.test( "the 123 is here" );
-/123/.test( "the 12 is here" );
-/(is)/.test( "the 12 is here" );
-
+print( "H5" );
 p = /(\d)\.(\d)/g;
 t = "abc 123.23 sj 41.2";
-while ( ( result = p.exec( t ) ) != null ){
+while ( ( result = p.exec( t ) ) ){
     print( result.index + " : " + result[0] + "," + result[1] + "," + result[2] );
 }
