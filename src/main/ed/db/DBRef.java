@@ -23,13 +23,13 @@ public class DBRef extends JSObjectBase {
     }
     
     public void prefunc(){
-	if ( D ) System.out.println( "following dbref" );
-	
         if ( ! _inited )
             return;
         
         if ( _loaded )
             return;
+
+	if ( D ) System.out.println( "following dbref" );
         
         if ( _db == null )
             throw new RuntimeException( "db is null" );
