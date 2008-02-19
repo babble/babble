@@ -12,6 +12,7 @@ import ed.js.*;
 import ed.js.func.*;
 import ed.io.*;
 import ed.net.*;
+import ed.util.*;
 import ed.security.*;
 
 public class JSBuiltInFunctions {
@@ -377,19 +378,61 @@ public class JSBuiltInFunctions {
 	
         JSFunctionCalls2 parseNumber = new JSFunctionCalls2(){
 		public Object call( Scope scope , Object a , Object b , Object extra[] ){
-                    Object r = JSInternalFunctions.parseNumber( a , b );
-                    if ( r instanceof Number )
-                        return r;
+                    
+                    if ( a instanceof Number )
+                        return a;
+
+                    if ( a != null )
+                        return StringParseUtil.parseNumber( a.toString() , (Number)b );
+                    
                     if ( b != null )
                         return b;
+
                     throw new RuntimeException( "not a number [" + a + "]" );
 		}
             };
 
-	_myScope.put( "parseNumber" , parseNumber , true );
-	_myScope.put( "parseFloat" , parseNumber , true );
-	_myScope.put( "parseInt" , parseNumber , true );
 	_myScope.put( "Number" , parseNumber , true );
+	_myScope.put( "parseNumber" , parseNumber , true );
+        
+	_myScope.put( "parseFloat" , 
+                      new JSFunctionCalls1(){
+                          public Object call( Scope scope , Object a , Object extra[] ){
+
+                              if ( a == null )
+                                  return Double.NaN;
+                              
+                              try {
+                                  return Double.parseDouble( a.toString() );
+                              }
+                              catch ( Exception e ){}
+
+                              return Double.NaN;
+                          }
+                      }
+                      , true );
+	_myScope.put( "parseInt" , 
+                      new JSFunctionCalls2(){
+                          public Object call( Scope scope , Object a , Object b , Object extra[] ){
+
+                              if ( a == null )
+                                  return Double.NaN;
+                              
+                              String s = a.toString();
+                              try {
+                                  if ( b != null && b instanceof Number ){
+                                      return Integer.parseInt( s , ((Number)b).intValue() );
+                                  }
+                                  
+                                  return Integer.parseInt( s );
+                              }
+                              catch ( Exception e ){}
+                              
+                              return Double.NaN;
+                          }
+                      }
+                      , true );
+
 	
         _myScope.put( "md5" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object b , Object extra[] ){
