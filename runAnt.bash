@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export CLASSPATH=.:build:conf:/opt/java/lib/tools.jar
+export CLASSPATH=.:build:conf:/opt/java/lib/tools.jar:$CLASSPATH
 
 export TZ=America/New_York
 
