@@ -392,10 +392,47 @@ public class JSBuiltInFunctions {
 		}
             };
 
-	_myScope.put( "parseNumber" , parseNumber , true );
-	_myScope.put( "parseFloat" , parseNumber , true );
-	_myScope.put( "parseInt" , parseNumber , true );
 	_myScope.put( "Number" , parseNumber , true );
+	_myScope.put( "parseNumber" , parseNumber , true );
+        
+	_myScope.put( "parseFloat" , 
+                      new JSFunctionCalls1(){
+                          public Object call( Scope scope , Object a , Object extra[] ){
+
+                              if ( a == null )
+                                  return Double.NaN;
+                              
+                              try {
+                                  return Double.parseDouble( a.toString() );
+                              }
+                              catch ( Exception e ){}
+
+                              return Double.NaN;
+                          }
+                      }
+                      , true );
+	_myScope.put( "parseInt" , 
+                      new JSFunctionCalls2(){
+                          public Object call( Scope scope , Object a , Object b , Object extra[] ){
+
+                              if ( a == null )
+                                  return Double.NaN;
+                              
+                              String s = a.toString();
+                              try {
+                                  if ( b != null && b instanceof Number ){
+                                      return Integer.parseInt( s , ((Number)b).intValue() );
+                                  }
+                                  
+                                  return Integer.parseInt( s );
+                              }
+                              catch ( Exception e ){}
+                              
+                              return Double.NaN;
+                          }
+                      }
+                      , true );
+
 	
         _myScope.put( "md5" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object b , Object extra[] ){
