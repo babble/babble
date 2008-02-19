@@ -176,7 +176,7 @@ public class AppServer implements HttpHandler {
         }
         finally {
             final long t = System.currentTimeMillis() - start;
-            if ( t > 200 )
+            if ( t > 1500 )
                 ar.getContext()._logger.getChild( "slow" ).info( request.getURL() + " " + t + "ms" );
             
             ar.getContext().getScope().setTLPreferred( null );
