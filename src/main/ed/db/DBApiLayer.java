@@ -11,7 +11,7 @@ import ed.js.*;
 
 public abstract class DBApiLayer extends DBBase {
 
-    static final boolean D = false;
+    static final boolean D = Boolean.getBoolean( "DEBUG.DB" );
 
     protected DBApiLayer( String root ){
         super( root );
