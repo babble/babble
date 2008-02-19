@@ -12,6 +12,7 @@ import ed.js.*;
 import ed.js.func.*;
 import ed.io.*;
 import ed.net.*;
+import ed.util.*;
 import ed.security.*;
 
 public class JSBuiltInFunctions {
@@ -377,11 +378,16 @@ public class JSBuiltInFunctions {
 	
         JSFunctionCalls2 parseNumber = new JSFunctionCalls2(){
 		public Object call( Scope scope , Object a , Object b , Object extra[] ){
-                    Object r = JSInternalFunctions.parseNumber( a , b );
-                    if ( r instanceof Number )
-                        return r;
+                    
+                    if ( a instanceof Number )
+                        return a;
+
+                    if ( a != null )
+                        return StringParseUtil.parseNumber( a.toString() , (Number)b );
+                    
                     if ( b != null )
                         return b;
+
                     throw new RuntimeException( "not a number [" + a + "]" );
 		}
             };
