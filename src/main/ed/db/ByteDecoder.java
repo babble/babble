@@ -26,6 +26,7 @@ public class ByteDecoder extends Bytes {
 
     private final static SimplePool<ByteDecoder> _pool = new SimplePool<ByteDecoder>( "ByteDecoders" , 10 , -1 ){
         protected ByteDecoder createNew(){
+	    if ( D ) System.out.println( "creating new ByteDecoder" );
             return new ByteDecoder();
         }
     };
@@ -167,6 +168,7 @@ public class ByteDecoder extends Bytes {
         switch ( bType ){
         case B_BINARY:
             final int len = _buf.getInt();
+	    if ( D ) System.out.println( "got binary of size : " + len );
             final byte[] data = new byte[len];
             _buf.get( data );
             return new JSBinaryData.ByteArray( data );

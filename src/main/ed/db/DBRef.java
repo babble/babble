@@ -7,6 +7,8 @@ import ed.js.*;
 
 public class DBRef extends JSObjectBase {
 
+    static final boolean D = Boolean.getBoolean( "DEBUG.DB" );
+
     DBRef( JSObject parent , String fieldName , DBBase db , String ns , ObjectId id ){
         _parent = parent;
         _fieldName = fieldName;
@@ -21,6 +23,8 @@ public class DBRef extends JSObjectBase {
     }
     
     public void prefunc(){
+	if ( D ) System.out.println( "following dbref" );
+	
         if ( ! _inited )
             return;
         
