@@ -53,7 +53,15 @@ public class UsageTracker {
                     query.set( "ts" , now );
                     
                     t.update( query , inc( val ) , true , false );
-                }            
+
+		    if ( ! _ensuredIndexes ){
+			JSObject keys = new JSObjectBase();
+			keys.set( "ts" , 1 );
+			t.ensureIndex( keys );
+		    }
+                }
+
+		_ensuredIndexes = true;
             }
             catch ( Throwable t ){
                 ed.log.Logger.getLogger( "UsageTracker" ).error( "couldn't flush [" + _base + "]" , t );
@@ -68,6 +76,7 @@ public class UsageTracker {
     final String _lock = "LOCK" + Math.random();
     final String _flushLock = "FLOCK" + Math.random();
     private Map<String,Long> _counts = new TreeMap<String,Long>();
+    private boolean _ensuredIndexes = false;
 
     static JSObject inc( long n ){
 

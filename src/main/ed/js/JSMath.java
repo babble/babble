@@ -73,7 +73,7 @@ public class JSMath extends JSObjectBase {
                          return 0;
                      if ( ! ( a instanceof Number ) )
                          return Double.NaN;
-                     return Math.floor(((Number)a).doubleValue());
+                     return (int)Math.floor(((Number)a).doubleValue());
                  }
              } );
     }
