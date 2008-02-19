@@ -159,7 +159,7 @@ public class JSDate extends JSObjectBase implements Comparable {
     public JSDate roundHour(){
         return new JSDate( _roundHour() );
     }
-    
+
     public Calendar _roundMonth(){
         Calendar c = _roundDay();
         c.set( c.DAY_OF_MONTH , 1 );
@@ -186,6 +186,20 @@ public class JSDate extends JSObjectBase implements Comparable {
         c.set( c.SECOND , 0 );
         c.set( c.MINUTE , 0 );
         return c;
+    }
+
+    public JSDate roundMinutes( int min ){
+        Calendar c = Calendar.getInstance();
+        c.setTimeInMillis( _time );
+        c.set( c.MILLISECOND , 0 );
+        c.set( c.SECOND , 0 );
+        
+        double m = c.get( c.MINUTE );
+        m = m / min;
+        
+        c.set( c.MINUTE , min * (int)m );
+        
+        return new JSDate( c );
     }
 
     private void _cal(){
