@@ -34,8 +34,12 @@ public class AppRequest {
         
         if ( _scope == null ){
             _scope = _context.scopeChild();
+
             _scope.put( "request" , _request , true );
+            _scope.lock( "request" );
             _scope.put( "head" , _head , true );
+            _scope.lock( "head" );
+            
             
             _context.getScope().setTLPreferred( _scope );
         }
