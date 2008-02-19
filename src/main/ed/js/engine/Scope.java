@@ -531,10 +531,12 @@ public class Scope implements JSObject {
                             else if ( ret instanceof java.util.Date ) 
                                 ret = new JSDate( (java.util.Date)ret );
 			    else if ( ret instanceof java.util.Collection ){
-				JSArray a = new JSArray();
-				for ( Object o : (Collection)ret )
-				    a.add( o );
-				ret = a;
+                                if ( ! ( ret instanceof JSArray  ) ){
+                                    JSArray a = new JSArray();
+                                    for ( Object o : (Collection)ret )
+                                        a.add( o );
+                                    ret = a;
+                                }
                             }
                             else if ( ret.getClass().isArray() ){
                                 JSArray a = new JSArray();
