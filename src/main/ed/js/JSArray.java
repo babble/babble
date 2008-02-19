@@ -550,11 +550,11 @@ public class JSArray extends JSObjectBase implements Iterable , List {
     }
 
     public Object[] toArray(){
-        throw new RuntimeException( "not implemented" );
+        return _array.toArray();
     }
 
     public Object[] toArray( Object[] o ){
-        throw new RuntimeException( "not implemented" );
+        return _array.toArray( o );
     }
 
     int _getInt( Object o ){
