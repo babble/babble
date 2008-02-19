@@ -35,10 +35,10 @@ public class ExportBinary {
             Iterator<JSObject> all = c.find( new JSObjectBase() , null , 0 , 0 );
             if ( all == null )
                 continue;
-
+            
             while( all.hasNext() ){
                 JSObject o = all.next();
-
+                
                 encoder.reset();
                 encoder.putObject( null , o );
                 encoder.flip();
@@ -58,8 +58,14 @@ public class ExportBinary {
         File dir = new File( args[1] );
         dir.mkdirs();
         
-        for ( String root : DBJni.getRootNamespaces( ip ) ){
-            export( root , ip , dir );
+        if ( args.length > 2 ){
+            for ( int i=2; i<args.length; i++ )
+                export( args[i] , ip , dir );
+        }
+        else {
+            for ( String root : DBJni.getRootNamespaces( ip ) ){
+                export( root , ip , dir );
+            }
         }
         
     }
