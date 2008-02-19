@@ -15,8 +15,6 @@ public class UsageTracker {
     }
 
     public void hit( String name , long amount ){
-        System.out.println( _base + "\t" + name + "\t" + amount );
-
         synchronized ( _lock ){
             Long value = _counts.get( name );
             if ( value == null )
