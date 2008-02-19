@@ -26,8 +26,10 @@ public class JxpServlet {
         
         final Scope scope = ar.getScope();
 
-        scope.put( "request" , request , true );
-        scope.put( "response" , response , true );
+        if ( scope.get( "request" ) == null )
+            scope.put( "request" , request , true );
+        if ( scope.get( "response" ) == null )
+            scope.put( "response" , response , true );
         
         MyWriter writer = new MyWriter( response.getWriter() , getStaticPrefix( request , ar ) , ar.getContext() , ar);
         scope.put( "print" , writer  , true );
