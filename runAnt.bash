@@ -13,5 +13,5 @@ export headless="-Djava.awt.headless=true"
     #export headless="" #was having issue so commented this out
 #fi
 
-ant && java -ea $headless -Xmx2000m "$@"
+ant && java -ea $headless -Xmx1000m "$@"
 
