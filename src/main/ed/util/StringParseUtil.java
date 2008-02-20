@@ -31,6 +31,32 @@ public final class StringParseUtil {
         return parseInt( s , def , null , true );
     }
 
+    public static Number parseIntRadix( String s , int radix ){
+        if ( s == null )
+            return Double.NaN;
+        
+        s = s.trim();
+        if ( s.length() == 0 )
+            return Double.NaN;
+
+        int firstDigit = -1;
+        int i = 0;
+        if ( s.charAt( 0 ) == '-' ) 
+            i = 1;
+        // Find first non-digit.
+        for ( ; i<s.length(); i++ ){
+            if ( Character.digit( s.charAt( i ) , radix ) == -1 )
+                break;
+        }
+        
+        try {
+            return Integer.parseInt( s.substring( 0, i ) , radix );
+        }
+        catch (Exception e) {
+            return Double.NaN;
+        }
+    }
+
     public static int parseInt( String s , int def , final int[] lastIdx , final boolean allowNegative ){
         final boolean useLastIdx = lastIdx != null && lastIdx.length > 0;
         if ( useLastIdx )
