@@ -29,6 +29,27 @@ public class JSBuiltInFunctions {
         }        
     }
     
+    static Class _getClass( String name )
+        throws Exception {
+
+        final int colon = name.indexOf( ":" );
+        
+        if ( colon < 0 )
+            return Class.forName( name );
+        
+        String base = name.substring( 0 , colon );
+        Class c = Class.forName( base );
+        
+        String inner = "$" + name.substring( colon + 1 );
+        for ( Class child : c.getClasses() ){
+            if ( child.getName().endsWith( inner ) )
+                return child;
+        }
+        
+        throw new JSException( "can't find inner class [" + inner + "] on [" + c.getName() + "]" );
+        
+    }
+    
     public static class javaCreate extends JSFunctionCalls1 {
         public Object call( Scope scope , Object clazzNameJS , Object extra[] ){
 
@@ -39,7 +60,7 @@ public class JSBuiltInFunctions {
             
             Class clazz = null;
             try {
-                clazz = Class.forName( clazzName );
+                clazz = _getClass( clazzName );
             }
             catch ( Exception e ){
                 throw new JSException( "can't find class for [" + clazzName + "]" );
@@ -67,8 +88,6 @@ public class JSBuiltInFunctions {
 
     public static class javaStatic extends JSFunctionCalls2 {
         public Object call( Scope scope , Object clazzNameJS , Object methodNameJS , Object extra[] ){
-            
-            
             String clazzName = clazzNameJS.toString();
             
             if ( ! Security.isCoreJS() )
@@ -76,7 +95,7 @@ public class JSBuiltInFunctions {
             
             Class clazz = null;
             try {
-                clazz = Class.forName( clazzName );
+                clazz = _getClass( clazzName );
             }
             catch ( Exception e ){
                 throw new JSException( "can't find class for [" + clazzName + "]" );
@@ -84,16 +103,16 @@ public class JSBuiltInFunctions {
             
             Method[] all = clazz.getMethods();
             for ( int i=0; i<all.length; i++ ){
-                
                 Method m = all[i];
+                
                 if ( ( m.getModifiers() & Modifier.STATIC ) == 0  )
                     continue;
-                
+
                 if ( ! m.getName().equals( methodNameJS.toString() ) )
                     continue;
 
                 Object params[] = Scope.doParamsMatch( m.getParameterTypes() , extra );
-                
+
                 if ( params != null ){
                     try {
                         return m.invoke( null , params );
@@ -106,6 +125,38 @@ public class JSBuiltInFunctions {
             }
 
             throw new RuntimeException( "can't find valid method" );
+        }        
+    }
+
+    public static class javaStaticProp extends JSFunctionCalls2 {
+        public Object call( Scope scope , Object clazzNameJS , Object fieldNameJS , Object extra[] ){
+            
+            
+            String clazzName = clazzNameJS.toString();
+            
+            if ( ! Security.isCoreJS() )
+                throw new JSException( "you can't use a :" + clazzName );
+            
+            Class clazz = null;
+            try {
+                clazz = _getClass( clazzName );
+            }
+            catch ( JSException e ){
+                throw e;
+            }
+            catch ( Exception e ){
+                throw new JSException( "can't find class for [" + clazzName + "]" );
+            }
+            
+            try {
+                return clazz.getField( fieldNameJS.toString() ).get( null );
+            }
+            catch ( NoSuchFieldException n ){
+                throw new JSException( "can't find field [" + fieldNameJS + "] from [" + clazz.getName() + "]" );
+            }
+            catch ( Throwable t ){
+                throw new JSException( "can't get field [" + fieldNameJS + "] from [" + clazz.getName() + "] b/c " + t );
+            }
         }        
     }
 
@@ -478,14 +529,18 @@ public class JSBuiltInFunctions {
         _myScope.put( "assert" , new jsassert() , true );
         _myScope.put( "javaCreate" , new javaCreate() , true );
         _myScope.put( "javaStatic" , new javaStatic() , true );
+        _myScope.put( "javaStaticProp" , new javaStaticProp() , true );
         
         _myScope.put( "escape" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object o , Object extra[] ){
                     return java.net.URLEncoder.encode( o.toString() ).replaceAll( "\\+" , "%20" );
                 }
             } , true );
-
+        
         JSON.init( _myScope );
+
+        // mail stuff till i'm done
+        _myScope.put( "JAVAXMAILTO" , javax.mail.Message.RecipientType.TO , true );
     }
 
     private static char getChar( Object o ){

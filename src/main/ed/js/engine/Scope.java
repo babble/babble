@@ -508,54 +508,68 @@ public class Scope implements JSObject {
 
             public Object call( Scope s , Object params[] ){
                 
+                final boolean debug = false;
+                
                 This temp = s._this.peek();
                 final Object obj = temp._nThis;
                 final String name = temp._nThisFunc;
                 
                 if ( obj == null )
                     throw new NullPointerException( "object was null.  name was:" + name );
+                
+                if ( debug ) System.out.println( obj.getClass() + " : " + name );
 
-                methods:
-                for ( Method m : getMethods( obj.getClass() , name ) ){
-            
-                    Object nParams[] = doParamsMatch( m.getParameterTypes() , params );
-                    if ( nParams == null )
-                        continue;
-                    
-                    m.setAccessible( true );
-                    try {
-                        Object ret = m.invoke( obj , nParams );
-                        if ( ret != null ){
-                            if ( ret instanceof String )
-                                ret = new JSString( ret.toString() );
-                            else if ( ret instanceof java.util.Date ) 
-                                ret = new JSDate( (java.util.Date)ret );
-			    else if ( ret instanceof java.util.Collection ){
-                                if ( ! ( ret instanceof JSArray  ) ){
+                List<Method> methods = getMethods( obj.getClass() , name );
+                if ( methods != null && methods.size() > 0 ){
+                    methods:
+                    for ( Method m : methods ){
+                        if ( debug ) System.out.println( "\t " + m.getName() );
+                        
+                        Object nParams[] = doParamsMatch( m.getParameterTypes() , params , debug );
+                        if ( nParams == null ){
+                            if ( debug ) System.out.println( "\t\t boo" );
+                            continue;
+                        }
+
+                        if ( debug ) System.out.println( "\t\t yay" );
+
+                        m.setAccessible( true );
+                        try {
+                            Object ret = m.invoke( obj , nParams );
+                            if ( ret != null ){
+                                if ( ret instanceof String )
+                                    ret = new JSString( ret.toString() );
+                                else if ( ret instanceof java.util.Date ) 
+                                    ret = new JSDate( (java.util.Date)ret );
+                                else if ( ret instanceof java.util.Collection ){
+                                    if ( ! ( ret instanceof JSArray  ) ){
+                                        JSArray a = new JSArray();
+                                        for ( Object o : (Collection)ret )
+                                            a.add( o );
+                                        ret = a;
+                                    }
+                                }
+                                else if ( ret.getClass().isArray() ){
                                     JSArray a = new JSArray();
-                                    for ( Object o : (Collection)ret )
+                                    for ( Object o : ((Object[])ret) )
                                         a.add( o );
-                                    ret = a;
+                                    return a;
                                 }
                             }
-                            else if ( ret.getClass().isArray() ){
-                                JSArray a = new JSArray();
-                                for ( Object o : ((Object[])ret) )
-                                    a.add( o );
-                                return a;
-                            }
+                            return ret;
                         }
-                        return ret;
-                    }
-		    catch ( InvocationTargetException e ){
-			throw new RuntimeException( e.getCause() );
-		    }
-		    catch ( RuntimeException e ){
-			throw e;
-		    }
-                    catch ( Exception e ){
+                        catch ( InvocationTargetException e ){
+                            throw new RuntimeException( e.getCause() );
+                        }
+                        catch ( RuntimeException e ){
+                            throw e;
+                        }
+                        catch ( Exception e ){
                         throw new RuntimeException( e );
+                        }
                     }
+                    
+                    throw new NullPointerException( "no method with matching params [" + name + "] (from a [" + obj.getClass() + "])" );
                 }
                 
                 if ( obj.getClass() == JSObjectBase.class )
@@ -566,6 +580,10 @@ public class Scope implements JSObject {
         };
 
     static Object[] doParamsMatch( Class myClasses[] , Object params[] ){
+        return doParamsMatch( myClasses , params , false );
+    }
+    
+    static Object[] doParamsMatch( Class myClasses[] , Object params[] , final boolean debug ){
         
         if ( myClasses == null )
             myClasses = EMPTY_CLASS_ARRAY;
@@ -573,8 +591,10 @@ public class Scope implements JSObject {
         if ( params == null )
             params = EMPTY_OBJET_ARRAY;
         
-        if ( myClasses.length != params.length )
+        if ( myClasses.length != params.length ){
+            if ( debug ) System.out.println( "param length don't match" );
             return null;
+        }
         
         for ( int i=0; i<myClasses.length; i++ ){
 
@@ -600,7 +620,7 @@ public class Scope implements JSObject {
             
             
             if ( ! myClass.isAssignableFrom( params[i].getClass() ) ){
-                //System.out.println( "\t native assignement failed b/c " + myClasses[i] + " " + params[i].getClass() );
+                if ( debug ) System.out.println( "\t native assignement failed b/c " + myClasses[i] + " " + params[i].getClass() );
                 return null;
             }
             
@@ -620,6 +640,9 @@ public class Scope implements JSObject {
                 else
                     throw new RuntimeException( "what is : " + origMyClass );
             }
+
+            if ( myClass == Object.class && params[i].getClass() == JSString.class )
+                params[i] = params[i].toString();
         }
         
         return params;
