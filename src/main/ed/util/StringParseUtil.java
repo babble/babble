@@ -31,6 +31,42 @@ public final class StringParseUtil {
         return parseInt( s , def , null , true );
     }
 
+    public static Number parseIntRadix( String s , int radix ){
+        if ( s == null )
+            return Double.NaN;
+        
+        s = s.trim();
+        if ( s.length() == 0 )
+            return Double.NaN;
+
+        int firstDigit = -1;
+        int i = 0;
+        if ( s.charAt( 0 ) == '-' ) 
+            i = 1;
+        for ( ; i<s.length(); i++ ){
+            char c = s.charAt ( i );
+            if ( '0' <= c && c <= '9' && c < '0' + radix ){
+                // OK; c is 0..n-1
+            }
+            else if ( 'a' <= c && c <= 'z' && c < 'a' + radix - 10 ){
+                // OK; if radix is 11, c can be 'a', etc.
+            }
+            else if ( 'A' <= c && c <= 'Z' && c < 'A' + radix - 10 ){
+                // OK; same as above, with caps.
+            }
+            else {
+                break;
+            }
+        }
+        
+        try {
+            return Integer.parseInt( s.substring( 0, i ) , radix );
+        }
+        catch (Exception e) {
+            return Double.NaN;
+        }
+    }
+
     public static int parseInt( String s , int def , final int[] lastIdx , final boolean allowNegative ){
         final boolean useLastIdx = lastIdx != null && lastIdx.length > 0;
         if ( useLastIdx )

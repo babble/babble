@@ -424,10 +424,10 @@ public class JSBuiltInFunctions {
                               String s = a.toString();
                               try {
                                   if ( b != null && b instanceof Number ){
-                                      return Integer.parseInt( s , ((Number)b).intValue() );
+                                      return StringParseUtil.parseIntRadix( s , ((Number)b).intValue() );
                                   }
                                   
-                                  return Integer.parseInt( s );
+                                  return StringParseUtil.parseIntRadix( s , 10 );
                               }
                               catch ( Exception e ){}
                               

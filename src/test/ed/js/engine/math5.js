@@ -11,6 +11,9 @@ print( parseInt( "5" ) );
 print( parseInt( "-5" ) );
 print( parseInt( "asd" ) );
 print( parseInt( "ab" , 15 ) );
+print( parseInt( "AB" , 15 ) );
+print( parseInt( "--5" ) );
+print( parseInt( "-A", 12 ) );
 
 print( parseFloat( "-3.1" ) );
 print( parseInt( "asd" ) || 5 );
