@@ -168,6 +168,7 @@ public class AppServer implements HttpHandler {
             ar = createRequest( request );
 
         ar.getContext()._usage.hit( "bytes_in" , request.totalSize() );
+        ar.getContext()._usage.hit( "requests" , 1 );
         
 	ar.setResponse( response );
 	ar.getContext().getScope().setTLPreferred( ar.getScope() );
