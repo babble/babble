@@ -135,6 +135,22 @@ public class XMLHttpRequest extends JSObjectBase {
             set( "status" , Integer.parseInt( firstline.substring( start , end ) ) );
             set( "statusText" , firstline.substring( end + 1 ).trim() );
         }
+        
+        JSObject headers = new JSObjectBase();
+        set( "headers" , headers );
+        
+        for ( int i=1; i<headerLines.length; i++ ){
+            int idx = headerLines[i].indexOf( ":" );
+            if ( idx < 0 )
+                continue;
+            
+            String n = headerLines[i].substring( 0 , idx ).trim();
+            String v = headerLines[i].substring( idx + 1 ).trim();
+            
+            if ( DEBUG ) System.out.println( "\t got header [" + n + "] -> [" + v + "]" );
+            headers.set( n , v );
+            
+        }
 
         byte bodyBytes[] = new byte[buf.limit()-headerEnd];
         buf.get( bodyBytes );
@@ -142,7 +158,7 @@ public class XMLHttpRequest extends JSObjectBase {
         set( "responseText" , new JSString( body ) );
 
         if ( DEBUG ) System.out.println( buf );
-
+        
         return this;
     }
 
@@ -231,7 +247,7 @@ public class XMLHttpRequest extends JSObjectBase {
 
     private void _checkURL(){
         if ( _urlString == null || _urlString.trim().length() == 0 )
-            _urlString = "/";
+            throw new JSException( "no url" );
 
         if ( _url == null ){
             try {
