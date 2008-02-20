@@ -31,6 +31,7 @@ public abstract class DBCollection extends JSObjectLame {
         if ( _createIndexes.contains( name ) && Math.random() < 0.999 )
             return;
         ensureIndex( keys , name );
+        _createIndexes.add( name );
     }
 
     public String genIndexName( JSObject keys ){
@@ -265,6 +266,9 @@ public abstract class DBCollection extends JSObjectLame {
                 if ( foo instanceof JSFunction )
                     continue;
                 
+		if ( foo instanceof JSString )
+		    continue;
+
                 JSObject e = (JSObject)foo;
                 if ( e instanceof JSFileChunk ){
                     _base.getCollection( "_chunks" ).apply( e );

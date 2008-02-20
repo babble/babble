@@ -13,7 +13,7 @@ import static ed.js.JSInternalFunctions.*;
  * http://developer.mozilla.org/en/docs/Core_JavaScript_1.5_Reference:Global_Objects:Array#Iteration_methods
  * 
  */
-public class JSArray extends JSObjectBase implements Iterable {
+public class JSArray extends JSObjectBase implements Iterable , List {
     
     public final static JSFunction _cons = new JSArrayCons();
     static class JSArrayCons extends JSFunctionCalls0{
@@ -415,6 +415,7 @@ public class JSArray extends JSObjectBase implements Iterable {
                     return _array.size();
         
         int idx = _getInt( n );
+
         if ( idx >=0 )
             return getInt( idx );
         
@@ -457,24 +458,111 @@ public class JSArray extends JSObjectBase implements Iterable {
         }
         return buf.toString();
     }
-
-    public void add( Object o ){
+    
+    public boolean add( Object o ){
         if ( _locked )
             throw new RuntimeException( "array locked" );
-        _array.add( o );
+        return _array.add( o );
     }
 
-    public void addAll( Collection c ){
-        _array.addAll( c );
+    public void add( int index , Object o ){
+        if ( _locked )
+            throw new RuntimeException( "array locked" );
+        _array.add( index , o );
+    }
+
+    public Object set( int index , Object o ){
+        if ( _locked )
+            throw new RuntimeException( "array locked" );
+        return _array.set( index , o );
+    }
+
+    public Object get( int i ){
+        return _array.get( i );
+    }
+
+    public boolean addAll( Collection c ){
+        if ( _locked )
+            throw new RuntimeException( "array locked" );
+        return _array.addAll( c );
+    }
+
+    public boolean addAll( int idx , Collection c ){
+        if ( _locked )
+            throw new RuntimeException( "array locked" );
+        return _array.addAll( idx , c );
+    }
+
+    public boolean containsAll( Collection c ){
+        return _array.containsAll( c );
+    }
+    
+    public List subList( int start , int end ){
+        return _array.subList( start , end );
+    }
+
+    public ListIterator listIterator(){
+        return _array.listIterator();
+    }
+
+    public ListIterator listIterator( int index ){
+        return _array.listIterator( index );
+    }
+
+    public int lastIndexOf( Object foo ){
+        return _array.lastIndexOf( foo );
+    }
+
+    public int indexOf( Object foo ){
+        return _array.indexOf( foo );
+    }
+
+    public boolean contains( Object foo ){
+        return _array.contains( foo );
+    }
+
+    public boolean isEmpty(){
+        return _array.isEmpty();
+    }
+
+    public Object remove( int i ){
+        if ( _locked )
+            throw new RuntimeException( "array locked" );        
+        return _array.remove( i );
+    }
+
+    public boolean remove( Object o ){
+        if ( _locked )
+            throw new RuntimeException( "array locked" );        
+        return _array.remove( o );
     }
 
     public Iterator iterator(){
         return _array.iterator();
     }
 
+    public boolean retainAll( Collection c ){
+        throw new RuntimeException( "not implemented" );
+    }
+
+    public boolean removeAll( Collection c ){
+        throw new RuntimeException( "not implemented" );
+    }
+
+    public Object[] toArray(){
+        return _array.toArray();
+    }
+
+    public Object[] toArray( Object[] o ){
+        return _array.toArray( o );
+    }
+
     int _getInt( Object o ){
         if ( o == null )
             return -1;
+        
+        if ( o instanceof Number )
+            return ((Number)o).intValue();
 
         if ( o instanceof JSString )
             o = o.toString();

@@ -128,10 +128,13 @@ public class AppServer implements HttpHandler {
         return ac;
     }
     
+    public AppContext getContext( HttpRequest request , String newUri[] ){
+        return getContext( request.getHeader( "Host" ) , request.getURI() , newUri );
+    }
+    
     public AppRequest createRequest( HttpRequest request ){
-
         String newUri[] = new String[1];
-        AppContext ac = getContext( request.getHeader( "Host" ) , request.getURI() , newUri );
+        AppContext ac = getContext( request , newUri );
         return ac.createRequest( request , newUri[0] );
     }
     
@@ -152,23 +155,34 @@ public class AppServer implements HttpHandler {
             _handle( request , response );
         }
         catch ( Exception e ){
-            handleError( response , e );
+            handleError( request , response , e , null );
         }
     }
 
     private void _handle( HttpRequest request , HttpResponse response ){
+
+        final long start = System.currentTimeMillis();
         
         AppRequest ar = (AppRequest)request.getAttachment();
         if ( ar == null )
             ar = createRequest( request );
 
+        ar.getContext()._usage.hit( "bytes_in" , request.totalSize() );
+        
 	ar.setResponse( response );
 	ar.getContext().getScope().setTLPreferred( ar.getScope() );
         try {
             _handle( request , response , ar );
         }
         finally {
+            final long t = System.currentTimeMillis() - start;
+            if ( t > 1500 )
+                ar.getContext()._logger.getChild( "slow" ).info( request.getURL() + " " + t + "ms" );
+            
             ar.getContext().getScope().setTLPreferred( null );
+            
+            ar.getContext()._usage.hit( "cpu_millis" , t );
+            ar.getContext()._usage.hit( "bytes_out" , response.totalSize() );
         }
     }
     
@@ -248,17 +262,17 @@ public class AppServer implements HttpHandler {
             }
         }
         catch ( Exception e ){
-            handleError( response , e );
+            handleError( request , response , e , ar.getContext() );
             return;
         }
-        finally {
-            final long endTime = System.currentTimeMillis();
-        }
-        
     }
 
-    void handleError( HttpResponse response , Throwable t ){
-        t.printStackTrace();
+    void handleError( HttpRequest request , HttpResponse response , Throwable t , AppContext ctxt ){
+        if ( ctxt == null )
+            ctxt = getContext( request , null );
+
+        ctxt._logger.error( request.getURL() , t );
+
         response.setResponseCode( 500 );
         
         JxpWriter writer = response.getWriter();
@@ -333,7 +347,7 @@ public class AppServer implements HttpHandler {
             }
         }
         catch ( Exception e ){
-            e.printStackTrace();
+            ar.getContext()._logger.error( request.getURL() , e );
             response.setResponseCode( 501 );
             response.getWriter().print( "<br><br><hr>" );
             response.getWriter().print( e.toString() );

@@ -8,6 +8,7 @@ import java.util.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.net.httpserver.*;
+import ed.log.*;
 
 public class AppRequest {
     
@@ -33,8 +34,12 @@ public class AppRequest {
         
         if ( _scope == null ){
             _scope = _context.scopeChild();
+
             _scope.put( "request" , _request , true );
+            _scope.lock( "request" );
             _scope.put( "head" , _head , true );
+            _scope.lock( "head" );
+            
             
             _context.getScope().setTLPreferred( _scope );
         }
@@ -126,6 +131,10 @@ public class AppRequest {
     public JSArray getHeadToPrint(){
         _head.lock();
         return _head;
+    }
+
+    public Logger getLogger(){
+        return _context._logger;
     }
 
     final String _uri;

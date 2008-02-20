@@ -65,6 +65,17 @@ public class JSMath extends JSObjectBase {
                      return Math.random();
                  }
              } );
+
+        set( "floor" ,
+             new JSFunctionCalls1(){
+                 public Object call( Scope s , Object a , Object foo[] ){
+                     if ( a == null )
+                         return 0;
+                     if ( ! ( a instanceof Number ) )
+                         return Double.NaN;
+                     return (int)Math.floor(((Number)a).doubleValue());
+                 }
+             } );
     }
     
 

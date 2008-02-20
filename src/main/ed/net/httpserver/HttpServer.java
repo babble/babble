@@ -10,12 +10,15 @@ import java.util.*;
 
 import ed.io.*;
 import ed.net.*;
+import ed.log.*;
 import ed.util.*;
+import ed.appserver.*;
 
 public class HttpServer extends NIOServer {
 
     static final boolean D = Boolean.getBoolean( "DEBUG.HTTP" );
-
+    static final Logger LOGGER = Logger.getLogger( "httpserver" );
+    
     public HttpServer( int port )
         throws IOException {
         super( port );
@@ -96,7 +99,7 @@ public class HttpServer extends NIOServer {
                 throw ioe;
             }
             catch ( RuntimeException re ){
-                re.printStackTrace();
+                LOGGER.error( "_gotData error" , re );
                 
                 if ( _lastRequest == null )
                     throw re;
@@ -254,7 +257,11 @@ public class HttpServer extends NIOServer {
         }
         
         public void handleError( Task t , Exception e ){
-            e.printStackTrace();
+            Logger l = LOGGER;
+            if ( t._request._attachment instanceof AppRequest )
+                l = ((AppRequest)t._request._attachment).getLogger();
+            
+            l.error( "error handling a task" , e );
             try {
                 t._response.done();
             }

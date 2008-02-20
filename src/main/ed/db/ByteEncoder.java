@@ -23,6 +23,7 @@ public class ByteEncoder extends Bytes {
     
     private final static SimplePool<ByteEncoder> _pool = new SimplePool( "ByteEncoders" , 10 , -1 ){
             protected ByteEncoder createNew(){
+		if ( D ) System.out.println( "creating new ByteEncoder" );
                 return new ByteEncoder();
             }
         };

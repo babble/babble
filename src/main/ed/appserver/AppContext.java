@@ -32,17 +32,18 @@ public class AppContext {
 
         _scope = new Scope( "AppContext:" + root , Scope.GLOBAL , null , _rootFile );
         _scope.setGlobal( true );
-        
-	final String appName = name;
-	_scope.put( "SYSOUT" , new JSFunctionCalls1(){
-		public Object call( Scope s , Object str , Object foo[] ){
-		    System.out.println( appName + " \t " + str );
-		    return true;
-		}
-	    } , true );
 
+        // --- libraries
+        
         _jxpObject = new JSFileLibrary( _rootFile , "jxp" , this );
         _scope.put( "jxp" , _jxpObject , true );
+
+        _core = new JSFileLibrary( new File( "/data/corejs" ) ,  "core" , this );
+        _scope.put( "core" , _core , true );
+
+        _scope.put( "external" , new JSFileLibrary( new File( "/data/external" ) ,  "external" , this ) , true );
+
+        // --- db
         
         _scope.put( "db" , DBProvider.get( _name ) , true );
 	_scope.put( "setDB" , new JSFunctionCalls1(){
@@ -52,18 +53,27 @@ public class AppContext {
 		    return true;
 		}
 	    } , true );
+
+        // --- output
+        
+	final String appName = name;
+	_scope.put( "SYSOUT" , new JSFunctionCalls1(){
+		public Object call( Scope s , Object str , Object foo[] ){
+		    System.out.println( appName + " \t " + str );
+		    return true;
+		}
+	    } , true );
+        _logger = ed.log.Logger.getLogger( _name );
+        _scope.put( "log" , _logger , true );
+        _usage = new UsageTracker( _name );
+
+        // --- random?
         
         _scope.put( "openFile" , new JSFunctionCalls1(){
 		public Object call( Scope s , Object name , Object extra[] ){
                     return new JSLocalFile( _rootFile , name.toString() );
                 }
             } , true );
-
-        _core = new JSFileLibrary( new File( "/data/corejs" ) ,  "core" , this );
-        _scope.put( "core" , _core , true );
-        
-        _scope.put( "external" , new JSFileLibrary( new File( "/data/external" ) ,  "external" , this ) , true );
-
         
         _scope.put( "globalHead" , _globalHead , true  );
 
@@ -324,8 +334,10 @@ public class AppContext {
 
     final JSFileLibrary _jxpObject;
     final JSFileLibrary _core;
-
+    
+    final ed.log.Logger _logger;
     final Scope _scope;
+    final UsageTracker _usage;
     
     final JSArray _globalHead = new JSArray();
     

@@ -265,6 +265,47 @@ public class HttpResponse {
         a.append( "\r\n" );
         return a;
     }
+
+    public int totalSize(){
+        final int size[] = new int[]{ 0 };
+        Appendable a = new Appendable(){
+
+                public Appendable append( char c ){
+                    size[0] += 1;
+                    return this;
+                }
+
+                public Appendable append( CharSequence s ){
+                    return append( s , 0 , s.length() );
+                }
+
+                public Appendable append( CharSequence s , int start , int end ){
+                    size[0] += ( end - start );
+
+                    if ( _count == 1 ){
+                        size[0] += StringParseUtil.parseInt( s.toString() , 0 );
+                    }
+
+                    _count--;
+
+                    if ( "Content-Length".equalsIgnoreCase( s.toString() ) )
+                        _count = 2;
+                    if ( "Content-Length: ".equalsIgnoreCase( s.toString() ) )
+                        _count = 1;
+                         
+                    return this;
+                }
+                
+                int _count = 0;
+            };
+        try {
+            _genHeader( a );
+        }
+        catch ( IOException ioe ){
+            throw new RuntimeException( "should be impossible" , ioe );
+        }
+        return size[0];
+    }
     
     public String toString(){
         try {

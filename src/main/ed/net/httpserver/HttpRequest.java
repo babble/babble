@@ -78,6 +78,12 @@ public class HttpRequest extends JSObjectLame {
         return _queryString;
     }
 
+    public int totalSize(){
+        int size = _rawHeader.length();
+        size += getIntHeader( "Content-Length" , 0 );
+        return size;
+    }
+
     public String toString(){
         _finishParsing();
         return _command + " " + _uri + " HTTP/1." + ( _http11 ? "1" : "" ) + " : " + _headers + "  " + _parameters;
@@ -428,7 +434,7 @@ public class HttpRequest extends JSObjectLame {
     final String _queryString;
     final boolean _http11;
 
-    private Object _attachment;
+    Object _attachment;
 
     private boolean _rangeChecked = false;
     private long[] _range;

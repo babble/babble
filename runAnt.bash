@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export CLASSPATH=.:build:conf:/opt/java/lib/tools.jar
+export CLASSPATH=.:build:conf:/opt/java/lib/tools.jar:$CLASSPATH
 
 export TZ=America/New_York
 
@@ -13,5 +13,5 @@ export headless="-Djava.awt.headless=true"
     #export headless="" #was having issue so commented this out
 #fi
 
-ant && java -ea $headless -Xmx2000m "$@"
+ant && java -ea $headless -Xmx1000m "$@"
 

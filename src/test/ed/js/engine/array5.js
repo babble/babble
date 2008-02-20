@@ -89,6 +89,17 @@ print( [ 1 , 2 ].valueOf().length );
 a = [ 1 , 2 ];
 print( a === a.valueOf() );
 
+a = { a : [ 1 , 2 ] };
+print( a.a.length );
+b = { b : a.a };
+print( b.b.length );
+b.b.push( 5 );
+print( b.b.length );
+print( a.a.length );
+
+
+
+
 /* uncomment when using spider monkey 1.8
 print( [ 1 , 2 , 3 , 4  , 5  ].reduce( function( a , b ){
             if ( ! a )

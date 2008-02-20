@@ -14,6 +14,8 @@ import ed.js.*;
  */
 public class Bytes {
 
+    static final boolean D = Boolean.getBoolean( "DEBUG.DB" );
+
     static final int BUF_SIZE = 1024 * 1024 * 5;
 
     static final byte EOO = 0;    

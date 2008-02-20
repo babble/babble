@@ -55,6 +55,7 @@ public class ImportBinary {
             coll.save( o );
         }
         
+        coll.find( new JSObjectBase() , null , 0 , 1 );
     }
 
     public static void main( String args[] )

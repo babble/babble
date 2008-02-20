@@ -82,8 +82,12 @@ public class JSInternalFunctions extends JSObjectBase {
         if ( foo instanceof Boolean )
             return (Boolean)foo;
         
-        if ( foo instanceof Number )
-            return ((Number)foo).doubleValue() != 0;
+        if ( foo instanceof Number ){
+            Number n = (Number)foo;
+            if ( Double.isNaN( n.doubleValue() ) )
+                return false;
+            return n.doubleValue() != 0;
+        }
         
         if ( foo instanceof String || 
              foo instanceof JSString )

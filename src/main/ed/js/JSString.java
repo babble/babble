@@ -216,7 +216,7 @@ public class JSString extends JSObjectBase {
                         JSRegex r = (JSRegex)o;
 
                         JSArray a = new JSArray();
-                        for ( String pc : r._patt.split( str ) )
+                        for ( String pc : r._patt.split( str , -1 ) )
                             a.add( new JSString( pc ) );
                             
                         return a;

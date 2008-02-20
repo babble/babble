@@ -87,7 +87,7 @@ public class JSRegex extends JSObjectBase {
 
     public boolean test( String s ){
         Matcher m = _patt.matcher( s );
-        return m.matches();
+        return m.find();
     }
     
     public JSArray exec( String s ){
