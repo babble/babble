@@ -15,7 +15,7 @@
 
   <target name="init">
     <mkdir dir="build" />
-    <mkdir dir="log" />
+    <mkdir dir="logs" />
   </target>
 
   <target name="langcore" depends="init">
