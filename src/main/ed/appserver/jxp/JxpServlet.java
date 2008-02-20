@@ -41,13 +41,16 @@ public class JxpServlet {
                 writer._writer.backToSpot();
                 
                 if ( ar.getContext() != null )
-                    for ( Object foo : ar.getContext().getGlobalHead() )
+                    for ( Object foo : ar.getContext().getGlobalHead() ) {
                         writer.print( foo.toString() );
+                        writer.print( "\n" );
+                    }
                 
                 if ( ar != null )
-                    for ( Object foo : ar.getHeadToPrint() )
+                    for ( Object foo : ar.getHeadToPrint() ) {
                         writer.print( foo.toString() );
-                
+                        writer.print( "\n" );
+                    }
                 writer._writer.backToEnd();
             }
             else {
