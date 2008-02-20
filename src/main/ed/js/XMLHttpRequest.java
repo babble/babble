@@ -245,6 +245,10 @@ public class XMLHttpRequest extends JSObjectBase {
         return 80;
     }
 
+    public Object getJSON(){
+        return JSON.parse( get( "responseText" ).toString() );
+    }
+
     private void _checkURL(){
         if ( _urlString == null || _urlString.trim().length() == 0 )
             throw new JSException( "no url" );
@@ -258,6 +262,7 @@ public class XMLHttpRequest extends JSObjectBase {
             }
         }
     }
+
 
     String _method;
     String _urlString;
