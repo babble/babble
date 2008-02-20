@@ -417,7 +417,10 @@ public class JSBuiltInFunctions {
 
                               if ( a == null )
                                   return Double.NaN;
-                              
+
+                              if ( a instanceof Number )
+                                  return ((Number)a).intValue();
+
                               String s = a.toString();
                               try {
                                   if ( b != null && b instanceof Number ){
