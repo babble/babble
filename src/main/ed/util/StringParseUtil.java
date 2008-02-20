@@ -43,20 +43,10 @@ public final class StringParseUtil {
         int i = 0;
         if ( s.charAt( 0 ) == '-' ) 
             i = 1;
+        // Find first non-digit.
         for ( ; i<s.length(); i++ ){
-            char c = s.charAt ( i );
-            if ( '0' <= c && c <= '9' && c < '0' + radix ){
-                // OK; c is 0..n-1
-            }
-            else if ( 'a' <= c && c <= 'z' && c < 'a' + radix - 10 ){
-                // OK; if radix is 11, c can be 'a', etc.
-            }
-            else if ( 'A' <= c && c <= 'Z' && c < 'A' + radix - 10 ){
-                // OK; same as above, with caps.
-            }
-            else {
+            if ( Character.digit( s.charAt( i ) , radix ) == -1 )
                 break;
-            }
         }
         
         try {
