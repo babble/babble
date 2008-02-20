@@ -245,8 +245,7 @@ public class HttpResponse {
         if ( _writer != null )
             _writer._push();
 
-        // need to only do this if not chunked
-        if ( _done && _headers.get( "Content-Length") == null ){
+        if ( _headers.get( "Content-Length") == null ){
             
             if ( _stringContent != null ){
                 int cl = 0;
@@ -283,16 +282,17 @@ public class HttpResponse {
                     size[0] += ( end - start );
 
                     if ( _count == 1 ){
-                        size[0] += StringParseUtil.parseInt( s.toString() , 0 );
+                        int add = StringParseUtil.parseInt( s.toString() , 0 );
+                        size[0] += add;
                     }
 
                     _count--;
-
+                    
                     if ( "Content-Length".equalsIgnoreCase( s.toString() ) )
                         _count = 2;
                     if ( "Content-Length: ".equalsIgnoreCase( s.toString() ) )
                         _count = 1;
-                         
+                    
                     return this;
                 }
                 
