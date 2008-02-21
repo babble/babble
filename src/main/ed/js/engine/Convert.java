@@ -397,7 +397,7 @@ public class Convert {
 
 
         case Token.HOOK:
-            _append( " ( JS_evalToBool( " , n );
+            _append( " JSInternalFunctions.self( JS_evalToBool( " , n );
             _add( n.getFirstChild() , state );
             _append( " ) ? ( " , n );
             _add( n.getFirstChild().getNext() , state );
