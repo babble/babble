@@ -799,9 +799,9 @@ public class Convert {
             Node predicate = nodes[3];
             _assertType( predicate , Token.IFEQ );
             
-            _append( "do  \n " , theLoop );
+            _append( "do { \n " , theLoop );
             _add( main , state );
-            _append( " \n while ( JS_evalToBool( " , n );
+            _append( " } \n while ( JS_evalToBool( " , n );
             _add( predicate.getFirstChild() , state );
             _append( " ) );\n " , n );
         }
