@@ -21,7 +21,7 @@ public class JSDate extends JSObjectBase implements Comparable {
                 
                 Object o = s.getThis();
                 if ( o == null || ! ( o instanceof JSDate ) )
-                    return new JSDate( foo );
+                    return new JSString( (new JSDate( foo )).toString() );
 
                 JSDate d = (JSDate)o;
                 long l = parse( foo , d._time );
