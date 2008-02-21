@@ -92,6 +92,10 @@ public class Scope implements JSObject {
         return new HashSet<String>( _objects.keySet() );
     }
 
+    public boolean containsKey( String s ){
+        throw new RuntimeException( "not sure this makes sense" );
+    }
+
     public void removeField( String name ){
         _objects.remove( name );
     }

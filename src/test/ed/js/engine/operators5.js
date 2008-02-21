@@ -57,3 +57,8 @@ print(b);
 print( "---" );
 
 
+
+a = { y : 1 };
+print( "y" in a );
+print( "z" in a );
+

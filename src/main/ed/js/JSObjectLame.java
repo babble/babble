@@ -14,6 +14,10 @@ public class JSObjectLame implements JSObject {
         throw new UnsupportedOperationException();
     }
 
+    public boolean containsKey( String s ){
+        throw new UnsupportedOperationException();
+    }
+
     public Object set( Object n , Object v ){
         throw new UnsupportedOperationException();
     }

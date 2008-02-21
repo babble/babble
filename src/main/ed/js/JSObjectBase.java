@@ -114,6 +114,12 @@ public class JSObjectBase implements JSObject {
     }
 
 
+    public boolean containsKey( String s ){
+        if ( _keys != null && _keys.contains( s ) )
+            return true;
+        return false;
+    }
+
     public Collection<String> keySet(){
         prefunc();
         if ( _keys == null )

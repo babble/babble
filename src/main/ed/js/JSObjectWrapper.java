@@ -26,6 +26,10 @@ public class JSObjectWrapper implements JSObject {
         _wrap.removeField( n );
     }
 
+    public boolean containsKey( String s ){
+        return _wrap.containsKey( s );
+    }
+
     public java.util.Collection<String> keySet(){
         return _wrap.keySet();
     }

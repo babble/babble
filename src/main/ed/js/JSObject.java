@@ -15,6 +15,7 @@ public interface JSObject {
     
     public void removeField( Object n );
 
+    public boolean containsKey( String s );
     public Collection<String> keySet();
     
 }

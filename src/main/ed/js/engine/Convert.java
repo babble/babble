@@ -564,6 +564,14 @@ public class Convert {
             _append( " ) " , n );
             break;
             
+        case Token.IN:
+            _append( "((JSObject)" , n );
+            _add( n.getFirstChild().getNext() , state );
+            _append( " ).containsKey( " , n );
+            _add( n.getFirstChild() , state );
+            _append( ".toString() ) " , n  );
+            break;
+        
         default:
             Debug.printTree( n , 0 );
             throw new RuntimeException( "can't handle : " + n.getType() + ":" + Token.name( n.getType() ) + ":" + n.getClass().getName() + " line no : " + n.getLineno() );
