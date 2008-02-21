@@ -62,3 +62,6 @@ a = { y : 1 };
 print( "y" in a );
 print( "z" in a );
 
+a = 5;
+print( a );
+print( -a );

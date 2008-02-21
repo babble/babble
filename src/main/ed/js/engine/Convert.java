@@ -571,6 +571,12 @@ public class Convert {
             _add( n.getFirstChild() , state );
             _append( ".toString() ) " , n  );
             break;
+
+        case Token.NEG:
+            _append( "JS_mul( -1 , " , n );
+            _add( n.getFirstChild() , state );
+            _append( " )" , n );
+            break;
         
         default:
             Debug.printTree( n , 0 );
