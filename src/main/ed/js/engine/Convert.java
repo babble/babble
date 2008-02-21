@@ -877,11 +877,15 @@ public class Convert {
                     if ( cur.getString().equals( "arguments" ) )
                         hasArguments = true;
                 
-                if ( cur.getType() == Token.INC )
+                if ( cur.getType() == Token.INC || 
+                     cur.getType() == Token.DEC ){
+                    
                     if ( cur.getFirstChild().getType() == Token.GETVAR || 
-                         cur.getFirstChild().getType() == Token.NAME )
+                         cur.getFirstChild().getType() == Token.NAME ){
                         state.addBadLocal( cur.getFirstChild().getString() );
-                
+                    }
+                    
+                }
                 if ( cur.getNext() != null )
                     toSearch.add( cur.getNext() );
                 if ( cur.getFirstChild() != null )
