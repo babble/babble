@@ -345,9 +345,10 @@ public class Convert {
             if ( state.useLocalVariable( foo ) ){
                 if ( ! state.hasSymbol( foo ) )
                     throw new RuntimeException( "something is wrong" );
+                _append( "JSInternalFunctions.self ( " , n );
                 _append( foo + " = " , n );
                 _add( n.getFirstChild().getNext() , state );
-                _append( "\n" , n );
+                _append( " )\n" , n );
             }
             else {
                 _setVar( foo , 
@@ -1087,9 +1088,11 @@ public class Convert {
     
     private void _setVar( String name , Node val , State state , boolean local ){
         if ( state.useLocalVariable( name ) && state.hasSymbol( name ) ){
+            _append( "JSInternalFunctions.self( " , val );
             _append( name + " = " , val );
             _add( val , state );
             _append( "\n" , val );
+            _append( ")\n" , val );
             return;
         }
         _append( "scope.put( \"" + name + "\" , " , val);
