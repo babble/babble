@@ -27,6 +27,10 @@ public class JSInternalFunctions extends JSObjectBase {
         super( FunctionCons );
     }
 
+    public static final Object self( Object o ){
+        return o;
+    }
+
     public boolean JS_instanceof( Object thing , Object type ){
         throw new RuntimeException( "the spec for instanceof is weird and broken - deferring" );
     }

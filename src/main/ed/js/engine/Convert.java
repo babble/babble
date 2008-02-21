@@ -507,7 +507,7 @@ public class Convert {
             if ( cc.getNext().getNext() != null )
                 throw new RuntimeException( "what?" );
             
-            _append( "( scope.orSave( " , n );
+            _append( "JSInternalFunctions.self( scope.orSave( " , n );
             _add( cc , state );
             _append( " ) ? scope.getOrSave() : ( " , n );
             _add( cc.getNext() , state );
