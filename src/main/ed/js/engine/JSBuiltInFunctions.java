@@ -487,6 +487,8 @@ public class JSBuiltInFunctions {
                       }
                       , true );
 
+        _myScope.put( "NaN" , Double.NaN , true );
+
 	
         _myScope.put( "md5" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object b , Object extra[] ){
