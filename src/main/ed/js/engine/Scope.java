@@ -168,6 +168,15 @@ public class Scope implements JSObject {
                 return null;
             return foo;
         }
+
+        // WITH
+        if ( _with != null ){
+            for ( int i=_with.size()-1; i>=0; i-- ){
+                JSObject temp = _with.get( i );
+                if ( temp.containsKey( name ) )
+                    return temp.get( name );
+            }
+        }
         
         if ( alt != null && _global ){
             if ( ! alt._global )
@@ -187,6 +196,16 @@ public class Scope implements JSObject {
             return null;
         
         return _parent.get( name , alt );
+    }
+
+    public void enterWith( JSObject o ){
+        if ( _with == null )
+            _with = new Stack<JSObject>();
+        _with.push( o );
+    }
+    
+    public void leaveWith(){
+        _with.pop();
     }
 
     public final Scope getGlobal(){
@@ -465,6 +484,7 @@ public class Scope implements JSObject {
     private ThreadLocal<Scope> _tlPreferred = null;
 
     Stack<This> _this = new Stack<This>();
+    Stack<JSObject> _with;
     Object _orSave;
     JSObject _globalThis;
     

@@ -577,6 +577,20 @@ public class Convert {
             _add( n.getFirstChild() , state );
             _append( " )" , n );
             break;
+
+        case Token.ENTERWITH:
+            _append( "scope.enterWith( (JSObject)" , n );
+            _add( n.getFirstChild() , state );
+            _append( " );" , n );
+            break;
+            
+        case Token.LEAVEWITH:
+            _append( "scope.leaveWith();" , n );
+            break;
+
+        case Token.WITH:
+            _add( n.getFirstChild() , state );
+            break;
         
         default:
             Debug.printTree( n , 0 );
