@@ -158,7 +158,8 @@ public class Convert {
                         first = false;
                     else 
                         _append( " , " , n );
-                    _append( "\"" + id.toString() + "\"" , n );
+                    //_append( "\"" + id.toString() + "\"" , n );
+                    _append( getStringCode( id.toString() ) + ".toString()" , n );
                 }
                 _append( " } " , n );
                 
@@ -310,9 +311,10 @@ public class Convert {
             _append( temp , n );
             break;
         case Token.STRING:
-            int stringId = _strings.size();
-            _strings.add( n.getString() );
-            _append( "_strings[" + stringId + "]" ,n );
+            _append( getStringCode( n.getString() ) , n );
+            //int stringId = _strings.size();
+            //_strings.add( n.getString() );
+            //_append( "_strings[" + stringId + "]" ,n );
             break;
         case Token.TRUE:
             _append( " true " , n );
@@ -1363,6 +1365,12 @@ public class Convert {
         final String realSource = Decompiler.decompile( encoded , 0 , new UintMap() );
         
         return realSource;
+    }
+
+    private String getStringCode( String s ){
+        int stringId = _strings.size();
+        _strings.add( s );
+        return "_strings[" + stringId + "]";
     }
 
     public boolean hasReturn(){
