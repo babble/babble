@@ -979,8 +979,10 @@ public class Convert {
     private void _addBlock( Node n , State state ){
         _assertType( n , Token.BLOCK );
 
-        if ( n.getFirstChild() == null )
+        if ( n.getFirstChild() == null ){
+            _append( "{}" , n );
             return;
+        }
 
         // this is weird.  look at bracing0.js
         
@@ -1085,7 +1087,7 @@ public class Convert {
         if ( state.useLocalVariable( name ) && state.hasSymbol( name ) ){
             _append( name + " = " , val );
             _add( val , state );
-            _append( ";\n" , val );
+            _append( "\n" , val );
             return;
         }
         _append( "scope.put( \"" + name + "\" , " , val);
