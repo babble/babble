@@ -482,12 +482,25 @@ public class HttpResponse {
                 throw new RuntimeException( "already done" );
             }
             
+            if ( s.length() > MAX_STRING_SIZE ){
+                for ( int i=0; i<s.length(); ){
+                    String temp = s.substring( i , Math.min( i + MAX_STRING_SIZE , s.length() ) );
+                    print( temp );
+                    i += MAX_STRING_SIZE;
+                }
+                return this;
+            }
+
             if ( _cur.position() + ( 3 * s.length() ) > _cur.capacity() ){
                 if ( _inSpot )
                     throw new RuntimeException( "can't put that much stuff in spot" );
                 _push();
             }
             
+
+            if ( _cur.position() + ( 3 * s.length() ) > _cur.capacity() )
+                throw new RuntimeException( "still too big" );
+
             _cur.append( s );
             return this;
         }
@@ -582,7 +595,8 @@ public class HttpResponse {
         private boolean _inSpot = false;
     }
     
-    static final int CHAR_BUFFER_SIZE = 1024 * 32;
+    static final int CHAR_BUFFER_SIZE = 1024 * 128;
+    static final int MAX_STRING_SIZE = CHAR_BUFFER_SIZE / 4;
     static SimplePool<CharBuffer> _charBufPool = new SimplePool<CharBuffer>( "Response.CharBufferPool" , 50 , -1 ){
             public CharBuffer createNew(){
                 return CharBuffer.allocate( CHAR_BUFFER_SIZE );
