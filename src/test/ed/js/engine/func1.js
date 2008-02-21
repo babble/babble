@@ -59,3 +59,12 @@ catch( e ){
     print( "n" );
 }
 
+
+Function.prototype.d = function(){ return 2*this(); };
+
+function f(){ 
+    return 1; 
+};
+
+print(f.d());
+

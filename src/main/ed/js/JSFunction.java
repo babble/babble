@@ -5,7 +5,7 @@ package ed.js;
 import ed.js.engine.Scope;
 
 public abstract class JSFunction extends JSFunctionBase {
-
+    
     public JSFunction( int num ){
         this( null , null , num );
     }

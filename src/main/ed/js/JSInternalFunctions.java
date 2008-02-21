@@ -3,6 +3,7 @@
 package ed.js;
 
 import ed.js.engine.*;
+import ed.js.func.*;
 
 public class JSInternalFunctions extends JSObjectBase {
 
@@ -14,6 +15,17 @@ public class JSInternalFunctions extends JSObjectBase {
     public final static JSString TYPE_OBJECT = new JSString( "object" );
     public final static JSString TYPE_NATIVE = new JSString( "native" );
     public final static JSString TYPE_FUNCTION = new JSString( "function" );
+
+    public static JSFunction FunctionCons = new JSFunctionCalls0(){
+            
+            public Object call( Scope s , Object extra[] ){
+                throw new RuntimeException( "no" );
+            }
+        };
+
+    public JSInternalFunctions(){
+        super( FunctionCons );
+    }
 
     public boolean JS_instanceof( Object thing , Object type ){
         throw new RuntimeException( "the spec for instanceof is weird and broken - deferring" );
