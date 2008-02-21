@@ -37,7 +37,7 @@ print( /(is)/.test( "the 12 is here" ) );
 print( "H5" );
 p = /(\d)\.(\d)/g;
 t = "abc 123.23 sj 41.2";
-while ( ( result = p.exec( t ) ) ){
+while ( result = p.exec( t ) ){
     print( result.index + " : " + result[0] + "," + result[1] + "," + result[2] );
 }
 
