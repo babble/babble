@@ -28,6 +28,8 @@ print( Math.abs("3.1") );
 print( Math.abs("-3.1") );
 print( Math.abs(4.1) );
 print( Math.abs(-4.1) );
+print( Math.abs("-4") );
 print( Math.abs(null) );
 print( Math.ceil( 1.2 ) );
+//print( Math.ceil( "1.2" ) );
 print( Math.ceil( null ) );

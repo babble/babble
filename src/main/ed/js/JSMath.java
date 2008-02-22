@@ -1,6 +1,7 @@
 // JSMath.java
 
 package ed.js;
+import ed.util.StringParseUtil;
 
 import ed.js.func.*;
 import ed.js.engine.*;
@@ -93,15 +94,12 @@ public class JSMath extends JSObjectBase {
                  public Object call( Scope s , Object a , Object foo[] ){
                      if ( a == null ) 
                          return 0;
-                     if ( a instanceof Number )
-                         return Math.abs(((Number)a).doubleValue());
+                     if ( ! ( a instanceof Number ) )
+                         a = StringParseUtil.parseNumber(a.toString(), Double.NaN);
 
-                     try {
-                         return Math.abs( Double.parseDouble( a.toString() ) );
-                     }
-                     catch (Exception e) {
-                         return Double.NaN;
-                     }
+                     if ( a instanceof Integer )
+                         return Math.abs(((Integer)a).intValue());
+                     return Math.abs(((Number)a).doubleValue());
                      
                  }
 
