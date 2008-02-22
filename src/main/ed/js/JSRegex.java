@@ -43,8 +43,39 @@ public class JSRegex extends JSObjectBase {
         init( p , f );
     }
     
+    static String _jsToJava( String p ){
+        StringBuilder buf = new StringBuilder( p.length() + 10 );
+        
+        boolean inCharClass = false;
+        
+        for( int i=0; i<p.length(); i++ ){
+            char c = p.charAt( i );
+            if ( inCharClass ){
+
+                if ( c == '[' && 
+                     p.charAt( i - 1 ) != '\\'  )
+                    buf.append( "\\" );
+                
+                if ( c == ']' &&
+                     p.charAt( i - 1 ) != '\\'  )
+                    inCharClass = false;
+
+                buf.append( c );
+                continue;
+            }
+
+            if ( p.charAt( i ) == '[' &&
+                 ( i == 0 || p.charAt( i - 1 ) != '\\' ) )
+                inCharClass = true;
+
+            buf.append( c );
+        }
+
+        return buf.toString();
+    }
+
     void init( String p , String f ){
-        _p = p;
+        _p = _jsToJava( p );
         _f = f;
         
         {
@@ -58,7 +89,7 @@ public class JSRegex extends JSObjectBase {
         
         _replaceAll = f.contains( "g" );
         
-        _patt = Pattern.compile( p , _compilePatterns );
+        _patt = Pattern.compile( _p , _compilePatterns );
     }
 
     public String getPattern(){

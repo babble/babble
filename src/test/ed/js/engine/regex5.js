@@ -43,3 +43,5 @@ while ( result = p.exec( t ) ){
 
 ary = "a=".split("=");
 print(ary[1] == null);
+
+print( ".*+?^=!:${}()|]/\\".replace( /([.*+?^=!:${}()|[\]\/\\ ])/g , "\\$1" ) );
