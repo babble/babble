@@ -3,10 +3,10 @@
 package ed.js;
 
 public class JSNumericFunctions extends JSObjectBase {
+
     JSNumericFunctions( JSFunction cons ){
         super( cons );
     }
-    
 
     public Object JS_mul( Object a , Object b ){
         a = _parseNumber( a );
@@ -117,13 +117,6 @@ public class JSNumericFunctions extends JSObjectBase {
              b != null && b instanceof Number )
             return ((Number)a).longValue() & ((Number)b).longValue();
         
-        /*
-        if ( a != null && a instanceof Number )
-            return (Number)a;
-
-        if ( b != null && b instanceof Number )
-            return (Number)b;
-        */
         return 0;
     }
 
