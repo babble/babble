@@ -746,8 +746,24 @@ public class Convert {
         if ( numChildren == 4 ){
             _append( "\n for ( " , n );
 
-            if ( n.getFirstChild().getType() == Token.BLOCK )
-                _add( n.getFirstChild().getFirstChild() , state );
+            if ( n.getFirstChild().getType() == Token.BLOCK ){
+                
+                Node temp = n.getFirstChild().getFirstChild();
+                while ( temp != null ){
+                    
+                    if ( temp.getType() == Token.EXPR_VOID )
+                        _add( temp.getFirstChild() , state );
+                    else
+                        _add( temp , state );
+                    
+                    temp = temp.getNext();
+                    if ( temp != null )
+                        _append( " , " , n );
+                }
+                
+                _append( " ; "  , n );
+                
+            }
             else {
                 _add( n.getFirstChild() , state );
                 _append( " ; " , n );
