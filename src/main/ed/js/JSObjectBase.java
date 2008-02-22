@@ -24,7 +24,7 @@ public class JSObjectBase implements JSObject {
         _readOnlyCheck();
         prefunc();
         if ( n == null )
-            throw new NullPointerException();
+            n = "null";
         
         if ( v != null && v instanceof String )
             v = new JSString( v.toString() );
@@ -67,7 +67,7 @@ public class JSObjectBase implements JSObject {
     public Object get( Object n ){
         prefunc();
         if ( n == null )
-            throw new NullPointerException();
+            n = "null";
         
         if ( n instanceof JSString )
             n = n.toString();
