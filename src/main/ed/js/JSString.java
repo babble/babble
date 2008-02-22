@@ -309,6 +309,10 @@ public class JSString extends JSObjectBase {
         _s = s;
     }
     
+    public JSString( char [] c ){
+        this(new String(c));
+    }
+
     public Object get( Object name ){
         
         if ( name instanceof JSString )
@@ -331,7 +335,8 @@ public class JSString extends JSObjectBase {
     public Object getInt( int n ){
         if ( n >= _s.length() )
             return null;
-        return _s.charAt( n );
+        // Eliot said that we should map characters to objects in scope.java
+        return new JSString(new char[]{_s.charAt( n )});
     }
     
     public int hashCode(){
