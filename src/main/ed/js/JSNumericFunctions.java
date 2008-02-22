@@ -18,11 +18,21 @@ public class JSNumericFunctions extends JSObjectBase {
             Number an = (Number)a;
             Number bn = (Number)b;
 
-            if ( an instanceof Double ||
-                 bn instanceof Double )
-                return an.doubleValue() * bn.doubleValue();
+            if ( an instanceof Integer &&
+                 bn instanceof Integer ){
+                
+                int ai = an.intValue();
+                int bi = bn.intValue();
+                
+                int mul = an.intValue() * bn.intValue();
+
+                boolean ok = true;
+
+                if ( ai > 0 && bi > 0 && mul < 0 );
+                else return mul;
+            }
             
-            return an.longValue() * bn.longValue();
+            return an.doubleValue() * bn.doubleValue();
         }
         
         return Double.NaN;
@@ -54,11 +64,11 @@ public class JSNumericFunctions extends JSObjectBase {
             Number an = (Number)a;
             Number bn = (Number)b;
 
-            if ( an instanceof Double ||
-                 bn instanceof Double )
-                return an.doubleValue() - bn.doubleValue();
+            if ( an instanceof Integer &&
+                 bn instanceof Integer )
+                return an.intValue() - bn.intValue();
             
-            return an.longValue() - bn.longValue();
+            return an.doubleValue() - bn.doubleValue();
         }
         
         return Double.NaN;
@@ -72,11 +82,11 @@ public class JSNumericFunctions extends JSObjectBase {
             Number an = (Number)a;
             Number bn = (Number)b;
 
-            if ( an instanceof Double ||
-                 bn instanceof Double )
-                return an.doubleValue() + bn.doubleValue();
+            if ( an instanceof Integer &&
+                 bn instanceof Integer )
+                return an.intValue() + bn.intValue();
             
-            return an.longValue() + bn.longValue();
+            return an.doubleValue() + bn.doubleValue();
         }
         
         if ( ( a != null && ( a instanceof Number ) && b == null ) ||
@@ -97,7 +107,7 @@ public class JSNumericFunctions extends JSObjectBase {
         
         if ( a != null && a instanceof Number && 
              b != null && b instanceof Number )
-            return ((Number)a).longValue() | ((Number)b).longValue();
+            return ((Number)a).intValue() | ((Number)b).intValue();
         
         if ( a != null && a instanceof Number )
             return (Number)a;
@@ -115,7 +125,7 @@ public class JSNumericFunctions extends JSObjectBase {
         
         if ( a != null && a instanceof Number && 
              b != null && b instanceof Number )
-            return ((Number)a).longValue() & ((Number)b).longValue();
+            return ((Number)a).intValue() & ((Number)b).intValue();
         
         return 0;
     }
@@ -127,7 +137,7 @@ public class JSNumericFunctions extends JSObjectBase {
         
         if ( a != null && a instanceof Number && 
              b != null && b instanceof Number )
-            return ((Number)a).longValue() ^ ((Number)b).longValue();
+            return ((Number)a).intValue() ^ ((Number)b).intValue();
         
         if ( a != null && a instanceof Number )
             return (Number)a;
@@ -144,7 +154,7 @@ public class JSNumericFunctions extends JSObjectBase {
 
         if ( a != null && a instanceof Number && 
              b != null && b instanceof Number )
-            return ((Number)a).longValue() % ((Number)b).longValue();
+            return ((Number)a).intValue() % ((Number)b).intValue();
         
         return Double.NaN;
     }
@@ -152,10 +162,10 @@ public class JSNumericFunctions extends JSObjectBase {
     public Number JS_lsh( Object a , Object b ){
         a = _parseNumber( a );
         b = _parseNumber( b );
-
+        
         if ( a != null && a instanceof Number && 
              b != null && b instanceof Number )
-            return ((Number)a).longValue() << ((Number)b).longValue();
+            return ((Number)a).intValue() << ((Number)b).intValue();
         
         if ( a == null || ! ( a instanceof Number ) )
             return 0;
@@ -169,7 +179,7 @@ public class JSNumericFunctions extends JSObjectBase {
 
         if ( a != null && a instanceof Number && 
              b != null && b instanceof Number )
-            return ((Number)a).longValue() >> ((Number)b).longValue();
+            return ((Number)a).intValue() >> ((Number)b).intValue();
         
         if ( a == null || ! ( a instanceof Number ) )
             return 0;
@@ -180,10 +190,10 @@ public class JSNumericFunctions extends JSObjectBase {
     public Number JS_ursh( Object a , Object b ){
         a = _parseNumber( a );
         b = _parseNumber( b );
-
+        
         if ( a != null && a instanceof Number && 
              b != null && b instanceof Number )
-            return ((Number)a).longValue() >>> ((Number)b).longValue();
+            return ((Number)a).intValue() >>> ((Number)b).intValue();
         
         if ( a == null || ! ( a instanceof Number ) )
             return 0;
@@ -194,7 +204,7 @@ public class JSNumericFunctions extends JSObjectBase {
     public Number JS_bitnot( Object a ){
         a = _parseNumber( a );
         if ( a instanceof Number )
-            return ~((Number)a).longValue();
+            return ~((Number)a).intValue();
         return -1;
     }
 
