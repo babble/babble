@@ -5,7 +5,7 @@ package ed.js;
 import ed.js.engine.*;
 import ed.js.func.*;
 
-public class JSInternalFunctions extends JSObjectBase {
+public class JSInternalFunctions extends JSNumericFunctions {
 
     public final static JSString TYPE_STRING = new JSString( "string" );
     public final static JSString TYPE_NATIVE_STRING = new JSString( "native_string" );
@@ -113,6 +113,10 @@ public class JSInternalFunctions extends JSObjectBase {
         return b;
     }
 
+    public static Boolean JS_not( Object o ){
+        return ! JS_evalToBool( o );
+    }
+
     public static boolean JS_evalToBool( Object foo ){
         if ( foo == null )
             return false;
@@ -132,88 +136,6 @@ public class JSInternalFunctions extends JSObjectBase {
             return foo.toString().length() > 0 ;
 
         return true;
-    }
-
-    public Object JS_mul( Object a , Object b ){
-        a = _parseNumber( a );
-        b = _parseNumber( b );
-
-        if ( a != null && ( a instanceof Number ) &&
-             b != null && ( b instanceof Number ) ){
-            
-            Number an = (Number)a;
-            Number bn = (Number)b;
-
-            if ( an instanceof Double ||
-                 bn instanceof Double )
-                return an.doubleValue() * bn.doubleValue();
-            
-            return an.longValue() * bn.longValue();
-        }
-        
-        return Double.NaN;
-    }
-
-    public Object JS_div( Object a , Object b ){
-        a = _parseNumber( a );
-        b = _parseNumber( b ) ;       
-
-        if ( a != null && ( a instanceof Number ) &&
-             b != null && ( b instanceof Number ) ){
-            
-            Number an = (Number)a;
-            Number bn = (Number)b;
-
-            return an.doubleValue() / bn.doubleValue();
-        }
-        
-        return Double.NaN;
-    }
-
-    public Object JS_sub( Object a , Object b ){
-        a = _parseNumber( a );
-        b = _parseNumber( b );        
-
-        if ( a != null && ( a instanceof Number ) &&
-             b != null && ( b instanceof Number ) ){
-            
-            Number an = (Number)a;
-            Number bn = (Number)b;
-
-            if ( an instanceof Double ||
-                 bn instanceof Double )
-                return an.doubleValue() - bn.doubleValue();
-            
-            return an.longValue() - bn.longValue();
-        }
-        
-        return Double.NaN;
-    }
-
-    public Object JS_add( Object a , Object b ){
-        
-        if ( a != null && ( a instanceof Number ) &&
-             b != null && ( b instanceof Number ) ){
-            
-            Number an = (Number)a;
-            Number bn = (Number)b;
-
-            if ( an instanceof Double ||
-                 bn instanceof Double )
-                return an.doubleValue() + bn.doubleValue();
-            
-            return an.longValue() + bn.longValue();
-        }
-        
-        if ( ( a != null && ( a instanceof Number ) && b == null ) ||
-             ( b != null && ( b instanceof Number ) && a == null ) ){
-            return Double.NaN;
-        }
-
-        String s1 = a == null ? "null" : a.toString();
-        String s2 = b == null ? "null" : b.toString();
-        
-        return new JSString( s1 + s2 );
     }
 
     public static Boolean JS_shne( Object a , Object b ){
@@ -337,121 +259,6 @@ public class JSInternalFunctions extends JSObjectBase {
         return a.toString().compareTo( b.toString() );
     }
     
-    public Number JS_bitor( Object a , Object b ){
-        
-        a = _parseNumber( a );
-        b = _parseNumber( b );
-        
-        if ( a != null && a instanceof Number && 
-             b != null && b instanceof Number )
-            return ((Number)a).longValue() | ((Number)b).longValue();
-        
-        if ( a != null && a instanceof Number )
-            return (Number)a;
-
-        if ( b != null && b instanceof Number )
-            return (Number)b;
-
-        return 0;
-    }
-
-    public Number JS_bitand( Object a , Object b ){
-        
-        a = _parseNumber( a );
-        b = _parseNumber( b );
-        
-        if ( a != null && a instanceof Number && 
-             b != null && b instanceof Number )
-            return ((Number)a).longValue() & ((Number)b).longValue();
-        
-        /*
-        if ( a != null && a instanceof Number )
-            return (Number)a;
-
-        if ( b != null && b instanceof Number )
-            return (Number)b;
-        */
-        return 0;
-    }
-
-    public Number JS_bitxor( Object a , Object b ){
-        
-        a = _parseNumber( a );
-        b = _parseNumber( b );
-        
-        if ( a != null && a instanceof Number && 
-             b != null && b instanceof Number )
-            return ((Number)a).longValue() ^ ((Number)b).longValue();
-        
-        if ( a != null && a instanceof Number )
-            return (Number)a;
-
-        if ( b != null && b instanceof Number )
-            return (Number)b;
-
-        return 0;
-    }
-
-    public Number JS_mod( Object a , Object b ){
-        a = _parseNumber( a );
-        b = _parseNumber( b );
-
-        if ( a != null && a instanceof Number && 
-             b != null && b instanceof Number )
-            return ((Number)a).longValue() % ((Number)b).longValue();
-        
-        return Double.NaN;
-    }
-
-    public Number JS_lsh( Object a , Object b ){
-        a = _parseNumber( a );
-        b = _parseNumber( b );
-
-        if ( a != null && a instanceof Number && 
-             b != null && b instanceof Number )
-            return ((Number)a).longValue() << ((Number)b).longValue();
-        
-        if ( a == null || ! ( a instanceof Number ) )
-            return 0;
-        
-        return (Number)a;
-    }
-
-    public Number JS_rsh( Object a , Object b ){
-        a = _parseNumber( a );
-        b = _parseNumber( b );
-
-        if ( a != null && a instanceof Number && 
-             b != null && b instanceof Number )
-            return ((Number)a).longValue() >> ((Number)b).longValue();
-        
-        if ( a == null || ! ( a instanceof Number ) )
-            return 0;
-        
-        return (Number)a;
-    }
-
-    public Number JS_ursh( Object a , Object b ){
-        a = _parseNumber( a );
-        b = _parseNumber( b );
-
-        if ( a != null && a instanceof Number && 
-             b != null && b instanceof Number )
-            return ((Number)a).longValue() >>> ((Number)b).longValue();
-        
-        if ( a == null || ! ( a instanceof Number ) )
-            return 0;
-        
-        return (Number)a;
-    }
-
-    public Number JS_bitnot( Object a ){
-        a = _parseNumber( a );
-        if ( a instanceof Number )
-            return ~((Number)a).longValue();
-        return -1;
-    }
-
     public static final Object parseNumber( final Object o , final Object def ){
 	Object r = _parseNumber( o );
 	if ( r instanceof Number )
@@ -465,44 +272,7 @@ public class JSInternalFunctions extends JSObjectBase {
         return o[o.length-1];
     }
 
-    static final Object _parseNumber( final Object orig ){
-        Object o = orig;
-        if ( o == null )
-            return null;
-        
-        if ( o instanceof Number )
-            return o;
-        
-        String s = null;
-        if ( o instanceof JSString )
-            s = o.toString();
-        else if ( o instanceof String )
-            s = o.toString();
-        
-        if ( s == null )
-            return orig;
 
-        if ( s.length() > 9 )
-            return s;
-
-        boolean allDigits = true;
-        for ( int i=0; i<s.length(); i++ ){
-            final char c = s.charAt( i );
-            if ( ! Character.isDigit( c ) ){
-                allDigits = false;
-                if ( c != '.' )
-                    return orig;
-            }
-        }
-        
-        if ( allDigits )
-            return Integer.parseInt( s );
-        
-        if ( s.matches( "\\d+\\.\\d+" ) )
-            return Double.parseDouble( s );
-
-        return orig;
-    }
 
     static String _debug( Object o ){
         if ( o == null )

@@ -482,7 +482,7 @@ public class Convert {
             
         case Token.NOT:
             _assertOne( n );
-            _append( " ! JS_evalToBool( " , n );
+            _append( " JS_not( " , n );
             _add( n.getFirstChild() , state );
             _append( " ) " , n );
             break;
@@ -1178,6 +1178,9 @@ public class Convert {
 
     private void _append( String s , Node n ){
         _mainJavaCode.append( s );
+
+        if ( n == null )
+            return;
         
         int numLines = 0;
         for ( int i=0; i<s.length(); i++ )
@@ -1193,9 +1196,10 @@ public class Convert {
                 l = new ArrayList<Node>();
                 _javaCodeToLines.put( i , l );
             }
+            
             l.add( n );
         }
-
+        
         _currentLineNumber = end;
     }
     
@@ -1316,6 +1320,8 @@ public class Convert {
     }
 
     public void fixStack( Throwable e ){
+        final boolean debug = false;
+        
         boolean removeThings = false;
         
         StackTraceElement stack[] = e.getStackTrace();
@@ -1326,6 +1332,8 @@ public class Convert {
             StackTraceElement element = stack[i];
             if ( element == null )
                 continue;
+            
+            if ( debug ) System.out.println( element );
 
             if ( element.toString().contains( ".call(JSFunctionCalls" ) || 
                  element.toString().contains( "ed.js.JSFunctionBase.call(" ) ||
@@ -1343,7 +1351,12 @@ public class Convert {
             if ( ! es.contains( file ) )
                 continue;
             
-            int line = StringParseUtil.parseInt( es.substring( es.lastIndexOf( ":" ) + 1 ) , -1 ) - _preMainLines;
+            int line = StringParseUtil.parseInt( es.substring( es.lastIndexOf( ":" ) + 1 ) , -1 );
+            if ( debug ) System.out.println( "\t" + line );
+            
+            line = ( line - _preMainLines ) - 1;
+            if ( debug ) System.out.println( "\t" + line );
+
             List<Node> nodes = _javaCodeToLines.get( line );
             if ( nodes == null )
                 continue;
@@ -1356,11 +1369,11 @@ public class Convert {
             if ( sof instanceof FunctionNode )
                 method = ((FunctionNode)sof).getFunctionName();
             
-            
+            if ( debug ) System.out.println( "\t\t" + line );
             stack[i] = new StackTraceElement( _name , method , _name , line );
             changed = true;
         }
-
+        
         if ( removeThings ){
             List<StackTraceElement> lst = new ArrayList<StackTraceElement>();
             for ( StackTraceElement s : stack ){

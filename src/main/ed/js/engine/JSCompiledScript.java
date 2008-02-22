@@ -18,6 +18,7 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
             return _call( scope, extra );
         }
         catch ( RuntimeException re ){
+            if ( Convert.D ) re.printStackTrace();
             _convert.fixStack( re );
             throw re;
         }
