@@ -28,16 +28,14 @@ public class JSFileLibrary extends JSObjectBase {
         _doInit = doInit;
     }
     
-    private void _init(){
-        if ( _didInit )
-            return;
-        
+    private synchronized void _init(){
         if ( ! _doInit )
             return;
         
-        _didInit = true;
+        Object foo = get( "_init" , false );
+        if ( foo == _initFunction )
+            return;
         
-        Object foo = get( "_init" );
         if ( foo instanceof JSFunction ){
             Scope s = null;
             if ( _context != null )
@@ -47,15 +45,24 @@ public class JSFileLibrary extends JSObjectBase {
             else 
                 throw new RuntimeException( "no scope :(" );
 	    
+            _initFunction = (JSFunction)foo;
+            
 	    Scope pref = s.getTLPreferred();
 	    s.setTLPreferred( null );
-            ((JSFunction)foo).call( s );
+            _initFunction.call( s );
 	    s.setTLPreferred( pref );
         }
+        
+        
     }
 
     public Object get( final Object n ){
-        _init();
+        return get( n , true );
+    }
+    
+    public Object get( final Object n , final boolean doInit ){
+        if ( doInit )
+            _init();
 
         Object foo = _get( n );
         if ( foo instanceof JxpSource ){
@@ -146,7 +153,8 @@ public class JSFileLibrary extends JSObjectBase {
     final AppContext _context;
     final Scope _scope;
     final boolean _doInit;
-    boolean _didInit = false;
+    
+    private JSFunction _initFunction;
     private final Map<File,JxpSource> _sources = new HashMap<File,JxpSource>();
     
 }
