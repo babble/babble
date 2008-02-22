@@ -4,6 +4,7 @@ package ed.js;
 
 import java.util.*;
 
+import ed.util.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 
@@ -18,6 +19,22 @@ public class JSNumber {
     public static JSFunction getFunction( String name ){
         return functions.get( name );
     }
+
+    public static final JSFunction CONS = new JSFunctionCalls2(){
+            public Object call( Scope scope , Object a , Object b , Object extra[] ){
+                
+                if ( a instanceof Number )
+                    return a;
+                
+                if ( a != null )
+                    return StringParseUtil.parseNumber( a.toString() , (Number)b );
+                
+                if ( b != null )
+                    return b;
+                throw new RuntimeException( "not a number [" + a + "]" );
+            }
+        };
+    
     
     public static JSFunction toFixed = new JSFunctionCalls1(){
             public Object call( Scope sc , Object pointsInt , Object fo00000o[] ){

@@ -181,46 +181,12 @@ public class JSBuiltInFunctions {
         final boolean _newLine;
     }
 
-    public static class NewObject extends JSFunctionCalls0 {
-        NewObject(){
-            super();
-        }
-
-        public Object call( Scope scope , Object extra[] ){
-            return new JSObjectBase();
-        }
-    }
+    public static JSFunction NewObject = new JSFunctionCalls0(){
+            public Object call( Scope scope , Object extra[] ){
+                return new JSObjectBase();
+            }
+        };
     
-    public static class NewArray extends JSFunctionCalls1 {
-        NewArray(){
-            super();
-        }
-
-        public JSObject newOne(){
-            return new JSArray();
-        }
-
-        public Object call( Scope scope , Object a , Object[] extra ){
-            int len = 0;
-            if ( extra == null || extra.length == 0 ){
-                if ( a instanceof Number )
-                    len = ((Number)a).intValue();
-            }
-            else {
-                len = 1 + extra.length;
-            }
-            
-            JSArray arr = new JSArray( len );
-            
-            if ( extra != null && extra.length > 0 ){
-                arr.setInt( 0 , a );
-                for ( int i=0; i<extra.length; i++)
-                    arr.setInt( 1 + i , extra[i] );
-            }
-            
-            return arr;
-        }
-    }
     
     public static class NewDate extends JSFunctionCalls1 {
         public Object call( Scope scope , Object t , Object extra[] ){
@@ -390,8 +356,8 @@ public class JSBuiltInFunctions {
         _myScope.put( "SYSOUT" , new print() , true );
         _myScope.put( "sleep" , new sleep() , true );
 
-        _myScope.put( "Object" , new NewObject() , true );
-        _myScope.put( "Array" , new NewArray() , true );
+        _myScope.put( "Object" , NewObject , true );
+        _myScope.put( "Array" , JSArray._cons , true );
         _myScope.put( "Date" , JSDate._cons , true );
         _myScope.put( "String" , JSString._cons , true );
         _myScope.put( "RegExp" , JSRegex._cons , true );
@@ -428,24 +394,9 @@ public class JSBuiltInFunctions {
                 }
             } , true );
 	
-        JSFunctionCalls2 parseNumber = new JSFunctionCalls2(){
-		public Object call( Scope scope , Object a , Object b , Object extra[] ){
-                    
-                    if ( a instanceof Number )
-                        return a;
 
-                    if ( a != null )
-                        return StringParseUtil.parseNumber( a.toString() , (Number)b );
-                    
-                    if ( b != null )
-                        return b;
-
-                    throw new RuntimeException( "not a number [" + a + "]" );
-		}
-            };
-
-	_myScope.put( "Number" , parseNumber , true );
-	_myScope.put( "parseNumber" , parseNumber , true );
+	_myScope.put( "Number" , JSNumber.CONS , true );
+	_myScope.put( "parseNumber" , JSNumber.CONS , true );
         
 	_myScope.put( "parseFloat" , 
                       new JSFunctionCalls1(){

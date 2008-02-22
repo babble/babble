@@ -88,6 +88,7 @@ public class JSDate extends JSObjectBase implements Comparable {
     }
 
     public JSDate( long t ){
+        super( _cons );
         _time = t;
     }
 

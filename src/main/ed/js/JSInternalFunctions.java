@@ -32,7 +32,29 @@ public class JSInternalFunctions extends JSObjectBase {
     }
 
     public boolean JS_instanceof( Object thing , Object type ){
-        throw new RuntimeException( "the spec for instanceof is weird and broken - deferring" );
+        if ( thing == null )
+            return false;
+        
+        if ( type == null )
+            throw new NullPointerException( "type can't be null" );
+        
+        if ( thing instanceof Number ){
+            //return type == JSNumber.CONS;
+            return false;
+        }
+        
+        if ( ! ( thing instanceof JSObjectBase ) )
+            return false;
+        
+        if ( type == JSBuiltInFunctions.NewObject )
+            return true;
+
+        JSObjectBase o = (JSObjectBase)thing;
+        
+        if ( o.getConstructor() == null )
+            return false;
+
+        return o.getConstructor().getClass() == type.getClass();
     }
 
     public JSString JS_typeof( Object obj ){
