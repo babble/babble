@@ -278,11 +278,19 @@ public class JSInternalFunctions extends JSObjectBase {
         if ( a == null && b == null )
             return 0;
 
-        if ( a == null )
-            return 1;
+        if ( a == null ){
+            if ( b instanceof Number )
+                a = 0;
+            else
+                return 1;
+        }
         
-        if (  b == null )
-            return -1;
+        if (  b == null ){
+            if ( a instanceof Number )
+                b = 0;
+            else
+                return -1;
+        }
         
         if ( a.equals( b ) )
             return 0;
