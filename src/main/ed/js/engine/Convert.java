@@ -467,7 +467,7 @@ public class Convert {
             break;
             
         case Token.WHILE:
-            _append( "while( JS_evalToBool( " , n );
+            _append( "while( false || JS_evalToBool( " , n );
             _add( n.getFirstChild() , state );
             _append( " ) ) " , n );
             _add( n.getFirstChild().getNext() , state );
@@ -609,7 +609,8 @@ public class Convert {
         String val = "val" + (int)(Math.random() * 10000);
         _append( "boolean " + ft + " = false;\n" , n );
         _append( "do { \n " , n );
-        
+        _append( " if ( false ) break; \n" , n );
+
         Node caseArea = n.getFirstChild();
         _append( "Object " + val + " = " , n );
         _add( caseArea , state );
@@ -804,7 +805,7 @@ public class Convert {
             
             _append( "do { \n " , theLoop );
             _add( main , state );
-            _append( " } \n while ( JS_evalToBool( " , n );
+            _append( " } \n while ( false || JS_evalToBool( " , n );
             _add( predicate.getFirstChild() , state );
             _append( " ) );\n " , n );
         }
