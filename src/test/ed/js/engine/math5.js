@@ -23,3 +23,11 @@ print( parseInt( "54o" , 55 ) );
 
 print( parseFloat( "-3.1" ) );
 print( parseInt( "asd" ) || 5 );
+
+print( Math.abs("3.1") );
+print( Math.abs("-3.1") );
+print( Math.abs(4.1) );
+print( Math.abs(-4.1) );
+print( Math.abs(null) );
+print( Math.ceil( 1.2 ) );
+print( Math.ceil( null ) );

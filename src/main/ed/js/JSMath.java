@@ -76,6 +76,36 @@ public class JSMath extends JSObjectBase {
                      return (int)Math.floor(((Number)a).doubleValue());
                  }
              } );
+        
+        set( "ceil" ,
+             new JSFunctionCalls1(){
+                 public Object call( Scope s , Object a , Object foo[] ){
+                     if ( a == null )
+                         return 0;
+                     if ( ! ( a instanceof Number ) )
+                         return Double.NaN;
+                     return (int)Math.ceil(((Number)a).doubleValue());
+                 }
+             } );
+        
+        set( "abs" ,
+             new JSFunctionCalls1(){
+                 public Object call( Scope s , Object a , Object foo[] ){
+                     if ( a == null ) 
+                         return 0;
+                     if ( a instanceof Number )
+                         return Math.abs(((Number)a).doubleValue());
+
+                     try {
+                         return Math.abs( Double.parseDouble( a.toString() ) );
+                     }
+                     catch (Exception e) {
+                         return Double.NaN;
+                     }
+                     
+                 }
+
+             } );
     }
     
 
