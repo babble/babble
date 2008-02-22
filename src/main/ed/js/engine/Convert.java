@@ -482,7 +482,7 @@ public class Convert {
             
         case Token.NOT:
             _assertOne( n );
-            _append( " ! JS_evalToBool( " , n );
+            _append( " JS_not( " , n );
             _add( n.getFirstChild() , state );
             _append( " ) " , n );
             break;

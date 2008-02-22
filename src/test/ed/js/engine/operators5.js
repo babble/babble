@@ -70,3 +70,11 @@ a = null;
 print( a );
 a || ( a = 1 );
 print( a );
+
+print( ! "hi" in { hi : 5 } );
+print( ! ( "hi" in { hi : 5 } ) );
+print( "hi" in { hi : 5 } );
+print( ! ( "hi" in { hiz : 5 } ) );
+
+
+print( ! "hi" in { "false" : 5 } );

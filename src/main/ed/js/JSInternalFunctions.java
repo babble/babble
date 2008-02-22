@@ -113,6 +113,10 @@ public class JSInternalFunctions extends JSObjectBase {
         return b;
     }
 
+    public static Boolean JS_not( Object o ){
+        return ! JS_evalToBool( o );
+    }
+
     public static boolean JS_evalToBool( Object foo ){
         if ( foo == null )
             return false;
