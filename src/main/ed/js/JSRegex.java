@@ -50,8 +50,28 @@ public class JSRegex extends JSObjectBase {
         
         for( int i=0; i<p.length(); i++ ){
             char c = p.charAt( i );
-            if ( inCharClass ){
+            
+            if ( c == '\\' &&
+                 i + 1 < p.length() &&
+                 Character.isDigit( p.charAt( i + 1 ) ) ){
+                
+                // this is an escape sequence
+                int end = i + 1;
+                while ( end < p.length() && 
+                        Character.isDigit( p.charAt( end ) ) && 
+                        end - i < 3
+                        )
+                    end++;
+                
+                int foo = Integer.parseInt( p.substring( i + 1 , end ) , 8 );
+                char myChar = (char)foo;
 
+                buf.append( myChar );
+                i = end - 1;
+                continue;
+            }
+            
+            if ( inCharClass ){
                 if ( c == '[' && 
                      p.charAt( i - 1 ) != '\\'  )
                     buf.append( "\\" );
