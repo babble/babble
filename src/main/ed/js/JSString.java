@@ -197,7 +197,9 @@ public class JSString extends JSObjectBase {
                         Matcher m = r._patt.matcher( str );
                         if ( ! m.find() )
                             return null;
-                        return new JSString(m.group(0));
+                        JSArray a = new JSArray();
+                        a.add(new JSString(m.group(0)));
+                        return a;
                     }
                 } );
                 

@@ -9,7 +9,7 @@ print( "foo the the the cow".replace( /the/ , "___" ) );
 print( "foo the the the cow".replace( /the/g , "___" ) );
 
 print( "the 123 food".match( /\d+/ ) );
-
+print( typeof ( "the 123 food".match( /\d+/ ) ) );
 print( "the 123 food".replace( /(\d+)/ , "__$_$1__") );
 
 
