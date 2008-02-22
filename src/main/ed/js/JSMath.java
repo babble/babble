@@ -73,7 +73,12 @@ public class JSMath extends JSObjectBase {
                      if ( a == null )
                          return 0;
                      if ( ! ( a instanceof Number ) )
-                         return Double.NaN;
+                         try {
+                             a = StringParseUtil.parseStrict(a.toString());
+                         }
+                         catch (Exception e) {
+                             return Double.NaN;
+                         }
                      return (int)Math.floor(((Number)a).doubleValue());
                  }
              } );
@@ -84,7 +89,12 @@ public class JSMath extends JSObjectBase {
                      if ( a == null )
                          return 0;
                      if ( ! ( a instanceof Number ) )
-                         return Double.NaN;
+                         try {
+                             a = StringParseUtil.parseStrict(a.toString());
+                         }
+                         catch (Exception e) {
+                             return Double.NaN;
+                         }
                      return (int)Math.ceil(((Number)a).doubleValue());
                  }
              } );
@@ -95,7 +105,12 @@ public class JSMath extends JSObjectBase {
                      if ( a == null ) 
                          return 0;
                      if ( ! ( a instanceof Number ) )
-                         a = StringParseUtil.parseNumber(a.toString(), Double.NaN);
+                         try {
+                             a = StringParseUtil.parseStrict(a.toString());
+                         }
+                         catch (Exception e) {
+                             return Double.NaN;
+                         }
 
                      if ( a instanceof Integer )
                          return Math.abs(((Integer)a).intValue());

@@ -131,6 +131,14 @@ public final class StringParseUtil {
 
     }
 
+    public static Number parseStrict( String s ){
+        // Use Java's "strict parsing" methods Integer.parseInt and
+        // Double.parseDouble to parse s "strictly". i.e. if it's neither a 
+        // double or an integer, fail.
+        if( s.indexOf('.') != -1 )
+            return Double.parseDouble(s);
+        return Integer.parseInt(s);
+    }
 
 }
    
