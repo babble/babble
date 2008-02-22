@@ -40,3 +40,12 @@ print( Math.ceil( "1" ) );
 print( Math.ceil( null ) );
 print( Math.ceil( Date() ) );
 print( Math.ceil( "abb" ) );
+
+print( Math.round( 1.2 ) );
+print( Math.round( -2.3 ) );
+print( Math.round( 2 ) );
+print( Math.round( "44" ) );
+print( Math.round( "4.32" ) );
+print( Math.round( "0x45" ) );
+print( Math.round( "3a" ) );
+

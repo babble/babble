@@ -98,6 +98,22 @@ public class JSMath extends JSObjectBase {
                      return (int)Math.ceil(((Number)a).doubleValue());
                  }
              } );
+
+        set( "round" ,
+             new JSFunctionCalls1(){
+                 public Object call( Scope s , Object a , Object foo[] ){
+                     if ( a == null )
+                         return 0;
+                     if ( ! ( a instanceof Number ) )
+                         try {
+                             a = StringParseUtil.parseStrict(a.toString());
+                         }
+                         catch (Exception e) {
+                             return Double.NaN;
+                         }
+                     return (int)Math.round(((Number)a).doubleValue());
+                 }
+             } );
         
         set( "abs" ,
              new JSFunctionCalls1(){
