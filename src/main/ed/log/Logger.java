@@ -100,6 +100,12 @@ public class Logger extends JSFunctionCalls2 {
              || s.equals( "fatal" ) )
             return null;
         
+        if ( s.equals( "LEVEL" ) )
+            return Level.me;
+
+        if ( s.equals( "level" ) )
+            return _level;
+        
         Object foo = super.get( n );
         if ( foo != null )
             return foo;
@@ -117,9 +123,41 @@ public class Logger extends JSFunctionCalls2 {
         return child;
     }
 
+    public Object set( Object n , Object v ){
+        String s = n.toString();
+
+        if ( s.equals( "level" ) ){
+            _level = (Level)v;
+            return _level;
+        }
+        
+        if ( s.equals( "appenders" ) )
+            throw new RuntimeException( "can't change" );
+
+        return super.set( n , v );
+    }
+
     // --------------------
 
+    public Level getEffectiveLevel(){
+        if ( _level != null )
+            return _level;
+        
+        Logger t = this._parent;
+        while ( t != null ){
+            if ( t._level != null )
+                return t._level;
+            t = t._parent;
+        }
+        
+        return Level.DEBUG;
+    }
+
     public void log( Level level , String msg , Throwable throwable ){
+        Level eLevel = getEffectiveLevel();
+        if ( eLevel.compareTo( level ) > 0 )
+            return;
+
         JSDate date = new JSDate();
         Thread thread = Thread.currentThread();
         
@@ -154,6 +192,7 @@ public class Logger extends JSFunctionCalls2 {
     final String _name;
     final String _fullName;
     List<Appender> _appenders;
+    Level _level = null;
 
     private final static Map<String,Logger> _fullNameToLogger = Collections.synchronizedMap( new HashMap<String,Logger>() );
     private final static List<Appender> _defaultAppenders;
