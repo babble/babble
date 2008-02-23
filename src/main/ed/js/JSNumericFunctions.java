@@ -8,6 +8,19 @@ public class JSNumericFunctions extends JSObjectBase {
         super( cons );
     }
 
+    public static boolean couldBeInt( double d ){
+        if ( d > Integer.MAX_VALUE / 2 )
+            return false;
+        
+        if ( d < Integer.MIN_VALUE / 2 )
+            return false;
+        
+        if ( Math.floor( d ) != d )
+            return false;
+
+        return true;
+    }
+
     public Object JS_mul( Object a , Object b ){
         a = _parseNumber( a );
         b = _parseNumber( b );

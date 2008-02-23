@@ -303,9 +303,14 @@ public class Convert {
             break;
 
         case Token.NUMBER:
-            String temp = String.valueOf( n.getDouble() );
-            if ( temp.endsWith( ".0" ) )
-                temp = "Integer.valueOf( " + temp.substring( 0 , temp.length() - 2 ) + " ) ";
+            double d = n.getDouble();
+            String temp = String.valueOf( d );
+
+            boolean useInt = 
+                temp.endsWith( ".0" ) || 
+                JSNumericFunctions.couldBeInt( d );
+            if ( useInt )
+                temp = "Integer.valueOf( " + ((int)d) + " ) ";
             else
                 temp = "Double.valueOf( " + temp + " ) ";
             _append( temp , n );

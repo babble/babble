@@ -230,7 +230,10 @@ public class JSON {
             return a;
         
         case Token.NUMBER:
-            return n.getDouble();
+            double d = n.getDouble();
+            if ( JSNumericFunctions.couldBeInt( d ) )
+                return (int)d;
+            return d;
         case Token.STRING:
             return new JSString( n.getString() );
 
