@@ -106,6 +106,15 @@ public class Scope implements JSObject {
 
         if ( _locked )
             throw new RuntimeException( "locked" );
+
+        if ( _with != null ){
+            for ( int i=_with.size()-1; i>=0; i-- ){
+                JSObject temp = _with.get( i );
+                if ( temp.containsKey( name ) ){
+                    return temp.set( name , o );
+                }
+            }
+        }
         
         if ( local
              || _parent == null
