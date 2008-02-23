@@ -114,7 +114,7 @@ public class Logger extends JSFunctionCalls2 {
             if ( _appenders == null )
                 _appenders = new ArrayList<Appender>();
             JSArray a = new JSArray( _appenders );
-            set( "appenders" , a );
+            super.set( "appenders" , a );
             return a;
         }
 
