@@ -51,20 +51,22 @@ public class ConvertTest extends TestCase {
 
             String outString = _clean( bout.toString() );
             
-            File correct = new File( _file.toString().replaceAll( ".js$" , ".out" ) );
-            if ( ! correct.exists() ){
-                assertTrue( correct.exists() );
-            }
-            String correctOut = _clean( StreamUtil.readFully( correct ) );
-            
-            try {
-                assertClose( correctOut , outString );
-            }
-            catch ( MyAssert a ){
-                System.out.println();
-                System.out.println( correctOut.replaceAll( "[\r\n ]+" , " " ) );
-                System.out.println( outString.replaceAll( "[\r\n ]+" , " " ) );
-                throw a;
+            if ( _file.toString().contains( "/engine/" ) ){
+                File correct = new File( _file.toString().replaceAll( ".js$" , ".out" ) );
+                if ( ! correct.exists() ){
+                    assertTrue( correct.exists() );
+                }
+                String correctOut = _clean( StreamUtil.readFully( correct ) );
+                
+                try {
+                    assertClose( correctOut , outString );
+                }
+                catch ( MyAssert a ){
+                    System.out.println();
+                    System.out.println( correctOut.replaceAll( "[\r\n ]+" , " " ) );
+                    System.out.println( outString.replaceAll( "[\r\n ]+" , " " ) );
+                    throw a;
+                }
             }
         }
         
