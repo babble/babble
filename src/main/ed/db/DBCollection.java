@@ -125,6 +125,9 @@ public abstract class DBCollection extends JSObjectLame {
                     boolean upsert = false;
                     boolean apply = true;
                     
+                    if ( o instanceof JSObject && ((JSObject)o).containsKey( "$inc" ) )
+                        apply = false;
+
                     if ( foo != null && foo.length > 0 && foo[0] instanceof JSObject ){
                         JSObject params = (JSObject)foo[0];
                         
