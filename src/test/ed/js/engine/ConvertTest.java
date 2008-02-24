@@ -34,17 +34,19 @@ public class ConvertTest extends TestCase {
             final PrintStream out = new PrintStream( bout );
             
             JSFunction f = c.get();
-
-            JSFunction myout = new JSFunctionCalls1(){
-                    public Object call( Scope scope ,Object o , Object extra[] ){
-                        out.println( o );
-                        return null;
-                    }
-                };
-            
             Scope scope = Scope.GLOBAL.child();
-            scope.put( "print" , myout , true );
-            scope.put( "SYSOUT" , myout , true );
+            
+            if ( _file.toString().contains( "/engine/" ) ){
+                JSFunction myout = new JSFunctionCalls1(){
+                        public Object call( Scope scope ,Object o , Object extra[] ){
+                            out.println( o );
+                            return null;
+                        }
+                    };
+
+                scope.put( "print" , myout , true );
+                scope.put( "SYSOUT" , myout , true );
+            }
 
             f.call( scope );
 
