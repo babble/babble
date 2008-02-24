@@ -6,6 +6,7 @@ import java.util.regex.*;
 
 import com.twmacinta.util.*;
 
+import ed.util.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 
@@ -39,6 +40,25 @@ public class JSString extends JSObjectBase {
         }
         
         protected void init(){
+
+            final StringEncrypter encrypter = new StringEncrypter( "knsd8712@!98sad" );
+            
+            _prototype.set( "encrypt" , new JSFunctionCalls0(){
+                    public Object call( Scope s , Object foo[] ){
+                        synchronized ( encrypter ){
+                            return new JSString( encrypter.encrypt( s.getThis().toString() ) );
+                        }
+                    }        
+                } );
+
+            _prototype.set( "decrypt" , new JSFunctionCalls0(){
+                    public Object call( Scope s , Object foo[] ){
+                        synchronized ( encrypter ){
+                            return new JSString( encrypter.decrypt( s.getThis().toString() ) );
+                        }
+                    }        
+                } );
+
             
             _prototype.set( "trim" , new JSFunctionCalls0() {
                     public Object call( Scope s , Object foo[] ){
@@ -301,6 +321,7 @@ public class JSString extends JSObjectBase {
                         return new JSString( buf.toString() );
                     }
                 } );
+
         }
     };
     
