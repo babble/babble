@@ -17,7 +17,7 @@ public class AppServer implements HttpHandler {
 
     static boolean D = Boolean.getBoolean( "DEBUG.APP" );
     static String OUR_DOMAINS[] = new String[]{ ".latenightcoders.com" , ".10gen.com" };
-    static String CDN_HOST[] = new String[]{ "origin." , "origin-local." , "static." , "static-local." };
+    static String CDN_HOST[] = new String[]{ "origin." , "origin-local." , "static." , "static-local." , "secure." };
 
     public AppServer( AppContext defaultContext ){
         this( defaultContext , null );
