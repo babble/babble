@@ -359,7 +359,7 @@ public class JSBuiltInFunctions {
             final Thread t = new Thread( "fork" ){
                     public void run(){
                         try {
-                            func.call( scope , extra );
+                            _result = func.call( scope , extra );
                         }
                         catch ( Throwable t ){
                             if ( scope.get( "log" ) != null )
@@ -369,6 +369,13 @@ public class JSBuiltInFunctions {
                         }
                     }
                     
+                    public Object returnData()
+                        throws InterruptedException {
+                        join();
+                        return _result;
+                    }
+                    
+                    private Object _result;
                 };
             return t;
         } 
