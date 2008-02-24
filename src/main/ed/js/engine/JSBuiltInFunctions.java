@@ -8,6 +8,7 @@ import java.lang.reflect.*;
 
 import com.twmacinta.util.*;
 
+import ed.log.*;
 import ed.js.*;
 import ed.js.func.*;
 import ed.io.*;
@@ -347,6 +348,32 @@ public class JSBuiltInFunctions {
         }        
     }
 
+    public static class fork extends JSFunctionCalls1 {
+
+        public Object call( final Scope scope , final Object funcJS , final Object extra[] ){
+
+            if ( ! ( funcJS instanceof JSFunction ) )
+                throw new JSException( "fork has to take a function" );
+            
+            final JSFunction func = (JSFunction)funcJS;
+            final Thread t = new Thread( "fork" ){
+                    public void run(){
+                        try {
+                            func.call( scope , extra );
+                        }
+                        catch ( Throwable t ){
+                            if ( scope.get( "log" ) != null )
+                                ((Logger)scope.get( "log" ) ).error( "error in fork" , t );
+                            else
+                                t.printStackTrace();
+                        }
+                    }
+                    
+                };
+            return t;
+        } 
+    }
+    
     
     static Scope _myScope = new Scope( "Built-Ins" , null );
     static {
@@ -355,6 +382,7 @@ public class JSBuiltInFunctions {
         _myScope.put( "printnoln" , new print( false ) , true );
         _myScope.put( "SYSOUT" , new print() , true );
         _myScope.put( "sleep" , new sleep() , true );
+        _myScope.put( "fork" , new fork() , true );
 
         _myScope.put( "Object" , NewObject , true );
         _myScope.put( "Array" , JSArray._cons , true );
