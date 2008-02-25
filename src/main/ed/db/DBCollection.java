@@ -26,12 +26,25 @@ public abstract class DBCollection extends JSObjectLame {
 
     // ------
 
-    public void ensureIndex( JSObject keys ){
-        String name = genIndexName( keys );
-        if ( _createIndexes.contains( name ) && Math.random() < 0.999 )
+    public void ensureIndex( final JSObject keys ){
+        final String name = genIndexName( keys );
+
+        boolean doEnsureIndex = false;
+        if ( Math.random() > 0.999 )
+            doEnsureIndex = true;
+        else if ( ! _createIndexes.contains( name ) )
+            doEnsureIndex = true;
+        else if ( _anyUpdateSave && ! _createIndexesAfterSave.contains( name ) )
+            doEnsureIndex = true;
+
+        if ( ! doEnsureIndex )
             return;
+        
         ensureIndex( keys , name );
+        
         _createIndexes.add( name );
+        if ( _anyUpdateSave )
+            _createIndexesAfterSave.add( name );
     }
 
     public String genIndexName( JSObject keys ){
@@ -118,6 +131,7 @@ public abstract class DBCollection extends JSObjectLame {
 
         _save = new JSFunctionCalls1() {
                 public Object call( Scope s , Object o , Object fooasd[] ){
+                    _anyUpdateSave = true;
                     return save( s , o );
                 }
             };
@@ -126,7 +140,8 @@ public abstract class DBCollection extends JSObjectLame {
         
         _update = new JSFunctionCalls2() {
                 public Object call( Scope s , Object q , Object o , Object foo[] ){
-                    
+                    _anyUpdateSave = true;
+                                        
                     _checkObject( q , false );
                     _checkObject( o , false );
                     
@@ -230,6 +245,8 @@ public abstract class DBCollection extends JSObjectLame {
                               return "{DBCollection:" + _name + "}";
                           }
                       } );
+
+        _entries.put( "getIndexes" , Convert.makeAnon( "return this.getBase().system.indexes.find( { ns : /^\\w+\\." + getName() + "$/ } );" ) );
         
     }
 
@@ -345,6 +362,10 @@ public abstract class DBCollection extends JSObjectLame {
     public String getName(){
         return _name;
     }
+
+    public DBBase getBase(){
+        return _base;
+    }
     
     final DBBase _base;
     
@@ -360,7 +381,10 @@ public abstract class DBCollection extends JSObjectLame {
     
     protected JSFunction _constructor;
 
+    private boolean _anyUpdateSave = false;
+
     final private Set<String> _createIndexes = new HashSet<String>();
+    final private Set<String> _createIndexesAfterSave = new HashSet<String>();
 
     private final static JSObjectBase _upsertOptions = new JSObjectBase();
     static {
