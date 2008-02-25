@@ -405,23 +405,25 @@ public class Scope implements JSObject {
         return eval( StreamUtil.readFully( in ) , name );
     }
 
-    public Object eval( String code )
-        throws IOException {
-        return eval( code , "anon" );
+    public Object eval( String code ){
+        return eval( code , "anon" + Math.random() );
     }
 
-    public Object eval( String code , String name )
-        throws IOException {
+    public Object eval( String code , String name ){
         return eval( code , name , null );
     }
     
-    public Object eval( String code , String name , boolean hasReturn[] )
-        throws IOException {
-        Convert c = new Convert( name , code );
-        JSFunction f = c.get();
-        if ( hasReturn != null && hasReturn.length > 0 )
-            hasReturn[0] = c.hasReturn();
-        return f.call( this );
+    public Object eval( String code , String name , boolean hasReturn[] ){
+        try {
+            Convert c = new Convert( name , code );
+            JSFunction f = c.get();
+            if ( hasReturn != null && hasReturn.length > 0 )
+                hasReturn[0] = c.hasReturn();
+            return f.call( this );
+        }
+        catch( IOException ioe ){
+            throw new RuntimeException( "weird ioexception" , ioe );
+        }
     }
     
     /**
@@ -598,7 +600,7 @@ public class Scope implements JSObject {
                             throw e;
                         }
                         catch ( Exception e ){
-                        throw new RuntimeException( e );
+                            throw new RuntimeException( e );
                         }
                     }
                     
