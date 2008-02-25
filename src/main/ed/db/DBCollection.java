@@ -79,7 +79,7 @@ public abstract class DBCollection extends JSObjectLame {
 
     
     public final Object save( Object o ){
-        return save( Scope.GLOBAL , o );
+        return save( null , o );
     }
         
     public final Object save( Scope s , Object o ){
@@ -89,19 +89,21 @@ public abstract class DBCollection extends JSObjectLame {
         
         JSObject jo = (JSObject)o;
         
-        Object presaveObject = jo.get( "presave" );
-        if ( presaveObject != null ){
-            if ( presaveObject instanceof JSFunction ){
-                s.setThis( jo );
-                ((JSFunction)presaveObject).call( s );
-                s.clearThisNormal( null );
+        if ( s != null ){
+            Object presaveObject = jo.get( "presave" );
+            if ( presaveObject != null ){
+                if ( presaveObject instanceof JSFunction ){
+                    s.setThis( jo );
+                    ((JSFunction)presaveObject).call( s );
+                    s.clearThisNormal( null );
+                }
+                else {
+                    System.out.println( "warning, presave is a " + presaveObject.getClass() );
+                }
             }
-            else {
-                System.out.println( "warning, presave is a " + presaveObject.getClass() );
-            }
+            
+            _findSubObject( s , jo );
         }
-        
-        _findSubObject( s , jo );
         
         ObjectId id = (ObjectId)jo.get( "_id" );
         if ( DEBUG ) System.out.println( "id : " + id );
@@ -145,7 +147,8 @@ public abstract class DBCollection extends JSObjectLame {
                     _checkObject( q , false );
                     _checkObject( o , false );
                     
-                    _findSubObject( s , (JSObject)o );
+                    if ( s != null )
+                        _findSubObject( s , (JSObject)o );
 
                     boolean upsert = false;
                     boolean apply = true;
