@@ -16,6 +16,16 @@ public class Convert {
     static boolean D = Boolean.getBoolean( "DEBUG.JS" );
     public static final String DEFAULT_PACKAGE = "ed.js.gen";
 
+    public static JSFunction makeAnon( String code ){
+        try {
+            Convert c = new Convert( "anon" + Math.random() , code );
+            return c.get();
+        }
+        catch ( IOException ioe ){
+            throw new RuntimeException( "should be impossible" , ioe );
+        }
+    }
+
     public Convert( File sourceFile )
         throws IOException {
         this( sourceFile.toString() , StreamUtil.readFully( sourceFile , "UTF-8" ) );
@@ -61,11 +71,17 @@ public class Convert {
         while ( n != null ){
             if ( n.getType() != Token.FUNCTION ){
 
-                if ( n.getNext() == null && 
-                     n.getType() == Token.EXPR_RESULT ){
-                    _append( "return " , n );
-                    _hasReturn = true;
+                if ( n.getNext() == null ){
+                    
+                    if ( n.getType() == Token.EXPR_RESULT ){
+                        _append( "return " , n );
+                        _hasReturn = true;
+                    }
+                    
+                    if ( n.getType() == Token.RETURN )
+                        _hasReturn = true;
                 }
+                
                 
                 _add( n , sn , state );
                 
