@@ -165,7 +165,7 @@ public abstract class DBApiLayer extends DBBase {
             return o;
         }
 
-        public JSObject save( JSObject o ){
+        public JSObject doSave( JSObject o ){
             return save( o , true );
         }
                 

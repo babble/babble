@@ -13,7 +13,7 @@ public abstract class DBCollection extends JSObjectLame {
 
     final static boolean DEBUG = Boolean.getBoolean( "DEBUG.DB" );
     
-    public abstract JSObject save( JSObject o );
+    protected abstract JSObject doSave( JSObject o );
     public abstract JSObject update( JSObject q , JSObject o , boolean upsert , boolean apply );
 
     protected abstract ObjectId doapply( JSObject o );
@@ -64,6 +64,49 @@ public abstract class DBCollection extends JSObjectLame {
         _constructor = cons;
     }
 
+    
+    public final Object save( Object o ){
+        return save( Scope.GLOBAL , o );
+    }
+        
+    public final Object save( Scope s , Object o ){
+        o = _handleThis( s , o );
+        
+        _checkObject( o , false );
+        
+        JSObject jo = (JSObject)o;
+        
+        Object presaveObject = jo.get( "presave" );
+        if ( presaveObject != null ){
+            if ( presaveObject instanceof JSFunction ){
+                s.setThis( jo );
+                ((JSFunction)presaveObject).call( s );
+                s.clearThisNormal( null );
+            }
+            else {
+                System.out.println( "warning, presave is a " + presaveObject.getClass() );
+            }
+        }
+        
+        _findSubObject( s , jo );
+        
+        ObjectId id = (ObjectId)jo.get( "_id" );
+        if ( DEBUG ) System.out.println( "id : " + id );
+        
+        if ( id == null || id._new ){
+            if ( DEBUG ) System.out.println( "saving new object" );
+            if ( id != null )
+                id._new = false;
+            doSave( jo );
+            return jo;
+        }
+        
+        if ( DEBUG ) System.out.println( "doing implicit upsert : " + jo.get( "_id" ) );
+        JSObject q = new JSObjectBase();
+        q.set( "_id" , id );
+        return _update.call( s , q , jo , _upsertOptions );
+    }
+
     // ------
 
     protected DBCollection( DBBase base , String name ){
@@ -75,44 +118,11 @@ public abstract class DBCollection extends JSObjectLame {
 
         _save = new JSFunctionCalls1() {
                 public Object call( Scope s , Object o , Object fooasd[] ){
-                    o = _handleThis( s , o );
-                    
-                    _checkObject( o , false );
-                    
-                    JSObject jo = (JSObject)o;
-                    
-                    Object presaveObject = jo.get( "presave" );
-                    if ( presaveObject != null ){
-                        if ( presaveObject instanceof JSFunction ){
-                            s.setThis( jo );
-                            ((JSFunction)presaveObject).call( s );
-                            s.clearThisNormal( null );
-                        }
-                        else {
-                            System.out.println( "warning, presave is a " + presaveObject.getClass() );
-                        }
-                    }
-                    
-                    _findSubObject( s , jo );
-                    
-                    ObjectId id = (ObjectId)jo.get( "_id" );
-                    if ( DEBUG ) System.out.println( "id : " + id );
-                    
-                    if ( id == null || id._new ){
-                        if ( DEBUG ) System.out.println( "saving new object" );
-                        if ( id != null )
-                            id._new = false;
-                        save( jo );
-                        return jo;
-                    }
-                    
-                    if ( DEBUG ) System.out.println( "doing implicit upsert : " + jo.get( "_id" ) );
-                    JSObject q = new JSObjectBase();
-                    q.set( "_id" , id );
-                    return _update.call( s , q , jo , _upsertOptions );
+                    return save( s , o );
                 }
             };
         _entries.put( "save" , _save );
+
         
         _update = new JSFunctionCalls2() {
                 public Object call( Scope s , Object q , Object o , Object foo[] ){

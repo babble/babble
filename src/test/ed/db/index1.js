@@ -4,7 +4,7 @@ t = db.embeddedIndexTest;
 
 t.remove( {} );
 
-o = { name : "foo" , z : { a : 17 } };
+o = { name : "foo" , z : { a : 17 , b : 4} };
 t.save( o );
 
 assert( t.findOne().z.a == 17 );
@@ -17,8 +17,6 @@ assert( t.findOne( { z : { a : 17 } } ).z.a == 17 );
 
 o = { name : "bar" , z : { a : 18 } };
 t.save( o );
-
-print( tojson( t.find() ) );
 
 assert( t.find().length() == 2 );
 assert( t.find().sort( { z : { a : 1 } } ).length() == 2 );
