@@ -94,7 +94,7 @@ public abstract class JSFile extends JSObjectBase {
         return new Sender( getFirstChunk() );
     }        
     
-    public static class Sender {
+    public class Sender extends InputStream {
         
         Sender( JSFileChunk chunk ){
             if ( chunk == null )
@@ -108,22 +108,25 @@ public abstract class JSFile extends JSObjectBase {
         /**
          * @return true if we're all done
          */
-        public boolean write( WritableByteChannel out )
+        boolean _done()
             throws IOException {
             
+            if ( _maxPostion >= 0 && _bytesWritten > _maxPostion )
+                return true;
+
             if ( _chunk == null )
                 return true;
             
-            if ( _buf.remaining() == 0 ){
-                _buf = null;
-                _chunk = _chunk.getNext();
-                
-                if ( _chunk == null )
-                    return true;
-                
-                _buf = _chunk.getData().asByteBuffer();
-            }
+            if ( _buf.remaining() > 0 )
+                return false;
             
+            _buf = null;
+            _chunk = _chunk.getNext();
+            
+            if ( _chunk == null )
+                return true;
+                
+            _buf = _chunk.getData().asByteBuffer();
 
             if ( _maxPostion > 0 ){
                 long bytesLeft = _maxPostion - _bytesWritten;
@@ -132,17 +135,31 @@ public abstract class JSFile extends JSObjectBase {
                     _buf.limit( _buf.position() + (int)bytesLeft );
             }
             
+            return false;
+        }
+
+        /**
+         * @return true if we're all done
+         */
+        public boolean write( WritableByteChannel out )
+            throws IOException {
+            
+            if ( _done() )
+                return true;
+            
             _bytesWritten += out.write( _buf );
             return false;
         }
 
-        public void skip( final long num )
+        public long skip( final long num )
             throws IOException {
             if ( num <= 0 )
-                return;
+                return 0;
 
-            write( new WritableByteChannel(){
-                    
+            final long start = _bytesWritten;
+
+            
+            WritableByteChannel out = new WritableByteChannel(){
                     public int write ( ByteBuffer src )
                         throws IOException {
                         for ( long i=0; i<num; i++ )
@@ -152,12 +169,53 @@ public abstract class JSFile extends JSObjectBase {
                     
                     public void close(){}
                     public boolean isOpen(){ return true; }
+                    
+                };
 
-                } );
+            while ( _bytesWritten - start < num && ! write( out ) );
+            
+            return _bytesWritten - start;
         }
 
         public void maxPosition( long max ){
             _maxPostion = max;
+        }
+
+        public int available(){
+            return (int)(getLength() - _bytesWritten);
+        }
+
+        public void close(){
+            // NO-OP
+        }
+
+        public int read(){
+            throw new RuntimeException( "not supported" );
+        }
+        
+        public int read(byte[] b)
+            throws IOException {
+            return read( b , 0 , b.length );
+        }
+        
+        public int read(byte[] b, int off, int len)
+            throws IOException {
+            if ( _done() )
+                return 0;
+            
+            final int toCopy = Math.min( len , _buf.remaining() );
+            _buf.get( b , off , toCopy );
+            return toCopy;
+        }
+
+        public void mark(int readlimit){
+            throw new RuntimeException( "not supported" );
+        }
+        public boolean markSupported(){
+            return false;
+        }
+        public void reset(){
+            throw new RuntimeException( "not supported" );
         }
         
         JSFileChunk _chunk;
