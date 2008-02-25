@@ -7,6 +7,9 @@ import java.io.*;
 import ed.js.engine.*;
 
 public class JS {
+    
+    public static final boolean RAW_EXCPETIONS = Boolean.getBoolean( "RAWE" );
+
     public static void main( String args[] )
         throws Exception {
         
