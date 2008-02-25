@@ -73,7 +73,7 @@ public class DiffUtil {
         return commands;
     }
 
-    final static Pattern EOL = Pattern.compile("([\n\r])");
+    final static Pattern EOL = Pattern.compile("([\n])");
     static List stringToLines( String s ){
         List<String> l = new ArrayList<String>();
         Matcher m = EOL.matcher( s );
@@ -111,9 +111,9 @@ public class DiffUtil {
 
         public void addLine( String line ){
             if ( line.startsWith("> ") )
-                _newLines.add( line.substring(2).replaceAll( "\r", "\n" ) );
+                _newLines.add( line.substring(2) );
             if ( line.startsWith("< ") )
-                _oldLines.add( line.substring(2).replaceAll( "\r", "\n" ) );
+                _oldLines.add( line.substring(2) );
         }
 
         public void applyBackwards( List lines ){
