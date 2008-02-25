@@ -18,6 +18,7 @@ public abstract class JSFunction extends JSFunctionBase {
         _prototype = new JSObjectBase();
         set( "prototype" , _prototype );
         set( "call" , _call );
+        set( "apply" , _apply );
         set( "isFunction" , true );
 
         init();
@@ -70,6 +71,22 @@ public abstract class JSFunction extends JSFunctionBase {
                 s.setThis( obj );
                 try {
                     return func.call( s , args );
+                }
+                finally {
+                    s.clearThisNormal( null );
+                }
+            }
+        };
+       
+    static JSFunction _apply = new ed.js.func.JSFunctionCalls2(){
+            public Object call( Scope s , Object obj , Object args , Object [] foo ){
+                JSFunction func = (JSFunction)s.getThis();
+                if(! (args instanceof JSArray) )
+                    throw new RuntimeException("second argument to Function.prototype.apply must be an array");
+                JSArray jary = (JSArray)args;
+                s.setThis( obj );
+                try {
+                    return func.call( s , jary.toArray() );
                 }
                 finally {
                     s.clearThisNormal( null );
