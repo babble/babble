@@ -54,7 +54,7 @@ public class TestDB extends DBBase {
             throw new RuntimeException( "not implemented" );
         }
         
-        public JSObject save( JSObject o ){
+        public JSObject doSave( JSObject o ){
             ObjectId id = apply( o );
             _objects.put( id , o );
             return o;
