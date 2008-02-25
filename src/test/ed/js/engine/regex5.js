@@ -47,6 +47,5 @@ print(ary[1] == null);
 print( ".*+?^=!:${}()|]/\\".replace( /([.*+?^=!:${}()|[\]\/\\ ])/g , "\\$1" ) );
 
 print("abc".match(/(a)(b)/));
-//TODO:
-//print("abc ab".match(/ab/g));
-//print("abc".match(/(a)(b)/g));
+print("abc ab".match(/ab/g));
+print("abc".match(/(a)(b)/g));

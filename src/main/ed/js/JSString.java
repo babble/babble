@@ -218,8 +218,15 @@ public class JSString extends JSObjectBase {
                         if ( ! m.find() )
                             return null;
                         JSArray a = new JSArray();
-                        for( int i=0; i<=m.groupCount(); i++ )
-                            a.add(new JSString(m.group(i)));
+                        if ( r.getFlags().contains( "g" )){
+                            do {
+                                a.add(new JSString(m.group()));
+                            } while(m.find());
+                        }
+                        else{
+                            for( int i=0; i<=m.groupCount(); i++ )
+                                a.add(new JSString(m.group(i)));
+                        }
                         return a;
                     }
                 } );
