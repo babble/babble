@@ -36,6 +36,14 @@ public class JSFileLibrary extends JSObjectBase {
         if ( foo == _initFunction )
             return;
         
+        for ( String s : keySet() ){
+            if ( s.equals( "_init" ) )
+                continue;
+            
+            if ( super.get( s ) instanceof JxpSource )
+                removeField( s );
+        }
+        
         if ( foo instanceof JSFunction ){
             Scope s = null;
             if ( _context != null )
@@ -44,12 +52,18 @@ public class JSFileLibrary extends JSObjectBase {
                 s = _scope;
             else 
                 throw new RuntimeException( "no scope :(" );
-	    
+            
             _initFunction = (JSFunction)foo;
             
 	    Scope pref = s.getTLPreferred();
 	    s.setTLPreferred( null );
-            _initFunction.call( s );
+            try {
+                _initFunction.call( s );
+            }
+            catch ( RuntimeException re ){
+                set( "_init" , false ); // we need to re-ren
+                throw re;
+            }
 	    s.setTLPreferred( pref );
         }
         

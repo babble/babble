@@ -294,9 +294,11 @@ public class AppContext {
             _lastScopeInitTime = _getScopeTime();
         }
         catch ( RuntimeException re ){
+            _scopeInited = false;
             throw re;
         }
         catch ( Exception e ){
+            _scopeInited = false;
             throw new RuntimeException( e );
         }
         finally {
