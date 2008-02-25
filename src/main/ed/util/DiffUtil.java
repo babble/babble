@@ -21,8 +21,8 @@ public class DiffUtil {
 	if ( b == null )
 	    b = "";
 	
-	String aSplit[] = a.split("\n");
-	String bSplit[] = b.split("\n");
+	String aSplit[] = a.split("\r?\n");
+	String bSplit[] = b.split("\r?\n");
 	
 	Diff d = new Diff( aSplit , bSplit );
 	DiffPrint.Base p = new DiffPrint.NormalPrint( aSplit , bSplit );
