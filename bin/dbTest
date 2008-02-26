@@ -1,4 +1,5 @@
 #!/bin/tcsh
 
 set all = `ls src/test/ed/db/*.js | grep -v load`
+echo running $all
 ./runAnt.bash ed.js.Shell $all
