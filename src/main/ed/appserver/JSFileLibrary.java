@@ -32,19 +32,28 @@ public class JSFileLibrary extends JSObjectBase {
         if ( ! _doInit )
             return;
         
-        Object foo = get( "_init" , false );
-        if ( foo == _initFunction )
+        Object init = get( "_init" , false );
+        if ( init == _initFunction )
             return;
         
-        for ( String s : keySet() ){
+        for ( String s : new LinkedList<String>( keySet() ) ){
             if ( s.equals( "_init" ) )
                 continue;
             
-            if ( super.get( s ) instanceof JxpSource )
+            Object thing = super.get( s );
+            
+            if ( thing instanceof JxpSource || 
+                 thing instanceof JSFileLibrary  )
                 removeField( s );
         }
+
+        for ( File f : new LinkedList<File>( _sources.keySet() ) ){
+            if ( f.toString().endsWith( "/_init.js" ) )
+                continue;
+            _sources.remove( f );
+        }
         
-        if ( foo instanceof JSFunction ){
+        if ( init instanceof JSFunction ){
             Scope s = null;
             if ( _context != null )
                 s = _context.getScope();
@@ -53,7 +62,7 @@ public class JSFileLibrary extends JSObjectBase {
             else 
                 throw new RuntimeException( "no scope :(" );
             
-            _initFunction = (JSFunction)foo;
+            _initFunction = (JSFunction)init;
             
 	    Scope pref = s.getTLPreferred();
 	    s.setTLPreferred( null );
