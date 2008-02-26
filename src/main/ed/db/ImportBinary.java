@@ -46,13 +46,23 @@ public class ImportBinary {
         
         FileChannel fc = fin.getChannel();
         fc.read( bb );
-
+        
         bb.flip();
         ByteDecoder decoder = new ByteDecoder( bb );
         
+        boolean hasAny = false;
+        {
+            Iterator<JSObject> checkForAny = coll.find( new JSObjectBase() , new JSObjectBase() , 0 , 1 );
+            if ( checkForAny != null && checkForAny.hasNext() )
+                hasAny = true;
+        }
+        
         JSObject o;
         while ( ( o = decoder.readObject() ) != null ){
-            coll.save( o );
+            if ( hasAny )
+                coll.save( o );
+            else
+                coll.doSave( o );
         }
         
         coll.find( new JSObjectBase() , null , 0 , 1 );
