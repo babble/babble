@@ -28,9 +28,13 @@ public class JSRegex extends JSObjectBase {
                 r.init( p , f );
                 return r;
             }
-
+            
             protected void init(){
-
+                _prototype.set( "test" , new JSFunctionCalls1(){
+                        public Object call( Scope s , Object o , Object foo[] ){
+                            return ((JSRegex)s.getThis()).test( o.toString() );
+                        }
+                    } );
             }
         };
     
