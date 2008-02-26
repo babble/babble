@@ -70,7 +70,7 @@ public class ByteEncoder extends Bytes {
         Object possibleId = o.get( "_id" );
         if ( possibleId != null ){
             if ( ! ( possibleId instanceof ObjectId ) )
-                throw new RuntimeException( "_id is not an ObjectId" );
+                throw new RuntimeException( "_id is not an ObjectId is a " + possibleId.getClass() );
             putObjectId( "_id" , (ObjectId)possibleId );
         }
             
