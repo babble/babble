@@ -626,8 +626,15 @@ public class Scope implements JSObject {
         if ( params == null )
             params = EMPTY_OBJET_ARRAY;
         
+        if ( myClasses.length > params.length ){
+            Object n[] = new Object[myClasses.length];
+            for ( int i=0; i<params.length; i++ )
+                n[i] = params[i];
+            params = n;
+        }
+
         if ( myClasses.length != params.length ){
-            if ( debug ) System.out.println( "param length don't match" );
+            if ( debug ) System.out.println( "param length don't match " + myClasses.length + " != " + params.length );
             return null;
         }
         
