@@ -29,7 +29,7 @@ public class JSBuiltInFunctions {
             throw new JSException( "assert failed" );
         }        
     }
-    
+
     static Class _getClass( String name )
         throws Exception {
 
@@ -68,6 +68,7 @@ public class JSBuiltInFunctions {
             }
             
             Constructor[] allCons = clazz.getConstructors();
+            Arrays.sort( allCons , Scope._consLengthComparator );
             for ( int i=0; i<allCons.length; i++ ){
 
                 Object params[] = Scope.doParamsMatch( allCons[i].getParameterTypes() , extra );
@@ -103,6 +104,7 @@ public class JSBuiltInFunctions {
             }
             
             Method[] all = clazz.getMethods();
+            Arrays.sort( all , Scope._methodLengthComparator );
             for ( int i=0; i<all.length; i++ ){
                 Method m = all[i];
                 

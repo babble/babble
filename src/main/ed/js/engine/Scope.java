@@ -534,7 +534,9 @@ public class Scope implements JSObject {
                     return l;
 
                 l = new ArrayList<Method>();
-                for ( Method method : c.getMethods() )
+                Method all[] = c.getMethods();
+                Arrays.sort( all , Scope._methodLengthComparator );
+                for ( Method method : all )
                     if ( method.getName().equals( n ) )
                         l.add( method );
                 m.put( n , l );
@@ -690,4 +692,22 @@ public class Scope implements JSObject {
         return params;
     }
     
+
+    static final Comparator<Method> _methodLengthComparator = new Comparator<Method>(){
+        public int compare( Method a , Method b ){
+            return a.getParameterTypes().length - b.getParameterTypes().length;
+        }
+        public boolean equals(Object obj){
+            return this == obj;
+        }
+    };
+
+    static final Comparator<Constructor> _consLengthComparator = new Comparator<Constructor>(){
+        public int compare( Constructor a , Constructor  b ){
+            return a.getParameterTypes().length - b.getParameterTypes().length;
+        }
+        public boolean equals(Object obj){
+            return this == obj;
+        }
+    };
 }
