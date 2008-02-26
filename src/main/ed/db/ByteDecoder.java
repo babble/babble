@@ -84,6 +84,11 @@ public class ByteDecoder extends Bytes {
     }
 
     protected int decodeNext( JSObject o ){
+        return decodeNext( o , null );
+    }
+
+    
+    protected int decodeNext( JSObject o , JSFunction embedCons ){
         final int start = _buf.position();
         final byte type = _buf.get();
 
@@ -142,15 +147,27 @@ public class ByteDecoder extends Bytes {
         case BINARY:
             o.set( name , parseBinary() );
             break;
-
+            
         case ARRAY:
             if ( created == null )
                 created = new JSArray();
         case OBJECT:
             int embeddedSize = _buf.getInt();
-            if ( created == null )
+
+            if ( created == null ){
                 created = new JSObjectBase();
-            while ( decodeNext( created ) > 1 );
+                if ( embedCons != null )
+                    ((JSObjectBase)created).setConstructor( embedCons , true );
+            }
+            
+            JSFunction nextEmebedCons = null;
+            
+            if ( o.get( name ) != null ){
+                created = (JSObject)o.get( name );
+                nextEmebedCons = (JSFunction)created.get( "_dbCons" );
+            }
+            
+            while ( decodeNext( created , nextEmebedCons ) > 1 );
             o.set( name , created );
             break;
 
