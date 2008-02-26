@@ -202,9 +202,12 @@ public abstract class JSFile extends JSObjectBase {
             throws IOException {
             if ( _done() )
                 return 0;
-            
+
             final int toCopy = Math.min( len , _buf.remaining() );
+
             _buf.get( b , off , toCopy );
+            _bytesWritten += toCopy;
+
             return toCopy;
         }
 
