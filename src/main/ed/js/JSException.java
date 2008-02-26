@@ -9,7 +9,7 @@ public class JSException extends RuntimeException {
     }
     
     public JSException( Object o , Throwable t ){
-        super( o.toString() , t );
+        super( o.toString() , _fix( t ) );
         _object = o;
     }
 
@@ -18,4 +18,10 @@ public class JSException extends RuntimeException {
     }
     
     final Object _object;
+
+    static Throwable _fix( Throwable t ){
+        if ( t instanceof java.lang.reflect.InvocationTargetException )
+            return ((java.lang.reflect.InvocationTargetException)t).getTargetException();
+        return t;
+    }
 }
