@@ -188,6 +188,21 @@ public class JSBuiltInFunctions {
             public Object call( Scope scope , Object extra[] ){
                 return new JSObjectBase();
             }
+
+            protected void init(){
+                set( "extend", new JSFunctionCalls2(){
+                        public Object call( Scope s , Object dest , Object src , Object [] extra ){
+                            JSObject jdest, jsrc;
+                            jdest = (JSObject)dest;
+                            jsrc = (JSObject)src;
+                            for(String key : jsrc.keySet()){
+                                jdest.set(key, jsrc.get(key));
+                            }
+                            
+                            return dest;
+                        }
+                    });
+            }
         };
     
     
