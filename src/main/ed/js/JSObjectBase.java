@@ -14,8 +14,10 @@ public class JSObjectBase implements JSObject {
 
     public JSObjectBase( JSFunction constructor ){
         _constructor = constructor;
-        if ( _constructor != null )
+        if ( _constructor != null ){
+            set( "__constructor__" , _constructor );
             set( "__proto__" , _constructor._prototype );
+        }
     }
 
     public void prefunc(){}
