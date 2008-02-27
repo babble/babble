@@ -186,6 +186,7 @@ public class Scope implements JSObject {
         if ( _with != null ){
             for ( int i=_with.size()-1; i>=0; i-- ){
                 JSObject temp = _with.get( i );
+                if ( temp == null ) continue;
                 if ( temp.containsKey( name ) ){
                     if ( with != null && with.length > 0 )
                         with[0] = temp;
