@@ -190,6 +190,10 @@ public class JSBuiltInFunctions {
             }
 
             protected void init(){
+                /** 
+                 * Copies all properties from the source to the destination object.
+                 * Not in JavaScript spec! Please refer to Prototype docs! 
+                */
                 set( "extend", new JSFunctionCalls2(){
                         public Object call( Scope s , Object dest , Object src , Object [] extra ){
                             JSObject jdest, jsrc;
