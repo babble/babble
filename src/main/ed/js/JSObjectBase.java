@@ -117,6 +117,10 @@ public class JSObjectBase implements JSObject {
     public boolean containsKey( String s ){
         if ( _keys != null && _keys.contains( s ) )
             return true;
+        
+        if ( _constructor != null && _constructor._prototype.containsKey( s ) )
+            return true;
+
         return false;
     }
 

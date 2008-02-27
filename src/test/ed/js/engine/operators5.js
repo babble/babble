@@ -78,3 +78,17 @@ print( ! ( "hi" in { hiz : 5 } ) );
 
 
 print( ! "hi" in { "false" : 5 } );
+
+
+A = function(){
+    this.x = 1;
+};
+A.prototype.y = 2;
+a = new A();
+a.z = 3;
+
+with( a ){
+    print( x );
+    print( y );
+    print( z );
+}
