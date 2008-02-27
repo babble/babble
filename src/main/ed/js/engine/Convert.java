@@ -795,7 +795,9 @@ public class Convert {
             _append( " ) ; \n" , n );
             _add( n.getFirstChild().getNext().getNext() , state );
             _append( " )\n " , n );
+            _append( " { \n " , n );
             _add( n.getFirstChild().getNext().getNext().getNext() , state );
+            _append( " } \n " , n );
         }
         else if ( numChildren == 3 ){
             String name = n.getFirstChild().getString();
