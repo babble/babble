@@ -5,6 +5,8 @@ package ed.security;
 import ed.js.engine.*;
 
 public class Security {
+
+    public final static boolean OFF = Boolean.getBoolean( "NO-SECURITY" );
     
     final static String SECURE[] = new String[]{ 
         Convert.DEFAULT_PACKAGE + "._data_corejs_" , 
@@ -14,6 +16,9 @@ public class Security {
     };
     
     public static boolean isCoreJS(){
+        if ( OFF )
+            return true;
+
         String topjs = getTopJS();
         if ( topjs == null )
             return false;
