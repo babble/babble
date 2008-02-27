@@ -9,6 +9,8 @@ import ed.js.engine.*;
 
 public class JSObjectBase implements JSObject {
 
+    static final String OBJECT_STRING = "Object";
+
     public JSObjectBase(){
     }
 
@@ -136,7 +138,16 @@ public class JSObjectBase implements JSObject {
     }
 
     public String toString(){
-        return "Object";
+        Object temp = get( "toString" );
+        
+        if ( ! ( temp instanceof JSFunction ) )
+            return OBJECT_STRING;
+        
+        JSFunction f = (JSFunction)temp;
+
+        Scope s = f._scope.child();
+        s.setThis( this );
+        return f.call( s ).toString();
     }
 
     protected void addAll( JSObject other ){
