@@ -46,6 +46,10 @@ public class DBJni extends DBApiLayer {
         return native_getMore( _sock , out , out.position() , out.limit() , in );
     }
 
+    protected void doKillCursors( ByteBuffer buf ){
+        System.err.println( "doKillCursors not implemented in DBJni" );
+    }
+
     public String toString(){
         return "DBConnection " + _ip + ":" + _root;
     }

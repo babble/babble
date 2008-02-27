@@ -26,6 +26,9 @@ public class DBTCP extends DBApiLayer {
     protected void doUpdate( ByteBuffer buf ){
         say( 2001 , buf );
     }
+    protected void doKillCursors( ByteBuffer buf ){
+        say( 2007 , buf );
+    }
     
     protected int doQuery( ByteBuffer out , ByteBuffer in ){
         return call( 2004 , out , in );

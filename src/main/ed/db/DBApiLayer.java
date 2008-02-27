@@ -23,6 +23,7 @@ public abstract class DBApiLayer extends DBBase {
     protected abstract void doInsert( ByteBuffer buf );
     protected abstract void doDelete( ByteBuffer buf );
     protected abstract void doUpdate( ByteBuffer buf );
+    protected abstract void doKillCursors( ByteBuffer buf );
     
     protected abstract int doQuery( ByteBuffer out , ByteBuffer in );
     protected abstract int doGetMore( ByteBuffer out , ByteBuffer in );
@@ -209,8 +210,44 @@ public abstract class DBApiLayer extends DBBase {
             
             return -1;
         }
+        
+        void _cleanCursors(){
+            if ( _deadCursorIds.size() == 0 ||
+                 _deadCursorIds.size() % 20 != 0 )
+                return;
+            
+            List<Long> l = _deadCursorIds;
+            _deadCursorIds = new Vector<Long>();
+
+            System.out.println( "trying to kill cursors : " + l.size() );
+            
+            try {
+                killCursors( l );
+            }
+            catch ( Throwable t ){
+                t.printStackTrace();
+                _deadCursorIds.addAll( l );
+            }
+        }
+        
+        void killCursors( List<Long> all ){
+            if ( all == null || all.size() == 0 )
+                return;
+            
+            ByteEncoder encoder = ByteEncoder.get();
+            encoder._buf.putInt( 0 ); // reserved
+            
+            encoder._buf.putInt( all.size() );
+            for ( int i=0; i<all.size(); i++ )
+                encoder._buf.putLong( all.get( i  ) );
+            
+            doKillCursors( encoder._buf );
+
+            encoder.done();
+        }
 
         public Iterator<JSObject> find( JSObject ref , JSObject fields , int numToSkip , int numToReturn ){
+            _cleanCursors();
 
             ByteEncoder encoder = ByteEncoder.get();
             
@@ -390,6 +427,11 @@ public abstract class DBApiLayer extends DBBase {
         public String toString(){
             return "DBCursor";
         }
+        
+        protected void finalize(){
+            if ( _curResult != null && _curResult._cursor > 0 )
+                _deadCursorIds.add( _curResult._cursor );
+        }
 
         SingleResult _curResult;
         Iterator<JSObject> _cur;
@@ -403,6 +445,7 @@ public abstract class DBApiLayer extends DBBase {
 
     final String _root;
     final Map<String,MyCollection> _collections = Collections.synchronizedMap( new HashMap<String,MyCollection>() );
+    List<Long> _deadCursorIds = new Vector<Long>();
 
     static final List<JSObject> EMPTY = Collections.unmodifiableList( new LinkedList<JSObject>() );
 
