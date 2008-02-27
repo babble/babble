@@ -466,7 +466,8 @@ public class JSArray extends JSObjectBase implements Iterable , List {
             keys.add( String.valueOf( i ) );
 
         keys.addAll( p );
-        
+        keys.remove( "_dbCons" );
+
         return keys;
     }
 
