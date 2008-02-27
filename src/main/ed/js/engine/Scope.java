@@ -153,6 +153,10 @@ public class Scope implements JSObject {
     }
     
     public Object get( String name , Scope alt ){
+        return get( name , alt , null );
+    }
+    
+    public Object get( String name , Scope alt , JSObject with[] ){
         if ( "scope".equals( name ) ){
             return this;
         }
@@ -182,8 +186,11 @@ public class Scope implements JSObject {
         if ( _with != null ){
             for ( int i=_with.size()-1; i>=0; i-- ){
                 JSObject temp = _with.get( i );
-                if ( temp.containsKey( name ) )
+                if ( temp.containsKey( name ) ){
+                    if ( with != null && with.length > 0 )
+                        with[0] = temp;
                     return temp.get( name );
+                }
             }
         }
         
@@ -269,13 +276,17 @@ public class Scope implements JSObject {
     }
 
     public JSFunction getFunction( String name ){
-        Object o = get( name );
+        JSObject with[] = new JSObject[1];
+        Object o = get( name , _alternate , with );
         
         if ( o == null )
             throw new NullPointerException( name );
         
         if ( ! ( o instanceof JSFunction ) )
             throw new RuntimeException( "not a function : " + name );
+        
+        if ( with[0] != null )
+            _this.push( new This( with[0] ) );
         
         return (JSFunction)o;
     }
