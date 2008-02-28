@@ -70,6 +70,7 @@ public class Shell {
         //System.setOut( new PrintStream( _myOutputStream ) );
         
         Scope s = Scope.GLOBAL.child( new File("." ) );
+        s.makeThreadLocal();
 
         addNiceShellStuff( s );
 

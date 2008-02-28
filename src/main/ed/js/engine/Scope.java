@@ -511,6 +511,20 @@ public class Scope implements JSObject {
     Object _orSave;
     JSObject _globalThis;
     
+    public void makeThreadLocal(){
+        _threadLocal.set( this );
+    }
+    
+    public static void clearThreadLocal(){
+        _threadLocal.set( null );
+    }
+
+    public static Scope getThredLocal(){
+        return _threadLocal.get();
+    }
+    
+    private static ThreadLocal<Scope> _threadLocal = new ThreadLocal<Scope>();
+
     static class This {
         This( Object o ){
             _this = o;
