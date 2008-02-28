@@ -9,11 +9,24 @@ t.save( { name : "a" } );
 assert( t.find().length() == 1 );
 
 db.setReadOnly( true );
+
+myException = null;
+try {
+    t.save( { name : "b" } );
+}
+catch ( e ){
+    myException = e;
+}
+assert( myException );
+
+
+dbStrict = false;
 t.save( { name : "b" } );
 assert( t.find().length() == 1 );
 
-e = null;
+
 dbStrict = true;
+myException = null;
 try {
     t.save( { name : "b" } );
 }
