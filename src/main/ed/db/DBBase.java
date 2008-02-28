@@ -46,6 +46,9 @@ public abstract class DBBase extends JSObjectLame {
 
         if ( n.toString().equals( "tojson" ) )
             return _tojson;
+        
+        if ( n.toString().equals( "readOnly" ) )
+            return _readOnly;
 
         if ( n instanceof String || 
              n instanceof JSString ){
@@ -62,12 +65,17 @@ public abstract class DBBase extends JSObjectLame {
         return getCollectionNames();
     }
 
+    public void setReadOnly( Boolean b ){
+        _readOnly = b;
+    }
+
     class tojson extends JSFunctionCalls0{
         public Object call( Scope s , Object foo[] ){
             return toString();
         }
     }
     tojson _tojson = new tojson();
-
+    
     final String _name;
+    protected boolean _readOnly = false;
 }
