@@ -206,6 +206,17 @@ public class JSBuiltInFunctions {
                             return dest;
                         }
                     });
+                set( "values", new JSFunctionCalls1(){
+                        public Object call( Scope s , Object o , Object [] extra ){
+                            JSObject jo = (JSObject)o;
+                            JSArray jar = new JSArray();
+                            for(String key : jo.keySet()){
+                                jar.add(jo.get(key));
+                            }
+                            
+                            return jar;
+                        }
+                    });
             }
         };
     
