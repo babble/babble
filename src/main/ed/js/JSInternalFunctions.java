@@ -51,6 +51,16 @@ public class JSInternalFunctions extends JSNumericFunctions {
             //return type == JSNumber.CONS;
             return false;
         }
+
+        if ( type instanceof String || type instanceof JSString ){
+            try {
+                Class clazz = JSBuiltInFunctions._getClass( type.toString() );
+                return clazz.isAssignableFrom( thing.getClass() );
+            }
+            catch ( Exception e ){
+                throw new JSException( "can't find : " + type , e );
+            }
+        }
         
         if ( ! ( thing instanceof JSObjectBase ) )
             return false;
