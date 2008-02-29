@@ -30,7 +30,7 @@ public class JSBuiltInFunctions {
         }        
     }
 
-    static Class _getClass( String name )
+    public static Class _getClass( String name )
         throws Exception {
 
         final int colon = name.indexOf( ":" );
