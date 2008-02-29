@@ -11,7 +11,7 @@ import ed.io.*;
 
 public abstract class JSFile extends JSObjectBase {
 
-    private static final int DEF_CHUNK_SIZE = 1024 * 256;
+    protected static final int DEF_CHUNK_SIZE = 1024 * 256;
 
     protected JSFile(){
         set( "_ns" , "_files" );
