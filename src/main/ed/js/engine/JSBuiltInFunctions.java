@@ -194,29 +194,9 @@ public class JSBuiltInFunctions {
                  * Copies all properties from the source to the destination object.
                  * Not in JavaScript spec! Please refer to Prototype docs! 
                 */
-                set( "extend", new JSFunctionCalls2(){
-                        public Object call( Scope s , Object dest , Object src , Object [] extra ){
-                            JSObject jdest, jsrc;
-                            jdest = (JSObject)dest;
-                            jsrc = (JSObject)src;
-                            for(String key : jsrc.keySet()){
-                                jdest.set(key, jsrc.get(key));
-                            }
-                            
-                            return dest;
-                        }
-                    });
-                set( "values", new JSFunctionCalls1(){
-                        public Object call( Scope s , Object o , Object [] extra ){
-                            JSObject jo = (JSObject)o;
-                            JSArray jar = new JSArray();
-                            for(String key : jo.keySet()){
-                                jar.add(jo.get(key));
-                            }
-                            
-                            return jar;
-                        }
-                    });
+                set( "extend", new Prototype.Object_extend() );
+                set( "values", new Prototype.Object_values() );
+                set( "keys", new Prototype.Object_keys() );
             }
         };
     
