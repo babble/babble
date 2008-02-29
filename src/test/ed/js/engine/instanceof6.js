@@ -12,3 +12,13 @@ print( a instanceof Object );
 print( a instanceof Array );
 
 print( ( new Date()) instanceof Date );
+
+
+
+A = function(){
+
+};
+
+a = new A();
+
+print( a instanceof A );
