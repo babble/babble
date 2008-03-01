@@ -20,6 +20,7 @@ public abstract class JSFunction extends JSFunctionBase {
         set( "call" , _call );
         set( "apply" , _apply );
         set( "isFunction" , true );
+        set( "bind", Prototype._functionBind );
 
         init();
     }
@@ -65,7 +66,7 @@ public abstract class JSFunction extends JSFunctionBase {
 
     protected String _name = "NO NAME SET";
 
-    static JSFunction _call = new ed.js.func.JSFunctionCalls1(){
+    public static JSFunction _call = new ed.js.func.JSFunctionCalls1(){
             public Object call( Scope s , Object obj , Object[] args ){
                 JSFunction func = (JSFunction)s.getThis();
                 s.setThis( obj );
