@@ -141,7 +141,7 @@ public class AppServer implements HttpHandler {
     public boolean handles( HttpRequest request , Box<Boolean> fork ){
         String uri = request.getURI();
         
-        if ( ! uri.startsWith( "/" ) || uri.endsWith( "~" ) || uri.contains( "/.#" ) )
+        if ( ! uri.startsWith( "/" ) )
             return false;
         
         AppRequest ar = createRequest( request );
