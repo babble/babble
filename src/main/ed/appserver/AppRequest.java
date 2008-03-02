@@ -140,7 +140,7 @@ public class AppRequest {
     final String _uri;
     final HttpRequest _request;
     final AppContext _context;
-    final JSArray _head = new JSArray();
+    final JSArray _head = new HeadArray();
 
     private Scope _scope;
     
