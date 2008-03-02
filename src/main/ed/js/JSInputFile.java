@@ -6,7 +6,12 @@ import java.io.*;
 import java.util.*;
 
 public class JSInputFile extends JSNewFile {
-    
+
+    public JSInputFile( String filename , String contentType , String content )
+        throws IOException {
+        this( filename , contentType , content.getBytes() );
+    }    
+
     public JSInputFile( String filename , String contentType , byte b[] )
         throws IOException {
         this( filename , contentType , new ByteArrayInputStream( b ) );

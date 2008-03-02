@@ -8,6 +8,8 @@ import java.nio.channels.*;
 
 import ed.db.*;
 import ed.io.*;
+import ed.js.*;
+import ed.js.engine.*;
 
 public abstract class JSFile extends JSObjectBase {
 
@@ -94,6 +96,30 @@ public abstract class JSFile extends JSObjectBase {
         return new Sender( getFirstChunk() );
     }        
     
+    public void writeToLocalFile( String name )
+        throws IOException {
+        
+        Scope s = Scope.getThredLocal();
+        if ( s == null )
+            throw new JSException( "need a scope" );
+        
+        File f = null;
+
+        File root = (File)s.get( "_rootFile" );
+        if ( root == null ){
+            f = new File( name );
+        }
+        else {
+            File dir = new File( root , name.replaceAll( "/[^/]+$" , "/" ) );
+            dir.mkdirs();
+            f = new File( root , name );
+        }
+        
+        FileOutputStream out = new FileOutputStream( f );
+        write( out );
+        out.close();
+    }
+
     public class Sender extends InputStream {
         
         Sender( JSFileChunk chunk ){

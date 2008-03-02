@@ -43,6 +43,9 @@ public class AppContext {
 
         _scope.put( "external" , new JSFileLibrary( new File( "/data/external" ) ,  "external" , this ) , true );
 
+        _scope.put( "_rootFile" , _rootFile , true );
+        _scope.lock( "_rootFile" );
+
         // --- db
         
         _scope.put( "db" , DBProvider.get( _name ) , true );
@@ -77,7 +80,7 @@ public class AppContext {
         
         _scope.put( "globalHead" , _globalHead , true  );
 
-	_scope.lock( "user" );
+	_scope.lock( "user" ); // protection against global user object
     }
 
     private static String guessName( String root ){
