@@ -721,9 +721,27 @@ public class Scope implements JSObject {
     }
     
 
+    static final int compareParams( Class as[] , Class bs[] ){
+        if ( as.length != bs.length )
+            return as.length - bs.length;
+        
+        for ( int i=0; i<as.length; i++ ){
+            
+            Class a = as[i];
+            Class b = bs[i];
+
+            if ( a == String.class && b != String.class )
+                return 1;
+            if ( b == String.class && a != String.class )
+                return -1;
+        }
+
+        return 0;
+    }
+
     static final Comparator<Method> _methodLengthComparator = new Comparator<Method>(){
         public int compare( Method a , Method b ){
-            return a.getParameterTypes().length - b.getParameterTypes().length;
+            return compareParams( a.getParameterTypes() , b.getParameterTypes() );
         }
         public boolean equals(Object obj){
             return this == obj;
@@ -732,7 +750,7 @@ public class Scope implements JSObject {
 
     static final Comparator<Constructor> _consLengthComparator = new Comparator<Constructor>(){
         public int compare( Constructor a , Constructor  b ){
-            return a.getParameterTypes().length - b.getParameterTypes().length;
+            return compareParams( a.getParameterTypes() , b.getParameterTypes() );
         }
         public boolean equals(Object obj){
             return this == obj;
