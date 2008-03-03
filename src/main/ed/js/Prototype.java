@@ -100,13 +100,22 @@ public class Prototype {
 
             return new JSFunctionCalls0() {
                 public Object call( Scope s , Object [] args ){
-                    Object [] total = new Object [farguments.length + args.length];
+                    int totlen = 0;
+                    if(farguments != null) totlen += farguments.length;
+                    if(args != null) totlen += args.length;
+                    Object [] total = new Object [totlen];
 
-                    for(int i = 0; i < farguments.length; i++){
-                        total[i] = farguments[i];
+                    int j = 0; // where we are in total
+                    if(farguments != null){
+                        for(int i = 0; i < farguments.length; i++, j++){
+                            total[j] = farguments[i];
+                        }
                     }
-                    for(int i = 0; i < args.length; i++){
-                        total[i+farguments.length] = args[i];
+
+                    if(args != null){
+                        for(int i = 0; i < args.length; i++, j++){
+                            total[j] = args[i];
+                        }
                     }
 
                     s.setThis(t);
@@ -123,12 +132,41 @@ public class Prototype {
     }
     public static final JSFunction _functionBind = new Function_bind();
 
-    /** Function.wrap: ???
-     * 
+    /** Function.wrap: creates a wrapper function around this function
+     *  See: http://www.prototypejs.org/api/function/wrap
+     *  @param f  the function to wrap around this function
      */
     public static class Function_wrap extends JSFunctionCalls1 {
-        public Object call( Scope s , Object f , Object [] arguments){
-            return null;
+        public Object call( final Scope s , final Object f , final Object [] arguments){
+            final JSFunction __method = (JSFunction)s.getThis();
+            final JSFunction wrapper = (JSFunction)f;
+            return new JSFunctionCalls0() {
+                public Object call( Scope s , Object [] args ){
+                    int totlen = 1;
+                    if(args != null) totlen += args.length;
+                    Object [] total = new Object [totlen];
+
+                    Object tempthis = s.getThis();
+                    s.setThis(__method);
+                    try {
+                        total[0] = _functionBind.call(s, tempthis, null);
+                    }
+                    finally {
+                        s.clearThisNormal(null);
+                    }
+
+                    if(args != null){
+                        for(int i = 0; i < args.length; i++){
+                            total[i+1] = args[i];
+                        }
+                    }
+
+                    //return new Integer(5);
+                    return wrapper.call(s, total);
+                }
+            };
+
         }
     }
+    public static final JSFunction _functionWrap = new Function_wrap();
 }
