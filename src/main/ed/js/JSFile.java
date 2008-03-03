@@ -226,9 +226,10 @@ public abstract class JSFile extends JSObjectBase {
         
         public int read(byte[] b, int off, int len)
             throws IOException {
-            if ( _done() )
-                return 0;
 
+            if ( _done() )
+                return -1;
+            
             final int toCopy = Math.min( len , _buf.remaining() );
 
             _buf.get( b , off , toCopy );
