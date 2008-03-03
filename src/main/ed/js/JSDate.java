@@ -140,8 +140,115 @@ public class JSDate extends JSObjectBase implements Comparable {
         return _c.get( Calendar.DAY_OF_MONTH );
     }
 
+    public long setDate(int day) {
+        _cal();
+        _c.set( Calendar.DATE, day);
+        _time = _c.getTimeInMillis();
+        return _c.getTimeInMillis();
+    }
+
+    public long setFullYear(int year, int month, int day) { 
+        setMonth(month);
+        setDate(day);
+        return setFullYear(year); 
+    }
+
+    public long setFullYear(int year, int month) { 
+        setMonth(month);
+        return setFullYear(year); 
+    }
+
+    public long setFullYear(int year) {
+        _cal();
+        _c.set( Calendar.YEAR, year );
+        _time = _c.getTimeInMillis();
+        return _c.getTimeInMillis();
+    }
+
+    public long setHours(int hour, int min, int sec, int ms) {
+        setMinutes(min);
+        setSeconds(sec);
+        setMilliseconds(ms);
+        return setHours(hour);
+    }
+
+    public long setHours(int hour, int min, int sec) {
+        setMinutes(min);
+        setSeconds(sec);
+        return setHours(hour);
+    }
+
+    public long setHours(int hour, int min) {
+        setMinutes(min);
+        return setHours(hour);
+    }
+
+    public long setHours(int hour) {
+        _cal();
+        _c.set( Calendar.HOUR_OF_DAY, hour);
+        _time = _c.getTimeInMillis();
+        return _c.getTimeInMillis();
+    }
+
+    public long setMilliseconds(int ms) {
+        _cal();
+        _c.set( Calendar.MILLISECOND, ms);
+        _time = _c.getTimeInMillis();
+        return _c.getTimeInMillis();
+    }
+
+    public long setMinutes(int min, int sec, int ms) {
+        setSeconds(sec);
+        setMilliseconds(ms);
+        return setMinutes(min);
+    }
+
+    public long setMinutes(int min, int sec) {
+        setSeconds(sec);
+        return setMinutes(min);
+    }
+
+    public long setMinutes(int min) {
+        _cal();
+        _c.set( Calendar.MINUTE, min );
+        _time = _c.getTimeInMillis();
+        return _c.getTimeInMillis();
+    }
+
+    public long setMonth(int month, int day) {
+        setDate(day);
+        return setMonth(month);
+    }
+
+    public long setMonth(int month) {
+        _cal();
+        _c.set(Calendar.MONTH, month);
+        _time = _c.getTimeInMillis();
+        return _c.getTimeInMillis();
+    }
+
+    public long setSeconds(int sec, int ms) {
+        setMilliseconds(ms);
+        return setSeconds(sec);
+    }
+
+    public long setSeconds(int sec) {
+        _cal();
+        _c.set(Calendar.SECOND, sec);
+        _time = _c.getTimeInMillis();
+        return _c.getTimeInMillis();
+    }
+
+    public long setTime(int ms) {
+        _cal();
+        _c.setTimeInMillis(ms);
+        return _time = _c.getTimeInMillis();
+    }
+
     public String toString(){
-        return new Date( _time ).toString();
+        String format = "EEE MMM dd yyyy HH:mm:ss 'GMT'Z (z)";
+        return format(format);
+        //        return new Date( _time ).toString();
     }
 
     public String format( String theFormat ){
