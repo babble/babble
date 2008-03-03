@@ -37,4 +37,3 @@ assert( b.a.y == 1 );
 assert( b.a.__constructor__ );
 assert( b.a.z == 11 );
 
-exit();
