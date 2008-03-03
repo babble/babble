@@ -21,3 +21,23 @@ assert(d.newfunc() == 'h');
 e = "yo";
 assert(e.newfunc == null);
 
+a = {a: 1, b: 2, c: 3};
+vals = Object.values(a);
+for(var n = 1; n <= 3; n++){
+    i = vals.indexOf(n);
+    assert(i != -1);
+    vals.splice(i, 1);
+}
+
+assert(vals.length == 0);
+
+a = {a: 1, b: 2, c: 3};
+keys = Object.keys(a);
+realKeys = ["a", "b", "c"];
+for(var n = 0; n <= 2; n++){
+    i = keys.indexOf(realKeys[n]);
+    assert(i != -1);
+    keys.splice(i, 1);
+}
+
+assert(keys.length == 0);

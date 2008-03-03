@@ -52,11 +52,12 @@ public class ImportBinary {
         
         boolean hasAny = false;
         {
-            Iterator<JSObject> checkForAny = coll.find( new JSObjectBase() , new JSObjectBase() , 0 , 1 );
+            Iterator<JSObject> checkForAny = coll.find( new JSObjectBase() , null , 0 , 2 );
             if ( checkForAny != null && checkForAny.hasNext() )
                 hasAny = true;
         }
         
+	System.out.println( "\t hasAny : " + hasAny );
         JSObject o;
         while ( ( o = decoder.readObject() ) != null ){
             if ( hasAny )

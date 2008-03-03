@@ -239,64 +239,71 @@ public class JxpServlet {
             return false;
         }
 
-        
+        /**
+	 * takes the actual src of the asset and fixes and prints
+	 * i.e. /foo -> static.com/foo
+	*/
         void printSRC( String src ){
 
             if ( src == null || src.length() == 0 )
                 return;
+	    
+	    // parse out options
 
+	    boolean nocdn = false;
+	    boolean forcecdn = false;
+	    
             if ( src.startsWith( "NOCDN/" ) ){
-                _writer.print( src.substring( 5 ) );
-                return;
+		nocdn = true;
+		src = src.substring( 5 );
             }
-
-            if ( src.startsWith( "CDN/" ) ){
-                _writer.print( _cdnPrefix );
-                _writer.print( src.substring( 3 ) );
-                return;
+            else if ( src.startsWith( "CDN/" ) ){
+		forcecdn = true;
+		src = src.substring( 3 );
             }
-            
-            if ( ! src.startsWith( "/" ) ){
+	    
+	    // weird special case
+            if ( ! src.startsWith( "/" ) ){ // i'm not smart enough to handle local file case yet
                 _writer.print( src );
                 return;
             }
-            
+
+	    // setup 
+
             String uri = src;
             int questionIndex = src.indexOf( "?" );
             if ( questionIndex >= 0 )
                 uri = uri.substring( 0 , questionIndex );
             
-            if ( _context != null ){
-                
-                String cdnTags = null;
-                if ( uri.equals( "/~f" ) ){
-                    cdnTags = ""; // TODO: should i put a version or timestamp here?
-                }
-                else {
+	    String cdnTags = null;
+	    if ( uri.equals( "/~f" ) ){
+		cdnTags = ""; // TODO: should i put a version or timestamp here?
+	    }
+	    else {
+		if ( _context != null ){
                     File f = _context.getFile( uri );
                     if ( f.exists() ){
                         cdnTags = "lm=" + f.lastModified();
                     }
                 }
-                
-                if ( cdnTags != null )
-                    _writer.print( _cdnPrefix );
+	    }
+	    
+	    // print
 
-                _writer.print( src );
-                
-                if ( cdnTags != null && cdnTags.length() > 0 ){
-                    if ( questionIndex < 0 )
-                        _writer.print( "?" );
-                    else
-                        _writer.print( "&" );
-                    _writer.print( cdnTags );
-                }
-                
-                return;
-            }
+	    if ( forcecdn || ( ! nocdn && cdnTags != null ) )
+		_writer.print( _cdnPrefix );
 
-            _writer.print( src );
-        }
+	    _writer.print( src );
+                
+	    if ( cdnTags != null && cdnTags.length() > 0 ){
+		if ( questionIndex < 0 )
+		    _writer.print( "?" );
+		else
+		    _writer.print( "&" );
+		_writer.print( cdnTags );
+	    }
+	    
+	}
 
         int endOfTag( String s ){
             for ( int i=0; i<s.length(); i++ ){

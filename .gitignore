@@ -12,6 +12,7 @@
 .#*
 .git
 *#
+*.swp
 
 #os x stuff
 *Thumbs.db*
@@ -23,3 +24,4 @@ logs
 build
 crap
 hs_err_*
+docs

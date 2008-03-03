@@ -30,7 +30,7 @@ public class JSBuiltInFunctions {
         }        
     }
 
-    static Class _getClass( String name )
+    public static Class _getClass( String name )
         throws Exception {
 
         final int colon = name.indexOf( ":" );
@@ -194,18 +194,9 @@ public class JSBuiltInFunctions {
                  * Copies all properties from the source to the destination object.
                  * Not in JavaScript spec! Please refer to Prototype docs! 
                 */
-                set( "extend", new JSFunctionCalls2(){
-                        public Object call( Scope s , Object dest , Object src , Object [] extra ){
-                            JSObject jdest, jsrc;
-                            jdest = (JSObject)dest;
-                            jsrc = (JSObject)src;
-                            for(String key : jsrc.keySet()){
-                                jdest.set(key, jsrc.get(key));
-                            }
-                            
-                            return dest;
-                        }
-                    });
+                set( "extend", new Prototype.Object_extend() );
+                set( "values", new Prototype.Object_values() );
+                set( "keys", new Prototype.Object_keys() );
             }
         };
     

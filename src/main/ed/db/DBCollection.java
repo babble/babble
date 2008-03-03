@@ -27,6 +27,8 @@ public abstract class DBCollection extends JSObjectLame {
     // ------
 
     public void ensureIndex( final JSObject keys ){
+        if ( checkReadOnly( false ) ) return;
+
         final String name = genIndexName( keys );
 
         boolean doEnsureIndex = false;
@@ -79,10 +81,12 @@ public abstract class DBCollection extends JSObjectLame {
 
     
     public final Object save( Object o ){
+        if ( checkReadOnly( true ) ) return null;
         return save( null , o );
     }
         
     public final Object save( Scope s , Object o ){
+        if ( checkReadOnly( true ) ) return o;
         o = _handleThis( s , o );
         
         _checkObject( o , false );
@@ -142,6 +146,8 @@ public abstract class DBCollection extends JSObjectLame {
         
         _update = new JSFunctionCalls2() {
                 public Object call( Scope s , Object q , Object o , Object foo[] ){
+                    if ( checkReadOnly( true ) ) return o;
+
                     _anyUpdateSave = true;
                                         
                     _checkObject( q , false );
@@ -172,6 +178,7 @@ public abstract class DBCollection extends JSObjectLame {
         _entries.put( "remove" , 
                       new JSFunctionCalls1(){
                           public Object call( Scope s , Object o , Object foo[] ){
+                              if ( checkReadOnly( true ) ) return o;
                               
                               o = _handleThis( s , o );
                               
@@ -368,6 +375,24 @@ public abstract class DBCollection extends JSObjectLame {
 
     public DBBase getBase(){
         return _base;
+    }
+
+    protected boolean checkReadOnly( boolean strict ){
+        if ( ! _base._readOnly )
+            return false;
+        
+        if ( ! strict )
+            return true;
+
+        Scope scope = Scope.getThredLocal();
+        if ( scope == null )
+            throw new JSException( "db is read only" );
+        
+        Object foo = scope.get( "dbStrict" );
+        if ( foo == null || JSInternalFunctions.JS_evalToBool( foo ) )
+            throw new JSException( "db is read only" );            
+
+        return true;
     }
     
     final DBBase _base;

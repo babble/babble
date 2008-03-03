@@ -9,15 +9,13 @@ import ed.js.engine.*;
 
 public class JSObjectBase implements JSObject {
 
+    static final String OBJECT_STRING = "Object";
+
     public JSObjectBase(){
     }
 
     public JSObjectBase( JSFunction constructor ){
-        _constructor = constructor;
-        if ( _constructor != null ){
-            set( "__constructor__" , _constructor );
-            set( "__proto__" , _constructor._prototype );
-        }
+        setConstructor( constructor );
     }
 
     public void prefunc(){}
@@ -136,7 +134,16 @@ public class JSObjectBase implements JSObject {
     }
 
     public String toString(){
-        return "Object";
+        Object temp = get( "toString" );
+        
+        if ( ! ( temp instanceof JSFunction ) )
+            return OBJECT_STRING;
+        
+        JSFunction f = (JSFunction)temp;
+
+        Scope s = f._scope.child();
+        s.setThis( this );
+        return f.call( s ).toString();
     }
 
     protected void addAll( JSObject other ){
@@ -153,9 +160,12 @@ public class JSObjectBase implements JSObject {
 
     public void setConstructor( JSFunction cons , boolean exec ){
         _readOnlyCheck();
-        
+
         _constructor = cons;
-        if ( exec ){
+        set( "__constructor__" , _constructor );
+        set( "__proto__" , _constructor == null ? null : _constructor._prototype );
+
+        if ( _constructor != null && exec ){
             
             Scope s = _constructor.getScope();
             

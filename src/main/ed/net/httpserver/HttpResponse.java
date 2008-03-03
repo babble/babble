@@ -3,6 +3,7 @@
 package ed.net.httpserver;
 
 import java.io.*;
+import java.net.*;
 import java.util.*;
 import java.text.*;
 import java.nio.*;
@@ -18,8 +19,20 @@ public class HttpResponse {
     static final String DEFAULT_CHARSET = "utf-8";
 
     public static final DateFormat HeaderTimeFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
+    public static final String SERVER_HEADERS;
+
     static {
 	HeaderTimeFormat.setTimeZone( TimeZone.getTimeZone("GMT") );
+	
+	String hostname = "unknown";
+	try {
+	    hostname = InetAddress.getLocalHost().getHostName();
+	}
+	catch ( Throwable t ){
+	    t.printStackTrace();
+	}
+
+	SERVER_HEADERS = "Server: ED\r\nX-svr: " + hostname + "\r\n";
     }
 
 
@@ -29,7 +42,6 @@ public class HttpResponse {
 
         _headers = new StringMap<String>();
         _headers.put( "Content-Type" , "text/html;charset=" + getContentEncoding() );
-        _headers.put( "Server" , "ED" );
 	setDateHeader( "Date" , System.currentTimeMillis() );
     }
 
@@ -237,6 +249,8 @@ public class HttpResponse {
             a.append( "\r\n" );
         }
         
+	a.append( SERVER_HEADERS );
+
         if ( keepAlive() )
             a.append( "Connection: keep-alive\r\n" );
         else

@@ -19,7 +19,16 @@ public class JSInternalFunctions extends JSNumericFunctions {
     public static JSFunction FunctionCons = new JSFunctionCalls0(){
             
             public Object call( Scope s , Object extra[] ){
-                throw new RuntimeException( "no" );
+                Object t = s.getThis();
+                if ( t != null )
+                    return t;
+
+                return new JSFunctionCalls0(){
+                    public Object call( Scope s , Object extra[] ){
+                        return null;
+                    }
+                };
+
             }
         };
 
@@ -41,6 +50,16 @@ public class JSInternalFunctions extends JSNumericFunctions {
         if ( thing instanceof Number ){
             //return type == JSNumber.CONS;
             return false;
+        }
+
+        if ( type instanceof String || type instanceof JSString ){
+            try {
+                Class clazz = JSBuiltInFunctions._getClass( type.toString() );
+                return clazz.isAssignableFrom( thing.getClass() );
+            }
+            catch ( Exception e ){
+                throw new JSException( "can't find : " + type , e );
+            }
         }
         
         if ( ! ( thing instanceof JSObjectBase ) )

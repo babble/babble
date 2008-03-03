@@ -186,6 +186,7 @@ public class Scope implements JSObject {
         if ( _with != null ){
             for ( int i=_with.size()-1; i>=0; i-- ){
                 JSObject temp = _with.get( i );
+                if ( temp == null ) continue;
                 if ( temp.containsKey( name ) ){
                     if ( with != null && with.length > 0 )
                         with[0] = temp;
@@ -510,6 +511,20 @@ public class Scope implements JSObject {
     Object _orSave;
     JSObject _globalThis;
     
+    public void makeThreadLocal(){
+        _threadLocal.set( this );
+    }
+    
+    public static void clearThreadLocal(){
+        _threadLocal.set( null );
+    }
+
+    public static Scope getThredLocal(){
+        return _threadLocal.get();
+    }
+    
+    private static ThreadLocal<Scope> _threadLocal = new ThreadLocal<Scope>();
+
     static class This {
         This( Object o ){
             _this = o;
@@ -598,10 +613,12 @@ public class Scope implements JSObject {
                                     }
                                 }
                                 else if ( ret.getClass().isArray() ){
-                                    JSArray a = new JSArray();
-                                    for ( Object o : ((Object[])ret) )
-                                        a.add( o );
-                                    return a;
+                                    if ( ret.getClass().getName().toString().length() > 3 ){ // primitive
+                                        JSArray a = new JSArray();
+                                        for ( Object o : ((Object[])ret) )
+                                            a.add( o );
+                                        return a;
+                                    }
                                 }
                             }
                             return ret;

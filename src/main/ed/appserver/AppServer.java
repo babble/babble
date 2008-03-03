@@ -141,7 +141,7 @@ public class AppServer implements HttpHandler {
     public boolean handles( HttpRequest request , Box<Boolean> fork ){
         String uri = request.getURI();
         
-        if ( ! uri.startsWith( "/" ) || uri.endsWith( "~" ) || uri.contains( "/.#" ) )
+        if ( ! uri.startsWith( "/" ) )
             return false;
         
         AppRequest ar = createRequest( request );
@@ -166,7 +166,8 @@ public class AppServer implements HttpHandler {
         AppRequest ar = (AppRequest)request.getAttachment();
         if ( ar == null )
             ar = createRequest( request );
-
+        
+        ar.getScope().makeThreadLocal();
         ar.getContext()._usage.hit( "bytes_in" , request.totalSize() );
         ar.getContext()._usage.hit( "requests" , 1 );
         
@@ -184,6 +185,8 @@ public class AppServer implements HttpHandler {
             
             ar.getContext()._usage.hit( "cpu_millis" , t );
             ar.getContext()._usage.hit( "bytes_out" , response.totalSize() );
+
+            Scope.clearThreadLocal();
         }
     }
     

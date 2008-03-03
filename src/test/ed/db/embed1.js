@@ -49,4 +49,3 @@ assert( f.b[0].y == 3 );
 assert( f.a.z == 11 );
 assert( f.b[0].z == 12 );
 
-exit();

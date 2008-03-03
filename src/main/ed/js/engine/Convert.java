@@ -795,7 +795,9 @@ public class Convert {
             _append( " ) ; \n" , n );
             _add( n.getFirstChild().getNext().getNext() , state );
             _append( " )\n " , n );
+            _append( " { \n " , n );
             _add( n.getFirstChild().getNext().getNext().getNext() , state );
+            _append( " } \n " , n );
         }
         else if ( numChildren == 3 ){
             String name = n.getFirstChild().getString();
@@ -807,7 +809,7 @@ public class Convert {
             _add( n.getFirstChild().getNext() , state );
             _append( " ).keySet() ){\n " , n );
 
-            if ( state.useLocalVariable( name ) )
+            if ( state.useLocalVariable( name ) && state.hasSymbol( name ) )
                 _append( name + " = new JSString( " + tempName + ") ; " , n );
             else
                 _append( "scope.put( \"" + name + "\" , new JSString( " + tempName + " ) , true );\n" , n );
