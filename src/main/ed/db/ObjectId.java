@@ -97,7 +97,20 @@ public class ObjectId {
     }
 
     public String toString(){
-        return Long.toHexString( _base ) + Integer.toHexString( _inc );
+        String a = Long.toHexString( _base );
+        String b = Integer.toHexString( _inc );
+        
+        StringBuilder buf = new StringBuilder( 16 );
+
+        for ( int i=0; i<(16-a.length()); i++ )
+            buf.append( "0" );
+        buf.append( a );
+
+        for ( int i=0; i<(8-b.length()); i++ )
+            buf.append( "0" );
+        buf.append( b );
+        
+        return buf.toString();
     }
 
     final long _base;
