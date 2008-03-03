@@ -17,11 +17,7 @@ public abstract class JSFunction extends JSFunctionBase {
         
         _prototype = new JSObjectBase();
         set( "prototype" , _prototype );
-        set( "call" , _call );
-        set( "apply" , _apply );
         set( "isFunction" , true );
-        set( "bind", Prototype._functionBind );
-        set( "wrap", Prototype._functionWrap );
 
         init();
     }
@@ -65,6 +61,7 @@ public abstract class JSFunction extends JSFunctionBase {
     protected final Scope _scope;
     protected JSObject _prototype;
 
+    protected JSArray _arguments;
     protected String _name = "NO NAME SET";
 
     public static JSFunction _call = new ed.js.func.JSFunctionCalls1(){

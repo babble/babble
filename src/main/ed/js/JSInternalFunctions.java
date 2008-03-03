@@ -30,8 +30,18 @@ public class JSInternalFunctions extends JSNumericFunctions {
                 };
 
             }
-        };
 
+            protected void init(){
+                _prototype.set( "wrap" , Prototype._functionWrap );
+                _prototype.set( "bind", Prototype._functionBind );
+                
+                _prototype.set( "call" , JSFunction._call );
+                _prototype.set( "apply" , JSFunction._apply );
+
+            }
+                        
+        };
+    
     public JSInternalFunctions(){
         super( FunctionCons );
     }
