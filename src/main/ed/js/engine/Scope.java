@@ -613,7 +613,7 @@ public class Scope implements JSObject {
                                     }
                                 }
                                 else if ( ret.getClass().isArray() ){
-                                    if ( ! ret.getClass().getName().toString().startsWith( "["  ) ){
+                                    if ( ret.getClass().getName().toString().length() > 3 ){ // primitive
                                         JSArray a = new JSArray();
                                         for ( Object o : ((Object[])ret) )
                                             a.add( o );
