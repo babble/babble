@@ -385,5 +385,9 @@ public class JSString extends JSObjectBase {
         return _s.equals( o.toString() );
     }
 
+    public byte[] getBytes(){
+        return _s.getBytes();
+    }
+
     String _s;
 }
