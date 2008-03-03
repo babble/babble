@@ -64,3 +64,14 @@ c1.x = 6;
 
 assert(c1.getX() == 6);
 assert(c1.getX(2) == 12);
+
+a = function( a , b ){};
+assert( a.argumentNames().length == 2 );
+assert( a.argumentNames()[0] == "a" );
+assert( a.argumentNames()[1] == "b" );
+
+function b( a , b ){};
+assert( b.argumentNames().length == 2 );
+assert( b.argumentNames()[0] == "a" );
+assert( b.argumentNames()[1] == "b" );
+

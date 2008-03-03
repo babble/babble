@@ -58,6 +58,17 @@ public abstract class JSFunction extends JSFunctionBase {
         return "JSFunction : " + _name;
     }
 
+    public JSArray argumentNames(){
+        if ( _arguments != null )
+            return _arguments;
+        
+        JSArray temp = new JSArray();
+        for ( int i=0; i<_num; i++ ){
+            temp.add( "unknown" + i );
+        }
+        return temp;
+    }
+
     protected final Scope _scope;
     protected JSObject _prototype;
 

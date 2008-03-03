@@ -961,6 +961,14 @@ public class Convert {
         //state.debug();
 
         _append( "new JSFunctionCalls" + fn.getParamCount() + "( scope , null ){ \n" , n );
+
+        _append( "protected void init(){ super.init(); \n " , n );
+        _append( "_arguments = new JSArray();\n" , n );
+        for ( int i=0; i<fn.getParamCount(); i++ ){
+            final String foo = fn.getParamOrVarName( i );
+            _append( "_arguments.add( \"" + foo + "\" );\n" , n );
+        }
+        _append( "}\n" , n );
         
         String callLine = "public Object call( final Scope passedIn ";
         String varSetup = "";
@@ -985,7 +993,7 @@ public class Convert {
             callLine += " ";
         }
         callLine += " , Object extra[] ){\n" ;
-
+        
         _append( callLine + " final Scope scope = new Scope( \"temp scope for: \" + _name  , _scope , passedIn ); " , n );
         if ( hasArguments ){
             _append( "JSArray arguments = new JSArray();\n" , n );
