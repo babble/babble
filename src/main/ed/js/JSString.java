@@ -359,6 +359,11 @@ public class JSString extends JSObjectBase {
         return _s;
     }
     
+    public int compareTo( Object o ){
+	if ( o == null ) o = "";
+	return _s.compareTo( o.toString() );
+    }
+
     public int length(){
         return _s.length();
     }
