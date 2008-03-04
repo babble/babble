@@ -355,6 +355,18 @@ public class HttpRequest extends JSObjectLame {
         return _range;
     }
 
+    public String getRemoteIP(){
+        if ( _remoteIP != null )
+            return _remoteIP;
+        
+        String ip = getHeader( "X-Cluster-Client-Ip" );
+        if ( ip == null )
+            ip = _handler.getInetAddress().getHostAddress();
+        
+        _remoteIP = ip;
+        return _remoteIP;
+    }
+
     public static long[] _parseRange( String s ){
         if ( s == null )
             return null;
@@ -420,6 +432,7 @@ public class HttpRequest extends JSObjectLame {
     final Map<String,String> _headers = new StringMap<String>();
     final JSDate _start = new JSDate();
     Map<String,String> _cookies;
+    String _remoteIP;
 
     boolean _parsedPost = false;
     PostData _postData;
@@ -435,7 +448,7 @@ public class HttpRequest extends JSObjectLame {
     final boolean _http11;
 
     Object _attachment;
-
+    
     private boolean _rangeChecked = false;
     private long[] _range;
 
