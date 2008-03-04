@@ -90,6 +90,8 @@ public class JSBuiltInFunctions {
 
     public static class javaStatic extends JSFunctionCalls2 {
         public Object call( Scope scope , Object clazzNameJS , Object methodNameJS , Object extra[] ){
+            final boolean debug = false;
+            
             String clazzName = clazzNameJS.toString();
             
             if ( ! Security.isCoreJS() )
@@ -107,22 +109,29 @@ public class JSBuiltInFunctions {
             Arrays.sort( all , Scope._methodLengthComparator );
             for ( int i=0; i<all.length; i++ ){
                 Method m = all[i];
+                if ( debug ) System.out.println( m.getName() );
                 
-                if ( ( m.getModifiers() & Modifier.STATIC ) == 0  )
+                if ( ( m.getModifiers() & Modifier.STATIC ) == 0  ){
+                    if ( debug ) System.out.println( "\t not static" );
                     continue;
-
-                if ( ! m.getName().equals( methodNameJS.toString() ) )
+                }
+                
+                if ( ! m.getName().equals( methodNameJS.toString() ) ){
+                    if ( debug ) System.out.println( "\t wrong name" );
                     continue;
-
-                Object params[] = Scope.doParamsMatch( m.getParameterTypes() , extra );
-
-                if ( params != null ){
-                    try {
-                        return m.invoke( null , params );
-                    }
-                    catch ( Exception e ){
-                        throw new JSException( "can' call" , e );
-                    }
+                }
+                
+                Object params[] = Scope.doParamsMatch( m.getParameterTypes() , extra , debug );
+                if ( params == null ){
+                    if ( debug ) System.out.println( "\t params don't match" );
+                    continue;
+                }
+                    
+                try {
+                    return m.invoke( null , params );
+                }
+                catch ( Exception e ){
+                    throw new JSException( "can' call" , e );
                 }
                     
             }
