@@ -937,7 +937,7 @@ public class Convert {
                 
                 if ( cur.getType() == Token.NAME ||
                      cur.getType() == Token.GETVAR )
-                    if ( cur.getString().equals( "arguments" ) )
+                    if ( cur.getString().equals( "arguments" ) || cur.getString().equals( "processArgs" ) )
                         hasArguments = true;
                 
                 if ( cur.getType() == Token.INC || 
