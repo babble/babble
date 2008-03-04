@@ -132,17 +132,8 @@ public abstract class DBApiLayer extends DBBase {
             _fullNameSpace = _root + "." + name;
         }
 
-        public ObjectId doapply( JSObject o ){
-            ObjectId id = (ObjectId)o.get( "_id" );
-            
-            if ( id == null ){
-                id = ObjectId.get();
-                o.set( "_id" , id );
-            }
-            
+        public void doapply( JSObject o ){
             o.set( "_ns" , _removeRoot( _fullNameSpace ) );
-
-            return id;
         }
 
         public JSObject find( ObjectId id ){

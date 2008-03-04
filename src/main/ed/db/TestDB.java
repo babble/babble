@@ -60,15 +60,7 @@ public class TestDB extends DBBase {
             return o;
         }
 
-        public ObjectId doapply( JSObject o ){
-            ObjectId id = (ObjectId)o.get( "_id" );
-
-            if ( id == null ){
-                id = ObjectId.get();
-                o.set( "_id" , id );
-            }
-            
-            return id;
+        public void doapply( JSObject o ){
         }
         
         public JSObject find( ObjectId id ){
