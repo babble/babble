@@ -2,10 +2,52 @@
 
 package ed.util;
 
+import java.io.*;
+import java.util.*;
 import java.awt.*;
 import java.awt.image.*;
+import javax.imageio.*;
+import javax.imageio.stream.*;
+import javax.imageio.plugins.jpeg.*;
+
+import ed.js.*;
 
 public class ImageUtil {
+
+    public static JSFile imgToJpg( BufferedImage img , double compressionQuality , String filename )
+        throws IOException {
+
+        ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
+        
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ImageOutputStream ios = ImageIO.createImageOutputStream( out );
+        writer.setOutput(ios);
+        
+        ImageWriteParam iwparam = new MyImageWriteParam();
+        iwparam.setCompressionMode( ImageWriteParam.MODE_EXPLICIT );
+        iwparam.setCompressionQuality( (float)compressionQuality );
+        
+        writer.write(null, new IIOImage( img, null, null), iwparam);
+        
+        ios.flush();
+        writer.dispose();
+        ios.close();
+        
+        return new JSInputFile( filename , "image/jpeg" , out.toByteArray() );
+    }
+
+    public static class MyImageWriteParam extends JPEGImageWriteParam {
+        public MyImageWriteParam() {
+            super(Locale.getDefault());
+        }
+        
+        public void setCompressionQuality(float quality) {
+            if (quality < 0.0F || quality > 1.0F) {
+                throw new IllegalArgumentException("Quality out-of-bounds!");
+            }
+            this.compressionQuality = 256 - (quality * 256);
+        }
+    }
 
     public static BufferedImage getScaledInstance(BufferedImage img ,
                                            double targetWidth ,
