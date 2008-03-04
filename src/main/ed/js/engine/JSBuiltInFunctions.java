@@ -407,6 +407,16 @@ public class JSBuiltInFunctions {
         } 
     }
     
+    public static class processArgs extends JSFunctionCalls0 {
+        public Object call( Scope scope , Object [] args){
+            JSArray a = (JSArray)scope.get("arguments");
+            for(int i = 0; i < args.length; i++){
+                scope.put(args[i].toString(), a.getInt(i), true);
+            }
+            return null;
+        }
+    }
+
     
     static Scope _myScope = new Scope( "Built-Ins" , null );
     static {
@@ -426,6 +436,8 @@ public class JSBuiltInFunctions {
         _myScope.put( "Function" , JSInternalFunctions.FunctionCons , true );
 
         _myScope.put( "Math" , JSMath.getInstance() , true );
+
+        _myScope.put( "processArgs", new processArgs(), true );
         
         CrID crid = new CrID();
         _myScope.put( "CrID" , crid , true );
