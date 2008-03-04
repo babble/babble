@@ -94,11 +94,15 @@ public class JSON {
     
             if ( something instanceof Number || 
                  something instanceof Boolean ||
-                 something instanceof JSRegex ||
-                 something instanceof JSDate ){
+                 something instanceof JSRegex ){
                 a.append( something.toString() );
                 return;
             }
+
+	    if ( something instanceof JSDate ){
+                a.append( "new Date( " + ((JSDate)something)._time + " ) " );
+		return;
+	    }
 
             if ( something instanceof JSString || 
                  something instanceof String ){
