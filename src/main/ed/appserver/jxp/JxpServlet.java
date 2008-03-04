@@ -276,7 +276,7 @@ public class JxpServlet {
                 uri = uri.substring( 0 , questionIndex );
             
 	    String cdnTags = null;
-	    if ( uri.equals( "/~f" ) ){
+	    if ( uri.equals( "/~f" ) || uri.equals( "/~~/f" ) ){
 		cdnTags = ""; // TODO: should i put a version or timestamp here?
 	    }
 	    else {
