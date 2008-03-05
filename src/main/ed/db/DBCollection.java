@@ -16,7 +16,7 @@ public abstract class DBCollection extends JSObjectLame {
     protected abstract JSObject doSave( JSObject o );
     public abstract JSObject update( JSObject q , JSObject o , boolean upsert , boolean apply );
 
-    protected abstract ObjectId doapply( JSObject o );
+    protected abstract void doapply( JSObject o );
     public abstract int remove( JSObject id );
     
     public abstract JSObject find( ObjectId id );    
@@ -64,6 +64,10 @@ public abstract class DBCollection extends JSObjectLame {
     }
 
     public ObjectId apply( Object o ){
+        return apply( o , true );
+    }
+
+    public ObjectId apply( Object o , boolean ensureID ){
 
         if ( ! ( o instanceof JSObject ) )
             throw new RuntimeException( "can only apply JSObject" );
@@ -72,7 +76,15 @@ public abstract class DBCollection extends JSObjectLame {
         jo.set( "_save" , _save );
         jo.set( "_update" , _update );
         
-        return doapply( jo );
+        ObjectId id = (ObjectId)jo.get( "_id" );
+        if ( ensureID && id == null ){
+            id = ObjectId.get();
+            jo.set( "_id" , id );
+        }
+        
+        doapply( jo );
+
+        return id;
     }
 
     public void setConstructor( JSFunction cons ){
