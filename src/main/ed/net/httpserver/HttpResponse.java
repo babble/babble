@@ -121,6 +121,16 @@ public class HttpResponse {
         return f;
     }
 
+    public void sendRedirectPermanent(String loc){
+        setResponseCode( 301 );
+        setHeader("Location", loc);
+    }
+
+    public void sendRedirectTemporary(String loc){
+        setResponseCode( 302 );
+        setHeader("Location", loc);
+    }
+
     private boolean flush()
         throws IOException {
         return _flush();
