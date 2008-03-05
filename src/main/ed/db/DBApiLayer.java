@@ -203,13 +203,15 @@ public abstract class DBApiLayer extends DBBase {
         }
         
         void _cleanCursors(){
-            if ( _deadCursorIds.size() == 0 ||
-                 _deadCursorIds.size() % 20 != 0 )
+            if ( _deadCursorIds.size() == 0 )
+                return;
+            
+            if ( _deadCursorIds.size() % 20 != 0 && _deadCursorIds.size() < 500 )
                 return;
             
             List<Long> l = _deadCursorIds;
             _deadCursorIds = new Vector<Long>();
-
+            
             System.out.println( "trying to kill cursors : " + l.size() );
             
             try {
