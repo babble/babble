@@ -61,7 +61,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
                 foo.set( "orderby" , _orderBy );
             }
 
-            _it = _collection.find( foo , _keysWanted , _skip , _numWanted );
+            _it = _collection.find( foo , _keysWanted , _skip , -1 * _numWanted );
         }
 
         if ( _it == null )
