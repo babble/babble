@@ -273,14 +273,6 @@ public class AppServer implements HttpHandler {
         if ( ar.isStatic() && f.exists() ){
             if ( D ) System.out.println( f );
 
-            /*
-            if ( ! f.exists() ){
-                response.setResponseCode( 404 );
-                response.getWriter().print( "file not found\n" );
-                return;
-            }
-            */
-
             if ( f.isDirectory() ){
                 response.setResponseCode( 301 );
                 response.getWriter().print( "listing not allowed\n" );
