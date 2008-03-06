@@ -41,6 +41,10 @@ public abstract class PostData {
         _boundary = _parseBoundary( _contentType );
     }
 
+    public int length(){
+        return _len;
+    }
+
     abstract int position();
     abstract byte get( int pos );
     abstract void put( byte b );
