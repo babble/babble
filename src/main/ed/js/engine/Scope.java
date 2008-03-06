@@ -12,7 +12,7 @@ import ed.js.func.*;
 
 public class Scope implements JSObject {
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = Boolean.getBoolean( "DEBUG.SCOPE" );
     private static int ID = 1;
     
     public static Scope GLOBAL = new Scope( "GLOBAL" , JSBuiltInFunctions._myScope  );
@@ -38,6 +38,7 @@ public class Scope implements JSObject {
 
     
     public Scope( String name , Scope parent , Scope alternate , File root ){
+        if ( DEBUG ) System.err.println( "Creating scope with name : " + name + "\t" + _id );
         _name = name;
         _parent = parent;
         _root = root;
@@ -89,6 +90,8 @@ public class Scope implements JSObject {
     }
 
     public Collection<String> keySet(){
+        if ( _objects == null )
+            return new HashSet<String>();
         return new HashSet<String>( _objects.keySet() );
     }
 
@@ -156,7 +159,15 @@ public class Scope implements JSObject {
         return get( name , alt , null );
     }
     
-    public Object get( String name , Scope alt , JSObject with[] ){
+    public Object get( final String origName , Scope alt , JSObject with[] ){
+        String name = origName;
+        boolean finder = false;
+        if ( name.startsWith( "@@" ) & name.endsWith( "!!" ) ){
+            name = name.substring( 2 , name.length() - 2 );
+            finder = true;
+            System.out.println( " finder on [" + name + "]" );
+        }
+
         if ( "scope".equals( name ) ){
             return this;
         }
@@ -177,17 +188,23 @@ public class Scope implements JSObject {
         
         Object foo = _objects == null ? null : _objects.get( name );
         if ( foo != null ){
+
+            if ( finder ) throw new ScopeFinder( name , this );
+            
             if ( foo == NULL )
                 return null;
             return foo;
         }
-
+        
         // WITH
         if ( _with != null ){
             for ( int i=_with.size()-1; i>=0; i-- ){
                 JSObject temp = _with.get( i );
                 if ( temp == null ) continue;
                 if ( temp.containsKey( name ) ){
+                    
+                    if ( finder ) throw new ScopeFinder( name , this );
+                    
                     if ( with != null && with.length > 0 )
                         with[0] = temp;
                     return temp.get( name );
@@ -198,11 +215,14 @@ public class Scope implements JSObject {
         if ( alt != null && _global ){
             if ( ! alt._global )
                 throw new RuntimeException( "i fucked up" );
-            return alt.get( name , null );
+            return alt.get( origName , null );
         }
 
         Scope pref = getTLPreferred();
         if ( pref != null && pref._objects.containsKey( name ) ){
+
+            if ( finder ) throw new ScopeFinder( name , this );
+            
             Object temp = pref._objects.get( name );
             if ( temp == NULL )
                 return null;
@@ -212,7 +232,7 @@ public class Scope implements JSObject {
         if ( _parent == null )
             return null;
         
-        return _parent.get( name , alt );
+        return _parent.get( origName , alt );
     }
 
     public void enterWith( JSObject o ){
@@ -471,7 +491,7 @@ public class Scope implements JSObject {
     public void debug( int indent ){
         for ( int i=0; i<indent; i++ )
             System.out.print( "  " );
-        System.out.print( _id + ":" + _name + ":" );
+        System.out.print( toString() + ":" );
         if ( _global )
             System.out.print( "G:" );
         if ( _objects != null )
@@ -485,6 +505,10 @@ public class Scope implements JSObject {
         
         if ( _parent != null )
             _parent.debug( indent + 1 );
+    }
+
+    public String toString(){
+        return _id + ":" + _name;
     }
 
     public void lock( String s ){
@@ -756,4 +780,23 @@ public class Scope implements JSObject {
             return this == obj;
         }
     };
+
+    public static class ScopeFinder extends RuntimeException {
+        ScopeFinder( String name , Scope scope ){
+            super( "Finder found [" + name + "] in " + scope.toString() );
+            _name = name;
+            _scope = scope;
+        }
+
+        public String getName(){
+            return _name;
+        }
+
+        public Scope getScope(){
+            return _scope;
+        }
+
+        final String _name;
+        final Scope _scope;
+    }
 }
