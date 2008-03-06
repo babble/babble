@@ -36,8 +36,7 @@ class PostDataInMemory extends PostData {
     }
 
     void fillIn( ByteBuffer buf , int start , int end ){
-        while ( start < end )
-            buf.put( _data[start++] );
+        buf.put( _data , start , end - start );
     }
 
     public void writeTo( File f )
