@@ -898,7 +898,8 @@ public class Convert {
             _setLineNumbers( fn , fn );
 
             String name = fn.getFunctionName();
-            if ( name.length() == 0 )
+            boolean anon = name.length() == 0;
+            if ( anon )
                 name = "tempFunc_" + _id + "_" + i + "_" + _methodId++;
             
             state._functionIdToName.put( i , name );
@@ -908,7 +909,7 @@ public class Convert {
                 System.out.println( i + " : " +  name );
             }
 
-            _setVar( name , fn , state );
+            _setVar( name , fn , state , anon );
             _append( "; \n scope.getFunction( \"" + name + "\" ).setName( \"" + name + "\" );\n\n" , fn );
 
         }
