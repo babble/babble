@@ -58,7 +58,7 @@ public class Replay {
         return headers + "\n";
     }
 
-    private void _send( HttpRequest request )
+    private String _send( HttpRequest request )
         throws IOException {
         byte headers[] = getHeaders( request ).getBytes();
         PostData pd = request.getPostData();
@@ -82,11 +82,24 @@ public class Replay {
         sock.connect( _addr );
         sock.write( bb );
 
+        String firstChunk = null;
+
         while ( true ){
             _readBuffer.position( 0 );
+            _readBuffer.limit( _readBuffer.capacity() );
+            
             if ( sock.read( _readBuffer ) <= 0 )
                 break;
+
+            if ( firstChunk == null ){
+                _readBuffer.flip();
+                byte buf[] = new byte[ Math.min( 100 , _readBuffer.limit() ) ];
+                _readBuffer.get( buf );
+                firstChunk = new String( buf );
+            }
         }
+        
+        return firstChunk;
     }
 
     class Runner extends Thread {
@@ -102,8 +115,9 @@ public class Replay {
                     if ( request == null )
                         continue;
                     
-                    _send( request );
-
+                    String firstChunk = _send( request );
+                    if ( firstChunk.startsWith( "5" ) )
+                        _log.info( "error on : " + request.getURL() + "\n" + firstChunk );
                 }
                 catch ( Throwable t ){
                     _log.info( "run error" , t );
