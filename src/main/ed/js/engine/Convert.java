@@ -490,8 +490,9 @@ public class Convert {
         case Token.WHILE:
             _append( "while( false || JS_evalToBool( " , n );
             _add( n.getFirstChild() , state );
-            _append( " ) ) " , n );
+            _append( " ) ){ " , n );
             _add( n.getFirstChild().getNext() , state );
+            _append( " }\n" , n );
             break;
         case Token.FOR:
             _addFor( n , state );
