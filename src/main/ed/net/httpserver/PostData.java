@@ -22,33 +22,17 @@ public abstract class PostData {
         boolean multipart = ct != null && ct.toLowerCase().trim().startsWith( "multipart/form-data" );
         
         if ( ! multipart ){
-            if ( cl > InMemory.MAX )
+            if ( cl > PostDataInMemory.MAX )
                 throw new RuntimeException( "can't have regular post greater than 10 mb" );
-            return new InMemory( cl , multipart , ct );
+            return new PostDataInMemory( cl , multipart , ct );
         }
         
-        if ( cl > InMemory.MAX )
+        if ( cl > PostDataInMemory.MAX )
             throw new RuntimeException( "can't handle huge stuff yet" );
         
-        return new InMemory( cl , multipart , ct );
+        return new PostDataInMemory( cl , multipart , ct );
     }
 
-    static byte[] _parseBoundary( String ct ){
-        if ( ct == null )
-            return null;
-
-        final String thing = "boundary=";
-
-        int start = ct.indexOf( thing );
-        if ( start <= 0 )
-            return null;
-        
-        int end = ct.indexOf( ";" , start );
-        if ( end < 0 )
-            end = ct.length();
-        
-        return ( "--" + ct.substring( start + thing.length() , end ) ).getBytes();
-    }
 
     PostData( int len , boolean multipart , String contentType ){
         _len = len;
@@ -206,6 +190,24 @@ public abstract class PostData {
         }
     }
 
+    static byte[] _parseBoundary( String ct ){
+        if ( ct == null )
+            return null;
+
+        final String thing = "boundary=";
+
+        int start = ct.indexOf( thing );
+        if ( start <= 0 )
+            return null;
+        
+        int end = ct.indexOf( ";" , start );
+        if ( end < 0 )
+            end = ct.length();
+        
+        return ( "--" + ct.substring( start + thing.length() , end ) ).getBytes();
+    }
+
+
     String status(){
         return "{" + position() + "/" + _len + " mp:" + _multipart + "}";
     }
@@ -216,50 +218,5 @@ public abstract class PostData {
     final byte[] _boundary;
     final Map<String,UploadFile> _files = new TreeMap<String,UploadFile>();
     
-    static class InMemory extends PostData {
-        InMemory( int cl , boolean multipart , String ct ){
-            super( cl , multipart , ct );
-            _data = new byte[cl];
-            _pos = 0;
-        }
 
-        int position(){
-            return _pos;
-        }
-        
-        byte get( int pos ){
-            if ( pos >= _pos )
-                throw new RuntimeException( "pos >= _pos" );
-            return _data[pos];
-        }
-
-        void put( byte b ){
-            _data[_pos++] = b;
-        }
-
-        String string( int start , int len ){
-            return new String( _data , start , len );
-        }
-
-        void fillIn( ByteBuffer buf , int start , int end ){
-            while ( start < end )
-                buf.put( _data[start++] );
-        }
-
-        public void writeTo( File f )
-            throws IOException {
-            FileOutputStream fout = new FileOutputStream( f );
-            fout.write( _data );
-            fout.close();
-        }
-
-        public String toString(){
-            return new String( _data );
-        }
-
-        int _pos = 0;
-        final byte _data[];
-
-        static final int MAX = 1024 * 1024 * 110;
-    }
 }
