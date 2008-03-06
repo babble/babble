@@ -40,8 +40,10 @@ public class AppServer implements HttpHandler {
         if ( host != null )
             host = host.trim();
 
-        if ( host == null || _root == null || host.length() == 0 )
+        if ( host == null || _root == null || host.length() == 0 ){
+            if ( D ) System.out.println( " using default context for [" + host + "]" );
             return _defaultContext;
+        }
 
         AppContext ac = _context.get( host );
         if ( ac != null )
@@ -56,7 +58,7 @@ public class AppServer implements HttpHandler {
         // raw {admin.latenightcoders.com}
         File temp = new File( _root , host );
         if ( temp.exists() )
-            return getFinalContext( temp , host );
+            return getFinalContext( temp , host , host );
         
         // check for virtual hosting under us 
         // foo.latenightcoders.com -> foo.com
@@ -90,29 +92,34 @@ public class AppServer implements HttpHandler {
 	    return _coreContext;
 	}
 
+        if ( D ) System.out.println( "useHost : " + useHost );
+        
         // check for full host
         temp = new File( _root , useHost );
         if ( temp.exists() )
-            return getFinalContext( temp , host );
+            return getFinalContext( temp , host , useHost );
         
         // domain www.{alleyinsider.com}
         String domain = useHost.indexOf(".") >= 0 ? DNSUtil.getDomain( useHost ) : useHost;
         temp = new File( _rootFile , domain );
         if ( temp.exists() )
-            return getFinalContext( temp , host );
+            return getFinalContext( temp , host , useHost );
 
         // just name www.{alleyinsider}.com
         int idx = domain.indexOf( "." );
         if ( idx > 0 ){
             temp = new File( _rootFile , domain.substring( 0 , idx ) );
             if ( temp.exists() )
-                return getFinalContext( temp , host );
+                return getFinalContext( temp , host , useHost );
         }
 
         return _defaultContext;
     }
 
-    AppContext getFinalContext( File f , String host ){
+    AppContext getFinalContext( File f , String host , String useHost ){
+        if ( ! f.exists() )
+            throw new RuntimeException( "trying to map to " + f + " which doesn't exist" );
+
         AppContext ac = _context.get( host );
         if ( ac != null )
             return ac;
@@ -120,14 +127,55 @@ public class AppServer implements HttpHandler {
         ac = _context.get( f.toString() );
         if ( ac != null )
             return ac;
+        
+        if ( D ) System.out.println( "mapping directory [" + host + "] to " + f );
+        
+        File git = new File( f , ".git" );
+        if ( ! git.exists() ){
+            if ( D ) System.out.println( "\t this is a holder for branches" );
+            f = getBranch( f , DNSUtil.getSubdomain( useHost ) );
+            if ( D ) System.out.println( "\t using full path : " + f );
+            
+        }
 
-        // TODO: branches, etc...
         ac = new AppContext( f );
         _context.put( host , ac );
         _context.put( f.toString() , ac );
         return ac;
     }
+
+    private static final String LOCAL_BRANCH_LIST[] = new String[]{ "master" , "test" , "www" };
+    private static final String WWW_BRANCH_LIST[] = new String[]{ "test" , "master" };
     
+    File getBranch( File root , String subdomain ){
+        File test = new File( root , subdomain );
+        if ( test.exists() )
+            return test;
+        
+        if ( subdomain.equals( "dev" ) ){
+            test = new File( root , "master" );
+            if ( test.exists() )
+                return test;
+        }
+        
+        String searchList[] = null;
+        
+        if ( subdomain.equals( "local" ) )
+            searchList = LOCAL_BRANCH_LIST;
+        else if ( subdomain.equals( "www" ) )
+            searchList = WWW_BRANCH_LIST;
+
+        if ( searchList != null ){
+            for ( int i=0; i<searchList.length; i++ ){
+                test = new File( root , searchList[i] );
+                if ( test.exists() )
+                    return test;
+            }
+        }
+        
+        throw new RuntimeException( "can't find branch for subdomain : " + subdomain );
+    }
+            
     public AppContext getContext( HttpRequest request , String newUri[] ){
         return getContext( request.getHeader( "Host" ) , request.getURI() , newUri );
     }
