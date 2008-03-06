@@ -14,7 +14,7 @@ import ed.appserver.jxp.*;
 
 public class AppContext {
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = AppServer.D;
     static final String INIT_FILES[] = new String[]{ "_init.js" , "/~~/core/init.js" };
 
     public AppContext( File f ){
