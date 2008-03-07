@@ -181,6 +181,10 @@ public class Logger extends JSFunctionCalls2 {
             l = l._parent;
         }
     }
+    
+    public void setLevel( Level l ){
+        _level = l;
+    }
 
     public String getFullName(){
         return _fullName;

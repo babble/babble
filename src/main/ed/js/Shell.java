@@ -37,7 +37,7 @@ public class Shell {
 
         ed.db.migrate.Drivers.init( s );
 
-        s.put( "core" , new JSFileLibrary( new File( "/data/corejs" ) ,  "core" , s ) , true );
+        s.put( "core" , new CoreJS( s ) , true );
         s.put( "external" , new JSFileLibrary( new File( "/data/external" ) ,  "external" , s ) , true );
 
         s.put( "connect" , new JSFunctionCalls2(){

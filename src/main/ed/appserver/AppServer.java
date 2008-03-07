@@ -404,7 +404,7 @@ public class AppServer implements HttpHandler {
 
     
     private final AppContext _defaultContext;
-    private final AppContext _coreContext = new AppContext( "/data/corejs" );
+    private final AppContext _coreContext = new AppContext( CoreJS.getDefaultRoot() );
     private final String _root;
     private final File _rootFile;
     private final Map<String,AppContext> _context = Collections.synchronizedMap( new StringMap<AppContext>() );

@@ -15,6 +15,17 @@ import ed.log.*;
 public class Replay {
 
     static Logger _log = Logger.getLogger( "ed.net.httpserver.Replay" );
+    static {
+        _log.setLevel( Level.INFO );
+    }
+
+    public Replay( String server ){
+        this( server , 80 );
+    }
+
+    public Replay( String server , int port ){
+        this( server , port , server );
+    }
 
     public Replay( String server , int port , String hostname ){
         _server = server;
@@ -30,9 +41,12 @@ public class Replay {
 
         _runner = new Runner();
         _runner.start();
+        
+        _log.debug( "created replay server to : " + _addr );
     }
     
-    void send( HttpRequest request ){
+    public void send( HttpRequest request ){
+        _log.debug( "adding request" );
         boolean added = _toSend.offer( request );
         if ( ! added && Math.random() > .99 )
             _log.info( "dropping request" );
@@ -55,12 +69,24 @@ public class Replay {
         if ( ! headers.contains( "Host: " ) )
             headers += _hostHeader;
 
+        headers += "X-Replay: y\n";
+
         return headers + "\n";
     }
 
     private String _send( HttpRequest request )
         throws IOException {
-        byte headers[] = getHeaders( request ).getBytes();
+        
+        if ( request.getHeader( "X-Replay" ) != null ){
+            _log.info( "replay loop" );
+            return null;
+        }
+
+        _log.debug( "going to send request" );
+        
+        final String headerString = getHeaders( request );
+        
+        byte headers[] = headerString.getBytes();
         PostData pd = request.getPostData();
         
         final int length = headers.length + ( pd == null ? 0 : pd.length() ) + 100; // 100 is for padding
@@ -76,11 +102,13 @@ public class Replay {
             bb = ByteBuffer.allocateDirect( length );
         }
         
+        bb.put( headers );
+
         bb.flip();
         
         SocketChannel sock = SocketChannel.open();
         sock.connect( _addr );
-        sock.write( bb );
+        int written = sock.write( bb );
 
         String firstChunk = null;
 
@@ -109,22 +137,26 @@ public class Replay {
         }
         
         public void run(){
+            _log.debug( "starting replay server" );
             while ( true ){
                 try {
                     HttpRequest request = _toSend.take();
                     if ( request == null )
                         continue;
+
+                    _log.debug( "got request from queue" );
                     
                     String firstChunk = _send( request );
                     if ( firstChunk.startsWith( "5" ) )
                         _log.info( "error on : " + request.getURL() + "\n" + firstChunk );
+                    _log.debug( firstChunk );
                 }
                 catch ( Throwable t ){
                     _log.info( "run error" , t );
                 }
             }
         }
-            
+        
     }
 
     final String _server;
