@@ -10,6 +10,13 @@ public class JS {
     
     public static final boolean RAW_EXCPETIONS = Boolean.getBoolean( "RAWE" );
 
+    public static final String toString( Object o ){
+        if ( o == null )
+            return null;
+        
+        return o.toString();
+    }
+
     public static void main( String args[] )
         throws Exception {
         
