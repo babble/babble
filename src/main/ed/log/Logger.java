@@ -93,12 +93,14 @@ public class Logger extends JSFunctionCalls2 {
     public Object get( Object n ){
         String s = n.toString();
         
-        if ( s.equals( "log" )
-             || s.equals( "debug" ) 
+        if ( s.equals( "log" ) )
+            return null;
+        
+        if ( s.equals( "debug" ) 
              || s.equals( "info" )
              || s.equals( "error" )
              || s.equals( "fatal" ) )
-            return null;
+            return Level.forName( s ).func;
         
         if ( s.equals( "LEVEL" ) )
             return Level.me;
