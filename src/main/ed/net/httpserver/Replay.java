@@ -69,16 +69,23 @@ public class Replay {
         if ( ! headers.contains( "Host: " ) )
             headers += _hostHeader;
 
+        headers += "X-Replay: y\n";
+
         return headers + "\n";
     }
 
     private String _send( HttpRequest request )
         throws IOException {
         
+        if ( request.getHeader( "X-Replay" ) != null ){
+            _log.info( "replay loop" );
+            return null;
+        }
+
         _log.debug( "going to send request" );
         
         final String headerString = getHeaders( request );
-
+        
         byte headers[] = headerString.getBytes();
         PostData pd = request.getPostData();
         
