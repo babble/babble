@@ -38,7 +38,7 @@ public class AppContext {
         _jxpObject = new JSFileLibrary( _rootFile , "jxp" , this );
         _scope.put( "jxp" , _jxpObject , true );
 
-        _core = new JSFileLibrary( new File( "/data/corejs" ) ,  "core" , this );
+        _core = new CoreJS( this );
         _scope.put( "core" , _core , true );
 
         _scope.put( "external" , new JSFileLibrary( new File( "/data/external" ) ,  "external" , this ) , true );

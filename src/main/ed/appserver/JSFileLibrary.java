@@ -13,14 +13,18 @@ import ed.appserver.jxp.*;
 public class JSFileLibrary extends JSObjectBase {
     
     public JSFileLibrary( File base , String uriBase , AppContext context ){
-        this( base , uriBase , context , null , uriBase.equals( "core" ) );
+        this( base , uriBase , context , null , false );
     }
     
     public JSFileLibrary( File base , String uriBase , Scope scope ){
-        this( base , uriBase , null , scope , uriBase.equals( "core" ) );
+        this( base , uriBase , null , scope , false );
     }
     
-    public JSFileLibrary( File base , String uriBase , AppContext context , Scope scope , boolean doInit ){
+    protected JSFileLibrary( File base , String uriBase , AppContext context , Scope scope , boolean doInit ){
+
+        if ( uriBase.equals( "core" ) && ! doInit )
+            throw new RuntimeException( "you are stupid" );
+
         _base = base;
         _uriBase = uriBase;
         _context = context;
