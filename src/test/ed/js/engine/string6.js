@@ -16,3 +16,11 @@ A.prototype.toString = function(){
 
 a = new A();
 print( a );
+
+
+print(String.fromCharCode(65));
+
+print(String.fromCharCode(65, 69));
+
+print(typeof String.fromCharCode());
+print(String.fromCharCode().length);
