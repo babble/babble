@@ -330,6 +330,22 @@ public class JSString extends JSObjectBase {
                     }
                 } );
 
+            set("fromCharCode", new JSFunctionCalls0() {
+                    public Object call(Scope s, Object [] args){
+                        if(args == null) return new JSString("");
+                        StringBuffer buf = new StringBuffer();
+                        for(int i = 0; i < args.length; i++){
+                            Object o = args[i];
+                            if(! (o instanceof Number) )
+                                throw new RuntimeException( "fromCharCode only takes numbers" );
+                            Number n = (Number)o;
+                            char c = (char)(n.intValue());
+                            buf.append(c);
+                        }
+                        return new JSString( buf.toString() );
+                    }
+                } );
+
         }
     };
     
