@@ -353,18 +353,35 @@ public class JSBuiltInFunctions {
 	    }
 
             try {
-                Process p = Runtime.getRuntime().exec( cmd , env , root );
+                final Process p = Runtime.getRuntime().exec( cmd , env , root );
 		
 		if ( toSend != null ){
 		    OutputStream out = p.getOutputStream();
 		    out.write( toSend.getBytes() );
 		    out.close();
 		}
-
-                JSObject res = new JSObjectBase();
-                res.set( "out" , StreamUtil.readFully( p.getInputStream() ) );
-                res.set( "err" , StreamUtil.readFully( p.getErrorStream() ) );
                 
+                final JSObject res = new JSObjectBase();
+                final IOException threadException[] = new IOException[1];
+                Thread a = new Thread(){
+                        public void run(){
+                            try {
+                                res.set( "err" , StreamUtil.readFully( p.getErrorStream() ) );
+                            }
+                            catch ( IOException e ){
+                                threadException[0] = e;
+                            }
+                        }
+                    };
+                a.start();
+                
+                res.set( "out" , StreamUtil.readFully( p.getInputStream() ) );
+
+                a.join();
+                
+                if ( threadException[0] != null )
+                    throw threadException[0];
+
                 return res;
             }
             catch ( Throwable t ){
