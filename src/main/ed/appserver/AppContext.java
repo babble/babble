@@ -108,6 +108,7 @@ public class AppContext {
 
             if ( s.equals("master" ) || 
                  s.equals("test") || 
+                 s.equals("www") || 
                  s.equals("staging") || 
                  s.equals("dev" ) )
                 continue;
