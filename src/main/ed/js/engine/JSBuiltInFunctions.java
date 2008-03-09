@@ -510,7 +510,7 @@ public class JSBuiltInFunctions {
 
                               if ( a == null )
                                   return Double.NaN;
-
+                              
                               if ( a instanceof Number )
                                   return ((Number)a).intValue();
 
@@ -528,7 +528,27 @@ public class JSBuiltInFunctions {
                           }
                       }
                       , true );
+        
+        _myScope.put( "parseDate" ,
+                      new JSFunctionCalls1(){
+                          public Object call( Scope scope , Object a , Object extra[] ){
+                              if ( a == null )
+                                  return null;
+                              
+                              if ( a instanceof JSDate )
+                                  return a;
 
+                              if ( ! ( a instanceof String || a instanceof JSString ) )
+                                  return null;
+                              
+                              long t = JSDate.parseDate( a.toString() , 0 );
+                              if ( t == 0 )
+                                  return null;
+
+                              return new JSDate( t );
+                          }
+                      } , true );
+        
         _myScope.put( "NaN" , Double.NaN , true );
 
 	
