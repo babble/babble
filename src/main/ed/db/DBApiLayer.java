@@ -136,7 +136,7 @@ public abstract class DBApiLayer extends DBBase {
             o.set( "_ns" , _removeRoot( _fullNameSpace ) );
         }
 
-        public JSObject find( ObjectId id ){
+        public JSObject dofind( ObjectId id ){
             JSObject lookup = new JSObjectBase();
             lookup.set( "_id" , id );
             
