@@ -103,9 +103,14 @@ public class AppContext {
         if ( pcs.length == 0 )
             throw new RuntimeException( "no root for : " + root );
         
+        // handle anything with sites/foo
+        for ( int i=0; i<pcs.length-1; i++ )
+            if ( pcs[i].equals( "sites" ) )
+                return pcs[i+1];
+        
         for ( int i=pcs.length-1; i>0; i-- ){
             String s = pcs[i];
-
+            
             if ( s.equals("master" ) || 
                  s.equals("test") || 
                  s.equals("www") || 
