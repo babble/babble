@@ -31,7 +31,10 @@ public class JxpServlet {
         if ( scope.get( "response" ) == null )
             scope.put( "response" , response , true );
         
-        MyWriter writer = new MyWriter( response.getWriter() , getStaticPrefix( request , ar ) , ar.getContext() , ar);
+        final String cdnPrefix = getStaticPrefix( request , ar );
+        scope.put( "CDN" , cdnPrefix , true );
+        
+        MyWriter writer = new MyWriter( response.getWriter() , cdnPrefix , ar.getContext() , ar);
         scope.put( "print" , writer  , true );
         
         try {
