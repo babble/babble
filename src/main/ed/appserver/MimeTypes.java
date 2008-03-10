@@ -7,15 +7,23 @@ import java.util.*;
 
 public class MimeTypes {
 
+    public static String getExtension( File f ){
+        return getExtension( f.toString() );
+    }
+
+    public static String getExtension( String s ){
+        int idx = s.lastIndexOf( "." );
+        if ( idx < 0 )
+            return s;
+        return s.substring( idx + 1 );
+    }
+
     public static String get( File f ){
         return get( f.toString() );
     }
     
     public static String get( String ext ){
-        int idx = ext.lastIndexOf( "." );
-        if ( idx >= 0 )
-            ext = ext.substring( idx + 1 );
-        
+        ext = getExtension( ext );
         return _mimeTypes.getProperty( ext );
     }
 
