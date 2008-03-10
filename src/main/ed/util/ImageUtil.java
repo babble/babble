@@ -11,13 +11,26 @@ import javax.imageio.stream.*;
 import javax.imageio.plugins.jpeg.*;
 
 import ed.js.*;
+import ed.appserver.*;
 
 public class ImageUtil {
 
     public static JSFile imgToJpg( BufferedImage img , double compressionQuality , String filename )
         throws IOException {
+        
+        String ext = "jpg";
+        if ( filename != null && filename.indexOf( "." ) >= 0 ){
+            String test = MimeTypes.getExtension( filename );
+            if ( MimeTypes.get( test ).startsWith( "image/" ) )
+                ext = test;
+        }
+        String mime = MimeTypes.get( ext );
 
-        ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
+        Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName( ext );
+        if ( ! writers.hasNext() )
+            throw new RuntimeException( "no writer for : " + ext );
+        
+        ImageWriter writer = writers.next();
         
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ImageOutputStream ios = ImageIO.createImageOutputStream( out );
@@ -33,7 +46,7 @@ public class ImageUtil {
         writer.dispose();
         ios.close();
         
-        return new JSInputFile( filename , "image/jpeg" , out.toByteArray() );
+        return new JSInputFile( filename , mime , out.toByteArray() );
     }
 
     public static class MyImageWriteParam extends JPEGImageWriteParam {
@@ -62,6 +75,7 @@ public class ImageUtil {
         
         int type = (img.getTransparency() == Transparency.OPAQUE) ?
             BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
+
         BufferedImage ret = (BufferedImage)img;
         int w, h;
         if (higherQuality) {
