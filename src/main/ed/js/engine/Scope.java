@@ -419,6 +419,11 @@ public class Scope implements JSObject {
 
     public Object evalFromPath( String file , String name )
         throws IOException {
+        return evalFromPath( file , file.replaceAll( "^.*/(\w+.js)$" , "$1" ) );
+    }
+
+    public Object evalFromPath( String file , String name )
+        throws IOException {
         return eval( ClassLoader.getSystemClassLoader().getResourceAsStream( file ) , name );
     }
 
