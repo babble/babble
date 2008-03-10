@@ -33,12 +33,28 @@ public class AppContext {
         _scope = new Scope( "AppContext:" + root , Scope.GLOBAL , null , _rootFile );
         _scope.setGlobal( true );
 
+        _logger = ed.log.Logger.getLogger( _name );
+        _usage = new UsageTracker( _name );
+        
+        _baseScopeInit();
+    }
+
+    private void _baseScopeInit(){
         // --- libraries
         
         _jxpObject = new JSFileLibrary( _rootFile , "jxp" , this );
         _scope.put( "jxp" , _jxpObject , true );
+        
+        try {
+            JxpSource config = getSource( new File( _rootFile , "_config.js" ) );
+            if ( config != null )
+                config.getFunction().call( _scope );
+        }
+        catch ( Exception e ){
+            throw new RuntimeException( "couldn't load config" , e );
+        }
 
-        _core = new CoreJS( this );
+        _core = new CoreJS( JS.toString( _scope.get( "corejsversion" ) ) , this );
         _scope.put( "core" , _core , true );
 
         _scope.put( "external" , new JSFileLibrary( new File( "/data/external" ) ,  "external" , this ) , true );
@@ -59,16 +75,14 @@ public class AppContext {
 
         // --- output
         
-	final String appName = name;
 	_scope.put( "SYSOUT" , new JSFunctionCalls1(){
 		public Object call( Scope s , Object str , Object foo[] ){
-		    System.out.println( appName + " \t " + str );
+		    System.out.println( _name + " \t " + str );
 		    return true;
 		}
 	    } , true );
-        _logger = ed.log.Logger.getLogger( _name );
+
         _scope.put( "log" , _logger , true );
-        _usage = new UsageTracker( _name );
 
         // --- random?
         
@@ -89,11 +103,17 @@ public class AppContext {
         if ( pcs.length == 0 )
             throw new RuntimeException( "no root for : " + root );
         
+        // handle anything with sites/foo
+        for ( int i=0; i<pcs.length-1; i++ )
+            if ( pcs[i].equals( "sites" ) )
+                return pcs[i+1];
+        
         for ( int i=pcs.length-1; i>0; i-- ){
             String s = pcs[i];
-
+            
             if ( s.equals("master" ) || 
                  s.equals("test") || 
+                 s.equals("www") || 
                  s.equals("staging") || 
                  s.equals("dev" ) )
                 continue;
@@ -168,6 +188,7 @@ public class AppContext {
     public void resetScope(){
         _scopeInited = false;
         _scope.reset();
+        _baseScopeInit();
     }
     
     public String getRoot(){
@@ -202,7 +223,7 @@ public class AppContext {
 	if ( uri.startsWith( _rootFile.toString() ) )
 	    uri = uri.substring( _rootFile.toString().length() );
 	
-	if ( uri.startsWith( _core._base.toString() ) )
+	if ( _core != null && uri.startsWith( _core._base.toString() ) )
 	    uri = "/~~" + uri.substring( _core._base.toString().length() );
 
         
@@ -337,8 +358,8 @@ public class AppContext {
     final String _root;
     final File _rootFile;
 
-    final JSFileLibrary _jxpObject;
-    final JSFileLibrary _core;
+    JSFileLibrary _jxpObject;
+    JSFileLibrary _core;
     
     final ed.log.Logger _logger;
     final Scope _scope;

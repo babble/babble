@@ -80,6 +80,9 @@ public class Shell {
             s.eval( init );
         
         for ( String a : args ){
+            if ( a.equals( "-exit" ) )
+                return;
+
             File temp = new File( a );
             try {
                 s.eval( temp );

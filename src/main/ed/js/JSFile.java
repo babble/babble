@@ -96,7 +96,10 @@ public abstract class JSFile extends JSObjectBase {
         return new Sender( getFirstChunk() );
     }        
     
-    public void writeToLocalFile( String name )
+    /**
+     * @return full path
+     */
+    public String writeToLocalFile( String name )
         throws IOException {
         
         Scope s = Scope.getThredLocal();
@@ -118,6 +121,8 @@ public abstract class JSFile extends JSObjectBase {
         FileOutputStream out = new FileOutputStream( f );
         write( out );
         out.close();
+
+        return f.getAbsolutePath();
     }
 
     public class Sender extends InputStream {

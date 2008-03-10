@@ -63,7 +63,7 @@ public class TestDB extends DBBase {
         public void doapply( JSObject o ){
         }
         
-        public JSObject find( ObjectId id ){
+        public JSObject dofind( ObjectId id ){
             return _objects.get( id );
         }
 

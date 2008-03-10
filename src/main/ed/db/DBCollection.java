@@ -19,14 +19,26 @@ public abstract class DBCollection extends JSObjectLame {
     protected abstract void doapply( JSObject o );
     public abstract int remove( JSObject id );
     
-    public abstract JSObject find( ObjectId id );    
+    protected abstract JSObject dofind( ObjectId id );    
     public abstract Iterator<JSObject> find( JSObject ref , JSObject fields , int numToSkip , int numToReturn );
 
     public abstract void ensureIndex( JSObject keys , String name );
 
     // ------
 
-    public void ensureIndex( final JSObject keys ){
+    public final JSObject find( ObjectId id ){
+
+        JSObject ret = dofind( id );
+        
+        if ( ret == null )
+            return null;
+        
+        apply( ret , false );
+        
+        return ret;
+    }
+
+    public final void ensureIndex( final JSObject keys ){
         if ( checkReadOnly( false ) ) return;
 
         final String name = genIndexName( keys );
@@ -59,15 +71,15 @@ public abstract class DBCollection extends JSObjectLame {
         return name;
     }
 
-    public Iterator<JSObject> find( JSObject ref ){
+    public final Iterator<JSObject> find( JSObject ref ){
         return find( ref , null , 0 , 0 );
     }
 
-    public ObjectId apply( Object o ){
+    public final ObjectId apply( Object o ){
         return apply( o , true );
     }
 
-    public ObjectId apply( Object o , boolean ensureID ){
+    public final ObjectId apply( Object o , boolean ensureID ){
 
         if ( ! ( o instanceof JSObject ) )
             throw new RuntimeException( "can only apply JSObject" );
