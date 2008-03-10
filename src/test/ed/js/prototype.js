@@ -75,3 +75,23 @@ assert( b.argumentNames().length == 2 );
 assert( b.argumentNames()[0] == "a" );
 assert( b.argumentNames()[1] == "b" );
 
+
+a = function(){};
+a.prototype.m1 = function(i){
+    return i * 2;
+};
+
+f = function(){};
+f.superclass = a;
+
+f.addMethods = Class.Methods.addMethods;
+
+f.addMethods({
+    m1: function($super, i){
+        return $super(i+4);
+    }
+});
+
+assert(f.m1(5) == 18);
+
+

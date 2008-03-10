@@ -438,6 +438,13 @@ public class JSBuiltInFunctions {
         _myScope.put( "Math" , JSMath.getInstance() , true );
 
         _myScope.put( "processArgs", new processArgs(), true );
+
+        JSObject c = new JSObjectBase();
+        c.set( "create" , ed.js.Prototype._classCreate );
+        JSObject m = new JSObjectBase();
+        m.set( "addMethods" , ed.js.Prototype._classAddMethods );
+        c.set( "Methods", m );
+        _myScope.put( "Class", c , true );
         
         CrID crid = new CrID();
         _myScope.put( "CrID" , crid , true );
