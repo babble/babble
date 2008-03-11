@@ -131,7 +131,7 @@ public class JSBuiltInFunctions {
                     return m.invoke( null , params );
                 }
                 catch ( Exception e ){
-                    throw new JSException( "can' call" , e );
+                    throw new JSException( "can't call" , e );
                 }
                     
             }
