@@ -12,7 +12,7 @@ print( opt );
 
 
 increm = function(options){
-    n = options.n;
+    var n = options.n;
     return function(i){
         return i+n;
     };
