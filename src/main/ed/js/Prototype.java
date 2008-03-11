@@ -244,4 +244,12 @@ public class Prototype {
 
     public static final JSFunction _classAddMethods = new Class_addMethods();
 
+    public static final JSObjectBase _class = new JSObjectBase();
+    static {
+        JSObject m = new JSObjectBase();
+        m.set("addMethods", _classAddMethods);
+        _class.set("Methods", m);
+        _class.set("create", _classCreate);
+    }
+
 }
