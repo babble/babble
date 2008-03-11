@@ -45,6 +45,8 @@ public class GitMonitor {
 		    if ( D ) System.out.println( "\t" + head.getName() );
 		    _checkHead( head );
 		}
+
+		throw new RuntimeException("boring" );
 	    }
 	    catch ( IOException ioe ){
 		ioe.printStackTrace();

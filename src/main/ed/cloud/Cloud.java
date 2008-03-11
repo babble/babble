@@ -3,19 +3,89 @@
 package ed.cloud;
 
 import java.io.*;
+import java.net.*;
 import java.util.*;
+import java.util.regex.*;
 
 import ed.js.*;
 import ed.js.engine.*;
 import ed.js.func.*;
+import ed.log.*;
 
 public class Cloud extends JSObjectBase {
+
+    static Logger _log = Logger.getLogger( "cloud" );
 
     private static final Cloud INSTANCE = new Cloud();
 
     public static Cloud getInstance(){
 	return INSTANCE;
     }
+
+
+    // ---
+
+    private Cloud(){
+
+	File cloudDir = new File( "src/main/ed/cloud/" );
+	if ( ! cloudDir.exists() )
+	    throw new RuntimeException( "can't find cloud dir" );
+
+	_scope = Scope.GLOBAL.child( "cloud" );
+	Shell.addNiceShellStuff( _scope );
+	_scope.set( "Cloud" , this );
+	_scope.set( "log" , _log );
+
+	try {
+	    _scope.set( "SERVER_NAME" , InetAddress.getLocalHost().getHostName() );
+	}
+	catch ( Exception e ){
+	    throw new RuntimeException( "should be impossible : " + e );
+	}
+	
+	List<File> toLoad = new ArrayList<File>();
+	for ( File f : cloudDir.listFiles() ){
+
+	    if ( ! f.getName().matches( "\\w+\\.js" ) )
+		continue;
+	    
+	    toLoad.add( f );
+	}
+
+	final Matcher numPattern = Pattern.compile( "(\\d+)\\.js$" ).matcher( "" );
+	Collections.sort( toLoad , new Comparator<File>(){
+			      public int compare( File aFile , File bFile ){
+				  int a = Integer.MAX_VALUE;
+				  int b = Integer.MAX_VALUE;
+				  
+				  numPattern.reset( aFile.getName() );
+				  if ( numPattern.find() )
+				      a = Integer.parseInt( numPattern.group(1) );
+
+				  numPattern.reset( bFile.getName() );
+				  if ( numPattern.find() )
+				      b = Integer.parseInt( numPattern.group(1) );
+
+				  return a - b;
+			      }
+
+			      public boolean equals( Object o ){
+				  return o == this;
+			      }
+			  } );
+
+	for ( File f : toLoad ){
+	    _log.debug( "loading file : " + f );
+	    try {
+		_scope.eval( f );
+	    }
+	    catch ( IOException ioe ){
+		throw new RuntimeException( "can't load cloud js file : " + f , ioe );
+	    }
+	}
+	
+    }
+
 
     Object evalFunc( String funcName , Object ... args ){
 	if ( args != null ){
@@ -51,32 +121,6 @@ public class Cloud extends JSObjectBase {
 		return null;
 	}
 	return cur;
-    }
-
-    private Cloud(){
-
-	File cloudDir = new File( "src/main/ed/cloud/" );
-	if ( ! cloudDir.exists() )
-	    throw new RuntimeException( "can't find cloud dir" );
-
-	_scope = Scope.GLOBAL.child( "cloud" );
-	_scope.set( "Cloud" , this );
-
-	
-	for ( File f : cloudDir.listFiles() ){
-	    
-	    if ( ! f.getName().matches( "\\w+\\.js" ) )
-		continue;
-
-	    System.out.println( "cloud js file : " + f );
-	    try {
-		_scope.eval( f );
-	    }
-	    catch ( IOException ioe ){
-		throw new RuntimeException( "can't load cloud js file : " + f , ioe );
-	    }
-	}
-	
     }
 
 
