@@ -46,7 +46,6 @@ public class GitMonitor {
 		    _checkHead( head );
 		}
 
-		throw new RuntimeException("boring" );
 	    }
 	    catch ( IOException ioe ){
 		ioe.printStackTrace();
@@ -60,7 +59,7 @@ public class GitMonitor {
 	
 	String name = getName( head );
 	String branch = head.getName();
-	String hash = StreamUtil.readFully( new FileInputStream( head ) );
+	String hash = StreamUtil.readFully( new FileInputStream( head ) ).trim();
 	
 	_ensureDB( name , branch , hash );
 	
