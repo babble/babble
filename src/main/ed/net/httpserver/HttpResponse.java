@@ -499,6 +499,10 @@ public class HttpResponse {
         public JxpWriter print( boolean b ){
             return print( String.valueOf( b ) );
         }
+
+        public boolean closed(){
+            return _done;
+        }
         
         public JxpWriter print( String s ){
             if ( _done ){

@@ -4,6 +4,8 @@ package ed.net.httpserver;
 
 public interface JxpWriter {
 
+    public boolean closed();
+
     public JxpWriter print( String s );
     public JxpWriter print( int i );
     public JxpWriter print( double d );
@@ -31,6 +33,10 @@ public interface JxpWriter {
     // ----------
 
     public static class Basic implements JxpWriter {
+
+        public boolean closed(){
+            return false;
+        }
         
         public JxpWriter print( String s ){
             _buf.append( s );

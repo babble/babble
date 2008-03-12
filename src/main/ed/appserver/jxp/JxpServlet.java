@@ -136,7 +136,8 @@ public class JxpServlet {
         
         public void print( String s ){
             
-            //System.out.println( "***\n" + s + "\n---" );
+            if ( _writer.closed() )
+                throw new RuntimeException( "output closed.  are you using an old print function" );
             
             if ( _extra.length() > 0 ){
                 _extra.append( s );
