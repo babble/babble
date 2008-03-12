@@ -22,3 +22,19 @@ A = function(){
 a = new A();
 
 print( a instanceof A );
+
+
+newClass = function(){
+    klass = function(){
+
+    };
+    return klass;
+};
+
+c1 = newClass();
+c2 = newClass();
+
+c1obj = new c1();
+
+print(c1obj instanceof c1);
+print(c1obj instanceof c2);

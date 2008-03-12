@@ -134,7 +134,7 @@ assert(Cat == tom.constructor);
 assert(Animal == tom.constructor.superclass);
 assert("Tom" == tom.name);
 assert("Tom: meow" == tom.say('meow'));
-//assert('Tom: Yuk! I only eat mice.' == tom.eat(new Animal));
+assert('Tom: Yuk! I only eat mice.' == tom.eat(new Animal));
 
 assert('Tom: Yum!' == tom.eat(new Mouse));
 

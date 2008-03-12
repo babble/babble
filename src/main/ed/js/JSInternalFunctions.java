@@ -78,7 +78,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
         if ( o.getConstructor() == null )
             return false;
 
-        return o.getConstructor().getClass() == type.getClass();
+        return o.getConstructor() == type;
     }
 
     public JSString JS_typeof( Object obj ){
