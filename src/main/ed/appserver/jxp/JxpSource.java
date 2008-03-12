@@ -28,7 +28,7 @@ public abstract class JxpSource {
     // -----
 
     abstract String getContent() throws IOException;
-    abstract long lastUpdated();
+    public abstract long lastUpdated();
     abstract String getName();
     
     synchronized List<Block> getBlocks()
@@ -191,7 +191,7 @@ public abstract class JxpSource {
             return StreamUtil.readFully( _f );
         }
         
-        long lastUpdated(){
+        public long lastUpdated(){
             return _f.lastModified();
         }
 
