@@ -104,6 +104,7 @@ public class Scope implements JSObject {
     }
 
     public Object put( String name , Object o , boolean local ){
+
         if ( o != null && o instanceof String ) 
             o = new JSString( o.toString() );
 
@@ -117,6 +118,12 @@ public class Scope implements JSObject {
                     return temp.set( name , o );
                 }
             }
+        }
+
+        if ( _killed ){
+            if  ( _parent == null )
+                throw new RuntimeException( "already killed and no parent" );
+            return _parent.put( name , o , local );
         }
         
         if ( local
@@ -160,6 +167,7 @@ public class Scope implements JSObject {
     }
     
     public Object get( final String origName , Scope alt , JSObject with[] ){
+
         String name = origName;
         boolean finder = false;
         if ( name.startsWith( "@@" ) & name.endsWith( "!!" ) ){
@@ -186,7 +194,7 @@ public class Scope implements JSObject {
             return foo;
         }
         
-        Object foo = _objects == null ? null : _objects.get( name );
+        Object foo =  _killed || _objects  == null ? null : _objects.get( name );
         if ( foo != null ){
 
             if ( finder ) throw new ScopeFinder( name , this );
@@ -404,6 +412,10 @@ public class Scope implements JSObject {
         _this.clear();
     }
 
+    public void kill(){
+        _killed = true;
+    }
+
     public void setGlobal( boolean g ){
         _global = g;
 
@@ -497,8 +509,13 @@ public class Scope implements JSObject {
         for ( int i=0; i<indent; i++ )
             System.out.print( "  " );
         System.out.print( toString() + ":" );
+        
         if ( _global )
-            System.out.print( "G:" );
+            System.out.print( "G" );
+        if ( _killed )
+            System.out.print( "K" );
+        
+        System.out.print( ":" );
         if ( _objects != null )
             System.out.print( _objects.keySet() );
         System.out.println();
@@ -530,6 +547,7 @@ public class Scope implements JSObject {
     
     boolean _locked = false;
     boolean _global = false;
+    boolean _killed = false;
     
     Map<String,Object> _objects;
     Set<String> _lockedObject;
