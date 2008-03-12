@@ -138,6 +138,3 @@ assert('Tom: Yuk! I only eat mice.' == tom.eat(new Animal));
 
 assert('Tom: Yum!' == tom.eat(new Mouse));
 
-print((new Animal()) instanceof Mouse);
-
-print((new Mouse()) instanceof Mouse);
