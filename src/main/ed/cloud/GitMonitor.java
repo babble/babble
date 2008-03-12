@@ -5,11 +5,15 @@ package ed.cloud;
 import java.io.*;
 import java.util.*;
 
+import net.contentobjects.jnotify.*;
+
 import ed.io.*;
+import ed.log.*;
 
 public class GitMonitor {
 
     static boolean D = Boolean.getBoolean( "DEBUG.GIT" );
+    static Logger _log = Logger.getLogger( "cloud.git.monitor" );
 
     public GitMonitor(){
 	this( "/data/gitroot/" );
@@ -40,12 +44,8 @@ public class GitMonitor {
 		
 		File heads = new File( root , ".git/refs/heads" );
 		_watch( root , heads );
+		_checkHeads( heads );
 		
-		for ( File head : heads.listFiles() ){
-		    if ( D ) System.out.println( "\t" + head.getName() );
-		    _checkHead( head );
-		}
-
 	    }
 	    catch ( IOException ioe ){
 		ioe.printStackTrace();
@@ -54,9 +54,27 @@ public class GitMonitor {
 	
     }
 
+    private void _checkHeads( File heads )
+	throws IOException {
+	if ( ! ( heads.exists() && heads.isDirectory() ) )
+	    throw new RuntimeException( "heads has to exist and be a dir" );
+
+	for ( File head : heads.listFiles() ){
+	    if ( D ) System.out.println( "\t" + head.getName() );
+	    _checkHead( head );
+	}
+    }
+
     private void _checkHead( File head )
 	throws IOException {
 	
+	if ( _ignore( head.toString() ) )
+	    return;
+	
+	if ( ! ( head.exists() && ! head.isDirectory() ) )
+	    throw new RuntimeException( "head has to exist and NOT be a dir" );
+
+
 	String name = getName( head );
 	String branch = head.getName();
 	String hash = StreamUtil.readFully( new FileInputStream( head ) ).trim();
@@ -65,12 +83,24 @@ public class GitMonitor {
 	
     }
 
+    private boolean _ignore( String s ){
+	if ( s.endsWith( ".lock" ) )
+	    return true;
+	
+	return false;
+    }
+
     private void _ensureDB( String repos , String branch , String hash ){
 	Cloud.getInstance().evalFunc( "Git.ensureHash" , repos , branch , hash );
     }
 
     private void _watch( File root , File heads ){
-	System.err.println( "can't watch yet" );
+	try {
+	    JNotify.addWatch( heads.getAbsolutePath() , LISTEN_MASK , false , _changeListener );
+	}
+	catch ( JNotifyException e ){
+	    throw new RuntimeException( "couldn't watch : " + heads , e );
+	}
     }
 
     private List<File> findAllRepositories(){
@@ -106,9 +136,60 @@ public class GitMonitor {
 	return s;
     }
 
+    class ChangeListener implements JNotifyListener {
+	
+	void _check( String dir ){
+	    if ( D ) System.out.println( "Checking " + dir );
+	    try {
+		_checkHeads( new File( dir ) );
+	    }
+	    catch( Exception e ){
+		_log.error( "couldn't check from notify : " + dir , e );
+	    }
+	}
+
+	public void fileRenamed(int wd, String rootPath, String oldName, String newName){
+	    if ( _ignore( newName ) )
+		return;
+
+	    _check( rootPath );
+	}
+	
+	public void fileModified(int wd, String rootPath, String name){
+	    if ( _ignore( name ) )
+		return;
+	    
+	    _check( rootPath );
+	}
+	
+	public void fileDeleted(int wd, String rootPath, String name){
+	    if ( _ignore( name ) )
+		return;
+	    
+	    _check( rootPath );
+	    _log.error( "deletes not supported : " + rootPath + " " + name  );
+	}
+        
+	public void fileCreated(int wd, String rootPath, String name){
+	    if ( _ignore( name ) )
+		return;
+
+	    _check( rootPath );
+	}
+    }
+
     final File _gitroot;
     final File _sites;
+
     final Set<File> _watchedDirs = new HashSet<File>();
+    final ChangeListener _changeListener = new ChangeListener();
+
+    static final int LISTEN_MASK = 
+	JNotify.FILE_CREATED | 
+	JNotify.FILE_DELETED | 
+	JNotify.FILE_MODIFIED |
+	JNotify.FILE_RENAMED;
+	
 
     // ----
 
@@ -116,7 +197,9 @@ public class GitMonitor {
 	throws Exception {
 
 	GitMonitor gm = new GitMonitor();
-	
+	while ( true ){
+	    Thread.sleep( 10000 );
+	}
     }
 	
 }
