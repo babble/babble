@@ -103,6 +103,9 @@ public class JxpServlet {
             _cdnPrefix = cdnPrefix;
             _context = context;
             _request = ar;
+            
+            if ( _writer == null )
+                throw new NullPointerException( "writer can't be null" );
 
             set( "setFormObject" , new JSFunctionCalls1(){ 
                     public Object call( Scope scope , Object o , Object extra[] ){
@@ -173,6 +176,11 @@ public class JxpServlet {
          * @return true if i printed tag so you should not
          */
         boolean printTag( String tag , String s ){
+
+            if ( tag == null )
+                throw new NullPointerException( "tag can't be null" );
+            if ( s == null )
+                throw new NullPointerException( "show tag can't be null" );
 
             if ( tag.equalsIgnoreCase( "/head" ) && ! _writer.hasSpot() ){
                 _writer.saveSpot();
