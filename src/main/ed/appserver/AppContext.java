@@ -67,7 +67,6 @@ public class AppContext {
         _scope.put( "db" , DBProvider.get( _name ) , true );
 	_scope.put( "setDB" , new JSFunctionCalls1(){
 		public Object call( Scope s , Object name , Object extra[] ){
-		    System.out.println( "name:" + name + " _scope:" + _scope );
 		    s.put( "db" , DBProvider.get( name.toString() ) , false );
 		    return true;
 		}
@@ -274,7 +273,6 @@ public class AppContext {
             return null;
 
         loadedFile( f );
-
 
         if ( _jxpObject.isIn( f ) )
             return _jxpObject.getSource( f );

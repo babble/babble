@@ -11,6 +11,8 @@ import ed.js.engine.*;
 import ed.appserver.jxp.*;
 
 public class JSFileLibrary extends JSObjectBase {
+
+    static final boolean D = false;
     
     public JSFileLibrary( File base , String uriBase , AppContext context ){
         this( base , uriBase , context , null , false );
@@ -33,53 +35,82 @@ public class JSFileLibrary extends JSObjectBase {
     }
     
     private synchronized void _init(){
+
+        if ( D ) System.out.println( "\t " + _base + " _init" );
+
         if ( ! _doInit )
             return;
         
-        Object init = get( "_init" , false );
-        if ( init == _initFunction )
+        if ( _inInit )
             return;
-        
-        for ( String s : new LinkedList<String>( keySet() ) ){
-            if ( s.equals( "_init" ) )
-                continue;
-            
-            Object thing = super.get( s );
-            
-            if ( thing instanceof JxpSource || 
-                 thing instanceof JSFileLibrary  )
-                removeField( s );
-        }
 
-        for ( File f : new LinkedList<File>( _sources.keySet() ) ){
-            if ( f.toString().endsWith( "/_init.js" ) )
-                continue;
-            _sources.remove( f );
+        boolean somethingChanged = false;
+
+        Object init = get( "_init" , false );
+        if ( init != _initFunction )
+            somethingChanged = true;
+        else {
+            for ( JxpSource source : _initSources ){
+                if ( source.lastUpdated() > _lastInit ){
+                    somethingChanged = true;
+                    break;
+                }
+            }
         }
         
-        if ( init instanceof JSFunction ){
-            Scope s = null;
-            if ( _context != null )
-                s = _context.getScope();
-            else if ( _scope != null )
-                s = _scope;
-            else 
-                throw new RuntimeException( "no scope :(" );
-            
-            _initFunction = (JSFunction)init;
-            
-	    Scope pref = s.getTLPreferred();
-	    s.setTLPreferred( null );
-            try {
-                _initFunction.call( s );
-            }
-            catch ( RuntimeException re ){
-                set( "_init" , false ); // we need to re-ren
-                throw re;
-            }
-	    s.setTLPreferred( pref );
-        }
+        if ( D ) System.out.println( "\t\t somethingChanged : " + somethingChanged + " init : " + init + " _initFunction : " + _initFunction );
         
+        if ( ! somethingChanged )
+            return;
+       
+        try {
+            _inInit = true;
+            
+            for ( String s : new LinkedList<String>( keySet() ) ){
+                if ( s.equals( "_init" ) )
+                    continue;
+                
+                Object thing = super.get( s );
+                
+                if ( thing instanceof JxpSource || 
+                     thing instanceof JSFileLibrary  )
+                    removeField( s );
+            }
+            
+            for ( File f : new LinkedList<File>( _sources.keySet() ) ){
+                if ( f.toString().endsWith( "/_init.js" ) )
+                    continue;
+                _sources.remove( f );
+            }
+            
+            if ( init instanceof JSFunction ){
+                Scope s = null;
+                if ( _context != null )
+                    s = _context.getScope();
+                else if ( _scope != null )
+                    s = _scope;
+                else 
+                    throw new RuntimeException( "no scope :(" );
+                
+                _initFunction = (JSFunction)init;
+                
+                Scope pref = s.getTLPreferred();
+                s.setTLPreferred( null );
+                try {
+                    _initFunction.call( s );
+                }
+                catch ( RuntimeException re ){
+                    set( "_init" , false ); // we need to re-ren
+                    throw re;
+                }
+                s.setTLPreferred( pref );
+            }
+
+            _lastInit = System.currentTimeMillis();
+        }
+        finally {
+            _inInit = false;
+        }
         
     }
 
@@ -93,8 +124,12 @@ public class JSFileLibrary extends JSObjectBase {
 
         Object foo = _get( n );
         if ( foo instanceof JxpSource ){
+            JxpSource source = (JxpSource)foo;
+            if ( _inInit )
+                _initSources.add( source );
+
             try {
-                JSFunction func = ((JxpSource)foo).getFunction();
+                JSFunction func = source.getFunction();
                 func.setName( _uriBase + "." + n.toString() );
                 foo = func;
             }
@@ -112,6 +147,33 @@ public class JSFileLibrary extends JSObjectBase {
 
     JxpSource getSource( File f )
         throws IOException {
+        return getSource( f , true );
+    }
+
+    private JxpSource getSource( File f , boolean doInit )
+        throws IOException {
+        
+        if ( D ) System.out.println( "getSource.  base : " + _base + " file : " + f  + " doInit : " + doInit );
+        
+        String parentString = f.getParent();
+        String rootString = _base.toString();
+        if ( ! parentString.equals( rootString ) ){
+
+            if ( ! parentString.startsWith( rootString ) )
+                throw new RuntimeException( "[" + f.getParent() + "] not a subdir if [" + _base + "]" );
+            
+            String follow = parentString.substring( rootString.length() );
+            while ( follow.startsWith( "/" ) )
+                follow = follow.substring( 1 );
+
+            int idx = follow.indexOf( "/" );            
+            String dir = idx < 0 ? follow : follow.substring( 0 , idx );
+
+            JSFileLibrary next = (JSFileLibrary)get( dir );
+            return next.getSource( f );
+        }
+
+        if ( doInit ) _init();
         
         if ( _context != null )
             _context.loadedFile( f );
@@ -155,7 +217,7 @@ public class JSFileLibrary extends JSObjectBase {
             return null;
 
         try {
-            return set( n , getSource( f ) );
+            return set( n , getSource( f , false ) );
         }
         catch ( IOException ioe ){
             throw new RuntimeException( ioe );
@@ -181,7 +243,12 @@ public class JSFileLibrary extends JSObjectBase {
     final Scope _scope;
     final boolean _doInit;
     
-    private JSFunction _initFunction;
     private final Map<File,JxpSource> _sources = new HashMap<File,JxpSource>();
+
+    private JSFunction _initFunction;
+    private boolean _inInit = false;
+    private long _lastInit = 0;
+    private final Set<JxpSource> _initSources = new HashSet<JxpSource>();
+    
     
 }

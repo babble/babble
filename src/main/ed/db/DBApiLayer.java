@@ -259,7 +259,7 @@ public abstract class DBApiLayer extends DBBase {
             int len = doQuery( encoder._buf , decoder._buf );
             decoder.doneReading( len );
             
-            SingleResult res = new SingleResult( _fullNameSpace , decoder );
+            SingleResult res = new SingleResult( _fullNameSpace , decoder , null );
             
             decoder.done();
             encoder.done();
@@ -309,7 +309,7 @@ public abstract class DBApiLayer extends DBBase {
 
     class SingleResult {
 
-        SingleResult( String fullNameSpace , ByteDecoder decoder ){
+        SingleResult( String fullNameSpace , ByteDecoder decoder , Set<ObjectId> seen ){
             _fullNameSpace = fullNameSpace;
             _reserved = decoder.getInt();
             _cursor = decoder.getLong();
@@ -321,13 +321,22 @@ public abstract class DBApiLayer extends DBBase {
             else if ( _num < 3 )
                 _lst = new LinkedList<JSObject>();
             else 
-                _lst = new ArrayList<JSObject>();
+                _lst = new ArrayList<JSObject>( _num );
             
             if ( _num > 0 ){    
                 int num = 0;
                 
                 while( decoder.more() && num < _num ){
                     final JSObject o = decoder.readObject();
+                    
+                    if ( seen != null ){
+                        ObjectId id = (ObjectId)o.get( "_id" );
+                        if ( id != null ){
+                            if ( seen.contains( id ) ) continue;
+                            seen.add( id );
+                        }
+                    }
+
                     o.set( "_ns" , _removeRoot( _fullNameSpace ) );
                     _lst.add( o );
                     num++;
@@ -364,6 +373,11 @@ public abstract class DBApiLayer extends DBBase {
 
         private void init( SingleResult res ){
             _curResult = res;
+            for ( JSObject o : res._lst ){
+                ObjectId id = (ObjectId)o.get( "_id" );
+                if ( id != null )
+                    _seen.add( id );
+            }
             _cur = res._lst.iterator();
         }
 
@@ -405,7 +419,7 @@ public abstract class DBApiLayer extends DBBase {
 	    int len = doGetMore( encoder._buf , decoder._buf );
 	    decoder.doneReading( len );
             
-	    SingleResult res = new SingleResult( _curResult._fullNameSpace , decoder );
+	    SingleResult res = new SingleResult( _curResult._fullNameSpace , decoder , _seen );
 	    init( res );
 	    
 	    decoder.done();
@@ -428,6 +442,7 @@ public abstract class DBApiLayer extends DBBase {
 
         SingleResult _curResult;
         Iterator<JSObject> _cur;
+        final Set<ObjectId> _seen = new HashSet<ObjectId>();
         final MyCollection _collection;
         final int _numToReturn;
     }

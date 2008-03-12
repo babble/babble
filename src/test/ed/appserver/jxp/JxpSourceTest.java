@@ -22,7 +22,7 @@ public class JxpSourceTest extends ed.TestCase {
             return _s;
         }
         
-        long lastUpdated(){
+        public long lastUpdated(){
             return _t;
         }
 

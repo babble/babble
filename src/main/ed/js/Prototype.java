@@ -186,11 +186,38 @@ public class Prototype {
                     }
                 };
             klass.set("superclass", parent);
+            // add subclasses attribute here
 
+            if(parent != null) {
+                JSFunction subclass = new JSFunctionCalls0 () {
+                        public Object call( Scope s, Object [] extra){
+                            return null;
+                        }
+                    };
+
+                subclass.set("prototype", ((JSObject)parent).get("prototype"));
+                klass.set("prototype", new JSObjectBase(subclass));
+                // push subclass here
+            }
+
+            s.setThis(klass);
             for(; i<properties.length; i++){
                 _classAddMethods.call(s, properties[i]);
             }
-            return null;
+            s.clearThisNormal(true);
+
+            JSObject prototype = (JSObject)klass.get("prototype");
+            if(prototype.get("initialize") == null){
+                prototype.set("initialize", new JSFunctionCalls0 () {
+                        public Object call( Scope s, Object [] extra){
+                            return null;
+                        }
+                    });
+            }
+
+            prototype.set("constructor", klass);
+
+            return klass;
             
         }
     }
