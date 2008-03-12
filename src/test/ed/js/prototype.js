@@ -95,3 +95,49 @@ f.addMethods({
 assert(f.m1(5) == 18);
 
 
+var Animal = Class.create({
+    initialize: function(name) {
+        this.name = name;
+    },
+    name: "",
+    eat: function() {
+        return this.say("Yum!");
+    },
+    say: function(message) {
+        return this.name + ": " + message;
+    }
+});
+
+// subclass that augments a method
+var Cat = Class.create(Animal, {
+    eat: function($super, food) {
+        if (food instanceof Mouse) return $super();
+        else return this.say("Yuk! I only eat mice.");
+    }
+});
+
+// empty subclass
+var Mouse = Class.create(Animal, {});
+
+assert(isFunction(Animal));
+assert(Cat.superclass == Animal);
+assert(Mouse.superclass == Animal);
+
+var pet = new Animal("Nibbles");
+assert(pet.name == "Nibbles");
+assert(pet.say("Hi!") == "Nibbles: Hi!");
+assert(Animal == pet.constructor);
+assert(pet.superclass == null);
+
+var tom = new Cat("Tom");
+assert(Cat == tom.constructor);
+assert(Animal == tom.constructor.superclass);
+assert("Tom" == tom.name);
+assert("Tom: meow" == tom.say('meow'));
+//assert('Tom: Yuk! I only eat mice.' == tom.eat(new Animal));
+
+assert('Tom: Yum!' == tom.eat(new Mouse));
+
+print((new Animal()) instanceof Mouse);
+
+print((new Mouse()) instanceof Mouse);
