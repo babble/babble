@@ -22,11 +22,15 @@ Cloud.Git.ensureHash = function( repos , branch , hash ){
 	log.git.debug( "\t creating new repos " );
 	g = new Cloud.Git.Repository( repos );
     }
-    
+
+    if ( g.isSite() ){
+	var s = g.getSite();
+    }
+
     var changed = g.ensureHash( branch , hash );
     if ( changed ){
-	db.git.save( g );
 	log.git.debug( "\t saving" );
+	db.git.save( g );
     }
 };
 
@@ -36,6 +40,22 @@ Cloud.Git.Repository = function( name ){
     this.created = new Date();
 };
 
+
+Cloud.Git.Repository.prototype.isSite = function(){
+    return this.name.match( /^sites\// );
+};
+
+Cloud.Git.Repository.prototype.getSite = function(){
+    if ( ! this.isSite() ) 
+	throw "not a site";
+
+    if ( this.site )
+	return this.site;
+    
+    var siteName = this.name.substring( 6 );
+    this.site = Cloud.Site.forName( siteName , true );
+    return this.site;
+};
 
 /**
 * @return true if anything changed
