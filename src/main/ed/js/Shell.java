@@ -67,7 +67,7 @@ public class Shell {
     public static void main( String args[] )
         throws Exception {
         
-        //System.setOut( new PrintStream( _myOutputStream ) );
+        System.setProperty( "NO-SECURITY" , "true" );
         
         Scope s = Scope.GLOBAL.child( new File("." ) );
         s.makeThreadLocal();
