@@ -267,6 +267,9 @@ public class AppServer implements HttpHandler {
 
         File f = ar.getFile();
 
+	if ( response.getResponseCode() >= 300 )
+	    return;
+
         if ( f.toString().endsWith( ".cgi" ) ){
             handleCGI( request , response , ar , f );
             return;
