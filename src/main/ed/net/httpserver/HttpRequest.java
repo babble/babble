@@ -210,8 +210,14 @@ public class HttpRequest extends JSObjectLame {
     }
 
     public Object set( Object n , Object v ){
-        throw new RuntimeException( "can't set things on an HttpRequest" );
+        String name = n.toString();
+        _finishParsing();
+        
+        Object prev = getParameter( name );
+        _addParm( name , v == null ? null : v.toString() );
+        return prev;
     }
+
     public Object get( Object n ){
         String foo = getParameter( n.toString() , null );
         if ( foo == null )
