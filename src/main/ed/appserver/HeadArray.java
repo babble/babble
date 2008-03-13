@@ -13,5 +13,8 @@ public class HeadArray extends JSArray {
     public void addScript( String script ){
         add( "<script src=\"" + script + "\" ></script>" );
     }
-    
+
+    public void addRSS( String link ){
+	add("<link rel=\"alternate\" type=\"application/rss+xml\" title=\"RSS\" href=\"" + link + "\" />" );
+    }
 }
