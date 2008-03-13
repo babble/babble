@@ -7,6 +7,7 @@ import java.util.*;
 import org.mozilla.javascript.*;
 
 import ed.util.*;
+import ed.js.*;
 import ed.js.func.*;
 
 public abstract class JSCompiledScript extends JSFunctionCalls0 {
@@ -22,6 +23,12 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
             _convert.fixStack( re );
             throw re;
         }
+    }
+
+    protected void _throw( Object foo ){
+        if ( foo instanceof JSException )
+            throw ( JSException)foo;
+        throw new JSException( foo );
     }
 
     Convert _convert;
