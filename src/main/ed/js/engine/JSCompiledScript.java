@@ -26,8 +26,13 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
     }
 
     protected void _throw( Object foo ){
+        
         if ( foo instanceof JSException )
             throw ( JSException)foo;
+        
+        if ( foo instanceof Throwable )
+            throw new JSException( foo.toString() , (Throwable)foo );
+        
         throw new JSException( foo );
     }
 
