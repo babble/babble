@@ -451,6 +451,7 @@ public class JSBuiltInFunctions {
         _myScope.put( "RegExp" , JSRegex._cons , true );
         _myScope.put( "XMLHttpRequest" , XMLHttpRequest._cons , true );
         _myScope.put( "Function" , JSInternalFunctions.FunctionCons , true );
+        _myScope.put( "Exception" , JSException._cons , true );
 
         _myScope.put( "Math" , JSMath.getInstance() , true );
 

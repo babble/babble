@@ -67,6 +67,10 @@ public class JxpServlet {
             }
         }
         catch ( RuntimeException re ){
+            if ( re instanceof JSException ){
+                if ( re.getCause() != null && re.getCause() instanceof RuntimeException )
+                    re = (RuntimeException)re.getCause();
+            }
             _source.fix( re );
             _context.fix( re );
             throw re;

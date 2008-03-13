@@ -548,7 +548,7 @@ public class Convert {
             break;
             
         case Token.THROW:
-            _append( "if ( true ) throw new JSException( " , n );
+            _append( "if ( true ) _throw( " , n );
             _add( n.getFirstChild() , state );
             _append( " ); " , n );
             break;
