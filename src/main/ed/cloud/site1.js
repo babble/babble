@@ -2,10 +2,10 @@
 
 
 Cloud.Instance = function(){
-    this.servers = [];
     this.branch = null;
-    this.db = null;
     this.name = this.branch;
+    this.db = null;
+    this.pool = null;
 };
 
 Cloud.Site = function( name ){
