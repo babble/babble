@@ -25,5 +25,13 @@ public class TagMacros {
         _tags.put( "if" , new String[]{ 
                 " if ( $1 ){ \n " , "\n } \n"
             } );
+
+        _tags.put( "forin" , new String[]{
+                " for ( $1 in $2 ){\n  " , "\n } \n "
+            } );
+
+        _tags.put( "forarray" , new String[]{
+                " for ( var $3=0; $3 < $2 .length; $3 ++ ){\n var $1 = $2[$3]; \n " , " \n } \n " 
+            } );
     }
 }
