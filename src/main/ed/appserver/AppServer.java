@@ -307,6 +307,9 @@ public class AppServer implements HttpHandler {
                 servlet.handle( request , response , ar );
             }
         }
+        catch ( JSException.Quiet q ){
+            response.setHeader( "X-Exception" , "quiet" );
+        }
         catch ( Exception e ){
             handleError( request , response , e , ar.getContext() );
             return;
