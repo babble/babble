@@ -80,7 +80,7 @@ public class AppRequest {
         return true;
     }
 
-    String getOverrideURI(){
+    private String getOverrideURI(){
         String foo = getOverrideURI( "mapUrlToJxpFileCore" );
         if ( foo != null )
             return foo;
@@ -92,7 +92,7 @@ public class AppRequest {
         return null;
     }
     
-    String getOverrideURI( String funcName ){
+    private String getOverrideURI( String funcName ){
         Object o = getScope().get( funcName );
         if ( o == null )
             return null;
@@ -106,7 +106,7 @@ public class AppRequest {
         return res.toString();
     }
     
-    String getWantedURI(){
+    private String getWantedURI(){
         if ( _wantedURI != null )
             return _wantedURI;
         
