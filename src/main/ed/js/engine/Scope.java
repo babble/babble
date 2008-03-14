@@ -13,7 +13,7 @@ import ed.js.func.*;
 public class Scope implements JSObject {
 
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.SCOPE" );
-    private static int ID = 1;
+    private static long ID = 1;
     
     public static Scope GLOBAL = new Scope( "GLOBAL" , JSBuiltInFunctions._myScope  );
     static {
@@ -529,6 +529,10 @@ public class Scope implements JSObject {
             _parent.debug( indent + 1 );
     }
 
+    public long getId(){
+        return _id;
+    }
+
     public String toString(){
         return _id + ":" + _name;
     }
@@ -543,7 +547,7 @@ public class Scope implements JSObject {
     final Scope _parent;
     final Scope _alternate;
     final File _root;
-    public final int _id = ID++;
+    public final long _id = ID++;
     
     boolean _locked = false;
     boolean _global = false;
