@@ -118,9 +118,13 @@ public abstract class JSFile extends JSObjectBase {
             f = new File( root , name );
         }
         
-        FileOutputStream out = new FileOutputStream( f );
+        File temp = File.createTempFile( "writeToLocalFile" , ".tmpaa" );
+
+        FileOutputStream out = new FileOutputStream( temp);
         write( out );
         out.close();
+
+        temp.renameTo( f );
 
         return f.getAbsolutePath();
     }
