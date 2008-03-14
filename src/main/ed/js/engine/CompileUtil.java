@@ -42,7 +42,7 @@ class CompileUtil {
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter( sw ); 
             
-            int res = com.sun.tools.javac.Main.compile( new String[]{ "-g" ,  "-classpath" , "build" , f.toString() } , pw );
+            int res = com.sun.tools.javac.Main.compile( new String[]{ "-g" , /* "-classpath" , "build" , */ f.toString() } , pw );
             if ( D ) System.out.println( f + " : " + res );
         
             if ( res != 0 ){
