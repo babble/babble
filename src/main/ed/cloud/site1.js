@@ -11,7 +11,7 @@ Cloud.Instance = function(){
 Cloud.Site = function( name ){
     this.name = name;
     this.created = new Date();
-    this.instances = {};
+    this.instances = [];
     this.instances._dbCons = Cloud.Instance;
 };
 
