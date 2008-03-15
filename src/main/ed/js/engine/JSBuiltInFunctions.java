@@ -601,11 +601,7 @@ public class JSBuiltInFunctions {
         _myScope.put( "javaStatic" , new javaStatic() , true );
         _myScope.put( "javaStaticProp" , new javaStaticProp() , true );
         
-        _myScope.put( "escape" , new JSFunctionCalls1(){
-                public Object call( Scope scope , Object o , Object extra[] ){
-                    return java.net.URLEncoder.encode( o.toString() ).replaceAll( "\\+" , "%20" );
-                }
-            } , true );
+        Encoding.install( _myScope );
         
         JSON.init( _myScope );
 
