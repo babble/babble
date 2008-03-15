@@ -8,6 +8,7 @@ import java.util.*;
 
 import com.twmacinta.util.*;
 
+import ed.db.*;
 import ed.util.*;
 import ed.js.engine.*;
 
@@ -53,13 +54,64 @@ public class DBHook {
         return o.toString();
     }
 
-    public static JSObject scopeGetObject( long id , String field ){
+    public static long scopeGuessObjectSize( long id , String field ){
         Object o = _scopeGet( id , field );
         if ( o == null )
-            return null;
+            return 0;
+
         if ( ! ( o instanceof JSObject ) )
-            return null;
-        return (JSObject)o;
+            return 0;
+
+        return _guessSize( (JSObject)o );
+    }
+
+    static final long _guessSize( JSObject o ){
+        if ( o == null )
+            return 2;
+        
+        long s = 20;
+        
+        for ( String name : o.keySet() ){
+            s += name.length() + 12;
+            Object foo = o.get( s );
+            
+            if ( foo == null )
+                continue;
+
+            if ( foo instanceof Number )
+                s += 12;
+            else if ( foo instanceof JSString || foo instanceof String )
+                s += foo.toString().length() * 3;
+            else if ( foo instanceof JSDate )
+                s += 12;
+            else if ( foo instanceof JSObject )
+                s += _guessSize( (JSObject)foo );
+            else if ( foo instanceof Boolean )
+                s += 2;
+            else {
+                System.out.println( "guessing on : " + foo.getClass() );
+                s += foo.toString().length() * 10;
+            }
+            
+        }
+
+        return s;
+    }
+
+    public static int scopeGetObject( long id , String field , ByteBuffer bb ){
+        Object o = _scopeGet( id , field );
+        if ( o == null )
+            return 0;
+
+        if ( ! ( o instanceof JSObject ) )
+            return 0;
+
+        JSObject obj = (JSObject)o;
+        
+        ByteEncoder encoder = new ByteEncoder( bb );
+        encoder.putObject( null , obj );
+        
+        return bb.position();
     }
     
     static Object _scopeGet( long id , String field ){
@@ -67,6 +119,7 @@ public class DBHook {
     }
     
     private static Map<Long,Scope> _scopes = Collections.synchronizedMap( new HashMap<Long,Scope>() );
+
 
     // -----    functions   -------
 
