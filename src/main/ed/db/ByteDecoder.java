@@ -33,7 +33,7 @@ public class ByteDecoder extends Bytes {
 
     // ---
     
-    protected ByteDecoder( ByteBuffer buf ){
+    public ByteDecoder( ByteBuffer buf ){
         _buf = buf;
         if ( _buf.order() != ByteOrder.LITTLE_ENDIAN )
             throw new RuntimeException( "this is not correct" );
@@ -50,7 +50,7 @@ public class ByteDecoder extends Bytes {
         _buf.order( ByteOrder.LITTLE_ENDIAN );        
     }
 
-    protected JSObject readObject(){
+    public JSObject readObject(){
         if ( _buf.position() >= _buf.limit() )
             return null;
 

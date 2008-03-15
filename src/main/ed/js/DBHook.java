@@ -137,6 +137,8 @@ public class DBHook {
         
         JSFunction f = null;
         
+        System.out.println( "compiling code : " + code );
+
         try {
             Convert c = new Convert( "trigger" + Math.random() , code );
             f = c.get();
@@ -164,11 +166,19 @@ public class DBHook {
         System.err.println( "scopeID : " + scopeID + " functionID : " + functionID );
         if ( s == null )
             return NO_SCOPE;
-
+        
         JSFunction f = _functionIDS.get( functionID );
         if ( f == null )
             return NO_FUNCTION;
         
+        if ( objectByteBuffer != null ){
+            System.out.println( objectByteBuffer );
+            objectByteBuffer.order( ByteOrder.LITTLE_ENDIAN );
+            ByteDecoder bd = new ByteDecoder( objectByteBuffer );
+            JSObject obj = bd.readObject();
+            s.set( "obj" , obj );
+        }
+
         try {
             Object ret = f.call( s , null );
             s.set( "return" , ret );
@@ -178,7 +188,7 @@ public class DBHook {
             s.set( "error" , t.toString() );
             return INVOKE_ERROR;
         }
-
+        
     }
 
 }
