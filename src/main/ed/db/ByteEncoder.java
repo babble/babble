@@ -28,8 +28,13 @@ public class ByteEncoder extends Bytes {
             }
         };
 
-    // ----
+    public ByteEncoder( ByteBuffer buf ){
+        _buf = buf;
+        _buf.order( ByteOrder.LITTLE_ENDIAN );        
+    }
 
+    // ----
+    
     private ByteEncoder(){
         _buf = ByteBuffer.allocateDirect( BUF_SIZE );
         _buf.order( ByteOrder.LITTLE_ENDIAN );
@@ -46,7 +51,7 @@ public class ByteEncoder extends Bytes {
         _flipped = true;
     }
     
-    protected int putObject( String name , JSObject o ){
+    public int putObject( String name , JSObject o ){
         if ( DEBUG ) System.out.println( "putObject : " + name + " [" + o.getClass() + "]" + " # keys " + o.keySet().size() );
             
         if ( _flipped )
