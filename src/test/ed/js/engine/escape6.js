@@ -1,5 +1,11 @@
 // escape6.js
 
+print( unescape( "%" ) );
+
+print( unescape( "a%!!b" ) );
+print( unescape( "a%5!b" ) );
+print( unescape( "a%51b" ) );
+
 print( encodeURIComponent( "anasdas12425234542353245225345" ) );
 print( encodeURIComponent( " " ) );
 print( encodeURIComponent( "%" ) );

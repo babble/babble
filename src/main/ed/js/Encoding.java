@@ -67,22 +67,53 @@ public class Encoding {
         final StringBuilder buf = new StringBuilder( str.length() );
 
         final int len = str.length();
+        final int max = len - 2;
         
-        for ( int i=0; i<len; i++ ){
+        int i=0;
+        for ( ; i<max; i++ ){
             char c = str.charAt( i );
             
-            if ( c != '%' )
+            if ( c != '%' ){
                 buf.append( c );
+            }
             else {
                 final String foo = str.substring( i + 1 , i + 3 );
-                final int val = Integer.parseInt( foo , 16 );
-                buf.append( (char)val );
-                i += 2;
+                if ( ! _isHex( foo ) )
+                    buf.append( c );
+                else {
+                    final int val = Integer.parseInt( foo , 16 );
+                    buf.append( (char)val );
+                    i += 2;
+                }
             }
             
         }
+        
+        for ( ; i<len; i++ )
+            buf.append( str.charAt( i ) );
 
         return buf.toString();
+    }
+
+    static final boolean _isHex( final String s ){
+        final int len = s.length();
+        for ( int i=0; i<len; i++ )
+            if ( ! _isHex( s.charAt( i ) ) )
+                return false;
+        return true;
+    }
+
+    static final boolean _isHex( final char c ){
+        if ( c >= '0' && c <= '9' )
+            return true;
+
+        if ( c >= 'a' && c <= 'f' )
+            return true;
+
+        if ( c >= 'A' && c <= 'F' )
+            return true;
+        
+        return false;
     }
 
     static final int _upperDiff = 'A' - 'a';
