@@ -571,11 +571,26 @@ public class JSBuiltInFunctions {
         _myScope.put( "isArray" , new isXXX( JSArray.class ) , true );
         _myScope.put( "isBool" , new isXXX( Boolean.class ) , true );
         _myScope.put( "isNumber" , new isXXX( Number.class ) , true );
-        _myScope.put( "isObject" , new isXXX( JSObject.class ) , true );
         _myScope.put( "isDate" , new isXXX( JSDate.class ) , true );
         _myScope.put( "isFunction" , new isXXX( JSFunction.class ) , true );
 
         _myScope.put( "isString" , new isXXXs( String.class , JSString.class ) , true );
+
+        _myScope.put( "isObject" , new JSFunctionCalls1(){
+                public Object call( Scope scope , Object o , Object extra[] ){
+                    if ( o == null )
+                        return false;
+                    
+                    if ( ! ( o instanceof JSObject ) )
+                        return false;
+                    
+                    if ( o instanceof JSString )
+                        return false;
+                    
+                    return true;
+                }
+            } , true );
+
         
         _myScope.put( "isAlpha" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object o , Object extra[] ){
