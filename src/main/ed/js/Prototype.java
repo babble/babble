@@ -174,7 +174,7 @@ public class Prototype {
         public Object call( Scope s, Object [] properties){
             int i = 0;
             Object parent = null;
-            if(properties[0] instanceof JSFunction) {
+            if(properties != null && properties[0] instanceof JSFunction) {
                 parent = properties[i++];
             }
             JSFunction klass = new JSFunctionCalls0 () {
@@ -200,10 +200,13 @@ public class Prototype {
                 // push subclass here
             }
 
+            klass.set("addMethods", Prototype._classAddMethods);
+
             s.setThis(klass);
-            for(; i<properties.length; i++){
-                _classAddMethods.call(s, properties[i]);
-            }
+            if(properties != null)
+                for(; i<properties.length; i++){
+                    _classAddMethods.call(s, properties[i]);
+                }
             s.clearThisNormal(true);
 
             JSObject prototype = (JSObject)klass.get("prototype");
@@ -234,33 +237,37 @@ public class Prototype {
             JSObject jo = (JSObject)source;
             for(String property : jo.keySet()){
                 Object value = jo.get(property);
-                if (ancestor != null && value instanceof JSFunction && 
-                    ((JSFunction)value).argumentNames().getInt(0).equals("$super")) {
-                    final String methodname = property;
-                    final Object method = value;
-
-                    value = new JSFunctionCalls0 () {
-                            public Object call( Scope s, Object [] extra){
-                                JSFunction m = (JSFunction)((JSObject)ancestor).get(methodname);
-                                return m.call(s, extra);
-                            }
-                        };
-
-                    s.setThis(value);
-                    value = Prototype._functionWrap.call(s, method);
-
-                    s.clearThisNormal(true);
-
-                    ((JSObject)value).set("valueOf", new JSFunctionCalls0 () {
-                            public Object call( Scope s, Object [] extra){
-                                return method;
-                            }
-                        });
-                    ((JSObject)value).set("toString", new JSFunctionCalls0 () {
-                            public Object call( Scope s, Object [] extra){
-                                return method.toString();
-                            }
-                        });
+                if (ancestor != null && value instanceof JSFunction){
+                    JSFunction valf = (JSFunction)value;
+                    Integer args = (Integer)valf.argumentNames().get("length");
+                    if(args > 0 &&
+                       ((JSFunction)value).argumentNames().getInt(0).equals("$super")) {
+                        final String methodname = property;
+                        final Object method = value;
+                        
+                        value = new JSFunctionCalls0 () {
+                                public Object call( Scope s, Object [] extra){
+                                    JSFunction m = (JSFunction)((JSObject)ancestor).get(methodname);
+                                    return m.call(s, extra);
+                                }
+                            };
+                        
+                        s.setThis(value);
+                        value = Prototype._functionWrap.call(s, method);
+                        
+                        s.clearThisNormal(true);
+                        
+                        ((JSObject)value).set("valueOf", new JSFunctionCalls0 () {
+                                public Object call( Scope s, Object [] extra){
+                                    return method;
+                                }
+                            });
+                        ((JSObject)value).set("toString", new JSFunctionCalls0 () {
+                                public Object call( Scope s, Object [] extra){
+                                    return method.toString();
+                                }
+                            });
+                    }
                 }
                 JSObject prototype = (JSObject)t.get("prototype");
                 prototype.set(property, value);

@@ -95,6 +95,8 @@ f.addMethods({
 assert(f.m1(5) == 18);
 
 
+// These unit tests are from Prototype -- check test/unit/base.html
+
 var Animal = Class.create({
     initialize: function(name) {
         this.name = name;
@@ -129,6 +131,9 @@ assert(pet.say("Hi!") == "Nibbles: Hi!");
 assert(Animal == pet.constructor);
 assert(pet.superclass == null);
 
+var Empty = Class.create();
+assert('object', typeof new Empty);
+
 var tom = new Cat("Tom");
 assert(Cat == tom.constructor);
 assert(Animal == tom.constructor.superclass);
@@ -137,4 +142,67 @@ assert("Tom: meow" == tom.say('meow'));
 assert('Tom: Yuk! I only eat mice.' == tom.eat(new Animal));
 
 assert('Tom: Yum!' == tom.eat(new Mouse));
+
+// augment the constructor and test
+var Dodo = Class.create(Animal, {
+    initialize: function($super, name) {
+        $super(name);
+        this.extinct = true;
+    },
+
+    say: function($super, message) {
+        return $super(message) + " honk honk";
+    }
+});
+
+var gonzo = new Dodo('Gonzo');
+assert('Gonzo' == gonzo.name);
+assert(gonzo.extinct);
+assert("Gonzo: hello honk honk" == gonzo.say("hello"));
+
+
+var tom   = new Cat('Tom');
+var jerry = new Mouse('Jerry');
+
+Animal.addMethods({
+    sleep: function() {
+        return this.say('ZZZ');
+    }
+});
+
+Mouse.addMethods({
+    sleep: function($super) {
+        return $super() + " ... no, can't sleep! Gotta steal cheese!";
+    },
+    escape: function(cat) {
+        return this.say('(from a mousehole) Take that, ' + cat.name + '!');
+    }
+});
+
+assertEqual = function(one, two, message){
+    if (one != two) throw message;
+}
+
+assertUndefined = function(thing, message){
+    if(! message) message = "not undefined";
+    if(thing == null)
+        ; // pass
+    else
+        throw message;
+}
+
+assertEqual('Tom: ZZZ', tom.sleep(), "added instance method not available to subclass");
+assertEqual("Jerry: ZZZ ... no, can't sleep! Gotta steal cheese!", jerry.sleep());
+assertEqual("Jerry: (from a mousehole) Take that, Tom!", jerry.escape(tom));
+// insure that a method has not propagated *up* the prototype chain:
+assertUndefined(tom.escape);
+assertUndefined(new Animal().escape);
+
+Animal.addMethods({
+    sleep: function() {
+        return this.say('zZzZ');
+    }
+});
+
+assertEqual("Jerry: zZzZ ... no, can't sleep! Gotta steal cheese!", jerry.sleep());
 
