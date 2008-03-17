@@ -217,17 +217,16 @@ public class JSString extends JSObjectBase {
                         Matcher m = r._patt.matcher( str );
                         if ( ! m.find() )
                             return null;
-                        JSArray a = new JSArray();
                         if ( r.getFlags().contains( "g" )){
+                            JSArray a = new JSArray();
                             do {
                                 a.add(new JSString(m.group()));
                             } while(m.find());
+                            return a;
                         }
                         else{
-                            for( int i=0; i<=m.groupCount(); i++ )
-                                a.add(new JSString(m.group(i)));
+                            return r.exec(str);
                         }
-                        return a;
                     }
                 } );
                 

@@ -34,6 +34,9 @@ print( /.*123.*/.test( "the 123 is here" ) );
 print( /123/.test( "the 12 is here" ) );
 print( /(is)/.test( "the 12 is here" ) );
 
+print( "the 123 is here".match(/123/).index );
+print( /123/.exec( "the 123 is here" ).index );
+
 print( "H5" );
 p = /(\d)\.(\d)/g;
 t = "abc 123.23 sj 41.2";
