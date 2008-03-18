@@ -5,6 +5,8 @@ package ed.js;
 import ed.js.engine.Scope;
 
 public abstract class JSFunction extends JSFunctionBase {
+
+    public static final String TO_STRING_PREFIX = "JSFunction : ";
     
     public JSFunction( int num ){
         this( null , null , num );
@@ -58,7 +60,7 @@ public abstract class JSFunction extends JSFunctionBase {
     }
     
     public String toString(){
-        return "JSFunction : " + _name;
+        return TO_STRING_PREFIX + _name;
     }
 
     public JSArray argumentNames(){
