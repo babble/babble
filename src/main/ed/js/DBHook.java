@@ -18,6 +18,7 @@ public class DBHook {
     public static final int NO_FUNCTION = -2;
 
     public static final int INVOKE_ERROR = -3;
+    public static final int INVOKE_SUCCESS = 1;
 
     // -----    scope   -------    
 
@@ -36,6 +37,29 @@ public class DBHook {
     }
     public static void scopeFree( long id ){
         _scopes.remove( id );
+    }
+    
+    // -- setters
+
+    public static boolean scopeSetNumber( long id , String field , double val ){
+        _scopes.get( id ).set( field , val );
+        return true;
+    }
+
+    public static boolean scopeSetString( long id , String field , String val ){
+        _scopes.get( id ).set( field , val );
+        return true;
+    }
+    
+    public static boolean scopeSetObject( long id , String field , ByteBuffer buf ){
+        JSObject obj = null;
+        if ( buf != null ){
+            buf.order( ByteOrder.LITTLE_ENDIAN );
+            ByteDecoder bd = new ByteDecoder( buf );
+            obj = bd.readObject();
+        }
+        _scopes.get( id ).set( field , obj );
+        return true;
     }
     
     // -- getters
@@ -131,13 +155,15 @@ public class DBHook {
             md5 = _myMd5.asHex();
         }
         
+        System.out.print( "functionCreate hash : " + md5 );
+        
         Pair<JSFunction,Long> p = _functions.get( md5 );
         if ( p != null )
             return p.second;
         
         JSFunction f = null;
-        
-        System.out.println( "compiling code : " + code );
+
+        System.out.println( "\t compiling : " + code );
 
         try {
             Convert c = new Convert( "trigger" + Math.random() , code );
@@ -171,23 +197,11 @@ public class DBHook {
         if ( f == null )
             return NO_FUNCTION;
         
-        if ( objectByteBuffer != null ){
-            System.out.println( objectByteBuffer );
-            objectByteBuffer.order( ByteOrder.LITTLE_ENDIAN );
-            ByteDecoder bd = new ByteDecoder( objectByteBuffer );
-            JSObject obj = bd.readObject();
-            s.set( "obj" , obj );
-        }
+        scopeSetObject( scopeID , "obj" , objectByteBuffer );
 
-        try {
-            Object ret = f.call( s , null );
-            s.set( "return" , ret );
-            return 0;
-        }
-        catch ( Throwable t ){
-            s.set( "error" , t.toString() );
-            return INVOKE_ERROR;
-        }
+        Object ret = f.call( s , null );
+        s.set( "return" , ret );
+        return INVOKE_SUCCESS;
         
     }
 
