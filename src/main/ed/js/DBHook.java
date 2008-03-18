@@ -192,7 +192,7 @@ public class DBHook {
 
     // ------ invoke -----
 
-    public static int invoke( long scopeID , long functionID , ByteBuffer objectByteBuffer ){
+    public static int invoke( long scopeID , long functionID  ){
         Scope s = _scopes.get( scopeID );
         System.err.println( "scopeID : " + scopeID + " functionID : " + functionID );
         if ( s == null )
@@ -201,8 +201,6 @@ public class DBHook {
         JSFunction f = _functionIDS.get( functionID );
         if ( f == null )
             return NO_FUNCTION;
-        
-        scopeSetObject( scopeID , "obj" , objectByteBuffer );
         
         try {
             Object ret = f.call( s , null );
