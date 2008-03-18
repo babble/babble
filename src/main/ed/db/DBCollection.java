@@ -313,6 +313,8 @@ public abstract class DBCollection extends JSObjectLame {
 
     private void _findSubObject( Scope s , JSObject jo ){
 
+        if ( DEBUG ) System.out.println( "_findSubObject on : " + jo.get( "_id" ) );
+
         LinkedList<JSObject> toSearch = new LinkedList();
         Map<JSObject,String> seen = new IdentityHashMap<JSObject,String>();
         toSearch.add( jo );

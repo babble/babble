@@ -12,7 +12,7 @@ import ed.util.*;
 public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
 
 
-    DBCursor( DBCollection collection , JSObject q , JSObject k , JSFunction cons ){
+    public DBCursor( DBCollection collection , JSObject q , JSObject k , JSFunction cons ){
         _collection = collection;
         _query = q;
         _keysWanted = k;
