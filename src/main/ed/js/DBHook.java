@@ -163,6 +163,11 @@ public class DBHook {
         
         JSFunction f = null;
 
+        code = code.trim();
+        
+        if ( code.startsWith( "function" ) )
+            code = code.replaceAll( "^function *\\( *\\) *\\{(.*)\\}\\s*$" , "$1" );
+
         System.out.println( "\t compiling : " + code );
 
         try {
@@ -198,8 +203,11 @@ public class DBHook {
             return NO_FUNCTION;
         
         scopeSetObject( scopeID , "obj" , objectByteBuffer );
-
+        
         Object ret = f.call( s , null );
+
+        if ( ret instanceof JSFunction )
+            ret = ((JSFunction)ret).call( s , null );
         s.set( "return" , ret );
         return INVOKE_SUCCESS;
         
