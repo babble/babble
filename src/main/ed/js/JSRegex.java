@@ -42,6 +42,10 @@ public class JSRegex extends JSObjectBase {
         super( _cons );
     }
 
+    public JSRegex( String p ){
+        this( p , "" );
+    }
+
     public JSRegex( String p , String f ){
         super( _cons );
         init( p , f );
@@ -100,7 +104,7 @@ public class JSRegex extends JSObjectBase {
 
     void init( String p , String f ){
         _p = _jsToJava( p );
-        _f = f;
+        _f = f == null ? "" : f;
         
         {
             int compilePatterns = 0;
