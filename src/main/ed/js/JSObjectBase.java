@@ -187,6 +187,10 @@ public class JSObjectBase implements JSObject {
         return _constructor;
     }
 
+    public void lock(){
+        setReadOnly( true );
+    }
+
     public void setReadOnly( boolean readOnly ){
         _readOnly = readOnly;
     }
