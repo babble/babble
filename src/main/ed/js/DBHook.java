@@ -46,6 +46,11 @@ public class DBHook {
         return true;
     }
 
+    public static boolean scopeSetBoolean( long id , String field , boolean val ){
+        _scopes.get( id ).set( field , val );
+        return true;
+    }
+
     public static boolean scopeSetString( long id , String field , String val ){
         _scopes.get( id ).set( field , val );
         return true;
@@ -61,7 +66,7 @@ public class DBHook {
         _scopes.get( id ).set( field , obj );
         return true;
     }
-    
+
     // -- getters
 
     public static double scopeGetNumber( long id , String field ){
@@ -76,6 +81,14 @@ public class DBHook {
         if ( o == null )
             return null;
         return o.toString();
+    }
+    
+    public static boolean scopeGetBoolean( long id , String field ){
+        return JSInternalFunctions.JS_evalToBool( _scopeGet( id , field ) );
+    }
+
+    public static byte scopeGetType( long id , String field ){
+        return Bytes.getType( _scopeGet( id , field ) );
     }
 
     public static long scopeGuessObjectSize( long id , String field ){
