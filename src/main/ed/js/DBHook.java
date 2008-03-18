@@ -16,9 +16,9 @@ public class DBHook {
 
     public static final int NO_SCOPE = -1;
     public static final int NO_FUNCTION = -2;
-
     public static final int INVOKE_ERROR = -3;
-    public static final int INVOKE_SUCCESS = 1;
+    
+    public static final int INVOKE_SUCCESS = 0;
 
     // -----    scope   -------    
 
@@ -204,13 +204,18 @@ public class DBHook {
         
         scopeSetObject( scopeID , "obj" , objectByteBuffer );
         
-        Object ret = f.call( s , null );
-
-        if ( ret instanceof JSFunction )
-            ret = ((JSFunction)ret).call( s , null );
-        s.set( "return" , ret );
-        return INVOKE_SUCCESS;
-        
+        try {
+            Object ret = f.call( s , null );
+            
+            if ( ret instanceof JSFunction )
+                ret = ((JSFunction)ret).call( s , null );
+            s.set( "return" , ret );
+            return INVOKE_SUCCESS;
+        }
+        catch ( Throwable t ){
+            scopeSetString( scopeID , "error" , t.toString() );
+            return INVOKE_ERROR;
+        }
     }
 
 }
