@@ -12,6 +12,11 @@ public class JSInputFile extends JSNewFile {
         this( filename , contentType , content.getBytes() );
     }    
 
+    public JSInputFile( String filename , byte b[] )
+        throws IOException {
+        this( filename , null , new ByteArrayInputStream( b ) );
+    }
+
     public JSInputFile( String filename , String contentType , byte b[] )
         throws IOException {
         this( filename , contentType , new ByteArrayInputStream( b ) );

@@ -27,6 +27,9 @@ public abstract class JSFile extends JSObjectBase {
         this();
         if ( id != null )
             set( "_id" , id );
+
+        if ( contentType == null && filename != null )
+            contentType = ed.appserver.MimeTypes.get( filename );
         
         set( "filename" , filename );
         set( "contentType" , contentType );
@@ -75,7 +78,13 @@ public abstract class JSFile extends JSObjectBase {
         }
         return ((Number)foo).intValue();
     }
-       
+
+    public JSDate getUploadDate(){
+        JSDate d = (JSDate)get( "uploadDate" );
+        if ( d != null )
+            return d;
+        return new JSDate();
+    }
 
     public String asString(){
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
