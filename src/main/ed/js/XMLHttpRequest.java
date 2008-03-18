@@ -148,6 +148,9 @@ public class XMLHttpRequest extends JSObjectBase {
             setStatus( OPENED );
             
             SocketChannel sock = SocketChannel.open();
+            if ( get( "timeout" ) != null ){
+                sock.socket().setSoTimeout( ((Number)get( "timeout" )).intValue() );
+            }
             sock.connect( new InetSocketAddress( getHost() , getPort() ) );
             
             byte postData[] = null;
