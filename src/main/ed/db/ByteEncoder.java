@@ -91,8 +91,16 @@ public class ByteEncoder extends Bytes {
 
             Object val = o.get( s );
             
-            if ( val instanceof JSFunction )
+            if ( val instanceof JSFunction ){
+                if ( s.startsWith( "$" ) && 
+                     ! val.toString().startsWith( JSFunction.TO_STRING_PREFIX ) ){
+                    putFunction( s , (JSFunction)val );
+                    continue;
+                }
+
                 continue;
+            }
+
 
             if ( val == null )
                 putNull( s );
@@ -156,6 +164,7 @@ public class ByteEncoder extends Bytes {
         return _buf.position() - start;
     }
 
+
     protected void putBinary( String name , JSBinaryData bin ){
         
         if ( bin.length() < 0 )
@@ -186,6 +195,14 @@ public class ByteEncoder extends Bytes {
         _buf.putDouble( n.doubleValue() );
         return _buf.position() - start;
     }
+
+    protected int putFunction( String name , JSFunction func ){
+        int start = _buf.position();
+        _put( CODE , name );
+        _putValueString( func.toString() );
+        return _buf.position() - start;
+    }
+
 
     protected int putString( String name , String s ){
         int start = _buf.position();

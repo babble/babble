@@ -31,6 +31,7 @@ public class Bytes {
     static final byte NULL = 10;
     static final byte REGEX = 11;
     static final byte REF = 12;
+    static final byte CODE = 13;
 
     /* 
        these are binary types
