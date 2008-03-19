@@ -379,9 +379,12 @@ public abstract class DBCollection extends JSObjectLame {
         if ( foo != null )
             return foo;
         
-        if ( _methods.size() == 0 )
+        if ( _methods == null ){
+            Set<String> temp = new HashSet<String>();
             for ( Method m : this.getClass().getMethods() )
-                _methods.add( m.getName() );
+                temp.add( m.getName() );
+            _methods = temp;
+        }
 
         String s = n.toString();
 
@@ -428,7 +431,7 @@ public abstract class DBCollection extends JSObjectLame {
     final JSFunction _apply;
     final JSFunction _find;
     
-    final Set<String> _methods = new HashSet<String>();
+    static Set<String> _methods;
 
     protected Map _entries = new TreeMap();
     final protected String _name;
