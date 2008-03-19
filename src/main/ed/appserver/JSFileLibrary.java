@@ -12,7 +12,7 @@ import ed.appserver.jxp.*;
 
 public class JSFileLibrary extends JSObjectBase {
 
-    static final boolean D = false;
+    static final boolean D = Boolean.getBoolean( "DEBUG.JSFL" );
     
     public JSFileLibrary( File base , String uriBase , AppContext context ){
         this( base , uriBase , context , null , false );
