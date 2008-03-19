@@ -30,8 +30,10 @@ public class JxpServlet {
             scope.put( "request" , request , true );
         if ( scope.get( "response" ) == null )
             scope.put( "response" , response , true );
-        
-        final String cdnPrefix = getStaticPrefix( request , ar );
+
+        Object cdnFromScope = scope.get( "CDN" );
+             
+        final String cdnPrefix = cdnFromScope != null ? cdnFromScope.toString() : getStaticPrefix( request , ar );
         scope.put( "CDN" , cdnPrefix , true );
         
         MyWriter writer = new MyWriter( response.getWriter() , cdnPrefix , ar.getContext() , ar);
@@ -130,6 +132,20 @@ public class JxpServlet {
                         return o;
                     }
                 } );
+        }
+
+        public Object get( Object n ){
+            if ( "cdnPrefix".equals( n ) )
+                return _cdnPrefix;
+            return super.get( n );
+        }
+
+        public Object set( Object n , Object v ){
+            if ( "cdnPrefix".equals( n ) ){
+                _cdnPrefix = v.toString();
+                return _cdnPrefix;
+            }
+            return super.set( n  , v );
         }
         
         public Object call( Scope scope , Object o , Object extra[] ){
@@ -341,10 +357,10 @@ public class JxpServlet {
         final StringBuilder _extra = new StringBuilder();
 
         final JxpWriter _writer;
-        final String _cdnPrefix;
         final AppContext _context;
         final AppRequest _request;
 
+        String _cdnPrefix;
         JSObject _formInput = null;
         String _formInputPrefix = null;
 
