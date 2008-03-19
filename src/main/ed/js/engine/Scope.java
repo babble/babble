@@ -14,7 +14,10 @@ public class Scope implements JSObject {
 
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.SCOPE" );
     private static long ID = 1;
-    
+
+    private static ThreadLocal<Scope> _threadLocal = new ThreadLocal<Scope>();
+    private static ThreadLocal<Scope> _lastCreated = new ThreadLocal<Scope>();
+
     public static Scope GLOBAL = new Scope( "GLOBAL" , JSBuiltInFunctions._myScope  );
     static {
         GLOBAL._locked = true;
@@ -57,6 +60,8 @@ public class Scope implements JSObject {
 
         if ( _parent == null )
             _globalThis = new JSObjectBase();
+
+        _lastCreated.set( this );
     }
 
     public Scope child(){
@@ -568,13 +573,16 @@ public class Scope implements JSObject {
     
     public static void clearThreadLocal(){
         _threadLocal.set( null );
+        _lastCreated.set( null );
     }
-
+    
     public static Scope getThredLocal(){
         return _threadLocal.get();
     }
     
-    private static ThreadLocal<Scope> _threadLocal = new ThreadLocal<Scope>();
+    public static Scope getLastCreated(){
+        return _lastCreated.get();
+    }
 
     static class This {
         This( Object o ){
