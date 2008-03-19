@@ -77,7 +77,7 @@ public class JSObjectBase implements JSObject {
             n = n.toString();
         
         if ( ! "__preGet".equals( n ) ){
-            Object foo = get( "__preGet" );
+            Object foo = containsKey( "__preGet" );
             if ( foo != null && foo instanceof JSFunction ){
                 Scope s = Scope.getLastCreated();
                 if ( s != null ){
