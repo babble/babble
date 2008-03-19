@@ -67,13 +67,31 @@ public class JSObjectBase implements JSObject {
     }
 
     public Object get( Object n ){
+
         prefunc();
+
         if ( n == null )
             n = "null";
         
         if ( n instanceof JSString )
             n = n.toString();
         
+        if ( ! "__preGet".equals( n ) ){
+            Object foo = get( "__preGet" );
+            if ( foo != null && foo instanceof JSFunction ){
+                Scope s = Scope.getLastCreated();
+                if ( s != null ){
+                    try {
+                        s.setThis( this );
+                        ((JSFunction)foo).call( s , n );
+                    }
+                    finally {
+                        s.clearThisNormal( null );
+                    }
+                }
+            }
+        }
+
         if ( n instanceof String ){
             Object res = _map == null ? null : _map.get( ((String)n) );
             if ( res == null && _constructor != null ){
