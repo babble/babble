@@ -14,6 +14,8 @@ import ed.js.engine.*;
 
 public class DBHook {
 
+    static final boolean DEBUG = false;
+
     public static final int NO_SCOPE = -1;
     public static final int NO_FUNCTION = -2;
     public static final int INVOKE_ERROR = -3;
@@ -144,10 +146,9 @@ public class DBHook {
             return 0;
 
         JSObject obj = (JSObject)o;
-        
+
         ByteEncoder encoder = new ByteEncoder( bb );
         encoder.putObject( null , obj );
-        
         return bb.position();
     }
     
@@ -168,7 +169,7 @@ public class DBHook {
             md5 = _myMd5.asHex();
         }
         
-        System.out.print( "functionCreate hash : " + md5 );
+        if ( DEBUG ) System.out.print( "functionCreate hash : " + md5 );
         
         Pair<JSFunction,Long> p = _functions.get( md5 );
         if ( p != null )
@@ -181,7 +182,7 @@ public class DBHook {
         if ( code.startsWith( "function" ) )
             code = code.replaceAll( "^function *\\( *\\) *\\{(.*)\\}\\s*$" , "$1" );
 
-        System.out.println( "\t compiling : " + code );
+        if ( DEBUG ) System.out.println( "\t compiling : " + code );
 
         try {
             Convert c = new Convert( "trigger" + Math.random() , code );
@@ -207,7 +208,7 @@ public class DBHook {
 
     public static int invoke( long scopeID , long functionID  ){
         Scope s = _scopes.get( scopeID );
-        System.err.println( "scopeID : " + scopeID + " functionID : " + functionID );
+        if ( DEBUG ) System.err.println( "scopeID : " + scopeID + " functionID : " + functionID );
         if ( s == null )
             return NO_SCOPE;
         
