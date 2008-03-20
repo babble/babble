@@ -9,6 +9,10 @@ import ed.js.engine.*;
 
 public class JSObjectBase implements JSObject {
 
+    static {
+        JS._debugSIStart( "JSObjectBase" );
+    }
+
     static final String OBJECT_STRING = "Object";
 
     public JSObjectBase(){

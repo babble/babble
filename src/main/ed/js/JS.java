@@ -7,8 +7,27 @@ import java.io.*;
 import ed.js.engine.*;
 
 public class JS {
-    
+
+    public static final boolean DI = false;
     public static final boolean RAW_EXCPETIONS = Boolean.getBoolean( "RAWE" );
+
+    public static void _debugSI( String name , String place ){
+        if ( ! DI )
+            return;
+        System.err.println( "Static Init : " + name + " \t " + place  );
+    }
+
+    public static void _debugSIStart( String name ){
+        if ( ! DI )
+            return;
+        System.err.println( "Static Init : " + name + " Start" );
+    }
+
+    public static void _debugSIDone( String name ){
+        if ( ! DI )
+            return;
+        System.err.println( "Static Init : " + name + " Done" );
+    }
 
     public static final int fun(){
         return 17;

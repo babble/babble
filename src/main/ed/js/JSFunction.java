@@ -6,6 +6,10 @@ import ed.js.engine.Scope;
 
 public abstract class JSFunction extends JSFunctionBase {
 
+    static {
+        JS._debugSIStart( "JSFunction" );
+    }
+
     public static final String TO_STRING_PREFIX = "JSFunction : ";
     
     public JSFunction( int num ){
@@ -128,5 +132,9 @@ public abstract class JSFunction extends JSFunctionBase {
     }
     
     private static boolean _staticInited = false;
+
+    static {
+        JS._debugSIDone( "JSFunction" );
+    }
 }
 

@@ -18,6 +18,10 @@ import ed.security.*;
 
 public class JSBuiltInFunctions {
 
+    static {
+        JS._debugSIStart( "JSBuiltInFunctions" );
+    }
+
     public static class jsassert extends JSFunctionCalls1 {
         public Object call( Scope scope , Object foo , Object extra[] ){
             if ( JSInternalFunctions.JS_evalToBool( foo ) )
@@ -193,7 +197,7 @@ public class JSBuiltInFunctions {
         final boolean _newLine;
     }
 
-    public static JSFunction NewObject = new JSFunctionCalls0(){
+    public static class NewObject extends JSFunctionCalls0{
             public Object call( Scope scope , Object extra[] ){
                 return new JSObjectBase();
             }
@@ -281,6 +285,10 @@ public class JSBuiltInFunctions {
 
     public static class sysexec extends JSFunctionCalls1 {
         
+        sysexec(){
+            JS._debugSI( "JSBuiltInFunctions" , "sysexec cons" );
+        }
+
         // adds quotes as needed
 	static String[] fix( String s ){
 	    String base[] = s.split( "\\s+" );
@@ -437,14 +445,18 @@ public class JSBuiltInFunctions {
     
     static Scope _myScope = new Scope( "Built-Ins" , null );
     static {
+        JS._debugSI( "JSBuiltInFunctions" , "Setup 0" );
         _myScope.put( "sysexec" , new sysexec() , true );
+        JS._debugSI( "JSBuiltInFunctions" , "Setup 0.1" );
         _myScope.put( "print" , new print() , true );
         _myScope.put( "printnoln" , new print( false ) , true );
         _myScope.put( "SYSOUT" , new print() , true );
         _myScope.put( "sleep" , new sleep() , true );
         _myScope.put( "fork" , new fork() , true );
 
-        _myScope.put( "Object" , NewObject , true );
+        JS._debugSI( "JSBuiltInFunctions" , "Setup 1" );
+
+        _myScope.put( "Object" , new NewObject() , true );
         _myScope.put( "Array" , JSArray._cons , true );
         _myScope.put( "Date" , JSDate._cons , true );
         _myScope.put( "String" , JSString._cons , true );
@@ -458,6 +470,8 @@ public class JSBuiltInFunctions {
         _myScope.put( "processArgs", new processArgs(), true );
 
         _myScope.put( "Class", ed.js.Prototype._class , true );
+
+        JS._debugSI( "JSBuiltInFunctions" , "Setup2" );
         
         CrID crid = new CrID();
         _myScope.put( "CrID" , crid , true );
@@ -639,5 +653,9 @@ public class JSBuiltInFunctions {
         }
         
         return 0;
+    }
+
+    static {
+        JS._debugSIDone( "JSBuiltInFunctions" );
     }
 }

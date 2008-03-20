@@ -4,6 +4,10 @@ package ed.js;
 
 public class JSNumericFunctions extends JSObjectBase {
 
+    static {
+        JS._debugSIStart( "JSNumericFunctions" );
+    }
+
     JSNumericFunctions( JSFunction cons ){
         super( cons );
     }

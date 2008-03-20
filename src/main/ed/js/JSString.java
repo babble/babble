@@ -12,7 +12,11 @@ import ed.js.engine.*;
 
 public class JSString extends JSObjectBase {
 
+    static { JS._debugSIStart( "JSString" ); }
+
+    static { JS._debugSI( "JSString" , "0" ); }
     public static JSFunction _cons = new JSStringCons();
+    static { JS._debugSI( "JSString" , "1" ); }
     
     static class JSStringCons extends JSFunctionCalls1{
 
@@ -41,6 +45,8 @@ public class JSString extends JSObjectBase {
         
         protected void init(){
 
+            JS._debugSI( "JSString" , "JSStringCons init 0" );
+
             final StringEncrypter encrypter = new StringEncrypter( "knsd8712@!98sad" );
             
             _prototype.set( "encrypt" , new JSFunctionCalls0(){
@@ -50,7 +56,7 @@ public class JSString extends JSObjectBase {
                         }
                     }        
                 } );
-
+            
             _prototype.set( "decrypt" , new JSFunctionCalls0(){
                     public Object call( Scope s , Object foo[] ){
                         synchronized ( encrypter ){
@@ -59,7 +65,9 @@ public class JSString extends JSObjectBase {
                     }        
                 } );
 
-            
+
+            JS._debugSI( "JSString" , "JSStringCons init 1" );
+                
             _prototype.set( "trim" , new JSFunctionCalls0() {
                     public Object call( Scope s , Object foo[] ){
                         return new JSString( s.getThis().toString().trim() );
@@ -347,7 +355,9 @@ public class JSString extends JSObjectBase {
 
         }
     };
-    
+
+    static { JS._debugSI( "JSString" , "2" ); }    
+
     static JSString EMPTY = new JSString("");
 
     public JSString( String s ){
@@ -410,4 +420,6 @@ public class JSString extends JSObjectBase {
     }
 
     String _s;
+
+    static { JS._debugSIDone( "JSString" ); }
 }

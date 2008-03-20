@@ -7,7 +7,12 @@ import ed.js.func.*;
 
 public class JSInternalFunctions extends JSNumericFunctions {
 
+    static { JS._debugSIStart( "JSInternalFunctions" ); }
+
+    static { JS._debugSI( "JSInternalFunctions" , "0" ); }
+
     public final static JSString TYPE_STRING = new JSString( "string" );
+    static { JS._debugSI( "JSInternalFunctions" , "0.1" ); }
     public final static JSString TYPE_NATIVE_STRING = new JSString( "native_string" );
     public final static JSString TYPE_NUMBER = new JSString( "number" );
     public final static JSString TYPE_BOOLEAN = new JSString( "boolean" );
@@ -15,6 +20,11 @@ public class JSInternalFunctions extends JSNumericFunctions {
     public final static JSString TYPE_OBJECT = new JSString( "object" );
     public final static JSString TYPE_NATIVE = new JSString( "native" );
     public final static JSString TYPE_FUNCTION = new JSString( "function" );
+
+    static {
+        JS._debugSI( "JSInternalFunctions" , "1" );
+    }
+
 
     public static JSFunction FunctionCons = new JSFunctionCalls0(){
             
@@ -32,10 +42,14 @@ public class JSInternalFunctions extends JSNumericFunctions {
             }
 
             protected void init(){
-
+                JS._debugSI( "JSInternalFunctions" , "FunctionCons init" );
             }
                         
         };
+
+    static {
+        JS._debugSI( "JSInternalFunctions" , "2" );
+    }
     
     public JSInternalFunctions(){
         super( FunctionCons );
@@ -70,7 +84,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
         if ( ! ( thing instanceof JSObjectBase ) )
             return false;
         
-        if ( type == JSBuiltInFunctions.NewObject )
+        if ( type instanceof JSBuiltInFunctions.NewObject )
             return true;
 
         JSObjectBase o = (JSObjectBase)thing;
@@ -303,5 +317,9 @@ public class JSInternalFunctions extends JSNumericFunctions {
             return "null";
         
         return "[" + o + "](" + o.getClass() + ")" ;
+    }
+
+    static {
+        JS._debugSIDone( "JSInternalFunctions" );
     }
 }

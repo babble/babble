@@ -12,6 +12,10 @@ import ed.js.func.*;
 
 public class Scope implements JSObject {
 
+    static {
+        JS._debugSIStart( "Scope" );
+    }
+
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.SCOPE" );
     private static long ID = 1;
 
@@ -833,5 +837,9 @@ public class Scope implements JSObject {
 
         final String _name;
         final Scope _scope;
+    }
+
+    static {
+        JS._debugSIDone( "Scope" );
     }
 }
