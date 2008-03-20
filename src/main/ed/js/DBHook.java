@@ -25,6 +25,7 @@ public class DBHook {
     // -----    scope   -------    
 
     public static long scopeCreate(){
+        JS.JNI = true;
         Scope s = Scope.GLOBAL.child();
         _scopes.put( s.getId() , s );
         return s.getId();
@@ -162,6 +163,8 @@ public class DBHook {
     // -----    functions   -------
 
     public static long functionCreate( String code ){
+        JS.JNI = true;
+
         String md5 = null;
         synchronized( _myMd5 ){
             _myMd5.Init();

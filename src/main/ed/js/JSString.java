@@ -46,24 +46,26 @@ public class JSString extends JSObjectBase {
         protected void init(){
 
             JS._debugSI( "JSString" , "JSStringCons init 0" );
-
-            final StringEncrypter encrypter = new StringEncrypter( "knsd8712@!98sad" );
             
-            _prototype.set( "encrypt" , new JSFunctionCalls0(){
-                    public Object call( Scope s , Object foo[] ){
-                        synchronized ( encrypter ){
-                            return new JSString( encrypter.encrypt( s.getThis().toString() ) );
-                        }
-                    }        
-                } );
-            
-            _prototype.set( "decrypt" , new JSFunctionCalls0(){
-                    public Object call( Scope s , Object foo[] ){
-                        synchronized ( encrypter ){
-                            return new JSString( encrypter.decrypt( s.getThis().toString() ) );
-                        }
-                    }        
-                } );
+            if ( ! JS.JNI ){
+                final StringEncrypter encrypter = new StringEncrypter( "knsd8712@!98sad" );
+                
+                _prototype.set( "encrypt" , new JSFunctionCalls0(){
+                        public Object call( Scope s , Object foo[] ){
+                            synchronized ( encrypter ){
+                                return new JSString( encrypter.encrypt( s.getThis().toString() ) );
+                            }
+                        }        
+                    } );
+                
+                _prototype.set( "decrypt" , new JSFunctionCalls0(){
+                        public Object call( Scope s , Object foo[] ){
+                            synchronized ( encrypter ){
+                                return new JSString( encrypter.decrypt( s.getThis().toString() ) );
+                            }
+                        }        
+                    } );
+            }
 
 
             JS._debugSI( "JSString" , "JSStringCons init 1" );

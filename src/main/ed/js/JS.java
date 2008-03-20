@@ -8,6 +8,7 @@ import ed.js.engine.*;
 
 public class JS {
 
+    public static boolean JNI = false;
     public static final boolean DI = false;
     public static final boolean RAW_EXCPETIONS = Boolean.getBoolean( "RAWE" );
 
@@ -34,6 +35,7 @@ public class JS {
     }
 
     public static final Object eval( String js ){
+        JNI = true;
         System.out.println( "going to eval : " + js );
         System.out.println( "yay" );
         try {
