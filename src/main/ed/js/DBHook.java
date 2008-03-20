@@ -5,6 +5,7 @@ package ed.js;
 import java.io.*;
 import java.nio.*;
 import java.util.*;
+import java.util.regex.*;
 
 import com.twmacinta.util.*;
 
@@ -73,10 +74,21 @@ public class DBHook {
     // -- getters
 
     public static double scopeGetNumber( long id , String field ){
-        Number n = (Number)_scopeGet( id , field );
-        if ( n == null )
+        Object foo = _scopeGet( id , field );
+        if ( foo == null )
             return 0;
-        return n.doubleValue();
+        
+        if ( foo instanceof Number )
+            return ((Number)foo).doubleValue();
+        
+        if ( foo instanceof Boolean ){
+            boolean b = (Boolean)foo;
+            return b ? 1 : 0;
+        }
+        
+        String msg = "can't get a number from a : " + foo.getClass();
+        System.err.println( msg );
+        throw new RuntimeException( msg );
     }
 
     public static String scopeGetString( long id , String field ){
@@ -184,8 +196,14 @@ public class DBHook {
 
         code = code.trim();
         
-        if ( code.startsWith( "function" ) )
-            code = code.replaceAll( "^function *\\( *\\) *\\{(.*)\\}\\s*$" , "$1" );
+        if ( code.startsWith( "function" ) ){
+            String repl = "^function \\( \\) \\{(.*)\\} $";
+            repl = repl.replaceAll( " " , "\\\\s*" );
+            System.out.println( repl );
+            Pattern patt = Pattern.compile( repl, Pattern.DOTALL );
+            
+            code = patt.matcher( code ).replaceAll( "$1" );
+        }
 
         if ( DEBUG ) System.err.println( "\t compiling : " + code );
 
@@ -197,6 +215,8 @@ public class DBHook {
             t.printStackTrace();
             return 0;
         }
+        
+        if ( DEBUG ) System.err.println( "\t " + f );
 
         long id = _funcID++;
         p = new Pair<JSFunction,Long>( f , id );
@@ -222,10 +242,14 @@ public class DBHook {
             return NO_FUNCTION;
         
         try {
+            System.err.println( f );
             Object ret = f.call( s , null );
             
-            if ( ret instanceof JSFunction )
+            if ( ret instanceof JSFunction ){
+                if ( DEBUG ) System.err.println( "\t return was function? " + ret );
                 ret = ((JSFunction)ret).call( s , null );
+            }
+            if( DEBUG ) System.err.println( "\t setting return to :" + ret );
             s.set( "return" , ret );
             return INVOKE_SUCCESS;
         }
