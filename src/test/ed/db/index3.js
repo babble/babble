@@ -2,8 +2,8 @@
 db = connect( "foo");
 core.db.db();
 
-t = db.t;
-deleteIndexes( "t" );
+t = db.index3;
+deleteIndexes( "index3" );
 t.remove( {} );
 sleep( 100 );
 
