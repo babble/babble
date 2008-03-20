@@ -118,7 +118,7 @@ public class JSFileLibrary extends JSObjectBase {
         return get( n , true );
     }
     
-    public Object get( final Object n , final boolean doInit ){
+    public synchronized Object get( final Object n , final boolean doInit ){
         if ( doInit )
             _init();
 
