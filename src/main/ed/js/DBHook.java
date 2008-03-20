@@ -14,7 +14,7 @@ import ed.js.engine.*;
 
 public class DBHook {
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = true;
 
     public static final int NO_SCOPE = -1;
     public static final int NO_FUNCTION = -2;
@@ -129,7 +129,7 @@ public class DBHook {
             else if ( foo instanceof Boolean )
                 s += 2;
             else {
-                System.out.println( "guessing on : " + foo.getClass() );
+                System.err.println( "guessing on : " + foo.getClass() );
                 s += foo.toString().length() * 10;
             }
             
@@ -161,8 +161,10 @@ public class DBHook {
 
 
     // -----    functions   -------
-
+    
     public static long functionCreate( String code ){
+        if ( DEBUG ) System.err.println( "functionCreate start " );
+
         JS.JNI = true;
 
         String md5 = null;
@@ -172,7 +174,7 @@ public class DBHook {
             md5 = _myMd5.asHex();
         }
         
-        if ( DEBUG ) System.out.print( "functionCreate hash : " + md5 );
+        if ( DEBUG ) System.err.println( "functionCreate hash : " + md5 );
         
         Pair<JSFunction,Long> p = _functions.get( md5 );
         if ( p != null )
@@ -185,7 +187,7 @@ public class DBHook {
         if ( code.startsWith( "function" ) )
             code = code.replaceAll( "^function *\\( *\\) *\\{(.*)\\}\\s*$" , "$1" );
 
-        if ( DEBUG ) System.out.println( "\t compiling : " + code );
+        if ( DEBUG ) System.err.println( "\t compiling : " + code );
 
         try {
             Convert c = new Convert( "trigger" + Math.random() , code );
