@@ -30,7 +30,7 @@ public class JSException extends RuntimeException {
             }
 
             public Object call( Scope scope , Object msg , Object[] extra ){
-                return new JSException( msg );
+                return new JSException( msg , null , true );
             }
             
             protected void init(){
@@ -43,15 +43,23 @@ public class JSException extends RuntimeException {
     }
     
     public JSException( Object o , Throwable t ){
+        this( o , t , false );
+    }
+    
+    public JSException( Object o , Throwable t , boolean wantedJSException ){
         super( ( o == null ? "" : o.toString() ).toString() , _fix( t ) );
         _object = o;
+        _wantedJSException = wantedJSException;
     }
 
     public Object getObject(){
+        if ( _wantedJSException )
+            return this;
         return _object;
     }
     
     final Object _object;
+    final boolean _wantedJSException;
 
     static Throwable _fix( Throwable t ){
         if ( t instanceof java.lang.reflect.InvocationTargetException )
@@ -61,7 +69,7 @@ public class JSException extends RuntimeException {
 
     public static class Quiet extends JSException {
         public Quiet( Object msg ){
-            super( msg );
+            super( msg , null , true );
         }
     }
 }
