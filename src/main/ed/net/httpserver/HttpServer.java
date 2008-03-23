@@ -52,7 +52,7 @@ public class HttpServer extends NIOServer {
             }
         }
         response.setResponseCode( 404 );
-        response.getWriter().print( "go away\n" );
+        response.getWriter().print( "no HTTP handlers available for : " + request.getURL() );
         response.done();
         
         return false;
