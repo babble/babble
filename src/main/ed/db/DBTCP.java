@@ -9,35 +9,14 @@ import java.util.*;
 
 import ed.js.*;
 
-
-public class DBTCP extends DBApiLayer {
+public class DBTCP extends DBMessageLayer {
 
     DBTCP( String root , String ip ){
         super( root );
         _portPool = DBPortPool.get( ip );
     }
 
-    protected void doInsert( ByteBuffer buf ){
-        say( 2002 , buf );
-    }
-    protected  void doDelete( ByteBuffer buf ){
-        say( 2006 , buf );
-    }
-    protected void doUpdate( ByteBuffer buf ){
-        say( 2001 , buf );
-    }
-    protected void doKillCursors( ByteBuffer buf ){
-        say( 2007 , buf );
-    }
-    
-    protected int doQuery( ByteBuffer out , ByteBuffer in ){
-        return call( 2004 , out , in );
-    }
-    protected int doGetMore( ByteBuffer out , ByteBuffer in ){
-        return call( 2005 , out , in );
-    }
-
-    private void say( int op , ByteBuffer buf ){
+    protected void say( int op , ByteBuffer buf ){
         DBPort port = _portPool.get();
                 
         try {
