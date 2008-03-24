@@ -5,7 +5,6 @@ package ed.appserver;
 import java.io.*;
 import java.util.*;
 
-import ed.io.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.net.*;
