@@ -28,7 +28,7 @@ public class DBTCP extends DBMessageLayer {
         }
     }
     
-    private int call( int op , ByteBuffer out , ByteBuffer in ){
+    protected int call( int op , ByteBuffer out , ByteBuffer in ){
         DBPort port = _portPool.get();
         
         try {
