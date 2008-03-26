@@ -15,7 +15,7 @@ import ed.js.engine.*;
 
 public class DBHook {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     public static final int NO_SCOPE = -1;
     public static final int NO_FUNCTION = -2;
@@ -242,7 +242,8 @@ public class DBHook {
             return NO_FUNCTION;
         
         try {
-            System.err.println( f );
+	    if( DEBUG )
+		System.err.println( f );
             Object ret = f.call( s , null );
             
             if ( ret instanceof JSFunction ){
