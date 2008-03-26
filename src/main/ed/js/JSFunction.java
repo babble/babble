@@ -60,7 +60,32 @@ public abstract class JSFunction extends JSFunctionBase {
     }
 
     public Scope getScope(){
+        return getScope( false );
+    }
+
+    /**
+     * @package threadLocal if this is true, it returns a thread local scope that you can modify for your thread
+     */
+    public Scope getScope( boolean threadLocal ){
+        Scope s = _tlScope.get();
+        if ( s != null ){
+            return s;
+        }
+        
+        if ( threadLocal ){
+            s = _scope.child( "func tl scope" );
+            s.setGlobal( true );
+            _tlScope.set( s );
+            return s;
+        }
+
         return _scope;
+    }
+
+    public void clearScope(){
+        Scope s = _tlScope.get();
+        if ( s != null )
+            s.reset();
     }
     
     public String toString(){
@@ -79,7 +104,10 @@ public abstract class JSFunction extends JSFunctionBase {
     }
 
     private final Scope _scope;
+    private final ThreadLocal<Scope> _tlScope = new ThreadLocal<Scope>();
+
     protected JSObject _prototype;
+
 
     protected JSArray _arguments;
     protected String _name = "NO NAME SET";
