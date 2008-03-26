@@ -78,7 +78,7 @@ public abstract class JSFunction extends JSFunctionBase {
         return temp;
     }
 
-    protected final Scope _scope;
+    private final Scope _scope;
     protected JSObject _prototype;
 
     protected JSArray _arguments;

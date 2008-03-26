@@ -163,7 +163,7 @@ public class JSObjectBase implements JSObject {
         
         JSFunction f = (JSFunction)temp;
 
-        Scope s = f._scope.child();
+        Scope s = f.getScope().child();
         s.setThis( this );
         return f.call( s ).toString();
     }

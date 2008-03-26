@@ -996,7 +996,7 @@ public class Convert {
         }
         callLine += " , Object extra[] ){\n" ;
         
-        _append( callLine + " final Scope scope = new Scope( \"temp scope for: \" + _name  , _scope , passedIn ); " , n );
+        _append( callLine + " final Scope scope = new Scope( \"temp scope for: \" + _name  , getScope() , passedIn ); " , n );
         if ( hasArguments ){
             _append( "JSArray arguments = new JSArray();\n" , n );
             _append( "scope.put( \"arguments\" , arguments , true );\n" , n );
