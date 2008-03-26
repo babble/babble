@@ -101,7 +101,7 @@ public class XMLHttpRequest extends JSObjectBase {
            if ( f != null )
                _async = true;
            
-           _onreadystatechangeScope = f._scope.child();
+           _onreadystatechangeScope = f.getScope().child();
            _onreadystatechangeScope.setThis( this );
            
            return super.set( n , v );

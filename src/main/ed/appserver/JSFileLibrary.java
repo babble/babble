@@ -100,7 +100,7 @@ public class JSFileLibrary extends JSObjectBase {
                     _initFunction.call( s );
                 }
                 catch ( RuntimeException re ){
-                    set( "_init" , false ); // we need to re-ren
+                    set( "_init" , null ); // we need to re-ren
                     throw re;
                 }
                 s.setTLPreferred( pref );
@@ -231,7 +231,7 @@ public class JSFileLibrary extends JSObjectBase {
             s.fix( t );
 
         for ( String s : keySet() ){
-            Object foo = get( s );
+            Object foo = super.get( s );
             if ( foo instanceof JSFileLibrary )
                 ((JSFileLibrary)foo).fix( t );
         }
