@@ -64,12 +64,23 @@ public class DBHook {
         JSObject obj = null;
         if ( buf != null ){
             buf.order( ByteOrder.LITTLE_ENDIAN );
-            ByteDecoder bd = new ByteDecoder( buf );
+
+            ByteDecoder bd = _setObjectTL.get();
+            if ( bd == null ){
+                bd = new ByteDecoder( buf );
+                _setObjectTL.set( bd );
+            }
+            else {
+                bd.reset( buf );
+            }
+
             obj = bd.readObject();
         }
         _scopes.get( id ).set( field , obj );
         return true;
     }
+
+    static ThreadLocal<ByteDecoder> _setObjectTL = new ThreadLocal<ByteDecoder>();
 
     // -- getters
 

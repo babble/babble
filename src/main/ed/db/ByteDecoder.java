@@ -34,14 +34,20 @@ public class ByteDecoder extends Bytes {
     // ---
     
     public ByteDecoder( ByteBuffer buf ){
-        _buf = buf;
-        if ( _buf.order() != ByteOrder.LITTLE_ENDIAN )
-            throw new RuntimeException( "this is not correct" );
+        reset( buf );
+        _private = false;
     }
 
     private ByteDecoder(){
         _buf = ByteBuffer.allocateDirect( BUF_SIZE );
+        _private = true;
         reset();
+    }
+
+    public void reset( ByteBuffer buf ){
+        _buf = buf;
+        if ( _buf.order() != ByteOrder.LITTLE_ENDIAN )
+            throw new RuntimeException( "this is not correct" );
     }
 
     void reset(){
@@ -225,7 +231,8 @@ public class ByteDecoder extends Bytes {
     private final CharsetDecoder _decoder = _utf8.newDecoder();
     private final byte _namebuf[] = new byte[ MAX_STRING ];
 
-    final ByteBuffer _buf;
+    ByteBuffer _buf;
+    private final boolean _private;
 
     String _ns;
     DBBase _base;
