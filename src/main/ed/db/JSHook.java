@@ -257,6 +257,17 @@ public class JSHook {
         if ( f == null )
             return NO_FUNCTION;
         
+        Object client = s.get( "$client" );
+        if ( client != null ){
+            String clientString = client.toString();
+            DBJni db = _clients.get( clientString );
+            if ( db == null ){
+                db = new DBJni( clientString );
+                _clients.put( clientString , db );
+            }
+            s.set( "db" , db );
+        }
+
         try {
 	    if( DEBUG )
 		System.err.println( f );
@@ -271,9 +282,12 @@ public class JSHook {
             return INVOKE_SUCCESS;
         }
         catch ( Throwable t ){
+            t.printStackTrace();
             scopeSetString( scopeID , "error" , t.toString() );
             return INVOKE_ERROR;
         }
     }
 
+    static final Map<String,DBJni> _clients = Collections.synchronizedMap( new HashMap<String,DBJni>() );
+    
 }

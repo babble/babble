@@ -16,31 +16,36 @@ public class DBJni extends DBMessageLayer {
 	super( root );
     }
 
-    protected void say( int op , ByteBuffer buf ){
+    protected void say( int op , ByteBuffer dataOut ){
 
-        DBMessage m = new DBMessage( op , buf );
+        DBMessage m = new DBMessage( op , dataOut );
         Buf b = _pool.get();
         
-        m.putHeader( b.outHeader );
+        m.putHeader( b.out );
+        b.out.put( dataOut );
 
-        native_say( op , b.outHeader , b.out , b.out.limit() );
+        native_say( b.out );
     }
 
-    protected int call( int op , ByteBuffer out , ByteBuffer in ){
+    protected int call( int op , ByteBuffer dataOut , ByteBuffer dataIn ){
 
-        DBMessage m = new DBMessage( op , out );
+        DBMessage m = new DBMessage( op , dataOut );
         Buf b = _pool.get();
         
-        m.putHeader( b.outHeader );
+        m.putHeader( b.out );
+        b.out.put( dataOut );
                                 
-        int len = native_call( op , b.outHeader , b.out , b.out.limit() , b.inHeader , in );
-        in.limit( len );
+        int len = native_call( b.out , b.in );
 
-        return len;
+        DBMessage inMsg = new DBMessage( b.in , b.in );
+        dataIn.put( b.in );
+        dataIn.flip();
+
+        return dataIn.limit();
     }
 
-    static native void native_say( int op , ByteBuffer outHeader , ByteBuffer out , int outLength );
-    static native int native_call( int op , ByteBuffer outHeader , ByteBuffer out , int outLength , ByteBuffer inHeader , ByteBuffer in );
+    static native void native_say( ByteBuffer out );
+    static native int native_call( ByteBuffer out , ByteBuffer in );
 
     static class Buf {
         
@@ -50,9 +55,7 @@ public class DBJni extends DBMessageLayer {
         
         void reset(){
             reset( in );
-            reset( outHeader );
             reset( out );
-            reset( inHeader );
         }
 
         void reset( ByteBuffer buf ){
@@ -63,9 +66,6 @@ public class DBJni extends DBMessageLayer {
 
         ByteBuffer in = ByteBuffer.allocateDirect( 1024 * 1024 );
         ByteBuffer out = ByteBuffer.allocateDirect( 1024 * 1024 );
-
-        ByteBuffer outHeader = ByteBuffer.allocateDirect( DBMessage.HEADER_LENGTH );
-        ByteBuffer inHeader = ByteBuffer.allocateDirect( DBMessage.HEADER_LENGTH );
     }
 
     static class BufPool extends SimplePool<Buf> {
