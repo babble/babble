@@ -45,6 +45,9 @@ public class ByteDecoder extends Bytes {
     }
 
     public void reset( ByteBuffer buf ){
+        if ( _private )
+            throw new RuntimeException( "can't reset private ByteDecoder" );
+
         _buf = buf;
         if ( _buf.order() != ByteOrder.LITTLE_ENDIAN )
             throw new RuntimeException( "this is not correct" );
