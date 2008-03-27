@@ -1,6 +1,6 @@
-// DBHook.java
+// JSHook.java
 
-package ed.js;
+package ed.db;
 
 import java.io.*;
 import java.nio.*;
@@ -9,11 +9,11 @@ import java.util.regex.*;
 
 import com.twmacinta.util.*;
 
-import ed.db.*;
+import ed.js.*;
 import ed.util.*;
 import ed.js.engine.*;
 
-public class DBHook {
+public class JSHook {
 
     static final boolean DEBUG = false;
 
@@ -79,7 +79,7 @@ public class DBHook {
         return true;
     }
 
-    static SimplePool<ByteDecoder> _setObjectPool = new SimplePool<ByteDecoder>( "DBHook.scopeSetObjectPool" , 10 , 10 ){
+    static SimplePool<ByteDecoder> _setObjectPool = new SimplePool<ByteDecoder>( "JSHook.scopeSetObjectPool" , 10 , 10 ){
         protected ByteDecoder createNew(){
             ByteBuffer temp = ByteBuffer.wrap( new byte[1] );
             temp.order( ByteOrder.LITTLE_ENDIAN );
