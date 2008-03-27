@@ -429,6 +429,11 @@ public class Convert {
                      
             break;
             
+        case Token.POS:
+            _assertOne( n );
+            _add( n.getFirstChild() , state );
+            break;
+
         case Token.NE:
             _append( " ! " , n );
             
