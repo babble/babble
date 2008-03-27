@@ -30,14 +30,14 @@ print( "*4 = " + a.z );
 print( "null = null " );
 print( "3 = " + b );
 
-
+// ----
+print( "****" );
 
 A = function(){
     this.buf = "";
 };
 
 A.prototype.print = function( s ){
-
     this.buf += s;
 };
 A.prototype.z = 17;
@@ -47,5 +47,7 @@ with( a ){
     print( "hehe" );
 }
 
+print( a.z );
+print( a.buf );
 print( a.buf.length );
 
