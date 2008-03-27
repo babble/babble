@@ -65,22 +65,27 @@ public class DBHook {
         if ( buf != null ){
             buf.order( ByteOrder.LITTLE_ENDIAN );
 
-            ByteDecoder bd = _setObjectTL.get();
-            if ( bd == null ){
-                bd = new ByteDecoder( buf );
-                _setObjectTL.set( bd );
+            ByteDecoder bd = _setObjectPool.get();
+            bd.reset( buf );
+            
+            try {
+                obj = bd.readObject();
             }
-            else {
-                bd.reset( buf );
+            finally {
+                _setObjectPool.done( bd );
             }
-
-            obj = bd.readObject();
         }
         _scopes.get( id ).set( field , obj );
         return true;
     }
 
-    static ThreadLocal<ByteDecoder> _setObjectTL = new ThreadLocal<ByteDecoder>();
+    static SimplePool<ByteDecoder> _setObjectPool = new SimplePool<ByteDecoder>( "DBHook.scopeSetObjectPool" , 10 , 10 ){
+        protected ByteDecoder createNew(){
+            ByteBuffer temp = ByteBuffer.wrap( new byte[1] );
+            temp.order( ByteOrder.LITTLE_ENDIAN );
+            return new ByteDecoder( temp );
+        }
+    };
 
     // -- getters
 
