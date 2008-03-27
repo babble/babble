@@ -8,88 +8,80 @@ import java.nio.*;
 import java.util.*;
 
 import ed.js.*;
+import ed.util.*;
 
-public class DBJni extends DBApiLayer {
+public class DBJni extends DBMessageLayer {
     
-    DBJni( String root , String ip ){
+    DBJni( String root ){
 	super( root );
+    }
 
-        try {
-            ip = InetAddress.getByName( ip ).getHostAddress();
+    protected void say( int op , ByteBuffer buf ){
+
+        DBMessage m = new DBMessage( op , buf );
+        Buf b = _pool.get();
+        
+        m.putHeader( b.outHeader );
+
+        native_say( op , b.outHeader , b.out , b.out.limit() );
+    }
+
+    protected int call( int op , ByteBuffer out , ByteBuffer in ){
+
+        DBMessage m = new DBMessage( op , out );
+        Buf b = _pool.get();
+        
+        m.putHeader( b.outHeader );
+                                
+        int len = native_call( op , b.outHeader , b.out , b.out.limit() , b.inHeader , in );
+        in.limit( len );
+
+        return len;
+    }
+
+    static native void native_say( int op , ByteBuffer outHeader , ByteBuffer out , int outLength );
+    static native int native_call( int op , ByteBuffer outHeader , ByteBuffer out , int outLength , ByteBuffer inHeader , ByteBuffer in );
+
+    static class Buf {
+        
+        Buf(){
+            reset();
         }
-        catch ( IOException ioe ){
-            throw new RuntimeException( "can't get ip for:" + ip );
+        
+        void reset(){
+            reset( in );
+            reset( outHeader );
+            reset( out );
+            reset( inHeader );
+        }
+
+        void reset( ByteBuffer buf ){
+            buf.position( 0 );
+            buf.limit( buf.capacity() );
+            buf.order( ByteOrder.LITTLE_ENDIAN );
+        }
+
+        ByteBuffer in = ByteBuffer.allocateDirect( 1024 * 1024 );
+        ByteBuffer out = ByteBuffer.allocateDirect( 1024 * 1024 );
+
+        ByteBuffer outHeader = ByteBuffer.allocateDirect( DBMessage.HEADER_LENGTH );
+        ByteBuffer inHeader = ByteBuffer.allocateDirect( DBMessage.HEADER_LENGTH );
+    }
+
+    static class BufPool extends SimplePool<Buf> {
+        BufPool(){
+            super( "DBJni-BufPool" , 20 , 50 );
         }
         
-        _ip = ip;
-        _sock = getSockAddr( _ip );
-        
+        public boolean ok( Buf b ){
+            b.reset();
+            return true;
+        }
+
+        protected Buf createNew(){
+            return new Buf();
+        }
     }
     
-    protected void doInsert( ByteBuffer buf ){
-        native_insert( _sock , buf , buf.position() , buf.limit() );
-    }
-
-    protected void doDelete( ByteBuffer buf ){
-        native_delete( _sock , buf , buf.position() , buf.limit() );
-    }
-
-    protected void doUpdate( ByteBuffer buf ){
-        native_update( _sock , buf , buf.position() , buf.limit() );
-    }
-
-    protected int doQuery( ByteBuffer out , ByteBuffer in ){
-        return native_query( _sock , out , out.position() , out.limit() , in );
-    }
-
-    protected int doGetMore( ByteBuffer out , ByteBuffer in ){
-        return native_getMore( _sock , out , out.position() , out.limit() , in );
-    }
-
-    protected void doKillCursors( ByteBuffer buf ){
-        System.err.println( "doKillCursors not implemented in DBJni" );
-    }
-
-    public String toString(){
-        return "DBConnection " + _ip + ":" + _root;
-    }
-
-    static long getSockAddr( String name ){
-        Long addr = _ipToSockAddr.get( name );
-        if ( addr != null )
-            return addr;
-        
-        addr = createSock( name );
-        _ipToSockAddr.put( name, addr );
-        return addr;
-    }    
-
-    private static native long createSock( String name );
-
-    private synchronized static native String msg( long sock );
-
-    private synchronized static native void native_insert( long sock , ByteBuffer buf , int position , int limit );
-    private synchronized static native void native_delete( long sock , ByteBuffer buf , int position , int limit );
-    private synchronized static native int native_query( long sock , ByteBuffer buf , int position , int limit , ByteBuffer res );
-    private synchronized static native void native_update( long sock , ByteBuffer buf , int position , int limit );
-
-    private synchronized static native int native_getMore( long sock , ByteBuffer buf , int position , int limit , ByteBuffer res );
-    
-    final String _ip;
-    final long _sock;
-
-    static final Map<String,Long> _ipToSockAddr = Collections.synchronizedMap( new HashMap<String,Long>() );
-    static final long _defaultIp;
-
-    static {
-        String ext = "so";
-        String os = System.getenv("OSTYPE" );
-        if ( "darwin".equals( os ) )
-            ext = "jnilib";
-        
-        System.load( ( new java.io.File( "build/libdb." + ext ) ).getAbsolutePath() );
-
-        _defaultIp = createSock( "127.0.0.1" );
-    }
-    
+    static final BufPool _pool = new BufPool();
 }

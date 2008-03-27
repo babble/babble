@@ -64,12 +64,28 @@ public class DBHook {
         JSObject obj = null;
         if ( buf != null ){
             buf.order( ByteOrder.LITTLE_ENDIAN );
-            ByteDecoder bd = new ByteDecoder( buf );
-            obj = bd.readObject();
+
+            ByteDecoder bd = _setObjectPool.get();
+            bd.reset( buf );
+            
+            try {
+                obj = bd.readObject();
+            }
+            finally {
+                _setObjectPool.done( bd );
+            }
         }
         _scopes.get( id ).set( field , obj );
         return true;
     }
+
+    static SimplePool<ByteDecoder> _setObjectPool = new SimplePool<ByteDecoder>( "DBHook.scopeSetObjectPool" , 10 , 10 ){
+        protected ByteDecoder createNew(){
+            ByteBuffer temp = ByteBuffer.wrap( new byte[1] );
+            temp.order( ByteOrder.LITTLE_ENDIAN );
+            return new ByteDecoder( temp );
+        }
+    };
 
     // -- getters
 
