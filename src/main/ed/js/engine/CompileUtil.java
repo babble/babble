@@ -7,7 +7,6 @@ import java.net.*;
 import java.util.*;
 
 import ed.io.*;
-import ed.util.*;
 
 class CompileUtil {
     
@@ -16,7 +15,7 @@ class CompileUtil {
     
     static final String TMP_DIR = "/tmp/jxp/";// + Math.random() + "/";
 
-    static synchronized Class compile( String p , String c , String source )
+    static synchronized Class<?> compile( String p , String c , String source )
         throws IOException , ClassNotFoundException {
         
         if ( CD ) System.err.println( "compile called" );
