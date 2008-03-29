@@ -103,7 +103,6 @@ public class JSHook {
         }
         
         String msg = "can't get a number from a : " + foo.getClass();
-        System.err.println( msg );
         throw new RuntimeException( msg );
     }
 
@@ -215,7 +214,7 @@ public class JSHook {
         if ( code.startsWith( "function" ) ){
             String repl = "^function \\( \\) \\{(.*)\\} $";
             repl = repl.replaceAll( " " , "\\\\s*" );
-            System.out.println( repl );
+            if ( DEBUG ) System.out.println( repl );
             Pattern patt = Pattern.compile( repl, Pattern.DOTALL );
             
             code = patt.matcher( code ).replaceAll( "$1" );

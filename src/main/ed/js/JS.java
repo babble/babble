@@ -36,12 +36,10 @@ public class JS {
 
     public static final Object eval( String js ){
         JNI = true;
-        System.out.println( "going to eval : " + js );
-        System.out.println( "yay" );
+
         try {
             Scope s = Scope.GLOBAL.child();
             Object ret = s.eval( js );
-            System.out.println( "return value : " + ret );
             return ret;
         }
         catch ( Throwable t ){
