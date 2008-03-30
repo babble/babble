@@ -8,7 +8,7 @@ import org.testng.annotations.Test;
 
 public class ByteTest extends TestCase {
 
-	@Test(groups = {"basic"})
+    @Test(groups = {"basic"})
     public void testObject1(){
         ByteEncoder encoder = ByteEncoder.get();
         
