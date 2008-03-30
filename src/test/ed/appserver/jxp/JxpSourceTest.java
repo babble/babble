@@ -4,9 +4,6 @@ package ed.appserver.jxp;
 
 import org.testng.annotations.Test;
 
-import ed.appserver.*;
-import ed.net.httpserver.*;
-
 public class JxpSourceTest extends ed.TestCase {
     
     static String LOOK = "Lhasd08y1lknsxuhdoahsd";
