@@ -39,9 +39,23 @@ public class JSTestFactory {
     @Factory
     public Object[] createJSTestInstances() {
  
-        File dir = new File(_dir);
-        
+//        File dir = new File(_dir);
+
         List<JSTestInstance> list = new ArrayList<JSTestInstance>();
+
+        File dir = new File(DEFAULT_DIR);
+
+        _addCases(list, dir);
+
+        // awful hack until I can figure out how to parameterize the factory
+        dir = new File("src/test/ed/js/");
+
+        _addCases(list, dir);
+        
+        return list.toArray();
+    }
+    
+    private void _addCases(List<JSTestInstance> list, File dir) {
         
         for (File f : dir.listFiles()) {
             
@@ -49,7 +63,5 @@ public class JSTestFactory {
                 list.add(new JSTestInstance(f));
             }
         }
-        
-        return list.toArray();
     }
  }

@@ -53,9 +53,14 @@ public class JSTestInstance {
             scope.put("print" , myout , true);
             scope.put("SYSOUT" , myout , true);
         }
-        
-        f.call(scope);
 
+        try {
+            f.call(scope);
+        }
+        catch (RuntimeException re) { 
+            throw new Exception("For file " + _jsFile.toString(), re);
+        }
+        
         String outString = _clean( bout.toString());
     
         if (_isEngineFile()) {
