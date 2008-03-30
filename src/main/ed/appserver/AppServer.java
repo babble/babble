@@ -129,8 +129,7 @@ public class AppServer implements HttpHandler {
         
         if ( D ) System.out.println( "mapping directory [" + host + "] to " + f );
         
-        File git = new File( f , ".git" );
-        if ( ! git.exists() ){
+        if ( hasGit( f ) ){
             if ( D ) System.out.println( "\t this is a holder for branches" );
             f = getBranch( f , DNSUtil.getSubdomain( useHost ) );
             if ( D ) System.out.println( "\t using full path : " + f );
@@ -141,6 +140,19 @@ public class AppServer implements HttpHandler {
         _context.put( host , ac );
         _context.put( f.toString() , ac );
         return ac;
+    }
+
+    private boolean hasGit( File test ){
+        File f = new File( test , ".git" );
+        if ( f.exists() )
+            return true;
+
+        f = new File( test , "dotgit" );
+        if ( f.exists() )
+            return true;
+
+        return false;
+        
     }
 
     private static final String LOCAL_BRANCH_LIST[] = new String[]{ "master" , "test" , "www" };
