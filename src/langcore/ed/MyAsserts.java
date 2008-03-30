@@ -22,6 +22,11 @@ public class MyAsserts {
             throw new MyAssert( "false" );
     }
 
+    public static void assertFalse( boolean b ){
+        if ( b )
+            throw new MyAssert( "true" );
+    }
+
     public static void assertEquals( int a , int b ){
         if ( a != b )
             throw new MyAssert( "" + a + " != " + b );
