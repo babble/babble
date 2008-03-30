@@ -4,7 +4,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.testng.annotations.Factory;;
+import org.testng.annotations.Factory;
+import org.testng.annotations.Parameters;
 
 /**
  * Factory to create tests for each JS test we have.  
@@ -17,41 +18,19 @@ public class JSTestFactory {
     String _dir = DEFAULT_DIR;
     
     /**
-     *  Default CTOR - will use src/test/ed/js/engine for testcases
-     */
-    public JSTestFactory() {
-    }
-        
-    /**
-     *  CTOR that allows the factory to be aimed at any directory
-     *  
-     *  @param jsDirectory directory to find javascript test files and their 
-     *                     corresponding output files for comparison
-     */
-    public JSTestFactory(String jsDirectory) {
-        _dir = jsDirectory;
-    }
-    
-    /**
      *  Creates an array of JSTestIntance objects, each representing
      *  one js file in whatever directory we're targeted at
      */
+    @Parameters({"js-dir-name"})
     @Factory
-    public Object[] createJSTestInstances() {
- 
-//        File dir = new File(_dir);
+    public Object[] createJSTestInstances(String jsDirName) {
 
         List<JSTestInstance> list = new ArrayList<JSTestInstance>();
 
-        File dir = new File(DEFAULT_DIR);
+        File dir = new File(jsDirName == null ? DEFAULT_DIR : jsDirName);
 
         _addCases(list, dir);
 
-        // awful hack until I can figure out how to parameterize the factory
-        dir = new File("src/test/ed/js/");
-
-        _addCases(list, dir);
-        
         return list.toArray();
     }
     
