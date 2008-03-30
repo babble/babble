@@ -67,13 +67,19 @@ public class MyAsserts {
 
     public static void assertClose( String a , String b ){
 
+        if (isClose(a, b)) {
+            return;
+        }
+        
+        throw new MyAssert( "[" + a + "] != [" + b + "]" );
+    }
+    
+    public static boolean isClose(String a, String b) { 
+
         a = a.trim().replaceAll( "\\s+" , " " );
         b = b.trim().replaceAll( "\\s+" , " " );
 
-        if ( a.equalsIgnoreCase( b ) )
-            return;
-        
-        throw new MyAssert( "[" + a + "] != [" + b + "]" );
+        return a.equalsIgnoreCase(b);
     }
 
 }
