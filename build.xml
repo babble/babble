@@ -85,5 +85,7 @@
    </javadoc>
 
  </target>
- 
+
+    <target name="rebuild" depends="clean, compile"/>
+	
 </project>
