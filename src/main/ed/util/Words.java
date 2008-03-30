@@ -53,5 +53,9 @@ public class Words {
     
     final String _localeString;
     final Set<String> _words = new HashSet<String>();
+
+    public String toString(){
+        return "Words : " + _localeString;
+    }
 }
 
