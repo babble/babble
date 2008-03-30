@@ -179,14 +179,8 @@ public class TestCase extends MyAsserts {
             throw new RuntimeException( "something is broken" );
         
         try {
-            Class c = Class.forName( theClass );
-            Object o = c.newInstance();
-            
-            System.out.println( o );
-            if ( ! ( o instanceof TestCase ) )
-                throw new RuntimeException( "you are stupid" );
-            
-            TestCase tc = (TestCase)o;
+            TestCase tc = (TestCase) Class.forName( theClass ).newInstance();
+
             if ( a.getOption( "m" ) != null )
                 tc = new TestCase( tc , a.getOption( "m" ) );
             
@@ -218,9 +212,7 @@ public class TestCase extends MyAsserts {
             
             System.out.println( line );
             try {
-                Class c = Class.forName( line );
-                Object o = c.newInstance();
-                TestCase tc = (TestCase)o;
+                TestCase tc = (TestCase) Class.forName( line ).newInstance();
                 theTestCase._tests.addAll( tc._tests );
             }
             catch ( Exception e ){
