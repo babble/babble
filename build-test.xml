@@ -1,27 +1,28 @@
 <?xml version='1.0'?>
 <project name="appserver test" default="run-basic" basedir=".">
 
-	<property name="targetdir" value="target"/>
-	<property name="testdir" value="${targetdir}/test"/>
-	
-	<path id="classpath">
-		<fileset dir="include">
-			<include name="**/*.jar"/>
-		</fileset>
-	    <pathelement path="conf" />
-	    <pathelement path="build" />
-	</path>
+  <property name="targetdir" value="target"/>
+  <property name="testdir" value="${targetdir}/test"/>
+  
+  <path id="classpath">
+    <fileset dir="include">
+      <include name="**/*.jar"/>
+    </fileset>
+    <pathelement path="conf" />
+    <pathelement path="build" />
+    <pathelement path="/opt/java/lib/tools.jar" />
+  </path>
 
-	<target  name="run-basic" depends="init">      
-		<taskdef classpathref="classpath" name="testng" classname="com.beust.testng.TestNGAntTask"/>
+  <target  name="run-basic" depends="init">      
+    <taskdef classpathref="classpath" resource="testngtasks" />
 
-		<testng classpathref="classpath" outputdir="${testdir}">
-			<xmlfileset dir="." includes="testng.xml"/>
-		</testng>
-	</target>
- 
-	<target name="init">
-	    <mkdir dir="${testdir}" />
-	</target>
+    <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" >
+      <xmlfileset dir="." includes="testng.xml"/>
+    </testng>
+  </target>
+  
+  <target name="init">
+    <mkdir dir="${testdir}" />
+  </target>
 
 </project>
