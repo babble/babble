@@ -2,6 +2,8 @@
 
 package ed.appserver.jxp;
 
+import java.io.*;
+
 import org.testng.annotations.Test;
 
 import ed.appserver.*;
@@ -11,7 +13,8 @@ public class JxpServletTest extends ed.TestCase {
 
     String STATIC = "SSSS";
     AppContext CONTEXT = new AppContext( "src/test/samplewww" );
-
+    File one = new File( "src/test/samplewww/1.jpg" );
+    
     @Test(groups = {"basic"})
     public void test0(){
         JxpWriter w = new JxpWriter.Basic();
@@ -33,7 +36,7 @@ public class JxpServletTest extends ed.TestCase {
         JxpWriter w = new JxpWriter.Basic();
         JxpServlet.MyWriter p = new JxpServlet.MyWriter( w , STATIC , CONTEXT , null  );
         p.print( "abc <img src='/1.jpg' > 123"  );
-        assertClose( "abc <img src='" + STATIC + "/1.jpg?lm=1195794916000' > 123" , w.getContent() );
+        assertClose( "abc <img src='" + STATIC + "/1.jpg?lm=" + one.lastModified() + "' > 123" , w.getContent() );
     }
 
     @Test(groups = {"basic"})
@@ -42,7 +45,7 @@ public class JxpServletTest extends ed.TestCase {
         JxpServlet.MyWriter p = new JxpServlet.MyWriter( w , STATIC , CONTEXT , null  );
         p.print( "abc <img " );
         p.print( " src='/1.jpg?a=b' >"  );
-        assertClose( "abc <img src='" + STATIC + "/1.jpg?a=b&lm=1195794916000' > " , w.getContent() );
+        assertClose( "abc <img src='" + STATIC + "/1.jpg?a=b&lm=" + one.lastModified() + "' > " , w.getContent() );
     }
 
     @Test(groups = {"basic"})
@@ -53,7 +56,7 @@ public class JxpServletTest extends ed.TestCase {
         p.print( " src='"  );
         p.print( "/1.jpg"  );
         p.print( "' >"  );
-        assertClose( "abc <img src='" + STATIC + "/1.jpg?lm=1195794916000' > " , w.getContent() );
+        assertClose( "abc <img src='" + STATIC + "/1.jpg?lm=" + one.lastModified() + "' > " , w.getContent() );
     }
 
     @Test(groups = {"basic"})
