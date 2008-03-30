@@ -2,8 +2,11 @@
 
 package ed.appserver;
 
+import org.testng.annotations.Test;
+
 public class AppServerTest extends ed.TestCase {
 
+    @Test(groups = {"basic"})
     public void testGetContext(){
         AppServer as = new AppServer( "/data/sites/admin" , "/data/sites/" );
 

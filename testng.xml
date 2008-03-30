@@ -1,0 +1,21 @@
+<!DOCTYPE suite SYSTEM "http://beust.com/testng/testng-1.0.dtd" >
+  
+<suite name="appserver" >
+  
+  <test name="test" >
+      <groups>
+      <run>
+      </run>        
+    </groups>
+    <classes>
+      <class name="ed.db.ByteTest" />
+      <class name="ed.appserver.AppServerTest" />
+      <class name="ed.appserver.jxp.JxpServletTest" />
+      <class name="ed.appserver.jxp.JxpSourceTest" />
+      <class name="ed.net.DNSUtilTest" />
+      <class name="ed.net.httpserver.ReplayTest"/>
+    </classes>
+  </test>
+
+</suite>
+

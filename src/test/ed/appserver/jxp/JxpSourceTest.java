@@ -2,6 +2,8 @@
 
 package ed.appserver.jxp;
 
+import org.testng.annotations.Test;
+
 import ed.appserver.*;
 import ed.net.httpserver.*;
 
@@ -31,17 +33,22 @@ public class JxpSourceTest extends ed.TestCase {
     }
 
 
+    @Test(groups = {"basic"})
     public void test0(){
         _test( "<%= " + LOOK + " %>\n" );
     }
+    
+    @Test(groups = {"basic"})
     public void test1(){
         _test( "<%       print( { c : " + LOOK + "  }  ); %>" );
     }
 
+    @Test(groups = {"basic"})
     public void test2(){
         _test( "<%       print( { c : " + LOOK + "  }  ); %>\n" );
     }
 
+    @Test(groups = {"basic"})
     public void test3(){
         _test( "<div>\nasdasd\n<%= asd %>\n<%       print( { c : " + LOOK + "  }  ); %>\nasdas" );
     }

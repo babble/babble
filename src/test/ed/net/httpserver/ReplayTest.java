@@ -2,11 +2,13 @@
 
 package ed.net.httpserver;
 
+import org.testng.annotations.Test;
+
 import ed.*;
 
 public class ReplayTest extends TestCase {
 
-
+    @Test(groups = {"basic"})
     public void testHeaders(){
         Replay r = new Replay( null , 0 , "www.shopwiki.com" );
         

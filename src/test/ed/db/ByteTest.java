@@ -2,15 +2,13 @@
 
 package ed.db;
 
-import java.nio.*;
-import java.nio.charset.*;
-
 import ed.*;
 import ed.js.*;
+import org.testng.annotations.Test;
 
 public class ByteTest extends TestCase {
 
-
+	@Test(groups = {"basic"})
     public void testObject1(){
         ByteEncoder encoder = ByteEncoder.get();
         
@@ -31,6 +29,7 @@ public class ByteTest extends TestCase {
         assertEquals( encoder._buf.limit() , encoder._buf.position() );
     }
 
+    @Test(groups = {"basic"})
     public void testString()
         throws Exception {
         ByteEncoder encoder = ByteEncoder.get();
@@ -54,6 +53,7 @@ public class ByteTest extends TestCase {
         assertEquals( encoder._buf.limit() , encoder._buf.position() );
     }
 
+    @Test(groups = {"basic"})
     public void testObject2(){
         ByteEncoder encoder = ByteEncoder.get();
         
@@ -85,6 +85,7 @@ public class ByteTest extends TestCase {
         assertEquals( encoder._buf.limit() , encoder._buf.position() );
     }
 
+    @Test(groups = {"basic"})
     public void testArray1(){
         ByteEncoder encoder = ByteEncoder.get();
         
