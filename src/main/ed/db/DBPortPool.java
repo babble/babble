@@ -9,6 +9,29 @@ import java.util.*;
 
 class DBPortPool extends SimplePool<DBPort> {
 
+    static DBPortPool get(String ip, int port){
+        
+        String poolID = ip + ":" + port;
+        
+        DBPortPool p = _pools.get(poolID);
+        
+        if (p != null) {
+            return p;
+        }
+        
+        synchronized (_pools) {
+            p = _pools.get(poolID);
+            if (p != null) {
+                return p;
+            }
+            
+            p = new DBPortPool(ip, port);
+            _pools.put(poolID, p);
+        }
+
+        return p;
+    }
+
     static DBPortPool get( String ip){
         DBPortPool p = _pools.get( ip );
         if ( p != null )
@@ -32,18 +55,24 @@ class DBPortPool extends SimplePool<DBPort> {
     
 
     DBPortPool( String ip ){
-        super( "DBPortPool:" + ip , 10 , 20 );
-        _ip = ip;
+        this( ip , DBPort.PORT);
     }
-    
+
+    DBPortPool( String ip, int port){
+        super( "DBPortPool:" + ip + ":" + port, 10 , 20 );
+        _ip = ip;
+        _port = port;
+    }
+
     protected DBPort createNew(){
         try {
-            return new DBPort( _ip );
+            return new DBPort( _ip, _port);
         }
         catch ( IOException ioe ){
-            throw new RuntimeException( "can't create port to:" + _ip , ioe );
+            throw new RuntimeException( "can't create port to:" + _ip + ":" + _port, ioe );
         }
     }
     
     final String _ip;
+    final int _port;
 }

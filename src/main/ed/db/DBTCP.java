@@ -3,17 +3,20 @@
 package ed.db;
 
 import java.io.*;
-import java.net.*;
 import java.nio.*;
-import java.util.*;
 
 import ed.js.*;
 
+/**
+ *  Wrapper around 
+ * @author geir
+ *
+ */
 public class DBTCP extends DBMessageLayer {
 
-    DBTCP( String root , String ip ){
+    DBTCP( String root , String ip, int port){
         super( root );
-        _portPool = DBPortPool.get( ip );
+        _portPool = DBPortPool.get( ip, port);
     }
 
     protected void say( int op , ByteBuffer buf ){
