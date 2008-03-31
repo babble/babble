@@ -163,6 +163,10 @@ public abstract class JxpSource {
 
         return blocks.get( 0 )._lineno + ( line - thisBlockStart );
     }
+
+    public String toString(){
+        return getName();
+    }
     
     private long _lastParse = 0;
     
