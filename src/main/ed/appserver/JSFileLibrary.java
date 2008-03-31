@@ -36,7 +36,7 @@ public class JSFileLibrary extends JSObjectBase {
     
     private synchronized void _init(){
 
-        if ( D ) System.out.println( "\t " + _base + " _init" );
+        if ( D ) System.out.println( "\t " + _base + " _init.  _initSources : " + _initSources );
 
         if ( ! _doInit )
             return;
@@ -65,7 +65,8 @@ public class JSFileLibrary extends JSObjectBase {
        
         try {
             _inInit = true;
-            
+            _initStack.get().push( _initSources );
+
             for ( String s : new LinkedList<String>( keySet() ) ){
                 if ( s.equals( "_init" ) )
                     continue;
@@ -110,6 +111,7 @@ public class JSFileLibrary extends JSObjectBase {
         }
         finally {
             _inInit = false;
+            _initStack.get().pop();
         }
         
     }
@@ -125,9 +127,10 @@ public class JSFileLibrary extends JSObjectBase {
         Object foo = _get( n );
         if ( foo instanceof JxpSource ){
             JxpSource source = (JxpSource)foo;
-            if ( _inInit )
-                _initSources.add( source );
-
+            
+            if ( ! _initStack.get().empty() )
+                _initStack.get().peek().add( source );
+            
             try {
                 JSFunction func = source.getFunction();
                 func.setName( _uriBase + "." + n.toString() );
@@ -250,5 +253,10 @@ public class JSFileLibrary extends JSObjectBase {
     private long _lastInit = 0;
     private final Set<JxpSource> _initSources = new HashSet<JxpSource>();
     
+    private final static ThreadLocal<Stack<Set<JxpSource>>> _initStack = new ThreadLocal<Stack<Set<JxpSource>>>(){
+        protected Stack<Set<JxpSource>> initialValue(){
+            return new Stack<Set<JxpSource>>();
+        }
+    };
     
 }
