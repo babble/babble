@@ -15,6 +15,8 @@
 
   <test name="engine js tests">
 	<parameter name="js-dir-name"  value="src/test/ed/js/engine/"/>
+	<parameter name="js-inc-regex"  value=""/>
+	<parameter name="js-ex-regex"  value=""/>
 	<classes>
       <class name="ed.js.engine.JSTestFactory"/>
     </classes>
@@ -22,6 +24,8 @@
 
   <test name="app-level js tests">
 	<parameter name="js-dir-name"  value="src/test/ed/js/"/>
+	<parameter name="js-inc-regex"  value=""/>
+	<parameter name="js-ex-regex"  value=""/>
 	<classes>
       <class name="ed.js.engine.JSTestFactory"/>
     </classes>

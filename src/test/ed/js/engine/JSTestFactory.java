@@ -3,6 +3,7 @@ package ed.js.engine;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.testng.annotations.Factory;
 import org.testng.annotations.Parameters;
@@ -21,26 +22,49 @@ public class JSTestFactory {
      *  Creates an array of JSTestIntance objects, each representing
      *  one js file in whatever directory we're targeted at
      */
-    @Parameters({"js-dir-name"})
+    @Parameters({"js-dir-name", "js-inc-regex", "js-ex-regex"})
     @Factory
-    public Object[] createJSTestInstances(String jsDirName) {
+    public Object[] createJSTestInstances(String jsDirName, String inclusionRegex, String exclusionRegex) {
 
         List<JSTestInstance> list = new ArrayList<JSTestInstance>();
 
         File dir = new File(jsDirName == null ? DEFAULT_DIR : jsDirName);
 
-        _addCases(list, dir);
+        Pattern inPattern = null;
+        Pattern exPattern = null;
+        
+        if (inclusionRegex != null && inclusionRegex.length() > 0) {
+            inPattern = Pattern.compile(inclusionRegex);
+        }
+
+        if (exclusionRegex != null && exclusionRegex.length() > 0) {
+            exPattern = Pattern.compile(exclusionRegex);
+        }
+
+        for (File f : dir.listFiles()) {
+ 
+            boolean include = true;
+            
+            if (f.toString().endsWith(JS_FILE_ENDING)) {
+            
+                if (inPattern != null) {
+                    include = inPattern.matcher(f.toString()).matches();
+                }
+
+                if (exPattern != null) {
+                    
+                    if (exPattern.matcher(f.toString()).matches()) {
+                        System.out.println("JSTestFactory : regexp exclusion of " + f.toString());
+                        include = false;
+                    }
+                }
+                
+                if (include) {
+                    list.add(new JSTestInstance(f));
+                }            
+            }
+        }
 
         return list.toArray();
     }
-    
-    private void _addCases(List<JSTestInstance> list, File dir) {
-        
-        for (File f : dir.listFiles()) {
-            
-            if (f.toString().endsWith(JS_FILE_ENDING)){
-                list.add(new JSTestInstance(f));
-            }
-        }
-    }
- }
+}
