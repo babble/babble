@@ -54,6 +54,8 @@ public class JSTestInstance {
             scope.put("SYSOUT" , myout , true);
         }
 
+        ed.js.Shell.addNiceShellStuff(scope);
+        
         try {
             f.call(scope);
         }
