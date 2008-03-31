@@ -20,12 +20,11 @@ catch ( e ){
 assert( myException );
 
 
-dbStrict = false;
+db.setReadOnly( false );
 t.save( { name : "b" } );
-assert( t.find().length() == 1 );
+assert( t.find().length() == 2 );
 
-
-dbStrict = true;
+db.setReadOnly( true );
 myException = null;
 try {
     t.save( { name : "b" } );
@@ -34,3 +33,5 @@ catch ( e ){
     myException = e;
 }
 assert( myException );
+
+db.setReadOnly(false);
