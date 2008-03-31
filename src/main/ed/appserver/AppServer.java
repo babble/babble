@@ -129,7 +129,7 @@ public class AppServer implements HttpHandler {
         
         if ( D ) System.out.println( "mapping directory [" + host + "] to " + f );
         
-        if ( hasGit( f ) ){
+        if ( ! hasGit( f ) ){
             if ( D ) System.out.println( "\t this is a holder for branches" );
             f = getBranch( f , DNSUtil.getSubdomain( useHost ) );
             if ( D ) System.out.println( "\t using full path : " + f );
@@ -147,7 +147,7 @@ public class AppServer implements HttpHandler {
         if ( f.exists() )
             return true;
 
-        f = new File( test , "dotgit" );
+        f = new File( test , "dot-git" );
         if ( f.exists() )
             return true;
 
