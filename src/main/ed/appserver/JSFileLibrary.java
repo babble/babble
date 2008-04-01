@@ -11,8 +11,9 @@ import ed.js.engine.*;
 import ed.appserver.jxp.*;
 
 public class JSFileLibrary extends JSObjectBase {
-
+    
     static final boolean D = Boolean.getBoolean( "DEBUG.JSFL" );
+    static final boolean DS = Boolean.getBoolean( "DEBUG.JSFLB" ) || D;
     
     public JSFileLibrary( File base , String uriBase , AppContext context ){
         this( base , uriBase , context , null , false );
@@ -26,14 +27,16 @@ public class JSFileLibrary extends JSObjectBase {
 
         if ( uriBase.equals( "core" ) && ! doInit )
             throw new RuntimeException( "you are stupid" );
-
+        
         _base = base;
         _uriBase = uriBase;
         _context = context;
         _scope = scope;
         _doInit = doInit;
+        
+        if ( DS ) System.out.println( "creating : " + _base );
     }
-    
+
     private synchronized void _init(){
 
         if ( D ) System.out.println( "\t " + _base + " _init.  _initSources : " + _initSources );
@@ -191,6 +194,8 @@ public class JSFileLibrary extends JSObjectBase {
     }
     
     Object _get( final Object n ){
+        if ( DS ) System.out.println( _uriBase + "\t GETTING \t [" + n + "]" );
+
         Object v = super.get( n );
         if ( v != null )
             return v;
@@ -199,6 +204,9 @@ public class JSFileLibrary extends JSObjectBase {
              ! ( n instanceof String ) )
             return null;
         
+        if ( n.toString().length() == 0 )
+            return this;
+
         File dir = new File( _base , n.toString() );
         File f = null;
         for ( int i=0; i<_srcExtensions.length; i++ ){
