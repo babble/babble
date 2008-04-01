@@ -3,8 +3,8 @@ x = new XMLHttpRequest( "GET" , "http://www.10gen.com/~~/headers" );
 assert( x.send() );
 assert( x.responseText );
 assert( x.responseText.match( /Host/ ) );
+assert( x.readyState == 4)
 
-a = new Date();
 x = new XMLHttpRequest( "GET" , "http://www.10gen.com/~~/headers" );
 var last = 0;
 x.onreadystatechange = function(){
@@ -12,9 +12,6 @@ x.onreadystatechange = function(){
 }
 assert( x.send() );
 assert( x.readyState < 4 );
-b = new Date();
-assert( b.getTime() - 2 < a.getTime() );
-
 
 for ( var i=0; i<1000; i++ ){
     if ( last == 4 )
