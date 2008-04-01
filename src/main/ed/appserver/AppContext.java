@@ -202,6 +202,12 @@ public class AppContext {
         return new AppRequest( this , request , uri );
     }
 
+    /**
+     *  Tries to find the given file, assuming that it's missing the ".jxp" extension
+     *  
+     * @param f  File to check
+     * @return same file if not found to be missing the .jxp, or a new File w/ the .jxp appended
+     */
     File tryNoJXP( File f ){
         if ( f.exists() )
             return f;
@@ -213,18 +219,25 @@ public class AppContext {
         return temp.exists() ? temp : f;
     }
 
+    /**
+     *    Maps a servlet-like URI to a jxp file
+     *    
+     *    /wiki/geir  ->  maps to wiki.jxp if exists
+     *    
+     * @param f File to check
+     * @return new File with <root>.jxp if exists, orig file if not
+     */
     File tryServlet( File f ){
         if ( f.exists() )
             return f;
         
         String uri = f.toString();
 	
-	if ( uri.startsWith( _rootFile.toString() ) )
-	    uri = uri.substring( _rootFile.toString().length() );
+        if ( uri.startsWith( _rootFile.toString() ) )
+            uri = uri.substring( _rootFile.toString().length() );
 	
-	if ( _core != null && uri.startsWith( _core._base.toString() ) )
-	    uri = "/~~" + uri.substring( _core._base.toString().length() );
-
+        if ( _core != null && uri.startsWith( _core._base.toString() ) )
+            uri = "/~~" + uri.substring( _core._base.toString().length() );
         
         while ( uri.startsWith( "/" ) )
             uri = uri.substring( 1 );
@@ -248,6 +261,13 @@ public class AppContext {
         return f;
     }
 
+    /**
+     *   Returns the index.jxp for the File argument if it's an existing directory, 
+     *   and the index.jxp file exists
+     *   
+     * @param f  directory to check
+     * @return new File for index.jxp in that directory, or same file object if not
+     */
     File tryIndex( File f ){
 
         if ( ! ( f.isDirectory() && f.exists() ) )
@@ -264,25 +284,70 @@ public class AppContext {
         throws IOException {
     
         if ( DEBUG ) System.err.println( "getSource\n\t " + f );
-        f = tryNoJXP( f );
-        f = tryServlet( f );
-        f = tryIndex( f );
-        if ( DEBUG ) System.err.println( "\t " + f );
         
-        if ( ! f.exists() )
+        File temp = _findFile(f);
+        
+        if ( DEBUG ) System.err.println( "\t " + temp );
+        
+        if (!temp.exists())
             return null;
 
-        loadedFile( f );
-
-        if ( _jxpObject.isIn( f ) )
-            return _jxpObject.getSource( f );
+        /*
+         *   if it's a directory (and we know we can't find the index file)
+         *  TODO : at some point, do something where we return an index for the dir?
+         */
+        if ( temp.isDirectory() )
+            return null;
         
-        if ( _core.isIn( f ) )
-            return _core.getSource( f );
+        /*
+         *   if we at init time, save it as an initializaiton file
+         */
+        loadedFile(temp);
+
+        
+        /*
+         *   Ensure that this is w/in the right tree for the context
+         */
+        if ( _jxpObject.isIn(temp) )
+            return _jxpObject.getSource(temp);
+        
+        /*
+         *  if not, is it core?
+         */
+        if ( _core.isIn(temp) )
+            return _core.getSource(temp);
         
         throw new RuntimeException( "what?  can't find:" + f );
     }
 
+    /**
+     *  Finds the appropriate file for the given path. 
+     *  
+     *  We have a hierarchy of attempts as we try to find a file : 
+     *  
+     *  1) first, see if it exists as is, or if it's really a .jxp w/o the extension
+     *  2) next, see if it can be deconstructed as a servlet such that /foo/bar maps to /foo.jxp
+     *  3) See if we can find the index file for it if a directory
+     */
+    File _findFile(File f) {
+        
+        File temp;
+        
+        if ((temp = tryNoJXP(f)) != f) {
+            return temp;
+        }
+        
+        if ((temp = tryServlet(f)) != f) {
+            return temp;
+        }
+        
+        if ((temp = tryIndex(f)) != f) {
+            return temp;
+        }
+    
+        return f;
+    }
+    
     public void loadedFile( File f ){
         if ( _inScopeInit )
             _initFlies.add( f );
