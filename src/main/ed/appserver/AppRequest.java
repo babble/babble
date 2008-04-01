@@ -99,7 +99,7 @@ public class AppRequest {
         if ( ! ( o instanceof JSFunction ) )
             return null;
         
-        Object res = ((JSFunction)o).call( getScope() , new JSString( getURI() ) , _request );
+        Object res = ((JSFunction)o).call( getScope() , new JSString( getURI() ) , _request , getScope().get( "request" ) );
         if ( res == null )
             return null;
         return res.toString();
