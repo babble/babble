@@ -93,13 +93,12 @@ import ed.appserver.AppContext;
          a = new File(_ROOT, "/directory2/");
          res = ac.getSource(a);         
          assertNull(res);
-}
+    }
 
-     public static void main(String[] args) throws Exception{ 
-         
-         
+     public static void main(String[] args) throws Exception{
+
          AppContextTestNG f = new AppContextTestNG();
-         
+
          f.testGetSourceNoFile();
          f.testGetSourceJxp();
          f.testGetSourceServlet();
