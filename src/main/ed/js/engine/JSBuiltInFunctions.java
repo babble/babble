@@ -268,6 +268,13 @@ public class JSBuiltInFunctions {
         final Class _c;
     }
 
+    public static class isNaN extends JSFunctionCalls1 {
+
+        public Object call( Scope scope , Object o , Object extra[] ){
+            return o.equals(Double.NaN);
+        }
+    }
+
     public static class isXXXs extends JSFunctionCalls1 {
         isXXXs( Class ... c ){
             _c = c;
@@ -587,6 +594,8 @@ public class JSBuiltInFunctions {
         _myScope.put( "isNumber" , new isXXX( Number.class ) , true );
         _myScope.put( "isDate" , new isXXX( JSDate.class ) , true );
         _myScope.put( "isFunction" , new isXXX( JSFunction.class ) , true );
+
+        _myScope.put("isNaN", new isNaN(), true);
 
         _myScope.put( "isString" , new isXXXs( String.class , JSString.class ) , true );
 

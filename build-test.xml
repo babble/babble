@@ -13,8 +13,10 @@
     <pathelement path="/opt/java/lib/tools.jar" />
   </path>
 
+    <taskdef name="testng" classpathref="classpath"
+              classname="org.testng.TestNGAntTask" />
+
   <target  name="run-basic" depends="init">      
-    <taskdef classpathref="classpath" resource="testngtasks" />
 
     <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" >
       <xmlfileset dir="." includes="testng.xml"/>
@@ -22,12 +24,18 @@
   </target>
 
   <target  name="run-db" depends="init">      
-    <taskdef classpathref="classpath" resource="testngtasks" />
 
     <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" >
       <xmlfileset dir="." includes="testng-db.xml"/>
     </testng>
   </target>
+
+    <target  name="corejs" depends="init">      
+
+      <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" >
+        <xmlfileset dir="." includes="testng-corejs.xml"/>
+      </testng>
+    </target>
 
   <target name="init">
     <mkdir dir="${testdir}" />

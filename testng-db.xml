@@ -1,6 +1,6 @@
 <!DOCTYPE suite SYSTEM "http://beust.com/testng/testng-1.0.dtd" >
   
-<suite name="appserver" >
+<suite name="db" >
   
   <test name="db js tests">
 	<parameter name="js-dir-name"  value="src/test/ed/db/"/>
