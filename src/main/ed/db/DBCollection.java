@@ -103,6 +103,9 @@ public abstract class DBCollection extends JSObjectLame {
         _constructor = cons;
     }
 
+    public JSFunction getConstructor(){
+	return _constructor;
+    }
     
     public final Object save( Object o ){
         if ( checkReadOnly( true ) ) return null;
