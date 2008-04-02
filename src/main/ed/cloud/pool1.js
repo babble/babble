@@ -2,6 +2,7 @@
 
 Cloud.Pool = function(){
     this.name = null;
-    this.servers = [];
+    this.envType = null;
+    this.machines = [];
 };
 
