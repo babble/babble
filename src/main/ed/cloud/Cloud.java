@@ -123,6 +123,9 @@ public class Cloud extends JSObjectBase {
 	return cur;
     }
 
+    public Scope getScope(){
+        return _scope;
+    }
 
     final Scope _scope;
 }
