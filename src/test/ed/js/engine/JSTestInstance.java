@@ -10,6 +10,7 @@ import ed.MyAsserts;
 import ed.io.StreamUtil;
 import ed.js.JSFunction;
 import ed.js.func.JSFunctionCalls1;
+import ed.js.func.JSFunctionCalls0;
 
 /**
  * Dynamic test instance for testing the javascript in a way that pleases Eliot :)
@@ -33,6 +34,8 @@ public class JSTestInstance {
      */
     @Test
     public void test() throws Exception {
+
+        System.out.println("JSTestIntance : running " + _jsFile);
         
         Convert c = new Convert(_jsFile);
 
@@ -55,7 +58,14 @@ public class JSTestInstance {
         }
 
         ed.js.Shell.addNiceShellStuff(scope);
-        
+
+        scope.put( "exit" , new JSFunctionCalls0(){
+                public Object call( Scope s , Object crap[] ){
+                    System.err.println("JSTestInstance : exit() called from " + _jsFile.toString() + " Ignoring.");
+                    return null;
+                }
+            } , true );
+
         try {
             f.call(scope);
         }
