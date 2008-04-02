@@ -36,6 +36,10 @@ public class DBJni extends DBMessageLayer {
         b.out.put( dataOut );
                                 
         int len = native_call( b.out , b.in );
+        b.in.limit( len );
+
+        if ( len >= b.in.capacity() )
+            throw new RuntimeException( "buffer too small" );
 
         DBMessage inMsg = new DBMessage( b.in , b.in );
         dataIn.put( b.in );
@@ -64,8 +68,8 @@ public class DBJni extends DBMessageLayer {
             buf.order( ByteOrder.LITTLE_ENDIAN );
         }
 
-        ByteBuffer in = ByteBuffer.allocateDirect( 1024 * 1024 );
-        ByteBuffer out = ByteBuffer.allocateDirect( 1024 * 1024 );
+        ByteBuffer in = ByteBuffer.allocateDirect( 5 * 1024 * 1024 );
+        ByteBuffer out = ByteBuffer.allocateDirect( 5 * 1024 * 1024 );
     }
 
     static class BufPool extends SimplePool<Buf> {
