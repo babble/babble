@@ -7,10 +7,18 @@ import java.util.*;
 public class DBProvider {
 
     public static DBApiLayer get( String root ){
-        return get( root , null );
+        return get( root , true , null );
+    }
+
+    public static DBApiLayer get( String root , boolean useCache ){
+        return get( root , useCache , null );
     }
     
     public static DBApiLayer get( String root , String ip ){
+        return get( root , true , ip );
+    }
+
+    public static DBApiLayer get( String root , boolean useCache , String ip ){
 
         if ( ip == null || ip.trim().length() == 0 ){
             ip = System.getenv( "db_ip" );
@@ -28,10 +36,17 @@ public class DBProvider {
             port = Integer.valueOf(s);
         }
         
-        return get(root, ip, port);
+        return get( root , useCache , ip , port);
     }
     
     public static DBApiLayer get(String root , String ip, int port){
+        return get( root , true , ip , port );
+    }
+
+    public static DBApiLayer get(String root , boolean useCache , String ip, int port){
+
+        if ( ! useCache )
+            return create( root , ip , port );
 
         final String key = root + ":" + ip + ":" + port;
         
