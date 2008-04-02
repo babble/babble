@@ -12,7 +12,11 @@ import ed.util.*;
 public class HttpRequest extends JSObjectLame {
     
     public static HttpRequest getDummy( String url ){
-        return new HttpRequest( null , "GET " + url + " HTTP/1.0\n\n" );
+        return getDummy( url , "" );
+    }
+
+    public static HttpRequest getDummy( String url , String extraHeaders ){
+        return new HttpRequest( null , "GET " + url + " HTTP/1.0\n" + extraHeaders + "\n" );
     }
 
     HttpRequest( HttpServer.HttpSocketHandler handler , String header ){
