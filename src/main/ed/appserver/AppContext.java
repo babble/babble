@@ -29,8 +29,10 @@ public class AppContext {
         _name = name;
         _root = root;
         _rootFile = new File( _root );
+        
+        _isGrid = name.equals( "grid" );
 
-        _scope = new Scope( "AppContext:" + root , name.equals( "grid" ) ? ed.cloud.Cloud.getInstance().getScope() : Scope.GLOBAL , null , _rootFile );
+        _scope = new Scope( "AppContext:" + root , _isGrid ? ed.cloud.Cloud.getInstance().getScope() : Scope.GLOBAL , null , _rootFile );
         _scope.setGlobal( true );
 
         _logger = ed.log.Logger.getLogger( _name );
@@ -64,13 +66,15 @@ public class AppContext {
 
         // --- db
         
-        _scope.put( "db" , DBProvider.get( _name , false ) , true );
-	_scope.put( "setDB" , new JSFunctionCalls1(){
-		public Object call( Scope s , Object name , Object extra[] ){
-		    s.put( "db" , DBProvider.get( name.toString() , false ) , false );
-		    return true;
-		}
-	    } , true );
+        if ( ! _isGrid ){
+            _scope.put( "db" , DBProvider.get( _name , false ) , true );
+            _scope.put( "setDB" , new JSFunctionCalls1(){
+                    public Object call( Scope s , Object name , Object extra[] ){
+                        s.put( "db" , DBProvider.get( name.toString() , false ) , false );
+                        return true;
+                    }
+                } , true );
+        }
 
         // --- output
         
@@ -436,4 +440,6 @@ public class AppContext {
     boolean _scopeInited = false;
     boolean _inScopeInit = false;
     long _lastScopeInitTime = 0;
+
+    final boolean _isGrid;
 }
