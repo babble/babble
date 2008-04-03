@@ -64,7 +64,7 @@ public class AppContext {
 
         // --- db
         
-        _scope.put( "db" , DBProvider.get( _name ) , true );
+        _scope.put( "db" , DBProvider.get( _name , false ) , true );
 	_scope.put( "setDB" , new JSFunctionCalls1(){
 		public Object call( Scope s , Object name , Object extra[] ){
 		    s.put( "db" , DBProvider.get( name.toString() , false ) , false );
