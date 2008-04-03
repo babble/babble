@@ -6,3 +6,6 @@ Cloud.Pool = function(){
     this.machines = [];
 };
 
+db.pools.ensureIndex( { name : 1 } );
+db.dbs.ensureIndex( { machine : 1 } );
+

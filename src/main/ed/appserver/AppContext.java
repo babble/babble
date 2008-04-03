@@ -30,7 +30,7 @@ public class AppContext {
         _root = root;
         _rootFile = new File( _root );
 
-        _scope = new Scope( "AppContext:" + root , Scope.GLOBAL , null , _rootFile );
+        _scope = new Scope( "AppContext:" + root , name.equals( "grid" ) ? ed.cloud.Cloud.getInstance().getScope() : Scope.GLOBAL , null , _rootFile );
         _scope.setGlobal( true );
 
         _logger = ed.log.Logger.getLogger( _name );
