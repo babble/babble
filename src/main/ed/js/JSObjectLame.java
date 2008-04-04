@@ -33,5 +33,10 @@ public class JSObjectLame implements JSObject {
     public void removeField( Object n ){
         throw new UnsupportedOperationException();
     }
+
+    public JSFunction getConstructor(){
+        return null;
+    }
+
 }
 

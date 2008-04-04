@@ -67,7 +67,6 @@ public class JSInternalFunctions extends JSNumericFunctions {
             throw new NullPointerException( "type can't be null" );
         
         if ( thing instanceof Number ){
-            //return type == JSNumber.CONS;
             return false;
         }
 
@@ -81,13 +80,13 @@ public class JSInternalFunctions extends JSNumericFunctions {
             }
         }
         
-        if ( ! ( thing instanceof JSObjectBase ) )
+        if ( ! ( thing instanceof JSObject ) )
             return false;
         
         if ( type instanceof JSBuiltInFunctions.NewObject )
             return true;
 
-        JSObjectBase o = (JSObjectBase)thing;
+        JSObject o = (JSObject)thing;
         
         if ( o.getConstructor() == null )
             return false;
