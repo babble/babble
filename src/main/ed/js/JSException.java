@@ -5,9 +5,9 @@ package ed.js;
 import ed.js.func.*;
 import ed.js.engine.*;
 
-public class JSException extends RuntimeException {
+public class JSException extends RuntimeException implements JSObject {
 
-    public final static JSFunction _quiteCons = new JSFunctionCalls1(){
+    public final static JSFunction _quietCons = new JSFunctionCalls1(){
             
             public JSObjectBase newOne(){
                 throw new JSException( "don't use new" );
@@ -34,7 +34,7 @@ public class JSException extends RuntimeException {
             }
             
             protected void init(){
-                set( "Quiet" , _quiteCons );
+                set( "Quiet" , _quietCons );
             }
         };
 
@@ -70,6 +70,42 @@ public class JSException extends RuntimeException {
     public static class Quiet extends JSException {
         public Quiet( Object msg ){
             super( msg , null , true );
+            _mycons = _quietCons;
         }
     }
+
+    public Object get( Object n ){
+        throw new UnsupportedOperationException();
+    }
+
+    public java.util.Collection<String> keySet(){
+        throw new UnsupportedOperationException();
+    }
+
+    public boolean containsKey( String s ){
+        throw new UnsupportedOperationException();
+    }
+
+    public Object set( Object n , Object v ){
+        throw new UnsupportedOperationException();
+    }
+
+    public Object setInt( int n , Object v ){
+        throw new UnsupportedOperationException();
+    }
+
+    public Object getInt( int n ){
+        throw new UnsupportedOperationException();
+    }
+
+    public void removeField( Object n ){
+        throw new UnsupportedOperationException();
+    }
+
+    public JSFunction getConstructor(){
+        return _mycons;
+    }
+
+    JSFunction _mycons;
+
 }

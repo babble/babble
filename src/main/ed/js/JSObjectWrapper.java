@@ -34,5 +34,9 @@ public class JSObjectWrapper implements JSObject {
         return _wrap.keySet();
     }
 
+    public JSFunction getConstructor(){
+        return null;
+    }
+
     final JSObject _wrap;
 }
