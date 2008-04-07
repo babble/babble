@@ -262,7 +262,7 @@ public class JxpServlet {
 
                 _writer.print( s.substring( 0 , s.length() - 1 ) );
                 _writer.print( " value=\"" );
-                _writer.print( val.toString() );
+                _writer.print( HtmlEscape.escape( val.toString() ) );
                 _writer.print( "\" >" );
                 
                 return true;
