@@ -11,6 +11,10 @@ public enum Level {
 
     JSFunction func = new JSFunctionCalls2(){
             public Object call( Scope s , Object msgObject , Object excObject , Object extra[] ){
+
+		if ( msgObject == null )
+		    msgObject = "null";
+
                 Object t = s.getThis();
                 if ( t == null || ! ( t instanceof Logger ) )
                     throw new RuntimeException( "has to be called with this being a Logger" );
