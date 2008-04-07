@@ -44,6 +44,14 @@ public class JSMap extends JSObjectBase {
         super.removeField( n );
     }
     
+    public Collection keys(){
+        return new JSArray( _map.keySet() );
+    }
+
+    public Collection values(){
+        return new JSArray( _map.values() );
+    }
+    
     private final Map _map = new CustomHashMap(){
             public boolean doEquals( Object a , Object b ){
                 
