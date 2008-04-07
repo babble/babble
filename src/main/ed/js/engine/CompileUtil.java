@@ -119,7 +119,6 @@ class CompileUtil {
             System.out.println( "can't find ed" );
         }
         else {
-            System.out.println( "root : " + root );
             for ( String dirName : _dependsDirs ){
                 File dir = new File( root , dirName );
                 
