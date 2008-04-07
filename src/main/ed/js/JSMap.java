@@ -2,6 +2,7 @@
 
 package ed.js;
 
+import ed.util.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.js.func.*;
@@ -29,13 +30,61 @@ public class JSMap extends JSObjectBase {
         Object foo = _map.get( n );
         if ( foo != null )
             return foo;
-        return super.get( n );
-    }
 
+        if ( n instanceof String || 
+             n instanceof JSString ||
+             n instanceof Number )
+            return super.get( n );
+
+        return null;
+    }
+    
     public void removeField( Object n ){
         _map.remove( n );
         super.removeField( n );
     }
+    
+    private final Map _map = new CustomHashMap(){
+            public boolean doEquals( Object a , Object b ){
+                
+                if ( a.getClass() == JSObjectBase.class &&
+                     b.getClass() == JSObjectBase.class ){
+                    
+                    JSObjectBase ao = (JSObjectBase)a;
+                    JSObjectBase bo = (JSObjectBase)b;
 
-    private final Map _map = new HashMap();
+                    Collection<String> ak = ao.keySet();
+                    Collection<String> bk = bo.keySet();
+
+                    if ( ak.size() != bk.size() )
+                        return false;
+                    
+                    for ( String k : ak )
+                        if ( ! JSInternalFunctions.JS_eq( ao.get( k ) , bo.get( k ) ) )
+                            return false;
+                    
+                    return true;
+
+                }
+
+                return JSInternalFunctions.JS_eq( a , b );
+            }
+            
+            public int doHash( Object key ){
+            
+                if ( key == null )
+                    return 0;
+    
+                if ( key instanceof JSObject ){
+                    int hash = 0;
+                    for ( String s : ((JSObject)key).keySet() )
+                        hash += s.hashCode();
+                    return hash;
+                }
+                
+                return key.hashCode();
+                
+            }
+            
+        };
 }
