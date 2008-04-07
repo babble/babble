@@ -45,11 +45,11 @@ public class JSMap extends JSObjectBase {
     }
     
     public Collection keys(){
-        return new JSArray( _map.keySet() );
+        return _map.keySet();
     }
 
     public Collection values(){
-        return new JSArray( _map.values() );
+        return _map.values();
     }
     
     private final Map _map = new CustomHashMap(){
