@@ -216,7 +216,7 @@ public class JSHook {
             return p.second;
         
         JSFunction f = null;
-
+        /*
         code = code.trim();
         
         if ( code.startsWith( "function" ) ){
@@ -227,12 +227,11 @@ public class JSHook {
             
             code = patt.matcher( code ).replaceAll( "$1" );
         }
-
+        */
         if ( DEBUG ) System.err.println( "\t compiling : " + code );
 
         try {
-            Convert c = new Convert( "trigger" + Math.random() , code );
-            f = c.get();
+            f = Convert.makeAnon( code );
         }
         catch ( Throwable t ){
             t.printStackTrace();
@@ -256,7 +255,7 @@ public class JSHook {
 
     public static int invoke( long scopeID , long functionID  ){
         Scope s = _scopes.get( scopeID );
-        if ( DEBUG ) System.err.println( "scopeID : " + scopeID + " functionID : " + functionID );
+        if ( DEBUG ) System.err.println( "invoke -- scopeID : " + scopeID + " functionID : " + functionID );
         if ( s == null )
             return NO_SCOPE;
         
@@ -264,6 +263,11 @@ public class JSHook {
         if ( f == null )
             return NO_FUNCTION;
         
+        if ( DEBUG ){
+            System.err.println( "\t" + f.getName() );
+            System.err.println( "\t" + f );
+        }
+
         Object client = s.get( "$client" );
         if ( client != null ){
             String clientString = client.toString();
@@ -276,8 +280,7 @@ public class JSHook {
         }
 
         try {
-	    if( DEBUG )
-		System.err.println( f );
+            f.setTLScope( s );
             Object ret = f.call( s , null );
             
             if ( ret instanceof JSFunction ){
