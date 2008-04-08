@@ -1,5 +1,5 @@
 <?xml version='1.0'?>
-<project name="appserver test" default="run-basic" basedir=".">
+<project name="appserver test" default="all" basedir=".">
 
   <property name="targetdir" value="target"/>
   <property name="testdir" value="${targetdir}/test"/>
@@ -16,6 +16,8 @@
     <taskdef name="testng" classpathref="classpath"
               classname="org.testng.TestNGAntTask" />
 
+    <target name="all" depends="run-basic, corejs, run-db"/>
+    
   <target  name="run-basic" depends="init">      
 
     <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" >
