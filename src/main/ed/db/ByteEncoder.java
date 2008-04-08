@@ -92,6 +92,7 @@ public class ByteEncoder extends Bytes {
             Object val = o.get( s );
             
             if ( val instanceof JSFunction ){
+
                 if ( s.startsWith( "$" ) && 
                      ! val.toString().startsWith( JSFunction.TO_STRING_PREFIX ) ){
                     putFunction( s , (JSFunction)val );

@@ -157,6 +157,19 @@ public class ByteDecoder extends Bytes {
             o.set( name , parseBinary() );
             break;
             
+        case CODE:
+            // TODO: clean this up
+            try {
+                _buf.getInt(); // this is value string, not a cstr
+                final String theCode = readCStr();
+                Convert c = new Convert( name + "_temp_" + + Math.random() , theCode );
+                o.set( name , c.get() );
+            }
+            catch ( Exception e ){
+                e.printStackTrace();
+            }
+            break;
+
         case ARRAY:
             if ( created == null )
                 created = new JSArray();
