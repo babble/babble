@@ -147,6 +147,8 @@ public class Replay {
                     _log.debug( "got request from queue" );
                     
                     String firstChunk = _send( request );
+		    if ( firstChunk == null )
+			continue;
                     if ( firstChunk.startsWith( "5" ) )
                         _log.info( "error on : " + request.getURL() + "\n" + firstChunk );
                     _log.debug( firstChunk );
