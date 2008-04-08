@@ -86,23 +86,52 @@ class CompileUtil {
     }
     
     private static Set<File> _dependFiles = new HashSet<File>();
-    private static String _dependsDirs[] = new String[]{ "src/main/ed/js" , 
-                                                 "src/main/ed/js/engine" , 
-                                                 "src/main/ed/js/func" };
-
+    private static String _possibleRoots[] = new String[]{ 
+        "" ,
+        "../ed" ,
+        "../../ed" ,
+    };
+    private static String _dependsDirs[] = new String[]{ 
+        "src/main/ed/js" , 
+        "src/main/ed/js/engine" , 
+        "src/main/ed/js/func" };
+    
     static {
-        for ( String dirName : _dependsDirs ){
-            File dir = new File( dirName );
-
-            if ( ! ( dir.exists() && dir.isDirectory() ) ){
-                System.out.println( "bad dir : " + dir );
-                _dependFiles.clear();
+        
+        String root = null;
+        
+        for ( int i=0; i<_possibleRoots.length; i++ ){
+            File temp = new File( _possibleRoots[i] , _dependsDirs[0] );
+            if ( temp.exists() && temp.isDirectory() ){
+                root = _possibleRoots[i];
                 break;
             }
-
-            for ( File f : dir.listFiles() ){
-                if ( ! f.getName().endsWith( ".java" ) )
-                    _dependFiles.add( f );
+        }
+        
+        if ( root == null && ed.db.JSHook.whereIsEd != null ){
+            File temp = new File( ed.db.JSHook.whereIsEd , _dependsDirs[0] );
+            if ( temp.exists() && temp.isDirectory() ){
+                root = ed.db.JSHook.whereIsEd;
+            }
+        }
+        
+        if ( root == null ){
+            System.out.println( "can't find ed" );
+        }
+        else {
+            for ( String dirName : _dependsDirs ){
+                File dir = new File( root , dirName );
+                
+                if ( ! ( dir.exists() && dir.isDirectory() ) ){
+                    System.out.println( "bad dir : " + dir );
+                    _dependFiles.clear();
+                    break;
+                }
+                
+                for ( File f : dir.listFiles() ){
+                    if ( ! f.getName().endsWith( ".java" ) )
+                        _dependFiles.add( f );
+                }
             }
         }
     }

@@ -16,6 +16,8 @@ public class Convert {
     static boolean D = Boolean.getBoolean( "DEBUG.JS" );
     public static final String DEFAULT_PACKAGE = "ed.js.gen";
 
+    final boolean _invokedFromEval;
+
     public static JSFunction makeAnon( String code ){
         try {
             Convert c = new Convert( "anon" + Math.random() , code );
@@ -25,7 +27,7 @@ public class Convert {
             throw new RuntimeException( "should be impossible" , ioe );
         }
     }
-
+    
     public Convert( File sourceFile )
         throws IOException {
         this( sourceFile.toString() , StreamUtil.readFully( sourceFile , "UTF-8" ) );
@@ -33,7 +35,15 @@ public class Convert {
     
     public Convert( String name , String source )
         throws IOException {
-        
+
+        this(name, source, false);
+    }
+
+    public Convert( String name , String source, boolean invokedFromEval)
+        throws IOException {
+
+        _invokedFromEval = invokedFromEval;
+
         _name = name;
         _source = source;
         
@@ -1304,7 +1314,13 @@ public class Convert {
         buf.append( "\tpublic Object _call( Scope scope , Object extra[] ){\n" );
 
         buf.append( "\t\t final Scope passedIn = scope; \n" );
-        buf.append( "\t\t scope = new Scope( \"compiled script for:" + _name.replaceAll( "/tmp/jxp/s?/?0\\.\\d+/" , "" ) + "\" , scope ); \n" );
+
+        if (_invokedFromEval) {
+            buf.append("\t\t // not creating new scope for execution as we're being run in the context of an eval\n");
+        }
+        else {
+            buf.append( "\t\t scope = new Scope( \"compiled script for:" + _name.replaceAll( "/tmp/jxp/s?/?0\\.\\d+/" , "" ) + "\" , scope ); \n" );
+        }
 
         buf.append( "\t\t JSArray arguments = new JSArray(); scope.put( \"arguments\" , arguments , true );\n " );
         buf.append( "\t\t if ( extra != null ) for ( Object TTTT : extra ) arguments.add( TTTT );\n" );

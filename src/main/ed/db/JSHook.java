@@ -15,6 +15,8 @@ import ed.js.engine.*;
 
 public class JSHook {
 
+    public static String whereIsEd = null;
+
     static final boolean DEBUG = false;
 
     public static final int NO_SCOPE = -1;
@@ -22,6 +24,12 @@ public class JSHook {
     public static final int INVOKE_ERROR = -3;
     
     public static final int INVOKE_SUCCESS = 0;
+
+    // ---- init stuff
+    
+    public static void init( String ed ){
+        whereIsEd = ed;
+    }
 
     // -----    scope   -------    
 
