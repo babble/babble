@@ -17,5 +17,7 @@ public interface JSObject {
 
     public boolean containsKey( String s );
     public Collection<String> keySet();
-    
+
+    public JSFunction getConstructor();
+
 }

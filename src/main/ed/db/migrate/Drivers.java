@@ -35,7 +35,7 @@ public class Drivers {
                     
                     try {
                         Connection conn = DriverManager.getConnection( url , user , pass );
-                        return new JDBCConnection( conn );
+                        return new JDBCConnection( url , conn );
                     }
                     catch ( SQLException se ){
                         throw new RuntimeException( se );
@@ -46,8 +46,9 @@ public class Drivers {
     
     static class JDBCConnection extends JSObjectBase {
 
-        JDBCConnection( Connection conn )
+        JDBCConnection( String url , Connection conn )
             throws SQLException {
+            _url = url;
             _conn = conn;
         }
         
@@ -61,7 +62,12 @@ public class Drivers {
             return new MyResult( stmt , stmt.executeQuery( s ) );
         }
         
-        private Connection _conn;
+        public String toString(){
+            return _url;
+        }
+
+        private final Connection _conn;
+        private final String _url;
         private List<Statement> _stmts = new LinkedList<Statement>();
         
         class MyResult extends JSObjectBase {

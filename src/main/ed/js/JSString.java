@@ -262,6 +262,18 @@ public class JSString extends JSObjectBase {
                     }
                 }
                 );
+
+            _prototype.set( "reverse" , new JSFunctionCalls0(){
+                    public Object call(Scope s, Object [] args){
+                        String str = s.getThis().toString();
+                        StringBuffer buf = new StringBuffer( str.length() );
+                        for ( int i=str.length()-1; i>=0; i--)
+                            buf.append( str.charAt( i ) );
+                        return new JSString( buf.toString() );
+                    }
+                } );
+            
+
                 
             _prototype.set( "replace" , new JSFunctionCalls2() {
                     public Object call( Scope s , Object o , Object repl , Object crap[] ){

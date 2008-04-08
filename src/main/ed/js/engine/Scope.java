@@ -558,6 +558,10 @@ public class Scope implements JSObject {
 	_lockedObject.add( s );
     }
 
+    public JSFunction getConstructor(){
+        return null;
+    }
+
     final String _name;
     final Scope _parent;
     final Scope _alternate;
