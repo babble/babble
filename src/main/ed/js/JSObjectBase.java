@@ -110,19 +110,21 @@ public class JSObjectBase implements JSObject {
         throw new RuntimeException( "object key can't be a [" + n.getClass() + "]" );
     }
 
-    public void removeField( Object n ){
+    public Object removeField( Object n ){
         if ( n == null )
-            return;
+            return null;
         
-
         if ( n instanceof JSString )
             n = n.toString();
         
+        Object val = null;
+
         if ( n instanceof String ){
-            _map.remove( (String)n );
+            val = _map.remove( (String)n );
             _keys.remove( n );
         }
         
+        return val;
     }
 
 

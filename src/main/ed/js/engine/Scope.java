@@ -87,8 +87,8 @@ public class Scope implements JSObject {
         return get( n.toString() );
     }
     
-    public void removeField( Object n ){
-        removeField( n.toString() );
+    public Object removeField( Object n ){
+        return removeField( n.toString() );
     }
 
     public Object setInt( int n , Object v ){
@@ -108,8 +108,8 @@ public class Scope implements JSObject {
         throw new RuntimeException( "not sure this makes sense" );
     }
 
-    public void removeField( String name ){
-        _objects.remove( name );
+    public Object removeField( String name ){
+        return _objects.remove( name );
     }
 
     public Object put( String name , Object o , boolean local ){
