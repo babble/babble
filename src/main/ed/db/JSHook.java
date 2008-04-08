@@ -148,7 +148,7 @@ public class JSHook {
         
         for ( String name : o.keySet() ){
             s += name.length() + 12;
-            Object foo = o.get( s );
+            Object foo = o.get( name );
             
             if ( foo == null )
                 continue;
@@ -175,16 +175,18 @@ public class JSHook {
 
     public static int scopeGetObject( long id , String field , ByteBuffer bb ){
         Object o = _scopeGet( id , field );
-        if ( o == null )
+        if ( o == null ) {
             return 0;
+	}
 
-        if ( ! ( o instanceof JSObject ) )
+        if ( ! ( o instanceof JSObject ) ) {
             return 0;
+	}
 
         JSObject obj = (JSObject)o;
 
         ByteEncoder encoder = new ByteEncoder( bb );
-        encoder.putObject( null , obj );
+        encoder.putObject( null , obj )
         return bb.position();
     }
     
