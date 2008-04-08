@@ -68,6 +68,11 @@ public class JSHook {
         return true;
     }
     
+    public static boolean scopeSetObject( long id , String field , JSObject o ){
+        _scopes.get( id ).set( field , o );
+        return true;
+    }
+
     public static boolean scopeSetObject( long id , String field , ByteBuffer buf ){
         JSObject obj = null;
         if ( buf != null ){
@@ -140,7 +145,7 @@ public class JSHook {
         return _guessSize( (JSObject)o );
     }
 
-    static final long _guessSize( JSObject o ){
+    public static final long _guessSize( JSObject o ){
         if ( o == null )
             return 2;
         
@@ -218,18 +223,7 @@ public class JSHook {
             return p.second;
         
         JSFunction f = null;
-        /*
-        code = code.trim();
-        
-        if ( code.startsWith( "function" ) ){
-            String repl = "^function \\( \\) \\{(.*)\\} $";
-            repl = repl.replaceAll( " " , "\\\\s*" );
-            if ( DEBUG ) System.out.println( repl );
-            Pattern patt = Pattern.compile( repl, Pattern.DOTALL );
-            
-            code = patt.matcher( code ).replaceAll( "$1" );
-        }
-        */
+
         if ( DEBUG ) System.err.println( "\t compiling : " + code );
 
         try {
