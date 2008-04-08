@@ -82,6 +82,10 @@ public abstract class JSFunction extends JSFunctionBase {
         return _scope;
     }
 
+    public void setTLScope( Scope tl ){
+        _tlScope.set( tl );
+    }
+
     public void clearScope(){
         Scope s = _tlScope.get();
         if ( s != null )
