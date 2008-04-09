@@ -22,8 +22,8 @@ public class JSObjectWrapper implements JSObject {
         return _wrap.getInt( n );
     }
     
-    public void removeField( Object n ){
-        _wrap.removeField( n );
+    public Object removeField( Object n ){
+        return _wrap.removeField( n );
     }
 
     public boolean containsKey( String s ){

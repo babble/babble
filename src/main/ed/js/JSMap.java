@@ -39,9 +39,11 @@ public class JSMap extends JSObjectBase {
         return null;
     }
     
-    public void removeField( Object n ){
-        _map.remove( n );
-        super.removeField( n );
+    public Object removeField( Object n ){
+        Object val = _map.remove( n );
+        Object val2 = super.removeField( n );
+
+        return val == null ? val2 : val;
     }
     
     public Collection keys(){

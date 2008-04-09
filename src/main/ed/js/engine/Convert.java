@@ -20,7 +20,43 @@ public class Convert {
 
     public static JSFunction makeAnon( String code ){
         try {
-            Convert c = new Convert( "anon" + Math.random() , code );
+            
+            final String nice = code.trim();
+            final String name = "anon" + Math.random();
+
+            if ( nice.startsWith( "function" ) &&
+                 nice.endsWith( "}" ) ){
+
+                Convert c = new Convert( name , code , true );
+                JSFunction func = c.get();
+                Scope s = Scope.GLOBAL.child();
+                s.setGlobal( true );
+                
+                func.call( s );
+                
+                String keyToUse = null;
+                int numKeys = 0;
+                
+                for ( String key : s.keySet() ){
+                    if ( key.equals( "arguments" ) )
+                        continue;
+                    
+                    keyToUse = key;
+                    numKeys++;
+                }
+                
+                
+                if ( numKeys == 1 ){
+                    Object val = s.get( keyToUse );
+                    if ( val instanceof JSFunction ){
+                        return (JSFunction)val;
+                    }
+                }
+                
+            }
+            
+
+            Convert c = new Convert( name , nice );
             return c.get();
         }
         catch ( IOException ioe ){
@@ -1320,6 +1356,7 @@ public class Convert {
         }
         else {
             buf.append( "\t\t scope = new Scope( \"compiled script for:" + _name.replaceAll( "/tmp/jxp/s?/?0\\.\\d+/" , "" ) + "\" , scope ); \n" );
+            buf.append( "\t\t scope.putAll( getTLScope() );\n" );
         }
 
         buf.append( "\t\t JSArray arguments = new JSArray(); scope.put( \"arguments\" , arguments , true );\n " );

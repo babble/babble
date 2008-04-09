@@ -4,6 +4,8 @@ package ed.js.engine;
 
 import java.io.*;
 
+import org.testng.annotations.Test;
+
 import ed.*;
 import ed.js.*;
 import ed.js.func.*;
@@ -18,6 +20,16 @@ public class ConvertTest extends TestCase {
             if ( f.toString().endsWith( ".js" ) )
                 add( new FileTest( f ) );
         
+    }
+    
+    @Test
+    public void testMakeAnon(){
+        assertClose( "5" , _makeAnon( "return 5;" ).toString() );
+        assertClose( "6" , _makeAnon( "function(){ return 6; }" ).toString() );
+    }
+
+    Object _makeAnon( String code ){
+        return Convert.makeAnon( code ).call( Scope.GLOBAL.child() );
     }
 
     public static class FileTest extends TestCase {

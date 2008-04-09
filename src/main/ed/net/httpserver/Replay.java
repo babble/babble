@@ -106,28 +106,48 @@ public class Replay {
 
         bb.flip();
         
-        SocketChannel sock = SocketChannel.open();
-        sock.connect( _addr );
-        int written = sock.write( bb );
-
+        SocketChannel sock = null;
         String firstChunk = null;
-
-        while ( true ){
-            _readBuffer.position( 0 );
-            _readBuffer.limit( _readBuffer.capacity() );
+                    
+        try {
+            sock = SocketChannel.open();
+            sock.connect( _addr );
+            int written = sock.write( bb );
             
-            if ( sock.read( _readBuffer ) <= 0 )
-                break;
-
-            if ( firstChunk == null ){
-                _readBuffer.flip();
-                byte buf[] = new byte[ Math.min( 100 , _readBuffer.limit() ) ];
-                _readBuffer.get( buf );
-                firstChunk = new String( buf );
+            
+            while ( true ){
+                _readBuffer.position( 0 );
+                _readBuffer.limit( _readBuffer.capacity() );
+                
+                if ( sock.read( _readBuffer ) <= 0 )
+                    break;
+                
+                if ( firstChunk == null ){
+                    _readBuffer.flip();
+                    byte buf[] = new byte[ Math.min( 100 , _readBuffer.limit() ) ];
+                    _readBuffer.get( buf );
+                    firstChunk = new String( buf );
+                }
+            }
+        }
+        finally {
+            if ( sock != null ){
+                try {
+                    sock.close();
+                }
+                catch ( IOException ioe ){}
             }
         }
         
+        
         return firstChunk;
+    }
+
+    protected void finalize(){
+        if ( _runner != null ){
+            _runner._go = false;
+            _runner.interrupt();
+        }
     }
 
     class Runner extends Thread {
@@ -138,7 +158,7 @@ public class Replay {
         
         public void run(){
             _log.debug( "starting replay server" );
-            while ( true ){
+            while ( _go ){
                 try {
                     HttpRequest request = _toSend.take();
                     if ( request == null )
@@ -159,6 +179,8 @@ public class Replay {
             }
         }
         
+        boolean _go = true;
+
     }
 
     final String _server;
@@ -175,5 +197,5 @@ public class Replay {
     final ByteBuffer _smallBuffer = ByteBuffer.allocateDirect( 1024 * 16 );
     final ByteBuffer _readBuffer = ByteBuffer.allocateDirect( 1024 * 4 );
 
-    final Thread _runner;
+    final Runner _runner;
 }

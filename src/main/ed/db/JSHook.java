@@ -68,6 +68,11 @@ public class JSHook {
         return true;
     }
     
+    public static boolean scopeSetObject( long id , String field , JSObject o ){
+        _scopes.get( id ).set( field , o );
+        return true;
+    }
+
     public static boolean scopeSetObject( long id , String field , ByteBuffer buf ){
         JSObject obj = null;
         if ( buf != null ){
@@ -140,7 +145,7 @@ public class JSHook {
         return _guessSize( (JSObject)o );
     }
 
-    static final long _guessSize( JSObject o ){
+    public static final long _guessSize( JSObject o ){
         if ( o == null )
             return 2;
         
@@ -148,7 +153,7 @@ public class JSHook {
         
         for ( String name : o.keySet() ){
             s += name.length() + 12;
-            Object foo = o.get( s );
+            Object foo = o.get( name );
             
             if ( foo == null )
                 continue;
@@ -175,11 +180,13 @@ public class JSHook {
 
     public static int scopeGetObject( long id , String field , ByteBuffer bb ){
         Object o = _scopeGet( id , field );
-        if ( o == null )
+        if ( o == null ) {
             return 0;
+	}
 
-        if ( ! ( o instanceof JSObject ) )
+        if ( ! ( o instanceof JSObject ) ) {
             return 0;
+	}
 
         JSObject obj = (JSObject)o;
 
@@ -217,22 +224,10 @@ public class JSHook {
         
         JSFunction f = null;
 
-        code = code.trim();
-        
-        if ( code.startsWith( "function" ) ){
-            String repl = "^function \\( \\) \\{(.*)\\} $";
-            repl = repl.replaceAll( " " , "\\\\s*" );
-            if ( DEBUG ) System.out.println( repl );
-            Pattern patt = Pattern.compile( repl, Pattern.DOTALL );
-            
-            code = patt.matcher( code ).replaceAll( "$1" );
-        }
-
         if ( DEBUG ) System.err.println( "\t compiling : " + code );
 
         try {
-            Convert c = new Convert( "trigger" + Math.random() , code );
-            f = c.get();
+            f = Convert.makeAnon( code );
         }
         catch ( Throwable t ){
             t.printStackTrace();
@@ -256,7 +251,7 @@ public class JSHook {
 
     public static int invoke( long scopeID , long functionID  ){
         Scope s = _scopes.get( scopeID );
-        if ( DEBUG ) System.err.println( "scopeID : " + scopeID + " functionID : " + functionID );
+        if ( DEBUG ) System.err.println( "invoke -- scopeID : " + scopeID + " functionID : " + functionID );
         if ( s == null )
             return NO_SCOPE;
         
@@ -264,6 +259,11 @@ public class JSHook {
         if ( f == null )
             return NO_FUNCTION;
         
+        if ( DEBUG ){
+            System.err.println( "\t" + f.getName() );
+            System.err.println( "\t" + f );
+        }
+
         Object client = s.get( "$client" );
         if ( client != null ){
             String clientString = client.toString();
@@ -276,8 +276,7 @@ public class JSHook {
         }
 
         try {
-	    if( DEBUG )
-		System.err.println( f );
+            f.setTLScope( s );
             Object ret = f.call( s , null );
             
             if ( ret instanceof JSFunction ){

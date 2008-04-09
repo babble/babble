@@ -162,8 +162,8 @@ public class ByteDecoder extends Bytes {
             try {
                 _buf.getInt(); // this is value string, not a cstr
                 final String theCode = readCStr();
-                Convert c = new Convert( name + "_temp_" + + Math.random() , theCode );
-                o.set( name , c.get() );
+                final JSFunction theFunc = Convert.makeAnon( theCode );
+                o.set( name , theFunc );
             }
             catch ( Exception e ){
                 e.printStackTrace();

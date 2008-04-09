@@ -87,8 +87,8 @@ public class Scope implements JSObject {
         return get( n.toString() );
     }
     
-    public void removeField( Object n ){
-        removeField( n.toString() );
+    public Object removeField( Object n ){
+        return removeField( n.toString() );
     }
 
     public Object setInt( int n , Object v ){
@@ -108,8 +108,8 @@ public class Scope implements JSObject {
         throw new RuntimeException( "not sure this makes sense" );
     }
 
-    public void removeField( String name ){
-        _objects.remove( name );
+    public Object removeField( String name ){
+        return _objects.remove( name );
     }
 
     public Object put( String name , Object o , boolean local ){
@@ -473,12 +473,14 @@ public class Scope implements JSObject {
     
     public Object eval( String code , String name , boolean hasReturn[] ){
         try {
-
+            if ( code.matches( "\\w[\\w\\.]+\\w" ) )
+                return findObject( code );
+            
             // tell the Convert CTOR that we're in the context of eval so
             //  not use a private scope for the execution of this code
 
             Convert c = new Convert( name , code, true);
-
+            
             if ( hasReturn != null && hasReturn.length > 0 ) {
                 hasReturn[0] = c.hasReturn();
             }
@@ -488,6 +490,38 @@ public class Scope implements JSObject {
         catch( IOException ioe ){
             throw new RuntimeException( "weird ioexception" , ioe );
         }
+    }
+
+    Object findObject( final String origName ){
+        
+        String name = origName;
+        int idx;
+        JSObject o = this;
+
+        String soFar = "";
+
+        while ( ( idx = name.indexOf( "." ) ) > 0 ){
+            String a = name.substring( 0 , idx );
+            
+            if ( soFar.length() > 0 )
+                soFar += ".";
+            soFar += a;
+            
+            name = name.substring( idx + 1 );
+            Object foo = o.get( a );
+            if ( foo == null )
+                throw new NullPointerException( soFar );
+            
+            if ( ! ( foo instanceof JSObject ) )
+                throw new JSException( soFar + " is not a JSObject" );
+            
+            o = (JSObject)foo;
+        }
+        
+        if ( o == null )
+            throw new NullPointerException( origName );
+        
+        return o.get( name );
     }
     
     /**
@@ -560,6 +594,19 @@ public class Scope implements JSObject {
 
     public JSFunction getConstructor(){
         return null;
+    }
+    
+    public void putAll( Scope s ){
+        if ( s == null )
+            return;
+
+        if ( s._objects == null )
+            return;
+        
+        if ( _objects == null )
+            _objects = new TreeMap<String,Object>();
+
+        _objects.putAll( s._objects );
     }
 
     final String _name;

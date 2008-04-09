@@ -30,7 +30,7 @@ public class JSObjectLame implements JSObject {
         throw new UnsupportedOperationException();
     }
 
-    public void removeField( Object n ){
+    public Object removeField( Object n ){
         throw new UnsupportedOperationException();
     }
 
