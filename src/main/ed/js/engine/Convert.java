@@ -19,6 +19,10 @@ public class Convert {
     final boolean _invokedFromEval;
 
     public static JSFunction makeAnon( String code ){
+        return makeAnon( code , false );
+    }
+    
+    public static JSFunction makeAnon( String code , boolean forceEval ){
         try {
             
             final String nice = code.trim();
@@ -49,14 +53,15 @@ public class Convert {
                 if ( numKeys == 1 ){
                     Object val = s.get( keyToUse );
                     if ( val instanceof JSFunction ){
-                        return (JSFunction)val;
+                        JSFunction f = (JSFunction)val;
+                        f.setUsePassedInScope( forceEval );
+                        return f;
                     }
                 }
                 
             }
             
-
-            Convert c = new Convert( name , nice );
+            Convert c = new Convert( name , nice , forceEval );
             return c.get();
         }
         catch ( IOException ioe ){
@@ -1030,7 +1035,7 @@ public class Convert {
             final String foo = fn.getParamOrVarName( i );
             callLine += " , ";
             callLine += " Object " + foo;
-
+            
             if ( ! state.useLocalVariable( foo ) ){
                 callLine += "INNNNN";
                 varSetup += " \nscope.put(\"" + foo + "\"," + foo + "INNNNN , true  );\n ";
@@ -1047,7 +1052,7 @@ public class Convert {
         }
         callLine += " , Object extra[] ){\n" ;
         
-        _append( callLine + " final Scope scope = new Scope( \"temp scope for: \" + _name  , getScope() , passedIn ); " , n );
+        _append( callLine + " final Scope scope = _forceUsePassedInScope ? passedIn : new Scope( \"temp scope for: \" + _name  , getScope() , passedIn ); " , n );
         if ( hasArguments ){
             _append( "JSArray arguments = new JSArray();\n" , n );
             _append( "scope.put( \"arguments\" , arguments , true );\n" , n );
