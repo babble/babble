@@ -73,7 +73,10 @@ public abstract class JSFunction extends JSFunctionBase {
         }
         
         if ( threadLocal ){
-            s = _scope.child( "func tl scope" );
+            if ( _scope == null )
+                s = Scope.GLOBAL.child( "func tl scope" );
+            else
+                s = _scope.child( "func tl scope" );
             s.setGlobal( true );
             _tlScope.set( s );
             return s;
