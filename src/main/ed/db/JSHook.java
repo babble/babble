@@ -36,6 +36,7 @@ public class JSHook {
     public static long scopeCreate(){
         JS.JNI = true;
         Scope s = Scope.GLOBAL.child();
+        s.setGlobal( true );
         _scopes.put( s.getId() , s );
         return s.getId();
     }
@@ -227,7 +228,7 @@ public class JSHook {
         if ( DEBUG ) System.err.println( "\t compiling : " + code );
 
         try {
-            f = Convert.makeAnon( code );
+            f = Convert.makeAnon( code , true );
         }
         catch ( Throwable t ){
             t.printStackTrace();
@@ -274,9 +275,8 @@ public class JSHook {
             }
             s.set( "db" , db );
         }
-
+        
         try {
-            f.setTLScope( s );
             Object ret = f.call( s , null );
             
             if ( ret instanceof JSFunction ){

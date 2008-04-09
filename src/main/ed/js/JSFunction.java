@@ -114,11 +114,16 @@ public abstract class JSFunction extends JSFunctionBase {
         return temp;
     }
 
+    public void setUsePassedInScope( boolean usePassedInScope ){
+        _forceUsePassedInScope = usePassedInScope;
+    }
+
     private final Scope _scope;
     private final ThreadLocal<Scope> _tlScope = new ThreadLocal<Scope>();
 
     protected JSObject _prototype;
-
+    
+    protected boolean _forceUsePassedInScope = false;
 
     protected JSArray _arguments;
     protected String _name = "NO NAME SET";
