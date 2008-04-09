@@ -595,6 +595,19 @@ public class Scope implements JSObject {
     public JSFunction getConstructor(){
         return null;
     }
+    
+    public void putAll( Scope s ){
+        if ( s == null )
+            return;
+
+        if ( s._objects == null )
+            return;
+        
+        if ( _objects == null )
+            _objects = new TreeMap<String,Object>();
+
+        _objects.putAll( s._objects );
+    }
 
     final String _name;
     final Scope _parent;
