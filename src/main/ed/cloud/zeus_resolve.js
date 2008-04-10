@@ -45,9 +45,14 @@ Cloud.Zeus.resolveTS = function(){
             
         } );
         
-        envs += "else { \n";
-        envs += "    pool.use( \"" + best.pool + "\" );\n";
-        envs += "}\n" ;
+        if ( best ){
+            envs += "else { \n";
+            envs += "    pool.use( \"" + best.pool + "\" );\n";
+            envs += "}\n" ;
+        }
+        else {
+            log.error( "no environments for [" + z.name + "]" );
+        }
 
         var ne = "";
         envs.trim().split( "[\r\n]+" ).forEach( function( s ){
