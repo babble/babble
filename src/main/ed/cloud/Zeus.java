@@ -7,6 +7,8 @@ import java.net.*;
 
 import com.zeus.soap.zxtm._1_0.*;
 
+import ed.io.*;
+
 public class Zeus {
 
     public Zeus( String host , String username , String password )
@@ -88,7 +90,8 @@ public class Zeus {
     public static void main( String args[] )
         throws Exception {
 
-        Zeus z = new Zeus( "iad-sb-n3.10gen.com" , "admin" , "eng718");
+        String pass = StreamUtil.readFully( new FileInputStream( ".zeuspw" ) ).trim();
+        Zeus z = new Zeus( "iad-sb-n3.10gen.com" , "admin" , pass );
         z.updateResolveRule();
 
     }
