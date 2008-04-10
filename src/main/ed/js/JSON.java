@@ -88,7 +88,7 @@ public class JSON {
         
         static void string( Appendable a , String s )
             throws java.io.IOException {
-            s = s.replaceAll("\\\\", "\\\\\\\\").replaceAll( "\"" , "\\\\\"" ).replaceAll("\n", "\\\\n");
+            s = s.replaceAll("\\\\", "\\\\\\\\").replaceAll( "\"" , "\\\\\"" ).replaceAll("\n", "\\\\n").replaceAll("\r", "\\\\r");
             a.append( "\"" + s + "\"" );
         }
 
