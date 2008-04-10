@@ -46,6 +46,7 @@ public class AppContext {
         
         _jxpObject = new JSFileLibrary( _rootFile , "jxp" , this );
         _scope.put( "jxp" , _jxpObject , true );
+        _scope.put( "local" , _jxpObject , true );
         
         try {
             JxpSource config = getSource( new File( _rootFile , "_config.js" ) );

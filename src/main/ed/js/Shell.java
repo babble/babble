@@ -39,6 +39,7 @@ public class Shell {
 
         s.put( "core" , new CoreJS( s ) , true );
         s.put( "external" , new JSFileLibrary( new File( "/data/external" ) ,  "external" , s ) , true );
+        s.put( "local" , new JSFileLibrary( new File( "." ) ,  "local" , s ) , true );
 
         s.put( "connect" , new JSFunctionCalls2(){
                 public Object call( Scope s , Object name , Object ip , Object crap[] ){
