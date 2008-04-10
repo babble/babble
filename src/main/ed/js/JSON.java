@@ -88,8 +88,21 @@ public class JSON {
         
         static void string( Appendable a , String s )
             throws java.io.IOException {
-            s = s.replaceAll("\\\\", "\\\\\\\\").replaceAll( "\"" , "\\\\\"" ).replaceAll("\n", "\\\\n").replaceAll("\r", "\\\\r");
-            a.append( "\"" + s + "\"" );
+            a.append("\"");
+            for(int i = 0; i < s.length(); ++i){
+                char c = s.charAt(i);
+                if(c == '\\')
+                    a.append("\\\\");
+                else if(c == '"')
+                    a.append("\\\"");
+                else if(c == '\n')
+                    a.append("\\n");
+                else if(c == '\r')
+                    a.append("\\r");
+                else 
+                    a.append(c);
+            }
+            a.append("\"");
         }
 
         static void go( Appendable a , Object something , boolean trusted , int indent , String nl  )
