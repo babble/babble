@@ -243,7 +243,7 @@ public class HttpServer extends NIOServer {
     }
 
     private final ThreadPool<Task> _forkThreads = 
-        new ThreadPool<Task>( "HttpServer" , 250 ){
+        new ThreadPool<Task>( "HttpServer" , 50 ){
         
         public void handle( Task t ) throws IOException {
             t._handler.handle( t._request , t._response );
