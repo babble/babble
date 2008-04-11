@@ -40,7 +40,6 @@ public class CompileUtil {
             old = StreamUtil.readFully( new FileInputStream( f ) );
 
         boolean oldOK = source.equals( old ) && output.exists() && output.lastModified() > depend;
-        oldOK = false;
         if ( CD ) System.err.println( "compile 3 " );
 
         if ( ! oldOK ){
