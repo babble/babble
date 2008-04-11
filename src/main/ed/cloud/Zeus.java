@@ -70,6 +70,8 @@ public class Zeus {
         return c.evalFunc( "Cloud.Zeus.resolveTS" ).toString();
     }
 
+    // --- crazy soap stuff ---
+
     private CatalogRulePort _getCatalogRulePort()
         throws Exception {
         if ( _catalogRulePort != null )
@@ -79,13 +81,27 @@ public class Zeus {
         return _catalogRulePort;
     }
 
+    private PoolPort _getPoolPort()
+        throws Exception {
+        if ( _poolPort != null )
+            return _poolPort;
+        PoolLocator l = new PoolLocator();
+        _poolPort = l.getPoolPort( _url );
+        return _poolPort;
+    }
+
+    // --- fields ----
+
     private CatalogRulePort _catalogRulePort;
+    private PoolPort _poolPort;
 
     private final String _host;
     private final String _username;
     private final String _password;
 
     private final URL _url;
+
+    // --- main ----
     
     public static void main( String args[] )
         throws Exception {
