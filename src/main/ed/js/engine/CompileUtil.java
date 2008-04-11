@@ -60,7 +60,7 @@ public class CompileUtil {
             
             String cp = "build";
             if ( JSHook.whereIsEd != null )
-                cp += ":" + JSHook.whereIsEd + "/build";
+                cp += File.pathSeparatorChar + JSHook.whereIsEd + "/build";
             boolean res = org.eclipse.jdt.internal.compiler.batch.Main.compile( "-g -1.5 -classpath " + cp + " " + f.toString() , pw , pw );
             if ( D ) System.out.println( f + " : " + res );
             
