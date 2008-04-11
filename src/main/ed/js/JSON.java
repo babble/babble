@@ -232,7 +232,9 @@ public class JSON {
         CompilerEnvirons ce = new CompilerEnvirons();
         Parser p = new Parser( ce , ce.getErrorReporter() );
 
-        ScriptOrFnNode theNode = p.parse( "return " + s + ";" , "foo" , 0 );
+        s = "return " + s.trim() + ";";
+
+        ScriptOrFnNode theNode = p.parse( s , "foo" , 0 );
         
         Node ret = theNode.getFirstChild();
         Convert._assertType( ret , Token.RETURN );
