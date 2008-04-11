@@ -9,6 +9,7 @@ import java.util.*;
 import org.eclipse.jdt.internal.compiler.batch.*;
 
 import ed.io.*;
+import ed.db.*;
 
 public class CompileUtil {
     
@@ -56,7 +57,11 @@ public class CompileUtil {
             if ( CD ) System.err.println( "compile 3.2 " );
             if ( CD ) System.err.println( "compile 3.2.1 " );
             //int res = com.sun.tools.javac.Main.compile( new String[]{ "-g" , f.toString() } , pw );
-            boolean res = org.eclipse.jdt.internal.compiler.batch.Main.compile( "-g -1.5 -classpath build " + f.toString() , pw , pw );
+            
+            String cp = "build";
+            if ( JSHook.whereIsEd != null )
+                cp += ":" + JSHook.whereIsEd + "/build";
+            boolean res = org.eclipse.jdt.internal.compiler.batch.Main.compile( "-g -1.5 -classpath " + cp + " " + f.toString() , pw , pw );
             if ( D ) System.out.println( f + " : " + res );
             
             if ( CD ) System.err.println( "compile 3.3 " );
