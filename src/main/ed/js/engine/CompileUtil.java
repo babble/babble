@@ -6,16 +6,18 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+import org.eclipse.jdt.internal.compiler.batch.*;
+
 import ed.io.*;
 
-class CompileUtil {
+public class CompileUtil {
     
     static boolean D = Convert.D;
     static boolean CD = false;
     
     static final String TMP_DIR = "/tmp/jxp/";// + Math.random() + "/";
 
-    static synchronized Class<?> compile( String p , String c , String source )
+    public static synchronized Class<?> compile( String p , String c , String source )
         throws IOException , ClassNotFoundException {
         
         if ( CD ) System.err.println( "compile called" );
@@ -38,7 +40,7 @@ class CompileUtil {
             old = StreamUtil.readFully( new FileInputStream( f ) );
 
         boolean oldOK = source.equals( old ) && output.exists() && output.lastModified() > depend;
-
+        oldOK = false;
         if ( CD ) System.err.println( "compile 3 " );
 
         if ( ! oldOK ){
@@ -54,12 +56,13 @@ class CompileUtil {
             
             if ( CD ) System.err.println( "compile 3.2 " );
             if ( CD ) System.err.println( "compile 3.2.1 " );
-            int res = com.sun.tools.javac.Main.compile( new String[]{ "-g" , f.toString() } , pw );
+            //int res = com.sun.tools.javac.Main.compile( new String[]{ "-g" , f.toString() } , pw );
+            boolean res = org.eclipse.jdt.internal.compiler.batch.Main.compile( "-g -1.5 -classpath build " + f.toString() , pw , pw );
             if ( D ) System.out.println( f + " : " + res );
-
+            
             if ( CD ) System.err.println( "compile 3.3 " );
-        
-            if ( res != 0 ){
+
+            if ( ! res ){
                 System.err.println( "**" + sw );
                 throw new RuntimeException( sw.toString() );
             }
