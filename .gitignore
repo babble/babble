@@ -19,9 +19,12 @@
 *.DS_Store
 
 src/main/Foo.java
+.zeuspw
 
 logs
 build
 crap
 hs_err_*
 docs
+target
+
