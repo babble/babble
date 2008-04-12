@@ -3,6 +3,10 @@
 package ed.util;
 
 public class Pair<A,B>{
+    
+    public Pair(){
+    }
+
     public Pair( A a , B b ){
         first = a;
         second = b;

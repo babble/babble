@@ -81,5 +81,12 @@ public class MyAsserts {
 
         return a.equalsIgnoreCase(b);
     }
+    
+    public static void assertNull( Object foo ){
+        if ( foo == null )
+            return;
+        
+        throw new MyAssert( "not null [" + foo + "]" );
+    }
 
 }
