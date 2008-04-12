@@ -9,6 +9,8 @@ import java.util.*;
  */
 public class LRUCache<K,V> {
 
+    final static boolean D = false;
+
     public LRUCache( long defaultCacheTime ){
         this( defaultCacheTime , -1 );
     }
@@ -29,10 +31,13 @@ public class LRUCache<K,V> {
     public V get( K k , long cacheTime ){
 
         Entry e = _cache.get( k );
-        if ( e == null )
+        if ( e == null ){
+            if ( D ) System.out.println( "LRUCache.get : null" );
             return null;
+        }
         
         if ( ! e.valid( cacheTime ) ){
+            if ( D ) System.out.println( "LRUCache.get : invalid" );
             _cache.remove( k );
             return null;
         }        
@@ -42,10 +47,13 @@ public class LRUCache<K,V> {
 
     public V get( K k ){
         Entry e = _cache.get( k );
-        if ( e == null )
+        if ( e == null ){
+            if ( D ) System.out.println( "LRUCache.get : null" );
             return null;
+        }
         
         if ( ! e.valid() ){
+            if ( D ) System.out.println( "LRUCache.get : invalid" );
             _cache.remove( k );
             return null;
         }
