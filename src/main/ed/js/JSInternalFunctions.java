@@ -2,6 +2,8 @@
 
 package ed.js;
 
+import java.util.*;
+
 import ed.js.engine.*;
 import ed.js.func.*;
 
@@ -309,7 +311,27 @@ public class JSInternalFunctions extends JSNumericFunctions {
         return o[o.length-1];
     }
 
+    public static long hash( Object o ){
+        long hash = 0;
 
+        if ( o == null )
+            return hash;
+        
+        if ( o instanceof Collection ){
+            for ( Object foo : (Collection)o )
+                hash += hash( o );
+        }
+        else if ( o.getClass().isArray() ){
+            Object a[] = (Object[])o;
+            for ( int i=0; i<a.length; i++ )
+                hash += hash( a[i] );
+        }
+        else {
+            hash += o.hashCode();
+        }
+        
+        return hash;
+    }
 
     static String _debug( Object o ){
         if ( o == null )
