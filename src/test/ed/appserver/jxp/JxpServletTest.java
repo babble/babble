@@ -20,7 +20,7 @@ public class JxpServletTest extends ed.TestCase {
         JxpWriter w = new JxpWriter.Basic();
         JxpServlet.MyWriter p = new JxpServlet.MyWriter( w , STATIC , CONTEXT , null  );
         p.print( "abc <img >zz"  );
-        assertClose( "WOOGIE abc <img >zz" , w.getContent() );
+        assertClose( "abc <img >zz" , w.getContent() );
     }
 
     @Test(groups = {"basic"})
