@@ -26,7 +26,10 @@ f.print();
 f.jump( 5 );
 f.print();
 
-
-class Foo2 # < Foo 
-  
+#testing empty class
+class Foo2
 end
+
+
+#class Foo3 < Foo 
+#end

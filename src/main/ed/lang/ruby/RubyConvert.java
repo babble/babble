@@ -15,12 +15,17 @@ import ed.js.engine.*;
 
 public class RubyConvert extends ed.MyAsserts {
     
-    final static boolean D = false;
+    final static boolean D = Boolean.getBoolean( "DEBUG.RUBY" );
 
     public RubyConvert( File f )
         throws IOException {
+        this( f.toString() , new FileInputStream( f ) );
+    }
 
-        _name = f.toString();
+    public RubyConvert( String name , InputStream in )
+        throws IOException {
+
+        _name = name;
         _lines = new ArrayList<String>();
         _warnings = new NullWarnings();
 
@@ -28,7 +33,7 @@ public class RubyConvert extends ed.MyAsserts {
         p.setWarnings( _warnings );
         
         RubyParserResult r = p.parse( new ParserConfiguration( 1 , true ) ,
-                                      new InputStreamLexerSource( f.toString() , new FileInputStream( f ) ,
+                                      new InputStreamLexerSource( _name , in ,
                                                                   _lines , 1 , false ) );
         _ast = r.getAST();
         if ( D ) _print( 0 , _ast );
@@ -104,6 +109,12 @@ public class RubyConvert extends ed.MyAsserts {
             _appned( " ){\n" , node );
             _add( dn.childNodes().get( 2 ) , state );
             _appned( " \n}\n " , node );
+        }
+
+        else if ( node instanceof VCallNode ){
+            _assertNoChildren( node );
+            VCallNode vcn = (VCallNode)node;
+            _appned( vcn.getName() + "()" , node );
         }
 
         // --- class stuff ---
@@ -274,10 +285,16 @@ public class RubyConvert extends ed.MyAsserts {
         }
 
         // class method call
-        _assertType( call.childNodes().get(1) , ArrayNode.class );
+
         _add( call.childNodes().get(0) , state );
         _appned( "." + call.getName() , call );
-        _addArgs( call , call.childNodes().get(1).childNodes() , state );
+        if ( call.childNodes().size() > 1 ){
+            _assertType( call.childNodes().get(1) , ArrayNode.class );
+            _addArgs( call , call.childNodes().get(1).childNodes() , state );
+        }
+        else {
+            _appned( "()" , call );
+        }
 
     }
 
@@ -370,7 +387,9 @@ public class RubyConvert extends ed.MyAsserts {
     }
 
     public String getJSSource(){
-        return _js.toString();
+        String js = _js.toString();
+        if ( D ) System.out.println( js );
+        return js;
     }
 
     public JSFunction get()
@@ -385,8 +404,6 @@ public class RubyConvert extends ed.MyAsserts {
         
         final String js = getJSSource();
         
-        if ( D ) System.out.println( js );
-
         Convert c = new Convert( _name , js , false );
         _func = c.get();
         

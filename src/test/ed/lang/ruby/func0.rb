@@ -3,6 +3,7 @@ def simple()
   print( "yo" );
 end
 
+simple;
 simple();
 
 def welcome(name)
@@ -10,3 +11,4 @@ def welcome(name)
   puts "howdy #{name}"
 end
 welcome("eliot");
+
