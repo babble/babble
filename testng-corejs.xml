@@ -76,5 +76,12 @@
       </classes>
     </test>
 
+    <test name="git">
+      <parameter name="js-dir-name"  value="/data/corejs/git/test"/>
+      <classes>
+        <class name="ed.js.engine.JSTestFactory"/>
+      </classes>
+    </test>
+
 </suite>
 
