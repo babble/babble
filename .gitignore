@@ -19,6 +19,7 @@
 *.DS_Store
 
 src/main/Foo.java
+src/main/Eliot.java
 .zeuspw
 
 logs
