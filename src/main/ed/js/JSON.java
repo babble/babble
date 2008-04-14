@@ -99,6 +99,8 @@ public class JSON {
                     a.append("\\n");
                 else if(c == '\r')
                     a.append("\\r");
+                else if(c == '\t')
+                    a.append("\\t");
                 else 
                     a.append(c);
             }
