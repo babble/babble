@@ -1229,7 +1229,7 @@ public class Convert {
 
     public static void _assertType( Node n , int type ){
         if ( type != n.getType() )
-            throw new RuntimeException( "wrong type" );
+            throw new RuntimeException( "wrong type. was : " + Token.name( n.getType() ) + " should be " + Token.name( type )  );
     }
 
     private void _setLineNumbers( Node n , final ScriptOrFnNode sof ){

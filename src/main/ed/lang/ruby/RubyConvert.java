@@ -31,7 +31,7 @@ public class RubyConvert extends ed.MyAsserts {
                                       new InputStreamLexerSource( f.toString() , new FileInputStream( f ) ,
                                                                   _lines , 1 , false ) );
         _ast = r.getAST();
-
+        if ( D ) _print( 0 , _ast );
         _add( _ast , new State() );
     }
     
@@ -78,34 +78,7 @@ public class RubyConvert extends ed.MyAsserts {
 
         
         else if ( node instanceof CallNode ){
-            CallNode f = (CallNode)node;
-            
-
-            if ( _isOperator( f ) ){
-                _appned( "(" , node );
-
-                for ( int i=0; i<node.childNodes().size(); i++ ){
-                    if ( i > 0 )
-                        _appned( " " + f.getName() + " " , node );
-                    _add( node.childNodes().get(i) , state );
-                }
-
-                _appned( ")" , node );
-            }
-            else {
-                _appned( f.getName() + "(" , node );
-            
-                if ( node.childNodes() != null ){
-                    for ( int i=0; i<node.childNodes().size(); i++ ){
-                        if ( i > 0 )
-                            _appned( " , " , node );
-                        _add( node.childNodes().get(i) , state );
-                    }
-                }
-
-                _appned( ")" , node );
-            }
-
+            _addCall( (CallNode)node , state );
         }
         
         else if ( node instanceof DefnNode ){
@@ -114,6 +87,8 @@ public class RubyConvert extends ed.MyAsserts {
             if ( dn.childNodes().size() != 3 )
                 throw new RuntimeException( "DefnNode should only have 3 children" );
             
+            if ( state._className != null )
+                _appned( state._className + ".prototype." , node );
             _appned( dn.getName() + " = function(" , node );
             
             ArgsNode an = dn.getArgsNode();
@@ -129,6 +104,27 @@ public class RubyConvert extends ed.MyAsserts {
             _appned( " ){\n" , node );
             _add( dn.childNodes().get( 2 ) , state );
             _appned( " \n}\n " , node );
+        }
+
+        // --- class stuff ---
+        
+        else if ( node instanceof ClassNode ){
+            // complicated enough to warrant own method
+            _addClass( (ClassNode)node , state );
+        }
+
+        else if ( node instanceof InstAsgnNode ){
+            _assertOne( node );
+            InstAsgnNode lan = (InstAsgnNode)node;
+            _appned( "this." + lan.getName().substring(1) + " = " , node );
+            _add( node.childNodes().get( 0 ) , state );
+            _appned( "" , node );            
+        }
+
+        else if ( node instanceof InstVarNode ){
+            _assertNoChildren( node );
+            InstVarNode lvn = (InstVarNode)node;
+            _appned( "this." + lvn.getName().substring(1) , node );
         }
         
         // --- vars ---
@@ -147,6 +143,12 @@ public class RubyConvert extends ed.MyAsserts {
             _appned( lvn.getName() , node );
         }
 
+        else if ( node instanceof ConstNode ){
+            _assertNoChildren( node );
+            ConstNode lvn = (ConstNode)node;
+            _appned( lvn.getName() , node );
+        }
+        
         else if ( node instanceof DStrNode ){
             _appned( " ( " , node );
             for ( int i=0; i<node.childNodes().size(); i++ ){
@@ -197,6 +199,104 @@ public class RubyConvert extends ed.MyAsserts {
         }
     }
 
+    // ---  code generation types ---
+
+    void _addClass( ClassNode cn , State state ){
+        
+        final String name = cn.getCPath().getName();
+
+        state = state.child();
+        state._className = name;
+
+        _assertType( cn.childNodes().get(0) , Colon2Node.class );
+        _assertType( cn.childNodes().get(1) , BlockNode.class );
+        
+        List<Node> funcs = cn.childNodes().get(1).childNodes();
+        
+        DefnNode init = null;
+        for ( Node c : funcs ){
+            _assertType( c , NewlineNode.class );
+            _assertOne( c );
+            _assertType( c.childNodes().get( 0 ) , DefnNode.class );
+            
+            DefnNode dn = (DefnNode)c.childNodes().get( 0 );
+            if ( dn.getName().equals( "initialize" ) )
+                init = dn;
+        }
+
+        // constructor
+        if ( init == null ){
+            _appned( name + " = function(){};" , cn );
+        }
+        else {
+            _appned( name + " = function(" , init );
+            
+            _appned( "){\n" , init );
+            _add( init.childNodes().get(2) , state );
+            _appned( "\n}\n" , init );
+        }
+
+        for ( Node c : funcs ){
+            DefnNode dn = (DefnNode)c.childNodes().get( 0 );
+            if ( dn == init )
+                continue;
+            
+            _add( dn , state );
+        }
+
+    }
+
+    void _addCall( CallNode call , State state ){
+            
+        if ( _isOperator( call ) ){
+            _addArgs( call , call.childNodes() , state , " " + call.getName() + " " );
+            return;
+        }
+        
+        if ( call.getName().equals( "new" ) ){
+            _appned( " new " , call );
+            _add( call.childNodes().get(0) , state );
+            _addArgs( call , call.childNodes().get(1).childNodes() , state );
+            return;
+        }
+        
+        // normal function call
+        if ( call.childNodes().get(0) instanceof ArrayNode ){
+            _appned( call.getName() , call );
+            _addArgs( call , call.childNodes() , state );
+            return;
+        }
+
+        // class method call
+        _assertType( call.childNodes().get(1) , ArrayNode.class );
+        _add( call.childNodes().get(0) , state );
+        _appned( "." + call.getName() , call );
+        _addArgs( call , call.childNodes().get(1).childNodes() , state );
+
+    }
+
+    // ---- add args ----
+
+    void _addArgs( final Node where , List<Node> lst , final State state ){
+        _addArgs( where , lst , state , " , " );
+    }
+
+    void _addArgs( final Node where , final List<Node> lst , final State state , final String sep ){
+        _appned( "(" , where );
+
+        if ( lst != null ){
+            for ( int i=0; i<lst.size(); i++ ){
+                if ( i > 0 )
+                    _appned( sep , where );
+                _add( lst.get( i ) , state );
+            }
+        }
+
+        _appned( ")" , where );
+    }
+
+    // ---  asserts  ---
+
     void _assertNoChildren( Node n ){
         if ( n.childNodes() != null && n.childNodes().size() > 0 )
             throw new RuntimeException( "has children but shouldn't" );
@@ -209,6 +309,14 @@ public class RubyConvert extends ed.MyAsserts {
             throw new RuntimeException( "need exactly 1 child" );
         
     }
+    
+    void _assertType( Node n , Class c ){
+        if ( n != null && c.isAssignableFrom( n.getClass() ) )
+            return;
+        throw new RuntimeException( n + " is not an instanceof " + c );
+    }
+
+    // ---  utility stuff ---
 
     void _print( int space , Node n ){
         for ( int i=0; i<space; i++ )
@@ -281,6 +389,20 @@ public class RubyConvert extends ed.MyAsserts {
 
     class State {
         
+        State(){
+            this( null );
+        }
+        
+        State( State parent ){
+            _parent = parent;
+        }
+
+        State child(){
+            return new State( this );
+        }
+        
+        final State _parent;
+        String _className;
     }
 
     final String _name;
