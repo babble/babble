@@ -15,7 +15,7 @@ import ed.js.engine.*;
 
 public class RubyConvert extends ed.MyAsserts {
     
-    final static boolean D = Boolean.getBoolean( "DEBUG.RUBY" );
+    final static boolean D = Boolean.getBoolean( "DEBUG.RUBY" ) || true;
 
     public RubyConvert( File f )
         throws IOException {
@@ -144,6 +144,17 @@ public class RubyConvert extends ed.MyAsserts {
             _appned( "this." + lvn.getName().substring(1) , node );
         }
         
+        // --- looping ---
+
+        else if ( node instanceof WhileNode ){
+            _assertType( node.childNodes().get(0) , NewlineNode.class );
+            _appned( "while ( " , node );
+            _add( node.childNodes().get(0).childNodes().get(0) , state );
+            _appned( " ){ \n " , node );
+            _add( node.childNodes().get(1) , state );
+            _appned( "\n } \n " , node );
+        }
+
         // --- vars ---
 
         else if ( node instanceof LocalAsgnNode ){
@@ -180,7 +191,7 @@ public class RubyConvert extends ed.MyAsserts {
             _assertOne( node );
             _add( node.childNodes().get(0).childNodes().get(0) , state );
         }
-
+        
         // --- literals ---
 
         else if ( node instanceof ArrayNode ){
@@ -453,5 +464,9 @@ public class RubyConvert extends ed.MyAsserts {
         _operatorNames.add( "-" );
         _operatorNames.add( "*" );
         _operatorNames.add( "/" );
+        _operatorNames.add( ">" );
+        _operatorNames.add( ">=" );
+        _operatorNames.add( "<" );
+        _operatorNames.add( "<=" );
     }
 }
