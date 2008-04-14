@@ -45,6 +45,11 @@ public class JSTestFactory {
             exPattern = Pattern.compile(exclusionRegex);
         }
 
+        if (!dir.exists()) {
+            System.out.println("ERROR : dir doesn't exist : " + dir);
+            return list.toArray();
+        }
+        
         for (File f : dir.listFiles()) {
             
             boolean include = true;
