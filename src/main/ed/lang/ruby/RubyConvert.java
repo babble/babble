@@ -114,7 +114,7 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof VCallNode ){
             _assertNoChildren( node );
             VCallNode vcn = (VCallNode)node;
-            _appned( vcn.getName() + "()" , node );
+            _appned( Ruby.RUBY_V_CALL + "( " + vcn.getName() + ")" , node );
         }
 
         // --- class stuff ---
@@ -285,16 +285,19 @@ public class RubyConvert extends ed.MyAsserts {
         }
 
         // class method call
-
-        _add( call.childNodes().get(0) , state );
-        _appned( "." + call.getName() , call );
         if ( call.childNodes().size() > 1 ){
+            _add( call.childNodes().get(0) , state );
+            _appned( "." + call.getName() , call );
             _assertType( call.childNodes().get(1) , ArrayNode.class );
             _addArgs( call , call.childNodes().get(1).childNodes() , state );
+            return;
         }
-        else {
-            _appned( "()" , call );
-        }
+        
+        // no-args
+        _appned( Ruby.RUBY_V_CALL + "(" , call );
+        _add( call.childNodes().get(0) , state );
+        _appned( "." + call.getName() , call );
+        _appned( ")" , call );
 
     }
 

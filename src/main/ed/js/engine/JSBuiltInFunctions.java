@@ -641,8 +641,8 @@ public class JSBuiltInFunctions {
         _myScope.put( "javaStaticProp" , new javaStaticProp() , true );
         
         Encoding.install( _myScope );
-        
         JSON.init( _myScope );
+        ed.lang.ruby.Ruby.install( _myScope );
 
         // mail stuff till i'm done
         _myScope.put( "JAVAXMAILTO" , javax.mail.Message.RecipientType.TO , true );
