@@ -10,7 +10,6 @@
     </fileset>
     <pathelement path="conf" />
     <pathelement path="build" />
-    <pathelement path="/opt/java/lib/tools.jar" />
   </path>
 
     <taskdef name="testng" classpathref="classpath"
