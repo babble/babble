@@ -4,8 +4,6 @@
 
   <test name="content">
 	<parameter name="js-dir-name"  value="/data/corejs/content/test"/>
-	<parameter name="js-inc-regex"  value=""/>
-	<parameter name="js-ex-regex"  value=""/>
 	<classes>
       <class name="ed.js.engine.JSTestFactory"/>
     </classes>
@@ -13,8 +11,17 @@
     
     <test name="core">
       <parameter name="js-dir-name"  value="/data/corejs/core/test"/>
-      <parameter name="js-inc-regex"  value=""/>
-      <parameter name="js-ex-regex"  value=""/>
+      <parameter name="js-ex-regex"  value=".*test_routes.js"/>
+      <classes>
+        <class name="ed.js.engine.JSTestFactory"/>
+      </classes>
+    </test>
+
+    <test name="core-routes">
+      <parameter name="js-dir-name"  value="/data/corejs/core/test"/>
+      <parameter name="js-inc-regex"  value=".*test_routes.js"/>
+      <parameter name="js-ex-regex"  value=".*"/>
+      <parameter name="security-bypass"  value="true"/>
       <classes>
         <class name="ed.js.engine.JSTestFactory"/>
       </classes>
@@ -22,8 +29,6 @@
 
     <test name="db">
       <parameter name="js-dir-name"  value="/data/corejs/db/test"/>
-      <parameter name="js-inc-regex"  value=""/>
-      <parameter name="js-ex-regex"  value=""/>
       <classes>
         <class name="ed.js.engine.JSTestFactory"/>
       </classes>
@@ -31,8 +36,6 @@
 
     <test name="ext">
       <parameter name="js-dir-name"  value="/data/corejs/ext/test"/>
-      <parameter name="js-inc-regex"  value=""/>
-      <parameter name="js-ex-regex"  value=""/>
       <classes>
         <class name="ed.js.engine.JSTestFactory"/>
       </classes>
@@ -40,8 +43,6 @@
 
     <test name="io">
       <parameter name="js-dir-name"  value="/data/corejs/io/test"/>
-      <parameter name="js-inc-regex"  value=""/>
-      <parameter name="js-ex-regex"  value=""/>
       <classes>
         <class name="ed.js.engine.JSTestFactory"/>
       </classes>
@@ -49,8 +50,6 @@
 
     <test name="net">
       <parameter name="js-dir-name"  value="/data/corejs/net/test"/>
-      <parameter name="js-inc-regex"  value=""/>
-      <parameter name="js-ex-regex"  value=""/>
       <classes>
         <class name="ed.js.engine.JSTestFactory"/>
       </classes>
@@ -58,8 +57,6 @@
 
     <test name="sandbox">
       <parameter name="js-dir-name"  value="/data/corejs/sandbox/test"/>
-      <parameter name="js-inc-regex"  value=""/>
-      <parameter name="js-ex-regex"  value=""/>
       <classes>
         <class name="ed.js.engine.JSTestFactory"/>
       </classes>
@@ -67,8 +64,6 @@
 
     <test name="ui-chart">
       <parameter name="js-dir-name"  value="/data/corejs/ui/chart/test"/>
-      <parameter name="js-inc-regex"  value=""/>
-      <parameter name="js-ex-regex"  value=""/>
       <classes>
         <class name="ed.js.engine.JSTestFactory"/>
       </classes>
@@ -76,8 +71,6 @@
 
     <test name="util">
       <parameter name="js-dir-name"  value="/data/corejs/util/test"/>
-      <parameter name="js-inc-regex"  value=""/>
-      <parameter name="js-ex-regex"  value=""/>
       <classes>
         <class name="ed.js.engine.JSTestFactory"/>
       </classes>

@@ -21,9 +21,11 @@ import ed.js.func.JSFunctionCalls0;
 public class JSTestInstance {
 
     final File _jsFile;
-    
-    public JSTestInstance(File file) {
+    final String _secBypass;
+
+    public JSTestInstance(File file, String secBypass) {
         _jsFile = file;
+        _secBypass = (secBypass != null && "TRUE".equals(secBypass.toUpperCase())) ? "true" : "false";
     }
 
     /**
@@ -35,8 +37,10 @@ public class JSTestInstance {
     @Test
     public void test() throws Exception {
 
-        System.out.println("JSTestIntance : running " + _jsFile);
-        
+        System.setProperty("ed.js.engine.SECURITY_BYPASS", _secBypass);
+
+        System.out.println("JSTestIntance : running " + _jsFile + ("true".equals(_secBypass) ? " WITH SECURITY BYPASS": ""));
+
         Convert c = new Convert(_jsFile);
 
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
