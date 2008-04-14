@@ -1,0 +1,4 @@
+#!/bin/tcsh
+
+echo running `ls src/test/ed/lang/ruby/$1*.rb`
+ant && ./bin/RubyTestReset $1 && ./runLight.bash ed.lang.ruby.RubyTest src/test/ed/lang/ruby/$1*.rb
