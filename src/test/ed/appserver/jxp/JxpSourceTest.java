@@ -2,6 +2,8 @@
 
 package ed.appserver.jxp;
 
+import java.io.*;
+
 import org.testng.annotations.Test;
 
 public class JxpSourceTest extends ed.TestCase {
