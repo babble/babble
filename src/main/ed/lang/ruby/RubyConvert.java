@@ -15,7 +15,7 @@ import ed.js.engine.*;
 
 public class RubyConvert extends ed.MyAsserts {
     
-    final static boolean D = true;
+    final static boolean D = false;
 
     public RubyConvert( File f )
         throws IOException {
@@ -40,6 +40,8 @@ public class RubyConvert extends ed.MyAsserts {
         if ( node == null || state == null )
             throw new RuntimeException( "can't be null" );
         
+        // --- blocking ----
+
         if ( node instanceof RootNode ){
             _assertOne( node );
             _add( node.childNodes().get(0) , state );
@@ -59,14 +61,21 @@ public class RubyConvert extends ed.MyAsserts {
             _appned( ";\n" , node );
         }
 
+        // --- function stuff ---
+
         else if ( node instanceof FCallNode ){
             FCallNode f = (FCallNode)node;
-            _appned( f.getName() + "(" , node );
-            if ( node.childNodes() != null )
-                for ( Node c : node.childNodes() )
-                    _add( c , state );
+            _appned( _getFuncName( f ) + "(" , node );
+            if ( node.childNodes() != null ){
+                for ( int i=0; i<node.childNodes().size(); i++ ){
+                    if ( i > 0 )
+                        _appned( " , " , node );
+                    _add( node.childNodes().get(i) , state );
+                }
+            }
             _appned( ")" , node );
         }
+
         
         else if ( node instanceof CallNode ){
             CallNode f = (CallNode)node;
@@ -97,19 +106,31 @@ public class RubyConvert extends ed.MyAsserts {
                 _appned( ")" , node );
             }
 
-
-
         }
         
-        else if ( node instanceof ArrayNode ){
-            if ( node.childNodes() == null || 
-                 node.childNodes().size() == 0 ||
-                 node.childNodes().size() > 1 )
-                throw new RuntimeException( "don't know about this yet" );
-            
-            _add( node.childNodes().get(0) , state );
-        }
+        else if ( node instanceof DefnNode ){
 
+            DefnNode dn = (DefnNode)node;
+            if ( dn.childNodes().size() != 3 )
+                throw new RuntimeException( "DefnNode should only have 3 children" );
+            
+            _appned( dn.getName() + " = function(" , node );
+            
+            ArgsNode an = dn.getArgsNode();
+            if ( an != null && an.getArgs() != null ){
+                for ( int i=0; i<an.getArgs().size(); i++ ){
+                    ArgumentNode a = (ArgumentNode)an.getArgs().get(i);
+                    if ( i > 0 )
+                        _appned( " , " , a );
+                    _appned( a.getName() , a );
+                }
+            }
+
+            _appned( " ){\n" , node );
+            _add( dn.childNodes().get( 2 ) , state );
+            _appned( " \n}\n " , node );
+        }
+        
         // --- vars ---
 
         else if ( node instanceof LocalAsgnNode ){
@@ -126,7 +147,35 @@ public class RubyConvert extends ed.MyAsserts {
             _appned( lvn.getName() , node );
         }
 
+        else if ( node instanceof DStrNode ){
+            _appned( " ( " , node );
+            for ( int i=0; i<node.childNodes().size(); i++ ){
+                if ( i > 0 )
+                    _appned( " + " , node );
+                _add( node.childNodes().get(i) , state );
+            }
+            _appned( " ) " , node );
+        }
+
+        else if ( node instanceof EvStrNode ){
+            _assertOne( node );
+            _add( node.childNodes().get(0).childNodes().get(0) , state );
+        }
+
         // --- literals ---
+
+        else if ( node instanceof ArrayNode ){
+            
+            if ( node.childNodes() == null || 
+                 node.childNodes().size() == 0 ){}
+            else if ( node.childNodes().size() > 1 ){ 
+                _print( 0 , node );
+                throw new RuntimeException( "don't know about this yet" );
+            }
+            else {
+                _add( node.childNodes().get(0) , state );
+            }
+        }
 
         else if ( node instanceof FixnumNode ){
             _assertNoChildren( node );
@@ -195,6 +244,15 @@ public class RubyConvert extends ed.MyAsserts {
 
     boolean _isOperator( CallNode node ){
         return _operatorNames.contains( node.getName() );
+    }
+
+    String _getFuncName( FCallNode node ){
+        final String name = node.getName();
+        
+        if ( name.equals( "puts" ) )
+            return "print";
+        
+        return name;
     }
 
     public String getJSSource(){
