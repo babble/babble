@@ -63,6 +63,11 @@ public class Shell {
             } , true );
         
         s.put( "log" , ed.log.Logger.getLogger( "shell" ) ,true );
+        s.put( "scopeWithRoot" , new JSFunctionCalls1(){
+                public Object call( Scope s , Object fileName , Object crap[] ){
+                    return s.child(new File(fileName.toString()));
+                }
+            } , true);
     }
     
     public static void main( String args[] )
