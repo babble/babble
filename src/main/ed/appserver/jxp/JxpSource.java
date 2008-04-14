@@ -28,6 +28,7 @@ public abstract class JxpSource {
     // -----
 
     abstract String getContent() throws IOException;
+    abstract InputStream getInputStream() throws IOException ;
     public abstract long lastUpdated();
     abstract String getName();
     
@@ -47,24 +48,37 @@ public abstract class JxpSource {
         _checkTime();
 
         if ( _func == null ){
-            File temp = null;
+            File jsFile = null;
+            String extension = MimeTypes.getExtension( getName() );
             try {
-                Generator g = Generator.genJavaScript( getBlocks() );
-                _jsCodeToLines = g._jsCodeToLines;
-                _jsCode = g.toString();
-                if ( ! getName().endsWith( ".js" ) )
-                    _jsCode += "\n print( \"\\n\" );";
                 
-
-                temp = new File( _tmpDir , getName().replaceAll( "[^\\w]" , "_" ) + ".js" );
-                _lastFileName = temp.getName();
-
-                FileOutputStream fout = new FileOutputStream( temp );
+                if ( extension.equals( "js" ) 
+                     || extension.equals( "jxp" )
+                     || extension.equals( "html" )
+                     ){
+                    Generator g = Generator.genJavaScript( getBlocks() );
+                    _jsCodeToLines = g._jsCodeToLines;
+                    _jsCode = g.toString();
+                    if ( ! getName().endsWith( ".js" ) )
+                        _jsCode += "\n print( \"\\n\" );";
+                }
+                else if ( extension.equals( "rb" ) ){
+                    ed.lang.ruby.RubyConvert rc = new ed.lang.ruby.RubyConvert( getName() , getInputStream() );
+                    _jsCode = rc.getJSSource();
+                }
+                else {
+                    throw new RuntimeException( "unkown extension [" + extension + "]" );
+                }
+                
+                jsFile = new File( _tmpDir , getName().replaceAll( "[^\\w]" , "_" ) + ".js" );
+                _lastFileName = jsFile.getName();
+                
+                FileOutputStream fout = new FileOutputStream( jsFile );
                 fout.write( _jsCode.getBytes() );
                 fout.close();
                 
                 try {
-                    _convert = new Convert( temp );
+                    _convert = new Convert( jsFile );
                     _func = _convert.get();
                 }
                 catch ( Exception e ){
@@ -73,8 +87,8 @@ public abstract class JxpSource {
                 }
             }
             finally {
-                if ( temp != null && temp.exists() ){
-                    //temp.delete();
+                if ( jsFile != null && jsFile.exists() ){
+                    //jsFile.delete();
                 }
             }
         }
@@ -193,6 +207,11 @@ public abstract class JxpSource {
         String getContent()
             throws IOException {
             return StreamUtil.readFully( _f );
+        }
+
+        InputStream getInputStream()
+            throws IOException {
+            return new FileInputStream( _f );
         }
         
         public long lastUpdated(){
