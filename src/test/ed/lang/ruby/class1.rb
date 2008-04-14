@@ -26,3 +26,7 @@ f.print();
 f.jump( 5 );
 f.print();
 
+
+class Foo2 # < Foo 
+  
+end

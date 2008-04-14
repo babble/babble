@@ -209,9 +209,15 @@ public class RubyConvert extends ed.MyAsserts {
         state._className = name;
 
         _assertType( cn.childNodes().get(0) , Colon2Node.class );
-        _assertType( cn.childNodes().get(1) , BlockNode.class );
         
-        List<Node> funcs = cn.childNodes().get(1).childNodes();
+        List<Node> funcs = null;
+        if ( cn.childNodes().size() > 1 ){
+            _assertType( cn.childNodes().get(1) , BlockNode.class );
+            funcs = cn.childNodes().get(1).childNodes();
+        }
+        else {
+            funcs = new ArrayList<Node>();
+        }
         
         DefnNode init = null;
         for ( Node c : funcs ){
