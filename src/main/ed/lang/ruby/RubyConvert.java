@@ -66,6 +66,12 @@ public class RubyConvert extends ed.MyAsserts {
             _appned( ";\n" , node );
         }
 
+        else if ( node instanceof ReturnNode ){
+            _assertOne( node );
+            _appned( "return " , node );
+            _add( node.childNodes().get(0), state );
+        }
+
         // --- function stuff ---
 
         else if ( node instanceof FCallNode ){

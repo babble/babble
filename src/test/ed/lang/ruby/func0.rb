@@ -12,3 +12,9 @@ def welcome(name)
 end
 welcome("eliot");
 
+print( "\n" );
+
+def blah( z )
+  return z;
+end
+print( blah( "hhh" ) );
