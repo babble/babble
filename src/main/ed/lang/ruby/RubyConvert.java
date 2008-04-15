@@ -232,7 +232,7 @@ public class RubyConvert extends ed.MyAsserts {
     void _addClass( ClassNode cn , State state ){
         
         final String name = cn.getCPath().getName();
-
+        
         state = state.child();
         state._className = name;
 
@@ -270,6 +270,13 @@ public class RubyConvert extends ed.MyAsserts {
             _appned( "\n}\n" , init );
         }
 
+        if ( cn.getSuperNode() != null ){
+            _appned( "\n" + name + ".prototype = new " , cn );
+            _add( cn.getSuperNode() , state );
+            _appned( "();\n" , cn );
+        }
+
+        // other methods
         for ( Node c : funcs ){
             DefnNode dn = (DefnNode)c.childNodes().get( 0 );
             if ( dn == init )
