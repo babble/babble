@@ -31,5 +31,19 @@ class Foo2
 end
 
 
-#class Foo3 < Foo 
-#end
+class Foo3 < Foo 
+  
+  def inc
+    @counter += 2;
+  end
+  
+  def print
+    puts "hhaha\n";
+  end
+
+end
+
+
+f3 = Foo3.new();
+f3.jump( 5 );
+f3.print();
