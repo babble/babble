@@ -50,7 +50,8 @@ public final class StringParseUtil {
         }
         
         try {
-            return Integer.parseInt( s.substring( 0, i ) , radix );
+            // Remember: all numbers in JS are 64-bit
+            return Long.parseLong( s.substring( 0, i ) , radix );
         }
         catch (Exception e) {
             return Double.NaN;
