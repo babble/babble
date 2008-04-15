@@ -10,5 +10,5 @@ done
 
 export headless="-Djava.awt.headless=true"
 
-java -ea -Djava.library.path=include $headless -ea -Xmx1000m -XX:MaxDirectMemorySize=256M "$@"
+java -ea -Djava.library.path=include $headless -ea -Xmx1000m -XX:MaxDirectMemorySize=600M "$@"
 
