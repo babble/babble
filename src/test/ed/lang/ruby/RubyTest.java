@@ -42,7 +42,7 @@ public class RubyTest extends TestCase {
             
             JSFunction myout = new JSFunctionCalls1(){
                     public Object call( Scope scope ,Object o , Object extra[] ){
-                        out.print( o );
+                        out.println( o );
                         return null;
                     }
                 };

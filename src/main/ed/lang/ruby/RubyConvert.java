@@ -219,6 +219,27 @@ public class RubyConvert extends ed.MyAsserts {
             _appned( "\"" , node );
         }
 
+        else if ( node instanceof HashNode ){
+            _assertOne( node );
+            _assertType( node.childNodes().get(0) , ArrayNode.class );
+            
+            _appned( " { " , node );
+            List<Node> lst = node.childNodes().get(0).childNodes();
+            for ( int i=0; i<lst.size(); i+=2 ){
+                if ( i > 0 )
+                    _appned( " , " , node );
+                
+                _add( lst.get(i) , state );
+                _appned( " : " , node );
+                _add( lst.get(i+1) , state );
+                
+            }
+            _appned( " } " , node );
+        }
+        
+
+        // --- end ---
+
         else {
             String msg = "don't yet support : " + node.getClass();
             System.err.println( msg );
@@ -289,6 +310,14 @@ public class RubyConvert extends ed.MyAsserts {
 
     void _addCall( CallNode call , State state ){
             
+        if ( call.getName().equals( "[]" ) ){
+            _add( call.childNodes().get(0) , state );
+            _appned( "[" , call );
+            _add( call.childNodes().get(1) , state );
+            _appned( "]" , call );
+            return;
+        }
+
         if ( _isOperator( call ) ){
             _addArgs( call , call.childNodes() , state , " " + call.getName() + " " );
             return;
@@ -401,6 +430,8 @@ public class RubyConvert extends ed.MyAsserts {
     }
 
     boolean _isOperator( CallNode node ){
+        if ( node.getName().equals( "[]" ) )
+            throw new RuntimeException( "array thing" );
         return _operatorNames.contains( node.getName() );
     }
 
