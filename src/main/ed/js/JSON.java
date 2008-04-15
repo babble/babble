@@ -185,6 +185,11 @@ public class JSON {
                 return;
             }
 
+            if ( something instanceof Scope ){
+                a.append( something.toString() );
+                return;
+            }
+
             JSObject o = (JSObject)something;
 
             { 
