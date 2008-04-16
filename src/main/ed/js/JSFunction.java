@@ -149,6 +149,16 @@ public abstract class JSFunction extends JSFunctionBase {
 
         return p.first;
     }
+    
+    public Object callAndSetThis( Scope s , Object obj , Object args[] ){
+        s.setThis( obj );
+        try {
+            return call( s , args );
+        }
+        finally {
+            s.clearThisNormal( null );
+        }
+    }
 
     private final Scope _scope;
     private final ThreadLocal<Scope> _tlScope = new ThreadLocal<Scope>();
@@ -158,27 +168,26 @@ public abstract class JSFunction extends JSFunctionBase {
 
     protected JSArray _arguments;
     protected String _name = "NO NAME SET";
-
+    
     private LRUCache<Long,Pair<Object,String>> _callCache;
 
     public static JSFunction _call = new ed.js.func.JSFunctionCalls1(){
             public Object call( Scope s , Object obj , Object[] args ){
                 JSFunction func = (JSFunction)s.getThis();
-                s.setThis( obj );
-                try {
-                    return func.call( s , args );
-                }
-                finally {
-                    s.clearThisNormal( null );
-                }
+                return func.callAndSetThis( s , obj , args );
             }
         };
        
     static JSFunction _apply = new ed.js.func.JSFunctionCalls2(){
             public Object call( Scope s , Object obj , Object args , Object [] foo ){
                 JSFunction func = (JSFunction)s.getThis();
-                if(! (args instanceof JSArray) )
-                    throw new RuntimeException("second argument to Function.prototype.apply must be an array");
+
+                if ( args == null )
+                    args = new JSArray();
+
+                if( ! (args instanceof JSArray) )
+                    throw new RuntimeException("second argument to Function.prototype.apply must be an array not a " + args.getClass() );
+
                 JSArray jary = (JSArray)args;
                 s.setThis( obj );
                 try {
