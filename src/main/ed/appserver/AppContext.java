@@ -70,10 +70,19 @@ public class AppContext {
         if ( ! _isGrid ){
             _scope.put( "db" , DBProvider.get( _name , false ) , true );
             _scope.put( "setDB" , new JSFunctionCalls1(){
+
                     public Object call( Scope s , Object name , Object extra[] ){
+			if ( name.equals( _lastSetTo ) )
+			    return true;
+			
                         s.put( "db" , DBProvider.get( name.toString() , false ) , false );
+			_lastSetTo = name.toString();
+
                         return true;
                     }
+		    
+		    String _lastSetTo = null;
+
                 } , true );
         }
 
