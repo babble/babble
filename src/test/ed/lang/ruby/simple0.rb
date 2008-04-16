@@ -1,9 +1,9 @@
 
-print( 5 + 2 );
-print( "\n" );
-print( "abcd" + "123" + "\n" );
+puts( 5 + 2 );
+puts( "\n" );
+puts( "abcd" + "123" + "\n" );
 
 foo = 5;
-print( foo );
+puts( foo );
 foo = 6;
-print( foo );
+puts( foo );

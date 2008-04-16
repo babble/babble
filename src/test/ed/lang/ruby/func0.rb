@@ -1,20 +1,20 @@
 
 def simple()
-  print( "yo" );
+  puts( "yo" );
 end
 
 simple;
 simple();
 
 def welcome(name)
-  print( "howdy" + name );
+  puts( "howdy" + name );
   puts "howdy #{name}"
 end
 welcome("eliot");
 
-print( "\n" );
+puts( "\n" );
 
 def blah( z )
   return z;
 end
-print( blah( "hhh" ) );
+puts( blah( "hhh" ) );
