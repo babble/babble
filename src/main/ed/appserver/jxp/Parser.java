@@ -338,7 +338,8 @@ public class Parser {
 		 || temp == '#' 
                  || temp == '<'
                  || temp == '>'
-                 || temp == '"' )
+                 || temp == '"'
+                 || temp == ':' )
                 return end;
         }
         
