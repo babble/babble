@@ -7,6 +7,7 @@ import java.util.*;
 
 import ed.io.*;
 import ed.util.*;
+import ed.appserver.jxp.JxpSource.Language.*;
 
 public class Parser {
 
@@ -29,9 +30,14 @@ public class Parser {
         int lastline = 1;
         int line = 1;
         
-        final boolean isTemplate = s.getName().endsWith( ".html" );
+        final boolean isTemplate = s.isTemplate();
 
-        Block.Type curType = s.getName().endsWith( ".jxp" ) || s.getName().endsWith( ".html" ) ? Block.Type.HTML : Block.Type.CODE;
+        Block.Type curType = 
+            s.getName().endsWith( ".jxp" ) || 
+            s.getName().endsWith( ".rhtml" ) || 
+            s.getName().endsWith( ".html" ) ? 
+            Block.Type.HTML : Block.Type.CODE;
+        
         StringBuilder buf = new StringBuilder();
         
         boolean newLine = true;
@@ -42,8 +48,22 @@ public class Parser {
         Map<String,Stack<MacroEnd>> tagToStack = new HashMap<String,Stack<MacroEnd>>();
         List<Block> blocks = new ArrayList<Block>();
         
-        if ( isTemplate )
-            blocks.add( Block.create( Block.Type.CODE , "var obj = arguments[0];\n" , -1 ) );
+        if ( isTemplate ){
+            switch ( s.getLanguage() ){
+
+            case JS:
+                blocks.add( Block.create( Block.Type.CODE , "var obj = arguments[0];\n" , -1 ) );
+                break;
+
+            case RUBY:
+                //blocks.add( Block.create( Block.Type.CODE , "var obj = arguments[0];\n" , -1 ) );
+                break;
+                
+            default:
+                throw new RuntimeException( "what? " + s.getName() );
+            }
+
+        }
         
         for ( int i=0; i<data.length(); i++ ){
             lastChar =  i == 0 ? '\n' : data.charAt( i - 1 );

@@ -22,6 +22,11 @@ public class RubyConvert extends ed.MyAsserts {
         this( f.toString() , new FileInputStream( f ) );
     }
 
+    public RubyConvert( String name , String code )
+        throws IOException {
+        this( name , new ByteArrayInputStream( code.getBytes() ) );
+    }
+    
     public RubyConvert( String name , InputStream in )
         throws IOException {
 
