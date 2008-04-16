@@ -46,6 +46,8 @@ public class TestNGListener extends TestListenerAdapter {
             return;
         }
 
+        System.out.println("-" + t.toString()+ "-");
+
         for ( StackTraceElement e : t.getStackTrace() ){
             if ( e.getClassName().startsWith( "org.testng.")) {
                 if (otcount++ == 0) {
