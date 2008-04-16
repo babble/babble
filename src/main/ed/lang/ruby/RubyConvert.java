@@ -15,7 +15,7 @@ import ed.js.engine.*;
 
 public class RubyConvert extends ed.MyAsserts {
     
-    final static boolean D = Boolean.getBoolean( "DEBUG.RUBY" ) || true;
+    final static boolean D = Boolean.getBoolean( "DEBUG.RUBY" );
 
     public RubyConvert( File f )
         throws IOException {
