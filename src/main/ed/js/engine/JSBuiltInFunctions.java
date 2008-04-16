@@ -381,7 +381,9 @@ public class JSBuiltInFunctions {
                 Thread a = new Thread(){
                         public void run(){
                             try {
-                                res.set( "err" , StreamUtil.readFully( p.getErrorStream() ) );
+                                synchronized ( res ){
+                                    res.set( "err" , StreamUtil.readFully( p.getErrorStream() ) );
+                                }
                             }
                             catch ( IOException e ){
                                 threadException[0] = e;
@@ -390,8 +392,10 @@ public class JSBuiltInFunctions {
                     };
                 a.start();
                 
-                res.set( "out" , StreamUtil.readFully( p.getInputStream() ) );
-
+                synchronized( res ){
+                    res.set( "out" , StreamUtil.readFully( p.getInputStream() ) );
+                }
+                
                 a.join();
                 
                 if ( threadException[0] != null )
