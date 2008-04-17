@@ -179,6 +179,12 @@ public class RubyConvert extends ed.MyAsserts {
             _appned( lvn.getName() , node );
         }
 
+        else if ( node instanceof DVarNode ){
+            _assertNoChildren( node );
+            DVarNode lvn = (DVarNode)node;
+            _appned( lvn.getName() , node );
+        }
+
         else if ( node instanceof ConstNode ){
             _assertNoChildren( node );
             ConstNode lvn = (ConstNode)node;
@@ -386,6 +392,27 @@ public class RubyConvert extends ed.MyAsserts {
         if ( call.childNodes().get(0) instanceof ArrayNode ){
             _appned( call.getName() , call );
             _addArgs( call , call.childNodes() , state );
+            return;
+        }
+        
+        // iteration
+        if ( call.childNodes().size() == 2 && 
+             call.childNodes().get(1) instanceof IterNode ){
+            
+            IterNode it = (IterNode)call.childNodes().get(1);
+            _assertType( it.getVarNode() , DAsgnNode.class );
+
+            _appned( Ruby.RUBY_CV_CALL + "( " , call );
+            _add( call.childNodes().get(0) , state );
+            _appned( " , \"" + call.getName() + "\" " , call );
+            _appned( " )" , call );
+            
+            _appned( ".forEach( function(" , call );
+            _appned( ((DAsgnNode)it.getVarNode()).getName() , call );
+            _appned( " ){ \n" , call );
+            _add( it.getBodyNode() , state );
+            _appned( " } ) " , call );
+
             return;
         }
 

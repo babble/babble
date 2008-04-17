@@ -15,13 +15,15 @@ public class Ruby {
         
         s.put( RUBY_V_CALL , new JSFunctionCalls1(){
                 public Object call( Scope s , Object foo , Object extra[] ){
+                    
+                    System.err.println( "foo : " + foo );
 
                     if ( foo == null )
                         return null;
                     
                     if ( foo instanceof JSFunction )
                         return ((JSFunction)foo).call( s );
-                
+                    
                     return foo;
                 }
             } , true );
