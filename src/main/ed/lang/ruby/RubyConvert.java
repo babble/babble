@@ -205,6 +205,13 @@ public class RubyConvert extends ed.MyAsserts {
             _assertOne( node );
             _add( node.childNodes().get(0).childNodes().get(0) , state );
         }
+
+        else if ( node instanceof Colon2Node ){
+            _assertOne( node );
+            Colon2Node cn = (Colon2Node)node;
+            _add( node.childNodes().get(0) , state );
+            _appned( "." + cn.getName() , node );
+        }
         
         // --- literals ---
 
