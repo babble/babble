@@ -253,7 +253,7 @@ public class JSString extends JSObjectBase {
                             throw new RuntimeException( "not a regex : " + o.getClass() );
                             
                         JSRegex r = (JSRegex)o;
-
+                        
                         JSArray a = new JSArray();
                         for ( String pc : r._patt.split( str , -1 ) )
                             a.add( new JSString( pc ) );
@@ -274,7 +274,19 @@ public class JSString extends JSObjectBase {
                 } );
             
 
-                
+            
+            _prototype.set( "each_byte" , new JSFunctionCalls0(){
+                    public Object call(Scope s, Object [] args){
+                        String str = s.getThis().toString();
+                        JSArray a = new JSArray();
+                        for ( int i=0; i<str.length(); i++ ){
+                            a.add( (int)(str.charAt( i )) );
+                        }
+                        return a;
+                    }
+                } );
+            
+
             _prototype.set( "replace" , new JSFunctionCalls2() {
                     public Object call( Scope s , Object o , Object repl , Object crap[] ){
                         String str = s.getThis().toString();
@@ -366,6 +378,7 @@ public class JSString extends JSObjectBase {
                         return new JSString( buf.toString() );
                     }
                 } );
+
 
         }
     };
