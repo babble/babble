@@ -27,33 +27,34 @@ public class Words {
         if ( ! f.exists() )
             throw new RuntimeException( "can't find english dictionary" );
         
+        Set<String> set = new TreeSet<String>();
+
         try {
             BufferedReader in = new BufferedReader( new InputStreamReader( new FileInputStream( f ) ) );
             String line;
             while ( ( line = in.readLine() ) != null ){
-                _words.add( line );
+                set.add( line );
             }
         }
         catch ( IOException ioe ){
             throw new RuntimeException("can't load : " + f , ioe );
         }
+        
+        _words = new ArrayList<String>( set );
     }
     
     public String getRandomWord(){
         int num = (int)(Math.random() * _words.size());
-        Iterator<String> i = _words.iterator();
-        while ( --num > 0 )
-            i.next();
-        return i.next();
+        return _words.get( num );
     }
 
     public boolean isWord( String s ){
-        return _words.contains( s );
+        return Collections.binarySearch( _words , s ) >= 0;
     }
     
     final String _localeString;
-    final Set<String> _words = new HashSet<String>();
-
+    final List<String> _words;
+    
     public String toString(){
         return "Words : " + _localeString;
     }
