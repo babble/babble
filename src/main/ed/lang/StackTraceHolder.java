@@ -29,6 +29,38 @@ public class StackTraceHolder {
         l.add( fixer );
         return l;
     }
+
+    /**
+     * @return null if should be removed, or the correct thing
+    */
+    public StackTraceElement fix( StackTraceElement element ){
+	if ( element == null )
+	    return null;
+	
+	List<StackTraceFixer> fixers = getRelevant( element );
+	if ( fixers == null )
+	    return element;
+
+	fixerLoop:
+	while ( true ){
+	    
+	    for ( StackTraceFixer f : fixers )
+		if ( f.removeSTElement( element ) )
+		    return null;
+	    
+	    for ( StackTraceFixer f : fixers ){
+		StackTraceElement n = f.fixSTElement( element );
+		if ( n == null || n == element )
+		    continue;
+		
+		element = n;
+		continue fixerLoop;
+	    }    
+            
+	    break;
+	}
+	return element;
+    }
     
     public void fix( Throwable t ){
         if ( RAW_EXCPETIONS )
@@ -41,40 +73,19 @@ public class StackTraceHolder {
 
         for ( int i=0; i<stack.length; i++ ){
             
-            StackTraceElement element = stack[i];
+            final StackTraceElement element = stack[i];
             if ( element == null )
                 continue;
-            
-            List<StackTraceFixer> fixers = getRelevant( element );
-            if ( fixers == null )
-                continue;
+	    
+	    final StackTraceElement n = fix( element );
+	    if ( n == element )
+		continue;
 
-            fixerLoop:
-            while ( true ){
-                
-                for ( StackTraceFixer f : fixers ){
-                    if ( ! f.removeSTElement( element ) )
-                        continue;
-                    
-                    removeThings = true;
-                    stack[i] = null;
-                    break fixerLoop;
-                }
-                
-                for ( StackTraceFixer f : fixers ){
-                    StackTraceElement n = f.fixSTElement( element );
-                    if ( n == null || n == element )
-                        continue;
-                    
-                    stack[i] = n;
-                    element = n;
-                    changed = true;
-                    continue fixerLoop;
-                }    
-                
-                break;
-            }
-            
+	    stack[i] = n;
+	    changed = true;
+	    
+	    if ( n == null )
+		removeThings = true;
         }
         
         if ( removeThings ){
