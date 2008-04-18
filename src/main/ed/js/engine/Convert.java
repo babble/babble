@@ -90,6 +90,7 @@ public class Convert implements StackTraceFixer {
         _source = source;
         
         _className = _name.replaceAll(".*/(.*?)","").replaceAll( "[^\\w]+" , "_" );
+        _fullClassName = _package + "." + _className;
         
         CompilerEnvirons ce = new CompilerEnvirons();
         
@@ -1469,11 +1470,8 @@ public class Convert implements StackTraceFixer {
     }
     
     public StackTraceElement fixSTElement( StackTraceElement element , boolean debug ){
-        final String file = getClassName() + ".java";
 
-        String es = element.toString();
-        
-        if ( ! es.contains( file ) )
+        if ( ! element.getClassName().equals( _fullClassName ) )
             return null;
         
         int line = element.getLineNumber();
@@ -1532,6 +1530,7 @@ public class Convert implements StackTraceFixer {
     final String _source;
     final String _encodedSource;
     final String _className;
+    final String _fullClassName;
     final String _package = DEFAULT_PACKAGE;
     final int _id = ID++;    
 
