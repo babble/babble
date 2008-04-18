@@ -28,6 +28,19 @@ public class ConvertTest extends TestCase {
         assertClose( "6" , _makeAnon( "function(){ return 6; }" ).toString() );
     }
 
+    @Test
+    public void testFixStack(){
+
+        JSFunction f = Convert.makeAnon( "x = {};\nx.a.b = 5;\n" );
+        try {
+            f.call( Scope.GLOBAL.child() );
+        }
+        catch ( Exception e ){
+            assertEquals( 2 , e.getStackTrace()[0].getLineNumber() );
+        }
+        
+   } 
+
     Object _makeAnon( String code ){
         return Convert.makeAnon( code ).call( Scope.GLOBAL.child() );
     }

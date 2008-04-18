@@ -9,9 +9,10 @@ import org.mozilla.javascript.*;
 
 import ed.js.*;
 import ed.io.*;
+import ed.lang.*;
 import ed.util.*;
 
-public class Convert {
+public class Convert implements StackTraceFixer {
 
     static boolean D = Boolean.getBoolean( "DEBUG.JS" );
     public static final String DEFAULT_PACKAGE = "ed.js.gen";
@@ -1431,43 +1432,20 @@ public class Convert {
             
             if ( debug ) System.out.println( element );
 
-            if ( element.toString().contains( ".call(JSFunctionCalls" ) || 
-                 element.toString().contains( "ed.js.JSFunctionBase.call(" ) ||
-                 element.toString().contains( "ed.js.engine.JSCompiledScript.call" ) ){
+            if ( removeSTElement( element ) ){
                 removeThings = true;
                 changed = true;
                 stack[i] = null;
                 continue;
             }
 
-            final String file = getClassName() + ".java";
-            
-            String es = element.toString();
-            
-            if ( ! es.contains( file ) )
+            StackTraceElement fixed = fixSTElement( element );
+            if ( fixed == null || fixed == element )
                 continue;
-            
-            int line = StringParseUtil.parseInt( es.substring( es.lastIndexOf( ":" ) + 1 ) , -1 );
-            if ( debug ) System.out.println( "\t" + line );
-            
-            line = ( line - _preMainLines ) - 1;
-            if ( debug ) System.out.println( "\t" + line );
 
-            List<Node> nodes = _javaCodeToLines.get( line );
-            if ( nodes == null )
-                continue;
-            
-            // the +1 is for the way rhino stuff
-            line = _nodeToSourceLine.get( nodes.get(0) ) + 1;
-            
-            ScriptOrFnNode sof = _nodeToSOR.get( nodes.get(0) );
-            String method = "___";
-            if ( sof instanceof FunctionNode )
-                method = ((FunctionNode)sof).getFunctionName();
-            
-            if ( debug ) System.out.println( "\t\t" + line );
-            stack[i] = new StackTraceElement( _name , method , _name , line );
+            stack[i] = fixed;
             changed = true;
+
         }
         
         if ( removeThings ){
@@ -1484,6 +1462,49 @@ public class Convert {
             
         if ( changed )
             e.setStackTrace( stack );
+    }
+
+    public StackTraceElement fixSTElement( StackTraceElement element ){
+        return fixSTElement( element , false );
+    }
+    
+    public StackTraceElement fixSTElement( StackTraceElement element , boolean debug ){
+        final String file = getClassName() + ".java";
+
+        String es = element.toString();
+        
+        if ( ! es.contains( file ) )
+            return null;
+        
+        int line = element.getLineNumber();
+        if ( debug ) System.out.println( "\t" + line );
+        
+        line = ( line - _preMainLines ) - 1;
+        if ( debug ) System.out.println( "\t" + line );
+        
+        List<Node> nodes = _javaCodeToLines.get( line );
+        if ( nodes == null )
+            return null;
+        
+        // the +1 is for the way rhino stuff
+        line = _nodeToSourceLine.get( nodes.get(0) ) + 1;
+        
+        ScriptOrFnNode sof = _nodeToSOR.get( nodes.get(0) );
+        String method = "___";
+        if ( sof instanceof FunctionNode )
+            method = ((FunctionNode)sof).getFunctionName();
+        
+        if ( debug ) System.out.println( "\t\t" + line );
+        return new StackTraceElement( _name , method , _name , line );
+    }
+
+    public boolean removeSTElement( StackTraceElement element ){
+        String s = element.toString();
+        
+        return 
+            s.contains( ".call(JSFunctionCalls" ) || 
+            s.contains( "ed.js.JSFunctionBase.call(" ) ||
+            s.contains( "ed.js.engine.JSCompiledScript.call" );
     }
 
     String getSource( FunctionNode fn ){
