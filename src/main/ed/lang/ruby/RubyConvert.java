@@ -108,7 +108,7 @@ public class RubyConvert extends ed.MyAsserts {
             
             if ( state._className != null )
                 _appned( state._className + ".prototype." , node );
-            _appned( dn.getName() + " = function(" , node );
+            _appned( _mangleFunctionName( dn.getName() ) + " = function(" , node );
             
             ArgsNode an = dn.getArgsNode();
             if ( an != null && an.getArgs() != null ){
@@ -345,7 +345,7 @@ public class RubyConvert extends ed.MyAsserts {
 
         if ( n instanceof NewlineNode ){
             _addClassPiece( n.childNodes().get(0) , state );
-            _appned( ";" , n );
+            _appned( ";\n" , n );
             return;
         }
         
@@ -389,9 +389,9 @@ public class RubyConvert extends ed.MyAsserts {
         }
         
         if ( call.getName().equals( "new" ) ){
-            _appned( " new " , call );
+            _appned( Ruby.RUBY_NEW + "( " , call );
             _add( call.childNodes().get(0) , state );
-            _addArgs( call , call.childNodes().get(1).childNodes() , state );
+            _appned( " ) " , call );
             return;
         }
         
@@ -540,6 +540,13 @@ public class RubyConvert extends ed.MyAsserts {
         
         if ( name.equals( "puts" ) )
             return "print";
+        
+        return _mangleFunctionName( name );
+    }
+
+    String _mangleFunctionName( String name ){
+        if ( name.equals( "new" ) )
+            return Ruby.RUBY_NEWNAME;
         
         return name;
     }
