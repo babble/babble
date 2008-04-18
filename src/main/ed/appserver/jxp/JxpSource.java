@@ -17,7 +17,7 @@ public abstract class JxpSource implements StackTraceFixer {
     
     static enum Language { JS , RUBY };
 
-    static final File _tmpDir = new File( "/tmp/jxp/s/" + Math.random() + "/" );
+    static final File _tmpDir = new File( "/tmp/jxp/templates/" );
     static {
         _tmpDir.mkdirs();
     }
