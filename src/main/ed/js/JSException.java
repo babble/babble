@@ -75,7 +75,7 @@ public class JSException extends RuntimeException implements JSObject {
     }
 
     public Object get( Object n ){
-        throw new UnsupportedOperationException();
+        return null;
     }
 
     public java.util.Collection<String> keySet(){

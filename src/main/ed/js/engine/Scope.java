@@ -111,11 +111,23 @@ public class Scope implements JSObject {
     public Object removeField( String name ){
         return _objects.remove( name );
     }
+    
+    public void putExplicit( String name , Object o ){
 
+        if ( _locked )
+            throw new RuntimeException( "locked" );
+        
+        if ( _killed )
+            throw new RuntimeException( "killed" );
+
+        if ( _objects == null )
+            _objects = new TreeMap<String,Object>();
+        _objects.put( name , o );
+    }
+    
     public Object put( String name , Object o , boolean local ){
 
-        if ( o != null && o instanceof String ) 
-            o = new JSString( o.toString() );
+        o = JSInternalFunctions.fixType( o );
 
         if ( _locked )
             throw new RuntimeException( "locked" );
@@ -144,8 +156,6 @@ public class Scope implements JSObject {
             
             if ( o == null )
                 o = NULL;
-            if ( o instanceof String) 
-                o = new JSString( (String)o );
             if ( _objects == null )
                 _objects = new TreeMap<String,Object>();
 
@@ -563,6 +573,8 @@ public class Scope implements JSObject {
             System.out.print( "G" );
         if ( _killed )
             System.out.print( "K" );
+        if ( _locked )
+            System.out.print( "L" );
         
         System.out.print( ":" );
         if ( _objects != null )

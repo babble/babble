@@ -650,6 +650,10 @@ public class JSBuiltInFunctions {
 
         // mail stuff till i'm done
         _myScope.put( "JAVAXMAILTO" , javax.mail.Message.RecipientType.TO , true );
+
+
+
+        _myScope.lock();
     }
 
     private static char getChar( Object o ){
