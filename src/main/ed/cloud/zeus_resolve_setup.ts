@@ -19,4 +19,4 @@ if ( $h == "origin.10gen.com"
 $h = string.iReplace( $h , ".10gen.com" , ".com" );
 $hr = string.reverse( $h );
 
-log.info( "use host : [" . $h  . "]" );
+#log.info( "use host : [" . $h  . "]" );

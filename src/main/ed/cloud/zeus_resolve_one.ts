@@ -10,7 +10,7 @@ else if ( $hr == "!domainReverse" || string.startsWith( $hr , "!domainReverse." 
         $branch = string.substring( $branch , 0 , string.length( $branch ) - 2 );
     
     
-    log.info( "domain [!domain] branch[" . $branch . "]" );
+    #log.info( "domain [!domain] branch[" . $branch . "]" );
 
     !envs
 }
