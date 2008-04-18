@@ -47,5 +47,7 @@ public enum Level {
         me.set( "INFO" , INFO );
         me.set( "ERROR" , ERROR );
         me.set( "FATAL" , FATAL );
+
+        me.set( "ALL" , DEBUG );
     }
 }
