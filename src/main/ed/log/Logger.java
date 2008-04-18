@@ -7,6 +7,7 @@ import java.util.*;
 import ed.js.*;
 import ed.js.func.*;
 import ed.js.engine.*;
+import ed.lang.*;
 
 public class Logger extends JSFunctionCalls2 {
 
@@ -162,6 +163,14 @@ public class Logger extends JSFunctionCalls2 {
 
         JSDate date = new JSDate();
         Thread thread = Thread.currentThread();
+        
+        try {
+            StackTraceHolder.getInstance().fix( throwable );
+        }
+        catch ( Throwable t ){
+            System.err.println( "couldn't fix stack trace" );
+            t.printStackTrace();
+        }
 
         Logger l = this;
         while ( l != null ){
@@ -173,11 +182,18 @@ public class Logger extends JSFunctionCalls2 {
                     }
                     catch ( Throwable t ){
                         System.err.println( "error running appender" );
+                        try {
+                            StackTraceHolder.getInstance().fix( t );
+                        }
+                        catch ( Throwable tt ){
+                            tt.printStackTrace();
+                        }
+                    
                         t.printStackTrace(); // Logger
                     }
                 }
             }
-
+            
             l = l._parent;
         }
     }
