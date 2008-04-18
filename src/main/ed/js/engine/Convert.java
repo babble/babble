@@ -1403,6 +1403,7 @@ public class Convert implements StackTraceFixer {
             it.setName( _name );
             
             _it = it;
+            StackTraceHolder.getInstance().set( _fullClassName , this );
             return _it;
         }
         catch ( RuntimeException re ){
@@ -1418,9 +1419,7 @@ public class Convert implements StackTraceFixer {
     }
 
     public void fixStack( Throwable e ){
-        StackTraceHolder h = StackTraceHolder.getInstance();
-        h.set( _fullClassName , this );
-        h.fix( e );
+        StackTraceHolder.getInstance().fix( e );
     }
 
     public StackTraceElement fixSTElement( StackTraceElement element ){
