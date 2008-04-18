@@ -1418,51 +1418,9 @@ public class Convert implements StackTraceFixer {
     }
 
     public void fixStack( Throwable e ){
-        final boolean debug = false;
-        
-        boolean removeThings = false;
-        
-        StackTraceElement stack[] = e.getStackTrace();
-        
-        boolean changed = false;
-        for ( int i=0; i<stack.length; i++ ){
-            
-            StackTraceElement element = stack[i];
-            if ( element == null )
-                continue;
-            
-            if ( debug ) System.out.println( element );
-
-            if ( removeSTElement( element ) ){
-                removeThings = true;
-                changed = true;
-                stack[i] = null;
-                continue;
-            }
-
-            StackTraceElement fixed = fixSTElement( element );
-            if ( fixed == null || fixed == element )
-                continue;
-
-            stack[i] = fixed;
-            changed = true;
-
-        }
-        
-        if ( removeThings ){
-            List<StackTraceElement> lst = new ArrayList<StackTraceElement>();
-            for ( StackTraceElement s : stack ){
-                if ( s == null )
-                    continue;
-                lst.add( s );
-            }
-            stack = new StackTraceElement[lst.size()];
-            for ( int i=0; i<stack.length; i++ )
-                stack[i] = lst.get(i);
-        }
-            
-        if ( changed )
-            e.setStackTrace( stack );
+        StackTraceHolder h = StackTraceHolder.getInstance();
+        h.set( _fullClassName , this );
+        h.fix( e );
     }
 
     public StackTraceElement fixSTElement( StackTraceElement element ){
