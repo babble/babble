@@ -8,6 +8,7 @@ import java.util.*;
 import jline.*;
 
 import ed.db.*;
+import ed.lang.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 import ed.appserver.*;
@@ -94,7 +95,7 @@ public class Shell {
                 s.eval( temp );
             }
             catch ( Exception e ){
-                ((JSFileLibrary)s.get("core")).fix( e );
+                StackTraceHolder.getInstance().fix( e );
                 e.printStackTrace();
                 return;
             }
@@ -125,7 +126,7 @@ public class Shell {
             catch ( Exception e ){
                 if ( JS.RAW_EXCPETIONS )
                     e.printStackTrace();
-                ((JSFileLibrary)s.get("core")).fix( e );
+                StackTraceHolder.getInstance().fix( e );
                 e.printStackTrace();
                 System.out.println();
             }

@@ -10,9 +10,10 @@ import ed.io.*;
 import ed.util.*;
 import ed.js.*;
 import ed.js.engine.*;
+import ed.lang.*;
 import ed.appserver.*;
 
-public abstract class JxpSource {
+public abstract class JxpSource implements StackTraceFixer {
     
     static enum Language { JS , RUBY };
 
@@ -106,6 +107,8 @@ public abstract class JxpSource {
                 try {
                     _convert = new Convert( jsFile );
                     _func = _convert.get();
+                    System.out.println( "last file name : " + _lastFileName );
+                    StackTraceHolder.getInstance().set( jsFile.getAbsolutePath() , this );
                 }
                 catch ( Exception e ){
                     System.out.println( e );
@@ -140,38 +143,21 @@ public abstract class JxpSource {
         _servlet = null;
     }
 
-    public void fix( Throwable t ){
+    public StackTraceElement fixSTElement( StackTraceElement element ){
+        if ( _jsCodeToLines == null )
+            return null;
 
-        if ( _convert != null )
-            _convert.fixStack( t );
+        String es = element.toString();
+        
+        if ( _lastFileName != null && ! es.contains( _lastFileName ) )
+            return null;
+        
+        int line = element.getLineNumber();
+        return new StackTraceElement( getName() , element.getMethodName() , getName() , getSourceLine( line ) );
+    }
 
-        if ( _jsCodeToLines != null ){
-            
-            StackTraceElement stack[] = t.getStackTrace();
-            
-            boolean changed = false;
-            for ( int i=0; i<stack.length; i++ ){
-                
-                StackTraceElement element = stack[i];
-                if ( element == null )
-                    continue;
-                
-                String es = element.toString();
-                
-                if ( _lastFileName != null && ! es.contains( _lastFileName ) )
-                    continue;
-                
-                int line = StringParseUtil.parseInt( es.substring( es.lastIndexOf( ":" ) + 1 ) , -1 );
-                
-                stack[i] = new StackTraceElement( getName() , stack[i].getMethodName() , getName() , getSourceLine( line ) );
-                changed = true;
-            }
-            
-            if ( ! changed )
-                return;
-            
-            t.setStackTrace( stack );
-        }
+    public boolean removeSTElement( StackTraceElement element ){
+        return false;
     }
 
     public String getCompileMessage( Exception e ){

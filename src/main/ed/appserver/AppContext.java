@@ -9,6 +9,7 @@ import ed.db.*;
 import ed.js.*;
 import ed.js.func.*;
 import ed.js.engine.*;
+import ed.lang.*;
 import ed.net.httpserver.*;
 import ed.appserver.jxp.*;
 
@@ -414,8 +415,7 @@ public class AppContext {
     }
 
     public void fix( Throwable t ){
-        _jxpObject.fix( t );
-        _core.fix( t );
+        StackTraceHolder.getInstance().fix( t );
     }
 
     public JSArray getGlobalHead(){

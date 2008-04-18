@@ -5,6 +5,8 @@ package ed.lang;
 import java.util.*;
 
 public class StackTraceHolder {
+
+    public static final boolean RAW_EXCPETIONS = Boolean.getBoolean( "RAWE" );
     
     private static final StackTraceHolder INSTANCE = new StackTraceHolder();
     public static final StackTraceHolder getInstance(){
@@ -29,6 +31,8 @@ public class StackTraceHolder {
     }
     
     public void fix( Throwable t ){
+        if ( RAW_EXCPETIONS )
+            return;
         
         boolean removeThings = false;
         boolean changed = false;
