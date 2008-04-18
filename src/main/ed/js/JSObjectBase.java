@@ -111,7 +111,7 @@ public class JSObjectBase implements JSObject {
         if ( _map != null )
             res = _map.get( s );
         
-        if ( res != null && _constructor != null )
+        if ( res == null && _constructor != null )
             res = _constructor._prototype.get( s );
         
         return res;

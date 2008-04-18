@@ -13,9 +13,10 @@ public class JSNumericFunctions extends JSObjectBase {
     }
 
     public static final Object fixType( final Object o ){
-        if ( o == null )
-            return null;
 
+        if ( o == null )
+            return o;
+        
         if ( o instanceof String )
             return new JSString( o.toString() );
 
