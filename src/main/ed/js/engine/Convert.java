@@ -9,9 +9,10 @@ import org.mozilla.javascript.*;
 
 import ed.js.*;
 import ed.io.*;
+import ed.lang.*;
 import ed.util.*;
 
-public class Convert {
+public class Convert implements StackTraceFixer {
 
     static boolean D = Boolean.getBoolean( "DEBUG.JS" );
     public static final String DEFAULT_PACKAGE = "ed.js.gen";
@@ -89,6 +90,7 @@ public class Convert {
         _source = source;
         
         _className = _name.replaceAll(".*/(.*?)","").replaceAll( "[^\\w]+" , "_" );
+        _fullClassName = _package + "." + _className;
         
         CompilerEnvirons ce = new CompilerEnvirons();
         
@@ -1229,7 +1231,7 @@ public class Convert {
 
     public static void _assertType( Node n , int type ){
         if ( type != n.getType() )
-            throw new RuntimeException( "wrong type" );
+            throw new RuntimeException( "wrong type. was : " + Token.name( n.getType() ) + " should be " + Token.name( type )  );
     }
 
     private void _setLineNumbers( Node n , final ScriptOrFnNode sof ){
@@ -1401,6 +1403,7 @@ public class Convert {
             it.setName( _name );
             
             _it = it;
+            StackTraceHolder.getInstance().set( _fullClassName , this );
             return _it;
         }
         catch ( RuntimeException re ){
@@ -1416,74 +1419,47 @@ public class Convert {
     }
 
     public void fixStack( Throwable e ){
-        final boolean debug = false;
-        
-        boolean removeThings = false;
-        
-        StackTraceElement stack[] = e.getStackTrace();
-        
-        boolean changed = false;
-        for ( int i=0; i<stack.length; i++ ){
-            
-            StackTraceElement element = stack[i];
-            if ( element == null )
-                continue;
-            
-            if ( debug ) System.out.println( element );
+        StackTraceHolder.getInstance().fix( e );
+    }
 
-            if ( element.toString().contains( ".call(JSFunctionCalls" ) || 
-                 element.toString().contains( "ed.js.JSFunctionBase.call(" ) ||
-                 element.toString().contains( "ed.js.engine.JSCompiledScript.call" ) ){
-                removeThings = true;
-                changed = true;
-                stack[i] = null;
-                continue;
-            }
+    public StackTraceElement fixSTElement( StackTraceElement element ){
+        return fixSTElement( element , false );
+    }
+    
+    public StackTraceElement fixSTElement( StackTraceElement element , boolean debug ){
 
-            final String file = getClassName() + ".java";
-            
-            String es = element.toString();
-            
-            if ( ! es.contains( file ) )
-                continue;
-            
-            int line = StringParseUtil.parseInt( es.substring( es.lastIndexOf( ":" ) + 1 ) , -1 );
-            if ( debug ) System.out.println( "\t" + line );
-            
-            line = ( line - _preMainLines ) - 1;
-            if ( debug ) System.out.println( "\t" + line );
-
-            List<Node> nodes = _javaCodeToLines.get( line );
-            if ( nodes == null )
-                continue;
-            
-            // the +1 is for the way rhino stuff
-            line = _nodeToSourceLine.get( nodes.get(0) ) + 1;
-            
-            ScriptOrFnNode sof = _nodeToSOR.get( nodes.get(0) );
-            String method = "___";
-            if ( sof instanceof FunctionNode )
-                method = ((FunctionNode)sof).getFunctionName();
-            
-            if ( debug ) System.out.println( "\t\t" + line );
-            stack[i] = new StackTraceElement( _name , method , _name , line );
-            changed = true;
-        }
+        if ( ! element.getClassName().equals( _fullClassName ) )
+            return null;
         
-        if ( removeThings ){
-            List<StackTraceElement> lst = new ArrayList<StackTraceElement>();
-            for ( StackTraceElement s : stack ){
-                if ( s == null )
-                    continue;
-                lst.add( s );
-            }
-            stack = new StackTraceElement[lst.size()];
-            for ( int i=0; i<stack.length; i++ )
-                stack[i] = lst.get(i);
-        }
-            
-        if ( changed )
-            e.setStackTrace( stack );
+        int line = element.getLineNumber();
+        if ( debug ) System.out.println( "\t" + line );
+        
+        line = ( line - _preMainLines ) - 1;
+        if ( debug ) System.out.println( "\t" + line );
+        
+        List<Node> nodes = _javaCodeToLines.get( line );
+        if ( nodes == null )
+            return null;
+        
+        // the +1 is for the way rhino stuff
+        line = _nodeToSourceLine.get( nodes.get(0) ) + 1;
+        
+        ScriptOrFnNode sof = _nodeToSOR.get( nodes.get(0) );
+        String method = "___";
+        if ( sof instanceof FunctionNode )
+            method = ((FunctionNode)sof).getFunctionName();
+        
+        if ( debug ) System.out.println( "\t\t" + line );
+        return new StackTraceElement( _name , method , _name , line );
+    }
+
+    public boolean removeSTElement( StackTraceElement element ){
+        String s = element.toString();
+        
+        return 
+            s.contains( ".call(JSFunctionCalls" ) || 
+            s.contains( "ed.js.JSFunctionBase.call(" ) ||
+            s.contains( "ed.js.engine.JSCompiledScript.call" );
     }
 
     String getSource( FunctionNode fn ){
@@ -1511,6 +1487,7 @@ public class Convert {
     final String _source;
     final String _encodedSource;
     final String _className;
+    final String _fullClassName;
     final String _package = DEFAULT_PACKAGE;
     final int _id = ID++;    
 

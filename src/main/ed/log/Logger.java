@@ -21,7 +21,7 @@ public class Logger extends JSFunctionCalls2 {
         int idx = fullName.indexOf( "." );
         if ( idx > 0 )
             base = fullName.substring( 0 , idx );
-        
+
         l = _fullNameToLogger.get( base );
         if ( l == null )
             l = new Logger( null , base );
@@ -29,7 +29,7 @@ public class Logger extends JSFunctionCalls2 {
         String pcs[] = fullName.split( "\\." );
         for ( int i=1; i<pcs.length; i++ )
             l = (Logger)l.get( pcs[i] );
-        
+
         _fullNameToLogger.put( fullName , l );
         return l;
     }
@@ -40,17 +40,17 @@ public class Logger extends JSFunctionCalls2 {
         _parent = parent;
         _name = name;
         _fullName = _parent == null ? name : _parent._fullName + "." + _name;
+        _sentEmail = new JSDate(0);
 
         if ( ! _fullName.contains( "." ) )
             _fullNameToLogger.put( _fullName , this );
 
         if ( _parent == null )
             _appenders = new ArrayList<Appender>( _defaultAppenders );
-        
     }
 
     // --------------------
-    
+
     public void debug( String msg ){
         log( Level.DEBUG , msg , null );
     }
@@ -82,7 +82,7 @@ public class Logger extends JSFunctionCalls2 {
     // --------------------
 
     public Object call( Scope s , Object oName , Object oT , Object foo[] ){
-        log( Level.INFO , oName.toString() , (Throwable)oT );
+        log( Level.INFO , (oName != null) ? oName.toString() : "null" , (Throwable)oT );
         return null;
     }
 
@@ -92,26 +92,26 @@ public class Logger extends JSFunctionCalls2 {
 
     public Object get( Object n ){
         String s = n.toString();
-        
+
         if ( s.equals( "log" ) )
             return null;
-        
-        if ( s.equals( "debug" ) 
+
+        if ( s.equals( "debug" )
              || s.equals( "info" )
              || s.equals( "error" )
              || s.equals( "fatal" ) )
             return Level.forName( s ).func;
-        
+
         if ( s.equals( "LEVEL" ) )
             return Level.me;
 
         if ( s.equals( "level" ) )
             return _level;
-        
+
         Object foo = super.get( n );
         if ( foo != null )
             return foo;
-        
+
         if ( s.equals( "appenders" ) ){
             if ( _appenders == null )
                 _appenders = new ArrayList<Appender>();
@@ -132,7 +132,7 @@ public class Logger extends JSFunctionCalls2 {
             _level = (Level)v;
             return _level;
         }
-        
+
         if ( s.equals( "appenders" ) )
             throw new RuntimeException( "can't change" );
 
@@ -144,14 +144,14 @@ public class Logger extends JSFunctionCalls2 {
     public Level getEffectiveLevel(){
         if ( _level != null )
             return _level;
-        
+
         Logger t = this._parent;
         while ( t != null ){
             if ( t._level != null )
                 return t._level;
             t = t._parent;
         }
-        
+
         return Level.DEBUG;
     }
 
@@ -162,7 +162,7 @@ public class Logger extends JSFunctionCalls2 {
 
         JSDate date = new JSDate();
         Thread thread = Thread.currentThread();
-        
+
         Logger l = this;
         while ( l != null ){
 
@@ -177,11 +177,11 @@ public class Logger extends JSFunctionCalls2 {
                     }
                 }
             }
-            
+
             l = l._parent;
         }
     }
-    
+
     public void setLevel( Level l ){
         _level = l;
     }
@@ -197,6 +197,7 @@ public class Logger extends JSFunctionCalls2 {
     final Logger _parent;
     final String _name;
     final String _fullName;
+    private JSDate _sentEmail;
     List<Appender> _appenders;
     Level _level = null;
 

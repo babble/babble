@@ -10,9 +10,12 @@ import ed.io.*;
 import ed.util.*;
 import ed.js.*;
 import ed.js.engine.*;
+import ed.lang.*;
 import ed.appserver.*;
 
-public abstract class JxpSource {
+public abstract class JxpSource implements StackTraceFixer {
+    
+    static enum Language { JS , RUBY };
 
     static final File _tmpDir = new File( "/tmp/jxp/s/" + Math.random() + "/" );
     static {
@@ -28,9 +31,25 @@ public abstract class JxpSource {
     // -----
 
     abstract String getContent() throws IOException;
+    abstract InputStream getInputStream() throws IOException ;
     public abstract long lastUpdated();
     abstract String getName();
+
+    boolean isTemplate(){
+        final String name = getName();
+        return 
+            name.endsWith( ".html" ) || 
+            name.endsWith( ".rhtml" );
+    }
     
+    Language getLanguage(){
+        final String name = getName();
+        if ( name.endsWith( ".rb" ) || 
+             name.endsWith( ".rhtml" ) )
+            return Language.RUBY;
+        return Language.JS;
+    }
+
     synchronized List<Block> getBlocks()
         throws IOException {
         _checkTime();
@@ -45,27 +64,51 @@ public abstract class JxpSource {
         throws IOException {
         
         _checkTime();
-
+        
         if ( _func == null ){
-            File temp = null;
+            File jsFile = null;
+            String extension = MimeTypes.getExtension( getName() );
             try {
-                Generator g = Generator.genJavaScript( getBlocks() );
-                _jsCodeToLines = g._jsCodeToLines;
-                _jsCode = g.toString();
-                if ( ! getName().endsWith( ".js" ) )
-                    _jsCode += "\n print( \"\\n\" );";
                 
+                if ( extension.equals( "js" ) 
+                     || extension.equals( "jxp" )
+                     || extension.equals( "rhtml" )
+                     || extension.equals( "html" )
+                     ){
+                    
+                    Generator g = Generator.genJavaScript( getBlocks() );
+                    _jsCodeToLines = g._jsCodeToLines;
+                    _jsCode = g.toString();
+                    
+                    if ( ! getName().endsWith( ".js" ) )
+                        _jsCode += "\n print( \"\\n\" );";
 
-                temp = new File( _tmpDir , getName().replaceAll( "[^\\w]" , "_" ) + ".js" );
-                _lastFileName = temp.getName();
+                    if ( extension.equals( "rhtml" ) ){
+                        ed.lang.ruby.RubyConvert rc = new ed.lang.ruby.RubyConvert( getName() , _jsCode );
+                        _jsCode = rc.getJSSource();
+                    }
 
-                FileOutputStream fout = new FileOutputStream( temp );
+                }
+                else if ( extension.equals( "rb" ) ){
+                    ed.lang.ruby.RubyConvert rc = new ed.lang.ruby.RubyConvert( getName() , getInputStream() );
+                    _jsCode = rc.getJSSource();
+                }
+                else {
+                    throw new RuntimeException( "unkown extension [" + extension + "]" );
+                }
+                
+                jsFile = new File( _tmpDir , getName().replaceAll( "[^\\w]" , "_" ) + ".js" );
+                _lastFileName = jsFile.getName();
+                
+                FileOutputStream fout = new FileOutputStream( jsFile );
                 fout.write( _jsCode.getBytes() );
                 fout.close();
                 
                 try {
-                    _convert = new Convert( temp );
+                    _convert = new Convert( jsFile );
                     _func = _convert.get();
+                    System.out.println( "last file name : " + _lastFileName );
+                    StackTraceHolder.getInstance().set( jsFile.getAbsolutePath() , this );
                 }
                 catch ( Exception e ){
                     System.out.println( e );
@@ -73,8 +116,8 @@ public abstract class JxpSource {
                 }
             }
             finally {
-                if ( temp != null && temp.exists() ){
-                    //temp.delete();
+                if ( jsFile != null && jsFile.exists() ){
+                    //jsFile.delete();
                 }
             }
         }
@@ -100,38 +143,21 @@ public abstract class JxpSource {
         _servlet = null;
     }
 
-    public void fix( Throwable t ){
+    public StackTraceElement fixSTElement( StackTraceElement element ){
+        if ( _jsCodeToLines == null )
+            return null;
 
-        if ( _convert != null )
-            _convert.fixStack( t );
+        String es = element.toString();
+        
+        if ( _lastFileName != null && ! es.contains( _lastFileName ) )
+            return null;
+        
+        int line = element.getLineNumber();
+        return new StackTraceElement( getName() , element.getMethodName() , getName() , getSourceLine( line ) );
+    }
 
-        if ( _jsCodeToLines != null ){
-            
-            StackTraceElement stack[] = t.getStackTrace();
-            
-            boolean changed = false;
-            for ( int i=0; i<stack.length; i++ ){
-                
-                StackTraceElement element = stack[i];
-                if ( element == null )
-                    continue;
-                
-                String es = element.toString();
-                
-                if ( _lastFileName != null && ! es.contains( _lastFileName ) )
-                    continue;
-                
-                int line = StringParseUtil.parseInt( es.substring( es.lastIndexOf( ":" ) + 1 ) , -1 );
-                
-                stack[i] = new StackTraceElement( getName() , stack[i].getMethodName() , getName() , getSourceLine( line ) );
-                changed = true;
-            }
-            
-            if ( ! changed )
-                return;
-            
-            t.setStackTrace( stack );
-        }
+    public boolean removeSTElement( StackTraceElement element ){
+        return false;
     }
 
     public String getCompileMessage( Exception e ){
@@ -193,6 +219,11 @@ public abstract class JxpSource {
         String getContent()
             throws IOException {
             return StreamUtil.readFully( _f );
+        }
+
+        InputStream getInputStream()
+            throws IOException {
+            return new FileInputStream( _f );
         }
         
         public long lastUpdated(){

@@ -12,7 +12,36 @@ public class JSNumericFunctions extends JSObjectBase {
         super( cons );
     }
 
-    public static boolean couldBeInt( double d ){
+    public static final Object fixType( final Object o ){
+
+        if ( o == null )
+            return o;
+        
+        if ( o instanceof String )
+            return new JSString( o.toString() );
+
+        if ( o instanceof Number ){
+            if ( o instanceof Float || 
+                 o instanceof Double ){
+                
+                final Number n = (Number)o;
+                final double d = n.doubleValue();
+                
+                if ( couldBeInt( d ) )
+                    return n.intValue();
+
+                if ( couldBeLong( d ) )
+                    return (long)d;
+            }
+            
+            return o;
+        }
+        
+        
+        return o;
+    }
+
+    public static final boolean couldBeInt( final double d ){
         if ( d > Integer.MAX_VALUE / 2 )
             return false;
         
@@ -23,6 +52,17 @@ public class JSNumericFunctions extends JSObjectBase {
             return false;
 
         return true;
+    }
+
+    public static final boolean couldBeLong( final double d ){
+        if ( d > Long.MAX_VALUE / 2 )
+            return false;
+        
+        if ( d < Long.MIN_VALUE / 2 )
+            return false;
+        
+        long l = (long)d;
+        return l == d;
     }
 
     public Object JS_mul( Object a , Object b ){
@@ -43,13 +83,11 @@ public class JSNumericFunctions extends JSObjectBase {
                 
                 int mul = an.intValue() * bn.intValue();
 
-                boolean ok = true;
-
                 if ( ai > 0 && bi > 0 && mul < 0 );
                 else return mul;
             }
             
-            return an.doubleValue() * bn.doubleValue();
+            return fixType( an.doubleValue() * bn.doubleValue() );
         }
         
         return Double.NaN;
@@ -65,7 +103,7 @@ public class JSNumericFunctions extends JSObjectBase {
             Number an = (Number)a;
             Number bn = (Number)b;
 
-            return an.doubleValue() / bn.doubleValue();
+            return fixType( an.doubleValue() / bn.doubleValue() );
         }
         
         return Double.NaN;
@@ -103,7 +141,7 @@ public class JSNumericFunctions extends JSObjectBase {
                  bn instanceof Integer )
                 return an.intValue() + bn.intValue();
             
-            return an.doubleValue() + bn.doubleValue();
+            return fixType( an.doubleValue() + bn.doubleValue() );
         }
         
         if ( ( a != null && ( a instanceof Number ) && b == null ) ||

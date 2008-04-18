@@ -1,0 +1,8 @@
+#!/bin/tcsh
+    
+foreach f ( `ls src/test/ed/lang/ruby/$1*.rb` )
+    echo $f
+    set o = `echo $f | grep -o "[a-zA-Z0-9/]\+\."`out
+    echo $o
+    ruby $f > $o
+end

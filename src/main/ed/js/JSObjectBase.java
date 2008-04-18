@@ -81,7 +81,7 @@ public class JSObjectBase implements JSObject {
             n = n.toString();
         
         if ( ! "__preGet".equals( n ) ){
-            Object foo = containsKey( "__preGet" );
+            Object foo = _simpleGet( "__preGet" );
             if ( foo != null && foo instanceof JSFunction ){
                 Scope s = Scope.getLastCreated();
                 if ( s != null ){
@@ -96,18 +96,25 @@ public class JSObjectBase implements JSObject {
             }
         }
 
-        if ( n instanceof String ){
-            Object res = _map == null ? null : _map.get( ((String)n) );
-            if ( res == null && _constructor != null ){
-                res = _constructor._prototype.get( n );
-            }
-            return res;
-        }
+        if ( n instanceof String )
+            return _simpleGet( (String)n );
         
         if ( n instanceof Number )
             return getInt( ((Number)n).intValue() );
         
         throw new RuntimeException( "object key can't be a [" + n.getClass() + "]" );
+    }
+
+    private Object _simpleGet( String s ){
+        Object res = null;
+        
+        if ( _map != null )
+            res = _map.get( s );
+        
+        if ( res == null && _constructor != null )
+            res = _constructor._prototype.get( s );
+        
+        return res;
     }
 
     public Object removeField( Object n ){

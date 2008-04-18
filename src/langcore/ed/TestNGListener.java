@@ -31,20 +31,46 @@ public class TestNGListener extends TestListenerAdapter {
     public void onFinish(ITestContext context){
         System.out.println();
         for ( ITestResult r : context.getFailedTests().getAllResults() ){
-            System.out.println( r );
-            if ( r.getThrowable() != null )
-                _print( r.getThrowable() );
+            System.out.println(r);
+            System.out.println("Exception : ");
+            _print( r.getThrowable() );
         }
     }
     
     private void _print( Throwable t ){
-        for ( StackTraceElement e : t.getStackTrace() ){
-            if ( e.getClassName().startsWith( "org.testng." ) ||
-                 e.getClassName().startsWith( "sun.reflect." ) )
-                continue;
 
-            System.out.println( e );
+        int otcount = 0;
+        int jlrcount = 0;
+
+        if (t == null) {
+            return;
         }
+
+        System.out.println("-" + t.toString()+ "-");
+
+        for ( StackTraceElement e : t.getStackTrace() ){
+            if ( e.getClassName().startsWith( "org.testng.")) {
+                if (otcount++ == 0) {
+                    System.out.println("  " + e + " (with others of org.testng.* omitted)");
+                }
+            }
+            else if (e.getClassName().startsWith( "java.lang.reflect.") || e.getClassName().startsWith("sun.reflect.") ) {
+                if (jlrcount++ == 0) {
+                    System.out.println("  " + e  + " (with others of java.lang.reflect.* or sun.reflect.* omitted)");
+                }
+            }
+            else {
+                System.out.println("  " +  e );
+            }
+        }
+
+        if (t.getCause() != null) {
+            System.out.println("Caused By : ");
+        
+            _print(t.getCause());
+        }
+
+        System.out.println();
     }
     
     private int _count = 0;

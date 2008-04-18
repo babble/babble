@@ -2,6 +2,8 @@
 
 package ed.appserver.jxp;
 
+import java.io.*;
+
 import org.testng.annotations.Test;
 
 public class JxpSourceTest extends ed.TestCase {
@@ -19,6 +21,10 @@ public class JxpSourceTest extends ed.TestCase {
 
         String getContent() {
             return _s;
+        }
+
+        InputStream getInputStream(){
+            return new ByteArrayInputStream( _s.getBytes() );
         }
         
         public long lastUpdated(){

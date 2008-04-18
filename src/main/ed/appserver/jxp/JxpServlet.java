@@ -10,6 +10,7 @@ import ed.js.*;
 import ed.util.*;
 import ed.js.engine.*;
 import ed.js.func.*;
+import ed.lang.*;
 
 import ed.appserver.*;
 import ed.net.httpserver.*;
@@ -73,8 +74,7 @@ public class JxpServlet {
                 if ( re.getCause() != null && re.getCause() instanceof RuntimeException )
                     re = (RuntimeException)re.getCause();
             }
-            _source.fix( re );
-            _context.fix( re );
+            StackTraceHolder.getInstance().fix( re );
             throw re;
         }
         

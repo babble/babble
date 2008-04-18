@@ -235,18 +235,7 @@ public class JSFileLibrary extends JSObjectBase {
         }
         
     }
-    static String _srcExtensions[] = new String[] { ".js" , ".jxp" , ".html" };
-    
-    public void fix( Throwable t ){
-        for ( JxpSource s : _sources.values() )
-            s.fix( t );
-
-        for ( String s : keySet() ){
-            Object foo = super.get( s );
-            if ( foo instanceof JSFileLibrary )
-                ((JSFileLibrary)foo).fix( t );
-        }
-    }
+    static String _srcExtensions[] = new String[] { ".js" , ".jxp" , ".html" , ".rb" , ".rhtml" };
     
     final File _base;
     final String _uriBase;

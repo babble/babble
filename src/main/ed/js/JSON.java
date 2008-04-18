@@ -99,6 +99,8 @@ public class JSON {
                     a.append("\\n");
                 else if(c == '\r')
                     a.append("\\r");
+                else if(c == '\t')
+                    a.append("\\t");
                 else 
                     a.append(c);
             }
@@ -180,6 +182,11 @@ public class JSON {
                     go( a , arr._array.get( i ) , trusted, indent , nl );
                 }
                 a.append( " ]" );
+                return;
+            }
+
+            if ( something instanceof Scope ){
+                a.append( something.toString() );
                 return;
             }
 

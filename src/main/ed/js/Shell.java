@@ -8,6 +8,7 @@ import java.util.*;
 import jline.*;
 
 import ed.db.*;
+import ed.lang.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 import ed.appserver.*;
@@ -63,6 +64,11 @@ public class Shell {
             } , true );
         
         s.put( "log" , ed.log.Logger.getLogger( "shell" ) ,true );
+        s.put( "scopeWithRoot" , new JSFunctionCalls1(){
+                public Object call( Scope s , Object fileName , Object crap[] ){
+                    return s.child(new File(fileName.toString()));
+                }
+            } , true);
     }
     
     public static void main( String args[] )
@@ -89,7 +95,7 @@ public class Shell {
                 s.eval( temp );
             }
             catch ( Exception e ){
-                ((JSFileLibrary)s.get("core")).fix( e );
+                StackTraceHolder.getInstance().fix( e );
                 e.printStackTrace();
                 return;
             }
@@ -120,7 +126,7 @@ public class Shell {
             catch ( Exception e ){
                 if ( JS.RAW_EXCPETIONS )
                     e.printStackTrace();
-                ((JSFileLibrary)s.get("core")).fix( e );
+                StackTraceHolder.getInstance().fix( e );
                 e.printStackTrace();
                 System.out.println();
             }

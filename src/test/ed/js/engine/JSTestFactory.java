@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 
 import org.testng.annotations.Factory;
 import org.testng.annotations.Parameters;
+import org.testng.annotations.Optional;
 
 /**
  * Factory to create tests for each JS test we have.  
@@ -22,9 +23,12 @@ public class JSTestFactory {
      *  Creates an array of JSTestIntance objects, each representing
      *  one js file in whatever directory we're targeted at
      */
-    @Parameters({"js-dir-name", "js-inc-regex", "js-ex-regex"})
+    @Parameters({"js-dir-name", "js-inc-regex", "js-ex-regex", "security-bypass"})
     @Factory
-    public Object[] createJSTestInstances(String jsDirName, String inclusionRegex, String exclusionRegex) {
+    public Object[] createJSTestInstances(String jsDirName, @Optional("") String inclusionRegex,
+                                          @Optional("") String exclusionRegex,
+                                          @Optional("false") String secBypass) {
+
 
         List<JSTestInstance> list = new ArrayList<JSTestInstance>();
 
@@ -41,18 +45,25 @@ public class JSTestFactory {
             exPattern = Pattern.compile(exclusionRegex);
         }
 
+        if (!dir.exists()) {
+            System.out.println("ERROR : dir doesn't exist : " + dir);
+            return list.toArray();
+        }
+        
         for (File f : dir.listFiles()) {
- 
+            
             boolean include = true;
             
             if (f.toString().endsWith(JS_FILE_ENDING)) {
             
                 if (inPattern != null) {
                     include = inPattern.matcher(f.toString()).matches();
+                    list.add(new JSTestInstance(f, secBypass));
+                    continue;
                 }
 
                 if (exPattern != null) {
-                    
+
                     if (exPattern.matcher(f.toString()).matches()) {
                         System.out.println("JSTestFactory : regexp exclusion of " + f.toString());
                         include = false;
@@ -60,7 +71,7 @@ public class JSTestFactory {
                 }
                 
                 if (include) {
-                    list.add(new JSTestInstance(f));
+                    list.add(new JSTestInstance(f, secBypass));
                 }            
             }
         }
