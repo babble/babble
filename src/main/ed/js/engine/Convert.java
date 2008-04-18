@@ -1403,7 +1403,12 @@ public class Convert implements StackTraceFixer {
             it.setName( _name );
             
             _it = it;
+
             StackTraceHolder.getInstance().set( _fullClassName , this );
+            StackTraceHolder.getInstance().setPackage( "ed.js" , this );
+            StackTraceHolder.getInstance().setPackage( "ed.js.func" , this );
+            StackTraceHolder.getInstance().setPackage( "ed.js.engine" , this );
+
             return _it;
         }
         catch ( RuntimeException re ){
@@ -1428,7 +1433,7 @@ public class Convert implements StackTraceFixer {
     
     public StackTraceElement fixSTElement( StackTraceElement element , boolean debug ){
 
-        if ( ! element.getClassName().equals( _fullClassName ) )
+        if ( ! element.getClassName().startsWith( _fullClassName ) )
             return null;
         
         int line = element.getLineNumber();

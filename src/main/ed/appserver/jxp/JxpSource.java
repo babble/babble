@@ -107,7 +107,6 @@ public abstract class JxpSource implements StackTraceFixer {
                 try {
                     _convert = new Convert( jsFile );
                     _func = _convert.get();
-                    System.out.println( "last file name : " + _lastFileName );
                     StackTraceHolder.getInstance().set( jsFile.getAbsolutePath() , this );
                 }
                 catch ( Exception e ){
