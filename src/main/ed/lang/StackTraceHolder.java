@@ -95,6 +95,9 @@ public class StackTraceHolder {
     }
     
     public void fix( Throwable t ){
+        if ( t == null )
+            return;
+        
         if ( RAW_EXCPETIONS )
             return;
         
