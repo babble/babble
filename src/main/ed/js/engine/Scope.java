@@ -212,6 +212,17 @@ public class Scope implements JSObject {
             }
             return foo;
         }
+
+        Scope pref = getTLPreferred();
+        if ( pref != null && pref._objects.containsKey( name ) ){
+
+            if ( finder ) throw new ScopeFinder( name , this );
+            
+            Object temp = pref._objects.get( name );
+            if ( temp == NULL )
+                return null;
+            return temp;
+        }
         
         Object foo =  _killed || _objects  == null ? null : _objects.get( name );
         if ( foo != null ){
@@ -245,17 +256,6 @@ public class Scope implements JSObject {
             return alt.get( origName , null );
         }
 
-        Scope pref = getTLPreferred();
-        if ( pref != null && pref._objects.containsKey( name ) ){
-
-            if ( finder ) throw new ScopeFinder( name , this );
-            
-            Object temp = pref._objects.get( name );
-            if ( temp == NULL )
-                return null;
-            return temp;
-        }
-        
         if ( _parent == null )
             return null;
         
