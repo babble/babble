@@ -97,7 +97,7 @@ public abstract class JxpSource implements StackTraceFixer {
                     throw new RuntimeException( "unkown extension [" + extension + "]" );
                 }
                 
-                jsFile = new File( _tmpDir , getName().replaceAll( "[^\\w]" , "_" ) + ".js" );
+                jsFile = new File( _tmpDir , _getFileSafeName() + ".js" );
                 _lastFileName = jsFile.getName();
                 
                 FileOutputStream fout = new FileOutputStream( jsFile );
@@ -123,6 +123,9 @@ public abstract class JxpSource implements StackTraceFixer {
         return _func;
     }
     
+    private String _getFileSafeName(){
+        return getName().replaceAll( "[^\\w]" , "_" );
+    }
 
     public JxpServlet getServlet( AppContext context )
         throws IOException {
