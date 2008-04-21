@@ -760,6 +760,10 @@ public class Convert implements StackTraceFixer {
         
         n = mainBlock.getNext();
 
+        final int num  = (int)(Math.random() * 100000 );
+        final String javaEName = "javaEEE" + num;
+        final String javaName = "javaEEEO" + num;
+
         while ( n != null ){
 
             if ( n.getType() == Token.FINALLY ){
@@ -774,36 +778,58 @@ public class Convert implements StackTraceFixer {
             if ( n.getType() == Token.LOCAL_BLOCK &&
                  n.getFirstChild().getType() == Token.CATCH_SCOPE ){
                 
-                Node c = n.getFirstChild();
-                Node b = c.getNext();
-                
-                _assertType( b , Token.BLOCK );
-                _assertType( b.getFirstChild() , Token.ENTERWITH );
-                _assertType( b.getFirstChild().getNext() , Token.WITH );
-                
-                b = b.getFirstChild().getNext().getFirstChild();
-                _assertType( b , Token.BLOCK );
-                                
-                //Debug.printTree( b , 0 );
-                
-                String jsName = c.getFirstChild().getString();
-                String javaName = "javaEEE" + jsName;
-                _append( " catch ( Throwable " + javaName + " ){ \n " , c );
+                _append( " \n catch ( Throwable " + javaEName + " ){ \n " , n );
+                _append( " \n Object " + javaName + " = ( " + javaEName + " instanceof JSException ) ? " + 
+                         "  ((JSException)" + javaEName + ").getObject() : " + javaEName + " ; \n" , n );
 
-                _append( " if ( " + javaName + " instanceof JSException ) " , c );
-                _append( " scope.put( \"" + jsName + "\" , ((JSException)" + javaName + ").getObject() , true ); " , c );
-                _append( " else \n " , c );
-                _append( " scope.put( \"" + jsName + "\" , " + javaName + " , true ); " , c );
+                Node catchScope = n.getFirstChild();
                 
-                b = b.getFirstChild();
-                while ( b != null ){
-                    if ( b.getType() == Token.LEAVEWITH )
+                while ( catchScope != null ){
+                    
+                    final Node c = catchScope;
+                    if ( c.getType() != Token.CATCH_SCOPE )
                         break;
-                    _add( b , state );
-                    b = b.getNext();
-                }
-                _append( " } \n " , c );
 
+                    Node b = c.getNext();
+                    _assertType( b , Token.BLOCK );
+                    _assertType( b.getFirstChild() , Token.ENTERWITH );
+                    _assertType( b.getFirstChild().getNext() , Token.WITH );
+                    
+                    b = b.getFirstChild().getNext().getFirstChild();
+                    _assertType( b , Token.BLOCK );
+                    
+                    String jsName = c.getFirstChild().getString();
+                    
+                    _append( " scope.put( \"" + jsName + "\" , " + javaName + " , true ); " , c );
+                    
+                    b = b.getFirstChild();
+                    
+                    boolean isIF = b.getType() == Token.IFNE;
+
+                    if ( isIF ){
+                        _append( "\n if ( " + javaName + " != null && JS_evalToBool( " , b );
+                        _add( b.getFirstChild() , state );
+                        _append( " ) ){ \n " , b  );
+                        b = b.getNext().getFirstChild();
+                    }
+                    
+                    while ( b != null ){
+                        if ( b.getType() == Token.LEAVEWITH )
+                            break;
+                        _add( b , state );
+                        b = b.getNext();
+                    }
+                    
+                    if ( isIF ){
+                        _append( javaName + " = null ;\n" , b );
+                        _append( "\n } \n " , b );
+                    }
+                    
+                    catchScope = catchScope.getNext().getNext();
+                }
+                
+                _append( "\n } \n " , n ); // ends catch
+                    
                 n = n.getNext();
                 continue;
             }
@@ -814,8 +840,14 @@ public class Convert implements StackTraceFixer {
                 n = n.getNext();
                 continue;
             }
-
-            throw new RuntimeException( "what : " + n.getType() );
+            
+            if ( n.getType() == Token.RETHROW ){
+                //_append( "\nthrow " + javaEName + ";\n" , n );
+                n = n.getNext();
+                continue;
+            }
+            
+            throw new RuntimeException( "what : " + Token.name( n.getType() ) );
         }
     }
     
