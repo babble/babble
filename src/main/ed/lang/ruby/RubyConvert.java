@@ -77,6 +77,10 @@ public class RubyConvert extends ed.MyAsserts {
             _add( node.childNodes().get(0), state );
         }
 
+        else if ( node instanceof IterNode ){
+            _addIterBlock( (IterNode)node , state );
+        }
+
         // --- function stuff ---
 
         else if ( node instanceof FCallNode ){
@@ -286,11 +290,19 @@ public class RubyConvert extends ed.MyAsserts {
     // ---  code generation types ---
 
     void _addIterBlock( IterNode it , State state ){
-        _appned( ".forEach( function(" , it );
-        _appned( ((DAsgnNode)it.getVarNode()).getName() , it );
+        _appned( "function(" , it );
+        if ( it.getVarNode() != null ){
+            final Node var = it.getVarNode();
+            if ( var instanceof DAsgnNode )
+                _appned( ((DAsgnNode)var).getName() , it );
+            else if ( var instanceof ConstDeclNode )
+                _appned( ((ConstDeclNode)var).getName() , it );
+            else
+                throw new RuntimeException( "don't know what to do with : " + var );
+        }
         _appned( " ){ \n" , it );
         _add( it.getBodyNode() , state );
-        _appned( " } ) " , it );
+        _appned( " }" , it );
     }
 
     void _addClass( ClassNode cn , State state ){
@@ -417,27 +429,8 @@ public class RubyConvert extends ed.MyAsserts {
             return;
         }
         
-        // iteration
-        if ( call.childNodes().size() == 2 && 
-             call.childNodes().get(1) instanceof IterNode ){
-            
-            IterNode it = (IterNode)call.childNodes().get(1);
-            _assertType( it.getVarNode() , DAsgnNode.class , call );
-
-            _appned( Ruby.RUBY_CV_CALL + "( " , call );
-            _add( call.childNodes().get(0) , state );
-            _appned( " , \"" + call.getName() + "\" " , call );
-            _appned( " )" , call );
-            
-            _addIterBlock( it , state );
-
-            return;
-        }
-
         // class method call
         if ( call.childNodes().size() > 1 ){
-
-            _assertType( call.childNodes().get(1) , ArrayNode.class );
             
             Node self = call.childNodes().get(0);
             Node args = call.childNodes().get(1);
@@ -445,7 +438,13 @@ public class RubyConvert extends ed.MyAsserts {
             if ( args.childNodes().size() > 0 ){
                 _add( call.childNodes().get(0) , state );
                 _appned( "." + call.getName() , call );
-                _addArgs( call , call.childNodes().get(1).childNodes() , state );
+                if ( args instanceof ArrayNode )
+                    _addArgs( call , args.childNodes() , state );
+                else {
+                    _appned( "(" , call );
+                    _add( args , state );
+                    _appned( ")" , call );
+                }
             }
             else {
                 _appned( Ruby.RUBY_CV_CALL + "( " , call);
@@ -509,7 +508,16 @@ public class RubyConvert extends ed.MyAsserts {
             return;
         if ( toDisplay != null )
             _print( 0 , toDisplay );
-        throw new RuntimeException( n + " is not an instanceof " + c );
+        
+
+        
+        String msg = n + " is not an instanceof " + c;
+        {
+            Node line = n != null ? n : toDisplay;
+            if ( line != null )
+                msg += " line: " + line.getPosition();
+        }
+        throw new RuntimeException( msg );
     }
 
     // ---  utility stuff ---

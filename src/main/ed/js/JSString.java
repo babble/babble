@@ -275,14 +275,19 @@ public class JSString extends JSObjectBase {
             
 
             
-            _prototype.set( "each_byte" , new JSFunctionCalls0(){
-                    public Object call(Scope s, Object [] args){
+            _prototype.set( "each_byte" , new JSFunctionCalls1(){
+                    public Object call(Scope s, Object funcObject , Object [] args){
+
+                        if ( funcObject == null )
+                            throw new NullPointerException( "each_byte needs a function" );
+                        
+                        JSFunction func = (JSFunction)funcObject;
+
                         String str = s.getThis().toString();
-                        JSArray a = new JSArray();
                         for ( int i=0; i<str.length(); i++ ){
-                            a.add( (int)(str.charAt( i )) );
+                            func.call( s , (int)str.charAt( i ) );
                         }
-                        return a;
+                        return null;
                     }
                 } );
             
