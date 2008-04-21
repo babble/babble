@@ -82,7 +82,14 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof FCallNode ){
             FCallNode f = (FCallNode)node;
 
-            if ( f.getArgsNode() == null || 
+            if ( f.childNodes().size() == 1 &&
+                 f.childNodes().get(0) instanceof IterNode ){
+                
+                _appned( Ruby.RUBY_V_CALL + "(" + _getFuncName( f ) + ")" , f );
+                _addIterBlock( (IterNode)f.childNodes().get(0) , state );
+                
+            }
+            else if ( f.getArgsNode() == null || 
                  f.getArgsNode().childNodes() == null || 
                  f.getArgsNode().childNodes().size() == 0 ){
                 // no args
@@ -278,6 +285,14 @@ public class RubyConvert extends ed.MyAsserts {
 
     // ---  code generation types ---
 
+    void _addIterBlock( IterNode it , State state ){
+        _appned( ".forEach( function(" , it );
+        _appned( ((DAsgnNode)it.getVarNode()).getName() , it );
+        _appned( " ){ \n" , it );
+        _add( it.getBodyNode() , state );
+        _appned( " } ) " , it );
+    }
+
     void _addClass( ClassNode cn , State state ){
         
         final String name = cn.getCPath().getName();
@@ -407,18 +422,14 @@ public class RubyConvert extends ed.MyAsserts {
              call.childNodes().get(1) instanceof IterNode ){
             
             IterNode it = (IterNode)call.childNodes().get(1);
-            _assertType( it.getVarNode() , DAsgnNode.class );
+            _assertType( it.getVarNode() , DAsgnNode.class , call );
 
             _appned( Ruby.RUBY_CV_CALL + "( " , call );
             _add( call.childNodes().get(0) , state );
             _appned( " , \"" + call.getName() + "\" " , call );
             _appned( " )" , call );
             
-            _appned( ".forEach( function(" , call );
-            _appned( ((DAsgnNode)it.getVarNode()).getName() , call );
-            _appned( " ){ \n" , call );
-            _add( it.getBodyNode() , state );
-            _appned( " } ) " , call );
+            _addIterBlock( it , state );
 
             return;
         }
@@ -490,8 +501,14 @@ public class RubyConvert extends ed.MyAsserts {
     }
     
     void _assertType( Node n , Class c ){
+        _assertType( n , c , null );
+    }
+    
+    void _assertType( Node n , Class c , Node toDisplay ){
         if ( n != null && c.isAssignableFrom( n.getClass() ) )
             return;
+        if ( toDisplay != null )
+            _print( 0 , toDisplay );
         throw new RuntimeException( n + " is not an instanceof " + c );
     }
 
