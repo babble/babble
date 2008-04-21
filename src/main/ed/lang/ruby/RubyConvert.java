@@ -90,7 +90,9 @@ public class RubyConvert extends ed.MyAsserts {
                  f.childNodes().get(0) instanceof IterNode ){
                 
                 _appned( Ruby.RUBY_V_CALL + "(" + _getFuncName( f ) + ")" , f );
+                _appned( " ( " , f );
                 _addIterBlock( (IterNode)f.childNodes().get(0) , state );
+                _appned( " ) " , f );
                 
             }
             else if ( f.getArgsNode() == null || 
