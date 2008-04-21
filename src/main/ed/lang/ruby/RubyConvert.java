@@ -174,6 +174,22 @@ public class RubyConvert extends ed.MyAsserts {
             _appned( "\n } \n " , node );
         }
 
+        else if ( node instanceof IfNode ){
+            IfNode ifn = (IfNode)node;
+            _appned( "if ( " , ifn );
+            if ( ifn.getCondition() != null )
+                _add( ifn.getCondition() , state );
+            _appned( " ){ \n " , ifn );
+            if ( ifn.getThenBody() != null )
+                _add( ifn.getThenBody() , state );
+            _appned( " } \n " , ifn );
+            if ( ifn.getElseBody() != null ){
+                _appned( " else { \n " , ifn );
+                _add( ifn.getElseBody() , state );
+                _appned( " } \n " , ifn );
+            }
+        }
+
         // --- vars ---
 
         else if ( node instanceof LocalAsgnNode ){
@@ -639,5 +655,6 @@ public class RubyConvert extends ed.MyAsserts {
         _operatorNames.add( ">=" );
         _operatorNames.add( "<" );
         _operatorNames.add( "<=" );
+        _operatorNames.add( "==" );
     }
 }
