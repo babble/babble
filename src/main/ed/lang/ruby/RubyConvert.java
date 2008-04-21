@@ -297,6 +297,7 @@ public class RubyConvert extends ed.MyAsserts {
 
         else {
             String msg = "don't yet support : " + node.getClass();
+            msg += "\t" + node.getPosition();
             System.err.println( msg );
             _print( 0 , node );
             throw new RuntimeException( msg );
