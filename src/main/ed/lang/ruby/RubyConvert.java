@@ -86,14 +86,12 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof FCallNode ){
             FCallNode f = (FCallNode)node;
 
-            if ( f.childNodes().size() == 1 &&
-                 f.childNodes().get(0) instanceof IterNode ){
+            if ( f.getIterNode() != null ){
                 
-                _appned( Ruby.RUBY_V_CALL + "(" + _getFuncName( f ) + ")" , f );
-                _appned( " ( " , f );
-                _addIterBlock( (IterNode)f.childNodes().get(0) , state );
-                _appned( " ) " , f );
-                
+                _appned( _getFuncName( f )  , node );
+                _appned( "(" , node );
+                _add( f.getIterNode() , state );
+                _appned( ")" , node );
             }
             else if ( f.getArgsNode() == null || 
                  f.getArgsNode().childNodes() == null || 
