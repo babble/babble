@@ -97,7 +97,6 @@ public class RubyConvert extends ed.MyAsserts {
                  f.getArgsNode().childNodes() == null || 
                  f.getArgsNode().childNodes().size() == 0 ){
                 // no args
-                System.err.println( "yes i'm here: 1" );
                 _appned( Ruby.RUBY_V_CALL + "(" + _getFuncName( f ) + ")" , f );
             }
             else { 
@@ -140,7 +139,6 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof VCallNode ){
             _assertNoChildren( node );
             VCallNode vcn = (VCallNode)node;
-            System.err.println( "yes i'm here: 2" );
             _appned( Ruby.RUBY_V_CALL + "( " + vcn.getName() + ")" , node );
         }
 
