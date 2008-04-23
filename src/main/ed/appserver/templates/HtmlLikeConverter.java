@@ -43,6 +43,10 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
     protected abstract void gotEndTag( Generator g , String tag );
     protected abstract void gotText( Generator g , String text );
 
+    protected Generator createGenerator( Template t , State s ){
+        return new Generator( s );
+    }
+
 
     // ----------------------
     // -- internal --
@@ -54,7 +58,7 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
             return null;
         
         final State state = new State( getContent( t ) );
-        final Generator g = new Generator( state );
+        final Generator g = createGenerator( t , state );
         
         StringBuilder text = new StringBuilder();
 
