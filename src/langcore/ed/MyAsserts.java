@@ -89,4 +89,11 @@ public class MyAsserts {
         throw new MyAssert( "not null [" + foo + "]" );
     }
 
+    public static void assertNotNull( Object foo ){
+        if ( foo != null )
+            return;
+        
+        throw new MyAssert( "null" );
+    }
+
 }
