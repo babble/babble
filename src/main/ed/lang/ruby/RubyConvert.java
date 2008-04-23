@@ -461,20 +461,27 @@ public class RubyConvert extends ed.MyAsserts {
             return;
         }
         
-        // normal function call
-        if ( call.childNodes().get(0) instanceof ArrayNode ){
-            _appned( call.getName() , call );
-            _addArgs( call , call.childNodes() , state );
-            return;
+        if ( D ){
+            System.err.println( "CallNode : " + call.getName() );
+            System.err.println( "\t iter : " + call.getIterNode() );
+            System.err.println( "\t recv : " + call.getReceiverNode() );
+            System.err.println( "\t args : " + call.getArgsNode() );
         }
+
+        Node self = call.getReceiverNode();
+        Node args = call.getArgsNode();
+        Node iter = call.getIterNode();
         
-        // class method call
-        if ( call.childNodes().size() > 1 ){
+        if ( args != null && iter != null )
+            throw new RuntimeException( "how can you have args and iter?" );
+        
+        if ( args == null )
+            args = iter;
+
+        // class method call        
+        if ( self != null ){
             
-            Node self = call.childNodes().get(0);
-            Node args = call.childNodes().get(1);
-            
-            if ( args.childNodes().size() > 0 ){
+            if ( args != null && args.childNodes().size() > 0 ){
                 _add( call.childNodes().get(0) , state );
                 _appned( "." + call.getName() , call );
                 if ( args instanceof ArrayNode )
@@ -492,6 +499,13 @@ public class RubyConvert extends ed.MyAsserts {
                 _appned( "\"" + call.getName() + "\"" , call );
                 _appned( " ) " , call );
             }
+            return;            
+        }
+
+        // normal function call        
+        if ( args != null ){
+            _appned( call.getName() , call );
+            _addArgs( call , args.childNodes() , state );
             return;
         }
         
