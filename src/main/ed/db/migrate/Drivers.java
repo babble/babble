@@ -82,6 +82,7 @@ public class Drivers {
                 boolean b = _res.next();
                 if ( ! b ){
                     _res.close();
+                    _addedBack = true;
                     _stmts.add( _stmt );
                 }
 
@@ -105,9 +106,19 @@ public class Drivers {
                     throw new RuntimeException( se );
                 }
             }
-
+            
+            public void close()
+                throws SQLException {
+                _res.close();
+                if ( ! _addedBack )
+                    _stmts.add( _stmt );
+                _addedBack = true;
+            }
+            
             private Statement _stmt;
             private ResultSet _res;
+
+            private boolean _addedBack = false;
         }
     }
 }
