@@ -1,0 +1,10 @@
+<% a = { x : 1 , y : 2 , z : 3 }; %>
+<forin name a >
+    <%= name %> : <%= a[name] %><br>
+</forin>
+
+<% a = [ "one" , "two" , "three"]; %>
+<forin name a >
+   <%= name %> : <%= a[name] %><br>
+</forin>
+

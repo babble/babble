@@ -71,7 +71,7 @@ public class JxpConvertTest extends TestCase {
     }
 
     static String _clean( String s ){
-        s = s.replaceAll( "[\\s\r\n]+" , " " );
+        s = s.replaceAll( "[\\s\r\n]+" , "" );
         s = s.replaceAll( " +>" , ">" );
         return s;
     }

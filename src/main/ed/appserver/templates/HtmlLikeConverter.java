@@ -66,7 +66,6 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
         htmlloop:
         while ( state.hasNext() ){
             final char c = state.next();
-            System.out.println( "* " + c );
 
             if ( c == '\r' ) 
                 continue;
@@ -83,6 +82,10 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
                         buf.append( n );
                     }
                     state.skip( cm._endTag.length() - 1 );
+
+                    gotText( g , text.toString() );
+                    text.setLength( 0 );
+
                     gotCode( g , cm , buf.toString() );
                     continue htmlloop;
                 }
@@ -94,7 +97,7 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
                     text.append( c );
                     continue;
                 }
-
+                
                 gotText( g , text.toString() );
                 text.setLength( 0 );
                 

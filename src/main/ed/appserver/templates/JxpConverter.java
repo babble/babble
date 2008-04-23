@@ -6,6 +6,14 @@ import java.util.*;
 
 import ed.util.*;
 
+/**
+ * TODO
+ *   <if>
+ *   <forin>
+ *   <forarray>
+ *   .html obj
+ *   $
+ */
 public class JxpConverter extends HtmlLikeConverter {
 
     public JxpConverter(){
@@ -57,20 +65,59 @@ public class JxpConverter extends HtmlLikeConverter {
             
             g.append( "if ( " + cond + " ){\n" );
             
-            te = new TagEnd( " }\n" );
+            te = new TagEnd( " }\n" , true );
+        }
+        
+        if ( te == null ){
+            final String[] macro = _tags.get( tag );
+
+            if ( macro != null ){
+                String open = macro[0];
+                String close = macro[1];
+                
+                int tokenNumbers = 1;
+                
+                while ( restOfTag.length() > 0 ){
+                                
+                    while ( restOfTag.length() > 0 && 
+                            Character.isWhitespace( restOfTag.charAt( 0 ) ) )
+                        restOfTag = restOfTag.substring( 1 );
+                    
+                    if ( restOfTag.length() == 0 )
+                        break;
+
+                    int end = getJSTokenEnd( restOfTag , 0 );
+                    final String token = restOfTag.substring( 0 , end ).trim();
+                    restOfTag = restOfTag.substring( end ).trim();
+
+                    if ( token.length() == 0 )
+                        break;
+                    
+                    open = open.replaceAll( "\\$" + tokenNumbers , token );
+                    
+                    tokenNumbers++;
+                }
+
+                g.append( open );
+                te = new TagEnd( close , false );
+
+                restOfTag = "";
+            }
         }
         
         g.tagPush( tag , te );
-
-        gotText( g , "<" + tag + " " + restOfTag + ">" );
+        if ( te == null || te._printTag )
+            gotText( g , "<" + tag + " " + restOfTag + ">" );
     }
     
     protected void gotEndTag( Generator gg , String tag ){
         MyGenerator g = (MyGenerator)gg;
-        
-        gotText( g , "</" + tag + ">" );
 
         TagEnd te = g.tagPop( tag );
+        
+        if ( te == null || te._printTag )
+            gotText( g , "</" + tag + ">" );
+
         if ( te != null )
             g.append( te._code );
     }
@@ -127,11 +174,13 @@ public class JxpConverter extends HtmlLikeConverter {
     }
 
     class TagEnd {
-        TagEnd( String code ){
+        TagEnd( String code , boolean printTag ){
             _code = code;
+            _printTag = printTag;
         }
         
         final String _code;
+        final boolean _printTag;
     }
 
     class MyGenerator extends Generator {
@@ -168,5 +217,21 @@ public class JxpConverter extends HtmlLikeConverter {
     static {
         _codeTags.add( new CodeMarker( "<%=" , "%>" ) );
         _codeTags.add( new CodeMarker( "<%" , "%>" ) );
+    }
+
+    static Map<String,String[]> _tags = Collections.synchronizedMap( new StringMap<String[]>() );
+    
+    static {
+        _tags.put( "if" , new String[]{ 
+                " if ( $1 ){ \n " , "\n } \n"
+            } );
+        
+        _tags.put( "forin" , new String[]{
+                " for ( $1 in $2 ){\n  " , "\n } \n "
+            } );
+        
+        _tags.put( "forarray" , new String[]{
+                " for ( var $3=0; $3 < $2 .length; $3 ++ ){\n var $1 = $2[$3]; \n " , " \n } \n " 
+            } );
     }
 }
