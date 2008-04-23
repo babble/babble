@@ -88,8 +88,10 @@ public abstract class JSFile extends JSObjectBase {
 
     public String asString(){
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        WritableByteChannelConnector w = new WritableByteChannelConnector( bout );
+        Sender s = sender();
         try {
-            sender().write( new WritableByteChannelConnector( bout ) );
+            while ( ! s.write( w ) );
         }
         catch ( IOException ioe ){
             throw new RuntimeException( "should be impossible" , ioe );
