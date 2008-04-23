@@ -8,16 +8,23 @@ import ed.util.*;
 
 /**
  * TODO
- *   <if>
- *   <forin>
- *   <forarray>
  *   .html obj
  *   $
  */
 public class JxpConverter extends HtmlLikeConverter {
 
     public JxpConverter(){
-        super( _codeTags );
+        this( false );
+    }
+
+    public JxpConverter( boolean dotHtmlMode ){
+        super( dotHtmlMode ? _codeTagsHtml : _codeTagsJxp );
+        _dotHtmlMode = dotHtmlMode;
+    }
+
+    protected void start( Generator g ){
+        if ( _dotHtmlMode )
+            g.append( "var obj = arguments[0];\n" );
     }
 
     protected boolean wants( Template t ){
@@ -212,11 +219,21 @@ public class JxpConverter extends HtmlLikeConverter {
 
         final Map<String,Stack<TagEnd>> _tagToStack = new HashMap<String,Stack<TagEnd>>();
     }
+    
+    final boolean _dotHtmlMode;
 
-    static List<CodeMarker> _codeTags = new ArrayList<CodeMarker>();
+    static List<CodeMarker> _codeTagsJxp = new ArrayList<CodeMarker>();
+    static List<CodeMarker> _codeTagsHtml = new ArrayList<CodeMarker>();
     static {
-        _codeTags.add( new CodeMarker( "<%=" , "%>" ) );
-        _codeTags.add( new CodeMarker( "<%" , "%>" ) );
+        _codeTagsJxp.add( new CodeMarker( "<%=" , "%>" ) );
+        _codeTagsJxp.add( new CodeMarker( "<%" , "%>" ) );
+
+        _codeTagsHtml.addAll( _codeTagsJxp );
+        _codeTagsHtml.add( new CodeMarker( "$" , null ){
+                int findEnd( String data , int start ){
+                    return getJSTokenEnd( data , start );
+                }
+            } );
     }
 
     static Map<String,String[]> _tags = Collections.synchronizedMap( new StringMap<String[]>() );

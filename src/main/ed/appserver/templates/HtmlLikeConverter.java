@@ -13,6 +13,10 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
             _endTag = endTag;
         }
         
+        int findEnd( String data , int start ){
+            return data.indexOf( _endTag , start );
+        }
+
         final String _startTag;
         final String _endTag;
     }
@@ -34,6 +38,9 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
     protected String getContent( Template t ){
         return t.getContent();
     }
+
+    protected void start( Generator g ){}
+    protected void end( Generator g ){}
 
     protected abstract boolean wants( Template t );
     protected abstract String getNewName( Template t );
@@ -60,6 +67,8 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
         final State state = new State( getContent( t ) );
         final Generator g = createGenerator( t , state );
         
+        start( g );
+
         StringBuilder text = new StringBuilder();
 
         // the main loop just goes through html. 
@@ -72,21 +81,19 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
             
             for ( CodeMarker cm : _markers ){
                 if ( state.startsWith( cm._startTag ) ){
-                    state.skip( cm._startTag.length() - 1 );
-                    StringBuilder buf = new StringBuilder();
-                    while ( state.hasNext() ){
-                        char n = state.next();
-                        if ( state.startsWith( cm._endTag ) )
-                            break;
-                        
-                        buf.append( n );
-                    }
-                    state.skip( cm._endTag.length() - 1 );
 
                     gotText( g , text.toString() );
                     text.setLength( 0 );
 
-                    gotCode( g , cm , buf.toString() );
+                    state.skip( cm._startTag.length() - 1 );
+                    
+                    final int end = cm.findEnd( state.data , state.pos );
+                    gotCode( g , cm , state.data.substring( state.pos , end - 1 ) );
+                    
+                    state.skip( ( end - state.pos ) );
+                    if ( cm._endTag != null )
+                        state.skip( cm._endTag.length() );
+
                     continue htmlloop;
                 }
             }
@@ -115,6 +122,8 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
             
             text.append( c );
         }
+        
+        end( g );
 
         System.out.println( "----" );
         System.out.println( g._buf );
