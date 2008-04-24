@@ -6,7 +6,7 @@ import java.io.*;
 import java.util.*;
 import java.util.regex.*;
 
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 
 import ed.*;
 import ed.js.*;
@@ -22,13 +22,18 @@ public abstract class ConvertTestBase extends TestCase {
 
         _extension = extension;
 
+        _all = new ArrayList<FileTest>();
+        
         File dir = new File( "src/test/ed/appserver/templates/" );
         for ( File f : dir.listFiles() )
-            if ( f.toString().endsWith( _extension ) )
-                add( new FileTest( f ) );
+            if ( f.toString().endsWith( _extension ) ){
+                FileTest ft = new FileTest( f );
+                add( ft );
+                _all.add( ft );
+            }
         
     }
-
+    
     abstract TemplateConverter getConverter();
     
     Object[] getArgs(){
@@ -42,6 +47,7 @@ public abstract class ConvertTestBase extends TestCase {
             _file = f;
         }
 
+        @Test
         public void test()
             throws Exception {
             
@@ -110,6 +116,7 @@ public abstract class ConvertTestBase extends TestCase {
     }
 
     final String _extension;
+    final List<FileTest> _all;
 
     static String _clean( String s ){
         s = s.replaceAll( "[\\s\r\n]+" , "" );

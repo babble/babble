@@ -4,7 +4,7 @@ package ed.appserver.templates;
 
 import java.io.*;
 
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 
 import ed.*;
 import ed.js.*;
@@ -22,6 +22,11 @@ public class HtmlTemplateTest extends ConvertTestBase {
         return new JxpConverter( true );
     }
 
+
+    @Factory 
+    public Object[] getAllTests(){
+        return _all.toArray();
+    }
 
     Object[] getArgs(){
         JSObjectBase o = new JSObjectBase();

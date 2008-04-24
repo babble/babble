@@ -4,7 +4,7 @@ package ed.appserver.templates;
 
 import java.io.*;
 
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 
 import ed.*;
 import ed.js.*;
@@ -16,6 +16,12 @@ public class JxpConvertTest extends ConvertTestBase {
 
     public JxpConvertTest(){
         super( ".jxp" );
+    }
+
+
+    @Factory 
+    public Object[] getAllTests(){
+        return _all.toArray();
     }
 
     TemplateConverter getConverter(){

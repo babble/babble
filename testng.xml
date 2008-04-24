@@ -12,6 +12,8 @@
       <class name="ed.net.httpserver.ReplayTest"/>
       <class name="ed.appserver.jxp.AppContextTestNG" />
       <class name="ed.js.engine.ConvertTest" />
+      <class name="ed.appserver.templates.JxpConvertTest" />
+      <class name="ed.appserver.templates.HtmlTemplateTest" />
     </classes>
   </test>
 
