@@ -72,7 +72,7 @@ public class Convert implements StackTraceFixer {
     
     public Convert( File sourceFile )
         throws IOException {
-        this( sourceFile.toString() , StreamUtil.readFully( sourceFile , "UTF-8" ) );
+        this( sourceFile.getAbsolutePath() , StreamUtil.readFully( sourceFile , "UTF-8" ) );
     }
     
     public Convert( String name , String source )
@@ -89,7 +89,7 @@ public class Convert implements StackTraceFixer {
         _name = name;
         _source = source;
         
-        _className = _name.replaceAll(".*/(.*?)","").replaceAll( "[^\\w]+" , "_" );
+        _className = _name.replaceAll( "[^\\w]+" , "_" );
         _fullClassName = _package + "." + _className;
         
         CompilerEnvirons ce = new CompilerEnvirons();
