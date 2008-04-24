@@ -342,7 +342,7 @@ public class JSBuiltInFunctions {
                 return null;
             
             if ( ! Security.isCoreJS() )
-                throw new JSException( "can't exec this" );
+                throw new JSException( "can't do sysexec from [" + Security.getTopJS() + "]" );
 
             File root = scope.getRoot();
             if ( root == null )
