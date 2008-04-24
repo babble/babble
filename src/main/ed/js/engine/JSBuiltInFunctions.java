@@ -99,7 +99,7 @@ public class JSBuiltInFunctions {
             String clazzName = clazzNameJS.toString();
             
             if ( ! Security.isCoreJS() )
-                throw new JSException( "you can't use a :" + clazzName );
+                throw new JSException( "you can't use a :" + clazzName + " from [" + Security.getTopJS() + "]" );
             
             Class clazz = null;
             try {
@@ -151,7 +151,7 @@ public class JSBuiltInFunctions {
             String clazzName = clazzNameJS.toString();
             
             if ( ! Security.isCoreJS() )
-                throw new JSException( "you can't use a :" + clazzName );
+                throw new JSException( "you can't use a :" + clazzName + " from [" + Security.getTopJS() + "]" );
             
             Class clazz = null;
             try {
