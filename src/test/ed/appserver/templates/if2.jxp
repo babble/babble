@@ -1,12 +1,18 @@
-<if ( 5 == 2 )>
+<if ( 5 == 2 )> LINE1
 <div>
-  a
+  a LINE3
 </div>
 </if>
 
 <if ( 5 == 5 )>
 <div>
   b
-</div>
+</div> LINE10
 </if>
 
+
+<div>
+  <span>
+    this is fun
+  </span> LINE17
+</div>

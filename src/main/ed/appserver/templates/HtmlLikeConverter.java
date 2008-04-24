@@ -6,6 +6,8 @@ import java.util.*;
 
 public abstract class HtmlLikeConverter implements TemplateConverter {
 
+    static final boolean DEBUG = Boolean.getBoolean( "DEBUG.TEMPLATES" );
+
     static class CodeMarker {
 
         CodeMarker( String startTag , String endTag ){
@@ -129,11 +131,14 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
         
         end( g );
 
-        System.out.println( "----" );
-        System.out.println( g._buf );
-        System.out.println( "----" );
+        if ( DEBUG ){
+            System.out.println( "----" );
+            System.out.println( g._buf );
+            System.out.println( "----" );
+            System.out.println( g._lineMapping );
+        }
 
-        return new Result( new Template( getNewName( t ) , g._buf.toString() ) );
+        return new Result( new Template( getNewName( t ) , g._buf.toString() ) , g._lineMapping );
     }
 
     final String _readTag( State state ){
@@ -240,10 +245,17 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
         
         void append( String code ){
             _buf.append( code );
+            for ( int i=0; i<code.length(); i++ )
+                if ( code.charAt( i ) == '\n' )
+                    _lineMapping.put( _outLine++ , _inLine );
+            _inLine = _state.line;
         }
 
+        int _outLine = 1;
+        int _inLine = 1;
         final State _state;
         final StringBuilder _buf;
+        final Map<Integer,Integer> _lineMapping = new TreeMap<Integer,Integer>();
     }
 
     final String _extension;

@@ -240,7 +240,7 @@ public class JxpConverter extends HtmlLikeConverter {
     
     static {
         _tags.put( "if" , new String[]{ 
-                " if ( $1 ){ \n " , "\n } \n"
+                " if ( $1 ){ " , " } "
             } );
         
         _tags.put( "forin" , new String[]{

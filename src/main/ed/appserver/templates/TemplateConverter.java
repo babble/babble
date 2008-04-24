@@ -1,21 +1,28 @@
 // TemplateConverter.java
 
-
 package ed.appserver.templates;
+
+import java.util.*;
 
 public interface TemplateConverter {
 
     public static class Result {
         
-        Result( Template newTemplate ){
+        Result( Template newTemplate , Map<Integer,Integer> lineMapping ){
             _newTemplate = newTemplate;
+            _lineMapping = lineMapping;
         }
         
         public Template getNewTemplate(){
             return _newTemplate;
         }
         
+        public Map<Integer,Integer> getLineMapping(){
+            return _lineMapping;
+        }
+
         final Template _newTemplate;
+        final Map<Integer,Integer> _lineMapping;
     }
 
     /**

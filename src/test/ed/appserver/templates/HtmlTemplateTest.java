@@ -30,7 +30,7 @@ public class HtmlTemplateTest extends ConvertTestBase {
     }
 
     public static void main( String args[] ){
-        JxpConvertTest t = new JxpConvertTest();
+        HtmlTemplateTest t = new HtmlTemplateTest();
         t.runConsole();
     }
     
