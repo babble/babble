@@ -14,7 +14,7 @@ import ed.lang.*;
 import ed.appserver.*;
 import ed.appserver.templates.*;
 
-public abstract class JxpSource implements StackTraceFixer {
+public abstract class JxpSource {
     
     static enum Language { JS , RUBY };
 
@@ -35,93 +35,6 @@ public abstract class JxpSource implements StackTraceFixer {
     abstract InputStream getInputStream() throws IOException ;
     public abstract long lastUpdated();
     abstract String getName();
-
-    boolean isTemplate(){
-        final String name = getName();
-        return 
-            name.endsWith( ".html" ) || 
-            name.endsWith( ".rhtml" );
-    }
-    
-    Language getLanguage(){
-        final String name = getName();
-        if ( name.endsWith( ".rb" ) || 
-             name.endsWith( ".rhtml" ) )
-            return Language.RUBY;
-        return Language.JS;
-    }
-
-    synchronized List<Block> getBlocks()
-        throws IOException {
-        _checkTime();
-        if ( _blocks == null ){
-            _lastParse = lastUpdated();
-            _blocks = Parser.parse( this );
-        }
-        return _blocks;
-    }
-
-    public synchronized JSFunction getFunction1()
-        throws IOException {
-        
-        _checkTime();
-        
-        if ( _func == null ){
-            File jsFile = null;
-            String extension = MimeTypes.getExtension( getName() );
-            try {
-                
-                if ( extension.equals( "js" ) 
-                     || extension.equals( "jxp" )
-                     || extension.equals( "rhtml" )
-                     || extension.equals( "html" )
-                     ){
-                    
-                    Generator g = Generator.genJavaScript( getBlocks() );
-                    _jsCodeToLines = g._jsCodeToLines;
-                    _jsCode = g.toString();
-                    
-                    if ( ! getName().endsWith( ".js" ) )
-                        _jsCode += "\n print( \"\\n\" );";
-
-                    if ( extension.equals( "rhtml" ) ){
-                        ed.lang.ruby.RubyConvert rc = new ed.lang.ruby.RubyConvert( getName() , _jsCode );
-                        _jsCode = rc.getJSSource();
-                    }
-
-                }
-                else if ( extension.equals( "rb" ) ){
-                    ed.lang.ruby.RubyConvert rc = new ed.lang.ruby.RubyConvert( getName() , getInputStream() );
-                    _jsCode = rc.getJSSource();
-                }
-                else {
-                    throw new RuntimeException( "unkown extension [" + extension + "]" );
-                }
-                
-                jsFile = new File( _tmpDir , _getFileSafeName() + ".js" );
-                _lastFileName = jsFile.getName();
-                
-                FileOutputStream fout = new FileOutputStream( jsFile );
-                fout.write( _jsCode.getBytes() );
-                fout.close();
-                
-                try {
-                    _convert = new Convert( jsFile );
-                    _func = _convert.get();
-                    StackTraceHolder.getInstance().set( jsFile.getAbsolutePath() , this );
-                }
-                catch ( Exception e ){
-                    throw new RuntimeException( "couldn't compile [" + getName() + "] : " + getCompileMessage( e ) );
-                }
-            }
-            finally {
-                if ( jsFile != null && jsFile.exists() ){
-                    //jsFile.delete();
-                }
-            }
-        }
-        return _func;
-    }
 
     public synchronized JSFunction getFunction()
         throws IOException {
@@ -173,56 +86,8 @@ public abstract class JxpSource implements StackTraceFixer {
         if ( _lastParse >= lastUpdated() )
             return;
         
-        _blocks = null;
         _func = null;
         _servlet = null;
-    }
-
-    public StackTraceElement fixSTElement( StackTraceElement element ){
-        if ( _jsCodeToLines == null )
-            return null;
-
-        String es = element.toString();
-        
-        if ( _lastFileName != null && ! es.contains( _lastFileName ) )
-            return null;
-        
-        int line = element.getLineNumber();
-        return new StackTraceElement( getName() , element.getMethodName() , getName() , getSourceLine( line ) );
-    }
-
-    public boolean removeSTElement( StackTraceElement element ){
-        return false;
-    }
-
-    public String getCompileMessage( Exception e ){
-        String msg = e.getMessage();
-        
-        Matcher m = Pattern.compile( "^(.+) \\(.*#(\\d+)\\)$" ).matcher( msg );
-        if ( ! m.find() )
-            return msg;
-        
-        return m.group(1) + "  Line Number : " + getSourceLine( 1 + Integer.parseInt( m.group(2) ) );
-    }
-    
-    public int getSourceLine( int line ){
-        List<Block> blocks = _jsCodeToLines.get( line );
-        
-        if ( blocks == null || blocks.size() == 0 )
-            return -1;
-        
-        int thisBlockStart = line;
-        while ( thisBlockStart >= 0 ){
-            List<Block> temp = _jsCodeToLines.get( thisBlockStart );
-            if ( temp == null || temp.size() == 0 )
-                break;
-            if ( ! temp.contains( blocks.get(0) ) )
-                break;
-            thisBlockStart--;
-        }
-        thisBlockStart++;
-
-        return blocks.get( 0 )._lineno + ( line - thisBlockStart );
     }
 
     public String toString(){
@@ -231,14 +96,9 @@ public abstract class JxpSource implements StackTraceFixer {
     
     private long _lastParse = 0;
     
-    private List<Block> _blocks;
     private JSFunction _func;
     private JxpServlet _servlet;
-    private Convert _convert;
-    String _jsCode = null;
 
-    Map<Integer,List<Block>> _jsCodeToLines = new TreeMap<Integer,List<Block>>();
-    String _lastFileName;
 
     // -------------------
     
