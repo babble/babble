@@ -24,7 +24,8 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
     /**
      * @param codeTagName for jxp would be "%" for php ?
      */
-    protected HtmlLikeConverter( List<CodeMarker> markers ){
+    protected HtmlLikeConverter( String extension , List<CodeMarker> markers ){
+        _extension = extension.replaceAll( "^\\." , "" );
         _markers = markers;
     }
 
@@ -42,7 +43,10 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
     protected void start( Generator g ){}
     protected void end( Generator g ){}
 
-    protected abstract boolean wants( Template t );
+    protected boolean wants( Template t ){
+        return _extension.equals( t.getExtension() );
+    }
+
     protected abstract String getNewName( Template t );
 
     protected abstract void gotCode( Generator g , CodeMarker cm , String code );
@@ -88,7 +92,7 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
                     state.skip( cm._startTag.length() - 1 );
                     
                     final int end = cm.findEnd( state.data , state.pos );
-                    gotCode( g , cm , state.data.substring( state.pos , end - 1 ) );
+                    gotCode( g , cm , state.data.substring( state.pos , end ) );
                     
                     state.skip( ( end - state.pos ) );
                     if ( cm._endTag != null )
@@ -242,5 +246,6 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
         final StringBuilder _buf;
     }
 
+    final String _extension;
     final List<CodeMarker> _markers;
 }

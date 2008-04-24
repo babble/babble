@@ -9,7 +9,7 @@ import ed.util.*;
 public class Djang10Converter extends HtmlLikeConverter {
 
     public Djang10Converter(){
-        super( _codeTags );
+        super( "djang10" , _codeTags );
     }
 
     protected boolean wants( Template t ){

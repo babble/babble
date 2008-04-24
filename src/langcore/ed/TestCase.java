@@ -194,7 +194,11 @@ public class TestCase extends MyAsserts {
     public static void main( String args[] )
         throws Exception {
         
-        Process p = Runtime.getRuntime().exec( "find src/test" );
+        String dir = "src/test";
+        if ( args != null && args.length > 0 )
+            dir = args[0];
+
+        Process p = Runtime.getRuntime().exec( "find " + dir );
         BufferedReader in = new BufferedReader( new InputStreamReader( p.getInputStream() ) );
 
         TestCase theTestCase = new TestCase();
@@ -204,11 +208,13 @@ public class TestCase extends MyAsserts {
 
             if ( ! line.endsWith( "Test.java" ) ) {
                 continue;
-        	}
+            }
         	
             line = line.substring( "src/test/".length() );        	
             line = line.substring( 0 , line.length() - ".java".length() );
+            line = line.replaceAll( "//+" , "/" );
             line = line.replace( '/' , '.' );
+
             
             System.out.println( line );
             try {

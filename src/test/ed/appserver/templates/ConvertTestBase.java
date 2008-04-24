@@ -26,6 +26,10 @@ public abstract class ConvertTestBase extends TestCase {
     }
 
     abstract TemplateConverter getConverter();
+    
+    Object[] getArgs(){
+        return null;
+    }
 
     public class FileTest extends TestCase {
 
@@ -59,7 +63,7 @@ public abstract class ConvertTestBase extends TestCase {
             scope.put( "print" , myout , true );
             scope.put( "SYSOUT" , myout , true );
             
-            func.call( scope );
+            func.call( scope , getArgs() );
             
             String got = _clean( output.toString() );
             System.out.println( got );

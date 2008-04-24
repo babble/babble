@@ -18,17 +18,14 @@ public class JxpConverter extends HtmlLikeConverter {
     }
 
     public JxpConverter( boolean dotHtmlMode ){
-        super( dotHtmlMode ? _codeTagsHtml : _codeTagsJxp );
+        super( dotHtmlMode ? ".html" : ".jxp" ,
+               dotHtmlMode ? _codeTagsHtml : _codeTagsJxp );
         _dotHtmlMode = dotHtmlMode;
     }
 
     protected void start( Generator g ){
         if ( _dotHtmlMode )
             g.append( "var obj = arguments[0];\n" );
-    }
-
-    protected boolean wants( Template t ){
-        return t.getName().endsWith( ".jxp" );
     }
 
     protected Generator createGenerator( Template t , State s ){
@@ -53,7 +50,15 @@ public class JxpConverter extends HtmlLikeConverter {
             g.append( "\n" );
             return;
         }
-
+        
+        if ( cm._startTag.equals( "$" ) ){
+            g.append( "print( " );
+            g.append( "obj." );
+            g.append( code );
+            g.append( ");\n" );
+            return;
+        }
+        
         throw new RuntimeException( "can't handle : " + cm._startTag );
     }
 
