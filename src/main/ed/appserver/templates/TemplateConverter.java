@@ -8,7 +8,7 @@ public interface TemplateConverter {
 
     public static class Result {
         
-        Result( Template newTemplate , Map<Integer,Integer> lineMapping ){
+        public Result( Template newTemplate , Map<Integer,Integer> lineMapping ){
             _newTemplate = newTemplate;
             _lineMapping = lineMapping;
         }

@@ -12,11 +12,30 @@ import org.jruby.lexer.yacc.*;
 
 import ed.js.*;
 import ed.js.engine.*;
+import ed.appserver.templates.*;
 
 public class RubyConvert extends ed.MyAsserts {
     
     final static boolean D = Boolean.getBoolean( "DEBUG.RUBY" );
 
+    public static class TemplateImpl implements TemplateConverter {
+
+        public Result convert( Template t ){
+            if ( ! t.getName().endsWith( ".rb" ) )
+                return null;
+            
+            try {
+                final RubyConvert rc = new RubyConvert( t.getName() , t.getContent() );
+                final String jsSource = rc.getJSSource();
+                if ( D ) System.out.println( jsSource );
+                return new TemplateConverter.Result( new Template( t.getName().replaceAll( ".rb$" , "_rb.js" ) , jsSource ) , null );
+            }
+            catch ( IOException ioe ){
+                throw new RuntimeException( "couldn't convert : " + t.getName() , ioe );
+            }
+        }
+    }
+    
     public RubyConvert( File f )
         throws IOException {
         this( f.toString() , new FileInputStream( f ) );
@@ -75,6 +94,16 @@ public class RubyConvert extends ed.MyAsserts {
             _assertOne( node );
             _appned( "return " , node );
             _add( node.childNodes().get(0), state );
+        }
+
+        else if ( node instanceof ForNode ){
+
+            ForNode fn = (ForNode)node;
+            
+            _add( fn.getIterNode() , state );
+            _appned( ".forEach( " , fn );
+            _addIterBlock( fn , state );
+            _appned( " ) " , fn );
         }
 
         else if ( node instanceof IterNode ){
@@ -336,6 +365,8 @@ public class RubyConvert extends ed.MyAsserts {
                 _appned( ((DAsgnNode)var).getName() , it );
             else if ( var instanceof ConstDeclNode )
                 _appned( ((ConstDeclNode)var).getName() , it );
+            else if ( var instanceof LocalAsgnNode )
+                _appned( ((LocalAsgnNode)var).getName() , it );
             else
                 throw new RuntimeException( "don't know what to do with : " + var );
         }
