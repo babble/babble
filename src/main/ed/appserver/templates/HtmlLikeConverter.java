@@ -4,6 +4,8 @@ package ed.appserver.templates;
 
 import java.util.*;
 
+import ed.util.*;
+
 public abstract class HtmlLikeConverter implements TemplateConverter {
 
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.TEMPLATES" );
@@ -62,7 +64,22 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
      */
     protected abstract boolean gotEndTag( Generator g , String tag , State state );
     
-    protected abstract void gotText( Generator g , String text );
+    
+    /**
+       very well may want to override this
+     */
+    protected void gotText( Generator g , String text ){
+        final boolean endsWithNewLine = text.endsWith( "\n" );
+
+        final String lines[] = text.split( "[\r\n]+" );
+        for ( int i=0; i<lines.length; i++ ){
+            String line = lines[i];
+
+            line = StringUtil.replace( line , "\\" , "\\\\" );
+            line = StringUtil.replace( line , "\"" , "\\\"" );
+            g.append( "print( \"" + line + ( i + 1 < lines.length || endsWithNewLine ? "\\n" : "" )  + "\" );\n" );
+        }
+    }
 
     protected Generator createGenerator( Template t , State s ){
         return new Generator( s );

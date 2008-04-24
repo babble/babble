@@ -40,15 +40,6 @@ public class RubyTemplateConverter extends HtmlLikeConverter {
         return false;
     }
     
-    protected void gotText( Generator g , String text ){
-        String lines[] = text.split( "[\r\n]+" );
-        for ( String line : lines ){
-            line = StringUtil.replace( line , "\\" , "\\\\" );
-            line = StringUtil.replace( line , "\"" , "\\\"" );
-            g.append( "print( \"" + line + "\" );\n" );
-        }
-    }
-
     static List<CodeMarker> _codeTags = new ArrayList<CodeMarker>();
     static {
         _codeTags.add( new CodeMarker( "<%=" , "%>" ) );

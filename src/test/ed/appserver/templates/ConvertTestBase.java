@@ -90,6 +90,8 @@ public abstract class ConvertTestBase extends TestCase {
             
 
             File resultFile = new File( _file.getAbsolutePath().replaceAll( _extension + "$" , ".out" ) );
+            if ( ! resultFile.exists() )
+                resultFile = new File( _file.getAbsolutePath() + ".out" );
             String expected = _clean( StreamUtil.readFully( new FileInputStream( resultFile ) ) );
             
             assertClose( expected , got );
