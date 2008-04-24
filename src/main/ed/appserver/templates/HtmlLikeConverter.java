@@ -119,10 +119,16 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
                     continue;
                 }
                 
+                state.eatWhiteSpace();
+                if ( tag.startsWith( "/" ) && state.peek() != '>' ){
+                    text.append( "<" + tag + " " );
+                    continue;
+                }
+                    
+
                 gotText( g , text.toString() );
                 text.setLength( 0 );
                 
-                state.eatWhiteSpace();
                 
                 if ( tag.startsWith( "/" ) ){
                     final String tagName = tag.substring(1);

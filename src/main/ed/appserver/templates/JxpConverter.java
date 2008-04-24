@@ -140,11 +140,16 @@ public class JxpConverter extends HtmlLikeConverter {
     }
     
     protected void gotText( Generator g , String text ){
-        String lines[] = text.split( "[\r\n]+" );
-        for ( String line : lines ){
+        
+        final boolean endsWithNewLine = text.endsWith( " " );
+
+        final String lines[] = text.split( "[\r\n]+" );
+        for ( int i=0; i<lines.length; i++ ){
+            String line = lines[i];
+
             line = StringUtil.replace( line , "\\" , "\\\\" );
             line = StringUtil.replace( line , "\"" , "\\\"" );
-            g.append( "print( \"" + line + "\\n\" );\n" );
+            g.append( "print( \"" + line + ( i + 1 < lines.length || endsWithNewLine ? "\\n" : "" )  + "\" );\n" );
         }
     }
 
