@@ -11,21 +11,11 @@
     
     <test name="core">
       <parameter name="js-dir-name"  value="/data/corejs/core/test"/>
-      <parameter name="js-ex-regex"  value=".*test_routes.js"/>
       <classes>
         <class name="ed.js.engine.JSTestFactory"/>
       </classes>
     </test>
 
-    <test name="core-routes">
-      <parameter name="js-dir-name"  value="/data/corejs/core/test"/>
-      <parameter name="js-inc-regex"  value=".*test_routes.js"/>
-      <parameter name="js-ex-regex"  value=".*"/>
-      <parameter name="security-bypass"  value="true"/>
-      <classes>
-        <class name="ed.js.engine.JSTestFactory"/>
-      </classes>
-    </test>
 
     <test name="db">
       <parameter name="js-dir-name"  value="/data/corejs/db/test"/>
