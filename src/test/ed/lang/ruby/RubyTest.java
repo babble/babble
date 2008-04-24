@@ -89,8 +89,8 @@ public class RubyTest extends TestCase {
             all.runConsole();
         }
         else {
-            ConvertTest ct = new ConvertTest();
-            ct.runConsole();
+            RubyTest rt = new RubyTest();
+            rt.runConsole();
         }
     }
 

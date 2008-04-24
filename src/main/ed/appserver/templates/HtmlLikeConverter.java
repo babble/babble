@@ -125,8 +125,9 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
                 state.eatWhiteSpace();
                 
                 if ( tag.startsWith( "/" ) ){
-                    if ( ! gotEndTag( g , tag.substring(1) , state ) )
-                        text.append( "</" + tag );
+                    final String tagName = tag.substring(1);
+                    if ( ! gotEndTag( g , tagName , state ) )
+                        text.append( "</" + tagName );
                 }
                 else 
                     if ( ! gotStartTag( g , tag , state ) )

@@ -54,8 +54,9 @@ public abstract class JxpSource {
             if ( result == null )
                 break;
             
-            StackTraceHolder.getInstance().set( result.getNewTemplate().getName() , 
-                                                new BasicLineNumberMapper( t.getName() , result.getNewTemplate().getName() , result.getLineMapping() ) );
+            if ( result.getLineMapping() != null )
+                StackTraceHolder.getInstance().set( result.getNewTemplate().getName() , 
+                                                    new BasicLineNumberMapper( t.getName() , result.getNewTemplate().getName() , result.getLineMapping() ) );
             
             t = result.getNewTemplate();
         }
