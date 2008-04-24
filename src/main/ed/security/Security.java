@@ -7,7 +7,6 @@ import ed.js.engine.*;
 public class Security {
 
     public final static boolean OFF = Boolean.getBoolean( "NO-SECURITY" );
-    final static boolean TEST_BYPASS = Boolean.getBoolean("ed.js.engine.SECURITY_BYPASS");
 
     final static String SECURE[] = new String[]{ 
         Convert.DEFAULT_PACKAGE + "._data_corejs_" , 
@@ -24,27 +23,11 @@ public class Security {
         if ( topjs == null ) {
             return false;
         }
-
-        if (TEST_BYPASS && _isTestFrameworkHack()) {
-            return true;
-        }
-
         
         for ( int i=0; i<SECURE.length; i++ )
             if ( topjs.startsWith( SECURE[i] ) )
                 return true;
         
-        return false;
-    }
-
-    static boolean _isTestFrameworkHack() {
-        StackTraceElement[] st = Thread.currentThread().getStackTrace();
-
-        for(StackTraceElement e : st) {
-            if ( e.getClassName().startsWith("ed.js.engine.JSTestInstance"))
-                return true;
-        }
-
         return false;
     }
 
