@@ -306,6 +306,16 @@ public class RubyConvert extends ed.MyAsserts {
             }
         }
 
+        else if ( node instanceof TrueNode ){
+            _assertNoChildren( node );
+            _appned( ((TrueNode)node).getName() , node );
+       } 
+
+        else if ( node instanceof FalseNode ){
+            _assertNoChildren( node );
+            _appned( ((FalseNode)node).getName() , node );
+        }
+
         else if ( node instanceof FixnumNode ){
             _assertNoChildren( node );
             _appned( String.valueOf( ((FixnumNode)node).getValue() ) , node );
@@ -459,14 +469,14 @@ public class RubyConvert extends ed.MyAsserts {
             if ( f.getArgsNode() != null && f.getArgsNode().childNodes() != null ){
                 for ( int i=0; i<f.getArgsNode().childNodes().size(); i++ ){
                     _appned( " , " , f );
-                    _add( f.childNodes().get(i) , state );
+                    _add( f.getArgsNode().childNodes().get(i) , state );
                 }
             }
             _appned( ")" , f );
             return;
         }
 
-        throw new RuntimeException( "don't know about class piece : " + n.getClass() );
+        throw new RuntimeException( "don't know about class piece : " + n.getClass() + " " + n.getPosition() );
 
     }
 
