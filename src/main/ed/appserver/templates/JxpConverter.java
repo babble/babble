@@ -144,7 +144,7 @@ public class JxpConverter extends HtmlLikeConverter {
         for ( String line : lines ){
             line = StringUtil.replace( line , "\\" , "\\\\" );
             line = StringUtil.replace( line , "\"" , "\\\"" );
-            g.append( "print( \"" + line + "\" );\n" );
+            g.append( "print( \"" + line + "\\n\" );\n" );
         }
     }
 
