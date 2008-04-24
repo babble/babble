@@ -28,7 +28,7 @@ public class JxpConverter extends HtmlLikeConverter {
     }
     
     protected String getNewName( Template t ){
-        return t.getName().replace( "\\.jxp$" , "_jxp.js" );
+        return t.getName().replaceAll( "\\.(jxp|html)+$" , "_$1.js" );
     }
 
     protected void gotCode( Generator g , CodeMarker cm , String code ){
