@@ -6,11 +6,6 @@ import java.util.*;
 
 import ed.util.*;
 
-/**
- * TODO
- *   .html obj
- *   $
- */
 public class JxpConverter extends HtmlLikeConverter {
 
     public JxpConverter(){
