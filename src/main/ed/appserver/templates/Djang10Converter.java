@@ -31,12 +31,12 @@ public class Djang10Converter extends HtmlLikeConverter {
         throw new RuntimeException( "can't handle : " + cm._startTag );
     }
 
-    protected void gotStartTag( Generator g , String tag , String restOfTag ){
-        gotText( g , "<" + tag + " " + restOfTag + ">" );
+    protected boolean gotStartTag( Generator g , String tag , State state ){
+        return false;
     }
     
-    protected void gotEndTag( Generator g , String tag ){
-        gotText( g , "</" + tag + ">" );
+    protected boolean gotEndTag( Generator g , String tag , State state ){
+        return false;
     }
     
     protected void gotText( Generator g , String text ){

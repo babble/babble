@@ -52,8 +52,16 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
     protected abstract String getNewName( Template t );
 
     protected abstract void gotCode( Generator g , CodeMarker cm , String code );
-    protected abstract void gotStartTag( Generator g , String tag , String restOfTag );
-    protected abstract void gotEndTag( Generator g , String tag );
+    
+    /**
+     * @return true if handled by subclass
+     */
+    protected abstract boolean gotStartTag( Generator g , String tag , State state );
+    /**
+     * @return true if handled by subclass
+     */
+    protected abstract boolean gotEndTag( Generator g , String tag , State state );
+    
     protected abstract void gotText( Generator g , String text );
 
     protected Generator createGenerator( Template t , State s ){
@@ -114,14 +122,15 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
                 gotText( g , text.toString() );
                 text.setLength( 0 );
                 
-                final String rest = _readRestOfTag( state );
+                state.eatWhiteSpace();
                 
                 if ( tag.startsWith( "/" ) ){
-                    gotEndTag( g , tag.substring(1) );
+                    if ( ! gotEndTag( g , tag.substring(1) , state ) )
+                        text.append( "</" + tag );
                 }
-                else {
-                    gotStartTag( g , tag , rest );
-                }
+                else 
+                    if ( ! gotStartTag( g , tag , state ) )
+                        text.append( "<" + tag + " " );
                 
                 continue;
             }
@@ -163,34 +172,6 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
         return buf.toString();
     }
 
-    final String _readRestOfTag( State state ){
-        StringBuilder buf = new StringBuilder();
-        
-        boolean inquote = false;
-        
-        while ( state.hasNext() ){
-            char c = state.next();
-
-            if ( c == '"' ){
-                inquote = ! inquote;
-                buf.append( c );
-                continue;
-            }
-
-            if ( inquote ){
-                buf.append( c );
-                continue;
-            }
-
-            if ( c == '>' )
-                break;
-            
-            buf.append( c );
-        }
-
-        return buf.toString();
-    }
-
     class State {
         
         State( String data ){
@@ -208,6 +189,41 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
             if ( curChar == '\n' )
                 line++;
             return curChar;
+        }
+        
+        final void eatWhiteSpace(){
+            while ( pos < data.length() && 
+                    Character.isWhitespace( data.charAt( pos ) ))
+                pos++;
+        }
+
+        final String readRestOfTag(){
+
+            StringBuilder buf = new StringBuilder();
+            
+            boolean inquote = false;
+            
+            while ( hasNext() ){
+                char c = next();
+                
+                if ( c == '"' ){
+                    inquote = ! inquote;
+                    buf.append( c );
+                    continue;
+                }
+                
+                if ( inquote ){
+                    buf.append( c );
+                    continue;
+                }
+                
+                if ( c == '>' )
+                    break;
+                
+                buf.append( c );
+            }
+            
+            return buf.toString();
         }
 
         final char peek(){

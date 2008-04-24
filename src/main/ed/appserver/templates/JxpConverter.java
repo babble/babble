@@ -57,46 +57,51 @@ public class JxpConverter extends HtmlLikeConverter {
         throw new RuntimeException( "can't handle : " + cm._startTag );
     }
 
-    protected void gotStartTag( Generator gg , String tag , String restOfTag ){
+    protected boolean gotStartTag( Generator gg , String tag , State state ){
         MyGenerator g = (MyGenerator)gg;
         
         TagEnd te = null;
         
-        if ( restOfTag.trim().startsWith( "?" ) ){
-            restOfTag = restOfTag.trim().substring(1).trim();
+        try {
+            if ( state.peek() == '?' ){
+                state.next();
+                state.eatWhiteSpace();
+                
+                int end = getJSTokenEnd( state.data , state.pos );
+                
+                StringBuilder cond = new StringBuilder();
+                while ( state.pos < end )
+                    cond.append( state.next() );
+                
+                g.append( "if ( " + cond + " ){\n" );
+                
+                te = new TagEnd( " }\n" , true );
+                return false;
+            }
             
-            int end = getJSTokenEnd( restOfTag , 0 );
-
-            String cond = restOfTag.substring( 0 , end );
-            restOfTag = restOfTag.substring( end );
-            
-            g.append( "if ( " + cond + " ){\n" );
-            
-            te = new TagEnd( " }\n" , true );
-        }
-        
-        if ( te == null ){
             final String[] macro = _tags.get( tag );
-
+            
             if ( macro != null ){
                 String open = macro[0];
                 String close = macro[1];
                 
                 int tokenNumbers = 1;
+
+                String restOfTag = state.readRestOfTag();
                 
                 while ( restOfTag.length() > 0 ){
-                                
+                    
                     while ( restOfTag.length() > 0 && 
                             Character.isWhitespace( restOfTag.charAt( 0 ) ) )
                         restOfTag = restOfTag.substring( 1 );
                     
                     if ( restOfTag.length() == 0 )
                         break;
-
+                    
                     int end = getJSTokenEnd( restOfTag , 0 );
                     final String token = restOfTag.substring( 0 , end ).trim();
                     restOfTag = restOfTag.substring( end ).trim();
-
+                    
                     if ( token.length() == 0 )
                         break;
                     
@@ -104,20 +109,23 @@ public class JxpConverter extends HtmlLikeConverter {
                     
                     tokenNumbers++;
                 }
-
+                
                 g.append( open );
                 te = new TagEnd( close , false );
-
-                restOfTag = "";
+                
+                return true;
             }
+            
+            return false;
         }
-        
-        g.tagPush( tag , te );
-        if ( te == null || te._printTag )
-            gotText( g , "<" + tag + " " + restOfTag + ">" );
+        finally {
+            g.tagPush( tag , te );
+        }
     }
     
-    protected void gotEndTag( Generator gg , String tag ){
+    protected boolean gotEndTag( Generator gg , String tag , State state ){
+        state.readRestOfTag();
+        
         MyGenerator g = (MyGenerator)gg;
 
         TagEnd te = g.tagPop( tag );
@@ -127,6 +135,8 @@ public class JxpConverter extends HtmlLikeConverter {
 
         if ( te != null )
             g.append( te._code );
+
+        return true;
     }
     
     protected void gotText( Generator g , String text ){

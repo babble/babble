@@ -12,6 +12,7 @@ import ed.js.*;
 import ed.js.engine.*;
 import ed.lang.*;
 import ed.appserver.*;
+import ed.appserver.templates.*;
 
 public abstract class JxpSource implements StackTraceFixer {
     
@@ -60,7 +61,7 @@ public abstract class JxpSource implements StackTraceFixer {
         return _blocks;
     }
 
-    public synchronized JSFunction getFunction()
+    public synchronized JSFunction getFunction1()
         throws IOException {
         
         _checkTime();
@@ -110,7 +111,6 @@ public abstract class JxpSource implements StackTraceFixer {
                     StackTraceHolder.getInstance().set( jsFile.getAbsolutePath() , this );
                 }
                 catch ( Exception e ){
-                    System.out.println( e );
                     throw new RuntimeException( "couldn't compile [" + getName() + "] : " + getCompileMessage( e ) );
                 }
             }
@@ -122,7 +122,40 @@ public abstract class JxpSource implements StackTraceFixer {
         }
         return _func;
     }
+
+    public synchronized JSFunction getFunction()
+        throws IOException {
+        
+        _checkTime();
+        
+        if ( _func != null )
+            return _func;
+        
+        _lastParse = lastUpdated();
+
+        Template t = new Template( getName() , getContent() );
+        while ( ! t.getExtension().equals( "js" ) ){
+            
+            TemplateConverter.Result result = TemplateEngine.oneConvert( t );
+            
+            if ( result == null )
+                break;
+            
+            StackTraceHolder.getInstance().set( result.getNewTemplate().getName() , 
+                                                new BasicLineNumberMapper( t.getName() , result.getNewTemplate().getName() , result.getLineMapping() ) );
+            
+            t = result.getNewTemplate();
+        }
+        
+        if ( ! t.getExtension().equals( "js" ) )
+            throw new RuntimeException( "don't know what do do with : " + t.getExtension() );
+
+        Convert convert = new Convert( t.getName() , t.getContent() );
+        _func = convert.get();
+        return _func;
+    }
     
+
     private String _getFileSafeName(){
         return getName().replaceAll( "[^\\w]" , "_" );
     }
