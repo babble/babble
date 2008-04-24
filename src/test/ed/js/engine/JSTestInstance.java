@@ -47,7 +47,7 @@ public class JSTestInstance {
         final PrintStream out = new PrintStream(bout);
     
         JSFunction f = c.get();
-        Scope scope = Scope.GLOBAL.child();
+        Scope scope = Scope.GLOBAL.child(new File("/tmp"));
     
         if (_jsFile.toString().contains("/engine/")) {
             JSFunction myout = new JSFunctionCalls1() {
