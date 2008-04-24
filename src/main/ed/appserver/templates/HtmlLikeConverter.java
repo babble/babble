@@ -144,6 +144,9 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
             
             text.append( c );
         }
+
+        gotText( g , text.toString() );
+        text.setLength( 0 ); // not needed, but might as well be safe
         
         end( g );
 
