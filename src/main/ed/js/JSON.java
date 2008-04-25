@@ -8,6 +8,7 @@ import org.mozilla.javascript.*;
 
 import ed.js.func.*;
 import ed.js.engine.*;
+import ed.log.Logger;
 
 public class JSON {
 
@@ -149,9 +150,19 @@ public class JSON {
                 return;
             }
 
+            if ( something instanceof Logger ){
+                string( a , something.toString() );
+                return;
+            }
+
             if ( something instanceof JSFunction ){
                 if ( trusted ) {
-                    a.append( something.toString() );
+                    String s = something.toString();
+                    if( s.startsWith(JSFunction.TO_STRING_PREFIX) )
+                        // Java implementation -- not valid JSON
+                        string ( a, s );
+                    else
+                        a.append( s );
                     return;
                 }
                 throw new java.io.IOException("can't serialize functions in untrusted mode");
@@ -169,7 +180,7 @@ public class JSON {
             }
 
             if ( ! ( something instanceof JSObject ) ){
-                a.append( something.toString() );
+                string( a , something.toString() );
                 return;
             }
             
