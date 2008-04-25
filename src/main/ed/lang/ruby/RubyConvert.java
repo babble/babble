@@ -140,14 +140,13 @@ public class RubyConvert extends ed.MyAsserts {
             _addCall( (CallNode)node , state );
         }
         
-        else if ( node instanceof DefnNode ){
+        else if ( node instanceof MethodDefNode ){
 
-            DefnNode dn = (DefnNode)node;
-            if ( dn.childNodes().size() != 3 )
-                throw new RuntimeException( "DefnNode should only have 3 children" );
+            MethodDefNode dn = (MethodDefNode)node;
             
-            if ( state._className != null )
-                _appned( state._className + ".prototype." , node );
+            if ( state._className != null ){
+                _appned( state._className + "." + ( ( dn instanceof DefsNode ) ? "" : "prototype." ) , node );
+            }
             _appned( _mangleFunctionName( dn.getName() ) + " = function(" , node );
             
             ArgsNode an = dn.getArgsNode();
@@ -161,7 +160,7 @@ public class RubyConvert extends ed.MyAsserts {
             }
 
             _appned( " ){\n" , node );
-            _add( dn.childNodes().get( 2 ) , state );
+            _add( dn.getBodyNode() , state );
             _appned( " \n}\n " , node );
         }
 
@@ -456,8 +455,8 @@ public class RubyConvert extends ed.MyAsserts {
             return;
         }
         
-        if ( n instanceof DefnNode ){
-            DefnNode dn = (DefnNode)n;
+        if ( n instanceof MethodDefNode ){
+            MethodDefNode dn = (MethodDefNode)n;
             if ( dn != state._classInit )
                 _add( dn , state );
             return;
