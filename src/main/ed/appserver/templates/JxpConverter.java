@@ -174,6 +174,7 @@ public class JxpConverter extends HtmlLikeConverter {
                  || temp == '<'
                  || temp == '>'
                  || temp == '"'
+                 || temp == '&'
                  || temp == ':' )
                 return end;
         }
