@@ -1,4 +1,4 @@
-package ed.appserver.jxp;
+package ed.appserver;
 
 import java.io.File;
 import java.io.IOException;
@@ -6,7 +6,7 @@ import java.io.IOException;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
-import ed.appserver.AppContext;
+import ed.appserver.jxp.*;
 
 /**
  * Simple tests for AppContext 
@@ -42,14 +42,14 @@ import ed.appserver.AppContext;
          JxpSource res = ac.getSource(goodIndex);
          
          assertTrue( res instanceof JxpSource.JxpFileSource);         
-         assertTrue(((JxpSource.JxpFileSource) res)._f == goodIndex);
+         assertTrue(((JxpSource.JxpFileSource) res).getFile() == goodIndex);
 
          File a = new File(_ROOT, "/index");
 
          JxpSource res1 = ac.getSource(a);
 
          assertTrue(res1 == res);
-         assertTrue(((JxpSource.JxpFileSource) res)._f == ((JxpSource.JxpFileSource) res1)._f);
+         assertTrue(((JxpSource.JxpFileSource) res).getFile() == ((JxpSource.JxpFileSource) res1).getFile());
      }
 
      @Test
@@ -59,7 +59,7 @@ import ed.appserver.AppContext;
 
          JxpSource res = ac.getSource(a);
 
-         assertTrue(((JxpSource.JxpFileSource) res)._f.getName().endsWith("servlet.jxp"));
+         assertTrue(((JxpSource.JxpFileSource) res).getFile().getName().endsWith("servlet.jxp"));
      }
 
      @Test
@@ -71,13 +71,13 @@ import ed.appserver.AppContext;
 
          JxpSource res = ac.getSource(a);
 
-         assertTrue(((JxpSource.JxpFileSource) res)._f.getAbsolutePath().endsWith("directory1/index.jxp"));
+         assertTrue(((JxpSource.JxpFileSource) res).getFile().getAbsolutePath().endsWith("directory1/index.jxp"));
 
          a = new File(_ROOT, "/directory1/");
 
          res = ac.getSource(a);
 
-         assertTrue(((JxpSource.JxpFileSource) res)._f.getAbsolutePath().endsWith("directory1/index.jxp"));
+         assertTrue(((JxpSource.JxpFileSource) res).getFile().getAbsolutePath().endsWith("directory1/index.jxp"));
 }
      
      @Test

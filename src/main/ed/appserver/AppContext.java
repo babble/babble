@@ -209,11 +209,11 @@ public class AppContext {
         return _root;
     }
 
-    public AppRequest createRequest( HttpRequest request ){
+    AppRequest createRequest( HttpRequest request ){
         return createRequest( request , request.getURI() );
     }
     
-    public AppRequest createRequest( HttpRequest request , String uri ){
+    AppRequest createRequest( HttpRequest request , String uri ){
         return new AppRequest( this , request , uri );
     }
 
@@ -295,7 +295,7 @@ public class AppContext {
         return f;
     }
     
-    public JxpSource getSource( File f )
+    JxpSource getSource( File f )
         throws IOException {
     
         if ( DEBUG ) System.err.println( "getSource\n\t " + f );
@@ -368,7 +368,7 @@ public class AppContext {
             _initFlies.add( f );
     }
 
-    public JxpServlet getServlet( File f )
+    JxpServlet getServlet( File f )
         throws IOException {
         JxpSource source = getSource( f );
         if ( source == null )
