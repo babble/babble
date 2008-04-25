@@ -483,6 +483,10 @@ public class Scope implements JSObject {
     
     public Object eval( String code , String name , boolean hasReturn[] ){
         try {
+            
+            if ( code.matches( "\\d+" ) )
+                return Integer.parseInt( code );
+
             if ( code.matches( "\\w[\\w\\.]+\\w" ) )
                 return findObject( code );
             
