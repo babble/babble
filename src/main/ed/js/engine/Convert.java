@@ -385,10 +385,23 @@ public class Convert implements StackTraceFixer {
             _append( temp , n );
             break;
         case Token.STRING:
-            _append( getStringCode( n.getString() ) , n );
-            //int stringId = _strings.size();
-            //_strings.add( n.getString() );
-            //_append( "_strings[" + stringId + "]" ,n );
+            final String theString = n.getString();
+            if ( theString.length() > 0 && theString.length() < 7 ){
+                boolean ok = true;
+                for ( int i=0; i<theString.length(); i++){
+                    if ( ! Character.isDigit( theString.charAt( i ) ) ){
+                        ok = false;
+                        break;
+                    }
+                }
+                
+                if ( ok ){
+                    _append( "Integer.valueOf( " + theString + " ) " , n );
+                    break;
+                }
+                
+            }
+            _append( getStringCode( theString ) , n );
             break;
         case Token.TRUE:
             _append( " true " , n );
