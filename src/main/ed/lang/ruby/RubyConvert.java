@@ -271,15 +271,24 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof AttrAssignNode ){
             AttrAssignNode aan = (AttrAssignNode)node;
 
+            final String name = aan.getName().trim();
+            
             _appned( " ( " , aan );
             _add( aan.getReceiverNode() , state );
             
-            _appned( "[" , aan );
-            _add( aan.getArgsNode().childNodes().get(0) , state );
-            _appned( "]" , aan );
-            
-            _appned( " = " , aan );
-            _add( aan.getArgsNode().childNodes().get(1) , state );
+            if ( name.equals( "[]=" ) ){
+                _appned( "[" , aan );
+                _add( aan.getArgsNode().childNodes().get(0) , state );
+                _appned( "]" , aan );
+                
+                _appned( " = " , aan );
+                _add( aan.getArgsNode().childNodes().get(1) , state );
+            }
+            else {
+                _appned( "." + name , aan );
+                _add( aan.getArgsNode().childNodes().get(0) , state );
+            }
+                
 
             _appned( " ) " , aan );
 
