@@ -294,6 +294,10 @@ public class RubyConvert extends ed.MyAsserts {
 
         }
 
+        else if ( node instanceof ClassVarNode ){
+            _appned( "this.__constructor__." + ((ClassVarNode)node).getName().substring(2) , node );
+        }
+
         // --- literals ---
         
         else if ( node instanceof ArrayNode ){
@@ -481,6 +485,13 @@ public class RubyConvert extends ed.MyAsserts {
                 }
             }
             _appned( ")" , f );
+            return;
+        }
+
+        if ( n instanceof ClassVarDeclNode ){
+            ClassVarDeclNode dn = (ClassVarDeclNode)n;
+            _appned( state._className + "." + dn.getName().substring(2) + " = " , dn );
+            _add( dn.getValueNode() , state );
             return;
         }
 
