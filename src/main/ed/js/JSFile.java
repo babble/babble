@@ -37,6 +37,9 @@ public abstract class JSFile extends JSObjectBase {
     }
     
     public JSFileChunk getFirstChunk(){
+        if ( getLength() == 0 )
+            return null;
+
         ((JSObject)get( "next" )).keySet();
         JSFileChunk chunk = (JSFileChunk)get( "next" );        
         if ( chunk == null )
@@ -143,8 +146,13 @@ public abstract class JSFile extends JSObjectBase {
     public class Sender extends InputStream {
         
         Sender( JSFileChunk chunk ){
-            if ( chunk == null )
-                throw new NullPointerException("chunk can't be null" );
+            
+            if ( chunk == null ){
+                _chunk = null;
+                _buf = null;
+                return;
+            }
+
             if ( chunk.getData() == null )
                 throw new NullPointerException("chunk data can't be null" );
             _chunk = chunk;
