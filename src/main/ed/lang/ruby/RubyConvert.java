@@ -114,27 +114,40 @@ public class RubyConvert extends ed.MyAsserts {
 
         else if ( node instanceof FCallNode ){
             FCallNode f = (FCallNode)node;
-
-            if ( f.getIterNode() != null ){
-                
-                _appned( _getFuncName( f )  , node );
-                _appned( "(" , node );
-                _add( f.getIterNode() , state );
-                _appned( ")" , node );
-            }
-            else if ( f.getArgsNode() == null || 
-                 f.getArgsNode().childNodes() == null || 
-                 f.getArgsNode().childNodes().size() == 0 ){
+            
+            if ( ( f.getArgsNode() == null || f.getArgsNode().childNodes() == null || f.getArgsNode().childNodes().size() == 0 ) &&
+                 f.getIterNode() == null ){
                 // no args
                 _appned( Ruby.RUBY_V_CALL + "(" + _getFuncName( f ) + ")" , f );
             }
-            else { 
-                // has args
+            else {
                 _appned( _getFuncName( f )  , node );
-                _addArgs( f , f.getArgsNode().childNodes() , state );
+                
+                _appned( "(" , node );
+                
+                boolean first = true;
+                
+                if ( f.getArgsNode() != null && f.getArgsNode().childNodes() != null ){
+                    for ( Node temp : f.getArgsNode().childNodes() ){
+                        if ( first )
+                            first = false;
+                        else
+                            _appned( " , " , temp );
+                        _add( temp , state );
+                    }
+                }
+                
+                if ( f.getIterNode() != null ){
+                    if ( ! first )
+                        _appned( " , " , f );
+                    _add( f.getIterNode() , state );
+                }
+            
+                _appned( ")" , node );    
             }
+            
         }
-
+        
         
         else if ( node instanceof CallNode ){
             _addCall( (CallNode)node , state );
@@ -150,13 +163,20 @@ public class RubyConvert extends ed.MyAsserts {
             _appned( _mangleFunctionName( dn.getName() ) + " = function(" , node );
             
             ArgsNode an = dn.getArgsNode();
-            if ( an != null && an.getArgs() != null ){
-                for ( int i=0; i<an.getArgs().size(); i++ ){
-                    ArgumentNode a = (ArgumentNode)an.getArgs().get(i);
-                    if ( i > 0 )
-                        _appned( " , " , a );
-                    _appned( a.getName() , a );
+            if ( an != null ){
+                if ( an.getArgs() != null ){
+                    for ( int i=0; i<an.getArgs().size(); i++ ){
+                        ArgumentNode a = (ArgumentNode)an.getArgs().get(i);
+                        if ( i > 0 )
+                            _appned( " , " , a );
+                        _appned( a.getName() , a );
+                    }
                 }
+
+                if ( an.getBlockArgNode() != null ){
+                    _appned( " , " + an.getBlockArgNode().getName() , an );
+                }
+                
             }
 
             _appned( " ){\n" , node );
@@ -507,10 +527,12 @@ public class RubyConvert extends ed.MyAsserts {
         if ( n instanceof FCallNode ){
             FCallNode f = (FCallNode)n;
             _appned( _getFuncName( f ) + ".call( " + state._className + ".prototype " , f );
-            if ( f.getArgsNode() != null && f.getArgsNode().childNodes() != null ){
-                for ( int i=0; i<f.getArgsNode().childNodes().size(); i++ ){
-                    _appned( " , " , f );
-                    _add( f.getArgsNode().childNodes().get(i) , state );
+            if ( f.getArgsNode() != null ){
+                if ( f.getArgsNode().childNodes() != null ){
+                    for ( int i=0; i<f.getArgsNode().childNodes().size(); i++ ){
+                        _appned( " , " , f );
+                        _add( f.getArgsNode().childNodes().get(i) , state );
+                    }
                 }
             }
             _appned( ")" , f );
