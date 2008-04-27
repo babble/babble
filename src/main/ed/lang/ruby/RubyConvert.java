@@ -110,6 +110,11 @@ public class RubyConvert extends ed.MyAsserts {
             _addIterBlock( (IterNode)node , state );
         }
 
+        else if ( node instanceof YieldNode ){
+            _appned( "arguments[ arguments.length - 1 ]" , node );
+            _addArgs( node , node.childNodes() , state );
+        }
+
         // --- function stuff ---
 
         else if ( node instanceof FCallNode ){
