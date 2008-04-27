@@ -62,7 +62,7 @@ public class Ruby {
                         return _cvCall.call( s , thing , RUBY_NEWNAME , extra );
                     
                     JSObjectBase o = new JSObjectBase();
-                    o.setConstructor( (JSFunction)thing , true );
+                    o.setConstructor( (JSFunction)thing , true , extra );
                     return o;
                 }
             } , true );

@@ -67,7 +67,7 @@ public class RubyConvert extends ed.MyAsserts {
     void _add( Node node , State state ){
         
         if ( node == null || state == null )
-            throw new RuntimeException( "can't be null" );
+            return;
         
         // --- blocking ----
 
@@ -169,6 +169,27 @@ public class RubyConvert extends ed.MyAsserts {
             VCallNode vcn = (VCallNode)node;
             _appned( Ruby.RUBY_V_CALL + "( " + vcn.getName() + ")" , node );
         }
+        
+        else if ( node instanceof ZSuperNode ){
+            
+        }
+
+        else if ( node instanceof SuperNode ){
+            SuperNode sn = (SuperNode)node;
+            
+            if ( sn.getArgsNode() == null )
+                throw new RuntimeException( "shouldn't this be a Z, not a regular?" );
+
+            if ( sn.getIterNode() != null )
+                throw new RuntimeException( "what?" );
+
+            _appned( "this.__proto__.constructor.call( this " , sn );
+            for ( Node foo : sn.getArgsNode().childNodes() ){
+                _appned( " , " , sn );
+                _add( foo , state );
+            }
+            _appned( " )" , sn );
+        }
 
         // --- class stuff ---
         
@@ -219,6 +240,10 @@ public class RubyConvert extends ed.MyAsserts {
         }
 
         // --- vars ---
+
+        else if ( node instanceof ArgumentNode ){
+            _appned( ((ArgumentNode)node).getName() , node );
+        }
 
         else if ( node instanceof LocalAsgnNode ){
             _assertOne( node );
@@ -413,10 +438,14 @@ public class RubyConvert extends ed.MyAsserts {
             _appned( name + " = function(){};" , cn );
         }
         else {
-            _appned( name + " = function(" , state._classInit );
-            
-            _appned( "){\n" , state._classInit );
-            _add( state._classInit.childNodes().get(2) , state );
+            _appned( name + " = function" , state._classInit );
+            if ( state._classInit.getArgsNode() == null || 
+                 state._classInit.getArgsNode().getArgs() == null )
+                _appned( "()" , state._classInit );
+            else
+                _addArgs( state._classInit , state._classInit.getArgsNode().getArgs().childNodes() , state );
+            _appned( "{\n" , state._classInit );
+            _add( state._classInit.getBodyNode() , state );
             _appned( "\n}\n" , state._classInit );
         }
 
@@ -513,14 +542,7 @@ public class RubyConvert extends ed.MyAsserts {
             _addArgs( call , call.childNodes() , state , " " + call.getName() + " " );
             return;
         }
-        
-        if ( call.getName().equals( "new" ) ){
-            _appned( Ruby.RUBY_NEW + "( " , call );
-            _add( call.childNodes().get(0) , state );
-            _appned( " ) " , call );
-            return;
-        }
-        
+
         if ( D ){
             System.err.println( "CallNode : " + call.getName() );
             System.err.println( "\t iter : " + call.getIterNode() );
@@ -528,6 +550,24 @@ public class RubyConvert extends ed.MyAsserts {
             System.err.println( "\t args : " + call.getArgsNode() );
         }
 
+        if ( call.getName().equals( "new" ) ){
+            _appned( Ruby.RUBY_NEW + "( " , call );
+            _add( call.getReceiverNode() , state );
+
+            if ( call.getArgsNode() != null && 
+                 call.getArgsNode().childNodes() != null ){
+
+                for ( Node temp : call.getArgsNode().childNodes() ){
+                    _appned( " , " , call );
+                    _add( temp , state );
+                }
+
+            }
+
+            _appned( " ) " , call );
+            return;
+        }
+        
         Node self = call.getReceiverNode();
         Node args = call.getArgsNode();
         Node iter = call.getIterNode();
