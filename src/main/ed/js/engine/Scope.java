@@ -774,7 +774,7 @@ public class Scope implements JSObject {
                 }
                 
                 if ( obj.getClass() == JSObjectBase.class )
-                    throw new NullPointerException( "no function called : " + name );
+                    throw new NullPointerException( "no function called : " + name + " fields [" + ((JSObjectBase)obj).keySet() + "]" );
                 
                 throw new NullPointerException( name + " (from a [" + obj.getClass() + "])" );
             }
