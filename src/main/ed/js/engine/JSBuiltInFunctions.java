@@ -497,8 +497,8 @@ public class JSBuiltInFunctions {
         _myScope.put( "download" , HttpDownload.DOWNLOAD , true );
 
         _myScope.put( "JSCaptcha" , new JSCaptcha() , true );
-
-
+        _myScope.put( "MimeTypes" , new ed.appserver.MimeTypes() , true );
+        
         _myScope.put( "parseBool" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object b , Object extra[] ){
                     if ( b == null )
