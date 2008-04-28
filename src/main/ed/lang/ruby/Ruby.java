@@ -33,8 +33,11 @@ public class Ruby {
             new JSFunctionCalls2(){
                 public Object call( Scope s , Object thing , Object funcName , Object extra[] ){
                     
+                    if ( thing == null )
+                        throw new NullPointerException();
+
                     if ( ! ( thing instanceof JSObjectBase) )
-                        throw new RuntimeException( "problem" );
+                        throw new RuntimeException( "problem (" + thing.getClass() + ")" );
                     
                     JSObject jo = (JSObject)thing;
                     
@@ -62,7 +65,7 @@ public class Ruby {
                         return _cvCall.call( s , thing , RUBY_NEWNAME , extra );
                     
                     JSObjectBase o = new JSObjectBase();
-                    o.setConstructor( (JSFunction)thing , true );
+                    o.setConstructor( (JSFunction)thing , true , extra );
                     return o;
                 }
             } , true );

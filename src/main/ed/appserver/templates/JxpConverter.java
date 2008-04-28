@@ -67,11 +67,7 @@ public class JxpConverter extends HtmlLikeConverter {
                 state.next();
                 state.eatWhiteSpace();
                 
-                int end = getJSTokenEnd( state.data , state.pos );
-                
-                StringBuilder cond = new StringBuilder();
-                while ( state.pos < end )
-                    cond.append( state.next() );
+                final String cond = readJSToken( state );
                 
                 g.append( "if ( " + cond + " ){\n" );
                 
@@ -83,33 +79,27 @@ public class JxpConverter extends HtmlLikeConverter {
             
             if ( macro != null ){
                 String open = macro[0];
-                String close = macro[1];
+                final String close = macro[1];
                 
                 int tokenNumbers = 1;
 
-                String restOfTag = state.readRestOfTag();
-                
-                while ( restOfTag.length() > 0 ){
+                while ( true ){
+
+                    state.eatWhiteSpace();
                     
-                    while ( restOfTag.length() > 0 && 
-                            Character.isWhitespace( restOfTag.charAt( 0 ) ) )
-                        restOfTag = restOfTag.substring( 1 );
-                    
-                    if ( restOfTag.length() == 0 )
+                    if ( state.peek() == '>' )
                         break;
                     
-                    int end = getJSTokenEnd( restOfTag , 0 );
-                    final String token = restOfTag.substring( 0 , end ).trim();
-                    restOfTag = restOfTag.substring( end ).trim();
+                    final String jstoken = readJSToken( state );
+                    if ( jstoken.length() == 0 )
+                        throw new RuntimeException("eliot is dumb");
                     
-                    if ( token.length() == 0 )
-                        break;
                     
-                    open = open.replaceAll( "\\$" + tokenNumbers , token );
-                    
-                    tokenNumbers++;
+                    open = open.replaceAll( "\\$" + tokenNumbers++ , jstoken );
                 }
-                
+
+                state.readRestOfTag();
+
                 g.append( open );
                 te = new TagEnd( close , false );
                 
@@ -139,6 +129,16 @@ public class JxpConverter extends HtmlLikeConverter {
         return true;
     }
     
+    static String readJSToken( State state ){
+        int end = getJSTokenEnd( state.data , state.pos );
+        
+        StringBuilder cond = new StringBuilder();
+        while ( state.pos < end )
+            cond.append( state.next() );        
+
+        return cond.toString();
+    }
+
     static int getJSTokenEnd( String data , final int start ){
         
         int parens = 0;
@@ -174,6 +174,7 @@ public class JxpConverter extends HtmlLikeConverter {
                  || temp == '<'
                  || temp == '>'
                  || temp == '"'
+                 || temp == '&'
                  || temp == ':' )
                 return end;
         }

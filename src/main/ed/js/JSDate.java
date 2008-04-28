@@ -139,6 +139,16 @@ public class JSDate extends JSObjectBase implements Comparable {
         _cal();
         return _c.get( Calendar.DAY_OF_MONTH );
     }
+    
+    public int getHourOfDay(){
+        _cal();
+        return _c.get( Calendar.HOUR_OF_DAY );
+    }
+
+    public int getMinute(){
+        _cal();
+        return _c.get( Calendar.MINUTE );
+    }
 
     public long setDate(int day) {
         _cal();

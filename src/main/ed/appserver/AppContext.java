@@ -66,6 +66,9 @@ public class AppContext {
         _scope.put( "_rootFile" , _rootFile , true );
         _scope.lock( "_rootFile" );
 
+        _scope.put( "__instance__" , this , true );
+        _scope.lock( "__instance__" );
+
         // --- db
         
         if ( ! _isGrid ){
@@ -199,10 +202,8 @@ public class AppContext {
         return f;
     }
     
-    public void resetScope(){
-        _scopeInited = false;
-        _scope.reset();
-        _baseScopeInit();
+    public void reset(){
+        _reset = true;
     }
     
     public String getRoot(){
@@ -214,6 +215,7 @@ public class AppContext {
     }
     
     AppRequest createRequest( HttpRequest request , String uri ){
+        _numRequests++;
         return new AppRequest( this , request , uri );
     }
 
@@ -431,6 +433,14 @@ public class AppContext {
         return _globalHead;
     }
 
+    public JSDate getWhenCreated(){
+        return _created;
+    }
+
+    public int getNumRequests(){
+        return _numRequests;
+    }
+
     final String _name;
     final String _root;
     final File _rootFile;
@@ -452,4 +462,8 @@ public class AppContext {
     long _lastScopeInitTime = 0;
 
     final boolean _isGrid;
+
+    boolean _reset = false;
+    int _numRequests = 0;
+    final JSDate _created = new JSDate();
 }

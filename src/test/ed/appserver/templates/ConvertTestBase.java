@@ -56,7 +56,8 @@ public abstract class ConvertTestBase extends TestCase {
                 System.out.println( _file );
                 System.out.println( "*********************");
             }
-            
+
+            System.out.println("ConvertTestBase : testing = " + _file);
 
             final String in = StreamUtil.readFully( new FileInputStream( _file ) );
 
@@ -94,7 +95,7 @@ public abstract class ConvertTestBase extends TestCase {
                 resultFile = new File( _file.getAbsolutePath() + ".out" );
             String expected = _clean( StreamUtil.readFully( new FileInputStream( resultFile ) ) );
             
-            assertClose( expected , got );
+            assertClose( expected , got, "Error : " + _file + " : " );
 
             Matcher m = Pattern.compile( "LINE(\\d+)" ).matcher( in );
             if ( m.find() ){

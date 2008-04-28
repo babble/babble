@@ -54,6 +54,7 @@ public class JSObjectBase implements JSObject {
             
             if ( ! ( name.equals( "__proto__" ) || 
                      name.equals( "__constructor__" ) || 
+                     name.equals( "constructor" ) || 
                      name.equals( "__parent__" ) ) )
                 if ( ! _map.containsKey( n ) )
                     _keys.add( name );
@@ -189,11 +190,20 @@ public class JSObjectBase implements JSObject {
         return foo.toString();
     }
 
+    public void setConstructor( JSFunction cons ){
+        setConstructor( cons , false );
+    }
+
     public void setConstructor( JSFunction cons , boolean exec ){
+        setConstructor( cons , exec , null );
+    }
+    
+    public void setConstructor( JSFunction cons , boolean exec , Object args[] ){
         _readOnlyCheck();
 
         _constructor = cons;
         set( "__constructor__" , _constructor );
+        set( "constructor" , _constructor );
         set( "__proto__" , _constructor == null ? null : _constructor._prototype );
 
         if ( _constructor != null && exec ){
@@ -206,12 +216,8 @@ public class JSObjectBase implements JSObject {
             s = s.child();
             
             s.setThis( this );
-            _constructor.call( s );
+            _constructor.call( s , args );
         }
-    }
-
-    public void setConstructor( JSFunction cons ){
-        setConstructor( cons , false );
     }
 
     public JSFunction getConstructor(){
