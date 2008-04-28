@@ -54,6 +54,7 @@ public class JSObjectBase implements JSObject {
             
             if ( ! ( name.equals( "__proto__" ) || 
                      name.equals( "__constructor__" ) || 
+                     name.equals( "constructor" ) || 
                      name.equals( "__parent__" ) ) )
                 if ( ! _map.containsKey( n ) )
                     _keys.add( name );
