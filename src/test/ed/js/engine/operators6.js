@@ -16,3 +16,11 @@ print( b );
 print( + b );
 print( b );
 print( + -7 );
+
+if ( m = 3 )
+    print( "Z1" );
+
+if ( m = null )
+    print( "Z2" );
+
+print( "Z3" );
