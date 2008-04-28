@@ -36,7 +36,7 @@ public class Ruby {
                     if ( thing == null )
                         throw new NullPointerException();
 
-                    if ( ! ( thing instanceof JSObjectBase) )
+                    if ( ! ( thing instanceof JSObject) )
                         throw new RuntimeException( "problem (" + thing.getClass() + ")" );
                     
                     JSObject jo = (JSObject)thing;
