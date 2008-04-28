@@ -28,6 +28,30 @@ public class Djang10ConverterTest extends ConvertTestBase {
         return new Djang10Converter();
     }
 
+    @Override
+    Object[] getArgs(){
+        JSObjectBase o = new JSObjectBase();
+        o.set( "foo" , "17" );
+        o.set( "a" , "A" );
+        o.set( "b" , "B" );
+        
+        JSObjectBase nested = new JSObjectBase();
+        final JSObjectBase nested3 = new JSObjectBase();
+        JSFunction nested2Fn = new JSFunctionCalls0() {
+			@Override
+			public Object call(Scope scope, Object[] extra) {
+				return nested3;
+			}
+        	
+        };
+        
+        o.set("nested", nested);
+        nested.set("nested2Fn", nested2Fn);
+        nested3.set("last", "moo");
+        
+        return new Object[]{ o };
+    }
+    
     public static void main( String args[] ){
         Djang10ConverterTest t = new Djang10ConverterTest();
         t.runConsole();
