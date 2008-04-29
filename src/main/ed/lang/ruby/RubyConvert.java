@@ -6,10 +6,12 @@ import java.io.*;
 import java.util.*;
 
 import org.jruby.ast.*;
+import org.jruby.ast.types.*;
 import org.jruby.common.*;
 import org.jruby.parser.*;
 import org.jruby.lexer.yacc.*;
 
+import ed.lang.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.appserver.templates.*;
@@ -28,7 +30,7 @@ public class RubyConvert extends ed.MyAsserts {
                 final RubyConvert rc = new RubyConvert( t.getName() , t.getContent() );
                 final String jsSource = rc.getJSSource();
                 if ( D ) System.out.println( jsSource );
-                return new TemplateConverter.Result( new Template( t.getName().replaceAll( ".rb$" , "_rb.js" ) , jsSource ) , null );
+                return new TemplateConverter.Result( new Template( t.getName().replaceAll( ".rb$" , "_rb.js" ) , jsSource ) , rc._lineMapping );
             }
             catch ( IOException ioe ){
                 throw new RuntimeException( "couldn't convert : " + t.getName() , ioe );
@@ -192,7 +194,7 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof VCallNode ){
             _assertNoChildren( node );
             VCallNode vcn = (VCallNode)node;
-            _appned( Ruby.RUBY_V_CALL + "( " + vcn.getName() + ")" , node );
+            _appned( Ruby.RUBY_V_CALL + "( " + _getFuncName( vcn ) + ")" , node );
         }
         
         else if ( node instanceof ZSuperNode ){
@@ -237,6 +239,10 @@ public class RubyConvert extends ed.MyAsserts {
             _appned( "this." + lvn.getName().substring(1) , node );
         }
         
+        else if ( node instanceof SelfNode ){
+            _appned( "this" , node );
+        }
+
         // --- looping ---
 
         else if ( node instanceof WhileNode ){
@@ -262,6 +268,19 @@ public class RubyConvert extends ed.MyAsserts {
                 _add( ifn.getElseBody() , state );
                 _appned( " } \n " , ifn );
             }
+        }
+
+        // --- operators ---
+
+        else if ( node instanceof OpAsgnOrNode ){
+            OpAsgnOrNode op = (OpAsgnOrNode)node;
+            _add( op.getFirstNode() , state );
+            _appned( " = " , node );
+            _appned( " ( " , node );
+            _add( op.getFirstNode() , state );
+            _appned( " || " , node );
+            _add( op.getSecondNode().childNodes().get(0) , state );
+            _appned( " ) " , node );
         }
 
         // --- vars ---
@@ -610,7 +629,7 @@ public class RubyConvert extends ed.MyAsserts {
             
             if ( args != null && args.childNodes().size() > 0 ){
                 _add( call.childNodes().get(0) , state );
-                _appned( "." + call.getName() , call );
+                _appned( "." + _getFuncName( call ) , call );
                 if ( args instanceof ArrayNode )
                     _addArgs( call , args.childNodes() , state );
                 else {
@@ -623,7 +642,7 @@ public class RubyConvert extends ed.MyAsserts {
                 _appned( Ruby.RUBY_CV_CALL + "( " , call);
                 _add( self , state );
                 _appned( " , " , call );
-                _appned( "\"" + call.getName() + "\"" , call );
+                _appned( "\"" + _getFuncName( call ) + "\"" , call );
                 _appned( " ) " , call );
             }
             return;            
@@ -631,7 +650,7 @@ public class RubyConvert extends ed.MyAsserts {
 
         // normal function call        
         if ( args != null ){
-            _appned( call.getName() , call );
+            _appned( _getFuncName( call ) , call );
             _addArgs( call , args.childNodes() , state );
             return;
         }
@@ -639,7 +658,7 @@ public class RubyConvert extends ed.MyAsserts {
         // no-args
         _appned( Ruby.RUBY_V_CALL + "(" , call );
         _add( call.childNodes().get(0) , state );
-        _appned( "." + call.getName() , call );
+        _appned( "." + _getFuncName( call ) , call );
         _appned( ")" , call );
 
     }
@@ -706,15 +725,16 @@ public class RubyConvert extends ed.MyAsserts {
         for ( int i=0; i<space; i++ )
             System.out.print( " " );
         
-        System.out.println( n );
+        System.out.print( n );
+        if ( n instanceof INameNode )
+            System.out.print( " " + ((INameNode)n).getName() + " " );
+        System.out.println();
+        
         for ( Node c : n.childNodes() )
             _print( space + 1 , c );
         
     }
     
-    void _appned( String s , Node where ){
-        _js.append( s );
-    }
 
     String _escape( String s ){
         StringBuilder buf = new StringBuilder( s.length() );
@@ -740,19 +760,32 @@ public class RubyConvert extends ed.MyAsserts {
         return _operatorNames.contains( node.getName() );
     }
 
-    String _getFuncName( FCallNode node ){
-        final String name = node.getName();
+    String _getFuncName( INameNode node ){
+        String name = node.getName();
         
         if ( name.equals( "puts" ) )
             return "print";
-        
+
         return _mangleFunctionName( name );
     }
-
+    
     String _mangleFunctionName( String name ){
         if ( name.equals( "new" ) )
             return Ruby.RUBY_NEWNAME;
         
+        if ( name.equals( "<<" ) )
+            return Ruby.RUBY_SHIFT;
+
+        if ( name.endsWith( "?" ) )
+            name = name.substring( 0 , name.length() - 1 ) + "_q";
+        
+        if ( name.endsWith( "!" ) )
+            name = name.substring( 0 , name.length() - 1 ) + "_ex";
+
+        if ( name.endsWith( "=" ) )
+            name = name.substring( 0 , name.length() - 1 ) + "_eq";
+
+
         return name;
     }
 
@@ -798,6 +831,21 @@ public class RubyConvert extends ed.MyAsserts {
         String _className;
         DefnNode _classInit;
     }
+
+    void _appned( String s , Node where ){
+        _js.append( s );
+        
+        for ( int i=0; i<s.length(); i++ ){
+            _lineMapping.put( _line , where.getPosition().getStartLine() );
+            
+            if ( s.charAt( i ) != '\n' )
+                continue;
+            _line++;
+        }
+    }
+
+    private int _line = 1;
+    private Map<Integer,Integer> _lineMapping = new TreeMap<Integer,Integer>();
 
     final String _name;
     final List<String> _lines;

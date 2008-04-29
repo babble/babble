@@ -13,6 +13,7 @@ public class Ruby {
     public static final String RUBY_NEW = "_rubyNew";
 
     public static final String RUBY_NEWNAME = "_____rnew___";
+    public static final String RUBY_SHIFT = "__rshift";
 
     public static void install( Scope s ){
         
