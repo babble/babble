@@ -766,6 +766,9 @@ public class RubyConvert extends ed.MyAsserts {
         if ( name.equals( "puts" ) )
             return "print";
 
+        if ( name.equals( "include" ) )
+            return Ruby.RUBY_INCLUDE;
+
         return _mangleFunctionName( name );
     }
     

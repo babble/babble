@@ -11,6 +11,7 @@ public class Ruby {
     public static final String RUBY_V_CALL = "_rubyVCall";
     public static final String RUBY_CV_CALL = "_rubyCVCall";
     public static final String RUBY_NEW = "_rubyNew";
+    public static final String RUBY_INCLUDE = "_rinclude";
 
     public static final String RUBY_NEWNAME = "_____rnew___";
     public static final String RUBY_SHIFT = "__rshift";
@@ -71,6 +72,22 @@ public class Ruby {
                 }
             } , true );
 
+        s.put( RUBY_INCLUDE , new JSFunctionCalls1(){
+                public Object call( Scope s , Object thing , Object extra[] ){
+                    if ( thing == null )
+                        throw new NullPointerException( "tried to include a null thing" );
+                    
+                    if ( thing instanceof JSObject ){
+                        JSObject o = (JSObject)thing;
+                        for ( String key : o.keySet() )
+                            s.set( key , o.get( key ) );
+                        return null;
+                    }
+
+                    throw new RuntimeException( "don't know what to do ");
+                }                
+            } , true );
+
         s.put( "attr_accessor" , new JSFunctionCalls0(){
                 public Object call( Scope s , Object symbols[] ){
                     JSObjectBase job = (JSObjectBase)s.getThis();
@@ -79,5 +96,7 @@ public class Ruby {
                     return null;
                 }
             } , true );
+        
+        
     }
 }
