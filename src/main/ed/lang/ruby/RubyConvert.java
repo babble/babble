@@ -640,7 +640,7 @@ public class RubyConvert extends ed.MyAsserts {
                 _appned( Ruby.RUBY_CV_CALL + "( " , call);
                 _add( self , state );
                 _appned( " , " , call );
-                _appned( "\"" + call.getName() + "\"" , call );
+                _appned( "\"" + _mangleFunctionName( call.getName() ) + "\"" , call );
                 _appned( " ) " , call );
             }
             return;            
