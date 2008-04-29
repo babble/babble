@@ -165,7 +165,7 @@ public class RubyConvert extends ed.MyAsserts {
             MethodDefNode dn = (MethodDefNode)node;
             
             if ( state._className != null ){
-                _appned( state._className + "." + ( ( dn instanceof DefsNode ) ? "" : "prototype." ) , node );
+                _appned( state._className + "." + ( ( dn instanceof DefsNode || state._module ) ? "" : "prototype." ) , node );
             }
             _appned( _mangleFunctionName( dn.getName() ) + " = function(" , node );
             
@@ -223,6 +223,10 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof ClassNode ){
             // complicated enough to warrant own method
             _addClass( (ClassNode)node , state );
+        }
+
+        else if ( node instanceof ModuleNode ){
+            _addModule( (ModuleNode)node , state );
         }
 
         else if ( node instanceof InstAsgnNode ){
@@ -500,6 +504,29 @@ public class RubyConvert extends ed.MyAsserts {
         }
         
         for ( Node c : cn.childNodes() )
+            _addClassPiece( c , state );
+    }
+
+    void _addModule( ModuleNode mn , State state ){
+        
+        final String name = mn.getCPath().getName();
+        
+        state = state.child();
+        state._className = name;
+        state._classInit = null;
+        state._module = true;
+
+        _appned( name + " = {};\n" , mn );
+
+        /*
+        if ( cn.getSuperNode() != null ){
+            _appned( "\n" + name + ".prototype = new " , cn );
+            _add( cn.getSuperNode() , state );
+            _appned( "();\n" , cn );
+        }
+        */
+        
+        for ( Node c : mn.childNodes() )
             _addClassPiece( c , state );
     }
 
@@ -833,6 +860,7 @@ public class RubyConvert extends ed.MyAsserts {
         final State _parent;
         String _className;
         DefnNode _classInit;
+        boolean _module = false;
     }
 
     void _appned( String s , Node where ){
