@@ -264,6 +264,19 @@ public class RubyConvert extends ed.MyAsserts {
             }
         }
 
+        // --- operators ---
+
+        else if ( node instanceof OpAsgnOrNode ){
+            OpAsgnOrNode op = (OpAsgnOrNode)node;
+            _add( op.getFirstNode() , state );
+            _appned( " = " , node );
+            _appned( " ( " , node );
+            _add( op.getFirstNode() , state );
+            _appned( " || " , node );
+            _add( op.getSecondNode().childNodes().get(0) , state );
+            _appned( " ) " , node );
+        }
+
         // --- vars ---
 
         else if ( node instanceof ArgumentNode ){
