@@ -135,6 +135,27 @@ public class JSMath extends JSObjectBase {
                  }
 
              } );
+
+
+        set( "sqrt" ,
+             new JSFunctionCalls1(){
+                 public Object call( Scope s , Object a , Object foo[] ){
+                     if ( a == null ) 
+                         return 0;
+                     if ( ! ( a instanceof Number ) )
+                         try {
+                             a = StringParseUtil.parseStrict(a.toString());
+                         }
+                         catch (Exception e) {
+                             return Double.NaN;
+                         }
+
+                     return Math.sqrt( ((Number)a).doubleValue() );
+                 }
+
+             } );
+
+
     }
     
 
