@@ -758,17 +758,20 @@ public class RubyConvert extends ed.MyAsserts {
     }
 
     String _getFuncName( FCallNode node ){
-        final String name = node.getName();
+        String name = node.getName();
         
         if ( name.equals( "puts" ) )
             return "print";
-        
+
         return _mangleFunctionName( name );
     }
-
+    
     String _mangleFunctionName( String name ){
         if ( name.equals( "new" ) )
             return Ruby.RUBY_NEWNAME;
+
+        if ( name.endsWith( "?" ) )
+            name = name.substring( 0 , name.length() - 1 ) + "_q";
         
         return name;
     }
