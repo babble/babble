@@ -6,6 +6,7 @@ import java.io.*;
 import java.util.*;
 
 import org.jruby.ast.*;
+import org.jruby.ast.types.*;
 import org.jruby.common.*;
 import org.jruby.parser.*;
 import org.jruby.lexer.yacc.*;
@@ -192,7 +193,7 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof VCallNode ){
             _assertNoChildren( node );
             VCallNode vcn = (VCallNode)node;
-            _appned( Ruby.RUBY_V_CALL + "( " + vcn.getName() + ")" , node );
+            _appned( Ruby.RUBY_V_CALL + "( " + _getFuncName( vcn ) + ")" , node );
         }
         
         else if ( node instanceof ZSuperNode ){
@@ -627,7 +628,7 @@ public class RubyConvert extends ed.MyAsserts {
             
             if ( args != null && args.childNodes().size() > 0 ){
                 _add( call.childNodes().get(0) , state );
-                _appned( "." + call.getName() , call );
+                _appned( "." + _getFuncName( call ) , call );
                 if ( args instanceof ArrayNode )
                     _addArgs( call , args.childNodes() , state );
                 else {
@@ -640,7 +641,7 @@ public class RubyConvert extends ed.MyAsserts {
                 _appned( Ruby.RUBY_CV_CALL + "( " , call);
                 _add( self , state );
                 _appned( " , " , call );
-                _appned( "\"" + _mangleFunctionName( call.getName() ) + "\"" , call );
+                _appned( "\"" + _getFuncName( call ) + "\"" , call );
                 _appned( " ) " , call );
             }
             return;            
@@ -648,7 +649,7 @@ public class RubyConvert extends ed.MyAsserts {
 
         // normal function call        
         if ( args != null ){
-            _appned( call.getName() , call );
+            _appned( _getFuncName( call ) , call );
             _addArgs( call , args.childNodes() , state );
             return;
         }
@@ -656,7 +657,7 @@ public class RubyConvert extends ed.MyAsserts {
         // no-args
         _appned( Ruby.RUBY_V_CALL + "(" , call );
         _add( call.childNodes().get(0) , state );
-        _appned( "." + call.getName() , call );
+        _appned( "." + _getFuncName( call ) , call );
         _appned( ")" , call );
 
     }
@@ -723,7 +724,11 @@ public class RubyConvert extends ed.MyAsserts {
         for ( int i=0; i<space; i++ )
             System.out.print( " " );
         
-        System.out.println( n );
+        System.out.print( n );
+        if ( n instanceof INameNode )
+            System.out.print( " " + ((INameNode)n).getName() + " " );
+        System.out.println();
+        
         for ( Node c : n.childNodes() )
             _print( space + 1 , c );
         
@@ -757,7 +762,7 @@ public class RubyConvert extends ed.MyAsserts {
         return _operatorNames.contains( node.getName() );
     }
 
-    String _getFuncName( FCallNode node ){
+    String _getFuncName( INameNode node ){
         String name = node.getName();
         
         if ( name.equals( "puts" ) )
