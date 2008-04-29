@@ -11,6 +11,7 @@ import org.jruby.common.*;
 import org.jruby.parser.*;
 import org.jruby.lexer.yacc.*;
 
+import ed.lang.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.appserver.templates.*;
@@ -29,7 +30,7 @@ public class RubyConvert extends ed.MyAsserts {
                 final RubyConvert rc = new RubyConvert( t.getName() , t.getContent() );
                 final String jsSource = rc.getJSSource();
                 if ( D ) System.out.println( jsSource );
-                return new TemplateConverter.Result( new Template( t.getName().replaceAll( ".rb$" , "_rb.js" ) , jsSource ) , null );
+                return new TemplateConverter.Result( new Template( t.getName().replaceAll( ".rb$" , "_rb.js" ) , jsSource ) , rc._lineMapping );
             }
             catch ( IOException ioe ){
                 throw new RuntimeException( "couldn't convert : " + t.getName() , ioe );
@@ -734,9 +735,6 @@ public class RubyConvert extends ed.MyAsserts {
         
     }
     
-    void _appned( String s , Node where ){
-        _js.append( s );
-    }
 
     String _escape( String s ){
         StringBuilder buf = new StringBuilder( s.length() );
@@ -833,6 +831,21 @@ public class RubyConvert extends ed.MyAsserts {
         String _className;
         DefnNode _classInit;
     }
+
+    void _appned( String s , Node where ){
+        _js.append( s );
+        
+        for ( int i=0; i<s.length(); i++ ){
+            _lineMapping.put( _line , where.getPosition().getStartLine() );
+            
+            if ( s.charAt( i ) != '\n' )
+                continue;
+            _line++;
+        }
+    }
+
+    private int _line = 1;
+    private Map<Integer,Integer> _lineMapping = new TreeMap<Integer,Integer>();
 
     final String _name;
     final List<String> _lines;
