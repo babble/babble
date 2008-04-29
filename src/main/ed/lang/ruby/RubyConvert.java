@@ -237,6 +237,10 @@ public class RubyConvert extends ed.MyAsserts {
             _appned( "this." + lvn.getName().substring(1) , node );
         }
         
+        else if ( node instanceof SelfNode ){
+            _appned( "this" , node );
+        }
+
         // --- looping ---
 
         else if ( node instanceof WhileNode ){
