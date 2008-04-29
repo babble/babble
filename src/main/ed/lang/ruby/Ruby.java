@@ -44,7 +44,7 @@ public class Ruby {
                     Object func = jo.get( funcName );
                     
                     if ( func == null )
-                        throw new NullPointerException();
+                        return null;
                     
                     if ( ! ( func instanceof JSFunction ) )
                         return func;
