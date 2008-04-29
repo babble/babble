@@ -774,10 +774,16 @@ public class RubyConvert extends ed.MyAsserts {
     String _mangleFunctionName( String name ){
         if ( name.equals( "new" ) )
             return Ruby.RUBY_NEWNAME;
-
+        
         if ( name.endsWith( "?" ) )
             name = name.substring( 0 , name.length() - 1 ) + "_q";
         
+        if ( name.endsWith( "!" ) )
+            name = name.substring( 0 , name.length() - 1 ) + "_ex";
+
+        if ( name.endsWith( "=" ) )
+            name = name.substring( 0 , name.length() - 1 ) + "_eq";
+
         return name;
     }
 
