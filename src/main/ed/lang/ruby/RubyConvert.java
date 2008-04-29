@@ -775,6 +775,9 @@ public class RubyConvert extends ed.MyAsserts {
         if ( name.equals( "new" ) )
             return Ruby.RUBY_NEWNAME;
         
+        if ( name.equals( "<<" ) )
+            return Ruby.RUBY_SHIFT;
+
         if ( name.endsWith( "?" ) )
             name = name.substring( 0 , name.length() - 1 ) + "_q";
         
@@ -783,6 +786,7 @@ public class RubyConvert extends ed.MyAsserts {
 
         if ( name.endsWith( "=" ) )
             name = name.substring( 0 , name.length() - 1 ) + "_eq";
+
 
         return name;
     }
