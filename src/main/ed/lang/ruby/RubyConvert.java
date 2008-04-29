@@ -460,7 +460,7 @@ public class RubyConvert extends ed.MyAsserts {
         
         // constructor
         if ( state._classInit == null ){
-            _appned( name + " = function(){};" , cn );
+            _appned( name + " = function(){ if ( this.__proto__ && this.__proto__.constructor ) this.__proto__.constructor.apply( this , arguments ); };" , cn );
         }
         else {
             _appned( name + " = function" , state._classInit );
