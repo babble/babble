@@ -509,7 +509,9 @@ public class RubyConvert extends ed.MyAsserts {
 
     void _addModule( ModuleNode mn , State state ){
         
-        final String name = mn.getCPath().getName();
+        final String name = 
+            ( state._className == null ? "" : state._className + "." ) 
+            + mn.getCPath().getName();
         
         state = state.child();
         state._className = name;
@@ -594,6 +596,11 @@ public class RubyConvert extends ed.MyAsserts {
             ClassVarDeclNode dn = (ClassVarDeclNode)n;
             _appned( state._className + "." + dn.getName().substring(2) + " = " , dn );
             _add( dn.getValueNode() , state );
+            return;
+        }
+
+        if ( n instanceof ModuleNode ){
+            _add( n , state );
             return;
         }
 
