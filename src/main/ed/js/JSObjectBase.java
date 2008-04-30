@@ -261,7 +261,7 @@ public class JSObjectBase implements JSObject {
     private static final Map<String,JSFunction> _objectLowFunctions = new HashMap<String,JSFunction>();
     static {
 
-        _objectLowFunctions.put( "extend" , new JSFunctionCalls1(){
+        _objectLowFunctions.put( "__extend" , new JSFunctionCalls1(){
                 public Object call( Scope s , Object other , Object args[] ){
 
                     if ( other == null )
@@ -279,7 +279,7 @@ public class JSObjectBase implements JSObject {
                 }
             } );
         
-        _objectLowFunctions.put( "include" , new JSFunctionCalls1(){
+        _objectLowFunctions.put( "__include" , new JSFunctionCalls1(){
                 public Object call( Scope s , Object other , Object args[] ){
                     
                     if ( other == null )
@@ -298,7 +298,7 @@ public class JSObjectBase implements JSObject {
             } );
         
 
-        _objectLowFunctions.put( "send" , new JSFunctionCalls1(){
+        _objectLowFunctions.put( "__send" , new JSFunctionCalls1(){
                 public Object call( Scope s , Object name , Object args[] ){
 
                     JSObject obj = ((JSObject)s.getThis());
