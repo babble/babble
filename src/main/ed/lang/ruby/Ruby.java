@@ -81,6 +81,11 @@ public class Ruby {
                         JSObject o = (JSObject)thing;
                         for ( String key : o.keySet() )
                             s.set( key , o.get( key ) );
+
+                        Object incObj = o.get( "included" );
+                        if ( incObj != null && incObj instanceof JSFunction )
+                            ((JSFunction)incObj).call( s );
+                        
                         return null;
                     }
 
