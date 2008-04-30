@@ -286,7 +286,7 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
             _buf = new StringBuilder( _state.data.length() );
         }
         
-        void append( String code ){
+        public void append( String code ){
             _buf.append( code );
             for ( int i=0; i<code.length(); i++ )
                 if ( code.charAt( i ) == '\n' )

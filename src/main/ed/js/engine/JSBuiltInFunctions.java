@@ -647,6 +647,7 @@ public class JSBuiltInFunctions {
         Encoding.install( _myScope );
         JSON.init( _myScope );
         ed.lang.ruby.Ruby.install( _myScope );
+        ed.appserver.templates.Djang10Converter.injectHelpers(_myScope);
 
         // mail stuff till i'm done
         _myScope.put( "JAVAXMAILTO" , javax.mail.Message.RecipientType.TO , true );

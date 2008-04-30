@@ -1,0 +1,10 @@
+{% for n in array %}
+n:{{ n }}
+counter: {{ forloop.counter }}
+counter0: {{ forloop.counter0 }}
+revcounter: {{ forloop.revcounter }}
+revcounter0: {{ forloop.revcounter0 }}
+first: {{ forloop.first }}
+last: {{ forloop.last }}
+
+{% endfor %}

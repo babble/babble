@@ -49,6 +49,13 @@ public class Djang10ConverterTest extends ConvertTestBase {
         nested.set("nested2Fn", nested2Fn);
         nested3.set("last", "moo");
         
+        
+        JSArray array = new JSArray();
+        for(int i=0; i<5; i++)
+        	array.add(i);
+        o.set("array", array);
+        
+        
         return new Object[]{ o };
     }
     
