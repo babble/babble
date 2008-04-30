@@ -34,7 +34,13 @@ public class Scope implements JSObject {
         }
     }
     static _NULL NULL = new _NULL();
-    
+
+    static final Object _fixNull( Object o ){
+        if ( o == NULL )
+            return null;
+        return o;
+    }
+
     public Scope( String name , Scope parent ){
         this( name , parent , null );
     }
@@ -64,7 +70,7 @@ public class Scope implements JSObject {
 
         if ( _parent == null )
             _globalThis = new JSObjectBase();
-
+        
         _lastCreated.set( this );
     }
 
@@ -163,18 +169,18 @@ public class Scope implements JSObject {
 
             if ( pref != null ){
                 pref._objects.put( name , o );
-                return o;
+                return _fixNull( o );
             }
 	    
 	    if ( _lockedObject != null && _lockedObject.contains( name ) )
 		throw new RuntimeException( "trying to set locked object : " + name );
 
             _objects.put( name , o );
-            return o;
+            return _fixNull( o );
         }
         
         _parent.put( name , o , false );
-        return o;
+        return _fixNull( o );
     }
     
     public Object get( String name ){
@@ -218,10 +224,7 @@ public class Scope implements JSObject {
 
             if ( finder ) throw new ScopeFinder( name , this );
             
-            Object temp = pref._objects.get( name );
-            if ( temp == NULL )
-                return null;
-            return temp;
+            return _fixNull( pref._objects.get( name ) );
         }
         
         Object foo =  _killed || _objects  == null ? null : _objects.get( name );
@@ -483,6 +486,10 @@ public class Scope implements JSObject {
     
     public Object eval( String code , String name , boolean hasReturn[] ){
         try {
+            
+            if ( code.matches( "\\d+" ) )
+                return Integer.parseInt( code );
+
             if ( code.matches( "\\w[\\w\\.]+\\w" ) )
                 return findObject( code );
             
@@ -770,7 +777,7 @@ public class Scope implements JSObject {
                 }
                 
                 if ( obj.getClass() == JSObjectBase.class )
-                    throw new NullPointerException( "no function called : " + name );
+                    throw new NullPointerException( "no function called : " + name + " fields [" + ((JSObjectBase)obj).keySet() + "]" );
                 
                 throw new NullPointerException( name + " (from a [" + obj.getClass() + "])" );
             }

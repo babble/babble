@@ -103,7 +103,7 @@ public abstract class JxpSource {
 
     // -------------------
     
-    static class JxpFileSource extends JxpSource {
+    public static class JxpFileSource extends JxpSource {
         JxpFileSource( File f ){
             _f = f;
         }
@@ -124,6 +124,10 @@ public abstract class JxpSource {
         
         public long lastUpdated(){
             return _f.lastModified();
+        }
+
+        public File getFile(){
+            return _f;
         }
 
         final File _f;

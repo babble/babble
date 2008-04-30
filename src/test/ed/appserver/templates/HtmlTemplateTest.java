@@ -31,6 +31,8 @@ public class HtmlTemplateTest extends ConvertTestBase {
     Object[] getArgs(){
         JSObjectBase o = new JSObjectBase();
         o.set( "foo" , "17" );
+        o.set( "a" , "A" );
+        o.set( "b" , "B" );
         return new Object[]{ o };
     }
 

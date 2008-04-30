@@ -14,20 +14,14 @@ import ed.appserver.jxp.*;
 
 public class AppServer implements HttpHandler {
 
+    private static final int DEFAULT_PORT = 8080;
+
     static boolean D = Boolean.getBoolean( "DEBUG.APP" );
     static String OUR_DOMAINS[] = new String[]{ ".latenightcoders.com" , ".10gen.com" };
     static String CDN_HOST[] = new String[]{ "origin." , "origin-local." , "static." , "static-local." , "secure." };
 
-    public AppServer( AppContext defaultContext ){
-        this( defaultContext , null );
-    }
-    
-    public AppServer( String defaultContext , String root ){
-        this( new AppContext( defaultContext ) , root );
-    }
-
-    public AppServer( AppContext defaultContext , String root ){
-        _defaultContext = defaultContext;
+    public AppServer( String defaultWebRoot , String root ){
+        _defaultWebRoot = defaultWebRoot;
         _root = root;
         _rootFile = _root == null ? null : new File( _root );
     }
@@ -41,7 +35,7 @@ public class AppServer implements HttpHandler {
 
         if ( host == null || _root == null || host.length() == 0 ){
             if ( D ) System.out.println( " using default context for [" + host + "]" );
-            return _defaultContext;
+            return _getDefaultContext();
         }
 
         AppContext ac = _context.get( host );
@@ -112,7 +106,7 @@ public class AppServer implements HttpHandler {
                 return getFinalContext( temp , host , useHost );
         }
 
-        return _defaultContext;
+        return _getDefaultContext();
     }
 
     AppContext getFinalContext( File f , String host , String useHost ){
@@ -421,8 +415,31 @@ public class AppServer implements HttpHandler {
         return 10000;
     }
 
+    private AppContext _getContextFromMap( String host ){
+        AppContext ac = _context.get( host );
+        if ( ac == null )
+            return null;
+        
+        if ( ! ac._reset )
+            return ac;
+
+        _context.put( host , null );
+        return null;
+    }
     
-    private final AppContext _defaultContext;
+    private synchronized AppContext _getDefaultContext(){
+        if ( _defaultContext != null && _defaultContext._reset )
+            _defaultContext = null;
+        
+        if ( _defaultContext != null )
+            return _defaultContext;
+        
+        _defaultContext = new AppContext( _defaultWebRoot );
+        return _defaultContext;
+    }
+
+    private final String _defaultWebRoot;
+    private AppContext _defaultContext;
     private final AppContext _coreContext = new AppContext( CoreJS.getDefaultRoot() );
     private final String _root;
     private final File _rootFile;
@@ -431,22 +448,46 @@ public class AppServer implements HttpHandler {
     public static void main( String args[] )
         throws Exception {
 
-        //System.setOut( Shell._myPrintStream );
-        //System.setErr( Shell._myPrintStream );
-        
-        String root = "/data/sites/admin/";
-        if ( args != null && args.length > 0 ) 
-            root = args[0];
+        String webRoot = "/data/sites/admin/";
+        String serverRoot = "/data/sites";
 
-        AppContext ac = new AppContext( root );
+        int portNum = DEFAULT_PORT;
 
-        AppServer as = new AppServer( ac , "/data/sites/" );
+        /*
+         *     --port portnum   [root]
+         */
+        for (int i = 0; i < args.length; i++) {
+
+            if ("--port".equals(args[i])) {
+                portNum = Integer.valueOf(args[++i]);
+            }
+            else if ("--root".equals(args[i])) {
+                portNum = Integer.valueOf(args[++i]);
+            }
+            else {
+                if (i != args.length - 1) {
+                    System.out.println("error - unknown param " + args[i]);
+                    System.exit(1);
+                }
+                else {
+                    webRoot = args[i];
+                }
+            }
+        }
+
+        System.out.println("==================================");
+        System.out.println("  10gen AppServer vX");
+        System.out.println("         webRoot = " + webRoot);
+        System.out.println("      serverRoot = " + serverRoot);
+        System.out.println("     listen port = " + portNum);
+        System.out.println("==================================");
+
+        AppServer as = new AppServer( webRoot , serverRoot);
         
         HttpServer.addGlobalHandler( as );
         
-        HttpServer hs = new HttpServer( 8080 );
+        HttpServer hs = new HttpServer(portNum);
         hs.start();
         hs.join();
     }
-
 }

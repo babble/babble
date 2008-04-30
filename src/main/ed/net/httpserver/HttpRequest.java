@@ -323,7 +323,8 @@ public class HttpRequest extends JSObjectLame {
     void _addParm( String n , String val ){
         
         n = n.trim();
-	
+	n = _urlDecode( n ); // TODO: check that i really should do this
+
 	List<String> lst = _parameters.get( n );
 	if ( lst == null ){
 	    lst = new ArrayList<String>();

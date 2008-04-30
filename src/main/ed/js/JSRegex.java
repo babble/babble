@@ -32,6 +32,8 @@ public class JSRegex extends JSObjectBase {
             protected void init(){
                 _prototype.set( "test" , new JSFunctionCalls1(){
                         public Object call( Scope s , Object o , Object foo[] ){
+                            if ( o == null )
+                                return false;
                             return ((JSRegex)s.getThis()).test( o.toString() );
                         }
                     } );
@@ -142,6 +144,11 @@ public class JSRegex extends JSObjectBase {
 
     public Pattern getCompiled(){
         return _patt;
+    }
+
+    public boolean matches( String s ){
+        Matcher m = _patt.matcher( s );
+        return m.matches();
     }
 
     public boolean test( String s ){

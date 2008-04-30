@@ -5,6 +5,7 @@ package ed.js;
 import java.util.*;
 
 import ed.db.*;
+import ed.js.func.*;
 import ed.js.engine.*;
 
 public class JSObjectBase implements JSObject {
@@ -54,6 +55,7 @@ public class JSObjectBase implements JSObject {
             
             if ( ! ( name.equals( "__proto__" ) || 
                      name.equals( "__constructor__" ) || 
+                     name.equals( "constructor" ) || 
                      name.equals( "__parent__" ) ) )
                 if ( ! _map.containsKey( n ) )
                     _keys.add( name );
@@ -114,6 +116,9 @@ public class JSObjectBase implements JSObject {
         if ( res == null && _constructor != null )
             res = _constructor._prototype.get( s );
         
+        if ( res == null )
+            res = _objectLowFunctions.get( s );
+
         return res;
     }
 
@@ -189,11 +194,20 @@ public class JSObjectBase implements JSObject {
         return foo.toString();
     }
 
+    public void setConstructor( JSFunction cons ){
+        setConstructor( cons , false );
+    }
+
     public void setConstructor( JSFunction cons , boolean exec ){
+        setConstructor( cons , exec , null );
+    }
+    
+    public void setConstructor( JSFunction cons , boolean exec , Object args[] ){
         _readOnlyCheck();
 
         _constructor = cons;
         set( "__constructor__" , _constructor );
+        set( "constructor" , _constructor );
         set( "__proto__" , _constructor == null ? null : _constructor._prototype );
 
         if ( _constructor != null && exec ){
@@ -206,12 +220,8 @@ public class JSObjectBase implements JSObject {
             s = s.child();
             
             s.setThis( this );
-            _constructor.call( s );
+            _constructor.call( s , args );
         }
-    }
-
-    public void setConstructor( JSFunction cons ){
-        setConstructor( cons , false );
     }
 
     public JSFunction getConstructor(){
@@ -231,10 +241,86 @@ public class JSObjectBase implements JSObject {
             throw new RuntimeException( "can't modify JSObject - read only" );
     }
 
+    public void extend( JSObject other ){
+        if ( other == null )
+            return;
+
+        for ( String key : other.keySet() ){
+            set( key , other.get( key ) );
+        }
+
+    }
+
     private Map<String,Object> _map = null;
     private List<String> _keys = null;
     private JSFunction _constructor;
     private boolean _readOnly = false;
 
     static final Set<String> EMPTY_SET = Collections.unmodifiableSet( new HashSet<String>() );
+
+    private static final Map<String,JSFunction> _objectLowFunctions = new HashMap<String,JSFunction>();
+    static {
+
+        _objectLowFunctions.put( "__extend" , new JSFunctionCalls1(){
+                public Object call( Scope s , Object other , Object args[] ){
+
+                    if ( other == null )
+                        return null;
+                    
+                    Object blah = s.getThis();
+                    if ( ! ( blah != null && blah instanceof JSObjectBase ) )
+                        throw new RuntimeException( "extendt not passed real thing" );
+                    
+                    if ( ! ( other instanceof JSObject ) )
+                        throw new RuntimeException( "can't extend with a non-object" );
+                    
+                    ((JSObjectBase)(s.getThis())).extend( (JSObject)other );
+                    return null;
+                }
+            } );
+        
+        _objectLowFunctions.put( "__include" , new JSFunctionCalls1(){
+                public Object call( Scope s , Object other , Object args[] ){
+                    
+                    if ( other == null )
+                        return null;
+
+                    if ( ! ( other instanceof JSObject ) )
+                        throw new RuntimeException( "can't include with a non-object" );
+                    
+                    Object blah = s.getThis();
+                    if ( ! ( blah != null && blah instanceof JSObjectBase ) )
+                        throw new RuntimeException( "extendt not passed real thing" );
+                    
+                    ((JSObjectBase)(s.getThis())).extend( (JSObject)other );
+                    return null;
+                }
+            } );
+        
+
+        _objectLowFunctions.put( "__send" , new JSFunctionCalls1(){
+                public Object call( Scope s , Object name , Object args[] ){
+
+                    JSObject obj = ((JSObject)s.getThis());
+                    if ( obj == null )
+                        throw new NullPointerException( "send called on a null thing" );
+                    
+                    JSFunction func = ((JSFunction)obj.get( name ) );
+                    
+                    if ( func == null ){
+                        // this is a dirty dirty hack for namespace collisions
+                        // i hate myself for even writing it in the first place
+                        func = ((JSFunction)obj.get( "__" + name ) );
+                    }
+
+                    if ( func == null )
+                        throw new NullPointerException( "can't find method [" + name + "] to send" );
+
+                    return func.call( s , args );
+                }
+                
+            } );
+
+
+    }
 }

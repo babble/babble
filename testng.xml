@@ -10,8 +10,9 @@
       <class name="ed.appserver.jxp.JxpSourceTest" />
       <class name="ed.net.DNSUtilTest" />
       <class name="ed.net.httpserver.ReplayTest"/>
-      <class name="ed.appserver.jxp.AppContextTestNG" />
+      <class name="ed.appserver.AppContextTestNG" />
       <class name="ed.js.engine.ConvertTest" />
+      <class name="ed.js.JSONTest" />
       <class name="ed.appserver.templates.JxpConvertTest" />
       <class name="ed.appserver.templates.HtmlTemplateTest" />
     </classes>

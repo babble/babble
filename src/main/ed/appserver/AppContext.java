@@ -27,6 +27,15 @@ public class AppContext {
     }
 
     public AppContext( String root , String name ){
+        if ( root == null )
+            throw new NullPointerException( "AppContext root can't be null" );
+        
+        if ( name == null )
+            name = guessName( root );
+        
+        if ( name == null )
+            throw new NullPointerException( "how could name be null" );
+        
         _name = name;
         _root = root;
         _rootFile = new File( _root );
@@ -66,6 +75,9 @@ public class AppContext {
         _scope.put( "_rootFile" , _rootFile , true );
         _scope.lock( "_rootFile" );
 
+        _scope.put( "__instance__" , this , true );
+        _scope.lock( "__instance__" );
+
         // --- db
         
         if ( ! _isGrid ){
@@ -91,7 +103,7 @@ public class AppContext {
         
 	_scope.put( "SYSOUT" , new JSFunctionCalls1(){
 		public Object call( Scope s , Object str , Object foo[] ){
-		    System.out.println( _name + " \t " + str );
+		    System.out.println( AppContext.this._name + " \t " + str );
 		    return true;
 		}
 	    } , true );
@@ -199,21 +211,20 @@ public class AppContext {
         return f;
     }
     
-    public void resetScope(){
-        _scopeInited = false;
-        _scope.reset();
-        _baseScopeInit();
+    public void reset(){
+        _reset = true;
     }
     
     public String getRoot(){
         return _root;
     }
 
-    public AppRequest createRequest( HttpRequest request ){
+    AppRequest createRequest( HttpRequest request ){
         return createRequest( request , request.getURI() );
     }
     
-    public AppRequest createRequest( HttpRequest request , String uri ){
+    AppRequest createRequest( HttpRequest request , String uri ){
+        _numRequests++;
         return new AppRequest( this , request , uri );
     }
 
@@ -295,7 +306,7 @@ public class AppContext {
         return f;
     }
     
-    public JxpSource getSource( File f )
+    JxpSource getSource( File f )
         throws IOException {
     
         if ( DEBUG ) System.err.println( "getSource\n\t " + f );
@@ -368,7 +379,7 @@ public class AppContext {
             _initFlies.add( f );
     }
 
-    public JxpServlet getServlet( File f )
+    JxpServlet getServlet( File f )
         throws IOException {
         JxpSource source = getSource( f );
         if ( source == null )
@@ -431,6 +442,14 @@ public class AppContext {
         return _globalHead;
     }
 
+    public JSDate getWhenCreated(){
+        return _created;
+    }
+
+    public int getNumRequests(){
+        return _numRequests;
+    }
+
     final String _name;
     final String _root;
     final File _rootFile;
@@ -452,4 +471,8 @@ public class AppContext {
     long _lastScopeInitTime = 0;
 
     final boolean _isGrid;
+
+    boolean _reset = false;
+    int _numRequests = 0;
+    final JSDate _created = new JSDate();
 }
