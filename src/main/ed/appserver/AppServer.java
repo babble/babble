@@ -14,6 +14,8 @@ import ed.appserver.jxp.*;
 
 public class AppServer implements HttpHandler {
 
+    private static final int DEFAULT_PORT = 8080;
+
     static boolean D = Boolean.getBoolean( "DEBUG.APP" );
     static String OUR_DOMAINS[] = new String[]{ ".latenightcoders.com" , ".10gen.com" };
     static String CDN_HOST[] = new String[]{ "origin." , "origin-local." , "static." , "static-local." , "secure." };
@@ -446,18 +448,46 @@ public class AppServer implements HttpHandler {
     public static void main( String args[] )
         throws Exception {
 
-        
-        String root = "/data/sites/admin/";
-        if ( args != null && args.length > 0 ) 
-            root = args[0];
+        String webRoot = "/data/sites/admin/";
+        String serverRoot = "/data/sites";
 
-        AppServer as = new AppServer( root , "/data/sites/" );
+        int portNum = DEFAULT_PORT;
+
+        /*
+         *     --port portnum   [root]
+         */
+        for (int i = 0; i < args.length; i++) {
+
+            if ("--port".equals(args[i])) {
+                portNum = Integer.valueOf(args[++i]);
+            }
+            else if ("--root".equals(args[i])) {
+                portNum = Integer.valueOf(args[++i]);
+            }
+            else {
+                if (i != args.length - 1) {
+                    System.out.println("error - unknown param " + args[i]);
+                    System.exit(1);
+                }
+                else {
+                    webRoot = args[i];
+                }
+            }
+        }
+
+        System.out.println("==================================");
+        System.out.println("  10gen AppServer vX");
+        System.out.println("         webRoot = " + webRoot);
+        System.out.println("      serverRoot = " + serverRoot);
+        System.out.println("     listen port = " + portNum);
+        System.out.println("==================================");
+
+        AppServer as = new AppServer( webRoot , serverRoot);
         
         HttpServer.addGlobalHandler( as );
         
-        HttpServer hs = new HttpServer( 8080 );
+        HttpServer hs = new HttpServer(portNum);
         hs.start();
         hs.join();
     }
-
 }

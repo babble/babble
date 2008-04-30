@@ -237,6 +237,13 @@ public class JSDate extends JSObjectBase implements Comparable {
         return _c.getTimeInMillis();
     }
 
+    public long setYear(int year) {
+        _cal();
+        _c.set(Calendar.YEAR, year);
+        _time = _c.getTimeInMillis();
+        return _c.getTimeInMillis();
+    }
+
     public long setSeconds(int sec, int ms) {
         setMilliseconds(ms);
         return setSeconds(sec);
