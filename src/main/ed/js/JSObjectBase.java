@@ -306,9 +306,16 @@ public class JSObjectBase implements JSObject {
                         throw new NullPointerException( "send called on a null thing" );
                     
                     JSFunction func = ((JSFunction)obj.get( name ) );
+                    
+                    if ( func == null ){
+                        // this is a dirty dirty hack for namespace collisions
+                        // i hate myself for even writing it in the first place
+                        func = ((JSFunction)obj.get( "__" + name ) );
+                    }
+
                     if ( func == null )
                         throw new NullPointerException( "can't find method [" + name + "] to send" );
-                    
+
                     return func.call( s , args );
                 }
                 

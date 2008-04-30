@@ -41,9 +41,12 @@ public class Ruby {
                     if ( ! ( thing instanceof JSObject) )
                         throw new RuntimeException( "problem (" + thing.getClass() + ")" );
                     
+                    if ( funcName == null )
+                        throw new NullPointerException( "funcName can't be null" );
+
                     JSObject jo = (JSObject)thing;
                     
-                    Object func = jo.get( funcName );
+                    Object func = jo.get( RubyConvert._mangleFunctionName( funcName.toString() ) );
                     
                     if ( func == null )
                         return null;
