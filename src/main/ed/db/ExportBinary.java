@@ -31,11 +31,14 @@ public class ExportBinary {
             File f = new File( myRoot , t + ".bin" );
             FileOutputStream fout = new FileOutputStream( f );
             FileChannel fc = fout.getChannel();
-            
+
+
+            System.out.println( "Exporting : full ns : " + root + "." +  t );
+
             Iterator<JSObject> all = c.find( new JSObjectBase() , null , 0 , 0 );
             if ( all == null )
                 continue;
-            
+
             while( all.hasNext() ){
                 JSObject o = all.next();
                 

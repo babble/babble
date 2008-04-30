@@ -27,6 +27,15 @@ public class AppContext {
     }
 
     public AppContext( String root , String name ){
+        if ( root == null )
+            throw new NullPointerException( "AppContext root can't be null" );
+        
+        if ( name == null )
+            name = guessName( root );
+        
+        if ( name == null )
+            throw new NullPointerException( "how could name be null" );
+        
         _name = name;
         _root = root;
         _rootFile = new File( _root );
@@ -94,7 +103,7 @@ public class AppContext {
         
 	_scope.put( "SYSOUT" , new JSFunctionCalls1(){
 		public Object call( Scope s , Object str , Object foo[] ){
-		    System.out.println( _name + " \t " + str );
+		    System.out.println( AppContext.this._name + " \t " + str );
 		    return true;
 		}
 	    } , true );
