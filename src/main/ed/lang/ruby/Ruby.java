@@ -84,7 +84,7 @@ public class Ruby {
 
                         Object incObj = o.get( "included" );
                         if ( incObj != null && incObj instanceof JSFunction )
-                            ((JSFunction)incObj).call( s );
+                            ((JSFunction)incObj).call( s , s.getThis() );
                         
                         return null;
                     }
