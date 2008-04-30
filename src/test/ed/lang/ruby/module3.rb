@@ -3,8 +3,8 @@ module A
 
   def self.included( base )
     puts "yo"
-    #base.extend( B )
-    #base.send( :include ,  C );
+    base.extend( B )
+    base.send( :include ,  C );
   end
   
   module B
@@ -34,9 +34,9 @@ end
 f = Foo.new
 f = Foo.new
 
-#Foo.silly
+Foo.silly
 
-#f.bar
+f.bar
 
 
   

@@ -5,6 +5,7 @@ package ed.js;
 import java.util.*;
 
 import ed.db.*;
+import ed.js.func.*;
 import ed.js.engine.*;
 
 public class JSObjectBase implements JSObject {
@@ -115,6 +116,9 @@ public class JSObjectBase implements JSObject {
         if ( res == null && _constructor != null )
             res = _constructor._prototype.get( s );
         
+        if ( res == null )
+            res = _objectLowFunctions.get( s );
+
         return res;
     }
 
@@ -237,10 +241,79 @@ public class JSObjectBase implements JSObject {
             throw new RuntimeException( "can't modify JSObject - read only" );
     }
 
+    public void extend( JSObject other ){
+        if ( other == null )
+            return;
+
+        for ( String key : other.keySet() ){
+            set( key , other.get( key ) );
+        }
+
+    }
+
     private Map<String,Object> _map = null;
     private List<String> _keys = null;
     private JSFunction _constructor;
     private boolean _readOnly = false;
 
     static final Set<String> EMPTY_SET = Collections.unmodifiableSet( new HashSet<String>() );
+
+    private static final Map<String,JSFunction> _objectLowFunctions = new HashMap<String,JSFunction>();
+    static {
+
+        _objectLowFunctions.put( "extend" , new JSFunctionCalls1(){
+                public Object call( Scope s , Object other , Object args[] ){
+
+                    if ( other == null )
+                        return null;
+                    
+                    Object blah = s.getThis();
+                    if ( ! ( blah != null && blah instanceof JSObjectBase ) )
+                        throw new RuntimeException( "extendt not passed real thing" );
+                    
+                    if ( ! ( other instanceof JSObject ) )
+                        throw new RuntimeException( "can't extend with a non-object" );
+                    
+                    ((JSObjectBase)(s.getThis())).extend( (JSObject)other );
+                    return null;
+                }
+            } );
+        
+        _objectLowFunctions.put( "include" , new JSFunctionCalls1(){
+                public Object call( Scope s , Object other , Object args[] ){
+                    
+                    if ( other == null )
+                        return null;
+
+                    if ( ! ( other instanceof JSObject ) )
+                        throw new RuntimeException( "can't include with a non-object" );
+                    
+                    Object blah = s.getThis();
+                    if ( ! ( blah != null && blah instanceof JSObjectBase ) )
+                        throw new RuntimeException( "extendt not passed real thing" );
+                    
+                    ((JSObjectBase)(s.getThis())).extend( (JSObject)other );
+                    return null;
+                }
+            } );
+        
+
+        _objectLowFunctions.put( "send" , new JSFunctionCalls1(){
+                public Object call( Scope s , Object name , Object args[] ){
+
+                    JSObject obj = ((JSObject)s.getThis());
+                    if ( obj == null )
+                        throw new NullPointerException( "send called on a null thing" );
+                    
+                    JSFunction func = ((JSFunction)obj.get( name ) );
+                    if ( func == null )
+                        throw new NullPointerException( "can't find method [" + name + "] to send" );
+                    
+                    return func.call( s , args );
+                }
+                
+            } );
+
+
+    }
 }
