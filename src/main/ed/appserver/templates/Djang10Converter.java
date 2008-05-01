@@ -6,14 +6,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 
-import ed.appserver.templates.HtmlLikeConverter.Generator;
-import ed.appserver.templates.HtmlLikeConverter.State;
 import ed.appserver.templates.djang10.ElseTagHandler;
 import ed.appserver.templates.djang10.EndForLoopTag;
 import ed.appserver.templates.djang10.ForLoopTagHandler;
 import ed.appserver.templates.djang10.IfEndTagHandler;
 import ed.appserver.templates.djang10.IfTagHandler;
+import ed.appserver.templates.djang10.IncludeTagHandler;
 import ed.appserver.templates.djang10.TagHandler;
 import ed.js.JSArray;
 import ed.js.JSFunction;
@@ -62,7 +62,7 @@ public class Djang10Converter extends HtmlLikeConverter {
     	if(cm._startTag == "{%") {
     		code = code.trim();
     		
-    		String[] p = code.split(" ");
+    		String[] p = smartSplit(code);
     		String tagName = p[0];
     		String[] params = new String[p.length - 1];
     		System.arraycopy(p, 1, params, 0, p.length -1);
@@ -89,6 +89,41 @@ public class Djang10Converter extends HtmlLikeConverter {
 
     }
     
+    public static String[] smartSplit(String str) {
+    	ArrayList<String> parts = new ArrayList<String>();
+    	
+    	String delims = " \t\r\n\"";
+    	StringTokenizer tokenizer = new StringTokenizer(str, delims, true);
+
+    	StringBuilder quotedBuffer = null;
+    	
+    	
+    	while(tokenizer.hasMoreTokens()) {
+    		String token = tokenizer.nextToken();
+    		
+    		if(token.length() == 1 && delims.contains(token)) {
+    			if("\"".equals(token)) {
+    				if(quotedBuffer == null)
+    					quotedBuffer = new StringBuilder();
+    				else {
+    					parts.add(quotedBuffer.toString());
+    					quotedBuffer = null;
+    				}
+    			}
+    			else if(quotedBuffer != null) {
+    					quotedBuffer.append(token);
+				}
+    		}
+    		else {
+    			if(quotedBuffer != null)
+    				quotedBuffer.append(token);
+    			else
+    				parts.add(token);
+    		}
+    	}
+    	String[] partArray = new String[parts.size()];
+    	return parts.toArray(partArray);
+    }
     
     //Helpers
     public static void injectHelpers(Scope scope) {
@@ -148,6 +183,7 @@ public class Djang10Converter extends HtmlLikeConverter {
     	_tagHandlers.put("endif", new IfEndTagHandler());
     	_tagHandlers.put("for", new ForLoopTagHandler());
     	_tagHandlers.put("endfor", new EndForLoopTag());
+    	_tagHandlers.put("include", new IncludeTagHandler());
     }
 
     public class MyGenerator extends Generator {
