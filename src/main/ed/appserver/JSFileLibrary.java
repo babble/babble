@@ -8,7 +8,9 @@ import java.util.*;
 import ed.js.*;
 import ed.js.func.*;
 import ed.js.engine.*;
+import ed.security.*;
 import ed.appserver.jxp.*;
+import ed.util.*;
 
 public class JSFileLibrary extends JSObjectBase {
     
@@ -189,6 +191,10 @@ public class JSFileLibrary extends JSObjectBase {
             source = JxpSource.getSource( f );
             _sources.put( f , source );
         }
+        
+        JSFunction func = source.getFunction();
+        _classToPath.put( func.getClass().getName() , this );
+
         return source;
 
     }
@@ -237,6 +243,10 @@ public class JSFileLibrary extends JSObjectBase {
     }
     static String _srcExtensions[] = new String[] { ".js" , ".jxp" , ".html" , ".rb" , ".rhtml" , ".erb" };
     
+    public String toString(){
+        return "{ JSFileLibrary.  _base : " + _base + "}";
+    }
+
     final File _base;
     final String _uriBase;
     final AppContext _context;
@@ -255,5 +265,15 @@ public class JSFileLibrary extends JSObjectBase {
             return new Stack<Set<JxpSource>>();
         }
     };
-    
+
+    private static WeakValueMap<String,JSFileLibrary> _classToPath = new WeakValueMap<String,JSFileLibrary>();
+
+    public static JSFileLibrary findPath(){
+        String topjs = Security.getTopJS();
+        int idx = topjs.indexOf( "$" );
+        if ( idx > 0 )
+            topjs = topjs.substring( 0 , idx );
+        return _classToPath.get( topjs );
+    }
+   
 }

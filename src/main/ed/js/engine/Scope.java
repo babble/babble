@@ -219,6 +219,9 @@ public class Scope implements JSObject {
             return foo;
         }
 
+        if ( "__path__".equals( name ) )
+            return ed.appserver.JSFileLibrary.findPath();
+
         Scope pref = getTLPreferred();
         if ( pref != null && pref._objects.containsKey( name ) ){
 
