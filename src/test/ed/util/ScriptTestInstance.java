@@ -2,6 +2,7 @@ package ed.util;
 
 import java.io.File;
 import ed.js.engine.Scope;
+import ed.js.JSFunction;
 
 
 /**
@@ -26,4 +27,10 @@ public interface ScriptTestInstance {
      *  Called after script is run.  
      */
     public void validateOutput(Scope s) throws Exception;
+    
+    /**
+     *   called to get the function from the script type
+     */
+    
+    public JSFunction convert() throws Exception;
 }

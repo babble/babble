@@ -13,8 +13,6 @@ import ed.util.ScriptTestInstanceBase;
 /**
  * Dynamic test instance for testing the Javascript
  * 
- * Code stolen lock, stock and barrel from ConvertTest.  Uses exact same convention
- * and scheme for comparing output
  */
 public class JSTestInstance extends ScriptTestInstanceBase{
 
@@ -23,6 +21,12 @@ public class JSTestInstance extends ScriptTestInstanceBase{
 
     ByteArrayOutputStream bout = new ByteArrayOutputStream();
 
+    public JSFunction convert() throws Exception{
+        Convert c = new Convert(getTestScriptFile());
+        
+        return c.get();
+    }
+    
     public void preTest(Scope scope) throws Exception {
     	
     	File jsFile = getTestScriptFile();

@@ -8,9 +8,9 @@ import ed.js.JSFunction;
 import ed.js.func.JSFunctionCalls0;
 import ed.util.ScriptTestInstance;
 
-import ed.js.engine.Convert;
 import ed.js.engine.Scope;
 import ed.js.Shell;
+import ed.MyAsserts;
 
 
 /**
@@ -19,7 +19,7 @@ import ed.js.Shell;
  * Code stolen lock, stock and barrel from ConvertTest.  Uses exact same convention
  * and scheme for comparing output
  */
-public abstract class ScriptTestInstanceBase implements ScriptTestInstance{
+public abstract class ScriptTestInstanceBase extends MyAsserts implements ScriptTestInstance{
 
     File _file;
 
@@ -44,9 +44,8 @@ public abstract class ScriptTestInstanceBase implements ScriptTestInstance{
 
         System.out.println("ScriptTestInstanceBase : running " + _file);
 
-        Convert c = new Convert(_file);
+        JSFunction f = convert();
 
-        JSFunction f = c.get();
         Scope scope = Scope.GLOBAL.child(new File("/tmp"));
     
         /*
