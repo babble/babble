@@ -116,6 +116,35 @@ public class RubyConvert extends ed.MyAsserts {
             _appned( "arguments[ arguments.length - 1 ]" , node );
             _addArgs( node , node.childNodes() , state );
         }
+        
+        else if ( node instanceof CaseNode ){
+            CaseNode cn = (CaseNode)node;
+            _appned( "switch ( " , cn );
+            _add( cn.getCaseNode() , state );
+            _appned( "){ \n" , cn );
+            
+            Node when = cn.getFirstWhenNode();
+            while ( when != null ){
+                if  ( when instanceof WhenNode ){
+                    WhenNode w = (WhenNode)when;
+
+                    _appned( "case " , when );
+                    _add( w.getExpressionNodes() , state );
+                    _appned( " : " , when );
+                    _add( w.getBodyNode() , state );
+                    _appned( "\nbreak;\n" , when );
+                    
+                    when = w.getNextCase();
+                    continue;
+                }
+                
+                _appned( " default : " , when );
+                _add( when , state );
+                break;
+            }
+            
+            _appned( " }\n " , cn );
+        }
 
         // --- function stuff ---
 
