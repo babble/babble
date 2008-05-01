@@ -292,17 +292,20 @@ public class RubyConvert extends ed.MyAsserts {
 
         else if ( node instanceof IfNode ){
             IfNode ifn = (IfNode)node;
-            _appned( "if ( " , ifn );
-            if ( ifn.getCondition() != null )
-                _add( ifn.getCondition() , state );
-            _appned( " ){ \n " , ifn );
-            if ( ifn.getThenBody() != null )
-                _add( ifn.getThenBody() , state );
-            _appned( " } \n " , ifn );
-            if ( ifn.getElseBody() != null ){
-                _appned( " else { \n " , ifn );
-                _add( ifn.getElseBody() , state );
+
+            if ( ! _handleTurnary( ifn , state ) ){
+                _appned( "if ( " , ifn );
+                if ( ifn.getCondition() != null )
+                    _add( ifn.getCondition() , state );
+                _appned( " ){ \n " , ifn );
+                if ( ifn.getThenBody() != null )
+                    _add( ifn.getThenBody() , state );
                 _appned( " } \n " , ifn );
+                if ( ifn.getElseBody() != null ){
+                    _appned( " else { \n " , ifn );
+                    _add( ifn.getElseBody() , state );
+                    _appned( " } \n " , ifn );
+                }
             }
         }
 
@@ -555,6 +558,44 @@ public class RubyConvert extends ed.MyAsserts {
     }
 
     // ---  code generation types ---
+
+    boolean _handleTurnary( IfNode ifn , State state ){
+
+        if ( _badTurnaryNode( ifn.getThenBody() ) ){
+            System.err.println( "bad turnary node : " + ifn.getThenBody() );
+            return false;
+        }
+
+        if ( _badTurnaryNode( ifn.getElseBody() ) ){
+            System.err.println( "bad turnary node : " + ifn.getElseBody() );
+            return false;
+        }
+
+        _appned( "( (" , ifn );
+        _add( ifn.getCondition() , state );
+        _appned( " ) ? ( " , ifn );
+        _add( ifn.getThenBody() , state );
+        _appned( " ) : ( " , ifn );
+        _add( ifn.getElseBody() , state );
+        _appned( " ) ) " , ifn );
+        
+        return true;
+        
+    }
+
+    boolean _badTurnaryNode( Node n ){
+        if ( n == null )
+            return true;
+
+        return 
+            n == null 
+            || n instanceof BlockNode 
+            || n instanceof NewlineNode 
+            || n instanceof DefnNode
+            || n instanceof IfNode
+            || ( n.childNodes() != null && n.childNodes().size() > 1 )
+            ;
+    }
 
     void _addIterBlock( IterNode it , State state ){
         _appned( "function(" , it );

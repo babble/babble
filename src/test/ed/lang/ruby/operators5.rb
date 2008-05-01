@@ -25,3 +25,5 @@ blah( true , false );
 blah( false , true );
 blah( false , false );
 blah( true , true );
+
+puts( ( true ? "yay" : "bak" ) );
