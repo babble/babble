@@ -145,11 +145,6 @@ public class JSDate extends JSObjectBase implements Comparable {
         return _c.get( Calendar.DAY_OF_WEEK );
     }
 
-    public int getMinutes() {
-        _cal();
-        return _c.get( Calendar.MINUTE );
-    }
-
     public int getHours() {
         _cal();
         return _c.get( Calendar.HOUR_OF_DAY );
@@ -169,7 +164,7 @@ public class JSDate extends JSObjectBase implements Comparable {
         _cal();
         return _c.get( Calendar.DAY_OF_MONTH );
     }
-    
+
     public int getHourOfDay(){
         _cal();
         return _c.get( Calendar.HOUR_OF_DAY );
