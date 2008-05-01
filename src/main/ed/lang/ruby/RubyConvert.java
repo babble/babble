@@ -618,7 +618,9 @@ public class RubyConvert extends ed.MyAsserts {
 
     void _addClass( ClassNode cn , State state ){
         
-        final String name = cn.getCPath().getName();
+        final String name = 
+            ( state._className == null ? "" : state._className + "." ) 
+            + cn.getCPath().getName();
         
         state = state.child();
         state._className = name;
@@ -751,7 +753,8 @@ public class RubyConvert extends ed.MyAsserts {
             return;
         }
 
-        if ( n instanceof ModuleNode ){
+        if ( n instanceof ModuleNode ||
+             n instanceof ClassNode ){
             _add( n , state );
             return;
         }
