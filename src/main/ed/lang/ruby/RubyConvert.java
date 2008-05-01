@@ -509,7 +509,9 @@ public class RubyConvert extends ed.MyAsserts {
 
     void _addModule( ModuleNode mn , State state ){
         
-        final String name = mn.getCPath().getName();
+        final String name = 
+            ( state._className == null ? "" : state._className + "." ) 
+            + mn.getCPath().getName();
         
         state = state.child();
         state._className = name;
@@ -594,6 +596,11 @@ public class RubyConvert extends ed.MyAsserts {
             ClassVarDeclNode dn = (ClassVarDeclNode)n;
             _appned( state._className + "." + dn.getName().substring(2) + " = " , dn );
             _add( dn.getValueNode() , state );
+            return;
+        }
+
+        if ( n instanceof ModuleNode ){
+            _add( n , state );
             return;
         }
 
@@ -787,7 +794,7 @@ public class RubyConvert extends ed.MyAsserts {
         return _operatorNames.contains( node.getName() );
     }
 
-    String _getFuncName( INameNode node ){
+    static String _getFuncName( INameNode node ){
         String name = node.getName();
         
         if ( name.equals( "puts" ) )
@@ -795,11 +802,11 @@ public class RubyConvert extends ed.MyAsserts {
 
         if ( name.equals( "include" ) )
             return Ruby.RUBY_INCLUDE;
-
+        
         return _mangleFunctionName( name );
     }
     
-    String _mangleFunctionName( String name ){
+    static String _mangleFunctionName( String name ){
         if ( name.equals( "new" ) )
             return Ruby.RUBY_NEWNAME;
         
@@ -815,6 +822,8 @@ public class RubyConvert extends ed.MyAsserts {
         if ( name.endsWith( "=" ) )
             name = name.substring( 0 , name.length() - 1 ) + "_eq";
 
+        if ( _specialNames.contains( name ) )
+            return "__" + name;
 
         return name;
     }
@@ -900,4 +909,12 @@ public class RubyConvert extends ed.MyAsserts {
         _operatorNames.add( "<=" );
         _operatorNames.add( "==" );
     }
+
+    static final Set<String> _specialNames = new HashSet<String>();
+    static {
+        _specialNames.add( "send" );
+        _specialNames.add( "include" );
+        _specialNames.add( "extend" );
+    }
+
 }

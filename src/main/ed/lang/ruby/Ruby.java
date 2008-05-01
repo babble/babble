@@ -41,9 +41,12 @@ public class Ruby {
                     if ( ! ( thing instanceof JSObject) )
                         throw new RuntimeException( "problem (" + thing.getClass() + ")" );
                     
+                    if ( funcName == null )
+                        throw new NullPointerException( "funcName can't be null" );
+
                     JSObject jo = (JSObject)thing;
                     
-                    Object func = jo.get( funcName );
+                    Object func = jo.get( RubyConvert._mangleFunctionName( funcName.toString() ) );
                     
                     if ( func == null )
                         return null;
@@ -81,6 +84,11 @@ public class Ruby {
                         JSObject o = (JSObject)thing;
                         for ( String key : o.keySet() )
                             s.set( key , o.get( key ) );
+
+                        Object incObj = o.get( "included" );
+                        if ( incObj != null && incObj instanceof JSFunction )
+                            ((JSFunction)incObj).call( s , s.getThis() );
+                        
                         return null;
                     }
 
