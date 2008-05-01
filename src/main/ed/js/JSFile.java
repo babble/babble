@@ -138,7 +138,11 @@ public abstract class JSFile extends JSObjectBase {
         write( out );
         out.close();
 
-        temp.renameTo( f );
+        System.out.println(temp.toString());
+        System.out.println(f.toString());
+
+        if(temp.renameTo( f ) == false)
+            throw new IOException("rename from " + temp.toString() + " to "+ f.toString() + " failed");
 
         return f.getAbsolutePath();
     }
