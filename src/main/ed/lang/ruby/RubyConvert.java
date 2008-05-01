@@ -370,7 +370,53 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof ClassVarNode ){
             _appned( "this.__constructor__." + ((ClassVarNode)node).getName().substring(2) , node );
         }
+        
+        else if ( node instanceof MultipleAsgnNode ){
+            MultipleAsgnNode man = (MultipleAsgnNode)node;
+            
+            _assertType( man.getValueNode() , ToAryNode.class );
+            _add( ((ToAryNode)(man.getValueNode())).getValue() , state );
+            _appned( ".__multiAssignment(" , man );
+            
+            boolean first = true;
+            for ( Node temp : man.getHeadNode().childNodes() ){
 
+                if ( first )
+                    first = false;
+                else
+                    _appned( " , " , temp );
+                
+                if ( temp instanceof LocalAsgnNode ){
+                    _appned( " scope " , temp );
+                    _appned( " , " , temp );
+                    _appned( "\"" + ((LocalAsgnNode)temp).getName() + "\"" , temp );
+                }
+                else if ( temp instanceof AttrAssignNode ){
+            
+                    AttrAssignNode aan = (AttrAssignNode)temp;
+                    
+                    _add( aan.getReceiverNode() , state );
+                    _appned( " , " , aan );
+                    
+                    String name = aan.getName();
+                    name = name.substring( 0 , name.length() - 1 );
+                    if ( name.equals( "[]" ) ){
+                        _appned( " ( " , aan );
+                        _add( aan.getArgsNode().childNodes().get(0) , state );
+                        _appned( " ).toString() " , aan );
+                    }
+                    else
+                        _appned( " \"" + name + "\" " , aan );
+                    
+                }
+                else {
+                    throw new RuntimeException( "don't know how to do a multi-assign to : " + temp );
+                }
+            }
+            
+            _appned( " )" , man );
+        }
+        
         // --- literals ---
         
         else if ( node instanceof ArrayNode ){
