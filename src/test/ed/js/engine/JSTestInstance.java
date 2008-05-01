@@ -4,57 +4,32 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
 
-import org.testng.annotations.Test;
-
 import ed.MyAsserts;
 import ed.io.StreamUtil;
 import ed.js.JSFunction;
 import ed.js.func.JSFunctionCalls1;
-import ed.js.func.JSFunctionCalls0;
-import ed.util.ScriptTestInstance;
+import ed.util.ScriptTestInstanceBase;
 
 /**
- * Dynamic test instance for testing the javascript in a way that pleases Eliot :)
+ * Dynamic test instance for testing the Javascript
  * 
  * Code stolen lock, stock and barrel from ConvertTest.  Uses exact same convention
  * and scheme for comparing output
  */
-public class JSTestInstance implements ScriptTestInstance{
+public class JSTestInstance extends ScriptTestInstanceBase{
 
-    File _jsFile;
-    final String _secBypass;
-
-    public JSTestInstance(File file, String secBypass) {
-        _jsFile = file;
-        _secBypass = (secBypass != null && "TRUE".equals(secBypass.toUpperCase())) ? "true" : "false";
+    public JSTestInstance() {
     }
 
-    public void setTestScriptFile(File f) {
-        _jsFile = f;
-    }
+    ByteArrayOutputStream bout = new ByteArrayOutputStream();
+
+    public void preTest(Scope scope) throws Exception {
+    	
+    	File jsFile = getTestScriptFile();
     
-    /**
-     *  Testmethod for running a js test.  Same code as 
-     *  ConvertTest
-     *  
-     * @throws Exception in case of failure
-     */
-    @Test
-    public void test() throws Exception {
+        final PrintStream out = new PrintStream(bout);    
 
-        System.setProperty("ed.js.engine.SECURITY_BYPASS", _secBypass);
-
-        System.out.println("JSTestIntance : running " + _jsFile + ("true".equals(_secBypass) ? " WITH SECURITY BYPASS": ""));
-
-        Convert c = new Convert(_jsFile);
-
-        ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        final PrintStream out = new PrintStream(bout);
-    
-        JSFunction f = c.get();
-        Scope scope = Scope.GLOBAL.child(new File("/tmp"));
-    
-        if (_jsFile.toString().contains("/engine/")) {
+        if (jsFile.toString().contains("/engine/")) {
             JSFunction myout = new JSFunctionCalls1() {
                 public Object call(Scope scope ,Object o , Object extra[]){
                     out.println(o);
@@ -65,30 +40,20 @@ public class JSTestInstance implements ScriptTestInstance{
             scope.put("print" , myout , true);
             scope.put("SYSOUT" , myout , true);
         }
-
-        ed.js.Shell.addNiceShellStuff(scope);
-
-        scope.put( "exit" , new JSFunctionCalls0(){
-                public Object call( Scope s , Object crap[] ){
-                    System.err.println("JSTestInstance : exit() called from " + _jsFile.toString() + " Ignoring.");
-                    return null;
-                }
-            } , true );
-
-        try {
-            f.call(scope);
-        }
-        catch (RuntimeException re) { 
-            throw new Exception("For file " + _jsFile.toString(), re);
-        }
         
+    }
+    
+    public void validateOutput(Scope scope) throws Exception {
+    	
         String outString = _clean( bout.toString());
     
+    	File jsFile = getTestScriptFile();
+
         if (_isEngineFile()) {
-            File correct = new File(_jsFile.toString().replaceAll(".js$", ".out"));
+            File correct = new File(jsFile.toString().replaceAll(".js$", ".out"));
         
             if (!correct.exists()) {
-                throw new Exception("Error - no correct file for " + _jsFile.toString());
+                throw new Exception("Error - no correct file for " + jsFile.toString());
             }
             
             String correctOut = _clean(StreamUtil.readFully(correct));
@@ -97,13 +62,13 @@ public class JSTestInstance implements ScriptTestInstance{
                 System.out.println();
                 System.out.println( correctOut.replaceAll("[\r\n ]+" , " "));
                 System.out.println( outString.replaceAll("[\r\n ]+" , " "));
-                throw new Exception(" for test " + _jsFile.toString() + " : [" + correctOut + "] != [" + outString + "]");
+                throw new Exception(" for test " + jsFile.toString() + " : [" + correctOut + "] != [" + outString + "]");
             }
         }
     }
 
     private boolean _isEngineFile() { 
-        return _jsFile.toString().contains("/engine/");
+        return getTestScriptFile().toString().contains("/engine/");
     }
     
     private String _clean(String s) {

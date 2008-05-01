@@ -57,7 +57,7 @@ public class ScriptTestFactory {
         File dir = new File(dirName);
         
         if (!dir.exists()) {
-            throw new Exception("config error : test directory doesn't exist");
+            throw new Exception("config error : test directory doesn't exist : " + dir);
         }
 
         Pattern inPattern = null;
