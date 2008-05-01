@@ -15,6 +15,7 @@ public class Ruby {
 
     public static final String RUBY_NEWNAME = "_____rnew___";
     public static final String RUBY_SHIFT = "__rshift";
+    public static final String RUBY_PRIVATE = "__rprivate";
 
     public static void install( Scope s ){
         
@@ -106,5 +107,10 @@ public class Ruby {
             } , true );
         
         
+        s.put( Ruby.RUBY_PRIVATE , new JSFunctionCalls0(){
+                public Object call( Scope s , Object symbols[] ){
+                    return null;
+                }
+            } , true );
     }
 }

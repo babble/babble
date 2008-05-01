@@ -963,7 +963,7 @@ public class RubyConvert extends ed.MyAsserts {
             return Ruby.RUBY_NEWNAME;
         
         if ( name.equals( "private" ) )
-            return "__rprivate";
+            return Ruby.RUBY_PRIVATE;
     
         if ( name.equals( "<<" ) )
             return Ruby.RUBY_SHIFT;
