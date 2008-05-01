@@ -26,6 +26,6 @@ puts a[0]
 puts a[1]
 
 
-#puts( ( a , b = foo ).length );
-#puts a
-#puts b
+puts( ( a , b = foo ).length );
+puts a
+puts b

@@ -80,16 +80,19 @@ public class RubyConvert extends ed.MyAsserts {
 
         else if ( node instanceof BlockNode ){
             _appned( "{\n" , node );
-            if ( node.childNodes() != null )
-                for ( Node c : node.childNodes() )
+            if ( node.childNodes() != null ){
+                for ( Node c : node.childNodes() ){
                     _add( c , state );
+                    _appned( "\n;\n" , node );
+                }
+            }
             _appned( "\n}\n" , node );
         }
 
         else if ( node instanceof NewlineNode ){
             _assertOne( node );
             _add( node.childNodes().get(0) , state );
-            _appned( ";\n" , node );
+            _appned( "\n" , node );
         }
 
         else if ( node instanceof ReturnNode ){
@@ -316,6 +319,24 @@ public class RubyConvert extends ed.MyAsserts {
             _appned( " ) " , node );
         }
 
+        else if ( node instanceof AndNode ){
+            AndNode a = (AndNode)node;
+            _appned( " ( " , a );
+            _add( a.getFirstNode() , state );
+            _appned( " && " , a );
+            _add( a.getSecondNode() , state );
+            _appned( " ) " , a );
+        }
+
+        else if ( node instanceof OrNode ){
+            OrNode a = (OrNode)node;
+            _appned( " ( " , a );
+            _add( a.getFirstNode() , state );
+            _appned( " || " , a );
+            _add( a.getSecondNode() , state );
+            _appned( " ) " , a );
+        }
+
         // --- vars ---
 
         else if ( node instanceof ArgumentNode ){
@@ -447,7 +468,15 @@ public class RubyConvert extends ed.MyAsserts {
         }
         
         // --- literals ---
+
+        else if ( node instanceof NilNode ){
+            _appned( " null " , node );
+        }
         
+        else if ( node instanceof ZArrayNode ){
+            _appned( "(new Array())" , node );
+        }
+
         else if ( node instanceof ArrayNode ){
             
             if ( node.childNodes() == null || 
@@ -664,6 +693,12 @@ public class RubyConvert extends ed.MyAsserts {
                 }
             }
             _appned( ")" , f );
+            return;
+        }
+        
+        if ( n instanceof VCallNode ){
+            VCallNode f = (VCallNode)n;
+            _appned( _getFuncName( f ) + ".call( " + state._className + ".prototype ) " , f );
             return;
         }
 
