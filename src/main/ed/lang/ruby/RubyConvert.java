@@ -97,7 +97,7 @@ public class RubyConvert extends ed.MyAsserts {
 
         else if ( node instanceof ReturnNode ){
             _assertOne( node );
-            _appned( "return " , node );
+            _appned( "if ( true ) return " , node );
             _add( node.childNodes().get(0), state );
         }
 
@@ -218,9 +218,13 @@ public class RubyConvert extends ed.MyAsserts {
                 
             }
 
-            _appned( " ){\n" , node );
-            _add( dn.getBodyNode() , state );
-            _appned( " \n}\n " , node );
+
+            final Node body = dn.getBodyNode();
+            final boolean needBrackets = ! ( body instanceof BlockNode );
+            
+            _appned( " )" + ( needBrackets ? "{" : "" )  + "\n" , node );
+            _add( body , state );
+            _appned( " \n" + ( needBrackets ? "}" : "" ) + "\n " , node );
         }
 
         else if ( node instanceof VCallNode ){
@@ -560,14 +564,11 @@ public class RubyConvert extends ed.MyAsserts {
     // ---  code generation types ---
 
     boolean _handleTurnary( IfNode ifn , State state ){
-
         if ( _badTurnaryNode( ifn.getThenBody() ) ){
-            System.err.println( "bad turnary node : " + ifn.getThenBody() );
             return false;
         }
 
         if ( _badTurnaryNode( ifn.getElseBody() ) ){
-            System.err.println( "bad turnary node : " + ifn.getElseBody() );
             return false;
         }
 
@@ -961,6 +962,9 @@ public class RubyConvert extends ed.MyAsserts {
         if ( name.equals( "new" ) )
             return Ruby.RUBY_NEWNAME;
         
+        if ( name.equals( "private" ) )
+            return "__rprivate";
+    
         if ( name.equals( "<<" ) )
             return Ruby.RUBY_SHIFT;
 
