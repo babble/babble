@@ -7,11 +7,6 @@ import java.nio.*;
 
 import ed.js.*;
 
-/**
- *  Wrapper around 
- * @author geir
- *
- */
 public class DBTCP extends DBMessageLayer {
 
     DBTCP( String root , String ip, int port){
