@@ -241,7 +241,7 @@ public class JSFileLibrary extends JSObjectBase {
         }
         
     }
-    static String _srcExtensions[] = new String[] { ".js" , ".jxp" , ".html" , ".rb" , ".rhtml" , ".erb" };
+    static String _srcExtensions[] = new String[] { ".js" , ".jxp" , ".html" , ".rb" , ".rhtml" , ".erb" , ".djang10" };
     
     public String toString(){
         return "{ JSFileLibrary.  _base : " + _base + "}";
