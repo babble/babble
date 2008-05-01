@@ -12,7 +12,6 @@ public class WeakValueMap<K,V> /* implements Map<K,V> */ {
     }
 
     public V get( Object key ){
-        System.out.println( "get: " + key );
         WeakReference<V> r = _map.get( key );
         if ( r == null )
             return null;
@@ -25,7 +24,6 @@ public class WeakValueMap<K,V> /* implements Map<K,V> */ {
     }
 
     public V put( K key , V v ){
-        System.out.println( "put: " + key );
         final WeakReference<V> nr = new WeakReference<V>( v );
         final WeakReference<V> or = _map.put( key , nr );
         if ( or == null )
