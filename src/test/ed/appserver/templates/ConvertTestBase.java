@@ -12,6 +12,7 @@ import ed.*;
 import ed.js.*;
 import ed.js.func.*;
 import ed.js.engine.*;
+import ed.appserver.JSFileLibrary;
 import ed.io.*;
 
 public abstract class ConvertTestBase extends TestCase {
@@ -83,6 +84,8 @@ public abstract class ConvertTestBase extends TestCase {
             scope.put( "print" , myout , true );
             scope.put( "SYSOUT" , myout , true );
             
+            scope.put( "local" , new JSFileLibrary( new File( "src/test/ed/appserver/templates/" ) ,  "local" , scope ) , true );
+
             func.call( scope , getArgs() );
             
             String got = _clean( output.toString() );
