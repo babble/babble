@@ -11,6 +11,7 @@ import ed.io.StreamUtil;
 import ed.js.JSFunction;
 import ed.js.func.JSFunctionCalls1;
 import ed.js.func.JSFunctionCalls0;
+import ed.util.ScriptTestInstance;
 
 /**
  * Dynamic test instance for testing the javascript in a way that pleases Eliot :)
@@ -18,9 +19,9 @@ import ed.js.func.JSFunctionCalls0;
  * Code stolen lock, stock and barrel from ConvertTest.  Uses exact same convention
  * and scheme for comparing output
  */
-public class JSTestInstance {
+public class JSTestInstance implements ScriptTestInstance{
 
-    final File _jsFile;
+    File _jsFile;
     final String _secBypass;
 
     public JSTestInstance(File file, String secBypass) {
@@ -28,6 +29,10 @@ public class JSTestInstance {
         _secBypass = (secBypass != null && "TRUE".equals(secBypass.toUpperCase())) ? "true" : "false";
     }
 
+    public void setTestScriptFile(File f) {
+        _jsFile = f;
+    }
+    
     /**
      *  Testmethod for running a js test.  Same code as 
      *  ConvertTest
