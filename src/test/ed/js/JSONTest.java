@@ -27,6 +27,7 @@ public class JSONTest extends ed.TestCase {
         JSFunction blankf = (JSFunction)scope.eval("(function(){})");
 
         // JSON of a function can return the code to a function(){} expression
+        // Wrap it in parens so that it's a lambda rather than a statement.
         assert(scope.eval("("+JSON.serialize(blankf)+")") instanceof JSFunction);
 
         // JSON of a Java function, though, should be a string like 
