@@ -1,0 +1,11 @@
+{% if foo %}
+Should see me1
+{% else %}
+Should Not See Me1
+{% endif %}
+
+{% if notFoo %}
+Should not see me2
+{% else %}
+Should see me 2
+{% endif %}

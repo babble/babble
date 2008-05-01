@@ -4,14 +4,11 @@ package ed.lang.ruby;
 
 import java.io.*;
 
-import org.testng.annotations.Test;
-
 import ed.*;
 import ed.js.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 import ed.io.*;
-import ed.lang.ruby.*;
 
 public class RubyTest extends TestCase {
 
@@ -20,12 +17,12 @@ public class RubyTest extends TestCase {
         File dir = new File( "src/test/ed/lang/ruby/" );
         for ( File f : dir.listFiles() )
             if ( f.toString().endsWith( ".rb" ) )
-                add( new FileTest( f ) );
+                add( new RubyFileTest( f ) );
         
     }
     
-    public static class FileTest extends TestCase {
-        FileTest( File f ){
+    public static class RubyFileTest extends TestCase {
+        RubyFileTest( File f ){
             super( f.toString() );
             _file = f;
         }
@@ -85,7 +82,7 @@ public class RubyTest extends TestCase {
         if ( args.length > 0 ){
             TestCase all = new TestCase();
             for ( String s : args )
-                all.add( new FileTest( new File( s ) ) );
+                all.add( new RubyFileTest( new File( s ) ) );
             all.runConsole();
         }
         else {

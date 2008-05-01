@@ -11,6 +11,7 @@ import com.twmacinta.util.*;
 import ed.log.*;
 import ed.js.*;
 import ed.js.func.*;
+import ed.appserver.templates.Djang10Converter;
 import ed.io.*;
 import ed.net.*;
 import ed.util.*;
@@ -367,8 +368,27 @@ public class JSBuiltInFunctions {
 		}
 	    }
 
+	    /*
+	     *  if there is a third extra param, that's the directory offset relative to the root
+	     */
+	    
+	    File procDir = root;
+	    
+	    if ( extra != null && extra.length > 2 && extra[2] instanceof JSString ){
+
+	        procDir  = new File(root, ((JSString) extra[2]).toString());
+
+	        try {
+	            if (!procDir.getCanonicalPath().contains(root.getCanonicalPath())) {
+	                throw new JSException("directory offset moves execution outside of root");
+	            }
+	        } catch (IOException e) {
+                throw new JSException("directory offset problem", e);	            
+	        }	        
+	    }
+
             try {
-                final Process p = Runtime.getRuntime().exec( cmd , env , root );
+                final Process p = Runtime.getRuntime().exec( cmd , env , procDir);
 		
 		if ( toSend != null ){
 		    OutputStream out = p.getOutputStream();
@@ -647,6 +667,8 @@ public class JSBuiltInFunctions {
         Encoding.install( _myScope );
         JSON.init( _myScope );
         ed.lang.ruby.Ruby.install( _myScope );
+        
+        Djang10Converter.injectHelpers(_myScope);
 
         // mail stuff till i'm done
         _myScope.put( "JAVAXMAILTO" , javax.mail.Message.RecipientType.TO , true );
