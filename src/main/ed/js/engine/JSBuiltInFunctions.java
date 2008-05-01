@@ -367,8 +367,27 @@ public class JSBuiltInFunctions {
 		}
 	    }
 
+	    /*
+	     *  if there is a third extra param, that's the directory offset relative to the root
+	     */
+	    
+	    File procDir = root;
+	    
+	    if ( extra != null && extra.length > 2 && extra[2] instanceof JSString ){
+
+	        procDir  = new File(root, ((JSString) extra[2]).toString());
+
+	        try {
+	            if (!procDir.getCanonicalPath().contains(root.getCanonicalPath())) {
+	                throw new JSException("directory offset moves execution outside of root");
+	            }
+	        } catch (IOException e) {
+                throw new JSException("directory offset problem", e);	            
+	        }	        
+	    }
+
             try {
-                final Process p = Runtime.getRuntime().exec( cmd , env , root );
+                final Process p = Runtime.getRuntime().exec( cmd , env , procDir);
 		
 		if ( toSend != null ){
 		    OutputStream out = p.getOutputStream();
