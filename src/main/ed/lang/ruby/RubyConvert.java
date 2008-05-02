@@ -199,9 +199,14 @@ public class RubyConvert extends ed.MyAsserts {
             else {
                 _append( _getFuncName( f )  , node );
                 
-                _append( "(" , node );
-                
                 boolean first = true;
+                
+                if ( state._className != null ){
+                    _append( ".call(" + state._className + ".prototype " , node );
+                    first = false;
+                }
+                else
+                    _append( "(" , node );
                 
                 if ( f.getArgsNode() != null && f.getArgsNode().childNodes() != null ){
                     for ( Node temp : f.getArgsNode().childNodes() ){
@@ -238,6 +243,8 @@ public class RubyConvert extends ed.MyAsserts {
             }
             _append( _mangleFunctionName( dn.getName() ) + " = function(" , node );
             
+            state = state.child();
+
             ArgsNode an = dn.getArgsNode();
             if ( an != null ){
                 if ( an.getArgs() != null ){
@@ -685,7 +692,7 @@ public class RubyConvert extends ed.MyAsserts {
             else
                 _addArgs( state._classInit , state._classInit.getArgsNode().getArgs().childNodes() , state );
             _append( "{\n" , state._classInit );
-            _add( state._classInit.getBodyNode() , state );
+            _add( state._classInit.getBodyNode() , state.child() );
             _append( "\n}\n" , state._classInit );
         }
 
@@ -745,6 +752,7 @@ public class RubyConvert extends ed.MyAsserts {
     }
 
     void _addClassPiece( Node n , State state ){
+
         if ( n instanceof Colon2Node || // meta class info
              n instanceof ConstNode  // inheritance
              )
@@ -769,26 +777,6 @@ public class RubyConvert extends ed.MyAsserts {
             return;
         }
         
-        if ( n instanceof FCallNode ){
-            FCallNode f = (FCallNode)n;
-            _append( _getFuncName( f ) + ".call( " + state._className + ".prototype " , f );
-            if ( f.getArgsNode() != null ){
-                if ( f.getArgsNode().childNodes() != null ){
-                    for ( int i=0; i<f.getArgsNode().childNodes().size(); i++ ){
-                        _append( " , " , f );
-                        _add( f.getArgsNode().childNodes().get(i) , state );
-                    }
-                }
-            }
-            _append( ")" , f );
-            return;
-        }
-        
-        if ( n instanceof VCallNode ){
-            VCallNode f = (VCallNode)n;
-            _append( _getFuncName( f ) + ".call( " + state._className + ".prototype ) " , f );
-            return;
-        }
 
         if ( n instanceof ClassVarDeclNode ){
             ClassVarDeclNode dn = (ClassVarDeclNode)n;
@@ -796,8 +784,14 @@ public class RubyConvert extends ed.MyAsserts {
             _add( dn.getValueNode() , state );
             return;
         }
-
-        if ( n instanceof ModuleNode ||
+        
+        // TODO this is wrong
+        
+        if ( n instanceof BeginNode ||
+             n instanceof RescueNode ||
+             n instanceof FCallNode || 
+             n instanceof VCallNode ||
+             n instanceof ModuleNode ||
              n instanceof ClassNode ){
             _add( n , state );
             return;
@@ -1107,6 +1101,8 @@ public class RubyConvert extends ed.MyAsserts {
         _operatorNames.add( "<" );
         _operatorNames.add( "<=" );
         _operatorNames.add( "==" );
+        _operatorNames.add( "|" );
+        _operatorNames.add( "&" );
     }
 
     static final Set<String> _specialNames = new HashSet<String>();

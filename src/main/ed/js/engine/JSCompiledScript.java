@@ -24,6 +24,7 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
             throw re;
         }
         catch ( Throwable t ){
+            t.printStackTrace();
             if ( Convert.D ) t.printStackTrace();
             _convert.fixStack( t );
             throw new RuntimeException( "weird error" , t );

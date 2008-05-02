@@ -23,7 +23,6 @@ public class Ruby {
     public static final String RUBY_REQUIRE = "__rrequire";
     public static final String RUBY_RAISE = "__rraise";
 
-
     static final Map<String,String> _nameMapping = new TreeMap<String,String>();
     static {
         _nameMapping.put( "new" , RUBY_NEWNAME );
@@ -31,6 +30,7 @@ public class Ruby {
         _nameMapping.put( "<<" , RUBY_SHIFT );
         _nameMapping.put( "require" , RUBY_REQUIRE );
         _nameMapping.put( "raise" , RUBY_RAISE );
+
     }
 
     public static void install( Scope s ){
@@ -189,5 +189,6 @@ public class Ruby {
                     return thing.getConstructor() == clazz;
                 }
             } , true );
+
     }
 }
