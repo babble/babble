@@ -2,9 +2,12 @@
 
 package ed.lang.ruby;
 
+import java.util.*;
+
 import ed.js.*;
 import ed.js.func.*;
 import ed.js.engine.*;
+import ed.appserver.*;
 
 public class Ruby {
     
@@ -12,10 +15,19 @@ public class Ruby {
     public static final String RUBY_CV_CALL = "_rubyCVCall";
     public static final String RUBY_NEW = "_rubyNew";
     public static final String RUBY_INCLUDE = "_rinclude";
-
+    
     public static final String RUBY_NEWNAME = "_____rnew___";
     public static final String RUBY_SHIFT = "__rshift";
     public static final String RUBY_PRIVATE = "__rprivate";
+    public static final String RUBY_REQUIRE = "__rrequire";
+
+    static final Map<String,String> _nameMapping = new TreeMap<String,String>();
+    static {
+        _nameMapping.put( "new" , RUBY_NEWNAME );
+        _nameMapping.put( "private" , RUBY_PRIVATE );
+        _nameMapping.put( "<<" , RUBY_SHIFT );
+        _nameMapping.put( "require" , RUBY_REQUIRE );
+    }
 
     public static void install( Scope s ){
         
@@ -107,9 +119,23 @@ public class Ruby {
             } , true );
         
         
-        s.put( Ruby.RUBY_PRIVATE , new JSFunctionCalls0(){
+        s.put( RUBY_PRIVATE , new JSFunctionCalls0(){
                 public Object call( Scope s , Object symbols[] ){
                     return null;
+                }
+            } , true );
+
+        s.put( RUBY_REQUIRE , new JSFunctionCalls1(){
+                public Object call( Scope s , Object pathObj , Object extra[] ){
+                    if ( pathObj == null )
+                        throw new NullPointerException( "can't send require nothing" );
+
+                    String path = pathObj.toString();
+                    int idx = path.lastIndexOf( "." );
+                    if ( idx > 0 )
+                        path = path.substring( 0 , idx );
+
+                    return ((JSFileLibrary)s.get( "__path__" )).getFromPath( path );
                 }
             } , true );
     }
