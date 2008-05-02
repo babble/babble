@@ -827,7 +827,7 @@ public class Convert implements StackTraceFixer {
                     catchScope = catchScope.getNext().getNext();
                 }
                 
-                _append( "if ( " + javaEName + " != null ) throw " + javaEName + ";\n" , n );
+                _append( "if ( " + javaEName + " != null ){ if ( " + javaEName + " instanceof RuntimeException ){ throw (RuntimeException)" + javaEName + ";} throw new JSException( " + javaEName + ");}\n" , n );
 
                 _append( "\n } \n " , n ); // ends catch
                     
