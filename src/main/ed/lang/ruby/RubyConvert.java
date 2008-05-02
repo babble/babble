@@ -79,26 +79,31 @@ public class RubyConvert extends ed.MyAsserts {
         }
 
         else if ( node instanceof BlockNode ){
-            _appned( "{\n" , node );
+            _append( "{\n" , node );
             if ( node.childNodes() != null ){
                 for ( Node c : node.childNodes() ){
                     _add( c , state );
-                    _appned( "\n;\n" , node );
+                    _append( "\n;\n" , node );
                 }
             }
-            _appned( "\n}\n" , node );
+            _append( "\n}\n" , node );
         }
 
         else if ( node instanceof NewlineNode ){
             _assertOne( node );
             _add( node.childNodes().get(0) , state );
-            _appned( "\n" , node );
+            _append( "\n" , node );
         }
 
         else if ( node instanceof ReturnNode ){
-            _assertOne( node );
-            _appned( "if ( true ) return " , node );
-            _add( node.childNodes().get(0), state );
+            if ( node.childNodes().size() == 0 ){
+                _append( "if ( true ) return;" , node );
+            }
+            else {
+                _assertOne( node );
+                _append( "if ( true ) return " , node );
+                _add( node.childNodes().get(0), state );
+            }
         }
 
         else if ( node instanceof ForNode ){
@@ -106,9 +111,9 @@ public class RubyConvert extends ed.MyAsserts {
             ForNode fn = (ForNode)node;
             
             _add( fn.getIterNode() , state );
-            _appned( ".forEach( " , fn );
+            _append( ".forEach( " , fn );
             _addIterBlock( fn , state );
-            _appned( " ) " , fn );
+            _append( " ) " , fn );
         }
 
         else if ( node instanceof IterNode ){
@@ -116,37 +121,74 @@ public class RubyConvert extends ed.MyAsserts {
         }
 
         else if ( node instanceof YieldNode ){
-            _appned( "arguments[ arguments.length - 1 ]" , node );
+            _append( "arguments[ arguments.length - 1 ]" , node );
             _addArgs( node , node.childNodes() , state );
         }
         
         else if ( node instanceof CaseNode ){
             CaseNode cn = (CaseNode)node;
-            _appned( "switch ( " , cn );
+            _append( "switch ( " , cn );
             _add( cn.getCaseNode() , state );
-            _appned( "){ \n" , cn );
+            _append( "){ \n" , cn );
             
             Node when = cn.getFirstWhenNode();
             while ( when != null ){
                 if  ( when instanceof WhenNode ){
                     WhenNode w = (WhenNode)when;
 
-                    _appned( "case " , when );
+                    _append( "case " , when );
                     _add( w.getExpressionNodes() , state );
-                    _appned( " : " , when );
+                    _append( " : " , when );
                     _add( w.getBodyNode() , state );
-                    _appned( "\nbreak;\n" , when );
+                    _append( "\nbreak;\n" , when );
                     
                     when = w.getNextCase();
                     continue;
                 }
                 
-                _appned( " default : " , when );
+                _append( " default : " , when );
                 _add( when , state );
                 break;
             }
             
-            _appned( " }\n " , cn );
+            _append( " }\n " , cn );
+        }
+
+        else if ( node instanceof BeginNode ){
+            BeginNode bn = (BeginNode)node;
+            _assertOne( bn );
+            _add( bn.getBodyNode() , state );
+        }
+
+        else if ( node instanceof RescueNode ){
+            RescueNode rn = (RescueNode)node;
+            
+            if ( rn.getElseNode() != null )
+                throw new RuntimeException( "can't handle rescue else" );
+
+            _append( "try {\n" , rn );
+            _add( rn.getBodyNode() , state );
+            _append( "\n}\n" , rn );
+
+            RescueBodyNode rb = rn.getRescueNode();
+            while ( rb != null ){
+                
+                final String name = "name" + (int)(Math.random() * 12312312);
+
+                _append( "catch( " + name  , rb );
+                if ( rb.getExceptionNodes() != null ){
+                    _append( " if " + Ruby.RUBY_RESCURE_INSTANCEOF + "( " + name + " , " , rb );
+                    _add( rb.getExceptionNodes() , state );
+                    _append( " ) " , rb );
+                }
+                _append( " ){\n" , rb );
+                _add( rb.getBodyNode() , state );
+                _append( "\n}\n" , rn );
+                
+                rb = rb.getOptRescueNode();
+                if ( rb != null )
+                    throw new RuntimeException("can't handle chained rescue" );
+            }
         }
 
         // --- function stuff ---
@@ -157,32 +199,37 @@ public class RubyConvert extends ed.MyAsserts {
             if ( ( f.getArgsNode() == null || f.getArgsNode().childNodes() == null || f.getArgsNode().childNodes().size() == 0 ) &&
                  f.getIterNode() == null ){
                 // no args
-                _appned( Ruby.RUBY_V_CALL + "(" + _getFuncName( f ) + ")" , f );
+                _append( Ruby.RUBY_V_CALL + "(" + _getFuncName( f ) + ")" , f );
             }
             else {
-                _appned( _getFuncName( f )  , node );
-                
-                _appned( "(" , node );
+                _append( _getFuncName( f )  , node );
                 
                 boolean first = true;
+                
+                if ( state._className != null ){
+                    _append( ".call(" + state._className + ".prototype " , node );
+                    first = false;
+                }
+                else
+                    _append( "(" , node );
                 
                 if ( f.getArgsNode() != null && f.getArgsNode().childNodes() != null ){
                     for ( Node temp : f.getArgsNode().childNodes() ){
                         if ( first )
                             first = false;
                         else
-                            _appned( " , " , temp );
+                            _append( " , " , temp );
                         _add( temp , state );
                     }
                 }
                 
                 if ( f.getIterNode() != null ){
                     if ( ! first )
-                        _appned( " , " , f );
+                        _append( " , " , f );
                     _add( f.getIterNode() , state );
                 }
             
-                _appned( ")" , node );    
+                _append( ")" , node );    
             }
             
         }
@@ -197,23 +244,25 @@ public class RubyConvert extends ed.MyAsserts {
             MethodDefNode dn = (MethodDefNode)node;
             
             if ( state._className != null ){
-                _appned( state._className + "." + ( ( dn instanceof DefsNode || state._module ) ? "" : "prototype." ) , node );
+                _append( state._className + "." + ( ( dn instanceof DefsNode || state._module ) ? "" : "prototype." ) , node );
             }
-            _appned( _mangleFunctionName( dn.getName() ) + " = function(" , node );
+            _append( _mangleFunctionName( dn.getName() ) + " = function(" , node );
             
+            state = state.child();
+
             ArgsNode an = dn.getArgsNode();
             if ( an != null ){
                 if ( an.getArgs() != null ){
                     for ( int i=0; i<an.getArgs().size(); i++ ){
                         ArgumentNode a = (ArgumentNode)an.getArgs().get(i);
                         if ( i > 0 )
-                            _appned( " , " , a );
-                        _appned( a.getName() , a );
+                            _append( " , " , a );
+                        _append( a.getName() , a );
                     }
                 }
 
                 if ( an.getBlockArgNode() != null ){
-                    _appned( " , " + an.getBlockArgNode().getName() , an );
+                    _append( " , " + an.getBlockArgNode().getName() , an );
                 }
                 
             }
@@ -222,15 +271,15 @@ public class RubyConvert extends ed.MyAsserts {
             final Node body = dn.getBodyNode();
             final boolean needBrackets = ! ( body instanceof BlockNode );
             
-            _appned( " )" + ( needBrackets ? "{" : "" )  + "\n" , node );
+            _append( " )" + ( needBrackets ? "{" : "" )  + "\n" , node );
             _add( body , state );
-            _appned( " \n" + ( needBrackets ? "}" : "" ) + "\n " , node );
+            _append( " \n" + ( needBrackets ? "}" : "" ) + "\n " , node );
         }
 
         else if ( node instanceof VCallNode ){
             _assertNoChildren( node );
             VCallNode vcn = (VCallNode)node;
-            _appned( Ruby.RUBY_V_CALL + "( " + _getFuncName( vcn ) + ")" , node );
+            _append( Ruby.RUBY_V_CALL + "( " + _getFuncName( vcn ) + ")" , node );
         }
         
         else if ( node instanceof ZSuperNode ){
@@ -246,12 +295,12 @@ public class RubyConvert extends ed.MyAsserts {
             if ( sn.getIterNode() != null )
                 throw new RuntimeException( "what?" );
 
-            _appned( "this.__proto__.constructor.call( this " , sn );
+            _append( "this.__proto__.constructor.call( this " , sn );
             for ( Node foo : sn.getArgsNode().childNodes() ){
-                _appned( " , " , sn );
+                _append( " , " , sn );
                 _add( foo , state );
             }
-            _appned( " )" , sn );
+            _append( " )" , sn );
         }
 
         // --- class stuff ---
@@ -268,47 +317,47 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof InstAsgnNode ){
             _assertOne( node );
             InstAsgnNode lan = (InstAsgnNode)node;
-            _appned( "this." + lan.getName().substring(1) + " = " , node );
+            _append( "this." + lan.getName().substring(1) + " = " , node );
             _add( node.childNodes().get( 0 ) , state );
-            _appned( "" , node );            
+            _append( "" , node );            
         }
 
         else if ( node instanceof InstVarNode ){
             _assertNoChildren( node );
             InstVarNode lvn = (InstVarNode)node;
-            _appned( "this." + lvn.getName().substring(1) , node );
+            _append( "this." + lvn.getName().substring(1) , node );
         }
         
         else if ( node instanceof SelfNode ){
-            _appned( "this" , node );
+            _append( "this" , node );
         }
 
         // --- looping ---
 
         else if ( node instanceof WhileNode ){
             _assertType( node.childNodes().get(0) , NewlineNode.class );
-            _appned( "while ( " , node );
+            _append( "while ( " , node );
             _add( node.childNodes().get(0).childNodes().get(0) , state );
-            _appned( " ){ \n " , node );
+            _append( " ){ \n " , node );
             _add( node.childNodes().get(1) , state );
-            _appned( "\n } \n " , node );
+            _append( "\n } \n " , node );
         }
 
         else if ( node instanceof IfNode ){
             IfNode ifn = (IfNode)node;
 
             if ( ! _handleTurnary( ifn , state ) ){
-                _appned( "if ( " , ifn );
+                _append( "if ( " , ifn );
                 if ( ifn.getCondition() != null )
                     _add( ifn.getCondition() , state );
-                _appned( " ){ \n " , ifn );
+                _append( " ){ \n " , ifn );
                 if ( ifn.getThenBody() != null )
                     _add( ifn.getThenBody() , state );
-                _appned( " } \n " , ifn );
+                _append( " } \n " , ifn );
                 if ( ifn.getElseBody() != null ){
-                    _appned( " else { \n " , ifn );
+                    _append( " else { \n " , ifn );
                     _add( ifn.getElseBody() , state );
-                    _appned( " } \n " , ifn );
+                    _append( " } \n " , ifn );
                 }
             }
         }
@@ -318,72 +367,72 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof OpAsgnOrNode ){
             OpAsgnOrNode op = (OpAsgnOrNode)node;
             _add( op.getFirstNode() , state );
-            _appned( " = " , node );
-            _appned( " ( " , node );
+            _append( " = " , node );
+            _append( " ( " , node );
             _add( op.getFirstNode() , state );
-            _appned( " || " , node );
+            _append( " || " , node );
             _add( op.getSecondNode().childNodes().get(0) , state );
-            _appned( " ) " , node );
+            _append( " ) " , node );
         }
 
         else if ( node instanceof AndNode ){
             AndNode a = (AndNode)node;
-            _appned( " ( " , a );
+            _append( " ( " , a );
             _add( a.getFirstNode() , state );
-            _appned( " && " , a );
+            _append( " && " , a );
             _add( a.getSecondNode() , state );
-            _appned( " ) " , a );
+            _append( " ) " , a );
         }
 
         else if ( node instanceof OrNode ){
             OrNode a = (OrNode)node;
-            _appned( " ( " , a );
+            _append( " ( " , a );
             _add( a.getFirstNode() , state );
-            _appned( " || " , a );
+            _append( " || " , a );
             _add( a.getSecondNode() , state );
-            _appned( " ) " , a );
+            _append( " ) " , a );
         }
 
         // --- vars ---
 
         else if ( node instanceof ArgumentNode ){
-            _appned( ((ArgumentNode)node).getName() , node );
+            _append( ((ArgumentNode)node).getName() , node );
         }
 
         else if ( node instanceof LocalAsgnNode ){
             _assertOne( node );
             LocalAsgnNode lan = (LocalAsgnNode)node;
-            _appned( "var " + lan.getName() + " = " , node );
+            _append( "var " + lan.getName() + " = " , node );
             _add( node.childNodes().get( 0 ) , state );
-            _appned( "" , node );
+            _append( "" , node );
         }
         
         else if ( node instanceof LocalVarNode ){
             _assertNoChildren( node );
             LocalVarNode lvn = (LocalVarNode)node;
-            _appned( lvn.getName() , node );
+            _append( lvn.getName() , node );
         }
 
         else if ( node instanceof DVarNode ){
             _assertNoChildren( node );
             DVarNode lvn = (DVarNode)node;
-            _appned( lvn.getName() , node );
+            _append( lvn.getName() , node );
         }
 
         else if ( node instanceof ConstNode ){
             _assertNoChildren( node );
             ConstNode lvn = (ConstNode)node;
-            _appned( lvn.getName() , node );
+            _append( lvn.getName() , node );
         }
         
         else if ( node instanceof DStrNode ){
-            _appned( " ( " , node );
+            _append( " ( " , node );
             for ( int i=0; i<node.childNodes().size(); i++ ){
                 if ( i > 0 )
-                    _appned( " + " , node );
+                    _append( " + " , node );
                 _add( node.childNodes().get(i) , state );
             }
-            _appned( " ) " , node );
+            _append( " ) " , node );
         }
 
         else if ( node instanceof EvStrNode ){
@@ -395,7 +444,7 @@ public class RubyConvert extends ed.MyAsserts {
             _assertOne( node );
             Colon2Node cn = (Colon2Node)node;
             _add( node.childNodes().get(0) , state );
-            _appned( "." + cn.getName() , node );
+            _append( "." + cn.getName() , node );
         }
         
         else if ( node instanceof AttrAssignNode ){
@@ -403,29 +452,29 @@ public class RubyConvert extends ed.MyAsserts {
 
             final String name = aan.getName().trim();
             
-            _appned( " ( " , aan );
+            _append( " ( " , aan );
             _add( aan.getReceiverNode() , state );
             
             if ( name.equals( "[]=" ) ){
-                _appned( "[" , aan );
+                _append( "[" , aan );
                 _add( aan.getArgsNode().childNodes().get(0) , state );
-                _appned( "]" , aan );
+                _append( "]" , aan );
                 
-                _appned( " = " , aan );
+                _append( " = " , aan );
                 _add( aan.getArgsNode().childNodes().get(1) , state );
             }
             else {
-                _appned( "." + name , aan );
+                _append( "." + name , aan );
                 _add( aan.getArgsNode().childNodes().get(0) , state );
             }
                 
 
-            _appned( " ) " , aan );
+            _append( " ) " , aan );
 
         }
 
         else if ( node instanceof ClassVarNode ){
-            _appned( "this.__constructor__." + ((ClassVarNode)node).getName().substring(2) , node );
+            _append( "this.__constructor__." + ((ClassVarNode)node).getName().substring(2) , node );
         }
         
         else if ( node instanceof MultipleAsgnNode ){
@@ -433,7 +482,7 @@ public class RubyConvert extends ed.MyAsserts {
             
             _assertType( man.getValueNode() , ToAryNode.class );
             _add( ((ToAryNode)(man.getValueNode())).getValue() , state );
-            _appned( ".__multiAssignment(" , man );
+            _append( ".__multiAssignment(" , man );
             
             boolean first = true;
             for ( Node temp : man.getHeadNode().childNodes() ){
@@ -441,29 +490,29 @@ public class RubyConvert extends ed.MyAsserts {
                 if ( first )
                     first = false;
                 else
-                    _appned( " , " , temp );
+                    _append( " , " , temp );
                 
                 if ( temp instanceof LocalAsgnNode ){
-                    _appned( " scope " , temp );
-                    _appned( " , " , temp );
-                    _appned( "\"" + ((LocalAsgnNode)temp).getName() + "\"" , temp );
+                    _append( " scope " , temp );
+                    _append( " , " , temp );
+                    _append( "\"" + ((LocalAsgnNode)temp).getName() + "\"" , temp );
                 }
                 else if ( temp instanceof AttrAssignNode ){
             
                     AttrAssignNode aan = (AttrAssignNode)temp;
                     
                     _add( aan.getReceiverNode() , state );
-                    _appned( " , " , aan );
+                    _append( " , " , aan );
                     
                     String name = aan.getName();
                     name = name.substring( 0 , name.length() - 1 );
                     if ( name.equals( "[]" ) ){
-                        _appned( " ( " , aan );
+                        _append( " ( " , aan );
                         _add( aan.getArgsNode().childNodes().get(0) , state );
-                        _appned( " ).toString() " , aan );
+                        _append( " ).toString() " , aan );
                     }
                     else
-                        _appned( " \"" + name + "\" " , aan );
+                        _append( " \"" + name + "\" " , aan );
                     
                 }
                 else {
@@ -471,17 +520,17 @@ public class RubyConvert extends ed.MyAsserts {
                 }
             }
             
-            _appned( " )" , man );
+            _append( " )" , man );
         }
         
         // --- literals ---
 
         else if ( node instanceof NilNode ){
-            _appned( " null " , node );
+            _append( " null " , node );
         }
         
         else if ( node instanceof ZArrayNode ){
-            _appned( "(new Array())" , node );
+            _append( "(new Array())" , node );
         }
 
         else if ( node instanceof ArrayNode ){
@@ -489,13 +538,13 @@ public class RubyConvert extends ed.MyAsserts {
             if ( node.childNodes() == null || 
                  node.childNodes().size() == 0 ){}
             else if ( node.childNodes().size() > 1 ){ 
-                _appned( "[" , node );
+                _append( "[" , node );
                 for ( int i=0; i<node.childNodes().size(); i++){
                     if ( i > 0 )
-                        _appned( " , " , node );
+                        _append( " , " , node );
                     _add( node.childNodes().get(i) , state );
                 }
-                _appned( "]" , node );
+                _append( "]" , node );
             }
             else {
                 _add( node.childNodes().get(0) , state );
@@ -504,51 +553,57 @@ public class RubyConvert extends ed.MyAsserts {
 
         else if ( node instanceof TrueNode ){
             _assertNoChildren( node );
-            _appned( ((TrueNode)node).getName() , node );
+            _append( ((TrueNode)node).getName() , node );
        } 
 
         else if ( node instanceof FalseNode ){
             _assertNoChildren( node );
-            _appned( ((FalseNode)node).getName() , node );
+            _append( ((FalseNode)node).getName() , node );
         }
 
         else if ( node instanceof FixnumNode ){
             _assertNoChildren( node );
-            _appned( String.valueOf( ((FixnumNode)node).getValue() ) , node );
+            _append( String.valueOf( ((FixnumNode)node).getValue() ) , node );
         }
 
         else if ( node instanceof StrNode ){
             _assertNoChildren( node );
-            _appned( "\"" , node );
-            _appned( _escape( ((StrNode)node).getValue().toString() ) , node );
-            _appned( "\"" , node );
+            _append( "\"" , node );
+            _append( _escape( ((StrNode)node).getValue().toString() ) , node );
+            _append( "\"" , node );
         }
 
         else if ( node instanceof SymbolNode ){
             _assertNoChildren( node );
-            _appned( "\"" , node );
-            _appned( _escape( ((SymbolNode)node).getName() ) , node );
-            _appned( "\"" , node );
+            _append( "\"" , node );
+            _append( _escape( ((SymbolNode)node).getName() ) , node );
+            _append( "\"" , node );
         }
 
         else if ( node instanceof HashNode ){
             _assertOne( node );
             _assertType( node.childNodes().get(0) , ArrayNode.class );
             
-            _appned( " { " , node );
+            _append( " { " , node );
             List<Node> lst = node.childNodes().get(0).childNodes();
             for ( int i=0; i<lst.size(); i+=2 ){
                 if ( i > 0 )
-                    _appned( " , " , node );
+                    _append( " , " , node );
                 
                 _add( lst.get(i) , state );
-                _appned( " : " , node );
+                _append( " : " , node );
                 _add( lst.get(i+1) , state );
                 
             }
-            _appned( " } " , node );
+            _append( " } " , node );
         }
         
+        else if ( node instanceof RegexpNode ){
+            RegexpNode rn = (RegexpNode)node;
+            _append( "/" + rn.getValue() + "/" , rn );
+            if ( ( rn.getOptions() & ReOptions.RE_OPTION_IGNORECASE  ) > 0 )
+                _append( "i" , rn );
+        }
 
         // --- end ---
 
@@ -574,13 +629,13 @@ public class RubyConvert extends ed.MyAsserts {
             return false;
         }
 
-        _appned( "( (" , ifn );
+        _append( "( (" , ifn );
         _add( ifn.getCondition() , state );
-        _appned( " ) ? ( " , ifn );
+        _append( " ) ? ( " , ifn );
         _add( ifn.getThenBody() , state );
-        _appned( " ) : ( " , ifn );
+        _append( " ) : ( " , ifn );
         _add( ifn.getElseBody() , state );
-        _appned( " ) ) " , ifn );
+        _append( " ) ) " , ifn );
         
         return true;
         
@@ -606,21 +661,21 @@ public class RubyConvert extends ed.MyAsserts {
     }
 
     void _addIterBlock( IterNode it , State state ){
-        _appned( "function(" , it );
+        _append( "function(" , it );
         if ( it.getVarNode() != null ){
             final Node var = it.getVarNode();
             if ( var instanceof DAsgnNode )
-                _appned( ((DAsgnNode)var).getName() , it );
+                _append( ((DAsgnNode)var).getName() , it );
             else if ( var instanceof ConstDeclNode )
-                _appned( ((ConstDeclNode)var).getName() , it );
+                _append( ((ConstDeclNode)var).getName() , it );
             else if ( var instanceof LocalAsgnNode )
-                _appned( ((LocalAsgnNode)var).getName() , it );
+                _append( ((LocalAsgnNode)var).getName() , it );
             else
                 throw new RuntimeException( "don't know what to do with : " + var );
         }
-        _appned( " ){ \n" , it );
+        _append( " ){ \n" , it );
         _add( it.getBodyNode() , state );
-        _appned( " }" , it );
+        _append( " }" , it );
     }
 
     void _addClass( ClassNode cn , State state ){
@@ -634,28 +689,36 @@ public class RubyConvert extends ed.MyAsserts {
 
         _assertType( cn.childNodes().get(0) , Colon2Node.class );
         
+        //final String oldName = name + "__old";
+        //_append( "var " + oldName + " = " + name + ";\n" , cn );
+        
         state._classInit = _findClassInit( cn );
         
         // constructor
+
+        _append( name + " = " + Ruby.RUBY_DEFINE_CLASS + "( " + name + " , " , cn );
+        
         if ( state._classInit == null ){
-            _appned( name + " = function(){ if ( this.__proto__ && this.__proto__.constructor ) this.__proto__.constructor.apply( this , arguments ); };" , cn );
+            _append( " function(){ if ( this.__proto__ && this.__proto__.constructor ) this.__proto__.constructor.apply( this , arguments ); }" , cn );
         }
         else {
-            _appned( name + " = function" , state._classInit );
+            _append( " function" , state._classInit );
             if ( state._classInit.getArgsNode() == null || 
                  state._classInit.getArgsNode().getArgs() == null )
-                _appned( "()" , state._classInit );
+                _append( "()" , state._classInit );
             else
                 _addArgs( state._classInit , state._classInit.getArgsNode().getArgs().childNodes() , state );
-            _appned( "{\n" , state._classInit );
-            _add( state._classInit.getBodyNode() , state );
-            _appned( "\n}\n" , state._classInit );
+            _append( "{\n" , state._classInit );
+            _add( state._classInit.getBodyNode() , state.child() );
+            _append( "\n}\n" , state._classInit );
         }
+        _append( " );\n" , cn );
+        
 
         if ( cn.getSuperNode() != null ){
-            _appned( "\n" + name + ".prototype = new " , cn );
+            _append( "\n" + name + ".prototype = new " , cn );
             _add( cn.getSuperNode() , state );
-            _appned( "();\n" , cn );
+            _append( "();\n" , cn );
         }
         
         for ( Node c : cn.childNodes() )
@@ -673,13 +736,13 @@ public class RubyConvert extends ed.MyAsserts {
         state._classInit = null;
         state._module = true;
 
-        _appned( name + " = {};\n" , mn );
+        _append( name + " = {};\n" , mn );
 
         /*
         if ( cn.getSuperNode() != null ){
-            _appned( "\n" + name + ".prototype = new " , cn );
+            _append( "\n" + name + ".prototype = new " , cn );
             _add( cn.getSuperNode() , state );
-            _appned( "();\n" , cn );
+            _append( "();\n" , cn );
         }
         */
         
@@ -708,6 +771,7 @@ public class RubyConvert extends ed.MyAsserts {
     }
 
     void _addClassPiece( Node n , State state ){
+
         if ( n instanceof Colon2Node || // meta class info
              n instanceof ConstNode  // inheritance
              )
@@ -721,7 +785,7 @@ public class RubyConvert extends ed.MyAsserts {
 
         if ( n instanceof NewlineNode ){
             _addClassPiece( n.childNodes().get(0) , state );
-            _appned( ";\n" , n );
+            _append( ";\n" , n );
             return;
         }
         
@@ -732,35 +796,25 @@ public class RubyConvert extends ed.MyAsserts {
             return;
         }
         
-        if ( n instanceof FCallNode ){
-            FCallNode f = (FCallNode)n;
-            _appned( _getFuncName( f ) + ".call( " + state._className + ".prototype " , f );
-            if ( f.getArgsNode() != null ){
-                if ( f.getArgsNode().childNodes() != null ){
-                    for ( int i=0; i<f.getArgsNode().childNodes().size(); i++ ){
-                        _appned( " , " , f );
-                        _add( f.getArgsNode().childNodes().get(i) , state );
-                    }
-                }
-            }
-            _appned( ")" , f );
-            return;
-        }
-        
-        if ( n instanceof VCallNode ){
-            VCallNode f = (VCallNode)n;
-            _appned( _getFuncName( f ) + ".call( " + state._className + ".prototype ) " , f );
+        if ( n instanceof AliasNode ){
+            AliasNode an = (AliasNode)n;
+            _append( state._className + ".prototype." + _mangleFunctionName( an.getNewName() ) + " = " + 
+                     state._className + ".prototype." + _mangleFunctionName( an.getOldName() ) + ";\n" , n );
             return;
         }
 
         if ( n instanceof ClassVarDeclNode ){
             ClassVarDeclNode dn = (ClassVarDeclNode)n;
-            _appned( state._className + "." + dn.getName().substring(2) + " = " , dn );
+            _append( state._className + "." + dn.getName().substring(2) + " = " , dn );
             _add( dn.getValueNode() , state );
             return;
         }
-
-        if ( n instanceof ModuleNode ||
+        
+        if ( n instanceof BeginNode ||
+             n instanceof RescueNode ||
+             n instanceof FCallNode || 
+             n instanceof VCallNode ||
+             n instanceof ModuleNode ||
              n instanceof ClassNode ){
             _add( n , state );
             return;
@@ -774,9 +828,9 @@ public class RubyConvert extends ed.MyAsserts {
             
         if ( call.getName().equals( "[]" ) ){
             _add( call.childNodes().get(0) , state );
-            _appned( "[" , call );
+            _append( "[" , call );
             _add( call.childNodes().get(1) , state );
-            _appned( "]" , call );
+            _append( "]" , call );
             return;
         }
 
@@ -793,20 +847,20 @@ public class RubyConvert extends ed.MyAsserts {
         }
 
         if ( call.getName().equals( "new" ) ){
-            _appned( Ruby.RUBY_NEW + "( " , call );
+            _append( Ruby.RUBY_NEW + "( " , call );
             _add( call.getReceiverNode() , state );
 
             if ( call.getArgsNode() != null && 
                  call.getArgsNode().childNodes() != null ){
 
                 for ( Node temp : call.getArgsNode().childNodes() ){
-                    _appned( " , " , call );
+                    _append( " , " , call );
                     _add( temp , state );
                 }
 
             }
 
-            _appned( " ) " , call );
+            _append( " ) " , call );
             return;
         }
         
@@ -825,37 +879,37 @@ public class RubyConvert extends ed.MyAsserts {
             
             if ( args != null && args.childNodes().size() > 0 ){
                 _add( call.childNodes().get(0) , state );
-                _appned( "." + _getFuncName( call ) , call );
+                _append( "." + _getFuncName( call ) , call );
                 if ( args instanceof ArrayNode )
                     _addArgs( call , args.childNodes() , state );
                 else {
-                    _appned( "(" , call );
+                    _append( "(" , call );
                     _add( args , state );
-                    _appned( ")" , call );
+                    _append( ")" , call );
                 }
             }
             else {
-                _appned( Ruby.RUBY_CV_CALL + "( " , call);
+                _append( Ruby.RUBY_CV_CALL + "( " , call);
                 _add( self , state );
-                _appned( " , " , call );
-                _appned( "\"" + _getFuncName( call ) + "\"" , call );
-                _appned( " ) " , call );
+                _append( " , " , call );
+                _append( "\"" + _getFuncName( call ) + "\"" , call );
+                _append( " ) " , call );
             }
             return;            
         }
 
         // normal function call        
         if ( args != null ){
-            _appned( _getFuncName( call ) , call );
+            _append( _getFuncName( call ) , call );
             _addArgs( call , args.childNodes() , state );
             return;
         }
         
         // no-args
-        _appned( Ruby.RUBY_V_CALL + "(" , call );
+        _append( Ruby.RUBY_V_CALL + "(" , call );
         _add( call.childNodes().get(0) , state );
-        _appned( "." + _getFuncName( call ) , call );
-        _appned( ")" , call );
+        _append( "." + _getFuncName( call ) , call );
+        _append( ")" , call );
 
     }
 
@@ -866,17 +920,17 @@ public class RubyConvert extends ed.MyAsserts {
     }
 
     void _addArgs( final Node where , final List<Node> lst , final State state , final String sep ){
-        _appned( "(" , where );
+        _append( "(" , where );
 
         if ( lst != null ){
             for ( int i=0; i<lst.size(); i++ ){
                 if ( i > 0 )
-                    _appned( sep , where );
+                    _append( sep , where );
                 _add( lst.get( i ) , state );
             }
         }
 
-        _appned( ")" , where );
+        _append( ")" , where );
     }
 
     // ---  asserts  ---
@@ -890,7 +944,7 @@ public class RubyConvert extends ed.MyAsserts {
         if ( n == null )
             throw new RuntimeException( "can't be null" );
         if ( n.childNodes() == null || n.childNodes().size() != 1 )
-            throw new RuntimeException( "need exactly 1 child" );
+            throw new RuntimeException( "need exactly 1 child : " + n.getPosition() );
         
     }
     
@@ -1034,7 +1088,7 @@ public class RubyConvert extends ed.MyAsserts {
         boolean _module = false;
     }
 
-    void _appned( String s , Node where ){
+    void _append( String s , Node where ){
         _js.append( s );
         
         for ( int i=0; i<s.length(); i++ ){
@@ -1070,6 +1124,8 @@ public class RubyConvert extends ed.MyAsserts {
         _operatorNames.add( "<" );
         _operatorNames.add( "<=" );
         _operatorNames.add( "==" );
+        _operatorNames.add( "|" );
+        _operatorNames.add( "&" );
     }
 
     static final Set<String> _specialNames = new HashSet<String>();

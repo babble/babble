@@ -15,11 +15,14 @@ public class Ruby {
     public static final String RUBY_CV_CALL = "_rubyCVCall";
     public static final String RUBY_NEW = "_rubyNew";
     public static final String RUBY_INCLUDE = "_rinclude";
+    public static final String RUBY_RESCURE_INSTANCEOF = "__rrescueinstanceof";
     
     public static final String RUBY_NEWNAME = "_____rnew___";
     public static final String RUBY_SHIFT = "__rshift";
     public static final String RUBY_PRIVATE = "__rprivate";
     public static final String RUBY_REQUIRE = "__rrequire";
+    public static final String RUBY_RAISE = "__rraise";
+    public static final String RUBY_DEFINE_CLASS = "__rdefineclass";
 
     static final Map<String,String> _nameMapping = new TreeMap<String,String>();
     static {
@@ -27,6 +30,8 @@ public class Ruby {
         _nameMapping.put( "private" , RUBY_PRIVATE );
         _nameMapping.put( "<<" , RUBY_SHIFT );
         _nameMapping.put( "require" , RUBY_REQUIRE );
+        _nameMapping.put( "raise" , RUBY_RAISE );
+
     }
 
     public static void install( Scope s ){
@@ -138,5 +143,73 @@ public class Ruby {
                     return ((JSFileLibrary)s.get( "__path__" )).getFromPath( path );
                 }
             } , true );
+
+        s.put( RUBY_RAISE , new JSFunctionCalls1(){
+
+                public Object call( Scope s , Object clazz , Object extra[] ){
+                    RuntimeException e = _getException( s , clazz , extra );
+                    //System.out.println( "going to throw : " + e );
+                    throw e;
+                }
+                
+                RuntimeException _getException( Scope s , Object clazz , Object extra[] ){
+                    
+                    if ( clazz == null || ! ( clazz instanceof JSFunction ) )
+                        return new JSException( clazz == null ? "unnamed error" : clazz.toString() );    
+                    
+                    JSFunction func = (JSFunction)clazz;
+                    //System.out.println( "func : " + func );
+                    
+                    Object e = func.newOne();
+                    s = s.child();
+                    s.setThis( e );
+
+                    Object n = func.call( s , extra );
+                    if ( n != null )
+                        e = n;
+                    
+                    return new JSException( e );
+
+                } 
+            } , true );
+        
+        
+        s.put( RUBY_RESCURE_INSTANCEOF , new JSFunctionCalls2(){
+                public Object call( Scope s , Object t , Object c , Object extra[] ){
+
+                    //System.out.println( "t:" + ( t == null ? "null" : t.getClass() ) );
+                    //System.out.println( "c:" + ( c == null ? "null" : c.getClass() ) );
+                    
+                    if ( ! ( t instanceof JSObjectBase && 
+                             c instanceof JSObjectBase ) )
+                        return false;
+                    
+                    JSObjectBase thing = (JSObjectBase)t;
+                    JSObjectBase clazz = (JSObjectBase)c;
+                    
+                    return thing.getConstructor() == clazz;
+                }
+            } , true );
+
+        s.put( RUBY_DEFINE_CLASS , new JSFunctionCalls2(){
+                public Object call( Scope s , Object old , Object func , Object extra[] ){
+                    if ( ! ( func instanceof JSFunction ) )
+                        throw new RuntimeException( "somethingis wrong" );
+                    
+                    if ( old instanceof JSFunction ){
+                        
+                        JSFunction o = (JSFunction)old;
+                        JSFunction n = (JSFunction)func;
+                        
+                        if ( o.getPrototype() != null )
+                            for ( String key : o.getPrototype().keySet() )
+                                n.getPrototype().set( key , o.getPrototype().get( key ) );
+
+                    }
+                    return func;
+                }
+            } , true );
+
+
     }
 }

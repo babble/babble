@@ -42,5 +42,21 @@ catch ( e ){
 }
 
 
+try {
+    try {
+        throw 5;
+    }
+    catch ( e if e == 6 ){
+        print( "blah1" );
+    }
+}
+catch ( foo ){
+    print( "blah2" );
+}
+
+
+
+
+
 
 
