@@ -12,7 +12,7 @@ import ed.security.*;
 import ed.appserver.jxp.*;
 import ed.util.*;
 
-public class JSFileLibrary extends JSObjectBase {
+public class JSFileLibrary extends JSFunctionCalls0 {
     
     static final boolean D = Boolean.getBoolean( "DEBUG.JSFL" );
     static final boolean DS = Boolean.getBoolean( "DEBUG.JSFLB" ) || D;
@@ -221,27 +221,45 @@ public class JSFileLibrary extends JSObjectBase {
             if ( ! temp.exists() )
                 continue;
             
-            if ( dir.exists() || f != null )
+            if ( f != null )
                 throw new RuntimeException( "file collision on : " + dir + " " + _base + " " + n  );
 
             f = temp;
         }
         
-        if ( dir.exists() )
-            return set( n , new JSFileLibrary( dir , _uriBase + "." + n.toString() , _context , _scope , _doInit ) );
+        Object theObject = null;
+        if ( f != null ){
+            try {
+                theObject = getSource( f , false );
+            }
+            catch ( IOException ioe ){
+                throw new RuntimeException( ioe );
+            }
+        }
         
-        if ( f == null )
-            return null;
+        if ( dir.exists() ){
+            JSFileLibrary foo = new JSFileLibrary( dir , _uriBase + "." + n.toString() , _context , _scope , _doInit );
+            foo._mySource = (JxpSource)theObject;
+            theObject = foo;
+        }
 
+        return set( n , theObject );
+    }
+
+    public Object call( Scope s , Object args[] ){
+        if ( _mySource == null )
+            throw new RuntimeException("trying to call a JSFileLibrary that doesn't have a file : " + _base );
+        
+        JSFunction f = null;
         try {
-            return set( n , getSource( f , false ) );
+            f = _mySource.getFunction();
         }
         catch ( IOException ioe ){
-            throw new RuntimeException( ioe );
+            throw new RuntimeException( "couldn't load : " + f , ioe );
         }
         
+        return f.call( s , args );
     }
-    static String _srcExtensions[] = new String[] { ".js" , ".jxp" , ".html" , ".rb" , ".rhtml" , ".erb" , ".djang10" };
     
     public String toString(){
         return "{ JSFileLibrary.  _base : " + _base + "}";
@@ -254,7 +272,8 @@ public class JSFileLibrary extends JSObjectBase {
     final boolean _doInit;
     
     private final Map<File,JxpSource> _sources = new HashMap<File,JxpSource>();
-
+    
+    private JxpSource _mySource;
     private JSFunction _initFunction;
     private boolean _inInit = false;
     private long _lastInit = 0;
@@ -265,6 +284,8 @@ public class JSFileLibrary extends JSObjectBase {
             return new Stack<Set<JxpSource>>();
         }
     };
+
+    static String _srcExtensions[] = new String[] { ".js" , ".jxp" , ".html" , ".rb" , ".rhtml" , ".erb" , ".djang10" };
 
     private static WeakValueMap<String,JSFileLibrary> _classToPath = new WeakValueMap<String,JSFileLibrary>();
 

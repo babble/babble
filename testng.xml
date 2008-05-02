@@ -11,6 +11,7 @@
       <class name="ed.net.DNSUtilTest" />
       <class name="ed.net.httpserver.ReplayTest"/>
       <class name="ed.appserver.AppContextTestNG" />
+      <class name="ed.appserver.JSFileLibraryTest" />
       <class name="ed.js.engine.ConvertTest" />
       <class name="ed.js.JSONTest" />
       <class name="ed.appserver.templates.JxpConvertTest" />
