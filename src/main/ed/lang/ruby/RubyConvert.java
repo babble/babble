@@ -593,6 +593,12 @@ public class RubyConvert extends ed.MyAsserts {
             _append( " } " , node );
         }
         
+        else if ( node instanceof RegexpNode ){
+            RegexpNode rn = (RegexpNode)node;
+            _append( "/" + rn.getValue() + "/" , rn );
+            if ( ( rn.getOptions() & ReOptions.RE_OPTION_IGNORECASE  ) > 0 )
+                _append( "i" , rn );
+        }
 
         // --- end ---
 
