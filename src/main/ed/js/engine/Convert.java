@@ -805,7 +805,7 @@ public class Convert implements StackTraceFixer {
                     boolean isIF = b.getType() == Token.IFNE;
 
                     if ( isIF ){
-                        _append( "\n if ( " + javaName + " != null && JS_evalToBool( " , b );
+                        _append( "\n if ( " + javaEName + " != null && JS_evalToBool( " , b );
                         _add( b.getFirstChild() , state );
                         _append( " ) ){ \n " , b  );
                         b = b.getNext().getFirstChild();
@@ -818,7 +818,7 @@ public class Convert implements StackTraceFixer {
                         b = b.getNext();
                     }
                     
-                    _append( javaName + " = null ;\n" , b );
+                    _append( javaEName + " = null ;\n" , b );
                     
                     if ( isIF ){
                         _append( "\n } \n " , b );
@@ -827,7 +827,7 @@ public class Convert implements StackTraceFixer {
                     catchScope = catchScope.getNext().getNext();
                 }
                 
-                _append( "if ( " + javaName + " != null ) throw " + javaEName + ";\n" , n );
+                _append( "if ( " + javaEName + " != null ) throw " + javaEName + ";\n" , n );
 
                 _append( "\n } \n " , n ); // ends catch
                     

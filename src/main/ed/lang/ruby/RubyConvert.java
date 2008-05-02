@@ -164,19 +164,25 @@ public class RubyConvert extends ed.MyAsserts {
             _append( "try {\n" , rn );
             _add( rn.getBodyNode() , state );
             _append( "\n}\n" , rn );
-            if ( rn.getRescueNode() != null ){
-                _append( "catch( zz ){\n" , rn );
 
-                RescueBodyNode rb = rn.getRescueNode();
-                while ( rb != null ){
+            RescueBodyNode rb = rn.getRescueNode();
+            while ( rb != null ){
+                
+                final String name = "name" + (int)(Math.random() * 12312312);
 
-                    _add( rb.getBodyNode() , state );
-
-                    rb = rb.getOptRescueNode();
-                    if ( rb != null )
-                        throw new RuntimeException("can't handle chained rescue" );
+                _append( "catch( " + name  , rb );
+                if ( rb.getExceptionNodes() != null ){
+                    _append( " if " + Ruby.RUBY_RESCURE_INSTANCEOF + "( " + name + " , " , rb );
+                    _add( rb.getExceptionNodes() , state );
+                    _append( " ) " , rb );
                 }
+                _append( " ){\n" , rb );
+                _add( rb.getBodyNode() , state );
                 _append( "\n}\n" , rn );
+                
+                rb = rb.getOptRescueNode();
+                if ( rb != null )
+                    throw new RuntimeException("can't handle chained rescue" );
             }
         }
 
