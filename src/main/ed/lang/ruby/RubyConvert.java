@@ -969,14 +969,11 @@ public class RubyConvert extends ed.MyAsserts {
     }
     
     static String _mangleFunctionName( String name ){
-        if ( name.equals( "new" ) )
-            return Ruby.RUBY_NEWNAME;
-        
-        if ( name.equals( "private" ) )
-            return Ruby.RUBY_PRIVATE;
-    
-        if ( name.equals( "<<" ) )
-            return Ruby.RUBY_SHIFT;
+        {
+            final String blah = Ruby._nameMapping.get( name );
+            if ( blah != null )
+                return blah;
+        }
 
         if ( name.endsWith( "?" ) )
             name = name.substring( 0 , name.length() - 1 ) + "_q";
