@@ -8,6 +8,7 @@ import java.util.*;
 import jline.*;
 
 import ed.db.*;
+import ed.lang.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 import ed.appserver.*;
@@ -37,8 +38,9 @@ public class Shell {
 
         ed.db.migrate.Drivers.init( s );
 
-        s.put( "core" , new JSFileLibrary( new File( "/data/corejs" ) ,  "core" , s ) , true );
+        s.put( "core" , new CoreJS( s ) , true );
         s.put( "external" , new JSFileLibrary( new File( "/data/external" ) ,  "external" , s ) , true );
+        s.put( "local" , new JSFileLibrary( new File( "." ) ,  "local" , s ) , true );
 
         s.put( "connect" , new JSFunctionCalls2(){
                 public Object call( Scope s , Object name , Object ip , Object crap[] ){
@@ -62,14 +64,20 @@ public class Shell {
             } , true );
         
         s.put( "log" , ed.log.Logger.getLogger( "shell" ) ,true );
+        s.put( "scopeWithRoot" , new JSFunctionCalls1(){
+                public Object call( Scope s , Object fileName , Object crap[] ){
+                    return s.child(new File(fileName.toString()));
+                }
+            } , true);
     }
     
     public static void main( String args[] )
         throws Exception {
         
-        //System.setOut( new PrintStream( _myOutputStream ) );
+        System.setProperty( "NO-SECURITY" , "true" );
         
         Scope s = Scope.GLOBAL.child( new File("." ) );
+        s.makeThreadLocal();
 
         addNiceShellStuff( s );
 
@@ -79,12 +87,15 @@ public class Shell {
             s.eval( init );
         
         for ( String a : args ){
+            if ( a.equals( "-exit" ) )
+                return;
+
             File temp = new File( a );
             try {
                 s.eval( temp );
             }
             catch ( Exception e ){
-                ((JSFileLibrary)s.get("core")).fix( e );
+                StackTraceHolder.getInstance().fix( e );
                 e.printStackTrace();
                 return;
             }
@@ -113,7 +124,9 @@ public class Shell {
                     System.out.println( JSON.serialize( res ) );
             }
             catch ( Exception e ){
-                ((JSFileLibrary)s.get("core")).fix( e );
+                if ( JS.RAW_EXCPETIONS )
+                    e.printStackTrace();
+                StackTraceHolder.getInstance().fix( e );
                 e.printStackTrace();
                 System.out.println();
             }

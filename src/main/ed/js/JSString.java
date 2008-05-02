@@ -6,12 +6,17 @@ import java.util.regex.*;
 
 import com.twmacinta.util.*;
 
+import ed.util.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 
 public class JSString extends JSObjectBase {
 
+    static { JS._debugSIStart( "JSString" ); }
+
+    static { JS._debugSI( "JSString" , "0" ); }
     public static JSFunction _cons = new JSStringCons();
+    static { JS._debugSI( "JSString" , "1" ); }
     
     static class JSStringCons extends JSFunctionCalls1{
 
@@ -39,7 +44,32 @@ public class JSString extends JSObjectBase {
         }
         
         protected void init(){
+
+            JS._debugSI( "JSString" , "JSStringCons init 0" );
             
+            if ( ! JS.JNI ){
+                final StringEncrypter encrypter = new StringEncrypter( "knsd8712@!98sad" );
+                
+                _prototype.set( "encrypt" , new JSFunctionCalls0(){
+                        public Object call( Scope s , Object foo[] ){
+                            synchronized ( encrypter ){
+                                return new JSString( encrypter.encrypt( s.getThis().toString() ) );
+                            }
+                        }        
+                    } );
+                
+                _prototype.set( "decrypt" , new JSFunctionCalls0(){
+                        public Object call( Scope s , Object foo[] ){
+                            synchronized ( encrypter ){
+                                return new JSString( encrypter.decrypt( s.getThis().toString() ) );
+                            }
+                        }        
+                    } );
+            }
+
+
+            JS._debugSI( "JSString" , "JSStringCons init 1" );
+                
             _prototype.set( "trim" , new JSFunctionCalls0() {
                     public Object call( Scope s , Object foo[] ){
                         return new JSString( s.getThis().toString().trim() );
@@ -197,7 +227,16 @@ public class JSString extends JSObjectBase {
                         Matcher m = r._patt.matcher( str );
                         if ( ! m.find() )
                             return null;
-                        return m.group(0);
+                        if ( r.getFlags().contains( "g" )){
+                            JSArray a = new JSArray();
+                            do {
+                                a.add(new JSString(m.group()));
+                            } while(m.find());
+                            return a;
+                        }
+                        else{
+                            return r.exec(str);
+                        }
                     }
                 } );
                 
@@ -214,7 +253,7 @@ public class JSString extends JSObjectBase {
                             throw new RuntimeException( "not a regex : " + o.getClass() );
                             
                         JSRegex r = (JSRegex)o;
-
+                        
                         JSArray a = new JSArray();
                         for ( String pc : r._patt.split( str , -1 ) )
                             a.add( new JSString( pc ) );
@@ -223,7 +262,36 @@ public class JSString extends JSObjectBase {
                     }
                 }
                 );
-                
+
+            _prototype.set( "reverse" , new JSFunctionCalls0(){
+                    public Object call(Scope s, Object [] args){
+                        String str = s.getThis().toString();
+                        StringBuffer buf = new StringBuffer( str.length() );
+                        for ( int i=str.length()-1; i>=0; i--)
+                            buf.append( str.charAt( i ) );
+                        return new JSString( buf.toString() );
+                    }
+                } );
+            
+
+            
+            _prototype.set( "each_byte" , new JSFunctionCalls1(){
+                    public Object call(Scope s, Object funcObject , Object [] args){
+
+                        if ( funcObject == null )
+                            throw new NullPointerException( "each_byte needs a function" );
+                        
+                        JSFunction func = (JSFunction)funcObject;
+
+                        String str = s.getThis().toString();
+                        for ( int i=0; i<str.length(); i++ ){
+                            func.call( s , (int)str.charAt( i ) );
+                        }
+                        return null;
+                    }
+                } );
+            
+
             _prototype.set( "replace" , new JSFunctionCalls2() {
                     public Object call( Scope s , Object o , Object repl , Object crap[] ){
                         String str = s.getThis().toString();
@@ -299,9 +367,29 @@ public class JSString extends JSObjectBase {
                         return new JSString( buf.toString() );
                     }
                 } );
+
+            set("fromCharCode", new JSFunctionCalls0() {
+                    public Object call(Scope s, Object [] args){
+                        if(args == null) return new JSString("");
+                        StringBuffer buf = new StringBuffer();
+                        for(int i = 0; i < args.length; i++){
+                            Object o = args[i];
+                            if(! (o instanceof Number) )
+                                throw new RuntimeException( "fromCharCode only takes numbers" );
+                            Number n = (Number)o;
+                            char c = (char)(n.intValue());
+                            buf.append(c);
+                        }
+                        return new JSString( buf.toString() );
+                    }
+                } );
+
+
         }
     };
-    
+
+    static { JS._debugSI( "JSString" , "2" ); }    
+
     static JSString EMPTY = new JSString("");
 
     public JSString( String s ){
@@ -309,6 +397,10 @@ public class JSString extends JSObjectBase {
         _s = s;
     }
     
+    public JSString( char [] c ){
+        this(new String(c));
+    }
+
     public Object get( Object name ){
         
         if ( name instanceof JSString )
@@ -324,6 +416,11 @@ public class JSString extends JSObjectBase {
         return _s;
     }
     
+    public int compareTo( Object o ){
+	if ( o == null ) o = "";
+	return _s.compareTo( o.toString() );
+    }
+
     public int length(){
         return _s.length();
     }
@@ -331,7 +428,8 @@ public class JSString extends JSObjectBase {
     public Object getInt( int n ){
         if ( n >= _s.length() )
             return null;
-        return _s.charAt( n );
+        // Eliot said that we should map characters to objects in scope.java
+        return new JSString(new char[]{_s.charAt( n )});
     }
     
     public int hashCode(){
@@ -349,5 +447,11 @@ public class JSString extends JSObjectBase {
         return _s.equals( o.toString() );
     }
 
+    public byte[] getBytes(){
+        return _s.getBytes();
+    }
+
     String _s;
+
+    static { JS._debugSIDone( "JSString" ); }
 }

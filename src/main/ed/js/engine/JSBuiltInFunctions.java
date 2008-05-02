@@ -8,14 +8,20 @@ import java.lang.reflect.*;
 
 import com.twmacinta.util.*;
 
+import ed.log.*;
 import ed.js.*;
 import ed.js.func.*;
+import ed.appserver.templates.Djang10Converter;
 import ed.io.*;
 import ed.net.*;
 import ed.util.*;
 import ed.security.*;
 
 public class JSBuiltInFunctions {
+
+    static {
+        JS._debugSIStart( "JSBuiltInFunctions" );
+    }
 
     public static class jsassert extends JSFunctionCalls1 {
         public Object call( Scope scope , Object foo , Object extra[] ){
@@ -28,6 +34,27 @@ public class JSBuiltInFunctions {
             throw new JSException( "assert failed" );
         }        
     }
+
+    public static Class _getClass( String name )
+        throws Exception {
+
+        final int colon = name.indexOf( ":" );
+        
+        if ( colon < 0 )
+            return Class.forName( name );
+        
+        String base = name.substring( 0 , colon );
+        Class c = Class.forName( base );
+        
+        String inner = "$" + name.substring( colon + 1 );
+        for ( Class child : c.getClasses() ){
+            if ( child.getName().endsWith( inner ) )
+                return child;
+        }
+        
+        throw new JSException( "can't find inner class [" + inner + "] on [" + c.getName() + "]" );
+        
+    }
     
     public static class javaCreate extends JSFunctionCalls1 {
         public Object call( Scope scope , Object clazzNameJS , Object extra[] ){
@@ -39,13 +66,14 @@ public class JSBuiltInFunctions {
             
             Class clazz = null;
             try {
-                clazz = Class.forName( clazzName );
+                clazz = _getClass( clazzName );
             }
             catch ( Exception e ){
                 throw new JSException( "can't find class for [" + clazzName + "]" );
             }
             
             Constructor[] allCons = clazz.getConstructors();
+            Arrays.sort( allCons , Scope._consLengthComparator );
             for ( int i=0; i<allCons.length; i++ ){
 
                 Object params[] = Scope.doParamsMatch( allCons[i].getParameterTypes() , extra );
@@ -67,45 +95,85 @@ public class JSBuiltInFunctions {
 
     public static class javaStatic extends JSFunctionCalls2 {
         public Object call( Scope scope , Object clazzNameJS , Object methodNameJS , Object extra[] ){
-            
+            final boolean debug = false;
             
             String clazzName = clazzNameJS.toString();
             
             if ( ! Security.isCoreJS() )
-                throw new JSException( "you can't use a :" + clazzName );
+                throw new JSException( "you can't use a :" + clazzName + " from [" + Security.getTopJS() + "]" );
             
             Class clazz = null;
             try {
-                clazz = Class.forName( clazzName );
+                clazz = _getClass( clazzName );
             }
             catch ( Exception e ){
                 throw new JSException( "can't find class for [" + clazzName + "]" );
             }
             
             Method[] all = clazz.getMethods();
+            Arrays.sort( all , Scope._methodLengthComparator );
             for ( int i=0; i<all.length; i++ ){
-                
                 Method m = all[i];
-                if ( ( m.getModifiers() & Modifier.STATIC ) == 0  )
-                    continue;
+                if ( debug ) System.out.println( m.getName() );
                 
-                if ( ! m.getName().equals( methodNameJS.toString() ) )
+                if ( ( m.getModifiers() & Modifier.STATIC ) == 0  ){
+                    if ( debug ) System.out.println( "\t not static" );
                     continue;
-
-                Object params[] = Scope.doParamsMatch( m.getParameterTypes() , extra );
+                }
                 
-                if ( params != null ){
-                    try {
-                        return m.invoke( null , params );
-                    }
-                    catch ( Exception e ){
-                        throw new JSException( "can' call" , e );
-                    }
+                if ( ! m.getName().equals( methodNameJS.toString() ) ){
+                    if ( debug ) System.out.println( "\t wrong name" );
+                    continue;
+                }
+                
+                Object params[] = Scope.doParamsMatch( m.getParameterTypes() , extra , debug );
+                if ( params == null ){
+                    if ( debug ) System.out.println( "\t params don't match" );
+                    continue;
+                }
+                    
+                try {
+                    return m.invoke( null , params );
+                }
+                catch ( Exception e ){
+                    throw new JSException( "can't call" , e );
                 }
                     
             }
 
             throw new RuntimeException( "can't find valid method" );
+        }        
+    }
+
+    public static class javaStaticProp extends JSFunctionCalls2 {
+        public Object call( Scope scope , Object clazzNameJS , Object fieldNameJS , Object extra[] ){
+            
+            
+            String clazzName = clazzNameJS.toString();
+            
+            if ( ! Security.isCoreJS() )
+                throw new JSException( "you can't use a :" + clazzName + " from [" + Security.getTopJS() + "]" );
+            
+            Class clazz = null;
+            try {
+                clazz = _getClass( clazzName );
+            }
+            catch ( JSException e ){
+                throw e;
+            }
+            catch ( Exception e ){
+                throw new JSException( "can't find class for [" + clazzName + "]" );
+            }
+            
+            try {
+                return clazz.getField( fieldNameJS.toString() ).get( null );
+            }
+            catch ( NoSuchFieldException n ){
+                throw new JSException( "can't find field [" + fieldNameJS + "] from [" + clazz.getName() + "]" );
+            }
+            catch ( Throwable t ){
+                throw new JSException( "can't get field [" + fieldNameJS + "] from [" + clazz.getName() + "] b/c " + t );
+            }
         }        
     }
 
@@ -130,46 +198,22 @@ public class JSBuiltInFunctions {
         final boolean _newLine;
     }
 
-    public static class NewObject extends JSFunctionCalls0 {
-        NewObject(){
-            super();
-        }
+    public static class NewObject extends JSFunctionCalls0{
+            public Object call( Scope scope , Object extra[] ){
+                return new JSObjectBase();
+            }
 
-        public Object call( Scope scope , Object extra[] ){
-            return new JSObjectBase();
-        }
-    }
+            protected void init(){
+                /** 
+                 * Copies all properties from the source to the destination object.
+                 * Not in JavaScript spec! Please refer to Prototype docs! 
+                */
+                set( "extend", new Prototype.Object_extend() );
+                set( "values", new Prototype.Object_values() );
+                set( "keys", new Prototype.Object_keys() );
+            }
+        };
     
-    public static class NewArray extends JSFunctionCalls1 {
-        NewArray(){
-            super();
-        }
-
-        public JSObject newOne(){
-            return new JSArray();
-        }
-
-        public Object call( Scope scope , Object a , Object[] extra ){
-            int len = 0;
-            if ( extra == null || extra.length == 0 ){
-                if ( a instanceof Number )
-                    len = ((Number)a).intValue();
-            }
-            else {
-                len = 1 + extra.length;
-            }
-            
-            JSArray arr = new JSArray( len );
-            
-            if ( extra != null && extra.length > 0 ){
-                arr.setInt( 0 , a );
-                for ( int i=0; i<extra.length; i++)
-                    arr.setInt( 1 + i , extra[i] );
-            }
-            
-            return arr;
-        }
-    }
     
     public static class NewDate extends JSFunctionCalls1 {
         public Object call( Scope scope , Object t , Object extra[] ){
@@ -185,10 +229,15 @@ public class JSBuiltInFunctions {
     }
     
     public static class CrID extends JSFunctionCalls1 {
+
         public Object call( Scope scope , Object idString , Object extra[] ){
             if ( idString == null )
                 return ed.db.ObjectId.get();
             return new ed.db.ObjectId( idString.toString() );
+        }
+
+        public JSObject newOne(){
+            throw new JSException( "ObjectId is not a constructor" );
         }
     }
 
@@ -220,6 +269,13 @@ public class JSBuiltInFunctions {
         final Class _c;
     }
 
+    public static class isNaN extends JSFunctionCalls1 {
+
+        public Object call( Scope scope , Object o , Object extra[] ){
+            return o.equals(Double.NaN);
+        }
+    }
+
     public static class isXXXs extends JSFunctionCalls1 {
         isXXXs( Class ... c ){
             _c = c;
@@ -237,6 +293,10 @@ public class JSBuiltInFunctions {
 
     public static class sysexec extends JSFunctionCalls1 {
         
+        sysexec(){
+            JS._debugSI( "JSBuiltInFunctions" , "sysexec cons" );
+        }
+
         // adds quotes as needed
 	static String[] fix( String s ){
 	    String base[] = s.split( "\\s+" );
@@ -283,7 +343,7 @@ public class JSBuiltInFunctions {
                 return null;
             
             if ( ! Security.isCoreJS() )
-                throw new JSException( "can't exec this" );
+                throw new JSException( "can't do sysexec from [" + Security.getTopJS() + "]" );
 
             File root = scope.getRoot();
             if ( root == null )
@@ -308,19 +368,59 @@ public class JSBuiltInFunctions {
 		}
 	    }
 
+	    /*
+	     *  if there is a third extra param, that's the directory offset relative to the root
+	     */
+	    
+	    File procDir = root;
+	    
+	    if ( extra != null && extra.length > 2 && extra[2] instanceof JSString ){
+
+	        procDir  = new File(root, ((JSString) extra[2]).toString());
+
+	        try {
+	            if (!procDir.getCanonicalPath().contains(root.getCanonicalPath())) {
+	                throw new JSException("directory offset moves execution outside of root");
+	            }
+	        } catch (IOException e) {
+                throw new JSException("directory offset problem", e);	            
+	        }	        
+	    }
+
             try {
-                Process p = Runtime.getRuntime().exec( cmd , env , root );
+                final Process p = Runtime.getRuntime().exec( cmd , env , procDir);
 		
 		if ( toSend != null ){
 		    OutputStream out = p.getOutputStream();
 		    out.write( toSend.getBytes() );
 		    out.close();
 		}
-
-                JSObject res = new JSObjectBase();
-                res.set( "out" , StreamUtil.readFully( p.getInputStream() ) );
-                res.set( "err" , StreamUtil.readFully( p.getErrorStream() ) );
                 
+                final JSObject res = new JSObjectBase();
+                final IOException threadException[] = new IOException[1];
+                Thread a = new Thread(){
+                        public void run(){
+                            try {
+                                synchronized ( res ){
+                                    res.set( "err" , StreamUtil.readFully( p.getErrorStream() ) );
+                                }
+                            }
+                            catch ( IOException e ){
+                                threadException[0] = e;
+                            }
+                        }
+                    };
+                a.start();
+                
+                synchronized( res ){
+                    res.set( "out" , StreamUtil.readFully( p.getInputStream() ) );
+                }
+                
+                a.join();
+                
+                if ( threadException[0] != null )
+                    throw threadException[0];
+
                 return res;
             }
             catch ( Throwable t ){
@@ -330,23 +430,80 @@ public class JSBuiltInFunctions {
         }        
     }
 
+    public static class fork extends JSFunctionCalls1 {
+
+        public Object call( final Scope scope , final Object funcJS , final Object extra[] ){
+
+            if ( ! ( funcJS instanceof JSFunction ) )
+                throw new JSException( "fork has to take a function" );
+            
+            final JSFunction func = (JSFunction)funcJS;
+            final Thread t = new Thread( "fork" ){
+                    public void run(){
+                        try {
+                            _result = func.call( scope , extra );
+                        }
+                        catch ( Throwable t ){
+                            if ( scope.get( "log" ) != null )
+                                ((Logger)scope.get( "log" ) ).error( "error in fork" , t );
+                            else
+                                t.printStackTrace();
+                        }
+                    }
+                    
+                    public Object returnData()
+                        throws InterruptedException {
+                        join();
+                        return _result;
+                    }
+                    
+                    private Object _result;
+                };
+            return t;
+        } 
+    }
+    
+    public static class processArgs extends JSFunctionCalls0 {
+        public Object call( Scope scope , Object [] args){
+            JSArray a = (JSArray)scope.get("arguments");
+            for(int i = 0; i < args.length; i++){
+                scope.put(args[i].toString(), a.getInt(i), true);
+            }
+            return null;
+        }
+    }
+
     
     static Scope _myScope = new Scope( "Built-Ins" , null );
     static {
+        JS._debugSI( "JSBuiltInFunctions" , "Setup 0" );
         _myScope.put( "sysexec" , new sysexec() , true );
+        JS._debugSI( "JSBuiltInFunctions" , "Setup 0.1" );
         _myScope.put( "print" , new print() , true );
         _myScope.put( "printnoln" , new print( false ) , true );
         _myScope.put( "SYSOUT" , new print() , true );
         _myScope.put( "sleep" , new sleep() , true );
+        _myScope.put( "fork" , new fork() , true );
+
+        JS._debugSI( "JSBuiltInFunctions" , "Setup 1" );
 
         _myScope.put( "Object" , new NewObject() , true );
-        _myScope.put( "Array" , new NewArray() , true );
+        _myScope.put( "Array" , JSArray._cons , true );
         _myScope.put( "Date" , JSDate._cons , true );
         _myScope.put( "String" , JSString._cons , true );
         _myScope.put( "RegExp" , JSRegex._cons , true );
         _myScope.put( "XMLHttpRequest" , XMLHttpRequest._cons , true );
+        _myScope.put( "Function" , JSInternalFunctions.FunctionCons , true );
+        _myScope.put( "Exception" , JSException._cons , true );
+        _myScope.put( "Map" , JSMap._cons , true );
 
         _myScope.put( "Math" , JSMath.getInstance() , true );
+
+        _myScope.put( "processArgs", new processArgs(), true );
+
+        _myScope.put( "Class", ed.js.Prototype._class , true );
+
+        JS._debugSI( "JSBuiltInFunctions" , "Setup2" );
         
         CrID crid = new CrID();
         _myScope.put( "CrID" , crid , true );
@@ -360,8 +517,8 @@ public class JSBuiltInFunctions {
         _myScope.put( "download" , HttpDownload.DOWNLOAD , true );
 
         _myScope.put( "JSCaptcha" , new JSCaptcha() , true );
-
-
+        _myScope.put( "MimeTypes" , new ed.appserver.MimeTypes() , true );
+        
         _myScope.put( "parseBool" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object b , Object extra[] ){
                     if ( b == null )
@@ -376,24 +533,9 @@ public class JSBuiltInFunctions {
                 }
             } , true );
 	
-        JSFunctionCalls2 parseNumber = new JSFunctionCalls2(){
-		public Object call( Scope scope , Object a , Object b , Object extra[] ){
-                    
-                    if ( a instanceof Number )
-                        return a;
 
-                    if ( a != null )
-                        return StringParseUtil.parseNumber( a.toString() , (Number)b );
-                    
-                    if ( b != null )
-                        return b;
-
-                    throw new RuntimeException( "not a number [" + a + "]" );
-		}
-            };
-
-	_myScope.put( "Number" , parseNumber , true );
-	_myScope.put( "parseNumber" , parseNumber , true );
+	_myScope.put( "Number" , JSNumber.CONS , true );
+	_myScope.put( "parseNumber" , JSNumber.CONS , true );
         
 	_myScope.put( "parseFloat" , 
                       new JSFunctionCalls1(){
@@ -418,13 +560,16 @@ public class JSBuiltInFunctions {
                               if ( a == null )
                                   return Double.NaN;
                               
+                              if ( a instanceof Number )
+                                  return ((Number)a).intValue();
+
                               String s = a.toString();
                               try {
                                   if ( b != null && b instanceof Number ){
-                                      return Integer.parseInt( s , ((Number)b).intValue() );
+                                      return StringParseUtil.parseIntRadix( s , ((Number)b).intValue() );
                                   }
                                   
-                                  return Integer.parseInt( s );
+                                  return StringParseUtil.parseIntRadix( s , 10 );
                               }
                               catch ( Exception e ){}
                               
@@ -432,6 +577,28 @@ public class JSBuiltInFunctions {
                           }
                       }
                       , true );
+        
+        _myScope.put( "parseDate" ,
+                      new JSFunctionCalls1(){
+                          public Object call( Scope scope , Object a , Object extra[] ){
+                              if ( a == null )
+                                  return null;
+                              
+                              if ( a instanceof JSDate )
+                                  return a;
+
+                              if ( ! ( a instanceof String || a instanceof JSString ) )
+                                  return null;
+                              
+                              long t = JSDate.parseDate( a.toString() , 0 );
+                              if ( t == 0 )
+                                  return null;
+
+                              return new JSDate( t );
+                          }
+                      } , true );
+        
+        _myScope.put( "NaN" , Double.NaN , true );
 
 	
         _myScope.put( "md5" , new JSFunctionCalls1(){
@@ -450,11 +617,28 @@ public class JSBuiltInFunctions {
         _myScope.put( "isArray" , new isXXX( JSArray.class ) , true );
         _myScope.put( "isBool" , new isXXX( Boolean.class ) , true );
         _myScope.put( "isNumber" , new isXXX( Number.class ) , true );
-        _myScope.put( "isObject" , new isXXX( JSObject.class ) , true );
         _myScope.put( "isDate" , new isXXX( JSDate.class ) , true );
         _myScope.put( "isFunction" , new isXXX( JSFunction.class ) , true );
 
+        _myScope.put("isNaN", new isNaN(), true);
+
         _myScope.put( "isString" , new isXXXs( String.class , JSString.class ) , true );
+
+        _myScope.put( "isObject" , new JSFunctionCalls1(){
+                public Object call( Scope scope , Object o , Object extra[] ){
+                    if ( o == null )
+                        return false;
+                    
+                    if ( ! ( o instanceof JSObject ) )
+                        return false;
+                    
+                    if ( o instanceof JSString )
+                        return false;
+                    
+                    return true;
+                }
+            } , true );
+
         
         _myScope.put( "isAlpha" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object o , Object extra[] ){
@@ -478,14 +662,20 @@ public class JSBuiltInFunctions {
         _myScope.put( "assert" , new jsassert() , true );
         _myScope.put( "javaCreate" , new javaCreate() , true );
         _myScope.put( "javaStatic" , new javaStatic() , true );
+        _myScope.put( "javaStaticProp" , new javaStaticProp() , true );
         
-        _myScope.put( "escape" , new JSFunctionCalls1(){
-                public Object call( Scope scope , Object o , Object extra[] ){
-                    return java.net.URLEncoder.encode( o.toString() ).replaceAll( "\\+" , "%20" );
-                }
-            } , true );
-
+        Encoding.install( _myScope );
         JSON.init( _myScope );
+        ed.lang.ruby.Ruby.install( _myScope );
+        
+        Djang10Converter.injectHelpers(_myScope);
+
+        // mail stuff till i'm done
+        _myScope.put( "JAVAXMAILTO" , javax.mail.Message.RecipientType.TO , true );
+
+
+
+        _myScope.lock();
     }
 
     private static char getChar( Object o ){
@@ -503,5 +693,9 @@ public class JSBuiltInFunctions {
         }
         
         return 0;
+    }
+
+    static {
+        JS._debugSIDone( "JSBuiltInFunctions" );
     }
 }

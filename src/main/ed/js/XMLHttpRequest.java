@@ -15,6 +15,12 @@ public class XMLHttpRequest extends JSObjectBase {
 
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.XHR" );
     
+    public static final int UNSENT = 0;
+    public static final int OPENED = 1;
+    public static final int HEADERS_RECEIVED = 2;
+    public static final int LOADING = 3;
+    public static final int DONE = 4;
+
     public final static JSFunction _cons = new JSFunctionCalls3(){
 
             public JSObject newOne(){
@@ -63,6 +69,9 @@ public class XMLHttpRequest extends JSObjectBase {
 
     void init( String method , String url , boolean async ){
         
+        if ( ! url.substring( 0 , 4 ).equalsIgnoreCase( "http" ) )
+            url = "http://" + url;
+
         _method = method;
         _urlString = url;
         _async = async;
@@ -70,78 +79,158 @@ public class XMLHttpRequest extends JSObjectBase {
         set( "method" , _method );
         set( "url" , _urlString );
         set( "async" , _async );
-
-        if ( _async )
-            throw new JSException( "async not done yet" );
+        setStatus( UNSENT );
     }
+    
+    void setStatus( int status ){
+        set( "readyState" , status );
+
+        JSFunction onreadystatechange = (JSFunction)get( "onreadystatechange" );
+        if ( onreadystatechange != null && status > 0 )
+            onreadystatechange.call( _onreadystatechangeScope , null );
+             
+    }
+
+    public Object set( Object n , Object v ){
+        String name = n.toString();
+
+       if ( n.equals( "onreadystatechange" ) ){
+
+           JSFunction f = (JSFunction)v;
+
+           if ( f != null )
+               _async = true;
+           
+           _onreadystatechangeScope = f.getScope().child();
+           _onreadystatechangeScope.setThis( this );
+           
+           return super.set( n , v );
+        }
+       
+       return super.set( n , v );
+    }
+    
 
     public XMLHttpRequest send()
         throws IOException {
         return send( null );
     }
     
-    public XMLHttpRequest send( String post )
+    public XMLHttpRequest send( final String post )
         throws IOException {
         
-        // TODO: rewrite this for real
-
-        SocketChannel sock = SocketChannel.open();
-        sock.connect( new InetSocketAddress( getHost() , getPort() ) );
+        if ( ! _async )
+            return _doSend( post );
         
-        byte postData[] = null;
-
-        if ( post != null )
-            postData = post.getBytes();
+        final Thread t = new Thread( "XMLHttpRequest-sender" ){
+                public void run(){
+                    try {
+                        if ( DEBUG ) System.out.println( "starting async" );
+                        _doSend( post );
+                        if ( DEBUG ) System.out.println( "done with async" );
+                    }
+                    catch ( Throwable t ){
+                        t.printStackTrace();
+                    }
+                }
+            };
         
-        if ( postData != null )
-            setRequestHeader( "Content-Length" , String.valueOf( postData.length ) );
+        t.start();
+        return this;
+    }
+    
+    private XMLHttpRequest _doSend( String post )
+        throws IOException {
 
-        ByteBuffer toSend[] = new ByteBuffer[ postData == null ? 1 : 2 ];
-        toSend[0] = ByteBuffer.wrap( getRequestHeader().getBytes() );
-        if ( DEBUG ) System.out.println( "--- Header to Send \n" + getRequestHeader() + "\n---" );
-
-        if ( postData != null )
-            toSend[1] = ByteBuffer.wrap( postData );
-        sock.write( toSend );
-
-        ByteBuffer buf = ByteBuffer.allocateDirect( 1024 * 1024 );
-        while( sock.read( buf ) >= 0 );
+        // TODO: more real http client
         
-        buf.flip();
-        
-        int headerEnd = startsWithHeader( buf );
-        if ( headerEnd < 0 ){
-            if ( DEBUG ){
-                byte b[] = new byte[buf.limit()];
-                buf.get( b );
-                System.out.println( new String( b ) );
-            }
-            throw new JSException( "no header :(" );
-        }
-        
-        if ( DEBUG ) System.out.println( buf );
-
-        byte headerBytes[] = new byte[headerEnd];
-        buf.get( headerBytes );
-        String header = new String( headerBytes );
-        set( "header" , header.trim() );
-        
-        String headerLines[] = header.split( "[\r\n]+" );
-        {
-            String firstline = headerLines[0];
-            int start = firstline.indexOf( " " ) + 1;
-            int end = firstline.indexOf( " " , start );
+        try {
+            setStatus( OPENED );
             
-            set( "status" , Integer.parseInt( firstline.substring( start , end ) ) );
-            set( "statusText" , firstline.substring( end + 1 ).trim() );
+            SocketChannel sock = SocketChannel.open();
+            if ( get( "timeout" ) != null ){
+                sock.socket().setSoTimeout( ((Number)get( "timeout" )).intValue() );
+            }
+            sock.connect( new InetSocketAddress( getHost() , getPort() ) );
+            
+            byte postData[] = null;
+            
+            if ( post != null )
+                postData = post.getBytes();
+            
+            if ( postData != null )
+                setRequestHeader( "Content-Length" , String.valueOf( postData.length ) );
+            
+            ByteBuffer toSend[] = new ByteBuffer[ postData == null ? 1 : 2 ];
+            toSend[0] = ByteBuffer.wrap( getRequestHeader().getBytes() );
+            if ( DEBUG ) System.out.println( "--- Header to Send \n" + getRequestHeader() + "\n---" );
+            
+            if ( postData != null )
+                toSend[1] = ByteBuffer.wrap( postData );
+            sock.write( toSend );
+            
+            ByteBuffer buf = ByteBuffer.allocateDirect( 1024 * 1024 );
+            while( sock.read( buf ) >= 0 );
+            
+            buf.flip();
+            
+            int headerEnd = startsWithHeader( buf );
+            if ( headerEnd < 0 ){
+                if ( DEBUG ){
+                    byte b[] = new byte[buf.limit()];
+                    buf.get( b );
+                    System.out.println( new String( b ) );
+                }
+                throw new JSException( "no header :(" );
+            }
+            
+            if ( DEBUG ) System.out.println( buf );
+            
+            byte headerBytes[] = new byte[headerEnd];
+            buf.get( headerBytes );
+            String header = new String( headerBytes );
+            set( "header" , header.trim() );
+            
+            String headerLines[] = header.split( "[\r\n]+" );
+            if ( headerLines.length > 0 ) {
+                String firstline = headerLines[0];
+                int start = firstline.indexOf( " " ) + 1;
+                int end = firstline.indexOf( " " , start );
+                
+                set( "status" , Integer.parseInt( firstline.substring( start , end ) ) );
+                set( "statusText" , firstline.substring( end + 1 ).trim() );
+            }
+            
+            JSObject headers = new JSObjectBase();
+            set( "headers" , headers );
+            
+            for ( int i=1; i<headerLines.length; i++ ){
+                int idx = headerLines[i].indexOf( ":" );
+                if ( idx < 0 )
+                    continue;
+                
+                String n = headerLines[i].substring( 0 , idx ).trim();
+                String v = headerLines[i].substring( idx + 1 ).trim();
+                
+                if ( DEBUG ) System.out.println( "\t got header [" + n + "] -> [" + v + "]" );
+                headers.set( n , v );
+                
+            }
+            
+            setStatus( HEADERS_RECEIVED );
+            setStatus( LOADING );
+            
+            byte bodyBytes[] = new byte[buf.limit()-headerEnd];
+            buf.get( bodyBytes );
+            String body = new String( bodyBytes );
+            set( "responseText" , new JSString( body ) );
+            
+            if ( DEBUG ) System.out.println( buf );
+            
         }
-
-        byte bodyBytes[] = new byte[buf.limit()-headerEnd];
-        buf.get( bodyBytes );
-        String body = new String( bodyBytes );
-        set( "responseText" , new JSString( body ) );
-
-        if ( DEBUG ) System.out.println( buf );
+        finally {
+            setStatus( DONE );        
+        }
 
         return this;
     }
@@ -192,7 +281,7 @@ public class XMLHttpRequest extends JSObjectBase {
 	    buf.append(x);
 
         buf.append( "\r\n" );
-
+        
         return buf.toString();
     }
 
@@ -204,9 +293,14 @@ public class XMLHttpRequest extends JSObjectBase {
 
     public String getLocalURL(){
         _checkURL();
+
+        String path = _url.getPath();
+        if ( path.length() == 0 )
+            path = "/";
+
         if ( _url.getQuery() == null )
-            return _url.getPath();
-        return _url.getPath() + "?" + _url.getQuery();
+            return path;
+        return path + "?" + _url.getQuery();
     }
 
     public String getHost(){
@@ -229,9 +323,13 @@ public class XMLHttpRequest extends JSObjectBase {
         return 80;
     }
 
+    public Object getJSON(){
+        return JSON.parse( get( "responseText" ).toString() );
+    }
+
     private void _checkURL(){
         if ( _urlString == null || _urlString.trim().length() == 0 )
-            _urlString = "/";
+            throw new JSException( "no url" );
 
         if ( _url == null ){
             try {
@@ -243,9 +341,11 @@ public class XMLHttpRequest extends JSObjectBase {
         }
     }
 
+
     String _method;
     String _urlString;
     boolean _async;
 
     URL _url;
+    Scope _onreadystatechangeScope;
 }

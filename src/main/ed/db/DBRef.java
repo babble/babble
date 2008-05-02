@@ -50,9 +50,10 @@ public class DBRef extends JSObjectBase {
         if ( ! o.getClass().equals( JSObjectBase.class ) ){
             _parent.set( _fieldName , o );
         }
-        
+
+        if ( o instanceof JSObjectBase )
+            setConstructor( ((JSObjectBase)o).getConstructor() );
         addAll( o );
-        //throw new RuntimeException( "need to load" );
     }
 
     final JSObject _parent;

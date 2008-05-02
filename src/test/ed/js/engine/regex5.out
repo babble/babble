@@ -5,6 +5,7 @@ the cow
 foo ___ the the cow
 foo ___ ___ ___ cow
 123
+object
 the __$_123__ food
 the * 123 * food
 <h3>a</h3>
@@ -13,7 +14,13 @@ true
 true
 false
 true
+4
+4
 H5
 6 : 3.2,3,2
 15 : 1.2,1,2
 false
+\.\*\+\?\^\=\!\:\$\{\}\(\)\|\]\/\\
+ab,a,b
+ab,ab
+ab

@@ -3,6 +3,7 @@
 package ed.net.httpserver;
 
 import java.io.*;
+import java.net.*;
 import java.util.*;
 import java.text.*;
 import java.nio.*;
@@ -18,8 +19,20 @@ public class HttpResponse {
     static final String DEFAULT_CHARSET = "utf-8";
 
     public static final DateFormat HeaderTimeFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
+    public static final String SERVER_HEADERS;
+
     static {
 	HeaderTimeFormat.setTimeZone( TimeZone.getTimeZone("GMT") );
+	
+	String hostname = "unknown";
+	try {
+	    hostname = InetAddress.getLocalHost().getHostName();
+	}
+	catch ( Throwable t ){
+	    t.printStackTrace();
+	}
+
+	SERVER_HEADERS = "Server: ED\r\nX-svr: " + hostname + "\r\n";
     }
 
 
@@ -29,7 +42,6 @@ public class HttpResponse {
 
         _headers = new StringMap<String>();
         _headers.put( "Content-Type" , "text/html;charset=" + getContentEncoding() );
-        _headers.put( "Server" , "ED" );
 	setDateHeader( "Date" , System.currentTimeMillis() );
     }
 
@@ -107,6 +119,16 @@ public class HttpResponse {
         if ( f )
             cleanup();
         return f;
+    }
+
+    public void sendRedirectPermanent(String loc){
+        setResponseCode( 301 );
+        setHeader("Location", loc);
+    }
+
+    public void sendRedirectTemporary(String loc){
+        setResponseCode( 302 );
+        setHeader("Location", loc);
     }
 
     private boolean flush()
@@ -237,6 +259,8 @@ public class HttpResponse {
             a.append( "\r\n" );
         }
         
+	a.append( SERVER_HEADERS );
+
         if ( keepAlive() )
             a.append( "Connection: keep-alive\r\n" );
         else
@@ -475,19 +499,35 @@ public class HttpResponse {
         public JxpWriter print( boolean b ){
             return print( String.valueOf( b ) );
         }
+
+        public boolean closed(){
+            return _done;
+        }
         
         public JxpWriter print( String s ){
             if ( _done ){
-                System.err.println( "bizarre already done tihng" );
                 throw new RuntimeException( "already done" );
             }
             
+            if ( s.length() > MAX_STRING_SIZE ){
+                for ( int i=0; i<s.length(); ){
+                    String temp = s.substring( i , Math.min( i + MAX_STRING_SIZE , s.length() ) );
+                    print( temp );
+                    i += MAX_STRING_SIZE;
+                }
+                return this;
+            }
+
             if ( _cur.position() + ( 3 * s.length() ) > _cur.capacity() ){
                 if ( _inSpot )
                     throw new RuntimeException( "can't put that much stuff in spot" );
                 _push();
             }
             
+
+            if ( _cur.position() + ( 3 * s.length() ) > _cur.capacity() )
+                throw new RuntimeException( "still too big" );
+
             _cur.append( s );
             return this;
         }
@@ -582,7 +622,8 @@ public class HttpResponse {
         private boolean _inSpot = false;
     }
     
-    static final int CHAR_BUFFER_SIZE = 1024 * 32;
+    static final int CHAR_BUFFER_SIZE = 1024 * 128;
+    static final int MAX_STRING_SIZE = CHAR_BUFFER_SIZE / 4;
     static SimplePool<CharBuffer> _charBufPool = new SimplePool<CharBuffer>( "Response.CharBufferPool" , 50 , -1 ){
             public CharBuffer createNew(){
                 return CharBuffer.allocate( CHAR_BUFFER_SIZE );

@@ -1,0 +1,40 @@
+
+a = 5;
+print( a instanceof Number );
+
+a = null;
+print( a instanceof Object );
+
+b = null;
+a = [ 1 , 2];
+
+print( a instanceof Object );
+print( a instanceof Array );
+
+print( ( new Date()) instanceof Date );
+
+
+
+A = function(){
+
+};
+
+a = new A();
+
+print( a instanceof A );
+
+
+newClass = function(){
+    klass = function(){
+
+    };
+    return klass;
+};
+
+c1 = newClass();
+c2 = newClass();
+
+c1obj = new c1();
+
+print(c1obj instanceof c1);
+print(c1obj instanceof c2);

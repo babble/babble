@@ -4,6 +4,8 @@ package ed.js.engine;
 
 import java.io.*;
 
+import org.testng.annotations.Test;
+
 import ed.*;
 import ed.js.*;
 import ed.js.func.*;
@@ -18,6 +20,29 @@ public class ConvertTest extends TestCase {
             if ( f.toString().endsWith( ".js" ) )
                 add( new FileTest( f ) );
         
+    }
+    
+    @Test
+    public void testMakeAnon(){
+        assertClose( "5" , _makeAnon( "return 5;" ).toString() );
+        assertClose( "6" , _makeAnon( "function(){ return 6; }" ).toString() );
+    }
+
+    @Test
+    public void testFixStack(){
+
+        JSFunction f = Convert.makeAnon( "x = {};\nx.a.b = 5;\n" );
+        try {
+            f.call( Scope.GLOBAL.child() );
+        }
+        catch ( Exception e ){
+            assertEquals( 2 , e.getStackTrace()[0].getLineNumber() );
+        }
+        
+   } 
+
+    Object _makeAnon( String code ){
+        return Convert.makeAnon( code ).call( Scope.GLOBAL.child() );
     }
 
     public static class FileTest extends TestCase {
@@ -34,37 +59,41 @@ public class ConvertTest extends TestCase {
             final PrintStream out = new PrintStream( bout );
             
             JSFunction f = c.get();
-
-            JSFunction myout = new JSFunctionCalls1(){
-                    public Object call( Scope scope ,Object o , Object extra[] ){
-                        out.println( o );
-                        return null;
-                    }
-                };
-            
             Scope scope = Scope.GLOBAL.child();
-            scope.put( "print" , myout , true );
-            scope.put( "SYSOUT" , myout , true );
+            
+            if ( _file.toString().contains( "/engine/" ) ){
+                JSFunction myout = new JSFunctionCalls1(){
+                        public Object call( Scope scope ,Object o , Object extra[] ){
+                            out.println( o );
+                            return null;
+                        }
+                    };
+
+                scope.put( "print" , myout , true );
+                scope.put( "SYSOUT" , myout , true );
+            }
 
             f.call( scope );
 
 
             String outString = _clean( bout.toString() );
             
-            File correct = new File( _file.toString().replaceAll( ".js$" , ".out" ) );
-            if ( ! correct.exists() ){
-                assertTrue( correct.exists() );
-            }
-            String correctOut = _clean( StreamUtil.readFully( correct ) );
-            
-            try {
-                assertClose( correctOut , outString );
-            }
-            catch ( MyAssert a ){
-                System.out.println();
-                System.out.println( correctOut.replaceAll( "[\r\n ]+" , " " ) );
-                System.out.println( outString.replaceAll( "[\r\n ]+" , " " ) );
-                throw a;
+            if ( _file.toString().contains( "/engine/" ) ){
+                File correct = new File( _file.toString().replaceAll( ".js$" , ".out" ) );
+                if ( ! correct.exists() ){
+                    assertTrue( correct.exists() );
+                }
+                String correctOut = _clean( StreamUtil.readFully( correct ) );
+                
+                try {
+                    assertClose( correctOut , outString );
+                }
+                catch ( MyAssert a ){
+                    System.out.println();
+                    System.out.println( correctOut.replaceAll( "[\r\n ]+" , " " ) );
+                    System.out.println( outString.replaceAll( "[\r\n ]+" , " " ) );
+                    throw a;
+                }
             }
         }
         

@@ -13,8 +13,14 @@ public interface JSObject {
     public Object setInt( int n , Object v );
     public Object getInt( int n );
     
-    public void removeField( Object n );
+    /**
+     * @return old value
+     */
+    public Object removeField( Object n );
 
+    public boolean containsKey( String s );
     public Collection<String> keySet();
-    
+
+    public JSFunction getConstructor();
+
 }

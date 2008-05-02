@@ -33,15 +33,24 @@ public class ByteDecoder extends Bytes {
 
     // ---
     
-    protected ByteDecoder( ByteBuffer buf ){
-        _buf = buf;
-        if ( _buf.order() != ByteOrder.LITTLE_ENDIAN )
-            throw new RuntimeException( "this is not correct" );
+    public ByteDecoder( ByteBuffer buf ){
+        reset( buf );
+        _private = false;
     }
 
     private ByteDecoder(){
         _buf = ByteBuffer.allocateDirect( BUF_SIZE );
+        _private = true;
         reset();
+    }
+
+    public void reset( ByteBuffer buf ){
+        if ( _private )
+            throw new RuntimeException( "can't reset private ByteDecoder" );
+
+        _buf = buf;
+        if ( _buf.order() != ByteOrder.LITTLE_ENDIAN )
+            throw new RuntimeException( "this is not correct" );
     }
 
     void reset(){
@@ -50,7 +59,7 @@ public class ByteDecoder extends Bytes {
         _buf.order( ByteOrder.LITTLE_ENDIAN );        
     }
 
-    protected JSObject readObject(){
+    public JSObject readObject(){
         if ( _buf.position() >= _buf.limit() )
             return null;
 
@@ -84,6 +93,11 @@ public class ByteDecoder extends Bytes {
     }
 
     protected int decodeNext( JSObject o ){
+        return decodeNext( o , null );
+    }
+
+    
+    protected int decodeNext( JSObject o , JSFunction embedCons ){
         final int start = _buf.position();
         final byte type = _buf.get();
 
@@ -142,15 +156,40 @@ public class ByteDecoder extends Bytes {
         case BINARY:
             o.set( name , parseBinary() );
             break;
+            
+        case CODE:
+            // TODO: clean this up
+            try {
+                _buf.getInt(); // this is value string, not a cstr
+                final String theCode = readCStr();
+                final JSFunction theFunc = Convert.makeAnon( theCode );
+                o.set( name , theFunc );
+            }
+            catch ( Exception e ){
+                e.printStackTrace();
+            }
+            break;
 
         case ARRAY:
             if ( created == null )
                 created = new JSArray();
         case OBJECT:
             int embeddedSize = _buf.getInt();
-            if ( created == null )
+
+            if ( created == null ){
                 created = new JSObjectBase();
-            while ( decodeNext( created ) > 1 );
+                if ( embedCons != null )
+                    ((JSObjectBase)created).setConstructor( embedCons , true );
+            }
+            
+            JSFunction nextEmebedCons = null;
+            
+            if ( o.get( name ) != null ){
+                created = (JSObject)o.get( name );
+                nextEmebedCons = (JSFunction)created.get( "_dbCons" );
+            }
+            
+            while ( decodeNext( created , nextEmebedCons ) > 1 );
             o.set( name , created );
             break;
 
@@ -208,7 +247,8 @@ public class ByteDecoder extends Bytes {
     private final CharsetDecoder _decoder = _utf8.newDecoder();
     private final byte _namebuf[] = new byte[ MAX_STRING ];
 
-    final ByteBuffer _buf;
+    ByteBuffer _buf;
+    private final boolean _private;
 
     String _ns;
     DBBase _base;

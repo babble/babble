@@ -28,3 +28,14 @@ while ( foo >= 0 ){
         continue;
     print( "once 3" );
 }
+
+
+a = 1;
+c = 0;
+while ( a < 5 ){
+    b = a;
+    a = a + 1
+}
+print( a );
+print( b );
+print( c );

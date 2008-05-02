@@ -7,21 +7,43 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
 
+import org.apache.commons.cli.*;
+
 import ed.js.*;
 
 public class ImportBinary {
 
+    static boolean debug = false;
+    static boolean onlyids = false;
+    static boolean forceUpdate = false;
+    static boolean forceSave = false;
+    
     static void load( File root )
         throws IOException {
+        
+        if ( ! root.exists() )
+            throw new RuntimeException( root + " does not exist" );
+
         for ( File f : root.listFiles() ){
-            if ( ! f.isDirectory() )
+            
+            if ( f.isDirectory() ){
+                loadNamespace( f );
                 continue;
-            loadNamespace( f );
+            }
+
+            if ( f.toString().endsWith( ".bin" ) ){
+                loadOne( f );
+                continue;
+            }
         }
     }
 
     static void loadNamespace( File dir )
         throws IOException {
+        
+        if ( ! dir.exists() )
+            throw new RuntimeException( dir + " does not exist" );
+
         for ( File f : dir.listFiles() ){
             if ( f.isDirectory() )
                 continue;
@@ -31,6 +53,10 @@ public class ImportBinary {
 
     static void loadOne( File f )
         throws IOException {
+
+        if ( ! f.exists() || f.isDirectory() )
+            throw new RuntimeException( f + " must be a regular fule" );
+
         final String ns = f.getName().replaceAll( "\\.bin$" , "" );
         final String root = f.getParentFile().getName();
         
@@ -46,22 +72,85 @@ public class ImportBinary {
         
         FileChannel fc = fin.getChannel();
         fc.read( bb );
-
+        
         bb.flip();
         ByteDecoder decoder = new ByteDecoder( bb );
         
-        JSObject o;
-        while ( ( o = decoder.readObject() ) != null ){
-            coll.save( o );
+        boolean hasAny = false;
+        {
+            Iterator<JSObject> checkForAny = coll.find( new JSObjectBase() , null , 0 , 2 );
+            if ( checkForAny != null && checkForAny.hasNext() )
+                hasAny = true;
         }
         
+	if ( debug ) System.out.println( "\t hasAny " + hasAny + " (implies doing update unless forceSave" );
+
+        int num = 0;
+        boolean skippedAny = false;
+
+        JSObject o;
+        while ( ( o = decoder.readObject() ) != null ){
+            
+            if ( onlyids && o.get( "_id" ) == null ){
+                if ( ! skippedAny ){
+                    skippedAny = true;
+                    if ( debug ) 
+                        System.out.println( "\t skipping something b/c it doesn't have id.  only msg once per collection" );
+                }
+                continue;
+            }
+
+            if ( forceUpdate )
+                coll.save( o );
+            else if ( forceSave )
+                coll.doSave( o );
+            else if ( hasAny )
+                coll.save( o );
+            else
+                coll.doSave( o );
+
+            if ( ++num % 10000 == 0 ){
+                if ( debug ) System.out.println( "\t " + num );
+            }
+        }
+        
+        System.out.println( "\t total : " + num );
+
         coll.find( new JSObjectBase() , null , 0 , 1 );
     }
 
     public static void main( String args[] )
         throws Exception {
+
+        Options o = new Options();
+        o.addOption( "forceUpdate" , false , "Force update instead of save" );
+        o.addOption( "forceSave" , false , "Force save instead of update" );
+        o.addOption( "v" , false , "Verbose" );
+        o.addOption( "onlyids"  , false , "only do objects with ids" );
         
-        load( new File( args[0] ) );
+        CommandLine cl = ( new BasicParser() ).parse( o , args );
+        
+        if ( cl.getArgList().size() == 0 ){
+            System.out.println( o );
+            return;
+        }
+        
+        if ( cl.hasOption( "v" ) )
+            debug = true;
+        
+        if ( cl.hasOption( "onlyids" ) )
+            onlyids = true;
+        
+        if ( cl.hasOption( "forceUpdate" ) )
+            forceUpdate = true;
+
+        if ( cl.hasOption( "forceSave" ) )
+            forceSave = true;
+
+        if ( forceUpdate && forceSave )
+            throw new RuntimeException( "can't force update and save !" );
+
+        load( new File( cl.getArgList().get(0).toString() ) );
         
     }
 }

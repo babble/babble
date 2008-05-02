@@ -12,7 +12,7 @@ import ed.util.*;
 public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
 
 
-    DBCursor( DBCollection collection , JSObject q , JSObject k , JSFunction cons ){
+    public DBCursor( DBCollection collection , JSObject q , JSObject k , JSFunction cons ){
         _collection = collection;
         _query = q;
         _keysWanted = k;
@@ -61,7 +61,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
                 foo.set( "orderby" , _orderBy );
             }
 
-            _it = _collection.find( foo , _keysWanted , _skip , _numWanted );
+            _it = _collection.find( foo , _keysWanted , _skip , -1 * _numWanted );
         }
 
         if ( _it == null )
@@ -88,7 +88,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
         
         _cur = null;
         _cur = _it.next();
-        _collection.apply( _cur );
+        _collection.apply( _cur , false );
         _num++;
         
         if ( _constructor != null && 

@@ -9,12 +9,13 @@ import ed.db.*;
 import ed.js.*;
 import ed.js.func.*;
 import ed.js.engine.*;
+import ed.lang.*;
 import ed.net.httpserver.*;
 import ed.appserver.jxp.*;
 
 public class AppContext {
 
-    static final boolean DEBUG = false;
+    static final boolean DEBUG = AppServer.D;
     static final String INIT_FILES[] = new String[]{ "_init.js" , "/~~/core/init.js" };
 
     public AppContext( File f ){
@@ -26,46 +27,88 @@ public class AppContext {
     }
 
     public AppContext( String root , String name ){
+        if ( root == null )
+            throw new NullPointerException( "AppContext root can't be null" );
+        
+        if ( name == null )
+            name = guessName( root );
+        
+        if ( name == null )
+            throw new NullPointerException( "how could name be null" );
+        
         _name = name;
         _root = root;
         _rootFile = new File( _root );
+        
+        _isGrid = name.equals( "grid" );
 
-        _scope = new Scope( "AppContext:" + root , Scope.GLOBAL , null , _rootFile );
+        _scope = new Scope( "AppContext:" + root , _isGrid ? ed.cloud.Cloud.getInstance().getScope() : Scope.GLOBAL , null , _rootFile );
         _scope.setGlobal( true );
 
+        _logger = ed.log.Logger.getLogger( _name );
+        _usage = new UsageTracker( _name );
+        
+        _baseScopeInit();
+    }
+
+    private void _baseScopeInit(){
         // --- libraries
         
         _jxpObject = new JSFileLibrary( _rootFile , "jxp" , this );
         _scope.put( "jxp" , _jxpObject , true );
+        _scope.put( "local" , _jxpObject , true );
+        
+        try {
+            JxpSource config = getSource( new File( _rootFile , "_config.js" ) );
+            if ( config != null )
+                config.getFunction().call( _scope );
+        }
+        catch ( Exception e ){
+            throw new RuntimeException( "couldn't load config" , e );
+        }
 
-        _core = new JSFileLibrary( new File( "/data/corejs" ) ,  "core" , this );
+        _core = new CoreJS( JS.toString( _scope.get( "corejsversion" ) ) , this );
         _scope.put( "core" , _core , true );
 
         _scope.put( "external" , new JSFileLibrary( new File( "/data/external" ) ,  "external" , this ) , true );
 
+        _scope.put( "_rootFile" , _rootFile , true );
+        _scope.lock( "_rootFile" );
+
+        _scope.put( "__instance__" , this , true );
+        _scope.lock( "__instance__" );
+
         // --- db
         
-        _scope.put( "db" , DBProvider.get( _name ) , true );
-	_scope.put( "setDB" , new JSFunctionCalls1(){
-		public Object call( Scope s , Object name , Object extra[] ){
-		    System.out.println( "name:" + name + " _scope:" + _scope );
-		    s.put( "db" , DBProvider.get( name.toString() ) , false );
+        if ( ! _isGrid ){
+            _scope.put( "db" , DBProvider.get( _name , false ) , true );
+            _scope.put( "setDB" , new JSFunctionCalls1(){
+
+                    public Object call( Scope s , Object name , Object extra[] ){
+			if ( name.equals( _lastSetTo ) )
+			    return true;
+			
+                        s.put( "db" , DBProvider.get( name.toString() , false ) , false );
+			_lastSetTo = name.toString();
+
+                        return true;
+                    }
+		    
+		    String _lastSetTo = null;
+
+                } , true );
+        }
+
+        // --- output
+        
+	_scope.put( "SYSOUT" , new JSFunctionCalls1(){
+		public Object call( Scope s , Object str , Object foo[] ){
+		    System.out.println( AppContext.this._name + " \t " + str );
 		    return true;
 		}
 	    } , true );
 
-        // --- output
-        
-	final String appName = name;
-	_scope.put( "SYSOUT" , new JSFunctionCalls1(){
-		public Object call( Scope s , Object str , Object foo[] ){
-		    System.out.println( appName + " \t " + str );
-		    return true;
-		}
-	    } , true );
-        _logger = ed.log.Logger.getLogger( _name );
         _scope.put( "log" , _logger , true );
-        _usage = new UsageTracker( _name );
 
         // --- random?
         
@@ -77,7 +120,7 @@ public class AppContext {
         
         _scope.put( "globalHead" , _globalHead , true  );
 
-	_scope.lock( "user" );
+	_scope.lock( "user" ); // protection against global user object
     }
 
     private static String guessName( String root ){
@@ -86,11 +129,17 @@ public class AppContext {
         if ( pcs.length == 0 )
             throw new RuntimeException( "no root for : " + root );
         
+        // handle anything with sites/foo
+        for ( int i=0; i<pcs.length-1; i++ )
+            if ( pcs[i].equals( "sites" ) )
+                return pcs[i+1];
+        
         for ( int i=pcs.length-1; i>0; i-- ){
             String s = pcs[i];
-
+            
             if ( s.equals("master" ) || 
                  s.equals("test") || 
+                 s.equals("www") || 
                  s.equals("staging") || 
                  s.equals("dev" ) )
                 continue;
@@ -162,23 +211,29 @@ public class AppContext {
         return f;
     }
     
-    public void resetScope(){
-        _scopeInited = false;
-        _scope.reset();
+    public void reset(){
+        _reset = true;
     }
     
     public String getRoot(){
         return _root;
     }
 
-    public AppRequest createRequest( HttpRequest request ){
+    AppRequest createRequest( HttpRequest request ){
         return createRequest( request , request.getURI() );
     }
     
-    public AppRequest createRequest( HttpRequest request , String uri ){
+    AppRequest createRequest( HttpRequest request , String uri ){
+        _numRequests++;
         return new AppRequest( this , request , uri );
     }
 
+    /**
+     *  Tries to find the given file, assuming that it's missing the ".jxp" extension
+     *  
+     * @param f  File to check
+     * @return same file if not found to be missing the .jxp, or a new File w/ the .jxp appended
+     */
     File tryNoJXP( File f ){
         if ( f.exists() )
             return f;
@@ -190,18 +245,25 @@ public class AppContext {
         return temp.exists() ? temp : f;
     }
 
+    /**
+     *    Maps a servlet-like URI to a jxp file
+     *    
+     *    /wiki/geir  ->  maps to wiki.jxp if exists
+     *    
+     * @param f File to check
+     * @return new File with <root>.jxp if exists, orig file if not
+     */
     File tryServlet( File f ){
         if ( f.exists() )
             return f;
         
         String uri = f.toString();
 	
-	if ( uri.startsWith( _rootFile.toString() ) )
-	    uri = uri.substring( _rootFile.toString().length() );
+        if ( uri.startsWith( _rootFile.toString() ) )
+            uri = uri.substring( _rootFile.toString().length() );
 	
-	if ( uri.startsWith( _core._base.toString() ) )
-	    uri = "/~~" + uri.substring( _core._base.toString().length() );
-
+        if ( _core != null && uri.startsWith( _core._base.toString() ) )
+            uri = "/~~" + uri.substring( _core._base.toString().length() );
         
         while ( uri.startsWith( "/" ) )
             uri = uri.substring( 1 );
@@ -225,6 +287,13 @@ public class AppContext {
         return f;
     }
 
+    /**
+     *   Returns the index.jxp for the File argument if it's an existing directory, 
+     *   and the index.jxp file exists
+     *   
+     * @param f  directory to check
+     * @return new File for index.jxp in that directory, or same file object if not
+     */
     File tryIndex( File f ){
 
         if ( ! ( f.isDirectory() && f.exists() ) )
@@ -237,36 +306,80 @@ public class AppContext {
         return f;
     }
     
-    public JxpSource getSource( File f )
+    JxpSource getSource( File f )
         throws IOException {
     
         if ( DEBUG ) System.err.println( "getSource\n\t " + f );
-        f = tryNoJXP( f );
-        f = tryServlet( f );
-        f = tryIndex( f );
-        if ( DEBUG ) System.err.println( "\t " + f );
         
-        if ( ! f.exists() )
+        File temp = _findFile(f);
+        
+        if ( DEBUG ) System.err.println( "\t " + temp );
+        
+        if (!temp.exists())
             return null;
 
-        loadedFile( f );
-
-
-        if ( _jxpObject.isIn( f ) )
-            return _jxpObject.getSource( f );
+        /*
+         *   if it's a directory (and we know we can't find the index file)
+         *  TODO : at some point, do something where we return an index for the dir?
+         */
+        if ( temp.isDirectory() )
+            return null;
         
-        if ( _core.isIn( f ) )
-            return _core.getSource( f );
+        /*
+         *   if we at init time, save it as an initializaiton file
+         */
+        loadedFile(temp);
+
+        
+        /*
+         *   Ensure that this is w/in the right tree for the context
+         */
+        if ( _jxpObject.isIn(temp) )
+            return _jxpObject.getSource(temp);
+        
+        /*
+         *  if not, is it core?
+         */
+        if ( _core.isIn(temp) )
+            return _core.getSource(temp);
         
         throw new RuntimeException( "what?  can't find:" + f );
     }
 
+    /**
+     *  Finds the appropriate file for the given path. 
+     *  
+     *  We have a hierarchy of attempts as we try to find a file : 
+     *  
+     *  1) first, see if it exists as is, or if it's really a .jxp w/o the extension
+     *  2) next, see if it can be deconstructed as a servlet such that /foo/bar maps to /foo.jxp
+     *  3) See if we can find the index file for it if a directory
+     */
+    File _findFile(File f) {
+        
+        File temp;
+        
+        if ((temp = tryNoJXP(f)) != f) {
+            return temp;
+        }
+        
+        if ((temp = tryServlet(f)) != f) {
+            return temp;
+        }
+        
+        if ((temp = tryIndex(f)) != f) {
+            return temp;
+        }
+    
+        return f;
+    }
+    
     public void loadedFile( File f ){
         if ( _inScopeInit )
             _initFlies.add( f );
     }
 
-    public JxpServlet getServlet( File f )
+    JxpServlet getServlet( File f )
         throws IOException {
         JxpSource source = getSource( f );
         if ( source == null )
@@ -294,9 +407,11 @@ public class AppContext {
             _lastScopeInitTime = _getScopeTime();
         }
         catch ( RuntimeException re ){
+            _scopeInited = false;
             throw re;
         }
         catch ( Exception e ){
+            _scopeInited = false;
             throw new RuntimeException( e );
         }
         finally {
@@ -320,20 +435,27 @@ public class AppContext {
     }
 
     public void fix( Throwable t ){
-        _jxpObject.fix( t );
-        _core.fix( t );
+        StackTraceHolder.getInstance().fix( t );
     }
 
     public JSArray getGlobalHead(){
         return _globalHead;
     }
 
+    public JSDate getWhenCreated(){
+        return _created;
+    }
+
+    public int getNumRequests(){
+        return _numRequests;
+    }
+
     final String _name;
     final String _root;
     final File _rootFile;
 
-    final JSFileLibrary _jxpObject;
-    final JSFileLibrary _core;
+    JSFileLibrary _jxpObject;
+    JSFileLibrary _core;
     
     final ed.log.Logger _logger;
     final Scope _scope;
@@ -347,4 +469,10 @@ public class AppContext {
     boolean _scopeInited = false;
     boolean _inScopeInit = false;
     long _lastScopeInitTime = 0;
+
+    final boolean _isGrid;
+
+    boolean _reset = false;
+    int _numRequests = 0;
+    final JSDate _created = new JSDate();
 }

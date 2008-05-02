@@ -1,0 +1,51 @@
+<!DOCTYPE suite SYSTEM "http://beust.com/testng/testng-1.0.dtd" >
+  
+<suite name="appserver" >
+  
+  <test name="main tests">
+    <classes>
+      <class name="ed.db.ByteTest" />
+      <class name="ed.appserver.AppServerTest" />
+      <class name="ed.appserver.jxp.JxpServletTest" />
+      <class name="ed.appserver.jxp.JxpSourceTest" />
+      <class name="ed.net.DNSUtilTest" />
+      <class name="ed.net.httpserver.ReplayTest"/>
+      <class name="ed.appserver.AppContextTestNG" />
+      <class name="ed.appserver.JSFileLibraryTest" />
+      <class name="ed.js.engine.ConvertTest" />
+      <class name="ed.js.JSONTest" />
+      <class name="ed.appserver.templates.JxpConvertTest" />
+      <class name="ed.appserver.templates.HtmlTemplateTest" />
+      <class name="ed.appserver.templates.Djang10ConverterTest" />
+    </classes>
+  </test>
+
+  <test name="engine js tests">
+	<parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
+	<parameter name="dir-name"  value="src/test/ed/js/engine/"/>
+	<parameter name="file-ending"  value=".js"/>
+	<classes>
+      <class name="ed.util.ScriptTestFactory"/>
+    </classes>
+  </test>
+
+  <test name="app-level js tests">
+	<parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
+	<parameter name="dir-name"  value="src/test/ed/js/"/>
+	<parameter name="file-ending"  value=".js"/>
+	<classes>
+      <class name="ed.util.ScriptTestFactory"/>
+    </classes>
+  </test>
+
+  <test name="engine ruby tests">
+	<parameter name="test-class"  value="ed.lang.ruby.RubyScriptTestInstance"/>
+	<parameter name="dir-name"  value="src/test/ed/lang/ruby/"/>
+	<parameter name="file-ending"  value=".rb"/>
+	<classes>
+      <class name="ed.util.ScriptTestFactory"/>
+    </classes>
+  </test>
+  
+</suite>
+

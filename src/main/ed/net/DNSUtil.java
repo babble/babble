@@ -8,6 +8,19 @@ import java.util.*;
 
 public class DNSUtil {
 
+    public static String getSubdomain( String host ){
+        String domain = getDomain( host );
+        if ( host.length() == domain.length() )
+            return "www";
+        String sub = host.substring( 0 , host.length() - domain.length() );
+        while ( sub.endsWith( "." ) )
+            sub = sub.substring( 0 , sub.length() - 1 );
+        sub = sub.trim();
+        if ( sub.length() == 0 )
+            return "www";
+        return sub;
+    }
+
     public static String getDomain( String host ){
         String tld = getTLD( host );
         int idx = host.lastIndexOf( "." , host.length() - ( tld.length() + 2 ) );

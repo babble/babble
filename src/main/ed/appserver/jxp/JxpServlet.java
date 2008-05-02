@@ -10,6 +10,7 @@ import ed.js.*;
 import ed.util.*;
 import ed.js.engine.*;
 import ed.js.func.*;
+import ed.lang.*;
 
 import ed.appserver.*;
 import ed.net.httpserver.*;
@@ -30,8 +31,13 @@ public class JxpServlet {
             scope.put( "request" , request , true );
         if ( scope.get( "response" ) == null )
             scope.put( "response" , response , true );
+
+        Object cdnFromScope = scope.get( "CDN" );
+             
+        final String cdnPrefix = cdnFromScope != null ? cdnFromScope.toString() : getStaticPrefix( request , ar );
+        scope.put( "CDN" , cdnPrefix , true );
         
-        MyWriter writer = new MyWriter( response.getWriter() , getStaticPrefix( request , ar ) , ar.getContext() , ar);
+        MyWriter writer = new MyWriter( response.getWriter() , cdnPrefix , ar.getContext() , ar);
         scope.put( "print" , writer  , true );
         
         try {
@@ -41,13 +47,16 @@ public class JxpServlet {
                 writer._writer.backToSpot();
                 
                 if ( ar.getContext() != null )
-                    for ( Object foo : ar.getContext().getGlobalHead() )
+                    for ( Object foo : ar.getContext().getGlobalHead() ) {
                         writer.print( foo.toString() );
+                        writer.print( "\n" );
+                    }
                 
                 if ( ar != null )
-                    for ( Object foo : ar.getHeadToPrint() )
+                    for ( Object foo : ar.getHeadToPrint() ) {
                         writer.print( foo.toString() );
-                
+                        writer.print( "\n" );
+                    }
                 writer._writer.backToEnd();
             }
             else {
@@ -61,8 +70,11 @@ public class JxpServlet {
             }
         }
         catch ( RuntimeException re ){
-            _source.fix( re );
-            _context.fix( re );
+            if ( re instanceof JSException ){
+                if ( re.getCause() != null && re.getCause() instanceof RuntimeException )
+                    re = (RuntimeException)re.getCause();
+            }
+            StackTraceHolder.getInstance().fix( re );
             throw re;
         }
         
@@ -97,6 +109,9 @@ public class JxpServlet {
             _cdnPrefix = cdnPrefix;
             _context = context;
             _request = ar;
+            
+            if ( _writer == null )
+                throw new NullPointerException( "writer can't be null" );
 
             set( "setFormObject" , new JSFunctionCalls1(){ 
                     public Object call( Scope scope , Object o , Object extra[] ){
@@ -118,6 +133,20 @@ public class JxpServlet {
                     }
                 } );
         }
+
+        public Object get( Object n ){
+            if ( "cdnPrefix".equals( n ) )
+                return _cdnPrefix;
+            return super.get( n );
+        }
+
+        public Object set( Object n , Object v ){
+            if ( "cdnPrefix".equals( n ) ){
+                _cdnPrefix = v.toString();
+                return _cdnPrefix;
+            }
+            return super.set( n  , v );
+        }
         
         public Object call( Scope scope , Object o , Object extra[] ){
             if ( o == null )
@@ -130,7 +159,8 @@ public class JxpServlet {
         
         public void print( String s ){
             
-            //System.out.println( "***\n" + s + "\n---" );
+            if ( _writer.closed() )
+                throw new RuntimeException( "output closed.  are you using an old print function" );
             
             if ( _extra.length() > 0 ){
                 _extra.append( s );
@@ -166,6 +196,11 @@ public class JxpServlet {
          * @return true if i printed tag so you should not
          */
         boolean printTag( String tag , String s ){
+
+            if ( tag == null )
+                throw new NullPointerException( "tag can't be null" );
+            if ( s == null )
+                throw new NullPointerException( "show tag can't be null" );
 
             if ( tag.equalsIgnoreCase( "/head" ) && ! _writer.hasSpot() ){
                 _writer.saveSpot();
@@ -227,7 +262,7 @@ public class JxpServlet {
 
                 _writer.print( s.substring( 0 , s.length() - 1 ) );
                 _writer.print( " value=\"" );
-                _writer.print( val.toString() );
+                _writer.print( HtmlEscape.escape( val.toString() ) );
                 _writer.print( "\" >" );
                 
                 return true;
@@ -236,64 +271,71 @@ public class JxpServlet {
             return false;
         }
 
-        
+        /**
+	 * takes the actual src of the asset and fixes and prints
+	 * i.e. /foo -> static.com/foo
+	*/
         void printSRC( String src ){
 
             if ( src == null || src.length() == 0 )
                 return;
+	    
+	    // parse out options
 
+	    boolean nocdn = false;
+	    boolean forcecdn = false;
+	    
             if ( src.startsWith( "NOCDN/" ) ){
-                _writer.print( src.substring( 5 ) );
-                return;
+		nocdn = true;
+		src = src.substring( 5 );
             }
-
-            if ( src.startsWith( "CDN/" ) ){
-                _writer.print( _cdnPrefix );
-                _writer.print( src.substring( 3 ) );
-                return;
+            else if ( src.startsWith( "CDN/" ) ){
+		forcecdn = true;
+		src = src.substring( 3 );
             }
-            
-            if ( ! src.startsWith( "/" ) ){
+	    
+	    // weird special case
+            if ( ! src.startsWith( "/" ) ){ // i'm not smart enough to handle local file case yet
                 _writer.print( src );
                 return;
             }
-            
+
+	    // setup 
+
             String uri = src;
             int questionIndex = src.indexOf( "?" );
             if ( questionIndex >= 0 )
                 uri = uri.substring( 0 , questionIndex );
             
-            if ( _context != null ){
-                
-                String cdnTags = null;
-                if ( uri.equals( "/~f" ) ){
-                    cdnTags = ""; // TODO: should i put a version or timestamp here?
-                }
-                else {
+	    String cdnTags = null;
+	    if ( uri.equals( "/~f" ) || uri.equals( "/~~/f" ) ){
+		cdnTags = ""; // TODO: should i put a version or timestamp here?
+	    }
+	    else {
+		if ( _context != null ){
                     File f = _context.getFile( uri );
                     if ( f.exists() ){
                         cdnTags = "lm=" + f.lastModified();
                     }
                 }
-                
-                if ( cdnTags != null )
-                    _writer.print( _cdnPrefix );
+	    }
+	    
+	    // print
 
-                _writer.print( src );
-                
-                if ( cdnTags != null && cdnTags.length() > 0 ){
-                    if ( questionIndex < 0 )
-                        _writer.print( "?" );
-                    else
-                        _writer.print( "&" );
-                    _writer.print( cdnTags );
-                }
-                
-                return;
-            }
+	    if ( forcecdn || ( ! nocdn && cdnTags != null ) )
+		_writer.print( _cdnPrefix );
 
-            _writer.print( src );
-        }
+	    _writer.print( src );
+                
+	    if ( cdnTags != null && cdnTags.length() > 0 ){
+		if ( questionIndex < 0 )
+		    _writer.print( "?" );
+		else
+		    _writer.print( "&" );
+		_writer.print( cdnTags );
+	    }
+	    
+	}
 
         int endOfTag( String s ){
             for ( int i=0; i<s.length(); i++ ){
@@ -315,10 +357,10 @@ public class JxpServlet {
         final StringBuilder _extra = new StringBuilder();
 
         final JxpWriter _writer;
-        final String _cdnPrefix;
         final AppContext _context;
         final AppRequest _request;
 
+        String _cdnPrefix;
         JSObject _formInput = null;
         String _formInputPrefix = null;
 

@@ -1,0 +1,10 @@
+<% a = 5; %>
+<div class="123" silly>
+  <%= 5 + a %>
+</div>
+
+<script>
+  </g
+</script>
+
+(<a href="gitLocal">refresh</a>)

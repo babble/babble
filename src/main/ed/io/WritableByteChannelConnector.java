@@ -15,7 +15,6 @@ public class WritableByteChannelConnector implements WritableByteChannel {
         throws IOException {
         byte b[] = new byte[src.remaining()];
         src.get( b );
-        System.out.println( "s:" + new String( b ) );
         _out.write( b );
         return b.length;
     }

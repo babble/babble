@@ -72,3 +72,10 @@ a = null;
 print( ( ! a || a.asd ) );
 
 
+a = 2;
+print( a );
+if ( a = 1 ){
+    print( "hi" );
+}
+print( a );
+

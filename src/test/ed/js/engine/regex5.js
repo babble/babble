@@ -9,7 +9,7 @@ print( "foo the the the cow".replace( /the/ , "___" ) );
 print( "foo the the the cow".replace( /the/g , "___" ) );
 
 print( "the 123 food".match( /\d+/ ) );
-
+print( typeof ( "the 123 food".match( /\d+/ ) ) );
 print( "the 123 food".replace( /(\d+)/ , "__$_$1__") );
 
 
@@ -34,12 +34,21 @@ print( /.*123.*/.test( "the 123 is here" ) );
 print( /123/.test( "the 12 is here" ) );
 print( /(is)/.test( "the 12 is here" ) );
 
+print( "the 123 is here".match(/123/).index );
+print( /123/.exec( "the 123 is here" ).index );
+
 print( "H5" );
 p = /(\d)\.(\d)/g;
 t = "abc 123.23 sj 41.2";
-while ( ( result = p.exec( t ) ) ){
+while ( result = p.exec( t ) ){
     print( result.index + " : " + result[0] + "," + result[1] + "," + result[2] );
 }
 
 ary = "a=".split("=");
 print(ary[1] == null);
+
+print( ".*+?^=!:${}()|]/\\".replace( /([.*+?^=!:${}()|[\]\/\\ ])/g , "\\$1" ) );
+
+print("abc".match(/(a)(b)/));
+print("abc ab".match(/ab/g));
+print("abc".match(/(a)(b)/g));

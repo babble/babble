@@ -28,8 +28,13 @@ public class ByteEncoder extends Bytes {
             }
         };
 
-    // ----
+    public ByteEncoder( ByteBuffer buf ){
+        _buf = buf;
+        _buf.order( ByteOrder.LITTLE_ENDIAN );        
+    }
 
+    // ----
+    
     private ByteEncoder(){
         _buf = ByteBuffer.allocateDirect( BUF_SIZE );
         _buf.order( ByteOrder.LITTLE_ENDIAN );
@@ -46,7 +51,7 @@ public class ByteEncoder extends Bytes {
         _flipped = true;
     }
     
-    protected int putObject( String name , JSObject o ){
+    public int putObject( String name , JSObject o ){
         if ( DEBUG ) System.out.println( "putObject : " + name + " [" + o.getClass() + "]" + " # keys " + o.keySet().size() );
             
         if ( _flipped )
@@ -70,7 +75,7 @@ public class ByteEncoder extends Bytes {
         Object possibleId = o.get( "_id" );
         if ( possibleId != null ){
             if ( ! ( possibleId instanceof ObjectId ) )
-                throw new RuntimeException( "_id is not an ObjectId" );
+                throw new RuntimeException( "_id is not an ObjectId is a " + possibleId.getClass() );
             putObjectId( "_id" , (ObjectId)possibleId );
         }
             
@@ -86,8 +91,17 @@ public class ByteEncoder extends Bytes {
 
             Object val = o.get( s );
             
-            if ( val instanceof JSFunction )
+            if ( val instanceof JSFunction ){
+
+                if ( s.startsWith( "$" ) && 
+                     ! val.toString().startsWith( JSFunction.TO_STRING_PREFIX ) ){
+                    putFunction( s , (JSFunction)val );
+                    continue;
+                }
+
                 continue;
+            }
+
 
             if ( val == null )
                 putNull( s );
@@ -151,6 +165,7 @@ public class ByteEncoder extends Bytes {
         return _buf.position() - start;
     }
 
+
     protected void putBinary( String name , JSBinaryData bin ){
         
         if ( bin.length() < 0 )
@@ -181,6 +196,14 @@ public class ByteEncoder extends Bytes {
         _buf.putDouble( n.doubleValue() );
         return _buf.position() - start;
     }
+
+    protected int putFunction( String name , JSFunction func ){
+        int start = _buf.position();
+        _put( CODE , name );
+        _putValueString( func.toString() );
+        return _buf.position() - start;
+    }
+
 
     protected int putString( String name , String s ){
         int start = _buf.position();

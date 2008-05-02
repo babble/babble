@@ -9,25 +9,88 @@ import org.mozilla.javascript.*;
 
 import ed.js.*;
 import ed.io.*;
+import ed.lang.*;
 import ed.util.*;
 
-public class Convert {
+public class Convert implements StackTraceFixer {
 
     static boolean D = Boolean.getBoolean( "DEBUG.JS" );
     public static final String DEFAULT_PACKAGE = "ed.js.gen";
 
+    final boolean _invokedFromEval;
+
+    public static JSFunction makeAnon( String code ){
+        return makeAnon( code , false );
+    }
+    
+    public static JSFunction makeAnon( String code , boolean forceEval ){
+        try {
+            
+            final String nice = code.trim();
+            final String name = "anon" + Math.random();
+
+            if ( nice.startsWith( "function" ) &&
+                 nice.endsWith( "}" ) ){
+
+                Convert c = new Convert( name , code , true );
+                JSFunction func = c.get();
+                Scope s = Scope.GLOBAL.child();
+                s.setGlobal( true );
+                
+                func.call( s );
+                
+                String keyToUse = null;
+                int numKeys = 0;
+                
+                for ( String key : s.keySet() ){
+                    if ( key.equals( "arguments" ) )
+                        continue;
+                    
+                    keyToUse = key;
+                    numKeys++;
+                }
+                
+                
+                if ( numKeys == 1 ){
+                    Object val = s.get( keyToUse );
+                    if ( val instanceof JSFunction ){
+                        JSFunction f = (JSFunction)val;
+                        f.setUsePassedInScope( forceEval );
+                        return f;
+                    }
+                }
+                
+            }
+            
+            Convert c = new Convert( name , nice , forceEval );
+            return c.get();
+        }
+        catch ( IOException ioe ){
+            throw new RuntimeException( "should be impossible" , ioe );
+        }
+    }
+    
     public Convert( File sourceFile )
         throws IOException {
-        this( sourceFile.toString() , StreamUtil.readFully( sourceFile , "UTF-8" ) );
+        this( sourceFile.getAbsolutePath() , StreamUtil.readFully( sourceFile , "UTF-8" ) );
     }
     
     public Convert( String name , String source )
         throws IOException {
-        
+
+        this(name, source, false);
+    }
+
+    public Convert( String name , String source, boolean invokedFromEval)
+        throws IOException {
+
+        _invokedFromEval = invokedFromEval;
+
         _name = name;
         _source = source;
         
-        _className = _name.replaceAll(".*/(.*?)","").replaceAll( "[^\\w]+" , "_" );
+        _className = _name.replaceAll( "[^\\w]+" , "_" );
+        _fullClassName = _package + "." + _className;
         
         CompilerEnvirons ce = new CompilerEnvirons();
         
@@ -61,11 +124,17 @@ public class Convert {
         while ( n != null ){
             if ( n.getType() != Token.FUNCTION ){
 
-                if ( n.getNext() == null && 
-                     n.getType() == Token.EXPR_RESULT ){
-                    _append( "return " , n );
-                    _hasReturn = true;
+                if ( n.getNext() == null ){
+                    
+                    if ( n.getType() == Token.EXPR_RESULT ){
+                        _append( "return " , n );
+                        _hasReturn = true;
+                    }
+                    
+                    if ( n.getType() == Token.RETURN )
+                        _hasReturn = true;
                 }
+                
                 
                 _add( n , sn , state );
                 
@@ -158,7 +227,8 @@ public class Convert {
                         first = false;
                     else 
                         _append( " , " , n );
-                    _append( "\"" + id.toString() + "\"" , n );
+                    //_append( "\"" + id.toString() + "\"" , n );
+                    _append( getStringCode( id.toString() ) + ".toString()" , n );
                 }
                 _append( " } " , n );
                 
@@ -302,17 +372,21 @@ public class Convert {
             break;
 
         case Token.NUMBER:
-            String temp = String.valueOf( n.getDouble() );
-            if ( temp.endsWith( ".0" ) )
-                temp = "Integer.valueOf( " + temp.substring( 0 , temp.length() - 2 ) + " ) ";
+            double d = n.getDouble();
+            String temp = String.valueOf( d );
+
+            boolean useInt = 
+                temp.endsWith( ".0" ) || 
+                JSNumericFunctions.couldBeInt( d );
+            if ( useInt )
+                temp = "Integer.valueOf( " + ((int)d) + " ) ";
             else
                 temp = "Double.valueOf( " + temp + " ) ";
             _append( temp , n );
             break;
         case Token.STRING:
-            int stringId = _strings.size();
-            _strings.add( n.getString() );
-            _append( "_strings[" + stringId + "]" ,n );
+            final String theString = n.getString();
+            _append( getStringCode( theString ) , n );
             break;
         case Token.TRUE:
             _append( " true " , n );
@@ -343,9 +417,10 @@ public class Convert {
             if ( state.useLocalVariable( foo ) ){
                 if ( ! state.hasSymbol( foo ) )
                     throw new RuntimeException( "something is wrong" );
+                _append( "JSInternalFunctions.self ( " , n );
                 _append( foo + " = " , n );
                 _add( n.getFirstChild().getNext() , state );
-                _append( "\n" , n );
+                _append( " )\n" , n );
             }
             else {
                 _setVar( foo , 
@@ -395,7 +470,7 @@ public class Convert {
 
 
         case Token.HOOK:
-            _append( " ( JS_evalToBool( " , n );
+            _append( " JSInternalFunctions.self( JS_evalToBool( " , n );
             _add( n.getFirstChild() , state );
             _append( " ) ? ( " , n );
             _add( n.getFirstChild().getNext() , state );
@@ -405,6 +480,11 @@ public class Convert {
                      
             break;
             
+        case Token.POS:
+            _assertOne( n );
+            _add( n.getFirstChild() , state );
+            break;
+
         case Token.NE:
             _append( " ! " , n );
             
@@ -464,10 +544,11 @@ public class Convert {
             break;
             
         case Token.WHILE:
-            _append( "while( JS_evalToBool( " , n );
+            _append( "while( false || JS_evalToBool( " , n );
             _add( n.getFirstChild() , state );
-            _append( " ) ) " , n );
+            _append( " ) ){ " , n );
             _add( n.getFirstChild().getNext() , state );
+            _append( " }\n" , n );
             break;
         case Token.FOR:
             _addFor( n , state );
@@ -479,7 +560,7 @@ public class Convert {
             
         case Token.NOT:
             _assertOne( n );
-            _append( " ! JS_evalToBool( " , n );
+            _append( " JS_not( " , n );
             _add( n.getFirstChild() , state );
             _append( " ) " , n );
             break;
@@ -507,7 +588,7 @@ public class Convert {
             if ( cc.getNext().getNext() != null )
                 throw new RuntimeException( "what?" );
             
-            _append( "( scope.orSave( " , n );
+            _append( "JSInternalFunctions.self( scope.orSave( " , n );
             _add( cc , state );
             _append( " ) ? scope.getOrSave() : ( " , n );
             _add( cc.getNext() , state );
@@ -523,7 +604,7 @@ public class Convert {
             break;
             
         case Token.THROW:
-            _append( "if ( true ) throw new JSException( " , n );
+            _append( "if ( true ) _throw( " , n );
             _add( n.getFirstChild() , state );
             _append( " ); " , n );
             break;
@@ -564,6 +645,34 @@ public class Convert {
             _append( " ) " , n );
             break;
             
+        case Token.IN:
+            _append( "((JSObject)" , n );
+            _add( n.getFirstChild().getNext() , state );
+            _append( " ).containsKey( " , n );
+            _add( n.getFirstChild() , state );
+            _append( ".toString() ) " , n  );
+            break;
+
+        case Token.NEG:
+            _append( "JS_mul( -1 , " , n );
+            _add( n.getFirstChild() , state );
+            _append( " )" , n );
+            break;
+
+        case Token.ENTERWITH:
+            _append( "scope.enterWith( (JSObject)" , n );
+            _add( n.getFirstChild() , state );
+            _append( " );" , n );
+            break;
+            
+        case Token.LEAVEWITH:
+            _append( "scope.leaveWith();" , n );
+            break;
+
+        case Token.WITH:
+            _add( n.getFirstChild() , state );
+            break;
+        
         default:
             Debug.printTree( n , 0 );
             throw new RuntimeException( "can't handle : " + n.getType() + ":" + Token.name( n.getType() ) + ":" + n.getClass().getName() + " line no : " + n.getLineno() );
@@ -578,7 +687,8 @@ public class Convert {
         String val = "val" + (int)(Math.random() * 10000);
         _append( "boolean " + ft + " = false;\n" , n );
         _append( "do { \n " , n );
-        
+        _append( " if ( false ) break; \n" , n );
+
         Node caseArea = n.getFirstChild();
         _append( "Object " + val + " = " , n );
         _add( caseArea , state );
@@ -648,6 +758,10 @@ public class Convert {
         
         n = mainBlock.getNext();
 
+        final int num  = (int)(Math.random() * 100000 );
+        final String javaEName = "javaEEE" + num;
+        final String javaName = "javaEEEO" + num;
+
         while ( n != null ){
 
             if ( n.getType() == Token.FINALLY ){
@@ -662,36 +776,58 @@ public class Convert {
             if ( n.getType() == Token.LOCAL_BLOCK &&
                  n.getFirstChild().getType() == Token.CATCH_SCOPE ){
                 
-                Node c = n.getFirstChild();
-                Node b = c.getNext();
-                
-                _assertType( b , Token.BLOCK );
-                _assertType( b.getFirstChild() , Token.ENTERWITH );
-                _assertType( b.getFirstChild().getNext() , Token.WITH );
-                
-                b = b.getFirstChild().getNext().getFirstChild();
-                _assertType( b , Token.BLOCK );
-                                
-                //Debug.printTree( b , 0 );
-                
-                String jsName = c.getFirstChild().getString();
-                String javaName = "javaEEE" + jsName;
-                _append( " catch ( Throwable " + javaName + " ){ \n " , c );
+                _append( " \n catch ( Throwable " + javaEName + " ){ \n " , n );
+                _append( " \n Object " + javaName + " = ( " + javaEName + " instanceof JSException ) ? " + 
+                         "  ((JSException)" + javaEName + ").getObject() : " + javaEName + " ; \n" , n );
 
-                _append( " if ( " + javaName + " instanceof JSException ) " , c );
-                _append( " scope.put( \"" + jsName + "\" , ((JSException)" + javaName + ").getObject() , true ); " , c );
-                _append( " else \n " , c );
-                _append( " scope.put( \"" + jsName + "\" , " + javaName + " , true ); " , c );
+                Node catchScope = n.getFirstChild();
                 
-                b = b.getFirstChild();
-                while ( b != null ){
-                    if ( b.getType() == Token.LEAVEWITH )
+                while ( catchScope != null ){
+                    
+                    final Node c = catchScope;
+                    if ( c.getType() != Token.CATCH_SCOPE )
                         break;
-                    _add( b , state );
-                    b = b.getNext();
-                }
-                _append( " } \n " , c );
 
+                    Node b = c.getNext();
+                    _assertType( b , Token.BLOCK );
+                    _assertType( b.getFirstChild() , Token.ENTERWITH );
+                    _assertType( b.getFirstChild().getNext() , Token.WITH );
+                    
+                    b = b.getFirstChild().getNext().getFirstChild();
+                    _assertType( b , Token.BLOCK );
+                    
+                    String jsName = c.getFirstChild().getString();
+                    
+                    _append( " scope.put( \"" + jsName + "\" , " + javaName + " , true ); " , c );
+                    
+                    b = b.getFirstChild();
+                    
+                    boolean isIF = b.getType() == Token.IFNE;
+
+                    if ( isIF ){
+                        _append( "\n if ( " + javaName + " != null && JS_evalToBool( " , b );
+                        _add( b.getFirstChild() , state );
+                        _append( " ) ){ \n " , b  );
+                        b = b.getNext().getFirstChild();
+                    }
+                    
+                    while ( b != null ){
+                        if ( b.getType() == Token.LEAVEWITH )
+                            break;
+                        _add( b , state );
+                        b = b.getNext();
+                    }
+                    
+                    if ( isIF ){
+                        _append( javaName + " = null ;\n" , b );
+                        _append( "\n } \n " , b );
+                    }
+                    
+                    catchScope = catchScope.getNext().getNext();
+                }
+                
+                _append( "\n } \n " , n ); // ends catch
+                    
                 n = n.getNext();
                 continue;
             }
@@ -702,8 +838,14 @@ public class Convert {
                 n = n.getNext();
                 continue;
             }
-
-            throw new RuntimeException( "what : " + n.getType() );
+            
+            if ( n.getType() == Token.RETHROW ){
+                //_append( "\nthrow " + javaEName + ";\n" , n );
+                n = n.getNext();
+                continue;
+            }
+            
+            throw new RuntimeException( "what : " + Token.name( n.getType() ) );
         }
     }
     
@@ -714,8 +856,24 @@ public class Convert {
         if ( numChildren == 4 ){
             _append( "\n for ( " , n );
 
-            if ( n.getFirstChild().getType() == Token.BLOCK )
-                _add( n.getFirstChild().getFirstChild() , state );
+            if ( n.getFirstChild().getType() == Token.BLOCK ){
+                
+                Node temp = n.getFirstChild().getFirstChild();
+                while ( temp != null ){
+                    
+                    if ( temp.getType() == Token.EXPR_VOID )
+                        _add( temp.getFirstChild() , state );
+                    else
+                        _add( temp , state );
+                    
+                    temp = temp.getNext();
+                    if ( temp != null )
+                        _append( " , " , n );
+                }
+                
+                _append( " ; "  , n );
+                
+            }
             else {
                 _add( n.getFirstChild() , state );
                 _append( " ; " , n );
@@ -726,7 +884,9 @@ public class Convert {
             _append( " ) ; \n" , n );
             _add( n.getFirstChild().getNext().getNext() , state );
             _append( " )\n " , n );
+            _append( " { \n " , n );
             _add( n.getFirstChild().getNext().getNext().getNext() , state );
+            _append( " } \n " , n );
         }
         else if ( numChildren == 3 ){
             String name = n.getFirstChild().getString();
@@ -738,7 +898,7 @@ public class Convert {
             _add( n.getFirstChild().getNext() , state );
             _append( " ).keySet() ){\n " , n );
 
-            if ( state.useLocalVariable( name ) )
+            if ( state.useLocalVariable( name ) && state.hasSymbol( name ) )
                 _append( name + " = new JSString( " + tempName + ") ; " , n );
             else
                 _append( "scope.put( \"" + name + "\" , new JSString( " + tempName + " ) , true );\n" , n );
@@ -771,9 +931,9 @@ public class Convert {
             Node predicate = nodes[3];
             _assertType( predicate , Token.IFEQ );
             
-            _append( "do  \n " , theLoop );
+            _append( "do { \n " , theLoop );
             _add( main , state );
-            _append( " \n while ( JS_evalToBool( " , n );
+            _append( " } \n while ( false || JS_evalToBool( " , n );
             _add( predicate.getFirstChild() , state );
             _append( " ) );\n " , n );
         }
@@ -826,7 +986,8 @@ public class Convert {
             _setLineNumbers( fn , fn );
 
             String name = fn.getFunctionName();
-            if ( name.length() == 0 )
+            boolean anon = name.length() == 0;
+            if ( anon )
                 name = "tempFunc_" + _id + "_" + i + "_" + _methodId++;
             
             state._functionIdToName.put( i , name );
@@ -836,7 +997,7 @@ public class Convert {
                 System.out.println( i + " : " +  name );
             }
 
-            _setVar( name , fn , state );
+            _setVar( name , fn , state , anon );
             _append( "; \n scope.getFunction( \"" + name + "\" ).setName( \"" + name + "\" );\n\n" , fn );
 
         }
@@ -866,14 +1027,18 @@ public class Convert {
                 
                 if ( cur.getType() == Token.NAME ||
                      cur.getType() == Token.GETVAR )
-                    if ( cur.getString().equals( "arguments" ) )
+                    if ( cur.getString().equals( "arguments" ) || cur.getString().equals( "processArgs" ) )
                         hasArguments = true;
                 
-                if ( cur.getType() == Token.INC )
+                if ( cur.getType() == Token.INC || 
+                     cur.getType() == Token.DEC ){
+                    
                     if ( cur.getFirstChild().getType() == Token.GETVAR || 
-                         cur.getFirstChild().getType() == Token.NAME )
+                         cur.getFirstChild().getType() == Token.NAME ){
                         state.addBadLocal( cur.getFirstChild().getString() );
-                
+                    }
+                    
+                }
                 if ( cur.getNext() != null )
                     toSearch.add( cur.getNext() );
                 if ( cur.getFirstChild() != null )
@@ -886,6 +1051,14 @@ public class Convert {
         //state.debug();
 
         _append( "new JSFunctionCalls" + fn.getParamCount() + "( scope , null ){ \n" , n );
+
+        _append( "protected void init(){ super.init(); \n " , n );
+        _append( "_arguments = new JSArray();\n" , n );
+        for ( int i=0; i<fn.getParamCount(); i++ ){
+            final String foo = fn.getParamOrVarName( i );
+            _append( "_arguments.add( \"" + foo + "\" );\n" , n );
+        }
+        _append( "}\n" , n );
         
         String callLine = "public Object call( final Scope passedIn ";
         String varSetup = "";
@@ -894,7 +1067,7 @@ public class Convert {
             final String foo = fn.getParamOrVarName( i );
             callLine += " , ";
             callLine += " Object " + foo;
-
+            
             if ( ! state.useLocalVariable( foo ) ){
                 callLine += "INNNNN";
                 varSetup += " \nscope.put(\"" + foo + "\"," + foo + "INNNNN , true  );\n ";
@@ -910,8 +1083,8 @@ public class Convert {
             callLine += " ";
         }
         callLine += " , Object extra[] ){\n" ;
-
-        _append( callLine + " final Scope scope = new Scope( \"temp scope for: \" + _name  , _scope , passedIn ); " , n );
+        
+        _append( callLine + " final Scope scope = _forceUsePassedInScope ? passedIn : new Scope( \"temp scope for: \" + _name  , getScope() , passedIn ); " , n );
         if ( hasArguments ){
             _append( "JSArray arguments = new JSArray();\n" , n );
             _append( "scope.put( \"arguments\" , arguments , true );\n" , n );
@@ -947,8 +1120,10 @@ public class Convert {
     private void _addBlock( Node n , State state ){
         _assertType( n , Token.BLOCK );
 
-        if ( n.getFirstChild() == null )
+        if ( n.getFirstChild() == null ){
+            _append( "{}" , n );
             return;
+        }
 
         // this is weird.  look at bracing0.js
         
@@ -1051,9 +1226,11 @@ public class Convert {
     
     private void _setVar( String name , Node val , State state , boolean local ){
         if ( state.useLocalVariable( name ) && state.hasSymbol( name ) ){
+            _append( "JSInternalFunctions.self( " , val );
             _append( name + " = " , val );
             _add( val , state );
-            _append( ";\n" , val );
+            _append( "\n" , val );
+            _append( ")\n" , val );
             return;
         }
         _append( "scope.put( \"" + name + "\" , " , val);
@@ -1084,7 +1261,7 @@ public class Convert {
 
     public static void _assertType( Node n , int type ){
         if ( type != n.getType() )
-            throw new RuntimeException( "wrong type" );
+            throw new RuntimeException( "wrong type. was : " + Token.name( n.getType() ) + " should be " + Token.name( type )  );
     }
 
     private void _setLineNumbers( Node n , final ScriptOrFnNode sof ){
@@ -1122,6 +1299,9 @@ public class Convert {
 
     private void _append( String s , Node n ){
         _mainJavaCode.append( s );
+
+        if ( n == null )
+            return;
         
         int numLines = 0;
         for ( int i=0; i<s.length(); i++ )
@@ -1137,9 +1317,10 @@ public class Convert {
                 l = new ArrayList<Node>();
                 _javaCodeToLines.put( i , l );
             }
+            
             l.add( n );
         }
-
+        
         _currentLineNumber = end;
     }
     
@@ -1206,7 +1387,14 @@ public class Convert {
         buf.append( "\tpublic Object _call( Scope scope , Object extra[] ){\n" );
 
         buf.append( "\t\t final Scope passedIn = scope; \n" );
-        buf.append( "\t\t scope = new Scope( \"compiled script for:" + _name.replaceAll( "/tmp/jxp/s?/?0\\.\\d+/" , "" ) + "\" , scope ); \n" );
+
+        if (_invokedFromEval) {
+            buf.append("\t\t // not creating new scope for execution as we're being run in the context of an eval\n");
+        }
+        else {
+            buf.append( "\t\t scope = new Scope( \"compiled script for:" + _name.replaceAll( "/tmp/jxp/s?/?0\\.\\d+/" , "" ) + "\" , scope ); \n" );
+            buf.append( "\t\t scope.putAll( getTLScope() );\n" );
+        }
 
         buf.append( "\t\t JSArray arguments = new JSArray(); scope.put( \"arguments\" , arguments , true );\n " );
         buf.append( "\t\t if ( extra != null ) for ( Object TTTT : extra ) arguments.add( TTTT );\n" );
@@ -1245,6 +1433,12 @@ public class Convert {
             it.setName( _name );
             
             _it = it;
+
+            StackTraceHolder.getInstance().set( _fullClassName , this );
+            StackTraceHolder.getInstance().setPackage( "ed.js" , this );
+            StackTraceHolder.getInstance().setPackage( "ed.js.func" , this );
+            StackTraceHolder.getInstance().setPackage( "ed.js.engine" , this );
+
             return _it;
         }
         catch ( RuntimeException re ){
@@ -1260,65 +1454,47 @@ public class Convert {
     }
 
     public void fixStack( Throwable e ){
-        boolean removeThings = false;
+        StackTraceHolder.getInstance().fix( e );
+    }
+
+    public StackTraceElement fixSTElement( StackTraceElement element ){
+        return fixSTElement( element , false );
+    }
+    
+    public StackTraceElement fixSTElement( StackTraceElement element , boolean debug ){
+
+        if ( ! element.getClassName().startsWith( _fullClassName ) )
+            return null;
         
-        StackTraceElement stack[] = e.getStackTrace();
+        int line = element.getLineNumber();
+        if ( debug ) System.out.println( "\t" + line );
         
-        boolean changed = false;
-        for ( int i=0; i<stack.length; i++ ){
-            
-            StackTraceElement element = stack[i];
-            if ( element == null )
-                continue;
+        line = ( line - _preMainLines ) - 1;
+        if ( debug ) System.out.println( "\t" + line );
+        
+        List<Node> nodes = _javaCodeToLines.get( line );
+        if ( nodes == null )
+            return null;
+        
+        // the +1 is for the way rhino stuff
+        line = _nodeToSourceLine.get( nodes.get(0) ) + 1;
+        
+        ScriptOrFnNode sof = _nodeToSOR.get( nodes.get(0) );
+        String method = "___";
+        if ( sof instanceof FunctionNode )
+            method = ((FunctionNode)sof).getFunctionName();
+        
+        if ( debug ) System.out.println( "\t\t" + line );
+        return new StackTraceElement( _name , method , _name , line );
+    }
 
-            if ( element.toString().contains( ".call(JSFunctionCalls" ) || 
-                 element.toString().contains( "ed.js.JSFunctionBase.call(" ) ||
-                 element.toString().contains( "ed.js.engine.JSCompiledScript.call" ) ){
-                removeThings = true;
-                changed = true;
-                stack[i] = null;
-                continue;
-            }
-
-            final String file = getClassName() + ".java";
-            
-            String es = element.toString();
-            
-            if ( ! es.contains( file ) )
-                continue;
-            
-            int line = StringParseUtil.parseInt( es.substring( es.lastIndexOf( ":" ) + 1 ) , -1 ) - _preMainLines;
-            List<Node> nodes = _javaCodeToLines.get( line );
-            if ( nodes == null )
-                continue;
-            
-            // the +1 is for the way rhino stuff
-            line = _nodeToSourceLine.get( nodes.get(0) ) + 1;
-            
-            ScriptOrFnNode sof = _nodeToSOR.get( nodes.get(0) );
-            String method = "___";
-            if ( sof instanceof FunctionNode )
-                method = ((FunctionNode)sof).getFunctionName();
-            
-            
-            stack[i] = new StackTraceElement( _name , method , _name , line );
-            changed = true;
-        }
-
-        if ( removeThings ){
-            List<StackTraceElement> lst = new ArrayList<StackTraceElement>();
-            for ( StackTraceElement s : stack ){
-                if ( s == null )
-                    continue;
-                lst.add( s );
-            }
-            stack = new StackTraceElement[lst.size()];
-            for ( int i=0; i<stack.length; i++ )
-                stack[i] = lst.get(i);
-        }
-            
-        if ( changed )
-            e.setStackTrace( stack );
+    public boolean removeSTElement( StackTraceElement element ){
+        String s = element.toString();
+        
+        return 
+            s.contains( ".call(JSFunctionCalls" ) || 
+            s.contains( "ed.js.JSFunctionBase.call(" ) ||
+            s.contains( "ed.js.engine.JSCompiledScript.call" );
     }
 
     String getSource( FunctionNode fn ){
@@ -1331,6 +1507,12 @@ public class Convert {
         return realSource;
     }
 
+    private String getStringCode( String s ){
+        int stringId = _strings.size();
+        _strings.add( s );
+        return "_strings[" + stringId + "]";
+    }
+
     public boolean hasReturn(){
         return _hasReturn;
     }
@@ -1340,6 +1522,7 @@ public class Convert {
     final String _source;
     final String _encodedSource;
     final String _className;
+    final String _fullClassName;
     final String _package = DEFAULT_PACKAGE;
     final int _id = ID++;    
 

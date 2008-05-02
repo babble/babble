@@ -16,10 +16,31 @@ import static ed.js.JSInternalFunctions.*;
 public class JSArray extends JSObjectBase implements Iterable , List {
     
     public final static JSFunction _cons = new JSArrayCons();
-    static class JSArrayCons extends JSFunctionCalls0{
+    static class JSArrayCons extends JSFunctionCalls1{
         
-        public Object call( Scope s , Object[] args ){
-            throw new RuntimeException( "can't be here" );
+        public JSObject newOne(){
+            return new JSArray();
+        }
+
+        public Object call( Scope scope , Object a , Object[] extra ){        
+            int len = 0;
+            if ( extra == null || extra.length == 0 ){
+                if ( a instanceof Number )
+                    len = ((Number)a).intValue();
+            }
+            else {
+                len = 1 + extra.length;
+            }
+            
+            JSArray arr = new JSArray( len );
+            
+            if ( extra != null && extra.length > 0 ){
+                arr.setInt( 0 , a );
+                for ( int i=0; i<extra.length; i++)
+                    arr.setInt( 1 + i , extra[i] );
+            }
+            
+            return arr;
         }
 
         protected void init(){
@@ -136,6 +157,8 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                         return a.size();
                     }
                 } );
+            
+            _prototype.set( ed.lang.ruby.Ruby.RUBY_SHIFT , _prototype.get( "push" ) );
 
             _prototype.set( "unshift" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object o , Object foo[] ){
@@ -350,7 +373,20 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                         return a;
                     }
                 } );
-            
+
+            _prototype.set( "__multiAssignment" , new JSFunctionCalls0() {
+                    public Object call( Scope s , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+
+                        if ( foo != null ){
+                            for ( int i=0; i<foo.length-1; i+=2 ){
+                                JSObject obj = (JSObject)foo[i];
+                                obj.set( foo[i+1] , a.get( i / 2 ) );
+                            }
+                        }
+                        return a;
+                    }
+                } );
 
 
         }
@@ -445,7 +481,8 @@ public class JSArray extends JSObjectBase implements Iterable , List {
             keys.add( String.valueOf( i ) );
 
         keys.addAll( p );
-        
+        keys.remove( "_dbCons" );
+
         return keys;
     }
 

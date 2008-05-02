@@ -65,7 +65,13 @@ public class JSLocalFile extends JSNewFile {
                     
                 public void write( OutputStream out ) 
                     throws IOException {
-                    throw new RuntimeException( "not implemented" );
+
+                    byte b[] = new byte[length()];
+                    ByteBuffer bb = ByteBuffer.wrap( b );
+                    
+                    put( bb );
+                    
+                    out.write( b );
                 }
                     
                 public ByteBuffer asByteBuffer(){

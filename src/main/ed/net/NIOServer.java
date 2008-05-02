@@ -190,6 +190,10 @@ public abstract class NIOServer extends Thread {
             _key.interestOps( 0 );
         }
         
+        public InetAddress getInetAddress(){
+            return _channel.socket().getInetAddress();
+        }
+
         protected final SocketChannel _channel;
         private SelectionKey _key = null;
         

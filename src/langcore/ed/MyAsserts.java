@@ -22,6 +22,11 @@ public class MyAsserts {
             throw new MyAssert( "false" );
     }
 
+    public static void assertFalse( boolean b ){
+        if ( b )
+            throw new MyAssert( "true" );
+    }
+
     public static void assertEquals( int a , int b ){
         if ( a != b )
             throw new MyAssert( "" + a + " != " + b );
@@ -62,13 +67,38 @@ public class MyAsserts {
 
     public static void assertClose( String a , String b ){
 
+        assertClose(a, b, "");
+    }
+
+    public static void assertClose( String a , String b, String tag ){
+
+        if (isClose(a, b)) {
+            return;
+        }
+
+        throw new MyAssert( tag +  "[" + a + "] != [" + b + "]" );
+    }
+
+    public static boolean isClose(String a, String b) { 
+
         a = a.trim().replaceAll( "\\s+" , " " );
         b = b.trim().replaceAll( "\\s+" , " " );
 
-        if ( a.equalsIgnoreCase( b ) )
+        return a.equalsIgnoreCase(b);
+    }
+    
+    public static void assertNull( Object foo ){
+        if ( foo == null )
             return;
         
-        throw new MyAssert( "[" + a + "] != [" + b + "]" );
+        throw new MyAssert( "not null [" + foo + "]" );
+    }
+
+    public static void assertNotNull( Object foo ){
+        if ( foo != null )
+            return;
+        
+        throw new MyAssert( "null" );
     }
 
 }

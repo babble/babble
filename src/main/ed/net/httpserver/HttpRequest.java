@@ -11,6 +11,14 @@ import ed.util.*;
 
 public class HttpRequest extends JSObjectLame {
     
+    public static HttpRequest getDummy( String url ){
+        return getDummy( url , "" );
+    }
+
+    public static HttpRequest getDummy( String url , String extraHeaders ){
+        return new HttpRequest( null , "GET " + url + " HTTP/1.0\n" + extraHeaders + "\n" );
+    }
+
     HttpRequest( HttpServer.HttpSocketHandler handler , String header ){
         _handler = handler;
         _rawHeader = header;
@@ -210,8 +218,14 @@ public class HttpRequest extends JSObjectLame {
     }
 
     public Object set( Object n , Object v ){
-        throw new RuntimeException( "can't set things on an HttpRequest" );
+        String name = n.toString();
+        _finishParsing();
+        
+        Object prev = getParameter( name );
+        _addParm( name , v == null ? null : v.toString() );
+        return prev;
     }
+
     public Object get( Object n ){
         String foo = getParameter( n.toString() , null );
         if ( foo == null )
@@ -309,7 +323,8 @@ public class HttpRequest extends JSObjectLame {
     void _addParm( String n , String val ){
         
         n = n.trim();
-	
+	n = _urlDecode( n ); // TODO: check that i really should do this
+
 	List<String> lst = _parameters.get( n );
 	if ( lst == null ){
 	    lst = new ArrayList<String>();
@@ -353,6 +368,18 @@ public class HttpRequest extends JSObjectLame {
 
         _rangeChecked = true;
         return _range;
+    }
+
+    public String getRemoteIP(){
+        if ( _remoteIP != null )
+            return _remoteIP;
+        
+        String ip = getHeader( "X-Cluster-Client-Ip" );
+        if ( ip == null )
+            ip = _handler.getInetAddress().getHostAddress();
+        
+        _remoteIP = ip;
+        return _remoteIP;
     }
 
     public static long[] _parseRange( String s ){
@@ -420,6 +447,7 @@ public class HttpRequest extends JSObjectLame {
     final Map<String,String> _headers = new StringMap<String>();
     final JSDate _start = new JSDate();
     Map<String,String> _cookies;
+    String _remoteIP;
 
     boolean _parsedPost = false;
     PostData _postData;
@@ -435,7 +463,7 @@ public class HttpRequest extends JSObjectLame {
     final boolean _http11;
 
     Object _attachment;
-
+    
     private boolean _rangeChecked = false;
     private long[] _range;
 

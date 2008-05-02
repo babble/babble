@@ -1,0 +1,16 @@
+<!DOCTYPE suite SYSTEM "http://beust.com/testng/testng-1.0.dtd" >
+  
+<suite name="db" >
+  
+    <test name="db js tests">
+	<parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
+	<parameter name="dir-name"  value="src/test/ed/db/"/>
+	<parameter name="file-ending"  value=".js"/>
+	<parameter name="ex-regex"  value=".*load.*"/>
+	<classes>
+      <class name="ed.util.ScriptTestFactory"/>
+    </classes>
+  </test>    
+    
+</suite>
+

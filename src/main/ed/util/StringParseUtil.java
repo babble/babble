@@ -31,6 +31,33 @@ public final class StringParseUtil {
         return parseInt( s , def , null , true );
     }
 
+    public static Number parseIntRadix( String s , int radix ){
+        if ( s == null )
+            return Double.NaN;
+        
+        s = s.trim();
+        if ( s.length() == 0 )
+            return Double.NaN;
+
+        int firstDigit = -1;
+        int i = 0;
+        if ( s.charAt( 0 ) == '-' ) 
+            i = 1;
+        // Find first non-digit.
+        for ( ; i<s.length(); i++ ){
+            if ( Character.digit( s.charAt( i ) , radix ) == -1 )
+                break;
+        }
+        
+        try {
+            // Remember: all numbers in JS are 64-bit
+            return Long.parseLong( s.substring( 0, i ) , radix );
+        }
+        catch (Exception e) {
+            return Double.NaN;
+        }
+    }
+
     public static int parseInt( String s , int def , final int[] lastIdx , final boolean allowNegative ){
         final boolean useLastIdx = lastIdx != null && lastIdx.length > 0;
         if ( useLastIdx )
@@ -105,6 +132,16 @@ public final class StringParseUtil {
 
     }
 
+    public static Number parseStrict( String s ){
+        // Use Java's "strict parsing" methods Integer.parseInt and
+        // Double.parseDouble to parse s "strictly". i.e. if it's neither a 
+        // double or an integer, fail.
+        if( s.indexOf('.') != -1 )
+            return Double.parseDouble(s);
+        else if( s.charAt( 0 ) == '0' && s.charAt( 1 ) == 'x')
+            return Integer.parseInt( s.substring( 2, s.length() ) , 16 );
+        return Integer.parseInt(s);
+    }
 
 }
    

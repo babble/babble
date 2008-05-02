@@ -7,6 +7,7 @@ import java.util.*;
 import org.mozilla.javascript.*;
 
 import ed.util.*;
+import ed.js.*;
 import ed.js.func.*;
 
 public abstract class JSCompiledScript extends JSFunctionCalls0 {
@@ -18,9 +19,21 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
             return _call( scope, extra );
         }
         catch ( RuntimeException re ){
+            if ( Convert.D ) re.printStackTrace();
             _convert.fixStack( re );
             throw re;
         }
+    }
+
+    protected void _throw( Object foo ){
+        
+        if ( foo instanceof JSException )
+            throw ( JSException)foo;
+        
+        if ( foo instanceof Throwable )
+            throw new JSException( foo.toString() , (Throwable)foo );
+        
+        throw new JSException( foo );
     }
 
     Convert _convert;

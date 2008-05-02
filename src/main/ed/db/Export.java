@@ -38,7 +38,7 @@ public class Export {
 
             for( ; all.hasNext(); ){
                 JSObject o = all.next();
-                String nice = JSON.serialize( o , "" ).replace( '\r' , ' ' );
+                String nice = JSON.serialize( o , true , "" ).replace( '\r' , ' ' );
                 nice = nice.replaceAll( "\n" , "\\\\n" );
                 out.println( "t.save( " + nice  + ");" );
             }

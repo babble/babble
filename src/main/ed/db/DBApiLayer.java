@@ -23,6 +23,7 @@ public abstract class DBApiLayer extends DBBase {
     protected abstract void doInsert( ByteBuffer buf );
     protected abstract void doDelete( ByteBuffer buf );
     protected abstract void doUpdate( ByteBuffer buf );
+    protected abstract void doKillCursors( ByteBuffer buf );
     
     protected abstract int doQuery( ByteBuffer out , ByteBuffer in );
     protected abstract int doGetMore( ByteBuffer out , ByteBuffer in );
@@ -131,20 +132,11 @@ public abstract class DBApiLayer extends DBBase {
             _fullNameSpace = _root + "." + name;
         }
 
-        public ObjectId doapply( JSObject o ){
-            ObjectId id = (ObjectId)o.get( "_id" );
-            
-            if ( id == null ){
-                id = ObjectId.get();
-                o.set( "_id" , id );
-            }
-            
+        public void doapply( JSObject o ){
             o.set( "_ns" , _removeRoot( _fullNameSpace ) );
-
-            return id;
         }
 
-        public JSObject find( ObjectId id ){
+        public JSObject dofind( ObjectId id ){
             JSObject lookup = new JSObjectBase();
             lookup.set( "_id" , id );
             
@@ -165,7 +157,7 @@ public abstract class DBApiLayer extends DBBase {
             return o;
         }
 
-        public JSObject save( JSObject o ){
+        public JSObject doSave( JSObject o ){
             return save( o , true );
         }
                 
@@ -209,8 +201,46 @@ public abstract class DBApiLayer extends DBBase {
             
             return -1;
         }
+        
+        void _cleanCursors(){
+            if ( _deadCursorIds.size() == 0 )
+                return;
+            
+            if ( _deadCursorIds.size() % 20 != 0 && _deadCursorIds.size() < 500 )
+                return;
+            
+            List<Long> l = _deadCursorIds;
+            _deadCursorIds = new Vector<Long>();
+            
+            System.out.println( "trying to kill cursors : " + l.size() );
+            
+            try {
+                killCursors( l );
+            }
+            catch ( Throwable t ){
+                t.printStackTrace();
+                _deadCursorIds.addAll( l );
+            }
+        }
+        
+        void killCursors( List<Long> all ){
+            if ( all == null || all.size() == 0 )
+                return;
+            
+            ByteEncoder encoder = ByteEncoder.get();
+            encoder._buf.putInt( 0 ); // reserved
+            
+            encoder._buf.putInt( all.size() );
+            for ( int i=0; i<all.size(); i++ )
+                encoder._buf.putLong( all.get( i  ) );
+            
+            doKillCursors( encoder._buf );
+
+            encoder.done();
+        }
 
         public Iterator<JSObject> find( JSObject ref , JSObject fields , int numToSkip , int numToReturn ){
+            _cleanCursors();
 
             ByteEncoder encoder = ByteEncoder.get();
             
@@ -229,7 +259,7 @@ public abstract class DBApiLayer extends DBBase {
             int len = doQuery( encoder._buf , decoder._buf );
             decoder.doneReading( len );
             
-            SingleResult res = new SingleResult( _fullNameSpace , decoder );
+            SingleResult res = new SingleResult( _fullNameSpace , decoder , null );
             
             decoder.done();
             encoder.done();
@@ -279,7 +309,7 @@ public abstract class DBApiLayer extends DBBase {
 
     class SingleResult {
 
-        SingleResult( String fullNameSpace , ByteDecoder decoder ){
+        SingleResult( String fullNameSpace , ByteDecoder decoder , Set<ObjectId> seen ){
             _fullNameSpace = fullNameSpace;
             _reserved = decoder.getInt();
             _cursor = decoder.getLong();
@@ -291,13 +321,22 @@ public abstract class DBApiLayer extends DBBase {
             else if ( _num < 3 )
                 _lst = new LinkedList<JSObject>();
             else 
-                _lst = new ArrayList<JSObject>();
+                _lst = new ArrayList<JSObject>( _num );
             
             if ( _num > 0 ){    
                 int num = 0;
                 
                 while( decoder.more() && num < _num ){
                     final JSObject o = decoder.readObject();
+                    
+                    if ( seen != null ){
+                        ObjectId id = (ObjectId)o.get( "_id" );
+                        if ( id != null ){
+                            if ( seen.contains( id ) ) continue;
+                            seen.add( id );
+                        }
+                    }
+
                     o.set( "_ns" , _removeRoot( _fullNameSpace ) );
                     _lst.add( o );
                     num++;
@@ -334,6 +373,11 @@ public abstract class DBApiLayer extends DBBase {
 
         private void init( SingleResult res ){
             _curResult = res;
+            for ( JSObject o : res._lst ){
+                ObjectId id = (ObjectId)o.get( "_id" );
+                if ( id != null )
+                    _seen.add( id );
+            }
             _cur = res._lst.iterator();
         }
 
@@ -375,7 +419,7 @@ public abstract class DBApiLayer extends DBBase {
 	    int len = doGetMore( encoder._buf , decoder._buf );
 	    decoder.doneReading( len );
             
-	    SingleResult res = new SingleResult( _curResult._fullNameSpace , decoder );
+	    SingleResult res = new SingleResult( _curResult._fullNameSpace , decoder , _seen );
 	    init( res );
 	    
 	    decoder.done();
@@ -390,9 +434,15 @@ public abstract class DBApiLayer extends DBBase {
         public String toString(){
             return "DBCursor";
         }
+        
+        protected void finalize(){
+            if ( _curResult != null && _curResult._cursor > 0 )
+                _deadCursorIds.add( _curResult._cursor );
+        }
 
         SingleResult _curResult;
         Iterator<JSObject> _cur;
+        final Set<ObjectId> _seen = new HashSet<ObjectId>();
         final MyCollection _collection;
         final int _numToReturn;
     }
@@ -403,6 +453,7 @@ public abstract class DBApiLayer extends DBBase {
 
     final String _root;
     final Map<String,MyCollection> _collections = Collections.synchronizedMap( new HashMap<String,MyCollection>() );
+    List<Long> _deadCursorIds = new Vector<Long>();
 
     static final List<JSObject> EMPTY = Collections.unmodifiableList( new LinkedList<JSObject>() );
 

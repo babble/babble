@@ -28,9 +28,15 @@ public class JSRegex extends JSObjectBase {
                 r.init( p , f );
                 return r;
             }
-
+            
             protected void init(){
-
+                _prototype.set( "test" , new JSFunctionCalls1(){
+                        public Object call( Scope s , Object o , Object foo[] ){
+                            if ( o == null )
+                                return false;
+                            return ((JSRegex)s.getThis()).test( o.toString() );
+                        }
+                    } );
             }
         };
     
@@ -38,14 +44,69 @@ public class JSRegex extends JSObjectBase {
         super( _cons );
     }
 
+    public JSRegex( String p ){
+        this( p , "" );
+    }
+
     public JSRegex( String p , String f ){
         super( _cons );
         init( p , f );
     }
     
+    static String _jsToJava( String p ){
+        StringBuilder buf = new StringBuilder( p.length() + 10 );
+        
+        boolean inCharClass = false;
+        
+        for( int i=0; i<p.length(); i++ ){
+            char c = p.charAt( i );
+            
+            if ( c == '\\' &&
+                 i + 1 < p.length() &&
+                 Character.isDigit( p.charAt( i + 1 ) ) ){
+                
+                // this is an escape sequence
+                int end = i + 1;
+                while ( end < p.length() && 
+                        Character.isDigit( p.charAt( end ) ) && 
+                        end - i < 3
+                        )
+                    end++;
+                
+                int foo = Integer.parseInt( p.substring( i + 1 , end ) , 8 );
+                char myChar = (char)foo;
+
+                buf.append( myChar );
+                i = end - 1;
+                continue;
+            }
+            
+            if ( inCharClass ){
+                if ( c == '[' && 
+                     p.charAt( i - 1 ) != '\\'  )
+                    buf.append( "\\" );
+                
+                if ( c == ']' &&
+                     p.charAt( i - 1 ) != '\\'  )
+                    inCharClass = false;
+
+                buf.append( c );
+                continue;
+            }
+
+            if ( p.charAt( i ) == '[' &&
+                 ( i == 0 || p.charAt( i - 1 ) != '\\' ) )
+                inCharClass = true;
+
+            buf.append( c );
+        }
+
+        return buf.toString();
+    }
+
     void init( String p , String f ){
-        _p = p;
-        _f = f;
+        _p = _jsToJava( p );
+        _f = f == null ? "" : f;
         
         {
             int compilePatterns = 0;
@@ -58,7 +119,7 @@ public class JSRegex extends JSObjectBase {
         
         _replaceAll = f.contains( "g" );
         
-        _patt = Pattern.compile( p , _compilePatterns );
+        _patt = Pattern.compile( _p , _compilePatterns );
     }
 
     public String getPattern(){
@@ -83,6 +144,11 @@ public class JSRegex extends JSObjectBase {
 
     public Pattern getCompiled(){
         return _patt;
+    }
+
+    public boolean matches( String s ){
+        Matcher m = _patt.matcher( s );
+        return m.matches();
     }
 
     public boolean test( String s ){

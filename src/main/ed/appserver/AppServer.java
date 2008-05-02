@@ -5,7 +5,6 @@ package ed.appserver;
 import java.io.*;
 import java.util.*;
 
-import ed.io.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.net.*;
@@ -15,20 +14,14 @@ import ed.appserver.jxp.*;
 
 public class AppServer implements HttpHandler {
 
+    private static final int DEFAULT_PORT = 8080;
+
     static boolean D = Boolean.getBoolean( "DEBUG.APP" );
     static String OUR_DOMAINS[] = new String[]{ ".latenightcoders.com" , ".10gen.com" };
-    static String CDN_HOST[] = new String[]{ "origin." , "origin-local." , "static." , "static-local." };
+    static String CDN_HOST[] = new String[]{ "origin." , "origin-local." , "static." , "static-local." , "secure." };
 
-    public AppServer( AppContext defaultContext ){
-        this( defaultContext , null );
-    }
-    
-    public AppServer( String defaultContext , String root ){
-        this( new AppContext( defaultContext ) , root );
-    }
-
-    public AppServer( AppContext defaultContext , String root ){
-        _defaultContext = defaultContext;
+    public AppServer( String defaultWebRoot , String root ){
+        _defaultWebRoot = defaultWebRoot;
         _root = root;
         _rootFile = _root == null ? null : new File( _root );
     }
@@ -40,8 +33,10 @@ public class AppServer implements HttpHandler {
         if ( host != null )
             host = host.trim();
 
-        if ( host == null || _root == null || host.length() == 0 )
-            return _defaultContext;
+        if ( host == null || _root == null || host.length() == 0 ){
+            if ( D ) System.out.println( " using default context for [" + host + "]" );
+            return _getDefaultContext();
+        }
 
         AppContext ac = _context.get( host );
         if ( ac != null )
@@ -56,7 +51,7 @@ public class AppServer implements HttpHandler {
         // raw {admin.latenightcoders.com}
         File temp = new File( _root , host );
         if ( temp.exists() )
-            return getFinalContext( temp , host );
+            return getFinalContext( temp , host , host );
         
         // check for virtual hosting under us 
         // foo.latenightcoders.com -> foo.com
@@ -90,29 +85,34 @@ public class AppServer implements HttpHandler {
 	    return _coreContext;
 	}
 
+        if ( D ) System.out.println( "useHost : " + useHost );
+        
         // check for full host
         temp = new File( _root , useHost );
         if ( temp.exists() )
-            return getFinalContext( temp , host );
+            return getFinalContext( temp , host , useHost );
         
         // domain www.{alleyinsider.com}
         String domain = useHost.indexOf(".") >= 0 ? DNSUtil.getDomain( useHost ) : useHost;
         temp = new File( _rootFile , domain );
         if ( temp.exists() )
-            return getFinalContext( temp , host );
+            return getFinalContext( temp , host , useHost );
 
         // just name www.{alleyinsider}.com
         int idx = domain.indexOf( "." );
         if ( idx > 0 ){
             temp = new File( _rootFile , domain.substring( 0 , idx ) );
             if ( temp.exists() )
-                return getFinalContext( temp , host );
+                return getFinalContext( temp , host , useHost );
         }
 
-        return _defaultContext;
+        return _getDefaultContext();
     }
 
-    AppContext getFinalContext( File f , String host ){
+    AppContext getFinalContext( File f , String host , String useHost ){
+        if ( ! f.exists() )
+            throw new RuntimeException( "trying to map to " + f + " which doesn't exist" );
+
         AppContext ac = _context.get( host );
         if ( ac != null )
             return ac;
@@ -120,14 +120,67 @@ public class AppServer implements HttpHandler {
         ac = _context.get( f.toString() );
         if ( ac != null )
             return ac;
+        
+        if ( D ) System.out.println( "mapping directory [" + host + "] to " + f );
+        
+        if ( ! hasGit( f ) ){
+            if ( D ) System.out.println( "\t this is a holder for branches" );
+            f = getBranch( f , DNSUtil.getSubdomain( useHost ) );
+            if ( D ) System.out.println( "\t using full path : " + f );
+            
+        }
 
-        // TODO: branches, etc...
         ac = new AppContext( f );
         _context.put( host , ac );
         _context.put( f.toString() , ac );
         return ac;
     }
+
+    private boolean hasGit( File test ){
+        File f = new File( test , ".git" );
+        if ( f.exists() )
+            return true;
+
+        f = new File( test , "dot-git" );
+        if ( f.exists() )
+            return true;
+
+        return false;
+        
+    }
+
+    private static final String LOCAL_BRANCH_LIST[] = new String[]{ "master" , "test" , "www" };
+    private static final String WWW_BRANCH_LIST[] = new String[]{ "test" , "master" };
     
+    File getBranch( File root , String subdomain ){
+        File test = new File( root , subdomain );
+        if ( test.exists() )
+            return test;
+        
+        if ( subdomain.equals( "dev" ) ){
+            test = new File( root , "master" );
+            if ( test.exists() )
+                return test;
+        }
+        
+        String searchList[] = null;
+        
+        if ( subdomain.equals( "local" ) )
+            searchList = LOCAL_BRANCH_LIST;
+        else if ( subdomain.equals( "www" ) )
+            searchList = WWW_BRANCH_LIST;
+
+        if ( searchList != null ){
+            for ( int i=0; i<searchList.length; i++ ){
+                test = new File( root , searchList[i] );
+                if ( test.exists() )
+                    return test;
+            }
+        }
+        
+        throw new RuntimeException( "can't find branch for subdomain : " + subdomain );
+    }
+            
     public AppContext getContext( HttpRequest request , String newUri[] ){
         return getContext( request.getHeader( "Host" ) , request.getURI() , newUri );
     }
@@ -141,7 +194,7 @@ public class AppServer implements HttpHandler {
     public boolean handles( HttpRequest request , Box<Boolean> fork ){
         String uri = request.getURI();
         
-        if ( ! uri.startsWith( "/" ) || uri.endsWith( "~" ) || uri.contains( "/.#" ) )
+        if ( ! uri.startsWith( "/" ) )
             return false;
         
         AppRequest ar = createRequest( request );
@@ -166,7 +219,8 @@ public class AppServer implements HttpHandler {
         AppRequest ar = (AppRequest)request.getAttachment();
         if ( ar == null )
             ar = createRequest( request );
-
+        
+        ar.getScope().makeThreadLocal();
         ar.getContext()._usage.hit( "bytes_in" , request.totalSize() );
         ar.getContext()._usage.hit( "requests" , 1 );
         
@@ -184,6 +238,10 @@ public class AppServer implements HttpHandler {
             
             ar.getContext()._usage.hit( "cpu_millis" , t );
             ar.getContext()._usage.hit( "bytes_out" , response.totalSize() );
+            
+            ar.getScope().kill();
+
+            Scope.clearThreadLocal();
         }
     }
     
@@ -214,6 +272,9 @@ public class AppServer implements HttpHandler {
 
         File f = ar.getFile();
 
+	if ( response.getResponseCode() >= 300 )
+	    return;
+
         if ( f.toString().endsWith( ".cgi" ) ){
             handleCGI( request , response , ar , f );
             return;
@@ -221,14 +282,6 @@ public class AppServer implements HttpHandler {
         
         if ( ar.isStatic() && f.exists() ){
             if ( D ) System.out.println( f );
-
-            /*
-            if ( ! f.exists() ){
-                response.setResponseCode( 404 );
-                response.getWriter().print( "file not found\n" );
-                return;
-            }
-            */
 
             if ( f.isDirectory() ){
                 response.setResponseCode( 301 );
@@ -261,6 +314,9 @@ public class AppServer implements HttpHandler {
             else {
                 servlet.handle( request , response , ar );
             }
+        }
+        catch ( JSException.Quiet q ){
+            response.setHeader( "X-Exception" , "quiet" );
         }
         catch ( Exception e ){
             handleError( request , response , e , ar.getContext() );
@@ -359,9 +415,32 @@ public class AppServer implements HttpHandler {
         return 10000;
     }
 
+    private AppContext _getContextFromMap( String host ){
+        AppContext ac = _context.get( host );
+        if ( ac == null )
+            return null;
+        
+        if ( ! ac._reset )
+            return ac;
+
+        _context.put( host , null );
+        return null;
+    }
     
-    private final AppContext _defaultContext;
-    private final AppContext _coreContext = new AppContext( "/data/corejs" );
+    private synchronized AppContext _getDefaultContext(){
+        if ( _defaultContext != null && _defaultContext._reset )
+            _defaultContext = null;
+        
+        if ( _defaultContext != null )
+            return _defaultContext;
+        
+        _defaultContext = new AppContext( _defaultWebRoot );
+        return _defaultContext;
+    }
+
+    private final String _defaultWebRoot;
+    private AppContext _defaultContext;
+    private final AppContext _coreContext = new AppContext( CoreJS.getDefaultRoot() );
     private final String _root;
     private final File _rootFile;
     private final Map<String,AppContext> _context = Collections.synchronizedMap( new StringMap<AppContext>() );
@@ -369,22 +448,46 @@ public class AppServer implements HttpHandler {
     public static void main( String args[] )
         throws Exception {
 
-        //System.setOut( Shell._myPrintStream );
-        //System.setErr( Shell._myPrintStream );
-        
-        String root = "/data/sites/admin/";
-        if ( args != null && args.length > 0 ) 
-            root = args[0];
+        String webRoot = "/data/sites/admin/";
+        String serverRoot = "/data/sites";
 
-        AppContext ac = new AppContext( root );
+        int portNum = DEFAULT_PORT;
 
-        AppServer as = new AppServer( ac , "/data/sites/" );
+        /*
+         *     --port portnum   [root]
+         */
+        for (int i = 0; i < args.length; i++) {
+
+            if ("--port".equals(args[i])) {
+                portNum = Integer.valueOf(args[++i]);
+            }
+            else if ("--root".equals(args[i])) {
+                portNum = Integer.valueOf(args[++i]);
+            }
+            else {
+                if (i != args.length - 1) {
+                    System.out.println("error - unknown param " + args[i]);
+                    System.exit(1);
+                }
+                else {
+                    webRoot = args[i];
+                }
+            }
+        }
+
+        System.out.println("==================================");
+        System.out.println("  10gen AppServer vX");
+        System.out.println("         webRoot = " + webRoot);
+        System.out.println("      serverRoot = " + serverRoot);
+        System.out.println("     listen port = " + portNum);
+        System.out.println("==================================");
+
+        AppServer as = new AppServer( webRoot , serverRoot);
         
         HttpServer.addGlobalHandler( as );
         
-        HttpServer hs = new HttpServer( 8080 );
+        HttpServer hs = new HttpServer(portNum);
         hs.start();
         hs.join();
     }
-
 }

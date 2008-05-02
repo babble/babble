@@ -383,6 +383,8 @@ public class Base64
     }   // end encodeBytes
     
     public static String encode( String s ){
+        if ( s == null )
+            return "";
         try {
             return encodeBytes( s.getBytes( "UTF-8" ) );
         }
@@ -703,6 +705,8 @@ public class Base64
     
 
     public static String decode( String s ){
+        if ( s == null )
+            return "";
         return new String( decodeToBytes( s ) );
     }
     

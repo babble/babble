@@ -19,7 +19,7 @@ o1 = null;
 o2 = null; 
 o2 = t2.findOne(); 
 
-print( tojson( o2 ) );
+//print( tojson( o2 ) );
 
 assert( "a" == o2.o.a);
 assert( "b" == o2.o.b); 

@@ -1,6 +1,7 @@
 // JSMath.java
 
 package ed.js;
+import ed.util.StringParseUtil;
 
 import ed.js.func.*;
 import ed.js.engine.*;
@@ -72,10 +73,89 @@ public class JSMath extends JSObjectBase {
                      if ( a == null )
                          return 0;
                      if ( ! ( a instanceof Number ) )
-                         return Double.NaN;
+                         try {
+                             a = StringParseUtil.parseStrict(a.toString());
+                         }
+                         catch (Exception e) {
+                             return Double.NaN;
+                         }
                      return (int)Math.floor(((Number)a).doubleValue());
                  }
              } );
+        
+        set( "ceil" ,
+             new JSFunctionCalls1(){
+                 public Object call( Scope s , Object a , Object foo[] ){
+                     if ( a == null )
+                         return 0;
+                     if ( ! ( a instanceof Number ) )
+                         try {
+                             a = StringParseUtil.parseStrict(a.toString());
+                         }
+                         catch (Exception e) {
+                             return Double.NaN;
+                         }
+                     return (int)Math.ceil(((Number)a).doubleValue());
+                 }
+             } );
+
+        set( "round" ,
+             new JSFunctionCalls1(){
+                 public Object call( Scope s , Object a , Object foo[] ){
+                     if ( a == null )
+                         return 0;
+                     if ( ! ( a instanceof Number ) )
+                         try {
+                             a = StringParseUtil.parseStrict(a.toString());
+                         }
+                         catch (Exception e) {
+                             return Double.NaN;
+                         }
+                     return (int)Math.round(((Number)a).doubleValue());
+                 }
+             } );
+        
+        set( "abs" ,
+             new JSFunctionCalls1(){
+                 public Object call( Scope s , Object a , Object foo[] ){
+                     if ( a == null ) 
+                         return 0;
+                     if ( ! ( a instanceof Number ) )
+                         try {
+                             a = StringParseUtil.parseStrict(a.toString());
+                         }
+                         catch (Exception e) {
+                             return Double.NaN;
+                         }
+
+                     if ( a instanceof Integer )
+                         return Math.abs(((Integer)a).intValue());
+                     return Math.abs(((Number)a).doubleValue());
+                     
+                 }
+
+             } );
+
+
+        set( "sqrt" ,
+             new JSFunctionCalls1(){
+                 public Object call( Scope s , Object a , Object foo[] ){
+                     if ( a == null ) 
+                         return 0;
+                     if ( ! ( a instanceof Number ) )
+                         try {
+                             a = StringParseUtil.parseStrict(a.toString());
+                         }
+                         catch (Exception e) {
+                             return Double.NaN;
+                         }
+
+                     return Math.sqrt( ((Number)a).doubleValue() );
+                 }
+
+             } );
+
+
     }
     
 

@@ -52,7 +52,7 @@ public class HttpServer extends NIOServer {
             }
         }
         response.setResponseCode( 404 );
-        response.getWriter().print( "go away\n" );
+        response.getWriter().print( "no HTTP handlers available for : " + request.getURL() );
         response.done();
         
         return false;
@@ -243,7 +243,7 @@ public class HttpServer extends NIOServer {
     }
 
     private final ThreadPool<Task> _forkThreads = 
-        new ThreadPool<Task>( "HttpServer" , 250 ){
+        new ThreadPool<Task>( "HttpServer" , 50 ){
         
         public void handle( Task t ) throws IOException {
             t._handler.handle( t._request , t._response );

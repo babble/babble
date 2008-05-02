@@ -37,3 +37,8 @@ function a(){
 }
 
 a();
+
+for ( var i=0, j=10; i<10; i++ ){
+    print( i + "," + j );
+    break;
+}

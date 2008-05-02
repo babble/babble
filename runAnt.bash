@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export CLASSPATH=.:build:conf:/opt/java/lib/tools.jar:$CLASSPATH
+export CLASSPATH=.:build:conf:$CLASSPATH
 
 export TZ=America/New_York
 
@@ -13,5 +13,5 @@ export headless="-Djava.awt.headless=true"
     #export headless="" #was having issue so commented this out
 #fi
 
-ant && java -ea $headless -Xmx1000m "$@"
+ant && java -Djava.library.path=include -ea $headless -Xmx1000m  -XX:MaxDirectMemorySize=600M "$@"
 

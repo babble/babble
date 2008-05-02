@@ -7,66 +7,24 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#undef ed_db_DBJni_D
-#define ed_db_DBJni_D 0L
-/* Inaccessible static: _ipToSockAddr */
+/* Inaccessible static: D */
 /* Inaccessible static: EMPTY */
-/* Inaccessible static: _defaultIp */
+/* Inaccessible static: _pool */
 /*
  * Class:     ed_db_DBJni
- * Method:    createSock
- * Signature: (Ljava/lang/String;)J
+ * Method:    native_say
+ * Signature: (Ljava/nio/ByteBuffer;)V
  */
-JNIEXPORT jlong JNICALL Java_ed_db_DBJni_createSock
-  (JNIEnv *, jclass, jstring);
+JNIEXPORT void JNICALL Java_ed_db_DBJni_native_1say
+  (JNIEnv *, jclass, jobject);
 
 /*
  * Class:     ed_db_DBJni
- * Method:    msg
- * Signature: (J)Ljava/lang/String;
+ * Method:    native_call
+ * Signature: (Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;)I
  */
-JNIEXPORT jstring JNICALL Java_ed_db_DBJni_msg
-  (JNIEnv *, jclass, jlong);
-
-/*
- * Class:     ed_db_DBJni
- * Method:    insert
- * Signature: (JLjava/nio/ByteBuffer;II)V
- */
-JNIEXPORT void JNICALL Java_ed_db_DBJni_insert
-  (JNIEnv *, jclass, jlong, jobject, jint, jint);
-
-/*
- * Class:     ed_db_DBJni
- * Method:    doDelete
- * Signature: (JLjava/nio/ByteBuffer;II)V
- */
-JNIEXPORT void JNICALL Java_ed_db_DBJni_doDelete
-  (JNIEnv *, jclass, jlong, jobject, jint, jint);
-
-/*
- * Class:     ed_db_DBJni
- * Method:    doUpdate
- * Signature: (JLjava/nio/ByteBuffer;II)V
- */
-JNIEXPORT void JNICALL Java_ed_db_DBJni_doUpdate
-  (JNIEnv *, jclass, jlong, jobject, jint, jint);
-
-/*
- * Class:     ed_db_DBJni
- * Method:    query
- * Signature: (JLjava/nio/ByteBuffer;IILjava/nio/ByteBuffer;)I
- */
-JNIEXPORT jint JNICALL Java_ed_db_DBJni_query
-  (JNIEnv *, jclass, jlong, jobject, jint, jint, jobject);
-
-/*
- * Class:     ed_db_DBJni
- * Method:    getMore
- * Signature: (JLjava/nio/ByteBuffer;IILjava/nio/ByteBuffer;)I
- */
-JNIEXPORT jint JNICALL Java_ed_db_DBJni_getMore
-  (JNIEnv *, jclass, jlong, jobject, jint, jint, jobject);
+JNIEXPORT jint JNICALL Java_ed_db_DBJni_native_1call
+  (JNIEnv *, jclass, jobject, jobject);
 
 #ifdef __cplusplus
 }

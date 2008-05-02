@@ -12,14 +12,20 @@
 .#*
 .git
 *#
+*.swp
 
 #os x stuff
 *Thumbs.db*
 *.DS_Store
 
 src/main/Foo.java
+src/main/Eliot.java
+.zeuspw
 
 logs
 build
 crap
 hs_err_*
+docs
+target
+

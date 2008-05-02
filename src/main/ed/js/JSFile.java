@@ -8,10 +8,12 @@ import java.nio.channels.*;
 
 import ed.db.*;
 import ed.io.*;
+import ed.js.*;
+import ed.js.engine.*;
 
 public abstract class JSFile extends JSObjectBase {
 
-    private static final int DEF_CHUNK_SIZE = 1024 * 256;
+    protected static final int DEF_CHUNK_SIZE = 1024 * 256;
 
     protected JSFile(){
         set( "_ns" , "_files" );
@@ -25,6 +27,9 @@ public abstract class JSFile extends JSObjectBase {
         this();
         if ( id != null )
             set( "_id" , id );
+
+        if ( contentType == null && filename != null )
+            contentType = ed.appserver.MimeTypes.get( filename );
         
         set( "filename" , filename );
         set( "contentType" , contentType );
@@ -32,6 +37,9 @@ public abstract class JSFile extends JSObjectBase {
     }
     
     public JSFileChunk getFirstChunk(){
+        if ( getLength() == 0 )
+            return null;
+
         ((JSObject)get( "next" )).keySet();
         JSFileChunk chunk = (JSFileChunk)get( "next" );        
         if ( chunk == null )
@@ -73,12 +81,20 @@ public abstract class JSFile extends JSObjectBase {
         }
         return ((Number)foo).intValue();
     }
-       
+
+    public JSDate getUploadDate(){
+        JSDate d = (JSDate)get( "uploadDate" );
+        if ( d != null )
+            return d;
+        return new JSDate();
+    }
 
     public String asString(){
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        WritableByteChannelConnector w = new WritableByteChannelConnector( bout );
+        Sender s = sender();
         try {
-            sender().write( new WritableByteChannelConnector( bout ) );
+            while ( ! s.write( w ) );
         }
         catch ( IOException ioe ){
             throw new RuntimeException( "should be impossible" , ioe );
@@ -94,11 +110,50 @@ public abstract class JSFile extends JSObjectBase {
         return new Sender( getFirstChunk() );
     }        
     
-    public static class Sender {
+    /**
+     * @return full path
+     */
+    public String writeToLocalFile( String name )
+        throws IOException {
+        
+        Scope s = Scope.getThredLocal();
+        if ( s == null )
+            throw new JSException( "need a scope" );
+        
+        File f = null;
+
+        File root = (File)s.get( "_rootFile" );
+        if ( root == null ){
+            f = new File( name );
+        }
+        else {
+            File dir = new File( root , name.replaceAll( "/[^/]+$" , "/" ) );
+            dir.mkdirs();
+            f = new File( root , name );
+        }
+        
+        File temp = File.createTempFile( "writeToLocalFile" , ".tmpaa" );
+
+        FileOutputStream out = new FileOutputStream( temp);
+        write( out );
+        out.close();
+
+        if(temp.renameTo( f ) == false)
+            throw new IOException("rename from " + temp.toString() + " to "+ f.toString() + " failed");
+
+        return f.getAbsolutePath();
+    }
+
+    public class Sender extends InputStream {
         
         Sender( JSFileChunk chunk ){
-            if ( chunk == null )
-                throw new NullPointerException("chunk can't be null" );
+            
+            if ( chunk == null ){
+                _chunk = null;
+                _buf = null;
+                return;
+            }
+
             if ( chunk.getData() == null )
                 throw new NullPointerException("chunk data can't be null" );
             _chunk = chunk;
@@ -108,22 +163,25 @@ public abstract class JSFile extends JSObjectBase {
         /**
          * @return true if we're all done
          */
-        public boolean write( WritableByteChannel out )
+        boolean _done()
             throws IOException {
             
+            if ( _maxPostion >= 0 && _bytesWritten > _maxPostion )
+                return true;
+
             if ( _chunk == null )
                 return true;
             
-            if ( _buf.remaining() == 0 ){
-                _buf = null;
-                _chunk = _chunk.getNext();
-                
-                if ( _chunk == null )
-                    return true;
-                
-                _buf = _chunk.getData().asByteBuffer();
-            }
+            if ( _buf.remaining() > 0 )
+                return false;
             
+            _buf = null;
+            _chunk = _chunk.getNext();
+            
+            if ( _chunk == null )
+                return true;
+                
+            _buf = _chunk.getData().asByteBuffer();
 
             if ( _maxPostion > 0 ){
                 long bytesLeft = _maxPostion - _bytesWritten;
@@ -132,17 +190,31 @@ public abstract class JSFile extends JSObjectBase {
                     _buf.limit( _buf.position() + (int)bytesLeft );
             }
             
+            return false;
+        }
+
+        /**
+         * @return true if we're all done
+         */
+        public boolean write( WritableByteChannel out )
+            throws IOException {
+            
+            if ( _done() )
+                return true;
+            
             _bytesWritten += out.write( _buf );
             return false;
         }
 
-        public void skip( final long num )
+        public long skip( final long num )
             throws IOException {
             if ( num <= 0 )
-                return;
+                return 0;
 
-            write( new WritableByteChannel(){
-                    
+            final long start = _bytesWritten;
+
+            
+            WritableByteChannel out = new WritableByteChannel(){
                     public int write ( ByteBuffer src )
                         throws IOException {
                         for ( long i=0; i<num; i++ )
@@ -152,12 +224,57 @@ public abstract class JSFile extends JSObjectBase {
                     
                     public void close(){}
                     public boolean isOpen(){ return true; }
+                    
+                };
 
-                } );
+            while ( _bytesWritten - start < num && ! write( out ) );
+            
+            return _bytesWritten - start;
         }
 
         public void maxPosition( long max ){
             _maxPostion = max;
+        }
+
+        public int available(){
+            return (int)(getLength() - _bytesWritten);
+        }
+
+        public void close(){
+            // NO-OP
+        }
+
+        public int read(){
+            throw new RuntimeException( "not supported" );
+        }
+        
+        public int read(byte[] b)
+            throws IOException {
+            return read( b , 0 , b.length );
+        }
+        
+        public int read(byte[] b, int off, int len)
+            throws IOException {
+
+            if ( _done() )
+                return -1;
+            
+            final int toCopy = Math.min( len , _buf.remaining() );
+
+            _buf.get( b , off , toCopy );
+            _bytesWritten += toCopy;
+
+            return toCopy;
+        }
+
+        public void mark(int readlimit){
+            throw new RuntimeException( "not supported" );
+        }
+        public boolean markSupported(){
+            return false;
+        }
+        public void reset(){
+            throw new RuntimeException( "not supported" );
         }
         
         JSFileChunk _chunk;

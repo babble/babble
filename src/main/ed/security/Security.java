@@ -5,18 +5,24 @@ package ed.security;
 import ed.js.engine.*;
 
 public class Security {
-    
+
+    public final static boolean OFF = Boolean.getBoolean( "NO-SECURITY" );
+
     final static String SECURE[] = new String[]{ 
         Convert.DEFAULT_PACKAGE + "._data_corejs_" , 
         Convert.DEFAULT_PACKAGE + "._data_sites_admin_" , 
         Convert.DEFAULT_PACKAGE + "._data_sites_www_" , 
-        Convert.DEFAULT_PACKAGE + ".lastline" 
+        Convert.DEFAULT_PACKAGE + ".lastline"
     };
     
     public static boolean isCoreJS(){
+        if ( OFF )
+            return true;
+
         String topjs = getTopJS();
-        if ( topjs == null )
+        if ( topjs == null ) {
             return false;
+        }
         
         for ( int i=0; i<SECURE.length; i++ )
             if ( topjs.startsWith( SECURE[i] ) )
@@ -24,9 +30,9 @@ public class Security {
         
         return false;
     }
-    
+
     public static String getTopJS(){
-        
+
         StackTraceElement[] st = Thread.currentThread().getStackTrace();
         
         for ( int i=0; i<st.length; i++ ){
@@ -37,6 +43,4 @@ public class Security {
 
         return null;
     }
-    
-    
 }

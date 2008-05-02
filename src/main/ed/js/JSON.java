@@ -8,6 +8,7 @@ import org.mozilla.javascript.*;
 
 import ed.js.func.*;
 import ed.js.engine.*;
+import ed.log.Logger;
 
 public class JSON {
 
@@ -22,7 +23,14 @@ public class JSON {
 
         s.put( "tojson" , new JSFunctionCalls1(){
                 public Object call( Scope s , Object o , Object foo[] ){
-                    return serialize( o );
+                    return serialize( o , true );
+                }
+            } , true
+            );
+
+        s.put( "tojson_u" , new JSFunctionCalls1(){
+                public Object call( Scope s , Object o , Object foo[] ){
+                    return serialize( o , false );
                 }
             } , true
             );
@@ -35,13 +43,18 @@ public class JSON {
     }
 
     public static String serialize( Object o ){
-        return serialize( o , "\n" );
+        // Backwards compatibility
+        return serialize( o, true );
     }
 
-    public static String serialize( Object o , String nl ){
+    public static String serialize( Object o , boolean trusted ){
+        return serialize( o , trusted , "\n" );
+    }
+
+    public static String serialize( Object o , boolean trusted , String nl ){
         StringBuilder buf = new StringBuilder();
         try {
-            serialize( buf , o , nl );
+            serialize( buf , o , trusted , nl );
         }
         catch ( java.io.IOException e ){
             throw new RuntimeException( e );
@@ -49,14 +62,14 @@ public class JSON {
         return buf.toString();
     }
 
-    public static void serialize( Appendable a , Object o )
+    public static void serialize( Appendable a , Object o , boolean trusted )
         throws java.io.IOException {
-        serialize( a , o , "\n" );
+        serialize( a , o , trusted , "\n" );
     }
 
-    public static void serialize( Appendable a , Object o , String nl )
+    public static void serialize( Appendable a , Object o , boolean trusted , String nl )
         throws java.io.IOException {
-        Serializer.go( a , o , 0 , nl );
+        Serializer.go( a , o , trusted , 0 , nl );
     }
     
     static class Serializer {
@@ -74,7 +87,28 @@ public class JSON {
             return s;
         }
         
-        static void go( Appendable a , Object something , int indent , String nl  )
+        static void string( Appendable a , String s )
+            throws java.io.IOException {
+            a.append("\"");
+            for(int i = 0; i < s.length(); ++i){
+                char c = s.charAt(i);
+                if(c == '\\')
+                    a.append("\\\\");
+                else if(c == '"')
+                    a.append("\\\"");
+                else if(c == '\n')
+                    a.append("\\n");
+                else if(c == '\r')
+                    a.append("\\r");
+                else if(c == '\t')
+                    a.append("\\t");
+                else 
+                    a.append(c);
+            }
+            a.append("\"");
+        }
+
+        static void go( Appendable a , Object something , boolean trusted , int indent , String nl  )
             throws java.io.IOException {
             
             if ( nl.length() > 0 ){
@@ -94,32 +128,59 @@ public class JSON {
     
             if ( something instanceof Number || 
                  something instanceof Boolean ||
-                 something instanceof JSRegex ||
-                 something instanceof JSDate ){
+                 something instanceof JSRegex ){
                 a.append( something.toString() );
                 return;
             }
 
+	    if ( something instanceof JSDate ){
+                if ( trusted ) {
+                    a.append( "new Date( " + ((JSDate)something)._time + " ) " );
+                    return;
+                }
+                else {
+                    a.append( new Long(((JSDate)something)._time).toString() );
+                    return;
+                }
+	    }
+
             if ( something instanceof JSString || 
                  something instanceof String ){
-		String foo = something.toString();
-		foo = foo.replaceAll( "\"" , "\\\\\"" );
-                a.append( "\"" + foo + "\"" );
+                string( a , something.toString() );
+                return;
+            }
+
+            if ( something instanceof Logger ){
+                string( a , something.toString() );
                 return;
             }
 
             if ( something instanceof JSFunction ){
-                a.append( something.toString() );
-                return;
+                if ( trusted ) {
+                    String s = something.toString();
+                    if( s.startsWith(JSFunction.TO_STRING_PREFIX) )
+                        // Java implementation -- not valid JSON
+                        string ( a, s );
+                    else
+                        a.append( s );
+                    return;
+                }
+                throw new java.io.IOException("can't serialize functions in untrusted mode");
             }
             
             if ( something instanceof ed.db.ObjectId ){
-                a.append( "ObjectId( \"" + something + "\" )" );
-                return;
+                if ( trusted ) {
+                    a.append( "ObjectId( \"" + something + "\" )" );
+                    return;
+                }
+                else {
+                    string( a , something.toString() );
+                    return;
+                }
             }
 
             if ( ! ( something instanceof JSObject ) ){
-                a.append( something.toString() );
+                string( a , something.toString() );
                 return;
             }
             
@@ -129,9 +190,14 @@ public class JSON {
                 for ( int i=0; i<arr._array.size(); i++ ){
                     if ( i > 0 )
                         a.append( " , " );
-                    go( a , arr._array.get( i ) , indent , nl );
+                    go( a , arr._array.get( i ) , trusted, indent , nl );
                 }
                 a.append( " ]" );
+                return;
+            }
+
+            if ( something instanceof Scope ){
+                a.append( something.toString() );
                 return;
             }
 
@@ -168,9 +234,9 @@ public class JSON {
                     a.append( " ,"  );
                 
                 a.append( _i( indent + 1 ) );
-                a.append( s );
+                string( a , s );
                 a.append( " : " );
-                go( a , val , indent + 1 , nl );
+                go( a , val , trusted , indent + 1 , nl );
             }
 
             a.append( _i( indent + 1 ) );
@@ -184,7 +250,9 @@ public class JSON {
         CompilerEnvirons ce = new CompilerEnvirons();
         Parser p = new Parser( ce , ce.getErrorReporter() );
 
-        ScriptOrFnNode theNode = p.parse( "return " + s + ";" , "foo" , 0 );
+        s = "return " + s.trim() + ";";
+
+        ScriptOrFnNode theNode = p.parse( s , "foo" , 0 );
         
         Node ret = theNode.getFirstChild();
         Convert._assertType( ret , Token.RETURN );
@@ -230,7 +298,10 @@ public class JSON {
             return a;
         
         case Token.NUMBER:
-            return n.getDouble();
+            double d = n.getDouble();
+            if ( JSNumericFunctions.couldBeInt( d ) )
+                return (int)d;
+            return d;
         case Token.STRING:
             return new JSString( n.getString() );
 

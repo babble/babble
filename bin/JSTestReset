@@ -1,6 +1,6 @@
 #!/bin/tcsh
     
-foreach f ( `ls src/test/ed/js/engine/*.js` )
+foreach f ( `ls src/test/ed/js/engine/$1*.js src/test/ed/js/engine/si*0.js ` )
     echo $f
     set o = `echo $f | grep -o "[a-zA-Z0-9/]\+\."`out
     echo $o

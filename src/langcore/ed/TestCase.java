@@ -179,14 +179,8 @@ public class TestCase extends MyAsserts {
             throw new RuntimeException( "something is broken" );
         
         try {
-            Class c = Class.forName( theClass );
-            Object o = c.newInstance();
-            
-            System.out.println( o );
-            if ( ! ( o instanceof TestCase ) )
-                throw new RuntimeException( "you are stupid" );
-            
-            TestCase tc = (TestCase)o;
+            TestCase tc = (TestCase) Class.forName( theClass ).newInstance();
+
             if ( a.getOption( "m" ) != null )
                 tc = new TestCase( tc , a.getOption( "m" ) );
             
@@ -200,24 +194,31 @@ public class TestCase extends MyAsserts {
     public static void main( String args[] )
         throws Exception {
         
-        Process p = Runtime.getRuntime().exec( "find src/test/" );
+        String dir = "src/test";
+        if ( args != null && args.length > 0 )
+            dir = args[0];
+
+        Process p = Runtime.getRuntime().exec( "find " + dir );
         BufferedReader in = new BufferedReader( new InputStreamReader( p.getInputStream() ) );
 
         TestCase theTestCase = new TestCase();
         
         String line;
         while ( ( line = in.readLine() ) != null ){
-            if ( ! line.endsWith( "Test.java" ) )
+
+            if ( ! line.endsWith( "Test.java" ) ) {
                 continue;
-            line = line.substring( 9 );
-            line = line.substring( 0 , line.length() - 5 );
+            }
+        	
+            line = line.substring( "src/test/".length() );        	
+            line = line.substring( 0 , line.length() - ".java".length() );
+            line = line.replaceAll( "//+" , "/" );
             line = line.replace( '/' , '.' );
+
             
             System.out.println( line );
             try {
-                Class c = Class.forName( line );
-                Object o = c.newInstance();
-                TestCase tc = (TestCase)o;
+                TestCase tc = (TestCase) Class.forName( line ).newInstance();
                 theTestCase._tests.addAll( tc._tests );
             }
             catch ( Exception e ){

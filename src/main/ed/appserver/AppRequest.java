@@ -3,7 +3,6 @@
 package ed.appserver;
 
 import java.io.*;
-import java.util.*;
 
 import ed.js.*;
 import ed.js.engine.*;
@@ -80,7 +79,7 @@ public class AppRequest {
         return true;
     }
 
-    String getOverrideURI(){
+    private String getOverrideURI(){
         String foo = getOverrideURI( "mapUrlToJxpFileCore" );
         if ( foo != null )
             return foo;
@@ -92,7 +91,7 @@ public class AppRequest {
         return null;
     }
     
-    String getOverrideURI( String funcName ){
+    private String getOverrideURI( String funcName ){
         Object o = getScope().get( funcName );
         if ( o == null )
             return null;
@@ -100,13 +99,13 @@ public class AppRequest {
         if ( ! ( o instanceof JSFunction ) )
             return null;
         
-        Object res = ((JSFunction)o).call( getScope() , new JSString( getURI() ) , _request );
+        Object res = ((JSFunction)o).call( getScope() , new JSString( getURI() ) , _request , getScope().get( "response" ) );
         if ( res == null )
             return null;
         return res.toString();
     }
     
-    String getWantedURI(){
+    private String getWantedURI(){
         if ( _wantedURI != null )
             return _wantedURI;
         
@@ -140,7 +139,7 @@ public class AppRequest {
     final String _uri;
     final HttpRequest _request;
     final AppContext _context;
-    final JSArray _head = new JSArray();
+    final JSArray _head = new HeadArray();
 
     private Scope _scope;
     

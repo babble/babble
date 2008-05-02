@@ -2,11 +2,19 @@
 
 package ed.js;
 
-import ed.js.engine.*;
+import java.util.*;
 
-public class JSInternalFunctions extends JSObjectBase {
+import ed.js.engine.*;
+import ed.js.func.*;
+
+public class JSInternalFunctions extends JSNumericFunctions {
+
+    static { JS._debugSIStart( "JSInternalFunctions" ); }
+
+    static { JS._debugSI( "JSInternalFunctions" , "0" ); }
 
     public final static JSString TYPE_STRING = new JSString( "string" );
+    static { JS._debugSI( "JSInternalFunctions" , "0.1" ); }
     public final static JSString TYPE_NATIVE_STRING = new JSString( "native_string" );
     public final static JSString TYPE_NUMBER = new JSString( "number" );
     public final static JSString TYPE_BOOLEAN = new JSString( "boolean" );
@@ -15,8 +23,77 @@ public class JSInternalFunctions extends JSObjectBase {
     public final static JSString TYPE_NATIVE = new JSString( "native" );
     public final static JSString TYPE_FUNCTION = new JSString( "function" );
 
+    static {
+        JS._debugSI( "JSInternalFunctions" , "1" );
+    }
+
+
+    public static JSFunction FunctionCons = new JSFunctionCalls0(){
+            
+            public Object call( Scope s , Object extra[] ){
+                Object t = s.getThis();
+                if ( t != null )
+                    return t;
+
+                return new JSFunctionCalls0(){
+                    public Object call( Scope s , Object extra[] ){
+                        return null;
+                    }
+                };
+
+            }
+
+            protected void init(){
+                JS._debugSI( "JSInternalFunctions" , "FunctionCons init" );
+            }
+                        
+        };
+
+    static {
+        JS._debugSI( "JSInternalFunctions" , "2" );
+    }
+    
+    public JSInternalFunctions(){
+        super( FunctionCons );
+    }
+
+    public static final Object self( Object o ){
+        return o;
+    }
+
     public boolean JS_instanceof( Object thing , Object type ){
-        throw new RuntimeException( "the spec for instanceof is weird and broken - deferring" );
+        if ( thing == null )
+            return false;
+        
+        if ( type == null )
+            throw new NullPointerException( "type can't be null" );
+        
+        if ( thing instanceof Number ){
+            return false;
+        }
+
+        if ( type instanceof String || type instanceof JSString ){
+            try {
+                Class clazz = JSBuiltInFunctions._getClass( type.toString() );
+                return clazz.isAssignableFrom( thing.getClass() );
+            }
+            catch ( Exception e ){
+                throw new JSException( "can't find : " + type , e );
+            }
+        }
+        
+        if ( ! ( thing instanceof JSObject ) )
+            return false;
+        
+        if ( type instanceof JSBuiltInFunctions.NewObject )
+            return true;
+
+        JSObject o = (JSObject)thing;
+        
+        if ( o.getConstructor() == null )
+            return false;
+
+        return o.getConstructor() == type;
     }
 
     public JSString JS_typeof( Object obj ){
@@ -75,6 +152,10 @@ public class JSInternalFunctions extends JSObjectBase {
         return b;
     }
 
+    public static Boolean JS_not( Object o ){
+        return ! JS_evalToBool( o );
+    }
+
     public static boolean JS_evalToBool( Object foo ){
         if ( foo == null )
             return false;
@@ -94,88 +175,6 @@ public class JSInternalFunctions extends JSObjectBase {
             return foo.toString().length() > 0 ;
 
         return true;
-    }
-
-    public Object JS_mul( Object a , Object b ){
-        a = _parseNumber( a );
-        b = _parseNumber( b );
-
-        if ( a != null && ( a instanceof Number ) &&
-             b != null && ( b instanceof Number ) ){
-            
-            Number an = (Number)a;
-            Number bn = (Number)b;
-
-            if ( an instanceof Double ||
-                 bn instanceof Double )
-                return an.doubleValue() * bn.doubleValue();
-            
-            return an.longValue() * bn.longValue();
-        }
-        
-        return Double.NaN;
-    }
-
-    public Object JS_div( Object a , Object b ){
-        a = _parseNumber( a );
-        b = _parseNumber( b ) ;       
-
-        if ( a != null && ( a instanceof Number ) &&
-             b != null && ( b instanceof Number ) ){
-            
-            Number an = (Number)a;
-            Number bn = (Number)b;
-
-            return an.doubleValue() / bn.doubleValue();
-        }
-        
-        return Double.NaN;
-    }
-
-    public Object JS_sub( Object a , Object b ){
-        a = _parseNumber( a );
-        b = _parseNumber( b );        
-
-        if ( a != null && ( a instanceof Number ) &&
-             b != null && ( b instanceof Number ) ){
-            
-            Number an = (Number)a;
-            Number bn = (Number)b;
-
-            if ( an instanceof Double ||
-                 bn instanceof Double )
-                return an.doubleValue() - bn.doubleValue();
-            
-            return an.longValue() - bn.longValue();
-        }
-        
-        return Double.NaN;
-    }
-
-    public Object JS_add( Object a , Object b ){
-        
-        if ( a != null && ( a instanceof Number ) &&
-             b != null && ( b instanceof Number ) ){
-            
-            Number an = (Number)a;
-            Number bn = (Number)b;
-
-            if ( an instanceof Double ||
-                 bn instanceof Double )
-                return an.doubleValue() + bn.doubleValue();
-            
-            return an.longValue() + bn.longValue();
-        }
-        
-        if ( ( a != null && ( a instanceof Number ) && b == null ) ||
-             ( b != null && ( b instanceof Number ) && a == null ) ){
-            return Double.NaN;
-        }
-
-        String s1 = a == null ? "null" : a.toString();
-        String s2 = b == null ? "null" : b.toString();
-        
-        return new JSString( s1 + s2 );
     }
 
     public static Boolean JS_shne( Object a , Object b ){
@@ -262,11 +261,19 @@ public class JSInternalFunctions extends JSObjectBase {
         if ( a == null && b == null )
             return 0;
 
-        if ( a == null )
-            return 1;
+        if ( a == null ){
+            if ( b instanceof Number )
+                a = 0;
+            else
+                return 1;
+        }
         
-        if (  b == null )
-            return -1;
+        if (  b == null ){
+            if ( a instanceof Number )
+                b = 0;
+            else
+                return -1;
+        }
         
         if ( a.equals( b ) )
             return 0;
@@ -291,121 +298,6 @@ public class JSInternalFunctions extends JSObjectBase {
         return a.toString().compareTo( b.toString() );
     }
     
-    public Number JS_bitor( Object a , Object b ){
-        
-        a = _parseNumber( a );
-        b = _parseNumber( b );
-        
-        if ( a != null && a instanceof Number && 
-             b != null && b instanceof Number )
-            return ((Number)a).longValue() | ((Number)b).longValue();
-        
-        if ( a != null && a instanceof Number )
-            return (Number)a;
-
-        if ( b != null && b instanceof Number )
-            return (Number)b;
-
-        return 0;
-    }
-
-    public Number JS_bitand( Object a , Object b ){
-        
-        a = _parseNumber( a );
-        b = _parseNumber( b );
-        
-        if ( a != null && a instanceof Number && 
-             b != null && b instanceof Number )
-            return ((Number)a).longValue() & ((Number)b).longValue();
-        
-        /*
-        if ( a != null && a instanceof Number )
-            return (Number)a;
-
-        if ( b != null && b instanceof Number )
-            return (Number)b;
-        */
-        return 0;
-    }
-
-    public Number JS_bitxor( Object a , Object b ){
-        
-        a = _parseNumber( a );
-        b = _parseNumber( b );
-        
-        if ( a != null && a instanceof Number && 
-             b != null && b instanceof Number )
-            return ((Number)a).longValue() ^ ((Number)b).longValue();
-        
-        if ( a != null && a instanceof Number )
-            return (Number)a;
-
-        if ( b != null && b instanceof Number )
-            return (Number)b;
-
-        return 0;
-    }
-
-    public Number JS_mod( Object a , Object b ){
-        a = _parseNumber( a );
-        b = _parseNumber( b );
-
-        if ( a != null && a instanceof Number && 
-             b != null && b instanceof Number )
-            return ((Number)a).longValue() % ((Number)b).longValue();
-        
-        return Double.NaN;
-    }
-
-    public Number JS_lsh( Object a , Object b ){
-        a = _parseNumber( a );
-        b = _parseNumber( b );
-
-        if ( a != null && a instanceof Number && 
-             b != null && b instanceof Number )
-            return ((Number)a).longValue() << ((Number)b).longValue();
-        
-        if ( a == null || ! ( a instanceof Number ) )
-            return 0;
-        
-        return (Number)a;
-    }
-
-    public Number JS_rsh( Object a , Object b ){
-        a = _parseNumber( a );
-        b = _parseNumber( b );
-
-        if ( a != null && a instanceof Number && 
-             b != null && b instanceof Number )
-            return ((Number)a).longValue() >> ((Number)b).longValue();
-        
-        if ( a == null || ! ( a instanceof Number ) )
-            return 0;
-        
-        return (Number)a;
-    }
-
-    public Number JS_ursh( Object a , Object b ){
-        a = _parseNumber( a );
-        b = _parseNumber( b );
-
-        if ( a != null && a instanceof Number && 
-             b != null && b instanceof Number )
-            return ((Number)a).longValue() >>> ((Number)b).longValue();
-        
-        if ( a == null || ! ( a instanceof Number ) )
-            return 0;
-        
-        return (Number)a;
-    }
-
-    public Number JS_bitnot( Object a ){
-        a = _parseNumber( a );
-        if ( a instanceof Number )
-            return ~((Number)a).longValue();
-        return -1;
-    }
-
     public static final Object parseNumber( final Object o , final Object def ){
 	Object r = _parseNumber( o );
 	if ( r instanceof Number )
@@ -419,43 +311,26 @@ public class JSInternalFunctions extends JSObjectBase {
         return o[o.length-1];
     }
 
-    static final Object _parseNumber( final Object orig ){
-        Object o = orig;
+    public static long hash( Object o ){
+        long hash = 0;
+
         if ( o == null )
-            return null;
+            return hash;
         
-        if ( o instanceof Number )
-            return o;
-        
-        String s = null;
-        if ( o instanceof JSString )
-            s = o.toString();
-        else if ( o instanceof String )
-            s = o.toString();
-        
-        if ( s == null )
-            return orig;
-
-        if ( s.length() > 9 )
-            return s;
-
-        boolean allDigits = true;
-        for ( int i=0; i<s.length(); i++ ){
-            final char c = s.charAt( i );
-            if ( ! Character.isDigit( c ) ){
-                allDigits = false;
-                if ( c != '.' )
-                    return orig;
-            }
+        if ( o instanceof Collection ){
+            for ( Object foo : (Collection)o )
+                hash += hash( o );
+        }
+        else if ( o.getClass().isArray() ){
+            Object a[] = (Object[])o;
+            for ( int i=0; i<a.length; i++ )
+                hash += hash( a[i] );
+        }
+        else {
+            hash += o.hashCode();
         }
         
-        if ( allDigits )
-            return Integer.parseInt( s );
-        
-        if ( s.matches( "\\d+\\.\\d+" ) )
-            return Double.parseDouble( s );
-
-        return orig;
+        return hash;
     }
 
     static String _debug( Object o ){
@@ -463,5 +338,9 @@ public class JSInternalFunctions extends JSObjectBase {
             return "null";
         
         return "[" + o + "](" + o.getClass() + ")" ;
+    }
+
+    static {
+        JS._debugSIDone( "JSInternalFunctions" );
     }
 }

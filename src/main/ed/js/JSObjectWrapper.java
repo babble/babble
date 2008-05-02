@@ -22,12 +22,20 @@ public class JSObjectWrapper implements JSObject {
         return _wrap.getInt( n );
     }
     
-    public void removeField( Object n ){
-        _wrap.removeField( n );
+    public Object removeField( Object n ){
+        return _wrap.removeField( n );
+    }
+
+    public boolean containsKey( String s ){
+        return _wrap.containsKey( s );
     }
 
     public java.util.Collection<String> keySet(){
         return _wrap.keySet();
+    }
+
+    public JSFunction getConstructor(){
+        return null;
     }
 
     final JSObject _wrap;
