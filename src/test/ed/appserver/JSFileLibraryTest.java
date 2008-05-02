@@ -44,7 +44,13 @@ public class JSFileLibraryTest extends ed.TestCase {
     @Test(groups = {"basic"})
     public void testDirSameName(){
         assertEquals( 5 , scope.eval( "local.libtest.foo()" ) );
-        assertEquals( 5 , scope.eval( "local.libtest.foo.foo()" ) );
+        assertEquals( 6 , scope.eval( "local.libtest.foo.foo()" ) );
+    }
+
+    @Test(groups = {"basic"})
+    public void testDirPath(){
+        assertEquals( 5 , scope.eval( "local.getFromPath('libtest/foo')()" ) );
+        assertEquals( 6 , scope.eval( "local.getFromPath('libtest/foo/foo')()" ) );
     }
 
     final Scope scope;

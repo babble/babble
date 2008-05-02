@@ -148,6 +148,28 @@ public class JSFileLibrary extends JSFunctionCalls0 {
         return foo;
     }
     
+    public Object getFromPath( String path ){
+        if ( path.startsWith( "/" ) )
+            throw new RuntimeException( "can only load relative urls this way" );
+
+        final int idx = path.indexOf( "/" );
+        if ( idx < 0 )
+            return get( path );
+
+        final String dir = path.substring( 0 , idx );
+        final String next = path.substring( idx + 1 );
+        
+        Object foo = get( dir );
+        if ( foo == null )
+            throw new RuntimeException( "couldn't find " + dir );
+        
+        if ( ! ( foo instanceof JSFileLibrary ) )
+            throw new RuntimeException( dir + " is not a directory" );
+        
+        JSFileLibrary lib = (JSFileLibrary)foo;
+        return lib.getFromPath( next );
+    }
+
     public boolean isIn( File f ){
         // TODO make less slow
         return f.toString().startsWith( _base.toString() );
