@@ -22,6 +22,7 @@ public class Ruby {
     public static final String RUBY_PRIVATE = "__rprivate";
     public static final String RUBY_REQUIRE = "__rrequire";
     public static final String RUBY_RAISE = "__rraise";
+    public static final String RUBY_DEFINE_CLASS = "__rdefineclass";
 
     static final Map<String,String> _nameMapping = new TreeMap<String,String>();
     static {
@@ -189,6 +190,26 @@ public class Ruby {
                     return thing.getConstructor() == clazz;
                 }
             } , true );
+
+        s.put( RUBY_DEFINE_CLASS , new JSFunctionCalls2(){
+                public Object call( Scope s , Object old , Object func , Object extra[] ){
+                    if ( ! ( func instanceof JSFunction ) )
+                        throw new RuntimeException( "somethingis wrong" );
+                    
+                    if ( old instanceof JSFunction ){
+                        
+                        JSFunction o = (JSFunction)old;
+                        JSFunction n = (JSFunction)func;
+                        
+                        if ( o.getPrototype() != null )
+                            for ( String key : o.getPrototype().keySet() )
+                                n.getPrototype().set( key , o.getPrototype().get( key ) );
+
+                    }
+                    return func;
+                }
+            } , true );
+
 
     }
 }

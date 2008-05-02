@@ -678,14 +678,20 @@ public class RubyConvert extends ed.MyAsserts {
 
         _assertType( cn.childNodes().get(0) , Colon2Node.class );
         
+        //final String oldName = name + "__old";
+        //_append( "var " + oldName + " = " + name + ";\n" , cn );
+        
         state._classInit = _findClassInit( cn );
         
         // constructor
+
+        _append( name + " = " + Ruby.RUBY_DEFINE_CLASS + "( " + name + " , " , cn );
+        
         if ( state._classInit == null ){
-            _append( name + " = function(){ if ( this.__proto__ && this.__proto__.constructor ) this.__proto__.constructor.apply( this , arguments ); };" , cn );
+            _append( " function(){ if ( this.__proto__ && this.__proto__.constructor ) this.__proto__.constructor.apply( this , arguments ); }" , cn );
         }
         else {
-            _append( name + " = function" , state._classInit );
+            _append( " function" , state._classInit );
             if ( state._classInit.getArgsNode() == null || 
                  state._classInit.getArgsNode().getArgs() == null )
                 _append( "()" , state._classInit );
@@ -695,6 +701,8 @@ public class RubyConvert extends ed.MyAsserts {
             _add( state._classInit.getBodyNode() , state.child() );
             _append( "\n}\n" , state._classInit );
         }
+        _append( " );\n" , cn );
+        
 
         if ( cn.getSuperNode() != null ){
             _append( "\n" + name + ".prototype = new " , cn );

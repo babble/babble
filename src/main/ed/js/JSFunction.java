@@ -65,6 +65,10 @@ public abstract class JSFunction extends JSFunctionBase {
         return getScope( false );
     }
 
+    public JSObject getPrototype(){
+        return _prototype;
+    }
+
     /**
      * @package threadLocal if this is true, it returns a thread local scope that you can modify for your thread
      */
