@@ -565,10 +565,12 @@ public class RubyConvert extends ed.MyAsserts {
 
     boolean _handleTurnary( IfNode ifn , State state ){
         if ( _badTurnaryNode( ifn.getThenBody() ) ){
+            if ( D ) System.out.println( "bad turnary : " + ifn.getThenBody() );
             return false;
         }
 
         if ( _badTurnaryNode( ifn.getElseBody() ) ){
+            if ( D ) System.out.println( "bad turnary : " + ifn.getElseBody() );
             return false;
         }
 
@@ -588,6 +590,11 @@ public class RubyConvert extends ed.MyAsserts {
         if ( n == null )
             return true;
 
+        if ( n instanceof CallNode ||
+             n instanceof FCallNode ||
+             n instanceof VCallNode )
+            return false;
+        
         return 
             n == null 
             || n instanceof BlockNode 
