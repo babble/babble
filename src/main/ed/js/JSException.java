@@ -23,20 +23,23 @@ public class JSException extends RuntimeException implements JSObject {
         };
     
 
-    public final static JSFunction _cons = new JSFunctionCalls1(){
-
-            public JSObjectBase newOne(){
-                throw new JSException( "don't use new" );
-            }
-
-            public Object call( Scope scope , Object msg , Object[] extra ){
-                return new JSException( msg , null , true );
-            }
-            
-            protected void init(){
-                set( "Quiet" , _quietCons );
-            }
-        };
+    public static class cons extends JSFunctionCalls1{
+        
+        public JSObjectBase newOne(){
+            // TODO: need a work-around for this
+            return new cons();
+        }
+        
+        public Object call( Scope scope , Object msg , Object[] extra ){
+            return new JSException( msg , null , true );
+        }
+        
+        protected void init(){
+            set( "Quiet" , _quietCons );
+        }
+    }
+    
+    public final static JSFunction _cons = new cons();
 
     public JSException( Object o ){
         this( o , null );

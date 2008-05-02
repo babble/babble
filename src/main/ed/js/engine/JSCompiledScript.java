@@ -12,7 +12,7 @@ import ed.js.func.*;
 
 public abstract class JSCompiledScript extends JSFunctionCalls0 {
  
-    protected abstract Object _call( Scope scope , Object extra[] );
+    protected abstract Object _call( Scope scope , Object extra[] ) throws Throwable ;
     
     public Object call( Scope scope , Object extra[] ){
         try {
@@ -22,6 +22,11 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
             if ( Convert.D ) re.printStackTrace();
             _convert.fixStack( re );
             throw re;
+        }
+        catch ( Throwable t ){
+            if ( Convert.D ) t.printStackTrace();
+            _convert.fixStack( t );
+            throw new RuntimeException( "weird error" , t );
         }
     }
 
