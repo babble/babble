@@ -785,6 +785,12 @@ public class RubyConvert extends ed.MyAsserts {
             return;
         }
         
+        if ( n instanceof AliasNode ){
+            AliasNode an = (AliasNode)n;
+            _append( state._className + ".prototype." + _mangleFunctionName( an.getNewName() ) + " = " + 
+                     state._className + ".prototype." + _mangleFunctionName( an.getOldName() ) + ";\n" , n );
+            return;
+        }
 
         if ( n instanceof ClassVarDeclNode ){
             ClassVarDeclNode dn = (ClassVarDeclNode)n;
@@ -792,8 +798,6 @@ public class RubyConvert extends ed.MyAsserts {
             _add( dn.getValueNode() , state );
             return;
         }
-        
-        // TODO this is wrong
         
         if ( n instanceof BeginNode ||
              n instanceof RescueNode ||
