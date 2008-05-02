@@ -13,8 +13,6 @@ public class TemplateEngine {
 
         return tc.convert( t );
     }
-
-    
     
     private static final Map<String,TemplateConverter> _builtIns = new TreeMap<String,TemplateConverter>();
     static {
@@ -26,5 +24,6 @@ public class TemplateEngine {
         _builtIns.put( "rb" , new ed.lang.ruby.RubyConvert.TemplateImpl() );
         _builtIns.put( "erb" , new RubyTemplateConverter( "erb" ) );
         _builtIns.put( "rhtml" , new RubyTemplateConverter( "rhtml" ) );
+        _builtIns.put( "txt" , new RubyTemplateConverter("txt"));
     } 
 }
