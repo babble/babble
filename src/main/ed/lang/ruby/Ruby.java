@@ -20,6 +20,7 @@ public class Ruby {
     public static final String RUBY_SHIFT = "__rshift";
     public static final String RUBY_PRIVATE = "__rprivate";
     public static final String RUBY_REQUIRE = "__rrequire";
+    public static final String RUBY_RAISE = "__rraise";
 
     static final Map<String,String> _nameMapping = new TreeMap<String,String>();
     static {
@@ -27,6 +28,7 @@ public class Ruby {
         _nameMapping.put( "private" , RUBY_PRIVATE );
         _nameMapping.put( "<<" , RUBY_SHIFT );
         _nameMapping.put( "require" , RUBY_REQUIRE );
+        _nameMapping.put( "raise" , RUBY_RAISE );
     }
 
     public static void install( Scope s ){
@@ -138,5 +140,12 @@ public class Ruby {
                     return ((JSFileLibrary)s.get( "__path__" )).getFromPath( path );
                 }
             } , true );
+
+        s.put( RUBY_RAISE , new JSFunctionCalls0(){
+                public Object call( Scope s , Object extra[] ){
+                    throw new RuntimeException( "blah" );
+                } 
+            } , true );
+                
     }
 }

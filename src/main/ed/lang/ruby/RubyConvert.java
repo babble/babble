@@ -149,6 +149,37 @@ public class RubyConvert extends ed.MyAsserts {
             _appned( " }\n " , cn );
         }
 
+        else if ( node instanceof BeginNode ){
+            BeginNode bn = (BeginNode)node;
+            _assertOne( bn );
+            _add( bn.getBodyNode() , state );
+        }
+
+        else if ( node instanceof RescueNode ){
+            RescueNode rn = (RescueNode)node;
+            
+            if ( rn.getElseNode() != null )
+                throw new RuntimeException( "can't handle rescue else" );
+
+            _appned( "try {\n" , rn );
+            _add( rn.getBodyNode() , state );
+            _appned( "\n}\n" , rn );
+            if ( rn.getRescueNode() != null ){
+                _appned( "catch( zz ){\n" , rn );
+
+                RescueBodyNode rb = rn.getRescueNode();
+                while ( rb != null ){
+
+                    _add( rb.getBodyNode() , state );
+
+                    rb = rb.getOptRescueNode();
+                    if ( rb != null )
+                        throw new RuntimeException("can't handle chained rescue" );
+                }
+                _appned( "\n}\n" , rn );
+            }
+        }
+
         // --- function stuff ---
 
         else if ( node instanceof FCallNode ){
