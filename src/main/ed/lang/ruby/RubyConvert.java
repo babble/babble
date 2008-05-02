@@ -96,9 +96,14 @@ public class RubyConvert extends ed.MyAsserts {
         }
 
         else if ( node instanceof ReturnNode ){
-            _assertOne( node );
-            _append( "if ( true ) return " , node );
-            _add( node.childNodes().get(0), state );
+            if ( node.childNodes().size() == 0 ){
+                _append( "if ( true ) return;" , node );
+            }
+            else {
+                _assertOne( node );
+                _append( "if ( true ) return " , node );
+                _add( node.childNodes().get(0), state );
+            }
         }
 
         else if ( node instanceof ForNode ){
@@ -939,7 +944,7 @@ public class RubyConvert extends ed.MyAsserts {
         if ( n == null )
             throw new RuntimeException( "can't be null" );
         if ( n.childNodes() == null || n.childNodes().size() != 1 )
-            throw new RuntimeException( "need exactly 1 child" );
+            throw new RuntimeException( "need exactly 1 child : " + n.getPosition() );
         
     }
     
