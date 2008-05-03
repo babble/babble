@@ -434,6 +434,8 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof ConstNode ){
             _assertNoChildren( node );
             ConstNode lvn = (ConstNode)node;
+            if ( state._lastClass != null )
+                _append( state._lastClass + "." , node );
             _append( lvn.getName() , node );
         }
         
@@ -827,6 +829,14 @@ public class RubyConvert extends ed.MyAsserts {
             return;
         }
 
+        if ( n instanceof ConstDeclNode ){
+            ConstDeclNode cdn = (ConstDeclNode)n;
+            _append( state._className + "." + cdn.getName() + " = " , n );
+            _add( cdn.childNodes().get(0) , state );
+            _append( ";\n" , n );
+            return;
+        }
+
         if ( n instanceof ClassVarDeclNode ){
             ClassVarDeclNode dn = (ClassVarDeclNode)n;
             _append( state._className + "." + dn.getName().substring(2) + " = " , dn );
@@ -843,9 +853,10 @@ public class RubyConvert extends ed.MyAsserts {
             _add( n , state );
             return;
         }
-
+        
+        _print( 0 , n );
         throw new RuntimeException( "don't know about class piece : " + n.getClass() + " " + n.getPosition() );
-
+        
     }
 
     void _addCall( CallNode call , State state ){
@@ -1104,10 +1115,15 @@ public class RubyConvert extends ed.MyAsserts {
         }
 
         State child(){
-            return new State( this );
+            State s = new State( this );
+            s._lastClass = _className;
+            if ( s._lastClass == null )
+                s._lastClass = _lastClass;
+            return s;
         }
         
         final State _parent;
+        String _lastClass;
         String _className;
         DefnNode _classInit;
         boolean _module = false;
