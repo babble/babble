@@ -37,3 +37,15 @@ end
 blah do |a,b|
   puts a + b
 end
+
+
+class BAR
+  def bar
+    @a , @b = foo
+    puts @a
+    puts @b
+  end
+end
+
+b = BAR.new
+b.bar

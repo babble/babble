@@ -550,10 +550,10 @@ public class RubyConvert extends ed.MyAsserts {
         
         else if ( node instanceof MultipleAsgnNode ){
             MultipleAsgnNode man = (MultipleAsgnNode)node;
-            
-            _assertType( man.getValueNode() , ToAryNode.class );
-            _add( ((ToAryNode)(man.getValueNode())).getValue() , state );
-            _append( ".__multiAssignment(" , man );
+            _print( 0 , node );
+            _append( "__rtoarray( " , man );
+            _add( man.getValueNode() , state );
+            _append( ").__multiAssignment(" , man );
             
             boolean first = true;
             for ( Node temp : man.getHeadNode().childNodes() ){
@@ -591,6 +591,10 @@ public class RubyConvert extends ed.MyAsserts {
                         _append( " \"" + name + "\" " , aan );
                     
                 }
+                else if ( temp instanceof InstAsgnNode ){
+                    InstAsgnNode ian = (InstAsgnNode)temp;
+                    _append( " this , \"" + ian.getName().substring(1) + "\" "  , ian );
+                }
                 else {
                     throw new RuntimeException( "don't know how to do a multi-assign to : " + temp + " : " + temp.getPosition() );
                 }
@@ -606,6 +610,12 @@ public class RubyConvert extends ed.MyAsserts {
         }
         
         // --- literals ---
+
+        else if ( node instanceof ToAryNode ){
+            _append( "__rtoarray(" , node );
+            _add( ((ToAryNode)node).getValue() , state );
+            _append( ")" , node );
+        }
 
         else if ( node instanceof NilNode ){
             _append( " null " , node );

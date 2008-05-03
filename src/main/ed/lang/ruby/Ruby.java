@@ -16,6 +16,7 @@ public class Ruby {
     public static final String RUBY_NEW = "_rubyNew";
     public static final String RUBY_INCLUDE = "_rinclude";
     public static final String RUBY_RESCURE_INSTANCEOF = "__rrescueinstanceof";
+    public static final String RUBY_TOARRAY = "__rtoarray";
     
     public static final String RUBY_NEWNAME = "_____rnew___";
     public static final String RUBY_SHIFT = "__rshift";
@@ -143,6 +144,18 @@ public class Ruby {
                         path = path.substring( 0 , idx );
 
                     return ((JSFileLibrary)s.get( "__path__" )).getFromPath( path );
+                }
+            } , true );
+
+        s.put( RUBY_TOARRAY , new JSFunctionCalls0(){
+                public Object call( Scope s , Object extra[] ){
+                    if ( extra == null || extra.length == 0 )
+                        return new JSArray();
+                    
+                    if ( extra.length == 1 && extra[0] instanceof JSArray )
+                        return extra[0];
+                    
+                    return new JSArray( extra );
                 }
             } , true );
 
