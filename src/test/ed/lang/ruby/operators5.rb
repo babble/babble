@@ -27,3 +27,10 @@ blah( false , false );
 blah( true , true );
 
 puts( ( true ? "yay" : "bak" ) );
+
+puts "----"
+
+foo = [ true , true , false , false ]
+puts foo[3];
+foo[3] ||= true;
+puts foo[3];

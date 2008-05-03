@@ -487,6 +487,25 @@ public class RubyConvert extends ed.MyAsserts {
 
         }
 
+        else if ( node instanceof OpElementAsgnNode ){
+            OpElementAsgnNode op = (OpElementAsgnNode)node;
+
+            _add( op.getReceiverNode() , state );
+            _append( "[" , op );
+            _add( op.getArgsNode() , state );
+            _append( "]" , op );
+                        
+            _append( "=" , op );
+
+            _add( op.getReceiverNode() , state );
+            _append( "[" , op );
+            _add( op.getArgsNode() , state );
+            _append( "]" , op );
+
+            _append( op.getOperatorName()  , op );
+            _add( op.getValueNode() , state );
+        }
+
         else if ( node instanceof ClassVarNode ){
             _append( "this.__constructor__." + ((ClassVarNode)node).getName().substring(2) , node );
         }
