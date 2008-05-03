@@ -91,7 +91,9 @@ public class RubyConvert extends ed.MyAsserts {
 
         else if ( node instanceof NewlineNode ){
             _assertOne( node );
-            _add( node.childNodes().get(0) , state );
+            final Node c = node.childNodes().get(0);
+            if ( ! ( c instanceof NilNode ) )
+                _add( c , state );
             _append( "\n" , node );
         }
 
@@ -413,6 +415,10 @@ public class RubyConvert extends ed.MyAsserts {
         }
 
         // --- vars ---
+
+        else if ( node instanceof GlobalVarNode ){
+            _append( ((GlobalVarNode)node).getName() , node );
+        }
 
         else if ( node instanceof ArgumentNode ){
             _append( ((ArgumentNode)node).getName() , node );
