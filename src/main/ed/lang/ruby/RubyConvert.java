@@ -1199,15 +1199,23 @@ public class RubyConvert extends ed.MyAsserts {
     }
 
     void _append( String s , Node where ){
-        _js.append( s );
+        //_js.append( s );
         
+        int prev = 0;
         for ( int i=0; i<s.length(); i++ ){
+
             _lineMapping.put( _line , where.getPosition().getStartLine() );
             
             if ( s.charAt( i ) != '\n' )
                 continue;
+            
+            _js.append( s.substring( prev , i ).trim() );
+            _js.append( "\t\t// " + _line + "\n" );
+            prev = i;
+            
             _line++;
         }
+        _js.append( s.substring( prev ) );
     }
 
     private int _line = 1;
@@ -1236,6 +1244,7 @@ public class RubyConvert extends ed.MyAsserts {
         _operatorNames.add( "==" );
         _operatorNames.add( "|" );
         _operatorNames.add( "&" );
+        _operatorNames.add( "%" );
     }
 
     static final Set<String> _specialNames = new HashSet<String>();
