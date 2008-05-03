@@ -36,3 +36,12 @@ foo[3] ||= true;
 puts foo[3];
 
 puts( ! false )
+
+filename = "silly.blah"
+puts( filename =~ /([a-z]+)\.blah$/ );
+puts filename;
+
+puts( /([a-z]+)\.blah$/ =~ filename );
+puts filename;
+
+

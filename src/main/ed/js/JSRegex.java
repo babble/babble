@@ -37,6 +37,20 @@ public class JSRegex extends JSObjectBase {
                             return ((JSRegex)s.getThis()).test( o.toString() );
                         }
                     } );
+
+                _prototype.set( "__rmatch" , new JSFunctionCalls1(){
+                        public Object call( Scope s , Object o , Object foo[] ){
+
+                            if ( o == null )
+                                return -1;
+                            
+                            String str = o.toString();
+
+                            JSRegex r = (JSRegex)s.getThis();
+                            JSArray a = r.exec( str );
+                            return a.get( "index" );
+                        }
+                    } );
             }
         };
     

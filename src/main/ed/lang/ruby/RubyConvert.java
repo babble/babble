@@ -414,6 +414,26 @@ public class RubyConvert extends ed.MyAsserts {
             _append( " ) " , a );
         }
 
+        else if ( node instanceof Match3Node ){
+            Match3Node mn = (Match3Node)node;
+
+            _add( mn.getReceiverNode() , state );
+            _append( ".__rmatch( " , mn );
+            _add( mn.getValueNode() , state );
+            _append( ")" , mn );
+
+        }
+
+        else if ( node instanceof Match2Node ){
+            Match2Node mn = (Match2Node)node;
+
+            _add( mn.getReceiverNode() , state );
+            _append( ".__rmatch( " , mn );
+            _add( mn.getValueNode() , state );
+            _append( ")" , mn );
+
+        }
+
         // --- vars ---
 
         else if ( node instanceof GlobalVarNode ){
