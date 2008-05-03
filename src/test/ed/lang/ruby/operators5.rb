@@ -34,3 +34,5 @@ foo = [ true , true , false , false ]
 puts foo[3];
 foo[3] ||= true;
 puts foo[3];
+
+puts( ! false )

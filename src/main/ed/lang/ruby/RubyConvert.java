@@ -376,6 +376,13 @@ public class RubyConvert extends ed.MyAsserts {
 
         // --- operators ---
 
+        else if ( node instanceof NotNode ){
+            _assertOne( node );
+            _append( " ! ( " , node );
+            _add( node.childNodes().get(0), state );
+            _append( " ) " , node );
+        }
+
         else if ( node instanceof OpAsgnOrNode ){
             OpAsgnOrNode op = (OpAsgnOrNode)node;
             _add( op.getFirstNode() , state );
@@ -529,6 +536,11 @@ public class RubyConvert extends ed.MyAsserts {
                     _append( " scope " , temp );
                     _append( " , " , temp );
                     _append( "\"" + ((LocalAsgnNode)temp).getName() + "\"" , temp );
+                }
+                else if ( temp instanceof DAsgnNode ){
+                    _append( " scope " , temp );
+                    _append( " , " , temp );
+                    _append( "\"" + ((DAsgnNode)temp).getName() + "\"" , temp );
                 }
                 else if ( temp instanceof AttrAssignNode ){
             
@@ -1005,8 +1017,6 @@ public class RubyConvert extends ed.MyAsserts {
             return;
         if ( toDisplay != null )
             _print( 0 , toDisplay );
-        
-
         
         String msg = n + " is not an instanceof " + c;
         {
