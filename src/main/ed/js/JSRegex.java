@@ -48,7 +48,14 @@ public class JSRegex extends JSObjectBase {
 
                             JSRegex r = (JSRegex)s.getThis();
                             JSArray a = r.exec( str );
+                            r._last.set( a );
                             return a.get( "index" );
+                        }
+                    } );
+
+                set( "last" , new JSFunctionCalls0(){
+                        public Object call( Scope s , Object foo[] ){
+                            return _lastRegex.get();
                         }
                     } );
             }
@@ -197,10 +204,15 @@ public class JSRegex extends JSObjectBase {
             _last.set( a );
         else
             _last.set( null );
-        
+        _lastRegex.set( this );
+
         return a;
     }
     
+    public JSArray getLast(){
+        return _last.get();
+    }
+
     String _p;
     String _f;
 
@@ -210,4 +222,5 @@ public class JSRegex extends JSObjectBase {
     boolean _replaceAll;
 
     ThreadLocal<JSArray> _last = new ThreadLocal<JSArray>();
+    static ThreadLocal<JSRegex> _lastRegex = new ThreadLocal<JSRegex>();
 }

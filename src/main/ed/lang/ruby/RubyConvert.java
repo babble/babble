@@ -434,6 +434,11 @@ public class RubyConvert extends ed.MyAsserts {
 
         }
 
+        else if ( node instanceof NthRefNode ){
+            NthRefNode nth = (NthRefNode)node;
+            _append( "(RegExp.last().getLast()[" + nth.getMatchNumber() + "])" , nth );
+        }
+
         // --- vars ---
 
         else if ( node instanceof GlobalVarNode ){

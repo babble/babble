@@ -44,4 +44,5 @@ puts filename;
 puts( /([a-z]+)\.blah$/ =~ filename );
 puts filename;
 
+puts $1
 
