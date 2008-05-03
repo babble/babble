@@ -29,3 +29,11 @@ puts a[1]
 puts( ( a , b = foo ).length );
 puts a
 puts b
+
+def blah
+  yield 1 , 2 
+end
+
+blah do |a,b|
+  puts a + b
+end

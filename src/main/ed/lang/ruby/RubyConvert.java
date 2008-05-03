@@ -122,7 +122,9 @@ public class RubyConvert extends ed.MyAsserts {
 
         else if ( node instanceof YieldNode ){
             _append( "arguments[ arguments.length - 1 ]" , node );
-            _addArgs( node , node.childNodes() , state );
+            YieldNode yn = (YieldNode)node;
+            Node a = yn.getArgsNode();
+            _addArgs( node , a instanceof ArrayNode ? a.childNodes() : yn.childNodes() , state );
         }
         
         else if ( node instanceof CaseNode ){
@@ -680,8 +682,20 @@ public class RubyConvert extends ed.MyAsserts {
                 _append( ((ConstDeclNode)var).getName() , it );
             else if ( var instanceof LocalAsgnNode )
                 _append( ((LocalAsgnNode)var).getName() , it );
+            else if ( var instanceof MultipleAsgnNode ){
+
+                boolean first = true;
+                for ( Node temp : ((MultipleAsgnNode)var).getHeadNode().childNodes() ){
+                    
+                    if ( ! first )
+                        _append( " , " , temp );
+                    first = false;
+                    
+                    _append( ((INameNode)temp).getName() , temp );
+                }
+            }
             else
-                throw new RuntimeException( "don't know what to do with : " + var );
+                throw new RuntimeException( "don't know what to do with : " + var + " : " + var.getPosition() );
         }
         _append( " ){ \n" , it );
         _add( it.getBodyNode() , state );
