@@ -20,6 +20,7 @@ public class Ruby {
     public static final String RUBY_NEWNAME = "_____rnew___";
     public static final String RUBY_SHIFT = "__rshift";
     public static final String RUBY_PRIVATE = "__rprivate";
+    public static final String RUBY_PROTECTED = "__rprivate";
     public static final String RUBY_REQUIRE = "__rrequire";
     public static final String RUBY_RAISE = "__rraise";
     public static final String RUBY_DEFINE_CLASS = "__rdefineclass";
@@ -28,6 +29,7 @@ public class Ruby {
     static {
         _nameMapping.put( "new" , RUBY_NEWNAME );
         _nameMapping.put( "private" , RUBY_PRIVATE );
+        _nameMapping.put( "protected" , RUBY_PROTECTED );
         _nameMapping.put( "<<" , RUBY_SHIFT );
         _nameMapping.put( "require" , RUBY_REQUIRE );
         _nameMapping.put( "raise" , RUBY_RAISE );
