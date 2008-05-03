@@ -215,11 +215,8 @@ public class RubyConvert extends ed.MyAsserts {
                 
                 if ( f.getArgsNode() != null && f.getArgsNode().childNodes() != null ){
                     for ( Node temp : f.getArgsNode().childNodes() ){
-                        if ( first )
-                            first = false;
-                        else
-                            _append( " , " , temp );
-                        _add( temp , state );
+                        _addOneArg( temp , state , first ? " " : " , " );
+                        first = false;
                     }
                 }
                 
@@ -252,12 +249,25 @@ public class RubyConvert extends ed.MyAsserts {
 
             ArgsNode an = dn.getArgsNode();
             if ( an != null ){
+                
+                int num = 0;
+                
                 if ( an.getArgs() != null ){
                     for ( int i=0; i<an.getArgs().size(); i++ ){
                         ArgumentNode a = (ArgumentNode)an.getArgs().get(i);
-                        if ( i > 0 )
+                        if ( num++ > 0 )
                             _append( " , " , a );
                         _append( a.getName() , a );
+                    }
+                }
+
+                if ( an.getOptArgs() != null ){
+                    for ( int i=0; i<an.getOptArgs().size(); i++ ){
+                        LocalAsgnNode a = (LocalAsgnNode)an.getOptArgs().get(i);
+                        if ( num++ > 0 )
+                            _append( " , " , a );
+                        _append( a.getName() + " = " , a );
+                        _add( a.getValueNode() , state );
                     }
                 }
 
@@ -922,15 +932,16 @@ public class RubyConvert extends ed.MyAsserts {
     void _addArgs( final Node where , final List<Node> lst , final State state , final String sep ){
         _append( "(" , where );
 
-        if ( lst != null ){
-            for ( int i=0; i<lst.size(); i++ ){
-                if ( i > 0 )
-                    _append( sep , where );
-                _add( lst.get( i ) , state );
-            }
-        }
+        if ( lst != null )
+            for ( int i=0; i<lst.size(); i++ )
+                _addOneArg( lst.get( i ) , state , i > 0 ? sep : "" );
 
         _append( ")" , where );
+    }
+
+    void _addOneArg( final Node arg , final State state , final String sep ){
+        _append( sep , arg );
+        _add( arg , state );
     }
 
     // ---  asserts  ---
