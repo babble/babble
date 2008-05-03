@@ -549,7 +549,7 @@ public class RubyConvert extends ed.MyAsserts {
                     
                 }
                 else {
-                    throw new RuntimeException( "don't know how to do a multi-assign to : " + temp );
+                    throw new RuntimeException( "don't know how to do a multi-assign to : " + temp + " : " + temp.getPosition() );
                 }
             }
             
@@ -922,47 +922,40 @@ public class RubyConvert extends ed.MyAsserts {
         Node args = call.getArgsNode();
         Node iter = call.getIterNode();
         
-        if ( args != null && iter != null )
-            throw new RuntimeException( "how can you have args and iter?" );
-        
-        if ( args == null )
-            args = iter;
+        if ( self == null )
+            throw new RuntimeException("self should never be null" );
 
-        // class method call        
-        if ( self != null ){
-            
-            if ( args != null && args.childNodes().size() > 0 ){
-                _add( call.childNodes().get(0) , state );
-                _append( "." + _getFuncName( call ) , call );
-                if ( args instanceof ArrayNode )
-                    _addArgs( call , args.childNodes() , state );
-                else {
-                    _append( "(" , call );
-                    _add( args , state );
-                    _append( ")" , call );
-                }
-            }
-            else {
-                _append( Ruby.RUBY_CV_CALL + "( " , call);
-                _add( self , state );
-                _append( " , " , call );
-                _append( "\"" + _getFuncName( call ) + "\"" , call );
-                _append( " ) " , call );
-            }
-            return;            
-        }
-
-        // normal function call        
-        if ( args != null ){
-            _append( _getFuncName( call ) , call );
-            _addArgs( call , args.childNodes() , state );
+        // no params
+        if ( ( args == null || args.childNodes().size() == 0 ) 
+             && iter == null ){
+            _append( Ruby.RUBY_CV_CALL + "( " , call);
+            _add( self , state );
+            _append( " , " , call );
+            _append( "\"" + _getFuncName( call ) + "\"" , call );
+            _append( " ) " , call );
             return;
         }
         
-        // no-args
-        _append( Ruby.RUBY_V_CALL + "(" , call );
-        _add( call.childNodes().get(0) , state );
+        _add( self , state );
         _append( "." + _getFuncName( call ) , call );
+        _append( "(" , call );        
+        
+        int num = 0;
+        
+        if ( args != null ){
+            for ( Node temp : args.childNodes() ){
+                if ( num++ > 0 )
+                    _append( " , " , call );
+                _add( temp , state );
+            }
+        }
+
+        if ( iter != null ){
+            if ( num++ > 0 )
+                _append( " , " , call );
+            _add( iter , state );
+        }
+            
         _append( ")" , call );
 
     }
