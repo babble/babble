@@ -594,6 +594,12 @@ public class RubyConvert extends ed.MyAsserts {
             _append( " )" , man );
         }
         
+        else if ( node instanceof DAsgnNode ){
+            DAsgnNode dn = (DAsgnNode)node;
+            _append( "var " + dn.getName() + " = " , dn );
+            _add( dn.getValueNode() , state );
+        }
+        
         // --- literals ---
 
         else if ( node instanceof NilNode ){
