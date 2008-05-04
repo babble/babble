@@ -65,11 +65,10 @@ public abstract class ScriptTestInstanceBase extends MyAsserts implements Script
 
         try {
             f.call(scope);
+            validateOutput(scope);
         }
         catch (RuntimeException re) { 
             throw new Exception("For file " + _file.toString(), re);
         }
-            
-        validateOutput(scope);
     }
 }
