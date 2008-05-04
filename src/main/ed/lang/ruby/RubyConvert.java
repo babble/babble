@@ -506,6 +506,11 @@ public class RubyConvert extends ed.MyAsserts {
             _add( node.childNodes().get(0) , state );
             _append( "." + cn.getName() , node );
         }
+
+        else if ( node instanceof Colon3Node ){
+            Colon3Node cn = (Colon3Node)node;
+            _append( cn.getName() , node );
+        }
         
         else if ( node instanceof AttrAssignNode ){
             AttrAssignNode aan = (AttrAssignNode)node;
