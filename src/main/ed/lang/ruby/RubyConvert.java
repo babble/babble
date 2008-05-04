@@ -742,6 +742,11 @@ public class RubyConvert extends ed.MyAsserts {
         if ( n == null )
             return true;
 
+        if ( n instanceof IfNode )
+            return 
+                _badTurnaryNode( n.childNodes().get(0) ) ||
+                _badTurnaryNode( n.childNodes().get(1) );
+
         if ( n instanceof CallNode ||
              n instanceof FCallNode ||
              n instanceof VCallNode )
@@ -752,7 +757,6 @@ public class RubyConvert extends ed.MyAsserts {
             || n instanceof BlockNode 
             || n instanceof NewlineNode 
             || n instanceof DefnNode
-            || n instanceof IfNode
             || ( n.childNodes() != null && n.childNodes().size() > 1 )
             ;
     }
