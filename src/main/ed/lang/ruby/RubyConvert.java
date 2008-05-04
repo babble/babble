@@ -442,7 +442,7 @@ public class RubyConvert extends ed.MyAsserts {
         // --- vars ---
 
         else if ( node instanceof GlobalVarNode ){
-            _append( ((GlobalVarNode)node).getName() , node );
+            _append( _mangleVarName( (GlobalVarNode)node ) , node );
         }
 
         else if ( node instanceof ArgumentNode ){
@@ -550,7 +550,7 @@ public class RubyConvert extends ed.MyAsserts {
         
         else if ( node instanceof MultipleAsgnNode ){
             MultipleAsgnNode man = (MultipleAsgnNode)node;
-            _print( 0 , node );
+
             _append( "__rtoarray( " , man );
             _add( man.getValueNode() , state );
             _append( ").__multiAssignment(" , man );
@@ -1127,6 +1127,21 @@ public class RubyConvert extends ed.MyAsserts {
         return _mangleFunctionName( name );
     }
     
+    static String _mangleVarName( INameNode n ){
+        return _mangleVarName( n.getName() );
+    }
+
+    static String _mangleVarName( String name ){
+
+        if ( name.contains( "$" ) )
+            name = name.replaceAll( "\\$" , "_d_" );
+
+        if ( name.contains( "!" ) )
+            name = name.replaceAll( "\\!" , "_e_" );
+
+        return name;
+    }
+
     static String _mangleFunctionName( String name ){
         {
             final String blah = Ruby._nameMapping.get( name );
@@ -1151,6 +1166,19 @@ public class RubyConvert extends ed.MyAsserts {
 
     public String getJSSource(){
         String js = _js.toString();
+        if ( false ) {
+            File blah = new File( "/tmp/jxp/ruby/" );
+            blah.mkdirs();
+            blah = new File( blah , _name.replaceAll( "^.*/" , "/" ) );
+            try {
+                FileOutputStream fout = new FileOutputStream( blah );
+                fout.write( js.getBytes() );
+                fout.close();
+            }
+            catch ( IOException ioe ){
+                ioe.printStackTrace();
+            }
+        }
         if ( D ) System.out.println( js );
         return js;
     }
@@ -1200,22 +1228,21 @@ public class RubyConvert extends ed.MyAsserts {
 
     void _append( String s , Node where ){
         //_js.append( s );
-        
-        int prev = 0;
+
         for ( int i=0; i<s.length(); i++ ){
+            final char c = s.charAt( i );
 
             _lineMapping.put( _line , where.getPosition().getStartLine() );
-            
-            if ( s.charAt( i ) != '\n' )
+
+            if ( s.charAt( i ) != '\n' ){
+                _js.append( c );
                 continue;
+            }
             
-            _js.append( s.substring( prev , i ).trim() );
-            _js.append( "\t\t// " + _line + "\n" );
-            prev = i;
+            _js.append( "\t\t// " + where.getPosition().getStartLine() + " -->> " + _line + "\n" );
             
             _line++;
         }
-        _js.append( s.substring( prev ) );
     }
 
     private int _line = 1;
