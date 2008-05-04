@@ -63,14 +63,22 @@ public class Ruby {
             new JSFunctionCalls2(){
                 public Object call( Scope s , Object thing , Object funcName , Object extra[] ){
                     
+                    Object useThis = thing;
+
                     if ( thing == null )
                         throw new NullPointerException();
-
-                    if ( ! ( thing instanceof JSObject) )
-                        throw new RuntimeException( "problem (" + thing.getClass() + ")" );
                     
                     if ( funcName == null )
                         throw new NullPointerException( "funcName can't be null" );
+                    
+                    if ( thing instanceof Number ){
+                        thing = JSNumber.functions;
+                    }
+
+                    if ( ! ( thing instanceof JSObject) ){
+                        throw new RuntimeException( "problem (" + thing.getClass() + ")" );
+                    }
+                    
 
                     JSObject jo = (JSObject)thing;
                     
@@ -83,7 +91,7 @@ public class Ruby {
                         return func;
                     
                     JSFunction f = (JSFunction)func;
-                    return f.callAndSetThis( s , thing , null );
+                    return f.callAndSetThis( s , useThis , null );
                 }
             };
         

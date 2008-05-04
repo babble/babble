@@ -4,6 +4,10 @@ class Foo
     "B" => "b" 
   }
 
+  def initialize
+    @blah = 5
+  end
+
   def foo
     puts SILLY["A"]
   end

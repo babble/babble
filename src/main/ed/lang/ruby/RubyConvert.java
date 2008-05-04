@@ -461,9 +461,6 @@ public class RubyConvert extends ed.MyAsserts {
             _assertOne( node );
             LocalAsgnNode lan = (LocalAsgnNode)node;
             _addLocal( lan.getName() , node.childNodes().get(0) , state );
-            //_append( "var " + lan.getName() + " = " , node );
-            //_add( node.childNodes().get( 0 ) , state );
-            //_append( "" , node );
         }
         
         else if ( node instanceof LocalVarNode ){
@@ -481,9 +478,7 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof ConstNode ){
             _assertNoChildren( node );
             ConstNode lvn = (ConstNode)node;
-            if ( state._lastClass != null )
-                _append( state._lastClass + "." , node );
-            _append( lvn.getName() , node );
+            _append( lvn.getName()  , node );
         }
         
         else if ( node instanceof DStrNode ){
@@ -1072,7 +1067,7 @@ public class RubyConvert extends ed.MyAsserts {
         _append( sep , arg );
         _add( arg , state );
     }
-
+    
     // ---  asserts  ---
 
     void _assertNoChildren( Node n ){
@@ -1152,7 +1147,7 @@ public class RubyConvert extends ed.MyAsserts {
         String name = node.getName();
         
         if ( name.equals( "puts" ) )
-            return "print";
+            return "__puts__";
 
         if ( name.equals( "include" ) )
             return Ruby.RUBY_INCLUDE;
