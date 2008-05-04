@@ -63,10 +63,15 @@ public abstract class JxpSource {
         
         if ( ! t.getExtension().equals( "js" ) )
             throw new RuntimeException( "don't know what do do with : " + t.getExtension() );
-
-        Convert convert = new Convert( t.getName() , t.getContent() );
-        _func = convert.get();
-        return _func;
+        
+        try {
+            Convert convert = new Convert( t.getName() , t.getContent() );
+            _func = convert.get();
+            return _func;
+        }
+        catch ( Exception e ){
+            throw new RuntimeException( "couldn't compile : " + t.getName() , e );
+        }
     }
     
 

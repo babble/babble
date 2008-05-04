@@ -4,6 +4,7 @@ package ed.lang.ruby;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.*;
 
 import org.jruby.ast.*;
 import org.jruby.ast.types.*;
@@ -203,7 +204,8 @@ public class RubyConvert extends ed.MyAsserts {
             if ( ( f.getArgsNode() == null || f.getArgsNode().childNodes() == null || f.getArgsNode().childNodes().size() == 0 ) &&
                  f.getIterNode() == null ){
                 // no args
-                _append( Ruby.RUBY_V_CALL + "(" + _getFuncName( f ) + ")" , f );
+                final String funcName = _getFuncName( f );
+                _append( Ruby.RUBY_V_CALL + "(" + funcName + ", \"" + funcName + "\" , this )" , f );
             }
             else {
                 _append( _getFuncName( f )  , node );
@@ -293,7 +295,8 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof VCallNode ){
             _assertNoChildren( node );
             VCallNode vcn = (VCallNode)node;
-            _append( Ruby.RUBY_V_CALL + "( " + _getFuncName( vcn ) + ")" , node );
+            final String funcName = _getFuncName( vcn );
+            _append( Ruby.RUBY_V_CALL + "( " + funcName + " , \"" + funcName + "\" , this )" , node );
         }
 
         else if ( node instanceof BlockPassNode ){
@@ -1167,20 +1170,26 @@ public class RubyConvert extends ed.MyAsserts {
                 return blah;
         }
 
-        if ( name.endsWith( "?" ) )
-            name = name.substring( 0 , name.length() - 1 ) + "_q";
+        for ( int i=0; i<_functionReplacements.length; i++){
+            String v[] = _functionReplacements[i];
+            if ( name.contains( v[0] ) )
+                name = name.replaceAll( Pattern.quote( v[0] ) , v[1] );
+        }
         
-        if ( name.endsWith( "!" ) )
-            name = name.substring( 0 , name.length() - 1 ) + "_ex";
-
-        if ( name.endsWith( "=" ) )
-            name = name.substring( 0 , name.length() - 1 ) + "_eq";
-
         if ( _specialNames.contains( name ) )
             return "__" + name;
 
         return name;
     }
+    static String[][] _functionReplacements = new String[][]{ 
+        new String[]{ "!" , "_ex_" } ,
+        new String[]{ "=" , "_eq_" } ,
+        new String[]{ ">" , "_gt_" } ,
+        new String[]{ "<" , "_lt_" } ,
+        new String[]{ "[" , "_lb_" } ,
+        new String[]{ "]" , "_rb_" } ,
+        new String[]{ "?" , "_q_" } 
+    };
 
     public String getJSSource(){
         String js = _js.toString();
@@ -1245,7 +1254,6 @@ public class RubyConvert extends ed.MyAsserts {
     }
 
     void _append( String s , Node where ){
-        //_js.append( s );
 
         for ( int i=0; i<s.length(); i++ ){
             final char c = s.charAt( i );
@@ -1257,8 +1265,9 @@ public class RubyConvert extends ed.MyAsserts {
                 continue;
             }
             
-            _js.append( "\t\t// " + where.getPosition().getStartLine() + " -->> " + _line + "\n" );
+            //_js.append( "\t\t// " + where.getPosition().getStartLine() + " -->> " + _line  );
             
+            _js.append( "\n" );
             _line++;
         }
     }

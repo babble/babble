@@ -333,6 +333,16 @@ public class Scope implements JSObject {
         JSObject with[] = new JSObject[1];
         Object o = get( name , _alternate , with );
         
+        // TODO: this makes lookups inside classes work
+        //       this is for ruby
+        //       it technically violates JS rules
+        //       it should probably only work within ruby.
+        //       not sure how to do that...
+        if ( o == null ){
+            if ( getParent().getThis() instanceof JSObject )
+                o = ((JSObject)getParent().getThis()).get( name );
+        }
+
         if ( o == null )
             throw new NullPointerException( name );
         

@@ -41,6 +41,13 @@ public class Ruby {
         
         s.put( RUBY_V_CALL , new JSFunctionCalls1(){
                 public Object call( Scope s , Object foo , Object extra[] ){
+                    
+                    if ( foo == null && extra != null && extra.length > 1 ){
+                        String name = extra[0].toString();
+                        JSObject tt = (JSObject)(extra[1]);
+                        
+                        foo = tt.get( name );
+                    }
 
                     if ( foo == null )
                         return null;
