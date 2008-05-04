@@ -10,7 +10,7 @@ module A
   module B
     def silly
       puts "silly"
-      return 17
+      return 171
     end
   end
   
