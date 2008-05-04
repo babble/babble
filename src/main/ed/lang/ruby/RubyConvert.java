@@ -295,6 +295,11 @@ public class RubyConvert extends ed.MyAsserts {
             VCallNode vcn = (VCallNode)node;
             _append( Ruby.RUBY_V_CALL + "( " + _getFuncName( vcn ) + ")" , node );
         }
+
+        else if ( node instanceof BlockPassNode ){
+            BlockPassNode bp = (BlockPassNode)node;
+            _add( bp.getBodyNode() , state );
+        }
         
         else if ( node instanceof ZSuperNode ){
             
