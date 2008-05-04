@@ -113,11 +113,20 @@ public class JSObjectBase implements JSObject {
         if ( _map != null )
             res = _map.get( s );
         
+        if ( res == null && _map != null ){
+            JSObject proto = (JSObject)_map.get( "prototype" );
+            if ( proto != null )
+                res = proto.get( s );
+        };
+
         if ( res == null && _constructor != null )
             res = _constructor._prototype.get( s );
         
-        if ( res == null && _objectLowFunctions != null )
+        if ( res == null && _objectLowFunctions != null 
+             && ( _map == null || _map.get( "prototype" ) == null ) 
+             && _constructor == null ){
             res = _objectLowFunctions.get( s );
+        }
 
         return res;
     }
@@ -270,6 +279,7 @@ public class JSObjectBase implements JSObject {
         }
 
         public Object set( Object name , Object val ){
+            System.err.println( "setting " + name + " on Object.protected" );
             _things.put( name.toString() , val );
             return val;
         }
