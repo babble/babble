@@ -192,8 +192,19 @@ public class Scope implements JSObject {
     }
     
     public Object get( final String origName , Scope alt , JSObject with[] ){
+        return _get( origName , alt , with , 0 , false );
+    }
+    
+    private Object _get( final String origName , Scope alt , JSObject with[] , int depth , boolean checkThis ){
 
         String name = origName;
+        boolean noThis = false;
+
+        if ( name.equals( "__puts__" ) ){
+            noThis = true;
+            name = "print";
+        }
+
         boolean finder = false;
         if ( name.startsWith( "@@" ) & name.endsWith( "!!" ) ){
             name = name.substring( 2 , name.length() - 2 );
@@ -265,7 +276,26 @@ public class Scope implements JSObject {
         if ( _parent == null )
             return null;
         
-        return _parent.get( origName , alt );
+        if ( depth == 1 && ! noThis ){
+            Object t = getThis();
+            if ( t != null && t.getClass() == JSObjectBase.class ){
+                JSObjectBase obj = (JSObjectBase)t;
+                foo = obj.get( name );
+
+                if ( foo == null && obj.getConstructor() != null ){
+                    foo = obj.getConstructor().get( name );
+                }
+                
+                if ( foo != null ) 
+                    return foo;
+            }
+        }
+
+        return _parent._get( origName , alt , null , depth + 1 , checkThis );
+    }
+
+    public Object getOrThis( String name ){
+        return _get( name , null , null , 0 , false );
     }
 
     public void enterWith( JSObject o ){
