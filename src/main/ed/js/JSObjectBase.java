@@ -279,7 +279,6 @@ public class JSObjectBase implements JSObject {
         }
 
         public Object set( Object name , Object val ){
-            System.err.println( "setting " + name + " on Object.protected" );
             _things.put( name.toString() , val );
             return val;
         }
