@@ -1146,9 +1146,6 @@ public class RubyConvert extends ed.MyAsserts {
     static String _getFuncName( INameNode node ){
         String name = node.getName();
         
-        if ( name.equals( "puts" ) )
-            return "__puts__";
-
         if ( name.equals( "include" ) )
             return Ruby.RUBY_INCLUDE;
         
@@ -1171,6 +1168,10 @@ public class RubyConvert extends ed.MyAsserts {
     }
 
     static String _mangleFunctionName( String name ){
+
+        if ( name.equals( "puts" ) )
+            return "__puts__";
+
         {
             final String blah = Ruby._nameMapping.get( name );
             if ( blah != null )

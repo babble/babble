@@ -50,7 +50,7 @@ public class Ruby {
                     }
 
                     if ( foo == null )
-                        return null;
+                        throw new NullPointerException( "no function" );
                     
                     if ( foo instanceof JSFunction )
                         return ((JSFunction)foo).call( s );
@@ -85,7 +85,7 @@ public class Ruby {
                     Object func = jo.get( RubyConvert._mangleFunctionName( funcName.toString() ) );
                     
                     if ( func == null )
-                        return null;
+                        throw new NullPointerException( funcName.toString() );
                     
                     if ( ! ( func instanceof JSFunction ) )
                         return func;
