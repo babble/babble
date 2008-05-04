@@ -949,6 +949,8 @@ public class RubyConvert extends ed.MyAsserts {
              n instanceof FCallNode || 
              n instanceof VCallNode ||
              n instanceof ModuleNode ||
+             n instanceof IfNode ||
+             n instanceof LocalAsgnNode ||
              n instanceof ClassNode ){
             _add( n , state );
             return;
