@@ -952,6 +952,15 @@ public class RubyConvert extends ed.MyAsserts {
             return;
         }
 
+        if ( call.getName().equals( "<=>" ) ){
+            _append( "Math.posOrNeg( " , call );
+            _add( call.childNodes().get(0) , state );
+            _append( "-" , call );
+            _add( call.childNodes().get(1) , state );
+            _append( " ) " , call );
+            return;
+        }
+
         if ( _isOperator( call ) ){
             _addArgs( call , call.childNodes() , state , " " + call.getName() + " " );
             return;

@@ -46,3 +46,11 @@ puts filename;
 
 puts $1
 
+puts "---" 
+
+foo = 5
+puts foo <=> 3
+puts foo <=> 4
+puts foo <=> 5
+puts foo <=> 6
+puts foo <=> 7
