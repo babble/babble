@@ -460,9 +460,10 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof LocalAsgnNode ){
             _assertOne( node );
             LocalAsgnNode lan = (LocalAsgnNode)node;
-            _append( "var " + lan.getName() + " = " , node );
-            _add( node.childNodes().get( 0 ) , state );
-            _append( "" , node );
+            _addLocal( lan.getName() , node.childNodes().get(0) , state );
+            //_append( "var " + lan.getName() + " = " , node );
+            //_add( node.childNodes().get( 0 ) , state );
+            //_append( "" , node );
         }
         
         else if ( node instanceof LocalVarNode ){
@@ -618,8 +619,9 @@ public class RubyConvert extends ed.MyAsserts {
         
         else if ( node instanceof DAsgnNode ){
             DAsgnNode dn = (DAsgnNode)node;
-            _append( "var " + dn.getName() + " = " , dn );
-            _add( dn.getValueNode() , state );
+            _addLocal( dn.getName() , dn.getValueNode() , state );
+            //_append( "var " + dn.getName() + " = " , dn );
+            //_add( dn.getValueNode() , state );
         }
         
         // --- literals ---
@@ -769,6 +771,12 @@ public class RubyConvert extends ed.MyAsserts {
             ;
     }
 
+    void _addLocal( String name , Node val , State state ){
+        _append( "scope.put( \"" + name + "\" , " , val );
+        _add( val , state );
+        _append( " , true )" , val );
+    }
+
     void _addIterBlock( IterNode it , State state ){
         _append( "function(" , it );
         if ( it.getVarNode() != null ){
@@ -809,9 +817,6 @@ public class RubyConvert extends ed.MyAsserts {
         state._className = name;
 
         _assertType( cn.childNodes().get(0) , Colon2Node.class );
-        
-        //final String oldName = name + "__old";
-        //_append( "var " + oldName + " = " + name + ";\n" , cn );
         
         state._classInit = _findClassInit( cn );
         
