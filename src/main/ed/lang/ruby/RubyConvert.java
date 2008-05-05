@@ -162,38 +162,15 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof BeginNode ){
             BeginNode bn = (BeginNode)node;
             _assertOne( bn );
-            _add( bn.getBodyNode() , state );
+            if ( bn.getBodyNode() instanceof RescueNode )
+                _addRescueNode( (RescueNode)bn.getBodyNode() , state , true );
+            else
+                _add( bn.getBodyNode() , state );
         }
 
         else if ( node instanceof RescueNode ){
             RescueNode rn = (RescueNode)node;
-            
-            if ( rn.getElseNode() != null )
-                throw new RuntimeException( "can't handle rescue else" );
-
-            _append( "try {\n" , rn );
-            _add( rn.getBodyNode() , state );
-            _append( "\n}\n" , rn );
-
-            RescueBodyNode rb = rn.getRescueNode();
-            while ( rb != null ){
-                
-                final String name = "name" + (int)(Math.random() * 12312312);
-
-                _append( "catch( " + name  , rb );
-                if ( rb.getExceptionNodes() != null ){
-                    _append( " if " + Ruby.RUBY_RESCURE_INSTANCEOF + "( " + name + " , " , rb );
-                    _add( rb.getExceptionNodes() , state );
-                    _append( " ) " , rb );
-                }
-                _append( " ){\n" , rb );
-                _add( rb.getBodyNode() , state );
-                _append( "\n}\n" , rn );
-                
-                rb = rb.getOptRescueNode();
-                if ( rb != null )
-                    throw new RuntimeException("can't handle chained rescue" );
-            }
+            _addRescueNode( rn , state , false );
         }
 
         // --- function stuff ---
@@ -764,6 +741,42 @@ public class RubyConvert extends ed.MyAsserts {
             || n instanceof DefnNode
             || ( n.childNodes() != null && n.childNodes().size() > 1 )
             ;
+    }
+    
+    void _addRescueNode( RescueNode rn , State state , boolean fromBegin ){
+        if ( rn.getElseNode() != null )
+            throw new RuntimeException( "can't handle rescue else" );
+
+        if ( ! fromBegin )
+            _append( "(function(){" , rn );
+
+        _append( "try {\n" , rn );
+        _add( rn.getBodyNode() , state );
+        _append( "\n}\n" , rn );
+        
+        RescueBodyNode rb = rn.getRescueNode();
+        while ( rb != null ){
+            
+            final String name = "name" + (int)(Math.random() * 12312312);
+            
+            _append( "catch( " + name  , rb );
+            if ( rb.getExceptionNodes() != null ){
+                _append( " if " + Ruby.RUBY_RESCURE_INSTANCEOF + "( " + name + " , " , rb );
+                _add( rb.getExceptionNodes() , state );
+                _append( " ) " , rb );
+            }
+            _append( " ){\n" , rb );
+            _add( rb.getBodyNode() , state );
+            _append( "\n}\n" , rn );
+            
+            rb = rb.getOptRescueNode();
+            if ( rb != null )
+                throw new RuntimeException("can't handle chained rescue" );
+        }
+        
+        if ( ! fromBegin )
+            _append( "}() )" , rn );
+
     }
 
     void _addLocal( String name , Node val , State state ){
