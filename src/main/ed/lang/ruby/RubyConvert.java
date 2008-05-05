@@ -827,6 +827,11 @@ public class RubyConvert extends ed.MyAsserts {
              n instanceof VCallNode )
             return true;
         
+        if ( n instanceof TrueNode || 
+             n instanceof NilNode ||
+             n instanceof FalseNode )
+            return true;
+
         if ( n instanceof BlockNode  
              || n instanceof DefnNode
              || n instanceof NewlineNode
