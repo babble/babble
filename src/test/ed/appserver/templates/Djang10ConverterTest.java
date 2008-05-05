@@ -34,6 +34,7 @@ public class Djang10ConverterTest extends ConvertTestBase {
         o.set( "foo" , "17" );
         o.set( "a" , "A" );
         o.set( "b" , "B" );
+        o.set( "c" , "A" );
         
         JSObjectBase nested = new JSObjectBase();
         final JSObjectBase nested3 = new JSObjectBase();
