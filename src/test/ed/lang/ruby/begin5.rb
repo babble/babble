@@ -14,3 +14,15 @@ def bar
 end
 
 bar
+
+def bar2
+  return ( foo 7 rescue null )
+end
+
+bar
+
+def bar3
+  6
+end
+
+puts bar3
