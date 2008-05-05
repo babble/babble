@@ -149,7 +149,7 @@ public class RubyConvert extends ed.MyAsserts {
                     _append( "case " , when );
                     _add( w.getExpressionNodes() , state );
                     _append( " : " , when );
-                    _add( w.getBodyNode() , state );
+                    _addBlock( w.getBodyNode() , state );
                     _append( "\nbreak;\n" , when );
                     
                     when = w.getNextCase();
@@ -157,7 +157,7 @@ public class RubyConvert extends ed.MyAsserts {
                 }
                 
                 _append( " default : " , when );
-                _add( when , state );
+                _addBlock( when , state );
                 break;
             }
             
@@ -694,6 +694,11 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof FixnumNode ){
             _assertNoChildren( node );
             _append( String.valueOf( ((FixnumNode)node).getValue() ) , node );
+        }
+
+        else if ( node instanceof FloatNode ){
+            _assertNoChildren( node );
+            _append( String.valueOf( ((FloatNode)node).getValue() ) , node );
         }
 
         else if ( node instanceof StrNode ){
