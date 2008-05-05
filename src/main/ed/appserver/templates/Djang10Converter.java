@@ -10,6 +10,7 @@ import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.generator.JSWriter;
 import ed.appserver.templates.djang10.tagHandlers.BlockTagHandler;
+import ed.appserver.templates.djang10.tagHandlers.ExtendsTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.ForTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IfTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IncludeTagHandler;
@@ -71,6 +72,7 @@ public class Djang10Converter implements TemplateConverter {
     	_tagHandlers.put("for", new ForTagHandler());
     	_tagHandlers.put("include", new IncludeTagHandler());
     	_tagHandlers.put("block", new BlockTagHandler());
+    	_tagHandlers.put("extends", new ExtendsTagHandler());
     }
 
 }
