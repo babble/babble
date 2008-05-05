@@ -82,6 +82,8 @@ public class RubyConvert extends ed.MyAsserts {
         }
 
         else if ( node instanceof BlockNode ){
+            _addBlock( node , state );
+            /*
             _append( "{\n" , node );
             if ( node.childNodes() != null ){
                 for ( int i=0; i<node.childNodes().size(); i++ ){
@@ -91,13 +93,13 @@ public class RubyConvert extends ed.MyAsserts {
                 }
             }
             _append( "\n}\n" , node );
+            */            
         }
 
         else if ( node instanceof NewlineNode ){
             _assertOne( node );
             final Node c = node.childNodes().get(0);
-            if ( ! ( c instanceof NilNode ) )
-                _add( c , state );
+            _add( c , state );
             _append( "\n" , node );
         }
 
@@ -267,6 +269,7 @@ public class RubyConvert extends ed.MyAsserts {
             final Node body = dn.getBodyNode();
             
             _append( " ){\n" , node );
+            _append( "var __last__ = null;\n" , node );
             if ( body == null ){
             }
             else if ( body instanceof BlockNode ){
@@ -287,7 +290,7 @@ public class RubyConvert extends ed.MyAsserts {
                 _add( body , state );
                 _append( ";" , body );
             }
-            _append( " \n}\n " , node );
+            _append( "\n return __last__; \n}\n " , node );
         }
 
         else if ( node instanceof VCallNode ){
@@ -372,11 +375,11 @@ public class RubyConvert extends ed.MyAsserts {
                     _add( ifn.getCondition() , state );
                 _append( " ){ \n " , ifn );
                 if ( ifn.getThenBody() != null )
-                    _add( ifn.getThenBody() , state );
+                    _addBlock( ifn.getThenBody() , state );
                 _append( " } \n " , ifn );
                 if ( ifn.getElseBody() != null ){
                     _append( " else { \n " , ifn );
-                    _add( ifn.getElseBody() , state );
+                    _addBlock( ifn.getElseBody() , state );
                     _append( " } \n " , ifn );
                 }
             }
@@ -741,6 +744,40 @@ public class RubyConvert extends ed.MyAsserts {
     }
 
     // ---  code generation types ---
+
+    void _addBlock( final Node n , State state ){
+        boolean useBrackets = n instanceof BlockNode;
+        
+        if ( useBrackets )
+            _append( "{\n" , n );
+        
+        Node last = n;
+
+        if ( n instanceof BlockNode ){
+            int i=0;
+            for ( i=0; i<n.childNodes().size()-1; i++ ){
+                last = n.childNodes().get(i);
+                _add( last , state );
+                _append( "\n;\n" , last );
+            }
+            last = n.childNodes().get( i );
+        }
+        
+        boolean r = _isReturnable( last );
+        if ( r )
+            _append( "__last__ = ( " , last );
+
+        System.err.println( "last : " + last );
+        _add( last , state );
+        
+        if ( r )
+            _append( " ) " , last );
+
+        _append( ";" , last );
+
+        if ( useBrackets )
+            _append( "\n}\n" , n );
+    }
 
     String _getRegexpOptions( int options ){
         String s = "";
