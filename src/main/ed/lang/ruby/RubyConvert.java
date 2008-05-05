@@ -20,6 +20,8 @@ import ed.appserver.templates.*;
 public class RubyConvert extends ed.MyAsserts {
     
     final static boolean D = Boolean.getBoolean( "DEBUG.RUBY" );
+    final static String JS_TRUE = "if ( 5 == 5 ) ";
+    final static String JS_R = JS_TRUE + " return ";
 
     public static class TemplateImpl implements TemplateConverter {
 
@@ -101,11 +103,11 @@ public class RubyConvert extends ed.MyAsserts {
 
         else if ( node instanceof ReturnNode ){
             if ( node.childNodes().size() == 0 ){
-                _append( "if ( true ) return;" , node );
+                _append( JS_R + ";" , node );
             }
             else {
                 _assertOne( node );
-                _append( "if ( true ) return " , node );
+                _append( JS_R , node );
                 _add( node.childNodes().get(0), state );
             }
         }
@@ -272,7 +274,7 @@ public class RubyConvert extends ed.MyAsserts {
                     Node c = body.childNodes().get(i);
                     if ( i + 1 == body.childNodes().size() &&
                          _isReturnable( c ) ){
-                        _append( "return " , c );
+                        _append( JS_R , c );
                     }
                     _add( c , state );
                     _append(";\n" , c );
@@ -280,7 +282,7 @@ public class RubyConvert extends ed.MyAsserts {
             }
             else {
                 if ( _isReturnable( body ) ){
-                    _append( "return " , body );
+                    _append( JS_R , body );
                 }
                 _add( body , state );
                 _append( ";" , body );
@@ -858,7 +860,7 @@ public class RubyConvert extends ed.MyAsserts {
                 _append( " ) " , rb );
             }
             _append( " ){\n" , rb );
-            if ( ! fromBegin && _isReturnable( rb.getBodyNode() ) ) _append( "return " , rn );
+            if ( ! fromBegin && _isReturnable( rb.getBodyNode() ) ) _append( JS_R , rn );
             _add( rb.getBodyNode() , state );
             _append( "\n}\n" , rn );
             
