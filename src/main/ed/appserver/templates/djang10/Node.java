@@ -6,7 +6,6 @@ import ed.appserver.templates.djang10.Parser.Token;
 import ed.appserver.templates.djang10.generator.JSWriter;
 
 public abstract class Node {
-	
 	public final int startLine, endLine;
 	
 	protected Node(Token token) {

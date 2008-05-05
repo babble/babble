@@ -14,6 +14,7 @@ import ed.js.func.JSFunctionCalls2;
 
 public class JSWriter {
 	public static final String CONTEXT_STACK_VAR = "obj";
+	public static final String RENDER_OPTIONS_VAR = "renderOpts";
 	public static final String NS = "_djang10Helper";
 	public static final String VAR_EXPAND = "djangoVarExpand";
 	
