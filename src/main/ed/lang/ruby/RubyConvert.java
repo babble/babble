@@ -717,8 +717,14 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof RegexpNode ){
             RegexpNode rn = (RegexpNode)node;
             _append( "/" + rn.getValue() + "/" , rn );
-            if ( ( rn.getOptions() & ReOptions.RE_OPTION_IGNORECASE  ) > 0 )
-                _append( "i" , rn );
+            _append( _getRegexpOptions( rn.getOptions() ) , rn );
+        }
+
+        else if ( node instanceof DRegexpNode ){
+            DRegexpNode dr = (DRegexpNode)node;
+            _append( "( new RegExp( " , dr );
+            _addArgs( dr , dr.childNodes() , state , " + " );
+            _append( " , \"" + _getRegexpOptions( dr.getOptions() ) + "\" ) ) " , dr );
         }
 
         // --- end ---
@@ -734,6 +740,13 @@ public class RubyConvert extends ed.MyAsserts {
 
     // ---  code generation types ---
 
+    String _getRegexpOptions( int options ){
+        String s = "";
+        if ( ( options & ReOptions.RE_OPTION_IGNORECASE  ) > 0 )
+            s += "i";
+        return s;
+    }
+    
     boolean _handleTurnary( IfNode ifn , State state ){
         if ( _badTurnaryNode( ifn.getThenBody() ) ){
             if ( D ) System.out.println( "bad turnary : " + ifn.getThenBody() );
