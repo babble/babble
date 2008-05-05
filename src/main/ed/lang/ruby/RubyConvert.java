@@ -82,7 +82,8 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof BlockNode ){
             _append( "{\n" , node );
             if ( node.childNodes() != null ){
-                for ( Node c : node.childNodes() ){
+                for ( int i=0; i<node.childNodes().size(); i++ ){
+                    Node c = node.childNodes().get(i);
                     _add( c , state );
                     _append( "\n;\n" , node );
                 }
@@ -262,11 +263,29 @@ public class RubyConvert extends ed.MyAsserts {
 
 
             final Node body = dn.getBodyNode();
-            final boolean needBrackets = ! ( body instanceof BlockNode );
             
-            _append( " )" + ( needBrackets ? "{" : "" )  + "\n" , node );
-            _add( body , state );
-            _append( " \n" + ( needBrackets ? "}" : "" ) + "\n " , node );
+            _append( " ){\n" , node );
+            if ( body == null ){
+            }
+            else if ( body instanceof BlockNode ){
+                for ( int i=0; i<body.childNodes().size(); i++ ){
+                    Node c = body.childNodes().get(i);
+                    if ( i + 1 == body.childNodes().size() &&
+                         ! ( c instanceof ReturnNode ) ){
+                        //_append( "return " , c );
+                    }
+                    _add( c , state );
+                    _append(";\n" , c );
+                }
+            }
+            else {
+                if ( ! ( body instanceof ReturnNode ) ){
+                    //_append( "return " , body );
+                }
+                _add( body , state );
+                _append( ";" , body );
+            }
+            _append( " \n}\n " , node );
         }
 
         else if ( node instanceof VCallNode ){
