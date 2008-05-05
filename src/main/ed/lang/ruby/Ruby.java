@@ -143,6 +143,24 @@ public class Ruby {
                     return null;
                 }
             } , true );
+
+        s.put( "attr_reader" , new JSFunctionCalls0(){
+                public Object call( Scope s , Object symbols[] ){
+                    JSObjectBase job = (JSObjectBase)s.getThis();
+                    if ( job == null )
+                        throw new NullPointerException( "no this and attr_reader needs it" );
+                    return null;
+                }
+            } , true );
+
+        s.put( "attr_writer" , new JSFunctionCalls0(){
+                public Object call( Scope s , Object symbols[] ){
+                    JSObjectBase job = (JSObjectBase)s.getThis();
+                    if ( job == null )
+                        throw new NullPointerException( "no this and attr_writer needs it" );
+                    return null;
+                }
+            } , true );
         
         
         s.put( RUBY_PRIVATE , new JSFunctionCalls0(){
@@ -319,6 +337,8 @@ public class Ruby {
                     
                 }
             } , true );
+
+        s.put( "StandardError" , JSException._cons , true );
 
     }
 

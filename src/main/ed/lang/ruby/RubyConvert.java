@@ -770,27 +770,28 @@ public class RubyConvert extends ed.MyAsserts {
             _append( "{\n" , n );
         
         Node last = n;
-
-        if ( n instanceof BlockNode ){
-            int i=0;
-            for ( i=0; i<n.childNodes().size()-1; i++ ){
-                last = n.childNodes().get(i);
-                _add( last , state );
-                _append( "\n;\n" , last );
+        if ( last != null ){
+            if ( n instanceof BlockNode ){
+                int i=0;
+                for ( i=0; i<n.childNodes().size()-1; i++ ){
+                    last = n.childNodes().get(i);
+                    _add( last , state );
+                    _append( "\n;\n" , last );
+                }
+                last = n.childNodes().get( i );
             }
-            last = n.childNodes().get( i );
+            
+            boolean r = _isReturnable( last );
+            if ( r )
+                _append( "__last__ = ( " , last );
+            
+            _add( last , state );
+            
+            if ( r )
+                _append( " ) " , last );
+            
+            _append( ";" , last );
         }
-        
-        boolean r = _isReturnable( last );
-        if ( r )
-            _append( "__last__ = ( " , last );
-
-        _add( last , state );
-        
-        if ( r )
-            _append( " ) " , last );
-
-        _append( ";" , last );
 
         if ( useBrackets )
             _append( "\n}\n" , n );
@@ -1001,7 +1002,7 @@ public class RubyConvert extends ed.MyAsserts {
         _append( name + " = " + Ruby.RUBY_DEFINE_CLASS + "( " + name + " , " , cn );
         
         if ( state._classInit == null ){
-            _append( " function(){ if ( this.__proto__ && this.__proto__.constructor ) this.__proto__.constructor.apply( this , arguments ); }" , cn );
+            _append( " function(){ if ( this.__proto__ && this.__proto__.constructor && this.__proto__ != this && ( arguments.length == 0 || arguments[arguments.length-1] != 1542143 ) ){ arguments.push( 1542143 ); this.__proto__.constructor.apply( this , arguments ); } }" , cn );
         }
         else {
             _append( " function" , state._classInit );
