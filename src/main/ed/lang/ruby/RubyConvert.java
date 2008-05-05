@@ -767,7 +767,6 @@ public class RubyConvert extends ed.MyAsserts {
         if ( r )
             _append( "__last__ = ( " , last );
 
-        System.err.println( "last : " + last );
         _add( last , state );
         
         if ( r )
@@ -867,6 +866,10 @@ public class RubyConvert extends ed.MyAsserts {
         if ( n instanceof TrueNode || 
              n instanceof NilNode ||
              n instanceof FalseNode )
+            return true;
+
+        if ( n instanceof Match3Node ||
+             n instanceof Match2Node )
             return true;
 
         if ( n instanceof BlockNode  

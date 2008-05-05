@@ -1,25 +1,25 @@
 
-# def foo(z)
-#   if ( z == 4 )
-#     "four"
-#   elsif ( z == 5 )
-#     "five"
-#   else
-#     true
-#   end
-# end
+def foo(z)
+  if ( z == 4 )
+    "four"
+  elsif ( z == 5 )
+    "five"
+  else
+    true
+  end
+end
 
-# puts foo(4) 
-# puts foo(5) 
-# puts foo(6) 
+puts foo(4) 
+puts foo(5) 
+puts foo(6) 
     
 
-# def blah(z)
-#   (z==5) ? true : false
-# end
+def blah(z)
+  (z==5) ? true : false
+end
 
-# blah(5)
-# blah(6)
+blah(5)
+blah(6)
 
 def blah2(z)
   if( z== 5)
@@ -48,3 +48,4 @@ end
 
 puts blah3(5) == nil
 puts blah3(6) == nil
+
