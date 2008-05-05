@@ -773,11 +773,21 @@ public class RubyConvert extends ed.MyAsserts {
     boolean _badTurnaryNode( Node n ){
         if ( n == null )
             return true;
-
-        return ! _isSingleStatement( n );
+        
+        if ( ! _isSingleStatement( n ) )
+            return true;
+        
+        if ( _searchFor( n , ReturnNode.class ) != null )
+            return true;
+        
+        return false;
     }
 
     boolean _isReturnable( Node n ){
+        
+        if ( _searchFor( n , ReturnNode.class ) != null )
+            return false;
+
         if ( n instanceof NewlineNode ) n = n.childNodes().get(0);
 
         if ( n instanceof ReturnNode )
@@ -797,15 +807,27 @@ public class RubyConvert extends ed.MyAsserts {
                 _isSingleStatement( ifn.getThenBody() );
         }
         
+        if ( n instanceof NotNode 
+             || n instanceof NewlineNode 
+             )
+            return _isSingleStatement( n.childNodes().get(0) );
+        
+        if ( n instanceof BinaryOperatorNode ){
+            BinaryOperatorNode bo = (BinaryOperatorNode)n;
+            return 
+                _isSingleStatement( bo.getFirstNode() ) && 
+                _isSingleStatement( bo.getSecondNode() );
+        }
+        
         
         if ( n instanceof CallNode ||
              n instanceof FCallNode ||
              n instanceof VCallNode )
             return true;
-
+        
         if ( n instanceof BlockNode  
-             || n instanceof NewlineNode 
              || n instanceof DefnNode
+             || n instanceof NewlineNode
              || n instanceof BeginNode
              )
             return false;
@@ -973,6 +995,39 @@ public class RubyConvert extends ed.MyAsserts {
         }    
 
         return null;
+    }
+
+    Node _searchFor( final Node where , final Class toFind ){
+        return _searchForBFS( where , new NodeMatcher(){
+                public boolean matches( Node n ){
+                    if ( n == null )
+                        return false;
+                    return toFind.isAssignableFrom( n.getClass() );
+                }
+            } );
+    }
+    
+    Node _searchForBFS( final Node where , final NodeMatcher nm ){
+        if ( where == null )
+            return null;
+        
+        List<Node> toSearch = new LinkedList<Node>();
+        toSearch.add( where );
+        
+        while ( toSearch.size() > 0 ){
+            Node n = toSearch.remove(0);
+            if ( nm.matches( n ) )
+                return n;
+            
+            if ( n.childNodes() != null )
+                toSearch.addAll( n.childNodes() );
+        }
+        
+        return null;
+    }
+
+    interface NodeMatcher {
+        boolean matches( Node n );
     }
 
     void _addClassPiece( Node n , State state ){
