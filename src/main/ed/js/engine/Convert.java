@@ -805,7 +805,7 @@ public class Convert implements StackTraceFixer {
                     boolean isIF = b.getType() == Token.IFNE;
 
                     if ( isIF ){
-                        _append( "\n if ( " + javaName + " != null && JS_evalToBool( " , b );
+                        _append( "\n if ( " + javaEName + " != null && JS_evalToBool( " , b );
                         _add( b.getFirstChild() , state );
                         _append( " ) ){ \n " , b  );
                         b = b.getNext().getFirstChild();
@@ -818,14 +818,17 @@ public class Convert implements StackTraceFixer {
                         b = b.getNext();
                     }
                     
+                    _append( javaEName + " = null ;\n" , b );
+                    
                     if ( isIF ){
-                        _append( javaName + " = null ;\n" , b );
                         _append( "\n } \n " , b );
                     }
                     
                     catchScope = catchScope.getNext().getNext();
                 }
                 
+                _append( "if ( " + javaEName + " != null ){ if ( " + javaEName + " instanceof RuntimeException ){ throw (RuntimeException)" + javaEName + ";} throw new JSException( " + javaEName + ");}\n" , n );
+
                 _append( "\n } \n " , n ); // ends catch
                     
                 n = n.getNext();
@@ -1089,6 +1092,22 @@ public class Convert implements StackTraceFixer {
             _append( "JSArray arguments = new JSArray();\n" , n );
             _append( "scope.put( \"arguments\" , arguments , true );\n" , n );
         }
+
+        for ( int i=0; i<fn.getParamCount(); i++ ){
+
+            final String foo = fn.getParamOrVarName( i );
+            final String javaName = foo + ( state.useLocalVariable( foo ) ? "" : "INNNNN" );
+            final Node defArg = fn.getDefault( foo );
+            if ( defArg == null )
+                continue;
+            
+
+            _append( "if ( null == " + javaName + " ) " , defArg );
+            _append( javaName + " = " , defArg );
+            _add( defArg , state );
+            _append( ";\n" , defArg );
+        }
+
         _append(  varSetup , n );
         if ( hasArguments )
             _append( "if ( extra != null ) for ( Object TTTT : extra ) arguments.add( TTTT );\n" , n );
@@ -1384,7 +1403,7 @@ public class Convert implements StackTraceFixer {
 
         buf.append( "public class " ).append( _className ).append( " extends JSCompiledScript {\n" );
 
-        buf.append( "\tpublic Object _call( Scope scope , Object extra[] ){\n" );
+        buf.append( "\tpublic Object _call( Scope scope , Object extra[] ) throws Throwable {\n" );
 
         buf.append( "\t\t final Scope passedIn = scope; \n" );
 

@@ -583,6 +583,13 @@ public class Parser
                         String s = ts.getString();
                         defineSymbol(Token.LP, s);
                         decompiler.addName(s);
+                        
+                        if ( peekToken() == Token.ASSIGN ){
+                            mustMatchToken( Token.ASSIGN , "erh1" );
+                            Node assgn = assignExpr( false );
+                            fnNode._defaults.put( s , assgn );
+                            //System.out.println( assgn );
+                        }
                     }
                 } while (matchToken(Token.COMMA));
 

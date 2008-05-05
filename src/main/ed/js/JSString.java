@@ -44,9 +44,11 @@ public class JSString extends JSObjectBase {
         }
         
         protected void init(){
-
+            
             JS._debugSI( "JSString" , "JSStringCons init 0" );
             
+            final JSObject myPrototype = _prototype;
+
             if ( ! JS.JNI ){
                 final StringEncrypter encrypter = new StringEncrypter( "knsd8712@!98sad" );
                 
@@ -242,7 +244,7 @@ public class JSString extends JSObjectBase {
                 
 
             _prototype.set( "split" , new JSFunctionCalls1(){
-                    public Object call( Scope s , Object o , Object crap[] ){                        
+                    public Object call( Scope s , Object o , Object extra[] ){                        
                             
                         String str = s.getThis().toString();
 
@@ -251,12 +253,19 @@ public class JSString extends JSObjectBase {
                             
                         if ( ! ( o instanceof JSRegex ) )
                             throw new RuntimeException( "not a regex : " + o.getClass() );
-                            
+                        
+                        int limit = Integer.MAX_VALUE;
+                        if ( extra != null && extra.length > 0 && extra[0] instanceof Number )
+                            limit = ((Number)extra[0]).intValue();
+    
                         JSRegex r = (JSRegex)o;
                         
                         JSArray a = new JSArray();
-                        for ( String pc : r._patt.split( str , -1 ) )
+                        for ( String pc : r._patt.split( str , -1 ) ){
                             a.add( new JSString( pc ) );
+                            if ( a.size() >= limit )
+                                break;
+                        }
                             
                         return a;
                     }
@@ -301,15 +310,18 @@ public class JSString extends JSObjectBase {
                             
                         if ( ! ( o instanceof JSRegex ) )
                             throw new RuntimeException( "not a regex : " + o.getClass() );
-                            
+                        
                         JSRegex r = (JSRegex)o;
                         Matcher m = r._patt.matcher( str );
                           
                         StringBuffer buf = null;
                         int start = 0;
+                        
+                        final JSObject options = ( crap != null && crap.length > 0  && crap[0] instanceof JSObject ) ? (JSObject)crap[0] : null;
+                        final boolean replaceAll = r._replaceAll || ( options != null && options.get( "all" ) != null );
 
                         Object replArgs[] = null;
-                                        
+                        
                         while ( m.find() ){
                             if ( buf == null )
                                 buf = new StringBuffer( str.length() );
@@ -356,7 +368,7 @@ public class JSString extends JSObjectBase {
                                 
                             start = m.end();
 
-                            if ( ! r._replaceAll )
+                            if ( ! replaceAll )
                                 break;
                         }
                             
@@ -367,6 +379,18 @@ public class JSString extends JSObjectBase {
                         return new JSString( buf.toString() );
                     }
                 } );
+
+            _prototype.set( "sub" , _prototype.get( "replace" ) );
+            final JSObjectBase gsubOptions = new JSObjectBase();
+            gsubOptions.set( "all" , "asd" );
+            final Object gsubOptionsArray[] = new Object[]{ gsubOptions };
+
+            _prototype.set( "gsub" , new JSFunctionCalls2() {
+                    public Object call( Scope s , Object o , Object repl , Object crap[] ){
+                        return ((JSFunction)myPrototype.get( "replace" )).call( s , o , repl , gsubOptionsArray );
+                    }
+                } );
+
 
             set("fromCharCode", new JSFunctionCalls0() {
                     public Object call(Scope s, Object [] args){

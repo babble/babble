@@ -155,11 +155,19 @@ public class JSNumericFunctions extends JSObjectBase {
         return new JSString( s1 + s2 );
     }
 
-    public Number JS_bitor( Object a , Object b ){
+    public static Number JS_bitor( Object a , Object b ){
         
         a = _parseNumber( a );
         b = _parseNumber( b );
         
+        if ( a instanceof Boolean )
+            if ( ((Boolean)a) )
+                a = 1;
+        
+        if ( b instanceof Boolean )
+            if ( ((Boolean)b) )
+                b = 1;
+
         if ( a != null && a instanceof Number && 
              b != null && b instanceof Number )
             return ((Number)a).intValue() | ((Number)b).intValue();
