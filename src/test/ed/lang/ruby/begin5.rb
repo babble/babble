@@ -14,13 +14,13 @@ def bar
   return ( foo 6 rescue save )
 end
 
-bar
+puts bar
 
 def bar2
-  return ( foo 7 rescue null )
+  return ( foo 7 rescue nil )
 end
 
-bar
+bar2
 
 def bar3
   6
@@ -28,5 +28,5 @@ end
 
 puts bar3
 
-puts bar
+
 

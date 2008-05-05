@@ -747,6 +747,8 @@ public class RubyConvert extends ed.MyAsserts {
     }
 
     boolean _isReturnable( Node n ){
+        if ( n instanceof NewlineNode ) n = n.childNodes().get(0);
+
         if ( n instanceof ReturnNode )
             return false;
         
@@ -800,8 +802,7 @@ public class RubyConvert extends ed.MyAsserts {
                 _append( " ) " , rb );
             }
             _append( " ){\n" , rb );
-            if ( _isReturnable( rb.getBodyNode() ) )
-                _append( "return " , rn );
+            if ( ! fromBegin && _isReturnable( rb.getBodyNode() ) ) _append( "return " , rn );
             _add( rb.getBodyNode() , state );
             _append( "\n}\n" , rn );
             
