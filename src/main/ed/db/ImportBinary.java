@@ -54,10 +54,7 @@ public class ImportBinary {
     static void loadOne( File f )
         throws IOException {
 
-        if ( true ){
-            System.out.println( f );
-            return;
-        }
+        System.out.println( f );
 
 
         if ( ! f.exists() || f.isDirectory() )
