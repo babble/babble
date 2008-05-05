@@ -82,7 +82,8 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof BlockNode ){
             _append( "{\n" , node );
             if ( node.childNodes() != null ){
-                for ( Node c : node.childNodes() ){
+                for ( int i=0; i<node.childNodes().size(); i++ ){
+                    Node c = node.childNodes().get(i);
                     _add( c , state );
                     _append( "\n;\n" , node );
                 }
@@ -262,11 +263,29 @@ public class RubyConvert extends ed.MyAsserts {
 
 
             final Node body = dn.getBodyNode();
-            final boolean needBrackets = ! ( body instanceof BlockNode );
             
-            _append( " )" + ( needBrackets ? "{" : "" )  + "\n" , node );
-            _add( body , state );
-            _append( " \n" + ( needBrackets ? "}" : "" ) + "\n " , node );
+            _append( " ){\n" , node );
+            if ( body == null ){
+            }
+            else if ( body instanceof BlockNode ){
+                for ( int i=0; i<body.childNodes().size(); i++ ){
+                    Node c = body.childNodes().get(i);
+                    if ( i + 1 == body.childNodes().size() &&
+                         _isReturnable( c ) ){
+                        _append( "return " , c );
+                    }
+                    _add( c , state );
+                    _append(";\n" , c );
+                }
+            }
+            else {
+                if ( _isReturnable( body ) ){
+                    _append( "return " , body );
+                }
+                _add( body , state );
+                _append( ";" , body );
+            }
+            _append( " \n}\n " , node );
         }
 
         else if ( node instanceof VCallNode ){
@@ -531,7 +550,25 @@ public class RubyConvert extends ed.MyAsserts {
         }
 
         else if ( node instanceof ClassVarNode ){
-            _append( "this.__constructor__." + ((ClassVarNode)node).getName().substring(2) , node );
+            if ( state._className != null )
+                _append( state._className , node );
+            else 
+                _append( "this.__constructor__" , node );
+
+            _append( "." + ((ClassVarNode)node).getName().substring(2) , node );
+        }
+
+        else if ( node instanceof ClassVarAsgnNode ){
+            ClassVarAsgnNode cva = (ClassVarAsgnNode)node;
+            
+            if ( state._className != null )
+                _append( state._className , node );
+            else 
+                _append( "this.__constructor__" , node );
+            
+            _append( "." + cva.getName().substring(2) , node );
+            _append( " = " , node );
+            _add( cva.getValueNode() , state );
         }
         
         else if ( node instanceof MultipleAsgnNode ){
@@ -680,8 +717,14 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof RegexpNode ){
             RegexpNode rn = (RegexpNode)node;
             _append( "/" + rn.getValue() + "/" , rn );
-            if ( ( rn.getOptions() & ReOptions.RE_OPTION_IGNORECASE  ) > 0 )
-                _append( "i" , rn );
+            _append( _getRegexpOptions( rn.getOptions() ) , rn );
+        }
+
+        else if ( node instanceof DRegexpNode ){
+            DRegexpNode dr = (DRegexpNode)node;
+            _append( "( new RegExp( " , dr );
+            _addArgs( dr , dr.childNodes() , state , " + " );
+            _append( " , \"" + _getRegexpOptions( dr.getOptions() ) + "\" ) ) " , dr );
         }
 
         // --- end ---
@@ -697,6 +740,13 @@ public class RubyConvert extends ed.MyAsserts {
 
     // ---  code generation types ---
 
+    String _getRegexpOptions( int options ){
+        String s = "";
+        if ( ( options & ReOptions.RE_OPTION_IGNORECASE  ) > 0 )
+            s += "i";
+        return s;
+    }
+    
     boolean _handleTurnary( IfNode ifn , State state ){
         if ( _badTurnaryNode( ifn.getThenBody() ) ){
             if ( D ) System.out.println( "bad turnary : " + ifn.getThenBody() );
@@ -724,23 +774,43 @@ public class RubyConvert extends ed.MyAsserts {
         if ( n == null )
             return true;
 
-        if ( n instanceof IfNode )
-            return 
-                _badTurnaryNode( n.childNodes().get(0) ) ||
-                _badTurnaryNode( n.childNodes().get(1) );
+        return ! _isSingleStatement( n );
+    }
 
+    boolean _isReturnable( Node n ){
+        if ( n instanceof NewlineNode ) n = n.childNodes().get(0);
+
+        if ( n instanceof ReturnNode )
+            return false;
+        
+        return _isSingleStatement( n );
+    }
+    
+    boolean _isSingleStatement( Node n ){
+        if ( n == null )
+            return false;
+        
+        if ( n instanceof IfNode ){
+            IfNode ifn = (IfNode)n;
+            return
+                _isSingleStatement( ifn.getElseBody() ) &&
+                _isSingleStatement( ifn.getThenBody() );
+        }
+        
+        
         if ( n instanceof CallNode ||
              n instanceof FCallNode ||
              n instanceof VCallNode )
+            return true;
+
+        if ( n instanceof BlockNode  
+             || n instanceof NewlineNode 
+             || n instanceof DefnNode
+             || n instanceof BeginNode
+             )
             return false;
         
-        return 
-            n == null 
-            || n instanceof BlockNode 
-            || n instanceof NewlineNode 
-            || n instanceof DefnNode
-            || ( n.childNodes() != null && n.childNodes().size() > 1 )
-            ;
+        return n.childNodes() == null || n.childNodes().size() <= 1;
     }
     
     void _addRescueNode( RescueNode rn , State state , boolean fromBegin ){
@@ -766,6 +836,7 @@ public class RubyConvert extends ed.MyAsserts {
                 _append( " ) " , rb );
             }
             _append( " ){\n" , rb );
+            if ( ! fromBegin && _isReturnable( rb.getBodyNode() ) ) _append( "return " , rn );
             _add( rb.getBodyNode() , state );
             _append( "\n}\n" , rn );
             
@@ -959,6 +1030,7 @@ public class RubyConvert extends ed.MyAsserts {
              n instanceof ModuleNode ||
              n instanceof IfNode ||
              n instanceof LocalAsgnNode ||
+             n instanceof OpAsgnOrNode ||
              n instanceof ClassNode ){
             _add( n , state );
             return;
