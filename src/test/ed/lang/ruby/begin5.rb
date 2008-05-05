@@ -7,6 +7,7 @@ end
 
 def save
   puts "save"
+  return 111;
 end
 
 def bar
@@ -26,3 +27,6 @@ def bar3
 end
 
 puts bar3
+
+puts bar
+

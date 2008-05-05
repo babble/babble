@@ -271,16 +271,16 @@ public class RubyConvert extends ed.MyAsserts {
                 for ( int i=0; i<body.childNodes().size(); i++ ){
                     Node c = body.childNodes().get(i);
                     if ( i + 1 == body.childNodes().size() &&
-                         ! ( c instanceof ReturnNode ) ){
-                        //_append( "return " , c );
+                         _isReturnable( c ) ){
+                        _append( "return " , c );
                     }
                     _add( c , state );
                     _append(";\n" , c );
                 }
             }
             else {
-                if ( ! ( body instanceof ReturnNode ) ){
-                    //_append( "return " , body );
+                if ( _isReturnable( body ) ){
+                    _append( "return " , body );
                 }
                 _add( body , state );
                 _append( ";" , body );
@@ -743,23 +743,38 @@ public class RubyConvert extends ed.MyAsserts {
         if ( n == null )
             return true;
 
+        return ! _isSingleStatement( n );
+    }
+
+    boolean _isReturnable( Node n ){
+        if ( n instanceof ReturnNode )
+            return false;
+        
+        return _isSingleStatement( n );
+    }
+    
+    boolean _isSingleStatement( Node n ){
+        if ( n == null )
+            throw new NullPointerException( "should not be null..." );
+        
         if ( n instanceof IfNode )
             return 
-                _badTurnaryNode( n.childNodes().get(0) ) ||
-                _badTurnaryNode( n.childNodes().get(1) );
-
+                _isSingleStatement( n.childNodes().get(0) ) &&
+                _isSingleStatement( n.childNodes().get(1) );
+        
+        
         if ( n instanceof CallNode ||
              n instanceof FCallNode ||
              n instanceof VCallNode )
+            return true;
+
+        if ( n instanceof BlockNode  
+             || n instanceof NewlineNode 
+             || n instanceof DefnNode
+             )
             return false;
         
-        return 
-            n == null 
-            || n instanceof BlockNode 
-            || n instanceof NewlineNode 
-            || n instanceof DefnNode
-            || ( n.childNodes() != null && n.childNodes().size() > 1 )
-            ;
+        return n.childNodes() == null || n.childNodes().size() <= 1;
     }
     
     void _addRescueNode( RescueNode rn , State state , boolean fromBegin ){
@@ -785,6 +800,8 @@ public class RubyConvert extends ed.MyAsserts {
                 _append( " ) " , rb );
             }
             _append( " ){\n" , rb );
+            if ( _isReturnable( rb.getBodyNode() ) )
+                _append( "return " , rn );
             _add( rb.getBodyNode() , state );
             _append( "\n}\n" , rn );
             
