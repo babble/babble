@@ -20,6 +20,8 @@ import ed.appserver.templates.*;
 public class RubyConvert extends ed.MyAsserts {
     
     final static boolean D = Boolean.getBoolean( "DEBUG.RUBY" );
+    final static String JS_TRUE = "if ( 5 == 5 ) ";
+    final static String JS_R = JS_TRUE + " return ";
 
     public static class TemplateImpl implements TemplateConverter {
 
@@ -80,6 +82,8 @@ public class RubyConvert extends ed.MyAsserts {
         }
 
         else if ( node instanceof BlockNode ){
+            _addBlock( node , state );
+            /*
             _append( "{\n" , node );
             if ( node.childNodes() != null ){
                 for ( int i=0; i<node.childNodes().size(); i++ ){
@@ -89,23 +93,23 @@ public class RubyConvert extends ed.MyAsserts {
                 }
             }
             _append( "\n}\n" , node );
+            */            
         }
 
         else if ( node instanceof NewlineNode ){
             _assertOne( node );
             final Node c = node.childNodes().get(0);
-            if ( ! ( c instanceof NilNode ) )
-                _add( c , state );
+            _add( c , state );
             _append( "\n" , node );
         }
 
         else if ( node instanceof ReturnNode ){
             if ( node.childNodes().size() == 0 ){
-                _append( "if ( true ) return;" , node );
+                _append( JS_R + ";" , node );
             }
             else {
                 _assertOne( node );
-                _append( "if ( true ) return " , node );
+                _append( JS_R , node );
                 _add( node.childNodes().get(0), state );
             }
         }
@@ -265,6 +269,7 @@ public class RubyConvert extends ed.MyAsserts {
             final Node body = dn.getBodyNode();
             
             _append( " ){\n" , node );
+            _append( "var __last__ = null;\n" , node );
             if ( body == null ){
             }
             else if ( body instanceof BlockNode ){
@@ -272,7 +277,7 @@ public class RubyConvert extends ed.MyAsserts {
                     Node c = body.childNodes().get(i);
                     if ( i + 1 == body.childNodes().size() &&
                          _isReturnable( c ) ){
-                        _append( "return " , c );
+                        _append( JS_R , c );
                     }
                     _add( c , state );
                     _append(";\n" , c );
@@ -280,12 +285,12 @@ public class RubyConvert extends ed.MyAsserts {
             }
             else {
                 if ( _isReturnable( body ) ){
-                    _append( "return " , body );
+                    _append( JS_R , body );
                 }
                 _add( body , state );
                 _append( ";" , body );
             }
-            _append( " \n}\n " , node );
+            _append( "\n return __last__; \n}\n " , node );
         }
 
         else if ( node instanceof VCallNode ){
@@ -370,11 +375,11 @@ public class RubyConvert extends ed.MyAsserts {
                     _add( ifn.getCondition() , state );
                 _append( " ){ \n " , ifn );
                 if ( ifn.getThenBody() != null )
-                    _add( ifn.getThenBody() , state );
+                    _addBlock( ifn.getThenBody() , state );
                 _append( " } \n " , ifn );
                 if ( ifn.getElseBody() != null ){
                     _append( " else { \n " , ifn );
-                    _add( ifn.getElseBody() , state );
+                    _addBlock( ifn.getElseBody() , state );
                     _append( " } \n " , ifn );
                 }
             }
@@ -740,6 +745,40 @@ public class RubyConvert extends ed.MyAsserts {
 
     // ---  code generation types ---
 
+    void _addBlock( final Node n , State state ){
+        boolean useBrackets = n instanceof BlockNode;
+        
+        if ( useBrackets )
+            _append( "{\n" , n );
+        
+        Node last = n;
+
+        if ( n instanceof BlockNode ){
+            int i=0;
+            for ( i=0; i<n.childNodes().size()-1; i++ ){
+                last = n.childNodes().get(i);
+                _add( last , state );
+                _append( "\n;\n" , last );
+            }
+            last = n.childNodes().get( i );
+        }
+        
+        boolean r = _isReturnable( last );
+        if ( r )
+            _append( "__last__ = ( " , last );
+
+        System.err.println( "last : " + last );
+        _add( last , state );
+        
+        if ( r )
+            _append( " ) " , last );
+
+        _append( ";" , last );
+
+        if ( useBrackets )
+            _append( "\n}\n" , n );
+    }
+
     String _getRegexpOptions( int options ){
         String s = "";
         if ( ( options & ReOptions.RE_OPTION_IGNORECASE  ) > 0 )
@@ -773,11 +812,21 @@ public class RubyConvert extends ed.MyAsserts {
     boolean _badTurnaryNode( Node n ){
         if ( n == null )
             return true;
-
-        return ! _isSingleStatement( n );
+        
+        if ( ! _isSingleStatement( n ) )
+            return true;
+        
+        if ( _searchFor( n , ReturnNode.class ) != null )
+            return true;
+        
+        return false;
     }
 
     boolean _isReturnable( Node n ){
+        
+        if ( _searchFor( n , ReturnNode.class ) != null )
+            return false;
+
         if ( n instanceof NewlineNode ) n = n.childNodes().get(0);
 
         if ( n instanceof ReturnNode )
@@ -797,15 +846,32 @@ public class RubyConvert extends ed.MyAsserts {
                 _isSingleStatement( ifn.getThenBody() );
         }
         
+        if ( n instanceof NotNode 
+             || n instanceof NewlineNode 
+             )
+            return _isSingleStatement( n.childNodes().get(0) );
+        
+        if ( n instanceof BinaryOperatorNode ){
+            BinaryOperatorNode bo = (BinaryOperatorNode)n;
+            return 
+                _isSingleStatement( bo.getFirstNode() ) && 
+                _isSingleStatement( bo.getSecondNode() );
+        }
+        
         
         if ( n instanceof CallNode ||
              n instanceof FCallNode ||
              n instanceof VCallNode )
             return true;
+        
+        if ( n instanceof TrueNode || 
+             n instanceof NilNode ||
+             n instanceof FalseNode )
+            return true;
 
         if ( n instanceof BlockNode  
-             || n instanceof NewlineNode 
              || n instanceof DefnNode
+             || n instanceof NewlineNode
              || n instanceof BeginNode
              )
             return false;
@@ -836,7 +902,7 @@ public class RubyConvert extends ed.MyAsserts {
                 _append( " ) " , rb );
             }
             _append( " ){\n" , rb );
-            if ( ! fromBegin && _isReturnable( rb.getBodyNode() ) ) _append( "return " , rn );
+            if ( ! fromBegin && _isReturnable( rb.getBodyNode() ) ) _append( JS_R , rn );
             _add( rb.getBodyNode() , state );
             _append( "\n}\n" , rn );
             
@@ -973,6 +1039,39 @@ public class RubyConvert extends ed.MyAsserts {
         }    
 
         return null;
+    }
+
+    Node _searchFor( final Node where , final Class toFind ){
+        return _searchForBFS( where , new NodeMatcher(){
+                public boolean matches( Node n ){
+                    if ( n == null )
+                        return false;
+                    return toFind.isAssignableFrom( n.getClass() );
+                }
+            } );
+    }
+    
+    Node _searchForBFS( final Node where , final NodeMatcher nm ){
+        if ( where == null )
+            return null;
+        
+        List<Node> toSearch = new LinkedList<Node>();
+        toSearch.add( where );
+        
+        while ( toSearch.size() > 0 ){
+            Node n = toSearch.remove(0);
+            if ( nm.matches( n ) )
+                return n;
+            
+            if ( n.childNodes() != null )
+                toSearch.addAll( n.childNodes() );
+        }
+        
+        return null;
+    }
+
+    interface NodeMatcher {
+        boolean matches( Node n );
     }
 
     void _addClassPiece( Node n , State state ){

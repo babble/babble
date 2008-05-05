@@ -818,7 +818,7 @@ public class Convert implements StackTraceFixer {
                         b = b.getNext();
                     }
                     
-                    _append( javaEName + " = null ;\n" , b );
+                    _append( "if ( true ) " + javaEName + " = null ;\n" , b );
                     
                     if ( isIF ){
                         _append( "\n } \n " , b );
