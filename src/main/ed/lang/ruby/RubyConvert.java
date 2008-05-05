@@ -557,6 +557,19 @@ public class RubyConvert extends ed.MyAsserts {
 
             _append( "." + ((ClassVarNode)node).getName().substring(2) , node );
         }
+
+        else if ( node instanceof ClassVarAsgnNode ){
+            ClassVarAsgnNode cva = (ClassVarAsgnNode)node;
+            
+            if ( state._className != null )
+                _append( state._className , node );
+            else 
+                _append( "this.__constructor__" , node );
+            
+            _append( "." + cva.getName().substring(2) , node );
+            _append( " = " , node );
+            _add( cva.getValueNode() , state );
+        }
         
         else if ( node instanceof MultipleAsgnNode ){
             MultipleAsgnNode man = (MultipleAsgnNode)node;
@@ -762,12 +775,14 @@ public class RubyConvert extends ed.MyAsserts {
     
     boolean _isSingleStatement( Node n ){
         if ( n == null )
-            throw new NullPointerException( "should not be null..." );
+            return false;
         
-        if ( n instanceof IfNode )
-            return 
-                _isSingleStatement( n.childNodes().get(0) ) &&
-                _isSingleStatement( n.childNodes().get(1) );
+        if ( n instanceof IfNode ){
+            IfNode ifn = (IfNode)n;
+            return
+                _isSingleStatement( ifn.getElseBody() ) &&
+                _isSingleStatement( ifn.getThenBody() );
+        }
         
         
         if ( n instanceof CallNode ||
