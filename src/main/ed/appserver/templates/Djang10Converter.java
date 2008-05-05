@@ -9,6 +9,7 @@ import java.util.Map;
 import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.generator.JSWriter;
+import ed.appserver.templates.djang10.tagHandlers.BlockTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.ForTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IfTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IncludeTagHandler;
@@ -33,6 +34,7 @@ public class Djang10Converter implements TemplateConverter {
 		JSWriter writer = new JSWriter();
 		
 		writer.append("var "+JSWriter.CONTEXT_STACK_VAR+" = (arguments.length == 0)? [scope] : (arguments[0] instanceof Array)? arguments[0] : [arguments[0]];\n");
+		writer.append("var "+JSWriter.RENDER_OPTIONS_VAR+" = (arguments.length < 2)? {} : arguments[1];\n");
 		for(Node node : nodeList) {
 			node.getRenderJSFn(writer);
 		}
@@ -68,6 +70,7 @@ public class Djang10Converter implements TemplateConverter {
     	_tagHandlers.put("if", new IfTagHandler());
     	_tagHandlers.put("for", new ForTagHandler());
     	_tagHandlers.put("include", new IncludeTagHandler());
+    	_tagHandlers.put("block", new BlockTagHandler());
     }
 
 }

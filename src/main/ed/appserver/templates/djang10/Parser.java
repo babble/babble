@@ -53,9 +53,11 @@ public class Parser {
 	}
 	
 	private LinkedList<Token> tokens;
+	private Map<Class<? extends TagHandler>, Object> stateVariables;
 	
 	public Parser(String string) {
 		this.tokens = new LinkedList<Token>();
+		this.stateVariables = new HashMap<Class<? extends TagHandler>, Object>();
 		
 		int line = 1;
 		boolean inTag = false;
@@ -123,6 +125,16 @@ public class Parser {
 		return tokens.remove();
 	}
 
+	
+	public <T> void setStateVariable(Class<? extends TagHandler> key, T value) {
+		stateVariables.put(key, value);
+	}
+	public <T> T getStateVariable(Class<? extends TagHandler> key) {
+		return (T)stateVariables.get(key);
+	}
+	public void clearStateVariable(Class<? extends TagHandler> key) {
+		stateVariables.remove(key);
+	}
 	
 	public static class Token {
 		public final TagDelimiter.Type type;
