@@ -934,7 +934,7 @@ public class RubyConvert extends ed.MyAsserts {
             }
             _append( " ){\n" , rb );
             if ( ! fromBegin && _isReturnable( rb.getBodyNode() ) ) _append( JS_R , rn );
-            _add( rb.getBodyNode() , state );
+            _addBlock( rb.getBodyNode() , state );
             _append( "\n}\n" , rn );
             
             rb = rb.getOptRescueNode();

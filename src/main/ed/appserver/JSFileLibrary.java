@@ -161,7 +161,7 @@ public class JSFileLibrary extends JSFunctionCalls0 {
         
         Object foo = get( dir );
         if ( foo == null )
-            throw new RuntimeException( "couldn't find " + dir );
+            return null;
         
         if ( ! ( foo instanceof JSFileLibrary ) )
             throw new RuntimeException( dir + " is not a directory" );

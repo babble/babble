@@ -161,7 +161,23 @@ public class Ruby {
                     if ( idx > 0 )
                         path = path.substring( 0 , idx );
 
-                    return ((JSFileLibrary)s.get( "__path__" )).getFromPath( path );
+                    while ( path.startsWith( "/" ) )
+                        path = path.substring(1);
+                    
+                    path = path.replaceAll( "//+" , "/" );
+
+                    Object thing = ((JSFileLibrary)s.get( "__path__" )).getFromPath( path );
+                    
+                    if ( thing == null )
+                        thing = ((JSFileLibrary)s.get( "local" )).getFromPath( "lib/" + path );
+
+                    if ( thing == null )
+                        thing = ((JSFileLibrary)s.get( "core" )).getFromPath( "rails/lib/" + path );
+
+                    if ( thing == null || ! ( thing instanceof JSFunction ) )
+                        throw new RuntimeException( "can't find [" + path + "]" );
+                    
+                    return ((JSFunction)thing).call( s , null );
                 }
             } , true );
 
