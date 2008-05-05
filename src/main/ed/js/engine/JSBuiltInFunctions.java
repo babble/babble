@@ -197,22 +197,33 @@ public class JSBuiltInFunctions {
 
         final boolean _newLine;
     }
-
+    
     public static class NewObject extends JSFunctionCalls0{
-            public Object call( Scope scope , Object extra[] ){
-                return new JSObjectBase();
-            }
 
-            protected void init(){
-                /** 
-                 * Copies all properties from the source to the destination object.
-                 * Not in JavaScript spec! Please refer to Prototype docs! 
-                */
-                set( "extend", new Prototype.Object_extend() );
-                set( "values", new Prototype.Object_values() );
-                set( "keys", new Prototype.Object_keys() );
-            }
-        };
+        public Object call( Scope scope , Object extra[] ){
+            return new JSObjectBase();
+        }
+        
+        public Object get( Object o ){
+            if ( o == null )
+                return null;
+            
+            if ( o.toString().equals( "prototype" ) )
+                return JSObjectBase._objectLowFunctions;
+
+            return super.get( o );
+        }
+        
+        protected void init(){
+            /** 
+             * Copies all properties from the source to the destination object.
+             * Not in JavaScript spec! Please refer to Prototype docs! 
+             */
+            set( "extend", new Prototype.Object_extend() );
+            set( "values", new Prototype.Object_values() );
+            set( "keys", new Prototype.Object_keys() );
+        }
+    };
     
     
     public static class NewDate extends JSFunctionCalls1 {
@@ -619,6 +630,8 @@ public class JSBuiltInFunctions {
         _myScope.put( "isNumber" , new isXXX( Number.class ) , true );
         _myScope.put( "isDate" , new isXXX( JSDate.class ) , true );
         _myScope.put( "isFunction" , new isXXX( JSFunction.class ) , true );
+        _myScope.put( "isRegExp" , new isXXX( JSRegex.class ) , true );
+        _myScope.put( "isRegex" , new isXXX( JSRegex.class ) , true );
 
         _myScope.put("isNaN", new isNaN(), true);
 

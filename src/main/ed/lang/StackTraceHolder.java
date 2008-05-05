@@ -23,7 +23,7 @@ public class StackTraceHolder {
     }
 
     public void set( String fullName , StackTraceFixer fixer ){
-        if ( DEBUG ) System.out.println( "set [" + fullName + "]" );
+        if ( DEBUG ) System.out.println( "set [" + fullName + "] " + fixer );
         _fixers.put( fullName , fixer );
     }
     
@@ -66,6 +66,10 @@ public class StackTraceHolder {
      * @return null if should be removed, or the correct thing
     */
     public StackTraceElement fix( StackTraceElement element ){
+        
+        if ( RAW_EXCPETIONS )
+            return element;
+        
 	if ( element == null )
 	    return null;
         

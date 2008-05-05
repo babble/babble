@@ -16,21 +16,27 @@ public class Ruby {
     public static final String RUBY_NEW = "_rubyNew";
     public static final String RUBY_INCLUDE = "_rinclude";
     public static final String RUBY_RESCURE_INSTANCEOF = "__rrescueinstanceof";
+    public static final String RUBY_TOARRAY = "__rtoarray";
     
     public static final String RUBY_NEWNAME = "_____rnew___";
     public static final String RUBY_SHIFT = "__rshift";
     public static final String RUBY_PRIVATE = "__rprivate";
+    public static final String RUBY_PROTECTED = "__rprivate";
     public static final String RUBY_REQUIRE = "__rrequire";
     public static final String RUBY_RAISE = "__rraise";
     public static final String RUBY_DEFINE_CLASS = "__rdefineclass";
+    public static final String RUBY_RANGE = "__rrange";
 
     static final Map<String,String> _nameMapping = new TreeMap<String,String>();
     static {
         _nameMapping.put( "new" , RUBY_NEWNAME );
         _nameMapping.put( "private" , RUBY_PRIVATE );
+        _nameMapping.put( "protected" , RUBY_PROTECTED );
         _nameMapping.put( "<<" , RUBY_SHIFT );
         _nameMapping.put( "require" , RUBY_REQUIRE );
         _nameMapping.put( "raise" , RUBY_RAISE );
+
+        _nameMapping.put( "delete" , "__rdelete" );
 
     }
 
@@ -38,9 +44,16 @@ public class Ruby {
         
         s.put( RUBY_V_CALL , new JSFunctionCalls1(){
                 public Object call( Scope s , Object foo , Object extra[] ){
+                    
+                    if ( foo == null && extra != null && extra.length > 1 ){
+                        String name = extra[0].toString();
+                        JSObject tt = (JSObject)(extra[1]);
+                        
+                        foo = tt.get( name );
+                    }
 
                     if ( foo == null )
-                        return null;
+                        throw new NullPointerException( "no function" );
                     
                     if ( foo instanceof JSFunction )
                         return ((JSFunction)foo).call( s );
@@ -53,27 +66,35 @@ public class Ruby {
             new JSFunctionCalls2(){
                 public Object call( Scope s , Object thing , Object funcName , Object extra[] ){
                     
+                    Object useThis = thing;
+
                     if ( thing == null )
                         throw new NullPointerException();
-
-                    if ( ! ( thing instanceof JSObject) )
-                        throw new RuntimeException( "problem (" + thing.getClass() + ")" );
                     
                     if ( funcName == null )
                         throw new NullPointerException( "funcName can't be null" );
+                    
+                    if ( thing instanceof Number ){
+                        thing = JSNumber.functions;
+                    }
+
+                    if ( ! ( thing instanceof JSObject) ){
+                        throw new RuntimeException( "problem (" + thing.getClass() + ")" );
+                    }
+                    
 
                     JSObject jo = (JSObject)thing;
                     
                     Object func = jo.get( RubyConvert._mangleFunctionName( funcName.toString() ) );
                     
                     if ( func == null )
-                        return null;
+                        throw new NullPointerException( funcName.toString() );
                     
                     if ( ! ( func instanceof JSFunction ) )
                         return func;
                     
                     JSFunction f = (JSFunction)func;
-                    return f.callAndSetThis( s , thing , null );
+                    return f.callAndSetThis( s , useThis , null );
                 }
             };
         
@@ -140,9 +161,47 @@ public class Ruby {
                     if ( idx > 0 )
                         path = path.substring( 0 , idx );
 
-                    return ((JSFileLibrary)s.get( "__path__" )).getFromPath( path );
+                    while ( path.startsWith( "/" ) )
+                        path = path.substring(1);
+                    
+                    path = path.replaceAll( "//+" , "/" );
+
+                    Object thing = ((JSFileLibrary)s.get( "__path__" )).getFromPath( path );
+                    
+                    if ( thing == null )
+                        thing = ((JSFileLibrary)s.get( "local" )).getFromPath( "lib/" + path );
+
+                    if ( thing == null )
+                        thing = ((JSFileLibrary)s.get( "core" )).getFromPath( "rails/lib/" + path );
+
+                    if ( thing == null || ! ( thing instanceof JSFunction ) )
+                        throw new RuntimeException( "can't find [" + path + "]" );
+                    
+                    return ((JSFunction)thing).call( s , null );
                 }
             } , true );
+
+        s.put( RUBY_TOARRAY , new JSFunctionCalls0(){
+                public Object call( Scope s , Object extra[] ){
+                    if ( extra == null || extra.length == 0 )
+                        return new JSArray();
+                    
+                    if ( extra.length == 1 && extra[0] instanceof JSArray )
+                        return extra[0];
+                    
+                    return new JSArray( extra );
+                }
+            } , true );
+
+        s.put( "__revstr" , new JSFunctionCalls1(){
+                public Object call( Scope s , Object foo , Object extra[] ){
+                    if ( foo == null )
+                        return "";
+                    
+                    return foo.toString();
+                }
+            } , true );
+
 
         s.put( RUBY_RAISE , new JSFunctionCalls1(){
 
@@ -210,6 +269,66 @@ public class Ruby {
                 }
             } , true );
 
+        s.put( RUBY_RANGE , new JSFunctionCalls2(){
+                public Object call( Scope scope , Object start , Object end , Object extra[] ){
 
+                    if ( start == null )
+                        throw new NullPointerException( "range start is null" );
+
+                    if ( end == null )
+                        throw new NullPointerException( "range end is null" );
+
+                    start = _rangeFix( start );
+                    end = _rangeFix( end );
+
+                    if ( start.getClass() != end.getClass() )
+                        throw new NullPointerException( "can't only range the same thing" );
+
+                    JSArray a = new JSArray();
+                    a.set( "to_a" , new JSFunctionCalls0(){
+                            public Object call( Scope s , Object foo[] ){
+                                return s.getThis();
+                            }
+                        } );
+                    
+                    
+                    if ( start instanceof Character ){
+                        char s = (Character)start;
+                        char e = (Character)end;
+                        
+                        while ( s <= e ){
+                            a.add( s );
+                            s++;
+                        }
+                        
+                    }
+                    else if ( start instanceof Number ){
+                        int s = ((Number)start).intValue();
+                        int e = ((Number)end).intValue();
+
+                        while ( s <= e ){
+                            a.add( s );
+                            s++;
+                        }
+                    }
+                    else {
+                        throw new RuntimeException( "can't compare : " + start.getClass() );
+                    }
+
+                    return a;
+                    
+                }
+            } , true );
+
+    }
+
+    static Object _rangeFix( Object o ){
+        if ( o instanceof String || o instanceof JSString ){
+            String s = o.toString();
+            if ( s.length() > 1 )
+                throw new RuntimeException( "can't range a string of length > 1" );
+            return s.charAt( 0 );
+        }
+        return o;
     }
 }

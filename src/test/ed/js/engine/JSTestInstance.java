@@ -79,4 +79,13 @@ public class JSTestInstance extends ScriptTestInstanceBase{
         s = s.replaceAll("tempFunc_\\d+_" , "tempFunc_");
         return s;
     }
+    
+    public static void main(String[] args) throws Exception {
+    	
+    	JSTestInstance jsti = new JSTestInstance();
+    	
+    	jsti.setTestScriptFile(new File(args[0]));
+    	
+    	jsti.test();
+    }
 }

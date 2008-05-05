@@ -244,7 +244,7 @@ public class JSString extends JSObjectBase {
                 
 
             _prototype.set( "split" , new JSFunctionCalls1(){
-                    public Object call( Scope s , Object o , Object crap[] ){                        
+                    public Object call( Scope s , Object o , Object extra[] ){                        
                             
                         String str = s.getThis().toString();
 
@@ -253,12 +253,19 @@ public class JSString extends JSObjectBase {
                             
                         if ( ! ( o instanceof JSRegex ) )
                             throw new RuntimeException( "not a regex : " + o.getClass() );
-                            
+                        
+                        int limit = Integer.MAX_VALUE;
+                        if ( extra != null && extra.length > 0 && extra[0] instanceof Number )
+                            limit = ((Number)extra[0]).intValue();
+    
                         JSRegex r = (JSRegex)o;
                         
                         JSArray a = new JSArray();
-                        for ( String pc : r._patt.split( str , -1 ) )
+                        for ( String pc : r._patt.split( str , -1 ) ){
                             a.add( new JSString( pc ) );
+                            if ( a.size() >= limit )
+                                break;
+                        }
                             
                         return a;
                     }

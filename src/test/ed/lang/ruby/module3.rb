@@ -10,6 +10,7 @@ module A
   module B
     def silly
       puts "silly"
+      return 171
     end
   end
   
@@ -34,7 +35,7 @@ end
 f = Foo.new
 f = Foo.new
 
-Foo.silly
+puts Foo.silly
 
 f.bar
 

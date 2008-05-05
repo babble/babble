@@ -15,9 +15,9 @@ import ed.js.engine.*;
 public class JSNumber {
 
 
-    private static Map<String,JSFunction> functions = new HashMap<String,JSFunction>();
+    public static JSObjectBase functions = new JSObjectBase();
     public static JSFunction getFunction( String name ){
-        return functions.get( name );
+        return (JSFunction)functions.get( name );
     }
 
     public static final JSFunction CONS = new JSFunctionCalls2(){
@@ -33,6 +33,8 @@ public class JSNumber {
                     return b;
                 throw new RuntimeException( "not a number [" + a + "]" );
             }
+
+            
         };
     
     
@@ -75,8 +77,26 @@ public class JSNumber {
                 return s.substring( 0 , idx + 1 + num  );
             }
         };
+    
+    public static class Conversion extends JSFunctionCalls0{
+        
+        Conversion( double conversion ){
+            _conversion = conversion;
+        }
+        
+        public Object call( Scope s , Object foo[] ){
+            Number n = (Number)s.getThis();
+            return n.doubleValue() * _conversion;
+        }
+
+        final double _conversion;
+    }
+    
     static {
-        functions.put( "toFixed" , toFixed );
+        functions.set( "toFixed" , toFixed );
+
+        functions.set( "kilobytes" , new Conversion( 1024 ) );
+        functions.set( "megabytes" , new Conversion( 1024 * 1024 ) );
     }
 }
 

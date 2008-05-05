@@ -133,7 +133,7 @@ public class JSMath extends JSObjectBase {
                      return Math.abs(((Number)a).doubleValue());
                      
                  }
-
+                 
              } );
 
 
@@ -154,7 +154,22 @@ public class JSMath extends JSObjectBase {
                  }
 
              } );
+        
+        set( "posOrNeg" , new JSFunctionCalls1(){
+                public Object call( Scope s , Object a , Object foo[] ){
 
+                    if ( ! ( a instanceof Number ) )
+                        return 0;
+                    
+                    Number n = (Number)a;
+                    double d = n.doubleValue();
+                    if ( d > 0 )
+                        return 1;
+                    if ( d < 0 )
+                        return -1;
+                    return 0;
+                }
+            } );
 
     }
     

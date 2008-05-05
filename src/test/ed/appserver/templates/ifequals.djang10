@@ -1,0 +1,36 @@
+{% ifequals a b %}
+Should not see me
+{% else %}
+Should see me
+{% endifequals %}
+
+{% ifequals a "A" %}
+Should see me2
+{% else %}
+Should not see me2
+{% endifequals %}
+
+{% ifequals a c %}
+Should see me3
+{% else %}
+Should not see me3
+{% endifequals %}
+
+
+{% ifnotequals a b %}
+Should see me4
+{% else %}
+Should not see me4
+{% endifnotequals %}
+
+{% ifnotequals a "A" %}
+Should not see me5
+{% else %}
+Should see me5
+{% endifnotequals %}
+
+{% ifnotequals a c %}
+Should not see me6
+{% else %}
+Should see me6
+{% endifnotequals %}

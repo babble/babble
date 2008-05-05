@@ -818,7 +818,7 @@ public class Convert implements StackTraceFixer {
                         b = b.getNext();
                     }
                     
-                    _append( javaEName + " = null ;\n" , b );
+                    _append( "if ( true ) " + javaEName + " = null ;\n" , b );
                     
                     if ( isIF ){
                         _append( "\n } \n " , b );
@@ -1092,6 +1092,22 @@ public class Convert implements StackTraceFixer {
             _append( "JSArray arguments = new JSArray();\n" , n );
             _append( "scope.put( \"arguments\" , arguments , true );\n" , n );
         }
+
+        for ( int i=0; i<fn.getParamCount(); i++ ){
+
+            final String foo = fn.getParamOrVarName( i );
+            final String javaName = foo + ( state.useLocalVariable( foo ) ? "" : "INNNNN" );
+            final Node defArg = fn.getDefault( foo );
+            if ( defArg == null )
+                continue;
+            
+
+            _append( "if ( null == " + javaName + " ) " , defArg );
+            _append( javaName + " = " , defArg );
+            _add( defArg , state );
+            _append( ";\n" , defArg );
+        }
+
         _append(  varSetup , n );
         if ( hasArguments )
             _append( "if ( extra != null ) for ( Object TTTT : extra ) arguments.add( TTTT );\n" , n );

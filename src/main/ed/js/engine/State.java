@@ -35,7 +35,9 @@ class State {
     }
 
     boolean useLocalVariable( String name ){
-        //if ( true ) return false;
+        if ( name.equals( "arguments" ) )
+            return false;
+
         return 
             ! _hasLambdaExpressions && 
             ( _badLocals == null || ! _badLocals.contains( name ) );
