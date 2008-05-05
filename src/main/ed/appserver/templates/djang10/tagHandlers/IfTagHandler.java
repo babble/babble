@@ -1,6 +1,5 @@
 package ed.appserver.templates.djang10.tagHandlers;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
