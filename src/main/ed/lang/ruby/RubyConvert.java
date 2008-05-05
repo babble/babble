@@ -495,7 +495,9 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof EvStrNode ){
             if( node.childNodes().size() > 0 ){
                 _assertOne( node );
+                _append( "__revstr( " , node );
                 _add( node.childNodes().get(0).childNodes().get(0) , state );
+                _append( ") " , node );
             }
         }
 
@@ -815,9 +817,19 @@ public class RubyConvert extends ed.MyAsserts {
         _append( "( (" , ifn );
         _add( ifn.getCondition() , state );
         _append( " ) ? ( " , ifn );
-        _add( ifn.getThenBody() , state );
+
+        if ( ifn.getThenBody() == null )
+            _append( "null" , ifn );
+        else
+            _add( ifn.getThenBody() , state );
+        
         _append( " ) : ( " , ifn );
-        _add( ifn.getElseBody() , state );
+        
+        if ( ifn.getElseBody() == null )
+            _append( "null" , ifn );
+        else
+            _add( ifn.getElseBody() , state );
+
         _append( " ) ) " , ifn );
         
         return true;
@@ -826,7 +838,7 @@ public class RubyConvert extends ed.MyAsserts {
 
     boolean _badTurnaryNode( Node n ){
         if ( n == null )
-            return true;
+            return false;
         
         if ( ! _isSingleStatement( n ) )
             return true;

@@ -177,6 +177,16 @@ public class Ruby {
                 }
             } , true );
 
+        s.put( "__revstr" , new JSFunctionCalls1(){
+                public Object call( Scope s , Object foo , Object extra[] ){
+                    if ( foo == null )
+                        return "";
+                    
+                    return foo.toString();
+                }
+            } , true );
+
+
         s.put( RUBY_RAISE , new JSFunctionCalls1(){
 
                 public Object call( Scope s , Object clazz , Object extra[] ){

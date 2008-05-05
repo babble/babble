@@ -39,3 +39,10 @@ def blah2( a , b )
 end
 
 blah( 7 , 10 );
+
+z = nil
+puts "abc#{ z }def"
+z = 5
+puts "abc#{ z unless z == 5 }def"
+puts "abc#{ z unless z == 4 }def"
+
