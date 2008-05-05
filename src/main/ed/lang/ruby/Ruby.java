@@ -25,6 +25,7 @@ public class Ruby {
     public static final String RUBY_REQUIRE = "__rrequire";
     public static final String RUBY_RAISE = "__rraise";
     public static final String RUBY_DEFINE_CLASS = "__rdefineclass";
+    public static final String RUBY_RANGE = "__rrange";
 
     static final Map<String,String> _nameMapping = new TreeMap<String,String>();
     static {
@@ -240,6 +241,66 @@ public class Ruby {
                 }
             } , true );
 
+        s.put( RUBY_RANGE , new JSFunctionCalls2(){
+                public Object call( Scope scope , Object start , Object end , Object extra[] ){
 
+                    if ( start == null )
+                        throw new NullPointerException( "range start is null" );
+
+                    if ( end == null )
+                        throw new NullPointerException( "range end is null" );
+
+                    start = _rangeFix( start );
+                    end = _rangeFix( end );
+
+                    if ( start.getClass() != end.getClass() )
+                        throw new NullPointerException( "can't only range the same thing" );
+
+                    JSArray a = new JSArray();
+                    a.set( "to_a" , new JSFunctionCalls0(){
+                            public Object call( Scope s , Object foo[] ){
+                                return s.getThis();
+                            }
+                        } );
+                    
+                    
+                    if ( start instanceof Character ){
+                        char s = (Character)start;
+                        char e = (Character)end;
+                        
+                        while ( s <= e ){
+                            a.add( s );
+                            s++;
+                        }
+                        
+                    }
+                    else if ( start instanceof Number ){
+                        int s = ((Number)start).intValue();
+                        int e = ((Number)end).intValue();
+
+                        while ( s <= e ){
+                            a.add( s );
+                            s++;
+                        }
+                    }
+                    else {
+                        throw new RuntimeException( "can't compare : " + start.getClass() );
+                    }
+
+                    return a;
+                    
+                }
+            } , true );
+
+    }
+
+    static Object _rangeFix( Object o ){
+        if ( o instanceof String || o instanceof JSString ){
+            String s = o.toString();
+            if ( s.length() > 1 )
+                throw new RuntimeException( "can't range a string of length > 1" );
+            return s.charAt( 0 );
+        }
+        return o;
     }
 }

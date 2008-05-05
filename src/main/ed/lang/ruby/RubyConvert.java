@@ -640,6 +640,15 @@ public class RubyConvert extends ed.MyAsserts {
         
         // --- literals ---
 
+        else if ( node instanceof DotNode ){
+            DotNode dn = (DotNode)node;
+            _append( Ruby.RUBY_RANGE + "(" , dn );
+            _add( dn.getBeginNode() , state );
+            _append( " , " , dn );
+            _add( dn.getEndNode() , state );
+            _append( ")" , dn );
+        }
+
         else if ( node instanceof ToAryNode ){
             _append( "__rtoarray(" , node );
             _add( ((ToAryNode)node).getValue() , state );
