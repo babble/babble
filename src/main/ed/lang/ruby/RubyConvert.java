@@ -550,7 +550,12 @@ public class RubyConvert extends ed.MyAsserts {
         }
 
         else if ( node instanceof ClassVarNode ){
-            _append( "this.__constructor__." + ((ClassVarNode)node).getName().substring(2) , node );
+            if ( state._className != null )
+                _append( state._className , node );
+            else 
+                _append( "this.__constructor__" , node );
+
+            _append( "." + ((ClassVarNode)node).getName().substring(2) , node );
         }
         
         else if ( node instanceof MultipleAsgnNode ){
@@ -773,6 +778,7 @@ public class RubyConvert extends ed.MyAsserts {
         if ( n instanceof BlockNode  
              || n instanceof NewlineNode 
              || n instanceof DefnNode
+             || n instanceof BeginNode
              )
             return false;
         
@@ -996,6 +1002,7 @@ public class RubyConvert extends ed.MyAsserts {
              n instanceof ModuleNode ||
              n instanceof IfNode ||
              n instanceof LocalAsgnNode ||
+             n instanceof OpAsgnOrNode ||
              n instanceof ClassNode ){
             _add( n , state );
             return;
