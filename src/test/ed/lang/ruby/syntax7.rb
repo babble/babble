@@ -26,3 +26,16 @@ end
 
 a = A.new
 a.delete
+
+def blah( a , b )
+  puts "a:#{a} b:#{b}"
+end
+
+blah( 7 , 10 );
+
+
+def blah2( a , b )
+  puts "a:#{} b:#{b}"
+end
+
+blah( 7 , 10 );

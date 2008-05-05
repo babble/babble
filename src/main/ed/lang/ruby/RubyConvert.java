@@ -493,8 +493,10 @@ public class RubyConvert extends ed.MyAsserts {
         }
 
         else if ( node instanceof EvStrNode ){
-            _assertOne( node );
-            _add( node.childNodes().get(0).childNodes().get(0) , state );
+            if( node.childNodes().size() > 0 ){
+                _assertOne( node );
+                _add( node.childNodes().get(0).childNodes().get(0) , state );
+            }
         }
 
         else if ( node instanceof Colon2Node ){
