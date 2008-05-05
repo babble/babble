@@ -64,13 +64,23 @@ public abstract class JxpSource {
         if ( ! t.getExtension().equals( "js" ) )
             throw new RuntimeException( "don't know what do do with : " + t.getExtension() );
         
+        Convert convert = null;
         try {
-            Convert convert = new Convert( t.getName() , t.getContent() );
+            convert = new Convert( t.getName() , t.getContent() );
             _func = convert.get();
             return _func;
         }
         catch ( Exception e ){
-            throw new RuntimeException( "couldn't compile : " + t.getName() , e );
+            String thing = e.toString();
+            if ( thing.indexOf( ":" ) >= 0 )
+                thing = thing.substring( thing.indexOf(":") + 1 );
+            
+            String msg = "couldn't compile ";
+            if ( ! thing.contains( t.getName() ) )
+                msg += " [" + t.getName() + "] ";
+            msg += thing;
+
+            throw new RuntimeException( msg , e );
         }
     }
     
