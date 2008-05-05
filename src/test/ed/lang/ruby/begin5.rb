@@ -7,10 +7,11 @@ end
 
 def save
   puts "save"
+  return 111;
 end
 
 def bar
   return ( foo 6 rescue save )
 end
 
-bar
+puts bar
