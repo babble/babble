@@ -370,7 +370,12 @@ public class Ruby {
                 }
             } , true );
 
-        JSFileLibrary lib = new JSFileLibrary( new java.io.File( "src/main/ed/lang/ruby/" ) , "ruby" , s );
+        String root = ed.db.JSHook.whereIsEd;
+        if ( root == null )
+            root = "";
+        root += "src/main/ed/lang/ruby/";
+        
+        JSFileLibrary lib = new JSFileLibrary( new java.io.File( root ) , "ruby" , s );
         ((JSFunction)(lib.get( "lib" ))).call( s );
 
     }
