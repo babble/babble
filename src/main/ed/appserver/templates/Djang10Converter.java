@@ -13,6 +13,7 @@ import ed.appserver.templates.djang10.Variable;
 import ed.appserver.templates.djang10.Variable.FilterSpec;
 import ed.appserver.templates.djang10.filters.DefaultFilter;
 import ed.appserver.templates.djang10.filters.Filter;
+import ed.appserver.templates.djang10.filters.UrlEncodeFilter;
 import ed.appserver.templates.djang10.generator.JSWriter;
 import ed.appserver.templates.djang10.tagHandlers.BlockTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.CommentTagHandler;
@@ -174,5 +175,6 @@ public class Djang10Converter implements TemplateConverter {
     private static Map<String, Filter> _filters = new HashMap<String, Filter>();
     static {
     	_filters.put("default", new DefaultFilter());
+    	_filters.put("urlencode", new UrlEncodeFilter());
     }
 }
