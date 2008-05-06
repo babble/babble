@@ -76,47 +76,4 @@ public class JSWriter {
 	public String toString() {
 		return buffer.toString();
 	}
-	
-	public static Map<String, JSFunction> getHelpers() {
-		HashMap<String, JSFunction> helpers = new HashMap<String, JSFunction>();
-		
-    	helpers.put(VAR_EXPAND, new JSFunctionCalls2() {
-			@Override
-			public Object call(Scope scope, Object varName, Object defaultValue, Object[] extra) {
-				
-				String varNameStr = ((JSString)varName).toString();
-				String[] varNameParts = varNameStr.split("\\.");
-				
-				// find the starting point
-				JSArray contextStack = (JSArray)scope.get(CONTEXT_STACK_VAR);
-				Object varValue = null;
-				
-				for(int i=contextStack.size() - 1; i>=0 && varValue == null; i--) {
-					JSObject context = (JSObject)contextStack.get(i);
-					varValue = context.get(varNameParts[0]);
-				}
-				// find the rest of the variable members
-				for(int i=1; i<varNameParts.length; i++) {
-					String varNamePart = varNameParts[i];
-
-					if(varValue == null || !(varValue instanceof JSObject)) {
-						varValue = null;
-						break;
-					}
-					
-					JSObject varValueJsObj = (JSObject)varValue;
-					varValue = varValueJsObj.get(varNamePart);
-					
-					if(varValue instanceof JSFunction)
-						varValue = ((JSFunction)varValue).callAndSetThis(scope.child(), varValueJsObj, new Object[0]);
-				}
-				if(varValue == null) {
-					varValue = defaultValue;
-				}
-
-				return varValue;
-			}
-		});
-    	return helpers;
-    }
 }
