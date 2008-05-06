@@ -389,6 +389,31 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                 } );
 
 
+            _prototype.set( "each" , new JSFunctionCalls1(){
+                    public Object call(Scope s, Object funcObject , Object [] args){
+
+                        if ( funcObject == null )
+                            throw new NullPointerException( "each needs a function" );
+                        
+                        JSFunction func = (JSFunction)funcObject;
+
+                        JSArray a = (JSArray)(s.getThis());
+                        for ( Object o : a._array ){
+                            Object ret = func.call( s , o );
+
+                            if ( ret == null )
+                                continue;
+                            
+                            if ( JSInternalFunctions.JS_evalToBool( ret ) )
+                                continue;
+                            
+                            break;
+                        }
+
+                        return null;
+                    }
+                } );
+
         }
     }
     

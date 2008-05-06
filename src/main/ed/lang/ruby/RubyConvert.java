@@ -357,13 +357,25 @@ public class RubyConvert extends ed.MyAsserts {
 
         // --- looping ---
 
+        else if ( node instanceof BreakNode ){
+            if ( state._whileCount > 0 )
+                _append( "break" , node );
+            else
+                _append( "return 0" , node );
+        }
+
         else if ( node instanceof WhileNode ){
+            
+            state._whileCount++;
+            
             _assertType( node.childNodes().get(0) , NewlineNode.class );
             _append( "while ( " , node );
             _add( node.childNodes().get(0).childNodes().get(0) , state );
             _append( " ){ \n " , node );
             _add( node.childNodes().get(1) , state );
             _append( "\n } \n " , node );
+
+            state._whileCount--;
         }
 
         else if ( node instanceof IfNode ){
@@ -905,6 +917,7 @@ public class RubyConvert extends ed.MyAsserts {
              || n instanceof DefnNode
              || n instanceof NewlineNode
              || n instanceof BeginNode
+             || n instanceof BreakNode
              )
             return false;
         
@@ -1475,6 +1488,8 @@ public class RubyConvert extends ed.MyAsserts {
         String _className;
         DefnNode _classInit;
         boolean _module = false;
+
+        int _whileCount = 0;
     }
 
     void _append( String s , Node where ){
