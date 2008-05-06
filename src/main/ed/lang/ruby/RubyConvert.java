@@ -1050,15 +1050,7 @@ public class RubyConvert extends ed.MyAsserts {
         state._classInit = null;
         state._module = true;
 
-        _append( name + " = {};\n" , mn );
-
-        /*
-        if ( cn.getSuperNode() != null ){
-            _append( "\n" + name + ".prototype = new " , cn );
-            _add( cn.getSuperNode() , state );
-            _append( "();\n" , cn );
-        }
-        */
+        _append( "if ( ! " + name + " ){ " + name + " = {}; }\n" , mn );
         
         for ( Node c : mn.childNodes() )
             _addClassPiece( c , state );
