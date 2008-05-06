@@ -5,8 +5,12 @@ module A
 end
 
 module A
+  
+  FOO = { "a" => 7 }
+
   def self.b
     puts "b"
+    puts FOO["a"]
   end
 end
 

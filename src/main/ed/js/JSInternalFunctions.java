@@ -61,7 +61,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
         return o;
     }
 
-    public boolean JS_instanceof( Object thing , Object type ){
+    public static boolean JS_instanceof( Object thing , Object type ){
         if ( thing == null )
             return false;
         

@@ -91,6 +91,14 @@ public class JSString extends JSObjectBase {
                     private final MD5 _myMd5 = new MD5();
                 } );
 
+            _prototype.set( "to_sym" , new JSFunctionCalls0() {
+                    public Object call( Scope s , Object extra[] ){
+                        return s.getThis().toString();
+                    }
+                    
+                    private final MD5 _myMd5 = new MD5();
+                } );
+
 
             _prototype.set( "toLowerCase" , new JSFunctionCalls0() {
                     public Object call( Scope s , Object foo[] ){

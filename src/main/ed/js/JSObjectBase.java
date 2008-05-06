@@ -345,7 +345,11 @@ public class JSObjectBase implements JSObject {
                 
                 } );
 
-
+            set( "is_a_q_" , new JSFunctionCalls1(){
+                    public Object call( Scope s , Object type , Object args[] ){
+                        return JSInternalFunctions.JS_instanceof( s.getThis() , type );
+                    }
+                } );
         }
         
         public Collection<String> keySet(){
