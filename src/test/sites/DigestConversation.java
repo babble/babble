@@ -28,6 +28,7 @@ public class DigestConversation extends WebConversation {
     public void setAuthorization(String u, String p) {
         _username = u;
         _password = p;
+        setHeaderField("Authorization", null);
         //super.setAuthorization(u, p);
     }
     
