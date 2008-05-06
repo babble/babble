@@ -18,6 +18,7 @@ import ed.appserver.templates.djang10.generator.JSWriter;
 import ed.appserver.templates.djang10.tagHandlers.BlockTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.CommentTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.ExtendsTagHandler;
+import ed.appserver.templates.djang10.tagHandlers.FilterTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.ForTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IfEqualTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IfTagHandler;
@@ -165,6 +166,7 @@ public class Djang10Converter implements TemplateConverter {
     	_tagHandlers.put("ifequal", new IfEqualTagHandler(false));
     	_tagHandlers.put("ifnotequal", new IfEqualTagHandler(true));
     	_tagHandlers.put("comment", new CommentTagHandler());
+    	_tagHandlers.put("filter", new FilterTagHandler());
     }
 
     

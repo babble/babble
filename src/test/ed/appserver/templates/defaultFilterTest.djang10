@@ -1,2 +1,4 @@
 {{ unknownVar|default:"should see me" }}
 {{ "The string Ÿ@foo-bar"|urlencode }}
+
+{% filter urlencode %}The string Ÿ@foo-bar{% endfilter %}
