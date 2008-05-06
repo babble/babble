@@ -6,12 +6,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import ed.appserver.templates.Djang10Converter;
+import ed.appserver.templates.djang10.Variable;
 import ed.appserver.templates.djang10.tagHandlers.ForTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IfTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IncludeTagHandler;
@@ -234,38 +236,79 @@ public class Parser {
 		}
 	}
 	public static String[] smartSplit(String str) {
-    	ArrayList<String> parts = new ArrayList<String>();
-    	
-    	String delims = " \t\r\n\"";
+		return smartSplit(str, " \t\r\n");
+	}
+	
+	public static String[] smartSplit(String str, String delims) {
+		String quotes = "\'\"";
+		delims += quotes;
+		
+    	ArrayList<String> parts = new ArrayList<String>();	
     	StringTokenizer tokenizer = new StringTokenizer(str, delims, true);
-
-    	StringBuilder quotedBuffer = null;
+    	StringBuilder buffer = new StringBuilder();
+    	char openQuote = '\"';
+    	boolean inQuote = false;
     	
     	
     	while(tokenizer.hasMoreTokens()) {
     		String token = tokenizer.nextToken();
     		
-    		if(token.length() == 1 && delims.contains(token)) {
-    			if("\"".equals(token)) {
-    				if(quotedBuffer == null)
-    					quotedBuffer = new StringBuilder();
-    				else {
-    					parts.add(quotedBuffer.toString());
-    					quotedBuffer = null;
-    				}
-    			}
-    			else if(quotedBuffer != null) {
-    					quotedBuffer.append(token);
-				}
+    		boolean isQuote = token.length() == 1 && quotes.contains(token);
+    		boolean isDelim = token.length() == 1 && delims.contains(token);
+    		
+    		
+    		if(isQuote) {
+	    		if(!inQuote) {
+	    			openQuote = token.charAt(0);
+	    			inQuote = true;
+	    		} 
+	    		else if(openQuote == token.charAt(0))
+    				inQuote = false;
     		}
-    		else {
-    			if(quotedBuffer != null)
-    				quotedBuffer.append(token);
-    			else
-    				parts.add(token);
+    		else if(!inQuote && isDelim) {
+    			parts.add(buffer.toString());
+    			buffer.setLength(0);
+    			
+    			continue;
     		}
+    		buffer.append(token);
     	}
+    	parts.add(buffer.toString());
+    	
     	String[] partArray = new String[parts.size()];
     	return parts.toArray(partArray);
     }
+	
+	public static Variable parseVariable(String var) {
+		Variable variable = new Variable();
+		
+		String[] parts = smartSplit(var, "|");
+		
+		variable.base = parts[0];		
+		
+		for(int i=1; i<parts.length; i++) {
+			String[] filterParts = parts[i].split(":", 2);
+			String filterName;
+			String filterParam = null;
+			
+			filterName = filterParts[0].trim();
+			if(filterParts.length > 1) {
+				filterParam = filterParts[1].trim();
+			}
+			
+			variable.filters.add(new Variable.FilterSpec(filterName, filterParam));
+		}
+		return variable;
+	}
+	
+	public static String dequote(String str) {
+		if(isQuoted(str) ) {
+			str = str.substring(1, str.length() -1 );
+		}
+		return str;
+	}
+	
+	public static boolean isQuoted(String str) {
+		return str != null && str.length()>1 && "\"\'".contains(""+str.charAt(0)) && (str.charAt(0)==str.charAt(str.length() -1) );
+	}
 }
