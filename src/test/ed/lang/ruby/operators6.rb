@@ -4,11 +4,15 @@ puts $ASD
 
 class A
   
-  #self.foo
-
+  def initialize
+    @foo = 7
+  end
+  
   def a
-    #self.foo ||= 0
-    #puts self.foo
+    @foo ||= 2
+    @bar ||= 2
+    puts @foo
+    puts @bar
   end
 end
 
