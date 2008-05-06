@@ -952,8 +952,6 @@ public class RubyConvert extends ed.MyAsserts {
             _append( "\n}\n" , rn );
             
             rb = rb.getOptRescueNode();
-            if ( rb != null )
-                throw new RuntimeException("can't handle chained rescue" );
         }
         
         if ( ! fromBegin )
