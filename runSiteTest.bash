@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export CLASSPATH=.:build/sitestest/:conf:$CLASSPATH
+export CLASSPATH=.:build/corejstest/:conf:$CLASSPATH
 
 export TZ=America/New_York
 

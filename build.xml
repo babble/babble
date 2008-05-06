@@ -63,8 +63,8 @@
       <classpath refid="classpath"/>
     </javac>
 
-    <copy todir="build/sitestest/">
-      <fileset dir="build/" includes="sites/**"/>
+    <copy todir="build/corejstest/">
+      <fileset dir="build/" includes="corejs/**"/>
       <fileset dir="build/" includes="ed/*.class"/>
     </copy>
 
