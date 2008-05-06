@@ -15,7 +15,7 @@ public class IncludeTagHandler implements TagHandler {
 	public Node compile(Parser parser, String command, Token token) {
 		String[] parts = Parser.smartSplit(token.contents);
 
-		return new IncludeNode(token, parts[1]);
+		return new IncludeNode(token, Parser.dequote(parts[1]));
 	}
 
 	public Map<String, JSFunction> getHelpers() {

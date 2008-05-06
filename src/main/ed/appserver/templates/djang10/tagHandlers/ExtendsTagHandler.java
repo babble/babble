@@ -17,6 +17,7 @@ public class ExtendsTagHandler implements TagHandler {
 
 	public Node compile(Parser parser, String command, Token token) {
 		String path = Parser.smartSplit(token.contents)[1];
+		path = Parser.dequote(path);
 		
 		
 		parser.setStateVariable(this.getClass(), true);
