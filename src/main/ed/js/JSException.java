@@ -31,7 +31,12 @@ public class JSException extends RuntimeException implements JSObject {
         }
         
         public Object call( Scope scope , Object msg , Object[] extra ){
-            return new JSException( msg , null , true );
+            Object foo = scope.getThis();
+            if ( foo == null || ! ( foo instanceof JSException ) )
+                return new JSException( msg , null , true );
+            JSException e = (JSException)foo;
+            e._msg = msg;
+            return e;
         }
         
         protected void init(){
@@ -61,9 +66,6 @@ public class JSException extends RuntimeException implements JSObject {
         return _object;
     }
     
-    final Object _object;
-    final boolean _wantedJSException;
-
     static Throwable _fix( Throwable t ){
         if ( t instanceof java.lang.reflect.InvocationTargetException )
             return ((java.lang.reflect.InvocationTargetException)t).getTargetException();
@@ -108,7 +110,22 @@ public class JSException extends RuntimeException implements JSObject {
     public JSFunction getConstructor(){
         return _mycons;
     }
+    
+    public void setMessage( Object msg ){
+        _msg = msg;
+    }
+
+    public String toString(){
+        if ( _msg != null )
+            return _msg.toString();
+        if ( _object != null )
+            return _object.toString();
+        return "";
+    }
 
     JSFunction _mycons;
+    Object _msg;
+    final Object _object;
+    final boolean _wantedJSException;
 
 }

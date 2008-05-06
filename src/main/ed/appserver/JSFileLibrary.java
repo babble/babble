@@ -18,18 +18,19 @@ public class JSFileLibrary extends JSFunctionCalls0 {
     static final boolean DS = Boolean.getBoolean( "DEBUG.JSFLB" ) || D;
     
     public JSFileLibrary( File base , String uriBase , AppContext context ){
-        this( base , uriBase , context , null , false );
+        this( null , base , uriBase , context , null , false );
     }
     
     public JSFileLibrary( File base , String uriBase , Scope scope ){
-        this( base , uriBase , null , scope , false );
+        this( null , base , uriBase , null , scope , false );
     }
     
-    protected JSFileLibrary( File base , String uriBase , AppContext context , Scope scope , boolean doInit ){
+    protected JSFileLibrary( JSFileLibrary parent , File base , String uriBase , AppContext context , Scope scope , boolean doInit ){
 
         if ( uriBase.equals( "core" ) && ! doInit )
             throw new RuntimeException( "you are stupid" );
         
+        _parent = parent;
         _base = base;
         _uriBase = uriBase;
         _context = context;
@@ -121,10 +122,14 @@ public class JSFileLibrary extends JSFunctionCalls0 {
         
     }
 
+    public JSFunction getFunction( final Object n ){
+        return (JSFunction)get( n );
+    }
+    
     public Object get( final Object n ){
         return get( n , true );
     }
-    
+
     public synchronized Object get( final Object n , final boolean doInit ){
         if ( doInit )
             _init();
@@ -149,8 +154,15 @@ public class JSFileLibrary extends JSFunctionCalls0 {
     }
     
     public Object getFromPath( String path ){
-        if ( path.startsWith( "/" ) )
-            throw new RuntimeException( "can only load relative urls this way" );
+        if ( path.contains( ".." ) )
+            throw new RuntimeException( "can't have .. in paths" );
+        
+        if ( path.startsWith( "/" ) ){
+            JSFileLibrary root = this;
+            while ( root._parent != null )
+                root = root._parent;
+            return root.getFromPath( path.substring( 1 ) );
+        }
 
         final int idx = path.indexOf( "/" );
         if ( idx < 0 )
@@ -260,7 +272,7 @@ public class JSFileLibrary extends JSFunctionCalls0 {
         }
         
         if ( dir.exists() ){
-            JSFileLibrary foo = new JSFileLibrary( dir , _uriBase + "." + n.toString() , _context , _scope , _doInit );
+            JSFileLibrary foo = new JSFileLibrary( this , dir , _uriBase + "." + n.toString() , _context , _scope , _doInit );
             foo._mySource = (JxpSource)theObject;
             theObject = foo;
         }
@@ -287,6 +299,7 @@ public class JSFileLibrary extends JSFunctionCalls0 {
         return "{ JSFileLibrary.  _base : " + _base + "}";
     }
 
+    final JSFileLibrary _parent;
     final File _base;
     final String _uriBase;
     final AppContext _context;
