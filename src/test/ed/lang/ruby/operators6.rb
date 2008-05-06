@@ -4,14 +4,15 @@ puts $ASD
 
 class A
   
-  self.foo = 1;
+  #self.foo
 
   def a
-    self.foo ||= 0
-    puts self.foo
+    #self.foo ||= 0
+    #puts self.foo
   end
 end
 
 t = A.new
 t.a
+
 

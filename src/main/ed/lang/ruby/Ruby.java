@@ -188,15 +188,23 @@ public class Ruby {
 
                     if ( thing == null )
                         thing = ((JSFileLibrary)s.get( "core" )).getFromPath( "rails/lib/" + path );
+
+                    if ( thing == null )
+                        thing = ((JSFileLibrary)s.get( "external" )).getFromPath( "ruby/current/" + path );
                     
                     if ( thing == null || ! ( thing instanceof JSFunction ) ){
                         s.getFunction( "raiseLoadError" ).call( s , "can't find [" + path + "]" );
                         throw new RuntimeException( "shouldn't be here, should have throw exception" );
                     }
                     
-                    JSFunction func = (JSFunction)thing;
-                    
-                    return func.call( s , null );
+                    final JSFunction func = (JSFunction)thing;
+
+                    if ( JSInternalFunctions.JS_eq( 171 , func.get( "__required__success__" ) ) )
+                        return null;
+
+                    final Object ret = func.call( s , null );
+                    func.set( "__required__success__" , 171 );
+                    return ret;
                 }
             } , true );
 

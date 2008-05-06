@@ -1175,6 +1175,7 @@ public class RubyConvert extends ed.MyAsserts {
              n instanceof ModuleNode ||
              n instanceof IfNode ||
              n instanceof LocalAsgnNode ||
+             n instanceof AttrAssignNode ||
              n instanceof OpAsgnOrNode ||
              n instanceof ClassNode ){
             _add( n , state );
