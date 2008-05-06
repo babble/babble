@@ -131,7 +131,7 @@ public class JSString extends JSObjectBase {
                         return new JSString( str.substring( idx , idx + 1 ) );
                     }
                 } );
-
+            
             _prototype.set( "indexOf" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object o , Object foo[] ){
                         String str = s.getThis().toString();
@@ -142,6 +142,15 @@ public class JSString extends JSObjectBase {
                             start = ((Number)foo[0]).intValue();
 
                         return str.indexOf( thing , start );
+                    }
+                } );
+
+            _prototype.set( "contains" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object o , Object foo[] ){
+                        String str = s.getThis().toString();
+                        String thing = o.toString();
+                        
+                        return str.contains( thing );
                     }
                 } );
 
