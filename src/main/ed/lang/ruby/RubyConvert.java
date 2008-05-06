@@ -475,6 +475,13 @@ public class RubyConvert extends ed.MyAsserts {
             LocalAsgnNode lan = (LocalAsgnNode)node;
             _addLocal( lan.getName() , node.childNodes().get(0) , state );
         }
+
+        else if ( node instanceof GlobalAsgnNode ){
+            _assertOne( node );
+            GlobalAsgnNode gan = (GlobalAsgnNode)node;
+            _append(  _mangleVarName( gan.getName() ) + " = " , gan );
+            _add( gan.getValueNode() , state );
+        }
         
         else if ( node instanceof LocalVarNode ){
             _assertNoChildren( node );
@@ -650,10 +657,14 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof DAsgnNode ){
             DAsgnNode dn = (DAsgnNode)node;
             _addLocal( dn.getName() , dn.getValueNode() , state );
-            //_append( "var " + dn.getName() + " = " , dn );
-            //_add( dn.getValueNode() , state );
         }
         
+        else if ( node instanceof ConstDeclNode ){
+            ConstDeclNode cdn = (ConstDeclNode)node;
+            _append( cdn.getName() + " = " , cdn );
+            _add( cdn.getValueNode() , state );
+        }
+
         // --- literals ---
 
         else if ( node instanceof DotNode ){

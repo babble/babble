@@ -179,9 +179,6 @@ public class Ruby {
                     if ( idx > 0 )
                         path = path.substring( 0 , idx );
 
-                    while ( path.startsWith( "/" ) )
-                        path = path.substring(1);
-                    
                     path = path.replaceAll( "//+" , "/" );
 
                     Object thing = ((JSFileLibrary)s.get( "__path__" )).getFromPath( path );
@@ -191,11 +188,15 @@ public class Ruby {
 
                     if ( thing == null )
                         thing = ((JSFileLibrary)s.get( "core" )).getFromPath( "rails/lib/" + path );
-
-                    if ( thing == null || ! ( thing instanceof JSFunction ) )
-                        throw new RuntimeException( "can't find [" + path + "]" );
                     
-                    return ((JSFunction)thing).call( s , null );
+                    if ( thing == null || ! ( thing instanceof JSFunction ) ){
+                        s.getFunction( "raiseLoadError" ).call( s , "can't find [" + path + "]" );
+                        throw new RuntimeException( "shouldn't be here, should have throw exception" );
+                    }
+                    
+                    JSFunction func = (JSFunction)thing;
+                    
+                    return func.call( s , null );
                 }
             } , true );
 
@@ -223,9 +224,11 @@ public class Ruby {
 
         s.put( RUBY_RAISE , new JSFunctionCalls1(){
 
+                final boolean debug = false;
+
                 public Object call( Scope s , Object clazz , Object extra[] ){
                     RuntimeException e = _getException( s , clazz , extra );
-                    //System.out.println( "going to throw : " + e );
+                    if ( debug ) System.out.println( "going to throw : " + e );
                     throw e;
                 }
                 
@@ -235,7 +238,7 @@ public class Ruby {
                         return new JSException( clazz == null ? "unnamed error" : clazz.toString() );    
                     
                     JSFunction func = (JSFunction)clazz;
-                    //System.out.println( "func : " + func );
+                    if ( debug ) System.out.println( "going to raise : " + func.getClass() );
                     
                     Object e = func.newOne();
                     s = s.child();
@@ -245,7 +248,16 @@ public class Ruby {
                     if ( n != null )
                         e = n;
                     
-                    return new JSException( e );
+                    if ( debug ) System.out.println( "\t " + e.getClass() );
+                    
+                    if ( e instanceof RuntimeException )
+                        throw ( RuntimeException)e;
+
+                    
+                    JSException ex = new JSException( e );
+                    if ( extra != null && extra.length > 0 )
+                        ex.setMessage( extra[0] );
+                    return ex;
 
                 } 
             } , true );
@@ -253,9 +265,11 @@ public class Ruby {
         
         s.put( RUBY_RESCURE_INSTANCEOF , new JSFunctionCalls2(){
                 public Object call( Scope s , Object t , Object c , Object extra[] ){
+                    
+                    final boolean debug = false;
 
-                    //System.out.println( "t:" + ( t == null ? "null" : t.getClass() ) );
-                    //System.out.println( "c:" + ( c == null ? "null" : c.getClass() ) );
+                    if ( debug ) System.out.println( "t    :" + ( t == null ? "null" : t.getClass() ) );
+                    if ( debug ) System.out.println( "c    :" + ( c == null ? "null" : c.getClass() ) );
                     
                     if ( ! ( t instanceof JSObjectBase && 
                              c instanceof JSObjectBase ) )
@@ -264,7 +278,17 @@ public class Ruby {
                     JSObjectBase thing = (JSObjectBase)t;
                     JSObjectBase clazz = (JSObjectBase)c;
                     
-                    return thing.getConstructor() == clazz;
+                    JSFunction cons = thing.getConstructor();
+                    
+                    if ( debug ) System.out.println( "cons :" + ( cons == null ? "null" : cons.getClass() ) );
+                    
+                    final boolean b =
+                        cons == clazz ||
+                        clazz.getClass() == cons.getClass();
+                    
+                    if ( debug ) System.out.println( "\t" + b );
+                    return b;
+                    
                 }
             } , true );
 
@@ -338,7 +362,8 @@ public class Ruby {
                 }
             } , true );
 
-        s.put( "StandardError" , JSException._cons , true );
+        JSFileLibrary lib = new JSFileLibrary( new java.io.File( "src/main/ed/lang/ruby/" ) , "ruby" , s );
+        ((JSFunction)(lib.get( "lib" ))).call( s );
 
     }
 
