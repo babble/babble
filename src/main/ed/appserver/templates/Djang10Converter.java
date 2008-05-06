@@ -12,7 +12,7 @@ import ed.appserver.templates.djang10.generator.JSWriter;
 import ed.appserver.templates.djang10.tagHandlers.BlockTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.ExtendsTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.ForTagHandler;
-import ed.appserver.templates.djang10.tagHandlers.IfEqualsTagHandler;
+import ed.appserver.templates.djang10.tagHandlers.IfEqualTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IfTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IncludeTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.TagHandler;
@@ -74,8 +74,8 @@ public class Djang10Converter implements TemplateConverter {
     	_tagHandlers.put("include", new IncludeTagHandler());
     	_tagHandlers.put("block", new BlockTagHandler());
     	_tagHandlers.put("extends", new ExtendsTagHandler());
-    	_tagHandlers.put("ifequals", new IfEqualsTagHandler(false));
-    	_tagHandlers.put("ifnotequals", new IfEqualsTagHandler(true));
+    	_tagHandlers.put("ifequal", new IfEqualTagHandler(false));
+    	_tagHandlers.put("ifnotequal", new IfEqualTagHandler(true));
     }
 
 }
