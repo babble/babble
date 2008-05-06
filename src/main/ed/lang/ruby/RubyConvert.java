@@ -903,10 +903,15 @@ public class RubyConvert extends ed.MyAsserts {
             return _isSingleStatement( n.childNodes().get(0) );
         
         if ( n instanceof BinaryOperatorNode ){
+            return true;
+            /*
+              i feel like this change was obvious - but i feel dumb...
+              so i'm leaving this till i'm sure
             BinaryOperatorNode bo = (BinaryOperatorNode)n;
             return 
                 _isSingleStatement( bo.getFirstNode() ) && 
                 _isSingleStatement( bo.getSecondNode() );
+            */
         }
         
         
