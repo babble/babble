@@ -1,8 +1,8 @@
 // JSONTest.java
 
-package sites.admin;
+package corejs.admin;
 
-import sites.*;
+import ed.*;
 
 import org.testng.annotations.Test;
 

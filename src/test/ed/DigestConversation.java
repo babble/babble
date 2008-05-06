@@ -1,4 +1,4 @@
-package sites;
+package ed;
 
 import java.util.*;
 import java.net.*;
