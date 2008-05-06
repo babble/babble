@@ -66,6 +66,6 @@ public class CoreJS extends JSFileLibrary {
     }
 
     CoreJS( String branch , Scope scope , AppContext context ){
-        super( _getRoot( branch ) , "core" , context , scope , true );
+        super( null , _getRoot( branch ) , "core" , context , scope , true );
     }
 }
