@@ -122,9 +122,7 @@ public class IfTagHandler implements TagHandler {
 				if(ifParam.inverted)
 					buffer.append(startLine, "!");
 				
-				buffer.append(startLine, JSWriter.NS + "." + JSWriter.VAR_EXPAND + "(\"");
-				buffer.append(startLine, ifParam.varName);
-				buffer.append(startLine, "\")");
+				buffer.appendVarExpansion(startLine, ifParam.varName, "null");
 			}
 			
 			buffer.append(startLine, ") {\n");

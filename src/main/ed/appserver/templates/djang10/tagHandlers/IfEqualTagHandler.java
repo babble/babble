@@ -12,11 +12,11 @@ import ed.appserver.templates.djang10.Parser.Token;
 import ed.appserver.templates.djang10.generator.JSWriter;
 import ed.js.JSFunction;
 
-public class IfEqualsTagHandler implements TagHandler {
+public class IfEqualTagHandler implements TagHandler {
 	private boolean inverted;
 	
 	
-	public IfEqualsTagHandler(boolean inverted) {
+	public IfEqualTagHandler(boolean inverted) {
 		super();
 		this.inverted = inverted;
 	}

@@ -63,6 +63,11 @@
       <classpath refid="classpath"/>
     </javac>
 
+    <copy todir="build/sitestest/">
+      <fileset dir="build/" includes="sites/**"/>
+      <fileset dir="build/" includes="ed/*.class"/>
+    </copy>
+
   </target>
 
  <target name="headers" depends="compile">

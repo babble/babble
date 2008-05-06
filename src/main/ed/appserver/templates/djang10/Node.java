@@ -59,7 +59,7 @@ public abstract class Node {
 
 		public void getRenderJSFn(JSWriter buffer) {
 			buffer.append(startLine, "print(");
-			buffer.appendVarExpansion(startLine, name, "\"\"");
+			buffer.appendVarExpansion(startLine, name.replace("\"", "\\\""), "\"\"");
 			buffer.append(startLine, ");\n");
 		}
 	}

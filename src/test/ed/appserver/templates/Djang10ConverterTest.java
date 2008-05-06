@@ -2,15 +2,13 @@
 
 package ed.appserver.templates;
 
-import java.io.*;
+import org.testng.annotations.Factory;
 
-import org.testng.annotations.*;
-
-import ed.*;
-import ed.js.*;
-import ed.js.func.*;
-import ed.js.engine.*;
-import ed.io.*;
+import ed.js.JSArray;
+import ed.js.JSFunction;
+import ed.js.JSObjectBase;
+import ed.js.engine.Scope;
+import ed.js.func.JSFunctionCalls0;
 
 public class Djang10ConverterTest extends ConvertTestBase {
 

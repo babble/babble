@@ -510,7 +510,10 @@ public class JSArray extends JSObjectBase implements Iterable , List {
 
         return keys;
     }
-
+	@Override
+	public boolean containsKey(String s) {
+		return "length".equals(s) || super.containsKey(s);
+	}
     public String toString(){
         StringBuilder buf = new StringBuilder();
         for ( int i=0; i<_array.size(); i++ ){
