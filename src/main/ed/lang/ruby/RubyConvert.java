@@ -180,6 +180,14 @@ public class RubyConvert extends ed.MyAsserts {
             _addRescueNode( rn , state , false );
         }
 
+        else if ( node instanceof EnsureNode ){
+            if ( state._ensure != null )
+                throw new RuntimeException( "uh oh, don't handle this" );
+            EnsureNode en = (EnsureNode)node;
+            state._ensure = en.getEnsureNode();
+            _add( en.getBodyNode() , state );
+        }
+
         // --- function stuff ---
 
         else if ( node instanceof FCallNode ){
@@ -974,9 +982,12 @@ public class RubyConvert extends ed.MyAsserts {
         if ( rn.getElseNode() != null )
             throw new RuntimeException( "can't handle rescue else" );
 
+        Node en = state._ensure;
+        state._ensure = null;
+
         if ( ! fromBegin )
             _append( "(function(){" , rn );
-
+        
         _append( "try {\n" , rn );
         _add( rn.getBodyNode() , state );
         _append( "\n}\n" , rn );
@@ -1000,6 +1011,12 @@ public class RubyConvert extends ed.MyAsserts {
             rb = rb.getOptRescueNode();
         }
         
+        if ( en != null ){
+            _append( "finally {\n" , en );
+            _add( en , state );
+            _append( "\n}\n" , en );
+        }
+
         if ( ! fromBegin )
             _append( "}() )" , rn );
 
@@ -1527,6 +1544,7 @@ public class RubyConvert extends ed.MyAsserts {
         boolean _module = false;
 
         int _whileCount = 0;
+        Node _ensure;
     }
 
     void _append( String s , Node where ){
