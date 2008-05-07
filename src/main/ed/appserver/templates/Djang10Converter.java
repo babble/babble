@@ -11,6 +11,7 @@ import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.UnresolvedValue;
 import ed.appserver.templates.djang10.Variable;
 import ed.appserver.templates.djang10.Variable.FilterSpec;
+import ed.appserver.templates.djang10.filters.DateFilter;
 import ed.appserver.templates.djang10.filters.DefaultFilter;
 import ed.appserver.templates.djang10.filters.Filter;
 import ed.appserver.templates.djang10.filters.UrlEncodeFilter;
@@ -178,5 +179,6 @@ public class Djang10Converter implements TemplateConverter {
     static {
     	_filters.put("default", new DefaultFilter());
     	_filters.put("urlencode", new UrlEncodeFilter());
+    	_filters.put("date", new DateFilter());
     }
 }

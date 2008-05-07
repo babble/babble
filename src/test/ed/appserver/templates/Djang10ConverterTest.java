@@ -2,9 +2,14 @@
 
 package ed.appserver.templates;
 
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
+
 import org.testng.annotations.Factory;
 
 import ed.js.JSArray;
+import ed.js.JSDate;
 import ed.js.JSFunction;
 import ed.js.JSObjectBase;
 import ed.js.engine.Scope;
@@ -57,6 +62,11 @@ public class Djang10ConverterTest extends ConvertTestBase {
         
         o.set("urlParam", "?\\/~!.,");
         
+        Calendar cal = new GregorianCalendar();
+        cal.set(1981, 12 - 1, 20, 15, 11, 37);
+
+        
+        o.set("date", new JSDate(cal));        
         return new Object[]{ o };
     }
     
