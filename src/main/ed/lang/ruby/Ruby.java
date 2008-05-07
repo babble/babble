@@ -319,6 +319,26 @@ public class Ruby {
                 }
             } , true );
 
+        s.put( "__rvarset" , new JSFunctionCalls2(){
+                public Object call( Scope scope , Object obj , Object name , Object extra[] ){
+                    
+                    if ( obj == null || name == null )
+                        throw new NullPointerException();
+
+                    if ( ! ( obj instanceof JSObject ) )
+                        throw new RuntimeException("trying to set something on a non-object");
+                    
+                    final JSObject o = (JSObject)obj;
+                    final String n = name.toString();
+                    
+                    Object func = o.get( n + "_eq_" );
+                    if ( ! ( func instanceof JSFunction ) )
+                        return o.set( n , extra == null || extra.length == 0 ? null : extra[0] );
+                    
+                    return ((JSFunction)func).callAndSetThis( scope , o , extra );
+                }
+            } , true );
+
         s.put( RUBY_RANGE , new JSFunctionCalls2(){
                 public Object call( Scope scope , Object start , Object end , Object extra[] ){
 

@@ -19,9 +19,10 @@ import ed.appserver.templates.*;
 
 public class RubyConvert extends ed.MyAsserts {
     
-    final static boolean D = Boolean.getBoolean( "DEBUG.RUBY" );
+    final static boolean DD = Boolean.getBoolean( "DEBUG.RUBY" );
     final static String JS_TRUE = "if ( 5 == 5 ) ";
     final static String JS_R = JS_TRUE + " return ";
+    final boolean D;
 
     public static class TemplateImpl implements TemplateConverter {
 
@@ -32,7 +33,6 @@ public class RubyConvert extends ed.MyAsserts {
             try {
                 final RubyConvert rc = new RubyConvert( t.getName() , t.getContent() );
                 final String jsSource = rc.getJSSource();
-                if ( D ) System.out.println( jsSource );
                 return new TemplateConverter.Result( new Template( t.getName().replaceAll( ".rb$" , "_rb.js" ) , jsSource ) , rc._lineMapping );
             }
             catch ( IOException ioe ){
@@ -53,6 +53,8 @@ public class RubyConvert extends ed.MyAsserts {
     
     public RubyConvert( String name , InputStream in )
         throws IOException {
+
+        D = DD && ! name.contains( "src/main/ed/lang/ruby" );
 
         _name = name;
         _lines = new ArrayList<String>();
@@ -355,6 +357,17 @@ public class RubyConvert extends ed.MyAsserts {
             _append( "this" , node );
         }
 
+        else if ( node instanceof OpAsgnNode ){
+            OpAsgnNode oan = (OpAsgnNode)node;
+            _append( "__rvarset( " , oan );
+            _add( oan.getReceiverNode() , state );
+            _append( " , \"" + oan.getVariableName() + "\" , ( " , oan );
+            _add( oan.getReceiverNode() , state );
+            _append( "." + oan.getVariableName() + " " + oan.getOperatorName() , oan );
+            _add( oan.getValueNode() , state );
+            _append( " ) ) " , oan );
+        }
+
         // --- looping ---
 
         else if ( node instanceof BreakNode ){
@@ -534,27 +547,39 @@ public class RubyConvert extends ed.MyAsserts {
         
         else if ( node instanceof AttrAssignNode ){
             AttrAssignNode aan = (AttrAssignNode)node;
+            
+            if ( D ){
+                System.out.println( "name:" + aan.getName() );
+                System.out.println( "args:" + aan.getArgsNode() );
+                System.out.println( "reci:" + aan.getReceiverNode() );
+            }
+                                
 
             final String name = aan.getName().trim();
             
-            _append( " ( " , aan );
-            _add( aan.getReceiverNode() , state );
             
             if ( name.equals( "[]=" ) ){
+
+                _append( " ( " , aan );
+                _add( aan.getReceiverNode() , state );
+                
                 _append( "[" , aan );
                 _add( aan.getArgsNode().childNodes().get(0) , state );
                 _append( "]" , aan );
                 
                 _append( " = " , aan );
                 _add( aan.getArgsNode().childNodes().get(1) , state );
+                
+                _append( " ) " , aan );
             }
             else {
-                _append( "." + name , aan );
-                _add( aan.getArgsNode().childNodes().get(0) , state );
+                _append( "__rvarset( " , aan );
+                _add( aan.getReceiverNode() , state );
+                _append( " , " , aan );
+                _append( "\"" + name.substring( 0 , name.length() - 1 ) + "\" , " , aan );
+                _add( aan.getArgsNode() , state );
+                _append( " ) " , aan );
             }
-                
-
-            _append( " ) " , aan );
 
         }
 

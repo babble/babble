@@ -5,15 +5,22 @@ puts $ASD
 class A
   
   def initialize
-    @foo = 7
+    @fooz = 7
   end
-  
+
   def a
-    @foo ||= 2
+    @fooz ||= 2
     @bar ||= 2
-    puts @foo
+    puts @fooz
     puts @bar
   end
+
+  def self.fooz=(z)
+    puts z
+    return z
+  end
+  
+    
 end
 
 t = A.new
