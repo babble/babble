@@ -585,6 +585,8 @@ public class RubyConvert extends ed.MyAsserts {
 
         else if ( node instanceof OpElementAsgnNode ){
             OpElementAsgnNode op = (OpElementAsgnNode)node;
+            
+            _append( "(" , op );
 
             _add( op.getReceiverNode() , state );
             _append( "[" , op );
@@ -600,6 +602,8 @@ public class RubyConvert extends ed.MyAsserts {
 
             _append( op.getOperatorName()  , op );
             _add( op.getValueNode() , state );
+
+            _append( ")" , op );
         }
 
         else if ( node instanceof ClassVarNode ){
