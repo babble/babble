@@ -128,6 +128,19 @@ public class JSObjectBase implements JSObject {
             res = _objectLowFunctions.get( s );
         }
 
+        if ( res == null && ! "__notFoundHandler".equals( s ) ){
+            Object blah = _simpleGet( "__notFoundHandler" );
+            if ( blah instanceof JSFunction ){
+                JSFunction f = (JSFunction)blah;
+                Scope scope = f.getScope();
+                if ( scope == null )
+                    scope = Scope.getLastCreated();
+                scope = scope.child();
+                scope.setThis( this );
+                return f.call( scope , s );
+            }
+        }
+
         return res;
     }
 
