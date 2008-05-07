@@ -144,6 +144,16 @@ public class Ruby {
                 }
             } , true );
 
+
+        s.put( "attr_accessible" , new JSFunctionCalls0(){
+                public Object call( Scope s , Object symbols[] ){
+                    JSObjectBase job = (JSObjectBase)s.getThis();
+                    if ( job == null )
+                        throw new NullPointerException( "no this and attr_accessor needs it" );
+                    return null;
+                }
+            } , true );
+
         s.put( "attr_reader" , new JSFunctionCalls0(){
                 public Object call( Scope s , Object symbols[] ){
                     JSObjectBase job = (JSObjectBase)s.getThis();
