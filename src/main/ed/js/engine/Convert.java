@@ -603,6 +603,11 @@ public class Convert implements StackTraceFixer {
             _addTry( n.getFirstChild() , state );
             break;
             
+        case Token.JSR:
+        case Token.RETURN_RESULT:
+            // these are handled in block
+            break;
+
         case Token.THROW:
             _append( "if ( true ) _throw( " , n );
             _add( n.getFirstChild() , state );
@@ -1167,6 +1172,7 @@ public class Convert implements StackTraceFixer {
             c = c.getNext();
         }
 
+
         bogusBrace = bogusBrace ||
             ( n.getFirstChild().getNext() == null &&
               n.getFirstChild().getType() == Token.EXPR_VOID &&
@@ -1180,10 +1186,26 @@ public class Convert implements StackTraceFixer {
             }
             return;
         }
+
+        boolean endReturn = 
+            n.getLastChild() != null && 
+            n.getLastChild().getType() == Token.RETURN_RESULT;
         
         _append( "{" , n );
+        
+        String ret = "retName" + (int)((Math.random()*1000));
+        if ( endReturn )
+            _append( "\n\nObject " + ret + " = null;\n\n" , n );
+        
         Node child = n.getFirstChild();
         while ( child != null ){
+
+            if ( endReturn && child.getType() == Token.LEAVEWITH )
+                break;
+
+            if ( endReturn && child.getType() == Token.EXPR_RESULT )
+                _append( ret + " = " , child );
+            
             _add( child , state );
             
             if ( child.getType() == Token.IFNE || 
@@ -1192,6 +1214,8 @@ public class Convert implements StackTraceFixer {
             
             child = child.getNext();
         }
+        if ( endReturn )
+            _append( "\n\nif ( true ){ return " + ret + "; }\n\n" , n );
         _append( "}" , n );
         
     }
