@@ -2,16 +2,41 @@
 
 package ed.appserver.templates;
 
+import java.io.*;
 import java.util.*;
 
 public class TemplateEngine {
     
+    static final File tmp = new File( "/tmp/jxp/templates/" );
+    static final boolean OUTPUT = true;
+
     public static TemplateConverter.Result oneConvert( Template t ){
         TemplateConverter tc = _builtIns.get( t.getExtension() );
         if ( tc == null )
             return null;
-
-        return tc.convert( t );
+        
+        try {
+            final TemplateConverter.Result r = tc.convert( t );
+            if ( OUTPUT ){
+                try {
+                    File f = new File( tmp , r.getNewTemplate().getName() );
+                    f.getParentFile().mkdirs();
+                    FileOutputStream fout = new FileOutputStream( f );
+                    fout.write( r.getNewTemplate().getContent().getBytes() );
+                    fout.close();
+                }
+                catch ( IOException ioe ){
+                    ioe.printStackTrace();
+                }
+            }
+                
+            return r;
+        }
+        catch ( RuntimeException re ){
+            if ( re.toString().contains( t.getName() ) )
+                throw re;
+            throw new RuntimeException( t.getClass() + " failed to convert [" + t.getName() + "] b/c of " + re , re );
+        }
     }
     
     private static final Map<String,TemplateConverter> _builtIns = new TreeMap<String,TemplateConverter>();

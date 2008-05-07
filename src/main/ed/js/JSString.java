@@ -298,6 +298,13 @@ public class JSString extends JSObjectBase {
                         return new JSString( buf.toString() );
                     }
                 } );
+
+            _prototype.set( "pluralize" , new JSFunctionCalls0(){
+                    public Object call(Scope s, Object [] args){
+                        String str = s.getThis().toString();
+                        return str + "s";
+                    }
+                } );
             
 
             
