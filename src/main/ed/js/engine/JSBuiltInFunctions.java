@@ -244,6 +244,8 @@ public class JSBuiltInFunctions {
         public Object call( Scope scope , Object idString , Object extra[] ){
             if ( idString == null )
                 return ed.db.ObjectId.get();
+            if ( idString instanceof ed.db.ObjectId )
+                return idString;
             return new ed.db.ObjectId( idString.toString() );
         }
 
@@ -501,6 +503,7 @@ public class JSBuiltInFunctions {
         _myScope.put( "Object" , new NewObject() , true );
         _myScope.put( "Array" , JSArray._cons , true );
         _myScope.put( "Date" , JSDate._cons , true );
+        _myScope.put( "JSDate" , JSDate._cons , true ); // b/c Eliot always types this
         _myScope.put( "String" , JSString._cons , true );
         _myScope.put( "RegExp" , JSRegex._cons , true );
         _myScope.put( "XMLHttpRequest" , XMLHttpRequest._cons , true );

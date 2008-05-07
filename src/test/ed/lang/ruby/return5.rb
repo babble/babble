@@ -20,4 +20,32 @@ puts m
 puts n
 
 
+class B 
+  def redirect_to(z)
+    puts z
+    return 6;
+  end
+  
+  def foo
+    zz = ( redirect_to :login_path and return unless @user );
+    return 7;
+  end
+  
+  def foo2
+    redirect_to :login_path and return unless @user;
+    return 7
+  end
+
+ def z
+   @user = 5
+ end
+
+end
+
+b = B.new
+b.foo
+b.foo2
+b.z
+b.foo
+
 

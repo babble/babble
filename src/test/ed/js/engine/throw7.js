@@ -1,4 +1,4 @@
-/*
+
 function go(z){
     try {
         throw z;
@@ -22,7 +22,7 @@ try {
 catch ( e ){
     print( e );
 }
-*/    
+
 
 print(
     function( z ){

@@ -181,7 +181,6 @@ public class Util {
 	}
 	
 	private static final String[] apNames = new String[] {"Jan.","Feb.","March","April","May","June","July","Aug.","Sept.","Oct.","Nov.","Dec."};
-	private static final String[] ordinalSuffix = new String[] {"st","nd","rd", "th"};
 	
 	private static class DateFormatter {
 		private final SimpleDateFormat format;

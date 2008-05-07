@@ -17,6 +17,7 @@ public class Ruby {
     public static final String RUBY_INCLUDE = "_rinclude";
     public static final String RUBY_RESCURE_INSTANCEOF = "__rrescueinstanceof";
     public static final String RUBY_TOARRAY = "__rtoarray";
+    public static final String RUBY_RETURN = "__rreturn";
     
     public static final String RUBY_NEWNAME = "_____rnew___";
     public static final String RUBY_SHIFT = "__rshift";
@@ -413,6 +414,21 @@ public class Ruby {
                 }
             } , true );
 
+        s.put( RUBY_RETURN , new JSFunctionCalls1(){
+                public Object call( Scope scope , Object thing , Object extra[] ){
+                    throw new RubyReturnHack( thing );
+                }
+            } , true );
+
+        s.put( "__risReturnThing" , new JSFunctionCalls1(){
+                public Object call( Scope scope , Object thing , Object extra[] ){
+                    if ( thing == null )
+                        return false;
+                    return thing instanceof RubyReturnHack;
+                }
+            }  , true );
+            
+
         String root = ed.db.JSHook.whereIsEd;
         if ( root == null )
             root = "";
@@ -421,6 +437,19 @@ public class Ruby {
         JSFileLibrary lib = new JSFileLibrary( new java.io.File( root ) , "ruby" , s );
         ((JSFunction)(lib.get( "lib" ))).call( s );
 
+    }
+    
+    public static class RubyReturnHack extends RuntimeException {
+        RubyReturnHack( Object obj ){
+            super( "RubyReturnHack" );
+            _obj = obj;
+        }
+        
+        public Object getReturn(){
+            return _obj;
+        }
+
+        final Object _obj;
     }
 
     static Object _rangeFix( Object o ){

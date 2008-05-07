@@ -18,10 +18,15 @@ public class RubyTemplateConverter extends HtmlLikeConverter {
 
     protected void gotCode( Generator g , CodeMarker cm , String code ){
 
+        if ( code.startsWith( "-" ) )
+            code = code.substring( 1 );
+        if ( code.endsWith( "-" ) )
+            code = code.substring( 0 , code.length() - 1 );
+
         if ( cm._startTag.equals( "<%=" ) ){
-            g.append( "print( " );
+            g.append( "print " );
             g.append( code );
-            g.append( " );\n" );
+            g.append( " ;\n" );
             return;
         }
 
