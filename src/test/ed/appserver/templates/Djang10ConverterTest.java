@@ -55,6 +55,8 @@ public class Djang10ConverterTest extends ConvertTestBase {
         o.set("array", array);
         
         
+        o.set("urlParam", "?\\/~!.,");
+        
         return new Object[]{ o };
     }
     
