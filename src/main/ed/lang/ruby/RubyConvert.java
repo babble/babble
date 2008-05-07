@@ -19,7 +19,11 @@ import ed.appserver.templates.*;
 
 public class RubyConvert extends ed.MyAsserts {
     
+    final static boolean OUTPUT_FILE = Boolean.getBoolean( "DEBUG.RUBYF" );
+    final static boolean APPEND_LINES = Boolean.getBoolean( "DEBUG.RUBYL" );
+    
     final static boolean DD = Boolean.getBoolean( "DEBUG.RUBY" );
+
     final static String JS_TRUE = "if ( 5 == 5 ) ";
     final static String JS_R = JS_TRUE + " return ";
     final boolean D;
@@ -783,7 +787,7 @@ public class RubyConvert extends ed.MyAsserts {
             _assertOne( node );
             _assertType( node.childNodes().get(0) , ArrayNode.class );
             
-            _append( " { " , node );
+            _append( "( { " , node );
             List<Node> lst = node.childNodes().get(0).childNodes();
             for ( int i=0; i<lst.size(); i+=2 ){
                 if ( i > 0 )
@@ -794,7 +798,7 @@ public class RubyConvert extends ed.MyAsserts {
                 _add( lst.get(i+1) , state );
                 
             }
-            _append( " } " , node );
+            _append( " } ) " , node );
         }
         
         else if ( node instanceof RegexpNode ){
@@ -1484,7 +1488,7 @@ public class RubyConvert extends ed.MyAsserts {
 
     public String getJSSource(){
         String js = _js.toString();
-        if ( false ) {
+        if ( OUTPUT_FILE ) {
             File blah = new File( "/tmp/jxp/ruby/" );
             blah.mkdirs();
             blah = new File( blah , _name.replaceAll( "^.*/" , "/" ) );
@@ -1559,7 +1563,8 @@ public class RubyConvert extends ed.MyAsserts {
                 continue;
             }
             
-            //_js.append( "\t\t// " + where.getPosition().getStartLine() + " -->> " + _line  );
+            if ( APPEND_LINES )
+                _js.append( "\t\t// " + where.getPosition().getStartLine() + " -->> " + _line  );
             
             _js.append( "\n" );
             _line++;
