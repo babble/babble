@@ -128,7 +128,11 @@ public class JSObjectBase implements JSObject {
             res = _objectLowFunctions.get( s );
         }
 
-        if ( res == null && ! "__notFoundHandler".equals( s ) ){
+        if ( res == null && 
+             ! ( "__notFoundHandler".equals( s ) 
+                 || "__preGet".equals( s )
+                 )
+             ){
             Object blah = _simpleGet( "__notFoundHandler" );
             if ( blah instanceof JSFunction ){
                 JSFunction f = (JSFunction)blah;
