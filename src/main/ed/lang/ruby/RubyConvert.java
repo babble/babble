@@ -947,6 +947,7 @@ public class RubyConvert extends ed.MyAsserts {
         
         if ( n instanceof TrueNode || 
              n instanceof NilNode ||
+             n instanceof MultipleAsgnNode ||
              n instanceof FalseNode )
             return true;
 

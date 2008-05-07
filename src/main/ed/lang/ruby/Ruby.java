@@ -135,6 +135,8 @@ public class Ruby {
                 }                
             } , true );
 
+        // ---
+
         s.put( "attr_accessor" , new JSFunctionCalls0(){
                 public Object call( Scope s , Object symbols[] ){
                     JSObjectBase job = (JSObjectBase)s.getThis();
@@ -171,8 +173,19 @@ public class Ruby {
                     return null;
                 }
             } , true );
+
+        s.put( "attr_protected" , new JSFunctionCalls0(){
+                public Object call( Scope s , Object symbols[] ){
+                    JSObjectBase job = (JSObjectBase)s.getThis();
+                    if ( job == null )
+                        throw new NullPointerException( "no this and attr_writer needs it" );
+                    return null;
+                }
+            } , true );
         
         
+        // ---
+
         s.put( RUBY_PRIVATE , new JSFunctionCalls0(){
                 public Object call( Scope s , Object symbols[] ){
                     return null;
