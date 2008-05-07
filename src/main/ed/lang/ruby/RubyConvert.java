@@ -68,10 +68,15 @@ public class RubyConvert extends ed.MyAsserts {
         DefaultRubyParser p = new DefaultRubyParser();
         p.setWarnings( _warnings );
         
-        RubyParserResult r = p.parse( new ParserConfiguration( 1 , true ) ,
-                                      new InputStreamLexerSource( _name , in ,
-                                                                  _lines , 1 , false ) );
-        _ast = r.getAST();
+        try {
+            RubyParserResult r = p.parse( new ParserConfiguration( 1 , true ) ,
+                                          new InputStreamLexerSource( _name , in ,
+                                                                      _lines , 1 , false ) );
+            _ast = r.getAST();
+        }
+        catch ( SyntaxException se ){
+            throw new RuntimeException( "can't compile [" + name + "] " + se + " : " + se.getPosition() , se );
+        }
         if ( D ) _print( 0 , _ast );
         _add( _ast , new State() );
     }
@@ -1248,7 +1253,7 @@ public class RubyConvert extends ed.MyAsserts {
 
     void _addCall( CallNode call , State state ){
             
-        if ( call.getName().equals( "[]" ) ){
+        if ( call.getName().equals( "[]" ) && call.childNodes().size() == 2 ){
             _add( call.childNodes().get(0) , state );
             _append( "[" , call );
             _add( call.childNodes().get(1) , state );
@@ -1428,8 +1433,6 @@ public class RubyConvert extends ed.MyAsserts {
     }
 
     boolean _isOperator( CallNode node ){
-        if ( node.getName().equals( "[]" ) )
-            throw new RuntimeException( "array thing" );
         return _operatorNames.contains( node.getName() );
     }
 
