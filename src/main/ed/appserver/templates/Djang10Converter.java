@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
+import ed.appserver.JSFileLibrary;
 import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.UnresolvedValue;
@@ -30,7 +31,9 @@ import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.JSObjectBase;
 import ed.js.JSString;
+import ed.js.engine.JSCompiledScript;
 import ed.js.engine.Scope;
+import ed.js.func.JSFunctionCalls1;
 import ed.js.func.JSFunctionCalls2;
 
 
@@ -106,6 +109,46 @@ public class Djang10Converter implements TemplateConverter {
 		return varValue;
 	}
 
+	public static Object callPath(Scope scope, String path, Object[] extras) {
+		
+		boolean isAbsolute = path.startsWith("/");
+		if(isAbsolute)
+			path = path.substring(1);
+		
+		String[] pathParts = path.split("/");
+		JSFileLibrary base;
+		int pathStart = 0;
+		
+		if(isAbsolute) {
+			if(pathParts.length < 2)
+				throw new RuntimeException("invalid path");
+			
+			
+			Object obj = scope.get(pathParts[0]);
+			base  = (obj instanceof JSFileLibrary)? (JSFileLibrary)obj : null;
+			pathStart++;
+		}
+		else {
+			base = JSFileLibrary.findPath();
+		}
+		
+		for(int i=pathStart; i<pathParts.length - 1 && base != null; i++) {
+			Object obj = base.get(pathParts[i]);
+			base = obj instanceof JSFileLibrary? (JSFileLibrary)obj : null;
+		}
+		
+		if(base == null)
+			throw new RuntimeException();
+		
+		String fileName = pathParts[pathParts.length - 1];
+		if(fileName.contains("."))
+			fileName = fileName.substring(0, fileName.lastIndexOf('.'));
+		
+		JSCompiledScript fileFunc = (JSCompiledScript)base.get(fileName);
+		
+		return fileFunc.call(scope.child(), extras);
+	}
+	
     //Helpers
     public static void injectHelpers(Scope scope) {
     	JSObjectBase namespace = new JSObjectBase();
@@ -149,6 +192,15 @@ public class Djang10Converter implements TemplateConverter {
 				}
     			
     			return value == null? defaultValue : value;
+    		}
+    	});
+    	
+    	namespace.set(JSWriter.CALL_PATH, new JSFunctionCalls1() {
+    		@Override
+    		public Object call(Scope scope, Object pathObj, Object[] extra) {
+    			String path = ((JSString)pathObj).toString();
+    			
+    			return callPath(scope, path, extra);
     		}
     	});
     }
