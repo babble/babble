@@ -147,13 +147,15 @@ public class Ruby {
                         throw new NullPointerException( "tried to include a null thing" );
                     
                     if ( thing instanceof JSObject ){
+                        JSObject t = (JSObject)s.getThis();
                         JSObject o = (JSObject)thing;
+                        
                         for ( String key : o.keySet() )
-                            s.set( key , o.get( key ) );
+                            t.set( key , o.get( key ) );
 
                         Object incObj = o.get( "included" );
                         if ( incObj != null && incObj instanceof JSFunction )
-                            ((JSFunction)incObj).call( s , s.getThis() );
+                            ((JSFunction)incObj).call( s , t );
                         
                         return null;
                     }
