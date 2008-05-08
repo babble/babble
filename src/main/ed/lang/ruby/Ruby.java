@@ -89,7 +89,7 @@ public class Ruby {
                     Object func = jo.get( RubyConvert._mangleFunctionName( funcName.toString() ) );
                     
                     if ( func == null )
-                        throw new NullPointerException( funcName.toString() );
+                        return null;
                     
                     if ( ! ( func instanceof JSFunction ) )
                         return func;
