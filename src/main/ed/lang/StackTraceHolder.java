@@ -89,6 +89,8 @@ public class StackTraceHolder {
 		if ( n == null || n == element )
 		    continue;
 		
+                if ( DEBUG ) System.out.println( element + " -->> " + n );
+
 		element = n;
 		continue fixerLoop;
 	    }    

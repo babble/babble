@@ -725,8 +725,7 @@ public class Convert implements StackTraceFixer {
             _add( n , state );
         }
 
-        _append(" } while ( false );\n " , n );
-        //throw new RuntimeException( "switch not supported yet" );
+        _append(" } while ( false );" , n );
     }
 
     private void _createRef( Node n , State state ){
@@ -1351,13 +1350,17 @@ public class Convert implements StackTraceFixer {
             return;
         
         int numLines = 0;
-        for ( int i=0; i<s.length(); i++ )
+        int max = s.length();
+        for ( int i=0; i<max; i++ )
             if ( s.charAt( i ) == '\n' )
                 numLines++;
         
         final int start = _currentLineNumber;
-        final int end = _currentLineNumber + numLines;
+        int end = _currentLineNumber + numLines;
         
+        if ( end > ( start + 1 ) && s.endsWith( "\n" ) )
+            end--;
+
         for ( int i=start; i<end; i++ ){
             List<Node> l = _javaCodeToLines.get( i );
             if ( l == null ){
@@ -1499,9 +1502,28 @@ public class Convert implements StackTraceFixer {
             throw new RuntimeException( e );
         }
     }
-
+    
     public void fixStack( Throwable e ){
         StackTraceHolder.getInstance().fix( e );
+    }
+    
+    Node _getNodeFromJavaLine( int line ){
+        line = ( line - _preMainLines ) - 1;
+        
+        List<Node> nodes = _javaCodeToLines.get( line );
+        if ( nodes == null || nodes.size() == 0  ){
+            return null;
+        }
+
+
+        return nodes.get(0);
+    }
+    
+    int _mapLineNumber( int line ){
+        Node n = _getNodeFromJavaLine( line );
+        if ( n == null )
+            return -1;
+        return _nodeToSourceLine.get( n );
     }
 
     public StackTraceElement fixSTElement( StackTraceElement element ){
@@ -1512,26 +1534,30 @@ public class Convert implements StackTraceFixer {
 
         if ( ! element.getClassName().startsWith( _fullClassName ) )
             return null;
-        
-        int line = element.getLineNumber();
-        if ( debug ) System.out.println( "\t" + line );
-        
-        line = ( line - _preMainLines ) - 1;
-        if ( debug ) System.out.println( "\t" + line );
-        
-        List<Node> nodes = _javaCodeToLines.get( line );
-        if ( nodes == null )
+
+        if ( debug ){
+            System.out.println( "-----" );
+            System.out.println( element );
+            System.out.println( "-" );
+            for ( int temp = Math.max( 0 , element.getLineNumber() - 5 );
+                  temp < element.getLineNumber() + 5 ;
+                  temp++ )
+                System.out.println( "\t" + temp + "->" + _mapLineNumber( temp ) + " || " + _getNodeFromJavaLine( temp ) );
+            System.out.println( "-----" );
+        }
+
+        Node n = _getNodeFromJavaLine( element.getLineNumber() );
+        if ( n == null )
             return null;
         
-        // the +1 is for the way rhino stuff
-        line = _nodeToSourceLine.get( nodes.get(0) ) + 1;
+        // the +1 is for the way rhino does stuff
+        int line = _mapLineNumber( element.getLineNumber() ) + 1;
         
-        ScriptOrFnNode sof = _nodeToSOR.get( nodes.get(0) );
+        ScriptOrFnNode sof = _nodeToSOR.get( n );
         String method = "___";
         if ( sof instanceof FunctionNode )
             method = ((FunctionNode)sof).getFunctionName();
         
-        if ( debug ) System.out.println( "\t\t" + line );
         return new StackTraceElement( _name , method , _name , line );
     }
 
