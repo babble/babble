@@ -100,7 +100,10 @@ public abstract class ConvertTestBase extends TestCase {
             scope.put( "print" , myout , true );
             scope.put( "SYSOUT" , myout , true );
             
-            scope.put( "local" , new JSFileLibrary( new File( "src/test/ed/appserver/templates/" ) ,  "local" , scope ) , true );
+            JSFileLibrary localLib = new JSFileLibrary( new File( "src/test/ed/appserver/templates/" ) , "local" , scope );
+            scope.put( "local" , localLib , true );
+            
+            localLib.addPath( func.getClass() , localLib );
 
             func.call( scope , getArgs() );
             
