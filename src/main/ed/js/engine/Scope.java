@@ -286,12 +286,23 @@ public class Scope implements JSObject {
                     foo = obj.getConstructor().get( name );
                 }
                 
-                if ( foo != null ) 
+                if ( foo != null ){
+
+                    if ( finder )
+                        throw new ScopeFinder( name , this );
+                    
+                    if ( foo instanceof JSFunction ){
+                        if ( with != null ){
+                            with[0] = obj;
+                        }
+                    }
+                    
                     return foo;
+                }
             }
         }
 
-        return _parent._get( origName , alt , null , depth + 1 , checkThis );
+        return _parent._get( origName , alt , with , depth + 1 , checkThis );
     }
 
     public Object getOrThis( String name ){
@@ -360,8 +371,10 @@ public class Scope implements JSObject {
     }
 
     public JSFunction getFunction( String name ){
+        //System.err.println( "getFunction : " + name );
         JSObject with[] = new JSObject[1];
         Object o = get( name , _alternate , with );
+        //System.err.println( "\t" + o + "\t" + with[0] );
         
         // TODO: this makes lookups inside classes work
         //       this is for ruby
@@ -369,8 +382,14 @@ public class Scope implements JSObject {
         //       it should probably only work within ruby.
         //       not sure how to do that...
         if ( o == null ){
-            if ( getParent().getThis() instanceof JSObject )
-                o = ((JSObject)getParent().getThis()).get( name );
+            if ( getParent().getThis() instanceof JSObject ){
+                JSObject pt = (JSObject)getParent().getThis();
+                o = pt.get( name );
+                if ( o != null ){
+                    _this.push( new This( pt ) );
+                    //throw new RuntimeException("blah" );
+                }
+            }
         }
 
         if ( o == null )

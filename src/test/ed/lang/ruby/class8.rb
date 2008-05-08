@@ -1,5 +1,9 @@
 
 class Foo
+
+  def initialize(b)
+    @blah = b
+  end
   
   def a 
     puts "a1"
@@ -14,11 +18,17 @@ class Foo
   end
 
   def c(z)
+    puts "from c #{@blah} "
     puts "c #{z}"
+    zz
+  end
+
+  def zz
+    puts "from zz #{@blah} "
   end
 end
 
-f = Foo.new
+f = Foo.new(17171)
 f.a
 
   

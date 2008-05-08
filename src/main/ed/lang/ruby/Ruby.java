@@ -46,18 +46,44 @@ public class Ruby {
         s.put( RUBY_V_CALL , new JSFunctionCalls1(){
                 public Object call( Scope s , Object foo , Object extra[] ){
                     
-                    if ( foo == null && extra != null && extra.length > 1 ){
-                        String name = extra[0].toString();
-                        JSObject tt = (JSObject)(extra[1]);
-                        
-                        foo = tt.get( name );
-                    }
+                    String name = null;
+                    Object useThis = s.getThis();
+                    if ( extra != null && extra.length > 1 )
+                        useThis = extra[1];
 
-                    if ( foo == null )
-                        throw new NullPointerException( "no function" );
+                    if ( foo == null && extra != null && extra.length > 0 ){
+                        name = extra[0].toString();
+                        
+                        if ( extra.length >  1 ){
+                            JSObject tt = (JSObject)(extra[1]);
+                            foo = tt.get( name );
+                            if( foo != null )
+                                useThis = tt;
+                        }
+                        
+                        if ( foo == null && s.getThis() instanceof JSObject ){
+                            JSObject tt = (JSObject)s.getThis();
+                            foo = tt.get( name );
+                            if( foo != null )
+                                useThis = tt;
+                        }
+                    }
                     
-                    if ( foo instanceof JSFunction )
-                        return ((JSFunction)foo).call( s );
+                    if ( foo == null ){
+                        String msg = "no function";
+                        if ( name != null )
+                            msg += " [" + name + "]";
+                        
+                        throw new NullPointerException( msg );
+                    }
+                    
+                    if ( foo instanceof JSFunction ){
+                        JSFunction f = (JSFunction)foo;
+                        if ( useThis != null ){
+                            return f.callAndSetThis( s , useThis , null );
+                        }
+                        return f.call( s );
+                    }
                     
                     return foo;
                 }
