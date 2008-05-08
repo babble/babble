@@ -1084,30 +1084,31 @@ public class RubyConvert extends ed.MyAsserts {
         state._classInit = _findClassInit( cn );
         
         // constructor
-
-        _append( name + " = " + Ruby.RUBY_DEFINE_CLASS + "( " + name + " , " , cn );
-        
-        if ( state._classInit == null ){
-            _append( " function(){ if ( this.__proto__ && this.__proto__.constructor && this.__proto__ != this && ( arguments.length == 0 || arguments[arguments.length-1] != 1542143 ) ){ arguments.push( 1542143 ); this.__proto__.constructor.apply( this , arguments ); } }" , cn );
-        }
-        else {
-            _append( " function" , state._classInit );
-            if ( state._classInit.getArgsNode() == null || 
-                 state._classInit.getArgsNode().getArgs() == null )
-                _append( "()" , state._classInit );
-            else
-                _addArgs( state._classInit , state._classInit.getArgsNode().getArgs().childNodes() , state );
-            _append( "{\n" , state._classInit );
-            _add( state._classInit.getBodyNode() , state.child() );
-            _append( "\n}\n" , state._classInit );
-        }
-        _append( " )\n" , cn );
-        
-
-        if ( cn.getSuperNode() != null ){
-            _append( "\n" + name + ".prototype = new " , cn );
-            _add( cn.getSuperNode() , state );
-            _append( "();\n" , cn );
+        if ( ! _isBuiltIn( name ) ){
+            _append( name + " = " + Ruby.RUBY_DEFINE_CLASS + "( " + name + " , " , cn );
+            
+            if ( state._classInit == null ){
+                _append( " function(){ if ( this.__proto__ && this.__proto__.constructor && this.__proto__ != this && ( arguments.length == 0 || arguments[arguments.length-1] != 1542143 ) ){ arguments.push( 1542143 ); this.__proto__.constructor.apply( this , arguments ); } }" , cn );
+            }
+            else {
+                _append( " function" , state._classInit );
+                if ( state._classInit.getArgsNode() == null || 
+                     state._classInit.getArgsNode().getArgs() == null )
+                    _append( "()" , state._classInit );
+                else
+                    _addArgs( state._classInit , state._classInit.getArgsNode().getArgs().childNodes() , state );
+                _append( "{\n" , state._classInit );
+                _add( state._classInit.getBodyNode() , state.child() );
+                _append( "\n}\n" , state._classInit );
+            }
+            _append( " )\n" , cn );
+            
+            
+            if ( cn.getSuperNode() != null ){
+                _append( "\n" + name + ".prototype = new " , cn );
+                _add( cn.getSuperNode() , state );
+                _append( "();\n" , cn );
+            }
         }
         
         for ( Node c : cn.childNodes() )
@@ -1252,7 +1253,7 @@ public class RubyConvert extends ed.MyAsserts {
     }
 
     void _addCall( CallNode call , State state ){
-            
+        /*            
         if ( call.getName().equals( "[]" ) && call.childNodes().size() == 2 ){
             _add( call.childNodes().get(0) , state );
             _append( "[" , call );
@@ -1260,7 +1261,7 @@ public class RubyConvert extends ed.MyAsserts {
             _append( "]" , call );
             return;
         }
-
+        */
         if ( call.getName().equals( "<=>" ) ){
             _append( "Math.posOrNeg( " , call );
             _add( call.childNodes().get(0) , state );
@@ -1430,6 +1431,10 @@ public class RubyConvert extends ed.MyAsserts {
                 buf.append(c);
         }
         return buf.toString();
+    }
+
+    boolean _isBuiltIn( String name ){
+        return name.equals( "String" );
     }
 
     boolean _isOperator( CallNode node ){

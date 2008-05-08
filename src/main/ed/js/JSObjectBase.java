@@ -426,6 +426,12 @@ public class JSObjectBase implements JSObject {
                     }
                 } );
 
+            set( "_lb__rb_" , new JSFunctionCalls1(){
+                    public Object call( Scope s , Object name , Object args[] ){
+                        return ((JSObjectBase)s.getThis()).get( name );
+                    }
+                } );
+
             set( "const_defined_q_" , new JSFunctionCalls1(){
                     public Object call( Scope s , Object type , Object args[] ){
                         return s.get( type ) != null;
