@@ -1,4 +1,4 @@
 {% include "/local/djang10-if.djang10" %}
 {% include "/local/djang10-if" %}
-{# include "djang10-if" NOTE: this test is commented out because __path__ doesn't work in unit tests yet #}
+{% include "djang10-if" %}
 {% include includedTemplate %}
