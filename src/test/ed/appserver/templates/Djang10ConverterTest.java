@@ -66,7 +66,9 @@ public class Djang10ConverterTest extends ConvertTestBase {
         cal.set(1981, 12 - 1, 20, 15, 11, 37);
 
         
-        o.set("date", new JSDate(cal));        
+        o.set("date", new JSDate(cal));  
+        
+        o.set("includedTemplate", "/local/djang10-if");
         return new Object[]{ o };
     }
     

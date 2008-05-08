@@ -17,7 +17,6 @@ public class ExtendsTagHandler implements TagHandler {
 
 	public Node compile(Parser parser, String command, Token token) {
 		String path = Parser.smartSplit(token.contents)[1];
-		path = Parser.dequote(path);
 		
 		
 		parser.setStateVariable(this.getClass(), true);
@@ -52,25 +51,14 @@ public class ExtendsTagHandler implements TagHandler {
 		public void getRenderJSFn(JSWriter buffer) {
 			for(Node node : topLevelBlocks)
 				node.getRenderJSFn(buffer);
-			
-			
-			StringTokenizer tokenizer = new StringTokenizer(path, "/");
 
-			boolean isFirst = true;
-			while (tokenizer.hasMoreTokens()) {
-				String token = tokenizer.nextToken();
-				if (token.length() > 0) {
-					if (!isFirst) {
-						buffer.append("[\"");
-						buffer.append(token);
-						buffer.append("\"]");
-					} else
-						buffer.append(token);
-				}
-				isFirst = false;
-			}
-			buffer.append(startLine, "(");
-			buffer.append(startLine, JSWriter.CONTEXT_STACK_VAR + ", " + JSWriter.RENDER_OPTIONS_VAR);
+			buffer.appendHelper(startLine, JSWriter.CALL_PATH + "(");
+			if(Parser.isQuoted(path))
+				buffer.append(startLine, path);
+			else
+				buffer.appendVarExpansion(startLine, path, "null");
+			
+			buffer.append(startLine, ", " + JSWriter.CONTEXT_STACK_VAR + ", " + JSWriter.RENDER_OPTIONS_VAR);
 			buffer.append(startLine, ");\n");
 
 		}

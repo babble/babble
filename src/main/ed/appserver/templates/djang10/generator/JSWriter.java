@@ -4,12 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import ed.appserver.templates.djang10.Util;
-import ed.js.JSArray;
-import ed.js.JSFunction;
-import ed.js.JSObject;
-import ed.js.JSString;
-import ed.js.engine.Scope;
-import ed.js.func.JSFunctionCalls2;
 
 
 public class JSWriter {
@@ -17,6 +11,7 @@ public class JSWriter {
 	public static final String RENDER_OPTIONS_VAR = "renderOpts";
 	public static final String NS = "_djang10Helper";
 	public static final String VAR_EXPAND = "djangoVarExpand";
+	public static final String CALL_PATH = "callPath";
 	
 	private final StringBuilder buffer;
 	private final Map<Integer, Integer> lineMap;
