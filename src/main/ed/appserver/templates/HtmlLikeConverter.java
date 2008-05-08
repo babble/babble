@@ -77,7 +77,7 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
 
             line = StringUtil.replace( line , "\\" , "\\\\" );
             line = StringUtil.replace( line , "\"" , "\\\"" );
-            g.append( "print( \"" + line + ( i + 1 < lines.length || endsWithNewLine ? "\\n" : "" )  + "\" );\n" );
+            g.append( "print( \"" + line + ( i + 1 < lines.length || endsWithNewLine ? "\\n" : "" )  + "\" );\n" , i + 1 != lines.length );
         }
     }
 
@@ -119,7 +119,8 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
                     state.skip( cm._startTag.length() - 1 );
                     
                     final int end = cm.findEnd( state.data , state.pos );
-                    gotCode( g , cm , state.data.substring( state.pos , end ) );
+                    final String code = state.data.substring( state.pos , end );
+                    gotCode( g , cm , code );
                     
                     state.skip( ( end - state.pos ) );
                     if ( cm._endTag != null )
@@ -287,11 +288,25 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
         }
         
         public void append( String code ){
+            append( code , false );
+        }
+
+        public void append( String code , boolean incLineNumbers ){
             _buf.append( code );
-            for ( int i=0; i<code.length(); i++ )
-                if ( code.charAt( i ) == '\n' )
+            
+            for ( int i=0; i<code.length(); i++ ){
+                if ( code.charAt( i ) == '\n' ){
                     _lineMapping.put( _outLine++ , _inLine );
-            _inLine = _state.line;
+                    
+                    if ( incLineNumbers ) 
+                        _inLine++;
+
+                    if ( DEBUG ) 
+                        System.out.println( " : " + ( _outLine - 1 ) + " -->> " + _inLine );
+                }
+            }
+            if ( ! incLineNumbers )
+                _inLine = _state.line;
         }
 
         int _outLine = 1;

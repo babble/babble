@@ -1,7 +1,7 @@
 <if ( 5 == 2 )> LINE1
-<div>
+<div> LINE2
   a LINE3
-</div>
+</div> LINE4
 </if>
 
 <if ( 5 == 5 )>
