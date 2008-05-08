@@ -2,6 +2,7 @@
 
 package ed.js;
 
+import java.io.*;
 import java.util.*;
 
 import ed.db.*;
@@ -277,6 +278,48 @@ public class JSObjectBase implements JSObject {
 
     }
 
+    public void debug(){
+        try {
+            debug( 0 , System.out );
+        }
+        catch ( IOException ioe ){
+            ioe.printStackTrace();
+        }
+    }
+
+    Appendable _space( int level , Appendable a )
+        throws IOException {
+        for ( int i=0; i<level; i++ )
+            a.append( "  " );
+        return a;
+    }
+
+    public void debug( int level , Appendable a )
+        throws IOException {
+        _space( level , a );
+        
+        a.append( "me :" );
+        if( _keys != null )
+            a.append( _keys.toString() );
+        a.append( "\n" );
+        
+        if ( _map != null ){
+            JSObjectBase p = (JSObjectBase)_simpleGet( "prototype" );
+            if ( p != null ){
+                _space( level + 1 , a ).append( "proto ||\n" );
+                p.debug( level + 2 , a );
+            }
+            
+        }
+
+        if ( _constructor != null ){
+            _space( level + 1 , a ).append( "cons ||\n" );
+            _constructor.debug( level + 2 , a );
+        }
+    }
+
+        
+
     protected Map<String,Object> _map = null;
     private List<String> _keys = null;
     private JSFunction _constructor;
@@ -365,6 +408,12 @@ public class JSObjectBase implements JSObject {
             set( "is_a_q_" , new JSFunctionCalls1(){
                     public Object call( Scope s , Object type , Object args[] ){
                         return JSInternalFunctions.JS_instanceof( s.getThis() , type );
+                    }
+                } );
+
+            set( "const_defined_q_" , new JSFunctionCalls1(){
+                    public Object call( Scope s , Object type , Object args[] ){
+                        return s.get( type ) != null;
                     }
                 } );
         }
