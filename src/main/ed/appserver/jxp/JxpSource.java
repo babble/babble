@@ -64,7 +64,7 @@ public abstract class JxpSource {
         
         Convert convert = null;
         try {
-            convert = new Convert( t.getName() , t.getContent() );
+            convert = new Convert( t.getName() , t.getContent() , false , t.getSourceLanguage() );
             _func = convert.get();
             return _func;
         }

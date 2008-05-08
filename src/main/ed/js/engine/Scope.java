@@ -387,23 +387,23 @@ public class Scope implements JSObject {
         Object o = get( name , _alternate , with );
         //System.err.println( "\t" + o + "\t" + with[0] );
         
-        // TODO: this makes lookups inside classes work
-        //       this is for ruby
-        //       it technically violates JS rules
-        //       it should probably only work within ruby.
-        //       not sure how to do that...
-        /* MOVED 
-        if ( o == null && false ){
+        if ( o == null ){
             if ( getParent().getThis() instanceof JSObject ){
                 JSObject pt = (JSObject)getParent().getThis();
                 o = pt.get( name );
-                if ( o != null ){
+                if ( o instanceof JSFunction ){
+                    JSFunction func = (JSFunction)o;
+                    // THIS IS BROKEN  TODO: fix for JS
+                    //if ( func.getSourceLanguage() == Language.RUBY || 
+                    //( pt instanceof JSFunction && ((JSFunction)pt).getSourceLanguage() == Language.RUBY ) )
                     _this.push( new This( pt ) );
-                    //throw new RuntimeException("blah" );
+                    //else {
+                    // = null;
+                    //throw new RuntimeException( "not doing something b/c language is : " + func.getSourceLanguage() );
+                    //}
                 }
             }
         }
-        */
 
         if ( o == null )
             throw new NullPointerException( name );
