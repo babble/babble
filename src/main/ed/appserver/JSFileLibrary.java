@@ -227,7 +227,7 @@ public class JSFileLibrary extends JSFunctionCalls0 {
         }
         
         JSFunction func = source.getFunction();
-        _classToPath.put( func.getClass().getName() , this );
+        addPath( func.getClass() , this );
 
         return source;
 
@@ -322,7 +322,7 @@ public class JSFileLibrary extends JSFunctionCalls0 {
 
     static String _srcExtensions[] = new String[] { ".js" , ".jxp" , ".html" , ".rb" , ".rhtml" , ".erb" , ".djang10", ".txt" };
 
-    private static WeakValueMap<String,JSFileLibrary> _classToPath = new WeakValueMap<String,JSFileLibrary>();
+
 
     public static JSFileLibrary findPath(){
         String topjs = Security.getTopJS();
@@ -331,5 +331,11 @@ public class JSFileLibrary extends JSFunctionCalls0 {
             topjs = topjs.substring( 0 , idx );
         return _classToPath.get( topjs );
     }
+    
+    public static void addPath( Class c , JSFileLibrary lib ){
+        _classToPath.put( c.getName() , lib );
+    }
+
+    private static WeakValueMap<String,JSFileLibrary> _classToPath = new WeakValueMap<String,JSFileLibrary>();
    
 }
