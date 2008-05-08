@@ -9,7 +9,7 @@ import ed.util.*;
 public class RubyTemplateConverter extends HtmlLikeConverter {
 
     public RubyTemplateConverter( String ext ){
-        super( ext , _codeTags );
+        super( ext , _codeTags , ed.lang.Language.RUBY );
     }
 
     protected String getNewName( Template t ){

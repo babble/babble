@@ -58,7 +58,7 @@ public class Djang10Converter implements TemplateConverter {
 		}
 		
 		String newName = t.getName().replaceAll( "\\.("+extension+")+$" , "_$1.js" );
-		return new Result(new Template(newName, writer.toString()), writer.getLineMap());
+		return new Result(new Template(newName, writer.toString(),t.getSourceLanguage()), writer.getLineMap());
 	}
 	
 	

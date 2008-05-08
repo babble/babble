@@ -17,8 +17,6 @@ public class Convert implements StackTraceFixer {
     static boolean D = Boolean.getBoolean( "DEBUG.JS" );
     public static final String DEFAULT_PACKAGE = "ed.js.gen";
 
-    final boolean _invokedFromEval;
-
     public static JSFunction makeAnon( String code ){
         return makeAnon( code , false );
     }
@@ -83,8 +81,14 @@ public class Convert implements StackTraceFixer {
 
     public Convert( String name , String source, boolean invokedFromEval)
         throws IOException {
+        this( name , source , invokedFromEval , Language.JS );
+    }
+
+    public Convert( String name , String source, boolean invokedFromEval , Language sourceLanguage )
+        throws IOException {
 
         _invokedFromEval = invokedFromEval;
+        _sourceLanguage = sourceLanguage;
 
         _name = name;
         _source = source;
@@ -1060,7 +1064,7 @@ public class Convert implements StackTraceFixer {
 
         _append( "new JSFunctionCalls" + fn.getParamCount() + "( scope , null ){ \n" , n );
 
-        _append( "protected void init(){ super.init(); \n " , n );
+        _append( "protected void init(){ super.init(); _sourceLanguage = getFileLanguage(); \n " , n );
         _append( "_arguments = new JSArray();\n" , n );
         for ( int i=0; i<fn.getParamCount(); i++ ){
             final String foo = fn.getParamOrVarName( i );
@@ -1567,6 +1571,8 @@ public class Convert implements StackTraceFixer {
     final String _className;
     final String _fullClassName;
     final String _package = DEFAULT_PACKAGE;
+    final boolean _invokedFromEval;
+    final Language _sourceLanguage;
     final int _id = ID++;    
 
     // these 3 variables should only be use by _append

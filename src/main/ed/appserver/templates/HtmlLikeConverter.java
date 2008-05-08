@@ -4,6 +4,7 @@ package ed.appserver.templates;
 
 import java.util.*;
 
+import ed.lang.*;
 import ed.util.*;
 
 public abstract class HtmlLikeConverter implements TemplateConverter {
@@ -28,9 +29,10 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
     /**
      * @param codeTagName for jxp would be "%" for php ?
      */
-    protected HtmlLikeConverter( String extension , List<CodeMarker> markers ){
+    protected HtmlLikeConverter( String extension , List<CodeMarker> markers , Language sourceLanguage ){
         _extension = extension.replaceAll( "^\\." , "" );
         _markers = markers;
+        _sourceLanguage = sourceLanguage;
     }
 
     // ----------------------
@@ -175,7 +177,7 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
             System.out.println( g._lineMapping );
         }
 
-        return new Result( new Template( getNewName( t ) , g._buf.toString() ) , g._lineMapping );
+        return new Result( new Template( getNewName( t ) , g._buf.toString() , _sourceLanguage ) , g._lineMapping );
     }
 
     final String _readTag( State state ){
@@ -318,4 +320,5 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
 
     final String _extension;
     final List<CodeMarker> _markers;
+    final Language _sourceLanguage;
 }

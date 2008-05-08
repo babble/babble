@@ -38,7 +38,7 @@ public class RubyConvert extends ed.MyAsserts {
             try {
                 final RubyConvert rc = new RubyConvert( t.getName() , t.getContent() );
                 final String jsSource = rc.getJSSource();
-                return new TemplateConverter.Result( new Template( t.getName().replaceAll( ".rb$" , "_rb.js" ) , jsSource ) , rc._lineMapping );
+                return new TemplateConverter.Result( new Template( t.getName().replaceAll( ".rb$" , "_rb.js" ) , jsSource , Language.RUBY ) , rc._lineMapping );
             }
             catch ( IOException ioe ){
                 throw new RuntimeException( "couldn't convert : " + t.getName() , ioe );
@@ -1528,7 +1528,7 @@ public class RubyConvert extends ed.MyAsserts {
         
         final String js = getJSSource();
         
-        Convert c = new Convert( _name , js , false );
+        Convert c = new Convert( _name , js , false , Language.RUBY );
         _func = c.get();
         
         return _func;

@@ -16,8 +16,6 @@ import ed.appserver.templates.*;
 
 public abstract class JxpSource {
     
-    static enum Language { JS , RUBY };
-
     static final File _tmpDir = new File( "/tmp/jxp/templates/" );
     static {
         _tmpDir.mkdirs();
@@ -46,7 +44,7 @@ public abstract class JxpSource {
         
         _lastParse = lastUpdated();
 
-        Template t = new Template( getName() , getContent() );
+        Template t = new Template( getName() , getContent() , Language.find( getName() ) );
         while ( ! t.getExtension().equals( "js" ) ){
             
             TemplateConverter.Result result = TemplateEngine.oneConvert( t );

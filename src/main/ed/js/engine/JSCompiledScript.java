@@ -6,6 +6,7 @@ import java.util.*;
 
 import org.mozilla.javascript.*;
 
+import ed.lang.*;
 import ed.util.*;
 import ed.js.*;
 import ed.js.func.*;
@@ -40,6 +41,12 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
             throw new JSException( foo.toString() , (Throwable)foo );
         
         throw new JSException( foo );
+    }
+
+    public Language getFileLanguage(){
+        if ( _convert == null )
+            return Language.JS;
+        return _convert._sourceLanguage;
     }
 
     Convert _convert;

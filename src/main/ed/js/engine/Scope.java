@@ -9,6 +9,7 @@ import java.util.*;
 import ed.io.*;
 import ed.js.*;
 import ed.js.func.*;
+import ed.lang.*;
 
 public class Scope implements JSObject {
 
@@ -69,7 +70,7 @@ public class Scope implements JSObject {
         _alternate = alt;
 
         if ( _parent == null )
-            _globalThis = new JSObjectBase();
+            _globalThis = _createGlobalThis();
         
         _lastCreated.set( this );
     }
@@ -276,6 +277,11 @@ public class Scope implements JSObject {
         if ( _parent == null )
             return null;
         
+        // TODO: this makes lookups inside classes work
+        //       this is for ruby
+        //       it technically violates JS rules
+        //       it should probably only work within ruby.
+        //       not sure how to do that...
         if ( depth == 1 && ! noThis ){
             Object t = getThis();
             if ( t != null && t.getClass() == JSObjectBase.class ){
@@ -292,12 +298,17 @@ public class Scope implements JSObject {
                         throw new ScopeFinder( name , this );
                     
                     if ( foo instanceof JSFunction ){
-                        if ( with != null ){
+                        JSFunction func = (JSFunction)foo;
+                        if ( func.getSourceLanguage() != Language.RUBY ){
+                            foo = null;
+                        }
+                        else if ( with != null ){
                             with[0] = obj;
                         }
                     }
                     
-                    return foo;
+                    if ( foo != null )
+                        return foo;
                 }
             }
         }
@@ -381,7 +392,8 @@ public class Scope implements JSObject {
         //       it technically violates JS rules
         //       it should probably only work within ruby.
         //       not sure how to do that...
-        if ( o == null ){
+        /* MOVED 
+        if ( o == null && false ){
             if ( getParent().getThis() instanceof JSObject ){
                 JSObject pt = (JSObject)getParent().getThis();
                 o = pt.get( name );
@@ -391,6 +403,7 @@ public class Scope implements JSObject {
                 }
             }
         }
+        */
 
         if ( o == null )
             throw new NullPointerException( name );
@@ -505,7 +518,7 @@ public class Scope implements JSObject {
 
         if ( _global ){
             if ( _globalThis == null )
-                _globalThis = new JSObjectBase();
+                _globalThis = _createGlobalThis();
         }
         else {
             _globalThis = null;
@@ -741,6 +754,12 @@ public class Scope implements JSObject {
         // native this
         Object _nThis;
         String _nThisFunc;
+    }
+    
+    static JSObject _createGlobalThis(){
+        JSObjectBase o = new JSObjectBase();
+        o.set( "__globalThis" , true );
+        return o;
     }
 
     private static final Object[] EMPTY_OBJET_ARRAY = new Object[0];

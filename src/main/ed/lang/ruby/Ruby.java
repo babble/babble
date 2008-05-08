@@ -143,11 +143,15 @@ public class Ruby {
 
         s.put( RUBY_INCLUDE , new JSFunctionCalls1(){
                 public Object call( Scope s , Object thing , Object extra[] ){
+
                     if ( thing == null )
                         throw new NullPointerException( "tried to include a null thing" );
                     
                     if ( thing instanceof JSObject ){
                         JSObject t = (JSObject)s.getThis();
+                        if ( t.get( "__globalThis") != null )
+                            t = s;
+
                         JSObject o = (JSObject)thing;
                         
                         for ( String key : o.keySet() )

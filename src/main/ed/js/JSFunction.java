@@ -2,7 +2,7 @@
 
 package ed.js;
 
-
+import ed.lang.*;
 import ed.util.*;
 import ed.js.engine.Scope;
 
@@ -164,11 +164,16 @@ public abstract class JSFunction extends JSFunctionBase {
         }
     }
 
+    public Language getSourceLanguage(){
+        return _sourceLanguage;
+    }
+
     private final Scope _scope;
     private final ThreadLocal<Scope> _tlScope = new ThreadLocal<Scope>();
 
     protected JSObject _prototype;
     protected boolean _forceUsePassedInScope = false;
+    protected Language _sourceLanguage = Language.JS;
 
     protected JSArray _arguments;
     protected String _name = "NO NAME SET";
