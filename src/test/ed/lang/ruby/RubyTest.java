@@ -45,7 +45,6 @@ public class RubyTest extends TestCase {
                 };
             
             scope.put( "print" , myout , true );
-            scope.put( "SYSOUT" , myout , true );
 
 
             f.call( scope );
