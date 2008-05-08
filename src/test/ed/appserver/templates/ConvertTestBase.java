@@ -20,18 +20,34 @@ public abstract class ConvertTestBase extends TestCase {
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.TEMPLATES" );
 
     ConvertTestBase( String extension ){
+        this( extension , null );
+    }
+
+    ConvertTestBase( String extension , String args[] ){
 
         _extension = extension;
-
+        
         _all = new ArrayList<FileTest>();
         
-        File dir = new File( "src/test/ed/appserver/templates/" );
-        for ( File f : dir.listFiles() )
-            if ( f.toString().endsWith( _extension ) ){
-                FileTest ft = new FileTest( f );
+        if ( args != null ){
+            for ( int i=0; i<args.length; i++ ){
+                if ( args[i].startsWith( "-" ) )
+                    continue;
+                FileTest ft = new FileTest( new File( args[i] ) );
                 add( ft );
                 _all.add( ft );
             }
+        }
+        
+        if ( _all.size() == 0 ){
+            File dir = new File( "src/test/ed/appserver/templates/" );
+            for ( File f : dir.listFiles() )
+                if ( f.toString().endsWith( _extension ) ){
+                    FileTest ft = new FileTest( f );
+                    add( ft );
+                    _all.add( ft );
+                }
+        }
         
     }
     
@@ -101,7 +117,7 @@ public abstract class ConvertTestBase extends TestCase {
             assertClose( expected , got, "Error : " + _file + " : " );
 
             Matcher m = Pattern.compile( "LINE(\\d+)" ).matcher( in );
-            if ( m.find() ){
+            while ( m.find() ){
                 final String tofind = m.group();
                 final int lineNumber = Integer.parseInt( m.group(1) );
                 

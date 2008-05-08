@@ -41,7 +41,7 @@ public class JxpConverter extends HtmlLikeConverter {
         }
 
         if ( cm._startTag.equals( "<%" ) ){
-            g.append( code );
+            g.append( code , true );
             g.append( "\n" );
             return;
         }
