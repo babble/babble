@@ -1,4 +1,5 @@
 {{ unknownVar|default:"should see me" }}
+{{ unknownVar|default:a }}
 {{ urlParam|urlencode }}
 {% filter urlencode %}{{ urlParam }}{% endfilter %}
 

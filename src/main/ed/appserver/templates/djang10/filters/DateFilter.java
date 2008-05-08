@@ -2,7 +2,6 @@ package ed.appserver.templates.djang10.filters;
 
 import java.util.Date;
 
-import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.Util;
 import ed.js.JSDate;
 
@@ -12,8 +11,7 @@ public class DateFilter implements Filter {
 		if(!wasFound || value == null)
 			return null;
 		
-		Date date = new Date( ((JSDate)value).getTime() ); 
-		param = Parser.dequote(param);
+		Date date = new Date( ((JSDate)value).getTime() );
 
 		return Util.formatDate(date, param);
 	}

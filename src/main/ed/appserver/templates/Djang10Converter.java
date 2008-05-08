@@ -65,6 +65,9 @@ public class Djang10Converter implements TemplateConverter {
 	public static Object resolveVariable(Scope scope, UnresolvedValue unresolvedValue) {
 		String varName = unresolvedValue.stringRef;
 		
+		if(varName == null)
+			return null;
+
 		if(Parser.isQuoted(varName))
 			return Parser.dequote(varName);
 		
@@ -178,7 +181,12 @@ public class Djang10Converter implements TemplateConverter {
 				
 				for(FilterSpec filterSpec : variable.filters) {
 					Filter filter = _filters.get(filterSpec.name);
-					value = filter.apply(wasFound, value, filterSpec.param);
+					
+					Object paramValue = resolveVariable(scope, new UnresolvedValue(filterSpec.param));
+					if(paramValue != null)
+						paramValue = paramValue.toString();
+					
+					value = filter.apply(wasFound, value, (String)paramValue);
 					
 					if(value instanceof UnresolvedValue) {
 						try {
