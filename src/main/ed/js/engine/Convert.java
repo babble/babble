@@ -1358,10 +1358,6 @@ public class Convert implements StackTraceFixer {
         final int start = _currentLineNumber;
         int end = _currentLineNumber + numLines;
         
-        if ( end > ( start + 1 ) && s.endsWith( "\n" ) ){
-            //end--;
-        }
-
         for ( int i=start; i<end; i++ ){
             List<Node> l = _javaCodeToLines.get( i );
             if ( l == null ){

@@ -13,6 +13,7 @@
       <class name="ed.appserver.AppContextTestNG" />
       <class name="ed.appserver.JSFileLibraryTest" />
       <class name="ed.js.engine.ConvertTest" />
+      <class name="ed.js.engine.line.LineTest" />
       <class name="ed.js.JSONTest" />
       <class name="ed.appserver.templates.JxpConvertTest" />
       <class name="ed.appserver.templates.HtmlTemplateTest" />
