@@ -27,17 +27,11 @@ class A
   end
   end
 
-  def p
-    puts ( @good[:soon] == nil )
-  end
-  
 end
 
 a = A.new
 
 a.foo
-a.p
-
 a.foo2
-a.p
+
 
