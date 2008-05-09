@@ -8,3 +8,10 @@ class String
 end
 
 puts "abc"[:foo]
+
+class String
+
+  def [](name)
+    return null;
+  end
+end
