@@ -402,6 +402,14 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                 } );
 
 
+            _prototype.set( "empty_q_" , new JSFunctionCalls0() {
+                    public Object call( Scope s , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        return a.isEmpty();
+                    }
+                }
+                );
+            
             _prototype.set( "each" , new JSFunctionCalls1(){
                     public Object call(Scope s, Object funcObject , Object [] args){
 
