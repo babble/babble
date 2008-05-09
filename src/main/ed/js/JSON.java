@@ -255,7 +255,7 @@ public class JSON {
         ScriptOrFnNode theNode = p.parse( s , "foo" , 0 );
         
         Node ret = theNode.getFirstChild();
-        Convert._assertType( ret , Token.RETURN );
+        Convert._assertType( ret , Token.RETURN , null );
         Convert._assertOne( ret );
         
         Node lit = ret.getFirstChild();

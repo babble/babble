@@ -1305,9 +1305,18 @@ public class Convert implements StackTraceFixer {
         }
     }
 
-    public static void _assertType( Node n , int type ){
-        if ( type != n.getType() )
-            throw new RuntimeException( "wrong type. was : " + Token.name( n.getType() ) + " should be " + Token.name( type )  );
+    public void _assertType( Node n , int type ){
+        _assertType( n , type , this );
+    }
+
+    public static void _assertType( Node n , int type , Convert c ){
+        if ( type == n.getType() )
+            return;
+        
+        String msg = "wrong type. was : " + Token.name( n.getType() ) + " should be " + Token.name( type );
+        if ( c != null )
+            msg += " file : " + c._name + " : " + ( c._nodeToSourceLine.get( n ) + 1 );
+        throw new RuntimeException( msg );
     }
 
     private void _setLineNumbers( Node n , final ScriptOrFnNode sof ){
