@@ -157,6 +157,8 @@ public class JSFileLibrary extends JSFunctionCalls0 {
         if ( path.contains( ".." ) )
             throw new RuntimeException( "can't have .. in paths" );
         
+        path = path.replaceAll( "/+" , "/" );
+
         if ( path.startsWith( "/" ) ){
             JSFileLibrary root = this;
             while ( root._parent != null )
