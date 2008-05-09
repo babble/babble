@@ -173,6 +173,19 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                     }
                 } );
 
+            _prototype.set( "__rshift" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object o , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        if ( a == null )
+                            throw new RuntimeException( "this shouldn't be possible.  scope id = " + s._id );
+                        a._array.add( 0 , o );
+                        if ( foo != null )
+                            for ( int i=0; i<foo.length; i++ )
+                                a._array.add( 1 + i , foo[i] );
+                        return a;
+                    }
+                } );
+
             _prototype.set( "concat" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object o , Object foo[] ){
                         JSArray a = (JSArray)(s.getThis());
