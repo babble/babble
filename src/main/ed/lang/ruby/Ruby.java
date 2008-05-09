@@ -19,7 +19,7 @@ public class Ruby {
     public static final String RUBY_TOARRAY = "__rtoarray";
     public static final String RUBY_RETURN = "__rreturn";
     
-    public static final String RUBY_NEWNAME = "_____rnew___";
+    public static final String RUBY_NEWNAME = "__rnew";
     public static final String RUBY_SHIFT = "__rshift";
     public static final String RUBY_PRIVATE = "__rprivate";
     public static final String RUBY_PROTECTED = "__rprivate";
