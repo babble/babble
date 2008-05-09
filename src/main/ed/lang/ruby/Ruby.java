@@ -333,11 +333,15 @@ public class Ruby {
         s.put( RUBY_RESCURE_INSTANCEOF , new JSFunctionCalls2(){
                 public Object call( Scope s , Object t , Object c , Object extra[] ){
                     
-                    final boolean debug = false;
+                    final boolean debug = true;
 
                     if ( debug ) System.out.println( "t    :" + ( t == null ? "null" : t.getClass() ) );
                     if ( debug ) System.out.println( "c    :" + ( c == null ? "null" : c.getClass() ) );
                     
+                    if ( t instanceof RubyReturnHack )
+                        return false;
+
+
                     if ( ! ( t instanceof JSObjectBase && 
                              c instanceof JSObjectBase ) )
                         return false;

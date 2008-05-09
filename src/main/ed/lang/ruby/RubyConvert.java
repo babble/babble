@@ -991,8 +991,6 @@ public class RubyConvert extends ed.MyAsserts {
     }
     
     void _addRescueNode( RescueNode rn , State state , boolean fromBegin ){
-        if ( rn.getElseNode() != null )
-            throw new RuntimeException( "can't handle rescue else" );
 
         Node en = state._ensure;
         state._ensure = null;
@@ -1002,6 +1000,8 @@ public class RubyConvert extends ed.MyAsserts {
         
         _append( "try {\n" , rn );
         _add( rn.getBodyNode() , state );
+        if ( rn.getElseNode() != null )
+            _add( rn.getElseNode() , state );
         _append( "\n}\n" , rn );
         
         RescueBodyNode rb = rn.getRescueNode();
@@ -1010,12 +1010,15 @@ public class RubyConvert extends ed.MyAsserts {
             final String name = "name" + (int)(Math.random() * 12312312);
             
             _append( "catch( " + name  , rb );
+            
+            _append( " if ! __risReturnThing( " + name + " )" , rb );
             if ( rb.getExceptionNodes() != null ){
-                _append( " if " + Ruby.RUBY_RESCURE_INSTANCEOF + "( " + name + " , " , rb );
+                _append( " && " + Ruby.RUBY_RESCURE_INSTANCEOF + "( " + name + " , " , rb );
                 _add( rb.getExceptionNodes() , state );
                 _append( " ) " , rb );
             }
             _append( " ){\n" , rb );
+
             if ( ! fromBegin && _isReturnable( rb.getBodyNode() ) ) _append( JS_R , rn );
             _addBlock( rb.getBodyNode() , state );
             _append( "\n}\n" , rn );
