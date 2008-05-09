@@ -387,6 +387,14 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                     }
                 } );
 
+	    /* 
+	       ex:
+	       foo = {}
+	       [ 1 , 2, 3 ].__multiAssignment( scope , "a" , foo , "b", q, 3 );
+	       assert( scope.a == 1 )
+	       assert( foo.b == 2 );
+	       assert( q[3] == 3) ;
+	     */
             _prototype.set( "__multiAssignment" , new JSFunctionCalls0() {
                     public Object call( Scope s , Object foo[] ){
                         JSArray a = (JSArray)(s.getThis());
