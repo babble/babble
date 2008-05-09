@@ -1358,8 +1358,9 @@ public class Convert implements StackTraceFixer {
         final int start = _currentLineNumber;
         int end = _currentLineNumber + numLines;
         
-        if ( end > ( start + 1 ) && s.endsWith( "\n" ) )
-            end--;
+        if ( end > ( start + 1 ) && s.endsWith( "\n" ) ){
+            //end--;
+        }
 
         for ( int i=start; i<end; i++ ){
             List<Node> l = _javaCodeToLines.get( i );
@@ -1422,7 +1423,7 @@ public class Convert implements StackTraceFixer {
         return _className;
     }
 
-    String getClassString(){
+    public String getClassString(){
         StringBuilder buf = new StringBuilder();
         
         buf.append( "package " + _package + ";\n" );
@@ -1519,11 +1520,20 @@ public class Convert implements StackTraceFixer {
         return nodes.get(0);
     }
     
-    int _mapLineNumber( int line ){
+    public int _mapLineNumber( int line ){
         Node n = _getNodeFromJavaLine( line );
         if ( n == null )
             return -1;
-        return _nodeToSourceLine.get( n );
+        return _nodeToSourceLine.get( n ) + 1;
+    }
+
+    public void _debugLineNumber( final int line ){
+        System.out.println( "-----" );
+        for ( int temp = Math.max( 0 , line - 5 );
+              temp < line + 5 ;
+              temp++ )
+            System.out.println( "\t" + temp + "->" + _mapLineNumber( temp ) + " || " + _getNodeFromJavaLine( temp ) );
+        System.out.println( "-----" );        
     }
 
     public StackTraceElement fixSTElement( StackTraceElement element ){
@@ -1536,14 +1546,8 @@ public class Convert implements StackTraceFixer {
             return null;
 
         if ( debug ){
-            System.out.println( "-----" );
             System.out.println( element );
-            System.out.println( "-" );
-            for ( int temp = Math.max( 0 , element.getLineNumber() - 5 );
-                  temp < element.getLineNumber() + 5 ;
-                  temp++ )
-                System.out.println( "\t" + temp + "->" + _mapLineNumber( temp ) + " || " + _getNodeFromJavaLine( temp ) );
-            System.out.println( "-----" );
+            _debugLineNumber( element.getLineNumber() );
         }
 
         Node n = _getNodeFromJavaLine( element.getLineNumber() );
@@ -1551,7 +1555,7 @@ public class Convert implements StackTraceFixer {
             return null;
         
         // the +1 is for the way rhino does stuff
-        int line = _mapLineNumber( element.getLineNumber() ) + 1;
+        int line = _mapLineNumber( element.getLineNumber() );
         
         ScriptOrFnNode sof = _nodeToSOR.get( n );
         String method = "___";
@@ -1588,6 +1592,15 @@ public class Convert implements StackTraceFixer {
 
     public boolean hasReturn(){
         return _hasReturn;
+    }
+
+    public int findStringId( String s ){
+        for ( int i=0; i<_strings.size(); i++ ){
+            if ( _strings.get(i).equals( s ) ){
+                return i;
+            }
+        }
+        return -1;
     }
     
     //final File _file;
