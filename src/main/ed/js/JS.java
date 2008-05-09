@@ -59,6 +59,9 @@ public class JS {
         throws Exception {
         
         for ( String s : args ){
+            s = s.trim();
+            if ( s.length() == 0 )
+                continue;
             System.out.println( "-----" );
             System.out.println( s );
             

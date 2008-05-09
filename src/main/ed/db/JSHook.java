@@ -16,6 +16,10 @@ import ed.js.engine.*;
 public class JSHook {
 
     public static String whereIsEd = null;
+    static {
+        if ( System.getenv( "ED_HOME" ) != null )
+            whereIsEd = System.getenv( "ED_HOME" );
+    }
 
     static final boolean DEBUG = false;
 
