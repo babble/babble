@@ -82,17 +82,25 @@ public class Shell {
         addNiceShellStuff( s );
 
         File init = new File( System.getenv( "HOME" ) + "/.init.js" );
-
+        
         if ( init.exists() )
             s.eval( init );
         
+        boolean exit = false;
+
         for ( String a : args ){
-            if ( a.equals( "-exit" ) )
-                return;
+            if ( a.equals( "-exit" ) ){
+                exit = true;
+                continue;
+            }
 
             File temp = new File( a );
             try {
-                s.eval( temp );
+                String code = ed.io.StreamUtil.readFully( new FileInputStream( temp ) );
+                if ( code.startsWith( "#!" ) )
+                    code = code.replaceAll( "^(.*?)\n" , "" );
+                System.out.println( code );
+                s.eval( code );
             }
             catch ( Exception e ){
                 StackTraceHolder.getInstance().fix( e );
@@ -101,6 +109,9 @@ public class Shell {
             }
 
         }
+
+        if ( exit )
+            return;
 
         String line;
         ConsoleReader console = new ConsoleReader();
