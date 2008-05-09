@@ -134,6 +134,7 @@ public class JSObjectBase implements JSObject {
                  || "__preGet".equals( s )
                  )
              ){
+
             Object blah = _simpleGet( "__notFoundHandler" );
             if ( blah instanceof JSFunction ){
                 JSFunction f = (JSFunction)blah;
@@ -142,7 +143,15 @@ public class JSObjectBase implements JSObject {
                     scope = Scope.getLastCreated();
                 scope = scope.child();
                 scope.setThis( this );
-                return f.call( scope , s );
+                if ( ! _inNotFoundHandler.get() ){
+                    try {
+                        _inNotFoundHandler.set( true );
+                        return f.call( scope , s );
+                    }
+                    finally {
+                        _inNotFoundHandler.set( false );
+                    }
+                }
             }
         }
 
@@ -447,5 +456,10 @@ public class JSObjectBase implements JSObject {
     }
 
     public static final JSObject _objectLowFunctions = new BaseThings();
-
+    
+    private static final ThreadLocal<Boolean> _inNotFoundHandler = new ThreadLocal<Boolean>(){
+        protected Boolean initialValue(){
+            return false;
+        }
+    };
 }
