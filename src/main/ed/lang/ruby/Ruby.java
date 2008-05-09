@@ -95,8 +95,11 @@ public class Ruby {
                     
                     Object useThis = thing;
 
-                    if ( thing == null )
+                    if ( thing == null ){
+                        if ( funcName != null && funcName.toString().equals( "blank_q_" ) )
+                            return true;
                         throw new NullPointerException();
+                    }
                     
                     if ( funcName == null )
                         throw new NullPointerException( "funcName can't be null" );
