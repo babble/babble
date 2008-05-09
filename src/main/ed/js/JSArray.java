@@ -178,10 +178,10 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                         JSArray a = (JSArray)(s.getThis());
                         if ( a == null )
                             throw new RuntimeException( "this shouldn't be possible.  scope id = " + s._id );
-                        a._array.add( 0 , o );
+                        a._array.add( o );
                         if ( foo != null )
                             for ( int i=0; i<foo.length; i++ )
-                                a._array.add( 1 + i , foo[i] );
+                                a._array.add( foo[i] );
                         return a;
                     }
                 } );
