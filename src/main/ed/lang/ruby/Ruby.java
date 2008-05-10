@@ -69,23 +69,15 @@ public class Ruby {
                         }
                     }
                     
-                    if ( foo == null ){
-                        String msg = "no function";
-                        if ( name != null )
-                            msg += " [" + name + "]";
-                        
-                        throw new NullPointerException( msg );
-                    }
+                    if ( ! ( foo instanceof JSFunction ) )
+                        return foo;
                     
-                    if ( foo instanceof JSFunction ){
-                        JSFunction f = (JSFunction)foo;
-                        if ( useThis != null ){
-                            return f.callAndSetThis( s , useThis , null );
-                        }
-                        return f.call( s );
+                    JSFunction f = (JSFunction)foo;
+                    if ( useThis != null ){
+                        return f.callAndSetThis( s , useThis , null );
                     }
-                    
-                    return foo;
+                    return f.call( s );
+
                 }
             } , true );
 
