@@ -443,6 +443,14 @@ public class JSObjectBase implements JSObject {
                     }
                 } );
 
+            set( "key_q_" , new JSFunctionCalls1(){
+                    public Object call( Scope s , Object name , Object args[] ){
+                        if ( name == null )
+                            return null;
+                        return ((JSObjectBase)s.getThis()).containsKey( name.toString() );
+                    }
+                } );
+
             set( "__rdelete" , new JSFunctionCalls1(){
                     public Object call( Scope s , Object name , Object args[] ){
                         return ((JSObjectBase)s.getThis()).removeField( name );
