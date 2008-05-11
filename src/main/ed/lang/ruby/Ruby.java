@@ -88,8 +88,13 @@ public class Ruby {
                     Object useThis = thing;
 
                     if ( thing == null ){
-                        if ( funcName != null && funcName.toString().equals( "blank_q_" ) )
-                            return true;
+                        if ( funcName != null ){
+                            String temp = funcName.toString();
+                            if ( temp.equals( "blank_q_" ) )
+                                return true;
+                            if ( temp.equals( "to_s" ) )
+                                return "";
+                        }
                         throw new NullPointerException();
                     }
                     
