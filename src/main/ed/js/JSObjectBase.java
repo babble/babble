@@ -168,8 +168,10 @@ public class JSObjectBase implements JSObject {
         Object val = null;
 
         if ( n instanceof String ){
-            val = _map.remove( (String)n );
-            _keys.remove( n );
+            if ( _map != null )
+                val = _map.remove( (String)n );
+            if ( _keys != null )
+                _keys.remove( n );
         }
         
         return val;
