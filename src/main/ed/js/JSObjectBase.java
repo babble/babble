@@ -441,6 +441,12 @@ public class JSObjectBase implements JSObject {
                     }
                 } );
 
+            set( "__rdelete" , new JSFunctionCalls1(){
+                    public Object call( Scope s , Object name , Object args[] ){
+                        return ((JSObjectBase)s.getThis()).removeField( name );
+                    }
+                } );
+
             set( "const_defined_q_" , new JSFunctionCalls1(){
                     public Object call( Scope s , Object type , Object args[] ){
                         return s.get( type ) != null;
