@@ -330,7 +330,7 @@ public class Ruby {
         s.put( RUBY_RESCURE_INSTANCEOF , new JSFunctionCalls2(){
                 public Object call( Scope s , Object t , Object c , Object extra[] ){
                     
-                    final boolean debug = true;
+                    final boolean debug = false;
 
                     if ( debug ) System.out.println( "t    :" + ( t == null ? "null" : t.getClass() ) );
                     if ( debug ) System.out.println( "c    :" + ( c == null ? "null" : c.getClass() ) );
