@@ -27,6 +27,7 @@ import ed.appserver.templates.djang10.tagHandlers.CommentTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.CycleTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.ExtendsTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.FilterTagHandler;
+import ed.appserver.templates.djang10.tagHandlers.FirstOfTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.ForTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IfEqualTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IfTagHandler;
@@ -249,6 +250,7 @@ public class Djang10Converter implements TemplateConverter {
     	_tagHandlers.put("comment", new CommentTagHandler());
     	_tagHandlers.put("filter", new FilterTagHandler());
     	_tagHandlers.put("cycle", new CycleTagHandler());
+    	_tagHandlers.put("firstof", new FirstOfTagHandler());
     }
 
     
