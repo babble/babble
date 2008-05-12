@@ -118,6 +118,10 @@ public class JSLocalFile extends JSNewFile {
         return _file;
     }
 
+    public boolean remove(){
+        return remove( false );
+    }
+
     public boolean remove( boolean recursive ){
         if ( ! _file.exists() )
             return true;
