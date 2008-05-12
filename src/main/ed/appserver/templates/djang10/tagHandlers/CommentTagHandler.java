@@ -25,7 +25,7 @@ public class CommentTagHandler implements TagHandler {
 		public CommentNode(Token token) {
 			super(token);
 		}
-		public void getRenderJSFn(JSWriter buffer) {
+		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) {
 			//noop
 		}
 	}

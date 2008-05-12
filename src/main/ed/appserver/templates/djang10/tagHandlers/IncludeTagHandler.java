@@ -33,7 +33,7 @@ public class IncludeTagHandler implements TagHandler {
 		}
 
 		@Override
-		public void getRenderJSFn(JSWriter buffer) {
+		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) {
 			buffer.appendHelper(startLine, JSWriter.CALL_PATH + "(");
 			if(Parser.isQuoted(varName))
 				buffer.append(startLine, varName);
