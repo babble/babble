@@ -342,7 +342,7 @@ public class AppServer implements HttpHandler {
         
         while ( t != null ){
             for ( StackTraceElement element : t.getStackTrace() ){
-                writer.print( element + "<BR>" );
+                writer.print( element + "<BR>\n" );
             }
             t = t.getCause();
         }
