@@ -47,13 +47,13 @@ public class FilterTagHandler implements TagHandler {
 		}
 		
 		@Override
-		public void getRenderJSFn(JSWriter buffer) {
+		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) {
 			buffer.append(startLine, "print(");
 				buffer.appendHelper(startLine, JSWriter.VAR_EXPAND + "(");
 					buffer.append(startLine, "(function(print) {\n");
 				
 						for(Node node : bodyNodes)
-							node.getRenderJSFn(buffer);
+							node.getRenderJSFn(preamble, buffer);
 				
 						buffer.append(startLine, "return \"\\\"\" + print.toString() + \"\\\"\";\n");
 						

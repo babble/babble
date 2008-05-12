@@ -106,7 +106,7 @@ public class ForTagHandler implements TagHandler {
 		}
 		
 		@Override
-		public void getRenderJSFn(JSWriter buffer) {
+		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) {
 			buffer.appendHelper(startLine, "newForLoopObjFn");
 			buffer.append(startLine, "(");
 			buffer.appendVarExpansion(startLine, listName, "[]");
@@ -126,7 +126,7 @@ public class ForTagHandler implements TagHandler {
 			buffer.append(startLine, "];\n");
 			
 			for(Node node : bodyNodes) {
-				node.getRenderJSFn(buffer);
+				node.getRenderJSFn(preamble, buffer);
 			}
 			
 			buffer.appendVarExpansion(startLine, "forloop", "null");

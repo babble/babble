@@ -8,12 +8,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Util {
-	public static int countOccurance(String str, char character) { 
+	public static int countOccurance(CharSequence str, char character) { 
 		int count = 0;
 		
-		for(int pos = str.indexOf(character, 0); pos >= 0; pos = str.indexOf(character, pos + 1))
-			count++;
-		
+		for(int i=0; i<str.length(); i++) {
+			if(str.charAt(i) == character)
+				count++;
+		}
+			
 		return count;
 	}
 	

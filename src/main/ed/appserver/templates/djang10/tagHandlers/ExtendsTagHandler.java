@@ -48,9 +48,9 @@ public class ExtendsTagHandler implements TagHandler {
 		}
 		
 		@Override
-		public void getRenderJSFn(JSWriter buffer) {
+		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) {
 			for(Node node : topLevelBlocks)
-				node.getRenderJSFn(buffer);
+				node.getRenderJSFn(preamble, buffer);
 
 			buffer.appendHelper(startLine, JSWriter.CALL_PATH + "(");
 			if(Parser.isQuoted(path))

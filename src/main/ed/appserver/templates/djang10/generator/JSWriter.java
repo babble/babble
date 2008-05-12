@@ -67,6 +67,11 @@ public class JSWriter {
 		return lineMap;
 	}
 	
+	
+	public int getLineCount() {
+		return currentLine;
+	}
+	
 	@Override
 	public String toString() {
 		return buffer.toString();
