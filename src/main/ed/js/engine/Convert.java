@@ -905,9 +905,9 @@ public class Convert implements StackTraceFixer {
 
             _append( "\n for ( String " , n );
             _append( tempName , n );
-            _append( " : ((JSObject)" , n );
+            _append( " : JSInternalFunctions.JS_collForFor( " , n );
             _add( n.getFirstChild().getNext() , state );
-            _append( " ).keySet() ){\n " , n );
+            _append( " ) ){\n " , n );
 
             if ( state.useLocalVariable( name ) && state.hasSymbol( name ) )
                 _append( name + " = new JSString( " + tempName + ") ; " , n );
