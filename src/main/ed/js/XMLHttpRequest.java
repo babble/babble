@@ -144,10 +144,12 @@ public class XMLHttpRequest extends JSObjectBase {
 
         // TODO: more real http client
         
+	SocketChannel sock = null;
+
         try {
             setStatus( OPENED );
             
-            SocketChannel sock = SocketChannel.open();
+            sock = SocketChannel.open();
             if ( get( "timeout" ) != null ){
                 sock.socket().setSoTimeout( ((Number)get( "timeout" )).intValue() );
             }
@@ -229,6 +231,10 @@ public class XMLHttpRequest extends JSObjectBase {
             
         }
         finally {
+	    try {
+		sock.close();
+	    }
+	    catch ( Throwable t ){}
             setStatus( DONE );        
         }
 
