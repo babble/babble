@@ -5,3 +5,9 @@
 {% cycle "1 2" 2 "3 4" as c3 %}{% cycle c3 %}{% cycle c3 %}{% cycle c3 %}{% cycle c3 %}{% cycle c3 %}
 
 {% if false %}{% cycle a,b,c as c4 %} {% endif %} {% cycle c4 %}{% cycle c4 %}{% cycle c4 %}
+
+{% for item in array %}
+    
+    {% cycle x,y,z %}
+    
+{% endfor %}
