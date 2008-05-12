@@ -318,6 +318,9 @@ public class AppServer implements HttpHandler {
         catch ( JSException.Quiet q ){
             response.setHeader( "X-Exception" , "quiet" );
         }
+        catch ( JSException.Redirect r ){
+            response.sendRedirectTemporary(r.getTarget());
+        }
         catch ( Exception e ){
             handleError( request , response , e , ar.getContext() );
             return;

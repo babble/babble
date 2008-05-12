@@ -23,6 +23,19 @@ public class JSException extends RuntimeException implements JSObject {
         };
     
 
+    public final static JSFunction _redirectCons = new JSFunctionCalls1(){
+            public JSObjectBase newOne(){
+                throw new JSException( "don't use new" );
+            }
+            public Object call( Scope scope , Object to , Object[] extra){
+                return new Redirect( to );
+            }
+
+            protected void init(){
+
+            }
+        };
+
     public static class cons extends JSFunctionCalls1{
         
         public JSObjectBase newOne(){
@@ -41,6 +54,7 @@ public class JSException extends RuntimeException implements JSObject {
         
         protected void init(){
             set( "Quiet" , _quietCons );
+            set( "Redirect" , _redirectCons );
         }
     }
     
@@ -77,6 +91,29 @@ public class JSException extends RuntimeException implements JSObject {
             super( msg , null , true );
             _mycons = _quietCons;
         }
+    }
+
+    public static class Redirect extends JSException {
+        public Redirect( Object location ){
+            super( "redirecting" , null , true );
+            _mycons = _redirectCons;
+
+            if(location instanceof String){
+                _location = (String)location;
+            }
+            else if(location instanceof JSString){
+                _location = ((JSString)location).toString();
+            }
+            else {
+                throw new RuntimeException("Exception.Redirect takes a string");
+            }
+        }
+        
+        public String getTarget(){
+            return _location;
+        }
+        
+        private String _location;
     }
 
     public Object get( Object n ){
