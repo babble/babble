@@ -11,9 +11,13 @@ import java.nio.channels.*;
 import java.nio.charset.*;
 
 import ed.js.*;
+import ed.js.func.*;
+import ed.js.engine.*;
+import ed.log.*;
 import ed.util.*;
+import ed.appserver.*;
 
-public class HttpResponse {
+public class HttpResponse extends JSObjectBase {
 
     static final boolean USE_POOL = true;
     static final String DEFAULT_CHARSET = "utf-8";
@@ -43,6 +47,8 @@ public class HttpResponse {
         _headers = new StringMap<String>();
         _headers.put( "Content-Type" , "text/html;charset=" + getContentEncoding() );
 	setDateHeader( "Date" , System.currentTimeMillis() );
+
+        set( "prototype" , _prototype );
     }
 
     public void setResponseCode( int rc ){
@@ -85,6 +91,23 @@ public class HttpResponse {
     void cleanup(){
         if ( _cleaned )
             return;
+        
+        if ( _doneHooks != null ){
+            for ( Pair<Scope,JSFunction> p : _doneHooks ){
+                try {
+                    p.second.call( p.first );
+                }
+                catch ( Throwable t ){
+                    Logger l = Logger.getLogger( "HttpResponse" );
+                    if ( p.first.get( "log" ) instanceof Logger )
+                        l = (Logger)p.first.get( "log" );
+                    l.error( "error running done hook" , t );
+                }
+            }
+        }
+
+        if ( _appRequest != null && _appRequest.getScope() != null )
+            _appRequest.getScope().kill();
         
         _handler._done = ! keepAlive();
         
@@ -446,7 +469,17 @@ public class HttpResponse {
         if ( ! _hasData() )
             throw new RuntimeException( "no data set" );
     }
+
+    public void addDoneHook( Scope s , JSFunction f ){
+        if ( _doneHooks == null )
+            _doneHooks = new ArrayList<Pair<Scope,JSFunction>>();
+        _doneHooks.add( new Pair<Scope,JSFunction>( s , f ) );
+    }
     
+    public void setAppRequest( AppRequest ar ){
+        _appRequest = ar;
+    }
+
     final HttpRequest _request;
     final HttpServer.HttpSocketHandler _handler;
     
@@ -472,6 +505,9 @@ public class HttpResponse {
     MyJxpWriter _writer = null;
     
     JSFile.Sender _jsfile;
+
+    private AppRequest _appRequest;
+    private List<Pair<Scope,JSFunction>> _doneHooks;
     
     class MyJxpWriter implements JxpWriter {
         MyJxpWriter(){
@@ -649,4 +685,23 @@ public class HttpResponse {
         }
     }
     
+    
+    static final JSObjectBase _prototype = new JSObjectBase();
+    static {
+
+        _prototype.set( "afterSendingCall" , new JSFunctionCalls1(){
+                public Object call( Scope s , Object func , Object foo[] ){
+                    
+                    if ( ! ( func instanceof JSFunction ) )
+                        throw new RuntimeException( "can't call afterSendingCall w/o function" );
+                    
+                    HttpResponse res = (HttpResponse)s.getThis();
+                    res.addDoneHook( s , (JSFunction)func );
+                    
+                    return null;
+                }
+            } );
+        
+    }
+
 }

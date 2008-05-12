@@ -226,6 +226,8 @@ public class AppServer implements HttpHandler {
         
 	ar.setResponse( response );
 	ar.getContext().getScope().setTLPreferred( ar.getScope() );
+
+        response.setAppRequest( ar );
         try {
             _handle( request , response , ar );
         }
@@ -239,8 +241,6 @@ public class AppServer implements HttpHandler {
             ar.getContext()._usage.hit( "cpu_millis" , t );
             ar.getContext()._usage.hit( "bytes_out" , response.totalSize() );
             
-            ar.getScope().kill();
-
             Scope.clearThreadLocal();
         }
     }
