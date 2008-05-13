@@ -23,14 +23,26 @@ public abstract class NIOServer extends Thread {
         _ssChannel.configureBlocking( false );
         _ssChannel.socket().bind( new InetSocketAddress( port ) );
         
-        _selector = Selector.open();
-        _ssChannel.register( _selector , SelectionKey.OP_ACCEPT );
-            
+        _initSelector();
+
         setDaemon( true );
     }
-    
+
     public Selector getSelector(){
         return _selector;
+    }
+
+    private void _initSelector()
+        throws IOException {
+
+        if ( _selector != null ){
+            _selector.close();
+        }
+
+        Selector s = Selector.open();
+        _ssChannel.register( s , SelectionKey.OP_ACCEPT );
+
+        _selector = s;
     }
     
     public void run(){
@@ -39,6 +51,8 @@ public abstract class NIOServer extends Thread {
 
         final ByteBuffer readBuf = ByteBuffer.allocateDirect(1024);
         final ByteBuffer writeBuf = ByteBuffer.allocateDirect(1024);
+        
+        int deadSelectorCount = 0;
 
         while ( true ){
 
@@ -58,10 +72,26 @@ public abstract class NIOServer extends Thread {
             final Iterator<SelectionKey> i = _selector.selectedKeys().iterator();
 
             if ( numKeys == 0 && ! i.hasNext() ){
-                if ( selectTime + 1 < SELECT_TIMEOUT )
-                    System.err.println( "got 0 keys after waiting :" + selectTime );
+                if ( selectTime == 0 ){
+                    deadSelectorCount++;
+                    System.err.println( "got 0 keys after waiting :" + selectTime + " " + deadSelectorCount + " in a row." );
+                    
+                    if ( deadSelectorCount > 1000 ){
+                        System.err.println( "****  SHOULD KILL SELECTOR AND START OVER " );
+                        try {
+                            _initSelector();
+                        }
+                        catch ( Throwable t ){
+                            System.err.println( "couldn't re-init selector after issue.  dying" );
+                            t.printStackTrace();
+                            System.exit( -1 );
+                        }
+                    }
+                }
                 continue;
             }
+            
+            deadSelectorCount = 0;
 
             for ( ; i.hasNext() ;  ){
                 SelectionKey key = i.next();
@@ -214,6 +244,7 @@ public abstract class NIOServer extends Thread {
     }
 
     protected final int _port;
-    protected final Selector _selector;
     protected final ServerSocketChannel _ssChannel;    
+
+    protected Selector _selector;
 }
