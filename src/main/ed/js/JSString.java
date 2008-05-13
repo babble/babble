@@ -277,8 +277,14 @@ public class JSString extends JSObjectBase {
     
                         JSRegex r = (JSRegex)o;
                         
+                        String spacer = null;
+                        if ( r.getPattern().contains( "(" ) )
+                            spacer = r.getPattern().replaceAll( "[()]" , "" );
+
                         JSArray a = new JSArray();
                         for ( String pc : r._patt.split( str , -1 ) ){
+                            if ( a.size() > 0 && spacer != null )
+                                a.add( spacer );
                             a.add( new JSString( pc ) );
                             if ( a.size() >= limit )
                                 break;
