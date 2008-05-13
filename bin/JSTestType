@@ -1,4 +1,4 @@
 #!/bin/tcsh
 
 echo running `ls src/test/ed/js/engine/$1*.js src/test/ed/js/$1*.js`
-ant && ./bin/JSTestReset $1 && ./runLight.bash ed.js.engine.ConvertTest src/test/ed/js/engine/$1*.js src/test/ed/js/$1*.js
+ant && ./bin/JSTestReset $1 && ./runLight.bash -DNO-SECURITY=true ed.js.engine.ConvertTest src/test/ed/js/engine/$1*.js src/test/ed/js/$1*.js
