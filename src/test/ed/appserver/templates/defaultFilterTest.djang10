@@ -8,3 +8,5 @@ a   ,A ,b  ,d ,D  ,f   ,F       ,g,G ,h ,H ,i ,j ,l     ,L    ,m ,M  ,n ,N   ,O 
 
 {{ "moo"|upper }}
 {{ "MOO"|lower }}
+
+{% if array|length_is:"5" %}should see me{% endif %}
