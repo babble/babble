@@ -990,34 +990,66 @@ public class Convert implements StackTraceFixer {
             throw new RuntimeException( "something is wrong" );
     }
     
-    private void _addFunctionNodes( ScriptOrFnNode sn , State state ){
+    private void _addFunctionNodes( final ScriptOrFnNode sn , final State state ){
+        Set<Integer> baseIds = new HashSet<Integer>();
+        {
+            Node temp = sn.getFirstChild();
+            while ( temp != null ){
+
+                if ( temp.getType() == Token.FUNCTION && 
+                     temp.getString() != null ){
+
+                    int prop = temp.getIntProp( Node.FUNCTION_PROP , -1 );
+                    if ( prop >= 0 ){
+                        baseIds.add( prop );
+                    }
+                }
+                
+                temp = temp.getNext();
+            }
+        }
+
         for ( int i=0; i<sn.getFunctionCount(); i++ ){
             
             FunctionNode fn = sn.getFunctionNode( i );
             _setLineNumbers( fn , fn );
 
             String name = fn.getFunctionName();
+            String anonName = "tempFunc_" + _id + "_" + i + "_" + _methodId++;
+            
             boolean anon = name.length() == 0;
             if ( anon )
-                name = "tempFunc_" + _id + "_" + i + "_" + _methodId++;
-            
-            state._functionIdToName.put( i , name );
+                name = anonName;
             
             if ( D ){
                 System.out.println( "***************" );
                 System.out.println( i + " : " +  name );
             }
+            
+            String useName = name;
 
-            _setVar( name , fn , state , anon );
-            _append( "; \n scope.getFunction( \"" + name + "\" ).setName( \"" + name + "\" );\n\n" , fn );
+            if ( ! anon && ! baseIds.contains( i ) ){
+                useName = anonName;
+                state._nonRootFunctions.add( i );
+            }
+
+            state._functionIdToName.put( i , useName );
+
+            _setVar( useName , fn , state , anon );
+            _append( "; \n scope.getFunction( \"" + useName + "\" ).setName( \"" + name + "\" );\n\n" , fn );
 
         }
     }
     
     private void _addFunction( Node n , State state ){
         if ( ! ( n instanceof FunctionNode ) ){
-            if ( n.getString() != null && n.getString().length() != 0 )
+            if ( n.getString() != null && n.getString().length() != 0 ){
+                int id = n.getIntProp( Node.FUNCTION_PROP , -1 );
+                if ( state._nonRootFunctions.contains( id ) ){
+                    _append( "scope.set( \"" + n.getString() + "\" , scope.get( \"" + state._functionIdToName.get( id ) + "\" ) );\n" , n );
+                }
                 return;
+            }
             _append( getFunc( n , state ) , n );
             return;
         }
