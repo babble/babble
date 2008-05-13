@@ -55,13 +55,15 @@ public abstract class NIOServer extends Thread {
                 continue;
             }
             
-            if ( numKeys == 0 ){
+            final Iterator<SelectionKey> i = _selector.selectedKeys().iterator();
+
+            if ( numKeys == 0 && ! i.hasNext() ){
                 if ( selectTime + 1 < SELECT_TIMEOUT )
                     System.err.println( "got 0 keys after waiting :" + selectTime );
                 continue;
             }
 
-            for ( Iterator<SelectionKey> i = _selector.selectedKeys().iterator() ; i.hasNext() ;  ){
+            for ( ; i.hasNext() ;  ){
                 SelectionKey key = i.next();
                 
                 SocketChannel sc = null;
