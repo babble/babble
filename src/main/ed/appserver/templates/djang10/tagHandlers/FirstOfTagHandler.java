@@ -44,8 +44,6 @@ public class FirstOfTagHandler implements TagHandler {
 					buffer.append(" || ");
 				isFirst = false;
 				
-				if(Parser.isQuoted(var))
-					var = var.replace("\"", "\\\"");
 				buffer.appendVarExpansion(startLine, var, "\"\"");
 			}
 			

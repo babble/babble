@@ -69,6 +69,16 @@ public class Djang10ConverterTest extends ConvertTestBase {
         o.set("date", new JSDate(cal));  
         
         o.set("includedTemplate", "/local/djang10-if");
+        
+        JSArray array2 = new JSArray();
+        int[] array2values = new int[] { 5,4,3,2,1,6,7,8,9,10 };
+        for(int val : array2values) {
+        	JSObjectBase obj = new JSObjectBase();
+        	obj.set("myProp", val);
+        	array2.add(obj);
+        }
+        o.set("array2", array2);
+        
         return new Object[]{ o };
     }
     
