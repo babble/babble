@@ -229,6 +229,10 @@ public class Djang10Converter implements TemplateConverter {
     	namespace.set(JSWriter.CALL_PATH, new JSFunctionCalls1() {
     		@Override
     		public Object call(Scope scope, Object pathObj, Object[] extra) {
+    			
+    			if(pathObj instanceof JSCompiledScript)
+    				return ((JSCompiledScript)pathObj).call(scope.child(), extra);
+
     			String path = ((JSString)pathObj).toString();
     			
     			return callPath(scope, path, extra);

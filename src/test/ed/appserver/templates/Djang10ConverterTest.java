@@ -8,6 +8,7 @@ import java.util.TimeZone;
 
 import org.testng.annotations.Factory;
 
+import ed.appserver.JSFileLibrary;
 import ed.js.JSArray;
 import ed.js.JSDate;
 import ed.js.JSFunction;
@@ -32,7 +33,7 @@ public class Djang10ConverterTest extends ConvertTestBase {
     }
 
     @Override
-    Object[] getArgs(){
+    Object[] getArgs(Scope testScope){
         JSObjectBase o = new JSObjectBase();
         o.set( "foo" , "17" );
         o.set( "a" , "A" );
@@ -78,6 +79,9 @@ public class Djang10ConverterTest extends ConvertTestBase {
         	array2.add(obj);
         }
         o.set("array2", array2);
+        
+        JSFileLibrary localLib = (JSFileLibrary)testScope.get("local");
+        o.set("includedTemplateJsFunction", localLib.get("djang10-if"));
         
         return new Object[]{ o };
     }

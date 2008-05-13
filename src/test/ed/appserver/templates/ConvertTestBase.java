@@ -53,7 +53,7 @@ public abstract class ConvertTestBase extends TestCase {
     
     abstract TemplateConverter getConverter();
     
-    Object[] getArgs(){
+    Object[] getArgs(Scope testScope){
         return null;
     }
 
@@ -105,7 +105,7 @@ public abstract class ConvertTestBase extends TestCase {
             
             localLib.addPath( func.getClass() , localLib );
 
-            func.call( scope , getArgs() );
+            func.call( scope , getArgs(scope) );
             
             String got = _clean( output.toString() );
             if ( DEBUG ) 
