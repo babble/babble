@@ -17,6 +17,7 @@ import ed.appserver.templates.djang10.Variable;
 import ed.appserver.templates.djang10.Variable.FilterSpec;
 import ed.appserver.templates.djang10.filters.DateFilter;
 import ed.appserver.templates.djang10.filters.DefaultFilter;
+import ed.appserver.templates.djang10.filters.DictSortFilter;
 import ed.appserver.templates.djang10.filters.Filter;
 import ed.appserver.templates.djang10.filters.LowerFilter;
 import ed.appserver.templates.djang10.filters.UpperFilter;
@@ -265,5 +266,7 @@ public class Djang10Converter implements TemplateConverter {
     	_filters.put("date", new DateFilter());
     	_filters.put("upper", new UpperFilter());
     	_filters.put("lower", new LowerFilter());
+    	_filters.put("dictsort", new DictSortFilter(false));
+    	_filters.put("dictsortreverse", new DictSortFilter(true));
     }
 }

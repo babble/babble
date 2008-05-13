@@ -1,0 +1,7 @@
+{% for num in array2|dictsort:"myProp" %}
+    {{ num.myProp }}
+{% endfor %}
+
+{% for num in array2|dictsortreverse:"myProp" %}
+    {{ num.myProp }}
+{% endfor %}

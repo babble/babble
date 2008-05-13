@@ -47,7 +47,7 @@ public class JSWriter {
 	public void appendVarExpansion(int srcLine, String varName, String defaultValue) {
 		appendHelper(srcLine, VAR_EXPAND);
 		append("(\"");
-		append(varName);
+		append(varName.replace("\"", "\\\""));
 		append("\",");
 		append(defaultValue);
 		append(")");
