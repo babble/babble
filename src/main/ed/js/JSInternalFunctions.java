@@ -308,13 +308,13 @@ public class JSInternalFunctions extends JSNumericFunctions {
     public static final Collection<String> JS_collForFor( Object o ){
         if ( o == null )
             return new LinkedList<String>();
-        
-        if ( o instanceof Collection )
-            return (Collection<String>)o;
 
         if ( o instanceof JSObject )
             return ((JSObject)o).keySet();
         
+        if ( o instanceof Collection )
+            return (Collection<String>)o;
+
         throw new RuntimeException( "can't for with a : " + o.getClass() );
     }
 

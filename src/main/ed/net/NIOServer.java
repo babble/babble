@@ -11,7 +11,8 @@ import java.util.*;
 public abstract class NIOServer extends Thread {
 
     final static boolean D = Boolean.getBoolean( "DEBUG.NIO" );
-
+    final static long SELECT_TIMEOUT = 10;
+    
     public NIOServer( int port )
         throws IOException {
         super( "NIOServer  port:" + port  );
@@ -41,15 +42,28 @@ public abstract class NIOServer extends Thread {
 
         while ( true ){
 
+            final int numKeys;
+            final long selectTime;
+
             try {
-                _selector.select( 10 );
+                final long start = System.currentTimeMillis();
+                numKeys = _selector.select( 10 );
+                selectTime = System.currentTimeMillis() - start;
             }
             catch ( IOException ioe ){
                 ed.log.Logger.getLogger( "nio" ).error( "couldn't select on port : " + _port , ioe );
                 continue;
             }
             
-            for ( Iterator<SelectionKey> i = _selector.selectedKeys().iterator() ; i.hasNext() ;  ){
+            final Iterator<SelectionKey> i = _selector.selectedKeys().iterator();
+
+            if ( numKeys == 0 && ! i.hasNext() ){
+                if ( selectTime + 1 < SELECT_TIMEOUT )
+                    System.err.println( "got 0 keys after waiting :" + selectTime );
+                continue;
+            }
+
+            for ( ; i.hasNext() ;  ){
                 SelectionKey key = i.next();
                 
                 SocketChannel sc = null;
