@@ -860,6 +860,9 @@ public class Scope implements JSObject {
                 if ( obj.getClass() == JSObjectBase.class )
                     throw new NullPointerException( "no function called : " + name + " fields [" + ((JSObjectBase)obj).keySet() + "]" );
                 
+                if ( obj instanceof ed.appserver.JSFileLibrary )
+                    throw new NullPointerException( "included file [" + ((ed.appserver.JSFileLibrary)obj).getURIBase().replaceAll( "^jxp" , "" )  + "/" + name + "] does not exist" );
+
                 throw new NullPointerException( name + " (from a [" + obj.getClass() + "])" );
             }
         };
