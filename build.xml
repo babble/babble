@@ -5,11 +5,9 @@
   <property name="testdir" value="${targetdir}/test"/>
     
   <path id="classpath">
-
     <fileset dir="include">
       <include name="**/*.jar"/>
     </fileset>
-
     <pathelement path="conf" />
     <pathelement path="build" />
   </path>
