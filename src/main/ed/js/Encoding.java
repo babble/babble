@@ -2,6 +2,7 @@
 
 package ed.js;
 
+import bak.pcj.map.*;
 import bak.pcj.set.*;
 
 import ed.js.func.*;
@@ -163,6 +164,33 @@ public class Encoding {
         _noEncodingComonent.add( '\'' );
         _noEncodingComonent.add( '.' );
     }
+    
+    public static JSFunction escapeHTML = new JSFunctionCalls1(){
+            public Object call( Scope s , Object o , Object [] extra ){
+                if ( o == null )
+                    return null;
+                return new JSString( _escapeHTML( o.toString() ) );
+            }
+        };
+
+    public static String _escapeHTML( String html ){
+        final StringBuilder buf = new StringBuilder( (int)(html.length() * 1.2) );
+        final int max = html.length();
+        for ( int i=0; i<max; i++ ){
+            char c = html.charAt( i );
+
+            switch( c ){
+            case '<': buf.append( "&lt;" ); break;
+            case '>': buf.append( "&gt;" ); break;
+            case '&': buf.append( "&amp;" ); break;
+            case '"': buf.append( "&quot;" ); break;
+            case '\'': buf.append( "&apos;" ); break;
+            default: buf.append( c ); break;
+            }
+        }
+        return buf.toString();
+    }
+    
 
     public static void install( Scope s ){
         s.set( "escape" , escape );
@@ -172,6 +200,9 @@ public class Encoding {
         s.set( "unescape" , unescape );
         s.set( "decodeURI" , unescape );
         s.set( "decodeURIComponent" , unescape );
+
+
+        s.set( "escapeHTML" , escapeHTML );
     }
     
 }
