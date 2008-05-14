@@ -287,6 +287,9 @@ public abstract class JSFile extends JSObjectBase {
     }
 
     public static String cleanFilename( String filename ){
+        if ( filename == null )
+            return null;
+
         int idx = filename.lastIndexOf( "/" );
         if ( idx > 0 )
             filename = filename.substring( idx + 1 );
