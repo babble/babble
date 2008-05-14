@@ -252,10 +252,12 @@ public class RubyConvert extends ed.MyAsserts {
             if ( state._className != null ){
                 _append( state._className + "." + ( ( dn instanceof DefsNode || state._module ) ? "" : "prototype." ) , node );
             }
-            _append( _mangleFunctionName( dn.getName() ) + " = function(" , node );
+            final String funcName = _mangleFunctionName( dn.getName() );
+            _append( funcName + " = function(" , node );
             
             state = state.child();
-
+            state._curMethod = funcName;
+            
             ArgsNode an = dn.getArgsNode();
             if ( an != null ){
                 
@@ -323,7 +325,8 @@ public class RubyConvert extends ed.MyAsserts {
         }
         
         else if ( node instanceof ZSuperNode ){
-            
+            if ( state._curMethod != null )
+                _append( "( __last__ = this.constructor.prototype.constructor.prototype." + state._curMethod + "() )" , node );
         }
 
         else if ( node instanceof SuperNode ){
@@ -1560,9 +1563,10 @@ public class RubyConvert extends ed.MyAsserts {
         String _className;
         DefnNode _classInit;
         boolean _module = false;
-
+        
         int _whileCount = 0;
         Node _ensure;
+        String _curMethod;
     }
 
     void _append( String s , Node where ){
