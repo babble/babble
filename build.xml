@@ -12,7 +12,6 @@
     <pathelement path="build" />
   </path>
 
-
   <target name="init">
     <mkdir dir="build" />
     <mkdir dir="logs" />
