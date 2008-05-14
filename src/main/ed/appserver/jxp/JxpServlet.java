@@ -3,7 +3,6 @@
 package ed.appserver.jxp;
 
 import java.io.*;
-import java.util.*;
 import java.util.regex.*;
 
 import ed.js.*;

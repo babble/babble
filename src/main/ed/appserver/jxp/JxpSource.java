@@ -3,11 +3,8 @@
 package ed.appserver.jxp;
 
 import java.io.*;
-import java.util.*;
-import java.util.regex.*;
 
 import ed.io.*;
-import ed.util.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.lang.*;
