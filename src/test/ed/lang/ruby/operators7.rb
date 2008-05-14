@@ -10,3 +10,8 @@ end
 
 a = A.new
 a.foo
+
+a = "abc"
+
+h = { :conditions => { "#{a}z" => true} }
+puts h[:conditions]["abcz"]

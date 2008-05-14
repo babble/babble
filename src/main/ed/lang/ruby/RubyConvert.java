@@ -793,18 +793,18 @@ public class RubyConvert extends ed.MyAsserts {
             _assertOne( node );
             _assertType( node.childNodes().get(0) , ArrayNode.class );
             
-            _append( "( { " , node );
+            _append( RUBY_BUILD_HASH + "( " , node );
             List<Node> lst = node.childNodes().get(0).childNodes();
             for ( int i=0; i<lst.size(); i+=2 ){
                 if ( i > 0 )
                     _append( " , " , node );
                 
                 _add( lst.get(i) , state );
-                _append( " : " , node );
+                _append( " , " , node );
                 _add( lst.get(i+1) , state );
                 
             }
-            _append( " } ) " , node );
+            _append( " ) " , node );
         }
         
         else if ( node instanceof RegexpNode ){

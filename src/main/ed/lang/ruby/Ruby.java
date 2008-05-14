@@ -27,6 +27,7 @@ public class Ruby {
     public static final String RUBY_RAISE = "__rraise";
     public static final String RUBY_DEFINE_CLASS = "__rdefineclass";
     public static final String RUBY_RANGE = "__rrange";
+    public static final String RUBY_BUILD_HASH = "__rbuildHash";
 
     static final Map<String,String> _nameMapping = new TreeMap<String,String>();
     static {
@@ -457,7 +458,7 @@ public class Ruby {
                     throw new RubyReturnHack( thing );
                 }
             } , true );
-
+        
         s.put( "__risReturnThing" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object thing , Object extra[] ){
                     if ( thing == null )
@@ -466,6 +467,22 @@ public class Ruby {
                 }
             }  , true );
             
+        
+        s.put( RUBY_BUILD_HASH , new JSFunctionCalls0(){
+                public Object call( Scope s , Object things[] ){
+                    
+                    JSObjectBase o = new JSObjectBase();
+
+                    if ( things == null )
+                        return o;
+                    
+                    for ( int i=0; i<things.length; i+=2 )
+                        o.set( things[i] , things[i+1] );
+
+                    return o;
+                }
+            } , true );
+
 
         String root = ed.db.JSHook.whereIsEd;
         if ( root == null )
