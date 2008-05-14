@@ -12,16 +12,15 @@
     <pathelement path="build" />
   </path>
 
-  <target name="clean">
-    <delete dir="build"/>
-  </target>
-
   <target name="init">
     <mkdir dir="build" />
     <mkdir dir="logs" />
     <mkdir dir="${testdir}" />
   </target>
 
+  <target name="clean">
+    <delete dir="build"/>
+  </target>
   <target name="langcore" depends="init">
 
     <javac srcdir="src/langcore"
