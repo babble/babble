@@ -1,8 +1,8 @@
 <?xml version='1.0'?>
 <project name="ED" default="compile" basedir=".">
 
-    <property name="targetdir" value="target"/>
-    <property name="testdir" value="${targetdir}/test"/>
+  <property name="targetdir" value="target"/>
+  <property name="testdir" value="${targetdir}/test"/>
     
   <path id="classpath">
     <fileset dir="include">
