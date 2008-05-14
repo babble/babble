@@ -80,6 +80,7 @@
  </target>
 
  <target name="javadocs" depends="compile">
+
    <javadoc packagenames="ed.*" 
             sourcepath="src/main/"
             defaultexcludes="yes"
