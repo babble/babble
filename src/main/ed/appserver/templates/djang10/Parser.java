@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
@@ -14,9 +13,6 @@ import java.util.regex.Pattern;
 
 import ed.appserver.templates.Djang10Converter;
 import ed.appserver.templates.djang10.Variable;
-import ed.appserver.templates.djang10.tagHandlers.ForTagHandler;
-import ed.appserver.templates.djang10.tagHandlers.IfTagHandler;
-import ed.appserver.templates.djang10.tagHandlers.IncludeTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.TagHandler;
 
 
