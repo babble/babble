@@ -417,6 +417,9 @@ public class JSObjectBase implements JSObject {
                             // i hate myself for even writing it in the first place
                             func = ((JSFunction)obj.get( "__" + name ) );
                         }
+                        
+                        if ( func == null )
+                            func = (JSFunction)s.get( name );
 
                         if ( func == null )
                             throw new NullPointerException( "can't find method [" + name + "] to send" );

@@ -476,8 +476,12 @@ public class Ruby {
                     if ( things == null )
                         return o;
                     
-                    for ( int i=0; i<things.length; i+=2 )
-                        o.set( things[i] , things[i+1] );
+                    for ( int i=0; i<things.length; i+=2 ){
+                        Object v = null;
+                        if ( i + 1 < things.length ) 
+                            v = things[i+1];
+                        o.set( things[i] , v );
+                    }
 
                     return o;
                 }
