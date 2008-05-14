@@ -339,6 +339,11 @@ public abstract class DBCollection extends JSObjectLame {
 		    continue;
 
                 JSObject e = (JSObject)foo;
+                if ( e instanceof JSObjectBase )
+                    ((JSObjectBase)e).prefunc();
+                if ( n.get( name ) == null )
+                    continue;
+
                 if ( e instanceof JSFileChunk ){
                     _base.getCollection( "_chunks" ).apply( e );
                 }
@@ -367,7 +372,7 @@ public abstract class DBCollection extends JSObjectLame {
                 
                 JSFunction otherUpdate = (JSFunction)e.get( "_update" );
                 if ( otherUpdate == null )
-                    throw new RuntimeException( "_update is null :(" );
+                    throw new RuntimeException( "_update is null.  keyset : " + e.keySet() + " ns:" + e.get( "_ns" ) );
                 
                 otherUpdate.call( s , lookup , e , _upsertOptions );
                 
