@@ -37,6 +37,8 @@ public class DBJni extends DBMessageLayer {
         if ( len >= b.in.capacity() )
             throw new RuntimeException( "buffer too small" );
 
+        DBMessage inMsg = new DBMessage( b.in , b.in );
+        
         dataIn.put( b.in );
         dataIn.flip();
 

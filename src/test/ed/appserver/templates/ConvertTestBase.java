@@ -88,6 +88,8 @@ public abstract class ConvertTestBase extends TestCase {
             
             Scope scope = Scope.GLOBAL.child();
             
+            Djang10Converter.injectHelpers(scope);
+            
             final StringBuilder output = new StringBuilder();
             
             JSFunction myout = new JSFunctionCalls1(){
