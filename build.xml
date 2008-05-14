@@ -1,5 +1,4 @@
 <?xml version='1.0'?>
-
 <project name="ED" default="compile" basedir=".">
 
   <property name="targetdir" value="target"/>
