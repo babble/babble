@@ -268,7 +268,7 @@ public class RubyConvert extends ed.MyAsserts {
                         ArgumentNode a = (ArgumentNode)an.getArgs().get(i);
                         if ( num++ > 0 )
                             _append( " , " , a );
-                        _append( a.getName() , a );
+                        _append( _getName( a ) , a );
                     }
                 }
 
@@ -277,13 +277,13 @@ public class RubyConvert extends ed.MyAsserts {
                         LocalAsgnNode a = (LocalAsgnNode)an.getOptArgs().get(i);
                         if ( num++ > 0 )
                             _append( " , " , a );
-                        _append( a.getName() + " = " , a );
+                        _append( _getName( a ) + " = " , a );
                         _add( a.getValueNode() , state );
                     }
                 }
 
                 if ( an.getBlockArgNode() != null ){
-                    _append( " , " + an.getBlockArgNode().getName() , an );
+                    _append( " , " + _getName( an.getBlockArgNode() ) , an );
                 }
                 
             }
@@ -361,7 +361,7 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof InstAsgnNode ){
             _assertOne( node );
             InstAsgnNode lan = (InstAsgnNode)node;
-            _append( "this." + lan.getName().substring(1) + " = " , node );
+            _append( "this." + _mangleVarName( lan.getName().substring(1) ) + " = " , node );
             _add( node.childNodes().get( 0 ) , state );
             _append( "" , node );            
         }
@@ -369,7 +369,7 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof InstVarNode ){
             _assertNoChildren( node );
             InstVarNode lvn = (InstVarNode)node;
-            _append( "this." + lvn.getName().substring(1) , node );
+            _append( "this." + _mangleVarName( lvn.getName().substring(1) ) , node );
         }
         
         else if ( node instanceof SelfNode ){
@@ -498,38 +498,38 @@ public class RubyConvert extends ed.MyAsserts {
         }
 
         else if ( node instanceof ArgumentNode ){
-            _append( ((ArgumentNode)node).getName() , node );
+            _append( _getName( ((ArgumentNode)node) ) , node );
         }
 
         else if ( node instanceof LocalAsgnNode ){
             _assertOne( node );
             LocalAsgnNode lan = (LocalAsgnNode)node;
-            _addLocal( lan.getName() , node.childNodes().get(0) , state );
+            _addLocal( _getName( lan ) , node.childNodes().get(0) , state );
         }
 
         else if ( node instanceof GlobalAsgnNode ){
             _assertOne( node );
             GlobalAsgnNode gan = (GlobalAsgnNode)node;
-            _append(  _mangleVarName( gan.getName() ) + " = " , gan );
+            _append(  _getName( gan ) + " = " , gan );
             _add( gan.getValueNode() , state );
         }
         
         else if ( node instanceof LocalVarNode ){
             _assertNoChildren( node );
             LocalVarNode lvn = (LocalVarNode)node;
-            _append( lvn.getName() , node );
+            _append( _getName( lvn ) , node );
         }
 
         else if ( node instanceof DVarNode ){
             _assertNoChildren( node );
             DVarNode lvn = (DVarNode)node;
-            _append( lvn.getName() , node );
+            _append( _getName( lvn ) , node );
         }
 
         else if ( node instanceof ConstNode ){
             _assertNoChildren( node );
             ConstNode lvn = (ConstNode)node;
-            _append( lvn.getName()  , node );
+            _append( _getName( lvn )  , node );
         }
         
         else if ( node instanceof DStrNode ){
@@ -555,12 +555,12 @@ public class RubyConvert extends ed.MyAsserts {
             _assertOne( node );
             Colon2Node cn = (Colon2Node)node;
             _add( node.childNodes().get(0) , state );
-            _append( "." + cn.getName() , node );
+            _append( "." + _getName( cn ) , node );
         }
 
         else if ( node instanceof Colon3Node ){
             Colon3Node cn = (Colon3Node)node;
-            _append( cn.getName() , node );
+            _append( _getName( cn ) , node );
         }
         
         else if ( node instanceof AttrAssignNode ){
@@ -974,6 +974,7 @@ public class RubyConvert extends ed.MyAsserts {
         if ( n instanceof TrueNode || 
              n instanceof NilNode ||
              n instanceof MultipleAsgnNode ||
+             n instanceof ArrayNode ||
              n instanceof FalseNode )
             return true;
 
@@ -1456,19 +1457,16 @@ public class RubyConvert extends ed.MyAsserts {
         return _mangleFunctionName( name );
     }
     
+    static String _getName( INameNode n ){
+        return _mangleVarName( n.getName() );
+    }
+
     static String _mangleVarName( INameNode n ){
         return _mangleVarName( n.getName() );
     }
 
     static String _mangleVarName( String name ){
-
-        if ( name.contains( "$" ) )
-            name = name.replaceAll( "\\$" , "_d_" );
-
-        if ( name.contains( "!" ) )
-            name = name.replaceAll( "\\!" , "_e_" );
-
-        return name;
+        return _mangleName( name );
     }
 
     static String _mangleFunctionName( String name ){
@@ -1481,6 +1479,11 @@ public class RubyConvert extends ed.MyAsserts {
             if ( blah != null )
                 return blah;
         }
+        
+        return _mangleName( name );
+    }
+    
+    static String _mangleName( String name ){
 
         for ( int i=0; i<_functionReplacements.length; i++){
             String v[] = _functionReplacements[i];
@@ -1623,6 +1626,7 @@ public class RubyConvert extends ed.MyAsserts {
         _specialNames.add( "send" );
         _specialNames.add( "include" );
         _specialNames.add( "extend" );
+        _specialNames.add( "default" );
     }
 
 }

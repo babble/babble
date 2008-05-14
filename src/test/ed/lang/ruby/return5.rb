@@ -49,3 +49,10 @@ b.z
 b.foo
 
 
+
+def blah(z)
+  return z ? [ 1 , 2 ] : [ nil , nil ]
+end
+
+puts blah( true ) == 1
+puts blah( false ) == nil
