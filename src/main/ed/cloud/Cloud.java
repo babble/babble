@@ -9,7 +9,6 @@ import java.util.regex.*;
 
 import ed.js.*;
 import ed.js.engine.*;
-import ed.js.func.*;
 import ed.log.*;
 
 public class Cloud extends JSObjectBase {

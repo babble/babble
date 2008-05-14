@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.StringTokenizer;
 
 import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
