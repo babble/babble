@@ -94,6 +94,8 @@ public class Ruby {
                                 return true;
                             if ( temp.equals( "to_s" ) )
                                 return "";
+                            
+                            throw new NullPointerException( "trying to get [" + temp + "] from a null item" );
                         }
                         throw new NullPointerException();
                     }

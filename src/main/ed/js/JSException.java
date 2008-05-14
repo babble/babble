@@ -160,6 +160,10 @@ public class JSException extends RuntimeException implements JSObject {
         return "";
     }
 
+    public JSObject getSuper(){
+        return null;
+    }
+
     JSFunction _mycons;
     Object _msg;
     final Object _object;

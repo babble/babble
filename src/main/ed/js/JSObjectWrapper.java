@@ -38,5 +38,9 @@ public class JSObjectWrapper implements JSObject {
         return null;
     }
 
+    public JSObject getSuper(){
+        return _wrap.getSuper();
+    }
+
     final JSObject _wrap;
 }

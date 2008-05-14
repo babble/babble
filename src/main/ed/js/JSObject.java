@@ -22,5 +22,6 @@ public interface JSObject {
     public Collection<String> keySet();
 
     public JSFunction getConstructor();
+    public JSObject getSuper();
 
 }

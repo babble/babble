@@ -267,6 +267,15 @@ public class JSObjectBase implements JSObject {
         return _constructor;
     }
 
+    public JSObject getSuper(){
+
+        if ( _constructor != null && _constructor._prototype != null )
+            return _constructor._prototype;
+
+        return (JSObject)_simpleGet( "prototype" );
+        
+    }
+
     public void lock(){
         setReadOnly( true );
     }
@@ -318,14 +327,14 @@ public class JSObjectBase implements JSObject {
         if ( _map != null ){
             JSObjectBase p = (JSObjectBase)_simpleGet( "prototype" );
             if ( p != null ){
-                _space( level + 1 , a ).append( "proto ||\n" );
+                _space( level + 1 , a ).append( "prototype ||\n" );
                 p.debug( level + 2 , a );
             }
             
         }
 
         if ( _constructor != null ){
-            _space( level + 1 , a ).append( "cons ||\n" );
+            _space( level + 1 , a ).append( "__constructor__ ||\n" );
             _constructor.debug( level + 2 , a );
         }
     }

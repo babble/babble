@@ -342,6 +342,10 @@ public class Scope implements JSObject {
 	return _parent;
     }
 
+    public JSObject getSuper(){
+        return getParent();
+    }
+
     /**
      * @return true if s is a parent of this
      */

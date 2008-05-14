@@ -325,8 +325,9 @@ public class RubyConvert extends ed.MyAsserts {
         }
         
         else if ( node instanceof ZSuperNode ){
-            if ( state._curMethod != null )
-                _append( "( __last__ = this.constructor.prototype.constructor.prototype." + state._curMethod + "() )" , node );
+            if ( state._curMethod != null ){
+                _append( "( __last__ = this.getSuper()." + state._curMethod + "() )" , node );
+            }
         }
 
         else if ( node instanceof SuperNode ){
