@@ -193,11 +193,19 @@ public class Scope implements JSObject {
     }
     
     public Object get( final String origName , Scope alt , JSObject with[] ){
-        return _get( origName , alt , with , 0 , false );
+        return _get( origName , alt , with , 0  );
     }
     
-    private Object _get( final String origName , Scope alt , JSObject with[] , int depth , boolean checkThis ){
-
+    private Object _get( final String origName , Scope alt , JSObject with[] , int depth ){
+        final Object r = _geti( origName , alt ,with , depth  );
+        if ( DEBUG ) {
+            System.out.println( "GET [" + origName + "] = " + r );
+            if ( r == null && depth == 0 )
+                debug();
+        }
+        return r;
+    }
+    private Object _geti( final String origName , Scope alt , JSObject with[] , int depth ){
         String name = origName;
         boolean noThis = false;
 
@@ -283,7 +291,8 @@ public class Scope implements JSObject {
         //       it should probably only work within ruby.
         //       not sure how to do that...
         if ( depth == 1 && ! noThis ){
-            Object t = getThis();
+            Object t = getThis( false );
+
             if ( t != null && t.getClass() == JSObjectBase.class ){
                 JSObjectBase obj = (JSObjectBase)t;
                 foo = obj.get( name );
@@ -313,11 +322,11 @@ public class Scope implements JSObject {
             }
         }
 
-        return _parent._get( origName , alt , with , depth + 1 , checkThis );
+        return _parent._get( origName , alt , with , depth + 1 );
     }
 
     public Object getOrThis( String name ){
-        return _get( name , null , null , 0 , false );
+        return _get( name , null , null , 0  );
     }
 
     public void enterWith( JSObject o ){
@@ -476,8 +485,15 @@ public class Scope implements JSObject {
     }
     
     public Object getThis(){
-        if ( _this.size() == 0 )
-            return getGlobalThis();
+        return getThis( true );
+    }
+    
+    public Object getThis( boolean getGlobalIfNeeded ){
+        if ( _this.size() == 0 ){
+            if ( getGlobalIfNeeded )
+                return getGlobalThis();
+            return null;
+        }
         return _this.peek()._this;
     }
 
@@ -665,8 +681,16 @@ public class Scope implements JSObject {
         System.out.print( ":" );
         if ( _objects != null )
             System.out.print( _objects.keySet() );
-        System.out.println();
+        
+        System.out.print( "||" );
 
+        for ( This t : _this ){
+            System.out.print( t );
+            System.out.print( "|" );
+        }
+        
+        System.out.println();
+        
         if ( _alternate != null ){
             System.out.println( "  ALT:" );
             _alternate.debug( indent + 1 );
@@ -751,6 +775,15 @@ public class Scope implements JSObject {
         This( Object o , String n ){
             _nThis = o;
             _nThisFunc = n;
+        }
+
+        public String toString(){
+            if ( _this == null && _nThisFunc == null )
+                return null;
+            
+            if ( _this == null )
+                return _nThis.toString();
+            return ((JSObject)_this).keySet().toString();
         }
         
         // js this

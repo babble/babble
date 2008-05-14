@@ -425,11 +425,14 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                             throw new NullPointerException( "each needs a function" );
                         
                         JSFunction func = (JSFunction)funcObject;
-
                         JSArray a = (JSArray)(s.getThis());
+                        
+                        Object blah = s.getParent().getThis();
+                        s.setThis( blah );
+                        
                         for ( Object o : a._array ){
                             Object ret = func.call( s , o );
-
+                            
                             if ( ret == null )
                                 continue;
                             
@@ -438,7 +441,8 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                             
                             break;
                         }
-
+                        
+                        s.clearThisNormal( null );
                         return null;
                     }
                 } );

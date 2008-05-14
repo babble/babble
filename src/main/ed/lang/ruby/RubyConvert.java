@@ -326,7 +326,7 @@ public class RubyConvert extends ed.MyAsserts {
         
         else if ( node instanceof ZSuperNode ){
             if ( state._curMethod != null ){
-                _append( "( __last__ = this.getSuper()." + state._curMethod + "() )" , node );
+                _append( "( __last__ = this.getSuper()." + state._curMethod + "( ) )" , node );
             }
         }
 
@@ -400,9 +400,8 @@ public class RubyConvert extends ed.MyAsserts {
             
             state._whileCount++;
             
-            _assertType( node.childNodes().get(0) , NewlineNode.class );
             _append( "while ( " , node );
-            _add( node.childNodes().get(0).childNodes().get(0) , state );
+            _add( node.childNodes().get(0) , state );
             _append( " ){ \n " , node );
             _add( node.childNodes().get(1) , state );
             _append( "\n } \n " , node );
@@ -853,8 +852,8 @@ public class RubyConvert extends ed.MyAsserts {
                     if ( last == null )
                         continue;
                     
-                    _append( "// " + last.getClass().getName() + "\n" , last );
-                    _append( "// " + last.childNodes().get(0) + "\n" , last );
+                    //_append( "// " + last.getClass().getName() + "\n" , last );
+                    //_append( "// " + last.childNodes().get(0) + "\n" , last );
 
                     boolean r = _isReturnable( last );
                     if ( r )
