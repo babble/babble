@@ -679,6 +679,12 @@ public class JSBuiltInFunctions {
         _myScope.put( "javaStatic" , new javaStatic() , true );
         _myScope.put( "javaStaticProp" , new javaStaticProp() , true );
         
+        _myScope.put( "__self" , new JSFunctionCalls1(){
+                public Object call( Scope scope , Object o , Object extra[] ){
+                    return o;
+                }
+            } , true );
+
         Encoding.install( _myScope );
         JSON.init( _myScope );
         ed.lang.ruby.Ruby.install( _myScope );
@@ -686,7 +692,7 @@ public class JSBuiltInFunctions {
         // mail stuff till i'm done
         _myScope.put( "JAVAXMAILTO" , javax.mail.Message.RecipientType.TO , true );
 
-
+        
 
         _myScope.lock();
     }
