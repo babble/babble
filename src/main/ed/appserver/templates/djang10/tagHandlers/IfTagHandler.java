@@ -88,7 +88,10 @@ public class IfTagHandler implements TagHandler {
 		private final boolean isAnd;
 		private final List<IfExpr> ifParams;
 		private final List<Node> trueNodes, falseNodes;
-		private final int elseStartLine, elseEndLine, endIfStartLine, endIfEndLine;
+		private final int elseStartLine;
+		private final int elseEndLine;
+		private final int endIfStartLine;
+		private final int endIfEndLine;
 		
 		public IfNode(Token token, Token elseToken, Token endToken, boolean isAnd, List<IfExpr> ifParams, List<Node> trueNodes, List<Node> falseNodes) {
 			super(token);
