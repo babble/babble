@@ -191,6 +191,7 @@ public class JSObjectBase implements JSObject {
 
 
     public boolean containsKey( String s ){
+        prefunc();
         if ( _keys != null && _keys.contains( s ) )
             return true;
         

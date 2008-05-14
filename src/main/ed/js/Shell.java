@@ -99,7 +99,6 @@ public class Shell {
                 String code = ed.io.StreamUtil.readFully( new FileInputStream( temp ) );
                 if ( code.startsWith( "#!" ) )
                     code = code.replaceAll( "^(.*?)\n" , "" );
-                System.out.println( code );
                 s.eval( code );
             }
             catch ( Exception e ){

@@ -12,7 +12,8 @@ public class Security {
         Convert.DEFAULT_PACKAGE + "._data_corejs_" , 
         Convert.DEFAULT_PACKAGE + "._data_sites_admin_" , 
         Convert.DEFAULT_PACKAGE + "._data_sites_www_" , 
-        Convert.DEFAULT_PACKAGE + ".lastline"
+        Convert.DEFAULT_PACKAGE + ".lastline" ,
+        Convert.DEFAULT_PACKAGE + "._home_yellow_code_for_hudson" 
     };
     
     public static boolean isCoreJS(){

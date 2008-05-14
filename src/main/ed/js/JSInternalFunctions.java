@@ -305,6 +305,19 @@ public class JSInternalFunctions extends JSNumericFunctions {
 	return _parseNumber( def );
     }
 
+    public static final Collection<String> JS_collForFor( Object o ){
+        if ( o == null )
+            return new LinkedList<String>();
+
+        if ( o instanceof JSObject )
+            return ((JSObject)o).keySet();
+        
+        if ( o instanceof Collection )
+            return (Collection<String>)o;
+
+        throw new RuntimeException( "can't for with a : " + o.getClass() );
+    }
+
     public static final Object JS_comma( Object ... o ){
         if ( o == null || o.length == 0 )
             return null;

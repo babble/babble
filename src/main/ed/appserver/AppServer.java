@@ -226,6 +226,8 @@ public class AppServer implements HttpHandler {
         
 	ar.setResponse( response );
 	ar.getContext().getScope().setTLPreferred( ar.getScope() );
+
+        response.setAppRequest( ar );
         try {
             _handle( request , response , ar );
         }
@@ -239,8 +241,6 @@ public class AppServer implements HttpHandler {
             ar.getContext()._usage.hit( "cpu_millis" , t );
             ar.getContext()._usage.hit( "bytes_out" , response.totalSize() );
             
-            ar.getScope().kill();
-
             Scope.clearThreadLocal();
         }
     }
@@ -318,6 +318,9 @@ public class AppServer implements HttpHandler {
         catch ( JSException.Quiet q ){
             response.setHeader( "X-Exception" , "quiet" );
         }
+        catch ( JSException.Redirect r ){
+            response.sendRedirectTemporary(r.getTarget());
+        }
         catch ( Exception e ){
             handleError( request , response , e , ar.getContext() );
             return;
@@ -339,7 +342,7 @@ public class AppServer implements HttpHandler {
         
         while ( t != null ){
             for ( StackTraceElement element : t.getStackTrace() ){
-                writer.print( element + "<BR>" );
+                writer.print( element + "<BR>\n" );
             }
             t = t.getCause();
         }

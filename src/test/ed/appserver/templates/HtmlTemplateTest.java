@@ -28,7 +28,7 @@ public class HtmlTemplateTest extends ConvertTestBase {
         return _all.toArray();
     }
 
-    Object[] getArgs(){
+    Object[] getArgs(Scope testScope){
         JSObjectBase o = new JSObjectBase();
         o.set( "foo" , "17" );
         o.set( "a" , "A" );

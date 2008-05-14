@@ -301,6 +301,10 @@ public class JSFileLibrary extends JSFunctionCalls0 {
         return "{ JSFileLibrary.  _base : " + _base + "}";
     }
 
+    public String getURIBase(){
+        return _uriBase;
+    }
+
     final JSFileLibrary _parent;
     final File _base;
     final String _uriBase;

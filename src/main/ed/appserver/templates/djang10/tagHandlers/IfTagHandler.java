@@ -109,7 +109,7 @@ public class IfTagHandler implements TagHandler {
 			endIfEndLine = endToken.endLine;
 		}
 		
-		public void getRenderJSFn(JSWriter buffer) {
+		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) {
 			buffer.append(startLine, "if(");
 			
 			boolean isFirst = true;
@@ -128,13 +128,13 @@ public class IfTagHandler implements TagHandler {
 			buffer.append(startLine, ") {\n");
 			
 			for(Node node : trueNodes) {
-				node.getRenderJSFn(buffer);
+				node.getRenderJSFn(preamble, buffer);
 			}
 			
 			buffer.append(elseStartLine, "} else {\n");
 
 			for(Node node : falseNodes) {
-				node.getRenderJSFn(buffer);
+				node.getRenderJSFn(preamble, buffer);
 			}
 			
 			buffer.append(endIfStartLine, "}\n");

@@ -5,6 +5,9 @@ package ed.appserver.templates;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Map.Entry;
+
+import bsh.util.Util;
 
 import ed.appserver.JSFileLibrary;
 import ed.appserver.templates.djang10.Node;
@@ -14,13 +17,19 @@ import ed.appserver.templates.djang10.Variable;
 import ed.appserver.templates.djang10.Variable.FilterSpec;
 import ed.appserver.templates.djang10.filters.DateFilter;
 import ed.appserver.templates.djang10.filters.DefaultFilter;
+import ed.appserver.templates.djang10.filters.DictSortFilter;
 import ed.appserver.templates.djang10.filters.Filter;
+import ed.appserver.templates.djang10.filters.LengthIsFilter;
+import ed.appserver.templates.djang10.filters.LowerFilter;
+import ed.appserver.templates.djang10.filters.UpperFilter;
 import ed.appserver.templates.djang10.filters.UrlEncodeFilter;
 import ed.appserver.templates.djang10.generator.JSWriter;
 import ed.appserver.templates.djang10.tagHandlers.BlockTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.CommentTagHandler;
+import ed.appserver.templates.djang10.tagHandlers.CycleTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.ExtendsTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.FilterTagHandler;
+import ed.appserver.templates.djang10.tagHandlers.FirstOfTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.ForTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IfEqualTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IfTagHandler;
@@ -49,16 +58,30 @@ public class Djang10Converter implements TemplateConverter {
 		
 		Parser parser = new Parser(t._content);
 		LinkedList<Node> nodeList = parser.parse();
+		JSWriter preamble = new JSWriter();
 		JSWriter writer = new JSWriter();
 		
-		writer.append("var "+JSWriter.CONTEXT_STACK_VAR+" = (arguments.length == 0)? [scope] : (arguments[0] instanceof Array)? arguments[0] : [arguments[0]];\n");
-		writer.append("var "+JSWriter.RENDER_OPTIONS_VAR+" = (arguments.length < 2)? {} : arguments[1];\n");
+		preamble.append("var "+JSWriter.CONTEXT_STACK_VAR+" = (arguments.length == 0)? [scope] : (arguments[0] instanceof Array)? arguments[0] : [arguments[0]];\n");
+		preamble.append("var "+JSWriter.RENDER_OPTIONS_VAR+" = (arguments.length < 2)? {} : arguments[1];\n");
 		for(Node node : nodeList) {
-			node.getRenderJSFn(writer);
+			node.getRenderJSFn(preamble, writer);
 		}
 		
+		
+		StringBuilder newTemplate = new StringBuilder(preamble.toString());
+		Map<Integer, Integer> newTemplateLineMapping = new HashMap<Integer, Integer>(preamble.getLineMap());
+		
+		newTemplate.append(writer.toString());
+		
+		for(Entry<Integer, Integer> lineMapping : writer.getLineMap().entrySet()) {
+			
+			int newOffsetLine = lineMapping.getKey() + preamble.getLineCount();
+			newTemplateLineMapping.put(newOffsetLine, lineMapping.getValue());
+		}
+		
+		
 		String newName = t.getName().replaceAll( "\\.("+extension+")+$" , "_$1.js" );
-		return new Result(new Template(newName, writer.toString(),t.getSourceLanguage()), writer.getLineMap());
+		return new Result(new Template(newName, newTemplate.toString(), t.getSourceLanguage()), newTemplateLineMapping);
 	}
 	
 	
@@ -206,6 +229,10 @@ public class Djang10Converter implements TemplateConverter {
     	namespace.set(JSWriter.CALL_PATH, new JSFunctionCalls1() {
     		@Override
     		public Object call(Scope scope, Object pathObj, Object[] extra) {
+    			
+    			if(pathObj instanceof JSCompiledScript)
+    				return ((JSCompiledScript)pathObj).call(scope.child(), extra);
+
     			String path = ((JSString)pathObj).toString();
     			
     			return callPath(scope, path, extra);
@@ -228,6 +255,8 @@ public class Djang10Converter implements TemplateConverter {
     	_tagHandlers.put("ifnotequal", new IfEqualTagHandler(true));
     	_tagHandlers.put("comment", new CommentTagHandler());
     	_tagHandlers.put("filter", new FilterTagHandler());
+    	_tagHandlers.put("cycle", new CycleTagHandler());
+    	_tagHandlers.put("firstof", new FirstOfTagHandler());
     }
 
     
@@ -240,5 +269,10 @@ public class Djang10Converter implements TemplateConverter {
     	_filters.put("default", new DefaultFilter());
     	_filters.put("urlencode", new UrlEncodeFilter());
     	_filters.put("date", new DateFilter());
+    	_filters.put("upper", new UpperFilter());
+    	_filters.put("lower", new LowerFilter());
+    	_filters.put("dictsort", new DictSortFilter(false));
+    	_filters.put("dictsortreverse", new DictSortFilter(true));
+    	_filters.put("length_is", new LengthIsFilter());
     }
 }

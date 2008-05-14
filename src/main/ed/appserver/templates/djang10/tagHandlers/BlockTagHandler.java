@@ -62,7 +62,7 @@ public class BlockTagHandler implements TagHandler {
 		}
 		
 		@Override
-		public void getRenderJSFn(JSWriter buffer) {
+		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) {
 			if(isFirstNode) {
 				buffer.append(startLine, "if(" + JSWriter.RENDER_OPTIONS_VAR + "."+RENDER_OPT_BLOCK_MAP+" == null){\n");
 				buffer.append(startLine, JSWriter.RENDER_OPTIONS_VAR + "."+RENDER_OPT_BLOCK_MAP+" = {};\n");
@@ -74,7 +74,7 @@ public class BlockTagHandler implements TagHandler {
 				buffer.append(startLine, JSWriter.RENDER_OPTIONS_VAR + "[\"" + name + "\"] = function() {\n");
 
 					for(Node node : bodyNodes) {
-						node.getRenderJSFn(buffer);
+						node.getRenderJSFn(preamble, buffer);
 					}
 					
 				
