@@ -22,6 +22,7 @@
   <target name="clean">
     <delete dir="build"/>
   </target>
+
   <target name="langcore" depends="init">
 
     <javac srcdir="src/langcore"
