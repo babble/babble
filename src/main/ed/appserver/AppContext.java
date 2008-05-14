@@ -12,6 +12,7 @@ import ed.js.engine.*;
 import ed.lang.*;
 import ed.net.httpserver.*;
 import ed.appserver.jxp.*;
+import ed.appserver.templates.Djang10Converter;
 
 public class AppContext {
 
@@ -51,6 +52,9 @@ public class AppContext {
         _baseScopeInit();
     }
 
+    /**
+     *  Initializes the base scope for the application
+     */
     private void _baseScopeInit(){
         // --- libraries
         
@@ -121,6 +125,9 @@ public class AppContext {
         _scope.put( "globalHead" , _globalHead , true  );
 
 	_scope.lock( "user" ); // protection against global user object
+	
+    Djang10Converter.injectHelpers(_scope);
+
     }
 
     private static String guessName( String root ){
