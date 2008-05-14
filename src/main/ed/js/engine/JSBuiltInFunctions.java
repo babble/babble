@@ -11,7 +11,6 @@ import com.twmacinta.util.*;
 import ed.log.*;
 import ed.js.*;
 import ed.js.func.*;
-import ed.appserver.templates.Djang10Converter;
 import ed.io.*;
 import ed.net.*;
 import ed.util.*;
@@ -684,8 +683,6 @@ public class JSBuiltInFunctions {
         JSON.init( _myScope );
         ed.lang.ruby.Ruby.install( _myScope );
         
-        Djang10Converter.injectHelpers(_myScope);
-
         // mail stuff till i'm done
         _myScope.put( "JAVAXMAILTO" , javax.mail.Message.RecipientType.TO , true );
 

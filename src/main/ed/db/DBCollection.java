@@ -339,6 +339,11 @@ public abstract class DBCollection extends JSObjectLame {
 		    continue;
 
                 JSObject e = (JSObject)foo;
+                if ( e instanceof JSObjectBase )
+                    ((JSObjectBase)e).prefunc();
+                if ( n.get( name ) == null )
+                    continue;
+
                 if ( e instanceof JSFileChunk ){
                     _base.getCollection( "_chunks" ).apply( e );
                 }
