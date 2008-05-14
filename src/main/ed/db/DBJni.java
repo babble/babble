@@ -2,12 +2,8 @@
 
 package ed.db;
 
-import java.io.*;
-import java.net.*;
 import java.nio.*;
-import java.util.*;
 
-import ed.js.*;
 import ed.util.*;
 
 public class DBJni extends DBMessageLayer {
@@ -41,7 +37,6 @@ public class DBJni extends DBMessageLayer {
         if ( len >= b.in.capacity() )
             throw new RuntimeException( "buffer too small" );
 
-        DBMessage inMsg = new DBMessage( b.in , b.in );
         dataIn.put( b.in );
         dataIn.flip();
 
