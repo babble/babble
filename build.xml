@@ -16,11 +16,11 @@
     <delete dir="build"/>
   </target>
 
+<!--   init - just testing commit email        -->
   <target name="init">
     <mkdir dir="build" />
     <mkdir dir="logs" />
     <mkdir dir="${testdir}" />
-
   </target>
 
   <target name="langcore" depends="init">
