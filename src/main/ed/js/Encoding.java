@@ -174,6 +174,8 @@ public class Encoding {
         };
 
     public static String _escapeHTML( String html ){
+        if ( html == null )
+            return null;
         final StringBuilder buf = new StringBuilder( (int)(html.length() * 1.2) );
         final int max = html.length();
         for ( int i=0; i<max; i++ ){

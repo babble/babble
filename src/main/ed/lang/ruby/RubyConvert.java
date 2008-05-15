@@ -150,31 +150,54 @@ public class RubyConvert extends ed.MyAsserts {
         
         else if ( node instanceof CaseNode ){
             CaseNode cn = (CaseNode)node;
-            _append( "switch ( " , cn );
+
+            String name = "caseTemp" + (int)(Math.random() * 10000);
+
+            _append( "var " + name + " = " , cn );
             _add( cn.getCaseNode() , state );
-            _append( "){ \n" , cn );
+            _append( ";\n" , cn );
             
             Node when = cn.getFirstWhenNode();
+            boolean first = true;
             while ( when != null ){
+
+                if ( first )
+                    first = false;
+                else
+                    _append( " else " , when );
+                
                 if  ( when instanceof WhenNode ){
                     WhenNode w = (WhenNode)when;
+                    
+                    _append( "if( " , when );
+                    System.out.println( "expr : " + w.getExpressionNodes() );
+                    
+                    final Node expr = w.getExpressionNodes();
 
-                    _append( "case " , when );
-                    _add( w.getExpressionNodes() , state );
-                    _append( " : " , when );
+                    if ( expr instanceof ArrayNode && 
+                         expr.childNodes().size() == 1 && 
+                         expr.childNodes().get(0) instanceof DotNode ){
+                        _add( expr , state );
+                        _append( ".contains( " + name + " ) " , when );
+                    }
+                    else {
+                        _append( name + " == " , when );
+                        _add( expr , state );
+                    }
+                    _append( " ){ " , when );
                     _addBlock( w.getBodyNode() , state );
-                    _append( "\nbreak;\n" , when );
+                    _append( "\n}\n" , when );
                     
                     when = w.getNextCase();
                     continue;
                 }
                 
-                _append( " default : " , when );
+                _append( " { " , when );
                 _addBlock( when , state );
+                _append( " } " , when );
                 break;
             }
             
-            _append( " }\n " , cn );
         }
 
         else if ( node instanceof BeginNode ){
@@ -975,6 +998,7 @@ public class RubyConvert extends ed.MyAsserts {
              n instanceof NilNode ||
              n instanceof MultipleAsgnNode ||
              n instanceof ArrayNode ||
+             n instanceof DStrNode ||
              n instanceof FalseNode )
             return true;
 
@@ -1627,6 +1651,13 @@ public class RubyConvert extends ed.MyAsserts {
         _specialNames.add( "include" );
         _specialNames.add( "extend" );
         _specialNames.add( "default" );
+
+        _specialNames.add( "char" );
+        _specialNames.add( "int" );
+        _specialNames.add( "float" );
+        _specialNames.add( "double" );
+        _specialNames.add( "short" );
+        _specialNames.add( "var" );
     }
 
 }
