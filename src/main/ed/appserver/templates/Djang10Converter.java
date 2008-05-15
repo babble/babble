@@ -29,6 +29,7 @@ import ed.appserver.templates.djang10.tagHandlers.ForTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IfEqualTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IfTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IncludeTagHandler;
+import ed.appserver.templates.djang10.tagHandlers.SetTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.TagHandler;
 import ed.js.JSArray;
 import ed.js.JSFunction;
@@ -53,6 +54,8 @@ public class Djang10Converter implements TemplateConverter {
 		
 		preamble.append("var "+JSWriter.CONTEXT_STACK_VAR+" = (arguments.length == 0)? [scope] : (arguments[0] instanceof Array)? arguments[0] : [arguments[0]];\n");
 		preamble.append("var "+JSWriter.RENDER_OPTIONS_VAR+" = (arguments.length < 2)? {} : arguments[1];\n");
+		preamble.append(JSWriter.CONTEXT_STACK_VAR + ".push({});\n");
+		
 		for(Node node : nodeList) {
 			node.getRenderJSFn(preamble, writer);
 		}
@@ -149,6 +152,7 @@ public class Djang10Converter implements TemplateConverter {
     	_tagHandlers.put("filter", new FilterTagHandler());
     	_tagHandlers.put("cycle", new CycleTagHandler());
     	_tagHandlers.put("firstof", new FirstOfTagHandler());
+    	_tagHandlers.put("set",  new SetTagHandler());
     }
 
     

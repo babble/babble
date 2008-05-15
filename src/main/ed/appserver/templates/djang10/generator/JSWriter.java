@@ -53,12 +53,16 @@ public class JSWriter {
 		append(srcLine, CONTEXT_STACK_VAR);
 		append(srcLine, "[");
 		append(srcLine, CONTEXT_STACK_VAR);
-		append(srcLine, ".length - 1].");
-		append(name);
+		append(srcLine, ".length - 1]");
+		name = name.replace("\"", "\\\"");
+		append(srcLine, "[\""+name+"\"]");
 	}
 	public void appendPopContext(int srcLine) {
 		append(srcLine, CONTEXT_STACK_VAR);
 		append(srcLine, ".pop();\n");
+	}
+	public void appendPushContext(int srcLine) {
+		append(srcLine, CONTEXT_STACK_VAR + ".push({});\n");
 	}
 	public Map<Integer, Integer> getLineMap() {
 		return lineMap;
