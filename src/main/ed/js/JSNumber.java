@@ -88,12 +88,24 @@ public class JSNumber {
             Number n = (Number)s.getThis();
             return n.doubleValue() * _conversion;
         }
-
+        
         final double _conversion;
     }
     
     static {
         functions.set( "toFixed" , toFixed );
+        
+        functions.set( "to_f" , new JSFunctionCalls0(){
+                public Object call( Scope s , Object foo[] ){
+                    return ((Number)s.getThis()).doubleValue();
+                }
+            } );
+
+        functions.set( "round" , new JSFunctionCalls0(){
+                public Object call( Scope s , Object foo[] ){
+                    return (int)( ((Number)s.getThis()).doubleValue() + .5 );
+                }
+            } );
 
         functions.set( "kilobytes" , new Conversion( 1024 ) );
         functions.set( "megabytes" , new Conversion( 1024 * 1024 ) );

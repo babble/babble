@@ -7,16 +7,14 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import ed.appserver.JSFileLibrary;
+import ed.appserver.templates.djang10.JSHelper;
 import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
-import ed.appserver.templates.djang10.UnresolvedValue;
-import ed.appserver.templates.djang10.Variable;
-import ed.appserver.templates.djang10.Variable.FilterSpec;
 import ed.appserver.templates.djang10.filters.DateFilter;
 import ed.appserver.templates.djang10.filters.DefaultFilter;
 import ed.appserver.templates.djang10.filters.DictSortFilter;
 import ed.appserver.templates.djang10.filters.Filter;
+import ed.appserver.templates.djang10.filters.LengthFilter;
 import ed.appserver.templates.djang10.filters.LengthIsFilter;
 import ed.appserver.templates.djang10.filters.LowerFilter;
 import ed.appserver.templates.djang10.filters.UpperFilter;
@@ -32,16 +30,12 @@ import ed.appserver.templates.djang10.tagHandlers.ForTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IfEqualTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IfTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IncludeTagHandler;
+import ed.appserver.templates.djang10.tagHandlers.SetTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.TagHandler;
 import ed.js.JSArray;
 import ed.js.JSFunction;
 import ed.js.JSObject;
-import ed.js.JSObjectBase;
-import ed.js.JSString;
-import ed.js.engine.JSCompiledScript;
 import ed.js.engine.Scope;
-import ed.js.func.JSFunctionCalls1;
-import ed.js.func.JSFunctionCalls2;
 
 
 public class Djang10Converter implements TemplateConverter {
@@ -61,10 +55,13 @@ public class Djang10Converter implements TemplateConverter {
 		
 		preamble.append("var "+JSWriter.CONTEXT_STACK_VAR+" = (arguments.length == 0)? [scope] : (arguments[0] instanceof Array)? arguments[0] : [arguments[0]];\n");
 		preamble.append("var "+JSWriter.RENDER_OPTIONS_VAR+" = (arguments.length < 2)? {} : arguments[1];\n");
+		preamble.append(JSWriter.CONTEXT_STACK_VAR + ".push({});\n");
+		
 		for(Node node : nodeList) {
 			node.getRenderJSFn(preamble, writer);
 		}
 		
+		writer.append(1, JSWriter.CONTEXT_STACK_VAR + ".pop();\n");
 		
 		StringBuilder newTemplate = new StringBuilder(preamble.toString());
 		Map<Integer, Integer> newTemplateLineMapping = new HashMap<Integer, Integer>(preamble.getLineMap());
@@ -83,8 +80,8 @@ public class Djang10Converter implements TemplateConverter {
 	}
 	
 	
-	public static Object resolveVariable(Scope scope, UnresolvedValue unresolvedValue) {
-		String varName = unresolvedValue.stringRef;
+	public static Object resolveVariable(Scope scope, String unresolvedValue) {
+		String varName = unresolvedValue;
 		
 		if(varName == null)
 			return null;
@@ -133,109 +130,11 @@ public class Djang10Converter implements TemplateConverter {
 		return varValue;
 	}
 
-	public static Object callPath(Scope scope, String path, Object[] extras) {
-		
-		boolean isAbsolute = path.startsWith("/");
-		if(isAbsolute)
-			path = path.substring(1);
-		
-		String[] pathParts = path.split("/");
-		JSFileLibrary base;
-		int pathStart = 0;
-		
-		if(isAbsolute) {
-			if(pathParts.length < 2)
-				throw new RuntimeException("invalid path");
-			
-			
-			Object obj = scope.get(pathParts[0]);
-			base  = (obj instanceof JSFileLibrary)? (JSFileLibrary)obj : null;
-			pathStart++;
-		}
-		else {
-			base = JSFileLibrary.findPath();
-		}
-		
-		for(int i=pathStart; i<pathParts.length - 1 && base != null; i++) {
-			Object obj = base.get(pathParts[i]);
-			base = obj instanceof JSFileLibrary? (JSFileLibrary)obj : null;
-		}
-		
-		if(base == null)
-			throw new RuntimeException();
-		
-		String fileName = pathParts[pathParts.length - 1];
-		if(fileName.contains("."))
-			fileName = fileName.substring(0, fileName.lastIndexOf('.'));
-		
-		JSCompiledScript fileFunc = (JSCompiledScript)base.get(fileName);
-		
-		return fileFunc.call(scope.child(), extras);
-	}
+	
 	
     //Helpers
     public static void injectHelpers(Scope scope) {
-    	JSObjectBase namespace = new JSObjectBase();
-    	scope.set(JSWriter.NS, namespace);
-    	
-    	Map<String, JSFunction> helpers = new HashMap<String, JSFunction>();
-    	    	
-    	for (TagHandler tagHandler : _tagHandlers.values()) {
-    		helpers.putAll(tagHandler.getHelpers());
-		}
-    	for(String name : helpers.keySet()) {
-    		namespace.set(name, helpers.get(name));
-    	}
-    	
-    	namespace.set(JSWriter.VAR_EXPAND, new JSFunctionCalls2() {
-    		@Override
-    		public Object call(Scope scope, Object varName, Object defaultValue, Object[] extra) {
-    			Object value = null;
-    			boolean wasFound = false;
-    			
-    			
-    			Variable variable = Parser.parseVariable(((JSString)varName).toString());
-				try {
-					value = resolveVariable(scope, new UnresolvedValue( variable.base));
-					wasFound = true;
-				} catch(NoSuchFieldError e) { }
-				
-				for(FilterSpec filterSpec : variable.filters) {
-					Filter filter = _filters.get(filterSpec.name);
-					
-					Object paramValue = resolveVariable(scope, new UnresolvedValue(filterSpec.param));
-					if(paramValue != null)
-						paramValue = paramValue.toString();
-					
-					value = filter.apply(wasFound, value, (String)paramValue);
-					
-					if(value instanceof UnresolvedValue) {
-						try {
-							value = resolveVariable(scope, (UnresolvedValue)value);
-							wasFound = true;
-						} catch(Exception e) {
-							wasFound = false;
-							value = null;
-						}
-					}
-				}
-    			
-    			return value == null? defaultValue : value;
-    		}
-    	});
-    	
-    	namespace.set(JSWriter.CALL_PATH, new JSFunctionCalls1() {
-    		@Override
-    		public Object call(Scope scope, Object pathObj, Object[] extra) {
-    			
-    			if(pathObj instanceof JSCompiledScript)
-    				return ((JSCompiledScript)pathObj).call(scope.child(), extra);
-
-    			String path = ((JSString)pathObj).toString();
-    			
-    			return callPath(scope, path, extra);
-    		}
-    	});
+    	scope.set(JSHelper.NS, new JSHelper());
     }
     
     //TagHandler Registration
@@ -255,6 +154,7 @@ public class Djang10Converter implements TemplateConverter {
     	_tagHandlers.put("filter", new FilterTagHandler());
     	_tagHandlers.put("cycle", new CycleTagHandler());
     	_tagHandlers.put("firstof", new FirstOfTagHandler());
+    	_tagHandlers.put("set",  new SetTagHandler());
     }
 
     
@@ -272,5 +172,6 @@ public class Djang10Converter implements TemplateConverter {
     	_filters.put("dictsort", new DictSortFilter(false));
     	_filters.put("dictsortreverse", new DictSortFilter(true));
     	_filters.put("length_is", new LengthIsFilter());
+    	_filters.put("length", new LengthFilter());
     }
 }
