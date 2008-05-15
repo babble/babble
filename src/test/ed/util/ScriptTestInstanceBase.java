@@ -4,6 +4,7 @@ import java.io.File;
 
 import org.testng.annotations.Test;
 
+import ed.appserver.templates.Djang10Converter;
 import ed.js.JSFunction;
 import ed.js.func.JSFunctionCalls0;
 import ed.util.ScriptTestInstance;
@@ -54,7 +55,7 @@ public abstract class ScriptTestInstanceBase extends MyAsserts implements Script
          */
         
         preTest(scope);
-
+        
         Shell.addNiceShellStuff(scope);
 
         scope.put( "exit" , new JSFunctionCalls0(){
@@ -64,6 +65,8 @@ public abstract class ScriptTestInstanceBase extends MyAsserts implements Script
                 }
             } , true );
 
+        Djang10Converter.injectHelpers(scope);
+        
         try {
             f.call(scope);
             validateOutput(scope);

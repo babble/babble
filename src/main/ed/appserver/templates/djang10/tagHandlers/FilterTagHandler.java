@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ed.appserver.templates.djang10.JSHelper;
 import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.Parser.Token;
@@ -49,7 +50,7 @@ public class FilterTagHandler implements TagHandler {
 		@Override
 		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) {
 			buffer.append(startLine, "print(");
-				buffer.appendHelper(startLine, JSWriter.VAR_EXPAND + "(");
+				buffer.appendHelper(startLine, JSHelper.VAR_EXPAND + "(");
 					buffer.append(startLine, "(function(print) {\n");
 				
 						for(Node node : bodyNodes)
@@ -57,7 +58,7 @@ public class FilterTagHandler implements TagHandler {
 				
 						buffer.append(startLine, "return \"\\\"\" + print.toString() + \"\\\"\";\n");
 						
-						buffer.append(startLine, "})(" + JSWriter.NS + ".newPrintBuffer() )");
+						buffer.append(startLine, "})(" + JSHelper.NS + ".newPrintBuffer() )");
 					
 					buffer.append(startLine, "+\"|"+filterParams + "\"");
 				buffer.append(startLine, ")");

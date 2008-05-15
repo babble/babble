@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import ed.appserver.templates.djang10.JSHelper;
 import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.Parser.Token;
@@ -51,7 +52,7 @@ public class ExtendsTagHandler implements TagHandler {
 			for(Node node : topLevelBlocks)
 				node.getRenderJSFn(preamble, buffer);
 
-			buffer.appendHelper(startLine, JSWriter.CALL_PATH + "(");
+			buffer.appendHelper(startLine, JSHelper.CALL_PATH + "(");
 			if(Parser.isQuoted(path))
 				buffer.append(startLine, path);
 			else

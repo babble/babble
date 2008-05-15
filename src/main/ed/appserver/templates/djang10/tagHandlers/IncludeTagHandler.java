@@ -3,6 +3,7 @@ package ed.appserver.templates.djang10.tagHandlers;
 import java.util.HashMap;
 import java.util.Map;
 
+import ed.appserver.templates.djang10.JSHelper;
 import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.Parser.Token;
@@ -34,7 +35,7 @@ public class IncludeTagHandler implements TagHandler {
 
 		@Override
 		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) {
-			buffer.appendHelper(startLine, JSWriter.CALL_PATH + "(");
+			buffer.appendHelper(startLine, JSHelper.CALL_PATH + "(");
 			if(Parser.isQuoted(varName))
 				buffer.append(startLine, varName);
 			else

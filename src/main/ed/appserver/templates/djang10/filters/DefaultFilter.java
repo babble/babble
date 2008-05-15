@@ -1,11 +1,13 @@
 package ed.appserver.templates.djang10.filters;
 
+import ed.appserver.templates.djang10.Variable;
+
 
 
 public class DefaultFilter implements Filter {
 
-	public Object apply(boolean wasFound, Object value, String param) {
-		return (!wasFound || value == null)? param : value;
+	public Object apply(Object value, Object param) {
+		return (value == Variable.UNDEFINED_VALUE || value == null)? param : value;
 	}
 
 }

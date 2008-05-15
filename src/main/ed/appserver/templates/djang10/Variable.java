@@ -5,6 +5,10 @@ import java.util.List;
 
 
 public class Variable {
+	public static final Object UNDEFINED_VALUE = new Object() {
+		public String toString() { return null; };
+	};
+	
 	public String base;
 	public List<FilterSpec> filters;
 	
@@ -24,6 +28,4 @@ public class Variable {
 			this.param = param;
 		}
 	}
-	
-		
 }

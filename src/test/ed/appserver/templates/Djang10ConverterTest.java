@@ -9,10 +9,12 @@ import java.util.TimeZone;
 import org.testng.annotations.Factory;
 
 import ed.appserver.JSFileLibrary;
+import ed.appserver.templates.djang10.JSHelper;
 import ed.js.JSArray;
 import ed.js.JSDate;
 import ed.js.JSFunction;
 import ed.js.JSObjectBase;
+import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
 
@@ -82,6 +84,10 @@ public class Djang10ConverterTest extends ConvertTestBase {
         
         JSFileLibrary localLib = (JSFileLibrary)testScope.get("local");
         o.set("includedTemplateJsFunction", localLib.get("djang10-if"));
+        
+        Djang10Converter.injectHelpers(testScope);
+        JSFunction addTemplateRoot = (JSFunction)((JSObjectBase)testScope.get(JSHelper.NS)).get(JSHelper.ADD_TEMPLATE_ROOT);
+        addTemplateRoot.call(testScope, new JSString("/local"));
         
         return new Object[]{ o };
     }

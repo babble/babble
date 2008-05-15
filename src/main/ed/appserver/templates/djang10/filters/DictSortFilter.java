@@ -16,9 +16,9 @@ public class DictSortFilter implements Filter {
 		this.isReversed = isReversed;
 	}
 
-	public Object apply(boolean wasFound, Object value, String param) {
+	public Object apply(Object value, Object param) {
 		JSArray sortedList = new JSArray((JSArray)value);
-		Collections.sort(sortedList, new PropertyComparer(param, isReversed));
+		Collections.sort(sortedList, new PropertyComparer(param.toString(), isReversed));
 		return sortedList;
 	}
 	
