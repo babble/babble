@@ -14,6 +14,7 @@ import ed.appserver.templates.djang10.filters.DateFilter;
 import ed.appserver.templates.djang10.filters.DefaultFilter;
 import ed.appserver.templates.djang10.filters.DictSortFilter;
 import ed.appserver.templates.djang10.filters.Filter;
+import ed.appserver.templates.djang10.filters.LengthFilter;
 import ed.appserver.templates.djang10.filters.LengthIsFilter;
 import ed.appserver.templates.djang10.filters.LowerFilter;
 import ed.appserver.templates.djang10.filters.UpperFilter;
@@ -171,5 +172,6 @@ public class Djang10Converter implements TemplateConverter {
     	_filters.put("dictsort", new DictSortFilter(false));
     	_filters.put("dictsortreverse", new DictSortFilter(true));
     	_filters.put("length_is", new LengthIsFilter());
+    	_filters.put("length", new LengthFilter());
     }
 }
