@@ -243,6 +243,9 @@ public class Logger extends JSFunctionCalls2 {
     }
 
     Throwable _makeThrowable( Object o ){
+        if ( o == null )
+            return null;
+
         if ( o instanceof Throwable )
             return (Throwable)o;
 
