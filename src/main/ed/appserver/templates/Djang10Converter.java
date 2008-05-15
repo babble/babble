@@ -60,6 +60,7 @@ public class Djang10Converter implements TemplateConverter {
 			node.getRenderJSFn(preamble, writer);
 		}
 		
+		writer.append(1, JSWriter.CONTEXT_STACK_VAR + ".pop();\n");
 		
 		StringBuilder newTemplate = new StringBuilder(preamble.toString());
 		Map<Integer, Integer> newTemplateLineMapping = new HashMap<Integer, Integer>(preamble.getLineMap());
