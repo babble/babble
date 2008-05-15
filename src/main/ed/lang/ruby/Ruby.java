@@ -44,6 +44,9 @@ public class Ruby {
 
     public static void install( Scope s ){
         
+        JSObjectBase r = new JSObjectBase();
+        s.put( "Ruby" , r , true );
+
         s.put( RUBY_V_CALL , new JSFunctionCalls1(){
                 public Object call( Scope s , Object foo , Object extra[] ){
                     
@@ -227,6 +230,8 @@ public class Ruby {
                     return null;
                 }
             } , true );
+
+        r.set( "libPath" , new JSArray() );
 
         s.put( RUBY_REQUIRE , new JSFunctionCalls1(){
                 public Object call( Scope s , Object pathObj , Object extra[] ){
