@@ -1651,7 +1651,13 @@ public class RubyConvert extends ed.MyAsserts {
         _specialNames.add( "include" );
         _specialNames.add( "extend" );
         _specialNames.add( "default" );
+
         _specialNames.add( "char" );
+        _specialNames.add( "int" );
+        _specialNames.add( "float" );
+        _specialNames.add( "double" );
+        _specialNames.add( "short" );
+        _specialNames.add( "var" );
     }
 
 }
