@@ -83,7 +83,7 @@ public class Logger extends JSFunctionCalls2 {
     // --------------------
 
     public Object call( Scope s , Object oName , Object oT , Object foo[] ){
-        log( Level.INFO , (oName != null) ? oName.toString() : "null" , (Throwable)oT );
+        log( Level.INFO , (oName != null) ? oName.toString() : "null" , _makeThrowable( oT ) );
         return null;
     }
 
@@ -154,7 +154,7 @@ public class Logger extends JSFunctionCalls2 {
                         if ( msgObject == null )
                             msgObject = "null";
                         
-                        log( level , msgObject.toString() , (Throwable)excObject );
+                        log( level , msgObject.toString() , _makeThrowable( excObject ) );
                         return true;
                     }
 
@@ -240,6 +240,15 @@ public class Logger extends JSFunctionCalls2 {
 
     public String toString(){
         return "Logger:" + _fullName;
+    }
+
+    Throwable _makeThrowable( Object o ){
+        if ( o instanceof Throwable )
+            return (Throwable)o;
+
+        JSException e = new JSException( o );
+        e.fillInStackTrace();
+        return e;
     }
 
     final Logger _parent;
