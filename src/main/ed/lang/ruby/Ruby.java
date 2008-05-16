@@ -96,6 +96,8 @@ public class Ruby {
                                 return true;
                             if ( temp.equals( "to_s" ) )
                                 return "";
+                            if ( temp.equals( "nil_q_" ) )
+                                return true;
                             
                             throw new NullPointerException( "trying to get [" + temp + "] from a null item" );
                         }
