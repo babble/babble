@@ -338,6 +338,8 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                         return false;
                     }
                 } );
+            
+            _prototype.set( "include_q_" , _prototype.get( "contains" ) );
 
             _prototype.set( "indexOf" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object test , Object foo[] ){
@@ -414,6 +416,18 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                     public Object call( Scope s , Object foo[] ){
                         JSArray a = (JSArray)(s.getThis());
                         return a.isEmpty();
+                    }
+                }
+                );
+
+            _prototype.set( "compact" , new JSFunctionCalls0() {
+                    public Object call( Scope s , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        JSArray n = new JSArray();
+                        for ( Object o : a )
+                            if ( o != null )
+                                n.add( o );
+                        return n;
                     }
                 }
                 );
