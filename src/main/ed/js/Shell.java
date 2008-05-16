@@ -8,6 +8,7 @@ import java.util.*;
 import jline.*;
 
 import ed.db.*;
+import ed.io.*;
 import ed.lang.*;
 import ed.js.func.*;
 import ed.js.engine.*;
@@ -86,6 +87,21 @@ public class Shell {
         if ( init.exists() )
             s.eval( init );
         
+        if ( args.length > 0 && args[0].equals( "-shell" ) ){
+
+            String data = StreamUtil.readFully( new FileInputStream( args[1] ) );
+
+            if ( data.startsWith( "#!" ) )
+                data = data.substring( data.indexOf( "\n" ) + 1);
+            
+            JSFunction func = Convert.makeAnon( data );
+            Object jsArgs[] = new Object[ args.length - 2 ];
+            for ( int i=0; i<jsArgs.length; i++ )
+                jsArgs[i] = args[i+2];
+            func.call( s , jsArgs );
+            return;
+        }
+
         boolean exit = false;
 
         for ( String a : args ){
@@ -96,10 +112,7 @@ public class Shell {
 
             File temp = new File( a );
             try {
-                String code = ed.io.StreamUtil.readFully( new FileInputStream( temp ) );
-                if ( code.startsWith( "#!" ) )
-                    code = code.replaceAll( "^(.*?)\n" , "" );
-                s.eval( code );
+                s.eval( temp );
             }
             catch ( Exception e ){
                 StackTraceHolder.getInstance().fix( e );

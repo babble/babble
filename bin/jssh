@@ -2,4 +2,4 @@
 
 export ED_HOME=`echo $0 | sed -e 's/bin.jssh//p' | head -n 1`
 
-$ED_HOME/runLight.bash ed.js.Shell "$@"
+$ED_HOME/runLight.bash ed.js.Shell -shell "$@"
