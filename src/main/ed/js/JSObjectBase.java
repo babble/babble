@@ -62,6 +62,8 @@ public class JSObjectBase implements JSObject {
                     _keys.add( name );
             
             _map.put( name , v );
+            if ( v instanceof JSObjectBase )
+                ((JSObjectBase)v)._name = name;
             return v;
         }
         
@@ -119,14 +121,20 @@ public class JSObjectBase implements JSObject {
             if ( proto != null )
                 res = proto.get( s );
         };
-
-        if ( res == null && _constructor != null )
+        
+        if ( res == null && _constructor != null ){
             res = _constructor._prototype.get( s );
+        }
         
         if ( res == null && _objectLowFunctions != null 
              && ( _map == null || _map.get( "prototype" ) == null ) 
              && _constructor == null ){
             res = _objectLowFunctions.get( s );
+        }
+
+        if ( res == null && _constructor != null && ! s.equals( "prototype" ) ){
+            // basically static lookup
+            res = _constructor.get( s );
         }
 
         if ( res == null && 
@@ -320,8 +328,10 @@ public class JSObjectBase implements JSObject {
         _space( level , a );
         
         a.append( "me :" );
+        if ( _name != null )
+            a.append( " name : [" ).append( _name ).append( "] " );
         if( _keys != null )
-            a.append( _keys.toString() );
+            a.append( "keys : " ).append( _keys.toString() );
         a.append( "\n" );
         
         if ( _map != null ){
@@ -339,12 +349,24 @@ public class JSObjectBase implements JSObject {
         }
     }
 
+
+    // -----
+    // name is very weird. it probably doesn't work the way you think or want
+    // ----
+
+    public String _getName(){
+        return _name;
+    }
         
+    public void _setName( String n ){
+        _name = n;
+    }
 
     protected Map<String,Object> _map = null;
     private List<String> _keys = null;
     private JSFunction _constructor;
     private boolean _readOnly = false;
+    private String _name;
 
     static final Set<String> EMPTY_SET = Collections.unmodifiableSet( new HashSet<String>() );
 

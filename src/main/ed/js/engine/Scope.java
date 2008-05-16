@@ -131,7 +131,7 @@ public class Scope implements JSObject {
 
         if ( _objects == null )
             _objects = new TreeMap<String,Object>();
-        _objects.put( name , o );
+        _mapSet( name , o );
     }
     
     public Object put( String name , Object o , boolean local ){
@@ -171,19 +171,25 @@ public class Scope implements JSObject {
             Scope pref = getTLPreferred();
 
             if ( pref != null ){
-                pref._objects.put( name , o );
+                pref._mapSet( name , o );
                 return _fixNull( o );
             }
 	    
 	    if ( _lockedObject != null && _lockedObject.contains( name ) )
 		throw new RuntimeException( "trying to set locked object : " + name );
 
-            _objects.put( name , o );
+            _mapSet( name , o );
             return _fixNull( o );
         }
         
         _parent.put( name , o , false );
         return _fixNull( o );
+    }
+
+    private final void _mapSet( String name , Object o ){
+        _objects.put( name , o );
+        if ( o instanceof JSObjectBase )
+            ((JSObjectBase)o)._setName( name );
     }
     
     public Object get( String name ){
