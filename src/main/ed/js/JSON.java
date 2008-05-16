@@ -206,7 +206,7 @@ public class JSON {
             { 
                 Object foo = o.get( "tojson" );
                 if ( foo != null && foo instanceof JSFunction ){
-                    a.append( ((JSFunction)foo).call( Scope.GLOBAL ).toString() );
+                    a.append( ((JSFunction)foo).call( Scope.getAScope() ).toString() );
                     return;
                 }
             }

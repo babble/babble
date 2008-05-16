@@ -254,7 +254,7 @@ public class JSObjectBase implements JSObject {
             Scope s = _constructor.getScope();
             
             if ( s == null )
-                s = Scope.GLOBAL;
+                s = Scope.getThredLocal();
             
             s = s.child();
             

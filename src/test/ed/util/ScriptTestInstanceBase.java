@@ -47,7 +47,7 @@ public abstract class ScriptTestInstanceBase extends MyAsserts implements Script
 
         JSFunction f = convert();
 
-        Scope scope = Scope.GLOBAL.child(new File("/tmp"));
+        Scope scope = Scope.newGlobal().child(new File("/tmp"));
         scope.setGlobal( true );
         
         /*

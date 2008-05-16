@@ -20,6 +20,7 @@ public class ConvertTest extends TestCase {
             if ( f.toString().endsWith( ".js" ) )
                 add( new FileTest( f ) );
         
+        _scope = Scope.newGlobal().child();
     }
     
     @Test
@@ -33,7 +34,7 @@ public class ConvertTest extends TestCase {
 
         JSFunction f = Convert.makeAnon( "x = {};\nx.a.b = 5;\n" );
         try {
-            f.call( Scope.GLOBAL.child() );
+            f.call( _scope.child() );
         }
         catch ( Exception e ){
             assertEquals( 2 , e.getStackTrace()[0].getLineNumber() );
@@ -42,7 +43,7 @@ public class ConvertTest extends TestCase {
    } 
 
     Object _makeAnon( String code ){
-        return Convert.makeAnon( code ).call( Scope.GLOBAL.child() );
+        return Convert.makeAnon( code ).call( _scope );
     }
 
     public static class FileTest extends TestCase {
@@ -59,8 +60,9 @@ public class ConvertTest extends TestCase {
             final PrintStream out = new PrintStream( bout );
             
             JSFunction f = c.get();
-            Scope scope = Scope.GLOBAL.child();
-            
+            Scope scope = Scope.getAScope().child();
+            scope.setGlobal( true );
+
             if ( _file.toString().contains( "/engine/" ) ){
                 JSFunction myout = new JSFunctionCalls1(){
                         public Object call( Scope scope ,Object o , Object extra[] ){
@@ -104,6 +106,8 @@ public class ConvertTest extends TestCase {
         s = s.replaceAll( "tempFunc_\\d+_" , "tempFunc_" );
         return s;
     }
+
+    final Scope _scope;
     
     public static void main( String args[] ){
         if ( args.length > 0 ){

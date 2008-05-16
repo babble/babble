@@ -35,7 +35,8 @@ public class RubyTest extends TestCase {
             final PrintStream out = new PrintStream( bout );
             
             JSFunction f = c.get();
-            Scope scope = Scope.GLOBAL.child();
+            Scope scope = Scope.getAScope().child();
+            scope.setGlobal( true );
             
             JSFunction myout = new JSFunctionCalls1(){
                     public Object call( Scope scope ,Object o , Object extra[] ){

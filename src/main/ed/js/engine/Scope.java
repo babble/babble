@@ -23,12 +23,14 @@ public class Scope implements JSObject {
     private static ThreadLocal<Scope> _threadLocal = new ThreadLocal<Scope>();
     private static ThreadLocal<Scope> _lastCreated = new ThreadLocal<Scope>();
 
-    public static Scope GLOBAL = new Scope( "GLOBAL" , JSBuiltInFunctions._myScope  );
-    static {
-        GLOBAL._locked = true;
-        GLOBAL._global = true;
+    public static Scope newGlobal(){
+        return JSBuiltInFunctions.create();
     }
 
+    public static Scope newGlobal( String name ){
+        return JSBuiltInFunctions.create( name );
+    }
+    
     static class _NULL {
         public String toString(){
             return "This is an internal thing for Scope.  It means something is null.  You should never seen this.";
@@ -765,6 +767,16 @@ public class Scope implements JSObject {
     
     public static Scope getLastCreated(){
         return _lastCreated.get();
+    }
+
+    public static Scope getAScope(){
+        Scope s = getThredLocal();
+        if ( s != null )
+            return s;
+        
+        s = newGlobal();
+        s.makeThreadLocal();
+        return s;
     }
 
     static class This {

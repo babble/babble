@@ -38,7 +38,7 @@ public class JS {
         JNI = true;
 
         try {
-            Scope s = Scope.GLOBAL.child();
+            Scope s = Scope.getAScope().child();
             Object ret = s.eval( js );
             return ret;
         }
@@ -66,7 +66,7 @@ public class JS {
             System.out.println( s );
             
             Convert c = new Convert( new File( s ) );
-            c.get().call( Scope.GLOBAL.child() );
+            c.get().call( Scope.newGlobal().child() );
         }
     }
 }

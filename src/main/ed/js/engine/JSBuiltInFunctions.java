@@ -22,6 +22,18 @@ public class JSBuiltInFunctions {
         JS._debugSIStart( "JSBuiltInFunctions" );
     }
 
+    public static Scope create(){
+        return create( "Built-In" );
+    }
+
+    public static Scope create( String name ){
+        Scope s = new Scope( name , _base );
+        _setup( s );
+        s.setGlobal( true );
+        s.lock();
+        return s;
+    }
+    
     public static class jsassert extends JSFunctionCalls1 {
         public Object call( Scope scope , Object foo , Object extra[] ){
             if ( JSInternalFunctions.JS_evalToBool( foo ) )
@@ -485,9 +497,12 @@ public class JSBuiltInFunctions {
         }
     }
 
+    public static final boolean isBase( Scope s ){
+        return s == _base;
+    }
     
     private static final Scope _base; // these are things that aren't modifiable, so its safe if there is only 1 copy
-    static final Scope _myScope; // thse are thing that can be modified, like Array
+    //private static final Scope _myScope; // this is the security hole.  need to get rid off TODO
     static {
         
         Scope s = new Scope( "base" , null );
@@ -501,8 +516,10 @@ public class JSBuiltInFunctions {
         }
         finally {
             _base = s;
+            _base.lock();
+            _base.setGlobal( true );
         }
-
+        /*
         s = new Scope( "Built-Ins" , _base );
         try {
             _setup( s );
@@ -514,9 +531,11 @@ public class JSBuiltInFunctions {
         finally {
             _myScope = s;
         }
+        
 
-        _base.lock();
         _myScope.lock();
+        */
+        
     }
     
     private static void _setupBase( Scope s ){

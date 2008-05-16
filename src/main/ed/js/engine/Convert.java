@@ -32,7 +32,7 @@ public class Convert implements StackTraceFixer {
 
                 Convert c = new Convert( name , code , true );
                 JSFunction func = c.get();
-                Scope s = Scope.GLOBAL.child();
+                Scope s = Scope.newGlobal().child();
                 s.setGlobal( true );
                 
                 func.call( s );

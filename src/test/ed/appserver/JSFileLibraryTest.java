@@ -13,7 +13,7 @@ import ed.js.engine.*;
 public class JSFileLibraryTest extends ed.TestCase {
     
     public JSFileLibraryTest(){
-        scope = Scope.GLOBAL.child();
+        scope = Scope.newGlobal().child();
         root = new File( "src/test/samplewww" );
         local = new JSFileLibrary( root , "local" , scope );
         scope.set( "local" , local );

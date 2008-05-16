@@ -86,7 +86,7 @@ public abstract class ConvertTestBase extends TestCase {
             Convert c = new Convert( _file.toString() , r.getNewTemplate().getContent() );
             JSFunction func = c.get();
             
-            Scope scope = Scope.GLOBAL.child();
+            Scope scope = Scope.getAScope().child();
             
             final StringBuilder output = new StringBuilder();
             

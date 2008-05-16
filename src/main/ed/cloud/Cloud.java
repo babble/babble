@@ -30,7 +30,7 @@ public class Cloud extends JSObjectBase {
 	if ( ! cloudDir.exists() )
 	    throw new RuntimeException( "can't find cloud dir" );
 
-	_scope = Scope.GLOBAL.child( "cloud" );
+	_scope = Scope.newGlobal().child( "cloud" );
 	Shell.addNiceShellStuff( _scope );
 	_scope.set( "Cloud" , this );
 	_scope.set( "log" , _log );
