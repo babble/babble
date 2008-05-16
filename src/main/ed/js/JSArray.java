@@ -419,6 +419,18 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                     }
                 }
                 );
+
+            _prototype.set( "compact" , new JSFunctionCalls0() {
+                    public Object call( Scope s , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        JSArray n = new JSArray();
+                        for ( Object o : a )
+                            if ( o != null )
+                                n.add( o );
+                        return n;
+                    }
+                }
+                );
             
             _prototype.set( "each" , new JSFunctionCalls1(){
                     public Object call(Scope s, Object funcObject , Object [] args){
