@@ -338,6 +338,8 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                         return false;
                     }
                 } );
+            
+            _prototype.set( "include_q_" , _prototype.get( "contains" ) );
 
             _prototype.set( "indexOf" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object test , Object foo[] ){
