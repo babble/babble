@@ -75,6 +75,14 @@ public class JSObjectBase implements JSObject {
         throw new RuntimeException( "object key can't be a [" + n.getClass() + "]" );
     }
 
+    public String getAsString( Object n ){
+        final Object v = get( n );
+        if ( v == null )
+            return null;
+        
+        return v.toString();
+    }
+
     public Object get( Object n ){
 
         prefunc();

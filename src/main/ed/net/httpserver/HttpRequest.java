@@ -156,7 +156,7 @@ public class HttpRequest extends JSObjectLame {
 
     public String getCookie( String s ){
         if ( _cookies == null ){
-            Map<String,String> m = new StringMap<String>();
+            JSObjectBase m = new JSObjectBase();
             String temp = getHeader( "Cookie" );
             if ( temp != null ){
 
@@ -167,13 +167,13 @@ public class HttpRequest extends JSObjectLame {
                     if ( idx < 0 )
                         continue;
 
-                    m.put( thing.substring( 0 , idx ).trim() , 
+                    m.set( thing.substring( 0 , idx ).trim() , 
                            thing.substring( idx + 1 ).trim() );
                 }
             }
             _cookies = m;
         }
-        return _cookies.get( s );
+        return _cookies.getAsString( s );
     }
 
     public JSArray getCookieNames(){
@@ -181,6 +181,11 @@ public class HttpRequest extends JSObjectLame {
         JSArray a = new JSArray();
         a.addAll( _cookies.keySet() );
         return a;
+    }
+
+    public JSObject getCookies(){
+        getCookie( "" );
+        return _cookies;
     }
     
     // param stuff
@@ -446,7 +451,7 @@ public class HttpRequest extends JSObjectLame {
     final String _firstLine;
     final Map<String,String> _headers = new StringMap<String>();
     final JSDate _start = new JSDate();
-    Map<String,String> _cookies;
+    JSObjectBase _cookies;
     String _remoteIP;
 
     boolean _parsedPost = false;
