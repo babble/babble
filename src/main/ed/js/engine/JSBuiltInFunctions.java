@@ -681,19 +681,27 @@ public class JSBuiltInFunctions {
         s.put( "javaCreate" , new javaCreate() , true );
         s.put( "javaStatic" , new javaStatic() , true );
         s.put( "javaStaticProp" , new javaStaticProp() , true );
+
+        s.put( "JSCaptcha" , new JSCaptcha() , true );
+        s.put( "MimeTypes" , new ed.appserver.MimeTypes() , true );
+        s.put( "Base64" , new ed.util.Base64() , true );
+
+        s.put( "processArgs", new processArgs(), true );
         
+        // mail stuff till i'm done
+        s.put( "JAVAXMAILTO" , javax.mail.Message.RecipientType.TO , true );
 
         for ( String key : s.keySet() ){
             Object val = s.get( key );
-            if ( val instanceof Number ) 
-                continue;
-            
-            ((JSObjectBase)val).lock();
+            if ( val instanceof JSObjectBase )
+                ((JSObjectBase)val).lock();
         }
     }
 
     
     private static void _setup( Scope s ){
+
+        // core js
         
         s.put( "Object" , new NewObject() , true );
         s.put( "Array" , JSArray._cons , true );
@@ -703,36 +711,24 @@ public class JSBuiltInFunctions {
         s.put( "RegExp" , JSRegex._cons , true );
         s.put( "XMLHttpRequest" , XMLHttpRequest._cons , true );
         s.put( "Function" , JSInternalFunctions.FunctionCons , true );
-        s.put( "Exception" , JSException._cons , true );
-        s.put( "Map" , JSMap._cons , true );
-
         s.put( "Math" , JSMath.getInstance() , true );
-
-        s.put( "processArgs", new processArgs(), true );
-
-        s.put( "Class", ed.js.Prototype._class , true );
-
-        JS._debugSI( "JSBuiltInFunctions" , "Setup2" );
-
-        s.put( "Base64" , new ed.util.Base64() , true );
-        
-        s.put( "download" , HttpDownload.DOWNLOAD , true );
-
-        s.put( "JSCaptcha" , new JSCaptcha() , true );
-        s.put( "MimeTypes" , new ed.appserver.MimeTypes() , true );
-        
-
-	
-
+        s.put( "Class", ed.js.Prototype._class , true );        
 	s.put( "Number" , JSNumber.CONS , true );
 	s.put( "parseNumber" , JSNumber.CONS , true );
+
+        // extensions
+        
+        s.put( "Exception" , JSException._cons , true );
+        s.put( "Map" , JSMap._cons , true );
+        
+        s.put( "download" , HttpDownload.DOWNLOAD , true );
+        
+        
+        // packages
 
         Encoding.install( s );
         JSON.init( s );
         ed.lang.ruby.Ruby.install( s );
-        
-        // mail stuff till i'm done
-        s.put( "JAVAXMAILTO" , javax.mail.Message.RecipientType.TO , true );
 
         s.lock();
     }
