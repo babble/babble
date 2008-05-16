@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.sun.org.apache.bcel.internal.generic.LADD;
+
 import ed.appserver.JSFileLibrary;
 import ed.appserver.templates.Djang10Converter;
 import ed.appserver.templates.djang10.Variable.FilterSpec;
@@ -25,6 +27,7 @@ public class JSHelper extends JSObjectBase {
 
 	public static final String ADD_TEMPLATE_ROOT = "addTemplateRoot";
 	public static final String CALL_PATH = "callPath";
+	public static final String LOAD_PATH = "loadPath";
 	public static final String VAR_EXPAND = "djangoVarExpand";
 	public static final String NS = "__djang10";
 
@@ -45,6 +48,7 @@ public class JSHelper extends JSObjectBase {
     	
     	//add the basic helpers
     	this.set(JSHelper.VAR_EXPAND, varExpand);
+    	this.set(JSHelper.LOAD_PATH, loadPath);
     	this.set(JSHelper.CALL_PATH, callPath);
     	this.set(JSHelper.ADD_TEMPLATE_ROOT, addTemplateRoot);
     	
@@ -79,6 +83,18 @@ public class JSHelper extends JSObjectBase {
 	private final JSFunction callPath = new JSFunctionCalls1() {
 		@Override
 		public Object call(Scope scope, Object pathObj, Object[] extra) {
+			Object loadedObj = loadPath.call(scope, pathObj, extra);
+			
+			if(loadedObj instanceof JSCompiledScript)
+				return ((JSCompiledScript)loadedObj).call(scope.child(), extra);
+			
+			return null;
+		}
+	};
+	
+	private final JSFunction loadPath = new JSFunctionCalls1() {
+		@Override
+		public Object call(Scope scope, Object pathObj, Object[] extra) {
 			
 			if(pathObj instanceof JSCompiledScript)
 				return ((JSCompiledScript)pathObj).call(scope.child(), extra);
@@ -89,7 +105,7 @@ public class JSHelper extends JSObjectBase {
 			if(path.startsWith("/")) {
 				String[] newRootPathParts = path.split("/", 3);
 				if(newRootPathParts.length != 3 || newRootPathParts[2].trim().length() == 0)
-					throw new IllegalArgumentException("Invalid path");
+					return null;
 				
 				//get the root filelib/ ie: local, core, etc
 				String newRootBasePath = newRootPathParts[1];
@@ -100,7 +116,7 @@ public class JSHelper extends JSObjectBase {
 				//get the actual file
 				Object targetObj = ((JSFileLibrary)newRootBaseObj).getFromPath(newRootPathParts[2]);
 				if(!(targetObj instanceof JSCompiledScript ))
-					throw new IllegalArgumentException("File not found");
+					return null;
 
 				target = (JSCompiledScript)targetObj;
 			}
@@ -116,10 +132,10 @@ public class JSHelper extends JSObjectBase {
 					}
 				}
 				if(target == null)
-					throw new IllegalArgumentException("File not found");
+					return null;
 			}
 			
-			return target.call(scope.child(), extra);
+			return target;
 		}
 	};
 	
