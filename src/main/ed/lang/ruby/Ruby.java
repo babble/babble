@@ -44,7 +44,7 @@ public class Ruby {
 
     public static void install( Scope s ){
         
-        JSObjectBase r = new JSObjectBase();
+        final JSObjectBase r = new JSObjectBase();
         s.put( "Ruby" , r , true );
 
         s.put( RUBY_V_CALL , new JSFunctionCalls1(){
@@ -247,8 +247,18 @@ public class Ruby {
 
                     Object thing = ((JSFileLibrary)s.get( "__path__" )).getFromPath( path );
                     
+                    JSFileLibrary local = (JSFileLibrary)s.get( "local" );
+
                     if ( thing == null )
-                        thing = ((JSFileLibrary)s.get( "local" )).getFromPath( "lib/" + path );
+                        thing = local.getFromPath( "lib/" + path );
+                    
+                    if ( thing == null ){
+                        for ( Object o : ((JSArray)(r.get( "libPath" ))) ){
+                            thing = local.getFromPath( o.toString() + "/" + path );
+                            if ( thing != null )
+                                break;
+                        }
+                    }
 
                     if ( thing == null )
                         thing = ((JSFileLibrary)s.get( "core" )).getFromPath( "rails/lib/" + path );

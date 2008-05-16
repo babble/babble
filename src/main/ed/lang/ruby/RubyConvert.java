@@ -1263,6 +1263,13 @@ public class RubyConvert extends ed.MyAsserts {
             _add( dn.getValueNode() , state );
             return;
         }
+
+        if ( n instanceof SClassNode ){
+            SClassNode s = (SClassNode)n;
+            _assertType( s.getReceiverNode() , SelfNode.class );
+            _add( s.getBodyNode() , state );
+            return;
+        }
         
         if ( n instanceof BeginNode ||
              n instanceof RescueNode ||
