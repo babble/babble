@@ -464,7 +464,7 @@ public class JSObjectBase implements JSObject {
                     }
                 } );
 
-            set( "__rdelete" , new JSFunctionCalls1(){
+            set( "__delete" , new JSFunctionCalls1(){
                     public Object call( Scope s , Object name , Object args[] ){
                         return ((JSObjectBase)s.getThis()).removeField( name );
                     }
