@@ -311,6 +311,32 @@ public class JSString extends JSObjectBase {
                         return str + "s";
                     }
                 } );
+
+            _prototype.set( "__delete" , new JSFunctionCalls1(){
+                    public Object call(Scope s, Object all , Object [] args){
+
+                        String str = s.getThis().toString();
+                        if ( all == null )
+                            return str;
+                        
+                        String bad = all.toString();
+
+                        StringBuffer buf = new StringBuffer( str.length() );
+                        
+                        outer:
+                        for ( int i=0; i<str.length(); i++ ){
+                            char c = str.charAt( i );
+                            for ( int j=0; j<bad.length(); j++ )
+                                if ( bad.charAt( j ) == c )
+                                    continue outer;
+                            
+                            buf.append( c );
+                        }
+                        
+                        
+                        return buf.toString();
+                    }
+                } );
             
 
             

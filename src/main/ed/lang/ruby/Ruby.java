@@ -38,8 +38,6 @@ public class Ruby {
         _nameMapping.put( "require" , RUBY_REQUIRE );
         _nameMapping.put( "raise" , RUBY_RAISE );
 
-        _nameMapping.put( "delete" , "__rdelete" );
-
     }
 
     public static void install( Scope s ){
