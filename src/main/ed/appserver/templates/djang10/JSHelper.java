@@ -19,6 +19,7 @@ import ed.js.engine.JSCompiledScript;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
 import ed.js.func.JSFunctionCalls2;
+import ed.js.func.JSFunctionCalls3;
 
 public class JSHelper extends JSObjectBase {
 
@@ -50,15 +51,15 @@ public class JSHelper extends JSObjectBase {
     	this.lock();
 	}
 	
-	private final JSFunction varExpand = new JSFunctionCalls2() {
+	private final JSFunction varExpand = new JSFunctionCalls3() {
 		@Override
-		public Object call(Scope scope, Object varName, Object defaultValue, Object[] extra) {
+		public Object call(Scope scope, Object varName, Object defaultValue, Object allowGlobal, Object[] extra) {
 			Object value = null;
 			
 			
 			Variable variable = Parser.parseVariable(((JSString)varName).toString());
 			try {
-				value = Djang10Converter.resolveVariable(scope, variable.base);
+				value = Djang10Converter.resolveVariable(scope, variable.base, allowGlobal == Boolean.TRUE);
 			} catch(NoSuchFieldError e) {
 				value = Variable.UNDEFINED_VALUE;
 			}
@@ -66,7 +67,7 @@ public class JSHelper extends JSObjectBase {
 			for(FilterSpec filterSpec : variable.filters) {
 				Filter filter = Djang10Converter.getFilters().get(filterSpec.name);
 				
-				Object paramValue = Djang10Converter.resolveVariable(scope, filterSpec.param);
+				Object paramValue = Djang10Converter.resolveVariable(scope, filterSpec.param, allowGlobal == Boolean.TRUE);
 				
 				value = filter.apply(value, paramValue);
 			}

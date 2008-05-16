@@ -42,11 +42,16 @@ public class JSWriter {
 	}
 	
 	public void appendVarExpansion(int srcLine, String varName, String defaultValue) {
+		appendVarExpansion(srcLine, varName, defaultValue, false);
+	}
+	public void appendVarExpansion(int srcLine, String varName, String defaultValue, boolean allowGlobal) {
 		appendHelper(srcLine, JSHelper.VAR_EXPAND);
 		append("(\"");
 		append(varName.replace("\"", "\\\""));
 		append("\",");
 		append(defaultValue);
+		append(", ");
+		append(Boolean.toString(allowGlobal));
 		append(")");
 	}
 	public void appendCurrentContextVar(int srcLine, String name) {

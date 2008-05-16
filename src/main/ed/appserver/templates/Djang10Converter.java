@@ -21,6 +21,7 @@ import ed.appserver.templates.djang10.filters.UpperFilter;
 import ed.appserver.templates.djang10.filters.UrlEncodeFilter;
 import ed.appserver.templates.djang10.generator.JSWriter;
 import ed.appserver.templates.djang10.tagHandlers.BlockTagHandler;
+import ed.appserver.templates.djang10.tagHandlers.CallTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.CommentTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.CycleTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.ExtendsTagHandler;
@@ -80,7 +81,7 @@ public class Djang10Converter implements TemplateConverter {
 	}
 	
 	
-	public static Object resolveVariable(Scope scope, String unresolvedValue) {
+	public static Object resolveVariable(Scope scope, String unresolvedValue, boolean allowGlobal) {
 		String varName = unresolvedValue;
 		
 		if(varName == null)
@@ -106,6 +107,11 @@ public class Djang10Converter implements TemplateConverter {
 			JSObject context = (JSObject)contextStack.get(i);
 			varValue = context.get(varNameParts[0]);
 		}
+		
+		if(varValue == null && allowGlobal) {
+			varValue = scope.get(varNameParts[0]);
+		}
+		
 		if(varValue == null)
 			throw new NoSuchFieldError();
 		
@@ -155,6 +161,7 @@ public class Djang10Converter implements TemplateConverter {
     	_tagHandlers.put("cycle", new CycleTagHandler());
     	_tagHandlers.put("firstof", new FirstOfTagHandler());
     	_tagHandlers.put("set",  new SetTagHandler());
+    	_tagHandlers.put("call", new CallTagHandler());
     }
 
     
