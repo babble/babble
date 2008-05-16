@@ -739,6 +739,23 @@ public class Scope implements JSObject {
         _objects.putAll( s._objects );
     }
 
+
+    public Throwable currentException(){
+        if ( _exceptions == null )
+            return null;
+        return _exceptions.peek();
+    }
+
+    public void pushException( Throwable t ){
+        if ( _exceptions == null )
+            _exceptions = new Stack<Throwable>();
+        _exceptions.push( t );
+    }
+
+    public Throwable popException(){
+        return _exceptions.pop();
+    }
+
     final String _name;
     final Scope _parent;
     final Scope _alternate;
@@ -754,6 +771,7 @@ public class Scope implements JSObject {
     private ThreadLocal<Scope> _tlPreferred = null;
 
     Stack<This> _this = new Stack<This>();
+    Stack<Throwable> _exceptions;
     Stack<JSObject> _with;
     Object _orSave;
     JSObject _globalThis;

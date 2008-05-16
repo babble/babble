@@ -787,6 +787,8 @@ public class Convert implements StackTraceFixer {
                 _append( " \n catch ( Throwable " + javaEName + " ){ \n " , n );
                 _append( " \n Object " + javaName + " = ( " + javaEName + " instanceof JSException ) ? " + 
                          "  ((JSException)" + javaEName + ").getObject() : " + javaEName + " ; \n" , n );
+                
+                _append( "try { scope.pushException( " + javaEName + " ); \n" , n );
 
                 Node catchScope = n.getFirstChild();
                 
@@ -837,6 +839,7 @@ public class Convert implements StackTraceFixer {
                 
                 _append( "if ( " + javaEName + " != null ){ if ( " + javaEName + " instanceof RuntimeException ){ throw (RuntimeException)" + javaEName + ";} throw new JSException( " + javaEName + ");}\n" , n );
 
+                _append( " } finally { scope.popException(); } " , n );
                 _append( "\n } \n " , n ); // ends catch
                     
                 n = n.getNext();
