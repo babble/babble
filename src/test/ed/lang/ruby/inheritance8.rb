@@ -40,7 +40,7 @@ class A < Base
   end
 
   def p
-    #puts @all.length
+    puts @all.length
     puts @z
   end
 end
@@ -51,7 +51,7 @@ class B < Base
   end
 
   def p
-    #puts @all.length
+    puts @all.length
     puts @z
   end
 end
