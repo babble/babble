@@ -334,7 +334,7 @@ public class JSString extends JSObjectBase {
                         }
                         
                         
-                        return buf.toString();
+                        return new JSString( buf.toString() );
                     }
                 } );
             
