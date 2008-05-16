@@ -192,6 +192,7 @@ public class AppContext {
         _scopeInited = true;
         _lastScopeInitTime = System.currentTimeMillis();
         
+        
         _initScope();
 
         return _scope;
@@ -395,9 +396,12 @@ public class AppContext {
     }
 
     private void _initScope(){
-        final Scope save = _scope.getTLPreferred();
+        final Scope saveTLPref = _scope.getTLPreferred();
         _scope.setTLPreferred( null );
-        
+
+        final Scope saveTL = Scope.getThreadLocal();
+        _scope.makeThreadLocal();
+
         _inScopeInit = true;
         
         try {
@@ -423,7 +427,10 @@ public class AppContext {
         }
         finally {
             _inScopeInit = false;
-            _scope.setTLPreferred( save );
+            _scope.setTLPreferred( saveTLPref );
+
+            if ( saveTL != null )
+                saveTL.makeThreadLocal();
         }
         
     }

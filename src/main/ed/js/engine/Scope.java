@@ -767,7 +767,7 @@ public class Scope implements JSObject {
         _lastCreated.set( null );
     }
     
-    public static Scope getThredLocal(){
+    public static Scope getThreadLocal(){
         return _threadLocal.get();
     }
     
@@ -776,7 +776,7 @@ public class Scope implements JSObject {
     }
 
     public static Scope getAScope(){
-        Scope s = getThredLocal();
+        Scope s = getThreadLocal();
         if ( s != null )
             return s;
         

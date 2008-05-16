@@ -28,7 +28,12 @@ public class JSHook {
     public static final int INVOKE_SUCCESS = 0;
 
     // is this a security hole
-    public static final Scope MY_SCOPE = Scope.newGlobal();
+    private static Scope _scope = null;
+    private static final Scope _getScope(){
+        if ( _scope == null )
+            _scope = Scope.newGlobal();
+        return _scope;
+    }
 
     // ---- init stuff
     
@@ -40,7 +45,7 @@ public class JSHook {
 
     public static long scopeCreate(){
         JS.JNI = true;
-        Scope s = MY_SCOPE.child();
+        Scope s = _getScope().child();
         s.setGlobal( true );
         _scopes.put( s.getId() , s );
         return s.getId();

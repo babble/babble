@@ -505,8 +505,10 @@ public class Ruby {
         if ( root == null )
             root = "";
         root += "src/main/ed/lang/ruby/";
-        
-        JSFileLibrary lib = new JSFileLibrary( new java.io.File( root ) , "ruby" , s );
+        java.io.File rootFile = new java.io.File( root );
+        if ( ! rootFile.exists() )
+            throw new RuntimeException( "can't find ruby root : " + rootFile );
+        JSFileLibrary lib = new JSFileLibrary( rootFile , "ruby" , s );
         ((JSFunction)(lib.get( "lib" ))).call( s );
 
     }

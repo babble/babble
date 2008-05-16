@@ -13,7 +13,7 @@ public class JSAppender extends JSObjectWrapper implements Appender  {
     }
 
     public void append( String loggerName , JSDate date , Level level , String msg , Throwable throwable , Thread thread ){
-        _func.call( Scope.getThredLocal() , loggerName , date , level , msg , throwable , thread , EMPTY );
+        _func.call( Scope.getThreadLocal() , loggerName , date , level , msg , throwable , thread , EMPTY );
     }
 
     final JSFunction _func;

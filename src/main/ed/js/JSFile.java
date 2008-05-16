@@ -119,7 +119,7 @@ public abstract class JSFile extends JSObjectBase {
     public String writeToLocalFile( String name )
         throws IOException {
         
-        Scope s = Scope.getThredLocal();
+        Scope s = Scope.getThreadLocal();
         if ( s == null )
             throw new JSException( "need a scope" );
         

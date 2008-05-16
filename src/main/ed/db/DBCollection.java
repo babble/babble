@@ -421,7 +421,7 @@ public abstract class DBCollection extends JSObjectLame {
         if ( ! strict )
             return true;
 
-        Scope scope = Scope.getThredLocal();
+        Scope scope = Scope.getThreadLocal();
         if ( scope == null )
             throw new JSException( "db is read only" );
         
