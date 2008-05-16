@@ -28,7 +28,13 @@ public class JSBuiltInFunctions {
 
     public static Scope create( String name ){
         Scope s = new Scope( name , _base );
-        _setup( s );
+        try {
+            _setup( s );
+        }
+        catch ( RuntimeException re ){
+            re.printStackTrace();
+            System.exit(-1);
+        }
         s.setGlobal( true );
         s.lock();
         return s;
