@@ -22,6 +22,11 @@ class Lower
   def self.A
     return 111
   end
+  
+  def self.funny
+    puts "funny"
+  end
+  
 end
 
 class Base < Lower
@@ -54,6 +59,12 @@ class B < Base
     puts @all.length
     puts @z
   end
+
+  def self.blah
+    puts "B.self.blah"
+    funny
+  end
+    
 end
 
 a = A.new
@@ -66,3 +77,5 @@ b.p
 
 a.p
 
+
+B.blah
