@@ -65,7 +65,6 @@ public abstract class ScriptTestInstanceBase extends MyAsserts implements Script
                 }
             } , true );
 
-        Djang10Converter.injectHelpers(scope);
         
         try {
             f.call(scope);

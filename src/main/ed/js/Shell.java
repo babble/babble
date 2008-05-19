@@ -13,6 +13,7 @@ import ed.lang.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 import ed.appserver.*;
+import ed.appserver.templates.Djang10Converter;
 
 public class Shell {
     
@@ -70,6 +71,8 @@ public class Shell {
                     return s.child(new File(fileName.toString()));
                 }
             } , true);
+        
+        Djang10Converter.injectHelpers(s);
     }
     
     public static void main( String args[] )
