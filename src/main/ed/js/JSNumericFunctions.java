@@ -278,6 +278,9 @@ public class JSNumericFunctions extends JSObjectBase {
         
         if ( o instanceof Number )
             return o;
+
+        if ( o instanceof JSDate )
+            return ((JSDate)o).getTime();
         
         String s = null;
         if ( o instanceof JSString )

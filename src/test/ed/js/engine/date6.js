@@ -66,3 +66,6 @@ print( "setSeconds(-1): \t\t" + d.toString() + " ("+ms+")");
 
 ms = d.setTime(500);
 print( "setTime(500): \t\t"+ d.toString() + " ("+ms+")");
+
+
+print( (d - 100).toFixed(0) );
