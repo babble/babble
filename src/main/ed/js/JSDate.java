@@ -64,6 +64,18 @@ public class JSDate extends JSObjectBase implements Comparable {
                         }
                     } );
 
+                _prototype.set( "utc_to_local" , new JSFunctionCalls0() {
+                        public Object call( Scope s , Object foo[] ){
+                            return s.getThis();
+                        }
+                    } );
+
+                _prototype.set( "strftime" , new JSFunctionCalls1() {
+                        public Object call( Scope s , Object f , Object foo[] ){
+                            return ((JSDate)s.getThis()).strftime( f.toString() );
+                        }
+                    } );
+
 
                 set( "now" , new JSFunctionCalls0(){
                         public Object call( Scope s, Object foo[] ){
@@ -313,6 +325,10 @@ public class JSDate extends JSObjectBase implements Comparable {
         String format = "EEE MMM dd yyyy HH:mm:ss 'GMT'Z (z)";
         return format(format);
         //        return new Date( _time ).toString();
+    }
+
+    public String strftime( String theFormat ){
+        return format( ed.util.Strftime.convertDateFormat( theFormat ) );
     }
 
     public String format( String theFormat ){
