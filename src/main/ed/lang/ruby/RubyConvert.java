@@ -132,7 +132,7 @@ public class RubyConvert extends ed.MyAsserts {
             ForNode fn = (ForNode)node;
             
             _add( fn.getIterNode() , state );
-            _append( ".forEach( " , fn );
+            _append( ".each( " , fn );
             _addIterBlock( fn , state );
             _append( " ) " , fn );
         }
