@@ -44,10 +44,9 @@ public class SetTagHandler implements TagHandler {
 		
 		@Override
 		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) {
-			buffer.appendCurrentContextVar(startLine, varName);
-			buffer.append("=");
+			buffer.append(startLine, JSWriter.CONTEXT_STACK_VAR + ".set(\""+varName+"\", ");
 			buffer.appendVarExpansion(startLine, varValue, "null");
-			buffer.append(";\n");
+			buffer.append(");\n");
 		}
 	}
 }

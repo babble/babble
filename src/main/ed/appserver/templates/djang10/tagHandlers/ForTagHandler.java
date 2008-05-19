@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ed.appserver.templates.djang10.Context;
 import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.TemplateException;
@@ -40,19 +41,16 @@ public class ForTagHandler implements TagHandler {
 			@Override
 			public Object call(Scope scope, Object array, Object isReversedObj, Object[] extra) {
 				
-				JSArray contextStack = (JSArray)scope.get(JSWriter.CONTEXT_STACK_VAR);
-				Object parentForLoop = null;
-				for(int i=contextStack.size() - 1; i >= 0 && parentForLoop == null; i--)
-					parentForLoop = ((JSObject)contextStack.get(i)).get("forloop");
+				Context contextStack = (Context)scope.get(JSWriter.CONTEXT_STACK_VAR);
+				Object parentForLoop = contextStack.get("forloop");
 				
 				int length = (Integer)(((JSObject)array).get("length"));
 				boolean isReversed = isReversedObj instanceof Boolean ? ((Boolean)isReversedObj) : false;
 				
-				JSObjectBase newContext = new JSObjectBase();
-				ForLoopObj forLoopObj = new ForLoopObj(parentForLoop, length, isReversed);  
-				newContext.set("forloop", forLoopObj);
-				
-				contextStack.add(newContext);
+				ForLoopObj forLoopObj = new ForLoopObj(parentForLoop, length, isReversed);  				
+				contextStack.push();
+				contextStack.set("forloop",	forLoopObj);
+
 
 				return forLoopObj;
 			}
@@ -118,12 +116,11 @@ public class ForTagHandler implements TagHandler {
 			buffer.appendVarExpansion(startLine, "forloop.revcounter", "null");
 			buffer.append(startLine, " > 0) {\n");
 			
-			buffer.appendCurrentContextVar(startLine, itemName);
-			buffer.append(startLine, "=");
+			buffer.append(JSWriter.CONTEXT_STACK_VAR + ".set(\""+itemName+"\", ");
 			buffer.appendVarExpansion(startLine, listName, "[]");
 			buffer.append(startLine, "[");
 			buffer.appendVarExpansion(startLine, "forloop.i", "null");
-			buffer.append(startLine, "];\n");
+			buffer.append(startLine, "]);\n");
 			
 			for(Node node : bodyNodes) {
 				node.getRenderJSFn(preamble, buffer);

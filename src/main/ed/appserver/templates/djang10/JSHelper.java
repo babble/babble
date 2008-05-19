@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.sun.org.apache.bcel.internal.generic.LADD;
-
 import ed.appserver.JSFileLibrary;
 import ed.appserver.templates.Djang10Converter;
 import ed.appserver.templates.djang10.Variable.FilterSpec;
@@ -20,7 +18,6 @@ import ed.js.JSString;
 import ed.js.engine.JSCompiledScript;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
-import ed.js.func.JSFunctionCalls2;
 import ed.js.func.JSFunctionCalls3;
 
 public class JSHelper extends JSObjectBase {
@@ -29,6 +26,7 @@ public class JSHelper extends JSObjectBase {
 	public static final String CALL_PATH = "callPath";
 	public static final String LOAD_PATH = "loadPath";
 	public static final String VAR_EXPAND = "djangoVarExpand";
+	public static final String CONTEXT_CLASS = "Context";
 	public static final String NS = "__djang10";
 
 	
@@ -51,6 +49,7 @@ public class JSHelper extends JSObjectBase {
     	this.set(JSHelper.LOAD_PATH, loadPath);
     	this.set(JSHelper.CALL_PATH, callPath);
     	this.set(JSHelper.ADD_TEMPLATE_ROOT, addTemplateRoot);
+    	this.set(JSHelper.CONTEXT_CLASS, Context.CONSTRUCTOR);
     	
     	this.lock();
 	}
@@ -62,11 +61,7 @@ public class JSHelper extends JSObjectBase {
 			
 			
 			Variable variable = Parser.parseVariable(((JSString)varName).toString());
-			try {
-				value = Djang10Converter.resolveVariable(scope, variable.base, allowGlobal == Boolean.TRUE);
-			} catch(NoSuchFieldError e) {
-				value = Variable.UNDEFINED_VALUE;
-			}
+			value = Djang10Converter.resolveVariable(scope, variable.base, allowGlobal == Boolean.TRUE);
 			
 			for(FilterSpec filterSpec : variable.filters) {
 				Filter filter = Djang10Converter.getFilters().get(filterSpec.name);

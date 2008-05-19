@@ -8,7 +8,7 @@ import ed.appserver.templates.djang10.Variable;
 public class UrlEncodeFilter implements Filter {
 
 	public Object apply(Object value, Object param) {
-		if(Variable.UNDEFINED_VALUE == value || value == null)
+		if(value == Variable.UNDEFINED_VALUE || value==null)
 			return null;
 		
 		try {

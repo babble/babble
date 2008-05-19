@@ -6,7 +6,7 @@ import ed.js.JSArray;
 public class LengthFilter implements Filter {
 
 	public Object apply(Object value, Object param) {
-		if(value == null || value == Variable.UNDEFINED_VALUE)
+		if(value == Variable.UNDEFINED_VALUE || value==null)
 			return null;
 		
 		return ((JSArray)value).size();

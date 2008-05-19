@@ -4,6 +4,7 @@ import ed.appserver.templates.djang10.Variable;
 
 
 
+
 public class DefaultFilter implements Filter {
 
 	public Object apply(Object value, Object param) {

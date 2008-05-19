@@ -7,9 +7,11 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import ed.appserver.templates.djang10.Context;
 import ed.appserver.templates.djang10.JSHelper;
 import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
+import ed.appserver.templates.djang10.Variable;
 import ed.appserver.templates.djang10.filters.DateFilter;
 import ed.appserver.templates.djang10.filters.DefaultFilter;
 import ed.appserver.templates.djang10.filters.DictSortFilter;
@@ -33,7 +35,6 @@ import ed.appserver.templates.djang10.tagHandlers.IfTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IncludeTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.SetTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.TagHandler;
-import ed.js.JSArray;
 import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.engine.Scope;
@@ -54,9 +55,15 @@ public class Djang10Converter implements TemplateConverter {
 		JSWriter preamble = new JSWriter();
 		JSWriter writer = new JSWriter();
 		
-		preamble.append("var "+JSWriter.CONTEXT_STACK_VAR+" = (arguments.length == 0)? [scope] : (arguments[0] instanceof Array)? arguments[0] : [arguments[0]];\n");
+		//if no arguments were passed in use the calling scope for the context
+		preamble.append("var "+JSWriter.CONTEXT_STACK_VAR+" = (arguments.length == 0 || arguments[0] == null)? scope : arguments[0];\n");
+
+		//wrap the passed in object in a context,  if necessary
+		preamble.append("if(!("+JSWriter.CONTEXT_STACK_VAR+" instanceof "+ JSHelper.NS + "." + JSHelper.CONTEXT_CLASS+"))\n");
+		preamble.append(JSWriter.CONTEXT_STACK_VAR+" = new "+ JSHelper.NS + "." + JSHelper.CONTEXT_CLASS+"("+JSWriter.CONTEXT_STACK_VAR+");\n");
+
 		preamble.append("var "+JSWriter.RENDER_OPTIONS_VAR+" = (arguments.length < 2)? {} : arguments[1];\n");
-		preamble.append(JSWriter.CONTEXT_STACK_VAR + ".push({});\n");
+		preamble.append(JSWriter.CONTEXT_STACK_VAR + ".push();\n");
 		
 		for(Node node : nodeList) {
 			node.getRenderJSFn(preamble, writer);
@@ -100,33 +107,30 @@ public class Djang10Converter implements TemplateConverter {
 		String[] varNameParts = varName.split("\\.");
 		
 		// find the starting point
-		JSArray contextStack = (JSArray)scope.get(JSWriter.CONTEXT_STACK_VAR);
+		Context contextStack = (Context)scope.get(JSWriter.CONTEXT_STACK_VAR);
 		Object varValue = null;
 		
-		for(int i=contextStack.size() - 1; i>=0 && varValue == null; i--) {
-			JSObject context = (JSObject)contextStack.get(i);
-			varValue = context.get(varNameParts[0]);
-		}
+		varValue = contextStack.get(varNameParts[0]);
 		
 		if(varValue == null && allowGlobal) {
 			varValue = scope.get(varNameParts[0]);
 		}
 		
 		if(varValue == null)
-			throw new NoSuchFieldError();
+			return Variable.UNDEFINED_VALUE;
 		
 		// find the rest of the variable members
 		for(int i=1; i<varNameParts.length; i++) {
 			String varNamePart = varNameParts[i];
 
 			if(varValue == null || !(varValue instanceof JSObject))
-				throw new NoSuchFieldError();
+				return Variable.UNDEFINED_VALUE;
 			
 			JSObject varValueJsObj = (JSObject)varValue;
 			
 			if(!varValueJsObj.containsKey(varNamePart))
-				throw new NoSuchFieldError();
-			
+				return Variable.UNDEFINED_VALUE;
+
 			varValue = varValueJsObj.get(varNamePart);
 			
 			if(varValue instanceof JSFunction)

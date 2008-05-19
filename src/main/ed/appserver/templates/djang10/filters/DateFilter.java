@@ -3,13 +3,12 @@ package ed.appserver.templates.djang10.filters;
 import java.util.Date;
 
 import ed.appserver.templates.djang10.Util;
-import ed.appserver.templates.djang10.Variable;
 import ed.js.JSDate;
 
 public class DateFilter implements Filter {
 
 	public Object apply(Object value, Object param) {
-		if(value == null || value == Variable.UNDEFINED_VALUE)
+		if(value == null)
 			return null;
 		
 		Date date = new Date( ((JSDate)value).getTime() );
