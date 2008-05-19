@@ -131,6 +131,12 @@ public class JSNumericFunctions extends JSObjectBase {
 
     public Object JS_add( Object a , Object b ){
         
+        if ( a instanceof JSDate )
+            a = _parseNumber( a );
+        
+        if ( b instanceof JSDate )
+            b = _parseNumber( b );
+
         if ( a != null && ( a instanceof Number ) &&
              b != null && ( b instanceof Number ) ){
             

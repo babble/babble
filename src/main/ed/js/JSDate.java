@@ -56,6 +56,20 @@ public class JSDate extends JSObjectBase implements Comparable {
                             return ((JSDate)s.getThis())._time;
                         }
                     } );
+
+
+                _prototype.set( "utc" , new JSFunctionCalls0() {
+                        public Object call( Scope s , Object foo[] ){
+                            return ((JSDate)s.getThis()).utc();
+                        }
+                    } );
+
+
+                set( "now" , new JSFunctionCalls0(){
+                        public Object call( Scope s, Object foo[] ){
+                            return new JSDate();
+                        }
+                    } );
             }
 
         };
@@ -168,6 +182,10 @@ public class JSDate extends JSObjectBase implements Comparable {
     public int getHourOfDay(){
         _cal();
         return _c.get( Calendar.HOUR_OF_DAY );
+    }
+
+    public int minutes(){
+        return getMinute();
     }
 
     public int getMinutes(){
@@ -372,6 +390,10 @@ public class JSDate extends JSObjectBase implements Comparable {
         c.set( c.MINUTE , min * (int)m );
 
         return new JSDate( c );
+    }
+
+    public JSDate utc(){
+        return this;
     }
 
     private void _cal(){
