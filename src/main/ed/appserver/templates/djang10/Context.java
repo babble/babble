@@ -16,9 +16,6 @@ import ed.js.func.JSFunctionCalls1;
 public class Context extends JSObjectBase {
 	public static final String PUSH = "__push";
 	public static final String POP = "__pop";
-
-	public static int CONST_INST_COUNT = 0;
-	public static int OBJ_INST_COUNT = 0;
 	
 	public final static JSFunction CONSTRUCTOR = new JSFunctionCalls1() {
 		@Override
@@ -27,14 +24,14 @@ public class Context extends JSObjectBase {
 		}
 		@Override
 		public Object call(Scope scope, Object p0, Object[] extra) {
-			((Context)scope.getThis()).init((JSObject)p0);
+			if(p0 != null)
+				((Context)scope.getThis()).rebase((JSObject)p0);
 			
 			return null;
 		}
 		
 		@Override
 		protected void init() {
-			CONST_INST_COUNT ++;
 			
 			_prototype.set(PUSH, new JSFunctionCalls0() {
 				@Override
@@ -66,14 +63,15 @@ public class Context extends JSObjectBase {
 		super(CONSTRUCTOR);
 		
 		objectStack = new LinkedList<JSObject>();
+		objectStack.add(new JSObjectBase());
 	}
 	
 	private Context(JSObjectBase base) {
 		this();
 		
-		init(base);
+		rebase(base);
 	}
-	private void init(JSObject obj) {
+	private void rebase(JSObject obj) {
 		this.objectStack.clear();
 		this.objectStack.addFirst(obj);
 		
