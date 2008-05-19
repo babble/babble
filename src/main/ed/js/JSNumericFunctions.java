@@ -131,6 +131,12 @@ public class JSNumericFunctions extends JSObjectBase {
 
     public Object JS_add( Object a , Object b ){
         
+        if ( a instanceof JSDate )
+            a = _parseNumber( a );
+        
+        if ( b instanceof JSDate )
+            b = _parseNumber( b );
+
         if ( a != null && ( a instanceof Number ) &&
              b != null && ( b instanceof Number ) ){
             
@@ -278,6 +284,9 @@ public class JSNumericFunctions extends JSObjectBase {
         
         if ( o instanceof Number )
             return o;
+
+        if ( o instanceof JSDate )
+            return ((JSDate)o).getTime();
         
         String s = null;
         if ( o instanceof JSString )

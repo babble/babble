@@ -12,7 +12,7 @@ import ed.log.Logger;
 
 public class JSON {
 
-    static Set<String> IGNORE_NAMES = new HashSet<String>();
+    public static Set<String> IGNORE_NAMES = new HashSet<String>();
     static {
         IGNORE_NAMES.add( "_save" );
         IGNORE_NAMES.add( "_update" );

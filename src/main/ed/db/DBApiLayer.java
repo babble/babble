@@ -93,9 +93,12 @@ public abstract class DBApiLayer extends DBBase {
 		continue;
 
             String table = n.substring( idx + 1 );
-
+            
             tables.add( table );
         }
+
+        
+        Collections.sort( tables );
 
         return tables;
     }

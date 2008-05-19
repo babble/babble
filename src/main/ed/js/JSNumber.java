@@ -109,6 +109,13 @@ public class JSNumber {
 
         functions.set( "kilobytes" , new Conversion( 1024 ) );
         functions.set( "megabytes" , new Conversion( 1024 * 1024 ) );
+
+        functions.set( "seconds" , new Conversion( 1000 ) );
+        functions.set( "minutes" , new Conversion( 1000 * 60 ) );
+        functions.set( "hours" , new Conversion( 1000 * 60 * 60 ) );
+        functions.set( "days" , new Conversion( 1000 * 60 * 60 * 24 ) );
+        functions.set( "weeks" , new Conversion( 1000 * 60 * 60 * 24 * 7 ) );
+        functions.set( "years" , new Conversion( 1000 * 60 * 60 * 24 * 365.25 ) );
     }
 }
 

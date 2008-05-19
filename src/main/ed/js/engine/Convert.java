@@ -1564,7 +1564,10 @@ public class Convert implements StackTraceFixer {
         Node n = _getNodeFromJavaLine( line );
         if ( n == null )
             return -1;
-        return _nodeToSourceLine.get( n ) + 1;
+        Integer i = _nodeToSourceLine.get( n );
+        if ( i == null )
+            return -1;
+        return i + 1;
     }
 
     public void _debugLineNumber( final int line ){
