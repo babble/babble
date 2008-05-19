@@ -429,9 +429,6 @@ public class Ruby {
                     start = _rangeFix( start );
                     end = _rangeFix( end );
 
-                    if ( start.getClass() != end.getClass() )
-                        throw new NullPointerException( "can't only range the same thing" );
-
                     JSArray a = new JSArray();
                     a.set( "to_a" , new JSFunctionCalls0(){
                             public Object call( Scope s , Object foo[] ){
@@ -440,7 +437,7 @@ public class Ruby {
                         } );
                     
                     
-                    if ( start instanceof Character ){
+                    if ( start instanceof Character && end instanceof Character ){
                         char s = (Character)start;
                         char e = (Character)end;
                         
@@ -450,7 +447,7 @@ public class Ruby {
                         }
                         
                     }
-                    else if ( start instanceof Number ){
+                    else if ( start instanceof Number && end instanceof Number ){
                         int s = ((Number)start).intValue();
                         int e = ((Number)end).intValue();
 
@@ -460,7 +457,7 @@ public class Ruby {
                         }
                     }
                     else {
-                        throw new RuntimeException( "can't compare : " + start.getClass() );
+                        throw new RuntimeException( "can't compare : " + start.getClass() + " and " + end.getClass() );
                     }
 
                     return a;
