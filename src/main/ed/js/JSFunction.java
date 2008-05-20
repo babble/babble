@@ -35,7 +35,7 @@ public abstract class JSFunction extends JSFunctionBase {
     
     public Object set( Object n , Object b ){
         if ( n != null && "prototype".equals( n.toString() ) )
-            _prototype = (JSObject)b;
+            _prototype = (JSObjectBase)b;
         
         return super.set( n , b );
     }
@@ -188,7 +188,7 @@ public abstract class JSFunction extends JSFunctionBase {
     private final ThreadLocal<Boolean> _forceUsePassedInScopeTL = new ThreadLocal<Boolean>();
     
 
-    protected JSObject _prototype;
+    protected JSObjectBase _prototype;
     protected Language _sourceLanguage = Language.JS;
 
     protected JSArray _arguments;

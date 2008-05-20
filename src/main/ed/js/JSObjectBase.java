@@ -122,9 +122,16 @@ public class JSObjectBase implements JSObject {
     }
 
     public Object _simpleGet( String s ){
+        return _simpleGet( s , 0 );
+    }
+    
+    Object _simpleGet( String s , int depth ){
+        final boolean getOrSet = s.startsWith( GETSET_PREFIX );
+        
         Object res = null;
         
-        if ( ! s.startsWith( GETSET_PREFIX ) ){
+        if ( depth == 0 && 
+             ! getOrSet ){
             JSFunction f = getGetter( s );
             if ( f != null )
                 return _call( f );
@@ -138,13 +145,18 @@ public class JSObjectBase implements JSObject {
         if ( _map != null ){
             JSObject proto = (JSObject)_map.get( "prototype" );
             if ( proto != null ){
-                res = proto.get( s );
+
+                res = 
+                    proto instanceof JSObjectBase ? 
+                    ((JSObjectBase)proto)._simpleGet( s  , depth + 1) : 
+                    proto.get( s );
+                
                 if ( res != null ) return res;
             }
         };
         
         if ( _constructor != null ){
-            res = _constructor._prototype.get( s );
+            res = _constructor._prototype._simpleGet( s , depth + 1);
             if ( res != null ) return res;
         }
         
@@ -155,19 +167,22 @@ public class JSObjectBase implements JSObject {
             if ( res != null ) return res;
         }
 
-        if ( _constructor != null && ! s.equals( "prototype" ) ){
+        if ( _constructor != null && 
+             ! getOrSet &&
+             ! s.equals( "prototype" ) ){
             // basically static lookup
-            res = _constructor.get( s );
+            res = _constructor._simpleGet( s , depth + 1 );
             if ( res != null ) return res;
         }
 
-        if ( ! "__notFoundHandler".equals( s ) &&
+        if ( depth == 0 && 
+             ! "__notFoundHandler".equals( s ) &&
              ! "__preGet".equals( s ) && 
-             ! s.startsWith( GETSET_PREFIX ) && 
+             ! getOrSet && 
              ! BAD_KEY_NAMES.contains( s )
              ){
 
-            Object blah = _simpleGet( "__notFoundHandler" );
+            Object blah = _simpleGet( "__notFoundHandler" , depth + 1 );
             if ( blah instanceof JSFunction ){
                 JSFunction f = (JSFunction)blah;
                 Scope scope = f.getScope();
