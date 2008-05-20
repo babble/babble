@@ -163,7 +163,7 @@ public class JSDate extends JSObjectBase implements Comparable {
 
     public int getMonth(){
         _cal();
-        return 1 + _c.get( Calendar.MONTH );
+        return _c.get( Calendar.MONTH );
     }
 
     public int getDay(){
