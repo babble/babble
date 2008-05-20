@@ -102,6 +102,9 @@ public class JSDate extends JSObjectBase implements Comparable {
                             return new JSDate( t );
                         }
                     } );
+
+                
+                set( "civil" , this ); // TODO: check this
             }
 
         };
