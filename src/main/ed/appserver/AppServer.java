@@ -38,7 +38,7 @@ public class AppServer implements HttpHandler {
             return _getDefaultContext();
         }
 
-        AppContext ac = _context.get( host );
+        AppContext ac = _getContextFromMap( host );
         if ( ac != null )
             return ac;
 
@@ -113,11 +113,11 @@ public class AppServer implements HttpHandler {
         if ( ! f.exists() )
             throw new RuntimeException( "trying to map to " + f + " which doesn't exist" );
 
-        AppContext ac = _context.get( host );
+        AppContext ac = _getContextFromMap( host );
         if ( ac != null )
             return ac;
         
-        ac = _context.get( f.toString() );
+        ac = _getContextFromMap( f.toString() );
         if ( ac != null )
             return ac;
         
