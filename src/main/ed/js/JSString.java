@@ -154,6 +154,15 @@ public class JSString extends JSObjectBase {
                     }
                 } );
 
+            _prototype.set( "__rshift" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object o , Object foo[] ){
+                        JSString me = (JSString)(s.getThis());
+                        String thing = o.toString();
+                        me._s += thing;
+                        return me;
+                    }
+                } );
+
             _prototype.set( "lastIndexOf" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object o , Object foo[] ){
                         String str = s.getThis().toString();

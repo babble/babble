@@ -43,3 +43,17 @@ puts c[:foo]
 
 c = a.merge b
 puts c[:foo]
+
+z = 5
+z.times do
+  puts "a"
+end
+
+
+z = "123"
+puts z
+
+z << "456"
+puts z
+
+puts ( z << "a" )
