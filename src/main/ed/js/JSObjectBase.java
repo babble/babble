@@ -413,10 +413,36 @@ public class JSObjectBase implements JSObject {
                         return null;
                     }
                 } );
-        
+
+
+            set( "merge" , new JSFunctionCalls1(){
+                    public Object call( Scope s , Object other , Object args[] ){
+                        
+                        if ( other == null )
+                            return null;
+                        
+                        Object blah = s.getThis();
+                        if ( ! ( blah != null && blah instanceof JSObject ) )
+                            throw new RuntimeException( "extend not passed real thing" );
+                        
+                        if ( ! ( other instanceof JSObject ) )
+                            throw new RuntimeException( "can't extend with a non-object" );
+                        
+                        JSObjectBase n = new JSObjectBase();
+                        n.extend( (JSObject)s.getThis() );
+                        n.extend( (JSObject)other );
+
+                        return n;
+                    }
+                } );
+            
+
+
             set( "__include" , new JSFunctionCalls1(){
                     public Object call( Scope s , Object other , Object args[] ){
-                    
+
+                        System.err.println( "include called with :" + other );
+
                         if ( other == null )
                             return null;
 
@@ -425,7 +451,7 @@ public class JSObjectBase implements JSObject {
                     
                         Object blah = s.getThis();
                         if ( ! ( blah != null && blah instanceof JSObjectBase ) )
-                            throw new RuntimeException( "extendt not passed real thing" );
+                            throw new RuntimeException( "extend not passed real thing" );
                     
                         ((JSObjectBase)(s.getThis())).extend( (JSObject)other );
                         return null;
@@ -479,7 +505,7 @@ public class JSObjectBase implements JSObject {
                         return JSInternalFunctions.JS_instanceof( s.getThis() , type );
                     }
                 } );
-
+            
             set( "_lb__rb_" , new JSFunctionCalls1(){
                     public Object call( Scope s , Object name , Object args[] ){
                         return ((JSObjectBase)s.getThis()).get( name );
@@ -494,17 +520,20 @@ public class JSObjectBase implements JSObject {
                     }
                 } );
 
+            set( "has_key_q_" , get( "key_q_" ) );
+
             set( "__delete" , new JSFunctionCalls1(){
                     public Object call( Scope s , Object name , Object args[] ){
                         return ((JSObjectBase)s.getThis()).removeField( name );
                     }
                 } );
-
+            
             set( "const_defined_q_" , new JSFunctionCalls1(){
                     public Object call( Scope s , Object type , Object args[] ){
                         return s.get( type ) != null;
                     }
                 } );
+
         }
         
         public Collection<String> keySet(){
