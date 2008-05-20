@@ -59,18 +59,13 @@ public class Context extends JSObjectBase {
 	
 	private final LinkedList<JSObject> objectStack;
 	
-	private Context() {
-		super(CONSTRUCTOR);
-		
+	private Context() {		
 		objectStack = new LinkedList<JSObject>();
 		objectStack.add(new JSObjectBase());
+		
+		setConstructor(CONSTRUCTOR);
 	}
 	
-	private Context(JSObjectBase base) {
-		this();
-		
-		rebase(base);
-	}
 	private void rebase(JSObject obj) {
 		this.objectStack.clear();
 		this.objectStack.addFirst(obj);
