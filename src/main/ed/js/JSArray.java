@@ -444,18 +444,29 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                         Object blah = s.getParent().getThis();
                         s.setThis( blah );
                         
-                        for ( Object o : a._array ){
+                        Boolean old = func.setUsePassedInScopeTL( true );
+
+                        for ( int i=0; i<a._array.size(); i++ ){
+                            Object o = a._array.get( i );
                             Object ret = func.call( s , o );
                             
                             if ( ret == null )
                                 continue;
                             
+                            if ( -111 == ret ){
+                                i--;
+                                continue;
+                            }
+                                
+
                             if ( JSInternalFunctions.JS_evalToBool( ret ) )
                                 continue;
                             
                             break;
                         }
                         
+                        func.setUsePassedInScopeTL( old );
+
                         s.clearThisNormal( null );
                         return null;
                     }

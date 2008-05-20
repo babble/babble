@@ -50,14 +50,14 @@ public class JSDate extends JSObjectBase implements Comparable {
 
 
             protected void init(){
-
+                
                 _prototype.set( "getTime" , new JSFunctionCalls0() {
                         public Object call( Scope s , Object foo[] ){
                             return ((JSDate)s.getThis())._time;
                         }
                     } );
 
-
+                
                 _prototype.set( "utc" , new JSFunctionCalls0() {
                         public Object call( Scope s , Object foo[] ){
                             return ((JSDate)s.getThis()).utc();
@@ -70,18 +70,41 @@ public class JSDate extends JSObjectBase implements Comparable {
                         }
                     } );
 
+                _prototype.set( "next_month" , new JSFunctionCalls0() {
+                        public Object call( Scope s , Object foo[] ){
+                            JSDate d = (JSDate)s.getThis();
+                            JSDate n = new JSDate( d._time );
+                            n.setMonth( n.getMonth() + 1 );
+                            return n;
+                        }
+                    } );
+
                 _prototype.set( "strftime" , new JSFunctionCalls1() {
                         public Object call( Scope s , Object f , Object foo[] ){
                             return ((JSDate)s.getThis()).strftime( f.toString() );
                         }
                     } );
-
+                
+                
+                // -----------
 
                 set( "now" , new JSFunctionCalls0(){
                         public Object call( Scope s, Object foo[] ){
                             return new JSDate();
                         }
                     } );
+
+                set( "parse" , new JSFunctionCalls1(){
+                        public Object call( Scope s , Object when , Object foo[] ){
+                            long t = parse( when , -1 );
+                            if ( t < 0 )
+                                return null;
+                            return new JSDate( t );
+                        }
+                    } );
+
+                
+                set( "civil" , this ); // TODO: check this
             }
 
         };
@@ -163,7 +186,7 @@ public class JSDate extends JSObjectBase implements Comparable {
 
     public int getMonth(){
         _cal();
-        return 1 + _c.get( Calendar.MONTH );
+        return _c.get( Calendar.MONTH );
     }
 
     public int getDay(){
