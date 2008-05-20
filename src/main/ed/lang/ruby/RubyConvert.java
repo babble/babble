@@ -412,6 +412,15 @@ public class RubyConvert extends ed.MyAsserts {
 
         // --- looping ---
 
+        
+        else if ( node instanceof NextNode ){
+            _append( "return true" , node );
+        }
+
+        else if ( node instanceof RedoNode ){
+            _append( "return -111" , node );
+        }
+
         else if ( node instanceof BreakNode ){
             if ( state._whileCount > 0 )
                 _append( "break" , node );
@@ -1005,15 +1014,18 @@ public class RubyConvert extends ed.MyAsserts {
         if ( n instanceof Match3Node ||
              n instanceof Match2Node )
             return true;
-
+        
         if ( n instanceof BlockNode  
              || n instanceof DefnNode
              || n instanceof NewlineNode
              || n instanceof BeginNode
              || n instanceof BreakNode
              || n instanceof ZSuperNode
+             || n instanceof NextNode
+             || n instanceof RedoNode
              )
             return false;
+        
         
         return n.childNodes() == null || n.childNodes().size() <= 1;
     }

@@ -120,8 +120,22 @@ public abstract class JSFunction extends JSFunctionBase {
         return temp;
     }
 
+    public boolean usePassedInScope(){
+        Boolean b = _forceUsePassedInScopeTL.get();
+        if ( b != null )
+            return b;
+        
+        return _forceUsePassedInScope;
+    }
+
     public void setUsePassedInScope( boolean usePassedInScope ){
         _forceUsePassedInScope = usePassedInScope;
+    }
+
+    public Boolean setUsePassedInScopeTL( Boolean usePassedInScopeTL ){
+        Boolean old = _forceUsePassedInScopeTL.get();
+        _forceUsePassedInScopeTL.set( usePassedInScopeTL );
+        return old;
     }
 
     synchronized Object _cache( Scope s , long cacheTime , Object args[] ){
@@ -170,9 +184,11 @@ public abstract class JSFunction extends JSFunctionBase {
 
     private final Scope _scope;
     private final ThreadLocal<Scope> _tlScope = new ThreadLocal<Scope>();
+    private boolean _forceUsePassedInScope = false;
+    private final ThreadLocal<Boolean> _forceUsePassedInScopeTL = new ThreadLocal<Boolean>();
+    
 
     protected JSObject _prototype;
-    protected boolean _forceUsePassedInScope = false;
     protected Language _sourceLanguage = Language.JS;
 
     protected JSArray _arguments;
