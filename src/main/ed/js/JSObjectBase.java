@@ -296,7 +296,11 @@ public class JSObjectBase implements JSObject {
 
         Scope s = f.getScope().child();
         s.setThis( this );
-        return f.call( s ).toString();
+        
+        Object res = f.call( s );
+        if ( res == null )
+            return "Object(toString was null)";
+        return res.toString();
     }
 
     protected void addAll( JSObject other ){
@@ -514,8 +518,6 @@ public class JSObjectBase implements JSObject {
             set( "__include" , new JSFunctionCalls1(){
                     public Object call( Scope s , Object other , Object args[] ){
 
-                        System.err.println( "include called with :" + other );
-
                         if ( other == null )
                             return null;
 
@@ -570,6 +572,13 @@ public class JSObjectBase implements JSObject {
                         JSObjectBase obj = ((JSObjectBase)s.getThis());
                         obj.debug();
                         return null;
+                    }
+                } );
+
+            set( "__hashCode" , new JSFunctionCalls0(){
+                    public Object call( Scope s , Object args[] ){
+                        JSObjectBase obj = ((JSObjectBase)s.getThis());
+                        return obj.hashCode();
                     }
                 } );
 

@@ -100,10 +100,31 @@ public class JSNumber {
                     return ((Number)s.getThis()).doubleValue();
                 }
             } );
-
+        
         functions.set( "round" , new JSFunctionCalls0(){
                 public Object call( Scope s , Object foo[] ){
                     return (int)( ((Number)s.getThis()).doubleValue() + .5 );
+                }
+            } );
+
+        functions.set( "times" , new JSFunctionCalls1(){
+                public Object call( Scope s , Object func , Object foo[] ){
+                    final int t = ((Number)s.getThis()).intValue();
+                    final JSFunction f = (JSFunction)func;
+                    
+                    Object blah = s.getParent().getThis();
+                    s.setThis( blah );
+                    
+                    Boolean old = f.setUsePassedInScopeTL( true );
+                    
+                    for ( int i=0; i<t; i++ )
+                        f.call( s );
+                    
+                    f.setUsePassedInScopeTL( old );
+                    
+                    s.clearThisNormal( null );
+
+                    return null;
                 }
             } );
 
@@ -116,6 +137,7 @@ public class JSNumber {
         functions.set( "days" , new Conversion( 1000 * 60 * 60 * 24 ) );
         functions.set( "weeks" , new Conversion( 1000 * 60 * 60 * 24 * 7 ) );
         functions.set( "years" , new Conversion( 1000 * 60 * 60 * 24 * 365.25 ) );
+
     }
 }
 

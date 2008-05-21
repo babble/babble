@@ -103,10 +103,11 @@ public class JSDate extends JSObjectBase implements Comparable {
                         }
                     } );
 
-                
+                set( "DAYNAMES" , new JSArray( "Sunday" , "Monday" , "Tuesday" , "Wednesday" , "Thursday" , "Friday" , "Saturday" ) );
+
                 set( "civil" , this ); // TODO: check this
             }
-
+            
         };
 
     static long parse( Object o ){

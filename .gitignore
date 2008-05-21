@@ -1,5 +1,6 @@
 
 .jsshell
+.js*shell
 
 *.[oa]
 *~
