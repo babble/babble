@@ -320,7 +320,6 @@ public class Scope implements JSObject {
                 pt = obj;
                 foo = _getFromThis( obj , name );
 
- 
                 if ( foo != null ){
                     
                     if ( finder )
@@ -344,6 +343,10 @@ public class Scope implements JSObject {
             if ( foo != null ){
                 if ( finder )
                     throw new ScopeFinder( name , this );
+
+                if ( foo instanceof JSFunction && with != null )
+                    with[0] = pt;
+                
                 return foo;
             }
         }
