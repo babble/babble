@@ -122,7 +122,13 @@ public class JSDate extends JSObjectBase implements Comparable {
                                                ) 
                      );
 
-                set( "civil" , this ); // TODO: check this
+                set( "civil" , new JSFunctionCalls0(){
+                        public Object call( Scope s, Object foo[] ){
+                            // TODO: check this
+                            return s.getThis();
+                        }
+                    } );
+
             }
             
         };
