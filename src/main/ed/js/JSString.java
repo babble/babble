@@ -456,7 +456,6 @@ public class JSString extends JSObjectBase {
                     }
                 } );
 
-
             set("fromCharCode", new JSFunctionCalls0() {
                     public Object call(Scope s, Object [] args){
                         if(args == null) return new JSString("");

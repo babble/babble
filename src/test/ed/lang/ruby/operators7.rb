@@ -57,3 +57,8 @@ z << "456"
 puts z
 
 puts ( z << "a" )
+
+z = 4
+z.upto 10 do |z|
+  puts z
+end

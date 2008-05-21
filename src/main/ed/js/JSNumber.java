@@ -91,6 +91,22 @@ public class JSNumber {
         
         final double _conversion;
     }
+
+    static Object _loop( final Scope s , final JSFunction f , final int start , final int end ){
+        Object blah = s.getParent().getThis();
+        s.setThis( blah );
+        
+        Boolean old = f.setUsePassedInScopeTL( true );
+        
+        for ( int i=start; i<end; i++ )
+            f.call( s , i );
+        
+        f.setUsePassedInScopeTL( old );
+        
+        s.clearThisNormal( null );
+        
+        return null;        
+    }
     
     static {
         functions.set( "toFixed" , toFixed );
@@ -106,25 +122,23 @@ public class JSNumber {
                     return (int)( ((Number)s.getThis()).doubleValue() + .5 );
                 }
             } );
-
+        
         functions.set( "times" , new JSFunctionCalls1(){
                 public Object call( Scope s , Object func , Object foo[] ){
                     final int t = ((Number)s.getThis()).intValue();
                     final JSFunction f = (JSFunction)func;
                     
-                    Object blah = s.getParent().getThis();
-                    s.setThis( blah );
-                    
-                    Boolean old = f.setUsePassedInScopeTL( true );
-                    
-                    for ( int i=0; i<t; i++ )
-                        f.call( s );
-                    
-                    f.setUsePassedInScopeTL( old );
-                    
-                    s.clearThisNormal( null );
+                    return _loop( s , f , 0 , t );
+                }
+            } );
 
-                    return null;
+        functions.set( "upto" , new JSFunctionCalls2(){
+                public Object call( Scope s , Object num , Object func , Object foo[] ){
+                    final int start = ((Number)s.getThis()).intValue();
+                    final int end = ((Number)num).intValue() + 1;
+                    final JSFunction f = (JSFunction)func;
+                    
+                    return _loop( s , f , start , end );
                 }
             } );
 
