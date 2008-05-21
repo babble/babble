@@ -155,11 +155,22 @@ public class JSObjectBase implements JSObject {
             }
         };
         
-        if ( _constructor != null ){
+        JSObject proto = null;
+        
+        if ( _map != null ){
+            proto = (JSObject)_map.get( "__proto__" );
+            if ( proto != null ){
+                res = proto.get( s );
+                if ( res != null ) return res;                
+            }
+        }
+
+        if ( _constructor != null && _constructor._prototype != proto ){
             res = _constructor._prototype._simpleGet( s , depth + 1);
             if ( res != null ) return res;
         }
-        
+
+
         if ( _objectLowFunctions != null 
              && ( _map == null || _map.get( "prototype" ) == null ) 
              && _constructor == null ){
