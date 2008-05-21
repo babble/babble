@@ -1034,6 +1034,11 @@ public class Scope implements JSObject {
             }
             
             
+            if ( myClass.isArray() && params[i] instanceof JSArray ){
+                params[i] = ((JSArray)params[i]).toArray();
+                continue;
+            }
+
             if ( ! myClass.isAssignableFrom( params[i].getClass() ) ){
                 if ( debug ) System.out.println( "\t native assignement failed b/c " + myClasses[i] + " is not mappable from " + params[i].getClass() );
                 return null;
@@ -1058,6 +1063,7 @@ public class Scope implements JSObject {
 
             if ( myClass == Object.class && params[i].getClass() == JSString.class )
                 params[i] = params[i].toString();
+
         }
         
         return params;
