@@ -79,6 +79,15 @@ public class JSDate extends JSObjectBase implements Comparable {
                         }
                     } );
 
+                _prototype.set( "last_month" , new JSFunctionCalls0() {
+                        public Object call( Scope s , Object foo[] ){
+                            JSDate d = (JSDate)s.getThis();
+                            JSDate n = new JSDate( d._time );
+                            n.setMonth( n.getMonth() - 1 );
+                            return n;
+                        }
+                    } );
+
                 _prototype.set( "strftime" , new JSFunctionCalls1() {
                         public Object call( Scope s , Object f , Object foo[] ){
                             return ((JSDate)s.getThis()).strftime( f.toString() );
