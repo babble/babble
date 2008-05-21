@@ -333,7 +333,8 @@ public class Scope implements JSObject {
             }
         }
                 
-        if ( depth == 0 && _possibleThis != null && 
+        if ( depth == 0 && 
+             _possibleThis != null && 
              ! name.equals( "print" )  // TODO: this is a hack for ruby right now...
              ){
             
@@ -448,7 +449,7 @@ public class Scope implements JSObject {
         //System.err.println( "\t" + o + "\t" + with[0] );
         
         if ( o == null ){
-            if ( getParent().getThis() instanceof JSObject ){
+            if ( getParent().getThis( false ) instanceof JSObject ){
                 JSObject pt = (JSObject)getParent().getThis();
                 o = pt.get( name );
                 if ( o instanceof JSFunction ){
