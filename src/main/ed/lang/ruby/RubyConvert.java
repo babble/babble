@@ -170,7 +170,6 @@ public class RubyConvert extends ed.MyAsserts {
                     WhenNode w = (WhenNode)when;
                     
                     _append( "if( " , when );
-                    System.out.println( "expr : " + w.getExpressionNodes() );
                     
                     final Node expr = w.getExpressionNodes();
 
