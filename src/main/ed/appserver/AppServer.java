@@ -230,6 +230,8 @@ public class AppServer implements HttpHandler {
 	ar.setResponse( response );
 	ar.getContext().getScope().setTLPreferred( ar.getScope() );
 
+        response.setHeader( "X-ctx" , ar.getContext()._root );
+
         response.setAppRequest( ar );
         try {
             _handle( request , response , ar );
