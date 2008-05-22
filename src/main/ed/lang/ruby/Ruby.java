@@ -232,6 +232,12 @@ public class Ruby {
             } , true );
 
         r.set( "libPath" , new JSArray() );
+        
+        r.set( "defined" , new JSFunctionCalls1(){
+                public Object call( Scope s , Object o , Object extra[] ){
+                    return o != null;
+                }
+            } );
 
         s.put( RUBY_REQUIRE , new JSFunctionCalls1(){
                 public Object call( Scope s , Object pathObj , Object extra[] ){

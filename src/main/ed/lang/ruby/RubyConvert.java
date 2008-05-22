@@ -466,6 +466,12 @@ public class RubyConvert extends ed.MyAsserts {
             }
         }
 
+        else if ( node instanceof DefinedNode ){
+            _append( "Ruby.defined( " , node );
+            _add( ((DefinedNode)node).getExpressionNode() , state );
+            _append( " ) " , node );
+        }
+
         // --- operators ---
 
         else if ( node instanceof NotNode ){
