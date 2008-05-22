@@ -64,7 +64,7 @@ public class AppServer implements HttpHandler {
         }
         if ( useHost.startsWith( "www." ) )
             useHost = useHost.substring( 4 );
-        
+
         if ( uri != null && uri.length() > 0 && uri.indexOf( "/" , 1 ) > 0 ){
             for ( String d : CDN_HOST ){
                 if ( useHost.startsWith( d ) ){
@@ -84,6 +84,9 @@ public class AppServer implements HttpHandler {
 	if ( useHost.equals( "corejs.com" ) ){
 	    return _coreContext;
 	}
+
+        if ( useHost.equals( "com" ) )
+            useHost = "www.com";
 
         if ( D ) System.out.println( "useHost : " + useHost );
         
