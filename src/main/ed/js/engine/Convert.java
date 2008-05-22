@@ -345,7 +345,6 @@ public class Convert implements StackTraceFixer {
             
         case Token.SET_REF:
             _assertType( n.getFirstChild() , Token.REF_SPECIAL );
-            _assertType( n.getFirstChild().getFirstChild() , Token.NAME );
             
             _append( "((JSObject)" , n );
             _add( n.getFirstChild().getFirstChild() , state );
@@ -1130,7 +1129,7 @@ public class Convert implements StackTraceFixer {
         }
         callLine += " , Object extra[] ){\n" ;
         
-        _append( callLine + " final Scope scope = _forceUsePassedInScope ? passedIn : new Scope( \"temp scope for: \" + _name  , getScope() , passedIn ); " , n );
+        _append( callLine + " final Scope scope = usePassedInScope() ? passedIn : new Scope( \"temp scope for: \" + _name  , getScope() , passedIn ); " , n );
         if ( hasArguments ){
             _append( "JSArray arguments = new JSArray();\n" , n );
             _append( "scope.put( \"arguments\" , arguments , true );\n" , n );

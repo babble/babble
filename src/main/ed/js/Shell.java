@@ -13,7 +13,7 @@ import ed.lang.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 import ed.appserver.*;
-import ed.appserver.templates.Djang10Converter;
+import ed.appserver.templates.*;
 
 public class Shell {
     
@@ -112,15 +112,34 @@ public class Shell {
                 exit = true;
                 continue;
             }
-
-            File temp = new File( a );
-            try {
-                s.eval( temp );
+            
+            if ( a.endsWith( ".js" ) ){
+                File temp = new File( a );
+                try {
+                    s.eval( temp );
+                }
+                catch ( Exception e ){
+                    StackTraceHolder.getInstance().fix( e );
+                    e.printStackTrace();
+                    return;
+                }
             }
-            catch ( Exception e ){
-                StackTraceHolder.getInstance().fix( e );
-                e.printStackTrace();
-                return;
+            else {
+                Template t = new Template( a , StreamUtil.readFully( new FileInputStream( a ) ) , Language.find( a ) );
+                while ( ! t.getExtension().equals( "js" ) ){
+                    TemplateConverter.Result r = TemplateEngine.oneConvert( t );
+                    if ( r == null )
+                        throw new RuntimeException( "can't convert : " + t.getName() );
+                    t = r.getNewTemplate();
+                }
+                try {
+                    s.eval( t.getContent() );
+                }
+                catch ( Exception e ){
+                    StackTraceHolder.getInstance().fix( e );
+                    e.printStackTrace();
+                    return;
+                }
             }
 
         }

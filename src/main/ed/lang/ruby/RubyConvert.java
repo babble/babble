@@ -170,7 +170,6 @@ public class RubyConvert extends ed.MyAsserts {
                     WhenNode w = (WhenNode)when;
                     
                     _append( "if( " , when );
-                    System.out.println( "expr : " + w.getExpressionNodes() );
                     
                     final Node expr = w.getExpressionNodes();
 
@@ -232,6 +231,13 @@ public class RubyConvert extends ed.MyAsserts {
                 // no args
                 final String funcName = _getFuncName( f );
                 _append( Ruby.RUBY_V_CALL + "(" + funcName + ", \"" + funcName + "\" , this )" , f );
+            }
+            else if ( f.getName().equals( "JSRAW" ) ){
+                if ( f.getArgsNode().childNodes().size() != 1 )
+                    throw new RuntimeException( "bad JSRAW" );
+                if ( ! ( f.getArgsNode().childNodes().get(0) instanceof StrNode ) )
+                    throw new RuntimeException("bad JSRAW" );
+                _append( ((StrNode)(f.getArgsNode().childNodes().get(0))).getValue().toString() , f );
             }
             else {
                 _append( _getFuncName( f )  , node );
@@ -411,6 +417,15 @@ public class RubyConvert extends ed.MyAsserts {
         }
 
         // --- looping ---
+
+        
+        else if ( node instanceof NextNode ){
+            _append( "return true" , node );
+        }
+
+        else if ( node instanceof RedoNode ){
+            _append( "return -111" , node );
+        }
 
         else if ( node instanceof BreakNode ){
             if ( state._whileCount > 0 )
@@ -1005,15 +1020,18 @@ public class RubyConvert extends ed.MyAsserts {
         if ( n instanceof Match3Node ||
              n instanceof Match2Node )
             return true;
-
+        
         if ( n instanceof BlockNode  
              || n instanceof DefnNode
              || n instanceof NewlineNode
              || n instanceof BeginNode
              || n instanceof BreakNode
              || n instanceof ZSuperNode
+             || n instanceof NextNode
+             || n instanceof RedoNode
              )
             return false;
+        
         
         return n.childNodes() == null || n.childNodes().size() <= 1;
     }

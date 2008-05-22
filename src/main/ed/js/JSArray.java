@@ -275,6 +275,13 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                     }
                 } );
 
+            _prototype.set( "dup" , new JSFunctionCalls0() {
+                    public Object call( Scope s , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        return new JSArray( a );
+                    }
+                } );
+
             _prototype.set( "forEach" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object fo , Object foo[] ){
                         JSArray a = (JSArray)(s.getThis());
@@ -444,18 +451,29 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                         Object blah = s.getParent().getThis();
                         s.setThis( blah );
                         
-                        for ( Object o : a._array ){
+                        Boolean old = func.setUsePassedInScopeTL( true );
+
+                        for ( int i=0; i<a._array.size(); i++ ){
+                            Object o = a._array.get( i );
                             Object ret = func.call( s , o );
                             
                             if ( ret == null )
                                 continue;
                             
+                            if ( -111 == ret ){
+                                i--;
+                                continue;
+                            }
+                                
+
                             if ( JSInternalFunctions.JS_evalToBool( ret ) )
                                 continue;
                             
                             break;
                         }
                         
+                        func.setUsePassedInScopeTL( old );
+
                         s.clearThisNormal( null );
                         return null;
                     }

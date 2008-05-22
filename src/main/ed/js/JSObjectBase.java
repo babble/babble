@@ -10,8 +10,16 @@ import ed.js.func.*;
 import ed.js.engine.*;
 
 public class JSObjectBase implements JSObject {
-
+    
+    static final String GETSET_PREFIX = "_____gs____";
+    
+    static final Set<String> BAD_KEY_NAMES = new HashSet<String>();
     static {
+        BAD_KEY_NAMES.add( "__proto__" );
+        BAD_KEY_NAMES.add( "__constructor__" );
+        BAD_KEY_NAMES.add( "constructor" );
+        BAD_KEY_NAMES.add( "__parent____" );
+        
         JS._debugSIStart( "JSObjectBase" );
     }
 
@@ -26,38 +34,43 @@ public class JSObjectBase implements JSObject {
 
     public void prefunc(){}
 
+
     public Object set( Object n , Object v ){
         _readOnlyCheck();
         prefunc();
+        
         if ( n == null )
             n = "null";
-        
-        if ( v != null && v instanceof String )
-            v = new JSString( v.toString() );
         
         if ( n instanceof JSString )
             n = n.toString();
         
-        if ( v != null &&  "_id".equals( n ) &&
+        if ( v != null && "_id".equals( n ) &&
 	     ( ( v instanceof String ) || ( v instanceof JSString ) )
 	     ){
             v = new ObjectId( v.toString() );
         }
-            
+
+        if ( v != null && v instanceof String )
+            v = new JSString( v.toString() );
+        
         
         if ( n instanceof String ){
             String name = (String)n;
             
+            if ( ! name.startsWith( GETSET_PREFIX ) ){
+                JSFunction func = getSetter( name );
+                if ( func != null )
+                    return _call( func , v );
+            }
+
             if ( _map == null ){
                 _map = new TreeMap<String,Object>();
                 _keys = new ArrayList<String>();
             }
             
-            
-            if ( ! ( name.equals( "__proto__" ) || 
-                     name.equals( "__constructor__" ) || 
-                     name.equals( "constructor" ) || 
-                     name.equals( "__parent__" ) ) )
+            if ( ! BAD_KEY_NAMES.contains( name ) && 
+                 ! name.startsWith( GETSET_PREFIX ) )
                 if ( ! _map.containsKey( n ) )
                     _keys.add( name );
             
@@ -95,18 +108,8 @@ public class JSObjectBase implements JSObject {
         
         if ( ! "__preGet".equals( n ) ){
             Object foo = _simpleGet( "__preGet" );
-            if ( foo != null && foo instanceof JSFunction ){
-                Scope s = Scope.getLastCreated();
-                if ( s != null ){
-                    try {
-                        s.setThis( this );
-                        ((JSFunction)foo).call( s , n );
-                    }
-                    finally {
-                        s.clearThisNormal( null );
-                    }
-                }
-            }
+            if ( foo != null && foo instanceof JSFunction )
+                _call( (JSFunction)foo , n );
         }
 
         if ( n instanceof String )
@@ -119,39 +122,78 @@ public class JSObjectBase implements JSObject {
     }
 
     public Object _simpleGet( String s ){
+        return _simpleGet( s , 0 );
+    }
+    
+    Object _simpleGet( String s , int depth ){
+        final boolean getOrSet = s.startsWith( GETSET_PREFIX );
+        
         Object res = null;
         
-        if ( _map != null )
+        if ( depth == 0 && 
+             ! getOrSet ){
+            JSFunction f = getGetter( s );
+            if ( f != null )
+                return _call( f );
+        }
+
+        if ( _map != null ){
             res = _map.get( s );
-        
-        if ( res == null && _map != null ){
+            if ( res != null ) return res;
+        }
+
+        if ( _map != null ){
             JSObject proto = (JSObject)_map.get( "prototype" );
-            if ( proto != null )
-                res = proto.get( s );
+            if ( proto != null ){
+
+                res = 
+                    proto instanceof JSObjectBase ? 
+                    ((JSObjectBase)proto)._simpleGet( s  , depth + 1) : 
+                    proto.get( s );
+                
+                if ( res != null ) return res;
+            }
         };
         
-        if ( res == null && _constructor != null ){
-            res = _constructor._prototype.get( s );
-        }
+        JSObject proto = null;
         
-        if ( res == null && _objectLowFunctions != null 
+        if ( _map != null ){
+            proto = (JSObject)_map.get( "__proto__" );
+            if ( proto != null ){
+                res = proto.get( s );
+                if ( res != null ) return res;                
+            }
+        }
+
+        if ( _constructor != null && _constructor._prototype != proto ){
+            res = _constructor._prototype._simpleGet( s , depth + 1);
+            if ( res != null ) return res;
+        }
+
+
+        if ( _objectLowFunctions != null 
              && ( _map == null || _map.get( "prototype" ) == null ) 
              && _constructor == null ){
             res = _objectLowFunctions.get( s );
+            if ( res != null ) return res;
         }
 
-        if ( res == null && _constructor != null && ! s.equals( "prototype" ) ){
+        if ( _constructor != null && 
+             ! getOrSet &&
+             ! s.equals( "prototype" ) ){
             // basically static lookup
-            res = _constructor.get( s );
+            res = _constructor._simpleGet( s , depth + 1 );
+            if ( res != null ) return res;
         }
 
-        if ( res == null && 
-             ! ( "__notFoundHandler".equals( s ) 
-                 || "__preGet".equals( s )
-                 )
+        if ( depth == 0 && 
+             ! "__notFoundHandler".equals( s ) &&
+             ! "__preGet".equals( s ) && 
+             ! getOrSet && 
+             ! BAD_KEY_NAMES.contains( s )
              ){
 
-            Object blah = _simpleGet( "__notFoundHandler" );
+            Object blah = _simpleGet( "__notFoundHandler" , depth + 1 );
             if ( blah instanceof JSFunction ){
                 JSFunction f = (JSFunction)blah;
                 Scope scope = f.getScope();
@@ -171,7 +213,7 @@ public class JSObjectBase implements JSObject {
             }
         }
 
-        return res;
+        return null;
     }
 
     public Object removeField( Object n ){
@@ -224,6 +266,37 @@ public class JSObjectBase implements JSObject {
         return _keys;
     }
 
+    // ----
+    // [gs]etter
+    // ---
+
+    void setSetter( String name , JSFunction func ){
+        set( setterName( name ) , func );
+    }
+    
+    void setGetter( String name , JSFunction func ){
+        set( getterName( name ) , func );
+    }
+
+    JSFunction getSetter( String name ){
+        return (JSFunction)(_simpleGet( setterName( name ) ) );
+    }
+
+    JSFunction getGetter( String name ){
+        return (JSFunction)(_simpleGet( getterName( name ) ) );
+    }
+
+
+    static String setterName( String name ){
+        return GETSET_PREFIX + "SET" + name;
+    }
+
+    static String getterName( String name ){
+        return GETSET_PREFIX + "GET" + name;
+    }
+
+    // ---
+
     public String toString(){
         Object temp = get( "toString" );
         
@@ -234,12 +307,27 @@ public class JSObjectBase implements JSObject {
 
         Scope s = f.getScope().child();
         s.setThis( this );
-        return f.call( s ).toString();
+        
+        Object res = f.call( s );
+        if ( res == null )
+            return "Object(toString was null)";
+        return res.toString();
     }
 
     protected void addAll( JSObject other ){
         for ( String s : other.keySet() )
             set( s , other.get( s ) );
+    }
+
+    private Object _call( JSFunction func , Object ... params ){
+        Scope sc = Scope.getAScope();
+        sc.setThis( this );
+        try {
+            return func.call( sc , params );
+        }
+        finally {
+            sc.clearThisNormal( null );
+        }
     }
 
     public String getJavaString( Object name ){
@@ -413,10 +501,34 @@ public class JSObjectBase implements JSObject {
                         return null;
                     }
                 } );
-        
+
+
+            set( "merge" , new JSFunctionCalls1(){
+                    public Object call( Scope s , Object other , Object args[] ){
+                        
+                        if ( other == null )
+                            return null;
+                        
+                        Object blah = s.getThis();
+                        if ( ! ( blah != null && blah instanceof JSObject ) )
+                            throw new RuntimeException( "extend not passed real thing" );
+                        
+                        if ( ! ( other instanceof JSObject ) )
+                            throw new RuntimeException( "can't extend with a non-object" );
+                        
+                        JSObjectBase n = new JSObjectBase();
+                        n.extend( (JSObject)s.getThis() );
+                        n.extend( (JSObject)other );
+
+                        return n;
+                    }
+                } );
+            
+
+
             set( "__include" , new JSFunctionCalls1(){
                     public Object call( Scope s , Object other , Object args[] ){
-                    
+
                         if ( other == null )
                             return null;
 
@@ -425,7 +537,7 @@ public class JSObjectBase implements JSObject {
                     
                         Object blah = s.getThis();
                         if ( ! ( blah != null && blah instanceof JSObjectBase ) )
-                            throw new RuntimeException( "extendt not passed real thing" );
+                            throw new RuntimeException( "extend not passed real thing" );
                     
                         ((JSObjectBase)(s.getThis())).extend( (JSObject)other );
                         return null;
@@ -474,9 +586,23 @@ public class JSObjectBase implements JSObject {
                     }
                 } );
 
+            set( "__hashCode" , new JSFunctionCalls0(){
+                    public Object call( Scope s , Object args[] ){
+                        JSObjectBase obj = ((JSObjectBase)s.getThis());
+                        return obj.hashCode();
+                    }
+                } );
+
             set( "is_a_q_" , new JSFunctionCalls1(){
                     public Object call( Scope s , Object type , Object args[] ){
                         return JSInternalFunctions.JS_instanceof( s.getThis() , type );
+                    }
+                } );
+            
+
+            set( "eql_q_" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object o , Object crap[] ){
+                        return s.getThis().equals( o );
                     }
                 } );
 
@@ -494,17 +620,42 @@ public class JSObjectBase implements JSObject {
                     }
                 } );
 
+            set( "has_key_q_" , get( "key_q_" ) );
+
             set( "__delete" , new JSFunctionCalls1(){
                     public Object call( Scope s , Object name , Object args[] ){
                         return ((JSObjectBase)s.getThis()).removeField( name );
                     }
                 } );
-
+            
             set( "const_defined_q_" , new JSFunctionCalls1(){
                     public Object call( Scope s , Object type , Object args[] ){
                         return s.get( type ) != null;
                     }
                 } );
+
+            set( "__defineGetter__" , new JSFunctionCalls2(){
+                    public Object call( Scope s , Object name , Object func , Object args[] ){
+                        if ( ! ( s.getThis() instanceof JSObjectBase ) )
+                            throw new RuntimeException( "not a JSObjectBase" );
+                        
+                        JSObjectBase o = (JSObjectBase)s.getThis();
+                        o.setGetter( name.toString() , (JSFunction)func );
+                        return null;
+                    }
+                } );
+
+            set( "__defineSetter__" , new JSFunctionCalls2(){
+                    public Object call( Scope s , Object name , Object func , Object args[] ){
+                        if ( ! ( s.getThis() instanceof JSObjectBase ) )
+                            throw new RuntimeException( "not a JSObjectBase" );
+                        
+                        JSObjectBase o = (JSObjectBase)s.getThis();
+                        o.setSetter( name.toString() , (JSFunction)func );
+                        return null;
+                    }
+                } );
+
         }
         
         public Collection<String> keySet(){
