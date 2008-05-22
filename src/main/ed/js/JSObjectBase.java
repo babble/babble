@@ -599,6 +599,13 @@ public class JSObjectBase implements JSObject {
                     }
                 } );
             
+
+            set( "eql_q_" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object o , Object crap[] ){
+                        return s.getThis().equals( o );
+                    }
+                } );
+
             set( "_lb__rb_" , new JSFunctionCalls1(){
                     public Object call( Scope s , Object name , Object args[] ){
                         return ((JSObjectBase)s.getThis()).get( name );

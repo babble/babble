@@ -58,6 +58,14 @@ public class Scope implements JSObject {
         _name = name;
         _parent = parent;
         _root = root;
+
+        {
+            Object pt = alternate == null ? null : alternate.getThis( false );
+            if ( pt != null && pt.getClass() == JSObjectBase.class )
+                _possibleThis = (JSObjectBase)pt;
+            else
+                _possibleThis = null;
+        }
         
         Scope alt = null;
         if ( alternate != null ){
@@ -289,48 +297,80 @@ public class Scope implements JSObject {
                 throw new RuntimeException( "i fucked up" );
             return alt.get( origName , null );
         }
-
+        
         if ( _parent == null )
             return null;
         
+        if ( foo != null )
+            throw new RuntimeException( "eliot is stupid" );
+
         // TODO: this makes lookups inside classes work
         //       this is for ruby
         //       it technically violates JS rules
         //       it should probably only work within ruby.
         //       not sure how to do that...
+
+        JSObjectBase pt = null;
+        
         if ( depth == 1 && ! noThis ){
             Object t = getThis( false );
-
+            
             if ( t != null && t.getClass() == JSObjectBase.class ){
                 JSObjectBase obj = (JSObjectBase)t;
-                foo = obj.get( name );
+                pt = obj;
+                foo = _getFromThis( obj , name );
 
-                if ( foo == null && obj.getConstructor() != null ){
-                    foo = obj.getConstructor().get( name );
-                }
-                
                 if ( foo != null ){
-
+                    
                     if ( finder )
                         throw new ScopeFinder( name , this );
                     
-                    if ( foo instanceof JSFunction ){
-                        JSFunction func = (JSFunction)foo;
-                        if ( func.getSourceLanguage() != Language.RUBY ){
-                            foo = null;
-                        }
-                        else if ( with != null ){
-                            with[0] = obj;
-                        }
-                    }
+                    if ( foo instanceof JSFunction && with != null )
+                        with[0] = pt;
                     
-                    if ( foo != null )
-                        return foo;
+                    return foo;
                 }
+            }
+        }
+                
+        if ( depth == 0 && 
+             _possibleThis != null && 
+             ! name.equals( "print" )  // TODO: this is a hack for ruby right now...
+             ){
+            
+            pt = _possibleThis;
+            foo = _getFromThis( _possibleThis , name );
+
+            if ( foo != null ){
+                if ( finder )
+                    throw new ScopeFinder( name , this );
+
+                if ( foo instanceof JSFunction && with != null )
+                    with[0] = pt;
+                
+                return foo;
             }
         }
 
         return _parent._get( origName , alt , with , depth + 1 );
+    }
+
+    private Object _getFromThis( JSObjectBase t , String name ){
+        if ( t == null )
+            return null;
+        
+        Object o = t.get( name );
+        if ( o == null && t.getConstructor() != null )
+            o = t.getConstructor().get( name );
+        
+        if ( o == null )
+            return null;
+        
+        if ( o instanceof JSFunction &&
+             ((JSFunction)o).getSourceLanguage() != Language.RUBY )
+            return null;
+
+        return o;
     }
 
     public Object getOrThis( String name ){
@@ -409,7 +449,7 @@ public class Scope implements JSObject {
         //System.err.println( "\t" + o + "\t" + with[0] );
         
         if ( o == null ){
-            if ( getParent().getThis() instanceof JSObject ){
+            if ( getParent().getThis( false ) instanceof JSObject ){
                 JSObject pt = (JSObject)getParent().getThis();
                 o = pt.get( name );
                 if ( o instanceof JSFunction ){
@@ -426,8 +466,9 @@ public class Scope implements JSObject {
             }
         }
 
-        if ( o == null )
+        if ( o == null ){
             throw new NullPointerException( name );
+        }
         
         if ( ! ( o instanceof JSFunction ) )
             throw new RuntimeException( "not a function : " + name );
@@ -489,6 +530,7 @@ public class Scope implements JSObject {
         
         if ( DEBUG ) System.out.println( "\t pushing native" );
         _this.push( new This( obj , name ) );
+
         return _nativeFuncCall;
     }
     
@@ -675,6 +717,10 @@ public class Scope implements JSObject {
     }
     
     public void debug( int indent ){
+        debug( indent , true );
+    }
+    
+    public void debug( int indent , boolean showKeys ){
         for ( int i=0; i<indent; i++ )
             System.out.print( "  " );
         System.out.print( toString() + ":" );
@@ -687,7 +733,7 @@ public class Scope implements JSObject {
             System.out.print( "L" );
         
         System.out.print( ":" );
-        if ( _objects != null )
+        if ( showKeys && _objects != null )
             System.out.print( _objects.keySet() );
         
         System.out.print( "||" );
@@ -760,6 +806,7 @@ public class Scope implements JSObject {
     final Scope _parent;
     final Scope _alternate;
     final File _root;
+    final JSObjectBase _possibleThis;
     public final long _id = ID++;
     
     boolean _locked = false;
@@ -775,6 +822,8 @@ public class Scope implements JSObject {
     Stack<JSObject> _with;
     Object _orSave;
     JSObject _globalThis;
+
+
     
     public void makeThreadLocal(){
         _threadLocal.set( this );
@@ -867,6 +916,8 @@ public class Scope implements JSObject {
                 final boolean debug = false;
                 
                 This temp = s._this.peek();
+                if ( temp._this != null )
+                    throw new RuntimeException( "why is this._this is not null : " + temp._this + " s:" + s.hashCode() );
                 final Object obj = temp._nThis;
                 final String name = temp._nThisFunc;
                 
@@ -987,6 +1038,11 @@ public class Scope implements JSObject {
             }
             
             
+            if ( myClass.isArray() && params[i] instanceof JSArray ){
+                params[i] = ((JSArray)params[i]).toArray();
+                continue;
+            }
+
             if ( ! myClass.isAssignableFrom( params[i].getClass() ) ){
                 if ( debug ) System.out.println( "\t native assignement failed b/c " + myClasses[i] + " is not mappable from " + params[i].getClass() );
                 return null;
@@ -1011,6 +1067,7 @@ public class Scope implements JSObject {
 
             if ( myClass == Object.class && params[i].getClass() == JSString.class )
                 params[i] = params[i].toString();
+
         }
         
         return params;

@@ -64,7 +64,7 @@ public class AppServer implements HttpHandler {
         }
         if ( useHost.startsWith( "www." ) )
             useHost = useHost.substring( 4 );
-        
+
         if ( uri != null && uri.length() > 0 && uri.indexOf( "/" , 1 ) > 0 ){
             for ( String d : CDN_HOST ){
                 if ( useHost.startsWith( d ) ){
@@ -84,6 +84,9 @@ public class AppServer implements HttpHandler {
 	if ( useHost.equals( "corejs.com" ) ){
 	    return _coreContext;
 	}
+
+        if ( useHost.equals( "com" ) )
+            useHost = "www.com";
 
         if ( D ) System.out.println( "useHost : " + useHost );
         
@@ -226,6 +229,8 @@ public class AppServer implements HttpHandler {
         
 	ar.setResponse( response );
 	ar.getContext().getScope().setTLPreferred( ar.getScope() );
+
+        response.setHeader( "X-ctx" , ar.getContext()._root );
 
         response.setAppRequest( ar );
         try {
@@ -422,15 +427,15 @@ public class AppServer implements HttpHandler {
     }
 
     private AppContext _getContextFromMap( String host ){
-        AppContext ac = _context.get( host );
-        if ( ac == null )
-            return null;
-        
-        if ( ! ac._reset )
-            return ac;
 
-        _context.put( host , null );
-        return null;
+        AppContext ac = _context.get( host );
+        
+        if (ac != null && ac.isReset()) {
+            _context.put( host , null );
+            ac = null;
+        }
+        
+        return ac;
     }
     
     private synchronized AppContext _getDefaultContext(){

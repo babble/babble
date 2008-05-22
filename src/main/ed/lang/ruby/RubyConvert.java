@@ -170,7 +170,6 @@ public class RubyConvert extends ed.MyAsserts {
                     WhenNode w = (WhenNode)when;
                     
                     _append( "if( " , when );
-                    System.out.println( "expr : " + w.getExpressionNodes() );
                     
                     final Node expr = w.getExpressionNodes();
 
@@ -232,6 +231,13 @@ public class RubyConvert extends ed.MyAsserts {
                 // no args
                 final String funcName = _getFuncName( f );
                 _append( Ruby.RUBY_V_CALL + "(" + funcName + ", \"" + funcName + "\" , this )" , f );
+            }
+            else if ( f.getName().equals( "JSRAW" ) ){
+                if ( f.getArgsNode().childNodes().size() != 1 )
+                    throw new RuntimeException( "bad JSRAW" );
+                if ( ! ( f.getArgsNode().childNodes().get(0) instanceof StrNode ) )
+                    throw new RuntimeException("bad JSRAW" );
+                _append( ((StrNode)(f.getArgsNode().childNodes().get(0))).getValue().toString() , f );
             }
             else {
                 _append( _getFuncName( f )  , node );
@@ -458,6 +464,12 @@ public class RubyConvert extends ed.MyAsserts {
                     _append( " } \n " , ifn );
                 }
             }
+        }
+
+        else if ( node instanceof DefinedNode ){
+            _append( "Ruby.defined( " , node );
+            _add( ((DefinedNode)node).getExpressionNode() , state );
+            _append( " ) " , node );
         }
 
         // --- operators ---

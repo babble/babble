@@ -223,6 +223,10 @@ public class AppContext {
         _reset = true;
     }
     
+    public boolean isReset() { 
+        return _reset;
+    }
+    
     public String getRoot(){
         return _root;
     }
