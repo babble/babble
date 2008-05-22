@@ -107,9 +107,11 @@ public class Ruby {
                     if ( funcName == null )
                         throw new NullPointerException( "funcName can't be null" );
                     
-                    if ( thing instanceof Number ){
+                    if ( thing instanceof Number )
                         thing = JSNumber.functions;
-                    }
+
+                    if ( thing instanceof Boolean )
+                        thing = JSBoolean.functions;
 
                     if ( ! ( thing instanceof JSObject) ){
                         throw new RuntimeException( "problem (" + thing.getClass() + ")" );
