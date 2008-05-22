@@ -28,7 +28,6 @@ public abstract class JSFunction extends JSFunctionBase {
         _init();
 
         set( "prototype" , _prototype );
-        set( "isFunction" , true );
         
         init();
     }
