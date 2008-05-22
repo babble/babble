@@ -422,15 +422,15 @@ public class AppServer implements HttpHandler {
     }
 
     private AppContext _getContextFromMap( String host ){
-        AppContext ac = _context.get( host );
-        if ( ac == null )
-            return null;
-        
-        if ( ! ac._reset )
-            return ac;
 
-        _context.put( host , null );
-        return null;
+        AppContext ac = _context.get( host );
+        
+        if (ac != null && ac.isReset()) {
+            _context.put( host , null );
+            ac = null;
+        }
+        
+        return ac;
     }
     
     private synchronized AppContext _getDefaultContext(){
