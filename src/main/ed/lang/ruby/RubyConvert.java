@@ -1134,6 +1134,8 @@ public class RubyConvert extends ed.MyAsserts {
                 throw new RuntimeException( "don't know what to do with : " + var + " : " + var.getPosition() );
         }
         _append( " ){ \n" , it );
+        if ( it.getBodyNode() instanceof NewlineNode )
+            _append( "return " , it );
         _add( it.getBodyNode() , state );
         _append( " }" , it );
     }

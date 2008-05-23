@@ -75,3 +75,8 @@ foo = false;
 puts foo
 z = "1"
 puts( foo &&= " 123" + z )
+
+puts( "foo".gsub /o/ do
+        "z" 
+      end
+      );
