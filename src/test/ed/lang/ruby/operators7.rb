@@ -80,3 +80,13 @@ puts( "foo".gsub /o/ do
         "z" 
       end
       );
+
+puts( "foa".gsub /[oa]/ do |m|
+        if ( m == "o" )
+          "z" + m
+        else
+          puts "blah"
+          "y" +m
+        end
+      end
+      );

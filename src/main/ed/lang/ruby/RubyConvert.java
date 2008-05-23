@@ -1134,9 +1134,11 @@ public class RubyConvert extends ed.MyAsserts {
                 throw new RuntimeException( "don't know what to do with : " + var + " : " + var.getPosition() );
         }
         _append( " ){ \n" , it );
-        if ( it.getBodyNode() instanceof NewlineNode )
+        if ( it.getBodyNode() instanceof NewlineNode && 
+             _isSingleStatement( it.getBodyNode() ) )
             _append( "return " , it );
         _add( it.getBodyNode() , state );
+        _append( "\nreturn __last__;\n" , it );
         _append( " }" , it );
     }
 
