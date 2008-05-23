@@ -104,7 +104,7 @@ public class Djang10Converter implements TemplateConverter {
 	 * resolved then, Variable.UNRESOLVED_VALUE is returned.
 	 * @return
 	 */
-	public static Object resolveVariable(Scope scope, String unresolvedValue, boolean allowGlobal) {
+	public static Object resolveVariable(Scope scope, String unresolvedValue, boolean allowGlobal, boolean callLeaf) {
 		String varName = unresolvedValue;
 		
 		if(varName == null)
@@ -135,6 +135,9 @@ public class Djang10Converter implements TemplateConverter {
 		if(varValue == null)
 			return Variable.UNDEFINED_VALUE;
 		
+		if((varNameParts.length > 1 || callLeaf) && varValue instanceof JSFunction)
+			varValue = ((JSFunction)varValue).call(scope.child());
+		
 		// find the rest of the variable members
 		for(int i=1; i<varNameParts.length; i++) {
 			String varNamePart = varNameParts[i];
@@ -149,7 +152,7 @@ public class Djang10Converter implements TemplateConverter {
 
 			varValue = varValueJsObj.get(varNamePart);
 			
-			if(varValue instanceof JSFunction)
+			if((callLeaf || i < varNameParts.length -1) && varValue instanceof JSFunction)
 				varValue = ((JSFunction)varValue).callAndSetThis(scope.child(), varValueJsObj, new Object[0]);
 		}
 

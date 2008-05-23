@@ -60,7 +60,7 @@ public class CallTagHandler implements TagHandler {
 		
 		@Override
 		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) {
-			buffer.appendVarExpansion(startLine, functionName, "null", allowGlobal);
+			buffer.appendVarExpansion(startLine, functionName, "null", allowGlobal, false);
 			buffer.append(startLine, "(");
 			
 			boolean isFirst = true;
@@ -69,7 +69,7 @@ public class CallTagHandler implements TagHandler {
 					buffer.append(startLine, ", ");
 				isFirst = false;
 				
-				buffer.appendVarExpansion(startLine, param, "null", allowGlobal);
+				buffer.appendVarExpansion(startLine, param, "null", allowGlobal, true);
 			}
 			
 			buffer.append(startLine, ");\n");

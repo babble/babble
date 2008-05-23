@@ -39,7 +39,7 @@ public class IncludeTagHandler implements TagHandler {
 			if(Parser.isQuoted(varName))
 				buffer.append(startLine, varName);
 			else
-				buffer.appendVarExpansion(startLine, varName, "null");
+				buffer.appendVarExpansion(startLine, varName, "null", false, false);
 			buffer.append(startLine, ", " + JSWriter.CONTEXT_STACK_VAR + ");\n");
 		}
 	}

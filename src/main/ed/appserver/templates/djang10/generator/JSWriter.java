@@ -42,9 +42,9 @@ public class JSWriter {
 	}
 	
 	public void appendVarExpansion(int srcLine, String varName, String defaultValue) {
-		appendVarExpansion(srcLine, varName, defaultValue, false);
+		appendVarExpansion(srcLine, varName, defaultValue, false, true);
 	}
-	public void appendVarExpansion(int srcLine, String varName, String defaultValue, boolean allowGlobal) {
+	public void appendVarExpansion(int srcLine, String varName, String defaultValue, boolean allowGlobal, boolean callLeaf) {
 		appendHelper(srcLine, JSHelper.VAR_EXPAND);
 		append("(\"");
 		append(varName.replace("\"", "\\\""));
@@ -52,6 +52,8 @@ public class JSWriter {
 		append(defaultValue);
 		append(", ");
 		append(Boolean.toString(allowGlobal));
+		append(", ");
+		append(Boolean.toString(callLeaf));
 		append(")");
 	}
 	public void appendCurrentContextVar(int srcLine, String name) {
