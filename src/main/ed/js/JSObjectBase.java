@@ -656,6 +656,12 @@ public class JSObjectBase implements JSObject {
                     }
                 } );
 
+            set( "to_i" , new JSFunctionCalls0(){
+                    public Object call( Scope s , Object args[] ){                    
+                        return JSInternalFunctions.parseNumber( s.getThis() , null );
+                    }
+                } );
+
         }
         
         public Collection<String> keySet(){

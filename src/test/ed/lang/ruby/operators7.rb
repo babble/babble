@@ -62,3 +62,31 @@ z = 4
 z.upto 10 do |z|
   puts z
 end
+
+puts "zzzzz"
+
+foo = "abc";
+puts foo
+z = "1"
+puts( foo &&= " 123" + z )
+puts foo
+
+foo = false;
+puts foo
+z = "1"
+puts( foo &&= " 123" + z )
+
+puts( "foo".gsub /o/ do
+        "z" 
+      end
+      );
+
+puts( "foa".gsub /[oa]/ do |m|
+        if ( m == "o" )
+          "z" + m
+        else
+          puts "blah"
+          "y" +m
+        end
+      end
+      );
