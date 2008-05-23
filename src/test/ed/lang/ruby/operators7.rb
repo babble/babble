@@ -62,3 +62,16 @@ z = 4
 z.upto 10 do |z|
   puts z
 end
+
+puts "zzzzz"
+
+foo = "abc";
+puts foo
+z = "1"
+puts( foo &&= " 123" + z )
+puts foo
+
+foo = false;
+puts foo
+z = "1"
+puts( foo &&= " 123" + z )
