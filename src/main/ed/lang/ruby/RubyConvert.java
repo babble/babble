@@ -548,6 +548,11 @@ public class RubyConvert extends ed.MyAsserts {
             _append( "(RegExp.last().getLast()[" + nth.getMatchNumber() + "])" , nth );
         }
 
+        else if ( node instanceof BackRefNode ){
+            BackRefNode nth = (BackRefNode)node;
+            _append( "(RegExp.last().getLast()[0])" , nth );
+        }
+
         // --- vars ---
 
         else if ( node instanceof GlobalVarNode ){

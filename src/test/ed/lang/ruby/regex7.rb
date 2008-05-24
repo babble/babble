@@ -8,3 +8,8 @@ blah( "a" )
 blah( "b" )
 blah( "c" )
 blah( "f" )
+
+foo = "abc"
+foo =~ /b/
+puts foo
+puts $&
