@@ -1029,6 +1029,9 @@ public class RubyConvert extends ed.MyAsserts {
         
         if ( n instanceof LocalAsgnNode )
             return _isSingleStatement( ((LocalAsgnNode)n).getValueNode() );
+
+        if ( n instanceof DAsgnNode )
+            return _isSingleStatement( ((DAsgnNode)n).getValueNode() );
         
         if ( n instanceof CallNode ||
              n instanceof FCallNode ||
@@ -1578,6 +1581,7 @@ public class RubyConvert extends ed.MyAsserts {
         return name;
     }
     static String[][] _functionReplacements = new String[][]{ 
+        new String[]{ "~" , "_t_" } ,
         new String[]{ "!" , "_ex_" } ,
         new String[]{ "=" , "_eq_" } ,
         new String[]{ ">" , "_gt_" } ,

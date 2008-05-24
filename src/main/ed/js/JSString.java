@@ -321,6 +321,8 @@ public class JSString extends JSObjectBase {
                     }
                 } );
 
+            _prototype.set( "_eq__t_" , _prototype.get( "match" ) );
+
             _prototype.set( "__delete" , new JSFunctionCalls1(){
                     public Object call(Scope s, Object all , Object [] args){
 
