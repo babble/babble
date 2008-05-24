@@ -1338,15 +1338,6 @@ public class RubyConvert extends ed.MyAsserts {
     }
 
     void _addCall( CallNode call , State state ){
-        /*            
-        if ( call.getName().equals( "[]" ) && call.childNodes().size() == 2 ){
-            _add( call.childNodes().get(0) , state );
-            _append( "[" , call );
-            _add( call.childNodes().get(1) , state );
-            _append( "]" , call );
-            return;
-        }
-        */
         if ( call.getName().equals( "<=>" ) ){
             _append( "Math.posOrNeg( " , call );
             _add( call.childNodes().get(0) , state );
@@ -1364,7 +1355,7 @@ public class RubyConvert extends ed.MyAsserts {
         if ( D ){
             System.err.println( "CallNode : " + call.getName() );
             System.err.println( "\t iter : " + call.getIterNode() );
-            System.err.println( "\t recv : " + call.getReceiverNode() );
+            System.err.println( "\t self : " + call.getReceiverNode() );
             System.err.println( "\t args : " + call.getArgsNode() );
         }
 
@@ -1392,13 +1383,12 @@ public class RubyConvert extends ed.MyAsserts {
         
         if ( self == null )
             throw new RuntimeException("self should never be null" );
-
+        
         // no params
         if ( ( args == null || args.childNodes().size() == 0 ) 
              && iter == null ){
             _append( Ruby.RUBY_CV_CALL + "( " , call);
-            if ( state._className != null )
-                _append( state._className + "." , call );
+            state.appendClassNameIfNeeded( self );
             _add( self , state );
             _append( " , " , call );
             _append( "\"" + _getFuncName( call ) + "\"" , call );
@@ -1406,8 +1396,7 @@ public class RubyConvert extends ed.MyAsserts {
             return;
         }
         
-        if ( state._className != null )
-            _append( state._className + "." , call );
+        state.appendClassNameIfNeeded( self );
         _add( self , state );
         _append( "." + _getFuncName( call ) , call );
         _append( "(" , call );        
@@ -1643,6 +1632,17 @@ public class RubyConvert extends ed.MyAsserts {
             return s;
         }
         
+        boolean appendClassNameIfNeeded( Node n ){
+            if ( _className == null )
+                return false;
+            
+            if ( ! ( n instanceof INameNode  ) )
+                return false;
+            
+            _append( _className + "." , n );
+            return true;
+        }
+
         final State _parent;
         String _lastClass;
         String _className;

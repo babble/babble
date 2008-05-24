@@ -10,6 +10,12 @@ class Foo
   A.z()
 
   Z = 4
+
+  Y = [ 1 , 2 ]
+
+  X = [ 1 , 2 ].length
 end
 
 puts Foo::Z
+puts Foo::Y.length
+puts Foo::X
