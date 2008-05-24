@@ -1071,9 +1071,12 @@ public class Convert implements StackTraceFixer {
                 Node cur = toSearch.remove( toSearch.size() - 1 );
                 
                 if ( cur.getType() == Token.NAME ||
-                     cur.getType() == Token.GETVAR )
+                     cur.getType() == Token.GETVAR ){
                     if ( cur.getString().equals( "arguments" ) || cur.getString().equals( "processArgs" ) )
                         hasArguments = true;
+                    if ( cur.getString().equals( "scope" ) )
+                        state._hasLambdaExpressions = true;
+                }
                 
                 if ( cur.getType() == Token.INC || 
                      cur.getType() == Token.DEC ){

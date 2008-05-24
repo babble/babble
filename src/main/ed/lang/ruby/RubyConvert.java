@@ -1027,6 +1027,8 @@ public class RubyConvert extends ed.MyAsserts {
             return true;
         }
         
+        if ( n instanceof LocalAsgnNode )
+            return _isSingleStatement( ((LocalAsgnNode)n).getValueNode() );
         
         if ( n instanceof CallNode ||
              n instanceof FCallNode ||
@@ -1108,9 +1110,17 @@ public class RubyConvert extends ed.MyAsserts {
     }
 
     void _addLocal( String name , Node val , State state ){
-        _append( "scope.put( \"" + name + "\" , " , val );
+
+        if ( _isSingleStatement( val ) ){
+            _append( "scope.put( \"" + name + "\" , " , val );
+            _add( val , state );
+            _append( " , true )" , val );
+            return;
+        }
+        
         _add( val , state );
-        _append( " , true )" , val );
+        _append( "scope.put( \"" + name + "\" , __last__  , true )" , val );
+        
     }
 
     void _addIterBlock( IterNode it , State state ){
