@@ -1315,6 +1315,7 @@ public class RubyConvert extends ed.MyAsserts {
         if ( n instanceof BeginNode ||
              n instanceof RescueNode ||
              n instanceof FCallNode || 
+             n instanceof CallNode || 
              n instanceof VCallNode ||
              n instanceof ModuleNode ||
              n instanceof IfNode ||
@@ -1391,6 +1392,8 @@ public class RubyConvert extends ed.MyAsserts {
         if ( ( args == null || args.childNodes().size() == 0 ) 
              && iter == null ){
             _append( Ruby.RUBY_CV_CALL + "( " , call);
+            if ( state._className != null )
+                _append( state._className + "." , call );
             _add( self , state );
             _append( " , " , call );
             _append( "\"" + _getFuncName( call ) + "\"" , call );
@@ -1398,6 +1401,8 @@ public class RubyConvert extends ed.MyAsserts {
             return;
         }
         
+        if ( state._className != null )
+            _append( state._className + "." , call );
         _add( self , state );
         _append( "." + _getFuncName( call ) , call );
         _append( "(" , call );        
