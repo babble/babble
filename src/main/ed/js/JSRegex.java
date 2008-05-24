@@ -49,10 +49,34 @@ public class JSRegex extends JSObjectBase {
                             JSRegex r = (JSRegex)s.getThis();
                             JSArray a = r.exec( str );
                             r._last.set( a );
+                            if ( a == null )
+                                return null;
                             return a.get( "index" );
                         }
                     } );
 
+                _prototype.set( "match" , new JSFunctionCalls1(){
+                        public Object call( Scope s , Object o , Object foo[] ){
+
+                            if ( o == null )
+                                return -1;
+                            
+                            String str = o.toString();
+
+                            JSRegex r = (JSRegex)s.getThis();
+                            JSArray a = r.exec( str , false );
+                            r._last.set( a );
+                            if ( a == null )
+                                return null;
+                            
+                            final String res = a.getInt(0).toString();
+                            System.out.println( "** : " + res );
+                            return res;
+                        }
+                    } );
+
+
+                
                 set( "last" , new JSFunctionCalls0(){
                         public Object call( Scope s , Object foo[] ){
                             return _lastRegex.get();
@@ -178,11 +202,15 @@ public class JSRegex extends JSObjectBase {
     }
     
     public JSArray exec( String s ){
+        return exec( s , true );
+    }
+    
+    public JSArray exec( String s , boolean canUseOld ){
         JSArray a = _last.get();
         String oldString = a == null ? null : a.get( "input" ).toString();
         Matcher m = null;
 
-        if ( a != null && s.equals( oldString ) ){
+        if ( canUseOld && a != null && s == oldString && s.equals( oldString ) ){
             m = (Matcher)a.get( "_matcher" );
         }
         else {

@@ -871,7 +871,7 @@ public class RubyConvert extends ed.MyAsserts {
         
         else if ( node instanceof RegexpNode ){
             RegexpNode rn = (RegexpNode)node;
-            _append( "/" + rn.getValue() + "/" , rn );
+            _append( "/" + rn.getValue().toString().replaceAll( "\n" , "\\\\n" ) + "/" , rn );
             _append( _getRegexpOptions( rn.getOptions() ) , rn );
         }
 
