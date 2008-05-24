@@ -43,7 +43,7 @@ public class AppContext {
         
         _isGrid = name.equals( "grid" );
 
-        _scope = new Scope( "AppContext:" + root , _isGrid ? ed.cloud.Cloud.getInstance().getScope() : Scope.newGlobal() , null , _rootFile );
+        _scope = new Scope( "AppContext:" + root , _isGrid ? ed.cloud.Cloud.getInstance().getScope() : Scope.newGlobal() , null , Language.JS , _rootFile );
         _scope.setGlobal( true );
 
         _logger = ed.log.Logger.getLogger( _name );

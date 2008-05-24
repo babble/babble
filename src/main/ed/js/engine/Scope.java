@@ -45,19 +45,20 @@ public class Scope implements JSObject {
     }
 
     public Scope( String name , Scope parent ){
-        this( name , parent , null );
+        this( name , parent , null , Language.JS );
     }
     
-    public Scope( String name , Scope parent , Scope alternate ){
-        this( name , parent , alternate , null );
+    public Scope( String name , Scope parent , Scope alternate , Language lang ){
+        this( name , parent , alternate , lang , null );
     }
 
     
-    public Scope( String name , Scope parent , Scope alternate , File root ){
+    public Scope( String name , Scope parent , Scope alternate , Language lang , File root ){
         if ( DEBUG ) System.err.println( "Creating scope with name : " + name + "\t" + _id );
         _name = name;
         _parent = parent;
         _root = root;
+        _lang = lang;
 
         {
             Object pt = alternate == null ? null : alternate.getThis( false );
@@ -90,11 +91,11 @@ public class Scope implements JSObject {
     }
 
     public Scope child( String name ){
-        return new Scope( name , this , null , null );
+        return new Scope( name , this , null , _lang , null );
     }
 
     public Scope child( File f ){
-        return new Scope( _name + ".child" , this , null , f );
+        return new Scope( _name + ".child" , this , null , _lang , f );
     }
 
     public Object set( Object n , Object v ){
@@ -358,6 +359,9 @@ public class Scope implements JSObject {
     private Object _getFromThis( JSObjectBase t , String name ){
         if ( t == null )
             return null;
+
+        if ( _lang != Language.RUBY )
+            return null;
         
         Object o = t.get( name );
         if ( o == null && t.getConstructor() != null )
@@ -365,6 +369,7 @@ public class Scope implements JSObject {
         
         if ( o == null )
             return null;
+        
         
         if ( o instanceof JSFunction &&
              ((JSFunction)o).getSourceLanguage() != Language.RUBY )
@@ -807,6 +812,7 @@ public class Scope implements JSObject {
     final Scope _alternate;
     final File _root;
     final JSObjectBase _possibleThis;
+    final Language _lang;
     public final long _id = ID++;
     
     boolean _locked = false;
