@@ -142,6 +142,18 @@ public class JSNumber {
                 }
             } );
 
+        functions.set( "chr" , new JSFunctionCalls0(){
+                public Object call( Scope s , Object foo[] ){
+                    return (char)( ((Number)s.getThis()).intValue() );
+                }
+            } );
+
+        functions.set( "zero_q_" , new JSFunctionCalls0(){
+                public Object call( Scope s , Object foo[] ){
+                    return ((Number)s.getThis()).doubleValue() == 0;
+                }
+            } );
+
         functions.set( "kilobytes" , new Conversion( 1024 ) );
         functions.set( "megabytes" , new Conversion( 1024 * 1024 ) );
 

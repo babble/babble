@@ -38,3 +38,26 @@ a.collect do|z,y|
   puts y
 end
 
+puts "***"
+
+TEXTILE_TAGS =
+  [ [67, 0 ], [69, 0], [75, 8218] ].
+  
+  collect! do |a, b|
+  puts a
+  puts b
+  puts a.chr
+  [a.chr, ( b.zero? ? "" : "&#{ b };" )]
+  #[a.chr, ( b.zero? and "" or "&#{ b };" )]
+end
+
+TEXTILE_TAGS.collect do |z|
+  puts "."
+  puts z[0]
+  puts z[1]
+  z.join( "|" )
+end
+
+puts TEXTILE_TAGS.join( "," );
+
+
