@@ -332,7 +332,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                         return n;
                     }
                 } );
-
+            _prototype.set( "collect" , _prototype.get( "map" ) );
 
             _prototype.set( "contains" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object test , Object foo[] ){
