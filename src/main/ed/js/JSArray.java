@@ -328,7 +328,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
 
                         JSArray n = new JSArray();
                         for ( Object o : a._array )
-                            n.add( f.call( s , o ) );
+                            n.add( fixAndCall( s , f , o ) );
                         return n;
                     }
                 } );
@@ -340,7 +340,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                         JSFunction f = (JSFunction)fo;
 
                         for ( int i=0; i<a._array.size(); i++ ){
-                            a.set( i , f.call( s , a._array.get( i )  ) );
+                            a.set( i , fixAndCall( s , f , a._array.get( i ) ) );
                         }
                         
                         return a;
@@ -735,6 +735,12 @@ public class JSArray extends JSObjectBase implements Iterable , List {
 
     public boolean isLocked(){
         return _locked;
+    }
+
+    public static Object fixAndCall( Scope s , JSFunction f , Object o ){
+        if ( s.isRuby() && f.getNumParameters() > 1 && o instanceof JSArray )
+            return f.call( s , ((JSArray)o).toArray() );
+        return f.call( s , o );
     }
 
     private boolean _locked = false;

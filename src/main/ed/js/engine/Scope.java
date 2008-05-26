@@ -382,6 +382,10 @@ public class Scope implements JSObject {
         return _get( name , null , null , 0  );
     }
 
+    public boolean isRuby(){
+        return _lang == Language.RUBY;
+    }
+    
     public void enterWith( JSObject o ){
         if ( _with == null )
             _with = new Stack<JSObject>();
