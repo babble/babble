@@ -1409,7 +1409,7 @@ public class RubyConvert extends ed.MyAsserts {
             return;
         }
         
-        state.appendClassNameIfNeeded( self );
+        //state.appendClassNameIfNeeded( self );
         _add( self , state );
         _append( "." + _getFuncName( call ) , call );
         _append( "(" , call );        
@@ -1652,6 +1652,9 @@ public class RubyConvert extends ed.MyAsserts {
             
             if ( ! ( n instanceof INameNode  ) )
                 return false;
+            
+            if ( n instanceof CallNode )
+                return appendClassNameIfNeeded( ((CallNode)n).getReceiverNode() );
             
             _append( _className + "." , n );
             return true;

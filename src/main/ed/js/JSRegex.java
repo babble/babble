@@ -75,7 +75,13 @@ public class JSRegex extends JSObjectBase {
                         }
                     } );
 
-
+                set( "quote" , new JSFunctionCalls1(){
+                        public Object call( Scope s , Object o , Object foo[] ){
+                            return new JSRegex( quote( o.toString() ) );
+                        }
+                    }
+                    );
+                    
                 
                 set( "last" , new JSFunctionCalls0(){
                         public Object call( Scope s , Object foo[] ){
@@ -239,6 +245,27 @@ public class JSRegex extends JSObjectBase {
     
     public JSArray getLast(){
         return _last.get();
+    }
+
+    public static String quote( String s ){
+        StringBuilder buf = new StringBuilder( s.length() + 10 );
+        for ( int i=0; i<s.length(); i++ ){
+            char c = s.charAt( i );
+            switch ( c ){
+            case '*':
+            case '{':
+            case '}':
+            case '(':
+            case ')':
+            case '-':
+            case '?':
+            case '.':
+                buf.append( "\\" );
+            default:
+                buf.append( c );
+            }
+        }
+        return buf.toString();
     }
 
     String _p;

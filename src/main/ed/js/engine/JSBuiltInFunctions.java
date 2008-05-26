@@ -734,6 +734,7 @@ public class JSBuiltInFunctions {
         s.put( "JSDate" , JSDate._cons , true ); // b/c Eliot always types this
         s.put( "String" , JSString._cons , true );
         s.put( "RegExp" , JSRegex._cons , true );
+        s.put( "Regexp" , JSRegex._cons , true ); // for Ruby technically
         s.put( "XMLHttpRequest" , XMLHttpRequest._cons , true );
         s.put( "Function" , JSInternalFunctions.FunctionCons , true );
         s.put( "Math" , JSMath.getInstance() , true );

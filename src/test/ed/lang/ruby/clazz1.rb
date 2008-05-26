@@ -14,8 +14,12 @@ class Foo
   Y = [ 1 , 2 ]
 
   X = [ 1 , 2 ].length
+
+  W = "abc#{ [ 1 , 2 ].length }"
+
 end
 
 puts Foo::Z
 puts Foo::Y.length
 puts Foo::X
+puts Foo::W
