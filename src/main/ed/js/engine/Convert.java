@@ -1492,7 +1492,7 @@ public class Convert implements StackTraceFixer {
             buf.append("\t\t // not creating new scope for execution as we're being run in the context of an eval\n");
         }
         else {
-            buf.append( "\t\t scope = new Scope( \"compiled script for:" + _name.replaceAll( "/tmp/jxp/s?/?0\\.\\d+/" , "" ) + "\" , scope ); \n" );
+            buf.append( "\t\t scope = new Scope( \"compiled script for:" + _name.replaceAll( "/tmp/jxp/s?/?0\\.\\d+/" , "" ) + "\" , scope , null , getFileLanguage() ); \n" );
             buf.append( "\t\t scope.putAll( getTLScope() );\n" );
         }
 
