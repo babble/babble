@@ -99,7 +99,14 @@ public class Convert implements StackTraceFixer {
         CompilerEnvirons ce = new CompilerEnvirons();
         
         Parser p = new Parser( ce , ce.getErrorReporter() );
-        ScriptOrFnNode theNode = p.parse( _source , _name , 0 );
+        
+        ScriptOrFnNode theNode = null;
+        try {
+            theNode = p.parse( _source , _name , 0 );
+        }
+        catch ( org.mozilla.javascript.EvaluatorException ee ){
+            throw new RuntimeException( "can't compile [" + ee.getMessage() + "]" );
+        }
         _encodedSource = p.getEncodedSource();
         init( theNode );
     }
