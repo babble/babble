@@ -31,6 +31,10 @@ public abstract class JSFunction extends JSFunctionBase {
         
         init();
     }
+
+    public int getNumParameters(){
+        return _num;
+    }
     
     public Object set( Object n , Object b ){
         if ( n != null && "prototype".equals( n.toString() ) )
