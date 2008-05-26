@@ -48,7 +48,6 @@ TEXTILE_TAGS =
   puts b
   puts a.chr
   [a.chr, ( b.zero? ? "" : "&#{ b };" )]
-  #[a.chr, ( b.zero? and "" or "&#{ b };" )]
 end
 
 TEXTILE_TAGS.collect do |z|
