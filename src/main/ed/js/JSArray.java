@@ -334,6 +334,19 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                 } );
             _prototype.set( "collect" , _prototype.get( "map" ) );
 
+            _prototype.set( "collect_ex_" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object fo , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        JSFunction f = (JSFunction)fo;
+
+                        for ( int i=0; i<a._array.size(); i++ ){
+                            a.set( i , f.call( s , a._array.get( i )  ) );
+                        }
+                        
+                        return a;
+                    }
+                } );
+
             _prototype.set( "contains" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object test , Object foo[] ){
                         JSArray a = (JSArray)(s.getThis());
