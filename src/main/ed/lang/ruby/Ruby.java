@@ -241,6 +241,14 @@ public class Ruby {
                 }
             } );
 
+        s.put( "__rand" , new JSFunctionCalls2(){
+                public Object call( Scope s , Object a , Object b , Object extra[] ){
+                    if ( ! JSInternalFunctions.JS_evalToBool( a ) )
+                        return false;
+                    return b;
+                }
+            } , true );
+
         s.put( RUBY_REQUIRE , new JSFunctionCalls1(){
                 public Object call( Scope s , Object pathObj , Object extra[] ){
                     if ( pathObj == null )

@@ -507,9 +507,9 @@ public class RubyConvert extends ed.MyAsserts {
 
         else if ( node instanceof AndNode ){
             AndNode a = (AndNode)node;
-            _append( " ( " , a );
+            _append( " __rand( " , a );
             _add( a.getFirstNode() , state );
-            _append( " && " , a );
+            _append( " , " , a );
             _add( a.getSecondNode() , state );
             _append( " ) " , a );
         }
