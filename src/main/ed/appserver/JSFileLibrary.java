@@ -44,11 +44,15 @@ public class JSFileLibrary extends JSFunctionCalls0 {
 
         if ( D ) System.out.println( "\t " + _base + " _init.  _initSources : " + _initSources );
 
-        if ( ! _doInit )
+        if ( ! _doInit ){
+            if ( D ) System.out.println( "\t skipping becuase no _doInit" );
             return;
+        }
         
-        if ( _inInit )
+        if ( _inInit ){
+            if ( D ) System.out.println( "\t skipping becuase _inInit" );
             return;
+        }
 
         boolean somethingChanged = false;
 
@@ -276,7 +280,7 @@ public class JSFileLibrary extends JSFunctionCalls0 {
         }
         
         if ( dir.exists() ){
-            JSFileLibrary foo = new JSFileLibrary( this , dir , _uriBase + "." + n.toString() , _context , _scope , _doInit );
+            JSFileLibrary foo = new JSFileLibrary( this , dir , _uriBase + "." + n.toString() , _context , _scope , _context != null || _doInit );
             foo._mySource = (JxpSource)theObject;
             theObject = foo;
         }
