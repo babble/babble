@@ -35,7 +35,7 @@ public class RubyTest extends TestCase {
             final PrintStream out = new PrintStream( bout );
             
             JSFunction f = c.get();
-            Scope scope = Scope.getAScope().child();
+            Scope scope = Scope.getAScope().getGlobal().child();
             scope.setGlobal( true );
             
             JSFunction myout = new JSFunctionCalls1(){
@@ -47,8 +47,10 @@ public class RubyTest extends TestCase {
             
             scope.put( "print" , myout , true );
 
-
+            
+            scope.makeThreadLocal();
             f.call( scope );
+            scope.kill();
 
 
             String outString = _clean( bout.toString() );
