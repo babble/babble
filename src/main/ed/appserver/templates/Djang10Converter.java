@@ -21,6 +21,7 @@ import ed.appserver.templates.djang10.filters.LengthIsFilter;
 import ed.appserver.templates.djang10.filters.LowerFilter;
 import ed.appserver.templates.djang10.filters.UpperFilter;
 import ed.appserver.templates.djang10.filters.UrlEncodeFilter;
+import ed.appserver.templates.djang10.filters.EscapeFilter;
 import ed.appserver.templates.djang10.generator.JSWriter;
 import ed.appserver.templates.djang10.tagHandlers.BlockTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.CallTagHandler;
@@ -199,6 +200,7 @@ public class Djang10Converter implements TemplateConverter {
     static {
     	_filters.put("default", new DefaultFilter());
     	_filters.put("urlencode", new UrlEncodeFilter());
+    	_filters.put("escape", new EscapeFilter());
     	_filters.put("date", new DateFilter());
     	_filters.put("upper", new UpperFilter());
     	_filters.put("lower", new LowerFilter());
