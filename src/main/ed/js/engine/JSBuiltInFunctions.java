@@ -153,6 +153,7 @@ public class JSBuiltInFunctions {
                     return m.invoke( null , params );
                 }
                 catch ( Exception e ){
+                    e.printStackTrace();
                     throw new JSException( "can't call" , e );
                 }
                     
