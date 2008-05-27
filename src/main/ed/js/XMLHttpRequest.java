@@ -51,6 +51,13 @@ public class XMLHttpRequest extends JSObjectBase {
                             return open( s , methodObj , urlObj , asyncObj , args );
                         }
                     } );
+
+                _prototype.set( "getJSON" , new JSFunctionCalls0(){
+                        public Object call( Scope s , Object [] extra ){
+                            XMLHttpRequest r = (XMLHttpRequest)s.getThis();
+                            return r.getJSON();
+                        }
+                    } );
                 
             }
         };
