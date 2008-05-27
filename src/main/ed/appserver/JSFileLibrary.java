@@ -154,8 +154,10 @@ public class JSFileLibrary extends JSFunctionCalls0 {
     }
     
     public Object getFromPath( String path ){
+        path = cleanPath( path );
+
         if ( path.contains( ".." ) )
-            throw new RuntimeException( "can't have .. in paths" );
+            throw new RuntimeException( "can't have .. in paths [" + path + "]" );
         
         path = path.replaceAll( "/+" , "/" );
 
@@ -303,6 +305,20 @@ public class JSFileLibrary extends JSFunctionCalls0 {
 
     public String getURIBase(){
         return _uriBase;
+    }
+
+    JSFileLibrary getTopParent(){
+        if ( _parent == null )
+            return this;
+        return _parent.getTopParent();
+    }
+
+    String cleanPath( final String old ){
+        JSFileLibrary l = getTopParent();
+        if ( ! old.startsWith( l._base.toString() ) )
+            return old;
+        
+        return old.substring( l._base.toString().length() );
     }
 
     final JSFileLibrary _parent;
