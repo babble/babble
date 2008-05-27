@@ -76,7 +76,7 @@ public class JSRegex extends JSObjectBase {
 
                 set( "quote" , new JSFunctionCalls1(){
                         public Object call( Scope s , Object o , Object foo[] ){
-                            return new JSRegex( quote( o.toString() ) );
+                            return quote( o.toString() );
                         }
                     }
                     );
@@ -173,7 +173,7 @@ public class JSRegex extends JSObjectBase {
             _patt = Pattern.compile( _p , _compilePatterns );
         }
         catch ( PatternSyntaxException pe ){
-            throw new RuntimeException( "bad pattern [" + _p + "] : " + pe.getMessage() );
+            throw new RuntimeException( "bad pattern \"" + _p + "\" : " + pe.getMessage() );
         }
     }
 
@@ -256,6 +256,9 @@ public class JSRegex extends JSObjectBase {
         for ( int i=0; i<s.length(); i++ ){
             char c = s.charAt( i );
             switch ( c ){
+            case '\\':
+            case '^':
+            case '$':
             case '*':
             case '+':
             case '{':

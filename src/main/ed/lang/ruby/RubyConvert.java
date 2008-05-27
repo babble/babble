@@ -591,6 +591,7 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof ConstNode ){
             _assertNoChildren( node );
             ConstNode lvn = (ConstNode)node;
+            state.appendClassNameIfNeeded( node );
             _append( _getName( lvn )  , node );
         }
         
@@ -871,7 +872,22 @@ public class RubyConvert extends ed.MyAsserts {
         
         else if ( node instanceof RegexpNode ){
             RegexpNode rn = (RegexpNode)node;
-            _append( "/" + rn.getValue().toString().replaceAll( "\n" , "\\\\n" ) + "/" , rn );
+            String val = rn.getValue().toString();
+            
+            System.err.println( "value : " + rn.getValue() + " val length:" + val.length() + " code size:" + ( rn.getPosition().getEndOffset() - rn.getPosition().getStartOffset() ) );
+
+            StringBuilder fixed = new StringBuilder( (int)(val.length() * 1.5 ) );
+            for ( int i=0; i<val.length(); i++ ){
+                char c = val.charAt(i);
+                if ( c == '\n' )
+                    fixed.append( "\\n" );
+                else if ( c == '/' && ( i == 0 || val.charAt( i - 1 ) != '\\' ) )
+                    fixed.append( "\\/" );
+                else
+                    fixed.append( c );
+            }
+
+            _append( "/" + fixed + "/" , rn );
             _append( _getRegexpOptions( rn.getOptions() ) , rn );
         }
 
@@ -1043,6 +1059,8 @@ public class RubyConvert extends ed.MyAsserts {
              n instanceof MultipleAsgnNode ||
              n instanceof ArrayNode ||
              n instanceof DStrNode ||
+             n instanceof RegexpNode ||
+             n instanceof DRegexpNode ||
              n instanceof FalseNode )
             return true;
 
@@ -1401,7 +1419,7 @@ public class RubyConvert extends ed.MyAsserts {
         if ( ( args == null || args.childNodes().size() == 0 ) 
              && iter == null ){
             _append( Ruby.RUBY_CV_CALL + "( " , call);
-            state.appendClassNameIfNeeded( self );
+            //state.appendClassNameIfNeeded( self );
             _add( self , state );
             _append( " , " , call );
             _append( "\"" + _getFuncName( call ) + "\"" , call );
@@ -1409,7 +1427,7 @@ public class RubyConvert extends ed.MyAsserts {
             return;
         }
         
-        state.appendClassNameIfNeeded( self );
+        //state.appendClassNameIfNeeded( self );
         _add( self , state );
         _append( "." + _getFuncName( call ) , call );
         _append( "(" , call );        
