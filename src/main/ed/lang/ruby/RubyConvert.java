@@ -1656,7 +1656,7 @@ public class RubyConvert extends ed.MyAsserts {
             if ( n instanceof CallNode )
                 return appendClassNameIfNeeded( ((CallNode)n).getReceiverNode() );
             
-            _append( _className + "." , n );
+            _append( _className + "." + JSObjectBase.SCOPE_FAILOVER_PREFIX , n );
             return true;
         }
 

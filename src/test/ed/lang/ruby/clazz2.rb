@@ -15,7 +15,10 @@ class Foo
     collect! do |a, b|
     [a.chr, ( b.zero? and "" or "&#{ b };" )]
   end
+  
+  SILLY = Regexp.quote( "*" )
 
 end
+
 
 

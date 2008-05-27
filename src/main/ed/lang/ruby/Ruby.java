@@ -256,8 +256,11 @@ public class Ruby {
 
                     String path = pathObj.toString();
                     int idx = path.lastIndexOf( "." );
-                    if ( idx > 0 )
-                        path = path.substring( 0 , idx );
+                    if ( idx > 0 ){
+                        int slash = path.lastIndexOf( "/" );
+                        if ( idx > slash )
+                            path = path.substring( 0 , idx );
+                    }
 
                     path = path.replaceAll( "//+" , "/" );
 
@@ -288,12 +291,29 @@ public class Ruby {
                     }
                     
                     final JSFunction func = (JSFunction)thing;
-
-                    if ( JSInternalFunctions.JS_eq( 171 , func.get( "__required__success__" ) ) )
-                        return null;
-
+                    
+                    {
+                        Object blah = func.get( "__required__success__" );
+                        System.err.println( path + " blah : " + blah );
+                        if ( blah != null ){
+                            boolean bad = false;
+                            for ( Object key : (Iterable)blah ){
+                                if ( ! s.containsKey( key.toString() ) ){
+                                    if ( true ) throw new RuntimeException( "missing [" + key + "]" );
+                                    bad = true;
+                                    break;
+                                }
+                                if ( ! bad )
+                                    return null;
+                            }
+                        }
+                    }
+                    
+                    List<String> before = new ArrayList<String>( s.getGlobal().keySet() );
                     final Object ret = func.call( s , null );
-                    func.set( "__required__success__" , 171 );
+                    before.removeAll( s.getGlobal().keySet() );
+
+                    func.set( "__required__success__" , before );
                     return ret;
                 }
             } , true );

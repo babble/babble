@@ -11,7 +11,8 @@ import ed.js.engine.*;
 
 public class JSObjectBase implements JSObject {
     
-    static final String GETSET_PREFIX = "_____gs____";
+    public static final String GETSET_PREFIX = "_____gs____";
+    public static final String SCOPE_FAILOVER_PREFIX = "_____scope_failover____";
     
     static final Set<String> BAD_KEY_NAMES = new HashSet<String>();
     static {
@@ -97,9 +98,9 @@ public class JSObjectBase implements JSObject {
     }
 
     public Object get( Object n ){
-
+        
         prefunc();
-
+        
         if ( n == null )
             n = "null";
         
@@ -126,6 +127,9 @@ public class JSObjectBase implements JSObject {
     }
     
     Object _simpleGet( String s , int depth ){
+        final boolean scopeFailover = s.startsWith( SCOPE_FAILOVER_PREFIX );
+        if ( scopeFailover )
+            s = s.substring( SCOPE_FAILOVER_PREFIX.length() );
         final boolean getOrSet = s.startsWith( GETSET_PREFIX );
         
         Object res = null;
@@ -192,7 +196,7 @@ public class JSObjectBase implements JSObject {
              ! getOrSet && 
              ! BAD_KEY_NAMES.contains( s )
              ){
-
+            
             Object blah = _simpleGet( "__notFoundHandler" , depth + 1 );
             if ( blah instanceof JSFunction ){
                 JSFunction f = (JSFunction)blah;
@@ -212,6 +216,9 @@ public class JSObjectBase implements JSObject {
                 }
             }
         }
+        
+        if ( scopeFailover )
+            return Scope.getAScope().get( s );
 
         return null;
     }
