@@ -127,6 +127,7 @@ public class JSObjectBase implements JSObject {
     }
     
     Object _simpleGet( String s , int depth ){
+        //System.out.println( s );
         final boolean scopeFailover = s.startsWith( SCOPE_FAILOVER_PREFIX );
         if ( scopeFailover )
             s = s.substring( SCOPE_FAILOVER_PREFIX.length() );
@@ -194,6 +195,7 @@ public class JSObjectBase implements JSObject {
              ! "__notFoundHandler".equals( s ) &&
              ! "__preGet".equals( s ) && 
              ! getOrSet && 
+             ! scopeFailover && 
              ! BAD_KEY_NAMES.contains( s )
              ){
             
@@ -217,8 +219,11 @@ public class JSObjectBase implements JSObject {
             }
         }
         
-        if ( scopeFailover )
-            return Scope.getAScope().get( s );
+        if ( scopeFailover ){
+            Scope scope = Scope.getAScope( false , true );
+            if ( scope != null )
+                return scope.get( s );
+        }
 
         return null;
     }
