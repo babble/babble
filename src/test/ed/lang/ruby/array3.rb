@@ -38,6 +38,12 @@ a.collect do|z,y|
   puts y
 end
 
+a = [ [ 1 , 2 , 3 ] , [ 2 , 3 , 1 ] ]
+a.collect! do|z,y|
+  puts z
+  puts y
+end
+
 puts "***"
 
 TEXTILE_TAGS =

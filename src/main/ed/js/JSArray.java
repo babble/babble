@@ -738,6 +738,11 @@ public class JSArray extends JSObjectBase implements Iterable , List {
     }
 
     public static Object fixAndCall( Scope s , JSFunction f , Object o ){
+        if ( false ){
+            System.out.println( "ruby:" + s.isRuby() );
+            System.out.println( "params: " + f.getNumParameters() );
+            System.out.println( "thing:" + o.getClass() );
+        }
         if ( s.isRuby() && f.getNumParameters() > 1 && o instanceof JSArray )
             return f.call( s , ((JSArray)o).toArray() );
         return f.call( s , o );
