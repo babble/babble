@@ -1155,7 +1155,7 @@ public class RubyConvert extends ed.MyAsserts {
         if ( it.getBodyNode() instanceof NewlineNode && 
              _isSingleStatement( it.getBodyNode() ) )
             _append( "return " , it );
-        _add( it.getBodyNode() , state );
+        _add( it.getBodyNode() , state.child() );
         _append( "\nreturn __last__;\n" , it );
         _append( " }" , it );
     }
@@ -1409,7 +1409,7 @@ public class RubyConvert extends ed.MyAsserts {
             return;
         }
         
-        //state.appendClassNameIfNeeded( self );
+        state.appendClassNameIfNeeded( self );
         _add( self , state );
         _append( "." + _getFuncName( call ) , call );
         _append( "(" , call );        
