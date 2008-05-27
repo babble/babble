@@ -294,12 +294,10 @@ public class Ruby {
                     
                     {
                         Object blah = func.get( "__required__success__" );
-                        System.err.println( path + " blah : " + blah );
                         if ( blah != null ){
                             boolean bad = false;
                             for ( Object key : (Iterable)blah ){
                                 if ( ! s.containsKey( key.toString() ) ){
-                                    if ( true ) throw new RuntimeException( "missing [" + key + "]" );
                                     bad = true;
                                     break;
                                 }
