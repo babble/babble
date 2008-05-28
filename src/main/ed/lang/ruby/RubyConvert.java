@@ -873,8 +873,6 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof RegexpNode ){
             RegexpNode rn = (RegexpNode)node;
             String val = rn.getValue().toString();
-            
-            System.err.println( "value : " + rn.getValue() + " val length:" + val.length() + " code size:" + ( rn.getPosition().getEndOffset() - rn.getPosition().getStartOffset() ) );
 
             StringBuilder fixed = new StringBuilder( (int)(val.length() * 1.5 ) );
             for ( int i=0; i<val.length(); i++ ){
@@ -1419,7 +1417,6 @@ public class RubyConvert extends ed.MyAsserts {
         if ( ( args == null || args.childNodes().size() == 0 ) 
              && iter == null ){
             _append( Ruby.RUBY_CV_CALL + "( " , call);
-            //state.appendClassNameIfNeeded( self );
             _add( self , state );
             _append( " , " , call );
             _append( "\"" + _getFuncName( call ) + "\"" , call );
@@ -1427,7 +1424,6 @@ public class RubyConvert extends ed.MyAsserts {
             return;
         }
         
-        //state.appendClassNameIfNeeded( self );
         _add( self , state );
         _append( "." + _getFuncName( call ) , call );
         _append( "(" , call );        
