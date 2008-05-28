@@ -29,3 +29,5 @@ end
 
 puts /https:\/\//.match( "https://" )
 puts %r!https://!.match( "https://" )
+
+puts "abc".split( // )[0]

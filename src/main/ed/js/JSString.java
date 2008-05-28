@@ -298,7 +298,12 @@ public class JSString extends JSObjectBase {
                             if ( a.size() >= limit )
                                 break;
                         }
-                            
+                        
+                        if ( r.getPattern().length() == 0 ){
+                            a.remove(0);
+                            a.remove( a.size() - 1 );
+                        }
+
                         return a;
                     }
                 }

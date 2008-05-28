@@ -884,9 +884,14 @@ public class RubyConvert extends ed.MyAsserts {
                 else
                     fixed.append( c );
             }
-
-            _append( "/" + fixed + "/" , rn );
-            _append( _getRegexpOptions( rn.getOptions() ) , rn );
+            
+            if ( fixed.length() == 0 ){
+                _append( "( new Regexp( \"\") )" , rn );
+            }
+            else {
+                _append( "/" + fixed + "/" , rn );
+                _append( _getRegexpOptions( rn.getOptions() ) , rn );
+            }
         }
 
         else if ( node instanceof DRegexpNode ){
