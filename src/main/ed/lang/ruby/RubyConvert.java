@@ -435,26 +435,27 @@ public class RubyConvert extends ed.MyAsserts {
         }
 
         else if ( node instanceof WhileNode ){
-            
+            WhileNode wn = (WhileNode)node;
             state._whileCount++;
             
             _append( "while ( " , node );
-            _add( node.childNodes().get(0) , state );
+            _add( wn.getConditionNode() , state );
             _append( " ){ \n " , node );
-            _add( node.childNodes().get(1) , state );
+            _add( wn.getBodyNode() , state );
             _append( "\n } \n " , node );
 
             state._whileCount--;
         }
 
         else if ( node instanceof UntilNode ){
+            UntilNode un = (UntilNode)node;
             
             state._whileCount++;
             
             _append( "while ( ! ( " , node );
-            _add( node.childNodes().get(0) , state );
+            _add( un.getConditionNode() , state );
             _append( " ) ){ \n " , node );
-            _add( node.childNodes().get(1) , state );
+            _add( un.getBodyNode() , state );
             _append( "\n } \n " , node );
 
             state._whileCount--;
