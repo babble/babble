@@ -129,7 +129,7 @@ public class Ruby {
                         return func;
                     
                     JSFunction f = (JSFunction)func;
-                    return f.callAndSetThis( s , useThis , null );
+                    return f.callAndSetThis( s , useThis , extra );
                 }
             };
         
@@ -543,6 +543,7 @@ public class Ruby {
             throw new RuntimeException( "can't find ruby root : " + rootFile );
         JSFileLibrary lib = new JSFileLibrary( rootFile , "ruby" , s );
         ((JSFunction)(lib.get( "lib" ))).call( s );
+        ((JSFunction)(lib.get( "core" ))).call( s );
 
     }
     
