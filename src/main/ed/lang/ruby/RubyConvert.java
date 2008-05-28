@@ -1447,7 +1447,14 @@ public class RubyConvert extends ed.MyAsserts {
             return;
         }
         
-        _add( self , state );
+        if ( self instanceof FixnumNode ){
+            _append( "parseInt( " , call );
+            _add( self , state );
+            _append( " ) " , call );
+        }            
+        else {
+            _add( self , state );
+        }
         _append( "." + _getFuncName( call ) , call );
         _append( "(" , call );        
         
