@@ -1093,6 +1093,8 @@ public class RubyConvert extends ed.MyAsserts {
              || n instanceof ZSuperNode
              || n instanceof NextNode
              || n instanceof RedoNode
+             || n instanceof WhileNode
+             || n instanceof UntilNode
              )
             return false;
         
