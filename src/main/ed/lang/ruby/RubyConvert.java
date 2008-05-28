@@ -1152,11 +1152,11 @@ public class RubyConvert extends ed.MyAsserts {
         if ( it.getVarNode() != null ){
             final Node var = it.getVarNode();
             if ( var instanceof DAsgnNode )
-                _append( ((DAsgnNode)var).getName() , it );
+                _append( _getName( (DAsgnNode)var ) , it );
             else if ( var instanceof ConstDeclNode )
-                _append( ((ConstDeclNode)var).getName() , it );
+                _append( _getName( (ConstDeclNode)var ) , it );
             else if ( var instanceof LocalAsgnNode )
-                _append( ((LocalAsgnNode)var).getName() , it );
+                _append( _getName( (LocalAsgnNode)var ) , it );
             else if ( var instanceof MultipleAsgnNode ){
 
                 boolean first = true;
@@ -1166,7 +1166,7 @@ public class RubyConvert extends ed.MyAsserts {
                         _append( " , " , temp );
                     first = false;
                     
-                    _append( ((INameNode)temp).getName() , temp );
+                    _append( _getName( (INameNode)temp ) , temp );
                 }
             }
             else
