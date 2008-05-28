@@ -229,7 +229,7 @@ public class RubyConvert extends ed.MyAsserts {
             if ( ( f.getArgsNode() == null || f.getArgsNode().childNodes() == null || f.getArgsNode().childNodes().size() == 0 ) &&
                  f.getIterNode() == null ){
                 // no args
-                final String funcName = _getFuncName( f );
+                final String funcName = state.getFuncName( f );
                 _append( Ruby.RUBY_V_CALL + "(" + funcName + ", \"" + funcName + "\" , this )" , f );
             }
             else if ( f.getName().equals( "JSRAW" ) ){
@@ -240,7 +240,7 @@ public class RubyConvert extends ed.MyAsserts {
                 _append( ((StrNode)(f.getArgsNode().childNodes().get(0))).getValue().toString() , f );
             }
             else {
-                _append( _getFuncName( f )  , node );
+                _append( state.getFuncName( f )  , node );
                 
                 boolean first = true;
                 
@@ -345,7 +345,9 @@ public class RubyConvert extends ed.MyAsserts {
             _assertNoChildren( node );
             VCallNode vcn = (VCallNode)node;
             final String funcName = _getFuncName( vcn );
-            _append( Ruby.RUBY_V_CALL + "( " + funcName + " , \"" + funcName + "\" , this )" , node );
+            _append( Ruby.RUBY_V_CALL + "( " , node );
+            state.appendClassNameIfNeeded( node );
+            _append( funcName + " , \"" + funcName + "\" , this )" , node );
         }
 
         else if ( node instanceof BlockPassNode ){
@@ -1681,7 +1683,24 @@ public class RubyConvert extends ed.MyAsserts {
             return s;
         }
         
+        String getFuncName( Node node ){
+            if ( classNameNeeded( node ) )
+                return _myClassName() + _getFuncName( (INameNode)node );
+            return _getFuncName( (INameNode)node );
+        }
+
         boolean appendClassNameIfNeeded( Node n ){
+            if ( ! classNameNeeded( n ) )
+                return false;
+            _append( _myClassName() , n );
+            return true;
+        }
+
+        private String _myClassName(){
+            return _className + "." + JSObjectBase.SCOPE_FAILOVER_PREFIX;
+        }
+
+        boolean classNameNeeded( Node n ){
             if ( _className == null )
                 return false;
             
@@ -1691,7 +1710,6 @@ public class RubyConvert extends ed.MyAsserts {
             if ( n instanceof CallNode )
                 return appendClassNameIfNeeded( ((CallNode)n).getReceiverNode() );
             
-            _append( _className + "." + JSObjectBase.SCOPE_FAILOVER_PREFIX , n );
             return true;
         }
 
