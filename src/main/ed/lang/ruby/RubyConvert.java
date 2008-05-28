@@ -447,6 +447,19 @@ public class RubyConvert extends ed.MyAsserts {
             state._whileCount--;
         }
 
+        else if ( node instanceof UntilNode ){
+            
+            state._whileCount++;
+            
+            _append( "while ( ! ( " , node );
+            _add( node.childNodes().get(0) , state );
+            _append( " ) ){ \n " , node );
+            _add( node.childNodes().get(1) , state );
+            _append( "\n } \n " , node );
+
+            state._whileCount--;
+        }
+
         else if ( node instanceof IfNode ){
             IfNode ifn = (IfNode)node;
 
@@ -1129,7 +1142,7 @@ public class RubyConvert extends ed.MyAsserts {
         }
 
         if ( ! fromBegin )
-            _append( "}() )" , rn );
+            _append( "}() )\n" , rn );
 
     }
 
