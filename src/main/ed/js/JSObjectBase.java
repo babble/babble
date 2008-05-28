@@ -204,7 +204,7 @@ public class JSObjectBase implements JSObject {
                 JSFunction f = (JSFunction)blah;
                 Scope scope = f.getScope();
                 if ( scope == null )
-                    scope = Scope.getLastCreated();
+                    scope = Scope.getAScope( false , true );
                 scope = scope.child();
                 scope.setThis( this );
                 if ( ! _inNotFoundHandler.get() ){
@@ -478,9 +478,9 @@ public class JSObjectBase implements JSObject {
 
     static final Set<String> EMPTY_SET = Collections.unmodifiableSet( new HashSet<String>() );
 
-    private static class BaseThings extends JSObjectLame {
+    public static class BaseThings extends JSObjectLame {
         
-        BaseThings(){
+        public BaseThings(){
             init();
         }
 
