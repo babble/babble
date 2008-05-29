@@ -89,6 +89,9 @@ public class RubyConvert extends ed.MyAsserts {
         // --- blocking ----
 
         if ( node instanceof RootNode ){
+            if ( node.childNodes() == null || 
+                 node.childNodes().size() == 0 )
+                return;
             _assertOne( node );
             _add( node.childNodes().get(0) , state );
         }
