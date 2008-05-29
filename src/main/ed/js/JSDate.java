@@ -94,6 +94,12 @@ public class JSDate extends JSObjectBase implements Comparable {
                         }
                     } );
                 
+                _prototype.set( "valueOf" , new JSFunctionCalls0(){
+                    public Object call( Scope s , Object args[] ){
+                        return ((JSDate)s.getThis())._time;
+                    }
+                } );
+
                 
                 // -----------
 
