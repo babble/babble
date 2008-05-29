@@ -269,6 +269,11 @@ public class JSFileLibrary extends JSFunctionCalls0 {
             f = temp;
         }
         
+        if ( f == null && dir.exists() && ! dir.isDirectory() )
+            f = dir;
+
+        if ( DS ) System.out.println( "\t dir : " + dir + " f : " + f );
+
         Object theObject = null;
         if ( f != null ){
             try {
@@ -279,7 +284,7 @@ public class JSFileLibrary extends JSFunctionCalls0 {
             }
         }
         
-        if ( dir.exists() ){
+        if ( dir.exists() && dir.isDirectory() ){
             JSFileLibrary foo = new JSFileLibrary( this , dir , _uriBase + "." + n.toString() , _context , _scope , _context != null || _doInit );
             foo._mySource = (JxpSource)theObject;
             theObject = foo;
