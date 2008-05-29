@@ -590,6 +590,13 @@ public class JSObjectBase implements JSObject {
                     }
                 } );
 
+            set( "instance_methods" , new JSFunctionCalls1(){
+                    public Object call( Scope s , Object name , Object args[] ){
+                        JSObjectBase obj = ((JSObjectBase)s.getThis());
+                        return new JSArray( obj.keySet() );
+                    }
+                } );
+
             set( "__debug" , new JSFunctionCalls1(){
                     public Object call( Scope s , Object name , Object args[] ){
                         JSObjectBase obj = ((JSObjectBase)s.getThis());
