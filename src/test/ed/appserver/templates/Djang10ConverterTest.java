@@ -64,7 +64,7 @@ public class Djang10ConverterTest extends ConvertTestBase {
         o.set("array", array);
         
         
-        o.set("urlParam", "?\\/~!.,");
+        o.set("urlParam", "?\\/~!.,&<>");
         
         Calendar cal = new GregorianCalendar();
         cal.set(1981, 12 - 1, 20, 15, 11, 37);
