@@ -21,7 +21,7 @@ public class IfEqualTagHandler implements TagHandler {
 		this.inverted = inverted;
 	}
 
-	public Node compile(Parser parser, String command, Token token) {
+	public Node compile(Parser parser, String command, Token token) throws TemplateException {
 		String[] parts = token.contents.split("\\s");
 		if(parts.length != 3)
 			throw new TemplateException("Expected 2 arguments");
@@ -69,7 +69,7 @@ public class IfEqualTagHandler implements TagHandler {
 		}
 		
 		@Override
-		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) {
+		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
 			// TODO Auto-generated method stub
 		
 			buffer.append(startLine, "if(");

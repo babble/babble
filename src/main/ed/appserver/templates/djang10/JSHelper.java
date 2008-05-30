@@ -9,27 +9,22 @@ import java.util.Map;
 
 import ed.appserver.JSFileLibrary;
 import ed.appserver.templates.Djang10Converter;
-import ed.appserver.templates.djang10.Variable.FilterSpec;
-import ed.appserver.templates.djang10.filters.Filter;
 import ed.appserver.templates.djang10.tagHandlers.TagHandler;
+import ed.appserver.templates.djang10.tagHandlers.VariableTagHandler;
 import ed.js.JSFunction;
 import ed.js.JSObjectBase;
 import ed.js.JSString;
 import ed.js.engine.JSCompiledScript;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
-import ed.js.func.JSFunctionCalls3;
-import ed.js.func.JSFunctionCalls4;
 
 public class JSHelper extends JSObjectBase {
 
 	public static final String ADD_TEMPLATE_ROOT = "addTemplateRoot";
 	public static final String CALL_PATH = "callPath";
 	public static final String LOAD_PATH = "loadPath";
-	public static final String VAR_EXPAND = "djangoVarExpand";
 	public static final String CONTEXT_CLASS = "Context";
 	public static final String NS = "__djang10";
-
 	
 	private ArrayList<JSFileLibrary> templateRoots;
 	
@@ -41,12 +36,13 @@ public class JSHelper extends JSObjectBase {
     	for (TagHandler tagHandler : Djang10Converter.getTagHandlers().values()) {
     		helpers.putAll(tagHandler.getHelpers());
 		}
+    	helpers.putAll(Djang10Converter.getVariableTagHandler().getHelpers());
+    	
     	for(String name : helpers.keySet()) {
     		this.set(name, helpers.get(name));
     	}
     	
     	//add the basic helpers
-    	this.set(JSHelper.VAR_EXPAND, varExpand);
     	this.set(JSHelper.LOAD_PATH, loadPath);
     	this.set(JSHelper.CALL_PATH, callPath);
     	this.set(JSHelper.ADD_TEMPLATE_ROOT, addTemplateRoot);
@@ -54,27 +50,6 @@ public class JSHelper extends JSObjectBase {
     	
     	this.lock();
 	}
-	
-	private final JSFunction varExpand = new JSFunctionCalls4() {
-		@Override
-		public Object call(Scope scope, Object varName, Object defaultValue, Object allowGlobal, Object callLeaf, Object[] extra) {
-			Object value = null;
-			
-			
-			Variable variable = Parser.parseVariable(((JSString)varName).toString());
-			value = Djang10Converter.resolveVariable(scope, variable.base, allowGlobal == Boolean.TRUE, callLeaf != Boolean.FALSE);
-			
-			for(FilterSpec filterSpec : variable.filters) {
-				Filter filter = Djang10Converter.getFilters().get(filterSpec.name);
-				
-				Object paramValue = Djang10Converter.resolveVariable(scope, filterSpec.param, allowGlobal == Boolean.TRUE, callLeaf != Boolean.FALSE);
-				
-				value = filter.apply(value, paramValue);
-			}
-			
-			return value == null || value == Variable.UNDEFINED_VALUE? defaultValue : value;
-		}
-	};
 	
 	private final JSFunction callPath = new JSFunctionCalls1() {
 		@Override
@@ -92,29 +67,41 @@ public class JSHelper extends JSObjectBase {
 		@Override
 		public Object call(Scope scope, Object pathObj, Object[] extra) {
 			
-			if(pathObj instanceof JSCompiledScript)
-				return ((JSCompiledScript)pathObj).call(scope.child(), extra);
+		    if(pathObj == null || pathObj == VariableTagHandler.UNDEFINED_VALUE)
+		        return null;
+		    
+		    if(pathObj instanceof JSCompiledScript)
+	            return pathObj;
 
 			String path = ((JSString)pathObj).toString().trim().replaceAll("/+", "/").replaceAll("\\.\\w*$", "");
 			JSCompiledScript target = null;
 			
 			if(path.startsWith("/")) {
 				String[] newRootPathParts = path.split("/", 3);
-				if(newRootPathParts.length != 3 || newRootPathParts[2].trim().length() == 0)
-					return null;
+				if(newRootPathParts.length < 2 || newRootPathParts[1].trim().length() == 0)
+				    return null;
 				
-				//get the root filelib/ ie: local, core, etc
 				String newRootBasePath = newRootPathParts[1];
-				Object newRootBaseObj = scope.get(newRootBasePath);
-				if(!(newRootBaseObj instanceof JSFileLibrary))
-					throw new IllegalArgumentException("Path not found");
+				Object newRootBaseObj = null;
+				if(newRootPathParts.length == 3) {
+    				newRootBaseObj = scope.get(newRootBasePath);
+    				if(!(newRootBaseObj instanceof JSFileLibrary))
+    					newRootBaseObj = null;
+				}
 				
-				//get the actual file
-				Object targetObj = ((JSFileLibrary)newRootBaseObj).getFromPath(newRootPathParts[2]);
-				if(!(targetObj instanceof JSCompiledScript ))
-					return null;
 
-				target = (JSCompiledScript)targetObj;
+				if(newRootBaseObj == null) {
+
+	                //fallback on resolving absolute paths against site
+				    newRootBaseObj = ((JSFileLibrary)scope.get("local")).getFromPath(path);
+				    
+				    return (newRootBaseObj instanceof JSCompiledScript)? newRootBaseObj : null;
+				}
+				else {
+	                Object targetObj = ((JSFileLibrary)newRootBaseObj).getFromPath(newRootPathParts[2]);
+	                
+	                return (targetObj instanceof JSCompiledScript)? targetObj : null;
+				}
 			}
 			else {
 				for(int i = templateRoots.size()-1; i>= 0; i--) {

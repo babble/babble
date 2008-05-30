@@ -2,6 +2,7 @@
 {{ unknownVar|default:a }}
 {{ urlParam|urlencode }}
 {% filter urlencode %}{{ urlParam }}{% endfilter %}
+{{ urlParam         |             escape }}
 
 {{ date|date:"a,A,b,d,D,f,F,g,G,h,H,i,j,l,L,m,M,n,N,O,P,r,s,S,t,w" }}
 a   ,A ,b  ,d ,D  ,f   ,F       ,g,G ,h ,H ,i ,j ,l     ,L    ,m ,M  ,n ,N   ,O    ,P        ,r                              ,s ,S ,t ,w

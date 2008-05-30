@@ -17,6 +17,7 @@ import ed.js.JSObjectBase;
 import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
+import ed.js.func.JSFunctionCalls1;
 
 public class Djang10ConverterTest extends ConvertTestBase {
 
@@ -63,7 +64,7 @@ public class Djang10ConverterTest extends ConvertTestBase {
         o.set("array", array);
         
         
-        o.set("urlParam", "?\\/~!.,");
+        o.set("urlParam", "?\\/~!.,&<>");
         
         Calendar cal = new GregorianCalendar();
         cal.set(1981, 12 - 1, 20, 15, 11, 37);
@@ -88,6 +89,13 @@ public class Djang10ConverterTest extends ConvertTestBase {
         Djang10Converter.injectHelpers(testScope);
         JSFunction addTemplateRoot = (JSFunction)((JSObjectBase)testScope.get(JSHelper.NS)).get(JSHelper.ADD_TEMPLATE_ROOT);
         addTemplateRoot.call(testScope, new JSString("/local"));
+        
+        
+        o.set("echoFunc", new JSFunctionCalls1() {
+           public Object call(Scope scope, Object in, Object[] extra) {
+               return in;
+           }
+        });
         
         return new Object[]{ o };
     }

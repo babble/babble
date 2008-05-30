@@ -7,21 +7,20 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import ed.appserver.templates.djang10.Context;
 import ed.appserver.templates.djang10.JSHelper;
 import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
-import ed.appserver.templates.djang10.Variable;
+import ed.appserver.templates.djang10.TemplateException;
 import ed.appserver.templates.djang10.filters.DateFilter;
 import ed.appserver.templates.djang10.filters.DefaultFilter;
 import ed.appserver.templates.djang10.filters.DictSortFilter;
+import ed.appserver.templates.djang10.filters.EscapeFilter;
 import ed.appserver.templates.djang10.filters.Filter;
 import ed.appserver.templates.djang10.filters.LengthFilter;
 import ed.appserver.templates.djang10.filters.LengthIsFilter;
 import ed.appserver.templates.djang10.filters.LowerFilter;
 import ed.appserver.templates.djang10.filters.UpperFilter;
 import ed.appserver.templates.djang10.filters.UrlEncodeFilter;
-import ed.appserver.templates.djang10.filters.EscapeFilter;
 import ed.appserver.templates.djang10.generator.JSWriter;
 import ed.appserver.templates.djang10.tagHandlers.BlockTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.CallTagHandler;
@@ -36,8 +35,7 @@ import ed.appserver.templates.djang10.tagHandlers.IfTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IncludeTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.SetTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.TagHandler;
-import ed.js.JSFunction;
-import ed.js.JSObject;
+import ed.appserver.templates.djang10.tagHandlers.VariableTagHandler;
 import ed.js.engine.Scope;
 
 /**
@@ -62,7 +60,12 @@ public class Djang10Converter implements TemplateConverter {
 			return null;
 		
 		Parser parser = new Parser(t._content);
-		LinkedList<Node> nodeList = parser.parse();
+		LinkedList<Node> nodeList;
+		try {
+			nodeList = parser.parse();
+		} catch (TemplateException e) {
+			throw new RuntimeException(e);
+		}
 		JSWriter preamble = new JSWriter();
 		JSWriter writer = new JSWriter();
 		
@@ -77,7 +80,11 @@ public class Djang10Converter implements TemplateConverter {
 		preamble.append(JSWriter.CONTEXT_STACK_VAR + ".push();\n");
 		
 		for(Node node : nodeList) {
-			node.getRenderJSFn(preamble, writer);
+			try {
+                node.getRenderJSFn(preamble, writer);
+            } catch (TemplateException e) {
+                throw new RuntimeException(e);
+            }
 		}
 		
 		writer.append(1, JSWriter.CONTEXT_STACK_VAR + ".pop();\n");
@@ -98,69 +105,6 @@ public class Djang10Converter implements TemplateConverter {
 		return new Result(new Template(newName, newTemplate.toString(), t.getSourceLanguage()), newTemplateLineMapping);
 	}
 	
-	/**
-	 * A helper method to resolve the values of variables and literals.  Quoted literal string are dequoted, 
-	 * numbers are parsed and variables are resolved in the context.  If allowGlobal is true and the value is
-	 * not found in the context then the scope is used to resolve the variables.  If the variable cannot be
-	 * resolved then, Variable.UNRESOLVED_VALUE is returned.
-	 * @return
-	 */
-	public static Object resolveVariable(Scope scope, String unresolvedValue, boolean allowGlobal, boolean callLeaf) {
-		String varName = unresolvedValue;
-		
-		if(varName == null)
-			return null;
-
-		if(Parser.isQuoted(varName))
-			return Parser.dequote(varName);
-		
-		try {
-			return Integer.valueOf(varName).toString();
-		} catch(Exception e) {}
-		try {
-			return Float.valueOf(varName).toString();
-		} catch(Exception e) {}		
-		
-		String[] varNameParts = varName.split("\\.");
-		
-		// find the starting point
-		Context contextStack = (Context)scope.get(JSWriter.CONTEXT_STACK_VAR);
-		Object varValue = null;
-		
-		varValue = contextStack.get(varNameParts[0]);
-		
-		if(varValue == null && allowGlobal) {
-			varValue = scope.get(varNameParts[0]);
-		}
-		
-		if(varValue == null)
-			return Variable.UNDEFINED_VALUE;
-		
-		if((varNameParts.length > 1 || callLeaf) && varValue instanceof JSFunction)
-			varValue = ((JSFunction)varValue).call(scope.child());
-		
-		// find the rest of the variable members
-		for(int i=1; i<varNameParts.length; i++) {
-			String varNamePart = varNameParts[i];
-
-			if(varValue == null || !(varValue instanceof JSObject))
-				return Variable.UNDEFINED_VALUE;
-			
-			JSObject varValueJsObj = (JSObject)varValue;
-			
-			if(!varValueJsObj.containsKey(varNamePart))
-				return Variable.UNDEFINED_VALUE;
-
-			varValue = varValueJsObj.get(varNamePart);
-			
-			if((callLeaf || i < varNameParts.length -1) && varValue instanceof JSFunction)
-				varValue = ((JSFunction)varValue).callAndSetThis(scope.child(), varValueJsObj, new Object[0]);
-		}
-
-		return varValue;
-	}
-
-	
 	
 	/**
 	 * Injects native helpers into the global scope
@@ -171,11 +115,17 @@ public class Djang10Converter implements TemplateConverter {
     }
     
 
+    public static TagHandler getVariableTagHandler() {
+    	return _variableTagHandler;
+    }
     public static Map<String, TagHandler> getTagHandlers() {
     	return _tagHandlers;
     }
+    public static final VariableTagHandler _variableTagHandler;
     private static HashMap<String, TagHandler> _tagHandlers = new HashMap<String, TagHandler>();
     static {
+    	_variableTagHandler = new VariableTagHandler();
+    	
     	_tagHandlers.put("if", new IfTagHandler());
     	_tagHandlers.put("for", new ForTagHandler());
     	_tagHandlers.put("include", new IncludeTagHandler());
@@ -196,7 +146,7 @@ public class Djang10Converter implements TemplateConverter {
     public static Map<String, Filter> getFilters() {
     	return _filters;
     }
-    private static Map<String, Filter> _filters = new HashMap<String, Filter>();
+    private static final Map<String, Filter> _filters = new HashMap<String, Filter>();
     static {
     	_filters.put("default", new DefaultFilter());
     	_filters.put("urlencode", new UrlEncodeFilter());

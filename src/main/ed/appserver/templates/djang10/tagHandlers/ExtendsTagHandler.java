@@ -8,6 +8,7 @@ import java.util.Map;
 import ed.appserver.templates.djang10.JSHelper;
 import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
+import ed.appserver.templates.djang10.TemplateException;
 import ed.appserver.templates.djang10.Parser.Token;
 import ed.appserver.templates.djang10.generator.JSWriter;
 import ed.appserver.templates.djang10.tagHandlers.BlockTagHandler.BlockNode;
@@ -15,7 +16,7 @@ import ed.js.JSFunction;
 
 public class ExtendsTagHandler implements TagHandler {
 
-	public Node compile(Parser parser, String command, Token token) {
+	public Node compile(Parser parser, String command, Token token) throws TemplateException {
 		String path = Parser.smartSplit(token.contents)[1];
 		
 		
@@ -48,7 +49,7 @@ public class ExtendsTagHandler implements TagHandler {
 		}
 		
 		@Override
-		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) {
+		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
 			for(Node node : topLevelBlocks)
 				node.getRenderJSFn(preamble, buffer);
 
@@ -56,7 +57,7 @@ public class ExtendsTagHandler implements TagHandler {
 			if(Parser.isQuoted(path))
 				buffer.append(startLine, path);
 			else
-				buffer.appendVarExpansion(startLine, path, "null");
+				buffer.append(startLine, VariableTagHandler.compileFilterExpression(path, "null"));
 			
 			buffer.append(startLine, ", " + JSWriter.CONTEXT_STACK_VAR + ", " + JSWriter.RENDER_OPTIONS_VAR);
 			buffer.append(startLine, ");\n");
