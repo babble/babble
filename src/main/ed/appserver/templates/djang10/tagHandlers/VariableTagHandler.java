@@ -239,7 +239,13 @@ public class VariableTagHandler implements TagHandler {
 	public static String compileExpression(String expression) throws TemplateException{
 		CompilerEnvirons ce  = new CompilerEnvirons();
 		org.mozilla.javascript.Parser parser = new org.mozilla.javascript.Parser(ce, ce.getErrorReporter());
-		ScriptOrFnNode scriptNode = parser.parse(expression, "foo", 0);
+		ScriptOrFnNode scriptNode;
+		
+		try {
+		    scriptNode = parser.parse(expression, "foo", 0);
+		} catch(Throwable t) {
+		    throw new TemplateException("Failed to parse expression", t);
+		}
 		
 		if(scriptNode.getFirstChild() != scriptNode.getLastChild())
 			throw new TemplateException("Only one expression is allowed");
