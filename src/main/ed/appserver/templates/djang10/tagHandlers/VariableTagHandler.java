@@ -63,12 +63,12 @@ public class VariableTagHandler implements TagHandler {
 					JSObject jsObj = (JSObject)obj;
 					
 					if(!jsObj.containsKey(prop.toString()))
-						throw new RuntimeException("Object doesn't contain the property " + prop.toString());
+						_log.error("Object doesn't contain the property " + prop.toString());
 					
 					ret = jsObj.get(prop);
 					
 					if(autoCall == Boolean.TRUE && ret instanceof JSFunction && !(ret instanceof JSCompiledScript))
-					    ret = ((JSFunction)ret).call(scope.child());
+					    ret = ((JSFunction)ret).callAndSetThis(scope.child(), obj, null);
 					
 				} catch(Throwable t) {
 					_log.error("Failed to get property: " + prop, t);
