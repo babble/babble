@@ -7,7 +7,7 @@ end
 
 class Foo
   A = Blah.new
-  A.z()
+ A.z()
 
   Z = 4
 

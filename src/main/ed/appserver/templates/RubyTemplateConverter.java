@@ -24,9 +24,9 @@ public class RubyTemplateConverter extends HtmlLikeConverter {
             code = code.substring( 0 , code.length() - 1 );
 
         if ( cm._startTag.equals( "<%=" ) ){
-            g.append( "print " );
+            g.append( "print( " );
             g.append( code );
-            g.append( " ;\n" );
+            g.append( " );\n" );
             return;
         }
 

@@ -7,15 +7,14 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import ed.appserver.templates.djang10.Context;
 import ed.appserver.templates.djang10.JSHelper;
 import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.TemplateException;
-import ed.appserver.templates.djang10.Variable;
 import ed.appserver.templates.djang10.filters.DateFilter;
 import ed.appserver.templates.djang10.filters.DefaultFilter;
 import ed.appserver.templates.djang10.filters.DictSortFilter;
+import ed.appserver.templates.djang10.filters.EscapeFilter;
 import ed.appserver.templates.djang10.filters.Filter;
 import ed.appserver.templates.djang10.filters.LengthFilter;
 import ed.appserver.templates.djang10.filters.LengthIsFilter;
@@ -37,8 +36,6 @@ import ed.appserver.templates.djang10.tagHandlers.IncludeTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.SetTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.TagHandler;
 import ed.appserver.templates.djang10.tagHandlers.VariableTagHandler;
-import ed.js.JSFunction;
-import ed.js.JSObject;
 import ed.js.engine.Scope;
 
 /**
@@ -108,69 +105,6 @@ public class Djang10Converter implements TemplateConverter {
 		return new Result(new Template(newName, newTemplate.toString(), t.getSourceLanguage()), newTemplateLineMapping);
 	}
 	
-	/**
-	 * A helper method to resolve the values of variables and literals.  Quoted literal string are dequoted, 
-	 * numbers are parsed and variables are resolved in the context.  If allowGlobal is true and the value is
-	 * not found in the context then the scope is used to resolve the variables.  If the variable cannot be
-	 * resolved then, Variable.UNRESOLVED_VALUE is returned.
-	 * @return
-	 */
-	public static Object resolveVariable(Scope scope, String unresolvedValue, boolean allowGlobal, boolean callLeaf) {
-		String varName = unresolvedValue;
-		
-		if(varName == null)
-			return null;
-
-		if(Parser.isQuoted(varName))
-			return Parser.dequote(varName);
-		
-		try {
-			return Integer.valueOf(varName).toString();
-		} catch(Exception e) {}
-		try {
-			return Float.valueOf(varName).toString();
-		} catch(Exception e) {}		
-		
-		String[] varNameParts = varName.split("\\.");
-		
-		// find the starting point
-		Context contextStack = (Context)scope.get(JSWriter.CONTEXT_STACK_VAR);
-		Object varValue = null;
-		
-		varValue = contextStack.get(varNameParts[0]);
-		
-		if(varValue == null && allowGlobal) {
-			varValue = scope.get(varNameParts[0]);
-		}
-		
-		if(varValue == null)
-			return Variable.UNDEFINED_VALUE;
-		
-		if((varNameParts.length > 1 || callLeaf) && varValue instanceof JSFunction)
-			varValue = ((JSFunction)varValue).call(scope.child());
-		
-		// find the rest of the variable members
-		for(int i=1; i<varNameParts.length; i++) {
-			String varNamePart = varNameParts[i];
-
-			if(varValue == null || !(varValue instanceof JSObject))
-				return Variable.UNDEFINED_VALUE;
-			
-			JSObject varValueJsObj = (JSObject)varValue;
-			
-			if(!varValueJsObj.containsKey(varNamePart))
-				return Variable.UNDEFINED_VALUE;
-
-			varValue = varValueJsObj.get(varNamePart);
-			
-			if((callLeaf || i < varNameParts.length -1) && varValue instanceof JSFunction)
-				varValue = ((JSFunction)varValue).callAndSetThis(scope.child(), varValueJsObj, new Object[0]);
-		}
-
-		return varValue;
-	}
-
-	
 	
 	/**
 	 * Injects native helpers into the global scope
@@ -216,6 +150,7 @@ public class Djang10Converter implements TemplateConverter {
     static {
     	_filters.put("default", new DefaultFilter());
     	_filters.put("urlencode", new UrlEncodeFilter());
+    	_filters.put("escape", new EscapeFilter());
     	_filters.put("date", new DateFilter());
     	_filters.put("upper", new UpperFilter());
     	_filters.put("lower", new LowerFilter());

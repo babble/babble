@@ -13,3 +13,7 @@ a = []
 a << "abc" if text =~ p
 puts text
 puts a.length
+
+5.times do
+  puts "hi"
+end

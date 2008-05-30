@@ -49,7 +49,7 @@ public abstract class ScriptTestInstanceBase extends MyAsserts implements Script
 
         Scope scope = Scope.newGlobal().child(new File("/tmp"));
         scope.setGlobal( true );
-        
+        scope.makeThreadLocal();
         /*
          *  augment the scope
          */
@@ -72,6 +72,9 @@ public abstract class ScriptTestInstanceBase extends MyAsserts implements Script
         }
         catch (RuntimeException re) { 
             throw new Exception("For file " + _file.toString(), re);
+        }
+        finally {
+            scope.kill();
         }
     }
 }

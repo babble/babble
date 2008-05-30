@@ -183,6 +183,7 @@ public class VariableTagHandler implements TagHandler {
 			public Object call(Scope scope, Object value, Object defaultValue, Object[] extra) {
 				if(value == null || value == UNDEFINED_VALUE)
 					return defaultValue;
+
 				return value;
 			}
 		});

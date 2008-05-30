@@ -397,6 +397,8 @@ public class Scope implements JSObject {
     }
 
     public final Scope getGlobal(){
+        if ( _killed )
+            return _parent.getGlobal();
         if ( _global )
             return this;
         if ( _parent != null )
@@ -853,10 +855,20 @@ public class Scope implements JSObject {
     }
 
     public static Scope getAScope(){
+        return getAScope( true , false );
+    }
+
+    public static Scope getAScope( boolean createIfNeeded , boolean lastCreated ){
         Scope s = getThreadLocal();
         if ( s != null )
             return s;
         
+        if ( ! createIfNeeded ){
+            if ( lastCreated )
+                return _lastCreated.get();
+            return null;
+        }
+
         s = newGlobal();
         s.makeThreadLocal();
         return s;

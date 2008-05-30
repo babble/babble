@@ -1,7 +1,7 @@
 <!DOCTYPE suite SYSTEM "http://beust.com/testng/testng-1.0.dtd" >
 
 <suite name="appserver" >
-  
+
   <test name="main tests">
     <classes>
       <class name="ed.db.ByteTest" />
@@ -18,6 +18,15 @@
       <class name="ed.appserver.templates.JxpConvertTest" />
       <class name="ed.appserver.templates.HtmlTemplateTest" />
       <class name="ed.appserver.templates.Djang10ConverterTest" />
+    </classes>
+  </test>
+
+  <test name="engine ruby tests">
+	<parameter name="test-class"  value="ed.lang.ruby.RubyScriptTestInstance"/>
+	<parameter name="dir-name"  value="src/test/ed/lang/ruby/"/>
+	<parameter name="file-ending"  value=".rb"/>
+	<classes>
+      <class name="ed.util.ScriptTestFactory"/>
     </classes>
   </test>
 
@@ -39,14 +48,6 @@
     </classes>
   </test>
 
-  <test name="engine ruby tests">
-	<parameter name="test-class"  value="ed.lang.ruby.RubyScriptTestInstance"/>
-	<parameter name="dir-name"  value="src/test/ed/lang/ruby/"/>
-	<parameter name="file-ending"  value=".rb"/>
-	<classes>
-      <class name="ed.util.ScriptTestFactory"/>
-    </classes>
-  </test>
   
 </suite>
 

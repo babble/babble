@@ -1,12 +1,12 @@
 package ed.appserver.templates.djang10.filters;
 
-import ed.appserver.templates.djang10.Variable;
+import ed.appserver.templates.djang10.tagHandlers.VariableTagHandler;
 
 
 public class UpperFilter implements Filter {
 
 	public Object apply(Object value, Object param) {
-		if(value == Variable.UNDEFINED_VALUE || value==null)
+		if(value == VariableTagHandler.UNDEFINED_VALUE || value==null)
 			return null;
 		
 		return value.toString().toUpperCase();

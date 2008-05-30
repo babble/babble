@@ -273,28 +273,7 @@ public class Parser {
     	String[] partArray = new String[parts.size()];
     	return parts.toArray(partArray);
     }
-	
-	public static Variable parseVariable(String var) {
-		Variable variable = new Variable();
-		
-		String[] parts = smartSplit(var, "|");
-		
-		variable.base = parts[0];		
-		
-		for(int i=1; i<parts.length; i++) {
-			String[] filterParts = parts[i].split(":", 2);
-			String filterName;
-			String filterParam = null;
-			
-			filterName = filterParts[0].trim();
-			if(filterParts.length > 1) {
-				filterParam = filterParts[1].trim();
-			}
-			
-			variable.filters.add(new Variable.FilterSpec(filterName, filterParam));
-		}
-		return variable;
-	}
+
 	
 	public static String dequote(String str) {
 		if(isQuoted(str) ) {

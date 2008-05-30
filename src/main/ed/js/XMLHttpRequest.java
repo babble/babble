@@ -51,6 +51,13 @@ public class XMLHttpRequest extends JSObjectBase {
                             return open( s , methodObj , urlObj , asyncObj , args );
                         }
                     } );
+
+                _prototype.set( "getJSON" , new JSFunctionCalls0(){
+                        public Object call( Scope s , Object [] extra ){
+                            XMLHttpRequest r = (XMLHttpRequest)s.getThis();
+                            return r.getJSON();
+                        }
+                    } );
                 
             }
         };
@@ -146,19 +153,24 @@ public class XMLHttpRequest extends JSObjectBase {
         // TODO: more real http client
         
 	Socket sock = null;
+        
+        int timeout = 0;
+        if ( get( "timeout" ) != null ){
+            timeout = ((Number)get( "timeout" )).intValue();
+            if ( timeout < 50 )
+                timeout *= 1000;
+        }
 
         try {
             setStatus( OPENED );
             
             sock = new Socket();
-            if ( get( "timeout" ) != null ){
-                sock.setSoTimeout( ((Number)get( "timeout" )).intValue() );
-            }
+            sock.setSoTimeout( timeout );
             
             if ( DEBUG ) 
                 System.out.println( "connecting to [" + getHost() + ":" + getPort() + "]" );
 
-            sock.connect( new InetSocketAddress( getHost() , getPort() ) );
+            sock.connect( new InetSocketAddress( getHost() , getPort() ) , timeout );
 
             if ( isSecure() ){
                 if ( DEBUG ) System.out.println( "\t making secure" );
@@ -248,6 +260,10 @@ public class XMLHttpRequest extends JSObjectBase {
             
             if ( DEBUG ) System.out.println( buf );
             
+        }
+        catch ( IOException ioe ){
+            set( "error" , ioe );
+            return null;
         }
         finally {
 	    try {

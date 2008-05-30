@@ -70,14 +70,13 @@ public class JSRegex extends JSObjectBase {
                                 return null;
                             
                             final String res = a.getInt(0).toString();
-                            System.out.println( "** : " + res );
                             return res;
                         }
                     } );
 
                 set( "quote" , new JSFunctionCalls1(){
                         public Object call( Scope s , Object o , Object foo[] ){
-                            return new JSRegex( quote( o.toString() ) );
+                            return quote( o.toString() );
                         }
                     }
                     );
@@ -170,7 +169,12 @@ public class JSRegex extends JSObjectBase {
         
         _replaceAll = f.contains( "g" );
         
-        _patt = Pattern.compile( _p , _compilePatterns );
+        try {
+            _patt = Pattern.compile( _p , _compilePatterns );
+        }
+        catch ( PatternSyntaxException pe ){
+            throw new RuntimeException( "bad pattern \"" + _p + "\" : " + pe.getMessage() );
+        }
     }
 
     public String getPattern(){
@@ -252,9 +256,15 @@ public class JSRegex extends JSObjectBase {
         for ( int i=0; i<s.length(); i++ ){
             char c = s.charAt( i );
             switch ( c ){
+            case '\\':
+            case '^':
+            case '$':
             case '*':
+            case '+':
             case '{':
             case '}':
+            case '[':
+            case ']':
             case '(':
             case ')':
             case '-':

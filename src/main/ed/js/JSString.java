@@ -298,7 +298,12 @@ public class JSString extends JSObjectBase {
                             if ( a.size() >= limit )
                                 break;
                         }
-                            
+                        
+                        if ( r.getPattern().length() == 0 ){
+                            a.remove(0);
+                            a.remove( a.size() - 1 );
+                        }
+
                         return a;
                     }
                 }
@@ -473,7 +478,21 @@ public class JSString extends JSObjectBase {
                         return new JSString( buf.toString() );
                     }
                 } );
+            
+            set( "isUpper" , new JSFunctionCalls1(){
+                    public Object call( Scope s , Object thing , Object args[] ){
+                        String str = thing.toString();
+                        for ( int i=0; i<str.length(); i++ ){
+                            char c = str.charAt( i );
+                            if ( Character.isLetter( c ) &&
+                                 Character.isUpperCase( c ) )
+                                continue;
+                            return false;
+                        }
+                        return true;
+                    }
 
+                } );
 
         }
     };

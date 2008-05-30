@@ -53,10 +53,10 @@ public class FilterTagHandler implements TagHandler {
 			String[] filterParamParts = Parser.smartSplit(filterParams, "|");
 			
 			buffer.append(startLine, "print(");
-				buffer.append(startLine, VariableTagHandler.DEFAULT_VAR + "(");
+				buffer.append(startLine, JSHelper.NS + "." + VariableTagHandler.DEFAULT_VAR + "(");
 				
 					for(int i=filterParamParts.length-1; i>=0; i--) {
-						buffer.append(startLine, VariableTagHandler.APPLY_FILTER + "(");
+						buffer.append(startLine, JSHelper.NS + "." + VariableTagHandler.APPLY_FILTER + "(");
 					}
 	
 						buffer.append(startLine, "(function(print) {\n");
@@ -78,7 +78,7 @@ public class FilterTagHandler implements TagHandler {
 						else
 						    filterParam = "null";
 						
-						buffer.append(startLine, ", " + filterName + ", " + filterParam + ")");
+						buffer.append(startLine, ", \"" + filterName + "\", " + filterParam + ")");
 					}
 				buffer.append(startLine, ", \"\")");
 			buffer.append(startLine, ");\n");					
