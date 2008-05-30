@@ -10,6 +10,7 @@ import java.util.Map;
 import ed.appserver.JSFileLibrary;
 import ed.appserver.templates.Djang10Converter;
 import ed.appserver.templates.djang10.tagHandlers.TagHandler;
+import ed.appserver.templates.djang10.tagHandlers.VariableTagHandler;
 import ed.js.JSFunction;
 import ed.js.JSObjectBase;
 import ed.js.JSString;
@@ -66,29 +67,41 @@ public class JSHelper extends JSObjectBase {
 		@Override
 		public Object call(Scope scope, Object pathObj, Object[] extra) {
 			
-			if(pathObj instanceof JSCompiledScript)
-				return ((JSCompiledScript)pathObj).call(scope.child(), extra);
+		    if(pathObj == null || pathObj == VariableTagHandler.UNDEFINED_VALUE)
+		        return null;
+		    
+		    if(pathObj instanceof JSCompiledScript)
+	            return pathObj;
 
 			String path = ((JSString)pathObj).toString().trim().replaceAll("/+", "/").replaceAll("\\.\\w*$", "");
 			JSCompiledScript target = null;
 			
 			if(path.startsWith("/")) {
 				String[] newRootPathParts = path.split("/", 3);
-				if(newRootPathParts.length != 3 || newRootPathParts[2].trim().length() == 0)
-					return null;
+				if(newRootPathParts.length < 2 || newRootPathParts[1].trim().length() == 0)
+				    return null;
 				
-				//get the root filelib/ ie: local, core, etc
 				String newRootBasePath = newRootPathParts[1];
-				Object newRootBaseObj = scope.get(newRootBasePath);
-				if(!(newRootBaseObj instanceof JSFileLibrary))
-					throw new IllegalArgumentException("Path not found");
+				Object newRootBaseObj = null;
+				if(newRootPathParts.length == 3) {
+    				newRootBaseObj = scope.get(newRootBasePath);
+    				if(!(newRootBaseObj instanceof JSFileLibrary))
+    					newRootBaseObj = null;
+				}
 				
-				//get the actual file
-				Object targetObj = ((JSFileLibrary)newRootBaseObj).getFromPath(newRootPathParts[2]);
-				if(!(targetObj instanceof JSCompiledScript ))
-					return null;
 
-				target = (JSCompiledScript)targetObj;
+				if(newRootBaseObj == null) {
+
+	                //fallback on resolving absolute paths against site
+				    newRootBaseObj = ((JSFileLibrary)scope.get("local")).getFromPath(path);
+				    
+				    return (newRootBaseObj instanceof JSCompiledScript)? newRootBaseObj : null;
+				}
+				else {
+	                Object targetObj = ((JSFileLibrary)newRootBaseObj).getFromPath(newRootPathParts[2]);
+	                
+	                return (targetObj instanceof JSCompiledScript)? targetObj : null;
+				}
 			}
 			else {
 				for(int i = templateRoots.size()-1; i>= 0; i--) {
