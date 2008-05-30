@@ -354,7 +354,9 @@ public class JSObjectBase implements JSObject {
         _constructor = cons;
         set( "__constructor__" , _constructor );
         set( "constructor" , _constructor );
-        set( "__proto__" , _constructor == null ? null : _constructor._prototype );
+
+        Object __proto__ = _constructor == null ? null : _constructor._prototype;
+        set( "__proto__" , __proto__ );
 
         if ( _constructor != null && exec ){
             
@@ -575,6 +577,13 @@ public class JSObjectBase implements JSObject {
                 } );
 
             set( "valueOf" , new JSFunctionCalls0(){
+                    public Object call( Scope s , Object args[] ){
+                        return s.getThis();
+                    }
+                } );
+
+            // TODO: fix.  this is totally wrong
+            set( "class" , new JSFunctionCalls0(){
                     public Object call( Scope s , Object args[] ){
                         return s.getThis();
                     }
