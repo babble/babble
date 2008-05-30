@@ -12,7 +12,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import ed.appserver.templates.Djang10Converter;
-import ed.appserver.templates.djang10.Variable;
 import ed.appserver.templates.djang10.tagHandlers.TagHandler;
 
 
@@ -83,7 +82,7 @@ public class Parser {
 	}
 
 	
-	public LinkedList<Node> parse(String... untilTags) {
+	public LinkedList<Node> parse(String... untilTags) throws TemplateException {
 		LinkedList<Node> nodes = new LinkedList<Node>();
 		
 		while(!tokens.isEmpty()) {
@@ -96,7 +95,7 @@ public class Parser {
 				if(token.contents.length() == 0)
 					throw new TemplateException(token.startLine, token.endLine, "Empty Variable Tag");
 				
-				nodes.add(new Node.VariableNode(token));
+				nodes.add(Djang10Converter.getVariableTagHandler().compile(this, null, token));
 			}
 			else if(token.type == TagDelimiter.Type.Block) {
 				for(String untilTag : untilTags) {

@@ -6,13 +6,14 @@ import java.util.Map;
 import ed.appserver.templates.djang10.JSHelper;
 import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
+import ed.appserver.templates.djang10.TemplateException;
 import ed.appserver.templates.djang10.Parser.Token;
 import ed.appserver.templates.djang10.generator.JSWriter;
 import ed.js.JSFunction;
 
 public class IncludeTagHandler implements TagHandler {
 
-	public Node compile(Parser parser, String command, Token token) {
+	public Node compile(Parser parser, String command, Token token) throws TemplateException {
 		String[] parts = Parser.smartSplit(token.contents);
 
 		return new IncludeNode(token, parts[1]);
@@ -34,12 +35,12 @@ public class IncludeTagHandler implements TagHandler {
 		}
 
 		@Override
-		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) {
+		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
 			buffer.appendHelper(startLine, JSHelper.CALL_PATH + "(");
 			if(Parser.isQuoted(varName))
 				buffer.append(startLine, varName);
 			else
-				buffer.appendVarExpansion(startLine, varName, "null", false, false);
+			    buffer.append(startLine, VariableTagHandler.compileFilterExpression(varName, "null"));
 			buffer.append(startLine, ", " + JSWriter.CONTEXT_STACK_VAR + ");\n");
 		}
 	}

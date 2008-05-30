@@ -11,6 +11,7 @@ import ed.appserver.templates.djang10.Context;
 import ed.appserver.templates.djang10.JSHelper;
 import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
+import ed.appserver.templates.djang10.TemplateException;
 import ed.appserver.templates.djang10.Variable;
 import ed.appserver.templates.djang10.filters.DateFilter;
 import ed.appserver.templates.djang10.filters.DefaultFilter;
@@ -35,6 +36,7 @@ import ed.appserver.templates.djang10.tagHandlers.IfTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IncludeTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.SetTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.TagHandler;
+import ed.appserver.templates.djang10.tagHandlers.VariableTagHandler;
 import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.engine.Scope;
@@ -61,7 +63,12 @@ public class Djang10Converter implements TemplateConverter {
 			return null;
 		
 		Parser parser = new Parser(t._content);
-		LinkedList<Node> nodeList = parser.parse();
+		LinkedList<Node> nodeList;
+		try {
+			nodeList = parser.parse();
+		} catch (TemplateException e) {
+			throw new RuntimeException(e);
+		}
 		JSWriter preamble = new JSWriter();
 		JSWriter writer = new JSWriter();
 		
@@ -76,7 +83,11 @@ public class Djang10Converter implements TemplateConverter {
 		preamble.append(JSWriter.CONTEXT_STACK_VAR + ".push();\n");
 		
 		for(Node node : nodeList) {
-			node.getRenderJSFn(preamble, writer);
+			try {
+                node.getRenderJSFn(preamble, writer);
+            } catch (TemplateException e) {
+                throw new RuntimeException(e);
+            }
 		}
 		
 		writer.append(1, JSWriter.CONTEXT_STACK_VAR + ".pop();\n");
@@ -170,11 +181,17 @@ public class Djang10Converter implements TemplateConverter {
     }
     
 
+    public static TagHandler getVariableTagHandler() {
+    	return _variableTagHandler;
+    }
     public static Map<String, TagHandler> getTagHandlers() {
     	return _tagHandlers;
     }
+    public static final VariableTagHandler _variableTagHandler;
     private static HashMap<String, TagHandler> _tagHandlers = new HashMap<String, TagHandler>();
     static {
+    	_variableTagHandler = new VariableTagHandler();
+    	
     	_tagHandlers.put("if", new IfTagHandler());
     	_tagHandlers.put("for", new ForTagHandler());
     	_tagHandlers.put("include", new IncludeTagHandler());
@@ -195,7 +212,7 @@ public class Djang10Converter implements TemplateConverter {
     public static Map<String, Filter> getFilters() {
     	return _filters;
     }
-    private static Map<String, Filter> _filters = new HashMap<String, Filter>();
+    private static final Map<String, Filter> _filters = new HashMap<String, Filter>();
     static {
     	_filters.put("default", new DefaultFilter());
     	_filters.put("urlencode", new UrlEncodeFilter());

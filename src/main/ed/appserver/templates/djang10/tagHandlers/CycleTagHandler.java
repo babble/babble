@@ -19,7 +19,7 @@ public class CycleTagHandler implements TagHandler {
 	private static final String namedCycles_var = "__namedCycles__";
 	private static final String anonymous = "__anonymous__";
 
-	public Node compile(Parser parser, String command, Token token) {
+	public Node compile(Parser parser, String command, Token token) throws TemplateException {
 		Pattern p = Pattern.compile("^\\s*(?:\\S+) (.+?)(?: as (\\S+))?\\s*$");
 		Matcher m = p.matcher(token.contents);
 		if(!m.find())
@@ -98,7 +98,7 @@ public class CycleTagHandler implements TagHandler {
 		}
 
 		@Override
-		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) {
+		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
 			buffer.append("print(");
 			buffer.append(namedCycles_var+ "[\"" +name+ "\"].items");
 			buffer.append("[" +namedCycles_var+ "[\"" +name+ "\"].iter]");
@@ -117,7 +117,7 @@ public class CycleTagHandler implements TagHandler {
 			this.isFirstDefinitionNode = isFirst;
 		}
 		@Override
-		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) {
+		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
 			if(isFirstDefinitionNode)
 				preamble.append("var " + namedCycles_var + " = {};\n");
 			

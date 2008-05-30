@@ -19,7 +19,7 @@ import ed.js.func.JSFunctionCalls2;
 
 public class ForTagHandler implements TagHandler {
 
-	public Node compile(Parser parser, String command, Token token) {
+	public Node compile(Parser parser, String command, Token token) throws TemplateException {
 		String[] params = token.contents.split("\\s");
 		String itemName = params[1];
 		if(!"in".equals(params[2]))
@@ -104,7 +104,7 @@ public class ForTagHandler implements TagHandler {
 		}
 		
 		@Override
-		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) {
+		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
 			buffer.appendHelper(startLine, "newForLoopObjFn");
 			buffer.append(startLine, "(");
 			buffer.appendVarExpansion(startLine, listName, "[]");

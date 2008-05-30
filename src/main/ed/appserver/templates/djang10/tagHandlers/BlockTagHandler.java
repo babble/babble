@@ -14,7 +14,7 @@ import ed.js.JSFunction;
 public class BlockTagHandler implements TagHandler {
 	public static final String RENDER_OPT_BLOCK_MAP = "blocks";
 	
-	public Node compile(Parser parser, String command, Token token) {
+	public Node compile(Parser parser, String command, Token token) throws TemplateException {
 		String[] parts = token.contents.split("\\s");
 		
 		String blockName = parts[1];
@@ -62,7 +62,7 @@ public class BlockTagHandler implements TagHandler {
 		}
 		
 		@Override
-		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) {
+		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
 			if(isFirstNode) {
 				buffer.append(startLine, "if(" + JSWriter.RENDER_OPTIONS_VAR + "."+RENDER_OPT_BLOCK_MAP+" == null){\n");
 				buffer.append(startLine, JSWriter.RENDER_OPTIONS_VAR + "."+RENDER_OPT_BLOCK_MAP+" = {};\n");

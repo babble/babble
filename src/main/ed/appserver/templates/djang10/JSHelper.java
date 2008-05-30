@@ -26,10 +26,8 @@ public class JSHelper extends JSObjectBase {
 	public static final String ADD_TEMPLATE_ROOT = "addTemplateRoot";
 	public static final String CALL_PATH = "callPath";
 	public static final String LOAD_PATH = "loadPath";
-	public static final String VAR_EXPAND = "djangoVarExpand";
 	public static final String CONTEXT_CLASS = "Context";
 	public static final String NS = "__djang10";
-
 	
 	private ArrayList<JSFileLibrary> templateRoots;
 	
@@ -41,12 +39,13 @@ public class JSHelper extends JSObjectBase {
     	for (TagHandler tagHandler : Djang10Converter.getTagHandlers().values()) {
     		helpers.putAll(tagHandler.getHelpers());
 		}
+    	helpers.putAll(Djang10Converter.getVariableTagHandler().getHelpers());
+    	
     	for(String name : helpers.keySet()) {
     		this.set(name, helpers.get(name));
     	}
     	
     	//add the basic helpers
-    	this.set(JSHelper.VAR_EXPAND, varExpand);
     	this.set(JSHelper.LOAD_PATH, loadPath);
     	this.set(JSHelper.CALL_PATH, callPath);
     	this.set(JSHelper.ADD_TEMPLATE_ROOT, addTemplateRoot);

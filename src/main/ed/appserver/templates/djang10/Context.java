@@ -77,7 +77,7 @@ public class Context extends JSObjectBase {
 			return super.containsKey(s);
 
 		for(JSObject obj : objectStack) {
-			if(obj.containsKey(s))
+			if(obj.keySet().contains(s.toString()))
 				return true;
 		}
 		return super.containsKey(s);
