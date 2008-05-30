@@ -1,0 +1,7 @@
+{{ echoFunc("should see me") }}
+
+{{ array|length_is:echoFunc(5) }}
+
+{% if array|length_is:echoFunc(5) %} should see me 2 {% endif %}
+
+{% ifequal array[3] 3 %} should see me 3 {% endifequal %} 

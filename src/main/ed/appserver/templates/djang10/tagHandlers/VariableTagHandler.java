@@ -15,12 +15,13 @@ import ed.appserver.templates.djang10.TemplateException;
 import ed.appserver.templates.djang10.Parser.Token;
 import ed.appserver.templates.djang10.filters.Filter;
 import ed.appserver.templates.djang10.generator.JSWriter;
+import ed.js.JSArray;
 import ed.js.JSFunction;
+import ed.js.JSNumericFunctions;
 import ed.js.JSObject;
 import ed.js.JSString;
 import ed.js.engine.JSCompiledScript;
 import ed.js.engine.Scope;
-import ed.js.func.JSFunctionCalls1;
 import ed.js.func.JSFunctionCalls2;
 import ed.js.func.JSFunctionCalls3;
 import ed.log.Logger;
@@ -62,8 +63,16 @@ public class VariableTagHandler implements TagHandler {
 					
 					JSObject jsObj = (JSObject)obj;
 					
-					if(!jsObj.containsKey(prop.toString()))
-						return UNDEFINED_VALUE;
+					if(jsObj instanceof JSArray && prop instanceof Number) {
+					    if(((JSArray)jsObj).size() <= ((Number)prop).longValue())
+					        return UNDEFINED_VALUE;
+					}
+					else {
+					    if(!jsObj.containsKey(prop.toString()))
+	                        return UNDEFINED_VALUE;    
+					}
+					
+					
 					
 					ret = jsObj.get(prop);
 					
@@ -293,7 +302,12 @@ public class VariableTagHandler implements TagHandler {
 				break;
 			
 			case org.mozilla.javascript.Token.NUMBER:
-				buffer.append(node.getDouble());
+			    double n = node.getDouble();
+			    if(JSNumericFunctions.couldBeInt(n))
+			        buffer.append(Integer.toString((int)n));
+			    else
+			        buffer.append(n);
+
 				break;
 		    
 			case org.mozilla.javascript.Token.NULL:
