@@ -63,7 +63,7 @@ public class VariableTagHandler implements TagHandler {
 					JSObject jsObj = (JSObject)obj;
 					
 					if(!jsObj.containsKey(prop.toString()))
-						_log.error("Object doesn't contain the property " + prop.toString());
+						return UNDEFINED_VALUE;
 					
 					ret = jsObj.get(prop);
 					
@@ -83,7 +83,7 @@ public class VariableTagHandler implements TagHandler {
 				
 				Object varValue;
 				try {
-					if(UNDEFINED_VALUE == name)
+					if(UNDEFINED_VALUE == name || name == null)
 						return UNDEFINED_VALUE;
 					
 					if(!(name instanceof JSString))
@@ -97,11 +97,9 @@ public class VariableTagHandler implements TagHandler {
 					
 					//XXX: fallback on scope look ups
 					if(varValue == UNDEFINED_VALUE) {
-						_log.error(name + " doesn't exist in context, falling back on scope");
 						varValue = scope.get(name);
 						
 						if(varValue == null) {
-						    _log.error(name + " doesn't exist in global scope either");
 							varValue = scope.keySet().contains(name.toString())? null : UNDEFINED_VALUE;
 						}
 					}
@@ -120,7 +118,7 @@ public class VariableTagHandler implements TagHandler {
 		helpers.put(CALL, new JSFunctionCalls2() {
 			@Override
 			public Object call(Scope scope, Object thisObj, Object method, Object[] extra) {
-				if(thisObj == UNDEFINED_VALUE || method == UNDEFINED_VALUE)
+				if(thisObj == UNDEFINED_VALUE || method == UNDEFINED_VALUE || method == null)
 					return UNDEFINED_VALUE;
 				
 				Object ret;
