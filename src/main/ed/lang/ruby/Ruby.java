@@ -462,6 +462,8 @@ public class Ruby {
                             }
                         } );
                     
+                    a.set( "start" , start );
+                    a.set( "end" , end );
                     
                     if ( start instanceof Character && end instanceof Character ){
                         char s = (Character)start;
