@@ -15,7 +15,7 @@ import ed.js.JSFunction;
 public class CallTagHandler implements TagHandler {
 	public static final String EVAL = "eval";
 	public Node compile(Parser parser, String command, Token token) throws TemplateException {
-		Pattern pattern = Pattern.compile("^\\s*\\S+\\s+(\\S+)(?:\\s+(allowGlobal))?\\s*$");
+		Pattern pattern = Pattern.compile("^\\s*\\S+\\s+(.+?)(?:\\s+(allowGlobal))?\\s*$");
 		Matcher matcher = pattern.matcher(token.contents);
 		if(!matcher.find())
 			throw new TemplateException("Invlaid syntax");
