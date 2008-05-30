@@ -357,7 +357,6 @@ public class JSString extends JSObjectBase {
             _prototype.set( "_lb__rb_" , new JSFunctionCalls1(){
                     public Object call( Scope s , Object thing , Object args[] ){
                         JSString str = (JSString)s.getThis();
-
                         if ( thing instanceof Number ){
                             return (int)(str._s.charAt( ((Number)thing).intValue() ));
                         }
