@@ -369,7 +369,7 @@ public class JSString extends JSObjectBase {
                             return new JSString( sub );
                         }
                         
-                        throw new RuntimeException( "what : " + thing.getClass() );
+                        return null;
                     }
                 } );
             

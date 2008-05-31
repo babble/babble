@@ -15,7 +15,7 @@ module A
   end
   
   module C 
-    def bar
+    def barrrr
       puts "bar";
     end
   end
@@ -37,7 +37,7 @@ f = Foo.new
 
 puts Foo.silly
 
-f.bar
+f.barrrr
 
 
   
