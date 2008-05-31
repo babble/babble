@@ -5,6 +5,7 @@ class A
   end
   
   def go
+    puts "foo=#{@foo}"
     puts "" == @foo.to_s
   end
 end
