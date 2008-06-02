@@ -137,19 +137,6 @@ public class JSObjectBase implements JSObject {
             res = _map.get( s );
             if ( res != null || _keys.contains( s ) ) return res;
         }
-
-        if ( _map != null ){
-            JSObject proto = (JSObject)_map.get( "prototype" );
-            if ( proto != null ){
-
-                res = 
-                    proto instanceof JSObjectBase ? 
-                    ((JSObjectBase)proto)._simpleGet( s  , depth + 1) : 
-                    proto.get( s );
-                
-                if ( res != null ) return res;
-            }
-        };
         
         JSObject proto = null;
         
@@ -160,6 +147,18 @@ public class JSObjectBase implements JSObject {
                 if ( res != null ) return res;                
             }
         }
+        
+        if ( _map != null ){
+            JSObject prototype = (JSObject)_map.get( "prototype" );
+            if ( prototype != null ){
+                res = 
+                    prototype instanceof JSObjectBase ? 
+                    ((JSObjectBase)prototype)._simpleGet( s  , depth + 1) : 
+                    prototype.get( s );
+                
+                if ( res != null ) return res;
+            }
+        };
 
         if ( _constructor != null && _constructor._prototype != proto ){
             res = _constructor._prototype._simpleGet( s , depth + 1);
