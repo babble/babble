@@ -404,22 +404,26 @@ public class Ruby {
                 }
             } , true );
 
-        s.put( RUBY_DEFINE_CLASS , new JSFunctionCalls2(){
-                public Object call( Scope s , Object old , Object func , Object extra[] ){
+        s.put( RUBY_DEFINE_CLASS , new JSFunctionCalls3(){
+                public Object call( Scope s , Object old , Object func , Object name , Object extra[] ){
+                    
                     if ( ! ( func instanceof JSFunction ) )
                         throw new RuntimeException( "somethingis wrong" );
+                    
+                    JSFunction n = (JSFunction)func;
+                    n.set( "name" , name );
                     
                     if ( old instanceof JSFunction ){
                         
                         JSFunction o = (JSFunction)old;
-                        JSFunction n = (JSFunction)func;
-                        
+
                         if ( o.getPrototype() != null )
                             for ( String key : o.getPrototype().keySet() )
                                 n.getPrototype().set( key , o.getPrototype().get( key ) );
-
+                        
                     }
-                    return func;
+                    
+                    return n;
                 }
             } , true );
 

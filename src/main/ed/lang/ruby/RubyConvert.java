@@ -1233,7 +1233,7 @@ public class RubyConvert extends ed.MyAsserts {
                 _add( state._classInit.getBodyNode() , state.child() );
                 _append( "\n}\n" , state._classInit );
             }
-            _append( " )\n" , cn );
+            _append( " , \"" + name + "\" )\n" , cn );
             
             
             if ( cn.getSuperNode() != null ){
