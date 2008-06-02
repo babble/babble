@@ -381,7 +381,7 @@ public class JSObjectBase implements JSObject {
         if ( _constructor != null && _constructor._prototype != null )
             return _constructor._prototype;
 
-        return (JSObject)_simpleGet( "prototype" );
+        return (JSObject)_simpleGet( "__proto__" );
         
     }
 
