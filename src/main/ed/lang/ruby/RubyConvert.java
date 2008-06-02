@@ -1237,9 +1237,15 @@ public class RubyConvert extends ed.MyAsserts {
             
             
             if ( cn.getSuperNode() != null ){
-                _append( "\n" + name + ".prototype = new " , cn );
+                _append( "\n" , cn );
+                
+                _append( name + ".__proto__ = " , cn );
                 _add( cn.getSuperNode() , state );
-                _append( "();\n" , cn );
+                _append( ";\n" , cn );
+
+                _append( name + ".prototype.__proto__ = " , cn );
+                _add( cn.getSuperNode() , state );
+                _append( ".prototype;\n" , cn );
             }
         }
         
