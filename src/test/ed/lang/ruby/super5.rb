@@ -1,6 +1,7 @@
 
 class A
   def initialize 
+    puts "in A initialize"
     @bar = 1;
   end
 end

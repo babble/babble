@@ -362,6 +362,10 @@ public class RubyConvert extends ed.MyAsserts {
             if ( state._curMethod != null ){
                 _append( "( __last__ = this.getSuper()." + state._curMethod + "( ) )" , node );
             }
+            else if ( state._parent != null && state._parent._superNode != null ){
+                _add( state._parent._superNode , state );
+                _append( ".call( this );\n" , node );
+            }
         }
 
         else if ( node instanceof SuperNode ){
@@ -373,7 +377,7 @@ public class RubyConvert extends ed.MyAsserts {
             if ( sn.getIterNode() != null )
                 throw new RuntimeException( "what?" );
 
-            _append( "this.__proto__.constructor.call( this " , sn );
+            _append( "this.constructor.__proto__.call( this " , sn );
             for ( Node foo : sn.getArgsNode().childNodes() ){
                 _append( " , " , sn );
                 _add( foo , state );
@@ -1210,6 +1214,7 @@ public class RubyConvert extends ed.MyAsserts {
         
         state = state.child();
         state._className = name;
+        state._superNode = cn.getSuperNode();
 
         _assertType( cn.childNodes().get(0) , Colon2Node.class );
         
@@ -1738,6 +1743,7 @@ public class RubyConvert extends ed.MyAsserts {
         final State _parent;
         String _lastClass;
         String _className;
+        Node _superNode;
         DefnNode _classInit;
         boolean _module = false;
         
