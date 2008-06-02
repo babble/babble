@@ -1,6 +1,8 @@
 
 class A  
 
+  Z = 101
+
   def self.foo
     puts "foo"
   end
@@ -12,6 +14,9 @@ class A
 end
 
 class B < A
+  
+  Z = 102
+  
   puts "h1"
   foo
   puts "h2"
@@ -19,8 +24,27 @@ class B < A
   puts "h3"
 end
 
+puts A::Z
+puts B::Z
 
 b = B.new
 b = B.new
+    
+class AA
+
+  attr_accessor :z
+
+  def initialize
+    puts "AA cons"
+    @z = 111;
+  end
+
+end
+
+class BB < AA
+end
+
+bb = BB.new
+puts bb.z
     
     

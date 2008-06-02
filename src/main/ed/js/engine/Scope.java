@@ -62,7 +62,7 @@ public class Scope implements JSObject {
 
         {
             Object pt = alternate == null ? null : alternate.getThis( false );
-            if ( pt != null && pt.getClass() == JSObjectBase.class )
+            if ( pt instanceof JSObjectBase )
                 _possibleThis = (JSObjectBase)pt;
             else
                 _possibleThis = null;
@@ -334,22 +334,20 @@ public class Scope implements JSObject {
             }
         }
                 
-        if ( depth == 0 && 
-             _possibleThis != null && 
-             ! name.equals( "print" )  // TODO: this is a hack for ruby right now...
-             ){
-            
-            pt = _possibleThis;
-            foo = _getFromThis( _possibleThis , name );
-
-            if ( foo != null ){
-                if ( finder )
-                    throw new ScopeFinder( name , this );
-
-                if ( foo instanceof JSFunction && with != null )
-                    with[0] = pt;
+        if ( depth == 0 && ! name.equals( "print" ) ){ // TODO: this is a hack for ruby right now...
+            if ( _possibleThis != null ){
+                pt = _possibleThis;
+                foo = _getFromThis( _possibleThis , name );
                 
-                return foo;
+                if ( foo != null ){
+                    if ( finder )
+                        throw new ScopeFinder( name , this );
+                    
+                    if ( foo instanceof JSFunction && with != null )
+                        with[0] = pt;
+                    
+                    return foo;
+                }
             }
         }
 

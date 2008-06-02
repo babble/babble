@@ -2,7 +2,7 @@
 module Foo
 
   def fun(z)
-    helper( z + 3 )
+    #helper( z + 3 )
     puts @a
   end
   
@@ -34,6 +34,9 @@ A.send :include , Foo
 a = A.new
 a.fun(5)
 
+puts( "----" );
+
+
 class B < A
   def blah(z)
     fun(z+1)
@@ -42,6 +45,6 @@ end
 
 b = B.new
 b.fun(9)
-b.blah(12)
+# b.blah(12)
 
 
