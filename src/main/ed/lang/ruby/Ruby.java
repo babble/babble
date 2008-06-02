@@ -164,7 +164,7 @@ public class Ruby {
                         
                         for ( String key : o.keySet() )
                             t.set( key , o.get( key ) );
-
+                        
                         Object incObj = o.get( "included" );
                         if ( incObj != null && incObj instanceof JSFunction )
                             ((JSFunction)incObj).call( s , t );
