@@ -12,6 +12,7 @@ class Lower
   attr_accessor :all
   
   def initialize
+    puts "Lower.initialize"
     @all = [ "1" ]
   end
   

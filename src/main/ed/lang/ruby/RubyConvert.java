@@ -248,7 +248,7 @@ public class RubyConvert extends ed.MyAsserts {
                 boolean first = true;
                 
                 if ( state._className != null ){
-                    _append( ".call(" + state._className + ".prototype " , node );
+                    _append( ".call(" + state._className + " " , node );
                     first = false;
                 }
                 else
@@ -1220,7 +1220,13 @@ public class RubyConvert extends ed.MyAsserts {
             _append( name + " = " + Ruby.RUBY_DEFINE_CLASS + "( " + name + " , " , cn );
             
             if ( state._classInit == null ){
-                _append( " function(){ if ( this.__proto__ && this.__proto__.constructor && this.__proto__ != this && ( arguments.length == 0 || arguments[arguments.length-1] != 1542143 ) ){ arguments.push( 1542143 ); this.__proto__.constructor.apply( this , arguments ); } }" , cn );
+                //_append( " function(){ if ( this.constructor && this.constructor.__l && this.__proto__ != this && ( arguments.length == 0 || arguments[arguments.length-1] != 1542143 ) ){ arguments.push( 1542143 ); this.__proto__.constructor.apply( this , arguments ); } }" , cn );
+                _append( " function(){ " , cn );
+                if ( cn.getSuperNode() != null ){
+                    _add( cn.getSuperNode() , state );
+                    _append( ".apply( this , arguments );" , cn );
+                }
+                _append( " } " , cn );
             }
             else {
                 _append( " function" , state._classInit );
