@@ -10,6 +10,7 @@ import ed.js.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 import ed.lang.*;
+import ed.util.*;
 import ed.net.httpserver.*;
 import ed.appserver.jxp.*;
 import ed.appserver.templates.Djang10Converter;
@@ -24,15 +25,15 @@ public class AppContext {
     }
 
     public AppContext( String root ){
-        this( root , guessName( root ) );
+        this( root , guessNameAndEnv( root )[0] , guessNameAndEnv( root )[1] );
     }
 
-    public AppContext( String root , String name ){
+    public AppContext( String root , String name , String environment ){
         if ( root == null )
             throw new NullPointerException( "AppContext root can't be null" );
         
         if ( name == null )
-            name = guessName( root );
+            name = guessNameAndEnv( root )[0];
         
         if ( name == null )
             throw new NullPointerException( "how could name be null" );
@@ -41,6 +42,9 @@ public class AppContext {
         _root = root;
         _rootFile = new File( _root );
         
+        _environment = environment;
+        _gitBranch = GitUtils.hasGit( _rootFile ) ? GitUtils.getBranchOrTagName( _rootFile ) : null;
+
         _isGrid = name.equals( "grid" );
 
         _scope = new Scope( "AppContext:" + root , _isGrid ? ed.cloud.Cloud.getInstance().getScope() : Scope.newGlobal() , null , Language.JS , _rootFile );
@@ -130,7 +134,7 @@ public class AppContext {
 
     }
 
-    private static String guessName( String root ){
+    private static String[] guessNameAndEnv( String root ){
         String pcs[] = root.split("/");
 
         if ( pcs.length == 0 )
@@ -138,8 +142,9 @@ public class AppContext {
         
         // handle anything with sites/foo
         for ( int i=0; i<pcs.length-1; i++ )
-            if ( pcs[i].equals( "sites" ) )
-                return pcs[i+1];
+            if ( pcs[i].equals( "sites" ) ){
+                return new String[]{ pcs[i+1] , i+2 < pcs.length ? pcs[i+2] : null };
+            }
         
         for ( int i=pcs.length-1; i>0; i-- ){
             String s = pcs[i];
@@ -151,10 +156,10 @@ public class AppContext {
                  s.equals("dev" ) )
                 continue;
             
-            return s;
+            return new String[]{ s , i + 1 < pcs.length ? pcs[i+1] : null };
         }
         
-        return pcs[0];
+        return new String[]{ pcs[0] , null };
     }
     
     public String getName(){
@@ -468,9 +473,20 @@ public class AppContext {
         return _numRequests;
     }
 
+    public String getGitBranch(){
+        return _gitBranch;
+    }
+    
+    public String getEnvironmentName(){
+        return _environment;
+    }
+
     final String _name;
     final String _root;
     final File _rootFile;
+
+    final String _gitBranch;
+    final String _environment;
 
     JSFileLibrary _jxpObject;
     JSFileLibrary _core;

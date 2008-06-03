@@ -261,12 +261,17 @@ public class HttpResponse extends JSObjectBase {
             a.append( "\n" );
         }
 
+	a.append( SERVER_HEADERS );
+
         // headers
         if ( _headers != null ){
-            for ( Map.Entry<String,String> v : _headers.entrySet() ){
-                a.append( v.getKey() );
+            List<String> headers = new ArrayList<String>( _headers.keySet() );
+            Collections.sort( headers );
+            for ( int i=headers.size()-1; i>=0; i-- ){
+                String h = headers.get( i );
+                a.append( h );
                 a.append( ": " );
-                a.append( v.getValue() );
+                a.append( _headers.get( h ) );
                 a.append( "\r\n" );
             }
         }
@@ -282,8 +287,6 @@ public class HttpResponse extends JSObjectBase {
             a.append( "\r\n" );
         }
         
-	a.append( SERVER_HEADERS );
-
         if ( keepAlive() )
             a.append( "Connection: keep-alive\r\n" );
         else

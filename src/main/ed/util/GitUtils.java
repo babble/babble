@@ -8,8 +8,11 @@ import ed.io.*;
 
 public class GitUtils {
 
-    public static String getBranchOrTagName( File dir )
-        throws IOException {
+    public static boolean hasGit( File dir ){
+        return (new File( dir , ".git" )).exists();
+    }
+
+    public static String getBranchOrTagName( File dir ){
 
         if ( ! dir.toString().endsWith( ".git" ) )
             dir = new File( dir , ".git" );
@@ -17,7 +20,13 @@ public class GitUtils {
         if ( ! dir.exists() )
             throw new RuntimeException( dir + " does not exist" );
         
-        return _getBranchOrTagName( dir );
+        try {
+            return _getBranchOrTagName( dir );
+        }
+        catch ( IOException ioe ){
+            // should never happen
+            throw new RuntimeException( ioe );
+        }
     }
 
     private static String _getBranchOrTagName( final File git )
