@@ -537,8 +537,10 @@ public class Ruby {
             root = "";
         root += "src/main/ed/lang/ruby/";
         java.io.File rootFile = new java.io.File( root );
-        if ( ! rootFile.exists() )
-            throw new RuntimeException( "can't find ruby root : " + rootFile );
+        if ( ! rootFile.exists() ){
+            System.err.println( "can't find ruby root : " + rootFile + " RUBY WILL NOT WORK" );
+            return;
+        }
         JSFileLibrary lib = new JSFileLibrary( rootFile , "ruby" , s );
         ((JSFunction)(lib.get( "lib" ))).call( s );
         ((JSFunction)(lib.get( "core" ))).call( s );

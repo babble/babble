@@ -17,7 +17,7 @@ public class Cloud extends JSObjectBase {
 
     private static final Cloud INSTANCE = new Cloud();
 
-    public static Cloud getInstance(){
+    public static synchronized Cloud getInstance(){
 	return INSTANCE;
     }
 
@@ -27,10 +27,15 @@ public class Cloud extends JSObjectBase {
     private Cloud(){
 
 	File cloudDir = new File( "src/main/ed/cloud/" );
-	if ( ! cloudDir.exists() )
-	    throw new RuntimeException( "can't find cloud dir" );
-
 	_scope = Scope.newGlobal().child( "cloud" );
+        
+        _bad = ! cloudDir.exists();
+        if ( _bad ){
+            System.err.println( "NO CLOUD" );
+            return;
+        }
+
+
 	Shell.addNiceShellStuff( _scope );
 	_scope.set( "Cloud" , this );
 	_scope.set( "log" , _log );
@@ -85,23 +90,58 @@ public class Cloud extends JSObjectBase {
 	
     }
 
+    public String getDBHost( String name , String environment ){
+        if ( _bad )
+            return null;
+
+        JSObject site = findSite( name , false );
+        if ( site == null )
+            return null;
+        
+        String dbname = evalFunc( site , "getDatabaseServerForEnvironmentName" , environment ).toString();
+        return ((JSObject)evalFunc( "Cloud.findDBByName" , dbname )).get( "machine" ).toString();
+    }
+
+    public JSObject findSite( String name , boolean create ){
+        if ( _bad )
+            return null;
+        return (JSObject)(evalFunc( "Cloud.Site.forName" , name , create ));
+    }
 
     Object evalFunc( String funcName , Object ... args ){
-	if ( args != null ){
+        return evalFunc( null , funcName , args );
+    }
+    
+    Object evalFunc( JSObject t , String funcName , Object ... args ){
+	
+        if ( args != null ){
 	    for ( int i=0; i <args.length; i++ ){
 		if ( args[i] instanceof String )
 		    args[i] = new JSString( (String)args[i] );
 	    }
 	}
 	
-	
-	JSFunction func = (JSFunction)findObject( funcName );
+        JSFunction func = null;
+        
+        if ( func == null && t != null ){
+            func = (JSFunction)t.get( funcName );
+        }
+
+        if ( func == null )
+            func = (JSFunction)findObject( funcName );
+
 	if ( func == null )
 	    throw new RuntimeException( "can't find func : " + funcName );
+        
+        Scope s = _scope;
+        if ( t != null ){
+            s = _scope.child();
+            s.setThis( t );
+        }
 
-	return func.call( _scope , args );
+	return func.call( s , args );
     }
-
+    
     Object findObject( String name ){
 
 	if ( ! name.matches( "[\\w\\.]+" ) )
@@ -127,4 +167,5 @@ public class Cloud extends JSObjectBase {
     }
 
     final Scope _scope;
+    final boolean _bad;
 }
