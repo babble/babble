@@ -14,7 +14,7 @@ import ed.js.JSFunction;
 
 public class SetTagHandler implements TagHandler {
 
-	public Node compile(Parser parser, String command, Token token) {
+	public Node compile(Parser parser, String command, Token token) throws TemplateException {
 		Pattern regex = Pattern.compile("^\\s*\\S+\\s+(\\S*)\\s*=\\s*(.+?)\\s*$");
 		Matcher matcher = regex.matcher(token.contents);
 		
@@ -43,7 +43,7 @@ public class SetTagHandler implements TagHandler {
 		}
 		
 		@Override
-		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) {
+		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
 			buffer.append(startLine, JSWriter.CONTEXT_STACK_VAR + ".set(\""+varName+"\", ");
 			buffer.appendVarExpansion(startLine, varValue, "null");
 			buffer.append(");\n");

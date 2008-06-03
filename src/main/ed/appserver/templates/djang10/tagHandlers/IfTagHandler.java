@@ -15,7 +15,7 @@ import ed.js.JSFunction;
 
 public class IfTagHandler implements TagHandler {
 	
-	public Node compile(Parser parser, String command, Token token) {
+	public Node compile(Parser parser, String command, Token token) throws TemplateException {
 		
 		String tokenContents = token.contents.replaceAll("\\s+", " ");	//remove extra whitespace
 		tokenContents = tokenContents.replaceFirst("\\S+\\s*", "");		//remove the tag name
@@ -112,7 +112,7 @@ public class IfTagHandler implements TagHandler {
 			endIfEndLine = endToken.endLine;
 		}
 		
-		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) {
+		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
 			buffer.append(startLine, "if(");
 			
 			boolean isFirst = true;
@@ -125,7 +125,7 @@ public class IfTagHandler implements TagHandler {
 				if(ifParam.inverted)
 					buffer.append(startLine, "!");
 				
-				buffer.appendVarExpansion(startLine, ifParam.varName, "null");
+				buffer.append(startLine, VariableTagHandler.compileFilterExpression(ifParam.varName, "null"));
 			}
 			
 			buffer.append(startLine, ") {\n");

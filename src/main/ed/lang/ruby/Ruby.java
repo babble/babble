@@ -164,7 +164,7 @@ public class Ruby {
                         
                         for ( String key : o.keySet() )
                             t.set( key , o.get( key ) );
-
+                        
                         Object incObj = o.get( "included" );
                         if ( incObj != null && incObj instanceof JSFunction )
                             ((JSFunction)incObj).call( s , t );
@@ -240,14 +240,6 @@ public class Ruby {
                     return o != null;
                 }
             } );
-
-        s.put( "__rand" , new JSFunctionCalls2(){
-                public Object call( Scope s , Object a , Object b , Object extra[] ){
-                    if ( ! JSInternalFunctions.JS_evalToBool( a ) )
-                        return false;
-                    return b;
-                }
-            } , true );
 
         s.put( RUBY_REQUIRE , new JSFunctionCalls1(){
                 public Object call( Scope s , Object pathObj , Object extra[] ){
@@ -412,22 +404,26 @@ public class Ruby {
                 }
             } , true );
 
-        s.put( RUBY_DEFINE_CLASS , new JSFunctionCalls2(){
-                public Object call( Scope s , Object old , Object func , Object extra[] ){
+        s.put( RUBY_DEFINE_CLASS , new JSFunctionCalls3(){
+                public Object call( Scope s , Object old , Object func , Object name , Object extra[] ){
+                    
                     if ( ! ( func instanceof JSFunction ) )
                         throw new RuntimeException( "somethingis wrong" );
+                    
+                    JSFunction n = (JSFunction)func;
+                    n.set( "name" , name );
                     
                     if ( old instanceof JSFunction ){
                         
                         JSFunction o = (JSFunction)old;
-                        JSFunction n = (JSFunction)func;
-                        
+
                         if ( o.getPrototype() != null )
                             for ( String key : o.getPrototype().keySet() )
                                 n.getPrototype().set( key , o.getPrototype().get( key ) );
-
+                        
                     }
-                    return func;
+                    
+                    return n;
                 }
             } , true );
 
@@ -470,6 +466,8 @@ public class Ruby {
                             }
                         } );
                     
+                    a.set( "start" , start );
+                    a.set( "end" , end );
                     
                     if ( start instanceof Character && end instanceof Character ){
                         char s = (Character)start;

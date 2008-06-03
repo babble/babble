@@ -4,7 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import ed.appserver.templates.djang10.JSHelper;
+import ed.appserver.templates.djang10.TemplateException;
 import ed.appserver.templates.djang10.Util;
+import ed.appserver.templates.djang10.tagHandlers.VariableTagHandler;
 
 
 public class JSWriter {
@@ -41,21 +43,6 @@ public class JSWriter {
 		append(srcLine, JSHelper.NS + "." + name);
 	}
 	
-	public void appendVarExpansion(int srcLine, String varName, String defaultValue) {
-		appendVarExpansion(srcLine, varName, defaultValue, false, true);
-	}
-	public void appendVarExpansion(int srcLine, String varName, String defaultValue, boolean allowGlobal, boolean callLeaf) {
-		appendHelper(srcLine, JSHelper.VAR_EXPAND);
-		append("(\"");
-		append(varName.replace("\"", "\\\""));
-		append("\",");
-		append(defaultValue);
-		append(", ");
-		append(Boolean.toString(allowGlobal));
-		append(", ");
-		append(Boolean.toString(callLeaf));
-		append(")");
-	}
 	public void appendCurrentContextVar(int srcLine, String name) {
 		append(srcLine, CONTEXT_STACK_VAR);
 		append(srcLine, "[");
@@ -84,4 +71,9 @@ public class JSWriter {
 	public String toString() {
 		return buffer.toString();
 	}
+
+    public void appendVarExpansion(int startLine, String var, String defaultValue) throws TemplateException {
+        append(startLine, VariableTagHandler.compileFilterExpression(var, defaultValue));
+        
+    }
 }

@@ -35,3 +35,5 @@ a.foo
 a.foo2
 
 
+f = "asdsaD"
+puts f[:asd] == nil

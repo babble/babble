@@ -129,13 +129,16 @@ public class JSNumericFunctions extends JSObjectBase {
         return Double.NaN;
     }
 
+    static Object _addParse( Object o ){
+        if ( o instanceof JSDate )
+            return o.toString();
+        return o;
+    }
+
     public Object JS_add( Object a , Object b ){
         
-        if ( a instanceof JSDate )
-            a = _parseNumber( a );
-        
-        if ( b instanceof JSDate )
-            b = _parseNumber( b );
+        a = _addParse( a );
+        b = _addParse( b );
 
         if ( a != null && ( a instanceof Number ) &&
              b != null && ( b instanceof Number ) ){

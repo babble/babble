@@ -89,6 +89,9 @@ public class RubyConvert extends ed.MyAsserts {
         // --- blocking ----
 
         if ( node instanceof RootNode ){
+            if ( node.childNodes() == null || 
+                 node.childNodes().size() == 0 )
+                return;
             _assertOne( node );
             _add( node.childNodes().get(0) , state );
         }
@@ -229,7 +232,7 @@ public class RubyConvert extends ed.MyAsserts {
             if ( ( f.getArgsNode() == null || f.getArgsNode().childNodes() == null || f.getArgsNode().childNodes().size() == 0 ) &&
                  f.getIterNode() == null ){
                 // no args
-                final String funcName = _getFuncName( f );
+                final String funcName = state.getFuncName( f );
                 _append( Ruby.RUBY_V_CALL + "(" + funcName + ", \"" + funcName + "\" , this )" , f );
             }
             else if ( f.getName().equals( "JSRAW" ) ){
@@ -240,12 +243,12 @@ public class RubyConvert extends ed.MyAsserts {
                 _append( ((StrNode)(f.getArgsNode().childNodes().get(0))).getValue().toString() , f );
             }
             else {
-                _append( _getFuncName( f )  , node );
+                _append( state.getFuncName( f )  , node );
                 
                 boolean first = true;
                 
                 if ( state._className != null ){
-                    _append( ".call(" + state._className + ".prototype " , node );
+                    _append( ".call(" + state._className + " " , node );
                     first = false;
                 }
                 else
@@ -345,7 +348,9 @@ public class RubyConvert extends ed.MyAsserts {
             _assertNoChildren( node );
             VCallNode vcn = (VCallNode)node;
             final String funcName = _getFuncName( vcn );
-            _append( Ruby.RUBY_V_CALL + "( " + funcName + " , \"" + funcName + "\" , this )" , node );
+            _append( Ruby.RUBY_V_CALL + "( " , node );
+            state.appendClassNameIfNeeded( node );
+            _append( funcName + " , \"" + funcName + "\" , this )" , node );
         }
 
         else if ( node instanceof BlockPassNode ){
@@ -356,6 +361,10 @@ public class RubyConvert extends ed.MyAsserts {
         else if ( node instanceof ZSuperNode ){
             if ( state._curMethod != null ){
                 _append( "( __last__ = this.getSuper()." + state._curMethod + "( ) )" , node );
+            }
+            else if ( state._parent != null && state._parent._superNode != null ){
+                _add( state._parent._superNode , state );
+                _append( ".call( this );\n" , node );
             }
         }
 
@@ -368,7 +377,7 @@ public class RubyConvert extends ed.MyAsserts {
             if ( sn.getIterNode() != null )
                 throw new RuntimeException( "what?" );
 
-            _append( "this.__proto__.constructor.call( this " , sn );
+            _append( "this.constructor.__proto__.call( this " , sn );
             for ( Node foo : sn.getArgsNode().childNodes() ){
                 _append( " , " , sn );
                 _add( foo , state );
@@ -521,11 +530,11 @@ public class RubyConvert extends ed.MyAsserts {
 
         else if ( node instanceof AndNode ){
             AndNode a = (AndNode)node;
-            _append( " __rand( " , a );
+            _append( " ( " , a );
             _add( a.getFirstNode() , state );
-            _append( " , " , a );
+            _append( " ? " , a );
             _add( a.getSecondNode() , state );
-            _append( " ) " , a );
+            _append( " : false ) " , a );
         }
 
         else if ( node instanceof OrNode ){
@@ -1205,6 +1214,7 @@ public class RubyConvert extends ed.MyAsserts {
         
         state = state.child();
         state._className = name;
+        state._superNode = cn.getSuperNode();
 
         _assertType( cn.childNodes().get(0) , Colon2Node.class );
         
@@ -1215,7 +1225,13 @@ public class RubyConvert extends ed.MyAsserts {
             _append( name + " = " + Ruby.RUBY_DEFINE_CLASS + "( " + name + " , " , cn );
             
             if ( state._classInit == null ){
-                _append( " function(){ if ( this.__proto__ && this.__proto__.constructor && this.__proto__ != this && ( arguments.length == 0 || arguments[arguments.length-1] != 1542143 ) ){ arguments.push( 1542143 ); this.__proto__.constructor.apply( this , arguments ); } }" , cn );
+                //_append( " function(){ if ( this.constructor && this.constructor.__l && this.__proto__ != this && ( arguments.length == 0 || arguments[arguments.length-1] != 1542143 ) ){ arguments.push( 1542143 ); this.__proto__.constructor.apply( this , arguments ); } }" , cn );
+                _append( " function(){ " , cn );
+                if ( cn.getSuperNode() != null ){
+                    _add( cn.getSuperNode() , state );
+                    _append( ".apply( this , arguments );" , cn );
+                }
+                _append( " } " , cn );
             }
             else {
                 _append( " function" , state._classInit );
@@ -1228,13 +1244,20 @@ public class RubyConvert extends ed.MyAsserts {
                 _add( state._classInit.getBodyNode() , state.child() );
                 _append( "\n}\n" , state._classInit );
             }
-            _append( " )\n" , cn );
+            _append( " , \"" + name + "\" )\n" , cn );
             
             
             if ( cn.getSuperNode() != null ){
-                _append( "\n" + name + ".prototype = new " , cn );
+                _append( "\n" , cn );
+                
+                _append( name + ".__proto__ = " , cn );
                 _add( cn.getSuperNode() , state );
-                _append( "();\n" , cn );
+                _append( ";\n" , cn );
+
+                _append( name + ".prototype.__proto__ = " , cn );
+                _add( cn.getSuperNode() , state );
+                _append( ".prototype;\n" , cn );
+
             }
         }
         
@@ -1445,7 +1468,14 @@ public class RubyConvert extends ed.MyAsserts {
             return;
         }
         
-        _add( self , state );
+        if ( self instanceof FixnumNode ){
+            _append( "parseInt( " , call );
+            _add( self , state );
+            _append( " ) " , call );
+        }            
+        else {
+            _add( self , state );
+        }
         _append( "." + _getFuncName( call ) , call );
         _append( "(" , call );        
         
@@ -1681,7 +1711,24 @@ public class RubyConvert extends ed.MyAsserts {
             return s;
         }
         
+        String getFuncName( Node node ){
+            if ( classNameNeeded( node ) )
+                return _myClassName() + _getFuncName( (INameNode)node );
+            return _getFuncName( (INameNode)node );
+        }
+
         boolean appendClassNameIfNeeded( Node n ){
+            if ( ! classNameNeeded( n ) )
+                return false;
+            _append( _myClassName() , n );
+            return true;
+        }
+
+        private String _myClassName(){
+            return _className + "." + JSObjectBase.SCOPE_FAILOVER_PREFIX;
+        }
+
+        boolean classNameNeeded( Node n ){
             if ( _className == null )
                 return false;
             
@@ -1691,13 +1738,13 @@ public class RubyConvert extends ed.MyAsserts {
             if ( n instanceof CallNode )
                 return appendClassNameIfNeeded( ((CallNode)n).getReceiverNode() );
             
-            _append( _className + "." + JSObjectBase.SCOPE_FAILOVER_PREFIX , n );
             return true;
         }
 
         final State _parent;
         String _lastClass;
         String _className;
+        Node _superNode;
         DefnNode _classInit;
         boolean _module = false;
         

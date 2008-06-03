@@ -473,7 +473,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                             if ( ret == null )
                                 continue;
                             
-                            if ( -111 == ret ){
+                            if(ret instanceof Number && ((Number)ret).longValue() == -111) {
                                 i--;
                                 continue;
                             }

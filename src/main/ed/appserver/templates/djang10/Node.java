@@ -13,7 +13,7 @@ public abstract class Node {
 		this.endLine = token.endLine;
 	}
 		
-	public abstract void getRenderJSFn(JSWriter preamble, JSWriter buffer);
+	public abstract void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException;
 	
 	
 	public static class TextNode extends Node {
@@ -25,7 +25,7 @@ public abstract class Node {
 			this.text = token.contents;
 		}
 
-		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) {
+		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
 			
 			String escaped = text.replace("\"", "\\\"");
 			
@@ -57,7 +57,7 @@ public abstract class Node {
 			this.name = token.contents;
 		}
 
-		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) {
+		public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
 			buffer.append(startLine, "print(");
 			buffer.appendVarExpansion(startLine, name, "\"\"");
 			buffer.append(startLine, ");\n");

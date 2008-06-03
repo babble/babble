@@ -194,7 +194,8 @@ public class HttpRequest extends JSObjectLame {
         _finishParsing();
         
         JSArray a = new JSArray();
-        a.addAll( _parameters.keySet() );
+        for ( String s : _parameters.keySet() )
+            a.add( new JSString( s ) );
         return a;
     }
 
@@ -206,8 +207,15 @@ public class HttpRequest extends JSObjectLame {
         return StringParseUtil.parseInt( getParameter( n ) , def );
     }
 
-    public List<String> getParameters( String name ){
-	return _parameters.get( name );
+    public JSArray getParameters( String name ){
+        List<String> lst = _parameters.get( name );
+        if ( lst == null )
+            return null;
+        
+        JSArray a = new JSArray();
+        for ( String s : lst )
+            a.add( new JSString( s ) );
+	return a;
     }
 
     public String getParameter( String name ){

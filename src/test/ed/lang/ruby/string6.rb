@@ -1,5 +1,9 @@
 
+puts "abc"[:foo] == nil
+
 class String
+
+  alias blah []
 
   def [](name)
     puts name
@@ -8,4 +12,11 @@ class String
 end
 
 puts "abc"[:foo]
+puts "abc"[:foo] == nil
+
+class String
+  alias [] blah
+end
+
+puts "abc"[:foo] == nil
 

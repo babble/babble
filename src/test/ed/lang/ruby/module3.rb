@@ -1,5 +1,5 @@
 
-module A 
+module A4
 
   def self.included( base )
     puts "yo"
@@ -15,7 +15,7 @@ module A
   end
   
   module C 
-    def bar
+    def barrrr
       puts "bar";
     end
   end
@@ -23,7 +23,7 @@ module A
 end
 
 class Foo
-  include A
+  include A4
 
   def initialize
     puts "fooie"
@@ -37,7 +37,7 @@ f = Foo.new
 
 puts Foo.silly
 
-f.bar
+f.barrrr
 
 
   
