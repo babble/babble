@@ -17,7 +17,7 @@ public class Cloud extends JSObjectBase {
 
     private static final Cloud INSTANCE = new Cloud();
 
-    public static Cloud getInstance(){
+    public static synchronized Cloud getInstance(){
 	return INSTANCE;
     }
 
@@ -27,10 +27,15 @@ public class Cloud extends JSObjectBase {
     private Cloud(){
 
 	File cloudDir = new File( "src/main/ed/cloud/" );
-	if ( ! cloudDir.exists() )
-	    throw new RuntimeException( "can't find cloud dir" );
-
 	_scope = Scope.newGlobal().child( "cloud" );
+        
+        _bad = ! cloudDir.exists();
+        if ( _bad ){
+            System.err.println( "NO CLOUD" );
+            return;
+        }
+
+
 	Shell.addNiceShellStuff( _scope );
 	_scope.set( "Cloud" , this );
 	_scope.set( "log" , _log );
@@ -86,6 +91,9 @@ public class Cloud extends JSObjectBase {
     }
 
     public String getDBHost( String name , String environment ){
+        if ( _bad )
+            return null;
+
         JSObject site = findSite( name , false );
         if ( site == null )
             return null;
@@ -95,6 +103,8 @@ public class Cloud extends JSObjectBase {
     }
 
     public JSObject findSite( String name , boolean create ){
+        if ( _bad )
+            return null;
         return (JSObject)(evalFunc( "Cloud.Site.forName" , name , create ));
     }
 
@@ -157,4 +167,5 @@ public class Cloud extends JSObjectBase {
     }
 
     final Scope _scope;
+    final boolean _bad;
 }
