@@ -12,7 +12,7 @@ public class CoreJS extends JSFileLibrary {
     
     static Logger _log = Logger.getLogger( "corejs" );
 
-    private static final File _root = new File( "/data/corejs" );
+    private static final File _root = new File( System.getenv( "COREJS" ) == null ? "/data/corejs" : System.getenv( "COREJS" ) );
     private static final boolean _branched;
     private static final File _default;
     
@@ -20,7 +20,7 @@ public class CoreJS extends JSFileLibrary {
         if ( ! _root.exists() )
             throw new RuntimeException( "need to have /data/corejs" );
         
-        _branched = ! ( new File( _root , ".git" ) ).exists();
+        _branched = ! ( new File( _root , "_init.js" ) ).exists();
         
         _default = _branched ? new File( _root , "master" ) : _root;
         
