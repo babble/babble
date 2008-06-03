@@ -325,6 +325,8 @@ public class HttpResponse extends JSObjectBase {
                 }
 
                 public Appendable append( CharSequence s ){
+                    if ( s == null )
+                        return this;
                     return append( s , 0 , s.length() );
                 }
 
