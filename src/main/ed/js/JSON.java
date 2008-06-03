@@ -158,11 +158,12 @@ public class JSON {
             if ( something instanceof JSFunction ){
                 if ( trusted ) {
                     String s = something.toString();
-                    if( s.startsWith(JSFunction.TO_STRING_PREFIX) )
+                    if( s.trim().startsWith("function ()" ) )
+                        // JS implementation; presumed safe to work
+                        a.append( s );
+                    else
                         // Java implementation -- not valid JSON
                         string ( a, s );
-                    else
-                        a.append( s );
                     return;
                 }
                 throw new java.io.IOException("can't serialize functions in untrusted mode");
