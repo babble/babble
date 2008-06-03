@@ -465,6 +465,7 @@ public class AppServer implements HttpHandler {
     
     public static void main( String args[] )
         throws Exception {
+        
 
         String webRoot = "/data/sites/admin/";
         String serverRoot = "/data/sites";
@@ -474,7 +475,13 @@ public class AppServer implements HttpHandler {
         /*
          *     --port portnum   [root]
          */
-        for (int i = 0; i < args.length; i++) {
+
+        int aLength = 0;
+        for ( int i=0; i<args.length; i++ ){
+            if ( args[i] != null && args[i].trim().length() > 0 )
+                aLength = i +1;
+        }
+        for (int i = 0; i < aLength; i++) {
 
             if ("--port".equals(args[i])) {
                 portNum = Integer.valueOf(args[++i]);
@@ -483,7 +490,7 @@ public class AppServer implements HttpHandler {
                 portNum = Integer.valueOf(args[++i]);
             }
             else {
-                if (i != args.length - 1) {
+                if (i != aLength - 1) {
                     System.out.println("error - unknown param " + args[i]);
                     System.exit(1);
                 }
