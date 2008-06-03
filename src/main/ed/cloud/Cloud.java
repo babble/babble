@@ -85,23 +85,53 @@ public class Cloud extends JSObjectBase {
 	
     }
 
+    public String getDBHost( String name , String environment ){
+        JSObject site = findSite( name , false );
+        if ( site == null )
+            return null;
+        
+        String dbname = evalFunc( site , "getDatabaseServerForEnvironmentName" , environment ).toString();
+        return ((JSObject)evalFunc( "Cloud.findDBByName" , dbname )).get( "machine" ).toString();
+    }
+
+    public JSObject findSite( String name , boolean create ){
+        return (JSObject)(evalFunc( "Cloud.Site.forName" , name , create ));
+    }
 
     Object evalFunc( String funcName , Object ... args ){
-	if ( args != null ){
+        return evalFunc( null , funcName , args );
+    }
+    
+    Object evalFunc( JSObject t , String funcName , Object ... args ){
+	
+        if ( args != null ){
 	    for ( int i=0; i <args.length; i++ ){
 		if ( args[i] instanceof String )
 		    args[i] = new JSString( (String)args[i] );
 	    }
 	}
 	
-	
-	JSFunction func = (JSFunction)findObject( funcName );
+        JSFunction func = null;
+        
+        if ( func == null && t != null ){
+            func = (JSFunction)t.get( funcName );
+        }
+
+        if ( func == null )
+            func = (JSFunction)findObject( funcName );
+
 	if ( func == null )
 	    throw new RuntimeException( "can't find func : " + funcName );
+        
+        Scope s = _scope;
+        if ( t != null ){
+            s = _scope.child();
+            s.setThis( t );
+        }
 
-	return func.call( _scope , args );
+	return func.call( s , args );
     }
-
+    
     Object findObject( String name ){
 
 	if ( ! name.matches( "[\\w\\.]+" ) )
