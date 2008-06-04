@@ -71,10 +71,15 @@ public class Drivers {
         private List<Statement> _stmts = new LinkedList<Statement>();
         
         class MyResult extends JSObjectBase {
-
-            MyResult( Statement stmt , ResultSet res ){
+            
+            MyResult( Statement stmt , ResultSet res )
+                throws SQLException {
                 _stmt = stmt;
                 _res = res;
+
+                ResultSetMetaData rsmd = res.getMetaData();
+                for ( int i=1; i<=rsmd.getColumnCount(); i++ )
+                    _fields.add( rsmd.getColumnName( i ) );
             }
 
             public boolean hasNext()
@@ -91,7 +96,9 @@ public class Drivers {
 
             public Object get( Object o ){
                 String name = o.toString();
-                if ( name.equals( "hasNext" ) )
+
+                if ( name.equals( "hasNext" ) ||
+                     name.equals( "keySet" ) )
                     return null;
 
                 try {
@@ -115,8 +122,13 @@ public class Drivers {
                 _addedBack = true;
             }
             
-            private Statement _stmt;
-            private ResultSet _res;
+            public Collection<String> keySet(){
+                return _fields;
+            }
+
+            private final Statement _stmt;
+            private final ResultSet _res;
+            private final List<String> _fields = new ArrayList<String>();
 
             private boolean _addedBack = false;
         }
