@@ -38,8 +38,6 @@ public class Shell {
 
     public static void addNiceShellStuff( Scope s ){
 
-        ed.db.migrate.Drivers.init( s );
-
         s.put( "core" , new CoreJS( s ) , true );
         s.put( "external" , new JSFileLibrary( new File( "/data/external" ) ,  "external" , s ) , true );
         s.put( "local" , new JSFileLibrary( new File( "." ) ,  "local" , s ) , true );

@@ -722,6 +722,8 @@ public class JSBuiltInFunctions {
             if ( val instanceof JSObjectBase )
                 ((JSObjectBase)val).lock();
         }
+
+        ed.db.migrate.Drivers.init( s );
     }
 
     
