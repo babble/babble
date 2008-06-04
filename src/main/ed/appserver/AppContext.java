@@ -475,8 +475,14 @@ public class AppContext {
         return _numRequests;
     }
 
-    public String getGitBranch(){
+    public String getStartupGitBranch(){
         return _gitBranch;
+    }
+
+    public String getCurrentGitBranch(){
+        if ( _gitBranch == null )
+            return null;
+        return GitUtils.getBranchOrTagName( _rootFile );
     }
     
     public String getEnvironmentName(){
