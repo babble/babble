@@ -65,10 +65,12 @@ Cloud.Site.prototype.findEnvironmentById = function( iid ){
 this returns the 10gen server name (prod1)
 */
 Cloud.Site.prototype.getDatabaseServerForEnvironmentName = function( name ){
+    name = name || "www";
+
     var env = this.findEnvironmentByName( name );
 
     if ( ! env )
-        throw "can't find environment [" + name + "] choices [" + this.environmentNames() + "]";
+        throw "can't find environment [" + name + "] choices [" + this.environmentNames() + "] site:" + this.name;
     
     
     var db = this.findDBByName( env.db );
