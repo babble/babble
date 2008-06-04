@@ -14,6 +14,11 @@ public class TestDB extends DBBase {
 	super( "stupid" );
     }
 
+    public String getConnectPoint(){
+	return null;
+    }
+
+
     public DBCollection getCollectionFromFull( String fullNameSpace ){
         throw new RuntimeException( "not implemented" );
     }

@@ -99,7 +99,18 @@ public class Cloud extends JSObjectBase {
             return null;
         
         String dbname = evalFunc( site , "getDatabaseServerForEnvironmentName" , environment ).toString();
-        return ((JSObject)evalFunc( "Cloud.findDBByName" , dbname )).get( "machine" ).toString();
+	if ( dbname == null )
+	    throw new RuntimeException( "why is dbname null for : " + name + ":" + environment );
+	
+	JSObject db = (JSObject)evalFunc( "Cloud.findDBByName" , dbname );
+	if ( db == null )
+	    throw new RuntimeException( "can't find global db named [" + dbname + "]" );
+	
+	Object machine = db.get( "machine" );
+	if ( machine == null )
+	    throw new RuntimeException( "global db [" + dbname + "] doesn't have machine set" );
+
+        return machine.toString();
     }
 
     public JSObject findSite( String name , boolean create ){
