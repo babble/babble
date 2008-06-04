@@ -235,17 +235,27 @@ public class Convert implements StackTraceFixer {
             {
                 _append( "JS_buildLiteralObject( new String[]{ " , n );
                 boolean first = true;
+                Node c = n.getFirstChild();
                 for ( Object id : (Object[])n.getProp( Node.OBJECT_IDS_PROP ) ){
                     if ( first )
                         first = false;
                     else 
                         _append( " , " , n );
-                    //_append( "\"" + id.toString() + "\"" , n );
-                    _append( getStringCode( id.toString() ) + ".toString()" , n );
+
+                    String name = id.toString();
+
+                    if ( c.getType() == Token.GET )
+                        name = JSObjectBase.getterName( name );
+                    else if ( c.getType() == Token.SET )
+                        name = JSObjectBase.setterName( name );
+                    
+                    _append( getStringCode( name ) + ".toString()" , n );
+
+                    c = c.getNext();
                 }
                 _append( " } " , n );
                 
-                Node c = n.getFirstChild();
+                c = n.getFirstChild();
                 while ( c != null ){
                     _append( " , " , n );
                     _add( c , state  );
@@ -444,6 +454,14 @@ public class Convert implements StackTraceFixer {
         case Token.SETNAME:
             _addSet( n , state );
             break;
+            
+        case Token.GET:
+            _addFunction( n.getFirstChild() , state );
+            break;
+        case Token.SET:
+            _addFunction( n.getFirstChild() , state );
+            break;
+
         case Token.FUNCTION:
             _addFunction( n , state );
             break;
