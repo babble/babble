@@ -18,6 +18,8 @@ public abstract class DBBase extends JSObjectLame {
     public abstract DBCollection getCollection( String name );
     public abstract Collection<String> getCollectionNames();
 
+    public abstract String getConnectPoint();
+
     public DBCollection getCollectionFromString( String s ){
         DBCollection foo = null;
         

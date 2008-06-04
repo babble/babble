@@ -77,6 +77,9 @@ Cloud.Site.prototype.getDatabaseServerForEnvironmentName = function( name ){
     if ( ! db )
         throw "something is wrong, can't find db [" + env.db + "] choices [" + this.dbNames() + "]";
 
+    if ( ! db.server )
+	throw "we found db [" + env.db + "] but its misconfigured";
+
     return db.server;
 }
 

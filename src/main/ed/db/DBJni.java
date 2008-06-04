@@ -12,6 +12,10 @@ public class DBJni extends DBMessageLayer {
 	super( root );
     }
 
+    public String getConnectPoint(){
+	return null;
+    }
+
     protected void say( int op , ByteBuffer dataOut ){
 
         DBMessage m = new DBMessage( op , dataOut );
