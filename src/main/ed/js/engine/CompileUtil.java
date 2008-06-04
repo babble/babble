@@ -30,7 +30,7 @@ public class CompileUtil {
         _loader = cl;
     }
 
-    public static synchronized Class<?> compile( String p , String c , String source )
+    public static synchronized Class<?> compile( final String p , final String c , final String source )
         throws IOException , ClassNotFoundException {
         
         if ( CD ) System.err.println( "compile called" );

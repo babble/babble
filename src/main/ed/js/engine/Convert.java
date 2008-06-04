@@ -93,7 +93,7 @@ public class Convert implements StackTraceFixer {
         _name = name;
         _source = source;
         
-        _className = _name.replaceAll( "[^\\w]+" , "_" );
+        _className = _name.replaceAll( "[^\\w]+" , "_" ) + _getNumForClass( _name );
         _fullClassName = _package + "." + _className;
         
         CompilerEnvirons ce = new CompilerEnvirons();
@@ -1726,4 +1726,15 @@ public class Convert implements StackTraceFixer {
 
         return n == null ? foo : null;
     }
+
+    static synchronized int _getNumForClass( String s ){
+        Integer num = _classNum.get( s );
+        if ( num == null )
+            num = 0;
+        num++;
+        _classNum.put( s , num );
+        return num;
+    }
+    
+    private static Map<String,Integer> _classNum =  Collections.synchronizedMap( new HashMap<String,Integer>() );
 }
