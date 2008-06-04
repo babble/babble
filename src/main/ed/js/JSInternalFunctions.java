@@ -22,6 +22,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
     public final static JSString TYPE_OBJECT = new JSString( "object" );
     public final static JSString TYPE_NATIVE = new JSString( "native" );
     public final static JSString TYPE_FUNCTION = new JSString( "function" );
+    public final static JSString TYPE_OBJECTID = new JSString( "objectid" );
 
     static {
         JS._debugSI( "JSInternalFunctions" , "1" );
@@ -115,6 +116,9 @@ public class JSInternalFunctions extends JSNumericFunctions {
         
         if ( obj instanceof JSFunction )
             return TYPE_FUNCTION;
+        
+        if ( obj instanceof ed.db.ObjectId )
+            return TYPE_OBJECTID;
 
         if ( obj instanceof JSObject )
             return TYPE_OBJECT;
