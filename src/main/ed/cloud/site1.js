@@ -9,7 +9,7 @@ Cloud.Environment = function(){
     this.iid = ObjectId();
 };
 
-Cloud.DB = function(){
+Cloud.SiteDB = function(){
     this.name = null;
     this.server = null;
     this.did = ObjectId();
@@ -23,8 +23,16 @@ Cloud.Site = function( name ){
     this.environments._dbCons = Cloud.Environment;
 
     this.dbs = [];
-    this.dbs._dbCons = Cloud.DB;
+    this.dbs._dbCons = Cloud.SiteDB;
 };
+
+Cloud.Site.prototype.environmentNames = function(){
+    return this.environments.map( function(z){ return z.name } );
+}
+
+Cloud.Site.prototype.dbNames = function(){
+    return this.dbs.map( function(z){ return z.name } );
+}
 
 Cloud.Site.prototype.findEnvironmentByName = function( name ){
     if ( ! name )
@@ -53,6 +61,25 @@ Cloud.Site.prototype.findEnvironmentById = function( iid ){
     return ret;
 };
 
+/**
+this returns the 10gen server name (prod1)
+*/
+Cloud.Site.prototype.getDatabaseServerForEnvironmentName = function( name ){
+    name = name || "www";
+
+    var env = this.findEnvironmentByName( name );
+
+    if ( ! env )
+        throw "can't find environment [" + name + "] choices [" + this.environmentNames() + "] site:" + this.name;
+    
+    
+    var db = this.findDBByName( env.db );
+    if ( ! db )
+        throw "something is wrong, can't find db [" + env.db + "] choices [" + this.dbNames() + "]";
+
+    return db.server;
+}
+
 Cloud.Site.prototype.findDBByName = function( name ){
     if ( ! name )
         return null;
@@ -80,6 +107,9 @@ Cloud.Site.prototype.findDBById = function( did ){
     return ret;
 };
 
+Cloud.Site.prototype.toString = function(){
+    return "Site: " + this.name;
+};
 
 Cloud.Site.forName = function( name , create ){
     var s = db.sites.findOne( { name : name } );
@@ -95,3 +125,4 @@ Cloud.Site.forName = function( name , create ){
 
 db.sites.setConstructor( Cloud.Site );
 db.sites.ensureIndex( { name : 1 } );
+

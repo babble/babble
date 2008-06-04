@@ -89,7 +89,7 @@ public class AppContext {
         // --- db
         
         if ( ! _isGrid ){
-            _scope.put( "db" , DBProvider.get( _name , false ) , true );
+            _scope.put( "db" , DBProvider.get( _name , false , ed.cloud.Cloud.getInstance().getDBHost( _name , _environment ) ) , true );
             _scope.put( "setDB" , new JSFunctionCalls1(){
 
                     public Object call( Scope s , Object name , Object extra[] ){
