@@ -17,6 +17,18 @@ public class CompileUtil {
     static boolean CD = false;
     
     static final String TMP_DIR = "/tmp/jxp/";// + Math.random() + "/";
+    private static final URLClassLoader _loader;
+    static {
+        URLClassLoader cl = null;
+        try {
+            cl = new URLClassLoader( new URL[]{ (new File( TMP_DIR )).toURL() } );
+        }
+        catch ( Exception e ){
+            e.printStackTrace();
+            System.exit(-1);
+        }
+        _loader = cl;
+    }
 
     public static synchronized Class<?> compile( String p , String c , String source )
         throws IOException , ClassNotFoundException {
@@ -77,8 +89,7 @@ public class CompileUtil {
 
         if ( CD ) System.err.println( "compile 4 " );
             
-        URLClassLoader cl = new URLClassLoader( new URL[]{ (new File( TMP_DIR )).toURL() } );
-        return cl.loadClass( p + "." + c );
+        return _loader.loadClass( p + "." + c );
     }
 
     static long getDependencyLastTime(){
