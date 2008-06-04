@@ -19,9 +19,12 @@ public class CompileUtil {
     static final String TMP_DIR = "/tmp/jxp/";// + Math.random() + "/";
     private static final URLClassLoader _loader;
     static {
+        
         URLClassLoader cl = null;
         try {
-            cl = new URLClassLoader( new URL[]{ (new File( TMP_DIR )).toURL() } );
+            File dir = new File( TMP_DIR );
+            dir.mkdirs();
+            cl = new URLClassLoader( new URL[]{ dir.toURL() } );
         }
         catch ( Exception e ){
             e.printStackTrace();
