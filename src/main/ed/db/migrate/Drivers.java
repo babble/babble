@@ -11,34 +11,23 @@ import ed.js.engine.*;
 
 public class Drivers {
 
-    static {
-        try {
-	    Class.forName( "com.mysql.jdbc.Driver");
-	}
-	catch ( ClassNotFoundException e ){
-	    throw new RuntimeException( e );
-	}
-    }
-
-    public static void init(){
-    }
-
     public static void init( Scope s ){
-        init();
-        
-        s.put( "jdbc" , new JSFunctionCalls1(){
-                public Object call( Scope s , Object nameObject , Object[] extra ){
 
+        s.put( "jdbc" , new JSFunctionCalls1(){
+                
+                public Object call( Scope s , Object nameObject , Object[] extra ){
                     String url = "jdbc:" + nameObject.toString();
                     String user = extra != null && extra.length > 0 ? extra[0].toString() : null;
                     String pass = extra != null && extra.length > 1 ? extra[1].toString() : null;
                     
                     try {
-                        Connection conn = DriverManager.getConnection( url , user , pass );
-                        return new JDBCConnection( url , conn );
+                        if ( nameObject.toString().startsWith( "mysql" ) ){
+                            return new JDBCConnection( url , Mysql._createConnection( url , null , user , pass ) );
+                        }
+                        throw new RuntimeException( "don't know how to connect to [" + nameObject + "]" );
                     }
                     catch ( SQLException se ){
-                        throw new RuntimeException( se );
+                        throw new RuntimeException( "can't connect to [" + nameObject + "]" , se );
                     }
                 }
             } , true );
