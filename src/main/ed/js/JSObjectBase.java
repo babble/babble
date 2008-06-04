@@ -289,11 +289,11 @@ public class JSObjectBase implements JSObject {
     }
 
 
-    static String setterName( String name ){
+    public static String setterName( String name ){
         return GETSET_PREFIX + "SET" + name;
     }
 
-    static String getterName( String name ){
+    public static String getterName( String name ){
         return GETSET_PREFIX + "GET" + name;
     }
 
