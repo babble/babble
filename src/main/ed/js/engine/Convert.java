@@ -5,6 +5,8 @@ package ed.js.engine;
 import java.io.*;
 import java.util.*;
 
+import com.twmacinta.util.*;
+
 import org.mozilla.javascript.*;
 
 import ed.js.*;
@@ -93,7 +95,7 @@ public class Convert implements StackTraceFixer {
         _name = name;
         _source = source;
         
-        _className = _name.replaceAll( "[^\\w]+" , "_" );
+        _className = _name.replaceAll( "[^\\w]+" , "_" ) + _getNumForClass( _name , _source );
         _fullClassName = _package + "." + _className;
         
         CompilerEnvirons ce = new CompilerEnvirons();
@@ -1725,5 +1727,41 @@ public class Convert implements StackTraceFixer {
         }
 
         return n == null ? foo : null;
+    }
+
+    // this is class compile optimization below
+
+    static synchronized int _getNumForClass( String name , String source ){
+        ClassInfo ci = _classes.get( name );
+        if ( ci == null ){
+            ci = new ClassInfo();
+            _classes.put( name , ci );
+        }
+        return ci.getNum( source );
+    }
+    
+    private static Map<String,ClassInfo> _classes =  Collections.synchronizedMap( new HashMap<String,ClassInfo>() );
+
+    static class ClassInfo {
+
+        synchronized int getNum( String source ){
+            _myMd5.Init();
+            _myMd5.Update( source );
+            final String hash = _myMd5.asHex();
+            
+            Integer num = _sourceToNumber.get( hash  );
+            if ( num != null )
+                return num;
+            
+            num = ++_numSoFar;
+            _sourceToNumber.put( hash , num );
+            
+            return num;
+        }
+
+        final MD5 _myMd5 = new MD5();
+        final Map<String,Integer> _sourceToNumber = new TreeMap<String,Integer>();
+        
+        int _numSoFar = 0;
     }
 }
