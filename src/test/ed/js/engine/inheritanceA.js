@@ -27,4 +27,5 @@ B.foo();
 b = new B();
 b.foo();
 print( b.z );
-assert( 5 == b.z );
+if ( 5 != b.z )
+    throw "problem";
