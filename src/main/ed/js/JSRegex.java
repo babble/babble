@@ -231,8 +231,13 @@ public class JSRegex extends JSObjectBase {
             return null;
         
         a = new JSArray();
-        for ( int i=0; i<=m.groupCount(); i++ )
-            a.add( new JSString( m.group(i) ) );
+        for ( int i=0; i<=m.groupCount(); i++ ){
+            String temp = m.group(i);
+            if ( temp == null )
+                a.add( null );
+            else
+                a.add( new JSString( temp ) );
+        }
 
         a.set( "_matcher" , m );
         a.set( "input" , new JSString( s ) );
