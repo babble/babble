@@ -54,6 +54,8 @@ public class AppContext {
         _usage = new UsageTracker( _name );
         
         _baseScopeInit();
+
+        _logger.info( "Started Context.  root:" + _root + " environment:" + environment + " git branch: " + _gitBranch );
     }
 
     /**
