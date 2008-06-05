@@ -185,6 +185,10 @@ public abstract class JSFunction extends JSFunctionBase {
         return _sourceLanguage;
     }
 
+    public int hashCode(){
+        return System.identityHashCode( this );
+    }
+    
     private final Scope _scope;
     private final ThreadLocal<Scope> _tlScope = new ThreadLocal<Scope>();
     private boolean _forceUsePassedInScope = false;
