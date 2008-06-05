@@ -77,7 +77,7 @@ public class AppContext {
             throw new RuntimeException( "couldn't load config" , e );
         }
 
-        _core = new CoreJS( JS.toString( _scope.get( "corejsversion" ) ) , this );
+        _core = CoreJS.get().getLibrary( JS.toString( _scope.get( "corejsversion" ) ) , this , null );
         _scope.put( "core" , _core , true );
 
         _scope.put( "external" , new JSFileLibrary( new File( "/data/external" ) ,  "external" , this ) , true );

@@ -38,7 +38,7 @@ public class Shell {
 
     public static void addNiceShellStuff( Scope s ){
 
-        s.put( "core" , new CoreJS( s ) , true );
+        s.put( "core" , CoreJS.get().getLibrary( null , null , s ) , true );
         s.put( "external" , new JSFileLibrary( new File( "/data/external" ) ,  "external" , s ) , true );
         s.put( "local" , new JSFileLibrary( new File( "." ) ,  "local" , s ) , true );
 
