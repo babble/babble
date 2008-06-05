@@ -358,7 +358,7 @@ public class Scope implements JSObject {
         if ( t == null )
             return null;
 
-        if ( _lang != Language.RUBY )
+        if ( ! isRuby() )
             return null;
         
         Object o = t.get( name );
@@ -368,11 +368,6 @@ public class Scope implements JSObject {
         if ( o == null )
             return null;
         
-        
-        if ( o instanceof JSFunction &&
-             ((JSFunction)o).getSourceLanguage() != Language.RUBY )
-            return null;
-
         return o;
     }
 
