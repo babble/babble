@@ -8,6 +8,17 @@ import ed.io.*;
 
 public class GitUtils {
 
+    public static boolean isSourceDirectory( File dir ){
+        if ( hasGit( dir ) )
+            return true;
+
+        for ( File t : dir.listFiles() )
+            if ( t.getName().endsWith( ".js" ) )
+                return true;
+
+        return false;
+    }
+
     public static boolean hasGit( File dir ){
         return (new File( dir , ".git" )).exists();
     }
