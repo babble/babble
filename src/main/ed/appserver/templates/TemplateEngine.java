@@ -5,18 +5,20 @@ package ed.appserver.templates;
 import java.io.*;
 import java.util.*;
 
+import ed.util.*;
+
 public class TemplateEngine {
     
     static final File tmp = new File( "/tmp/jxp/templates/" );
     static final boolean OUTPUT = true;
 
-    public static TemplateConverter.Result oneConvert( Template t ){
+    public static TemplateConverter.Result oneConvert( Template t , DependencyTracker tracker ){
         TemplateConverter tc = _builtIns.get( t.getExtension() );
         if ( tc == null )
             return null;
         
         try {
-            final TemplateConverter.Result r = tc.convert( t );
+            final TemplateConverter.Result r = tc.convert( t , tracker );
             if ( OUTPUT ){
                 try {
                     File f = new File( tmp , r.getNewTemplate().getName() );

@@ -92,7 +92,7 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
     // -- internal --
     // ----------------------
 
-    public Result convert( final Template t ){
+    public Result convert( final Template t , final ed.util.DependencyTracker tracker ){
         
         if ( ! wants( t ) )
             return null;

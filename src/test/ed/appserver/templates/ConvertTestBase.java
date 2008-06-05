@@ -79,7 +79,7 @@ public abstract class ConvertTestBase extends TestCase {
             final String in = StreamUtil.readFully( new FileInputStream( _file ) );
 
             Template t = new Template( _file.getAbsolutePath() , in , ed.lang.Language.find( _file.toString() ) );
-            TemplateConverter.Result r = (getConverter()).convert( t );
+            TemplateConverter.Result r = (getConverter()).convert( t , null );
 
             assertNotNull( r );
 

@@ -31,7 +31,7 @@ public class RubyConvert extends ed.MyAsserts {
 
     public static class TemplateImpl implements TemplateConverter {
 
-        public Result convert( Template t ){
+        public Result convert( Template t , ed.util.DependencyTracker tracker ){
             if ( ! t.getName().endsWith( ".rb" ) )
                 return null;
             

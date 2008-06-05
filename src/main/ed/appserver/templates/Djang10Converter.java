@@ -55,7 +55,7 @@ public class Djang10Converter implements TemplateConverter {
 	 * calling scope is used as the context.  The 2nd parameter contains state variables which are necessary for
 	 * the generated templates to call each other.
 	 */
-	public Result convert(Template t) {
+         public Result convert(Template t , ed.util.DependencyTracker tracker ) {
 		if(!(extension).equals( t._extension))
 			return null;
 		

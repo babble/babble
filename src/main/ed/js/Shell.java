@@ -125,7 +125,7 @@ public class Shell {
             else {
                 Template t = new Template( a , StreamUtil.readFully( new FileInputStream( a ) ) , Language.find( a ) );
                 while ( ! t.getExtension().equals( "js" ) ){
-                    TemplateConverter.Result r = TemplateEngine.oneConvert( t );
+                    TemplateConverter.Result r = TemplateEngine.oneConvert( t , null );
                     if ( r == null )
                         throw new RuntimeException( "can't convert : " + t.getName() );
                     t = r.getNewTemplate();
