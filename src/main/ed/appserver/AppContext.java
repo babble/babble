@@ -80,7 +80,8 @@ public class AppContext {
         _core = CoreJS.get().getLibrary( JS.toString( _scope.get( "corejsversion" ) ) , this , null );
         _scope.put( "core" , _core , true );
 
-        _scope.put( "external" , Module.getModule( "external" ).getLibrary( null , this ) , true );
+        _external = Module.getModule( "external" ).getLibrary( null , this );
+        _scope.put( "external" , _external , true );
 
         _scope.put( "_rootFile" , _rootFile , true );
         _scope.lock( "_rootFile" );
@@ -213,12 +214,8 @@ public class AppContext {
         
         if ( uri.startsWith( "/~~/" ) || uri.startsWith( "~~/" ) )
             f = new File( _core._base , uri.substring( 3 ) );
-	else if ( uri.startsWith( "/%7E%7E/" ) )
-	    f = new File( _core._base , uri.substring( 7 ) );
         else if ( uri.startsWith( "/@@/" ) || uri.startsWith( "@@/" ) )
-            f = new File( "/data/external/" , uri.substring( 3 ) );
-        else if ( uri.startsWith( "/%40%40/" ) )
-            f = new File( "/data/external/" , uri.substring( 7 ) );
+            f = new File(  _external._base , uri.substring( 3 ) );
         else
             f = new File( _rootFile , uri );
 
@@ -498,6 +495,7 @@ public class AppContext {
 
     JSFileLibrary _jxpObject;
     JSFileLibrary _core;
+    JSFileLibrary _external;
     
     final ed.log.Logger _logger;
     final Scope _scope;
