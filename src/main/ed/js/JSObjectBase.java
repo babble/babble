@@ -449,6 +449,22 @@ public class JSObjectBase implements JSObject {
         }
     }
 
+    public int hashCode(){
+        int hash = 81623;
+        
+        if ( _constructor != null )
+            hash += _constructor.hashCode();
+        
+        if ( _map != null ){
+            for ( Map.Entry<String,Object> e : _map.entrySet() ){
+                hash *= e.getKey().hashCode();
+                if ( e.getValue() != null )
+                    hash *= e.getValue().hashCode();
+            }
+        }
+
+        return hash;
+    }
 
     // -----
     // name is very weird. it probably doesn't work the way you think or want
