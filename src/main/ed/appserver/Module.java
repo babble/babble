@@ -19,7 +19,7 @@ public class Module {
         _uriBase = uriBase;
         _doInit = doInit;
 
-        _versioned = GitUtils.isSourceDirectory( _root );
+        _versioned = ! GitUtils.isSourceDirectory( _root );
         
         _default = _versioned ? new File( _root , "master" ) : _root;
         if ( ! _default.exists() )
