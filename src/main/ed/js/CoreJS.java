@@ -10,11 +10,10 @@ import ed.appserver.*;
 
 public class CoreJS extends Module {
     
-    private static final File _root = new File( System.getenv( "COREJS" ) == null ? "/data/corejs" : System.getenv( "COREJS" ) );
     private static final CoreJS _corejs = new CoreJS();
 
     private CoreJS(){
-        super( _root , "core" , true );
+        super( "corejs" , "core" , true );
     }
 
     public static CoreJS get(){

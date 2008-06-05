@@ -80,7 +80,7 @@ public class AppContext {
         _core = CoreJS.get().getLibrary( JS.toString( _scope.get( "corejsversion" ) ) , this , null );
         _scope.put( "core" , _core , true );
 
-        _scope.put( "external" , new JSFileLibrary( new File( "/data/external" ) ,  "external" , this ) , true );
+        _scope.put( "external" , Module.getModule( "external" ).getLibrary( null , this ) , true );
 
         _scope.put( "_rootFile" , _rootFile , true );
         _scope.lock( "_rootFile" );

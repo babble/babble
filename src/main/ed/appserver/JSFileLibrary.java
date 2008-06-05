@@ -16,13 +16,15 @@ public class JSFileLibrary extends JSFunctionCalls0 {
     
     static final boolean D = Boolean.getBoolean( "DEBUG.JSFL" );
     static final boolean DS = Boolean.getBoolean( "DEBUG.JSFLB" ) || D;
+
+    public static final boolean INIT_BY_DEFAULT = false;
     
     public JSFileLibrary( File base , String uriBase , AppContext context ){
-        this( null , base , uriBase , context , null , false );
+        this( null , base , uriBase , context , null , INIT_BY_DEFAULT );
     }
     
     public JSFileLibrary( File base , String uriBase , Scope scope ){
-        this( null , base , uriBase , null , scope , false );
+        this( null , base , uriBase , null , scope , INIT_BY_DEFAULT );
     }
     
     protected JSFileLibrary( JSFileLibrary parent , File base , String uriBase , AppContext context , Scope scope , boolean doInit ){
