@@ -13,5 +13,5 @@ export headless="-Djava.awt.headless=true"
     #export headless="" #was having issue so commented this out
 #fi
 
-ant && java -Djava.library.path=include -ea $headless -Xmx1000m  -XX:MaxDirectMemorySize=600M "$@"
+ant && java -DDEBUG.JSFL=True -DDEBUG.JSFLB -Djava.library.path=include -ea $headless -Xmx1000m  -XX:MaxDirectMemorySize=600M "$@"
 

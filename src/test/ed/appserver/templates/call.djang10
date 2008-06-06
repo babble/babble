@@ -1,2 +1,0 @@
-{% call print("moo") allowGlobal %}
-{% call print(a) allowGlobal %}
