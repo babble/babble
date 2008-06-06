@@ -25,6 +25,14 @@ public class IRCBot extends PircBot implements JSObject {
         connect( host );
     }
 
+    protected void onDisconnect(){
+        JSFunction onDisconnect = (JSFunction)_things.get( "onDisconnect" );
+        if ( onDisconnect == null )
+            return;
+	
+	onDisconnect.call( onDisconnect.getScope() );
+    }
+
     public void onMessage( String channel, String sender,
                            String login, String hostname, String message) {
         
