@@ -133,8 +133,23 @@ public class AppContext {
 
 	_scope.lock( "user" ); // protection against global user object
 	
-    Djang10Converter.injectHelpers(_scope);
+        Djang10Converter.injectHelpers(_scope);
+        
+    }
 
+    public String getVersionForLibrary( String name ){
+        return getVersionForLibrary( _scope , name );
+    }
+
+    public static String getVersionForLibrary( Scope s , String name){
+        JSObject o = (JSObject)s.get( "version" );
+        if ( o == null )
+            return null;
+        
+        Object v = o.get( name );
+        if ( v == null )
+            return null;
+        return v.toString();
     }
 
     private static String[] guessNameAndEnv( String root ){

@@ -40,6 +40,13 @@ public class JSFileLibrary extends JSFunctionCalls0 {
         _doInit = doInit;
         
         if ( DS ) System.out.println( "creating : " + _base );
+
+
+        // this is ugly - please fix
+        if ( uriBase.equals( "core" ) )
+            set( "modules" , new ModuleDirectory( "core-modules" , "core.modules" , context , scope ) );
+        else if ( uriBase.equals( "local" ) || uriBase.equals( "jxp" ) )
+            set( "modules" , new ModuleDirectory( "site-modules" , "local.modules" , context , scope ) );
     }
 
     private synchronized void _init(){
