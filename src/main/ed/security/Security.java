@@ -8,7 +8,7 @@ import ed.js.engine.*;
 public class Security {
 
     public final static boolean OFF = Boolean.getBoolean( "NO-SECURITY" );
-    public final static String _baseClass = Convert.cleanName( Module._baseFile );
+    public final static String _baseClass = Convert.cleanName( Module.getBase());
 
     final static String SECURE[] = new String[]{ 
         Convert.DEFAULT_PACKAGE + "." + _baseClass + "corejs_" , 
