@@ -13,7 +13,7 @@ import ed.util.*;
 public class Module {
 
     static final Logger _log = Logger.getLogger( "modules" );    
-    static final String _baseFile = System.getenv( "BASE" ) == null ? "/data/" : System.getenv( "BASE" );
+    public static final String _baseFile = System.getenv( "BASE" ) == null ? "/data/" : System.getenv( "BASE" );
     static File _base = new File( _baseFile );
 
     public static synchronized Module getModule( String name ){
