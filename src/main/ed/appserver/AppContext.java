@@ -228,11 +228,14 @@ public class AppContext {
             return f;
         
         if ( uri.startsWith( "/~~/" ) || uri.startsWith( "~~/" ) )
-            f = new File( _core._base , uri.substring( 3 ) );
+            f = _core.getFileFromPath( uri.substring( 3 ) );
         else if ( uri.startsWith( "/@@/" ) || uri.startsWith( "@@/" ) )
-            f = new File(  _external._base , uri.substring( 3 ) );
+            f = _external.getFileFromPath( uri.substring( 3 ) );
         else
             f = new File( _rootFile , uri );
+        
+        if ( f == null )
+            throw new RuntimeException( "can't find file for [" + uri + "]" );
 
         _files.put( uri , f );
         return f;
