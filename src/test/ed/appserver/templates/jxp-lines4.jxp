@@ -1,0 +1,10 @@
+hola
+ 
+<%
+print("q");
+blah; // LINE5
+asd; // LINE6
+ 
+%>
+<%= 6 + "LINE9"  %>
+ 

@@ -83,7 +83,7 @@ public class Logger extends JSFunctionCalls2 {
     // --------------------
 
     public Object call( Scope s , Object oName , Object oT , Object foo[] ){
-        log( Level.INFO , (oName != null) ? oName.toString() : "null" , (Throwable)oT );
+        log( Level.INFO , (oName != null) ? oName.toString() : "null" , _makeThrowable( oT ) );
         return null;
     }
 
@@ -100,8 +100,10 @@ public class Logger extends JSFunctionCalls2 {
         if ( s.equals( "debug" )
              || s.equals( "info" )
              || s.equals( "error" )
-             || s.equals( "fatal" ) )
-            return Level.forName( s ).func;
+             || s.equals( "fatal" ) ){
+            return _getLevelLogger( s );
+        }
+        //return Level.forName( s ).func;
 
         if ( s.equals( "LEVEL" ) )
             return Level.me;
@@ -139,6 +141,36 @@ public class Logger extends JSFunctionCalls2 {
 
         return super.set( n , v );
     }
+
+    JSFunction _getLevelLogger( String levelName ){
+        final Level level = Level.forName( levelName );
+        if ( level == null )
+            throw new RuntimeException( "don't know about level [" + levelName + "]" );
+        JSFunction f = _levelLoggers.get( level );
+        if ( f == null ){
+            f = new JSFunctionCalls2(){
+                    public Object call( Scope s , Object msgObject , Object excObject , Object extra[] ){
+
+                        if ( msgObject == null )
+                            msgObject = "null";
+                        
+                        log( level , msgObject.toString() , _makeThrowable( excObject ) );
+                        return true;
+                    }
+
+                    public Object get( Object n ){
+                        if ( n.toString().equals( "__puts__" ) ||
+                             n.toString().equals( "puts" ) ||
+                             n.toString().equals( "print" ) )
+                            return this;
+                        return super.get( n );
+                    }
+                };
+            _levelLoggers.put( level , f );
+        }
+        return f;
+    }
+    
 
     // --------------------
 
@@ -210,12 +242,25 @@ public class Logger extends JSFunctionCalls2 {
         return "Logger:" + _fullName;
     }
 
+    Throwable _makeThrowable( Object o ){
+        if ( o == null )
+            return null;
+
+        if ( o instanceof Throwable )
+            return (Throwable)o;
+
+        JSException e = new JSException( o );
+        e.fillInStackTrace();
+        return e;
+    }
+
     final Logger _parent;
     final String _name;
     final String _fullName;
     private JSDate _sentEmail;
     List<Appender> _appenders;
     Level _level = null;
+    final Map<Level,JSFunction> _levelLoggers = Collections.synchronizedMap( new TreeMap<Level,JSFunction>() );
 
     private final static Map<String,Logger> _fullNameToLogger = Collections.synchronizedMap( new HashMap<String,Logger>() );
     private final static List<Appender> _defaultAppenders;

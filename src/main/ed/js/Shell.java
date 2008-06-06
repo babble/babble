@@ -8,10 +8,12 @@ import java.util.*;
 import jline.*;
 
 import ed.db.*;
+import ed.io.*;
 import ed.lang.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 import ed.appserver.*;
+import ed.appserver.templates.*;
 
 public class Shell {
     
@@ -36,10 +38,8 @@ public class Shell {
 
     public static void addNiceShellStuff( Scope s ){
 
-        ed.db.migrate.Drivers.init( s );
-
-        s.put( "core" , new CoreJS( s ) , true );
-        s.put( "external" , new JSFileLibrary( new File( "/data/external" ) ,  "external" , s ) , true );
+        s.put( "core" , CoreJS.get().getLibrary( null , null , s ) , true );
+        s.put( "external" , Module.getModule( "external" ).getLibrary( null , s ) , true );
         s.put( "local" , new JSFileLibrary( new File( "." ) ,  "local" , s ) , true );
 
         s.put( "connect" , new JSFunctionCalls2(){
@@ -69,6 +69,8 @@ public class Shell {
                     return s.child(new File(fileName.toString()));
                 }
             } , true);
+        
+        Djang10Converter.injectHelpers(s);
     }
     
     public static void main( String args[] )
@@ -76,31 +78,72 @@ public class Shell {
         
         System.setProperty( "NO-SECURITY" , "true" );
         
-        Scope s = Scope.GLOBAL.child( new File("." ) );
+        Scope s = Scope.newGlobal().child( new File("." ) );
         s.makeThreadLocal();
 
         addNiceShellStuff( s );
 
         File init = new File( System.getenv( "HOME" ) + "/.init.js" );
-
+        
         if ( init.exists() )
             s.eval( init );
         
-        for ( String a : args ){
-            if ( a.equals( "-exit" ) )
-                return;
+        if ( args.length > 0 && args[0].equals( "-shell" ) ){
 
-            File temp = new File( a );
-            try {
-                s.eval( temp );
+            String data = StreamUtil.readFully( new FileInputStream( args[1] ) );
+
+            if ( data.startsWith( "#!" ) )
+                data = data.substring( data.indexOf( "\n" ) + 1);
+            
+            JSFunction func = Convert.makeAnon( data );
+            Object jsArgs[] = new Object[ args.length - 2 ];
+            for ( int i=0; i<jsArgs.length; i++ )
+                jsArgs[i] = args[i+2];
+            func.call( s , jsArgs );
+            return;
+        }
+
+        boolean exit = false;
+
+        for ( String a : args ){
+            if ( a.equals( "-exit" ) ){
+                exit = true;
+                continue;
             }
-            catch ( Exception e ){
-                StackTraceHolder.getInstance().fix( e );
-                e.printStackTrace();
-                return;
+            
+            if ( a.endsWith( ".js" ) ){
+                File temp = new File( a );
+                try {
+                    s.eval( temp );
+                }
+                catch ( Exception e ){
+                    StackTraceHolder.getInstance().fix( e );
+                    e.printStackTrace();
+                    return;
+                }
+            }
+            else {
+                Template t = new Template( a , StreamUtil.readFully( new FileInputStream( a ) ) , Language.find( a ) );
+                while ( ! t.getExtension().equals( "js" ) ){
+                    TemplateConverter.Result r = TemplateEngine.oneConvert( t , null );
+                    if ( r == null )
+                        throw new RuntimeException( "can't convert : " + t.getName() );
+                    t = r.getNewTemplate();
+                }
+                try {
+                    s.eval( t.getContent() );
+                }
+                catch ( Exception e ){
+                    StackTraceHolder.getInstance().fix( e );
+                    e.printStackTrace();
+                    return;
+                }
             }
 
         }
+
+        if ( exit )
+            return;
 
         String line;
         ConsoleReader console = new ConsoleReader();

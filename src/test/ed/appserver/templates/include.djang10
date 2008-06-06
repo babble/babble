@@ -1,1 +1,6 @@
+{% include "/local/djang10-if.djang10" %}
 {% include "/local/djang10-if" %}
+{% include "/djang10-if" %}
+{% include "djang10-if" %}
+{% include includedTemplate %}
+{% include includedTemplateJsFunction %}

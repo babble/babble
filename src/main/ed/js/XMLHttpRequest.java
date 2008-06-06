@@ -7,6 +7,7 @@ import java.net.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
+import javax.net.ssl.*;
 
 import ed.js.func.*;
 import ed.js.engine.*;
@@ -48,6 +49,13 @@ public class XMLHttpRequest extends JSObjectBase {
                 _prototype.set( "open" , new JSFunctionCalls3() {
                         public Object call( Scope s , Object methodObj , Object urlObj , Object asyncObj , Object[] args ){
                             return open( s , methodObj , urlObj , asyncObj , args );
+                        }
+                    } );
+
+                _prototype.set( "getJSON" , new JSFunctionCalls0(){
+                        public Object call( Scope s , Object [] extra ){
+                            XMLHttpRequest r = (XMLHttpRequest)s.getThis();
+                            return r.getJSON();
                         }
                     } );
                 
@@ -144,15 +152,33 @@ public class XMLHttpRequest extends JSObjectBase {
 
         // TODO: more real http client
         
+	Socket sock = null;
+        
+        int timeout = 0;
+        if ( get( "timeout" ) != null ){
+            timeout = ((Number)get( "timeout" )).intValue();
+            if ( timeout < 50 )
+                timeout *= 1000;
+        }
+
         try {
             setStatus( OPENED );
             
-            SocketChannel sock = SocketChannel.open();
-            if ( get( "timeout" ) != null ){
-                sock.socket().setSoTimeout( ((Number)get( "timeout" )).intValue() );
-            }
-            sock.connect( new InetSocketAddress( getHost() , getPort() ) );
+            sock = new Socket();
+            sock.setSoTimeout( timeout );
             
+            if ( DEBUG ) 
+                System.out.println( "connecting to [" + getHost() + ":" + getPort() + "]" );
+
+            sock.connect( new InetSocketAddress( getHost() , getPort() ) , timeout );
+
+            if ( isSecure() ){
+                if ( DEBUG ) System.out.println( "\t making secure" );
+                sock = ((SSLSocketFactory)SSLSocketFactory.getDefault()).createSocket( sock , getHost() , getPort() , true );
+            }
+            
+            if ( DEBUG ) System.out.println( "\t" + sock );
+
             byte postData[] = null;
             
             if ( post != null )
@@ -161,16 +187,23 @@ public class XMLHttpRequest extends JSObjectBase {
             if ( postData != null )
                 setRequestHeader( "Content-Length" , String.valueOf( postData.length ) );
             
-            ByteBuffer toSend[] = new ByteBuffer[ postData == null ? 1 : 2 ];
-            toSend[0] = ByteBuffer.wrap( getRequestHeader().getBytes() );
-            if ( DEBUG ) System.out.println( "--- Header to Send \n" + getRequestHeader() + "\n---" );
-            
+            sock.getOutputStream().write( getRequestHeader().getBytes() );
             if ( postData != null )
-                toSend[1] = ByteBuffer.wrap( postData );
-            sock.write( toSend );
+                sock.getOutputStream().write( postData );
             
-            ByteBuffer buf = ByteBuffer.allocateDirect( 1024 * 1024 );
-            while( sock.read( buf ) >= 0 );
+            ByteBuffer buf = ByteBuffer.wrap( new byte[1024 * 1024] );
+            {
+                byte temp[] = new byte[2048];
+                InputStream in = sock.getInputStream();
+                while ( true ){
+                    int len = in.read( temp );
+                    if ( len < 0 )
+                        break;
+                    
+                    buf.put( temp , 0 , len );
+                }
+                
+            }
             
             buf.flip();
             
@@ -228,7 +261,15 @@ public class XMLHttpRequest extends JSObjectBase {
             if ( DEBUG ) System.out.println( buf );
             
         }
+        catch ( IOException ioe ){
+            set( "error" , ioe );
+            return null;
+        }
         finally {
+	    try {
+		sock.close();
+	    }
+	    catch ( Throwable t ){}
             setStatus( DONE );        
         }
 
@@ -313,14 +354,13 @@ public class XMLHttpRequest extends JSObjectBase {
         int port = _url.getPort();
         if ( port > 0 )
             return port;
+        
+        return isSecure() ? 443 : 80;
+    }
 
-        if ( _urlString.startsWith( "http:/" ) )
-            return 80;
-
-        if ( _urlString.startsWith( "https:/" ) )
-            return 443;
-
-        return 80;
+    
+    public boolean isSecure(){
+        return _urlString.startsWith( "https:/" );
     }
 
     public Object getJSON(){

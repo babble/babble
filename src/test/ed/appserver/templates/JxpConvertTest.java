@@ -15,7 +15,11 @@ import ed.io.*;
 public class JxpConvertTest extends ConvertTestBase {
 
     public JxpConvertTest(){
-        super( ".jxp" );
+        this( null );
+    }
+
+    public JxpConvertTest( String args[] ){
+        super( ".jxp" , args );
     }
 
 
@@ -29,7 +33,7 @@ public class JxpConvertTest extends ConvertTestBase {
     }
 
     public static void main( String args[] ){
-        JxpConvertTest t = new JxpConvertTest();
+        JxpConvertTest t = new JxpConvertTest( args );
         t.runConsole();
     }
     

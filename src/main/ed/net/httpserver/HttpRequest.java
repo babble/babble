@@ -57,11 +57,11 @@ public class HttpRequest extends JSObjectLame {
 
         int endURI = _url.indexOf( "?" );
         if ( endURI < 0 ){
-            _uri = _url;
+            _uri = Encoding._unescape( _url );
             _queryString = null;
         }
         else {
-            _uri = _url.substring( 0 , endURI );
+            _uri = Encoding._unescape( _url.substring( 0 , endURI ) );
             _queryString = _url.substring( endURI + 1 );
         }
     }
@@ -156,7 +156,7 @@ public class HttpRequest extends JSObjectLame {
 
     public String getCookie( String s ){
         if ( _cookies == null ){
-            Map<String,String> m = new StringMap<String>();
+            JSObjectBase m = new JSObjectBase();
             String temp = getHeader( "Cookie" );
             if ( temp != null ){
 
@@ -167,13 +167,13 @@ public class HttpRequest extends JSObjectLame {
                     if ( idx < 0 )
                         continue;
 
-                    m.put( thing.substring( 0 , idx ).trim() , 
+                    m.set( thing.substring( 0 , idx ).trim() , 
                            thing.substring( idx + 1 ).trim() );
                 }
             }
             _cookies = m;
         }
-        return _cookies.get( s );
+        return _cookies.getAsString( s );
     }
 
     public JSArray getCookieNames(){
@@ -182,6 +182,11 @@ public class HttpRequest extends JSObjectLame {
         a.addAll( _cookies.keySet() );
         return a;
     }
+
+    public JSObject getCookies(){
+        getCookie( "" );
+        return _cookies;
+    }
     
     // param stuff
 
@@ -189,7 +194,8 @@ public class HttpRequest extends JSObjectLame {
         _finishParsing();
         
         JSArray a = new JSArray();
-        a.addAll( _parameters.keySet() );
+        for ( String s : _parameters.keySet() )
+            a.add( new JSString( s ) );
         return a;
     }
 
@@ -201,8 +207,15 @@ public class HttpRequest extends JSObjectLame {
         return StringParseUtil.parseInt( getParameter( n ) , def );
     }
 
-    public List<String> getParameters( String name ){
-	return _parameters.get( name );
+    public JSArray getParameters( String name ){
+        List<String> lst = _parameters.get( name );
+        if ( lst == null )
+            return null;
+        
+        JSArray a = new JSArray();
+        for ( String s : lst )
+            a.add( new JSString( s ) );
+	return a;
     }
 
     public String getParameter( String name ){
@@ -446,7 +459,7 @@ public class HttpRequest extends JSObjectLame {
     final String _firstLine;
     final Map<String,String> _headers = new StringMap<String>();
     final JSDate _start = new JSDate();
-    Map<String,String> _cookies;
+    JSObjectBase _cookies;
     String _remoteIP;
 
     boolean _parsedPost = false;

@@ -1,0 +1,3 @@
+#!/usr/bin/env ./bin/jssh
+
+core.php.php2js( arguments[0] );

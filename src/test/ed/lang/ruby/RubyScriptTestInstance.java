@@ -41,6 +41,8 @@ public class RubyScriptTestInstance extends ScriptTestInstanceBase {
             };
 
         scope.put( "print" , myout , true );
+        scope.put( "puts" , myout , true );
+        scope.put( "__puts__" , myout , true );
         scope.put( "SYSOUT" , myout , true );
     }
 

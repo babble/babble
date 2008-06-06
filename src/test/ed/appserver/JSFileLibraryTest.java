@@ -13,9 +13,10 @@ import ed.js.engine.*;
 public class JSFileLibraryTest extends ed.TestCase {
     
     public JSFileLibraryTest(){
-        scope = Scope.GLOBAL.child();
+        scope = Scope.newGlobal().child();
         root = new File( "src/test/samplewww" );
         local = new JSFileLibrary( root , "local" , scope );
+        scope.set( "local" , local );
     }
 
     @Test(groups = {"basic"})
@@ -38,6 +39,18 @@ public class JSFileLibraryTest extends ed.TestCase {
         catch ( Throwable t ){
             assertTrue( t.toString().indexOf( "collision" ) > 0 );
         }
+    }
+
+    @Test(groups = {"basic"})
+    public void testDirSameName(){
+        assertEquals( 5 , scope.eval( "local.libtest.foo()" ) );
+        assertEquals( 6 , scope.eval( "local.libtest.foo.foo()" ) );
+    }
+
+    @Test(groups = {"basic"})
+    public void testDirPath(){
+        assertEquals( 5 , scope.eval( "local.getFromPath('libtest/foo')()" ) );
+        assertEquals( 6 , scope.eval( "local.getFromPath('libtest/foo/foo')()" ) );
     }
 
     final Scope scope;

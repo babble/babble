@@ -10,8 +10,10 @@ import ed.js.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 import ed.lang.*;
+import ed.util.*;
 import ed.net.httpserver.*;
 import ed.appserver.jxp.*;
+import ed.appserver.templates.Djang10Converter;
 
 public class AppContext {
 
@@ -23,15 +25,15 @@ public class AppContext {
     }
 
     public AppContext( String root ){
-        this( root , guessName( root ) );
+        this( root , guessNameAndEnv( root )[0] , guessNameAndEnv( root )[1] );
     }
 
-    public AppContext( String root , String name ){
+    public AppContext( String root , String name , String environment ){
         if ( root == null )
             throw new NullPointerException( "AppContext root can't be null" );
         
         if ( name == null )
-            name = guessName( root );
+            name = guessNameAndEnv( root )[0];
         
         if ( name == null )
             throw new NullPointerException( "how could name be null" );
@@ -40,17 +42,25 @@ public class AppContext {
         _root = root;
         _rootFile = new File( _root );
         
+        _environment = environment;
+        _gitBranch = GitUtils.hasGit( _rootFile ) ? GitUtils.getBranchOrTagName( _rootFile ) : null;
+
         _isGrid = name.equals( "grid" );
 
-        _scope = new Scope( "AppContext:" + root , _isGrid ? ed.cloud.Cloud.getInstance().getScope() : Scope.GLOBAL , null , _rootFile );
+        _scope = new Scope( "AppContext:" + root , _isGrid ? ed.cloud.Cloud.getInstance().getScope() : Scope.newGlobal() , null , Language.JS , _rootFile );
         _scope.setGlobal( true );
 
         _logger = ed.log.Logger.getLogger( _name );
         _usage = new UsageTracker( _name );
         
         _baseScopeInit();
+
+        _logger.info( "Started Context.  root:" + _root + " environment:" + environment + " git branch: " + _gitBranch );
     }
 
+    /**
+     *  Initializes the base scope for the application
+     */
     private void _baseScopeInit(){
         // --- libraries
         
@@ -67,10 +77,11 @@ public class AppContext {
             throw new RuntimeException( "couldn't load config" , e );
         }
 
-        _core = new CoreJS( JS.toString( _scope.get( "corejsversion" ) ) , this );
+        _core = CoreJS.get().getLibrary( JS.toString( _scope.get( "corejsversion" ) ) , this , null );
         _scope.put( "core" , _core , true );
 
-        _scope.put( "external" , new JSFileLibrary( new File( "/data/external" ) ,  "external" , this ) , true );
+        _external = Module.getModule( "external" ).getLibrary( null , this );
+        _scope.put( "external" , _external , true );
 
         _scope.put( "_rootFile" , _rootFile , true );
         _scope.lock( "_rootFile" );
@@ -81,7 +92,7 @@ public class AppContext {
         // --- db
         
         if ( ! _isGrid ){
-            _scope.put( "db" , DBProvider.get( _name , false ) , true );
+            _scope.put( "db" , DBProvider.get( _name , false , _environment == null ? null : ed.cloud.Cloud.getInstance().getDBHost( _name , _environment ) ) , true );
             _scope.put( "setDB" , new JSFunctionCalls1(){
 
                     public Object call( Scope s , Object name , Object extra[] ){
@@ -121,9 +132,27 @@ public class AppContext {
         _scope.put( "globalHead" , _globalHead , true  );
 
 	_scope.lock( "user" ); // protection against global user object
+	
+        Djang10Converter.injectHelpers(_scope);
+        
     }
 
-    private static String guessName( String root ){
+    public String getVersionForLibrary( String name ){
+        return getVersionForLibrary( _scope , name );
+    }
+
+    public static String getVersionForLibrary( Scope s , String name){
+        JSObject o = (JSObject)s.get( "version" );
+        if ( o == null )
+            return null;
+        
+        Object v = o.get( name );
+        if ( v == null )
+            return null;
+        return v.toString();
+    }
+
+    private static String[] guessNameAndEnv( String root ){
         String pcs[] = root.split("/");
 
         if ( pcs.length == 0 )
@@ -131,8 +160,9 @@ public class AppContext {
         
         // handle anything with sites/foo
         for ( int i=0; i<pcs.length-1; i++ )
-            if ( pcs[i].equals( "sites" ) )
-                return pcs[i+1];
+            if ( pcs[i].equals( "sites" ) ){
+                return new String[]{ pcs[i+1] , i+2 < pcs.length ? pcs[i+2] : null };
+            }
         
         for ( int i=pcs.length-1; i>0; i-- ){
             String s = pcs[i];
@@ -144,10 +174,10 @@ public class AppContext {
                  s.equals("dev" ) )
                 continue;
             
-            return s;
+            return new String[]{ s , i + 1 < pcs.length ? pcs[i+1] : null };
         }
         
-        return pcs[0];
+        return new String[]{ pcs[0] , null };
     }
     
     public String getName(){
@@ -185,6 +215,7 @@ public class AppContext {
         _scopeInited = true;
         _lastScopeInitTime = System.currentTimeMillis();
         
+        
         _initScope();
 
         return _scope;
@@ -198,12 +229,8 @@ public class AppContext {
         
         if ( uri.startsWith( "/~~/" ) || uri.startsWith( "~~/" ) )
             f = new File( _core._base , uri.substring( 3 ) );
-	else if ( uri.startsWith( "/%7E%7E/" ) )
-	    f = new File( _core._base , uri.substring( 7 ) );
         else if ( uri.startsWith( "/@@/" ) || uri.startsWith( "@@/" ) )
-            f = new File( "/data/external/" , uri.substring( 3 ) );
-        else if ( uri.startsWith( "/%40%40/" ) )
-            f = new File( "/data/external/" , uri.substring( 7 ) );
+            f = new File(  _external._base , uri.substring( 3 ) );
         else
             f = new File( _rootFile , uri );
 
@@ -213,6 +240,10 @@ public class AppContext {
     
     public void reset(){
         _reset = true;
+    }
+    
+    public boolean isReset() { 
+        return _reset;
     }
     
     public String getRoot(){
@@ -388,9 +419,12 @@ public class AppContext {
     }
 
     private void _initScope(){
-        final Scope save = _scope.getTLPreferred();
+        final Scope saveTLPref = _scope.getTLPreferred();
         _scope.setTLPreferred( null );
-        
+
+        final Scope saveTL = Scope.getThreadLocal();
+        _scope.makeThreadLocal();
+
         _inScopeInit = true;
         
         try {
@@ -416,7 +450,10 @@ public class AppContext {
         }
         finally {
             _inScopeInit = false;
-            _scope.setTLPreferred( save );
+            _scope.setTLPreferred( saveTLPref );
+
+            if ( saveTL != null )
+                saveTL.makeThreadLocal();
         }
         
     }
@@ -450,12 +487,30 @@ public class AppContext {
         return _numRequests;
     }
 
+    public String getStartupGitBranch(){
+        return _gitBranch;
+    }
+
+    public String getCurrentGitBranch(){
+        if ( _gitBranch == null )
+            return null;
+        return GitUtils.getBranchOrTagName( _rootFile );
+    }
+    
+    public String getEnvironmentName(){
+        return _environment;
+    }
+
     final String _name;
     final String _root;
     final File _rootFile;
 
+    final String _gitBranch;
+    final String _environment;
+
     JSFileLibrary _jxpObject;
     JSFileLibrary _core;
+    JSFileLibrary _external;
     
     final ed.log.Logger _logger;
     final Scope _scope;

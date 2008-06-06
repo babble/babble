@@ -4,6 +4,7 @@ package ed.appserver.templates;
 
 import java.util.*;
 
+import ed.lang.*;
 import ed.util.*;
 
 public abstract class HtmlLikeConverter implements TemplateConverter {
@@ -28,9 +29,10 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
     /**
      * @param codeTagName for jxp would be "%" for php ?
      */
-    protected HtmlLikeConverter( String extension , List<CodeMarker> markers ){
+    protected HtmlLikeConverter( String extension , List<CodeMarker> markers , Language sourceLanguage ){
         _extension = extension.replaceAll( "^\\." , "" );
         _markers = markers;
+        _sourceLanguage = sourceLanguage;
     }
 
     // ----------------------
@@ -77,7 +79,7 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
 
             line = StringUtil.replace( line , "\\" , "\\\\" );
             line = StringUtil.replace( line , "\"" , "\\\"" );
-            g.append( "print( \"" + line + ( i + 1 < lines.length || endsWithNewLine ? "\\n" : "" )  + "\" );\n" );
+            g.append( "print( \"" + line + ( i + 1 < lines.length || endsWithNewLine ? "\\n" : "" )  + "\" );\n" , i + 1 != lines.length );
         }
     }
 
@@ -90,7 +92,7 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
     // -- internal --
     // ----------------------
 
-    public Result convert( final Template t ){
+    public Result convert( final Template t , final ed.util.DependencyTracker tracker ){
         
         if ( ! wants( t ) )
             return null;
@@ -119,7 +121,8 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
                     state.skip( cm._startTag.length() - 1 );
                     
                     final int end = cm.findEnd( state.data , state.pos );
-                    gotCode( g , cm , state.data.substring( state.pos , end ) );
+                    final String code = state.data.substring( state.pos , end );
+                    gotCode( g , cm , code );
                     
                     state.skip( ( end - state.pos ) );
                     if ( cm._endTag != null )
@@ -174,7 +177,7 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
             System.out.println( g._lineMapping );
         }
 
-        return new Result( new Template( getNewName( t ) , g._buf.toString() ) , g._lineMapping );
+        return new Result( new Template( getNewName( t ) , g._buf.toString() , _sourceLanguage ) , g._lineMapping );
     }
 
     final String _readTag( State state ){
@@ -287,11 +290,25 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
         }
         
         public void append( String code ){
+            append( code , false );
+        }
+
+        public void append( String code , boolean incLineNumbers ){
             _buf.append( code );
-            for ( int i=0; i<code.length(); i++ )
-                if ( code.charAt( i ) == '\n' )
+            
+            for ( int i=0; i<code.length(); i++ ){
+                if ( code.charAt( i ) == '\n' ){
                     _lineMapping.put( _outLine++ , _inLine );
-            _inLine = _state.line;
+                    
+                    if ( incLineNumbers ) 
+                        _inLine++;
+
+                    if ( DEBUG ) 
+                        System.out.println( " : " + ( _outLine - 1 ) + " -->> " + _inLine );
+                }
+            }
+            if ( ! incLineNumbers )
+                _inLine = _state.line;
         }
 
         int _outLine = 1;
@@ -303,4 +320,5 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
 
     final String _extension;
     final List<CodeMarker> _markers;
+    final Language _sourceLanguage;
 }

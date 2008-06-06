@@ -1,10 +1,13 @@
 #!/bin/bash
 
-export CLASSPATH=.:build:conf:$CLASSPATH
+
 
 export TZ=America/New_York
 
-for j in `ls include/*.jar`; do
+export ED_HOME=`echo $0 | sed -e 's/runLight.bash//p' | head -n 1`
+
+export CLASSPATH=.:${ED_HOME}/build:${ED_HOME}/conf:$CLASSPATH
+for j in `ls ${ED_HOME}include/*.jar`; do
     export CLASSPATH=$CLASSPATH:$j
 done
 

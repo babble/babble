@@ -11,34 +11,23 @@ import ed.js.engine.*;
 
 public class Drivers {
 
-    static {
-        try {
-	    Class.forName( "com.mysql.jdbc.Driver");
-	}
-	catch ( ClassNotFoundException e ){
-	    throw new RuntimeException( e );
-	}
-    }
-
-    public static void init(){
-    }
-
     public static void init( Scope s ){
-        init();
-        
-        s.put( "jdbc" , new JSFunctionCalls1(){
-                public Object call( Scope s , Object nameObject , Object[] extra ){
 
+        s.put( "jdbc" , new JSFunctionCalls1(){
+                
+                public Object call( Scope s , Object nameObject , Object[] extra ){
                     String url = "jdbc:" + nameObject.toString();
                     String user = extra != null && extra.length > 0 ? extra[0].toString() : null;
                     String pass = extra != null && extra.length > 1 ? extra[1].toString() : null;
                     
                     try {
-                        Connection conn = DriverManager.getConnection( url , user , pass );
-                        return new JDBCConnection( url , conn );
+                        if ( nameObject.toString().startsWith( "mysql" ) ){
+                            return new JDBCConnection( url , Mysql._createConnection( url , null , user , pass ) );
+                        }
+                        throw new RuntimeException( "don't know how to connect to [" + nameObject + "]" );
                     }
                     catch ( SQLException se ){
-                        throw new RuntimeException( se );
+                        throw new RuntimeException( "can't connect to [" + nameObject + "]" , se );
                     }
                 }
             } , true );
@@ -71,10 +60,15 @@ public class Drivers {
         private List<Statement> _stmts = new LinkedList<Statement>();
         
         class MyResult extends JSObjectBase {
-
-            MyResult( Statement stmt , ResultSet res ){
+            
+            MyResult( Statement stmt , ResultSet res )
+                throws SQLException {
                 _stmt = stmt;
                 _res = res;
+
+                ResultSetMetaData rsmd = res.getMetaData();
+                for ( int i=1; i<=rsmd.getColumnCount(); i++ )
+                    _fields.add( rsmd.getColumnName( i ) );
             }
 
             public boolean hasNext()
@@ -91,7 +85,9 @@ public class Drivers {
 
             public Object get( Object o ){
                 String name = o.toString();
-                if ( name.equals( "hasNext" ) )
+
+                if ( name.equals( "hasNext" ) ||
+                     name.equals( "keySet" ) )
                     return null;
 
                 try {
@@ -115,8 +111,13 @@ public class Drivers {
                 _addedBack = true;
             }
             
-            private Statement _stmt;
-            private ResultSet _res;
+            public Collection<String> keySet(){
+                return _fields;
+            }
+
+            private final Statement _stmt;
+            private final ResultSet _res;
+            private final List<String> _fields = new ArrayList<String>();
 
             private boolean _addedBack = false;
         }

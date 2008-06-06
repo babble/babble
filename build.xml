@@ -1,8 +1,8 @@
 <?xml version='1.0'?>
 <project name="ED" default="compile" basedir=".">
 
-    <property name="targetdir" value="target"/>
-    <property name="testdir" value="${targetdir}/test"/>
+  <property name="targetdir" value="target"/>
+  <property name="testdir" value="${targetdir}/test"/>
     
   <path id="classpath">
     <fileset dir="include">
@@ -12,15 +12,14 @@
     <pathelement path="build" />
   </path>
 
-  <target name="clean">
-    <delete dir="build"/>
-  </target>
-
   <target name="init">
     <mkdir dir="build" />
     <mkdir dir="logs" />
     <mkdir dir="${testdir}" />
+  </target>
 
+  <target name="clean">
+    <delete dir="build"/>
   </target>
 
   <target name="langcore" depends="init">
@@ -63,6 +62,11 @@
       <classpath refid="classpath"/>
     </javac>
 
+    <copy todir="build/corejstest/">
+      <fileset dir="build/" includes="corejs/**"/>
+      <fileset dir="build/" includes="ed/*.class"/>
+    </copy>
+
   </target>
 
  <target name="headers" depends="compile">
@@ -75,6 +79,7 @@
  </target>
 
  <target name="javadocs" depends="compile">
+
    <javadoc packagenames="ed.*" 
             sourcepath="src/main/"
             defaultexcludes="yes"

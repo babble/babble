@@ -4,7 +4,7 @@ class Bar
     @counter = 1;
   end
 
-  def print
+  def silly
     puts "hi\n";
     puts @counter;
   end
@@ -12,4 +12,4 @@ class Bar
 end
 
 b = Bar.new();
-b.print();
+b.silly();

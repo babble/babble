@@ -2,17 +2,20 @@
 
 package ed.security;
 
+import ed.appserver.*;
 import ed.js.engine.*;
 
 public class Security {
 
     public final static boolean OFF = Boolean.getBoolean( "NO-SECURITY" );
+    public final static String _baseClass = Convert.cleanName( Module.getBase());
 
     final static String SECURE[] = new String[]{ 
-        Convert.DEFAULT_PACKAGE + "._data_corejs_" , 
-        Convert.DEFAULT_PACKAGE + "._data_sites_admin_" , 
-        Convert.DEFAULT_PACKAGE + "._data_sites_www_" , 
-        Convert.DEFAULT_PACKAGE + ".lastline"
+        Convert.DEFAULT_PACKAGE + "." + _baseClass + "corejs_" , 
+        Convert.DEFAULT_PACKAGE + "." + _baseClass + "sites_admin_" , 
+        Convert.DEFAULT_PACKAGE + "." + _baseClass + "sites_www_" , 
+        Convert.DEFAULT_PACKAGE + ".lastline" ,
+        Convert.DEFAULT_PACKAGE + "._home_yellow_code_for_hudson" 
     };
     
     public static boolean isCoreJS(){

@@ -15,6 +15,12 @@ public class JSFunctionBaseGenerator {
         return s;
     }
 
+    static String _extraSymbol( int i ){
+        if ( i == MAX )
+            return "...";
+        return "[]";
+    }
+
     public static void doInterface()
         throws Exception {
         
@@ -35,7 +41,11 @@ public class JSFunctionBaseGenerator {
             buf.append( _i( 1 ) + "public abstract Object call( Scope scope " );
             for ( int j=0; j<i; j++ )
                 buf.append( " , Object p" + j );
-            buf.append( " , Object[] extra );\n" );
+            buf.append( " , Object " + _extraSymbol( i ) + " extra );\n" );
+            
+            // don't need one without extra for last b/c of varargs
+            if ( i == MAX )
+                break;
 
             // no extra
             buf.append( _i( 1 ) + "public Object call( Scope scope " );
@@ -85,7 +95,7 @@ public class JSFunctionBaseGenerator {
             for ( int j=0; j<i; j++ ){
                 buf.append( " , Object p" + j );
             }
-            buf.append( " , Object extra[] ){\n" );
+            buf.append( " , Object " + _extraSymbol( i ) + " extra ){\n" );
             
             if ( i < num ){
                 for ( int j=i; j<num; j++ )

@@ -13,9 +13,21 @@ public class Prototype {
      */
     public static class Object_extend extends JSFunctionCalls2 {
         public Object call( Scope s , Object dest , Object src , Object [] extra ){
-            JSObject jdest, jsrc;
-            jdest = (JSObject)dest;
-            jsrc = (JSObject)src;
+            
+            if ( dest == null )
+                throw new RuntimeException( "Object.extends dest is null" );
+
+            if ( src == null )
+                throw new RuntimeException( "Object.extends src is null" );
+
+            if ( ! ( dest instanceof JSObject ) )
+                throw new RuntimeException( "Object.extends destination is not an object.  is a : " + dest.getClass() );
+
+            if ( ! ( src instanceof JSObject ) )
+                throw new RuntimeException( "Object.extends src is not an object.  is a : " + src.getClass() );
+
+            JSObject jdest = (JSObject)dest;
+            JSObject jsrc = (JSObject)src;
             for(String key : jsrc.keySet()){
                 jdest.set(key, jsrc.get(key));
             }

@@ -12,24 +12,27 @@ import ed.security.*;
 import ed.appserver.jxp.*;
 import ed.util.*;
 
-public class JSFileLibrary extends JSObjectBase {
+public class JSFileLibrary extends JSFunctionCalls0 {
     
     static final boolean D = Boolean.getBoolean( "DEBUG.JSFL" );
     static final boolean DS = Boolean.getBoolean( "DEBUG.JSFLB" ) || D;
+
+    public static final boolean INIT_BY_DEFAULT = false;
     
     public JSFileLibrary( File base , String uriBase , AppContext context ){
-        this( base , uriBase , context , null , false );
+        this( null , base , uriBase , context , null , INIT_BY_DEFAULT );
     }
     
     public JSFileLibrary( File base , String uriBase , Scope scope ){
-        this( base , uriBase , null , scope , false );
+        this( null , base , uriBase , null , scope , INIT_BY_DEFAULT );
     }
     
-    protected JSFileLibrary( File base , String uriBase , AppContext context , Scope scope , boolean doInit ){
+    protected JSFileLibrary( JSFileLibrary parent , File base , String uriBase , AppContext context , Scope scope , boolean doInit ){
 
         if ( uriBase.equals( "core" ) && ! doInit )
             throw new RuntimeException( "you are stupid" );
         
+        _parent = parent;
         _base = base;
         _uriBase = uriBase;
         _context = context;
@@ -37,17 +40,28 @@ public class JSFileLibrary extends JSObjectBase {
         _doInit = doInit;
         
         if ( DS ) System.out.println( "creating : " + _base );
+
+
+        // this is ugly - please fix
+        if ( uriBase.equals( "core" ) )
+            set( "modules" , new ModuleDirectory( "core-modules" , "core.modules" , context , scope ) );
+        else if ( uriBase.equals( "local" ) || uriBase.equals( "jxp" ) )
+            set( "modules" , new ModuleDirectory( "site-modules" , "local.modules" , context , scope ) );
     }
 
     private synchronized void _init(){
 
         if ( D ) System.out.println( "\t " + _base + " _init.  _initSources : " + _initSources );
 
-        if ( ! _doInit )
+        if ( ! _doInit ){
+            if ( D ) System.out.println( "\t skipping becuase no _doInit" );
             return;
+        }
         
-        if ( _inInit )
+        if ( _inInit ){
+            if ( D ) System.out.println( "\t skipping becuase _inInit" );
             return;
+        }
 
         boolean somethingChanged = false;
 
@@ -121,10 +135,14 @@ public class JSFileLibrary extends JSObjectBase {
         
     }
 
+    public JSFunction getFunction( final Object n ){
+        return (JSFunction)get( n );
+    }
+    
     public Object get( final Object n ){
         return get( n , true );
     }
-    
+
     public synchronized Object get( final Object n , final boolean doInit ){
         if ( doInit )
             _init();
@@ -148,6 +166,39 @@ public class JSFileLibrary extends JSObjectBase {
         return foo;
     }
     
+    public Object getFromPath( String path ){
+        path = cleanPath( path );
+
+        if ( path.contains( ".." ) )
+            throw new RuntimeException( "can't have .. in paths [" + path + "]" );
+        
+        path = path.replaceAll( "/+" , "/" );
+
+        if ( path.startsWith( "/" ) ){
+            JSFileLibrary root = this;
+            while ( root._parent != null )
+                root = root._parent;
+            return root.getFromPath( path.substring( 1 ) );
+        }
+
+        final int idx = path.indexOf( "/" );
+        if ( idx < 0 )
+            return get( path );
+
+        final String dir = path.substring( 0 , idx );
+        final String next = path.substring( idx + 1 );
+        
+        Object foo = get( dir );
+        if ( foo == null )
+            return null;
+        
+        if ( ! ( foo instanceof JSFileLibrary ) )
+            throw new RuntimeException( dir + " is not a directory" );
+        
+        JSFileLibrary lib = (JSFileLibrary)foo;
+        return lib.getFromPath( next );
+    }
+
     public boolean isIn( File f ){
         // TODO make less slow
         return f.toString().startsWith( _base.toString() );
@@ -193,7 +244,7 @@ public class JSFileLibrary extends JSObjectBase {
         }
         
         JSFunction func = source.getFunction();
-        _classToPath.put( func.getClass().getName() , this );
+        addPath( func.getClass() , this );
 
         return source;
 
@@ -221,32 +272,74 @@ public class JSFileLibrary extends JSObjectBase {
             if ( ! temp.exists() )
                 continue;
             
-            if ( dir.exists() || f != null )
+            if ( f != null )
                 throw new RuntimeException( "file collision on : " + dir + " " + _base + " " + n  );
 
             f = temp;
         }
         
-        if ( dir.exists() )
-            return set( n , new JSFileLibrary( dir , _uriBase + "." + n.toString() , _context , _scope , _doInit ) );
-        
-        if ( f == null )
-            return null;
+        if ( f == null && dir.exists() && ! dir.isDirectory() )
+            f = dir;
 
+        if ( DS ) System.out.println( "\t dir : " + dir + " f : " + f );
+
+        Object theObject = null;
+        if ( f != null ){
+            try {
+                theObject = getSource( f , false );
+            }
+            catch ( IOException ioe ){
+                throw new RuntimeException( ioe );
+            }
+        }
+        
+        if ( dir.exists() && dir.isDirectory() ){
+            JSFileLibrary foo = new JSFileLibrary( this , dir , _uriBase + "." + n.toString() , _context , _scope , _context != null || _doInit );
+            foo._mySource = (JxpSource)theObject;
+            theObject = foo;
+        }
+
+        return set( n , theObject );
+    }
+
+    public Object call( Scope s , Object args[] ){
+        if ( _mySource == null )
+            throw new RuntimeException("trying to call a JSFileLibrary that doesn't have a file : " + _base );
+        
+        JSFunction f = null;
         try {
-            return set( n , getSource( f , false ) );
+            f = _mySource.getFunction();
         }
         catch ( IOException ioe ){
-            throw new RuntimeException( ioe );
+            throw new RuntimeException( "couldn't load : " + f , ioe );
         }
         
+        return f.call( s , args );
     }
-    static String _srcExtensions[] = new String[] { ".js" , ".jxp" , ".html" , ".rb" , ".rhtml" , ".erb" , ".djang10" };
     
     public String toString(){
         return "{ JSFileLibrary.  _base : " + _base + "}";
     }
 
+    public String getURIBase(){
+        return _uriBase;
+    }
+
+    JSFileLibrary getTopParent(){
+        if ( _parent == null )
+            return this;
+        return _parent.getTopParent();
+    }
+
+    String cleanPath( final String old ){
+        JSFileLibrary l = getTopParent();
+        if ( ! old.startsWith( l._base.toString() ) )
+            return old;
+        
+        return old.substring( l._base.toString().length() );
+    }
+
+    final JSFileLibrary _parent;
     final File _base;
     final String _uriBase;
     final AppContext _context;
@@ -254,7 +347,8 @@ public class JSFileLibrary extends JSObjectBase {
     final boolean _doInit;
     
     private final Map<File,JxpSource> _sources = new HashMap<File,JxpSource>();
-
+    
+    private JxpSource _mySource;
     private JSFunction _initFunction;
     private boolean _inInit = false;
     private long _lastInit = 0;
@@ -266,7 +360,9 @@ public class JSFileLibrary extends JSObjectBase {
         }
     };
 
-    private static WeakValueMap<String,JSFileLibrary> _classToPath = new WeakValueMap<String,JSFileLibrary>();
+    static String _srcExtensions[] = new String[] { ".js" , ".jxp" , ".html" , ".rb" , ".rhtml" , ".erb" , ".djang10", ".txt" };
+
+
 
     public static JSFileLibrary findPath(){
         String topjs = Security.getTopJS();
@@ -275,5 +371,11 @@ public class JSFileLibrary extends JSObjectBase {
             topjs = topjs.substring( 0 , idx );
         return _classToPath.get( topjs );
     }
+    
+    public static void addPath( Class c , JSFileLibrary lib ){
+        _classToPath.put( c.getName() , lib );
+    }
+
+    private static WeakValueMap<String,JSFileLibrary> _classToPath = new WeakValueMap<String,JSFileLibrary>();
    
 }

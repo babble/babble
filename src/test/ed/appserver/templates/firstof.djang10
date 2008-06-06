@@ -1,0 +1,2 @@
+{% firstof unknownVar1 unknownVar2 a %}
+{% firstof unknownVar1 unknownVar2 "mooo" %}

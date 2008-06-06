@@ -35,7 +35,9 @@ class State {
     }
 
     boolean useLocalVariable( String name ){
-        //if ( true ) return false;
+        if ( name.equals( "arguments" ) )
+            return false;
+
         return 
             ! _hasLambdaExpressions && 
             ( _badLocals == null || ! _badLocals.contains( name ) );
@@ -57,10 +59,13 @@ class State {
 
     final Set<String> _localSymbols = new HashSet<String>();
     final Map<Integer,String> _functionIdToName = new HashMap<Integer,String>();
+    final Set<Integer> _nonRootFunctions = new HashSet<Integer>();
     final Stack<String> _tempOpNames = new Stack<String>();
 
     final State _parent;
     
     boolean _hasLambdaExpressions = true;
     private  Set<String> _badLocals;
+    
+
 }

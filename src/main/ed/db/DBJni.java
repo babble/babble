@@ -2,18 +2,18 @@
 
 package ed.db;
 
-import java.io.*;
-import java.net.*;
 import java.nio.*;
-import java.util.*;
 
-import ed.js.*;
 import ed.util.*;
 
 public class DBJni extends DBMessageLayer {
     
     DBJni( String root ){
 	super( root );
+    }
+
+    public String getConnectPoint(){
+	return null;
     }
 
     protected void say( int op , ByteBuffer dataOut ){
@@ -42,6 +42,7 @@ public class DBJni extends DBMessageLayer {
             throw new RuntimeException( "buffer too small" );
 
         DBMessage inMsg = new DBMessage( b.in , b.in );
+        
         dataIn.put( b.in );
         dataIn.flip();
 

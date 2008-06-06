@@ -38,7 +38,7 @@ public class AppServer implements HttpHandler {
             return _getDefaultContext();
         }
 
-        AppContext ac = _context.get( host );
+        AppContext ac = _getContextFromMap( host );
         if ( ac != null )
             return ac;
 
@@ -64,7 +64,7 @@ public class AppServer implements HttpHandler {
         }
         if ( useHost.startsWith( "www." ) )
             useHost = useHost.substring( 4 );
-        
+
         if ( uri != null && uri.length() > 0 && uri.indexOf( "/" , 1 ) > 0 ){
             for ( String d : CDN_HOST ){
                 if ( useHost.startsWith( d ) ){
@@ -84,6 +84,9 @@ public class AppServer implements HttpHandler {
 	if ( useHost.equals( "corejs.com" ) ){
 	    return _coreContext;
 	}
+
+        if ( useHost.equals( "com" ) )
+            useHost = "www.com";
 
         if ( D ) System.out.println( "useHost : " + useHost );
         
@@ -109,28 +112,33 @@ public class AppServer implements HttpHandler {
         return _getDefaultContext();
     }
 
-    AppContext getFinalContext( File f , String host , String useHost ){
-        if ( ! f.exists() )
-            throw new RuntimeException( "trying to map to " + f + " which doesn't exist" );
+    AppContext getFinalContext( final File dir , String host , String useHost ){
+        if ( ! dir.exists() )
+            throw new RuntimeException( "trying to map [" + host + "] to " + dir + " which doesn't exist" );
 
-        AppContext ac = _context.get( host );
+        AppContext ac = _getContextFromMap( host );
         if ( ac != null )
             return ac;
         
-        ac = _context.get( f.toString() );
+        ac = _getContextFromMap( dir.toString() );
         if ( ac != null )
             return ac;
+
+        File f = dir;
         
         if ( D ) System.out.println( "mapping directory [" + host + "] to " + f );
         
-        if ( ! hasGit( f ) ){
+        if ( hasGit( f ) ){
+            ac = new AppContext( f );
+        }
+        else {
             if ( D ) System.out.println( "\t this is a holder for branches" );
             f = getBranch( f , DNSUtil.getSubdomain( useHost ) );
             if ( D ) System.out.println( "\t using full path : " + f );
             
+            ac = new AppContext( f.toString() , dir.getName() , f.getName() );
         }
 
-        ac = new AppContext( f );
         _context.put( host , ac );
         _context.put( f.toString() , ac );
         return ac;
@@ -226,6 +234,12 @@ public class AppServer implements HttpHandler {
         
 	ar.setResponse( response );
 	ar.getContext().getScope().setTLPreferred( ar.getScope() );
+
+        response.setHeader( "X-ctx" , ar.getContext()._root );
+        response.setHeader( "X-git" , ar.getContext()._gitBranch );
+        response.setHeader( "X-env" , ar.getContext()._environment );
+
+        response.setAppRequest( ar );
         try {
             _handle( request , response , ar );
         }
@@ -239,8 +253,6 @@ public class AppServer implements HttpHandler {
             ar.getContext()._usage.hit( "cpu_millis" , t );
             ar.getContext()._usage.hit( "bytes_out" , response.totalSize() );
             
-            ar.getScope().kill();
-
             Scope.clearThreadLocal();
         }
     }
@@ -318,6 +330,9 @@ public class AppServer implements HttpHandler {
         catch ( JSException.Quiet q ){
             response.setHeader( "X-Exception" , "quiet" );
         }
+        catch ( JSException.Redirect r ){
+            response.sendRedirectTemporary(r.getTarget());
+        }
         catch ( Exception e ){
             handleError( request , response , e , ar.getContext() );
             return;
@@ -337,8 +352,11 @@ public class AppServer implements HttpHandler {
         writer.print( "\n<br><br><hr><b>Error</b><br>" );
         writer.print( t.toString() + "<BR>" );
         
-        for ( StackTraceElement element : t.getStackTrace() ){
-            writer.print( element + "<BR>" );
+        while ( t != null ){
+            for ( StackTraceElement element : t.getStackTrace() ){
+                writer.print( element + "<BR>\n" );
+            }
+            t = t.getCause();
         }
         
     }
@@ -416,15 +434,15 @@ public class AppServer implements HttpHandler {
     }
 
     private AppContext _getContextFromMap( String host ){
-        AppContext ac = _context.get( host );
-        if ( ac == null )
-            return null;
-        
-        if ( ! ac._reset )
-            return ac;
 
-        _context.put( host , null );
-        return null;
+        AppContext ac = _context.get( host );
+        
+        if (ac != null && ac.isReset()) {
+            _context.put( host , null );
+            ac = null;
+        }
+        
+        return ac;
     }
     
     private synchronized AppContext _getDefaultContext(){
@@ -440,13 +458,14 @@ public class AppServer implements HttpHandler {
 
     private final String _defaultWebRoot;
     private AppContext _defaultContext;
-    private final AppContext _coreContext = new AppContext( CoreJS.getDefaultRoot() );
+    private final AppContext _coreContext = new AppContext( CoreJS.get().getRootFile( null ) );
     private final String _root;
     private final File _rootFile;
     private final Map<String,AppContext> _context = Collections.synchronizedMap( new StringMap<AppContext>() );
     
     public static void main( String args[] )
         throws Exception {
+        
 
         String webRoot = "/data/sites/admin/";
         String serverRoot = "/data/sites";
@@ -456,7 +475,13 @@ public class AppServer implements HttpHandler {
         /*
          *     --port portnum   [root]
          */
-        for (int i = 0; i < args.length; i++) {
+
+        int aLength = 0;
+        for ( int i=0; i<args.length; i++ ){
+            if ( args[i] != null && args[i].trim().length() > 0 )
+                aLength = i +1;
+        }
+        for (int i = 0; i < aLength; i++) {
 
             if ("--port".equals(args[i])) {
                 portNum = Integer.valueOf(args[++i]);
@@ -465,7 +490,7 @@ public class AppServer implements HttpHandler {
                 portNum = Integer.valueOf(args[++i]);
             }
             else {
-                if (i != args.length - 1) {
+                if (i != aLength - 1) {
                     System.out.println("error - unknown param " + args[i]);
                     System.exit(1);
                 }
@@ -477,6 +502,7 @@ public class AppServer implements HttpHandler {
 
         System.out.println("==================================");
         System.out.println("  10gen AppServer vX");
+        System.out.println("    library root = " + CoreJS.get().getBase());
         System.out.println("         webRoot = " + webRoot);
         System.out.println("      serverRoot = " + serverRoot);
         System.out.println("     listen port = " + portNum);

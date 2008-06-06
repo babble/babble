@@ -3,7 +3,6 @@
 package ed.db;
 
 import java.io.*;
-import java.net.*;
 import java.nio.*;
 import java.util.*;
 
@@ -94,9 +93,12 @@ public abstract class DBApiLayer extends DBBase {
 		continue;
 
             String table = n.substring( idx + 1 );
-
+            
             tables.add( table );
         }
+
+        
+        Collections.sort( tables );
 
         return tables;
     }

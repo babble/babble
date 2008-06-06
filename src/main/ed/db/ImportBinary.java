@@ -24,7 +24,7 @@ public class ImportBinary {
         if ( ! root.exists() )
             throw new RuntimeException( root + " does not exist" );
 
-        for ( File f : root.listFiles() ){
+        for ( File f : _list( root ) ){
             
             if ( f.isDirectory() ){
                 loadNamespace( f );
@@ -44,7 +44,7 @@ public class ImportBinary {
         if ( ! dir.exists() )
             throw new RuntimeException( dir + " does not exist" );
 
-        for ( File f : dir.listFiles() ){
+        for ( File f : _list( dir ) ){
             if ( f.isDirectory() )
                 continue;
             loadOne( f );
@@ -53,6 +53,9 @@ public class ImportBinary {
 
     static void loadOne( File f )
         throws IOException {
+
+        System.out.println( f );
+
 
         if ( ! f.exists() || f.isDirectory() )
             throw new RuntimeException( f + " must be a regular fule" );
@@ -118,6 +121,31 @@ public class ImportBinary {
 
         coll.find( new JSObjectBase() , null , 0 , 1 );
     }
+
+    static File[] _list( File f ){
+        File lst[] = f.listFiles();
+        Arrays.sort( lst , _fileComparator );
+        return lst;
+    }
+
+    public final static Comparator<File> _fileComparator = new Comparator<File>(){
+            public int compare( File lf , File rf ){
+                String l = lf.getName();
+                String r = rf.getName();
+
+                if ( l.equals( "system.indexes.bin"  ) )
+                    return 1;
+
+                if ( r.equals( "system.indexes.bin"  ) )
+                    return -1;
+
+                return l.compareTo( r );
+                
+            }
+            public boolean equals(Object obj ){
+                return this == obj;
+            }
+        };
 
     public static void main( String args[] )
         throws Exception {

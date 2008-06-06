@@ -2,10 +2,8 @@
 
 package ed.db;
 
-import java.io.*;
 import java.nio.*;
 import java.util.*;
-import java.util.regex.*;
 
 import com.twmacinta.util.*;
 
@@ -16,6 +14,10 @@ import ed.js.engine.*;
 public class JSHook {
 
     public static String whereIsEd = null;
+    static {
+        if ( System.getenv( "ED_HOME" ) != null )
+            whereIsEd = System.getenv( "ED_HOME" );
+    }
 
     static final boolean DEBUG = false;
 
@@ -24,6 +26,14 @@ public class JSHook {
     public static final int INVOKE_ERROR = -3;
     
     public static final int INVOKE_SUCCESS = 0;
+
+    // is this a security hole
+    private static Scope _scope = null;
+    private static final Scope _getScope(){
+        if ( _scope == null )
+            _scope = Scope.newGlobal();
+        return _scope;
+    }
 
     // ---- init stuff
     
@@ -35,7 +45,7 @@ public class JSHook {
 
     public static long scopeCreate(){
         JS.JNI = true;
-        Scope s = Scope.GLOBAL.child();
+        Scope s = _getScope().child();
         s.setGlobal( true );
         _scopes.put( s.getId() , s );
         return s.getId();

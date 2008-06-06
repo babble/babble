@@ -4,6 +4,7 @@ import java.io.File;
 
 import org.testng.annotations.Test;
 
+import ed.appserver.templates.Djang10Converter;
 import ed.js.JSFunction;
 import ed.js.func.JSFunctionCalls0;
 import ed.util.ScriptTestInstance;
@@ -46,14 +47,15 @@ public abstract class ScriptTestInstanceBase extends MyAsserts implements Script
 
         JSFunction f = convert();
 
-        Scope scope = Scope.GLOBAL.child(new File("/tmp"));
-    
+        Scope scope = Scope.newGlobal().child(new File("/tmp"));
+        scope.setGlobal( true );
+        scope.makeThreadLocal();
         /*
          *  augment the scope
          */
         
         preTest(scope);
-
+        
         Shell.addNiceShellStuff(scope);
 
         scope.put( "exit" , new JSFunctionCalls0(){
@@ -63,13 +65,16 @@ public abstract class ScriptTestInstanceBase extends MyAsserts implements Script
                 }
             } , true );
 
+        
         try {
             f.call(scope);
+            validateOutput(scope);
         }
         catch (RuntimeException re) { 
             throw new Exception("For file " + _file.toString(), re);
         }
-            
-        validateOutput(scope);
+        finally {
+            scope.kill();
+        }
     }
 }

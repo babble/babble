@@ -1,0 +1,5 @@
+{% comment %}
+should not see me
+{% endcomment %}
+
+{# nor me #}

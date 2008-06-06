@@ -4,20 +4,17 @@ package ed.appserver.jxp;
 
 import java.io.*;
 import java.util.*;
-import java.util.regex.*;
 
 import ed.io.*;
-import ed.util.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.lang.*;
+import ed.util.*;
 import ed.appserver.*;
 import ed.appserver.templates.*;
 
-public abstract class JxpSource {
-    
-    static enum Language { JS , RUBY };
-
+public abstract class JxpSource implements Dependency , DependencyTracker {
+    public static final String JXP_SOURCE_PROP = "_jxpSource";
     static final File _tmpDir = new File( "/tmp/jxp/templates/" );
     static {
         _tmpDir.mkdirs();
@@ -36,6 +33,10 @@ public abstract class JxpSource {
     public abstract long lastUpdated();
     abstract String getName();
 
+    public void addDependency( Dependency d ){
+        _dependencies.add( d );
+    }
+
     public synchronized JSFunction getFunction()
         throws IOException {
         
@@ -45,11 +46,12 @@ public abstract class JxpSource {
             return _func;
         
         _lastParse = lastUpdated();
+        _dependencies.clear();
 
-        Template t = new Template( getName() , getContent() );
+        Template t = new Template( getName() , getContent() , Language.find( getName() ) );
         while ( ! t.getExtension().equals( "js" ) ){
             
-            TemplateConverter.Result result = TemplateEngine.oneConvert( t );
+            TemplateConverter.Result result = TemplateEngine.oneConvert( t , this );
             
             if ( result == null )
                 break;
@@ -63,10 +65,26 @@ public abstract class JxpSource {
         
         if ( ! t.getExtension().equals( "js" ) )
             throw new RuntimeException( "don't know what do do with : " + t.getExtension() );
+        
+        Convert convert = null;
+        try {
+            convert = new Convert( t.getName() , t.getContent() , false , t.getSourceLanguage() );
+            _func = convert.get();
+            _func.set(JXP_SOURCE_PROP, this);
+            return _func;
+        }
+        catch ( Exception e ){
+            String thing = e.toString();
+            if ( thing.indexOf( ":" ) >= 0 )
+                thing = thing.substring( thing.indexOf(":") + 1 );
+            
+            String msg = "couldn't compile ";
+            if ( ! thing.contains( t.getName() ) )
+                msg += " [" + t.getName() + "] ";
+            msg += thing;
 
-        Convert convert = new Convert( t.getName() , t.getContent() );
-        _func = convert.get();
-        return _func;
+            throw new RuntimeException( msg , e );
+        }
     }
     
 
@@ -84,11 +102,23 @@ public abstract class JxpSource {
     
 
     private void _checkTime(){
-        if ( _lastParse >= lastUpdated() )
+        if ( ! _needsParsing() )
             return;
         
         _func = null;
         _servlet = null;
+    }
+
+    private boolean _needsParsing(){
+
+        if ( _lastParse < lastUpdated() )
+            return true;
+
+        for ( Dependency d : _dependencies )
+            if ( _lastParse < d.lastUpdated() )
+                return true;
+
+        return false;
     }
 
     public String toString(){
@@ -96,7 +126,8 @@ public abstract class JxpSource {
     }
     
     private long _lastParse = 0;
-    
+    private List<Dependency> _dependencies = new ArrayList<Dependency>();
+
     private JSFunction _func;
     private JxpServlet _servlet;
 

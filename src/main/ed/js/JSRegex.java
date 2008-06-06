@@ -37,6 +37,56 @@ public class JSRegex extends JSObjectBase {
                             return ((JSRegex)s.getThis()).test( o.toString() );
                         }
                     } );
+
+                _prototype.set( "__rmatch" , new JSFunctionCalls1(){
+                        public Object call( Scope s , Object o , Object foo[] ){
+
+                            if ( o == null )
+                                return -1;
+                            
+                            String str = o.toString();
+
+                            JSRegex r = (JSRegex)s.getThis();
+                            JSArray a = r.exec( str );
+                            r._last.set( a );
+                            if ( a == null )
+                                return null;
+                            return a.get( "index" );
+                        }
+                    } );
+
+                _prototype.set( "match" , new JSFunctionCalls1(){
+                        public Object call( Scope s , Object o , Object foo[] ){
+
+                            if ( o == null )
+                                return -1;
+                            
+                            String str = o.toString();
+
+                            JSRegex r = (JSRegex)s.getThis();
+                            JSArray a = r.exec( str , false );
+                            r._last.set( a );
+                            if ( a == null )
+                                return null;
+                            
+                            final String res = a.getInt(0).toString();
+                            return res;
+                        }
+                    } );
+
+                set( "quote" , new JSFunctionCalls1(){
+                        public Object call( Scope s , Object o , Object foo[] ){
+                            return quote( o.toString() );
+                        }
+                    }
+                    );
+                    
+                
+                set( "last" , new JSFunctionCalls0(){
+                        public Object call( Scope s , Object foo[] ){
+                            return _lastRegex.get();
+                        }
+                    } );
             }
         };
     
@@ -119,7 +169,12 @@ public class JSRegex extends JSObjectBase {
         
         _replaceAll = f.contains( "g" );
         
-        _patt = Pattern.compile( _p , _compilePatterns );
+        try {
+            _patt = Pattern.compile( _p , _compilePatterns );
+        }
+        catch ( PatternSyntaxException pe ){
+            throw new RuntimeException( "bad pattern \"" + _p + "\" : " + pe.getMessage() );
+        }
     }
 
     public String getPattern(){
@@ -157,11 +212,15 @@ public class JSRegex extends JSObjectBase {
     }
     
     public JSArray exec( String s ){
+        return exec( s , true );
+    }
+    
+    public JSArray exec( String s , boolean canUseOld ){
         JSArray a = _last.get();
         String oldString = a == null ? null : a.get( "input" ).toString();
         Matcher m = null;
 
-        if ( a != null && s.equals( oldString ) ){
+        if ( canUseOld && a != null && s == oldString && s.equals( oldString ) ){
             m = (Matcher)a.get( "_matcher" );
         }
         else {
@@ -172,8 +231,13 @@ public class JSRegex extends JSObjectBase {
             return null;
         
         a = new JSArray();
-        for ( int i=0; i<=m.groupCount(); i++ )
-            a.add( new JSString( m.group(i) ) );
+        for ( int i=0; i<=m.groupCount(); i++ ){
+            String temp = m.group(i);
+            if ( temp == null )
+                a.add( null );
+            else
+                a.add( new JSString( temp ) );
+        }
 
         a.set( "_matcher" , m );
         a.set( "input" , new JSString( s ) );
@@ -183,10 +247,42 @@ public class JSRegex extends JSObjectBase {
             _last.set( a );
         else
             _last.set( null );
-        
+        _lastRegex.set( this );
+
         return a;
     }
     
+    public JSArray getLast(){
+        return _last.get();
+    }
+
+    public static String quote( String s ){
+        StringBuilder buf = new StringBuilder( s.length() + 10 );
+        for ( int i=0; i<s.length(); i++ ){
+            char c = s.charAt( i );
+            switch ( c ){
+            case '\\':
+            case '^':
+            case '$':
+            case '*':
+            case '+':
+            case '{':
+            case '}':
+            case '[':
+            case ']':
+            case '(':
+            case ')':
+            case '-':
+            case '?':
+            case '.':
+                buf.append( "\\" );
+            default:
+                buf.append( c );
+            }
+        }
+        return buf.toString();
+    }
+
     String _p;
     String _f;
 
@@ -196,4 +292,5 @@ public class JSRegex extends JSObjectBase {
     boolean _replaceAll;
 
     ThreadLocal<JSArray> _last = new ThreadLocal<JSArray>();
+    static ThreadLocal<JSRegex> _lastRegex = new ThreadLocal<JSRegex>();
 }

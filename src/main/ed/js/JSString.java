@@ -44,9 +44,11 @@ public class JSString extends JSObjectBase {
         }
         
         protected void init(){
-
+            
             JS._debugSI( "JSString" , "JSStringCons init 0" );
             
+            final JSObject myPrototype = _prototype;
+
             if ( ! JS.JNI ){
                 final StringEncrypter encrypter = new StringEncrypter( "knsd8712@!98sad" );
                 
@@ -89,6 +91,14 @@ public class JSString extends JSObjectBase {
                     private final MD5 _myMd5 = new MD5();
                 } );
 
+            _prototype.set( "to_sym" , new JSFunctionCalls0() {
+                    public Object call( Scope s , Object extra[] ){
+                        return s.getThis().toString();
+                    }
+                    
+                    private final MD5 _myMd5 = new MD5();
+                } );
+
 
             _prototype.set( "toLowerCase" , new JSFunctionCalls0() {
                     public Object call( Scope s , Object foo[] ){
@@ -121,7 +131,7 @@ public class JSString extends JSObjectBase {
                         return new JSString( str.substring( idx , idx + 1 ) );
                     }
                 } );
-
+            
             _prototype.set( "indexOf" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object o , Object foo[] ){
                         String str = s.getThis().toString();
@@ -132,6 +142,24 @@ public class JSString extends JSObjectBase {
                             start = ((Number)foo[0]).intValue();
 
                         return str.indexOf( thing , start );
+                    }
+                } );
+
+            _prototype.set( "contains" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object o , Object foo[] ){
+                        String str = s.getThis().toString();
+                        String thing = o.toString();
+                        
+                        return str.contains( thing );
+                    }
+                } );
+
+            _prototype.set( "__rshift" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object o , Object foo[] ){
+                        JSString me = (JSString)(s.getThis());
+                        String thing = o.toString();
+                        me._s += thing;
+                        return me;
                     }
                 } );
 
@@ -242,7 +270,7 @@ public class JSString extends JSObjectBase {
                 
 
             _prototype.set( "split" , new JSFunctionCalls1(){
-                    public Object call( Scope s , Object o , Object crap[] ){                        
+                    public Object call( Scope s , Object o , Object extra[] ){                        
                             
                         String str = s.getThis().toString();
 
@@ -251,13 +279,31 @@ public class JSString extends JSObjectBase {
                             
                         if ( ! ( o instanceof JSRegex ) )
                             throw new RuntimeException( "not a regex : " + o.getClass() );
-                            
+                        
+                        int limit = Integer.MAX_VALUE;
+                        if ( extra != null && extra.length > 0 && extra[0] instanceof Number )
+                            limit = ((Number)extra[0]).intValue();
+    
                         JSRegex r = (JSRegex)o;
                         
+                        String spacer = null;
+                        if ( r.getPattern().contains( "(" ) )
+                            spacer = r.getPattern().replaceAll( "[()]" , "" );
+
                         JSArray a = new JSArray();
-                        for ( String pc : r._patt.split( str , -1 ) )
+                        for ( String pc : r._patt.split( str , -1 ) ){
+                            if ( a.size() > 0 && spacer != null )
+                                a.add( spacer );
                             a.add( new JSString( pc ) );
-                            
+                            if ( a.size() >= limit )
+                                break;
+                        }
+                        
+                        if ( r.getPattern().length() == 0 ){
+                            a.remove(0);
+                            a.remove( a.size() - 1 );
+                        }
+
                         return a;
                     }
                 }
@@ -272,8 +318,60 @@ public class JSString extends JSObjectBase {
                         return new JSString( buf.toString() );
                     }
                 } );
-            
 
+            _prototype.set( "pluralize" , new JSFunctionCalls0(){
+                    public Object call(Scope s, Object [] args){
+                        String str = s.getThis().toString();
+                        return str + "s";
+                    }
+                } );
+
+            _prototype.set( "_eq__t_" , _prototype.get( "match" ) );
+
+            _prototype.set( "__delete" , new JSFunctionCalls1(){
+                    public Object call(Scope s, Object all , Object [] args){
+
+                        String str = s.getThis().toString();
+                        if ( all == null )
+                            return str;
+                        
+                        String bad = all.toString();
+
+                        StringBuffer buf = new StringBuffer( str.length() );
+                        
+                        outer:
+                        for ( int i=0; i<str.length(); i++ ){
+                            char c = str.charAt( i );
+                            for ( int j=0; j<bad.length(); j++ )
+                                if ( bad.charAt( j ) == c )
+                                    continue outer;
+                            
+                            buf.append( c );
+                        }
+                        
+                        
+                        return new JSString( buf.toString() );
+                    }
+                } );
+            
+            _prototype.set( "_lb__rb_" , new JSFunctionCalls1(){
+                    public Object call( Scope s , Object thing , Object args[] ){
+                        JSString str = (JSString)s.getThis();
+                        if ( thing instanceof Number ){
+                            return (int)(str._s.charAt( ((Number)thing).intValue() ));
+                        }
+                        
+                        if ( thing instanceof JSArray ){
+                            JSArray a = (JSArray)thing;
+                            int start = ((Number)(a.get("start"))).intValue();
+                            int end = ((Number)(a.get("end"))).intValue();
+                            String sub = str._s.substring( start , end + 1 );
+                            return new JSString( sub );
+                        }
+                        
+                        return null;
+                    }
+                } );
             
             _prototype.set( "each_byte" , new JSFunctionCalls1(){
                     public Object call(Scope s, Object funcObject , Object [] args){
@@ -301,15 +399,18 @@ public class JSString extends JSObjectBase {
                             
                         if ( ! ( o instanceof JSRegex ) )
                             throw new RuntimeException( "not a regex : " + o.getClass() );
-                            
+                        
                         JSRegex r = (JSRegex)o;
                         Matcher m = r._patt.matcher( str );
                           
                         StringBuffer buf = null;
                         int start = 0;
+                        
+                        final JSObject options = ( crap != null && crap.length > 0  && crap[0] instanceof JSObject ) ? (JSObject)crap[0] : null;
+                        final boolean replaceAll = r._replaceAll || ( options != null && options.get( "all" ) != null );
 
                         Object replArgs[] = null;
-                                        
+                        
                         while ( m.find() ){
                             if ( buf == null )
                                 buf = new StringBuffer( str.length() );
@@ -356,7 +457,7 @@ public class JSString extends JSObjectBase {
                                 
                             start = m.end();
 
-                            if ( ! r._replaceAll )
+                            if ( ! replaceAll )
                                 break;
                         }
                             
@@ -365,6 +466,17 @@ public class JSString extends JSObjectBase {
                             
                         buf.append( str.substring( start ) );
                         return new JSString( buf.toString() );
+                    }
+                } );
+
+            _prototype.set( "sub" , _prototype.get( "replace" ) );
+            final JSObjectBase gsubOptions = new JSObjectBase();
+            gsubOptions.set( "all" , "asd" );
+            final Object gsubOptionsArray[] = new Object[]{ gsubOptions };
+
+            _prototype.set( "gsub" , new JSFunctionCalls2() {
+                    public Object call( Scope s , Object o , Object repl , Object crap[] ){
+                        return ((JSFunction)myPrototype.get( "replace" )).call( s , o , repl , gsubOptionsArray );
                     }
                 } );
 
@@ -383,7 +495,21 @@ public class JSString extends JSObjectBase {
                         return new JSString( buf.toString() );
                     }
                 } );
+            
+            set( "isUpper" , new JSFunctionCalls1(){
+                    public Object call( Scope s , Object thing , Object args[] ){
+                        String str = thing.toString();
+                        for ( int i=0; i<str.length(); i++ ){
+                            char c = str.charAt( i );
+                            if ( Character.isLetter( c ) &&
+                                 Character.isUpperCase( c ) )
+                                continue;
+                            return false;
+                        }
+                        return true;
+                    }
 
+                } );
 
         }
     };

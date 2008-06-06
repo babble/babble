@@ -12,6 +12,8 @@ import ed.*;
 import ed.js.*;
 import ed.js.func.*;
 import ed.js.engine.*;
+import ed.util.Dependency;
+import ed.util.DependencyTracker;
 import ed.appserver.JSFileLibrary;
 import ed.io.*;
 
@@ -20,24 +22,40 @@ public abstract class ConvertTestBase extends TestCase {
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.TEMPLATES" );
 
     ConvertTestBase( String extension ){
+        this( extension , null );
+    }
+
+    ConvertTestBase( String extension , String args[] ){
 
         _extension = extension;
-
+        
         _all = new ArrayList<FileTest>();
         
-        File dir = new File( "src/test/ed/appserver/templates/" );
-        for ( File f : dir.listFiles() )
-            if ( f.toString().endsWith( _extension ) ){
-                FileTest ft = new FileTest( f );
+        if ( args != null ){
+            for ( int i=0; i<args.length; i++ ){
+                if ( args[i].startsWith( "-" ) )
+                    continue;
+                FileTest ft = new FileTest( new File( args[i] ) );
                 add( ft );
                 _all.add( ft );
             }
+        }
+        
+        if ( _all.size() == 0 ){
+            File dir = new File( "src/test/ed/appserver/templates/" );
+            for ( File f : dir.listFiles() )
+                if ( f.toString().endsWith( _extension ) ){
+                    FileTest ft = new FileTest( f );
+                    add( ft );
+                    _all.add( ft );
+                }
+        }
         
     }
     
     abstract TemplateConverter getConverter();
     
-    Object[] getArgs(){
+    Object[] getArgs(Scope testScope){
         return null;
     }
 
@@ -62,15 +80,17 @@ public abstract class ConvertTestBase extends TestCase {
 
             final String in = StreamUtil.readFully( new FileInputStream( _file ) );
 
-            Template t = new Template( _file.getAbsolutePath() , in );
-            TemplateConverter.Result r = (getConverter()).convert( t );
+            DependencyTracker dependencyTracker = new MockDependencyTracker();
+            Template t = new Template( _file.getAbsolutePath() , in , ed.lang.Language.find( _file.toString() ) );
+            TemplateConverter.Result r = (getConverter()).convert( t , dependencyTracker );
 
             assertNotNull( r );
 
             Convert c = new Convert( _file.toString() , r.getNewTemplate().getContent() );
             JSFunction func = c.get();
             
-            Scope scope = Scope.GLOBAL.child();
+            Scope scope = Scope.getAScope().child();
+            scope.makeThreadLocal();
             
             final StringBuilder output = new StringBuilder();
             
@@ -84,9 +104,12 @@ public abstract class ConvertTestBase extends TestCase {
             scope.put( "print" , myout , true );
             scope.put( "SYSOUT" , myout , true );
             
-            scope.put( "local" , new JSFileLibrary( new File( "src/test/ed/appserver/templates/" ) ,  "local" , scope ) , true );
+            JSFileLibrary localLib = new JSFileLibrary( new File( "src/test/ed/appserver/templates/" ) , "local" , scope );
+            scope.put( "local" , localLib , true );
+            
+            localLib.addPath( func.getClass() , localLib );
 
-            func.call( scope , getArgs() );
+            func.call( scope , getArgs(scope) );
             
             String got = _clean( output.toString() );
             if ( DEBUG ) 
@@ -101,7 +124,7 @@ public abstract class ConvertTestBase extends TestCase {
             assertClose( expected , got, "Error : " + _file + " : " );
 
             Matcher m = Pattern.compile( "LINE(\\d+)" ).matcher( in );
-            if ( m.find() ){
+            while ( m.find() ){
                 final String tofind = m.group();
                 final int lineNumber = Integer.parseInt( m.group(1) );
                 
@@ -130,4 +153,19 @@ public abstract class ConvertTestBase extends TestCase {
         return s;
     }
 
+    
+    private static class MockDependencyTracker implements DependencyTracker {
+        private final ArrayList<Dependency> dependencies;
+        
+        public MockDependencyTracker() {
+            this.dependencies = new ArrayList<Dependency>();
+        }
+
+        public void addDependency(Dependency d) {
+            this.dependencies.add(d);
+        }
+        public ArrayList<Dependency> getDependencies() {
+            return dependencies;
+        }
+    }
 }

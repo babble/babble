@@ -4,6 +4,8 @@ package ed.appserver.templates;
 
 import java.util.*;
 
+import ed.util.*;
+
 public interface TemplateConverter {
 
     public static class Result {
@@ -28,5 +30,5 @@ public interface TemplateConverter {
     /**
      * @return null if i can't convert this.  
      */
-    public Result convert( Template t );
+    public Result convert( Template t , DependencyTracker tracker );
 }

@@ -50,14 +50,93 @@ public class JSDate extends JSObjectBase implements Comparable {
 
 
             protected void init(){
-
+                
                 _prototype.set( "getTime" , new JSFunctionCalls0() {
                         public Object call( Scope s , Object foo[] ){
                             return ((JSDate)s.getThis())._time;
                         }
                     } );
-            }
 
+                
+                _prototype.set( "utc" , new JSFunctionCalls0() {
+                        public Object call( Scope s , Object foo[] ){
+                            return ((JSDate)s.getThis()).utc();
+                        }
+                    } );
+
+                _prototype.set( "utc_to_local" , new JSFunctionCalls0() {
+                        public Object call( Scope s , Object foo[] ){
+                            return s.getThis();
+                        }
+                    } );
+
+                _prototype.set( "next_month" , new JSFunctionCalls0() {
+                        public Object call( Scope s , Object foo[] ){
+                            JSDate d = (JSDate)s.getThis();
+                            JSDate n = new JSDate( d._time );
+                            n.setMonth( n.getMonth() + 1 );
+                            return n;
+                        }
+                    } );
+
+                _prototype.set( "last_month" , new JSFunctionCalls0() {
+                        public Object call( Scope s , Object foo[] ){
+                            JSDate d = (JSDate)s.getThis();
+                            JSDate n = new JSDate( d._time );
+                            n.setMonth( n.getMonth() - 1 );
+                            return n;
+                        }
+                    } );
+
+                _prototype.set( "strftime" , new JSFunctionCalls1() {
+                        public Object call( Scope s , Object f , Object foo[] ){
+                            return ((JSDate)s.getThis()).strftime( f.toString() );
+                        }
+                    } );
+                
+                _prototype.set( "valueOf" , new JSFunctionCalls0(){
+                    public Object call( Scope s , Object args[] ){
+                        return ((JSDate)s.getThis())._time;
+                    }
+                } );
+
+                
+                // -----------
+
+                set( "now" , new JSFunctionCalls0(){
+                        public Object call( Scope s, Object foo[] ){
+                            return new JSDate();
+                        }
+                    } );
+
+                set( "parse" , new JSFunctionCalls1(){
+                        public Object call( Scope s , Object when , Object foo[] ){
+                            long t = parse( when , -1 );
+                            if ( t < 0 )
+                                return null;
+                            return new JSDate( t );
+                        }
+                    } );
+
+                set( "DAYNAMES" , new JSArray( new JSString( "Sunday" ) , 
+                                               new JSString( "Monday" ) ,
+                                               new JSString( "Tuesday" ) , 
+                                               new JSString( "Wednesday" ) ,
+                                               new JSString( "Thursday" ) , 
+                                               new JSString( "Friday" ) , 
+                                               new JSString( "Saturday" ) 
+                                               ) 
+                     );
+
+                set( "civil" , new JSFunctionCalls0(){
+                        public Object call( Scope s, Object foo[] ){
+                            // TODO: check this
+                            return s.getThis();
+                        }
+                    } );
+
+            }
+            
         };
 
     static long parse( Object o ){
@@ -137,7 +216,7 @@ public class JSDate extends JSObjectBase implements Comparable {
 
     public int getMonth(){
         _cal();
-        return 1 + _c.get( Calendar.MONTH );
+        return _c.get( Calendar.MONTH );
     }
 
     public int getDay(){
@@ -168,6 +247,10 @@ public class JSDate extends JSObjectBase implements Comparable {
     public int getHourOfDay(){
         _cal();
         return _c.get( Calendar.HOUR_OF_DAY );
+    }
+
+    public int minutes(){
+        return getMinute();
     }
 
     public int getMinutes(){
@@ -297,6 +380,10 @@ public class JSDate extends JSObjectBase implements Comparable {
         //        return new Date( _time ).toString();
     }
 
+    public String strftime( String theFormat ){
+        return format( ed.util.Strftime.convertDateFormat( theFormat ) );
+    }
+
     public String format( String theFormat ){
         SimpleDateFormat df = new SimpleDateFormat( theFormat );
         return df.format( new Date( _time ) );
@@ -374,6 +461,10 @@ public class JSDate extends JSObjectBase implements Comparable {
         return new JSDate( c );
     }
 
+    public JSDate utc(){
+        return this;
+    }
+
     private void _cal(){
         if ( _c != null )
             return;
@@ -417,7 +508,11 @@ public class JSDate extends JSObjectBase implements Comparable {
     }
 
     private final static DateFormat[] DATE_FORMATS = new DateFormat[]{
-        _webFormat , _simpleFormat
+        _webFormat , _simpleFormat , 
+        new SimpleDateFormat( "yyyy-dd-MM HH:mm:ss z" ) ,
+        new SimpleDateFormat( "yyyy-dd-MM HH:mm: z" ) ,
+        new SimpleDateFormat( "yyyy-dd-MM HH:mm:ss" ) ,
+        new SimpleDateFormat( "yyyy-dd-MM HH:mm" )
     };
 
 }

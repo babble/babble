@@ -38,5 +38,8 @@ public class JSObjectLame implements JSObject {
         return null;
     }
 
+    public JSObject getSuper(){
+        return null;
+    }
 }
 

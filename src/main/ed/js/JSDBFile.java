@@ -14,8 +14,8 @@ public class JSDBFile extends JSFile {
         throw new RuntimeException( "not done uet" );
     }
 
-    public void debug()
-        throws IOException {
+    public void debug(){
+        
         System.out.println( "--- START" );
         System.out.println( toString() );
         System.out.println( "-" );
@@ -23,7 +23,12 @@ public class JSDBFile extends JSFile {
             System.out.println( "\t " + n + " : " + get( n ) );
         }
         System.out.println( "-----" );
-        write( System.out );
+        try {
+            write( System.out );
+        }
+        catch ( IOException ioe ){
+            throw new RuntimeException( ioe );
+        }
         System.out.println( "--- END" );
 
     }

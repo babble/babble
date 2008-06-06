@@ -22,6 +22,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
     public final static JSString TYPE_OBJECT = new JSString( "object" );
     public final static JSString TYPE_NATIVE = new JSString( "native" );
     public final static JSString TYPE_FUNCTION = new JSString( "function" );
+    public final static JSString TYPE_OBJECTID = new JSString( "objectid" );
 
     static {
         JS._debugSI( "JSInternalFunctions" , "1" );
@@ -61,7 +62,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
         return o;
     }
 
-    public boolean JS_instanceof( Object thing , Object type ){
+    public static boolean JS_instanceof( Object thing , Object type ){
         if ( thing == null )
             return false;
         
@@ -115,6 +116,9 @@ public class JSInternalFunctions extends JSNumericFunctions {
         
         if ( obj instanceof JSFunction )
             return TYPE_FUNCTION;
+        
+        if ( obj instanceof ed.db.ObjectId )
+            return TYPE_OBJECTID;
 
         if ( obj instanceof JSObject )
             return TYPE_OBJECT;
@@ -303,6 +307,19 @@ public class JSInternalFunctions extends JSNumericFunctions {
 	if ( r instanceof Number )
 	    return r;
 	return _parseNumber( def );
+    }
+
+    public static final Collection<String> JS_collForFor( Object o ){
+        if ( o == null )
+            return new LinkedList<String>();
+
+        if ( o instanceof JSObject )
+            return ((JSObject)o).keySet();
+        
+        if ( o instanceof Collection )
+            return (Collection<String>)o;
+
+        throw new RuntimeException( "can't for with a : " + o.getClass() );
     }
 
     public static final Object JS_comma( Object ... o ){

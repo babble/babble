@@ -173,6 +173,19 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                     }
                 } );
 
+            _prototype.set( "__rshift" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object o , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        if ( a == null )
+                            throw new RuntimeException( "this shouldn't be possible.  scope id = " + s._id );
+                        a._array.add( o );
+                        if ( foo != null )
+                            for ( int i=0; i<foo.length; i++ )
+                                a._array.add( foo[i] );
+                        return a;
+                    }
+                } );
+
             _prototype.set( "concat" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object o , Object foo[] ){
                         JSArray a = (JSArray)(s.getThis());
@@ -262,6 +275,13 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                     }
                 } );
 
+            _prototype.set( "dup" , new JSFunctionCalls0() {
+                    public Object call( Scope s , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        return new JSArray( a );
+                    }
+                } );
+
             _prototype.set( "forEach" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object fo , Object foo[] ){
                         JSArray a = (JSArray)(s.getThis());
@@ -308,11 +328,24 @@ public class JSArray extends JSObjectBase implements Iterable , List {
 
                         JSArray n = new JSArray();
                         for ( Object o : a._array )
-                            n.add( f.call( s , o ) );
+                            n.add( fixAndCall( s , f , o ) );
                         return n;
                     }
                 } );
+            _prototype.set( "collect" , _prototype.get( "map" ) );
 
+            _prototype.set( "collect_ex_" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object fo , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        JSFunction f = (JSFunction)fo;
+
+                        for ( int i=0; i<a._array.size(); i++ ){
+                            a.set( i , fixAndCall( s , f , a._array.get( i ) ) );
+                        }
+                        
+                        return a;
+                    }
+                } );
 
             _prototype.set( "contains" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object test , Object foo[] ){
@@ -325,6 +358,8 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                         return false;
                     }
                 } );
+            
+            _prototype.set( "include_q_" , _prototype.get( "contains" ) );
 
             _prototype.set( "indexOf" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object test , Object foo[] ){
@@ -374,6 +409,14 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                     }
                 } );
 
+	    /* 
+	       ex:
+	       foo = {}
+	       [ 1 , 2, 3 ].__multiAssignment( scope , "a" , foo , "b", q, 3 );
+	       assert( scope.a == 1 )
+	       assert( foo.b == 2 );
+	       assert( q[3] == 3) ;
+	     */
             _prototype.set( "__multiAssignment" , new JSFunctionCalls0() {
                     public Object call( Scope s , Object foo[] ){
                         JSArray a = (JSArray)(s.getThis());
@@ -388,6 +431,66 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                     }
                 } );
 
+
+            _prototype.set( "empty_q_" , new JSFunctionCalls0() {
+                    public Object call( Scope s , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        return a.isEmpty();
+                    }
+                }
+                );
+
+            _prototype.set( "compact" , new JSFunctionCalls0() {
+                    public Object call( Scope s , Object foo[] ){
+                        JSArray a = (JSArray)(s.getThis());
+                        JSArray n = new JSArray();
+                        for ( Object o : a )
+                            if ( o != null )
+                                n.add( o );
+                        return n;
+                    }
+                }
+                );
+            
+            _prototype.set( "each" , new JSFunctionCalls1(){
+                    public Object call(Scope s, Object funcObject , Object [] args){
+
+                        if ( funcObject == null )
+                            throw new NullPointerException( "each needs a function" );
+                        
+                        JSFunction func = (JSFunction)funcObject;
+                        JSArray a = (JSArray)(s.getThis());
+                        
+                        Object blah = s.getParent().getThis();
+                        s.setThis( blah );
+                        
+                        Boolean old = func.setUsePassedInScopeTL( true );
+
+                        for ( int i=0; i<a._array.size(); i++ ){
+                            Object o = a._array.get( i );
+                            Object ret = func.call( s , o );
+                            
+                            if ( ret == null )
+                                continue;
+                            
+                            if(ret instanceof Number && ((Number)ret).longValue() == -111) {
+                                i--;
+                                continue;
+                            }
+                                
+
+                            if ( JSInternalFunctions.JS_evalToBool( ret ) )
+                                continue;
+                            
+                            break;
+                        }
+                        
+                        func.setUsePassedInScopeTL( old );
+
+                        s.clearThisNormal( null );
+                        return null;
+                    }
+                } );
 
         }
     }
@@ -411,9 +514,14 @@ public class JSArray extends JSObjectBase implements Iterable , List {
 
     public JSArray( Object ... obj ){
         super( _cons );
-        _array = new ArrayList( obj.length );
-        for ( Object o : obj )
-            _array.add( o );
+        if ( obj == null ){
+            _array = new ArrayList();
+        }
+        else {
+            _array = new ArrayList( obj.length );
+            for ( Object o : obj )
+                _array.add( o );
+        }
     }
 
     public JSArray( JSArray a ){
@@ -485,7 +593,10 @@ public class JSArray extends JSObjectBase implements Iterable , List {
 
         return keys;
     }
-
+	@Override
+	public boolean containsKey(String s) {
+		return "length".equals(s) || super.containsKey(s);
+	}
     public String toString(){
         StringBuilder buf = new StringBuilder();
         for ( int i=0; i<_array.size(); i++ ){
@@ -629,6 +740,17 @@ public class JSArray extends JSObjectBase implements Iterable , List {
 
     public boolean isLocked(){
         return _locked;
+    }
+
+    public static Object fixAndCall( Scope s , JSFunction f , Object o ){
+        if ( false ){
+            System.out.println( "ruby:" + s.isRuby() );
+            System.out.println( "params: " + f.getNumParameters() );
+            System.out.println( "thing:" + o.getClass() );
+        }
+        if ( s.isRuby() && f.getNumParameters() > 1 && o instanceof JSArray )
+            return f.call( s , ((JSArray)o).toArray() );
+        return f.call( s , o );
     }
 
     private boolean _locked = false;

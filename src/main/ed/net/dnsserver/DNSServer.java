@@ -29,7 +29,7 @@ public class DNSServer extends Thread {
         _port = port;
         _tcp = new TcpDNSServer( port );
         
-        _scope = Scope.GLOBAL.child();
+        _scope = Scope.newGlobal().child();
         _scope.setGlobal( true );
 
         _scope.evalFromPath( "ed/net/dnsserver/dns.js" , "dns.js" );

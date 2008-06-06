@@ -2,6 +2,15 @@
 
 <suite name="corejs" >
 
+  <test name="app-wiki">
+	<parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
+	<parameter name="dir-name"  value="/data/corejs/app/wiki/test"/>
+	<parameter name="file-ending"  value=".js"/>
+	<classes>
+      <class name="ed.util.ScriptTestFactory"/>
+    </classes>
+  </test>    
+
   <test name="content">
 	<parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
 	<parameter name="dir-name"  value="/data/corejs/content/test"/>
@@ -92,5 +101,13 @@
     </classes>
   </test>    
 
+  <test name="templates">
+    <parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
+    <parameter name="dir-name"  value="/data/corejs/templates/test"/>
+    <parameter name="file-ending"  value=".js"/>
+    <classes>
+      <class name="ed.util.ScriptTestFactory"/>
+    </classes>
+  </test>  
 </suite>
 

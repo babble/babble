@@ -12,6 +12,7 @@ public class DBTCP extends DBMessageLayer {
     DBTCP( String root , String ip, int port){
         super( root );
         _portPool = DBPortPool.get( ip, port);
+	_host = ip;
     }
 
     protected void say( int op , ByteBuffer buf ){
@@ -40,5 +41,10 @@ public class DBTCP extends DBMessageLayer {
         }
     }
 
+    public String getConnectPoint(){
+	return _host;
+    }
+    
+    private final String _host;
     private final DBPortPool _portPool;
 }

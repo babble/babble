@@ -5,6 +5,8 @@ package ed.js.engine;
 import java.io.*;
 import java.util.*;
 
+import com.twmacinta.util.*;
+
 import org.mozilla.javascript.*;
 
 import ed.js.*;
@@ -16,8 +18,6 @@ public class Convert implements StackTraceFixer {
 
     static boolean D = Boolean.getBoolean( "DEBUG.JS" );
     public static final String DEFAULT_PACKAGE = "ed.js.gen";
-
-    final boolean _invokedFromEval;
 
     public static JSFunction makeAnon( String code ){
         return makeAnon( code , false );
@@ -34,7 +34,7 @@ public class Convert implements StackTraceFixer {
 
                 Convert c = new Convert( name , code , true );
                 JSFunction func = c.get();
-                Scope s = Scope.GLOBAL.child();
+                Scope s = Scope.newGlobal().child();
                 s.setGlobal( true );
                 
                 func.call( s );
@@ -83,22 +83,40 @@ public class Convert implements StackTraceFixer {
 
     public Convert( String name , String source, boolean invokedFromEval)
         throws IOException {
+        this( name , source , invokedFromEval , Language.JS );
+    }
+
+    public Convert( String name , String source, boolean invokedFromEval , Language sourceLanguage )
+        throws IOException {
 
         _invokedFromEval = invokedFromEval;
+        _sourceLanguage = sourceLanguage;
 
         _name = name;
         _source = source;
         
-        _className = _name.replaceAll( "[^\\w]+" , "_" );
+        _className = cleanName( _name ) + _getNumForClass( _name , _source );
         _fullClassName = _package + "." + _className;
         
         CompilerEnvirons ce = new CompilerEnvirons();
         
         Parser p = new Parser( ce , ce.getErrorReporter() );
-        ScriptOrFnNode theNode = p.parse( _source , _name , 0 );
+        
+        ScriptOrFnNode theNode = null;
+        try {
+            theNode = p.parse( _source , _name , 0 );
+        }
+        catch ( org.mozilla.javascript.EvaluatorException ee ){
+            throw new RuntimeException( "can't compile [" + ee.getMessage() + "]" );
+        }
         _encodedSource = p.getEncodedSource();
         init( theNode );
     }
+    
+    public static String cleanName( String name ){
+        return name.replaceAll( "[^\\w]+" , "_" );
+    }
+    
 
     private void init( ScriptOrFnNode sn ){
         
@@ -222,17 +240,27 @@ public class Convert implements StackTraceFixer {
             {
                 _append( "JS_buildLiteralObject( new String[]{ " , n );
                 boolean first = true;
+                Node c = n.getFirstChild();
                 for ( Object id : (Object[])n.getProp( Node.OBJECT_IDS_PROP ) ){
                     if ( first )
                         first = false;
                     else 
                         _append( " , " , n );
-                    //_append( "\"" + id.toString() + "\"" , n );
-                    _append( getStringCode( id.toString() ) + ".toString()" , n );
+
+                    String name = id.toString();
+
+                    if ( c.getType() == Token.GET )
+                        name = JSObjectBase.getterName( name );
+                    else if ( c.getType() == Token.SET )
+                        name = JSObjectBase.setterName( name );
+                    
+                    _append( getStringCode( name ) + ".toString()" , n );
+
+                    c = c.getNext();
                 }
                 _append( " } " , n );
                 
-                Node c = n.getFirstChild();
+                c = n.getFirstChild();
                 while ( c != null ){
                     _append( " , " , n );
                     _add( c , state  );
@@ -341,7 +369,6 @@ public class Convert implements StackTraceFixer {
             
         case Token.SET_REF:
             _assertType( n.getFirstChild() , Token.REF_SPECIAL );
-            _assertType( n.getFirstChild().getFirstChild() , Token.NAME );
             
             _append( "((JSObject)" , n );
             _add( n.getFirstChild().getFirstChild() , state );
@@ -432,6 +459,14 @@ public class Convert implements StackTraceFixer {
         case Token.SETNAME:
             _addSet( n , state );
             break;
+            
+        case Token.GET:
+            _addFunction( n.getFirstChild() , state );
+            break;
+        case Token.SET:
+            _addFunction( n.getFirstChild() , state );
+            break;
+
         case Token.FUNCTION:
             _addFunction( n , state );
             break;
@@ -603,6 +638,11 @@ public class Convert implements StackTraceFixer {
             _addTry( n.getFirstChild() , state );
             break;
             
+        case Token.JSR:
+        case Token.RETURN_RESULT:
+            // these are handled in block
+            break;
+
         case Token.THROW:
             _append( "if ( true ) _throw( " , n );
             _add( n.getFirstChild() , state );
@@ -716,8 +756,7 @@ public class Convert implements StackTraceFixer {
             _add( n , state );
         }
 
-        _append(" } while ( false );\n " , n );
-        //throw new RuntimeException( "switch not supported yet" );
+        _append(" } while ( false );" , n );
     }
 
     private void _createRef( Node n , State state ){
@@ -779,6 +818,8 @@ public class Convert implements StackTraceFixer {
                 _append( " \n catch ( Throwable " + javaEName + " ){ \n " , n );
                 _append( " \n Object " + javaName + " = ( " + javaEName + " instanceof JSException ) ? " + 
                          "  ((JSException)" + javaEName + ").getObject() : " + javaEName + " ; \n" , n );
+                
+                _append( "try { scope.pushException( " + javaEName + " ); \n" , n );
 
                 Node catchScope = n.getFirstChild();
                 
@@ -805,7 +846,7 @@ public class Convert implements StackTraceFixer {
                     boolean isIF = b.getType() == Token.IFNE;
 
                     if ( isIF ){
-                        _append( "\n if ( " + javaName + " != null && JS_evalToBool( " , b );
+                        _append( "\n if ( " + javaEName + " != null && JS_evalToBool( " , b );
                         _add( b.getFirstChild() , state );
                         _append( " ) ){ \n " , b  );
                         b = b.getNext().getFirstChild();
@@ -818,14 +859,18 @@ public class Convert implements StackTraceFixer {
                         b = b.getNext();
                     }
                     
+                    _append( "if ( true ) " + javaEName + " = null ;\n" , b );
+                    
                     if ( isIF ){
-                        _append( javaName + " = null ;\n" , b );
                         _append( "\n } \n " , b );
                     }
                     
                     catchScope = catchScope.getNext().getNext();
                 }
                 
+                _append( "if ( " + javaEName + " != null ){ if ( " + javaEName + " instanceof RuntimeException ){ throw (RuntimeException)" + javaEName + ";} throw new JSException( " + javaEName + ");}\n" , n );
+
+                _append( " } finally { scope.popException(); } " , n );
                 _append( "\n } \n " , n ); // ends catch
                     
                 n = n.getNext();
@@ -894,9 +939,9 @@ public class Convert implements StackTraceFixer {
 
             _append( "\n for ( String " , n );
             _append( tempName , n );
-            _append( " : ((JSObject)" , n );
+            _append( " : JSInternalFunctions.JS_collForFor( " , n );
             _add( n.getFirstChild().getNext() , state );
-            _append( " ).keySet() ){\n " , n );
+            _append( " ) ){\n " , n );
 
             if ( state.useLocalVariable( name ) && state.hasSymbol( name ) )
                 _append( name + " = new JSString( " + tempName + ") ; " , n );
@@ -979,34 +1024,66 @@ public class Convert implements StackTraceFixer {
             throw new RuntimeException( "something is wrong" );
     }
     
-    private void _addFunctionNodes( ScriptOrFnNode sn , State state ){
+    private void _addFunctionNodes( final ScriptOrFnNode sn , final State state ){
+        Set<Integer> baseIds = new HashSet<Integer>();
+        {
+            Node temp = sn.getFirstChild();
+            while ( temp != null ){
+
+                if ( temp.getType() == Token.FUNCTION && 
+                     temp.getString() != null ){
+
+                    int prop = temp.getIntProp( Node.FUNCTION_PROP , -1 );
+                    if ( prop >= 0 ){
+                        baseIds.add( prop );
+                    }
+                }
+                
+                temp = temp.getNext();
+            }
+        }
+
         for ( int i=0; i<sn.getFunctionCount(); i++ ){
             
             FunctionNode fn = sn.getFunctionNode( i );
             _setLineNumbers( fn , fn );
 
             String name = fn.getFunctionName();
+            String anonName = "tempFunc_" + _id + "_" + i + "_" + _methodId++;
+            
             boolean anon = name.length() == 0;
             if ( anon )
-                name = "tempFunc_" + _id + "_" + i + "_" + _methodId++;
-            
-            state._functionIdToName.put( i , name );
+                name = anonName;
             
             if ( D ){
                 System.out.println( "***************" );
                 System.out.println( i + " : " +  name );
             }
+            
+            String useName = name;
 
-            _setVar( name , fn , state , anon );
-            _append( "; \n scope.getFunction( \"" + name + "\" ).setName( \"" + name + "\" );\n\n" , fn );
+            if ( ! anon && ! baseIds.contains( i ) ){
+                useName = anonName;
+                state._nonRootFunctions.add( i );
+            }
+
+            state._functionIdToName.put( i , useName );
+
+            _setVar( useName , fn , state , anon );
+            _append( "; \n scope.getFunction( \"" + useName + "\" ).setName( \"" + name + "\" );\n\n" , fn );
 
         }
     }
     
     private void _addFunction( Node n , State state ){
         if ( ! ( n instanceof FunctionNode ) ){
-            if ( n.getString() != null && n.getString().length() != 0 )
+            if ( n.getString() != null && n.getString().length() != 0 ){
+                int id = n.getIntProp( Node.FUNCTION_PROP , -1 );
+                if ( state._nonRootFunctions.contains( id ) ){
+                    _append( "scope.set( \"" + n.getString() + "\" , scope.get( \"" + state._functionIdToName.get( id ) + "\" ) );\n" , n );
+                }
                 return;
+            }
             _append( getFunc( n , state ) , n );
             return;
         }
@@ -1026,9 +1103,12 @@ public class Convert implements StackTraceFixer {
                 Node cur = toSearch.remove( toSearch.size() - 1 );
                 
                 if ( cur.getType() == Token.NAME ||
-                     cur.getType() == Token.GETVAR )
+                     cur.getType() == Token.GETVAR ){
                     if ( cur.getString().equals( "arguments" ) || cur.getString().equals( "processArgs" ) )
                         hasArguments = true;
+                    if ( cur.getString().equals( "scope" ) )
+                        state._hasLambdaExpressions = true;
+                }
                 
                 if ( cur.getType() == Token.INC || 
                      cur.getType() == Token.DEC ){
@@ -1052,7 +1132,7 @@ public class Convert implements StackTraceFixer {
 
         _append( "new JSFunctionCalls" + fn.getParamCount() + "( scope , null ){ \n" , n );
 
-        _append( "protected void init(){ super.init(); \n " , n );
+        _append( "protected void init(){ super.init(); _sourceLanguage = getFileLanguage(); \n " , n );
         _append( "_arguments = new JSArray();\n" , n );
         for ( int i=0; i<fn.getParamCount(); i++ ){
             final String foo = fn.getParamOrVarName( i );
@@ -1084,11 +1164,27 @@ public class Convert implements StackTraceFixer {
         }
         callLine += " , Object extra[] ){\n" ;
         
-        _append( callLine + " final Scope scope = _forceUsePassedInScope ? passedIn : new Scope( \"temp scope for: \" + _name  , getScope() , passedIn ); " , n );
+        _append( callLine + " final Scope scope = usePassedInScope() ? passedIn : new Scope( \"temp scope for: \" + _name  , getScope() , passedIn , getFileLanguage() ); " , n );
         if ( hasArguments ){
             _append( "JSArray arguments = new JSArray();\n" , n );
             _append( "scope.put( \"arguments\" , arguments , true );\n" , n );
         }
+
+        for ( int i=0; i<fn.getParamCount(); i++ ){
+
+            final String foo = fn.getParamOrVarName( i );
+            final String javaName = foo + ( state.useLocalVariable( foo ) ? "" : "INNNNN" );
+            final Node defArg = fn.getDefault( foo );
+            if ( defArg == null )
+                continue;
+            
+
+            _append( "if ( null == " + javaName + " ) " , defArg );
+            _append( javaName + " = " , defArg );
+            _add( defArg , state );
+            _append( ";\n" , defArg );
+        }
+
         _append(  varSetup , n );
         if ( hasArguments )
             _append( "if ( extra != null ) for ( Object TTTT : extra ) arguments.add( TTTT );\n" , n );
@@ -1105,7 +1201,7 @@ public class Convert implements StackTraceFixer {
         }
 
         _addFunctionNodes( fn , state );
-
+        
         _add( n.getFirstChild() , state );
         _append( "}\n" , n );
         
@@ -1148,6 +1244,7 @@ public class Convert implements StackTraceFixer {
             c = c.getNext();
         }
 
+
         bogusBrace = bogusBrace ||
             ( n.getFirstChild().getNext() == null &&
               n.getFirstChild().getType() == Token.EXPR_VOID &&
@@ -1161,10 +1258,26 @@ public class Convert implements StackTraceFixer {
             }
             return;
         }
+
+        boolean endReturn = 
+            n.getLastChild() != null && 
+            n.getLastChild().getType() == Token.RETURN_RESULT;
         
         _append( "{" , n );
+        
+        String ret = "retName" + (int)((Math.random()*1000));
+        if ( endReturn )
+            _append( "\n\nObject " + ret + " = null;\n\n" , n );
+        
         Node child = n.getFirstChild();
         while ( child != null ){
+
+            if ( endReturn && child.getType() == Token.LEAVEWITH )
+                break;
+
+            if ( endReturn && child.getType() == Token.EXPR_RESULT )
+                _append( ret + " = " , child );
+            
             _add( child , state );
             
             if ( child.getType() == Token.IFNE || 
@@ -1173,6 +1286,8 @@ public class Convert implements StackTraceFixer {
             
             child = child.getNext();
         }
+        if ( endReturn )
+            _append( "\n\nif ( true ){ return " + ret + "; }\n\n" , n );
         _append( "}" , n );
         
     }
@@ -1259,9 +1374,18 @@ public class Convert implements StackTraceFixer {
         }
     }
 
-    public static void _assertType( Node n , int type ){
-        if ( type != n.getType() )
-            throw new RuntimeException( "wrong type. was : " + Token.name( n.getType() ) + " should be " + Token.name( type )  );
+    public void _assertType( Node n , int type ){
+        _assertType( n , type , this );
+    }
+
+    public static void _assertType( Node n , int type , Convert c ){
+        if ( type == n.getType() )
+            return;
+        
+        String msg = "wrong type. was : " + Token.name( n.getType() ) + " should be " + Token.name( type );
+        if ( c != null )
+            msg += " file : " + c._name + " : " + ( c._nodeToSourceLine.get( n ) + 1 );
+        throw new RuntimeException( msg );
     }
 
     private void _setLineNumbers( Node n , final ScriptOrFnNode sof ){
@@ -1304,12 +1428,13 @@ public class Convert implements StackTraceFixer {
             return;
         
         int numLines = 0;
-        for ( int i=0; i<s.length(); i++ )
+        int max = s.length();
+        for ( int i=0; i<max; i++ )
             if ( s.charAt( i ) == '\n' )
                 numLines++;
         
         final int start = _currentLineNumber;
-        final int end = _currentLineNumber + numLines;
+        int end = _currentLineNumber + numLines;
         
         for ( int i=start; i<end; i++ ){
             List<Node> l = _javaCodeToLines.get( i );
@@ -1372,7 +1497,7 @@ public class Convert implements StackTraceFixer {
         return _className;
     }
 
-    String getClassString(){
+    public String getClassString(){
         StringBuilder buf = new StringBuilder();
         
         buf.append( "package " + _package + ";\n" );
@@ -1384,7 +1509,7 @@ public class Convert implements StackTraceFixer {
 
         buf.append( "public class " ).append( _className ).append( " extends JSCompiledScript {\n" );
 
-        buf.append( "\tpublic Object _call( Scope scope , Object extra[] ){\n" );
+        buf.append( "\tpublic Object _call( Scope scope , Object extra[] ) throws Throwable {\n" );
 
         buf.append( "\t\t final Scope passedIn = scope; \n" );
 
@@ -1392,7 +1517,7 @@ public class Convert implements StackTraceFixer {
             buf.append("\t\t // not creating new scope for execution as we're being run in the context of an eval\n");
         }
         else {
-            buf.append( "\t\t scope = new Scope( \"compiled script for:" + _name.replaceAll( "/tmp/jxp/s?/?0\\.\\d+/" , "" ) + "\" , scope ); \n" );
+            buf.append( "\t\t scope = new Scope( \"compiled script for:" + _name.replaceAll( "/tmp/jxp/s?/?0\\.\\d+/" , "" ) + "\" , scope , null , getFileLanguage() ); \n" );
             buf.append( "\t\t scope.putAll( getTLScope() );\n" );
         }
 
@@ -1452,9 +1577,40 @@ public class Convert implements StackTraceFixer {
             throw new RuntimeException( e );
         }
     }
-
+    
     public void fixStack( Throwable e ){
         StackTraceHolder.getInstance().fix( e );
+    }
+    
+    Node _getNodeFromJavaLine( int line ){
+        line = ( line - _preMainLines ) - 1;
+        
+        List<Node> nodes = _javaCodeToLines.get( line );
+        if ( nodes == null || nodes.size() == 0  ){
+            return null;
+        }
+
+
+        return nodes.get(0);
+    }
+    
+    public int _mapLineNumber( int line ){
+        Node n = _getNodeFromJavaLine( line );
+        if ( n == null )
+            return -1;
+        Integer i = _nodeToSourceLine.get( n );
+        if ( i == null )
+            return -1;
+        return i + 1;
+    }
+
+    public void _debugLineNumber( final int line ){
+        System.out.println( "-----" );
+        for ( int temp = Math.max( 0 , line - 5 );
+              temp < line + 5 ;
+              temp++ )
+            System.out.println( "\t" + temp + "->" + _mapLineNumber( temp ) + " || " + _getNodeFromJavaLine( temp ) );
+        System.out.println( "-----" );        
     }
 
     public StackTraceElement fixSTElement( StackTraceElement element ){
@@ -1465,26 +1621,24 @@ public class Convert implements StackTraceFixer {
 
         if ( ! element.getClassName().startsWith( _fullClassName ) )
             return null;
-        
-        int line = element.getLineNumber();
-        if ( debug ) System.out.println( "\t" + line );
-        
-        line = ( line - _preMainLines ) - 1;
-        if ( debug ) System.out.println( "\t" + line );
-        
-        List<Node> nodes = _javaCodeToLines.get( line );
-        if ( nodes == null )
+
+        if ( debug ){
+            System.out.println( element );
+            _debugLineNumber( element.getLineNumber() );
+        }
+
+        Node n = _getNodeFromJavaLine( element.getLineNumber() );
+        if ( n == null )
             return null;
         
-        // the +1 is for the way rhino stuff
-        line = _nodeToSourceLine.get( nodes.get(0) ) + 1;
+        // the +1 is for the way rhino does stuff
+        int line = _mapLineNumber( element.getLineNumber() );
         
-        ScriptOrFnNode sof = _nodeToSOR.get( nodes.get(0) );
+        ScriptOrFnNode sof = _nodeToSOR.get( n );
         String method = "___";
         if ( sof instanceof FunctionNode )
             method = ((FunctionNode)sof).getFunctionName();
         
-        if ( debug ) System.out.println( "\t\t" + line );
         return new StackTraceElement( _name , method , _name , line );
     }
 
@@ -1516,6 +1670,15 @@ public class Convert implements StackTraceFixer {
     public boolean hasReturn(){
         return _hasReturn;
     }
+
+    public int findStringId( String s ){
+        for ( int i=0; i<_strings.size(); i++ ){
+            if ( _strings.get(i).equals( s ) ){
+                return i;
+            }
+        }
+        return -1;
+    }
     
     //final File _file;
     final String _name;
@@ -1524,6 +1687,8 @@ public class Convert implements StackTraceFixer {
     final String _className;
     final String _fullClassName;
     final String _package = DEFAULT_PACKAGE;
+    final boolean _invokedFromEval;
+    final Language _sourceLanguage;
     final int _id = ID++;    
 
     // these 3 variables should only be use by _append
@@ -1585,5 +1750,41 @@ public class Convert implements StackTraceFixer {
         }
 
         return n == null ? foo : null;
+    }
+
+    // this is class compile optimization below
+
+    static synchronized int _getNumForClass( String name , String source ){
+        ClassInfo ci = _classes.get( name );
+        if ( ci == null ){
+            ci = new ClassInfo();
+            _classes.put( name , ci );
+        }
+        return ci.getNum( source );
+    }
+    
+    private static Map<String,ClassInfo> _classes =  Collections.synchronizedMap( new HashMap<String,ClassInfo>() );
+
+    static class ClassInfo {
+
+        synchronized int getNum( String source ){
+            _myMd5.Init();
+            _myMd5.Update( source );
+            final String hash = _myMd5.asHex();
+            
+            Integer num = _sourceToNumber.get( hash  );
+            if ( num != null )
+                return num;
+            
+            num = ++_numSoFar;
+            _sourceToNumber.put( hash , num );
+            
+            return num;
+        }
+
+        final MD5 _myMd5 = new MD5();
+        final Map<String,Integer> _sourceToNumber = new TreeMap<String,Integer>();
+        
+        int _numSoFar = 0;
     }
 }

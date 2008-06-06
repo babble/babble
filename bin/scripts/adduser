@@ -1,0 +1,43 @@
+#!/usr/bin/env ./bin/jssh
+
+numTimes = 0;
+
+function _usage(){
+    print( "usage : adduser <database> <name> <email> <pass>" );    
+}
+
+if ( arguments.length < 4 ){
+    _usage();
+    return -1
+}
+
+core.user.user();
+db = connect( arguments[0] );
+
+name = arguments[1];
+email = arguments[2];
+pass = arguments[3]
+
+u = db.users.findOne( { name : name } );
+if ( u )
+    return print( "user with name [" + name + "] already exists" );
+
+u = db.users.findOne( { email : email } );
+if ( u )
+    return print( "user with email [" + email + "] already exists" );
+
+if ( pass.length < 4 )
+    return print( "password too short" );
+
+u = new User();
+u.name = name;
+u.email = email;
+u.setPassword( pass );
+
+for ( var i=4; i<arguments.length; i++ ){
+    u.addPermission( arguments[i] );
+}
+
+print( tojson( u ) );
+
+db.users.save( u );

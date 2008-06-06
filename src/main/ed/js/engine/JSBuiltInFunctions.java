@@ -11,7 +11,6 @@ import com.twmacinta.util.*;
 import ed.log.*;
 import ed.js.*;
 import ed.js.func.*;
-import ed.appserver.templates.Djang10Converter;
 import ed.io.*;
 import ed.net.*;
 import ed.util.*;
@@ -23,6 +22,24 @@ public class JSBuiltInFunctions {
         JS._debugSIStart( "JSBuiltInFunctions" );
     }
 
+    public static Scope create(){
+        return create( "Built-In" );
+    }
+
+    public static Scope create( String name ){
+        Scope s = new Scope( name , _base );
+        try {
+            _setup( s );
+        }
+        catch ( RuntimeException re ){
+            re.printStackTrace();
+            System.exit(-1);
+        }
+        s.setGlobal( true );
+        s.lock();
+        return s;
+    }
+    
     public static class jsassert extends JSFunctionCalls1 {
         public Object call( Scope scope , Object foo , Object extra[] ){
             if ( JSInternalFunctions.JS_evalToBool( foo ) )
@@ -136,6 +153,7 @@ public class JSBuiltInFunctions {
                     return m.invoke( null , params );
                 }
                 catch ( Exception e ){
+                    e.printStackTrace();
                     throw new JSException( "can't call" , e );
                 }
                     
@@ -197,22 +215,33 @@ public class JSBuiltInFunctions {
 
         final boolean _newLine;
     }
-
+    
     public static class NewObject extends JSFunctionCalls0{
-            public Object call( Scope scope , Object extra[] ){
-                return new JSObjectBase();
-            }
 
-            protected void init(){
-                /** 
-                 * Copies all properties from the source to the destination object.
-                 * Not in JavaScript spec! Please refer to Prototype docs! 
-                */
-                set( "extend", new Prototype.Object_extend() );
-                set( "values", new Prototype.Object_values() );
-                set( "keys", new Prototype.Object_keys() );
-            }
-        };
+        public Object call( Scope scope , Object extra[] ){
+            return new JSObjectBase();
+        }
+        
+        public Object get( Object o ){
+            if ( o == null )
+                return null;
+            
+            if ( o.toString().equals( "prototype" ) )
+                return JSObjectBase._objectLowFunctions;
+
+            return super.get( o );
+        }
+        
+        protected void init(){
+            /** 
+             * Copies all properties from the source to the destination object.
+             * Not in JavaScript spec! Please refer to Prototype docs! 
+             */
+            set( "extend", new Prototype.Object_extend() );
+            set( "values", new Prototype.Object_values() );
+            set( "keys", new Prototype.Object_keys() );
+        }
+    };
     
     
     public static class NewDate extends JSFunctionCalls1 {
@@ -233,6 +262,8 @@ public class JSBuiltInFunctions {
         public Object call( Scope scope , Object idString , Object extra[] ){
             if ( idString == null )
                 return ed.db.ObjectId.get();
+            if ( idString instanceof ed.db.ObjectId )
+                return idString;
             return new ed.db.ObjectId( idString.toString() );
         }
 
@@ -473,53 +504,63 @@ public class JSBuiltInFunctions {
         }
     }
 
+    public static final boolean isBase( Scope s ){
+        return s == _base;
+    }
     
-    static Scope _myScope = new Scope( "Built-Ins" , null );
+    private static final Scope _base; // these are things that aren't modifiable, so its safe if there is only 1 copy
+    //private static final Scope _myScope; // this is the security hole.  need to get rid off TODO
     static {
-        JS._debugSI( "JSBuiltInFunctions" , "Setup 0" );
-        _myScope.put( "sysexec" , new sysexec() , true );
-        JS._debugSI( "JSBuiltInFunctions" , "Setup 0.1" );
-        _myScope.put( "print" , new print() , true );
-        _myScope.put( "printnoln" , new print( false ) , true );
-        _myScope.put( "SYSOUT" , new print() , true );
-        _myScope.put( "sleep" , new sleep() , true );
-        _myScope.put( "fork" , new fork() , true );
-
-        JS._debugSI( "JSBuiltInFunctions" , "Setup 1" );
-
-        _myScope.put( "Object" , new NewObject() , true );
-        _myScope.put( "Array" , JSArray._cons , true );
-        _myScope.put( "Date" , JSDate._cons , true );
-        _myScope.put( "String" , JSString._cons , true );
-        _myScope.put( "RegExp" , JSRegex._cons , true );
-        _myScope.put( "XMLHttpRequest" , XMLHttpRequest._cons , true );
-        _myScope.put( "Function" , JSInternalFunctions.FunctionCons , true );
-        _myScope.put( "Exception" , JSException._cons , true );
-        _myScope.put( "Map" , JSMap._cons , true );
-
-        _myScope.put( "Math" , JSMath.getInstance() , true );
-
-        _myScope.put( "processArgs", new processArgs(), true );
-
-        _myScope.put( "Class", ed.js.Prototype._class , true );
-
-        JS._debugSI( "JSBuiltInFunctions" , "Setup2" );
         
+        Scope s = new Scope( "base" , null );
+        try {
+            _setupBase( s );
+            
+        }
+        catch ( RuntimeException re ){
+            re.printStackTrace();
+            System.exit( -1 );
+        }
+        finally {
+            _base = s;
+            _base.lock();
+            _base.setGlobal( true );
+        }
+        /*
+        s = new Scope( "Built-Ins" , _base );
+        try {
+            _setup( s );
+        }
+        catch ( RuntimeException re ){
+            re.printStackTrace();
+            System.exit( -1 );
+        }
+        finally {
+            _myScope = s;
+        }
+        
+
+        _myScope.lock();
+        */
+        
+    }
+    
+    private static void _setupBase( Scope s ){
+        s.put( "sysexec" , new sysexec() , true );
+        s.put( "print" , new print() , true );
+        s.put( "printnoln" , new print( false ) , true );
+        s.put( "SYSOUT" , new print() , true );
+        s.put( "sleep" , new sleep() , true );
+        s.put( "fork" , new fork() , true );
+
         CrID crid = new CrID();
-        _myScope.put( "CrID" , crid , true );
-        _myScope.put( "ObjID" , crid , true );
-        _myScope.put( "ObjId" , crid , true );
-        _myScope.put( "ObjectID" , crid , true );
-        _myScope.put( "ObjectId" , crid , true );
+        s.put( "CrID" , crid , true );
+        s.put( "ObjID" , crid , true );
+        s.put( "ObjId" , crid , true );
+        s.put( "ObjectID" , crid , true );
+        s.put( "ObjectId" , crid , true );
 
-        _myScope.put( "Base64" , new ed.util.Base64() , true );
-        
-        _myScope.put( "download" , HttpDownload.DOWNLOAD , true );
-
-        _myScope.put( "JSCaptcha" , new JSCaptcha() , true );
-        _myScope.put( "MimeTypes" , new ed.appserver.MimeTypes() , true );
-        
-        _myScope.put( "parseBool" , new JSFunctionCalls1(){
+        s.put( "parseBool" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object b , Object extra[] ){
                     if ( b == null )
                         return false;
@@ -532,12 +573,8 @@ public class JSBuiltInFunctions {
                     return c == 't' || c == 'T';
                 }
             } , true );
-	
 
-	_myScope.put( "Number" , JSNumber.CONS , true );
-	_myScope.put( "parseNumber" , JSNumber.CONS , true );
-        
-	_myScope.put( "parseFloat" , 
+	s.put( "parseFloat" , 
                       new JSFunctionCalls1(){
                           public Object call( Scope scope , Object a , Object extra[] ){
 
@@ -553,7 +590,7 @@ public class JSBuiltInFunctions {
                           }
                       }
                       , true );
-	_myScope.put( "parseInt" , 
+	s.put( "parseInt" , 
                       new JSFunctionCalls2(){
                           public Object call( Scope scope , Object a , Object b , Object extra[] ){
 
@@ -578,7 +615,7 @@ public class JSBuiltInFunctions {
                       }
                       , true );
         
-        _myScope.put( "parseDate" ,
+        s.put( "parseDate" ,
                       new JSFunctionCalls1(){
                           public Object call( Scope scope , Object a , Object extra[] ){
                               if ( a == null )
@@ -598,10 +635,9 @@ public class JSBuiltInFunctions {
                           }
                       } , true );
         
-        _myScope.put( "NaN" , Double.NaN , true );
-
-	
-        _myScope.put( "md5" , new JSFunctionCalls1(){
+        s.put( "NaN" , Double.NaN , true );
+        
+        s.put( "md5" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object b , Object extra[] ){
                     synchronized ( _myMd5 ){
                         _myMd5.Init();
@@ -613,18 +649,20 @@ public class JSBuiltInFunctions {
                 private final MD5 _myMd5 = new MD5();
                 
             } , true );
-        
-        _myScope.put( "isArray" , new isXXX( JSArray.class ) , true );
-        _myScope.put( "isBool" , new isXXX( Boolean.class ) , true );
-        _myScope.put( "isNumber" , new isXXX( Number.class ) , true );
-        _myScope.put( "isDate" , new isXXX( JSDate.class ) , true );
-        _myScope.put( "isFunction" , new isXXX( JSFunction.class ) , true );
 
-        _myScope.put("isNaN", new isNaN(), true);
+        s.put( "isArray" , new isXXX( JSArray.class ) , true );
+        s.put( "isBool" , new isXXX( Boolean.class ) , true );
+        s.put( "isNumber" , new isXXX( Number.class ) , true );
+        s.put( "isDate" , new isXXX( JSDate.class ) , true );
+        s.put( "isFunction" , new isXXX( JSFunction.class ) , true );
+        s.put( "isRegExp" , new isXXX( JSRegex.class ) , true );
+        s.put( "isRegex" , new isXXX( JSRegex.class ) , true );
 
-        _myScope.put( "isString" , new isXXXs( String.class , JSString.class ) , true );
+        s.put( "isNaN", new isNaN(), true);
 
-        _myScope.put( "isObject" , new JSFunctionCalls1(){
+        s.put( "isString" , new isXXXs( String.class , JSString.class ) , true );
+
+        s.put( "isObject" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object o , Object extra[] ){
                     if ( o == null )
                         return false;
@@ -640,42 +678,88 @@ public class JSBuiltInFunctions {
             } , true );
 
         
-        _myScope.put( "isAlpha" , new JSFunctionCalls1(){
+        s.put( "isAlpha" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object o , Object extra[] ){
                     char c = getChar( o );
                     return Character.isLetter( c );
                 }
             } , true );
-        _myScope.put( "isSpace" , new JSFunctionCalls1(){
+        s.put( "isSpace" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object o , Object extra[] ){
                     char c = getChar( o );
                     return Character.isWhitespace( c );
                 }
             } , true );
-        _myScope.put( "isDigit" , new JSFunctionCalls1(){
+        s.put( "isDigit" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object o , Object extra[] ){
                      char c = getChar( o );
                     return Character.isDigit( c );
                 }
             } , true );
-        
-        _myScope.put( "assert" , new jsassert() , true );
-        _myScope.put( "javaCreate" , new javaCreate() , true );
-        _myScope.put( "javaStatic" , new javaStatic() , true );
-        _myScope.put( "javaStaticProp" , new javaStaticProp() , true );
-        
-        Encoding.install( _myScope );
-        JSON.init( _myScope );
-        ed.lang.ruby.Ruby.install( _myScope );
-        
-        Djang10Converter.injectHelpers(_myScope);
 
+        s.put( "__self" , new JSFunctionCalls1(){
+                public Object call( Scope scope , Object o , Object extra[] ){
+                    return o;
+                }
+            } , true );
+
+        s.put( "assert" , new jsassert() , true );
+        s.put( "javaCreate" , new javaCreate() , true );
+        s.put( "javaStatic" , new javaStatic() , true );
+        s.put( "javaStaticProp" , new javaStaticProp() , true );
+
+        s.put( "JSCaptcha" , new JSCaptcha() , true );
+        s.put( "MimeTypes" , new ed.appserver.MimeTypes() , true );
+        s.put( "Base64" , new ed.util.Base64() , true );
+
+        s.put( "processArgs", new processArgs(), true );
+        
         // mail stuff till i'm done
-        _myScope.put( "JAVAXMAILTO" , javax.mail.Message.RecipientType.TO , true );
+        s.put( "JAVAXMAILTO" , javax.mail.Message.RecipientType.TO , true );
 
+        for ( String key : s.keySet() ){
+            Object val = s.get( key );
+            if ( val instanceof JSObjectBase )
+                ((JSObjectBase)val).lock();
+        }
 
+        ed.db.migrate.Drivers.init( s );
+    }
 
-        _myScope.lock();
+    
+    private static void _setup( Scope s ){
+
+        // core js
+        
+        s.put( "Object" , new NewObject() , true );
+        s.put( "Array" , JSArray._cons , true );
+        s.put( "Date" , JSDate._cons , true );
+        s.put( "JSDate" , JSDate._cons , true ); // b/c Eliot always types this
+        s.put( "String" , JSString._cons , true );
+        s.put( "RegExp" , JSRegex._cons , true );
+        s.put( "Regexp" , JSRegex._cons , true ); // for Ruby technically
+        s.put( "XMLHttpRequest" , XMLHttpRequest._cons , true );
+        s.put( "Function" , JSInternalFunctions.FunctionCons , true );
+        s.put( "Math" , JSMath.getInstance() , true );
+        s.put( "Class", ed.js.Prototype._class , true );        
+	s.put( "Number" , JSNumber.CONS , true );
+	s.put( "parseNumber" , JSNumber.CONS , true );
+
+        // extensions
+        
+        s.put( "Exception" , JSException._cons , true );
+        s.put( "Map" , JSMap._cons , true );
+        
+        s.put( "download" , HttpDownload.DOWNLOAD , true );
+        
+        
+        // packages
+
+        Encoding.install( s );
+        JSON.init( s );
+        ed.lang.ruby.Ruby.install( s );
+
+        s.lock();
     }
 
     private static char getChar( Object o ){

@@ -17,8 +17,23 @@ public class CompileUtil {
     static boolean CD = false;
     
     static final String TMP_DIR = "/tmp/jxp/";// + Math.random() + "/";
+    private static final URLClassLoader _loader;
+    static {
+        
+        URLClassLoader cl = null;
+        try {
+            File dir = new File( TMP_DIR );
+            dir.mkdirs();
+            cl = new URLClassLoader( new URL[]{ dir.toURL() } );
+        }
+        catch ( Exception e ){
+            e.printStackTrace();
+            System.exit(-1);
+        }
+        _loader = cl;
+    }
 
-    public static synchronized Class<?> compile( String p , String c , String source )
+    public static synchronized Class<?> compile( final String p , final String c , final String source )
         throws IOException , ClassNotFoundException {
         
         if ( CD ) System.err.println( "compile called" );
@@ -77,8 +92,7 @@ public class CompileUtil {
 
         if ( CD ) System.err.println( "compile 4 " );
             
-        URLClassLoader cl = new URLClassLoader( new URL[]{ (new File( TMP_DIR )).toURL() } );
-        return cl.loadClass( p + "." + c );
+        return _loader.loadClass( p + "." + c );
     }
 
     static long getDependencyLastTime(){
@@ -123,7 +137,7 @@ public class CompileUtil {
         }
         
         if ( root == null ){
-            System.out.println( "can't find ed" );
+            System.out.println( "Warning : can't find core appserver js sources : no harm, but js will be recompiled on appserver startup" );
         }
         else {
             for ( String dirName : _dependsDirs ){

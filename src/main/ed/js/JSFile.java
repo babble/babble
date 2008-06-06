@@ -25,6 +25,9 @@ public abstract class JSFile extends JSObjectBase {
 
     protected JSFile( ObjectId id , String filename , String contentType , long length ){
         this();
+
+        filename = cleanFilename( filename );
+
         if ( id != null )
             set( "_id" , id );
 
@@ -116,7 +119,7 @@ public abstract class JSFile extends JSObjectBase {
     public String writeToLocalFile( String name )
         throws IOException {
         
-        Scope s = Scope.getThredLocal();
+        Scope s = Scope.getThreadLocal();
         if ( s == null )
             throw new JSException( "need a scope" );
         
@@ -282,6 +285,23 @@ public abstract class JSFile extends JSObjectBase {
         long _bytesWritten = 0;
         long _maxPostion = -1;
     }
+
+    public static String cleanFilename( String filename ){
+        if ( filename == null )
+            return null;
+
+        int idx = filename.lastIndexOf( "/" );
+        if ( idx > 0 )
+            filename = filename.substring( idx + 1 );
+
+        idx = filename.lastIndexOf( "\\" );
+        if ( idx > 0 )
+            filename = filename.substring( idx + 1 );
+        
+        return filename;
+    }
+
+
 }
 
 

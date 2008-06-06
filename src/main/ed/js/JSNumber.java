@@ -15,9 +15,9 @@ import ed.js.engine.*;
 public class JSNumber {
 
 
-    private static Map<String,JSFunction> functions = new HashMap<String,JSFunction>();
+    public static JSObjectBase functions = new JSObjectBase();
     public static JSFunction getFunction( String name ){
-        return functions.get( name );
+        return (JSFunction)functions.get( name );
     }
 
     public static final JSFunction CONS = new JSFunctionCalls2(){
@@ -33,6 +33,8 @@ public class JSNumber {
                     return b;
                 throw new RuntimeException( "not a number [" + a + "]" );
             }
+
+            
         };
     
     
@@ -75,8 +77,93 @@ public class JSNumber {
                 return s.substring( 0 , idx + 1 + num  );
             }
         };
+    
+    public static class Conversion extends JSFunctionCalls0{
+        
+        Conversion( double conversion ){
+            _conversion = conversion;
+        }
+        
+        public Object call( Scope s , Object foo[] ){
+            Number n = (Number)s.getThis();
+            return n.doubleValue() * _conversion;
+        }
+        
+        final double _conversion;
+    }
+
+    static Object _loop( final Scope s , final JSFunction f , final int start , final int end ){
+        Object blah = s.getParent().getThis();
+        s.setThis( blah );
+        
+        Boolean old = f.setUsePassedInScopeTL( true );
+        
+        for ( int i=start; i<end; i++ )
+            f.call( s , i );
+        
+        f.setUsePassedInScopeTL( old );
+        
+        s.clearThisNormal( null );
+        
+        return null;        
+    }
+    
     static {
-        functions.put( "toFixed" , toFixed );
+        functions.set( "toFixed" , toFixed );
+        
+        functions.set( "to_f" , new JSFunctionCalls0(){
+                public Object call( Scope s , Object foo[] ){
+                    return ((Number)s.getThis()).doubleValue();
+                }
+            } );
+        
+        functions.set( "round" , new JSFunctionCalls0(){
+                public Object call( Scope s , Object foo[] ){
+                    return (int)( ((Number)s.getThis()).doubleValue() + .5 );
+                }
+            } );
+        
+        functions.set( "times" , new JSFunctionCalls1(){
+                public Object call( Scope s , Object func , Object foo[] ){
+                    final int t = ((Number)s.getThis()).intValue();
+                    final JSFunction f = (JSFunction)func;
+                    
+                    return _loop( s , f , 0 , t );
+                }
+            } );
+
+        functions.set( "upto" , new JSFunctionCalls2(){
+                public Object call( Scope s , Object num , Object func , Object foo[] ){
+                    final int start = ((Number)s.getThis()).intValue();
+                    final int end = ((Number)num).intValue() + 1;
+                    final JSFunction f = (JSFunction)func;
+                    
+                    return _loop( s , f , start , end );
+                }
+            } );
+
+        functions.set( "chr" , new JSFunctionCalls0(){
+                public Object call( Scope s , Object foo[] ){
+                    return (char)( ((Number)s.getThis()).intValue() );
+                }
+            } );
+
+        functions.set( "zero_q_" , new JSFunctionCalls0(){
+                public Object call( Scope s , Object foo[] ){
+                    return ((Number)s.getThis()).doubleValue() == 0;
+                }
+            } );
+
+        functions.set( "kilobytes" , new Conversion( 1024 ) );
+        functions.set( "megabytes" , new Conversion( 1024 * 1024 ) );
+
+        functions.set( "seconds" , new Conversion( 1000 ) );
+        functions.set( "minutes" , new Conversion( 1000 * 60 ) );
+        functions.set( "hours" , new Conversion( 1000 * 60 * 60 ) );
+        functions.set( "days" , new Conversion( 1000 * 60 * 60 * 24 ) );
+        functions.set( "weeks" , new Conversion( 1000 * 60 * 60 * 24 * 7 ) );
+        functions.set( "years" , new Conversion( 1000 * 60 * 60 * 24 * 365.25 ) );
+
     }
 }
 

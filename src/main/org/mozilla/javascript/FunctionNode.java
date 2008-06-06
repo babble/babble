@@ -38,8 +38,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 package org.mozilla.javascript;
-import java.util.ArrayList;
-import java.util.HashMap;
+
+import java.util.*;
 
 public class FunctionNode extends ScriptOrFnNode {
 
@@ -107,6 +107,10 @@ public class FunctionNode extends ScriptOrFnNode {
         return itsFunctionType;
     }
 
+    public Node getDefault( String name ){
+        return _defaults.get( name );
+    }
+
     String functionName;
     int itsFunctionType;
     boolean itsNeedsActivation;
@@ -114,4 +118,6 @@ public class FunctionNode extends ScriptOrFnNode {
     boolean itsIsGenerator;
     ArrayList generatorResumePoints;
     HashMap liveLocals;
+    
+    Map<String,Node> _defaults = new TreeMap<String,Node>();
 }

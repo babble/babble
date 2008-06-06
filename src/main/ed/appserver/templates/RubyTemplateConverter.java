@@ -9,7 +9,7 @@ import ed.util.*;
 public class RubyTemplateConverter extends HtmlLikeConverter {
 
     public RubyTemplateConverter( String ext ){
-        super( ext , _codeTags );
+        super( ext , _codeTags , ed.lang.Language.RUBY );
     }
 
     protected String getNewName( Template t ){
@@ -17,6 +17,11 @@ public class RubyTemplateConverter extends HtmlLikeConverter {
     }
 
     protected void gotCode( Generator g , CodeMarker cm , String code ){
+
+        if ( code.startsWith( "-" ) )
+            code = code.substring( 1 );
+        if ( code.endsWith( "-" ) )
+            code = code.substring( 0 , code.length() - 1 );
 
         if ( cm._startTag.equals( "<%=" ) ){
             g.append( "print( " );

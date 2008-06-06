@@ -12,7 +12,7 @@ import ed.log.Logger;
 
 public class JSON {
 
-    static Set<String> IGNORE_NAMES = new HashSet<String>();
+    public static Set<String> IGNORE_NAMES = new HashSet<String>();
     static {
         IGNORE_NAMES.add( "_save" );
         IGNORE_NAMES.add( "_update" );
@@ -158,11 +158,12 @@ public class JSON {
             if ( something instanceof JSFunction ){
                 if ( trusted ) {
                     String s = something.toString();
-                    if( s.startsWith(JSFunction.TO_STRING_PREFIX) )
+                    if( s.trim().startsWith("function ()" ) )
+                        // JS implementation; presumed safe to work
+                        a.append( s );
+                    else
                         // Java implementation -- not valid JSON
                         string ( a, s );
-                    else
-                        a.append( s );
                     return;
                 }
                 throw new java.io.IOException("can't serialize functions in untrusted mode");
@@ -206,7 +207,7 @@ public class JSON {
             { 
                 Object foo = o.get( "tojson" );
                 if ( foo != null && foo instanceof JSFunction ){
-                    a.append( ((JSFunction)foo).call( Scope.GLOBAL ).toString() );
+                    a.append( ((JSFunction)foo).call( Scope.getAScope() ).toString() );
                     return;
                 }
             }
@@ -255,7 +256,7 @@ public class JSON {
         ScriptOrFnNode theNode = p.parse( s , "foo" , 0 );
         
         Node ret = theNode.getFirstChild();
-        Convert._assertType( ret , Token.RETURN );
+        Convert._assertType( ret , Token.RETURN , null );
         Convert._assertOne( ret );
         
         Node lit = ret.getFirstChild();

@@ -1,0 +1,4 @@
+{% set setVar1="moo" %}
+{{ setVar1 }}
+{% set setVar2=a %}
+{{ setVar2 }}

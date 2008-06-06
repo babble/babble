@@ -129,8 +129,17 @@ public class JSNumericFunctions extends JSObjectBase {
         return Double.NaN;
     }
 
+    static Object _addParse( Object o ){
+        if ( o instanceof JSDate )
+            return o.toString();
+        return o;
+    }
+
     public Object JS_add( Object a , Object b ){
         
+        a = _addParse( a );
+        b = _addParse( b );
+
         if ( a != null && ( a instanceof Number ) &&
              b != null && ( b instanceof Number ) ){
             
@@ -155,11 +164,19 @@ public class JSNumericFunctions extends JSObjectBase {
         return new JSString( s1 + s2 );
     }
 
-    public Number JS_bitor( Object a , Object b ){
+    public static Number JS_bitor( Object a , Object b ){
         
         a = _parseNumber( a );
         b = _parseNumber( b );
         
+        if ( a instanceof Boolean )
+            if ( ((Boolean)a) )
+                a = 1;
+        
+        if ( b instanceof Boolean )
+            if ( ((Boolean)b) )
+                b = 1;
+
         if ( a != null && a instanceof Number && 
              b != null && b instanceof Number )
             return ((Number)a).intValue() | ((Number)b).intValue();
@@ -270,6 +287,9 @@ public class JSNumericFunctions extends JSObjectBase {
         
         if ( o instanceof Number )
             return o;
+
+        if ( o instanceof JSDate )
+            return ((JSDate)o).getTime();
         
         String s = null;
         if ( o instanceof JSString )

@@ -14,7 +14,8 @@ public class JxpConverter extends HtmlLikeConverter {
 
     public JxpConverter( boolean dotHtmlMode ){
         super( dotHtmlMode ? ".html" : ".jxp" ,
-               dotHtmlMode ? _codeTagsHtml : _codeTagsJxp );
+               dotHtmlMode ? _codeTagsHtml : _codeTagsJxp , 
+               ed.lang.Language.JS );
         _dotHtmlMode = dotHtmlMode;
     }
 
@@ -41,7 +42,7 @@ public class JxpConverter extends HtmlLikeConverter {
         }
 
         if ( cm._startTag.equals( "<%" ) ){
-            g.append( code );
+            g.append( code , true );
             g.append( "\n" );
             return;
         }

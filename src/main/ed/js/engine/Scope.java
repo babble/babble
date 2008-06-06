@@ -9,6 +9,7 @@ import java.util.*;
 import ed.io.*;
 import ed.js.*;
 import ed.js.func.*;
+import ed.lang.*;
 
 public class Scope implements JSObject {
 
@@ -22,12 +23,14 @@ public class Scope implements JSObject {
     private static ThreadLocal<Scope> _threadLocal = new ThreadLocal<Scope>();
     private static ThreadLocal<Scope> _lastCreated = new ThreadLocal<Scope>();
 
-    public static Scope GLOBAL = new Scope( "GLOBAL" , JSBuiltInFunctions._myScope  );
-    static {
-        GLOBAL._locked = true;
-        GLOBAL._global = true;
+    public static Scope newGlobal(){
+        return JSBuiltInFunctions.create();
     }
 
+    public static Scope newGlobal( String name ){
+        return JSBuiltInFunctions.create( name );
+    }
+    
     static class _NULL {
         public String toString(){
             return "This is an internal thing for Scope.  It means something is null.  You should never seen this.";
@@ -42,19 +45,28 @@ public class Scope implements JSObject {
     }
 
     public Scope( String name , Scope parent ){
-        this( name , parent , null );
+        this( name , parent , null , Language.JS );
     }
     
-    public Scope( String name , Scope parent , Scope alternate ){
-        this( name , parent , alternate , null );
+    public Scope( String name , Scope parent , Scope alternate , Language lang ){
+        this( name , parent , alternate , lang , null );
     }
 
     
-    public Scope( String name , Scope parent , Scope alternate , File root ){
+    public Scope( String name , Scope parent , Scope alternate , Language lang , File root ){
         if ( DEBUG ) System.err.println( "Creating scope with name : " + name + "\t" + _id );
         _name = name;
         _parent = parent;
         _root = root;
+        _lang = lang;
+
+        {
+            Object pt = alternate == null ? null : alternate.getThis( false );
+            if ( pt instanceof JSObjectBase )
+                _possibleThis = (JSObjectBase)pt;
+            else
+                _possibleThis = null;
+        }
         
         Scope alt = null;
         if ( alternate != null ){
@@ -69,7 +81,7 @@ public class Scope implements JSObject {
         _alternate = alt;
 
         if ( _parent == null )
-            _globalThis = new JSObjectBase();
+            _globalThis = _createGlobalThis();
         
         _lastCreated.set( this );
     }
@@ -79,11 +91,11 @@ public class Scope implements JSObject {
     }
 
     public Scope child( String name ){
-        return new Scope( name , this , null , null );
+        return new Scope( name , this , null , _lang , null );
     }
 
     public Scope child( File f ){
-        return new Scope( _name + ".child" , this , null , f );
+        return new Scope( _name + ".child" , this , null , _lang , f );
     }
 
     public Object set( Object n , Object v ){
@@ -128,7 +140,7 @@ public class Scope implements JSObject {
 
         if ( _objects == null )
             _objects = new TreeMap<String,Object>();
-        _objects.put( name , o );
+        _mapSet( name , o );
     }
     
     public Object put( String name , Object o , boolean local ){
@@ -168,19 +180,25 @@ public class Scope implements JSObject {
             Scope pref = getTLPreferred();
 
             if ( pref != null ){
-                pref._objects.put( name , o );
+                pref._mapSet( name , o );
                 return _fixNull( o );
             }
 	    
 	    if ( _lockedObject != null && _lockedObject.contains( name ) )
 		throw new RuntimeException( "trying to set locked object : " + name );
 
-            _objects.put( name , o );
+            _mapSet( name , o );
             return _fixNull( o );
         }
         
         _parent.put( name , o , false );
         return _fixNull( o );
+    }
+
+    private final void _mapSet( String name , Object o ){
+        _objects.put( name , o );
+        if ( o instanceof JSObjectBase )
+            ((JSObjectBase)o)._setName( name );
     }
     
     public Object get( String name ){
@@ -192,8 +210,27 @@ public class Scope implements JSObject {
     }
     
     public Object get( final String origName , Scope alt , JSObject with[] ){
-
+        return _get( origName , alt , with , 0  );
+    }
+    
+    private Object _get( final String origName , Scope alt , JSObject with[] , int depth ){
+        final Object r = _geti( origName , alt ,with , depth  );
+        if ( DEBUG ) {
+            System.out.println( "GET [" + origName + "] = " + r );
+            if ( r == null && depth == 0 )
+                debug();
+        }
+        return r;
+    }
+    private Object _geti( final String origName , Scope alt , JSObject with[] , int depth ){
         String name = origName;
+        boolean noThis = false;
+
+        if ( name.equals( "__puts__" ) ){
+            noThis = true;
+            name = "print";
+        }
+
         boolean finder = false;
         if ( name.startsWith( "@@" ) & name.endsWith( "!!" ) ){
             name = name.substring( 2 , name.length() - 2 );
@@ -261,13 +298,87 @@ public class Scope implements JSObject {
                 throw new RuntimeException( "i fucked up" );
             return alt.get( origName , null );
         }
-
+        
         if ( _parent == null )
             return null;
         
-        return _parent.get( origName , alt );
+        if ( foo != null )
+            throw new RuntimeException( "eliot is stupid" );
+
+        // TODO: this makes lookups inside classes work
+        //       this is for ruby
+        //       it technically violates JS rules
+        //       it should probably only work within ruby.
+        //       not sure how to do that...
+
+        JSObjectBase pt = null;
+        
+        if ( depth == 1 && ! noThis ){
+            Object t = getThis( false );
+            
+            if ( t != null && t.getClass() == JSObjectBase.class ){
+                JSObjectBase obj = (JSObjectBase)t;
+                pt = obj;
+                foo = _getFromThis( obj , name );
+
+                if ( foo != null ){
+                    
+                    if ( finder )
+                        throw new ScopeFinder( name , this );
+                    
+                    if ( foo instanceof JSFunction && with != null )
+                        with[0] = pt;
+                    
+                    return foo;
+                }
+            }
+        }
+                
+        if ( depth == 0 && ! name.equals( "print" ) ){ // TODO: this is a hack for ruby right now...
+            if ( _possibleThis != null ){
+                pt = _possibleThis;
+                foo = _getFromThis( _possibleThis , name );
+                
+                if ( foo != null ){
+                    if ( finder )
+                        throw new ScopeFinder( name , this );
+                    
+                    if ( foo instanceof JSFunction && with != null )
+                        with[0] = pt;
+                    
+                    return foo;
+                }
+            }
+        }
+
+        return _parent._get( origName , alt , with , depth + 1 );
     }
 
+    private Object _getFromThis( JSObjectBase t , String name ){
+        if ( t == null )
+            return null;
+
+        if ( ! isRuby() )
+            return null;
+        
+        Object o = t.get( name );
+        if ( o == null && t.getConstructor() != null )
+            o = t.getConstructor().get( name );
+        
+        if ( o == null )
+            return null;
+        
+        return o;
+    }
+
+    public Object getOrThis( String name ){
+        return _get( name , null , null , 0  );
+    }
+
+    public boolean isRuby(){
+        return _lang == Language.RUBY;
+    }
+    
     public void enterWith( JSObject o ){
         if ( _with == null )
             _with = new Stack<JSObject>();
@@ -279,6 +390,8 @@ public class Scope implements JSObject {
     }
 
     public final Scope getGlobal(){
+        if ( _killed )
+            return _parent.getGlobal();
         if ( _global )
             return this;
         if ( _parent != null )
@@ -288,6 +401,10 @@ public class Scope implements JSObject {
     
     public Scope getParent(){
 	return _parent;
+    }
+
+    public JSObject getSuper(){
+        return getParent();
     }
 
     /**
@@ -330,11 +447,32 @@ public class Scope implements JSObject {
     }
 
     public JSFunction getFunction( String name ){
+        //System.err.println( "getFunction : " + name );
         JSObject with[] = new JSObject[1];
         Object o = get( name , _alternate , with );
+        //System.err.println( "\t" + o + "\t" + with[0] );
         
-        if ( o == null )
+        if ( o == null ){
+            if ( getParent().getThis( false ) instanceof JSObject ){
+                JSObject pt = (JSObject)getParent().getThis();
+                o = pt.get( name );
+                if ( o instanceof JSFunction ){
+                    JSFunction func = (JSFunction)o;
+                    // THIS IS BROKEN  TODO: fix for JS
+                    //if ( func.getSourceLanguage() == Language.RUBY || 
+                    //( pt instanceof JSFunction && ((JSFunction)pt).getSourceLanguage() == Language.RUBY ) )
+                    _this.push( new This( pt ) );
+                    //else {
+                    // = null;
+                    //throw new RuntimeException( "not doing something b/c language is : " + func.getSourceLanguage() );
+                    //}
+                }
+            }
+        }
+
+        if ( o == null ){
             throw new NullPointerException( name );
+        }
         
         if ( ! ( o instanceof JSFunction ) )
             throw new RuntimeException( "not a function : " + name );
@@ -396,12 +534,20 @@ public class Scope implements JSObject {
         
         if ( DEBUG ) System.out.println( "\t pushing native" );
         _this.push( new This( obj , name ) );
+
         return _nativeFuncCall;
     }
     
     public Object getThis(){
-        if ( _this.size() == 0 )
-            return getGlobalThis();
+        return getThis( true );
+    }
+    
+    public Object getThis( boolean getGlobalIfNeeded ){
+        if ( _this.size() == 0 ){
+            if ( getGlobalIfNeeded )
+                return getGlobalThis();
+            return null;
+        }
         return _this.peek()._this;
     }
 
@@ -446,7 +592,7 @@ public class Scope implements JSObject {
 
         if ( _global ){
             if ( _globalThis == null )
-                _globalThis = new JSObjectBase();
+                _globalThis = _createGlobalThis();
         }
         else {
             _globalThis = null;
@@ -575,6 +721,10 @@ public class Scope implements JSObject {
     }
     
     public void debug( int indent ){
+        debug( indent , true );
+    }
+    
+    public void debug( int indent , boolean showKeys ){
         for ( int i=0; i<indent; i++ )
             System.out.print( "  " );
         System.out.print( toString() + ":" );
@@ -587,10 +737,18 @@ public class Scope implements JSObject {
             System.out.print( "L" );
         
         System.out.print( ":" );
-        if ( _objects != null )
+        if ( showKeys && _objects != null )
             System.out.print( _objects.keySet() );
-        System.out.println();
+        
+        System.out.print( "||" );
 
+        for ( This t : _this ){
+            System.out.print( t );
+            System.out.print( "|" );
+        }
+        
+        System.out.println();
+        
         if ( _alternate != null ){
             System.out.println( "  ALT:" );
             _alternate.debug( indent + 1 );
@@ -631,10 +789,29 @@ public class Scope implements JSObject {
         _objects.putAll( s._objects );
     }
 
+
+    public Throwable currentException(){
+        if ( _exceptions == null )
+            return null;
+        return _exceptions.peek();
+    }
+
+    public void pushException( Throwable t ){
+        if ( _exceptions == null )
+            _exceptions = new Stack<Throwable>();
+        _exceptions.push( t );
+    }
+
+    public Throwable popException(){
+        return _exceptions.pop();
+    }
+
     final String _name;
     final Scope _parent;
     final Scope _alternate;
     final File _root;
+    final JSObjectBase _possibleThis;
+    final Language _lang;
     public final long _id = ID++;
     
     boolean _locked = false;
@@ -646,9 +823,12 @@ public class Scope implements JSObject {
     private ThreadLocal<Scope> _tlPreferred = null;
 
     Stack<This> _this = new Stack<This>();
+    Stack<Throwable> _exceptions;
     Stack<JSObject> _with;
     Object _orSave;
     JSObject _globalThis;
+
+
     
     public void makeThreadLocal(){
         _threadLocal.set( this );
@@ -659,12 +839,32 @@ public class Scope implements JSObject {
         _lastCreated.set( null );
     }
     
-    public static Scope getThredLocal(){
+    public static Scope getThreadLocal(){
         return _threadLocal.get();
     }
     
     public static Scope getLastCreated(){
         return _lastCreated.get();
+    }
+
+    public static Scope getAScope(){
+        return getAScope( true , false );
+    }
+
+    public static Scope getAScope( boolean createIfNeeded , boolean lastCreated ){
+        Scope s = getThreadLocal();
+        if ( s != null )
+            return s;
+        
+        if ( ! createIfNeeded ){
+            if ( lastCreated )
+                return _lastCreated.get();
+            return null;
+        }
+
+        s = newGlobal();
+        s.makeThreadLocal();
+        return s;
     }
 
     static class This {
@@ -676,12 +876,27 @@ public class Scope implements JSObject {
             _nThis = o;
             _nThisFunc = n;
         }
+
+        public String toString(){
+            if ( _this == null && _nThisFunc == null )
+                return null;
+            
+            if ( _this == null )
+                return _nThis.toString();
+            return ((JSObject)_this).keySet().toString();
+        }
         
         // js this
         Object _this;
         // native this
         Object _nThis;
         String _nThisFunc;
+    }
+    
+    static JSObject _createGlobalThis(){
+        JSObjectBase o = new JSObjectBase();
+        o.set( "__globalThis" , true );
+        return o;
     }
 
     private static final Object[] EMPTY_OBJET_ARRAY = new Object[0];
@@ -716,6 +931,8 @@ public class Scope implements JSObject {
                 final boolean debug = false;
                 
                 This temp = s._this.peek();
+                if ( temp._this != null )
+                    throw new RuntimeException( "why is this._this is not null : " + temp._this + " s:" + s.hashCode() );
                 final Object obj = temp._nThis;
                 final String name = temp._nThisFunc;
                 
@@ -782,6 +999,9 @@ public class Scope implements JSObject {
                 if ( obj.getClass() == JSObjectBase.class )
                     throw new NullPointerException( "no function called : " + name + " fields [" + ((JSObjectBase)obj).keySet() + "]" );
                 
+                if ( obj instanceof ed.appserver.JSFileLibrary )
+                    throw new NullPointerException( "included file [" + ((ed.appserver.JSFileLibrary)obj).getURIBase().replaceAll( "^jxp" , "" )  + "/" + name + "] does not exist" );
+
                 throw new NullPointerException( name + " (from a [" + obj.getClass() + "])" );
             }
         };
@@ -833,6 +1053,11 @@ public class Scope implements JSObject {
             }
             
             
+            if ( myClass.isArray() && params[i] instanceof JSArray ){
+                params[i] = ((JSArray)params[i]).toArray();
+                continue;
+            }
+
             if ( ! myClass.isAssignableFrom( params[i].getClass() ) ){
                 if ( debug ) System.out.println( "\t native assignement failed b/c " + myClasses[i] + " is not mappable from " + params[i].getClass() );
                 return null;
@@ -857,6 +1082,7 @@ public class Scope implements JSObject {
 
             if ( myClass == Object.class && params[i].getClass() == JSString.class )
                 params[i] = params[i].toString();
+
         }
         
         return params;
