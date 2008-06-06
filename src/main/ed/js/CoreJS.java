@@ -2,10 +2,6 @@
 
 package ed.js;
 
-import java.io.*;
-
-import ed.log.*;
-import ed.js.engine.*;
 import ed.appserver.*;
 
 public class CoreJS extends Module {
