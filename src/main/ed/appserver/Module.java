@@ -60,6 +60,14 @@ public class Module {
         return new JSFileLibrary( null , getRootFile( version ) , _uriBase , context , scope , _doInit );
     }
 
+    /**
+     *  return the base for informational purposes
+     * @return
+     */
+    public String getBase() {
+        return _baseFile;
+    }
+    
     public File getRootFile( String version ){
         if ( version == null )
             return _default;

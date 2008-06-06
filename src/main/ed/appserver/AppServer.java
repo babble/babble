@@ -502,6 +502,7 @@ public class AppServer implements HttpHandler {
 
         System.out.println("==================================");
         System.out.println("  10gen AppServer vX");
+        System.out.println("    library root = " + CoreJS.get().getBase());
         System.out.println("         webRoot = " + webRoot);
         System.out.println("      serverRoot = " + serverRoot);
         System.out.println("     listen port = " + portNum);
