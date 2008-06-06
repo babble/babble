@@ -95,7 +95,7 @@ public class Convert implements StackTraceFixer {
         _name = name;
         _source = source;
         
-        _className = _name.replaceAll( "[^\\w]+" , "_" ) + _getNumForClass( _name , _source );
+        _className = cleanName( _name ) + _getNumForClass( _name , _source );
         _fullClassName = _package + "." + _className;
         
         CompilerEnvirons ce = new CompilerEnvirons();
@@ -112,6 +112,11 @@ public class Convert implements StackTraceFixer {
         _encodedSource = p.getEncodedSource();
         init( theNode );
     }
+    
+    public static String cleanName( String name ){
+        return name.replaceAll( "[^\\w]+" , "_" );
+    }
+    
 
     private void init( ScriptOrFnNode sn ){
         
