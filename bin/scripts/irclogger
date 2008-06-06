@@ -1,0 +1,17 @@
+#!/usr/bin/env ./bin/jssh
+
+numTimes = 0;
+
+function _usage(){
+    print( "usage : adduser <database> <host> <nick> <channel>" );
+}
+
+if ( arguments.length < 4 ){
+    _usage();
+    return -1
+}
+
+core.util.irc();
+
+db = connect( arguments[0] );
+l = new Util.IRC.Logger( arguments[1] , arguments[2] , arguments[3] );
