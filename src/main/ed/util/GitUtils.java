@@ -12,6 +12,10 @@ public class GitUtils {
         if ( hasGit( dir ) )
             return true;
 
+        if (!dir.isDirectory()) {
+            return false;
+        }
+        
         for ( File t : dir.listFiles() )
             if ( t.getName().endsWith( ".js" ) )
                 return true;
