@@ -458,7 +458,7 @@ public class AppServer implements HttpHandler {
 
     private final String _defaultWebRoot;
     private AppContext _defaultContext;
-    private final AppContext _coreContext = new AppContext( CoreJS.getDefaultRoot() );
+    private final AppContext _coreContext = new AppContext( CoreJS.get().getRootFile( null ) );
     private final String _root;
     private final File _rootFile;
     private final Map<String,AppContext> _context = Collections.synchronizedMap( new StringMap<AppContext>() );
@@ -502,6 +502,7 @@ public class AppServer implements HttpHandler {
 
         System.out.println("==================================");
         System.out.println("  10gen AppServer vX");
+        System.out.println("    library root = " + CoreJS.get().getBase());
         System.out.println("         webRoot = " + webRoot);
         System.out.println("      serverRoot = " + serverRoot);
         System.out.println("     listen port = " + portNum);

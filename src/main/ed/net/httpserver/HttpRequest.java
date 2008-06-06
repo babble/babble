@@ -57,11 +57,11 @@ public class HttpRequest extends JSObjectLame {
 
         int endURI = _url.indexOf( "?" );
         if ( endURI < 0 ){
-            _uri = _url;
+            _uri = Encoding._unescape( _url );
             _queryString = null;
         }
         else {
-            _uri = _url.substring( 0 , endURI );
+            _uri = Encoding._unescape( _url.substring( 0 , endURI ) );
             _queryString = _url.substring( endURI + 1 );
         }
     }

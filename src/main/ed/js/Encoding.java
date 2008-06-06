@@ -64,7 +64,7 @@ public class Encoding {
             }
         };
 
-    static final String _unescape( final String str ){
+    public static final String _unescape( final String str ){
         final StringBuilder buf = new StringBuilder( str.length() );
 
         final int len = str.length();

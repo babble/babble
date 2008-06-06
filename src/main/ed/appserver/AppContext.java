@@ -77,10 +77,11 @@ public class AppContext {
             throw new RuntimeException( "couldn't load config" , e );
         }
 
-        _core = new CoreJS( JS.toString( _scope.get( "corejsversion" ) ) , this );
+        _core = CoreJS.get().getLibrary( JS.toString( _scope.get( "corejsversion" ) ) , this , null );
         _scope.put( "core" , _core , true );
 
-        _scope.put( "external" , new JSFileLibrary( new File( "/data/external" ) ,  "external" , this ) , true );
+        _external = Module.getModule( "external" ).getLibrary( null , this );
+        _scope.put( "external" , _external , true );
 
         _scope.put( "_rootFile" , _rootFile , true );
         _scope.lock( "_rootFile" );
@@ -132,8 +133,23 @@ public class AppContext {
 
 	_scope.lock( "user" ); // protection against global user object
 	
-    Djang10Converter.injectHelpers(_scope);
+        Djang10Converter.injectHelpers(_scope);
+        
+    }
 
+    public String getVersionForLibrary( String name ){
+        return getVersionForLibrary( _scope , name );
+    }
+
+    public static String getVersionForLibrary( Scope s , String name){
+        JSObject o = (JSObject)s.get( "version" );
+        if ( o == null )
+            return null;
+        
+        Object v = o.get( name );
+        if ( v == null )
+            return null;
+        return v.toString();
     }
 
     private static String[] guessNameAndEnv( String root ){
@@ -213,12 +229,8 @@ public class AppContext {
         
         if ( uri.startsWith( "/~~/" ) || uri.startsWith( "~~/" ) )
             f = new File( _core._base , uri.substring( 3 ) );
-	else if ( uri.startsWith( "/%7E%7E/" ) )
-	    f = new File( _core._base , uri.substring( 7 ) );
         else if ( uri.startsWith( "/@@/" ) || uri.startsWith( "@@/" ) )
-            f = new File( "/data/external/" , uri.substring( 3 ) );
-        else if ( uri.startsWith( "/%40%40/" ) )
-            f = new File( "/data/external/" , uri.substring( 7 ) );
+            f = new File(  _external._base , uri.substring( 3 ) );
         else
             f = new File( _rootFile , uri );
 
@@ -498,6 +510,7 @@ public class AppContext {
 
     JSFileLibrary _jxpObject;
     JSFileLibrary _core;
+    JSFileLibrary _external;
     
     final ed.log.Logger _logger;
     final Scope _scope;

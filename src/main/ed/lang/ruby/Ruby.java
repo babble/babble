@@ -412,6 +412,7 @@ public class Ruby {
                     
                     JSFunction n = (JSFunction)func;
                     n.set( "name" , name );
+                    n.set( "_className" , name );
                     
                     if ( old instanceof JSFunction ){
                         

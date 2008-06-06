@@ -137,7 +137,7 @@ public class CompileUtil {
         }
         
         if ( root == null ){
-            System.out.println( "can't find ed" );
+            System.out.println( "Warning : can't find core appserver js sources : no harm, but js will be recompiled on appserver startup" );
         }
         else {
             for ( String dirName : _dependsDirs ){
