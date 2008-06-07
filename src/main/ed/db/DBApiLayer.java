@@ -11,6 +11,7 @@ import ed.js.*;
 public abstract class DBApiLayer extends DBBase {
 
     static final boolean D = Boolean.getBoolean( "DEBUG.DB" );
+    static final int NUM_CURSORS_BEFORE_KILL = 100;
 
     protected DBApiLayer( String root ){
         super( root );
@@ -208,7 +209,7 @@ public abstract class DBApiLayer extends DBBase {
             if ( _deadCursorIds.size() == 0 )
                 return;
             
-            if ( _deadCursorIds.size() % 20 != 0 && _deadCursorIds.size() < 500 )
+            if ( _deadCursorIds.size() % 20 != 0 && _deadCursorIds.size() < NUM_CURSORS_BEFORE_KILL )
                 return;
             
             List<Long> l = _deadCursorIds;
