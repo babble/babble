@@ -8,6 +8,7 @@ import java.util.*;
 import ed.db.*;
 import ed.js.func.*;
 import ed.js.engine.*;
+import ed.util.*;
 
 public class JSObjectBase implements JSObject {
     
@@ -58,17 +59,27 @@ public class JSObjectBase implements JSObject {
         }
 
         String name = n.toString();
-        
-        if ( ! name.startsWith( GETSET_PREFIX ) ){
-            JSFunction func = getSetter( name );
-            if ( func != null )
-                return _call( func , v );
+
+        if ( name.startsWith( GETSET_PREFIX ) ){
+            name = name.substring( GETSET_PREFIX.length() );
+            String type = name.substring( 0 , 3 );
+            name = name.substring( 3 );
+            if ( type.equals( "GET" ) )
+                setGetter( name , (JSFunction)v );
+            else if ( type.equals( "SET" ) )
+                setSetter( name , (JSFunction)v );
+            else
+                throw new RuntimeException( "broken" );
+            return v;
         }
+        
+        JSFunction func = getSetter( name );
+        if ( func != null )
+            return _call( func , v );
         
         _checkMap();
         
-        if ( ! BAD_KEY_NAMES.contains( name ) && 
-             ! name.startsWith( GETSET_PREFIX ) )
+        if ( ! BAD_KEY_NAMES.contains( name ) )
             if ( ! _map.containsKey( name ) )
                 _keys.add( name );
         
@@ -122,12 +133,10 @@ public class JSObjectBase implements JSObject {
         final boolean scopeFailover = s.startsWith( SCOPE_FAILOVER_PREFIX );
         if ( scopeFailover )
             s = s.substring( SCOPE_FAILOVER_PREFIX.length() );
-        final boolean getOrSet = s.startsWith( GETSET_PREFIX );
         
         Object res = null;
         
-        if ( depth == 0 && 
-             ! getOrSet ){
+        if ( depth == 0 && ! BAD_KEY_NAMES.contains( s ) ){
             JSFunction f = getGetter( s );
             if ( f != null )
                 return _call( f );
@@ -174,7 +183,6 @@ public class JSObjectBase implements JSObject {
         }
 
         if ( _constructor != null && 
-             ! getOrSet &&
              ! s.equals( "prototype" ) ){
             // basically static lookup
             res = _constructor._simpleGet( s , depth + 1 );
@@ -184,7 +192,6 @@ public class JSObjectBase implements JSObject {
         if ( depth == 0 && 
              ! "__notFoundHandler".equals( s ) &&
              ! "__preGet".equals( s ) && 
-             ! getOrSet && 
              ! scopeFailover && 
              ! BAD_KEY_NAMES.contains( s )
              ){
@@ -273,21 +280,36 @@ public class JSObjectBase implements JSObject {
     // ---
 
     void setSetter( String name , JSFunction func ){
-        set( setterName( name ) , func );
+        _getSetterAndGetter( name , true ).second = func;
     }
     
     void setGetter( String name , JSFunction func ){
-        set( getterName( name ) , func );
+        _getSetterAndGetter( name , true ).first = func;
     }
 
     JSFunction getSetter( String name ){
-        return (JSFunction)(_simpleGet( setterName( name ) ) );
+        Pair<JSFunction,JSFunction> p = _getSetterAndGetter( name, false );
+        if ( p != null )
+            return p.second;
+        
+        JSObject s = getSuper();
+        if ( s != null )
+            return ((JSObjectBase)s).getSetter( name );
+
+        return null;
     }
 
     JSFunction getGetter( String name ){
-        return (JSFunction)(_simpleGet( getterName( name ) ) );
-    }
+        Pair<JSFunction,JSFunction> p = _getSetterAndGetter( name, false );
+        if ( p != null )
+            return p.first;
+        
+        JSObject s = getSuper();
+        if ( s  instanceof JSObjectBase )
+            return ((JSObjectBase)s).getGetter( name );
 
+        return null;
+    }
 
     public static String setterName( String name ){
         return GETSET_PREFIX + "SET" + name;
@@ -478,7 +500,24 @@ public class JSObjectBase implements JSObject {
         _name = n;
     }
 
+    private synchronized Pair<JSFunction,JSFunction> _getSetterAndGetter( String name , boolean add ){
+        if ( _setterAndGetters == null ){
+            if ( ! add )
+                return null;
+            _setterAndGetters = new TreeMap<String,Pair<JSFunction,JSFunction>>();                
+        }
+        
+        Pair<JSFunction,JSFunction> p = _setterAndGetters.get( name );
+        if ( ! add || p != null )
+            return p;
+
+        p = new Pair<JSFunction,JSFunction>();
+        _setterAndGetters.put( name , p );
+        return p;
+    }
+
     protected Map<String,Object> _map = null;
+    protected Map<String,Pair<JSFunction,JSFunction>> _setterAndGetters = null;
     private List<String> _keys = null;
     private JSFunction _constructor;
     private boolean _readOnly = false;
