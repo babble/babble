@@ -42,7 +42,7 @@ public class ExportBinary {
                 JSObject o = all.next();
                 
                 encoder.reset();
-                encoder.putObject( null , o );
+                encoder.putObject( o );
                 encoder.flip();
                 
                 fc.write( encoder._buf );
