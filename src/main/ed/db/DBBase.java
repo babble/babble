@@ -81,7 +81,7 @@ public abstract class DBBase extends JSObjectLame {
     }
 
     public String toString(){
-        return "{DB: " + _name + "}";
+        return _name;
     }
 
     final tojson _tojson = new tojson();
