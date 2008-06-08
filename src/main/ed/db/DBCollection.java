@@ -158,6 +158,7 @@ public abstract class DBCollection extends JSObjectLame {
     protected DBCollection( DBBase base , String name ){
         _base = base;
         _name = name;
+        _fullName = _base.getName() + "." + name;
 
         _entries.put( "base" , _base.getName() );
         _entries.put( "name" , _name );
@@ -279,7 +280,7 @@ public abstract class DBCollection extends JSObjectLame {
         _entries.put( "tojson" , 
                       new JSFunctionCalls0() {
                           public Object call( Scope s , Object foo[] ){
-                              return "{DBCollection:" + _name + "}";
+                              return "{DBCollection:" + DBCollection.this._fullName + "}";
                           }
                       } );
 
@@ -431,6 +432,10 @@ public abstract class DBCollection extends JSObjectLame {
 
         return true;
     }
+
+    public String toString(){
+        return "{DBCollection:" + _name + "}";
+    }
     
     final DBBase _base;
     
@@ -443,6 +448,7 @@ public abstract class DBCollection extends JSObjectLame {
 
     protected Map _entries = new TreeMap();
     final protected String _name;
+    final protected String _fullName;
     
     protected JSFunction _constructor;
 

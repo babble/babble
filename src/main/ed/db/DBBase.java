@@ -73,11 +73,15 @@ public abstract class DBBase extends JSObjectLame {
 
     class tojson extends JSFunctionCalls0{
         public Object call( Scope s , Object foo[] ){
-            return toString();
+            return DBBase.this.toString();
         }
     }
-    tojson _tojson = new tojson();
-    
+
+    public String toString(){
+        return "{DB: " + _name + "}";
+    }
+
+    final tojson _tojson = new tojson();
     final String _name;
     protected boolean _readOnly = false;
 }
