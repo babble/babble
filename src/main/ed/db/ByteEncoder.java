@@ -51,7 +51,23 @@ public class ByteEncoder extends Bytes {
         _flipped = true;
     }
     
-    public int putObject( String name , JSObject o ){
+    /**
+     * this is for the higher level api calls
+     */
+    public int putObject( JSObject o ){
+        try {
+            return putObject( null , o );
+        }
+        catch ( BufferOverflowException bof ){
+            reset();
+            throw new RuntimeException( "tried to save too large of an object.  max size : " + ( _buf.capacity() / 2  ) );
+        }
+    }
+
+    /**
+     * this is really for embedded objects
+     */
+    private int putObject( String name , JSObject o ){
         if ( DEBUG ) System.out.println( "putObject : " + name + " [" + o.getClass() + "]" + " # keys " + o.keySet().size() );
             
         if ( _flipped )

@@ -16,7 +16,7 @@ public class ByteTest extends TestCase {
         o.set( "eliot" , "horowitz" );
         o.set( "num" , 517 );
         
-        encoder.putObject( null , o );
+        encoder.putObject( o );
         
         encoder.flip();
         
@@ -40,7 +40,7 @@ public class ByteTest extends TestCase {
         o.set( "eliot" , eliot );
         o.set( "num" , 517 );
         
-        encoder.putObject( null , o );
+        encoder.putObject( o );
         
         encoder.flip();
         
@@ -68,7 +68,7 @@ public class ByteTest extends TestCase {
         o2.set( "b" , "a" );
         o.set( "next" , o2 );
         
-        encoder.putObject( null , o );
+        encoder.putObject( o );
 
         encoder.flip();
         
@@ -106,7 +106,7 @@ public class ByteTest extends TestCase {
         o.set( "d" , new JSDate() );
         o.set( "r" , new JSRegex( "\\d+" , "i" ) );
 
-        encoder.putObject( null , o );
+        encoder.putObject( o );
         
         encoder.flip();
         

@@ -17,6 +17,17 @@ foo.prototype.__defineSetter__( "b" ,
                               );
 
 f = new foo();
+
+
+f.__defineGetter__( "z" , 
+                    function( z ) { 
+                        return 111;
+                    }
+                  );
+
+
+print( f.z );
+
 print( f.b );
 f.b = 9;
 print( f.b );

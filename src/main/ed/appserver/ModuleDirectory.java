@@ -8,7 +8,7 @@ import java.util.*;
 import ed.js.*;
 import ed.js.engine.*;
 
-public class ModuleDirectory extends JSObjectLame {
+public class ModuleDirectory extends JSObjectLame implements JSLibrary {
     
     public ModuleDirectory( String root , String name , AppContext context , Scope scope ){
         this( new File( Module._base , root ) , name , context , scope );
@@ -38,6 +38,7 @@ public class ModuleDirectory extends JSObjectLame {
 
         Module m = getModule( name );
         lib = m.getLibrary( getDesiredVersion( name ) , _context , _scope );
+        System.err.println( "created JSFileLibrary : " + name + " : " + lib.hashCode() );
         _libraries.put( name , lib );
         return lib;
     }
@@ -59,6 +60,31 @@ public class ModuleDirectory extends JSObjectLame {
 
     String _getDesiredVersion( Scope s , String name ){
         return AppContext.getVersionForLibrary( s , name );
+    }
+
+    public Object getFromPath( String path ){
+        while ( path.startsWith( "/" ) )
+            path = path.substring(1);
+
+        int idx = path.indexOf( "/" );
+        
+        final String libName;
+        final String next;
+
+        if ( idx > 0 ){
+            libName = path.substring( 0 , idx );
+            next = path.substring( idx + 1 );
+        }
+        else {
+            libName = path;
+            next = null;
+        }
+        
+        JSFileLibrary lib = getJSFileLibrary( libName );
+
+        if ( next == null )
+            return lib;
+        return lib.getFromPath( next );
     }
     
     final String _name;

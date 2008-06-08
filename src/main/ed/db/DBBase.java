@@ -55,8 +55,11 @@ public abstract class DBBase extends JSObjectLame {
         if ( n instanceof String || 
              n instanceof JSString ){
             String s = n.toString();
-            if ( s.startsWith( "." ) )
-                return getCollectionFromFull( s.substring(1) );
+            if ( s.startsWith( "." ) ){
+                if ( s.indexOf( "." , 1 ) > 0 )
+                    return getCollectionFromFull( s.substring(1) );
+                return DBProvider.get( s.substring(1) );
+            }
             return getCollection( s );
         }
 
@@ -73,11 +76,15 @@ public abstract class DBBase extends JSObjectLame {
 
     class tojson extends JSFunctionCalls0{
         public Object call( Scope s , Object foo[] ){
-            return toString();
+            return DBBase.this.toString();
         }
     }
-    tojson _tojson = new tojson();
-    
+
+    public String toString(){
+        return _name;
+    }
+
+    final tojson _tojson = new tojson();
     final String _name;
     protected boolean _readOnly = false;
 }
