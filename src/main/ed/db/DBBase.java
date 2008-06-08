@@ -55,8 +55,11 @@ public abstract class DBBase extends JSObjectLame {
         if ( n instanceof String || 
              n instanceof JSString ){
             String s = n.toString();
-            if ( s.startsWith( "." ) )
-                return getCollectionFromFull( s.substring(1) );
+            if ( s.startsWith( "." ) ){
+                if ( s.indexOf( "." , 1 ) > 0 )
+                    return getCollectionFromFull( s.substring(1) );
+                return DBProvider.get( s.substring(1) );
+            }
             return getCollection( s );
         }
 
