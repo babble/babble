@@ -168,21 +168,33 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
     }
 
     public File getFileFromPath( String path ){
-        Object o = getFromPath( path );
-        if ( ! ( o instanceof JSObject ) )
-            return null;
+        Object o = getFromPath( path , false );
+
+        if ( o instanceof File )
+            return (File)o;
+
+        JxpSource js = null;
+
+        if ( o instanceof JxpSource )
+            js = (JxpSource)o;
+        else if ( o instanceof JSObject )
+            js = (JxpSource)((JSObject)o).get( JxpSource.JXP_SOURCE_PROP );
         
-        JxpSource js = (JxpSource)((JSObject)o).get( JxpSource.JXP_SOURCE_PROP );
         if ( js == null )
             return null;
         
         File f = js.getFile();
+
         if ( f != null )
             _fileCache.put( f , js );
         return f;
     }
 
     public Object getFromPath( String path ){
+        return getFromPath( path , true );
+    }
+
+    public Object getFromPath( String path , boolean evalToFunction ){
         if ( path == null )
             return this;
 
@@ -197,12 +209,12 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
             JSFileLibrary root = this;
             while ( root._parent != null )
                 root = root._parent;
-            return root.getFromPath( path.substring( 1 ) );
+            return root.getFromPath( path.substring( 1 ) , evalToFunction );
         }
 
         final int idx = path.indexOf( "/" );
         if ( idx < 0 )
-            return get( path );
+            return evalToFunction ? get( path ) : _get( path );
 
         final String dir = path.substring( 0 , idx );
         final String next = path.substring( idx + 1 );
@@ -215,7 +227,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
             throw new RuntimeException( dir + " is not a directory" );
         
         JSLibrary lib = (JSLibrary)foo;
-        return lib.getFromPath( next );
+        return lib.getFromPath( next , evalToFunction );
     }
 
     public boolean isIn( File f ){
@@ -268,9 +280,6 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
             _sources.put( f , source );
         }
         
-        JSFunction func = source.getFunction();
-        addPath( func.getClass() , this );
-
         return source;
 
     }
@@ -311,7 +320,11 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         Object theObject = null;
         if ( f != null ){
             try {
-                theObject = getSource( f , false );
+                if ( _srcExtensionSet.contains( MimeTypes.getExtension( f ) ) )
+                    theObject = getSource( f , false );
+                else {
+                    theObject = f;
+                }
             }
             catch ( IOException ioe ){
                 throw new RuntimeException( ioe );
@@ -386,9 +399,17 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         }
     };
 
-    static String _srcExtensions[] = new String[] { ".js" , ".jxp" , ".html" , ".rb" , ".rhtml" , ".erb" , ".djang10", ".txt" };
-
-
+    static String _srcExtensions[] = new String[] { ".js" , ".jxp" , ".html" , ".ruby" , ".rb" , ".rhtml" , ".erb" , ".djang10", ".txt" };
+    static final Set<String> _srcExtensionSet;
+    static {
+        Set<String> s = new TreeSet<String>();
+        for ( String e : _srcExtensions ){
+            if ( ! e.startsWith( "." ) )
+                throw new RuntimeException( "blah - something broken" );
+            s.add( e.substring(1) );
+        }
+        _srcExtensionSet = Collections.unmodifiableSet( s );
+    }
 
     public static JSFileLibrary findPath(){
         String topjs = Security.getTopJS();

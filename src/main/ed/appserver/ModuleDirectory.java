@@ -62,7 +62,7 @@ public class ModuleDirectory extends JSObjectLame implements JSLibrary {
         return AppContext.getVersionForLibrary( s , name );
     }
 
-    public Object getFromPath( String path ){
+    public Object getFromPath( String path , boolean evalToFunction ){
         while ( path.startsWith( "/" ) )
             path = path.substring(1);
 
@@ -84,7 +84,7 @@ public class ModuleDirectory extends JSObjectLame implements JSLibrary {
 
         if ( next == null )
             return lib;
-        return lib.getFromPath( next );
+        return lib.getFromPath( next , evalToFunction );
     }
     
     final String _name;

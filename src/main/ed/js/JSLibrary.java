@@ -3,5 +3,5 @@
 package ed.js;
 
 public interface JSLibrary {
-    public Object getFromPath( String path );
+    public Object getFromPath( String path , boolean evalToFunction );
 }
