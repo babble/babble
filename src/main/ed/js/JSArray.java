@@ -718,7 +718,11 @@ public class JSArray extends JSObjectBase implements Iterable , List {
     }
 
     public boolean removeAll( Collection c ){
-        throw new RuntimeException( "not implemented" );
+        boolean removedAny = false;
+        for ( Object o : c ){
+            removedAny = remove( o ) || removedAny;
+        }
+        return removedAny;
     }
 
     public Object[] toArray(){
