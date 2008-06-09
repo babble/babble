@@ -78,6 +78,9 @@ a.unshift( 1 );
 print( a.unshift( 7 , 2 , 3) );
 print( a );
 
+print( [ ].slice( ) );
+print( [ 1 , 2 , 3, 4 , 5 , 6 ].slice( ) );
+print( [ 1 , 2 , 3, 4 , 5 , 6 ].slice( 0 ) );
 print( [ 1 , 2 , 3, 4 , 5 , 6 ].slice( 1 ) );
 print( [ 1 , 2 , 3, 4 , 5 , 6 ].slice( 1 , 1 ) );
 print( [ 1 , 2 , 3, 4 , 5 , 6 ].slice( 1 , 3 ) );
