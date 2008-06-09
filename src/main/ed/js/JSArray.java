@@ -770,6 +770,14 @@ public class JSArray extends JSObjectBase implements Iterable , List {
         return _locked;
     }
 
+    JSFunction getGetter( String name ){
+        return null;
+    }
+
+    JSFunction getSetter( String name ){
+        return null;
+    }
+
     public static Object fixAndCall( Scope s , JSFunction f , Object o ){
         if ( false ){
             System.out.println( "ruby:" + s.isRuby() );
