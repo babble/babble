@@ -172,6 +172,9 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
 
         if ( o instanceof File )
             return (File)o;
+        
+        if ( o instanceof JSFileLibrary )
+            return ((JSFileLibrary)o)._base;
 
         JxpSource js = null;
 
@@ -195,7 +198,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
     }
 
     public Object getFromPath( String path , boolean evalToFunction ){
-        if ( path == null )
+        if ( path == null || path.trim().length() == 0 )
             return this;
 
         path = cleanPath( path );
