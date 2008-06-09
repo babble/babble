@@ -47,11 +47,11 @@ function testkeys() {
     t.testkeys.save( { name: 6 } );
     t.testkeys.save( { name: 8 } );
     t.testkeys.save( { name: 3 } );
-    print("t.testkeys");
+    //print("t.testkeys");
 }
 
 function testdelete() { 
-    print("testdelete");
+    //print("testdelete");
     t.testkeys.remove({});
     testkeys();
     t.testkeys.remove({});
@@ -69,7 +69,7 @@ function index2() {
 }
 
 function giantIndexTest() { 
-    print("giantIndexTest");
+    //print("giantIndexTest");
     drop("giant");
     db.giant.save({moe:1,foo:[33],bar:"aaaaa"});
 
@@ -82,18 +82,18 @@ function giantIndexTest() {
 	    ar.push( z % 100 );
 	}
 	db.giant.save({foo:ar, bar:"bbbbb"});
-	if( i % 1000 == 0 ) print(i);
+//	if( i % 1000 == 0 ) print(i);
 	if( i == 10000 )
 	    db.giant.ensureIndex({foo:1});
     }
 
 
     assert( db.giant.findOne({foo:33}) );
-    print("giantIndexTest end");
+    //print("giantIndexTest end");
 }
 
 function giant2() { 
-    print("giant2");
+    //print("giant2");
     drop("giant");
     db.giant.save({moe:1,foo:[33],bar:"aaaaa",q:-1});
 
@@ -106,14 +106,14 @@ function giant2() {
 	    ar.push( z % 100 );
 	}
 	db.giant.save({foo:ar, bar:"bbbbb", q:i});
-	if( i % 1000 == 0 ) print(i);
+//	if( i % 1000 == 0 ) print(i);
 	if( 0 && i == 10000 )
 	    db.giant.ensureIndex({foo:1});
     }
 
 
     assert( db.giant.findOne({foo:33}) );
-    print("giant2  end");
+  //  print("giant2  end");
 }
 
 // mx=-3; 
@@ -141,7 +141,7 @@ function runall() {
 
     runquick();
 
-    print("bigindextest stuff:");
+    //print("bigindextest stuff:");
     t.big.remove( { } );
     bigIndexTest();
     t.big.find().sort({name:true});
@@ -153,7 +153,7 @@ function runall() {
 }
 
 function testarrayindexing() { 
-    print("testarrayindexing");
+    //print("testarrayindexing");
     t.ta.remove({});
     t.ta.save({name:"aaa", tags:["abc", "123", "foo"], z:1});
     t.ta.save({name:"baa", tags:["q", "123", 3], z:1});
@@ -169,7 +169,7 @@ function testarrayindexing() {
 }
 
 function testcapped(max) { 
-    print("testcapped");
+    //print("testcapped");
     drop("capped");
 
     assert( createCollection("capped", { size: 4096, capped:true, max:max } ).ok );
@@ -183,11 +183,11 @@ function testcapped(max) {
     assert( a.length < 100 );
     assert( a[a.length-1].i == 499 );
     assert( capped.find().sort({$natural:-1}).limit(1)[0].i == 499 );
-    print("testcapped end");
+    //print("testcapped end");
 }
 
 function testgetmore() { 
-    print("testgetmore");
+    //print("testgetmore");
     drop("gm");
     gm=t.gm;
     for(i=0;i<50000;i++){
@@ -209,21 +209,22 @@ function testgetmore() {
     assert( d[40000].a==40000 );
     assert(gm.find().length()==50000); // full iteration with a cursor already live
 
-    print( connect("intr").cursors.findOne().dump );
+    //print( connect("intr").cursors.findOne().dump );
+     connect("intr").cursors.findOne().dump;
 
-    print("testgetmore end");
+    //print("testgetmore end");
 }
 
 function testdups() { 
- print("testdups");
+ //print("testdups");
  K = 2000;
  for( pass=0;pass<1;pass++ ) {
-     print(" pass:" + pass);
+     //print(" pass:" + pass);
      if( pass < 2 ) {
-	 print("removing keys");
+	 //print("removing keys");
 	 t.td.remove({});
      }
-     print("add keys");
+     //print("add keys");
      for( var x=0;x<K;x++ )
 	 t.td.save({ggg:"asdfasdf bbb a a jdssjsjdjds dsdsdsdsds d", z: x, 
 		     str: "a long string dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"});
@@ -234,8 +235,8 @@ function testdups() {
      //     else if( pass == 1 ) 
      //	 t.td.ensureIndex({ggg:-1});
  }
- print(" end testdups");
- print(" try t.td.remove({});");
+ //print(" end testdups");
+ //print(" try t.td.remove({});");
 }
 
 function testdups2() { 
@@ -266,7 +267,8 @@ function test_utf8() {
 function runcursors() {
     t.cur.remove({});
     t.cur.findOne();
-    print( tojson( connect("intr").cursors.find() ) );
+//    print( tojson( connect("intr").cursors.find() ) );
+    tojson( connect("intr").cursors.find() );
 
     for( i = 0; i < 50000; i++ )
 	t.cur.save( { name:"ABC", k:/asfd/, a:i, 
@@ -276,16 +278,18 @@ function runcursors() {
 
     for( i = 0; i < 100; i++ ) {
 	c = t.cur.find().limit(2);
-	print(c[0].name);
+	//print(c[0].name);
 	t.cur.find({name:"ABC"}).limit(3)[0];
     }
 
-    print( tojson( connect("intr").cursors.find() ) );
+//    print( tojson( connect("intr").cursors.find() ) );
+    tojson( connect("intr").cursors.find() );
 
     t.cur.remove({});
     t.cur.findOne();
 
-    print( tojson( connect("intr").cursors.find() ) );
+//    print( tojson( connect("intr").cursors.find() ) );
+    tojson( connect("intr").cursors.find() );
 }
 
 function runquick() { 
