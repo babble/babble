@@ -17,7 +17,7 @@
 
 core.db.db();
 
-var blobSize = 2048;
+var blobSize = 256;
 
 function slop( coll1, coll2 ) {
 	var c = db[coll1].find();   
