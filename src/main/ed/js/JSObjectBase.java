@@ -399,11 +399,17 @@ public class JSObjectBase implements JSObject {
 
     public JSObject getSuper(){
 
+        if ( _map != null ){
+            JSObject p = (JSObject)_map.get( "__proto__" );
+            if ( p != null )
+                return p;
+        }
+
         if ( _constructor != null && _constructor._prototype != null )
             return _constructor._prototype;
 
-        return (JSObject)_simpleGet( "__proto__" );
-        
+
+        return null;
     }
 
     public void lock(){
