@@ -94,7 +94,7 @@ public class JSObjectBase implements JSObject {
             _map = new TreeMap<String,Object>();
         
         if ( _keys == null )
-            _keys = new ArrayList<String>();
+            _keys = new TreeSet<String>();
     }
 
     public String getAsString( Object n ){
@@ -518,7 +518,7 @@ public class JSObjectBase implements JSObject {
 
     protected Map<String,Object> _map = null;
     protected Map<String,Pair<JSFunction,JSFunction>> _setterAndGetters = null;
-    private List<String> _keys = null;
+    private Set<String> _keys = null;
     private JSFunction _constructor;
     private boolean _readOnly = false;
     private String _name;
