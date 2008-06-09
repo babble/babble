@@ -147,11 +147,14 @@ public class JSObjectBase implements JSObject {
             if ( res != null || _keys.contains( s ) ) return res;
         }
         
+        boolean anyInheritance = false;
+
         JSObject proto = null;
         
         if ( _map != null ){
             proto = (JSObject)_map.get( "__proto__" );
             if ( proto != null ){
+                anyInheritance = true;
                 res = proto.get( s );
                 if ( res != null ) return res;                
             }
@@ -160,6 +163,7 @@ public class JSObjectBase implements JSObject {
         if ( _map != null ){
             JSObject prototype = (JSObject)_map.get( "prototype" );
             if ( prototype != null ){
+                anyInheritance = true;
                 res = 
                     prototype instanceof JSObjectBase ? 
                     ((JSObjectBase)prototype)._simpleGet( s  , depth + 1) : 
@@ -170,22 +174,24 @@ public class JSObjectBase implements JSObject {
         };
 
         if ( _constructor != null && _constructor._prototype != proto ){
+            anyInheritance = true;
             res = _constructor._prototype._simpleGet( s , depth + 1);
             if ( res != null ) return res;
         }
 
 
-        if ( _objectLowFunctions != null 
-             && ( _map == null || _map.get( "prototype" ) == null ) 
-             && _constructor == null ){
-            res = _objectLowFunctions.get( s );
-            if ( res != null ) return res;
-        }
-
         if ( _constructor != null && 
              ! s.equals( "prototype" ) ){
             // basically static lookup
+            anyInheritance = true;
             res = _constructor._simpleGet( s , depth + 1 );
+            if ( res != null ) return res;
+        }
+
+        if ( _objectLowFunctions != null 
+             && ! anyInheritance
+             && _constructor == null ){
+            res = _objectLowFunctions.get( s );
             if ( res != null ) return res;
         }
 
