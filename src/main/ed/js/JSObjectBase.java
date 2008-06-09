@@ -94,7 +94,7 @@ public class JSObjectBase implements JSObject {
             _map = new TreeMap<String,Object>();
         
         if ( _keys == null )
-            _keys = new TreeSet<String>();
+            _keys = new ArrayList<String>();
     }
 
     public String getAsString( Object n ){
@@ -143,8 +143,8 @@ public class JSObjectBase implements JSObject {
         }
 
         if ( _map != null ){
-            res = _map.get( s );
-            if ( res != null || _keys.contains( s ) ) return res;
+            res = _mapGet( s );
+            if ( res != null || _map.containsKey( s ) ) return res;
         }
         
         boolean anyInheritance = false;
@@ -152,7 +152,7 @@ public class JSObjectBase implements JSObject {
         JSObject proto = null;
         
         if ( _map != null ){
-            proto = (JSObject)_map.get( "__proto__" );
+            proto = (JSObject)_mapGet( "__proto__" );
             if ( proto != null ){
                 anyInheritance = true;
                 res = proto.get( s );
@@ -161,7 +161,7 @@ public class JSObjectBase implements JSObject {
         }
         
         if ( _map != null ){
-            JSObject prototype = (JSObject)_map.get( "prototype" );
+            JSObject prototype = (JSObject)_mapGet( "prototype" );
             if ( prototype != null ){
                 anyInheritance = true;
                 res = 
@@ -265,7 +265,7 @@ public class JSObjectBase implements JSObject {
 
     public boolean containsKey( String s ){
         prefunc();
-        if ( _keys != null && _keys.contains( s ) )
+        if ( _map != null && _map.containsKey( s ) )
             return true;
         
         if ( _constructor != null && _constructor._prototype.containsKey( s ) )
@@ -406,7 +406,7 @@ public class JSObjectBase implements JSObject {
     public JSObject getSuper(){
 
         if ( _map != null ){
-            JSObject p = (JSObject)_map.get( "__proto__" );
+            JSObject p = (JSObject)_mapGet( "__proto__" );
             if ( p != null )
                 return p;
         }
@@ -528,14 +528,28 @@ public class JSObjectBase implements JSObject {
         return p;
     }
 
+    private Object _mapGet( final String s ){
+        if ( _map == null )
+            return null;
+        final Object o = _map.get( s );
+        if ( o == UNDEF )
+            return null;
+        return o;
+    }
+
     protected Map<String,Object> _map = null;
     protected Map<String,Pair<JSFunction,JSFunction>> _setterAndGetters = null;
-    private Set<String> _keys = null;
+    private Collection<String> _keys = null;
     private JSFunction _constructor;
     private boolean _readOnly = false;
     private String _name;
 
     static final Set<String> EMPTY_SET = Collections.unmodifiableSet( new HashSet<String>() );
+    static final Object UNDEF = new Object(){
+            public String toString(){
+                return "undefined";
+            }
+        };
 
     public static class BaseThings extends JSObjectLame {
         
