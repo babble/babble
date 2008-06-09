@@ -142,7 +142,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                         JSArray a = (JSArray)(s.getThis());
                         JSArray n = new JSArray();
 
-                        int start = ((Number)startObj).intValue();
+                        int start = startObj == null ? 0 : ((Number)startObj).intValue();
                         int end = numObj == null ? Integer.MAX_VALUE : ((Number)numObj).intValue();
                         if ( end < 0 )
                             end = a._array.size() + end;
