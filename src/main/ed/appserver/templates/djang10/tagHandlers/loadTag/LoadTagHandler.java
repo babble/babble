@@ -1,4 +1,4 @@
-package ed.appserver.templates.djang10.tagHandlers;
+package ed.appserver.templates.djang10.tagHandlers.loadTag;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -6,13 +6,13 @@ import java.util.Map;
 import ed.appserver.jxp.JxpSource;
 import ed.appserver.templates.djang10.JSHelper;
 import ed.appserver.templates.djang10.Library;
-import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.TemplateException;
 import ed.appserver.templates.djang10.Node.TagNode;
 import ed.appserver.templates.djang10.Parser.Token;
 import ed.appserver.templates.djang10.filters.Filter;
 import ed.appserver.templates.djang10.generator.JSWriter;
+import ed.appserver.templates.djang10.tagHandlers.TagHandler;
 import ed.js.JSFunction;
 import ed.js.engine.Scope;
 

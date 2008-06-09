@@ -23,9 +23,9 @@ import ed.appserver.templates.djang10.tagHandlers.ForTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IfEqualTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IfTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.IncludeTagHandler;
-import ed.appserver.templates.djang10.tagHandlers.LoadTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.SetTagHandler;
 import ed.appserver.templates.djang10.tagHandlers.TagHandler;
+import ed.appserver.templates.djang10.tagHandlers.loadTag.LoadTagHandler;
 import ed.js.engine.Scope;
 
 /**
