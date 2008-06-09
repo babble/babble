@@ -6,18 +6,18 @@
  *
  *   Results follow for varying size of array
  *
- *           r0.0.4      v0.0.2
- *  64   ->  970/sec      950
- *  128  ->  384/sec      390
- *  256  ->  130/sec      134
- *  512  ->  40/sec       40
- *  1024 ->  10/sec       11
- *  2048 ->  3/sec         3
+ *           m:0609      r0.0.4      v0.0.2
+ *  64   ->  2200       970/sec      950
+ *  128  ->  1100       384/sec      390
+ *  256  ->  400        130/sec      134
+ *  512  ->  250        40/sec       40
+ *  1024 ->  115        10/sec       11
+ *  2048 ->  58        3/sec         3
  */
 
 core.db.db();
 
-var blobSize = 256;
+var blobSize = 2048;
 
 function slop( coll1, coll2 ) {
 	var c = db[coll1].find();   
