@@ -9,13 +9,14 @@ import ed.appserver.templates.djang10.FilterExpression;
 import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.TemplateException;
+import ed.appserver.templates.djang10.Node.TagNode;
 import ed.appserver.templates.djang10.Parser.Token;
 import ed.appserver.templates.djang10.generator.JSWriter;
 import ed.js.JSFunction;
 
 public class SetTagHandler implements TagHandler {
 
-    public Node compile(Parser parser, String command, Token token) throws TemplateException {
+    public TagNode compile(Parser parser, String command, Token token) throws TemplateException {
         Pattern regex = Pattern.compile("^\\s*\\S+\\s+(\\S*)\\s*=\\s*(.+?)\\s*$");
         Matcher matcher = regex.matcher(token.contents);
 
@@ -32,7 +33,7 @@ public class SetTagHandler implements TagHandler {
         return new HashMap<String, JSFunction>();
     }
 
-    private static class SetNode extends Node {
+    private static class SetNode extends TagNode {
         private final String varName;
         private final FilterExpression varValue;
 
