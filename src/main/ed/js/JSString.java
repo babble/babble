@@ -10,7 +10,7 @@ import ed.util.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 
-public class JSString extends JSObjectBase {
+public class JSString extends JSObjectBase implements Comparable {
 
     static { JS._debugSIStart( "JSString" ); }
 

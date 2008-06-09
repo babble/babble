@@ -272,7 +272,7 @@ public class JSObjectBase implements JSObject {
         prefunc();
         if ( _keys == null )
             return EMPTY_SET;
-        return new ArrayList<String>( _keys );// TODO: get rid of this.
+        return _keys;
     }
 
     // ----
