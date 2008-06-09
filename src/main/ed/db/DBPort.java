@@ -10,7 +10,7 @@ import java.nio.channels.*;
 public class DBPort {
 
     static final int PORT = 27017;
-    static final boolean USE_NAGLE = true;
+    static final boolean USE_NAGLE = false;
     
     DBPort()
         throws IOException {
