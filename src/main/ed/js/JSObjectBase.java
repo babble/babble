@@ -83,6 +83,7 @@ public class JSObjectBase implements JSObject {
             if ( ! _map.containsKey( name ) )
                 _keys.add( name );
         
+        _dirtyMyself();
         _map.put( name , v );
         if ( v instanceof JSObjectBase )
             ((JSObjectBase)v)._name = name;
@@ -95,6 +96,8 @@ public class JSObjectBase implements JSObject {
         
         if ( _keys == null )
             _keys = new ArrayList<String>();
+
+        _dirtyMyself();
     }
 
     public String getAsString( Object n ){
@@ -192,38 +195,50 @@ public class JSObjectBase implements JSObject {
     }
     
     private JSFunction _getNotFoundHandler(){
-        if ( _checkedNotFoundHandler ){
-            //return _notFoundHandler;
-        }
-        
-        _checkedNotFoundHandler = true;
-        
         Object blah = _simpleGet( "__notFoundHandler" );
-        if ( blah instanceof JSFunction ){
-            _notFoundHandler = (JSFunction)blah;
-            return _notFoundHandler;
-        }
+        if ( blah instanceof JSFunction )
+            return (JSFunction)blah;
         
         return null;
     }
 
 
+    // ----
+    // inheritnace jit START
+    // ----
+    
     private Object _getFromParent( String s , int depth ){
         
         if ( s.equals( "__proto__" ) || s.equals( "prototype" ) )
             return null;
 
-        List<JSObjectBase> dirtyList = null;
-        if ( ( depth > 0 && _getFromParentCalls > 50 ) ||
-             _getFromParentCalls > 1000 )
-            dirtyList = new ArrayList<JSObjectBase>();
+        boolean jit = false;
         
-        Object res = _getFromParentHelper( s , depth , dirtyList );
-        //System.out.println( "dirty list : " + dirtyList );
+        if ( ( depth > 0 && _getFromParentCalls > 50 ) ||
+             _getFromParentCalls > 1000 ){
+            if ( _dependenciesOk() ){
+
+                jit = true;
+                
+                if ( _jitCache == null )
+                    _jitCache = new HashMap<String,Object>();
+                
+                if ( _jitCache.containsKey( s ) )
+                    return _jitCache.get( s );
+            }
+            else {
+                _dependencies();
+            }
+        }
+
+        Object res = _getFromParentHelper( s , depth );
+        if ( jit )
+            _jitCache.put( s , res );
+
         return res;
     }
-
-    private Object _getFromParentHelper( String s , int depth , List<JSObjectBase> dirtyList ){
+    
+    private Object _getFromParentHelper( String s , int depth ){
         _getFromParentCalls++;
 
         JSObject proto = null;
@@ -233,7 +248,6 @@ public class JSObjectBase implements JSObject {
         
         final int max = _placesToLook.length;
 
-        all:
         for ( int i=0; i<max; i++ ){
             JSObject o = _placesToLook[i];
             if ( o == null )
@@ -248,6 +262,10 @@ public class JSObjectBase implements JSObject {
     }
     
     private void _updatePlacesToLook(){
+
+        if ( _placesToLookUpdated )
+            return;
+        
         if ( _map != null ){
             _placesToLook[0] = (JSObject)_mapGet( "__proto__" );
             _placesToLook[1] = (JSObject)_mapGet( "prototype" );
@@ -263,8 +281,65 @@ public class JSObjectBase implements JSObject {
                 if ( _placesToLook[i] == _placesToLook[j] )
                     _placesToLook[i] = null;
         
+        _placesToLookUpdated = true;
     }
     
+    private boolean _dependenciesOk(){
+        if ( _badDepencies )
+            return false;
+        
+        if ( _dependencies == null )
+            return false;
+
+        List<JSObjectBase> lst = _dependencies;
+        for ( int i=0; i<lst.size(); i++ ){
+            if ( lst.get(i)._lastModified >= _dependencyBuildTime )
+                return false;
+        }
+        
+        return true;
+    }
+    
+    private List<JSObjectBase> _dependencies(){
+
+        if ( _badDepencies )
+            return null;
+
+        if ( _dependenciesOk() )
+            return _dependencies;
+
+        List<JSObjectBase> lst = new ArrayList<JSObjectBase>();
+        lst = _addDependencies( lst );
+
+        if ( lst == null )
+            _badDepencies = true;
+        _dependencies = lst;
+        _dependencyBuildTime = System.currentTimeMillis();
+
+        return lst;
+    }
+
+    protected List<JSObjectBase> _addDependencies( List<JSObjectBase> lst ){
+        _updatePlacesToLook();
+        for ( int i=0; i<_placesToLook.length; i++ ){
+            if ( _placesToLook[i] == null )
+                continue;
+            
+            // uh-oh
+            if ( ! ( _placesToLook[i] instanceof JSObjectBase ) )
+                return null;
+
+            JSObjectBase job = (JSObjectBase)_placesToLook[i];
+            lst.add( job );
+            job._addDependencies( lst  );
+        }
+        return lst;
+    }
+
+    // ----
+    // inheritnace jit END
+    // ----
+
     public Object removeField( Object n ){
         if ( n == null )
             return null;
@@ -320,10 +395,12 @@ public class JSObjectBase implements JSObject {
     // ---
 
     void setSetter( String name , JSFunction func ){
+        _dirtyMyself();
         _getSetterAndGetter( name , true ).second = func;
     }
     
     void setGetter( String name , JSFunction func ){
+        _dirtyMyself();
         _getSetterAndGetter( name , true ).first = func;
     }
 
@@ -411,6 +488,7 @@ public class JSObjectBase implements JSObject {
     
     public void setConstructor( JSFunction cons , boolean exec , Object args[] ){
         _readOnlyCheck();
+        _dirtyMyself();
 
         _constructor = cons;
         set( "__constructor__" , _constructor );
@@ -571,6 +649,14 @@ public class JSObjectBase implements JSObject {
         return o;
     }
 
+    private void _dirtyMyself(){
+        _lastModified = System.currentTimeMillis();
+        _placesToLookUpdated = false;
+        _dependencies = null;
+        if ( _jitCache != null )
+            _jitCache.clear();
+    }
+
     protected Map<String,Object> _map = null;
     protected Map<String,Pair<JSFunction,JSFunction>> _setterAndGetters = null;
     private Collection<String> _keys = null;
@@ -579,12 +665,18 @@ public class JSObjectBase implements JSObject {
     private String _name;
 
     // jit stuff
+    
+    private long _lastModified = System.currentTimeMillis();
 
+    private List<JSObjectBase> _dependencies = null;
+    private boolean _badDepencies = false;
+    private long _dependencyBuildTime = 0;
+
+    private boolean _placesToLookUpdated = false;
     private JSObject _placesToLook[] = new JSObject[4];
-    private JSFunction _notFoundHandler;
-    private boolean _checkedNotFoundHandler;
-    private int _getFromParentCalls = 0;
 
+    private int _getFromParentCalls = 0;
+    private Map<String,Object> _jitCache;
 
     static final Set<String> EMPTY_SET = Collections.unmodifiableSet( new HashSet<String>() );
     static final Object UNDEF = new Object(){
