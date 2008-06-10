@@ -50,7 +50,7 @@ public class AppContext {
         _scope = new Scope( "AppContext:" + root , _isGrid ? ed.cloud.Cloud.getInstance().getScope() : Scope.newGlobal() , null , Language.JS , _rootFile );
         _scope.setGlobal( true );
 
-        _logger = ed.log.Logger.getLogger( _name );
+        _logger = ed.log.Logger.getLogger( _name + ":" + _environment );
         _usage = new UsageTracker( _name );
         
         _baseScopeInit();
