@@ -9,6 +9,7 @@ import ed.appserver.templates.djang10.Expression;
 import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.TemplateException;
+import ed.appserver.templates.djang10.Node.TagNode;
 import ed.appserver.templates.djang10.Parser.Token;
 import ed.appserver.templates.djang10.generator.JSWriter;
 import ed.js.JSFunction;
@@ -20,7 +21,7 @@ public class IfEqualTagHandler implements TagHandler {
         this.inverted = inverted;
     }
 
-    public Node compile(Parser parser, String command, Token token) throws TemplateException {
+    public TagNode compile(Parser parser, String command, Token token) throws TemplateException {
         String[] parts = token.contents.split("\\s");
         if (parts.length != 3)
             throw new TemplateException("Expected 2 arguments");
@@ -51,7 +52,7 @@ public class IfEqualTagHandler implements TagHandler {
         return new HashMap<String, JSFunction>();
     }
 
-    private static class IfEqualNode extends Node {
+    private static class IfEqualNode extends TagNode {
         private final Token elseToken, endToken;
         private final Expression varName1, varName2;
         private final List<Node> trueNodes, falseNodes;

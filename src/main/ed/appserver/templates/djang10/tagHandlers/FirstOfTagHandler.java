@@ -7,13 +7,14 @@ import ed.appserver.templates.djang10.Expression;
 import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.TemplateException;
+import ed.appserver.templates.djang10.Node.TagNode;
 import ed.appserver.templates.djang10.Parser.Token;
 import ed.appserver.templates.djang10.generator.JSWriter;
 import ed.js.JSFunction;
 
 public class FirstOfTagHandler implements TagHandler {
 
-    public Node compile(Parser parser, String command, Token token) throws TemplateException {
+    public TagNode compile(Parser parser, String command, Token token) throws TemplateException {
         String tokenContents = token.contents.replaceFirst("\\S+\\s*", ""); // remove
                                                                             // the
                                                                             // tag
@@ -32,7 +33,7 @@ public class FirstOfTagHandler implements TagHandler {
         return new HashMap<String, JSFunction>();
     }
 
-    private static class FirstOfNode extends Node {
+    private static class FirstOfNode extends TagNode {
         private Expression[] variables;
 
         public FirstOfNode(Token token, Expression[] variables) {

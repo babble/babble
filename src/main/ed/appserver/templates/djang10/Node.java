@@ -61,4 +61,15 @@ public abstract class Node {
                     + ", " + "''));\n");
         }
     }
+    
+    public static abstract class TagNode extends Node {
+        public final String tagName;
+
+        public TagNode(Token token) {
+            super(token);
+            this.tagName = token.contents.trim().split("\\s")[0];
+        }
+        
+        
+    }
 }

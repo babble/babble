@@ -10,6 +10,7 @@ import ed.appserver.templates.djang10.JSHelper;
 import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.TemplateException;
+import ed.appserver.templates.djang10.Node.TagNode;
 import ed.appserver.templates.djang10.Parser.Token;
 import ed.appserver.templates.djang10.generator.JSWriter;
 import ed.js.JSFunction;
@@ -21,7 +22,7 @@ public class FilterTagHandler implements TagHandler {
     public static final String HIJACK_PRINT = "hijackPrint";
     public static final String REVERT_PRINT = "revertPrint";
 
-    public Node compile(Parser parser, String command, Token token) throws TemplateException {
+    public TagNode compile(Parser parser, String command, Token token) throws TemplateException {
         List<Node> nodyNodes = parser.parse("end" + command);
         parser.nextToken();
 
@@ -54,7 +55,7 @@ public class FilterTagHandler implements TagHandler {
         return helpers;
     }
 
-    private static class FilterNode extends Node {
+    private static class FilterNode extends TagNode {
         private final List<Node> bodyNodes;
         private final FilterList filters;
 

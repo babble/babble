@@ -8,13 +8,14 @@ import ed.appserver.templates.djang10.JSHelper;
 import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.TemplateException;
+import ed.appserver.templates.djang10.Node.TagNode;
 import ed.appserver.templates.djang10.Parser.Token;
 import ed.appserver.templates.djang10.generator.JSWriter;
 import ed.js.JSFunction;
 
 public class IncludeTagHandler implements TagHandler {
 
-    public Node compile(Parser parser, String command, Token token) throws TemplateException {
+    public TagNode compile(Parser parser, String command, Token token) throws TemplateException {
         String[] parts = Parser.smartSplit(token.contents);
         Expression var = new Expression(parts[1]);
 
@@ -27,7 +28,7 @@ public class IncludeTagHandler implements TagHandler {
         return helpers;
     }
 
-    private static class IncludeNode extends Node {
+    private static class IncludeNode extends TagNode {
         private Expression var;
 
         public IncludeNode(Token token, Expression var) {

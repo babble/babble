@@ -80,6 +80,9 @@ public abstract class ConvertTestBase extends TestCase {
 
             final String in = StreamUtil.readFully( new FileInputStream( _file ) );
 
+            Scope scope = Scope.getAScope().child();
+            scope.makeThreadLocal();
+            
             DependencyTracker dependencyTracker = new MockDependencyTracker();
             Template t = new Template( _file.getAbsolutePath() , in , ed.lang.Language.find( _file.toString() ) );
             TemplateConverter.Result r = (getConverter()).convert( t , dependencyTracker );
@@ -88,9 +91,6 @@ public abstract class ConvertTestBase extends TestCase {
 
             Convert c = new Convert( _file.toString() , r.getNewTemplate().getContent() );
             JSFunction func = c.get();
-            
-            Scope scope = Scope.getAScope().child();
-            scope.makeThreadLocal();
             
             final StringBuilder output = new StringBuilder();
             
