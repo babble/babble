@@ -32,3 +32,8 @@ print( "asdfasdf".split("d",1).length );
 print( "asdfasdf".split("d",1)[0] );
 
 print( "abc".replace( /a/ , null ) );
+
+print( "foo.foo.com".split( "." ) );
+print( "foo.foo.com".split( /\./ ) );
+
+print( "foo.foo.com".replace( "." , "Z" )  );
