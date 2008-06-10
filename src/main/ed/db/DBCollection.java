@@ -39,6 +39,14 @@ public abstract class DBCollection extends JSObjectLame {
     }
 
     public final void ensureIndex( final JSObject keys ){
+        ensureIndex( keys , false );
+    }
+
+    public final void createIndex( final JSObject keys ){
+        ensureIndex( keys , true );
+    }
+
+    public final void ensureIndex( final JSObject keys , final boolean force ){
         if ( checkReadOnly( false ) ) return;
 
         final String name = genIndexName( keys );
@@ -51,7 +59,7 @@ public abstract class DBCollection extends JSObjectLame {
         else if ( _anyUpdateSave && ! _createIndexesAfterSave.contains( name ) )
             doEnsureIndex = true;
 
-        if ( ! doEnsureIndex )
+        if ( ! ( force || doEnsureIndex ) )
             return;
         
         ensureIndex( keys , name );
@@ -59,6 +67,10 @@ public abstract class DBCollection extends JSObjectLame {
         _createIndexes.add( name );
         if ( _anyUpdateSave )
             _createIndexesAfterSave.add( name );
+    }
+
+    public void resetIndexCache(){
+        _createIndexes.clear();
     }
 
     public String genIndexName( JSObject keys ){
