@@ -192,54 +192,77 @@ public class JSObjectBase implements JSObject {
     }
     
     private JSFunction _getNotFoundHandler(){
+        if ( _checkedNotFoundHandler ){
+            //return _notFoundHandler;
+        }
+        
+        _checkedNotFoundHandler = true;
+        
         Object blah = _simpleGet( "__notFoundHandler" );
-        if ( blah instanceof JSFunction )
-            return (JSFunction)blah;
+        if ( blah instanceof JSFunction ){
+            _notFoundHandler = (JSFunction)blah;
+            return _notFoundHandler;
+        }
+        
         return null;
     }
 
 
     private Object _getFromParent( String s , int depth ){
+        
+        if ( s.equals( "__proto__" ) || s.equals( "prototype" ) )
+            return null;
+
+        List<JSObjectBase> dirtyList = null;
+        if ( ( depth > 0 && _getFromParentCalls > 50 ) ||
+             _getFromParentCalls > 1000 )
+            dirtyList = new ArrayList<JSObjectBase>();
+        
+        Object res = _getFromParentHelper( s , depth , dirtyList );
+        //System.out.println( "dirty list : " + dirtyList );
+        return res;
+    }
+
+    private Object _getFromParentHelper( String s , int depth , List<JSObjectBase> dirtyList ){
+        _getFromParentCalls++;
 
         JSObject proto = null;
         JSObject prototype = null;
 
-        Object res = null;
+        _updatePlacesToLook();
         
+        final int max = _placesToLook.length;
+
+        all:
+        for ( int i=0; i<max; i++ ){
+            JSObject o = _placesToLook[i];
+            if ( o == null )
+                continue;
+            
+            Object res = o.get( s );
+            if ( res != null )
+                return res;
+        }
+        
+        return null;
+    }
+    
+    private void _updatePlacesToLook(){
         if ( _map != null ){
-
-            proto = (JSObject)_mapGet( "__proto__" );
-            if ( proto != null ){
-                res = proto.get( s );
-                if ( res != null ) return res;                
-            }
-
-            prototype = (JSObject)_mapGet( "prototype" );
-            if ( prototype != null && prototype != proto ){
-                res = 
-                    prototype instanceof JSObjectBase ? 
-                    ((JSObjectBase)prototype)._simpleGet( s  , depth + 1) : 
-                    prototype.get( s );
-                
-                if ( res != null ) return res;
-            }
+            _placesToLook[0] = (JSObject)_mapGet( "__proto__" );
+            _placesToLook[1] = (JSObject)_mapGet( "prototype" );
         }
+
+        if ( _constructor != null ){
+            _placesToLook[2] = _constructor._prototype;
+            _placesToLook[3] = _constructor;
+        }
+
+        for ( int i=1; i<_placesToLook.length; i++ )
+            for ( int j=0; j<i; j++ )
+                if ( _placesToLook[i] == _placesToLook[j] )
+                    _placesToLook[i] = null;
         
-        if ( _constructor != null && 
-             _constructor._prototype != proto  &&
-             _constructor._prototype != prototype ){
-            res = _constructor._prototype._simpleGet( s , depth + 1);
-            if ( res != null ) return res;
-        }
-        
-        if ( _constructor != null && 
-             ! s.equals( "prototype" ) ){
-            // basically static lookup
-            res = _constructor._simpleGet( s , depth + 1 );
-            if ( res != null ) return res;
-        }
-
-        return res;
     }
     
     public Object removeField( Object n ){
@@ -554,6 +577,14 @@ public class JSObjectBase implements JSObject {
     private JSFunction _constructor;
     private boolean _readOnly = false;
     private String _name;
+
+    // jit stuff
+
+    private JSObject _placesToLook[] = new JSObject[4];
+    private JSFunction _notFoundHandler;
+    private boolean _checkedNotFoundHandler;
+    private int _getFromParentCalls = 0;
+
 
     static final Set<String> EMPTY_SET = Collections.unmodifiableSet( new HashSet<String>() );
     static final Object UNDEF = new Object(){
