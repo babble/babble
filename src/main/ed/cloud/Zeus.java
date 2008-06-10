@@ -51,18 +51,39 @@ public class Zeus {
             throw new RuntimeException( "errors : " + check[0].getErrors() );
 
         String old = getRule( name );
-
-        if ( old != null )
+        
+        if ( old != null ){
             _getCatalogRulePort().setRuleText( new String[]{ name } , new String[]{ text } );
+        }
         else
             _getCatalogRulePort().addRule( new String[]{ name } , new String[]{ text } );
 
         _getCatalogRulePort().setRuleNotes( new String[]{ name } , new String[]{ "Auto Generated.  Last Modified : " + ( new java.util.Date() ) } ); 
     }
 
+    String getResolverName( int back ){
+        if ( back < 0 )
+            throw new RuntimeException( "stupid back : " + back );
+        String n = "resolver";
+        if ( back > 0 )
+            n += "-" + back;
+        return n;
+    }
+
     public void updateResolveRule()
         throws Exception {
-        setRule( "resolver" , generateResolveTS() );
+        
+        String old = null;
+
+        for ( int i=7; i>0; i-- ){
+            old = getRule( getResolverName( i - 1 ) );
+            if ( old != null )
+                setRule( getResolverName( i ) , old );
+        }
+
+        String n = generateResolveTS();
+        
+        setRule( "resolver" , n );
     }
     
     public static String generateResolveTS(){
@@ -106,9 +127,17 @@ public class Zeus {
     public static void main( String args[] )
         throws Exception {
 
-        String pass = StreamUtil.readFully( new FileInputStream( ".zeuspw" ) ).trim();
-        Zeus z = new Zeus( "iad-sb-n3.10gen.com" , "admin" , pass );
-        z.updateResolveRule();
+        File f = new File( ".zeuspw" );
+        if ( f.exists() ){
+            System.err.println( "going for real" );
+            String pass = StreamUtil.readFully( new FileInputStream( ".zeuspw" ) ).trim();
+            Zeus z = new Zeus( "iad-sb-n3.10gen.com" , "admin" , pass );
+            z.updateResolveRule();
+        }
+        else {
+            System.out.println( "DEBUG MODE" );
+            System.out.println( generateResolveTS() );
+        }
 
     }
 
