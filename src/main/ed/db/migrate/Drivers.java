@@ -91,7 +91,9 @@ public class Drivers {
                 
                 if ( name.equals( "hasNext" ) ||
                      name.equals( "asObject" ) || 
+                     name.equals( "toObject" ) || 
                      name.equals( "asArray" ) || 
+                     name.equals( "toArray" ) || 
                      name.equals( "keySet" ) )
                     return null;
 
@@ -108,11 +110,20 @@ public class Drivers {
                 }
             }
             
+            public JSObject toObject(){
+                return asObject();
+            }
+
             public JSObject asObject(){
                 JSObjectBase o = new JSObjectBase();
                 for ( String s : _fields )
                     o.set( s , get( s ) );
                 return o;
+            }
+
+            public JSArray toArray()
+                throws SQLException {
+                return asArray();
             }
 
             public JSArray asArray()
