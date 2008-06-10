@@ -163,9 +163,8 @@ public class JSObjectBase implements JSObject {
              ! BAD_KEY_NAMES.contains( s )
              ){
             
-            Object blah = _simpleGet( "__notFoundHandler" , depth + 1 );
-            if ( blah instanceof JSFunction ){
-                JSFunction f = (JSFunction)blah;
+            JSFunction f = _getNotFoundHandler();
+            if ( f != null ){
                 Scope scope = f.getScope();
                 if ( scope == null )
                     scope = Scope.getAScope( false , true );
@@ -191,6 +190,14 @@ public class JSObjectBase implements JSObject {
 
         return null;
     }
+    
+    private JSFunction _getNotFoundHandler(){
+        Object blah = _simpleGet( "__notFoundHandler" );
+        if ( blah instanceof JSFunction )
+            return (JSFunction)blah;
+        return null;
+    }
+
 
     private Object _getFromParent( String s , int depth ){
 
