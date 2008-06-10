@@ -202,7 +202,7 @@ public class JSHook {
         JSObject obj = (JSObject)o;
 
         ByteEncoder encoder = new ByteEncoder( bb );
-        encoder.putObject( null , obj );
+        encoder.putObject( obj );
         return bb.position();
     }
     

@@ -39,6 +39,11 @@ public abstract class DBBase extends JSObjectLame {
 	return _name;
     }
 
+    public Object set( Object n , Object v ){
+        _entries.put( n , v );
+        return v;
+    }
+
     public Object get( Object n ){
         if ( n == null )
             return null;
@@ -52,11 +57,18 @@ public abstract class DBBase extends JSObjectLame {
         if ( n.toString().equals( "readOnly" ) )
             return _readOnly;
 
+        Object v = _entries.get( n );
+        if ( v != null )
+            return v;
+
         if ( n instanceof String || 
              n instanceof JSString ){
             String s = n.toString();
-            if ( s.startsWith( "." ) )
-                return getCollectionFromFull( s.substring(1) );
+            if ( s.startsWith( "." ) ){
+                if ( s.indexOf( "." , 1 ) > 0 )
+                    return getCollectionFromFull( s.substring(1) );
+                return DBProvider.get( s.substring(1) );
+            }
             return getCollection( s );
         }
 
@@ -73,11 +85,21 @@ public abstract class DBBase extends JSObjectLame {
 
     class tojson extends JSFunctionCalls0{
         public Object call( Scope s , Object foo[] ){
-            return toString();
+            return DBBase.this.toString();
         }
     }
-    tojson _tojson = new tojson();
-    
+
+    public JSObject getCollectionPrototype(){
+        return _collectionPrototype;
+    }
+
+    public String toString(){
+        return _name;
+    }
+
+    final tojson _tojson = new tojson();
     final String _name;
     protected boolean _readOnly = false;
+    final JSObjectBase _collectionPrototype = new JSObjectBase();
+    final Map _entries = new HashMap();
 }

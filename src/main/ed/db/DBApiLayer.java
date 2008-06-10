@@ -11,6 +11,7 @@ import ed.js.*;
 public abstract class DBApiLayer extends DBBase {
 
     static final boolean D = Boolean.getBoolean( "DEBUG.DB" );
+    static final int NUM_CURSORS_BEFORE_KILL = 100;
 
     protected DBApiLayer( String root ){
         super( root );
@@ -174,7 +175,7 @@ public abstract class DBApiLayer extends DBBase {
             encoder._buf.putInt( 0 ); // reserved
             encoder._put( _fullNameSpace );
             
-            encoder.putObject( null , o );
+            encoder.putObject( o );
             encoder.flip();
             
             doInsert( encoder._buf );
@@ -195,7 +196,7 @@ public abstract class DBApiLayer extends DBBase {
             else
                 encoder._buf.putInt( 0 );
             
-            encoder.putObject( null , o );
+            encoder.putObject( o );
             encoder.flip();
             
             doDelete( encoder._buf );
@@ -208,7 +209,7 @@ public abstract class DBApiLayer extends DBBase {
             if ( _deadCursorIds.size() == 0 )
                 return;
             
-            if ( _deadCursorIds.size() % 20 != 0 && _deadCursorIds.size() < 500 )
+            if ( _deadCursorIds.size() % 20 != 0 && _deadCursorIds.size() < NUM_CURSORS_BEFORE_KILL )
                 return;
             
             List<Long> l = _deadCursorIds;
@@ -251,9 +252,9 @@ public abstract class DBApiLayer extends DBBase {
             
             encoder._buf.putInt( numToSkip ); 
             encoder._buf.putInt( numToReturn );
-            encoder.putObject( null , ref ); // ref
+            encoder.putObject( ref ); // ref
             if ( fields != null )
-                encoder.putObject( null , fields ); // fields to return
+                encoder.putObject( fields ); // fields to return
             encoder.flip();
 
             ByteDecoder decoder = ByteDecoder.get( DBApiLayer.this , _fullNameSpace , _constructor );
@@ -284,8 +285,8 @@ public abstract class DBApiLayer extends DBBase {
             
             encoder._buf.putInt( upsert ? 1 : 0 );
             
-            encoder.putObject( null , query );
-            encoder.putObject( null , o );
+            encoder.putObject( query );
+            encoder.putObject( o );
             
             encoder.flip();
             
@@ -447,10 +448,6 @@ public abstract class DBApiLayer extends DBBase {
         final Set<ObjectId> _seen = new HashSet<ObjectId>();
         final MyCollection _collection;
         final int _numToReturn;
-    }
-
-    public String toString(){
-        return _root;
     }
 
     final String _root;

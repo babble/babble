@@ -30,3 +30,5 @@ print( "asdfasdf".split("d")[0] );
 
 print( "asdfasdf".split("d",1).length );
 print( "asdfasdf".split("d",1)[0] );
+
+print( "abc".replace( /a/ , null ) );

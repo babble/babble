@@ -12,6 +12,8 @@ import ed.*;
 import ed.js.*;
 import ed.js.func.*;
 import ed.js.engine.*;
+import ed.util.Dependency;
+import ed.util.DependencyTracker;
 import ed.appserver.JSFileLibrary;
 import ed.io.*;
 
@@ -78,15 +80,17 @@ public abstract class ConvertTestBase extends TestCase {
 
             final String in = StreamUtil.readFully( new FileInputStream( _file ) );
 
+            Scope scope = Scope.getAScope().child();
+            scope.makeThreadLocal();
+            
+            DependencyTracker dependencyTracker = new MockDependencyTracker();
             Template t = new Template( _file.getAbsolutePath() , in , ed.lang.Language.find( _file.toString() ) );
-            TemplateConverter.Result r = (getConverter()).convert( t , null );
+            TemplateConverter.Result r = (getConverter()).convert( t , dependencyTracker );
 
             assertNotNull( r );
 
             Convert c = new Convert( _file.toString() , r.getNewTemplate().getContent() );
             JSFunction func = c.get();
-            
-            Scope scope = Scope.getAScope().child();
             
             final StringBuilder output = new StringBuilder();
             
@@ -149,4 +153,19 @@ public abstract class ConvertTestBase extends TestCase {
         return s;
     }
 
+    
+    private static class MockDependencyTracker implements DependencyTracker {
+        private final ArrayList<Dependency> dependencies;
+        
+        public MockDependencyTracker() {
+            this.dependencies = new ArrayList<Dependency>();
+        }
+
+        public void addDependency(Dependency d) {
+            this.dependencies.add(d);
+        }
+        public ArrayList<Dependency> getDependencies() {
+            return dependencies;
+        }
+    }
 }

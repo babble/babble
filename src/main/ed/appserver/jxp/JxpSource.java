@@ -15,6 +15,8 @@ import ed.appserver.templates.*;
 
 public abstract class JxpSource implements Dependency , DependencyTracker {
     
+    public static final String JXP_SOURCE_PROP = "_jxpSource";
+
     static final File _tmpDir = new File( "/tmp/jxp/templates/" );
     static {
         _tmpDir.mkdirs();
@@ -32,6 +34,11 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
     abstract InputStream getInputStream() throws IOException ;
     public abstract long lastUpdated();
     abstract String getName();
+
+    /**
+     * @return File if it makes sense, otherwise nothing
+     */
+    public abstract File getFile(); 
 
     public void addDependency( Dependency d ){
         _dependencies.add( d );
@@ -70,6 +77,7 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
         try {
             convert = new Convert( t.getName() , t.getContent() , false , t.getSourceLanguage() );
             _func = convert.get();
+            _func.set(JXP_SOURCE_PROP, this);
             return _func;
         }
         catch ( Exception e ){

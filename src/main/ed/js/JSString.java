@@ -10,7 +10,7 @@ import ed.util.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 
-public class JSString extends JSObjectBase {
+public class JSString extends JSObjectBase implements Comparable {
 
     static { JS._debugSIStart( "JSString" ); }
 
@@ -416,8 +416,11 @@ public class JSString extends JSObjectBase {
                                 buf = new StringBuffer( str.length() );
                                 
                             buf.append( str.substring( start , m.start() ) );
-                                
-                            if ( repl instanceof JSString ){
+                            
+                            if ( repl == null )
+                                repl = "null";
+
+                            if ( repl instanceof JSString || repl instanceof String){
                                 String foo = repl.toString();
                                 for ( int i=0; i<foo.length(); i++ ){
                                     char c = foo.charAt( i );

@@ -19,10 +19,13 @@ public class JSArray extends JSObjectBase implements Iterable , List {
     static class JSArrayCons extends JSFunctionCalls1{
         
         public JSObject newOne(){
-            return new JSArray();
+            JSArray a = new JSArray();
+            a._new = true;
+            return a;
         }
-
+        
         public Object call( Scope scope , Object a , Object[] extra ){        
+        
             int len = 0;
             if ( extra == null || extra.length == 0 ){
                 if ( a instanceof Number )
@@ -31,13 +34,27 @@ public class JSArray extends JSObjectBase implements Iterable , List {
             else {
                 len = 1 + extra.length;
             }
+
+            JSArray arr = null;
             
-            JSArray arr = new JSArray( len );
-            
-            if ( extra != null && extra.length > 0 ){
+            Object t = scope.getThis();
+            if ( t != null && t instanceof JSArray && ((JSArray)t)._new ){
+                arr = (JSArray)t;
+                if ( len > 0 )
+                    arr._initSizeSet( len );
+                arr._new = false;
+            }
+            else {
+                arr = new JSArray( len );
+            }
+
+            if ( ( a != null && ! ( a instanceof Number ) ) || 
+                 ( extra != null && extra.length > 0 ) ){
                 arr.setInt( 0 , a );
-                for ( int i=0; i<extra.length; i++)
-                    arr.setInt( 1 + i , extra[i] );
+                if ( extra != null ){
+                    for ( int i=0; i<extra.length; i++)
+                        arr.setInt( 1 + i , extra[i] );
+                }
             }
             
             return arr;
@@ -125,7 +142,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                         JSArray a = (JSArray)(s.getThis());
                         JSArray n = new JSArray();
 
-                        int start = ((Number)startObj).intValue();
+                        int start = startObj == null ? 0 : ((Number)startObj).intValue();
                         int end = numObj == null ? Integer.MAX_VALUE : ((Number)numObj).intValue();
                         if ( end < 0 )
                             end = a._array.size() + end;
@@ -492,6 +509,12 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                     }
                 } );
 
+            this.set( "createLinkedList", new JSFunctionCalls0(){
+                    public Object call(Scope s, Object [] extra){
+                        return new JSArray(new LinkedList());
+                    }
+                } );
+
         }
     }
     
@@ -507,7 +530,10 @@ public class JSArray extends JSObjectBase implements Iterable , List {
         super( _cons );
 
         _array = new ArrayList( Math.max( 16 , init ) );
-        
+        _initSizeSet( init );
+    }
+
+    private void _initSizeSet( int init ){
         for ( int i=0; i<init; i++ )
             _array.add( null );
     }
@@ -522,6 +548,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
             for ( Object o : obj )
                 _array.add( o );
         }
+
     }
 
     public JSArray( JSArray a ){
@@ -593,16 +620,19 @@ public class JSArray extends JSObjectBase implements Iterable , List {
 
         return keys;
     }
-	@Override
-	public boolean containsKey(String s) {
-		return "length".equals(s) || super.containsKey(s);
-	}
+
+    @Override
+    public boolean containsKey(String s) {
+        return "length".equals(s) || super.containsKey(s);
+    }
+
     public String toString(){
         StringBuilder buf = new StringBuilder();
         for ( int i=0; i<_array.size(); i++ ){
             if ( i > 0 )
                 buf.append( "," );
-            buf.append( _array.get( i ) );
+            Object val = _array.get( i );
+            buf.append( val == null ? "" : val );
         }
         return buf.toString();
     }
@@ -694,7 +724,11 @@ public class JSArray extends JSObjectBase implements Iterable , List {
     }
 
     public boolean removeAll( Collection c ){
-        throw new RuntimeException( "not implemented" );
+        boolean removedAny = false;
+        for ( Object o : c ){
+            removedAny = remove( o ) || removedAny;
+        }
+        return removedAny;
     }
 
     public Object[] toArray(){
@@ -742,6 +776,14 @@ public class JSArray extends JSObjectBase implements Iterable , List {
         return _locked;
     }
 
+    JSFunction getGetter( String name ){
+        return null;
+    }
+
+    JSFunction getSetter( String name ){
+        return null;
+    }
+
     public static Object fixAndCall( Scope s , JSFunction f , Object o ){
         if ( false ){
             System.out.println( "ruby:" + s.isRuby() );
@@ -754,6 +796,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
     }
 
     private boolean _locked = false;
+    private boolean _new = false;
     final List<Object> _array;
 
     static class MyComparator implements Comparator {

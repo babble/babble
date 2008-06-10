@@ -13,7 +13,15 @@ import ed.util.*;
 public class Module {
 
     static final Logger _log = Logger.getLogger( "modules" );    
-    static final String _baseFile = System.getenv( "BASE" ) == null ? "/data/" : System.getenv( "BASE" );
+    public static final String _baseFile; 
+    
+    static { 
+        String s = System.getenv( "BASE" ) == null ? "/data/" : System.getenv( "BASE" );
+        if (s != null && !s.endsWith("/")) {
+            s += "/";
+        }
+        _baseFile = s;
+    }
     static File _base = new File( _baseFile );
 
     public static synchronized Module getModule( String name ){
@@ -60,6 +68,14 @@ public class Module {
         return new JSFileLibrary( null , getRootFile( version ) , _uriBase , context , scope , _doInit );
     }
 
+    /**
+     *  return the base for informational purposes
+     * @return
+     */
+    public static String getBase() {
+        return _baseFile;
+    }
+    
     public File getRootFile( String version ){
         if ( version == null )
             return _default;

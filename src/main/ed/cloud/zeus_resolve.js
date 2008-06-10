@@ -34,15 +34,28 @@ Cloud.Zeus.resolveTS = function(){
 
             var crap = oneEnv.replace( /!branch/g , e.name );
             crap = crap.replace( /!pool/g , e.pool );
+            crap = crap.replace( /!extra/g , "" );
 
             envs += crap;
-
+            
             if ( ! best )
                 best = e;
 
             if ( e.name == "www" )
                 best = e;
             
+            if ( e.aliases ){
+                for ( var aliasNumber in e.aliases ){
+                    var alias = e.aliases[aliasNumber];
+                    var crap = oneEnv.replace( /!branch/g , alias );
+                    crap = crap.replace( /!pool/g , e.pool );
+                    crap = crap.replace( /!extra/g , "http.setHeader( \"Host\" , string.replace( http.getHostHeader() , \"" +  alias  + "\" , \"" + e.name  + "\" ) );" );
+
+                    envs += crap;
+                }
+
+            }
+
         } );
         
         if ( best ){

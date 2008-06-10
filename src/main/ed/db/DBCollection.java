@@ -39,6 +39,14 @@ public abstract class DBCollection extends JSObjectLame {
     }
 
     public final void ensureIndex( final JSObject keys ){
+        ensureIndex( keys , false );
+    }
+
+    public final void createIndex( final JSObject keys ){
+        ensureIndex( keys , true );
+    }
+
+    public final void ensureIndex( final JSObject keys , final boolean force ){
         if ( checkReadOnly( false ) ) return;
 
         final String name = genIndexName( keys );
@@ -51,7 +59,7 @@ public abstract class DBCollection extends JSObjectLame {
         else if ( _anyUpdateSave && ! _createIndexesAfterSave.contains( name ) )
             doEnsureIndex = true;
 
-        if ( ! doEnsureIndex )
+        if ( ! ( force || doEnsureIndex ) )
             return;
         
         ensureIndex( keys , name );
@@ -59,6 +67,10 @@ public abstract class DBCollection extends JSObjectLame {
         _createIndexes.add( name );
         if ( _anyUpdateSave )
             _createIndexesAfterSave.add( name );
+    }
+
+    public void resetIndexCache(){
+        _createIndexes.clear();
     }
 
     public String genIndexName( JSObject keys ){
@@ -158,6 +170,7 @@ public abstract class DBCollection extends JSObjectLame {
     protected DBCollection( DBBase base , String name ){
         _base = base;
         _name = name;
+        _fullName = _base.getName() + "." + name;
 
         _entries.put( "base" , _base.getName() );
         _entries.put( "name" , _name );
@@ -279,7 +292,7 @@ public abstract class DBCollection extends JSObjectLame {
         _entries.put( "tojson" , 
                       new JSFunctionCalls0() {
                           public Object call( Scope s , Object foo[] ){
-                              return "{DBCollection:" + _name + "}";
+                              return "{DBCollection:" + DBCollection.this._fullName + "}";
                           }
                       } );
 
@@ -387,6 +400,10 @@ public abstract class DBCollection extends JSObjectLame {
         if ( foo != null )
             return foo;
         
+        foo = _base._collectionPrototype.get( n );
+        if ( foo != null )
+            return foo;
+
         if ( _methods == null ){
             Set<String> temp = new HashSet<String>();
             for ( Method m : this.getClass().getMethods() )
@@ -410,6 +427,14 @@ public abstract class DBCollection extends JSObjectLame {
         return _name;
     }
 
+    public String getFullName(){
+        return _fullName;
+    }
+
+    public DBBase getDB(){
+        return _base;
+    }
+
     public DBBase getBase(){
         return _base;
     }
@@ -431,6 +456,10 @@ public abstract class DBCollection extends JSObjectLame {
 
         return true;
     }
+
+    public String toString(){
+        return "{DBCollection:" + _name + "}";
+    }
     
     final DBBase _base;
     
@@ -443,6 +472,7 @@ public abstract class DBCollection extends JSObjectLame {
 
     protected Map _entries = new TreeMap();
     final protected String _name;
+    final protected String _fullName;
     
     protected JSFunction _constructor;
 

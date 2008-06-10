@@ -97,6 +97,9 @@ public class Djang10ConverterTest extends ConvertTestBase {
            }
         });
         
+        JSFunction addModuleRoot = (JSFunction)((JSObjectBase)testScope.get(JSHelper.NS)).get(JSHelper.ADD_MODULE_ROOT);
+        addModuleRoot.call(testScope, new JSString("/local/djang10support"));
+        
         return new Object[]{ o };
     }
     

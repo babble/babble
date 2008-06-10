@@ -15,7 +15,7 @@ tb.save( b );
 
 b = tb.findOne( { name : "some b" } );
 assert( b );
-print( tojson( b ) );
+//print( tojson( b ) );
 assert( 1 == b.as.length );
 assert( b.as[0].name == 1 );
 
