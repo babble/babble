@@ -388,6 +388,10 @@ public abstract class DBCollection extends JSObjectLame {
         if ( foo != null )
             return foo;
         
+        foo = _base._collectionPrototype.get( n );
+        if ( foo != null )
+            return foo;
+
         if ( _methods == null ){
             Set<String> temp = new HashSet<String>();
             for ( Method m : this.getClass().getMethods() )
