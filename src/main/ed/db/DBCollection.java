@@ -415,6 +415,10 @@ public abstract class DBCollection extends JSObjectLame {
         return _name;
     }
 
+    public String getFullName(){
+        return _fullName;
+    }
+
     public DBBase getBase(){
         return _base;
     }
