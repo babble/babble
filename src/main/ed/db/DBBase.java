@@ -39,6 +39,11 @@ public abstract class DBBase extends JSObjectLame {
 	return _name;
     }
 
+    public Object set( Object n , Object v ){
+        _entries.put( n , v );
+        return v;
+    }
+
     public Object get( Object n ){
         if ( n == null )
             return null;
@@ -51,6 +56,10 @@ public abstract class DBBase extends JSObjectLame {
         
         if ( n.toString().equals( "readOnly" ) )
             return _readOnly;
+
+        Object v = _entries.get( n );
+        if ( v != null )
+            return v;
 
         if ( n instanceof String || 
              n instanceof JSString ){
@@ -80,6 +89,10 @@ public abstract class DBBase extends JSObjectLame {
         }
     }
 
+    public JSObject getCollectionPrototype(){
+        return _collectionPrototype;
+    }
+
     public String toString(){
         return _name;
     }
@@ -87,4 +100,6 @@ public abstract class DBBase extends JSObjectLame {
     final tojson _tojson = new tojson();
     final String _name;
     protected boolean _readOnly = false;
+    final JSObjectBase _collectionPrototype = new JSObjectBase();
+    final Map _entries = new HashMap();
 }
