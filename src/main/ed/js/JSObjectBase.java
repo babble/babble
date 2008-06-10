@@ -129,7 +129,7 @@ public class JSObjectBase implements JSObject {
     }
     
     Object _simpleGet( String s , int depth ){
-        //System.out.println( s );
+
         final boolean scopeFailover = s.startsWith( SCOPE_FAILOVER_PREFIX );
         if ( scopeFailover )
             s = s.substring( SCOPE_FAILOVER_PREFIX.length() );
@@ -147,49 +147,10 @@ public class JSObjectBase implements JSObject {
             if ( res != null || _map.containsKey( s ) ) return res;
         }
         
-        boolean anyInheritance = false;
-
-        JSObject proto = null;
-        
-        if ( _map != null ){
-            proto = (JSObject)_mapGet( "__proto__" );
-            if ( proto != null ){
-                anyInheritance = true;
-                res = proto.get( s );
-                if ( res != null ) return res;                
-            }
-        }
-        
-        if ( _map != null ){
-            JSObject prototype = (JSObject)_mapGet( "prototype" );
-            if ( prototype != null ){
-                anyInheritance = true;
-                res = 
-                    prototype instanceof JSObjectBase ? 
-                    ((JSObjectBase)prototype)._simpleGet( s  , depth + 1) : 
-                    prototype.get( s );
-                
-                if ( res != null ) return res;
-            }
-        };
-
-        if ( _constructor != null && _constructor._prototype != proto ){
-            anyInheritance = true;
-            res = _constructor._prototype._simpleGet( s , depth + 1);
-            if ( res != null ) return res;
-        }
-
-
-        if ( _constructor != null && 
-             ! s.equals( "prototype" ) ){
-            // basically static lookup
-            anyInheritance = true;
-            res = _constructor._simpleGet( s , depth + 1 );
-            if ( res != null ) return res;
-        }
+        res = _getFromParent( s , depth );
+        if ( res != null ) return res;
 
         if ( _objectLowFunctions != null 
-             && ! anyInheritance
              && _constructor == null ){
             res = _objectLowFunctions.get( s );
             if ( res != null ) return res;
@@ -231,6 +192,49 @@ public class JSObjectBase implements JSObject {
         return null;
     }
 
+    private Object _getFromParent( String s , int depth ){
+
+        JSObject proto = null;
+        JSObject prototype = null;
+
+        Object res = null;
+        
+        if ( _map != null ){
+
+            proto = (JSObject)_mapGet( "__proto__" );
+            if ( proto != null ){
+                res = proto.get( s );
+                if ( res != null ) return res;                
+            }
+
+            prototype = (JSObject)_mapGet( "prototype" );
+            if ( prototype != null && prototype != proto ){
+                res = 
+                    prototype instanceof JSObjectBase ? 
+                    ((JSObjectBase)prototype)._simpleGet( s  , depth + 1) : 
+                    prototype.get( s );
+                
+                if ( res != null ) return res;
+            }
+        }
+        
+        if ( _constructor != null && 
+             _constructor._prototype != proto  &&
+             _constructor._prototype != prototype ){
+            res = _constructor._prototype._simpleGet( s , depth + 1);
+            if ( res != null ) return res;
+        }
+        
+        if ( _constructor != null && 
+             ! s.equals( "prototype" ) ){
+            // basically static lookup
+            res = _constructor._simpleGet( s , depth + 1 );
+            if ( res != null ) return res;
+        }
+
+        return res;
+    }
+    
     public Object removeField( Object n ){
         if ( n == null )
             return null;
