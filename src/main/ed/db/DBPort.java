@@ -10,6 +10,7 @@ import java.nio.channels.*;
 public class DBPort {
 
     static final int PORT = 27017;
+    static final boolean USE_NAGLE = false;
     
     DBPort()
         throws IOException {
@@ -83,7 +84,7 @@ public class DBPort {
         _sock = SocketChannel.open();
         _sock.connect( _addr );
 
-        _sock.socket().setTcpNoDelay( true );
+        _sock.socket().setTcpNoDelay( ! USE_NAGLE );
     }
 
     public int hashCode(){

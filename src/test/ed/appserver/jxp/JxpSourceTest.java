@@ -12,6 +12,10 @@ public class JxpSourceTest extends ed.TestCase {
         StringSource( String s ){
             _s = s;
         }
+
+        public File getFile(){
+            return null;
+        }
         
         String getName(){
             return "temp.jxp";

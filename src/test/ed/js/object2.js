@@ -15,13 +15,14 @@ function A(){
 };
 
 a = new A();
-
-print( a.silly );
+assert( null == a.sillya , a.sillya );
 
 A.prototype.__notFoundHandler = function( name ){
     this[name] = foo++;
     return this[name];
 };
 
-print( a.silly );
-print( a.silly );
+assert( 1 == a.sillya );
+assert( 1 == a.sillya );
+
+assert( 2 == a.asdasdasd );

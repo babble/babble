@@ -8,6 +8,7 @@ import java.util.*;
 import ed.db.*;
 import ed.js.func.*;
 import ed.js.engine.*;
+import ed.util.*;
 
 public class JSObjectBase implements JSObject {
     
@@ -58,20 +59,31 @@ public class JSObjectBase implements JSObject {
         }
 
         String name = n.toString();
-        
-        if ( ! name.startsWith( GETSET_PREFIX ) ){
-            JSFunction func = getSetter( name );
-            if ( func != null )
-                return _call( func , v );
+
+        if ( name.startsWith( GETSET_PREFIX ) ){
+            name = name.substring( GETSET_PREFIX.length() );
+            String type = name.substring( 0 , 3 );
+            name = name.substring( 3 );
+            if ( type.equals( "GET" ) )
+                setGetter( name , (JSFunction)v );
+            else if ( type.equals( "SET" ) )
+                setSetter( name , (JSFunction)v );
+            else
+                throw new RuntimeException( "broken" );
+            return v;
         }
+        
+        JSFunction func = getSetter( name );
+        if ( func != null )
+            return _call( func , v );
         
         _checkMap();
         
-        if ( ! BAD_KEY_NAMES.contains( name ) && 
-             ! name.startsWith( GETSET_PREFIX ) )
+        if ( ! BAD_KEY_NAMES.contains( name ) )
             if ( ! _map.containsKey( name ) )
                 _keys.add( name );
         
+        _dirtyMyself();
         _map.put( name , v );
         if ( v instanceof JSObjectBase )
             ((JSObjectBase)v)._name = name;
@@ -84,6 +96,8 @@ public class JSObjectBase implements JSObject {
         
         if ( _keys == null )
             _keys = new ArrayList<String>();
+
+        _dirtyMyself();
     }
 
     public String getAsString( Object n ){
@@ -118,80 +132,42 @@ public class JSObjectBase implements JSObject {
     }
     
     Object _simpleGet( String s , int depth ){
-        //System.out.println( s );
+
         final boolean scopeFailover = s.startsWith( SCOPE_FAILOVER_PREFIX );
         if ( scopeFailover )
             s = s.substring( SCOPE_FAILOVER_PREFIX.length() );
-        final boolean getOrSet = s.startsWith( GETSET_PREFIX );
         
         Object res = null;
         
-        if ( depth == 0 && 
-             ! getOrSet ){
+        if ( depth == 0 && ! BAD_KEY_NAMES.contains( s ) ){
             JSFunction f = getGetter( s );
             if ( f != null )
                 return _call( f );
         }
 
         if ( _map != null ){
-            res = _map.get( s );
-            if ( res != null || _keys.contains( s ) ) return res;
+            res = _mapGet( s );
+            if ( res != null || _map.containsKey( s ) ) return res;
         }
         
-        JSObject proto = null;
-        
-        if ( _map != null ){
-            proto = (JSObject)_map.get( "__proto__" );
-            if ( proto != null ){
-                res = proto.get( s );
-                if ( res != null ) return res;                
-            }
-        }
-        
-        if ( _map != null ){
-            JSObject prototype = (JSObject)_map.get( "prototype" );
-            if ( prototype != null ){
-                res = 
-                    prototype instanceof JSObjectBase ? 
-                    ((JSObjectBase)prototype)._simpleGet( s  , depth + 1) : 
-                    prototype.get( s );
-                
-                if ( res != null ) return res;
-            }
-        };
-
-        if ( _constructor != null && _constructor._prototype != proto ){
-            res = _constructor._prototype._simpleGet( s , depth + 1);
-            if ( res != null ) return res;
-        }
-
+        res = _getFromParent( s , depth );
+        if ( res != null ) return res;
 
         if ( _objectLowFunctions != null 
-             && ( _map == null || _map.get( "prototype" ) == null ) 
              && _constructor == null ){
             res = _objectLowFunctions.get( s );
-            if ( res != null ) return res;
-        }
-
-        if ( _constructor != null && 
-             ! getOrSet &&
-             ! s.equals( "prototype" ) ){
-            // basically static lookup
-            res = _constructor._simpleGet( s , depth + 1 );
             if ( res != null ) return res;
         }
 
         if ( depth == 0 && 
              ! "__notFoundHandler".equals( s ) &&
              ! "__preGet".equals( s ) && 
-             ! getOrSet && 
              ! scopeFailover && 
              ! BAD_KEY_NAMES.contains( s )
              ){
             
-            Object blah = _simpleGet( "__notFoundHandler" , depth + 1 );
-            if ( blah instanceof JSFunction ){
-                JSFunction f = (JSFunction)blah;
+            JSFunction f = _getNotFoundHandler();
+            if ( f != null ){
                 Scope scope = f.getScope();
                 if ( scope == null )
                     scope = Scope.getAScope( false , true );
@@ -217,6 +193,153 @@ public class JSObjectBase implements JSObject {
 
         return null;
     }
+    
+    private JSFunction _getNotFoundHandler(){
+        Object blah = _simpleGet( "__notFoundHandler" );
+        if ( blah instanceof JSFunction )
+            return (JSFunction)blah;
+        
+        return null;
+    }
+
+
+    // ----
+    // inheritnace jit START
+    // ----
+    
+    private Object _getFromParent( String s , int depth ){
+        _getFromParentCalls++;
+        
+        if ( s.equals( "__proto__" ) || s.equals( "prototype" ) )
+            return null;
+
+        boolean jit = false;
+        
+        if ( ( depth > 0 && _getFromParentCalls > 50 ) ||
+             _getFromParentCalls > 1000 ){
+            if ( _dependenciesOk() ){
+
+                jit = true;
+                
+                if ( _jitCache == null )
+                    _jitCache = new HashMap<String,Object>();
+                
+                if ( _jitCache.containsKey( s ) ){
+                    return _jitCache.get( s );
+                }
+            }
+            else {
+                _dependencies();
+            }
+        }
+
+        Object res = _getFromParentHelper( s , depth );
+        if ( jit )
+            _jitCache.put( s , res );
+
+        return res;
+    }
+    
+    private Object _getFromParentHelper( String s , int depth ){
+
+        JSObject proto = null;
+        JSObject prototype = null;
+
+        _updatePlacesToLook();
+        
+        final int max = _placesToLook.length;
+
+        for ( int i=0; i<max; i++ ){
+            JSObject o = _placesToLook[i];
+            if ( o == null )
+                continue;
+            
+            Object res = o.get( s );
+            if ( res != null )
+                return res;
+        }
+        
+        return null;
+    }
+    
+    private void _updatePlacesToLook(){
+
+        if ( _placesToLookUpdated )
+            return;
+        
+        if ( _map != null ){
+            _placesToLook[0] = (JSObject)_mapGet( "__proto__" );
+            _placesToLook[1] = (JSObject)_mapGet( "prototype" );
+        }
+
+        if ( _constructor != null ){
+            _placesToLook[2] = _constructor._prototype;
+            _placesToLook[3] = _constructor;
+        }
+
+        for ( int i=1; i<_placesToLook.length; i++ )
+            for ( int j=0; j<i; j++ )
+                if ( _placesToLook[i] == _placesToLook[j] )
+                    _placesToLook[i] = null;
+        
+        _placesToLookUpdated = true;
+    }
+    
+    private boolean _dependenciesOk(){
+        if ( _badDepencies )
+            return false;
+        
+        if ( _dependencies == null )
+            return false;
+
+        List<JSObjectBase> lst = _dependencies;
+        for ( int i=0; i<lst.size(); i++ ){
+            if ( lst.get(i)._lastModified >= _dependencyBuildTime )
+                return false;
+        }
+        
+        return true;
+    }
+    
+    private List<JSObjectBase> _dependencies(){
+
+        if ( _badDepencies )
+            return null;
+
+        if ( _dependenciesOk() )
+            return _dependencies;
+
+        List<JSObjectBase> lst = new ArrayList<JSObjectBase>();
+        lst = _addDependencies( lst );
+
+        if ( lst == null )
+            _badDepencies = true;
+        _dependencies = lst;
+        _dependencyBuildTime = System.currentTimeMillis();
+
+        return lst;
+    }
+
+    protected List<JSObjectBase> _addDependencies( List<JSObjectBase> lst ){
+        _updatePlacesToLook();
+        for ( int i=0; i<_placesToLook.length; i++ ){
+            if ( _placesToLook[i] == null )
+                continue;
+            
+            // uh-oh
+            if ( ! ( _placesToLook[i] instanceof JSObjectBase ) )
+                return null;
+
+            JSObjectBase job = (JSObjectBase)_placesToLook[i];
+            lst.add( job );
+            job._addDependencies( lst  );
+        }
+        return lst;
+    }
+
+    // ----
+    // inheritnace jit END
+    // ----
 
     public Object removeField( Object n ){
         if ( n == null )
@@ -252,7 +375,7 @@ public class JSObjectBase implements JSObject {
 
     public boolean containsKey( String s ){
         prefunc();
-        if ( _keys != null && _keys.contains( s ) )
+        if ( _map != null && _map.containsKey( s ) )
             return true;
         
         if ( _constructor != null && _constructor._prototype.containsKey( s ) )
@@ -273,21 +396,38 @@ public class JSObjectBase implements JSObject {
     // ---
 
     void setSetter( String name , JSFunction func ){
-        set( setterName( name ) , func );
+        _dirtyMyself();
+        _getSetterAndGetter( name , true ).second = func;
     }
     
     void setGetter( String name , JSFunction func ){
-        set( getterName( name ) , func );
+        _dirtyMyself();
+        _getSetterAndGetter( name , true ).first = func;
     }
 
     JSFunction getSetter( String name ){
-        return (JSFunction)(_simpleGet( setterName( name ) ) );
+        Pair<JSFunction,JSFunction> p = _getSetterAndGetter( name, false );
+        if ( p != null )
+            return p.second;
+        
+        JSObject s = getSuper();
+        if ( s != null )
+            return ((JSObjectBase)s).getSetter( name );
+
+        return null;
     }
 
     JSFunction getGetter( String name ){
-        return (JSFunction)(_simpleGet( getterName( name ) ) );
-    }
+        Pair<JSFunction,JSFunction> p = _getSetterAndGetter( name, false );
+        if ( p != null )
+            return p.first;
+        
+        JSObject s = getSuper();
+        if ( s  instanceof JSObjectBase )
+            return ((JSObjectBase)s).getGetter( name );
 
+        return null;
+    }
 
     public static String setterName( String name ){
         return GETSET_PREFIX + "SET" + name;
@@ -349,6 +489,7 @@ public class JSObjectBase implements JSObject {
     
     public void setConstructor( JSFunction cons , boolean exec , Object args[] ){
         _readOnlyCheck();
+        _dirtyMyself();
 
         _constructor = cons;
         set( "__constructor__" , _constructor );
@@ -377,11 +518,17 @@ public class JSObjectBase implements JSObject {
 
     public JSObject getSuper(){
 
+        if ( _map != null ){
+            JSObject p = (JSObject)_mapGet( "__proto__" );
+            if ( p != null )
+                return p;
+        }
+
         if ( _constructor != null && _constructor._prototype != null )
             return _constructor._prototype;
 
-        return (JSObject)_simpleGet( "__proto__" );
-        
+
+        return null;
     }
 
     public void lock(){
@@ -478,13 +625,66 @@ public class JSObjectBase implements JSObject {
         _name = n;
     }
 
+    private synchronized Pair<JSFunction,JSFunction> _getSetterAndGetter( String name , boolean add ){
+        if ( _setterAndGetters == null ){
+            if ( ! add )
+                return null;
+            _setterAndGetters = new TreeMap<String,Pair<JSFunction,JSFunction>>();                
+        }
+        
+        Pair<JSFunction,JSFunction> p = _setterAndGetters.get( name );
+        if ( ! add || p != null )
+            return p;
+
+        p = new Pair<JSFunction,JSFunction>();
+        _setterAndGetters.put( name , p );
+        return p;
+    }
+
+    private Object _mapGet( final String s ){
+        if ( _map == null )
+            return null;
+        final Object o = _map.get( s );
+        if ( o == UNDEF )
+            return null;
+        return o;
+    }
+
+    private void _dirtyMyself(){
+        _lastModified = System.currentTimeMillis();
+        _placesToLookUpdated = false;
+        _dependencies = null;
+        if ( _jitCache != null )
+            _jitCache.clear();
+    }
+
     protected Map<String,Object> _map = null;
-    private List<String> _keys = null;
+    protected Map<String,Pair<JSFunction,JSFunction>> _setterAndGetters = null;
+    private Collection<String> _keys = null;
     private JSFunction _constructor;
     private boolean _readOnly = false;
     private String _name;
 
+    // jit stuff
+    
+    private long _lastModified = System.currentTimeMillis();
+
+    private List<JSObjectBase> _dependencies = null;
+    private boolean _badDepencies = false;
+    private long _dependencyBuildTime = 0;
+
+    private boolean _placesToLookUpdated = false;
+    private JSObject _placesToLook[] = new JSObject[4];
+
+    private int _getFromParentCalls = 0;
+    private Map<String,Object> _jitCache;
+
     static final Set<String> EMPTY_SET = Collections.unmodifiableSet( new HashSet<String>() );
+    static final Object UNDEF = new Object(){
+            public String toString(){
+                return "undefined";
+            }
+        };
 
     public static class BaseThings extends JSObjectLame {
         

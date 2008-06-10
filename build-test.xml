@@ -28,6 +28,7 @@
 
     <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true">
       <xmlfileset dir="." includes="testng-db.xml"/>
+      <jvmarg value="-Xmx1000m" />
     </testng>
   </target>
 

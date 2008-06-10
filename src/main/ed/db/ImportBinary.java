@@ -123,6 +123,9 @@ public class ImportBinary {
     }
 
     static File[] _list( File f ){
+	if ( ! f.isDirectory() )
+	    return new File[]{ f };
+
         File lst[] = f.listFiles();
         Arrays.sort( lst , _fileComparator );
         return lst;
