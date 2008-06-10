@@ -7,6 +7,7 @@ import java.util.Map;
 import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.TemplateException;
+import ed.appserver.templates.djang10.Node.TagNode;
 import ed.appserver.templates.djang10.Parser.Token;
 import ed.appserver.templates.djang10.generator.JSWriter;
 import ed.js.JSFunction;
@@ -14,7 +15,7 @@ import ed.js.JSFunction;
 public class BlockTagHandler implements TagHandler {
     public static final String RENDER_OPT_BLOCK_MAP = "blocks";
 
-    public Node compile(Parser parser, String command, Token token) throws TemplateException {
+    public TagNode compile(Parser parser, String command, Token token) throws TemplateException {
         String[] parts = token.contents.split("\\s");
 
         String blockName = parts[1];
@@ -45,7 +46,7 @@ public class BlockTagHandler implements TagHandler {
         return new HashMap<String, JSFunction>();
     }
 
-    public static class BlockNode extends Node {
+    public static class BlockNode extends TagNode {
         private final String name;
         private final List<Node> bodyNodes;
         private final boolean isChildTemplate;

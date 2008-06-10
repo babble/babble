@@ -8,9 +8,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.TemplateException;
+import ed.appserver.templates.djang10.Node.TagNode;
 import ed.appserver.templates.djang10.Parser.Token;
 import ed.appserver.templates.djang10.generator.JSWriter;
 import ed.js.JSFunction;
@@ -19,7 +19,7 @@ public class CycleTagHandler implements TagHandler {
     private static final String namedCycles_var = "__namedCycles__";
     private static final String anonymous = "__anonymous__";
 
-    public Node compile(Parser parser, String command, Token token) throws TemplateException {
+    public TagNode compile(Parser parser, String command, Token token) throws TemplateException {
         Pattern p = Pattern.compile("^\\s*(?:\\S+) (.+?)(?: as (\\S+))?\\s*$");
         Matcher m = p.matcher(token.contents);
         if (!m.find())
@@ -86,7 +86,7 @@ public class CycleTagHandler implements TagHandler {
         return new HashMap<String, JSFunction>();
     }
 
-    private static class CycleCallNode extends Node {
+    private static class CycleCallNode extends TagNode {
         protected final String name;
 
         public CycleCallNode(Token token, String name) {

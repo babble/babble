@@ -10,6 +10,7 @@ import ed.appserver.templates.djang10.JSHelper;
 import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.TemplateException;
+import ed.appserver.templates.djang10.Node.TagNode;
 import ed.appserver.templates.djang10.Parser.Token;
 import ed.appserver.templates.djang10.generator.JSWriter;
 import ed.appserver.templates.djang10.tagHandlers.BlockTagHandler.BlockNode;
@@ -17,7 +18,7 @@ import ed.js.JSFunction;
 
 public class ExtendsTagHandler implements TagHandler {
 
-    public Node compile(Parser parser, String command, Token token) throws TemplateException {
+    public TagNode compile(Parser parser, String command, Token token) throws TemplateException {
         String path = Parser.smartSplit(token.contents)[1];
         Expression pathExpr = new Expression(path);
 
@@ -38,7 +39,7 @@ public class ExtendsTagHandler implements TagHandler {
         return new HashMap<String, JSFunction>();
     }
 
-    private static class ExtendsNode extends Node {
+    private static class ExtendsNode extends TagNode {
         private final Expression path;
         private final List<Node> topLevelBlocks;
 

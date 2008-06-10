@@ -1,4 +1,4 @@
-package ed.appserver.templates.djang10.tagHandlers;
+package ed.appserver.templates.djang10.tagHandlers.loadTag;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -6,19 +6,20 @@ import java.util.Map;
 import ed.appserver.jxp.JxpSource;
 import ed.appserver.templates.djang10.JSHelper;
 import ed.appserver.templates.djang10.Library;
-import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.TemplateException;
+import ed.appserver.templates.djang10.Node.TagNode;
 import ed.appserver.templates.djang10.Parser.Token;
 import ed.appserver.templates.djang10.filters.Filter;
 import ed.appserver.templates.djang10.generator.JSWriter;
+import ed.appserver.templates.djang10.tagHandlers.TagHandler;
 import ed.js.JSFunction;
 import ed.js.engine.Scope;
 
 public class LoadTagHandler implements TagHandler {
     private static final String MODULE_LIST = "moduleList";
 
-    public Node compile(Parser parser, String command, Token token) throws TemplateException {
+    public TagNode compile(Parser parser, String command, Token token) throws TemplateException {
 
         String moduleName = token.contents.trim().split("\\s+", 2)[1];
         if (!moduleName.matches("^\\w+$"))
@@ -72,7 +73,7 @@ public class LoadTagHandler implements TagHandler {
         public int libraryCount = 0;
     }
 
-    private static final class LoadNode extends Node {
+    private static final class LoadNode extends TagNode {
         private final String moduleName;
         private final boolean isFirst;
 

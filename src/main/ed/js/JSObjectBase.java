@@ -208,6 +208,7 @@ public class JSObjectBase implements JSObject {
     // ----
     
     private Object _getFromParent( String s , int depth ){
+        _getFromParentCalls++;
         
         if ( s.equals( "__proto__" ) || s.equals( "prototype" ) )
             return null;
@@ -223,8 +224,9 @@ public class JSObjectBase implements JSObject {
                 if ( _jitCache == null )
                     _jitCache = new HashMap<String,Object>();
                 
-                if ( _jitCache.containsKey( s ) )
+                if ( _jitCache.containsKey( s ) ){
                     return _jitCache.get( s );
+                }
             }
             else {
                 _dependencies();
@@ -239,7 +241,6 @@ public class JSObjectBase implements JSObject {
     }
     
     private Object _getFromParentHelper( String s , int depth ){
-        _getFromParentCalls++;
 
         JSObject proto = null;
         JSObject prototype = null;

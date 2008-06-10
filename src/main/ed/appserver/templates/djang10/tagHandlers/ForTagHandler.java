@@ -11,6 +11,7 @@ import ed.appserver.templates.djang10.JSHelper;
 import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.TemplateException;
+import ed.appserver.templates.djang10.Node.TagNode;
 import ed.appserver.templates.djang10.Parser.Token;
 import ed.appserver.templates.djang10.generator.JSWriter;
 import ed.js.JSFunction;
@@ -21,7 +22,7 @@ import ed.js.func.JSFunctionCalls2;
 
 public class ForTagHandler implements TagHandler {
 
-    public Node compile(Parser parser, String command, Token token) throws TemplateException {
+    public TagNode compile(Parser parser, String command, Token token) throws TemplateException {
         String[] params = token.contents.split("\\s");
         String itemName = params[1];
         if (!"in".equals(params[2]))
@@ -88,7 +89,7 @@ public class ForTagHandler implements TagHandler {
         }
     }
 
-    private static class ForNode extends Node {
+    private static class ForNode extends TagNode {
         private final String itemName;
         private final FilterExpression list;
         private final boolean isReversed;
