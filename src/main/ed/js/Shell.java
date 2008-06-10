@@ -104,7 +104,7 @@ public class Shell {
         }
 
         boolean exit = false;
-
+        
         for ( String a : args ){
             if ( a.equals( "-exit" ) ){
                 exit = true;
@@ -112,9 +112,10 @@ public class Shell {
             }
             
             if ( a.endsWith( ".js" ) ){
-                File temp = new File( a );
+                File f = new File( a );
+                JSFileLibrary fl = new JSFileLibrary( f.getParentFile()  , "blah" , s );
                 try {
-                    s.eval( temp );
+                    ((JSFunction)(fl.get( f.getName().replaceAll( ".js$" , "" ) ))).call( s );
                 }
                 catch ( Exception e ){
                     StackTraceHolder.getInstance().fix( e );
