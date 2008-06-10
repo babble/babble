@@ -509,6 +509,12 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                     }
                 } );
 
+            this.set( "createLinkedList", new JSFunctionCalls0(){
+                    public Object call(Scope s, Object [] extra){
+                        return new JSArray(new LinkedList());
+                    }
+                } );
+
         }
     }
     
