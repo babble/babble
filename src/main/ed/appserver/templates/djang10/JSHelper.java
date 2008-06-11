@@ -9,6 +9,7 @@ import java.util.Map;
 
 import ed.appserver.JSFileLibrary;
 import ed.appserver.templates.Djang10Converter;
+import ed.appserver.templates.djang10.Parser.Token;
 import ed.appserver.templates.djang10.filters.JavaFilter;
 import ed.appserver.templates.djang10.tagHandlers.TagHandler;
 import ed.js.JSFunction;
@@ -62,7 +63,7 @@ public class JSHelper extends JSObjectBase {
 
         this.set(JSHelper.CONTEXT_CLASS, Context.CONSTRUCTOR);
         this.set(LIBRARY_CLASS, Library.CONSTRUCTOR);
-
+        this.set(Token.NAME, Token.CONSTRUCTOR);
         this.lock();
     }
 

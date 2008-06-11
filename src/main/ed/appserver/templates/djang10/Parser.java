@@ -14,6 +14,13 @@ import ed.appserver.templates.Djang10Converter;
 import ed.appserver.templates.djang10.Node.VariableNode;
 import ed.appserver.templates.djang10.filters.Filter;
 import ed.appserver.templates.djang10.tagHandlers.TagHandler;
+import ed.js.JSFunction;
+import ed.js.JSON;
+import ed.js.JSObject;
+import ed.js.JSObjectBase;
+import ed.js.JSString;
+import ed.js.engine.Scope;
+import ed.js.func.JSFunctionCalls3;
 import ed.util.DependencyTracker;
 
 public class Parser {
@@ -48,13 +55,15 @@ public class Parser {
     private final LinkedList<Token> tokens;
     private final Map<Class<? extends TagHandler>, Object> stateVariables;
     private final Map<String, Filter> filterMapping;
+    private final Map<String, TagHandler> tagHandlerMapping;
     private final DependencyTracker tracker;
 
-    public Parser(String string, DependencyTracker tracker, Map<String, ? extends Filter> filterMapping) {
+    public Parser(String string, DependencyTracker tracker, Map<String, ? extends Filter> filterMapping, Map<String, ? extends TagHandler> tagHandlerMapping) {
         this.tokens = new LinkedList<Token>();
         this.stateVariables = new HashMap<Class<? extends TagHandler>, Object>();
         this.tracker = tracker;
         this.filterMapping = new HashMap<String, Filter>(filterMapping);
+        this.tagHandlerMapping = new HashMap<String, TagHandler>( tagHandlerMapping );
 
         int line = 1;
         boolean inTag = false;
@@ -71,9 +80,9 @@ public class Parser {
                     TagDelimiter delim = tags.get(bit.substring(0, 2));
 
                     String content = bit.substring(2, bit.length() - 2).trim();
-                    tokens.add(new Token(delim.type, content, startLine, line));
+                    tokens.add(new Token(delim.type, content, startLine));
                 } else {
-                    tokens.add(new Token(TagDelimiter.Type.Text, bit, startLine, line));
+                    tokens.add(new Token(TagDelimiter.Type.Text, bit, startLine));
                 }
             }
             inTag = !inTag;
@@ -89,22 +98,22 @@ public class Parser {
             if (token.type == TagDelimiter.Type.Text) {
                 nodes.add(new Node.TextNode(token));
             } else if (token.type == TagDelimiter.Type.Var) {
-                if (token.contents.length() == 0)
-                    throw new TemplateException(token.startLine, token.endLine, "Empty Variable Tag");
+                if (token.getContents().length() == 0)
+                    throw new TemplateException(token.getStartLine(), "Empty Variable Tag");
 
-                FilterExpression variableExpression = new FilterExpression(this, token.contents);
+                FilterExpression variableExpression = new FilterExpression(this, token.getContents());
                 VariableNode varNode = new VariableNode(token, variableExpression);
                 nodes.add(varNode);
             } else if (token.type == TagDelimiter.Type.Block) {
                 for (String untilTag : untilTags) {
-                    if (token.contents.contains(untilTag)) {
+                    if (token.getContents().contains(untilTag)) {
                         tokens.addFirst(token);
                         return nodes;
                     }
                 }
 
-                String command = token.contents.split("\\s")[0];
-                TagHandler handler = Djang10Converter.getTagHandlers().get(command);
+                String command = token.getContents().split("\\s")[0];
+                TagHandler handler = getTagHandlers().get(command);
                 Node node = handler.compile(this, command, token);
                 nodes.add(node);
             }
@@ -129,7 +138,7 @@ public class Parser {
     }
 
     public Map<String, TagHandler> getTagHandlers() {
-        return null;
+        return tagHandlerMapping;
     }
 
     public <T> void setStateVariable(Class<? extends TagHandler> key, T value) {
@@ -144,19 +153,54 @@ public class Parser {
         stateVariables.remove(key);
     }
 
-    public static class Token {
-        public final TagDelimiter.Type type;
-        public final String contents;
-        public final int startLine, endLine;
+    public static class Token extends JSObjectBase {
+        public static final String NAME = "Token";
+        
+        private TagDelimiter.Type type;
+        private String contents;
 
-        public Token(TagDelimiter.Type type, String contents, int startLine, int endLine) {
-            super();
+        private int startLine;
+
+        public Token(TagDelimiter.Type type, String contents, int startLine) {
+            this();
             this.type = type;
             this.contents = contents;
             this.startLine = startLine;
-            this.endLine = endLine;
         }
 
+        private Token() {
+            super(CONSTRUCTOR);
+        }
+        
+        public String getContents() {
+            return contents;
+        }
+
+        public int getStartLine() {
+            return startLine;
+        }
+        public String toJavascript() {
+            return "( new " + JSHelper.NS + "." + NAME + "(\"" + type + "\", " + JSON.serialize(contents) + ", " + startLine + ") )";
+        }
+        
+        public static final JSFunction CONSTRUCTOR = new JSFunctionCalls3() {
+            public Object call(Scope scope, Object typeObj, Object contentsObj, Object startLineObj, Object[] extra) {
+                Token thisObj = (Token)scope.getThis();
+                
+                JSString type = (JSString)typeObj;
+                JSString contents = (JSString)contentsObj;
+                int startLine = (Integer)startLineObj;
+                
+                thisObj.type = Enum.valueOf(TagDelimiter.Type.class, type.toString());
+                thisObj.contents = contents.toString();
+                thisObj.startLine = startLine;
+
+                return null;
+            }
+            public JSObject newOne() {
+                return new Token();
+            }
+        };
     }
 
     private static class TagDelimiter {
@@ -168,7 +212,7 @@ public class Parser {
             this.start = start;
             this.end = end;
         }
-
+        
         public enum Type {
             Text, Var, Block, Comment
         }

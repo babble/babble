@@ -6,7 +6,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import ed.appserver.templates.djang10.FilterExpression;
-import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.TemplateException;
 import ed.appserver.templates.djang10.Node.TagNode;
@@ -18,7 +17,7 @@ public class SetTagHandler implements TagHandler {
 
     public TagNode compile(Parser parser, String command, Token token) throws TemplateException {
         Pattern regex = Pattern.compile("^\\s*\\S+\\s+(\\S*)\\s*=\\s*(.+?)\\s*$");
-        Matcher matcher = regex.matcher(token.contents);
+        Matcher matcher = regex.matcher(token.getContents());
 
         if (!matcher.find())
             throw new TemplateException("Synatx Error on set tag");

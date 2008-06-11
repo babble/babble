@@ -26,7 +26,7 @@ public class FilterTagHandler implements TagHandler {
         List<Node> nodyNodes = parser.parse("end" + command);
         parser.nextToken();
 
-        String filterParams = token.contents.split("\\s", 2)[1].trim();
+        String filterParams = token.getContents().split("\\s", 2)[1].trim();
         FilterList filters = new FilterList(parser, filterParams);
 
         return new FilterNode(token, filters, nodyNodes);
