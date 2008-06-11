@@ -37,3 +37,5 @@ print( "foo.foo.com".split( "." ) );
 print( "foo.foo.com".split( /\./ ) );
 
 print( "foo.foo.com".replace( "." , "Z" )  );
+
+print( "abc.rb".replace( ".rb$" , "" ) );
