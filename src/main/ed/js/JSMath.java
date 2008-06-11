@@ -171,8 +171,18 @@ public class JSMath extends JSObjectBase {
                 }
             } );
 
+        set( "sigFig" , new JSFunctionCalls2(){
+                public Object call( Scope s , Object xObject , Object nObject , Object foo[] ){
+                    double X = ((Number)xObject).doubleValue();
+                    double N = nObject == null ? 3 : ((Number)nObject).doubleValue();
+                    double p = Math.pow( 10, N - Math.ceil( Math.log( Math.abs(X) ) / LN10 ) );
+                    return Math.round(X*p)/p;
+                }
+            } );
+
     }
     
 
-    
+    public static final double LN10 = Math.log(10);
+
 }
