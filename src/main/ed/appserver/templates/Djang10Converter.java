@@ -52,7 +52,7 @@ public class Djang10Converter implements TemplateConverter {
         if (!(extension).equals(t._extension))
             return null;
 
-        Parser parser = new Parser(t._content, tracker, JavaFilter.filters);
+        Parser parser = new Parser(t._content, tracker, JavaFilter.filters, _tagHandlers);
         LinkedList<Node> nodeList;
         try {
             nodeList = parser.parse();

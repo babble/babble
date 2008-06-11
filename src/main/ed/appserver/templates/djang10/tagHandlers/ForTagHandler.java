@@ -23,7 +23,7 @@ import ed.js.func.JSFunctionCalls2;
 public class ForTagHandler implements TagHandler {
 
     public TagNode compile(Parser parser, String command, Token token) throws TemplateException {
-        String[] params = token.contents.split("\\s");
+        String[] params = token.getContents().split("\\s");
         String itemName = params[1];
         if (!"in".equals(params[2]))
             throw new TemplateException("expected in operator");

@@ -16,7 +16,7 @@ public class BlockTagHandler implements TagHandler {
     public static final String RENDER_OPT_BLOCK_MAP = "blocks";
 
     public TagNode compile(Parser parser, String command, Token token) throws TemplateException {
-        String[] parts = token.contents.split("\\s");
+        String[] parts = token.getContents().split("\\s");
 
         String blockName = parts[1];
 

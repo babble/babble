@@ -6,3 +6,12 @@ register = new __djang10.Library();
 register.__filter("moo", function() {
     return "moo";
 });
+
+
+register.__tag("myTag", function(parser, token) {
+    return {
+        render: function(cxt) {
+            return "moo";
+        }
+    }
+});

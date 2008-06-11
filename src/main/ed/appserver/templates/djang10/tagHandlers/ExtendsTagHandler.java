@@ -19,7 +19,7 @@ import ed.js.JSFunction;
 public class ExtendsTagHandler implements TagHandler {
 
     public TagNode compile(Parser parser, String command, Token token) throws TemplateException {
-        String path = Parser.smartSplit(token.contents)[1];
+        String path = Parser.smartSplit(token.getContents())[1];
         Expression pathExpr = new Expression(path);
 
         parser.setStateVariable(this.getClass(), true);
