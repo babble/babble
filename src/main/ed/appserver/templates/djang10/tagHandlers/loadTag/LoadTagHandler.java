@@ -135,13 +135,15 @@ public class LoadTagHandler implements TagHandler {
                 public void toJavascript(JSWriter preamble, JSWriter buffer) throws TemplateException {
                     buffer.append("print(");
                     buffer.append(MODULE_LIST + "[" + moduleIndex + "].tags." + command + "(");
+                    //serialize the parser
                     buffer.append(" new " + JSHelper.NS + "." + JSRenderPhaseParser.NAME + "([");
+                    //serialize the immediate children using the tag contents and the javascript they generated
                     for(int i=0; i<childNodes.size(); i++) {
                         String tag = (childNodes.get(i) instanceof TagNode)? ((TagNode)childNodes.get(i)).tagName : "";
                         
                         if(i != 0) buffer.append(", ");
                         
-                        buffer.append("new " + JSHelper.NS + "." + JSRenderPhaseNode.NAME + "(\"" + tag + "\", " + childNodes.get(i).token.toJavascript() + ", function() {");
+                        buffer.append("new " + JSHelper.NS + "." + JSRenderPhaseNode.NAME + "(\"" + tag + "\", " + childNodes.get(i).token.toJavascript() + ", function(print) {");
                         childNodes.get(i).toJavascript(preamble, buffer);
                         buffer.append("})");
                     }

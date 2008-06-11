@@ -1,5 +1,6 @@
 package ed.appserver.templates.djang10.tagHandlers.loadTag;
 
+import java.util.LinkedList;
 import java.util.Queue;
 
 import ed.appserver.templates.djang10.Parser.Token;
@@ -7,6 +8,7 @@ import ed.js.JSArray;
 import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.JSObjectBase;
+import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
 import ed.js.func.JSFunctionCalls1;
@@ -18,6 +20,8 @@ public class JSRenderPhaseParser extends JSObjectBase {
     
     private JSRenderPhaseParser() {
         super(CONSTRUCTOR);
+        
+        compiledNodes = new LinkedList<JSRenderPhaseNode>();
     }
     private JSArray parse(JSArray parse_until) {
         if(parse_until == null)
@@ -26,7 +30,7 @@ public class JSRenderPhaseParser extends JSObjectBase {
         JSArray nodelist = create_nodelist();
         
         while(!compiledNodes.isEmpty()) {
-            if(parse_until.contains(compiledNodes.peek().getTagName()))
+            if(parse_until.contains(new JSString(compiledNodes.peek().getTagName())))
                 return nodelist;
 
             nodelist.add(compiledNodes.remove());
@@ -101,6 +105,9 @@ class JSRenderPhaseNode extends JSObjectBase {
     private Token token;
     private String tag;
     
+    public JSRenderPhaseNode() {
+        super(CONSTRUCTOR);
+    }
     String getTagName() {
         return tag;
     }
@@ -126,9 +133,8 @@ class JSRenderPhaseNode extends JSObjectBase {
                     JSRenderPhaseNode thisObj = (JSRenderPhaseNode)scope.getThis();
                     Scope callScope = scope.child();
                     PrintRedirector print = new PrintRedirector();
-                    callScope.set("print", print);
                     
-                    thisObj.renderFunc.call(callScope);
+                    thisObj.renderFunc.call(callScope, print);
                     return print.buffer.toString();
                 };
             });
