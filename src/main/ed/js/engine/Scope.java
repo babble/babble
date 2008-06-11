@@ -565,10 +565,8 @@ public class Scope implements JSObject {
     }
 
     public Object clearThisNormal( Object o ){
-        //if ( _this.size() > 0 ){
-            if ( DEBUG ) System.out.println( "popping this from (clearThisNormal) : " + _id );
-            _this.pop();
-            //}
+        if ( DEBUG ) System.out.println( "popping this from (clearThisNormal) : " + _id );
+        _this.pop();
         return o;
     }
 
