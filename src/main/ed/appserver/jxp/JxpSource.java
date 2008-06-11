@@ -23,9 +23,16 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
     }
 
     public static JxpSource getSource( File f ){
+        return getSource( f , null );
+        
+    }
+    
+    public static JxpSource getSource( File f , JSFileLibrary lib ){
         if ( f == null )
             throw new NullPointerException( "can't have null file" );
-        return new JxpFileSource( f );
+        JxpSource s = new JxpFileSource( f );
+        s._lib = lib;
+        return s;
     }
 
     // -----
@@ -102,8 +109,11 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
     public JxpServlet getServlet( AppContext context )
         throws IOException {
         _checkTime();
-        if ( _servlet == null )
-            _servlet = new JxpServlet( context , this , getFunction() );
+        if ( _servlet == null ){
+            JSFunction f = getFunction();
+            _servlet = new JxpServlet( context , this , f );
+            JSFileLibrary.addPath( f.getClass() , _lib );
+        }
         return _servlet;
     }
     
@@ -134,9 +144,11 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
     
     private long _lastParse = 0;
     private List<Dependency> _dependencies = new ArrayList<Dependency>();
-
+    
     private JSFunction _func;
     private JxpServlet _servlet;
+
+    private JSFileLibrary _lib;
 
 
     // -------------------

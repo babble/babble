@@ -17,6 +17,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
     
     static final boolean D = Boolean.getBoolean( "DEBUG.JSFL" );
     static final boolean DS = Boolean.getBoolean( "DEBUG.JSFLB" ) || D;
+    static final boolean DP = Boolean.getBoolean( "DEBUG.PATHING" ) || D;
 
     public static final boolean INIT_BY_DEFAULT = false;
 
@@ -183,7 +184,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
             try {
                 JSFunction func = source.getFunction();
                 func.setName( _uriBase + "." + n.toString() );
-                addPath( func.getClass() , this );
+                addPath( func , this );
                 foo = func;
             }
             catch ( IOException ioe ){
@@ -305,7 +306,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
 
         source = _sources.get( f );
         if ( source == null ){
-            source = JxpSource.getSource( f );
+            source = JxpSource.getSource( f , this );
             _sources.put( f , source );
         }
         
@@ -445,11 +446,17 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         int idx = topjs.indexOf( "$" );
         if ( idx > 0 )
             topjs = topjs.substring( 0 , idx );
+        if ( DP ) System.out.println( "looking or path : " + topjs );
         JSFileLibrary lib = _classToPath.get( topjs );
         return lib;
     }
+
+    public static void addPath( JSFunction f , JSFileLibrary lib ){
+        addPath( f.getClass() , lib );
+    }
     
     public static void addPath( Class c , JSFileLibrary lib ){
+        if ( DP ) System.out.println( "adding to path : " + c );
         _classToPath.put( c.getName() , lib );
     }
 
