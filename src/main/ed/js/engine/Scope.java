@@ -901,28 +901,6 @@ public class Scope implements JSObject {
     private static final Class[] EMPTY_CLASS_ARRAY = new Class[0];
     
     private static final JSFunctionCalls0 _nativeFuncCall = new JSFunctionCalls0(){
-            Map< Class , Map< String , List<Method> > > _classToMethods = new HashMap< Class , Map< String , List<Method> > >();
-            
-            List<Method> getMethods( Class c , String n ){
-                Map<String,List<Method>> m = _classToMethods.get( c );
-                if ( m == null ){
-                    m = new HashMap<String,List<Method>>();
-                    _classToMethods.put( c , m );
-                }
-                
-                List<Method> l = m.get( n );
-                if ( l != null )
-                    return l;
-
-                l = new ArrayList<Method>();
-                Method all[] = c.getMethods();
-                Arrays.sort( all , Scope._methodLengthComparator );
-                for ( Method method : all )
-                    if ( method.getName().equals( n ) )
-                        l.add( method );
-                m.put( n , l );
-                return l;
-            }
 
             public Object call( Scope s , Object params[] ){
                 
@@ -938,71 +916,104 @@ public class Scope implements JSObject {
                     throw new NullPointerException( "object was null.  name was:" + name );
                 
                 if ( debug ) System.out.println( obj.getClass() + " : " + name );
-
-                List<Method> methods = getMethods( obj.getClass() , name );
-                if ( methods != null && methods.size() > 0 ){
-                    methods:
-                    for ( Method m : methods ){
-                        if ( debug ) System.out.println( "\t " + m.getName() );
-                        
-                        Object nParams[] = doParamsMatch( m.getParameterTypes() , params , debug );
-                        if ( nParams == null ){
-                            if ( debug ) System.out.println( "\t\t boo" );
-                            continue;
-                        }
-
-                        if ( debug ) System.out.println( "\t\t yay" );
-
-                        m.setAccessible( true );
-                        try {
-                            Object ret = m.invoke( obj , nParams );
-                            if ( ret != null ){
-                                if ( ret instanceof String )
-                                    ret = new JSString( ret.toString() );
-                                else if ( ret instanceof java.util.Date ) 
-                                    ret = new JSDate( (java.util.Date)ret );
-                                else if ( ret instanceof java.util.Collection ){
-                                    if ( ! ( ret instanceof JSArray  ) ){
-                                        JSArray a = new JSArray();
-                                        for ( Object o : (Collection)ret )
-                                            a.add( o );
-                                        ret = a;
-                                    }
-                                }
-                                else if ( ret.getClass().isArray() ){
-                                    if ( ret.getClass().getName().toString().length() > 3 ){ // primitive
-                                        JSArray a = new JSArray();
-                                        for ( Object o : ((Object[])ret) )
-                                            a.add( o );
-                                        return a;
-                                    }
-                                }
-                            }
-                            return ret;
-                        }
-                        catch ( InvocationTargetException e ){
-                            throw new RuntimeException( e.getCause() );
-                        }
-                        catch ( RuntimeException e ){
-                            throw e;
-                        }
-                        catch ( Exception e ){
-                            throw new RuntimeException( e );
-                        }
-                    }
-                    
-                    throw new NullPointerException( "no method with matching params [" + name + "] (from a [" + obj.getClass() + "])" );
-                }
                 
-                if ( obj.getClass() == JSObjectBase.class )
-                    throw new NullPointerException( "no function called : " + name + " fields [" + ((JSObjectBase)obj).keySet() + "]" );
-                
-                if ( obj instanceof ed.appserver.JSFileLibrary )
-                    throw new NullPointerException( "included file [" + ((ed.appserver.JSFileLibrary)obj).getURIBase().replaceAll( "^jxp" , "" )  + "/" + name + "] does not exist" );
-
-                throw new NullPointerException( name + " (from a [" + obj.getClass() + "])" );
+                return callNative( s , obj , name , params , debug );
             }
         };
+
+    private static Map< Class , Map< String , List<Method> > > _classToMethods = new HashMap< Class , Map< String , List<Method> > >();
+    
+    private static List<Method> getMethods( Class c , String n ){
+        Map<String,List<Method>> m = _classToMethods.get( c );
+        if ( m == null ){
+            m = new HashMap<String,List<Method>>();
+            _classToMethods.put( c , m );
+        }
+        
+        List<Method> l = m.get( n );
+        if ( l != null )
+            return l;
+        
+        l = new ArrayList<Method>();
+        Method all[] = c.getMethods();
+        Arrays.sort( all , Scope._methodLengthComparator );
+        for ( Method method : all )
+            if ( method.getName().equals( n ) )
+                l.add( method );
+        m.put( n , l );
+        return l;
+    }
+    
+
+    public static Object callNative( Scope s , Object obj , String name , Object params[] ){
+        return callNative( s , obj , name , params , false );
+    }
+    
+    public static Object callNative( Scope s , Object obj , String name , Object params[]  , boolean debug ){
+        List<Method> methods = getMethods( obj.getClass() , name );
+        if ( methods != null && methods.size() > 0 ){
+            methods:
+            for ( Method m : methods ){
+                if ( debug ) System.out.println( "\t " + m.getName() );
+                
+                Object nParams[] = doParamsMatch( m.getParameterTypes() , params , debug );
+                if ( nParams == null ){
+                    if ( debug ) System.out.println( "\t\t boo" );
+                    continue;
+                }
+                
+                if ( debug ) System.out.println( "\t\t yay" );
+                
+                m.setAccessible( true );
+                try {
+                    Object ret = m.invoke( obj , nParams );
+                    if ( ret != null ){
+                        if ( ret instanceof String )
+                            ret = new JSString( ret.toString() );
+                        else if ( ret instanceof java.util.Date ) 
+                            ret = new JSDate( (java.util.Date)ret );
+                        else if ( ret instanceof java.util.Collection ){
+                            if ( ! ( ret instanceof JSArray  ) ){
+                                JSArray a = new JSArray();
+                                for ( Object o : (Collection)ret )
+                                    a.add( o );
+                                ret = a;
+                            }
+                        }
+                        else if ( ret.getClass().isArray() ){
+                            if ( ret.getClass().getName().toString().length() > 3 ){ // primitive
+                                JSArray a = new JSArray();
+                                for ( Object o : ((Object[])ret) )
+                                    a.add( o );
+                                return a;
+                            }
+                        }
+                    }
+                    return ret;
+                }
+                catch ( InvocationTargetException e ){
+                    throw new RuntimeException( e.getCause() );
+                }
+                catch ( RuntimeException e ){
+                    throw e;
+                }
+                catch ( Exception e ){
+                    throw new RuntimeException( e );
+                }
+            }
+            
+                    throw new NullPointerException( "no method with matching params [" + name + "] (from a [" + obj.getClass() + "])" );
+        }
+                
+        if ( obj.getClass() == JSObjectBase.class )
+            throw new NullPointerException( "no function called : " + name + " fields [" + ((JSObjectBase)obj).keySet() + "]" );
+        
+        if ( obj instanceof ed.appserver.JSFileLibrary )
+            throw new NullPointerException( "included file [" + ((ed.appserver.JSFileLibrary)obj).getURIBase().replaceAll( "^jxp" , "" )  + "/" + name + "] does not exist" );
+
+        throw new NullPointerException( name + " (from a [" + obj.getClass() + "])" );
+
+    }
 
     static Object[] doParamsMatch( Class myClasses[] , Object params[] ){
         return doParamsMatch( myClasses , params , false );
