@@ -61,14 +61,30 @@ public class HttpResponse extends JSObjectBase {
         return _responseCode;
     }
 
+
+    /**
+     * @param name cookie name
+     * @param value cookie value
+     * @param maxAge
+     *          > 0 = seconds into the future
+     *            0 = browser session
+     *          < 0 remove
+     */
     public void addCookie( String name , String value , int maxAge ){
         _cookies.add( new Cookie( name , value , maxAge ) );
     }
 
+    /**
+     * @param name cookie name
+     * @param value cookie value
+     */
     public void addCookie( String name , String value ){
         _cookies.add( new Cookie( name , value ) );
     }
     
+    /**
+     * equivilant to "addCookie( name , null , -1 )"
+     */
     public void removeCookie( String name ){
         _cookies.add( new Cookie( name , "asd" , -1 ) );
     }
