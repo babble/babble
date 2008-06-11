@@ -32,6 +32,7 @@ public class JSHelper extends JSObjectBase {
     public static final String CONTEXT_CLASS = "Context";
     public static final String LIBRARY_CLASS = "Library";
     public static final String NS = "__djang10";
+    public static final String publicApi = "publicApi";
 
     private final ArrayList<JSFileLibrary> templateRoots;
     private final ArrayList<JSFileLibrary> moduleRoots;
@@ -53,22 +54,35 @@ public class JSHelper extends JSObjectBase {
         }
 
         // add the basic helpers
-        this.set(JSHelper.LOAD_PATH, loadPath);
-        this.set(JSHelper.CALL_PATH, callPath);
-        this.set(JSHelper.ADD_TEMPLATE_ROOT, addTemplateRoot);
+        this.set(LOAD_PATH, loadPath);
+        this.set(CALL_PATH, callPath);
+        this.set(ADD_TEMPLATE_ROOT, addTemplateRoot);
 
-        this.set(JSHelper.ADD_MODULE_ROOT, addModuleRoot);
-        this.set(JSHelper.CALL_MODULE, callModule);
-        this.set(JSHelper.LOAD_MODULE, loadModule);
+        this.set(ADD_MODULE_ROOT, addModuleRoot);
+        this.set(CALL_MODULE, callModule);
+        this.set(LOAD_MODULE, loadModule);
 
-        this.set(JSHelper.CONTEXT_CLASS, Context.CONSTRUCTOR);
+        this.set(CONTEXT_CLASS, Context.CONSTRUCTOR);
         this.set(LIBRARY_CLASS, Library.CONSTRUCTOR);
         this.set(Token.NAME, Token.CONSTRUCTOR);
+        
+        this.set(publicApi, new PublicApi());
+        
         this.lock();
     }
 
+    private class PublicApi extends JSObjectBase {
+        public PublicApi() {
+            set("addTemplateRoot", addTemplateRoot);
+            set("loadTemplate", loadPath);
+            set("Context", Context.CONSTRUCTOR);
+            
+            set("addTemplateTagsRoot", addModuleRoot);
+            set("Library", Library.CONSTRUCTOR);
+        }
+    }
+    
     private final JSFunction callPath = new JSFunctionCalls1() {
-        @Override
         public Object call(Scope scope, Object pathObj, Object[] extra) {
             Object loadedObj = loadPath.call(scope, pathObj, extra);
 
@@ -80,7 +94,6 @@ public class JSHelper extends JSObjectBase {
     };
 
     private final JSFunction loadPath = new JSFunctionCalls1() {
-        @Override
         public Object call(Scope scope, Object pathObj, Object[] extra) {
 
             if (pathObj == null || pathObj == Expression.UNDEFINED_VALUE)
@@ -136,7 +149,6 @@ public class JSHelper extends JSObjectBase {
     };
 
     private final JSFunction addTemplateRoot = new JSFunctionCalls1() {
-        @Override
         public Object call(Scope scope, Object newRoot, Object[] extra) {
             JSFileLibrary templateFileLib;
 
