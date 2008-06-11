@@ -111,7 +111,7 @@ public class IfTagHandler implements TagHandler {
             endIfStartLine = endToken.getStartLine();
         }
 
-        public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
+        public void toJavascript(JSWriter preamble, JSWriter buffer) throws TemplateException {
             buffer.append(startLine, "if(");
 
             boolean isFirst = true;
@@ -130,13 +130,13 @@ public class IfTagHandler implements TagHandler {
             buffer.append(startLine, ") {\n");
 
             for (Node node : trueNodes) {
-                node.getRenderJSFn(preamble, buffer);
+                node.toJavascript(preamble, buffer);
             }
 
             buffer.append(elseStartLine, "} else {\n");
 
             for (Node node : falseNodes) {
-                node.getRenderJSFn(preamble, buffer);
+                node.toJavascript(preamble, buffer);
             }
 
             buffer.append(endIfStartLine, "}\n");

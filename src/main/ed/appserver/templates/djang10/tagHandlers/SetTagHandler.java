@@ -43,7 +43,7 @@ public class SetTagHandler implements TagHandler {
         }
 
         @Override
-        public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
+        public void toJavascript(JSWriter preamble, JSWriter buffer) throws TemplateException {
             buffer.append(startLine, JSWriter.CONTEXT_STACK_VAR + ".set(" + q(varName) + ", " + varValue.toJavascript() + ");\n");
         }
 

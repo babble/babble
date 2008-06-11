@@ -72,7 +72,7 @@ public class IfEqualTagHandler implements TagHandler {
         }
 
         @Override
-        public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
+        public void toJavascript(JSWriter preamble, JSWriter buffer) throws TemplateException {
             // TODO Auto-generated method stub
 
             buffer.append(startLine, "if(");
@@ -84,13 +84,13 @@ public class IfEqualTagHandler implements TagHandler {
             buffer.append(startLine, ") {\n");
 
             for (Node node : trueNodes)
-                node.getRenderJSFn(preamble, buffer);
+                node.toJavascript(preamble, buffer);
 
             if (elseToken != null) {
                 buffer.append(elseToken.getStartLine(), "} else {\n");
 
                 for (Node node : falseNodes) {
-                    node.getRenderJSFn(preamble, buffer);
+                    node.toJavascript(preamble, buffer);
                 }
             }
             buffer.append(endToken.getStartLine(), "}\n");

@@ -10,16 +10,17 @@ import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import ed.appserver.templates.Djang10Converter;
 import ed.appserver.templates.djang10.Node.VariableNode;
 import ed.appserver.templates.djang10.filters.Filter;
 import ed.appserver.templates.djang10.tagHandlers.TagHandler;
+import ed.js.JSArray;
 import ed.js.JSFunction;
 import ed.js.JSON;
 import ed.js.JSObject;
 import ed.js.JSObjectBase;
 import ed.js.JSString;
 import ed.js.engine.Scope;
+import ed.js.func.JSFunctionCalls0;
 import ed.js.func.JSFunctionCalls3;
 import ed.util.DependencyTracker;
 
@@ -161,6 +162,10 @@ public class Parser {
 
         private int startLine;
 
+        private Token() {
+            super(CONSTRUCTOR);
+        }
+        
         public Token(TagDelimiter.Type type, String contents, int startLine) {
             this();
             this.type = type;
@@ -168,10 +173,6 @@ public class Parser {
             this.startLine = startLine;
         }
 
-        private Token() {
-            super(CONSTRUCTOR);
-        }
-        
         public String getContents() {
             return contents;
         }
@@ -179,8 +180,16 @@ public class Parser {
         public int getStartLine() {
             return startLine;
         }
+        public String[] split_contents() {
+            return Parser.smartSplit(contents);
+        }
+        
         public String toJavascript() {
             return "( new " + JSHelper.NS + "." + NAME + "(\"" + type + "\", " + JSON.serialize(contents) + ", " + startLine + ") )";
+        }
+        
+        public String toString() {
+            return "<" + type + ": " + contents.substring(0, Math.max(20, contents.length())) + "...>";
         }
         
         public static final JSFunction CONSTRUCTOR = new JSFunctionCalls3() {
@@ -199,6 +208,17 @@ public class Parser {
             }
             public JSObject newOne() {
                 return new Token();
+            }
+            protected void init() {
+                _prototype.set("split_contents", new JSFunctionCalls0() {
+                    public Object call(Scope scope, Object[] extra) {
+                        Token thisObj = (Token)scope.getThis();
+                        JSArray parts = new JSArray();
+                        for(String part : thisObj.split_contents())
+                            parts.add(new JSString(part));
+                        return parts;
+                    }
+                });
             }
         };
     }

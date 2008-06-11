@@ -77,7 +77,7 @@ public class Djang10Converter implements TemplateConverter {
 
         for (Node node : nodeList) {
             try {
-                node.getRenderJSFn(preamble, writer);
+                node.toJavascript(preamble, writer);
             } catch (TemplateException e) {
                 throw new RuntimeException(e);
             }

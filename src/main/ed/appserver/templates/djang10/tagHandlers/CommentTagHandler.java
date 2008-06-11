@@ -27,7 +27,7 @@ public class CommentTagHandler implements TagHandler {
             super(token);
         }
 
-        public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
+        public void toJavascript(JSWriter preamble, JSWriter buffer) throws TemplateException {
             // noop
         }
     }

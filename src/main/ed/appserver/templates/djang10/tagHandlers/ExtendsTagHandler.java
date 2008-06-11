@@ -49,10 +49,9 @@ public class ExtendsTagHandler implements TagHandler {
             this.topLevelBlocks = topLevelBlocks;
         }
 
-        @Override
-        public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
+        public void toJavascript(JSWriter preamble, JSWriter buffer) throws TemplateException {
             for (Node node : topLevelBlocks)
-                node.getRenderJSFn(preamble, buffer);
+                node.toJavascript(preamble, buffer);
 
             buffer.appendHelper(startLine, JSHelper.CALL_PATH + "(");
             buffer.append(startLine, path.toJavascript());

@@ -14,7 +14,7 @@ public abstract class Node {
         this.token = token;
     }
 
-    public abstract void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException;
+    public abstract void toJavascript(JSWriter preamble, JSWriter buffer) throws TemplateException;
 
     public static class TextNode extends Node {
         private final String text;
@@ -25,7 +25,7 @@ public abstract class Node {
             this.text = token.getContents();
         }
 
-        public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
+        public void toJavascript(JSWriter preamble, JSWriter buffer) throws TemplateException {
 
             String escaped = text.replace("\"", "\\\"");
 
@@ -57,7 +57,7 @@ public abstract class Node {
             this.expression = expression;
         }
 
-        public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
+        public void toJavascript(JSWriter preamble, JSWriter buffer) throws TemplateException {
             buffer.append(startLine, "print(" + JSHelper.NS + "." + Expression.DEFAULT_VALUE + "(" + expression.toJavascript()
                     + ", " + "''));\n");
         }
