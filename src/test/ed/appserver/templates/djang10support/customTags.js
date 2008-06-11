@@ -1,14 +1,14 @@
 
 //register = new core.templates.djang10.Library();
-register = new __djang10.Library();
+var djang10 = __djang10.publicApi;
+register = new djang10.Library();
 
-//register.filter("moo", function() {
-register.__filter("moo", function() {
+register.filter("moo", function() {
     return "moo";
 });
 
 
-register.__tag("myTag", function(parser, token) {
+register.tag("myTag", function(parser, token) {
     return {
         render: function(cxt) {
             return "moo";

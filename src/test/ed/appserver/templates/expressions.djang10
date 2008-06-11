@@ -1,3 +1,4 @@
+{% ifequal prototypedObj.getProp "moo" %}moo {% endifequal %}
 {{ echoFunc("should see me") }}
 
 {{ array|length_is:echoFunc(5) }}

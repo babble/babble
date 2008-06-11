@@ -26,7 +26,7 @@ public class Library extends JSObjectBase {
         }
 
         protected void init() {
-            _prototype.set("__filter", new JSFunctionCalls2() {
+            _prototype.set("filter", new JSFunctionCalls2() {
                 @Override
                 public Object call(Scope scope, Object nameObj, Object filterFuncObj, Object[] extra) {
                     String name = ((JSString) nameObj).toString();
@@ -36,7 +36,7 @@ public class Library extends JSObjectBase {
                 }
             });
 
-            _prototype.set("__tag", new JSFunctionCalls2() {
+            _prototype.set("tag", new JSFunctionCalls2() {
                 @Override
                 public Object call(Scope scope, Object nameObj, Object tagFuncObj, Object[] extra) {
                     String name = ((JSString) nameObj).toString();

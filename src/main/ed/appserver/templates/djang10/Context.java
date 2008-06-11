@@ -14,8 +14,8 @@ import ed.js.func.JSFunctionCalls0;
 import ed.js.func.JSFunctionCalls1;
 
 public class Context extends JSObjectBase {
-    public static final String PUSH = "__push";
-    public static final String POP = "__pop";
+    public static final String PUSH = "push";
+    public static final String POP = "pop";
 
     public final static JSFunction CONSTRUCTOR = new JSFunctionCalls1() {
         public JSObject newOne() {
