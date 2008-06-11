@@ -6,11 +6,12 @@ import ed.appserver.templates.djang10.Parser.Token;
 import ed.appserver.templates.djang10.generator.JSWriter;
 
 public abstract class Node {
-    public final int startLine, endLine;
+    public final int startLine;
+    public final Token token;
 
     protected Node(Token token) {
-        this.startLine = token.startLine;
-        this.endLine = token.endLine;
+        this.startLine = token.getStartLine();
+        this.token = token;
     }
 
     public abstract void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException;
@@ -21,7 +22,7 @@ public abstract class Node {
         public TextNode(Token token) {
             super(token);
 
-            this.text = token.contents;
+            this.text = token.getContents();
         }
 
         public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
@@ -67,7 +68,7 @@ public abstract class Node {
 
         public TagNode(Token token) {
             super(token);
-            this.tagName = token.contents.trim().split("\\s")[0];
+            this.tagName = token.getContents().trim().split("\\s")[0];
         }
         
         

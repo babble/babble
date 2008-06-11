@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import ed.appserver.templates.djang10.Expression;
-import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.TemplateException;
 import ed.appserver.templates.djang10.Node.TagNode;
@@ -15,7 +14,7 @@ import ed.js.JSFunction;
 public class FirstOfTagHandler implements TagHandler {
 
     public TagNode compile(Parser parser, String command, Token token) throws TemplateException {
-        String tokenContents = token.contents.replaceFirst("\\S+\\s*", ""); // remove
+        String tokenContents = token.getContents().replaceFirst("\\S+\\s*", ""); // remove
                                                                             // the
                                                                             // tag
                                                                             // name

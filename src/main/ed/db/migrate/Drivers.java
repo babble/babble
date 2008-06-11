@@ -51,6 +51,16 @@ public class Drivers {
             return new MyResult( stmt , stmt.executeQuery( s ) );
         }
         
+        public int exec( String s )
+            throws SQLException {
+            Statement stmt = null;
+            if ( _stmts.size() > 0 )
+                stmt = _stmts.remove(0);
+            else
+                stmt = _conn.createStatement();
+            return stmt.executeUpdate( s );
+        }
+
         public String toString(){
             return _url;
         }

@@ -10,9 +10,8 @@ public class TemplateException extends Exception {
         super(message, t);
     }
 
-    public TemplateException(int startLine, int endLine, String message) {
-        super(message + ". Starting on Line: " + startLine + ", ending on Line: " + endLine);
-        // TODO Auto-generated constructor stub
+    public TemplateException(int startLine, String message) {
+        super(message + ". On Line: " + startLine);
     }
 
 }

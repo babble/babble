@@ -21,7 +21,7 @@ public class CycleTagHandler implements TagHandler {
 
     public TagNode compile(Parser parser, String command, Token token) throws TemplateException {
         Pattern p = Pattern.compile("^\\s*(?:\\S+) (.+?)(?: as (\\S+))?\\s*$");
-        Matcher m = p.matcher(token.contents);
+        Matcher m = p.matcher(token.getContents());
         if (!m.find())
             throw new TemplateException("invalid syntax for cycle tag");
 
