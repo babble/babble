@@ -171,6 +171,7 @@ public class JSObjectBase implements JSObject {
                 Scope scope = f.getScope();
                 if ( scope == null )
                     scope = Scope.getAScope( false , true );
+                
                 scope = scope.child();
                 scope.setThis( this );
                 if ( ! _inNotFoundHandler.get() ){
@@ -480,7 +481,7 @@ public class JSObjectBase implements JSObject {
     }
 
     public void setConstructor( JSFunction cons ){
-        setConstructor( cons , false );
+        setConstructor( cons , false , null );
     }
 
     public void setConstructor( JSFunction cons , boolean exec ){
@@ -490,13 +491,13 @@ public class JSObjectBase implements JSObject {
     public void setConstructor( JSFunction cons , boolean exec , Object args[] ){
         _readOnlyCheck();
         _dirtyMyself();
-
+        
         _constructor = cons;
-        set( "__constructor__" , _constructor );
-        set( "constructor" , _constructor );
+        _mapSet( "__constructor__" , _constructor );
+        _mapSet( "constructor" , _constructor );
 
         Object __proto__ = _constructor == null ? null : _constructor._prototype;
-        set( "__proto__" , __proto__ );
+        _mapSet( "__proto__" , __proto__ );
 
         if ( _constructor != null && exec ){
             
@@ -648,6 +649,11 @@ public class JSObjectBase implements JSObject {
         if ( o == UNDEF )
             return null;
         return o;
+    }
+
+    private void _mapSet( final String s , final Object o ){
+        _checkMap();
+        _map.put( s , o );
     }
 
     private void _dirtyMyself(){
