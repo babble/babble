@@ -18,18 +18,10 @@ public abstract class DBBase extends JSObjectLame {
 		 *  augment the db object 
 		 */
 
-	    String root = ed.db.JSHook.whereIsEd;
-	    if ( root == null )
-	        root = "";
-	    root += "src/main/ed/db/";
-	    java.io.File rootFile = new java.io.File( root );
-	    if ( ! rootFile.exists() ){
-	    	throw new RuntimeException("woog");
-	    }
-	
-	    JSFileLibrary lib = new JSFileLibrary( rootFile , null, (Scope) null);
-	    Scope s = Scope.newGlobal();
-	    
+    	Scope s = Scope.newGlobal();
+
+        JSFileLibrary lib = JSFileLibrary.loadLibraryFromEd("ed/db/", null, s);
+
 	    ((JSFunction)(lib.get( "db" ))).call( s, this );
 	    ((JSFunction)(lib.get( "dbcollection" ))).call( s, this);	
     }
