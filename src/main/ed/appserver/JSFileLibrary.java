@@ -10,6 +10,7 @@ import ed.js.func.*;
 import ed.js.engine.*;
 import ed.security.*;
 import ed.appserver.jxp.*;
+import ed.db.JSHook;
 import ed.util.*;
 
 public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
@@ -18,6 +19,28 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
     static final boolean DS = Boolean.getBoolean( "DEBUG.JSFLB" ) || D;
 
     public static final boolean INIT_BY_DEFAULT = false;
+
+    /**
+     *  Helper function to load a core appserver library.  Note that 
+     *  "src/main/" is the assumed starting point for specifying the library location
+     *  
+     * @param location Root of library.  E.g. "ed/db"
+     * @param uriBase optional package name
+     * @param scope 
+     * @return Library or null if can't be found
+     */
+    public static JSFileLibrary loadLibraryFromEd(String location,  String uriBase, Scope scope){ 
+	    String root = JSHook.whereIsEd;
+	    if ( root == null ) {
+	        root = "";
+	    }	    
+	    root += "src/main/" + location;	    
+	    File rootFile = new File( root );
+	    if ( ! rootFile.exists() ){
+	    	return null;
+	    }	
+	    return new JSFileLibrary( rootFile , uriBase, scope);
+    }
     
     public JSFileLibrary( File base , String uriBase , AppContext context ){
         this( null , base , uriBase , context , null , INIT_BY_DEFAULT );
@@ -29,8 +52,6 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
     
     protected JSFileLibrary( JSFileLibrary parent , File base , String uriBase , AppContext context , Scope scope , boolean doInit ){
 
-        if ( uriBase.equals( "core" ) && ! doInit )
-            throw new RuntimeException( "you are stupid" );
         
         _parent = parent;
         _base = base;
@@ -41,12 +62,17 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         
         if ( DS ) System.out.println( "creating : " + _base );
 
-
-        // this is ugly - please fix
-        if ( uriBase.equals( "core" ) )
-            set( "modules" , new ModuleDirectory( "core-modules" , "core.modules" , context , scope ) );
-        else if ( uriBase.equals( "local" ) || uriBase.equals( "jxp" ) )
-            set( "modules" , new ModuleDirectory( "site-modules" , "local.modules" , context , scope ) );
+        
+        if ( uriBase != null ){
+	        if ( uriBase.equals( "core" ) && ! doInit )
+	            throw new RuntimeException( "you are stupid" );
+	           
+	        // this is ugly - please fix
+	        if ( uriBase.equals( "core" ) )
+	            set( "modules" , new ModuleDirectory( "core-modules" , "core.modules" , context , scope ) );
+	        else if ( uriBase.equals( "local" ) || uriBase.equals( "jxp" ) )
+	            set( "modules" , new ModuleDirectory( "site-modules" , "local.modules" , context , scope ) );
+	    }
     }
 
     private synchronized void _init(){
