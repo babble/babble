@@ -107,6 +107,7 @@ public class Djang10ConverterTest extends ConvertTestBase {
            }
         });
         
+        o.set("prototypedObj", testScope.eval("function PrototypedClazz() {}; PrototypedClazz.prototype.getProp = function() { return 'moo'; }; return new PrototypedClazz();") );
         
         return new Object[]{ o };
     }
