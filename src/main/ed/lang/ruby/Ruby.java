@@ -113,9 +113,8 @@ public class Ruby {
                     if ( thing instanceof Boolean )
                         thing = JSBoolean.functions;
 
-                    if ( ! ( thing instanceof JSObject) ){
-                        throw new RuntimeException( "problem (" + thing.getClass() + ")" );
-                    }
+                    if ( ! ( thing instanceof JSObject) )
+                        return Scope.callNative( s , thing , funcName.toString() , null );
                     
 
                     JSObject jo = (JSObject)thing;
