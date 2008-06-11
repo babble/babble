@@ -51,6 +51,16 @@ public class Drivers {
             return new MyResult( stmt , stmt.executeQuery( s ) );
         }
         
+        public int exec( String s )
+            throws SQLException {
+            Statement stmt = null;
+            if ( _stmts.size() > 0 )
+                stmt = _stmts.remove(0);
+            else
+                stmt = _conn.createStatement();
+            return stmt.executeUpdate( s );
+        }
+
         public String toString(){
             return _url;
         }
@@ -91,7 +101,9 @@ public class Drivers {
                 
                 if ( name.equals( "hasNext" ) ||
                      name.equals( "asObject" ) || 
+                     name.equals( "toObject" ) || 
                      name.equals( "asArray" ) || 
+                     name.equals( "toArray" ) || 
                      name.equals( "keySet" ) )
                     return null;
 
@@ -108,11 +120,20 @@ public class Drivers {
                 }
             }
             
+            public JSObject toObject(){
+                return asObject();
+            }
+
             public JSObject asObject(){
                 JSObjectBase o = new JSObjectBase();
                 for ( String s : _fields )
                     o.set( s , get( s ) );
                 return o;
+            }
+
+            public JSArray toArray()
+                throws SQLException {
+                return asArray();
             }
 
             public JSArray asArray()

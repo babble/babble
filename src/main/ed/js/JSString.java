@@ -275,7 +275,7 @@ public class JSString extends JSObjectBase implements Comparable {
                         String str = s.getThis().toString();
 
                         if ( o instanceof String || o instanceof JSString )
-                            o = new JSRegex( o.toString() , "" );
+                            o = new JSRegex( JSRegex.quote( o.toString() ) , "" );
                             
                         if ( ! ( o instanceof JSRegex ) )
                             throw new RuntimeException( "not a regex : " + o.getClass() );
@@ -395,7 +395,7 @@ public class JSString extends JSObjectBase implements Comparable {
                         String str = s.getThis().toString();
 
                         if ( o instanceof String || o instanceof JSString )
-                            o = new JSRegex( o.toString() , "" );
+                            o = new JSRegex( JSRegex.quote( o.toString() ) , "" );
                             
                         if ( ! ( o instanceof JSRegex ) )
                             throw new RuntimeException( "not a regex : " + o.getClass() );
