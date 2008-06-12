@@ -164,8 +164,12 @@ public class Shell {
 
             try {
                 Object res = s.eval( line , "lastline" , hasReturn );
-                if ( hasReturn[0] )
-                    System.out.println( JSON.serialize( res ) );
+                if ( hasReturn[0] ){
+                    if ( res instanceof DBCursor )
+                        ed.db.Shell.displayCursor( System.out , (DBCursor)res );
+                    else
+                        System.out.println( JSON.serialize( res ) );
+                }
             }
             catch ( Exception e ){
                 if ( JS.RAW_EXCPETIONS )
