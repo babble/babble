@@ -8,3 +8,7 @@
 {% myTagWithChild %}
 crap in between
 {% endmyTagWithChild %}
+
+{% load moreCustomTags %}
+
+{{ 5|moo2 }}

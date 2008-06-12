@@ -37,7 +37,7 @@ public class LoadTagHandler implements TagHandler {
         if (!moduleName.matches("^\\w+$"))
             throw new TemplateException("invalid module name: " + moduleName);
 
-        JSFunction module = helper.loadModule(moduleName);
+        JSFunction module = helper.loadModule(callingScope, moduleName);
         if (module == null)
             throw new TemplateException("failed to find module: " + moduleName);
         parser.getTracker().addDependency((JxpSource) module.get(JxpSource.JXP_SOURCE_PROP));
