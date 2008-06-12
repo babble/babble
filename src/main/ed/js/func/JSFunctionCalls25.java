@@ -565,40 +565,31 @@ public abstract class JSFunctionCalls25 extends JSFunction {
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object p13 , Object p14 , Object p15 , Object p16 , Object p17 , Object p18 , Object p19 , Object p20 , Object p21 , Object p22 , Object p23 , Object p24 , Object p25 , Object [] extra ){
             if ( _lastStart.get() == null ) _lastStart.set( 26 ); 
-            boolean needExtra =  p25 != null  || ( extra != null && extra.length > 0 ) ;
-            Object newExtra[] = needExtra ? new Object[1 + ( extra == null ? 0 : extra.length ) ] : null;
-            if ( newExtra != null ){
-                newExtra[0] = p25;
-                for ( int i=0; extra != null && i<extra.length; i++ )
-                    newExtra[i + 1] = extra[i];
-            }
+            Object newExtra[] = new Object[1 + ( extra == null ? 0 : extra.length ) ];
+            newExtra[0] = p25;
+            for ( int i=0; extra != null && i<extra.length; i++ )
+                newExtra[i + 1] = extra[i];
             return call( scope , p0 , p1 , p2 , p3 , p4 , p5 , p6 , p7 , p8 , p9 , p10 , p11 , p12 , p13 , p14 , p15 , p16 , p17 , p18 , p19 , p20 , p21 , p22 , p23 , p24 , newExtra );
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object p13 , Object p14 , Object p15 , Object p16 , Object p17 , Object p18 , Object p19 , Object p20 , Object p21 , Object p22 , Object p23 , Object p24 , Object p25 , Object p26 , Object [] extra ){
             if ( _lastStart.get() == null ) _lastStart.set( 27 ); 
-            boolean needExtra =  p25 != null  ||  p26 != null  || ( extra != null && extra.length > 0 ) ;
-            Object newExtra[] = needExtra ? new Object[2 + ( extra == null ? 0 : extra.length ) ] : null;
-            if ( newExtra != null ){
-                newExtra[0] = p25;
-                newExtra[1] = p26;
-                for ( int i=0; extra != null && i<extra.length; i++ )
-                    newExtra[i + 2] = extra[i];
-            }
+            Object newExtra[] = new Object[2 + ( extra == null ? 0 : extra.length ) ];
+            newExtra[0] = p25;
+            newExtra[1] = p26;
+            for ( int i=0; extra != null && i<extra.length; i++ )
+                newExtra[i + 2] = extra[i];
             return call( scope , p0 , p1 , p2 , p3 , p4 , p5 , p6 , p7 , p8 , p9 , p10 , p11 , p12 , p13 , p14 , p15 , p16 , p17 , p18 , p19 , p20 , p21 , p22 , p23 , p24 , newExtra );
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object p13 , Object p14 , Object p15 , Object p16 , Object p17 , Object p18 , Object p19 , Object p20 , Object p21 , Object p22 , Object p23 , Object p24 , Object p25 , Object p26 , Object p27 , Object ... extra ){
             if ( _lastStart.get() == null ) _lastStart.set( 28 ); 
-            boolean needExtra =  p25 != null  ||  p26 != null  ||  p27 != null  || ( extra != null && extra.length > 0 ) ;
-            Object newExtra[] = needExtra ? new Object[3 + ( extra == null ? 0 : extra.length ) ] : null;
-            if ( newExtra != null ){
-                newExtra[0] = p25;
-                newExtra[1] = p26;
-                newExtra[2] = p27;
-                for ( int i=0; extra != null && i<extra.length; i++ )
-                    newExtra[i + 3] = extra[i];
-            }
+            Object newExtra[] = new Object[3 + ( extra == null ? 0 : extra.length ) ];
+            newExtra[0] = p25;
+            newExtra[1] = p26;
+            newExtra[2] = p27;
+            for ( int i=0; extra != null && i<extra.length; i++ )
+                newExtra[i + 3] = extra[i];
             return call( scope , p0 , p1 , p2 , p3 , p4 , p5 , p6 , p7 , p8 , p9 , p10 , p11 , p12 , p13 , p14 , p15 , p16 , p17 , p18 , p19 , p20 , p21 , p22 , p23 , p24 , newExtra );
     }
 

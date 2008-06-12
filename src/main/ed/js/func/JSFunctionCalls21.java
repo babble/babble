@@ -435,106 +435,85 @@ public abstract class JSFunctionCalls21 extends JSFunction {
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object p13 , Object p14 , Object p15 , Object p16 , Object p17 , Object p18 , Object p19 , Object p20 , Object p21 , Object [] extra ){
             if ( _lastStart.get() == null ) _lastStart.set( 22 ); 
-            boolean needExtra =  p21 != null  || ( extra != null && extra.length > 0 ) ;
-            Object newExtra[] = needExtra ? new Object[1 + ( extra == null ? 0 : extra.length ) ] : null;
-            if ( newExtra != null ){
-                newExtra[0] = p21;
-                for ( int i=0; extra != null && i<extra.length; i++ )
-                    newExtra[i + 1] = extra[i];
-            }
+            Object newExtra[] = new Object[1 + ( extra == null ? 0 : extra.length ) ];
+            newExtra[0] = p21;
+            for ( int i=0; extra != null && i<extra.length; i++ )
+                newExtra[i + 1] = extra[i];
             return call( scope , p0 , p1 , p2 , p3 , p4 , p5 , p6 , p7 , p8 , p9 , p10 , p11 , p12 , p13 , p14 , p15 , p16 , p17 , p18 , p19 , p20 , newExtra );
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object p13 , Object p14 , Object p15 , Object p16 , Object p17 , Object p18 , Object p19 , Object p20 , Object p21 , Object p22 , Object [] extra ){
             if ( _lastStart.get() == null ) _lastStart.set( 23 ); 
-            boolean needExtra =  p21 != null  ||  p22 != null  || ( extra != null && extra.length > 0 ) ;
-            Object newExtra[] = needExtra ? new Object[2 + ( extra == null ? 0 : extra.length ) ] : null;
-            if ( newExtra != null ){
-                newExtra[0] = p21;
-                newExtra[1] = p22;
-                for ( int i=0; extra != null && i<extra.length; i++ )
-                    newExtra[i + 2] = extra[i];
-            }
+            Object newExtra[] = new Object[2 + ( extra == null ? 0 : extra.length ) ];
+            newExtra[0] = p21;
+            newExtra[1] = p22;
+            for ( int i=0; extra != null && i<extra.length; i++ )
+                newExtra[i + 2] = extra[i];
             return call( scope , p0 , p1 , p2 , p3 , p4 , p5 , p6 , p7 , p8 , p9 , p10 , p11 , p12 , p13 , p14 , p15 , p16 , p17 , p18 , p19 , p20 , newExtra );
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object p13 , Object p14 , Object p15 , Object p16 , Object p17 , Object p18 , Object p19 , Object p20 , Object p21 , Object p22 , Object p23 , Object [] extra ){
             if ( _lastStart.get() == null ) _lastStart.set( 24 ); 
-            boolean needExtra =  p21 != null  ||  p22 != null  ||  p23 != null  || ( extra != null && extra.length > 0 ) ;
-            Object newExtra[] = needExtra ? new Object[3 + ( extra == null ? 0 : extra.length ) ] : null;
-            if ( newExtra != null ){
-                newExtra[0] = p21;
-                newExtra[1] = p22;
-                newExtra[2] = p23;
-                for ( int i=0; extra != null && i<extra.length; i++ )
-                    newExtra[i + 3] = extra[i];
-            }
+            Object newExtra[] = new Object[3 + ( extra == null ? 0 : extra.length ) ];
+            newExtra[0] = p21;
+            newExtra[1] = p22;
+            newExtra[2] = p23;
+            for ( int i=0; extra != null && i<extra.length; i++ )
+                newExtra[i + 3] = extra[i];
             return call( scope , p0 , p1 , p2 , p3 , p4 , p5 , p6 , p7 , p8 , p9 , p10 , p11 , p12 , p13 , p14 , p15 , p16 , p17 , p18 , p19 , p20 , newExtra );
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object p13 , Object p14 , Object p15 , Object p16 , Object p17 , Object p18 , Object p19 , Object p20 , Object p21 , Object p22 , Object p23 , Object p24 , Object [] extra ){
             if ( _lastStart.get() == null ) _lastStart.set( 25 ); 
-            boolean needExtra =  p21 != null  ||  p22 != null  ||  p23 != null  ||  p24 != null  || ( extra != null && extra.length > 0 ) ;
-            Object newExtra[] = needExtra ? new Object[4 + ( extra == null ? 0 : extra.length ) ] : null;
-            if ( newExtra != null ){
-                newExtra[0] = p21;
-                newExtra[1] = p22;
-                newExtra[2] = p23;
-                newExtra[3] = p24;
-                for ( int i=0; extra != null && i<extra.length; i++ )
-                    newExtra[i + 4] = extra[i];
-            }
+            Object newExtra[] = new Object[4 + ( extra == null ? 0 : extra.length ) ];
+            newExtra[0] = p21;
+            newExtra[1] = p22;
+            newExtra[2] = p23;
+            newExtra[3] = p24;
+            for ( int i=0; extra != null && i<extra.length; i++ )
+                newExtra[i + 4] = extra[i];
             return call( scope , p0 , p1 , p2 , p3 , p4 , p5 , p6 , p7 , p8 , p9 , p10 , p11 , p12 , p13 , p14 , p15 , p16 , p17 , p18 , p19 , p20 , newExtra );
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object p13 , Object p14 , Object p15 , Object p16 , Object p17 , Object p18 , Object p19 , Object p20 , Object p21 , Object p22 , Object p23 , Object p24 , Object p25 , Object [] extra ){
             if ( _lastStart.get() == null ) _lastStart.set( 26 ); 
-            boolean needExtra =  p21 != null  ||  p22 != null  ||  p23 != null  ||  p24 != null  ||  p25 != null  || ( extra != null && extra.length > 0 ) ;
-            Object newExtra[] = needExtra ? new Object[5 + ( extra == null ? 0 : extra.length ) ] : null;
-            if ( newExtra != null ){
-                newExtra[0] = p21;
-                newExtra[1] = p22;
-                newExtra[2] = p23;
-                newExtra[3] = p24;
-                newExtra[4] = p25;
-                for ( int i=0; extra != null && i<extra.length; i++ )
-                    newExtra[i + 5] = extra[i];
-            }
+            Object newExtra[] = new Object[5 + ( extra == null ? 0 : extra.length ) ];
+            newExtra[0] = p21;
+            newExtra[1] = p22;
+            newExtra[2] = p23;
+            newExtra[3] = p24;
+            newExtra[4] = p25;
+            for ( int i=0; extra != null && i<extra.length; i++ )
+                newExtra[i + 5] = extra[i];
             return call( scope , p0 , p1 , p2 , p3 , p4 , p5 , p6 , p7 , p8 , p9 , p10 , p11 , p12 , p13 , p14 , p15 , p16 , p17 , p18 , p19 , p20 , newExtra );
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object p13 , Object p14 , Object p15 , Object p16 , Object p17 , Object p18 , Object p19 , Object p20 , Object p21 , Object p22 , Object p23 , Object p24 , Object p25 , Object p26 , Object [] extra ){
             if ( _lastStart.get() == null ) _lastStart.set( 27 ); 
-            boolean needExtra =  p21 != null  ||  p22 != null  ||  p23 != null  ||  p24 != null  ||  p25 != null  ||  p26 != null  || ( extra != null && extra.length > 0 ) ;
-            Object newExtra[] = needExtra ? new Object[6 + ( extra == null ? 0 : extra.length ) ] : null;
-            if ( newExtra != null ){
-                newExtra[0] = p21;
-                newExtra[1] = p22;
-                newExtra[2] = p23;
-                newExtra[3] = p24;
-                newExtra[4] = p25;
-                newExtra[5] = p26;
-                for ( int i=0; extra != null && i<extra.length; i++ )
-                    newExtra[i + 6] = extra[i];
-            }
+            Object newExtra[] = new Object[6 + ( extra == null ? 0 : extra.length ) ];
+            newExtra[0] = p21;
+            newExtra[1] = p22;
+            newExtra[2] = p23;
+            newExtra[3] = p24;
+            newExtra[4] = p25;
+            newExtra[5] = p26;
+            for ( int i=0; extra != null && i<extra.length; i++ )
+                newExtra[i + 6] = extra[i];
             return call( scope , p0 , p1 , p2 , p3 , p4 , p5 , p6 , p7 , p8 , p9 , p10 , p11 , p12 , p13 , p14 , p15 , p16 , p17 , p18 , p19 , p20 , newExtra );
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object p13 , Object p14 , Object p15 , Object p16 , Object p17 , Object p18 , Object p19 , Object p20 , Object p21 , Object p22 , Object p23 , Object p24 , Object p25 , Object p26 , Object p27 , Object ... extra ){
             if ( _lastStart.get() == null ) _lastStart.set( 28 ); 
-            boolean needExtra =  p21 != null  ||  p22 != null  ||  p23 != null  ||  p24 != null  ||  p25 != null  ||  p26 != null  ||  p27 != null  || ( extra != null && extra.length > 0 ) ;
-            Object newExtra[] = needExtra ? new Object[7 + ( extra == null ? 0 : extra.length ) ] : null;
-            if ( newExtra != null ){
-                newExtra[0] = p21;
-                newExtra[1] = p22;
-                newExtra[2] = p23;
-                newExtra[3] = p24;
-                newExtra[4] = p25;
-                newExtra[5] = p26;
-                newExtra[6] = p27;
-                for ( int i=0; extra != null && i<extra.length; i++ )
-                    newExtra[i + 7] = extra[i];
-            }
+            Object newExtra[] = new Object[7 + ( extra == null ? 0 : extra.length ) ];
+            newExtra[0] = p21;
+            newExtra[1] = p22;
+            newExtra[2] = p23;
+            newExtra[3] = p24;
+            newExtra[4] = p25;
+            newExtra[5] = p26;
+            newExtra[6] = p27;
+            for ( int i=0; extra != null && i<extra.length; i++ )
+                newExtra[i + 7] = extra[i];
             return call( scope , p0 , p1 , p2 , p3 , p4 , p5 , p6 , p7 , p8 , p9 , p10 , p11 , p12 , p13 , p14 , p15 , p16 , p17 , p18 , p19 , p20 , newExtra );
     }
 

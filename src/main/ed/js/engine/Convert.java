@@ -1332,7 +1332,7 @@ public class Convert implements StackTraceFixer {
             param = param.getNext();
         }
 
-        _append( " ) " , n );
+        _append( " , new Object[0] ) " , n );
         if ( useThis )
             _append( " ) " , n );
     }

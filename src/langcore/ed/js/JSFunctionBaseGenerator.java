@@ -114,23 +114,12 @@ public class JSFunctionBaseGenerator {
                 buf.append( " , newExtra );\n" );
             }
             else {
-                buf.append( _i(3) + "boolean needExtra = " );
-                for ( int j=num; j<i; j++ ){
-                    if ( j > num )
-                        buf.append( " || " );
-                    buf.append( " p" + j + " != null " );
-                }
-                buf.append( " || ( extra != null && extra.length > 0 ) ;\n" );
-                
-                buf.append( _i(3) + "Object newExtra[] = needExtra ? new Object[" + ( i - num ) + " + ( extra == null ? 0 : extra.length ) ] : null;\n" );
-                
-                
-                buf.append( _i(3) + "if ( newExtra != null ){\n" );
+                buf.append( _i(3) + "Object newExtra[] = new Object[" + ( i - num ) + " + ( extra == null ? 0 : extra.length ) ];\n" );
+
                 for ( int j=num; j<i; j++ )
-                    buf.append( _i(4) + "newExtra[" + ( j - num ) + "] = p" + j + ";\n" );
-                buf.append( _i(4) + "for ( int i=0; extra != null && i<extra.length; i++ )\n" );
-                buf.append( _i(5) + "newExtra[i + " + ( i - num ) + "] = extra[i];\n" );
-                buf.append( _i(3) + "}\n" );
+                    buf.append( _i(3) + "newExtra[" + ( j - num ) + "] = p" + j + ";\n" );
+                buf.append( _i(3) + "for ( int i=0; extra != null && i<extra.length; i++ )\n" );
+                buf.append( _i(4) + "newExtra[i + " + ( i - num ) + "] = extra[i];\n" );
                 
                 buf.append( _i(3) + "return call( scope" );
                 for ( int j=0; j<num; j++ )
