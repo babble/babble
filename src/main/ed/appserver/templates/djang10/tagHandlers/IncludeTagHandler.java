@@ -37,7 +37,7 @@ public class IncludeTagHandler implements TagHandler {
         }
 
         @Override
-        public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
+        public void toJavascript(JSWriter preamble, JSWriter buffer) throws TemplateException {
             buffer.appendHelper(startLine, JSHelper.CALL_PATH + "(" + var.toJavascript() + ", " + JSWriter.CONTEXT_STACK_VAR
                     + ");\n");
         }

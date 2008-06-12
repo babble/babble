@@ -41,7 +41,7 @@ public class FirstOfTagHandler implements TagHandler {
         }
 
         @Override
-        public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
+        public void toJavascript(JSWriter preamble, JSWriter buffer) throws TemplateException {
             buffer.append("print(");
 
             for (Expression var : variables) {

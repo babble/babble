@@ -7,7 +7,9 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.TemplateException;
+import ed.appserver.templates.djang10.Node.TagNode;
 import ed.appserver.templates.djang10.Parser.Token;
+import ed.appserver.templates.djang10.generator.JSWriter;
 import ed.js.JSArray;
 import ed.js.JSFunction;
 import ed.js.JSObject;
@@ -41,7 +43,9 @@ public class JSCompilationPhaseParser extends JSObjectBase {
     }
     
     private Token next_token() {
-        return parser.nextToken();
+        Token token = parser.nextToken(); 
+        parsedNodes.add(new SkippedNode(token));
+        return token;
     }
 
     private JSArray create_nodelist() {
@@ -94,4 +98,16 @@ public class JSCompilationPhaseParser extends JSObjectBase {
             });
         }
     };
+    
+    
+    public static class SkippedNode extends TagNode{
+        public SkippedNode(Token token) {
+            super(token);
+        }
+
+        public void toJavascript(JSWriter preamble, JSWriter buffer) throws TemplateException {
+            buffer.append("throw 'unexpected error';\n");
+        }
+        
+    }
 }

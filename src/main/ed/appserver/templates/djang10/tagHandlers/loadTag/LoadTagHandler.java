@@ -89,7 +89,7 @@ public class LoadTagHandler implements TagHandler {
             this.isFirst = isFirst;
         }
 
-        public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
+        public void toJavascript(JSWriter preamble, JSWriter buffer) throws TemplateException {
 
             // TODO: move the isFirst check here....if the render function isn't
             // called for the first node, all's broken
@@ -132,17 +132,19 @@ public class LoadTagHandler implements TagHandler {
             final List<Node> childNodes = compilationParser.getAndClearNodes();
             
             return new TagNode(token) {
-                public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
+                public void toJavascript(JSWriter preamble, JSWriter buffer) throws TemplateException {
                     buffer.append("print(");
                     buffer.append(MODULE_LIST + "[" + moduleIndex + "].tags." + command + "(");
+                    //serialize the parser
                     buffer.append(" new " + JSHelper.NS + "." + JSRenderPhaseParser.NAME + "([");
+                    //serialize the immediate children using the tag contents and the javascript they generated
                     for(int i=0; i<childNodes.size(); i++) {
                         String tag = (childNodes.get(i) instanceof TagNode)? ((TagNode)childNodes.get(i)).tagName : "";
                         
                         if(i != 0) buffer.append(", ");
                         
-                        buffer.append("new " + JSHelper.NS + "." + JSRenderPhaseNode.NAME + "(\"" + tag + "\", " + childNodes.get(i).token.toJavascript() + ", function() {");
-                        childNodes.get(i).getRenderJSFn(preamble, buffer);
+                        buffer.append("new " + JSHelper.NS + "." + JSRenderPhaseNode.NAME + "(\"" + tag + "\", " + childNodes.get(i).token.toJavascript() + ", function(print) {");
+                        childNodes.get(i).toJavascript(preamble, buffer);
                         buffer.append("})");
                     }
                     buffer.append("]), " + token.toJavascript() + ").render("+JSWriter.CONTEXT_STACK_VAR+")");

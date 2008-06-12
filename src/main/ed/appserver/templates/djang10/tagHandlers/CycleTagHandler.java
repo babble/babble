@@ -95,7 +95,7 @@ public class CycleTagHandler implements TagHandler {
         }
 
         @Override
-        public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
+        public void toJavascript(JSWriter preamble, JSWriter buffer) throws TemplateException {
             buffer.append("print(");
             buffer.append(namedCycles_var + "[\"" + name + "\"].items");
             buffer.append("[" + namedCycles_var + "[\"" + name + "\"].iter]");
@@ -117,7 +117,7 @@ public class CycleTagHandler implements TagHandler {
         }
 
         @Override
-        public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
+        public void toJavascript(JSWriter preamble, JSWriter buffer) throws TemplateException {
             if (isFirstDefinitionNode)
                 preamble.append("var " + namedCycles_var + " = {};\n");
 
@@ -136,7 +136,7 @@ public class CycleTagHandler implements TagHandler {
             preamble.append("iter: 0");
             preamble.append("};\n");
 
-            super.getRenderJSFn(preamble, buffer);
+            super.toJavascript(preamble, buffer);
         }
     }
 }
