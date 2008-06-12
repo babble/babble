@@ -71,6 +71,7 @@ public class DBProvider {
     }
 
     private static DBApiLayer create(String root , String ip, int port){
+    	System.out.println("DBApiLayer : creating new DBTCP object : root=" + root + " ip=" + ip + ":" + port);
         return new DBTCP( root , ip, port);
     }
     
