@@ -113,7 +113,7 @@ public class Shell {
             
             if ( a.endsWith( ".js" ) ){
                 File f = new File( a );
-                JSFileLibrary fl = new JSFileLibrary( f.getParentFile()  , "blah" , s );
+                JSFileLibrary fl = new JSFileLibrary( f.getParentFile() == null ? new File( "." ) : f.getParentFile()  , "blah" , s );
                 try {
                     ((JSFunction)(fl.get( f.getName().replaceAll( ".js$" , "" ) ))).call( s );
                 }

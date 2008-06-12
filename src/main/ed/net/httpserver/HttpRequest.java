@@ -94,7 +94,7 @@ public class HttpRequest extends JSObjectLame {
 
     public String toString(){
         _finishParsing();
-        return _command + " " + _uri + " HTTP/1." + ( _http11 ? "1" : "" ) + " : " + _headers + "  " + _parameters;
+        return _command + " " + _uri + " HTTP/1." + ( _http11 ? "1" : "" ) + " : " + _headers + "  " + _urlParameters + " " + _postParameters;
     }
     
     public boolean keepAlive(){
@@ -194,8 +194,16 @@ public class HttpRequest extends JSObjectLame {
         _finishParsing();
         
         JSArray a = new JSArray();
-        for ( String s : _parameters.keySet() )
+
+        for ( String s : _urlParameters.keySet() )
             a.add( new JSString( s ) );
+
+        for ( String s : _postParameters.keySet() ){
+            JSString js = new JSString( s );
+            if ( ! a.contains( js ) )
+                a.add( js );
+        }
+        
         return a;
     }
 
@@ -207,8 +215,19 @@ public class HttpRequest extends JSObjectLame {
         return StringParseUtil.parseInt( getParameter( n ) , def );
     }
 
+    // -----
+
+    List<String> _getParameter( String name ){
+        List<String> l = _postParameters.get( name );
+        if ( l != null )
+            return l;
+        return _urlParameters.get( name );
+    }
+
+    // -----
+
     public JSArray getParameters( String name ){
-        List<String> lst = _parameters.get( name );
+        List<String> lst = _getParameter( name );
         if ( lst == null )
             return null;
         
@@ -224,18 +243,73 @@ public class HttpRequest extends JSObjectLame {
 
     public String getParameter( String name , String def ){
         _finishParsing();
-        List<String> s = _parameters.get( name );
+        List<String> s = _getParameter( name );
         if ( s != null && s.size() > 0 )
             return s.get(0);
         return def;
     }
+
+    // -------
+
+    public JSArray getParameters( String name , boolean post ){
+        List<String> lst = post ? _postParameters.get( name ) : _urlParameters.get( name );
+        if ( lst == null )
+            return null;
+        
+        JSArray a = new JSArray();
+        for ( String s : lst )
+            a.add( new JSString( s ) );
+	return a;
+    }
+
+    public String getParameter( String name , boolean post ){
+        return getParameter( name , null , post  );
+    }
+
+    public String getParameter( String name , String def , boolean post  ){
+        _finishParsing();
+        List<String> lst = post ? _postParameters.get( name ) : _urlParameters.get( name );
+        if ( lst != null && lst.size() > 0 )
+            return lst.get(0);
+        return def;
+    }
+    
+    // -
+
+    public JSArray getPostParmeters( String name ){
+        return getParameters( name , true );
+    }
+
+    public String getPostParmeter( String name ){
+        return getParameter( name , null , true );
+    }
+
+    public String getPostParmeter( String name , String def ){
+        return getParameter( name , def , true );
+    }
+
+    // -
+
+    public JSArray getURLParmeters( String name ){
+        return getParameters( name , false );
+    }
+
+    public String getURLParmeter( String name ){
+        return getParameter( name , null , false );
+    }
+
+    public String getURLParmeter( String name , String def ){
+        return getParameter( name , def , false );
+    }
+
+    // -------
 
     public Object set( Object n , Object v ){
         String name = n.toString();
         _finishParsing();
         
         Object prev = getParameter( name );
-        _addParm( name , v == null ? null : v.toString() );
+        _addParm( name , v == null ? null : v.toString() , false );
         return prev;
     }
 
@@ -261,7 +335,18 @@ public class HttpRequest extends JSObjectLame {
     }
 
     public Set<String> keySet(){
-        return _parameters.keySet();
+        Set<String> s = new HashSet<String>();
+        s.addAll( _urlParameters.keySet() );
+        s.addAll( _postParameters.keySet() );
+        return s;
+    }
+    
+    public Set<String> getURLParameterNames(){
+        return _urlParameters.keySet();
+    }
+
+    public Set<String> getPostParameterNames(){
+        return _postParameters.keySet();
     }
 
     private final String _urlDecode( String s ){
@@ -291,7 +376,7 @@ public class HttpRequest extends JSObjectLame {
             return false;
 
         for ( int i=1; i<=m.groupCount() && ( i - 1 ) < names.size() ; i++ )
-            _addParm( names.get( i - 1 ).toString() , m.group( i ) );
+            _addParm( names.get( i - 1 ).toString() , m.group( i ) , false );
 
         return true;
     }
@@ -319,9 +404,9 @@ public class HttpRequest extends JSObjectLame {
                     
                     int eq = thing.indexOf( "=" );
                     if ( eq < 0 )
-                        _addParm( thing , null );
+                        _addParm( thing , null , false );
                     else
-                        _addParm( thing.substring( 0 , eq ) , thing.substring( eq + 1 ) );
+                        _addParm( thing.substring( 0 , eq ) , thing.substring( eq + 1 ) , false );
                 }
             }
         }
@@ -333,16 +418,12 @@ public class HttpRequest extends JSObjectLame {
 
     }
 
-    void _addParm( String n , String val ){
+    void _addParm( String n , String val , boolean post ){
         
         n = n.trim();
 	n = _urlDecode( n ); // TODO: check that i really should do this
 
-	List<String> lst = _parameters.get( n );
-	if ( lst == null ){
-	    lst = new ArrayList<String>();
-	    _parameters.put( n , lst );
-	}
+	List<String> lst = _getParamList( n , post , true );
 
         if ( val == null ){
             lst.add( val );
@@ -351,6 +432,18 @@ public class HttpRequest extends JSObjectLame {
         val = val.trim();
         val = _urlDecode( val );
 	lst.add( val );
+    }
+
+    List<String> _getParamList( String name , boolean post , boolean create ){
+        Map<String,List<String>> m = post ? _postParameters : _urlParameters;
+        List<String> l = m.get( name );
+
+        if ( l != null || ! create )
+            return l;
+
+        l = new ArrayList<String>();
+        m.put( name , l );
+        return l;
     }
 
     public Object getAttachment(){
@@ -466,7 +559,8 @@ public class HttpRequest extends JSObjectLame {
     PostData _postData;
     
     boolean _parsedURL = false;
-    final Map<String,List<String>> _parameters = new StringMap<List<String>>();
+    final Map<String,List<String>> _urlParameters = new StringMap<List<String>>();
+    final Map<String,List<String>> _postParameters = new StringMap<List<String>>();
 
     final String _rawHeader;
     final String _command;

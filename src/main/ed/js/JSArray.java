@@ -656,6 +656,8 @@ public class JSArray extends JSObjectBase implements Iterable , List {
     }
 
     public Object get( int i ){
+        if ( i >= _array.size() )
+            return null;
         return _array.get( i );
     }
 
