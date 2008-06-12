@@ -94,7 +94,7 @@ public class HttpRequest extends JSObjectLame {
 
     public String toString(){
         _finishParsing();
-        return _command + " " + _uri + " HTTP/1." + ( _http11 ? "1" : "" ) + " : " + _headers + "  " + _getParameters + " " + _postParameters;
+        return _command + " " + _uri + " HTTP/1." + ( _http11 ? "1" : "" ) + " : " + _headers + "  " + _urlParameters + " " + _postParameters;
     }
     
     public boolean keepAlive(){
@@ -195,7 +195,7 @@ public class HttpRequest extends JSObjectLame {
         
         JSArray a = new JSArray();
 
-        for ( String s : _getParameters.keySet() )
+        for ( String s : _urlParameters.keySet() )
             a.add( new JSString( s ) );
 
         for ( String s : _postParameters.keySet() ){
@@ -221,7 +221,7 @@ public class HttpRequest extends JSObjectLame {
         List<String> l = _postParameters.get( name );
         if ( l != null )
             return l;
-        return _getParameters.get( name );
+        return _urlParameters.get( name );
     }
 
     // -----
@@ -243,7 +243,7 @@ public class HttpRequest extends JSObjectLame {
 
     public String getParameter( String name , String def ){
         _finishParsing();
-        List<String> s = _getParameters.get( name );
+        List<String> s = _getParameter( name );
         if ( s != null && s.size() > 0 )
             return s.get(0);
         return def;
@@ -252,7 +252,7 @@ public class HttpRequest extends JSObjectLame {
     // -------
 
     public JSArray getParameters( String name , boolean post ){
-        List<String> lst = post ? _postParameters.get( name ) : _getParameters.get( name );
+        List<String> lst = post ? _postParameters.get( name ) : _urlParameters.get( name );
         if ( lst == null )
             return null;
         
@@ -268,7 +268,7 @@ public class HttpRequest extends JSObjectLame {
 
     public String getParameter( String name , String def , boolean post  ){
         _finishParsing();
-        List<String> lst = post ? _postParameters.get( name ) : _getParameters.get( name );
+        List<String> lst = post ? _postParameters.get( name ) : _urlParameters.get( name );
         if ( lst != null && lst.size() > 0 )
             return lst.get(0);
         return def;
@@ -290,15 +290,15 @@ public class HttpRequest extends JSObjectLame {
 
     // -
 
-    public JSArray getGetParmeters( String name ){
+    public JSArray getURLParmeters( String name ){
         return getParameters( name , false );
     }
 
-    public String getGetParmeter( String name ){
+    public String getURLParmeter( String name ){
         return getParameter( name , null , false );
     }
 
-    public String getGetParmeter( String name , String def ){
+    public String getURLParmeter( String name , String def ){
         return getParameter( name , def , false );
     }
 
@@ -336,13 +336,13 @@ public class HttpRequest extends JSObjectLame {
 
     public Set<String> keySet(){
         Set<String> s = new HashSet<String>();
-        s.addAll( _getParameters.keySet() );
+        s.addAll( _urlParameters.keySet() );
         s.addAll( _postParameters.keySet() );
         return s;
     }
     
-    public Set<String> getGetParameterNames(){
-        return _getParameters.keySet();
+    public Set<String> getURLParameterNames(){
+        return _urlParameters.keySet();
     }
 
     public Set<String> getPostParameterNames(){
@@ -435,7 +435,7 @@ public class HttpRequest extends JSObjectLame {
     }
 
     List<String> _getParamList( String name , boolean post , boolean create ){
-        Map<String,List<String>> m = post ? _postParameters : _getParameters;
+        Map<String,List<String>> m = post ? _postParameters : _urlParameters;
         List<String> l = m.get( name );
 
         if ( l != null || ! create )
@@ -559,7 +559,7 @@ public class HttpRequest extends JSObjectLame {
     PostData _postData;
     
     boolean _parsedURL = false;
-    final Map<String,List<String>> _getParameters = new StringMap<List<String>>();
+    final Map<String,List<String>> _urlParameters = new StringMap<List<String>>();
     final Map<String,List<String>> _postParameters = new StringMap<List<String>>();
 
     final String _rawHeader;
