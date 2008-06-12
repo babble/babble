@@ -12,7 +12,7 @@ import ed.io.*;
 
 public class HttpDownload {
 
-    public static JSFunctionCalls1 DOWNLOAD = new JSFunctionCalls1(){
+    public static class downloadFunc extends JSFunctionCalls1 {
             public Object call( Scope s , Object foo , Object extra[] ){
                 try {
                     return downloadToJS( new URL( foo.toString() ) );
