@@ -5,6 +5,8 @@ package ed.appserver.templates.djang10;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 import ed.appserver.JSFileLibrary;
@@ -192,7 +194,7 @@ public class JSHelper extends JSObjectBase {
     private final JSFunction loadModule = new JSFunctionCalls1() {
         public Object call(Scope scope, Object pathObj, Object[] extra) {
 
-            return loadModule(((JSString) pathObj).toString());
+            return loadModule(scope, ((JSString) pathObj).toString());
         }
     };
 
@@ -202,7 +204,7 @@ public class JSHelper extends JSObjectBase {
     }
 
     public Library callModule(Scope scope, String name) {
-        JSCompiledScript module = loadModule(name);
+        JSCompiledScript module = loadModule(scope, name);
 
         if (module == null)
             return null;
@@ -218,19 +220,34 @@ public class JSHelper extends JSObjectBase {
         return (Library) registerObj;
     }
 
-    public JSCompiledScript loadModule(String name) {
+    public JSCompiledScript loadModule(Scope scope, String name) {
         if (name == null)
             return null;
 
         JSCompiledScript moduleFile = null;
 
-        for (JSFileLibrary fileLib : moduleRoots) {
+        ListIterator<JSFileLibrary> iter = moduleRoots.listIterator(moduleRoots.size());
+
+        while(iter.hasPrevious()) {
+            JSFileLibrary fileLib = iter.previous();
+
             Object file = fileLib.get(name);
 
             if (file instanceof JSCompiledScript) {
                 moduleFile = (JSCompiledScript) file;
                 break;
             }
+        }
+        
+        //try resolving against /local/templatetags
+        if(!(moduleFile instanceof JSCompiledScript)) {
+            JSFileLibrary local = (JSFileLibrary)scope.get("local");
+            Object templateTagDirObj = local.get("templatetags");
+            if(templateTagDirObj instanceof JSFileLibrary) {
+                Object file = ((JSFileLibrary)templateTagDirObj).get(name);
+                if(file instanceof JSCompiledScript)
+                    moduleFile = (JSCompiledScript)file;
+            }            
         }
         return moduleFile;
     }
