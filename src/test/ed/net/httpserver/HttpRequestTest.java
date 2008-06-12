@@ -7,7 +7,8 @@ import org.testng.annotations.Test;
 import ed.*;
 
 public class HttpRequestTest extends TestCase {
-    
+
+    @Test(groups = {"basic"})    
     public static void testGetParams(){
         HttpRequest r = HttpRequest.getDummy( "/crazy/me?a=1&b=2&b=3" );
         assertEquals( "1" , r.getParameter( "a" ) );
