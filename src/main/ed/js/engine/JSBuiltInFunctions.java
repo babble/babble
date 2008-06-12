@@ -526,23 +526,6 @@ public class JSBuiltInFunctions {
             _base.lock();
             _base.setGlobal( true );
         }
-        /*
-        s = new Scope( "Built-Ins" , _base );
-        try {
-            _setup( s );
-        }
-        catch ( RuntimeException re ){
-            re.printStackTrace();
-            System.exit( -1 );
-        }
-        finally {
-            _myScope = s;
-        }
-        
-
-        _myScope.lock();
-        */
-        
     }
     
     private static void _setupBase( Scope s ){
@@ -717,11 +700,15 @@ public class JSBuiltInFunctions {
         // mail stuff till i'm done
         s.put( "JAVAXMAILTO" , javax.mail.Message.RecipientType.TO , true );
 
+        JSON.init( s );
+        Encoding.install( s );
+
         for ( String key : s.keySet() ){
             Object val = s.get( key );
             if ( val instanceof JSObjectBase )
                 ((JSObjectBase)val).lock();
         }
+
 
         ed.db.migrate.Drivers.init( s );
     }
@@ -750,13 +737,10 @@ public class JSBuiltInFunctions {
         s.put( "Exception" , JSException._cons , true );
         s.put( "Map" , JSMap._cons , true );
         
-        s.put( "download" , HttpDownload.DOWNLOAD , true );
+        s.put( "download" , new HttpDownload.downloadFunc() , true );
         
         
         // packages
-
-        Encoding.install( s );
-        JSON.init( s );
         ed.lang.ruby.Ruby.install( s );
 
         s.lock();

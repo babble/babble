@@ -14,6 +14,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 0 ); 
             Object p0 = extra == null || extra.length <= 0 ? null : extra[0];
             Object p1 = extra == null || extra.length <= 1 ? null : extra[1];
             Object p2 = extra == null || extra.length <= 2 ? null : extra[2];
@@ -30,6 +31,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 1 ); 
             Object p1 = extra == null || extra.length <= 0 ? null : extra[0];
             Object p2 = extra == null || extra.length <= 1 ? null : extra[1];
             Object p3 = extra == null || extra.length <= 2 ? null : extra[2];
@@ -45,6 +47,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 2 ); 
             Object p2 = extra == null || extra.length <= 0 ? null : extra[0];
             Object p3 = extra == null || extra.length <= 1 ? null : extra[1];
             Object p4 = extra == null || extra.length <= 2 ? null : extra[2];
@@ -59,6 +62,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 3 ); 
             Object p3 = extra == null || extra.length <= 0 ? null : extra[0];
             Object p4 = extra == null || extra.length <= 1 ? null : extra[1];
             Object p5 = extra == null || extra.length <= 2 ? null : extra[2];
@@ -72,6 +76,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 4 ); 
             Object p4 = extra == null || extra.length <= 0 ? null : extra[0];
             Object p5 = extra == null || extra.length <= 1 ? null : extra[1];
             Object p6 = extra == null || extra.length <= 2 ? null : extra[2];
@@ -84,6 +89,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 5 ); 
             Object p5 = extra == null || extra.length <= 0 ? null : extra[0];
             Object p6 = extra == null || extra.length <= 1 ? null : extra[1];
             Object p7 = extra == null || extra.length <= 2 ? null : extra[2];
@@ -95,6 +101,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 6 ); 
             Object p6 = extra == null || extra.length <= 0 ? null : extra[0];
             Object p7 = extra == null || extra.length <= 1 ? null : extra[1];
             Object newExtra[] = extra == null || extra.length <= 2 ? null : new Object[ extra.length - 2];
@@ -105,6 +112,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 7 ); 
             Object p7 = extra == null || extra.length <= 0 ? null : extra[0];
             Object newExtra[] = extra == null || extra.length <= 1 ? null : new Object[ extra.length - 1];
             if ( newExtra != null )
@@ -114,6 +122,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 9 ); 
             boolean needExtra =  p8 != null  || ( extra != null && extra.length > 0 ) ;
             Object newExtra[] = needExtra ? new Object[1 + ( extra == null ? 0 : extra.length ) ] : null;
             if ( newExtra != null ){
@@ -125,6 +134,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 10 ); 
             boolean needExtra =  p8 != null  ||  p9 != null  || ( extra != null && extra.length > 0 ) ;
             Object newExtra[] = needExtra ? new Object[2 + ( extra == null ? 0 : extra.length ) ] : null;
             if ( newExtra != null ){
@@ -137,6 +147,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 11 ); 
             boolean needExtra =  p8 != null  ||  p9 != null  ||  p10 != null  || ( extra != null && extra.length > 0 ) ;
             Object newExtra[] = needExtra ? new Object[3 + ( extra == null ? 0 : extra.length ) ] : null;
             if ( newExtra != null ){
@@ -150,6 +161,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 12 ); 
             boolean needExtra =  p8 != null  ||  p9 != null  ||  p10 != null  ||  p11 != null  || ( extra != null && extra.length > 0 ) ;
             Object newExtra[] = needExtra ? new Object[4 + ( extra == null ? 0 : extra.length ) ] : null;
             if ( newExtra != null ){
@@ -164,6 +176,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 13 ); 
             boolean needExtra =  p8 != null  ||  p9 != null  ||  p10 != null  ||  p11 != null  ||  p12 != null  || ( extra != null && extra.length > 0 ) ;
             Object newExtra[] = needExtra ? new Object[5 + ( extra == null ? 0 : extra.length ) ] : null;
             if ( newExtra != null ){
@@ -179,6 +192,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object p13 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 14 ); 
             boolean needExtra =  p8 != null  ||  p9 != null  ||  p10 != null  ||  p11 != null  ||  p12 != null  ||  p13 != null  || ( extra != null && extra.length > 0 ) ;
             Object newExtra[] = needExtra ? new Object[6 + ( extra == null ? 0 : extra.length ) ] : null;
             if ( newExtra != null ){
@@ -195,6 +209,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object p13 , Object p14 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 15 ); 
             boolean needExtra =  p8 != null  ||  p9 != null  ||  p10 != null  ||  p11 != null  ||  p12 != null  ||  p13 != null  ||  p14 != null  || ( extra != null && extra.length > 0 ) ;
             Object newExtra[] = needExtra ? new Object[7 + ( extra == null ? 0 : extra.length ) ] : null;
             if ( newExtra != null ){
@@ -212,6 +227,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object p13 , Object p14 , Object p15 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 16 ); 
             boolean needExtra =  p8 != null  ||  p9 != null  ||  p10 != null  ||  p11 != null  ||  p12 != null  ||  p13 != null  ||  p14 != null  ||  p15 != null  || ( extra != null && extra.length > 0 ) ;
             Object newExtra[] = needExtra ? new Object[8 + ( extra == null ? 0 : extra.length ) ] : null;
             if ( newExtra != null ){
@@ -230,6 +246,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object p13 , Object p14 , Object p15 , Object p16 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 17 ); 
             boolean needExtra =  p8 != null  ||  p9 != null  ||  p10 != null  ||  p11 != null  ||  p12 != null  ||  p13 != null  ||  p14 != null  ||  p15 != null  ||  p16 != null  || ( extra != null && extra.length > 0 ) ;
             Object newExtra[] = needExtra ? new Object[9 + ( extra == null ? 0 : extra.length ) ] : null;
             if ( newExtra != null ){
@@ -249,6 +266,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object p13 , Object p14 , Object p15 , Object p16 , Object p17 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 18 ); 
             boolean needExtra =  p8 != null  ||  p9 != null  ||  p10 != null  ||  p11 != null  ||  p12 != null  ||  p13 != null  ||  p14 != null  ||  p15 != null  ||  p16 != null  ||  p17 != null  || ( extra != null && extra.length > 0 ) ;
             Object newExtra[] = needExtra ? new Object[10 + ( extra == null ? 0 : extra.length ) ] : null;
             if ( newExtra != null ){
@@ -269,6 +287,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object p13 , Object p14 , Object p15 , Object p16 , Object p17 , Object p18 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 19 ); 
             boolean needExtra =  p8 != null  ||  p9 != null  ||  p10 != null  ||  p11 != null  ||  p12 != null  ||  p13 != null  ||  p14 != null  ||  p15 != null  ||  p16 != null  ||  p17 != null  ||  p18 != null  || ( extra != null && extra.length > 0 ) ;
             Object newExtra[] = needExtra ? new Object[11 + ( extra == null ? 0 : extra.length ) ] : null;
             if ( newExtra != null ){
@@ -290,6 +309,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object p13 , Object p14 , Object p15 , Object p16 , Object p17 , Object p18 , Object p19 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 20 ); 
             boolean needExtra =  p8 != null  ||  p9 != null  ||  p10 != null  ||  p11 != null  ||  p12 != null  ||  p13 != null  ||  p14 != null  ||  p15 != null  ||  p16 != null  ||  p17 != null  ||  p18 != null  ||  p19 != null  || ( extra != null && extra.length > 0 ) ;
             Object newExtra[] = needExtra ? new Object[12 + ( extra == null ? 0 : extra.length ) ] : null;
             if ( newExtra != null ){
@@ -312,6 +332,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object p13 , Object p14 , Object p15 , Object p16 , Object p17 , Object p18 , Object p19 , Object p20 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 21 ); 
             boolean needExtra =  p8 != null  ||  p9 != null  ||  p10 != null  ||  p11 != null  ||  p12 != null  ||  p13 != null  ||  p14 != null  ||  p15 != null  ||  p16 != null  ||  p17 != null  ||  p18 != null  ||  p19 != null  ||  p20 != null  || ( extra != null && extra.length > 0 ) ;
             Object newExtra[] = needExtra ? new Object[13 + ( extra == null ? 0 : extra.length ) ] : null;
             if ( newExtra != null ){
@@ -335,6 +356,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object p13 , Object p14 , Object p15 , Object p16 , Object p17 , Object p18 , Object p19 , Object p20 , Object p21 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 22 ); 
             boolean needExtra =  p8 != null  ||  p9 != null  ||  p10 != null  ||  p11 != null  ||  p12 != null  ||  p13 != null  ||  p14 != null  ||  p15 != null  ||  p16 != null  ||  p17 != null  ||  p18 != null  ||  p19 != null  ||  p20 != null  ||  p21 != null  || ( extra != null && extra.length > 0 ) ;
             Object newExtra[] = needExtra ? new Object[14 + ( extra == null ? 0 : extra.length ) ] : null;
             if ( newExtra != null ){
@@ -359,6 +381,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object p13 , Object p14 , Object p15 , Object p16 , Object p17 , Object p18 , Object p19 , Object p20 , Object p21 , Object p22 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 23 ); 
             boolean needExtra =  p8 != null  ||  p9 != null  ||  p10 != null  ||  p11 != null  ||  p12 != null  ||  p13 != null  ||  p14 != null  ||  p15 != null  ||  p16 != null  ||  p17 != null  ||  p18 != null  ||  p19 != null  ||  p20 != null  ||  p21 != null  ||  p22 != null  || ( extra != null && extra.length > 0 ) ;
             Object newExtra[] = needExtra ? new Object[15 + ( extra == null ? 0 : extra.length ) ] : null;
             if ( newExtra != null ){
@@ -384,6 +407,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object p13 , Object p14 , Object p15 , Object p16 , Object p17 , Object p18 , Object p19 , Object p20 , Object p21 , Object p22 , Object p23 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 24 ); 
             boolean needExtra =  p8 != null  ||  p9 != null  ||  p10 != null  ||  p11 != null  ||  p12 != null  ||  p13 != null  ||  p14 != null  ||  p15 != null  ||  p16 != null  ||  p17 != null  ||  p18 != null  ||  p19 != null  ||  p20 != null  ||  p21 != null  ||  p22 != null  ||  p23 != null  || ( extra != null && extra.length > 0 ) ;
             Object newExtra[] = needExtra ? new Object[16 + ( extra == null ? 0 : extra.length ) ] : null;
             if ( newExtra != null ){
@@ -410,6 +434,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object p13 , Object p14 , Object p15 , Object p16 , Object p17 , Object p18 , Object p19 , Object p20 , Object p21 , Object p22 , Object p23 , Object p24 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 25 ); 
             boolean needExtra =  p8 != null  ||  p9 != null  ||  p10 != null  ||  p11 != null  ||  p12 != null  ||  p13 != null  ||  p14 != null  ||  p15 != null  ||  p16 != null  ||  p17 != null  ||  p18 != null  ||  p19 != null  ||  p20 != null  ||  p21 != null  ||  p22 != null  ||  p23 != null  ||  p24 != null  || ( extra != null && extra.length > 0 ) ;
             Object newExtra[] = needExtra ? new Object[17 + ( extra == null ? 0 : extra.length ) ] : null;
             if ( newExtra != null ){
@@ -437,6 +462,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object p13 , Object p14 , Object p15 , Object p16 , Object p17 , Object p18 , Object p19 , Object p20 , Object p21 , Object p22 , Object p23 , Object p24 , Object p25 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 26 ); 
             boolean needExtra =  p8 != null  ||  p9 != null  ||  p10 != null  ||  p11 != null  ||  p12 != null  ||  p13 != null  ||  p14 != null  ||  p15 != null  ||  p16 != null  ||  p17 != null  ||  p18 != null  ||  p19 != null  ||  p20 != null  ||  p21 != null  ||  p22 != null  ||  p23 != null  ||  p24 != null  ||  p25 != null  || ( extra != null && extra.length > 0 ) ;
             Object newExtra[] = needExtra ? new Object[18 + ( extra == null ? 0 : extra.length ) ] : null;
             if ( newExtra != null ){
@@ -465,6 +491,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object p13 , Object p14 , Object p15 , Object p16 , Object p17 , Object p18 , Object p19 , Object p20 , Object p21 , Object p22 , Object p23 , Object p24 , Object p25 , Object p26 , Object [] extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 27 ); 
             boolean needExtra =  p8 != null  ||  p9 != null  ||  p10 != null  ||  p11 != null  ||  p12 != null  ||  p13 != null  ||  p14 != null  ||  p15 != null  ||  p16 != null  ||  p17 != null  ||  p18 != null  ||  p19 != null  ||  p20 != null  ||  p21 != null  ||  p22 != null  ||  p23 != null  ||  p24 != null  ||  p25 != null  ||  p26 != null  || ( extra != null && extra.length > 0 ) ;
             Object newExtra[] = needExtra ? new Object[19 + ( extra == null ? 0 : extra.length ) ] : null;
             if ( newExtra != null ){
@@ -494,6 +521,7 @@ public abstract class JSFunctionCalls8 extends JSFunction {
     }
 
     public Object call( Scope scope  , Object p0 , Object p1 , Object p2 , Object p3 , Object p4 , Object p5 , Object p6 , Object p7 , Object p8 , Object p9 , Object p10 , Object p11 , Object p12 , Object p13 , Object p14 , Object p15 , Object p16 , Object p17 , Object p18 , Object p19 , Object p20 , Object p21 , Object p22 , Object p23 , Object p24 , Object p25 , Object p26 , Object p27 , Object ... extra ){
+            if ( _lastStart.get() == null ) _lastStart.set( 28 ); 
             boolean needExtra =  p8 != null  ||  p9 != null  ||  p10 != null  ||  p11 != null  ||  p12 != null  ||  p13 != null  ||  p14 != null  ||  p15 != null  ||  p16 != null  ||  p17 != null  ||  p18 != null  ||  p19 != null  ||  p20 != null  ||  p21 != null  ||  p22 != null  ||  p23 != null  ||  p24 != null  ||  p25 != null  ||  p26 != null  ||  p27 != null  || ( extra != null && extra.length > 0 ) ;
             Object newExtra[] = needExtra ? new Object[20 + ( extra == null ? 0 : extra.length ) ] : null;
             if ( newExtra != null ){
@@ -523,5 +551,6 @@ public abstract class JSFunctionCalls8 extends JSFunction {
             return call( scope , p0 , p1 , p2 , p3 , p4 , p5 , p6 , p7 , newExtra );
     }
 
+    protected ThreadLocal<Integer> _lastStart = new ThreadLocal<Integer>();
 
 }

@@ -26,7 +26,7 @@ public class FilterTagHandler implements TagHandler {
         List<Node> nodyNodes = parser.parse("end" + command);
         parser.nextToken();
 
-        String filterParams = token.contents.split("\\s", 2)[1].trim();
+        String filterParams = token.getContents().split("\\s", 2)[1].trim();
         FilterList filters = new FilterList(parser, filterParams);
 
         return new FilterNode(token, filters, nodyNodes);
@@ -66,11 +66,11 @@ public class FilterTagHandler implements TagHandler {
             this.bodyNodes = bodyNodes;
         }
 
-        public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
+        public void toJavascript(JSWriter preamble, JSWriter buffer) throws TemplateException {
             buffer.appendHelper(startLine, HIJACK_PRINT + "();\n");
 
             for (Node node : bodyNodes)
-                node.getRenderJSFn(preamble, buffer);
+                node.toJavascript(preamble, buffer);
 
             buffer.append("var printOutput = print.toString();\n");
             buffer.appendHelper(startLine, REVERT_PRINT + "();\n");

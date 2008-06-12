@@ -8,7 +8,6 @@ import java.util.Map;
 
 import ed.appserver.templates.djang10.Expression;
 import ed.appserver.templates.djang10.FilterExpression;
-import ed.appserver.templates.djang10.JSHelper;
 import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.TemplateException;
@@ -21,7 +20,7 @@ public class IfTagHandler implements TagHandler {
 
     public TagNode compile(Parser parser, String command, Token token) throws TemplateException {
 
-        String tokenContents = token.contents.replaceAll("\\s+", " "); // remove
+        String tokenContents = token.getContents().replaceAll("\\s+", " "); // remove
                                                                         // extra
                                                                         // whitespace
         tokenContents = tokenContents.replaceFirst("\\S+\\s*", ""); // remove
@@ -36,7 +35,7 @@ public class IfTagHandler implements TagHandler {
             isAnd = false;
         } else {
             if (tokenContents.contains(" or "))
-                throw new TemplateException(token.startLine, token.endLine, "Can't mix and & or in if statements");
+                throw new TemplateException(token.getStartLine(), "Can't mix and & or in if statements");
             isAnd = true;
         }
 
@@ -46,7 +45,7 @@ public class IfTagHandler implements TagHandler {
 
             if (boolPairParts.length > 1) {
                 if (!"not".equals(boolPairParts[0]))
-                    throw new TemplateException(token.startLine, token.endLine, "if statement improperly formatted");
+                    throw new TemplateException(token.getStartLine(), "if statement improperly formatted");
 
                 ifParams.add(new IfExpr(true, new FilterExpression(parser, boolPairParts[1])));
             }
@@ -59,7 +58,7 @@ public class IfTagHandler implements TagHandler {
         Token elseToken = parser.nextToken();
         Token endifToken = null;
 
-        if ("else".equals(elseToken.contents)) {
+        if ("else".equals(elseToken.getContents())) {
             falseNodes = parser.parse("endif");
             endifToken = parser.nextToken();
         } else {
@@ -93,9 +92,7 @@ public class IfTagHandler implements TagHandler {
         private final List<IfExpr> ifParams;
         private final List<Node> trueNodes, falseNodes;
         private final int elseStartLine;
-        private final int elseEndLine;
         private final int endIfStartLine;
-        private final int endIfEndLine;
 
         public IfNode(Token token, Token elseToken, Token endToken, boolean isAnd, List<IfExpr> ifParams, List<Node> trueNodes,
                 List<Node> falseNodes) {
@@ -107,16 +104,14 @@ public class IfTagHandler implements TagHandler {
             this.falseNodes = falseNodes;
 
             if (elseToken != null) {
-                elseStartLine = elseToken.startLine;
-                elseEndLine = elseToken.endLine;
+                elseStartLine = elseToken.getStartLine();
             } else {
-                elseStartLine = elseEndLine = 0;
+                elseStartLine = 0;
             }
-            endIfStartLine = endToken.startLine;
-            endIfEndLine = endToken.endLine;
+            endIfStartLine = endToken.getStartLine();
         }
 
-        public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
+        public void toJavascript(JSWriter preamble, JSWriter buffer) throws TemplateException {
             buffer.append(startLine, "if(");
 
             boolean isFirst = true;
@@ -135,13 +130,13 @@ public class IfTagHandler implements TagHandler {
             buffer.append(startLine, ") {\n");
 
             for (Node node : trueNodes) {
-                node.getRenderJSFn(preamble, buffer);
+                node.toJavascript(preamble, buffer);
             }
 
             buffer.append(elseStartLine, "} else {\n");
 
             for (Node node : falseNodes) {
-                node.getRenderJSFn(preamble, buffer);
+                node.toJavascript(preamble, buffer);
             }
 
             buffer.append(endIfStartLine, "}\n");

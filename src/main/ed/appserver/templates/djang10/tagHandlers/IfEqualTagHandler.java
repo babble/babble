@@ -22,7 +22,7 @@ public class IfEqualTagHandler implements TagHandler {
     }
 
     public TagNode compile(Parser parser, String command, Token token) throws TemplateException {
-        String[] parts = token.contents.split("\\s");
+        String[] parts = token.getContents().split("\\s");
         if (parts.length != 3)
             throw new TemplateException("Expected 2 arguments");
 
@@ -32,7 +32,7 @@ public class IfEqualTagHandler implements TagHandler {
         Token elseToken = parser.nextToken();
         Token endToken;
 
-        if ("else".equals(elseToken.contents)) {
+        if ("else".equals(elseToken.getContents())) {
             falseNodes = parser.parse("end" + command);
             endToken = parser.nextToken();
         } else {
@@ -72,7 +72,7 @@ public class IfEqualTagHandler implements TagHandler {
         }
 
         @Override
-        public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
+        public void toJavascript(JSWriter preamble, JSWriter buffer) throws TemplateException {
             // TODO Auto-generated method stub
 
             buffer.append(startLine, "if(");
@@ -84,16 +84,16 @@ public class IfEqualTagHandler implements TagHandler {
             buffer.append(startLine, ") {\n");
 
             for (Node node : trueNodes)
-                node.getRenderJSFn(preamble, buffer);
+                node.toJavascript(preamble, buffer);
 
             if (elseToken != null) {
-                buffer.append(elseToken.startLine, "} else {\n");
+                buffer.append(elseToken.getStartLine(), "} else {\n");
 
                 for (Node node : falseNodes) {
-                    node.getRenderJSFn(preamble, buffer);
+                    node.toJavascript(preamble, buffer);
                 }
             }
-            buffer.append(endToken.startLine, "}\n");
+            buffer.append(endToken.getStartLine(), "}\n");
         }
 
     }

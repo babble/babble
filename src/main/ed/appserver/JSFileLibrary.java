@@ -10,14 +10,38 @@ import ed.js.func.*;
 import ed.js.engine.*;
 import ed.security.*;
 import ed.appserver.jxp.*;
+import ed.db.JSHook;
 import ed.util.*;
 
 public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
     
     static final boolean D = Boolean.getBoolean( "DEBUG.JSFL" );
     static final boolean DS = Boolean.getBoolean( "DEBUG.JSFLB" ) || D;
+    static final boolean DP = Boolean.getBoolean( "DEBUG.PATHING" ) || D;
 
     public static final boolean INIT_BY_DEFAULT = false;
+
+    /**
+     *  Helper function to load a core appserver library.  Note that 
+     *  "src/main/" is the assumed starting point for specifying the library location
+     *  
+     * @param location Root of library.  E.g. "ed/db"
+     * @param uriBase optional package name
+     * @param scope 
+     * @return Library or null if can't be found
+     */
+    public static JSFileLibrary loadLibraryFromEd(String location,  String uriBase, Scope scope){ 
+	    String root = JSHook.whereIsEd;
+	    if ( root == null ) {
+	        root = "";
+	    }	    
+	    root += "src/main/" + location;	    
+	    File rootFile = new File( root );
+	    if ( ! rootFile.exists() ){
+	    	return null;
+	    }	
+	    return new JSFileLibrary( rootFile , uriBase, scope);
+    }
     
     public JSFileLibrary( File base , String uriBase , AppContext context ){
         this( null , base , uriBase , context , null , INIT_BY_DEFAULT );
@@ -29,8 +53,6 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
     
     protected JSFileLibrary( JSFileLibrary parent , File base , String uriBase , AppContext context , Scope scope , boolean doInit ){
 
-        if ( uriBase.equals( "core" ) && ! doInit )
-            throw new RuntimeException( "you are stupid" );
         
         _parent = parent;
         _base = base;
@@ -41,12 +63,17 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         
         if ( DS ) System.out.println( "creating : " + _base );
 
-
-        // this is ugly - please fix
-        if ( uriBase.equals( "core" ) )
-            set( "modules" , new ModuleDirectory( "core-modules" , "core.modules" , context , scope ) );
-        else if ( uriBase.equals( "local" ) || uriBase.equals( "jxp" ) )
-            set( "modules" , new ModuleDirectory( "site-modules" , "local.modules" , context , scope ) );
+        
+        if ( uriBase != null ){
+	        if ( uriBase.equals( "core" ) && ! doInit )
+	            throw new RuntimeException( "you are stupid" );
+	           
+	        // this is ugly - please fix
+	        if ( uriBase.equals( "core" ) )
+	            set( "modules" , new ModuleDirectory( "core-modules" , "core.modules" , context , scope ) );
+	        else if ( uriBase.equals( "local" ) || uriBase.equals( "jxp" ) )
+	            set( "modules" , new ModuleDirectory( "site-modules" , "local.modules" , context , scope ) );
+	    }
     }
 
     private synchronized void _init(){
@@ -157,7 +184,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
             try {
                 JSFunction func = source.getFunction();
                 func.setName( _uriBase + "." + n.toString() );
-                addPath( func.getClass() , this );
+                addPath( func , this );
                 foo = func;
             }
             catch ( IOException ioe ){
@@ -279,7 +306,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
 
         source = _sources.get( f );
         if ( source == null ){
-            source = JxpSource.getSource( f );
+            source = JxpSource.getSource( f , this );
             _sources.put( f , source );
         }
         
@@ -419,11 +446,17 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         int idx = topjs.indexOf( "$" );
         if ( idx > 0 )
             topjs = topjs.substring( 0 , idx );
+        if ( DP ) System.out.println( "looking or path : " + topjs );
         JSFileLibrary lib = _classToPath.get( topjs );
         return lib;
     }
+
+    public static void addPath( JSFunction f , JSFileLibrary lib ){
+        addPath( f.getClass() , lib );
+    }
     
     public static void addPath( Class c , JSFileLibrary lib ){
+        if ( DP ) System.out.println( "adding to path : " + c );
         _classToPath.put( c.getName() , lib );
     }
 

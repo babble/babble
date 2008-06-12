@@ -19,7 +19,7 @@ import ed.js.JSFunction;
 public class ExtendsTagHandler implements TagHandler {
 
     public TagNode compile(Parser parser, String command, Token token) throws TemplateException {
-        String path = Parser.smartSplit(token.contents)[1];
+        String path = Parser.smartSplit(token.getContents())[1];
         Expression pathExpr = new Expression(path);
 
         parser.setStateVariable(this.getClass(), true);
@@ -49,10 +49,9 @@ public class ExtendsTagHandler implements TagHandler {
             this.topLevelBlocks = topLevelBlocks;
         }
 
-        @Override
-        public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
+        public void toJavascript(JSWriter preamble, JSWriter buffer) throws TemplateException {
             for (Node node : topLevelBlocks)
-                node.getRenderJSFn(preamble, buffer);
+                node.toJavascript(preamble, buffer);
 
             buffer.appendHelper(startLine, JSHelper.CALL_PATH + "(");
             buffer.append(startLine, path.toJavascript());

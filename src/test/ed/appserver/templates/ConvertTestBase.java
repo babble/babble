@@ -59,6 +59,19 @@ public abstract class ConvertTestBase extends TestCase {
         return null;
     }
 
+    Scope initScope() {
+        Scope scope = Scope.getAScope().child();
+        scope.makeThreadLocal();
+
+        JSFileLibrary localLib = new JSFileLibrary( new File( "src/test/ed/appserver/templates/" ) , "local" , scope );
+        scope.put( "local" , localLib , true );
+        
+        return scope;
+    }
+    void cleanup() {
+        Scope.clearThreadLocal();
+    }
+    
     public class FileTest extends TestCase {
 
         FileTest( File f ){
@@ -70,6 +83,27 @@ public abstract class ConvertTestBase extends TestCase {
         public void test()
             throws Exception {
             
+            
+            //Setup scope
+            Scope scope = initScope();
+            
+            final StringBuilder output = new StringBuilder();
+            
+            JSFunction myout = new JSFunctionCalls1(){
+                public Object call( Scope scope ,Object o , Object extra[] ){
+                    output.append( o ).append( "\n" );
+                    return null;
+                }
+            };
+            
+            scope.put( "print" , myout , true );
+            scope.put( "SYSOUT" , myout , true );
+            
+            
+
+            
+            
+            // Convert to Javascript
             if ( DEBUG ) {
                 System.out.println( "*********************");
                 System.out.println( _file );
@@ -78,10 +112,7 @@ public abstract class ConvertTestBase extends TestCase {
 
             System.out.println("ConvertTestBase : testing = " + _file);
 
-            final String in = StreamUtil.readFully( new FileInputStream( _file ) );
-
-            Scope scope = Scope.getAScope().child();
-            scope.makeThreadLocal();
+            final String in = StreamUtil.readFully( new FileInputStream( _file ) );            
             
             DependencyTracker dependencyTracker = new MockDependencyTracker();
             Template t = new Template( _file.getAbsolutePath() , in , ed.lang.Language.find( _file.toString() ) );
@@ -89,28 +120,19 @@ public abstract class ConvertTestBase extends TestCase {
 
             assertNotNull( r );
 
+            
+            //Compile to Java
             Convert c = new Convert( _file.toString() , r.getNewTemplate().getContent() );
             JSFunction func = c.get();
             
-            final StringBuilder output = new StringBuilder();
-            
-            JSFunction myout = new JSFunctionCalls1(){
-                    public Object call( Scope scope ,Object o , Object extra[] ){
-                        output.append( o ).append( "\n" );
-                        return null;
-                    }
-                };
-            
-            scope.put( "print" , myout , true );
-            scope.put( "SYSOUT" , myout , true );
-            
-            JSFileLibrary localLib = new JSFileLibrary( new File( "src/test/ed/appserver/templates/" ) , "local" , scope );
-            scope.put( "local" , localLib , true );
-            
+            JSFileLibrary localLib = (JSFileLibrary)scope.get("local");
             localLib.addPath( func.getClass() , localLib );
 
+            
+            //Render to HTML
             func.call( scope , getArgs(scope) );
             
+            //Test the output
             String got = _clean( output.toString() );
             if ( DEBUG ) 
                 System.out.println( got );
@@ -139,6 +161,9 @@ public abstract class ConvertTestBase extends TestCase {
                 
                 assertEquals( lineNumber , (int)(r.getLineMapping().get( where + 1 ) ) );
             }
+            
+            //Cleanup
+            cleanup();
         }
 
         final File _file;

@@ -36,6 +36,21 @@ public class Djang10ConverterTest extends ConvertTestBase {
     }
 
     @Override
+    Scope initScope() {
+        Scope scope =  super.initScope();
+
+        Djang10Converter.injectHelpers(scope);
+        
+        JSFunction addTemplateRoot = (JSFunction)((JSObjectBase)scope.get(JSHelper.NS)).get(JSHelper.ADD_TEMPLATE_ROOT);
+        addTemplateRoot.call(scope, new JSString("/local"));
+        
+        JSFunction addModuleRoot = (JSFunction)((JSObjectBase)scope.get(JSHelper.NS)).get(JSHelper.ADD_MODULE_ROOT);
+        addModuleRoot.call(scope, new JSString("/local/djang10support"));
+
+        return scope;
+    }
+    
+    @Override
     Object[] getArgs(Scope testScope){
         JSObjectBase o = new JSObjectBase();
         o.set( "foo" , "17" );
@@ -86,19 +101,13 @@ public class Djang10ConverterTest extends ConvertTestBase {
         JSFileLibrary localLib = (JSFileLibrary)testScope.get("local");
         o.set("includedTemplateJsFunction", localLib.get("djang10-if"));
         
-        Djang10Converter.injectHelpers(testScope);
-        JSFunction addTemplateRoot = (JSFunction)((JSObjectBase)testScope.get(JSHelper.NS)).get(JSHelper.ADD_TEMPLATE_ROOT);
-        addTemplateRoot.call(testScope, new JSString("/local"));
-        
-        
         o.set("echoFunc", new JSFunctionCalls1() {
            public Object call(Scope scope, Object in, Object[] extra) {
                return in;
            }
         });
         
-        JSFunction addModuleRoot = (JSFunction)((JSObjectBase)testScope.get(JSHelper.NS)).get(JSHelper.ADD_MODULE_ROOT);
-        addModuleRoot.call(testScope, new JSString("/local/djang10support"));
+        o.set("prototypedObj", testScope.eval("function PrototypedClazz() {}; PrototypedClazz.prototype.getProp = function() { return 'moo'; }; return new PrototypedClazz();") );
         
         return new Object[]{ o };
     }

@@ -113,9 +113,8 @@ public class Ruby {
                     if ( thing instanceof Boolean )
                         thing = JSBoolean.functions;
 
-                    if ( ! ( thing instanceof JSObject) ){
-                        throw new RuntimeException( "problem (" + thing.getClass() + ")" );
-                    }
+                    if ( ! ( thing instanceof JSObject) )
+                        return Scope.callNative( s , thing , funcName.toString() , null );
                     
 
                     JSObject jo = (JSObject)thing;
@@ -532,20 +531,15 @@ public class Ruby {
                 }
             } , true );
 
+        JSFileLibrary lib = JSFileLibrary.loadLibraryFromEd("ed/lang/ruby", "ruby", s);
 
-        String root = ed.db.JSHook.whereIsEd;
-        if ( root == null )
-            root = "";
-        root += "src/main/ed/lang/ruby/";
-        java.io.File rootFile = new java.io.File( root );
-        if ( ! rootFile.exists() ){
-            System.err.println( "can't find ruby root : " + rootFile + " RUBY WILL NOT WORK" );
+        if (lib == null ){
+            System.err.println( "can't find ruby root :  RUBY WILL NOT WORK" );
             return;
         }
-        JSFileLibrary lib = new JSFileLibrary( rootFile , "ruby" , s );
+
         ((JSFunction)(lib.get( "lib" ))).call( s );
         ((JSFunction)(lib.get( "core" ))).call( s );
-
     }
     
     public static class RubyReturnHack extends RuntimeException {

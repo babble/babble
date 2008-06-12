@@ -5,10 +5,13 @@ package ed.appserver.templates.djang10;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 import ed.appserver.JSFileLibrary;
 import ed.appserver.templates.Djang10Converter;
+import ed.appserver.templates.djang10.Parser.Token;
 import ed.appserver.templates.djang10.filters.JavaFilter;
 import ed.appserver.templates.djang10.tagHandlers.TagHandler;
 import ed.js.JSFunction;
@@ -31,6 +34,7 @@ public class JSHelper extends JSObjectBase {
     public static final String CONTEXT_CLASS = "Context";
     public static final String LIBRARY_CLASS = "Library";
     public static final String NS = "__djang10";
+    public static final String publicApi = "publicApi";
 
     private final ArrayList<JSFileLibrary> templateRoots;
     private final ArrayList<JSFileLibrary> moduleRoots;
@@ -52,22 +56,35 @@ public class JSHelper extends JSObjectBase {
         }
 
         // add the basic helpers
-        this.set(JSHelper.LOAD_PATH, loadPath);
-        this.set(JSHelper.CALL_PATH, callPath);
-        this.set(JSHelper.ADD_TEMPLATE_ROOT, addTemplateRoot);
+        this.set(LOAD_PATH, loadPath);
+        this.set(CALL_PATH, callPath);
+        this.set(ADD_TEMPLATE_ROOT, addTemplateRoot);
 
-        this.set(JSHelper.ADD_MODULE_ROOT, addModuleRoot);
-        this.set(JSHelper.CALL_MODULE, callModule);
-        this.set(JSHelper.LOAD_MODULE, loadModule);
+        this.set(ADD_MODULE_ROOT, addModuleRoot);
+        this.set(CALL_MODULE, callModule);
+        this.set(LOAD_MODULE, loadModule);
 
-        this.set(JSHelper.CONTEXT_CLASS, Context.CONSTRUCTOR);
+        this.set(CONTEXT_CLASS, Context.CONSTRUCTOR);
         this.set(LIBRARY_CLASS, Library.CONSTRUCTOR);
-
+        this.set(Token.NAME, Token.CONSTRUCTOR);
+        
+        this.set(publicApi, new PublicApi());
+        
         this.lock();
     }
 
+    private class PublicApi extends JSObjectBase {
+        public PublicApi() {
+            set("addTemplateRoot", addTemplateRoot);
+            set("loadTemplate", loadPath);
+            set("Context", Context.CONSTRUCTOR);
+            
+            set("addTemplateTagsRoot", addModuleRoot);
+            set("Library", Library.CONSTRUCTOR);
+        }
+    }
+    
     private final JSFunction callPath = new JSFunctionCalls1() {
-        @Override
         public Object call(Scope scope, Object pathObj, Object[] extra) {
             Object loadedObj = loadPath.call(scope, pathObj, extra);
 
@@ -79,7 +96,6 @@ public class JSHelper extends JSObjectBase {
     };
 
     private final JSFunction loadPath = new JSFunctionCalls1() {
-        @Override
         public Object call(Scope scope, Object pathObj, Object[] extra) {
 
             if (pathObj == null || pathObj == Expression.UNDEFINED_VALUE)
@@ -135,7 +151,6 @@ public class JSHelper extends JSObjectBase {
     };
 
     private final JSFunction addTemplateRoot = new JSFunctionCalls1() {
-        @Override
         public Object call(Scope scope, Object newRoot, Object[] extra) {
             JSFileLibrary templateFileLib;
 
@@ -179,7 +194,7 @@ public class JSHelper extends JSObjectBase {
     private final JSFunction loadModule = new JSFunctionCalls1() {
         public Object call(Scope scope, Object pathObj, Object[] extra) {
 
-            return loadModule(((JSString) pathObj).toString());
+            return loadModule(scope, ((JSString) pathObj).toString());
         }
     };
 
@@ -189,7 +204,7 @@ public class JSHelper extends JSObjectBase {
     }
 
     public Library callModule(Scope scope, String name) {
-        JSCompiledScript module = loadModule(name);
+        JSCompiledScript module = loadModule(scope, name);
 
         if (module == null)
             return null;
@@ -205,19 +220,34 @@ public class JSHelper extends JSObjectBase {
         return (Library) registerObj;
     }
 
-    public JSCompiledScript loadModule(String name) {
+    public JSCompiledScript loadModule(Scope scope, String name) {
         if (name == null)
             return null;
 
         JSCompiledScript moduleFile = null;
 
-        for (JSFileLibrary fileLib : moduleRoots) {
+        ListIterator<JSFileLibrary> iter = moduleRoots.listIterator(moduleRoots.size());
+
+        while(iter.hasPrevious()) {
+            JSFileLibrary fileLib = iter.previous();
+
             Object file = fileLib.get(name);
 
             if (file instanceof JSCompiledScript) {
                 moduleFile = (JSCompiledScript) file;
                 break;
             }
+        }
+        
+        //try resolving against /local/templatetags
+        if(!(moduleFile instanceof JSCompiledScript)) {
+            JSFileLibrary local = (JSFileLibrary)scope.get("local");
+            Object templateTagDirObj = local.get("templatetags");
+            if(templateTagDirObj instanceof JSFileLibrary) {
+                Object file = ((JSFileLibrary)templateTagDirObj).get(name);
+                if(file instanceof JSCompiledScript)
+                    moduleFile = (JSCompiledScript)file;
+            }            
         }
         return moduleFile;
     }

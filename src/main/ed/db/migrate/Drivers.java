@@ -51,6 +51,16 @@ public class Drivers {
             return new MyResult( stmt , stmt.executeQuery( s ) );
         }
         
+        public int exec( String s )
+            throws SQLException {
+            Statement stmt = null;
+            if ( _stmts.size() > 0 )
+                stmt = _stmts.remove(0);
+            else
+                stmt = _conn.createStatement();
+            return stmt.executeUpdate( s );
+        }
+
         public String toString(){
             return _url;
         }
@@ -73,6 +83,9 @@ public class Drivers {
 
             public boolean hasNext()
                 throws SQLException {
+
+                _doneAnything = true;
+
                 boolean b = _res.next();
                 if ( ! b ){
                     _res.close();
@@ -82,11 +95,15 @@ public class Drivers {
 
                 return b;
             }
-
+            
             public Object get( Object o ){
                 String name = o.toString();
-
+                
                 if ( name.equals( "hasNext" ) ||
+                     name.equals( "asObject" ) || 
+                     name.equals( "toObject" ) || 
+                     name.equals( "asArray" ) || 
+                     name.equals( "toArray" ) || 
                      name.equals( "keySet" ) )
                     return null;
 
@@ -101,6 +118,33 @@ public class Drivers {
                 catch ( SQLException se ){
                     throw new RuntimeException( se );
                 }
+            }
+            
+            public JSObject toObject(){
+                return asObject();
+            }
+
+            public JSObject asObject(){
+                JSObjectBase o = new JSObjectBase();
+                for ( String s : _fields )
+                    o.set( s , get( s ) );
+                return o;
+            }
+
+            public JSArray toArray()
+                throws SQLException {
+                return asArray();
+            }
+
+            public JSArray asArray()
+                throws SQLException {
+                if ( _doneAnything )
+                    throw new RuntimeException( "too late to call toArray()" );
+                
+                JSArray a = new JSArray();
+                while ( hasNext() )
+                    a.add( asObject() );
+                return a;
             }
             
             public void close()
@@ -118,8 +162,9 @@ public class Drivers {
             private final Statement _stmt;
             private final ResultSet _res;
             private final List<String> _fields = new ArrayList<String>();
-
+            
             private boolean _addedBack = false;
+            private boolean _doneAnything = false;
         }
     }
 }

@@ -42,7 +42,7 @@ public class Shell {
         _displayCursor( c );
     }
     
-    String _string( Object val ){
+    static String _string( Object val ){
         if ( val == null )
             return "null";
         String s = val.toString();
@@ -52,6 +52,10 @@ public class Shell {
     }
     
     int _displayCursor( DBCursor c ){
+        return displayCursor( _out , c );
+    }
+    
+    public static int displayCursor( PrintStream out , DBCursor c ){
         
         List<JSObject> all = new ArrayList<JSObject>();
         Map<String,Integer> fields = new TreeMap<String,Integer>();
@@ -79,15 +83,15 @@ public class Shell {
             return 0;
         
         for ( String f : fields.keySet() ){
-            _out.printf( "%" + fields.get( f ) + "s | " , f );
+            out.printf( "%" + fields.get( f ) + "s | " , f );
         }
-        _out.printf( "\n" );
+        out.printf( "\n" );
 
         for ( JSObject obj : all ){
             for ( String f : fields.keySet() ){
-                _out.printf( "%" + fields.get( f ) + "s | " , _string( obj.get( f ) ) );
+                out.printf( "%" + fields.get( f ) + "s | " , _string( obj.get( f ) ) );
             }   
-            _out.printf( "\n" );
+            out.printf( "\n" );
         }
         
         return all.size();

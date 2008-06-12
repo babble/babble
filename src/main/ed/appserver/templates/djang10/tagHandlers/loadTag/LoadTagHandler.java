@@ -1,11 +1,13 @@
 package ed.appserver.templates.djang10.tagHandlers.loadTag;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import ed.appserver.jxp.JxpSource;
 import ed.appserver.templates.djang10.JSHelper;
 import ed.appserver.templates.djang10.Library;
+import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.TemplateException;
 import ed.appserver.templates.djang10.Node.TagNode;
@@ -21,35 +23,34 @@ public class LoadTagHandler implements TagHandler {
 
     public TagNode compile(Parser parser, String command, Token token) throws TemplateException {
 
-        String moduleName = token.contents.trim().split("\\s+", 2)[1];
-        if (!moduleName.matches("^\\w+$"))
-            throw new TemplateException("invalid module name: " + moduleName);
-
         Scope callingScope = Scope.getThreadLocal();
         JSHelper helper = (JSHelper) callingScope.get(JSHelper.NS);
-        JSFunction module = helper.loadModule(moduleName);
-        Library moduleLibrary = helper.callModule(callingScope, moduleName);
-
-        parser.getTracker().addDependency((JxpSource) module.get(JxpSource.JXP_SOURCE_PROP));
-
-        if (module == null)
-            throw new TemplateException("failed to find module: " + moduleName);
-
+        
         LoadTagStateVar stateVar = parser.getStateVariable(getClass());
-        boolean isFirst = false;
         if (stateVar == null) {
             stateVar = new LoadTagStateVar();
             parser.setStateVariable(getClass(), stateVar);
-            isFirst = true;
         }
+        boolean isFirst = stateVar.libraryCount == 0;
+        
+        String moduleName = token.getContents().trim().split("\\s+", 2)[1];
+        if (!moduleName.matches("^\\w+$"))
+            throw new TemplateException("invalid module name: " + moduleName);
+
+        JSFunction module = helper.loadModule(callingScope, moduleName);
+        if (module == null)
+            throw new TemplateException("failed to find module: " + moduleName);
+        parser.getTracker().addDependency((JxpSource) module.get(JxpSource.JXP_SOURCE_PROP));
+
+        Library moduleLibrary = helper.callModule(callingScope, moduleName);
+        
 
         // pull out the tags
-        /*
-         * for(String tagName : module.getTags().keySet()) {
-         * stateVar.tagLibraryIndex.put(tagName, stateVar.libraryCount);
-         * parser.getFilters().put(tagName, new
-         * ModuleFilterWrapper(stateVar.libraryCount)); }
-         */
+        for (String tagName : moduleLibrary.getTags().keySet()) {
+            stateVar.tagLibraryIndex.put(tagName, stateVar.libraryCount);
+            parser.getTagHandlers().put(tagName, new ModuleTagHandlerWrapper(stateVar.libraryCount, (JSFunction)moduleLibrary.getTags().get(tagName)));
+        }
+
 
         // pull out filters
         ModuleFilterWrapper filterWrapper = new ModuleFilterWrapper(stateVar.libraryCount);
@@ -64,7 +65,12 @@ public class LoadTagHandler implements TagHandler {
     }
 
     public Map<String, JSFunction> getHelpers() {
-        return new HashMap<String, JSFunction>();
+        Map<String, JSFunction> helpers = new HashMap<String, JSFunction>();
+        
+        helpers.put(JSRenderPhaseParser.NAME, JSRenderPhaseParser.CONSTRUCTOR);
+        helpers.put(JSRenderPhaseNode.NAME, JSRenderPhaseNode.CONSTRUCTOR);
+        
+        return helpers;
     }
 
     private static class LoadTagStateVar {
@@ -83,7 +89,7 @@ public class LoadTagHandler implements TagHandler {
             this.isFirst = isFirst;
         }
 
-        public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
+        public void toJavascript(JSWriter preamble, JSWriter buffer) throws TemplateException {
 
             // TODO: move the isFirst check here....if the render function isn't
             // called for the first node, all's broken
@@ -105,6 +111,49 @@ public class LoadTagHandler implements TagHandler {
 
         public String toJavascript(String filterName, String compiledValue, String compiledParam) throws TemplateException {
             return MODULE_LIST + "[" + moduleIndex + "].filters." + filterName + "(" + compiledValue + ", " + compiledParam + ")";
+        }
+    }
+    
+    private static class ModuleTagHandlerWrapper implements TagHandler {
+        private JSFunction compilationFunc;
+        private int moduleIndex;
+        
+        public ModuleTagHandlerWrapper(int moduleIndex, JSFunction compilationFunc) {
+            super();
+            this.moduleIndex = moduleIndex;
+            this.compilationFunc = compilationFunc;
+        }
+        public TagNode compile(Parser parser, final String command, final Token token) throws TemplateException {
+            JSCompilationPhaseParser compilationParser = new JSCompilationPhaseParser(parser);
+            Scope compileScope = Scope.getThreadLocal().child();
+            compileScope.setGlobal(true);
+            compilationFunc.call(compileScope, compilationParser, token);
+            
+            final List<Node> childNodes = compilationParser.getAndClearNodes();
+            
+            return new TagNode(token) {
+                public void toJavascript(JSWriter preamble, JSWriter buffer) throws TemplateException {
+                    buffer.append("print(");
+                    buffer.append(MODULE_LIST + "[" + moduleIndex + "].tags." + command + "(");
+                    //serialize the parser
+                    buffer.append(" new " + JSHelper.NS + "." + JSRenderPhaseParser.NAME + "([");
+                    //serialize the immediate children using the tag contents and the javascript they generated
+                    for(int i=0; i<childNodes.size(); i++) {
+                        String tag = (childNodes.get(i) instanceof TagNode)? ((TagNode)childNodes.get(i)).tagName : "";
+                        
+                        if(i != 0) buffer.append(", ");
+                        
+                        buffer.append("new " + JSHelper.NS + "." + JSRenderPhaseNode.NAME + "(\"" + tag + "\", " + childNodes.get(i).token.toJavascript() + ", function(print) {");
+                        childNodes.get(i).toJavascript(preamble, buffer);
+                        buffer.append("})");
+                    }
+                    buffer.append("]), " + token.toJavascript() + ").render("+JSWriter.CONTEXT_STACK_VAR+")");
+                    buffer.append(");\n");
+                }
+            };
+        }
+        public Map<String, JSFunction> getHelpers() {
+            return new HashMap<String, JSFunction>();
         }
     }
 }

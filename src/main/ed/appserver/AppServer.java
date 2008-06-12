@@ -2,6 +2,8 @@
 
 package ed.appserver;
 
+import ed.db.JSHook;
+
 import java.io.*;
 import java.util.*;
 
@@ -489,6 +491,9 @@ public class AppServer implements HttpHandler {
             else if ("--root".equals(args[i])) {
                 portNum = Integer.valueOf(args[++i]);
             }
+            else if ("--serverroot".equals(args[i])) {
+            	JSHook.whereIsEd = args[++i];
+            }
             else {
                 if (i != aLength - 1) {
                     System.out.println("error - unknown param " + args[i]);
@@ -502,11 +507,12 @@ public class AppServer implements HttpHandler {
 
         System.out.println("==================================");
         System.out.println("  10gen AppServer vX");
-        System.out.println("    library root = " + CoreJS.get().getBase());
+        System.out.println("     listen port = " + portNum);
+        System.out.println("     server root = " + JSHook.whereIsEd);
         System.out.println("         webRoot = " + webRoot);
         System.out.println("      serverRoot = " + serverRoot);
         System.out.println("     listen port = " + portNum);
-        System.out.println("==================================");
+                System.out.println("==================================");
 
         AppServer as = new AppServer( webRoot , serverRoot);
         

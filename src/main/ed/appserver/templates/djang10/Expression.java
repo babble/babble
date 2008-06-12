@@ -236,8 +236,20 @@ public class Expression {
         if (obj instanceof JSArray && propName instanceof Number) {
             if (((JSArray) obj).size() <= ((Number) propName).longValue())
                 return UNDEFINED_VALUE;
-        } else if (!obj.keySet().contains(propName))
-            return UNDEFINED_VALUE;
+        } else {
+            //FIXME: this really should be in JSObjectBase
+            Object current = obj;
+            while(current instanceof JSObject) {
+                if(((JSObject)current).keySet().contains(propName))
+                    break;
+                
+                current = ((JSObject)current).get("__proto__");
+            }
+            if(!(current instanceof JSObject)) {
+                return UNDEFINED_VALUE;
+            }
+        }
+            
 
         ret = obj.get(propName);
 

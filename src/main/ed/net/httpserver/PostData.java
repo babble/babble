@@ -150,7 +150,7 @@ public abstract class PostData {
                 _files.put( mainPieces.get( "name" ) , uf );
             }
             else if ( type == null ){
-                req._addParm( mainPieces.get( "name" ) , string( start , end - start ).trim() );
+                req._addParm( mainPieces.get( "name" ) , string( start , end - start ).trim() , true );
             }
             else {
                 throw new RuntimeException( "can't handle : " + type + " " + headers );
@@ -171,13 +171,13 @@ public abstract class PostData {
                     break;
 
             if ( i == _len ){
-                req._addParm( string( start , _len - start ) , null );
+                req._addParm( string( start , _len - start ) , null , true );
                 break;
             }
             
             if ( get(i) == '\n' ||
                  get(i) == '&' ){
-                req._addParm( string( start , i - start ) , null );
+                req._addParm( string( start , i - start ) , null , true );
                 continue;
             }
 
@@ -189,7 +189,8 @@ public abstract class PostData {
                     break;
             
             req._addParm( string( start , eq - start ) ,
-                          string( eq + 1 , i - ( eq + 1 ) ) );
+                          string( eq + 1 , i - ( eq + 1 ) ) , 
+                          true );
                 
         }
     }

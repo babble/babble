@@ -5,7 +5,6 @@ import java.util.Map;
 
 import ed.appserver.templates.djang10.Expression;
 import ed.appserver.templates.djang10.JSHelper;
-import ed.appserver.templates.djang10.Node;
 import ed.appserver.templates.djang10.Parser;
 import ed.appserver.templates.djang10.TemplateException;
 import ed.appserver.templates.djang10.Node.TagNode;
@@ -16,7 +15,7 @@ import ed.js.JSFunction;
 public class IncludeTagHandler implements TagHandler {
 
     public TagNode compile(Parser parser, String command, Token token) throws TemplateException {
-        String[] parts = Parser.smartSplit(token.contents);
+        String[] parts = Parser.smartSplit(token.getContents());
         Expression var = new Expression(parts[1]);
 
         return new IncludeNode(token, var);
@@ -38,7 +37,7 @@ public class IncludeTagHandler implements TagHandler {
         }
 
         @Override
-        public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
+        public void toJavascript(JSWriter preamble, JSWriter buffer) throws TemplateException {
             buffer.appendHelper(startLine, JSHelper.CALL_PATH + "(" + var.toJavascript() + ", " + JSWriter.CONTEXT_STACK_VAR
                     + ");\n");
         }

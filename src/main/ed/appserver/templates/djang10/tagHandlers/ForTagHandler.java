@@ -23,7 +23,7 @@ import ed.js.func.JSFunctionCalls2;
 public class ForTagHandler implements TagHandler {
 
     public TagNode compile(Parser parser, String command, Token token) throws TemplateException {
-        String[] params = token.contents.split("\\s");
+        String[] params = token.getContents().split("\\s");
         String itemName = params[1];
         if (!"in".equals(params[2]))
             throw new TemplateException("expected in operator");
@@ -104,7 +104,7 @@ public class ForTagHandler implements TagHandler {
             this.bodyNodes = bodyNodes;
         }
 
-        public void getRenderJSFn(JSWriter preamble, JSWriter buffer) throws TemplateException {
+        public void toJavascript(JSWriter preamble, JSWriter buffer) throws TemplateException {
             String compiledList = JSHelper.NS + "." + Expression.DEFAULT_VALUE + "(" + list.toJavascript() + ", [])";
             Expression forloop = new Expression("forloop");
             Expression revcounter = new Expression("forloop.revcounter");
@@ -118,7 +118,7 @@ public class ForTagHandler implements TagHandler {
                     + "]);\n");
 
             for (Node node : bodyNodes)
-                node.getRenderJSFn(preamble, buffer);
+                node.toJavascript(preamble, buffer);
 
             buffer.append(startLine, forloop.toJavascript() + ".moveNext();\n");
 
