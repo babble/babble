@@ -1186,8 +1186,10 @@ public class Convert implements StackTraceFixer {
         }
 
         _append(  varSetup , n );
-        if ( hasArguments )
+        if ( hasArguments ){
             _append( "if ( extra != null ) for ( Object TTTT : extra ) arguments.add( TTTT );\n" , n );
+            _append( "{ Integer numArgs = _lastStart.get(); _lastStart.set( null ); while( numArgs != null && arguments.size() > numArgs && arguments.get( arguments.size() -1 ) == null ) arguments.remove( arguments.size() - 1 ); }" , n );
+        }
 
         for ( int i=fn.getParamCount(); i<fn.getParamAndVarCount(); i++ ){
             final String foo = fn.getParamOrVarName( i );

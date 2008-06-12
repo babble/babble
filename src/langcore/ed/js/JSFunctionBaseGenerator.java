@@ -97,6 +97,8 @@ public class JSFunctionBaseGenerator {
             }
             buf.append( " , Object " + _extraSymbol( i ) + " extra ){\n" );
             
+            buf.append( _i(3) + "if ( _lastStart.get() == null ) _lastStart.set( " + i + " ); \n" );
+
             if ( i < num ){
                 for ( int j=i; j<num; j++ )
                     buf.append( _i(3) + "Object p" + j + " = extra == null || extra.length <= " + ( j - i ) + " ? null : extra[" + ( j - i ) + "];\n" );
@@ -140,6 +142,8 @@ public class JSFunctionBaseGenerator {
             buf.append( _i(1) + "}\n\n" );
             
         }
+
+        buf.append( _i(1) + "protected ThreadLocal<Integer> _lastStart = new ThreadLocal<Integer>();\n" );
 
         buf.append( "\n}\n" );
 
