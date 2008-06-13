@@ -4,7 +4,20 @@ package ed.db;
 
 import java.util.*;
 
+import ed.appserver.*;
+
 public class DBProvider {
+
+    public static DBApiLayer get( String root , AppContext ctxt ){
+        if ( ctxt == null )
+            throw new IllegalArgumentException( "shouldn't call this version of DBProvider.get without an AppContext" );
+        
+        String env = ctxt.getEnvironmentName();
+        if ( env == null )
+            return get( root , false );
+
+        return get( root , false , ed.cloud.Cloud.getInstance().getDBHost( root , env ) );
+    }
 
     public static DBApiLayer get( String root ){
         return get( root , true , null );
