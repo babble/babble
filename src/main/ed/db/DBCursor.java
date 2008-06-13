@@ -193,6 +193,27 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
         return _nums;
     }
 
+    public int count(){
+        if ( _collection == null )
+            throw new RuntimeException( "why is _collection null" );
+        if ( _collection._base == null )
+            throw new RuntimeException( "why is _collection._base null" );
+        if ( _collection._base._collectionPrototype == null )
+            throw new RuntimeException( "why is _collection._base._collectionPrototype null" );
+        
+        JSFunction c = (JSFunction)(_collection._base._collectionPrototype.get( "count" ));
+        if ( c == null )
+            throw new RuntimeException( "can't find count function" );
+        
+        Scope s = c.getScope().child();
+        s.setThis( this._collection );
+        Object o = c.call( s , _query );
+        if ( o instanceof Number )
+            return ((Number)o).intValue();
+        
+        throw new RuntimeException( "why did call return a non-number" );
+    }
+
     // ---- js methods ----
     private static Map<String,JSFunction> _staticMehods = new TreeMap<String,JSFunction>();
     static {
