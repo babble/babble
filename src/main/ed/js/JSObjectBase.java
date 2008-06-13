@@ -457,9 +457,9 @@ public class JSObjectBase implements JSObject {
         
         if ( _map != null ){
             for ( Map.Entry<String,Object> e : _map.entrySet() ){
-                hash *= e.getKey().hashCode();
+                hash += ( 3 * e.getKey().hashCode() );
                 if ( e.getValue() != null )
-                    hash *= e.getValue().hashCode();
+                    hash += ( 7 * e.getValue().hashCode() );
             }
         }
 
