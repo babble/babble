@@ -255,7 +255,7 @@ public class Ruby {
 
                     path = path.replaceAll( "//+" , "/" );
 
-                    Object thing = ((JSFileLibrary)s.get( "__path__" )).getFromPath( path );
+                    Object thing = s.get("__path__" ) == null ? null : ((JSFileLibrary)s.get( "__path__" )).getFromPath( path );
                     
                     JSFileLibrary local = (JSFileLibrary)s.get( "local" );
 
