@@ -40,10 +40,12 @@ public class Ruby {
 
     }
 
-    public static void install( Scope s ){
+    public static void install( final Scope s ){
         
         final JSObjectBase r = new JSObjectBase();
         s.put( "Ruby" , r , true );
+        final JSArray loadPath = new JSArray();
+        r.set( "loadPath" , loadPath );
 
         s.put( RUBY_V_CALL , new JSFunctionCalls1(){
                 public Object call( Scope s , Object foo , Object extra[] ){
@@ -241,6 +243,9 @@ public class Ruby {
             } );
 
         s.put( RUBY_REQUIRE , new JSFunctionCalls1(){
+                
+                Map<String,JSFileLibrary> _libs = new TreeMap<String,JSFileLibrary>();
+
                 public Object call( Scope s , Object pathObj , Object extra[] ){
                     if ( pathObj == null )
                         throw new NullPointerException( "can't send require nothing" );
@@ -255,7 +260,7 @@ public class Ruby {
 
                     path = path.replaceAll( "//+" , "/" );
 
-                    Object thing = ((JSFileLibrary)s.get( "__path__" )).getFromPath( path );
+                    Object thing = s.get("__path__" ) == null ? null : ((JSFileLibrary)s.get( "__path__" )).getFromPath( path );
                     
                     JSFileLibrary local = (JSFileLibrary)s.get( "local" );
 
@@ -269,13 +274,30 @@ public class Ruby {
                                 break;
                         }
                     }
-
+                    
                     if ( thing == null )
                         thing = ((JSFileLibrary)s.get( "core" )).getFromPath( "rails/lib/" + path );
-
+                    
                     if ( thing == null )
                         thing = ((JSFileLibrary)s.get( "external" )).getFromPath( "ruby/current/" + path );
                     
+                    if ( thing == null ){
+                        for ( int i=0; i<loadPath.size(); i++ ){
+                            String dir = loadPath.get(i).toString();
+                            System.out.println( "here: " + dir );
+                            JSFileLibrary lib = _libs.get( dir );
+                            if ( lib == null ){
+                                lib = new JSFileLibrary( new java.io.File( dir ) , null , s );
+                                _libs.put( dir , lib );
+                            }
+                            thing = lib.getFromPath( path );
+                            
+                            if ( thing != null )
+                                break;
+                        }
+                    }
+
+
                     if ( thing == null || ! ( thing instanceof JSFunction ) ){
                         s.getFunction( "raiseLoadError" ).call( s , "can't find [" + path + "]" );
                         throw new RuntimeException( "shouldn't be here, should have throw exception" );

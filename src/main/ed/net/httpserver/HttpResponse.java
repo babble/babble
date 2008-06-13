@@ -432,10 +432,13 @@ public class HttpResponse extends JSObjectBase {
             return;
         }
         
+        if ( f.getFileName() != null && _headers.get( "Content-Disposition" ) == null )
+            _headers.put( "Content-Disposition" , "attachment; filename=\"" + f.getFileName() + "\"" );
+
         long length = f.getLength();
         _jsfile = f.sender();
         _stringContent = null;
-
+        
         long range[] = _request.getRange();
         if ( range != null && ( range[0] > 0 || range[1] < length ) ){
             

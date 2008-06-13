@@ -1646,6 +1646,9 @@ public class RubyConvert extends ed.MyAsserts {
         return name;
     }
     static String[][] _functionReplacements = new String[][]{ 
+        new String[]{ "$:" , "Ruby.loadPath" } ,
+        new String[]{ "$" , "_ds_" } ,
+        new String[]{ ":" , "_c_" } ,
         new String[]{ "~" , "_t_" } ,
         new String[]{ "!" , "_ex_" } ,
         new String[]{ "=" , "_eq_" } ,

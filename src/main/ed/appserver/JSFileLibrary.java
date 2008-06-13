@@ -32,12 +32,14 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
      */
     public static JSFileLibrary loadLibraryFromEd(String location,  String uriBase, Scope scope){ 
 	    String root = JSHook.whereIsEd;
-	    if ( root == null ) {
+	    if ( root == null ) 
 	        root = "";
-	    }	    
+            else
+                root += "/";
 	    root += "src/main/" + location;	    
 	    File rootFile = new File( root );
 	    if ( ! rootFile.exists() ){
+                System.out.println( "does not exist [" + rootFile + "]" );
 	    	return null;
 	    }	
 	    return new JSFileLibrary( rootFile , uriBase, scope);

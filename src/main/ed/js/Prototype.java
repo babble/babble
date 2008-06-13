@@ -186,7 +186,7 @@ public class Prototype {
         public Object call( Scope s, Object [] properties){
             int i = 0;
             Object parent = null;
-            if(properties != null && properties[0] instanceof JSFunction) {
+            if(properties != null && properties.length > 0 && properties[0] instanceof JSFunction) {
                 parent = properties[i++];
             }
             JSFunction klass = new JSFunctionCalls0 () {
