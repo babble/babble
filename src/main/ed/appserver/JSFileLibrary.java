@@ -35,9 +35,10 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
 	    if ( root == null ) {
 	        root = "";
 	    }	    
-	    root += "src/main/" + location;	    
+	    root += "/src/main/" + location;	    
 	    File rootFile = new File( root );
 	    if ( ! rootFile.exists() ){
+                System.out.println( "does not exist [" + rootFile + "]" );
 	    	return null;
 	    }	
 	    return new JSFileLibrary( rootFile , uriBase, scope);
