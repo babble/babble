@@ -35,13 +35,24 @@ public abstract class NIOServer extends Thread {
     private void _initSelector()
         throws IOException {
 
+        Selector s = Selector.open();
+
         if ( _selector != null ){
+            for ( SelectionKey sk : _selector.keys() ){
+
+                if ( sk.channel() == _ssChannel )
+                    continue;
+
+                if ( sk.interestOps() == 0 )
+                    continue;
+
+                System.out.println( "moving : " + sk.channel() + " : " + sk.interestOps() );
+                sk.channel().register( s , sk.interestOps() );
+            }
             _selector.close();
         }
 
-        Selector s = Selector.open();
         _ssChannel.register( s , SelectionKey.OP_ACCEPT );
-
         _selector = s;
     }
     
@@ -74,17 +85,20 @@ public abstract class NIOServer extends Thread {
             if ( numKeys == 0 && ! i.hasNext() ){
                 if ( selectTime == 0 ){
                     deadSelectorCount++;
-                    System.err.println( "got 0 keys after waiting :" + selectTime + " " + deadSelectorCount + " in a row." );
                     
-                    if ( deadSelectorCount > 1000 ){
-                        System.err.println( "****  SHOULD KILL SELECTOR AND START OVER " );
-                        try {
-                            _initSelector();
-                        }
-                        catch ( Throwable t ){
-                            System.err.println( "couldn't re-init selector after issue.  dying" );
-                            t.printStackTrace();
-                            System.exit( -1 );
+                    if ( deadSelectorCount > 50 ){
+                        System.err.println( "got 0 keys after waiting :" + selectTime + " " + deadSelectorCount + " in a row." );
+                        
+                        if ( deadSelectorCount > 1000 ){
+                            System.err.println( "****  KILLING SELECTOR AND STARTING OVER - should be taking good channels " );
+                            try {
+                                _initSelector();
+                            }
+                            catch ( Throwable t ){
+                                System.err.println( "couldn't re-init selector after issue.  dying" );
+                                t.printStackTrace();
+                                System.exit( -1 );
+                            }
                         }
                     }
                 }
