@@ -46,8 +46,8 @@ public abstract class NIOServer extends Thread {
                 if ( sk.interestOps() == 0 )
                     continue;
 
-                System.out.println( "moving : " + sk.channel() + " : " + sk.interestOps() );
-                sk.channel().register( s , sk.interestOps() );
+                //System.out.println( "moving : " + sk.channel() + " : " + sk.interestOps() );
+                //sk.channel().register( s , sk.interestOps() );
             }
             _selector.close();
             _didASelectorReset = true;
