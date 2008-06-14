@@ -228,8 +228,11 @@ public abstract class NIOServer extends Thread {
             throws IOException {
             
             SelectionKey key = _channel.keyFor( _selector );
-            if ( key == null || key.attachment() != this )
-                throw new RuntimeException( "somethins is wrong" );
+            if ( key == null )
+                throw new RuntimeException( "can't find key for this selector" );
+            
+            if ( key.attachment() != this )
+                throw new RuntimeException( "why is the attachment not me" );
 
             if ( key.interestOps() == ops )
                 return;
