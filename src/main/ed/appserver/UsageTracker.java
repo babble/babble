@@ -30,7 +30,7 @@ public class UsageTracker {
         flush();
     }
     
-    public void flush(){
+    public boolean flush(){
         synchronized ( _flushLock ){
             Map<String,Long> counts = _counts;
             
@@ -62,11 +62,13 @@ public class UsageTracker {
                 }
 
 		_ensuredIndexes = true;
+                return true;
             }
             catch ( Throwable t ){
-                ed.log.Logger.getLogger( "UsageTracker" ).error( "couldn't flush [" + _base + "]" , t );
+                ed.log.Logger.getLogger( "UsageTracker" ).error( "couldn't flush [" + _base + "] : " + t );
                 for ( String s : counts.keySet() )
                     hit( s , counts.get( s ) );
+                return false;
             }
 
         }
@@ -97,10 +99,13 @@ public class UsageTracker {
                 public void run(){
                     while ( true ){
                         
+                        boolean allFails = true;
+
                         try {
                             List<UsageTracker> lst = new ArrayList<UsageTracker>( _trackers.keySet() );
                             for ( UsageTracker ut : lst ){
-                                ut.flush();
+                                if ( ut.flush() )
+                                    allFails = false;
                                 _trackers.put( ut , System.currentTimeMillis() );
                             }
                         }
@@ -109,7 +114,7 @@ public class UsageTracker {
                         }
 
                         try {
-                            Thread.sleep( 1000 * 20 );
+                            Thread.sleep( 1000 * 20 * ( allFails ? 30 : 1 ) );
                         }
                         catch ( Throwable t ){}
                     }
