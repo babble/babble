@@ -39,7 +39,7 @@ public abstract class NIOServer extends Thread {
 
         if ( _selector != null ){
             for ( SelectionKey sk : _selector.keys() ){
-
+                
                 if ( sk.channel() == _ssChannel )
                     continue;
 
@@ -50,6 +50,7 @@ public abstract class NIOServer extends Thread {
                 sk.channel().register( s , sk.interestOps() );
             }
             _selector.close();
+            _didASelectorReset = true;
         }
 
         _ssChannel.register( s , SelectionKey.OP_ACCEPT );
@@ -86,7 +87,7 @@ public abstract class NIOServer extends Thread {
                 if ( selectTime == 0 ){
                     deadSelectorCount++;
                     
-                    if ( deadSelectorCount > 50 ){
+                    if ( deadSelectorCount > 950 ){
                         System.err.println( "got 0 keys after waiting :" + selectTime + " " + deadSelectorCount + " in a row." );
                         
                         if ( deadSelectorCount > 1000 ){
@@ -228,11 +229,19 @@ public abstract class NIOServer extends Thread {
             throws IOException {
             
             SelectionKey key = _channel.keyFor( _selector );
-            if ( key == null )
-                throw new RuntimeException( "can't find key for this selector" );
+            if ( key == null ){
+                if ( ! _didASelectorReset )
+                    throw new RuntimeException( "can't find key for this selector" );
+                key = _channel.register( _selector , ops );
+                key.attach( this );
+                _key = key;
+            }
             
             if ( key.attachment() != this )
                 throw new RuntimeException( "why is the attachment not me" );
+            
+            if ( key != _key )
+                throw new RuntimeException( "why are the keys different" );
 
             if ( key.interestOps() == ops )
                 return;
@@ -264,4 +273,6 @@ public abstract class NIOServer extends Thread {
     protected final ServerSocketChannel _ssChannel;    
 
     protected Selector _selector;
+
+    private boolean _didASelectorReset = false;
 }
