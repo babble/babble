@@ -134,6 +134,33 @@ public class JSDate extends JSObjectBase implements Comparable {
                             return s.getThis();
                         }
                     } );
+                
+
+                /**
+                 * @param function the function to call
+                 * @param numTimes number of times to call function
+                 * @param anything else gets passed to function
+                 */
+                set( "timeFunc" , new JSFunctionCalls2(){
+                        public Object call( Scope s , Object func , Object numTimes , Object extra[] ){
+                            if ( ! ( func instanceof JSFunction ) )
+                                throw new RuntimeException( "Date.timeFunc needs a function" );
+                            
+                            if ( ! ( numTimes instanceof Number ) )
+                                throw new RuntimeException( "Date.timeFunc needs a number" );
+                            
+                            JSFunction f = (JSFunction)func;
+                            final int times = ((Number)numTimes).intValue();
+                            
+                            final long start = System.currentTimeMillis();
+                            
+                            for ( int i=0; i<times; i++ )
+                                f.call( s , extra );
+
+                            return System.currentTimeMillis() - start;
+                        }
+                    }
+                    );
 
             }
             
