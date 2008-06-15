@@ -1089,6 +1089,7 @@ public class Convert implements StackTraceFixer {
         }
 
         FunctionNode fn = (FunctionNode)n;
+        //TypeInference.play( fn );
         _assertOne( n );
 
         state = state.child();
@@ -1096,33 +1097,25 @@ public class Convert implements StackTraceFixer {
         
 
         boolean hasArguments = false;
-        {
-            List<Node> toSearch = new ArrayList<Node>();
-            toSearch.add( n );
-            while ( toSearch.size() > 0 ){
-                Node cur = toSearch.remove( toSearch.size() - 1 );
+        
+        for ( Iterator<Node> ni = NodeUtil.childIterator( n ); ni.hasNext(); ){
+            Node cur = ni.next();
+            
+            if ( cur.getType() == Token.NAME ||
+                 cur.getType() == Token.GETVAR ){
+                if ( cur.getString().equals( "arguments" ) || cur.getString().equals( "processArgs" ) )
+                    hasArguments = true;
+                if ( cur.getString().equals( "scope" ) )
+                    state._hasLambdaExpressions = true;
+            }
+            
+            if ( cur.getType() == Token.INC || 
+                 cur.getType() == Token.DEC ){
                 
-                if ( cur.getType() == Token.NAME ||
-                     cur.getType() == Token.GETVAR ){
-                    if ( cur.getString().equals( "arguments" ) || cur.getString().equals( "processArgs" ) )
-                        hasArguments = true;
-                    if ( cur.getString().equals( "scope" ) )
-                        state._hasLambdaExpressions = true;
+                if ( cur.getFirstChild().getType() == Token.GETVAR || 
+                     cur.getFirstChild().getType() == Token.NAME ){
+                    state.addBadLocal( cur.getFirstChild().getString() );
                 }
-                
-                if ( cur.getType() == Token.INC || 
-                     cur.getType() == Token.DEC ){
-                    
-                    if ( cur.getFirstChild().getType() == Token.GETVAR || 
-                         cur.getFirstChild().getType() == Token.NAME ){
-                        state.addBadLocal( cur.getFirstChild().getString() );
-                    }
-                    
-                }
-                if ( cur.getNext() != null )
-                    toSearch.add( cur.getNext() );
-                if ( cur.getFirstChild() != null )
-                    toSearch.add( cur.getFirstChild() );
                 
             }
             
