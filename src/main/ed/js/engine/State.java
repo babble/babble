@@ -37,6 +37,9 @@ class State {
     boolean useLocalVariable( String name ){
         if ( name.equals( "arguments" ) )
             return false;
+        
+        if ( _fi != null && _fi.getInfo( name ) == null )
+            return false;
 
         return 
             ! _hasLambdaExpressions && 
@@ -66,6 +69,7 @@ class State {
     
     boolean _hasLambdaExpressions = true;
     private  Set<String> _badLocals;
+    FunctionInfo _fi;
     
 
 }

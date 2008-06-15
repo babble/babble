@@ -285,9 +285,9 @@ public class Convert implements StackTraceFixer {
             _assertOne( n );
             
             Node tempChild = n.getFirstChild();
-            if ( ( tempChild.getType() == Token.NAME || tempChild.getType() == Token.GETVAR ) &&
+            if ( ( /* tempChild.getType() == Token.NAME || */ tempChild.getType() == Token.GETVAR ) &&
                  state.useLocalVariable( tempChild.getString() ) )
-                throw new RuntimeException( "can't increment local variables" );
+                throw new RuntimeException( "can't increment local variable : " + tempChild.getString()  );
 
             _append( "JS_inc( " , n );
             _createRef( n.getFirstChild() , state );
@@ -1089,39 +1089,21 @@ public class Convert implements StackTraceFixer {
         }
 
         FunctionNode fn = (FunctionNode)n;
-        //TypeInference.play( fn );
+        FunctionInfo fi = FunctionInfo.create( fn );
         _assertOne( n );
 
         state = state.child();
-        state._hasLambdaExpressions = fn.getFunctionCount() > 0;
-        
+        state._hasLambdaExpressions = fn.getFunctionCount() > 0 || fi.usesScope();
+        state._fi = fi;
 
-        boolean hasArguments = false;
+        boolean hasArguments = fi.usesArguemnts();
         
-        for ( Iterator<Node> ni = NodeUtil.childIterator( n ); ni.hasNext(); ){
-            Node cur = ni.next();
-            
-            if ( cur.getType() == Token.NAME ||
-                 cur.getType() == Token.GETVAR ){
-                if ( cur.getString().equals( "arguments" ) || cur.getString().equals( "processArgs" ) )
-                    hasArguments = true;
-                if ( cur.getString().equals( "scope" ) )
-                    state._hasLambdaExpressions = true;
-            }
-            
-            if ( cur.getType() == Token.INC || 
-                 cur.getType() == Token.DEC ){
-                
-                if ( cur.getFirstChild().getType() == Token.GETVAR || 
-                     cur.getFirstChild().getType() == Token.NAME ){
-                    state.addBadLocal( cur.getFirstChild().getString() );
-                }
-                
-            }
+        for ( String var : fi ){
+            FunctionInfo.Info fii = fi.getInfo( var );
+            if ( fii._incOrDec )
+                state.addBadLocal( var );
             
         }
-        
-        //state.debug();
 
         _append( "new JSFunctionCalls" + fn.getParamCount() + "( scope , null ){ \n" , n );
 
