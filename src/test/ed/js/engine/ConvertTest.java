@@ -66,7 +66,12 @@ public class ConvertTest extends TestCase {
             if ( _file.toString().contains( "/engine/" ) ){
                 JSFunction myout = new JSFunctionCalls1(){
                         public Object call( Scope scope ,Object o , Object extra[] ){
-                            out.println( o );
+                            String str = "null";
+                            if ( o != null  ){
+                                str = o.toString();
+                                str = str.replaceAll( "(\\d)\\.0\\b" , "$1" );
+                            }
+                            out.println( str );
                             return null;
                         }
                     };

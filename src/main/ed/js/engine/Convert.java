@@ -454,10 +454,12 @@ public class Convert implements StackTraceFixer {
             if ( state.useLocalVariable( foo ) ){
                 if ( ! state.hasSymbol( foo ) )
                     throw new RuntimeException( "something is wrong" );
-                _append( "JSInternalFunctions.self ( " , n );
+                if ( ! state.isPrimitive( foo ) )
+                    _append( "JSInternalFunctions.self ( " , n );
                 _append( foo + " = " , n );
                 _add( n.getFirstChild().getNext() , state );
-                _append( " )\n" , n );
+                if ( ! state.isPrimitive( foo ) )
+                    _append( " )\n" , n );
             }
             else {
                 _setVar( foo , 
@@ -532,10 +534,21 @@ public class Convert implements StackTraceFixer {
 
         case Token.NE:
             _append( " ! " , n );
-            
+
+
+        case Token.ADD:
+            if ( state.isNumber( n.getFirstChild() ) &&
+                 state.isNumber( n.getFirstChild().getNext() ) ){
+                _append( "(" , n );
+                _add( n.getFirstChild() , state );
+                _append( " + " , n );
+                _add( n.getFirstChild().getNext() , state );
+                _append( ")" , n );
+                break;
+            }
+                 
         case Token.MUL:
         case Token.DIV:
-        case Token.ADD:
         case Token.SUB:
         case Token.EQ:
         case Token.SHEQ:
@@ -1325,11 +1338,14 @@ public class Convert implements StackTraceFixer {
     
     private void _setVar( String name , Node val , State state , boolean local ){
         if ( state.useLocalVariable( name ) && state.hasSymbol( name ) ){
-            _append( "JSInternalFunctions.self( " , val );
+            boolean prim = state.isPrimitive( name );
+            if ( ! prim )
+                _append( "JSInternalFunctions.self( " , val );
             _append( name + " = " , val );
             _add( val , state );
             _append( "\n" , val );
-            _append( ")\n" , val );
+            if ( ! prim )
+                _append( ")\n" , val );
             return;
         }
         _append( "scope.put( \"" + name + "\" , " , val);

@@ -20,7 +20,7 @@ public class FunctionInfo implements Iterable<String> {
         _vars = new VarSet();
 
         for ( int i=0; i<fn.getParamAndVarCount(); i++ )
-            _vars.put( fn.getParamOrVarName( i ) , new Info( fn.getParamOrVarName( i ) ) );
+            _vars.put( fn.getParamOrVarName( i ) , new Info( _vars , fn.getParamOrVarName( i ) ) );
         
         for ( int i=0; i<fn.getParamCount(); i++ )
             _vars.get( fn.getParamOrVarName( i ) )._param = true;
@@ -51,6 +51,21 @@ public class FunctionInfo implements Iterable<String> {
             return false;
         
         return i.canUseLocal();
+    }
+
+    boolean isNumber( Node n ){
+        if ( n.getType() == Token.NUMBER )
+            return true;
+        
+        if ( n.getType() == Token.ADD )
+            return 
+                isNumber( n.getFirstChild() ) && 
+                isNumber( n.getFirstChild().getNext() );
+
+        if ( n.getType() == Token.GETVAR || n.getType() == Token.NAME )
+            return isNumber( n.getString() );
+        
+        return false;
     }
 
     boolean isNumber( String s ){
@@ -147,7 +162,8 @@ public class FunctionInfo implements Iterable<String> {
 
     static class Info {
 
-        Info( String name ){
+        Info( VarSet vars , String name ){
+            _vars = vars;
             _name = name;
         }
 
@@ -165,6 +181,10 @@ public class FunctionInfo implements Iterable<String> {
         }
 
         boolean isNumber(){
+            for ( Info i : _depends )
+                if ( ! i.isNumber() )
+                    return false;
+            
             return 
                 ! _param && 
                 _numberEvidence &&
@@ -176,6 +196,29 @@ public class FunctionInfo implements Iterable<String> {
                 numberEvidence();
                 return;
             }
+
+            if ( n.getType() == Token.ADD ){
+                settingTo( n.getFirstChild() );
+                settingTo( n.getFirstChild().getNext() );
+                return;
+            }
+            
+            if ( n.getType() == Token.GETVAR || n.getType() == Token.NAME ){
+                String s = n.getString();
+                if ( s.equals( _name ) )
+                    return;
+                
+                if ( _vars.containsKey( s ) ){
+                    _depends.add( _vars.get( s ) );
+                    return;
+                }
+                
+                // TODO: look elsewhere
+                unknownEvidence();
+                return;
+            }
+
+            // TODO: more
             unknownEvidence();
         }
         
@@ -190,7 +233,10 @@ public class FunctionInfo implements Iterable<String> {
         }
 
         final String _name;
+        final VarSet _vars;
         
+        final List<Info> _depends = new LinkedList<Info>();
+
         boolean _param = false;
         boolean _incOrDec = false;
         boolean _numberEvidence = false;

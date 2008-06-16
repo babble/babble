@@ -4,6 +4,8 @@ package ed.js.engine;
 
 import java.util.*;
 
+import org.mozilla.javascript.*;
+
 /**
  * this is used only by Convert
  * to keep compile state
@@ -38,6 +40,20 @@ class State {
         if ( _fi == null )
             return false;
         return _fi.isNumber( s );
+    }
+
+    boolean isNumber( Node n ){
+        if ( n.getType() == Token.NUMBER )
+            return true;
+        
+        if ( _fi == null )
+            return false;
+        
+        return _fi.isNumber( n );
+    }
+
+    boolean isPrimitive( String s ){
+        return isNumber( s );
     }
 
     boolean useLocalVariable( String name ){
