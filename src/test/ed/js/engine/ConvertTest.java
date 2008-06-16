@@ -20,7 +20,7 @@ public class ConvertTest extends TestCase {
             if ( f.toString().endsWith( ".js" ) )
                 add( new FileTest( f ) );
         
-        _scope = Scope.newGlobal().child();
+        _scope = Scope.newGlobal().child( new File(".") );
     }
     
     @Test
@@ -60,9 +60,9 @@ public class ConvertTest extends TestCase {
             final PrintStream out = new PrintStream( bout );
             
             JSFunction f = c.get();
-            Scope scope = Scope.getAScope().child();
+            Scope scope = Scope.getAScope().child( new File( "." ) );
             scope.setGlobal( true );
-
+            
             if ( _file.toString().contains( "/engine/" ) ){
                 JSFunction myout = new JSFunctionCalls1(){
                         public Object call( Scope scope ,Object o , Object extra[] ){
