@@ -2,16 +2,19 @@
 package ed.appserver.templates.djang10;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
 
 import ed.appserver.JSFileLibrary;
+import ed.js.JSDate;
 import ed.js.JSFunction;
 import ed.js.JSObjectBase;
 import ed.js.JSString;
 import ed.js.engine.JSCompiledScript;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
+import ed.js.func.JSFunctionCalls2;
 
 public class JSHelper extends JSObjectBase {
 
@@ -33,6 +36,8 @@ public class JSHelper extends JSObjectBase {
 
         this.set("addTemplateTagsRoot", addModuleRoot);
         this.set("loadLibrary", loadModule);
+        
+        this.set("formatDate", formatDate);
 
         this.set("Context", Context.CONSTRUCTOR);
         this.set("Library", Library.CONSTRUCTOR);
@@ -47,6 +52,15 @@ public class JSHelper extends JSObjectBase {
         scope.set(NS, helper);
         return helper;
     }
+    
+    public JSFunction formatDate = new JSFunctionCalls2() {
+        public Object call(Scope scope, Object p0, Object p1, Object[] extra) {
+            JSDate date = (JSDate)p0;
+            String format = p1.toString();
+            
+            return new JSString( Util.formatDate(new Date(date.getTime()), format) );
+        };
+    };
     
     public final JSFunction loadPath = new JSFunctionCalls1() {
         public Object call(Scope scope, Object pathObj, Object[] extra) {
