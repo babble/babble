@@ -5,7 +5,7 @@ package ed.js.engine;
 import java.util.*;
 
 /**
- * this is used only be Convert
+ * this is used only by Convert
  * to keep compile state
  */
 class State {
@@ -38,26 +38,10 @@ class State {
         if ( name.equals( "arguments" ) )
             return false;
         
-        if ( _fi != null && _fi.getInfo( name ) == null )
+        if ( _fi == null )
             return false;
-
-        return 
-            ! _hasLambdaExpressions && 
-            ( _badLocals == null || ! _badLocals.contains( name ) );
-    }
-    
-    void addBadLocal( String s ){
-        if ( _badLocals == null )
-            _badLocals = new HashSet<String>();
-        _badLocals.add( s );
-    }
-
-    public void debug(){
-        System.out.println( "---" );
-        System.out.println( "STATE" );
-        System.out.println( "\t _hasLambdaExpressions : " + _hasLambdaExpressions );
-        System.out.println( "\t _badLocals : " + _badLocals );
-        System.out.println( "---" );
+        
+        return _fi.canUseLocal( name );
     }
 
     final Set<String> _localSymbols = new HashSet<String>();
@@ -67,8 +51,7 @@ class State {
 
     final State _parent;
     
-    boolean _hasLambdaExpressions = true;
-    private  Set<String> _badLocals;
+
     FunctionInfo _fi;
     
 

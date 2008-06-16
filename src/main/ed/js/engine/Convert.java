@@ -1093,17 +1093,9 @@ public class Convert implements StackTraceFixer {
         _assertOne( n );
 
         state = state.child();
-        state._hasLambdaExpressions = fn.getFunctionCount() > 0 || fi.usesScope();
         state._fi = fi;
 
         boolean hasArguments = fi.usesArguemnts();
-        
-        for ( String var : fi ){
-            FunctionInfo.Info fii = fi.getInfo( var );
-            if ( fii._incOrDec )
-                state.addBadLocal( var );
-            
-        }
 
         _append( "new JSFunctionCalls" + fn.getParamCount() + "( scope , null ){ \n" , n );
 

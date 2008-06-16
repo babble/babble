@@ -35,6 +35,17 @@ public class FunctionInfo implements Iterable<String> {
     Info getInfo( String s ){
         return _vars.get( s );
     }
+
+    boolean canUseLocal( String s ){
+        if ( _hasLambda || _usesScope )
+            return false;
+        
+        Info i = getInfo( s );
+        if ( i == null )
+            return false;
+        
+        return i.canUseLocal();
+    }
     
     public Iterator<String> iterator(){
         return _vars.keySet().iterator();
@@ -161,6 +172,10 @@ public class FunctionInfo implements Iterable<String> {
             unknownEvidence();
         }
         
+        boolean canUseLocal(){
+            return ! _incOrDec;
+        }
+
         public String toString(){
             return _name + " isNumber:" + isNumber() + " incOrDec:" + _incOrDec;
         }
