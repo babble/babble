@@ -8,7 +8,6 @@ import org.mozilla.javascript.Node;
 import org.mozilla.javascript.ScriptOrFnNode;
 import org.mozilla.javascript.Token;
 
-import ed.appserver.templates.djang10.generator.JSWriter;
 import ed.js.JSArray;
 import ed.js.JSFunction;
 import ed.js.JSMap;

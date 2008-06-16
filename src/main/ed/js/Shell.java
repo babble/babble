@@ -69,8 +69,6 @@ public class Shell {
                     return s.child(new File(fileName.toString()));
                 }
             } , true);
-        
-        Djang10Converter.injectHelpers(s);
     }
     
     public static void main( String args[] )

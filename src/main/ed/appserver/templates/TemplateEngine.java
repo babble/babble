@@ -46,8 +46,6 @@ public class TemplateEngine {
         _builtIns.put( "jxp" , new JxpConverter() );
         _builtIns.put( "html" , new JxpConverter( true ) );
 
-        _builtIns.put( "djang10" , new Djang10Converter() );
-
         _builtIns.put( "rb" , new ed.lang.ruby.RubyConvert.TemplateImpl() );
         _builtIns.put( "erb" , new RubyTemplateConverter( "erb" ) );
         _builtIns.put( "rhtml" , new RubyTemplateConverter( "rhtml" ) );
