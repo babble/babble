@@ -97,7 +97,7 @@ public abstract class DBBase extends JSObjectLame {
 
     class tojson extends JSFunctionCalls0{
         public Object call( Scope s , Object foo[] ){
-            return DBBase.this.toString();
+            return JSON.serialize(DBBase.this.toString());
         }
     }
 
