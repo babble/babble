@@ -55,7 +55,7 @@ public class SysExec extends ed.js.func.JSFunctionCalls4 {
         return base;
     }
 
-    static Result exec( String cmdString , String env[] , File procDir , String toSend ){
+    public static Result exec( String cmdString , String env[] , File procDir , String toSend ){
         
         String cmd[] = fix( cmdString );
 
@@ -161,7 +161,7 @@ public class SysExec extends ed.js.func.JSFunctionCalls4 {
         }
 
         public String getErr(){
-            return get( "out" ).toString();
+            return get( "err" ).toString();
         }
 
     }

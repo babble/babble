@@ -5,8 +5,11 @@ package ed.util;
 import java.io.*;
 
 import ed.io.*;
+import ed.log.*;
 
 public class GitUtils {
+
+    static final Logger _log = Logger.getLogger( "git" );
 
     public static boolean isSourceDirectory( File dir ){
         if ( hasGit( dir ) )
@@ -60,6 +63,15 @@ public class GitUtils {
         }
         
         throw new RuntimeException( "dont know what to do with HEAD [" + head + "]" );
+    }
+    
+    /**
+     * @param name optional
+     */
+    public static boolean clone( String cloneurl , File dirToCloneInto , String name ){
+        _log.info( "cloning " + cloneurl + " to " + dirToCloneInto );
+        SysExec.Result r = SysExec.exec( "git clone " + cloneurl + " " + ( name == null ? "" : name  ) , null , dirToCloneInto , null );
+        return r.getErr().trim().length() == 0;
     }
     
     
