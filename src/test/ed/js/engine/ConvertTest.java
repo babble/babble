@@ -66,12 +66,7 @@ public class ConvertTest extends TestCase {
             if ( _file.toString().contains( "/engine/" ) ){
                 JSFunction myout = new JSFunctionCalls1(){
                         public Object call( Scope scope ,Object o , Object extra[] ){
-                            String str = "null";
-                            if ( o != null  ){
-                                str = o.toString();
-                                str = str.replaceAll( "(\\d)\\.0\\b" , "$1" );
-                            }
-                            out.println( str );
+                            out.println( o );
                             return null;
                         }
                     };
@@ -109,6 +104,7 @@ public class ConvertTest extends TestCase {
 
     static String _clean( String s ){
         s = s.replaceAll( "tempFunc_\\d+_" , "tempFunc_" );
+        s = s.replaceAll( "(\\d)\\.0\\b" , "$1" );
         return s;
     }
 
