@@ -20,8 +20,11 @@ public class ModuleDirectory extends JSObjectLame implements JSLibrary {
         _context = context;
         _scope = scope;
 
-        if ( ! _root.exists() )
-            throw new RuntimeException( "modules directory [" + _root + "] does not exist" );
+        if ( ! _root.exists() ){
+            _root.mkdirs();
+            if ( ! _root.exists() )
+                throw new RuntimeException( "modules directory [" + _root + "] does not exist" );
+        }
     }
     
     public synchronized Module getModule( String name ){
