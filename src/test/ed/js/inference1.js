@@ -16,7 +16,22 @@ function bad( num ){
     return x;
 }
 
+var num = 20000;
 
-assert( good(5) == bad(5) );
+assert( good( num ) == bad( num ) );
 
+for ( var i=0; i<5; i++ ){
+
+    var a = Date.timeFunc( good , num );
+    var b = Date.timeFunc( bad , num );
+
+    b += Date.timeFunc( bad , num );
+    a += Date.timeFunc( good , num );
+
+    if ( i == 0 )
+        continue; // for jit
+
+    print( "good: " + a  + " bad: " + b );
+    assert( a * 1.2 < b );
+}
 
