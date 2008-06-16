@@ -64,6 +64,11 @@ public class Context extends JSObjectBase {
         setConstructor(CONSTRUCTOR);
     }
 
+    public Context(JSObject obj) {
+        this();
+        rebase(obj);
+    }
+    
     private void rebase(JSObject obj) {
         this.objectStack.clear();
         this.objectStack.addFirst(obj);
