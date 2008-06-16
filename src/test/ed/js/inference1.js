@@ -39,3 +39,21 @@ for ( var i=0; i<5; i++ ){
     assert( a * 2 < b , "too slow");
 }
 
+
+function silly(){
+    var i = 5;
+    var j = 6;
+
+    if ( j )
+        print("ok");
+
+    if ( ! j )
+        print("ok");
+
+    if ( ! ( i + j ) )
+        print("ok");
+
+    if ( i != j )
+        print( "ok" );
+
+}

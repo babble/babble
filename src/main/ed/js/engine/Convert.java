@@ -527,9 +527,6 @@ public class Convert implements StackTraceFixer {
             _add( n.getFirstChild() , state );
             break;
 
-        case Token.NE:
-            _append( " ! " , n );
-
 
         case Token.ADD:
             if ( state.isNumber( n.getFirstChild() ) &&
@@ -541,7 +538,8 @@ public class Convert implements StackTraceFixer {
                 _append( ")" , n );
                 break;
             }
-                 
+            
+        case Token.NE:
         case Token.MUL:
         case Token.DIV:
         case Token.SUB:
@@ -559,6 +557,10 @@ public class Convert implements StackTraceFixer {
         case Token.RSH:
         case Token.LSH:
         case Token.MOD:
+            
+            if ( n.getType() == Token.NE )
+                _append( " ! " , n );
+
             _append( "JS_" , n );
             String fooooo = _2ThingThings.get( n.getType() );
             if ( fooooo == null )
