@@ -13,7 +13,14 @@ import ed.js.engine.*;
    right now its just holder for weird stuff
  */
 public class JSNumber {
+    
+    public final static double self( double x ){
+        return x;
+    }
 
+    public final static int self( int x ){
+        return x;
+    }
 
     public static JSObjectBase functions = new JSObjectBase();
     public static JSFunction getFunction( String name ){

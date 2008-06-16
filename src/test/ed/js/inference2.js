@@ -17,22 +17,23 @@ function bad( num ){
 }
 
 var num = 40000;
+var numCalls = 10;
 
 assert( good( num ) == bad( num ) );
 
 print( "inf2" );
 for ( var i=0; i<5; i++ ){
 
-    var a = Date.timeFunc( good , num );
-    var b = Date.timeFunc( bad , num );
+    var a = Date.timeFunc( good , numCalls , num );
+    var b = Date.timeFunc( bad , numCalls , num );
 
-    b += Date.timeFunc( bad , num );
-    a += Date.timeFunc( good , num );
+    b += Date.timeFunc( bad , numCalls , num );
+    a += Date.timeFunc( good , numCalls , num );
 
     if ( i == 0 )
         continue; // for jit
 
     print( "\t good: " + a  + " bad: " + b );
-    //assert( a * 1.2 < b );
+    assert( a < b , "too slow");
 }
 
