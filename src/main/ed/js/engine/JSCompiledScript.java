@@ -20,13 +20,13 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
             return _call( scope, extra );
         }
         catch ( RuntimeException re ){
-            if ( Convert.D ) re.printStackTrace();
+            if ( Convert.DJS ) re.printStackTrace();
             _convert.fixStack( re );
             throw re;
         }
         catch ( Throwable t ){
             t.printStackTrace();
-            if ( Convert.D ) t.printStackTrace();
+            if ( Convert.DJS ) t.printStackTrace();
             _convert.fixStack( t );
             throw new RuntimeException( "weird error : " + t.getClass().getName() , t );
         }

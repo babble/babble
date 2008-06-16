@@ -16,7 +16,8 @@ import ed.util.*;
 
 public class Convert implements StackTraceFixer {
 
-    static boolean D = Boolean.getBoolean( "DEBUG.JS" );
+    static boolean DJS = Boolean.getBoolean( "DEBUG.JS" );
+    final boolean D;
     public static final String DEFAULT_PACKAGE = "ed.js.gen";
 
     public static JSFunction makeAnon( String code ){
@@ -88,6 +89,11 @@ public class Convert implements StackTraceFixer {
 
     public Convert( String name , String source, boolean invokedFromEval , Language sourceLanguage )
         throws IOException {
+
+        D = DJS 
+            && ! name.contains( "src/main/ed/lang" )
+            && ! name.contains( "src_main_ed_lang" )
+            ;
 
         _invokedFromEval = invokedFromEval;
         _sourceLanguage = sourceLanguage;
@@ -1518,7 +1524,7 @@ public class Convert implements StackTraceFixer {
             return _it;
         
         try {
-            Class c = CompileUtil.compile( _package , getClassName() , getClassString() );
+            Class c = CompileUtil.compile( _package , getClassName() , getClassString() , this );
             JSCompiledScript it = (JSCompiledScript)c.newInstance();
             it._convert = this;
             

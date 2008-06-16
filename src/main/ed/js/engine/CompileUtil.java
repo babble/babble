@@ -13,7 +13,6 @@ import ed.db.*;
 
 public class CompileUtil {
     
-    static boolean D = Convert.D;
     static boolean CD = false;
     
     static final String TMP_DIR = "/tmp/jxp/";// + Math.random() + "/";
@@ -33,9 +32,11 @@ public class CompileUtil {
         _loader = cl;
     }
 
-    public static synchronized Class<?> compile( final String p , final String c , final String source )
+    public static synchronized Class<?> compile( final String p , final String c , final String source , final Convert convert )
         throws IOException , ClassNotFoundException {
         
+        final boolean D = convert.D;
+
         if ( CD ) System.err.println( "compile called" );
         if ( D ) System.out.println( source );
         if ( CD ) System.err.println( "compile 0 " );        
