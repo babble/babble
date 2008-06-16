@@ -411,15 +411,10 @@ public class Convert implements StackTraceFixer {
         case Token.NUMBER:
             double d = n.getDouble();
             String temp = String.valueOf( d );
-
-            boolean useInt = 
-                temp.endsWith( ".0" ) || 
-                JSNumericFunctions.couldBeInt( d );
-            if ( useInt )
-                temp = "Integer.valueOf( " + ((int)d) + " ) ";
-            else
-                temp = "Double.valueOf( " + temp + " ) ";
-            _append( temp , n );
+            if ( temp.endsWith( ".0" ) || 
+                 JSNumericFunctions.couldBeInt( d ) )
+                temp = String.valueOf( (int)d );
+            _append( "JSNumber.self( " + temp + ")" , n );
             break;
         case Token.STRING:
             final String theString = n.getString();
