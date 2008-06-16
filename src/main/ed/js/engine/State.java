@@ -34,6 +34,12 @@ class State {
         return _localSymbols.add( s );
     }
 
+    boolean isNumber( String s ){
+        if ( _fi == null )
+            return false;
+        return _fi.isNumber( s );
+    }
+
     boolean useLocalVariable( String name ){
         if ( name.equals( "arguments" ) )
             return false;

@@ -17,8 +17,14 @@ public class FunctionInfo implements Iterable<String> {
 
     private FunctionInfo( FunctionNode fn ){
         _fn = fn;
-        _vars = VarSet.create( getVars( _fn ) );
+        _vars = new VarSet();
 
+        for ( int i=0; i<fn.getParamAndVarCount(); i++ )
+            _vars.put( fn.getParamOrVarName( i ) , new Info( fn.getParamOrVarName( i ) ) );
+        
+        for ( int i=0; i<fn.getParamCount(); i++ )
+            _vars.get( fn.getParamOrVarName( i ) )._param = true;
+        
         _hasLambda = fn.getFunctionCount() > 0;
     }
 
@@ -45,6 +51,13 @@ public class FunctionInfo implements Iterable<String> {
             return false;
         
         return i.canUseLocal();
+    }
+
+    boolean isNumber( String s ){
+        Info i = getInfo( s );
+        if ( i == null )
+            return false;
+        return i.isNumber();
     }
     
     public Iterator<String> iterator(){
@@ -87,13 +100,6 @@ public class FunctionInfo implements Iterable<String> {
 
 
     static class VarSet extends TreeMap<String,Info> {
-
-        static VarSet create( Collection<String> names ){
-            VarSet vs = new VarSet();
-            for ( String s : names )
-                vs.put( s , new Info( s ) );
-            return vs;
-        }
 
         boolean isNumber( String name ){
             Info i = get( name );
@@ -160,6 +166,7 @@ public class FunctionInfo implements Iterable<String> {
 
         boolean isNumber(){
             return 
+                ! _param && 
                 _numberEvidence &&
                 ! _unknownEvidence;
         }
@@ -173,6 +180,8 @@ public class FunctionInfo implements Iterable<String> {
         }
         
         boolean canUseLocal(){
+            if ( isNumber() )
+                return true;
             return ! _incOrDec;
         }
 
@@ -182,22 +191,14 @@ public class FunctionInfo implements Iterable<String> {
 
         final String _name;
         
-        boolean _incOrDec;
+        boolean _param = false;
+        boolean _incOrDec = false;
         boolean _numberEvidence = false;
         boolean _unknownEvidence = false;
     }
 
     static void _warn( String s ){
         System.out.println( "TypeInference.warn : " + s );
-    }
-
-    static Set<String> getVars( ScriptOrFnNode fn ){
-        Set<String> s = new HashSet<String>();
-        
-        for ( int i=0; i<fn.getParamAndVarCount(); i++ )
-            s.add( fn.getParamOrVarName( i ) );
-        
-        return s;
     }
 
     public String toString(){
