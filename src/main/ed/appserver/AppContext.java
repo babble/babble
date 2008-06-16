@@ -11,6 +11,7 @@ import java.util.Set;
 
 import ed.appserver.jxp.JxpServlet;
 import ed.appserver.jxp.JxpSource;
+import ed.appserver.templates.djang10.Djang10Source;
 import ed.db.DBBase;
 import ed.db.DBCollection;
 import ed.db.DBProvider;
@@ -146,6 +147,7 @@ public class AppContext {
         
         _scope.put( "globalHead" , _globalHead , true  );
 
+        Djang10Source.install(_scope);
 	_scope.lock( "user" ); // protection against global user object
         
     }

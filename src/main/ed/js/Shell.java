@@ -14,6 +14,7 @@ import ed.js.func.*;
 import ed.js.engine.*;
 import ed.appserver.*;
 import ed.appserver.templates.*;
+import ed.appserver.templates.djang10.Djang10Source;
 
 public class Shell {
     
@@ -69,6 +70,8 @@ public class Shell {
                     return s.child(new File(fileName.toString()));
                 }
             } , true);
+        
+        Djang10Source.install(s);
     }
     
     public static void main( String args[] )

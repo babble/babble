@@ -12,6 +12,7 @@ import ed.lang.*;
 import ed.util.*;
 import ed.appserver.*;
 import ed.appserver.templates.*;
+import ed.appserver.templates.djang10.Djang10Source;
 
 public abstract class JxpSource implements Dependency , DependencyTracker {
     
@@ -30,6 +31,10 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
     public static JxpSource getSource( File f , JSFileLibrary lib ){
         if ( f == null )
             throw new NullPointerException( "can't have null file" );
+        
+        if(f.getName().endsWith(".djang10"))
+            return new Djang10Source(f);
+
         JxpSource s = new JxpFileSource( f );
         s._lib = lib;
         return s;
@@ -126,7 +131,7 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
         _servlet = null;
     }
 
-    private boolean _needsParsing(){
+    protected boolean _needsParsing(){
 
         if ( _lastParse < lastUpdated() )
             return true;
@@ -142,8 +147,8 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
         return getName();
     }
     
-    private long _lastParse = 0;
-    private List<Dependency> _dependencies = new ArrayList<Dependency>();
+    protected long _lastParse = 0;
+    protected List<Dependency> _dependencies = new ArrayList<Dependency>();
     
     private JSFunction _func;
     private JxpServlet _servlet;
@@ -154,7 +159,7 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
     // -------------------
     
     public static class JxpFileSource extends JxpSource {
-        JxpFileSource( File f ){
+        protected JxpFileSource( File f ){
             _f = f;
         }
         
@@ -162,7 +167,7 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
             return _f.toString();
         }
 
-        String getContent()
+        protected String getContent()
             throws IOException {
             return StreamUtil.readFully( _f );
         }
