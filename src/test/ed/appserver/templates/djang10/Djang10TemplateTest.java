@@ -8,6 +8,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import org.testng.annotations.Factory;
 import org.testng.annotations.Test;
 
 import ed.TestCase;
@@ -27,6 +28,8 @@ public class Djang10TemplateTest extends TestCase {
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.TEMPLATES" );
     
     private List<File> files = new ArrayList<File>();
+    private  ArrayList<TestCase> _all = new ArrayList<TestCase>();
+    
     
     public Djang10TemplateTest() {
         File dir = new File("src/test/ed/appserver/templates/djang10");
@@ -38,6 +41,7 @@ public class Djang10TemplateTest extends TestCase {
                 
                 
                 FileTest fileTest = new FileTest(f);
+                _all.add(fileTest);
                 add(fileTest);
                 files.add(f);
             }
@@ -45,6 +49,12 @@ public class Djang10TemplateTest extends TestCase {
         return;
     }
 
+    @Factory 
+    public Object[] getAllTests(){
+        return _all.toArray();
+    }
+    
+    
     Scope initScope() {
         Scope scope = Scope.getAScope().child();
         scope.makeThreadLocal();
