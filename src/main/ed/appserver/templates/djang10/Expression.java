@@ -206,12 +206,6 @@ public class Expression extends JSObjectBase {
 
         return true;
     }
-
-    public static Object defaultValue(Object value, Object defaultValue) {
-        if (value == null || value == UNDEFINED_VALUE)
-            return defaultValue;
-        return value;
-    }
     
     public static final JSFunction CONSTRUCTOR = new JSFunctionCalls1() {
         public Object call(Scope scope, Object expressionObj, Object[] extra) {
