@@ -133,7 +133,7 @@ public abstract class ConvertTestBase extends TestCase {
             func.call( scope , getArgs(scope) );
             
             //Test the output
-            String got = _clean( output.toString() );
+            String got = _clean( output.toString() , _file );
             if ( DEBUG ) 
                 System.out.println( got );
             
@@ -141,8 +141,8 @@ public abstract class ConvertTestBase extends TestCase {
             File resultFile = new File( _file.getAbsolutePath().replaceAll( _extension + "$" , ".out" ) );
             if ( ! resultFile.exists() )
                 resultFile = new File( _file.getAbsolutePath() + ".out" );
-            String expected = _clean( StreamUtil.readFully( new FileInputStream( resultFile ) ) );
-            
+            String expected = _clean( StreamUtil.readFully( new FileInputStream( resultFile ) ) , _file );
+
             assertClose( expected , got, "Error : " + _file + " : " );
 
             Matcher m = Pattern.compile( "LINE(\\d+)" ).matcher( in );
@@ -162,7 +162,6 @@ public abstract class ConvertTestBase extends TestCase {
                 assertEquals( lineNumber , (int)(r.getLineMapping().get( where + 1 ) ) );
             }
             
-            //Cleanup
             cleanup();
         }
 
@@ -172,8 +171,10 @@ public abstract class ConvertTestBase extends TestCase {
     final String _extension;
     final List<FileTest> _all;
 
-    static String _clean( String s ){
-        s = s.replaceAll( "[\\s\r\n]+" , "" );
+    static String _clean( String s , File _file ){
+        if ( _file != null && _file.toString().contains( "strict" ) )
+            return s;
+        s = s.replaceAll( "[ \r\n]+" , "" );
         s = s.replaceAll( " +>" , ">" );
         return s;
     }
