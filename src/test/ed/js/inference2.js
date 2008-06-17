@@ -16,7 +16,7 @@ function bad( num ){
     return x;
 }
 
-var num = 40000;
+var num = 60000;
 var numCalls = 10;
 
 assert( good( num ) == bad( num ) );
@@ -30,10 +30,10 @@ for ( var i=0; i<5; i++ ){
     b += Date.timeFunc( bad , numCalls , num );
     a += Date.timeFunc( good , numCalls , num );
 
-    if ( i == 0 )
+    if ( i <= 1 )
         continue; // for jit
-
+    
     print( "\t good: " + a  + " bad: " + b );
-    //assert( a < b , "too slow");
+    assert( a < b , "too slow");
 }
 
