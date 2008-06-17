@@ -253,7 +253,7 @@ IfNode.prototype = {
                 if(djang10.Expression.is_true(value) != bool_expr.ifnot)
                     return this.nodelist_false.__render(context, printer);
                 
-                return this.nodelist_true.__render(contxt, printer);
+                return this.nodelist_true.__render(context, printer);
             };
         }
     }
