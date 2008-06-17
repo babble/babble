@@ -80,7 +80,9 @@ public class Expression extends JSObjectBase {
     
     public Object resolve(Scope scope, Context ctx) {
         try {
-            return resolve(scope, ctx, parsedExpression.getFirstChild(), true);
+            Object obj = resolve(scope, ctx, parsedExpression.getFirstChild(), true);
+            return JSNumericFunctions.fixType(obj);
+            
         } catch(Throwable t) {
             return UNDEFINED_VALUE;
         }
