@@ -100,7 +100,7 @@ public class Expression extends JSObjectBase {
                 val = ctx.containsKey(node.getString()) ? null : UNDEFINED_VALUE;
             
             if (autoCall && val instanceof JSFunction && !(val instanceof JSCompiledScript) && !(val instanceof Djang10CompiledScript))
-                val = ((JSFunction) val).call(scope.child());
+                val = ((JSFunction)val).callAndSetThis(scope.child(), obj, new Object[0]);
             
             return val;
 

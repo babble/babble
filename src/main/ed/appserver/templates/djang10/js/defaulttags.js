@@ -214,11 +214,16 @@ IfNode.BoolExpr = function(ifnot, bool_expr) {
     this.ifnot = ifnot;
     this.bool_expr = bool_expr;
 };
+IfNode.BoolExpr.prototype = {
+    toString: function() {
+        return (this.ifnot?"not ": "") + this.bool_expr;
+    }
+};
 IfNode.prototype = {
     __proto: djang10.Node.prototype,
     
     toString: function() {
-        return "<If node>";
+        return "<If node: " + this.bool_exprs + ">";
     },
     
     get_nodes_by_type: function(constructor) {
@@ -242,7 +247,7 @@ IfNode.prototype = {
                 if(djang10.Expression.is_true(value) != bool_expr.ifnot)
                     return this.nodelist_true.__render(context, printer);
                 
-                return this.nodelist_false.__render(contxt, printer);
+                return this.nodelist_false.__render(context, printer);
             }
         }
         else {
