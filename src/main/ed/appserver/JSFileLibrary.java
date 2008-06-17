@@ -67,19 +67,21 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
 
         
         if ( uriBase != null ){
-	        if ( uriBase.equals( "core" ) && ! doInit )
-	            throw new RuntimeException( "you are stupid" );
-	           
-	        // this is ugly - please fix
-	        if ( uriBase.equals( "core" ) )
-	            set( "modules" , new ModuleDirectory( "core-modules" , "core.modules" , context , scope ) );
-	        else if ( uriBase.equals( "local" ) || uriBase.equals( "jxp" ) )
-	            set( "modules" , new ModuleDirectory( "site-modules" , "local.modules" , context , scope ) );
-	    }
+            if ( uriBase.equals( "core" ) && ! doInit )
+                throw new RuntimeException( "you are stupid" );
+            
+            // this is ugly - please fix
+            if ( uriBase.equals( "core" ) )
+                set( "modules" , new ModuleDirectory( "core-modules" , "core.modules" , context , scope ) );
+            else if ( uriBase.equals( "local" ) || uriBase.equals( "jxp" ) )
+                set( "modules" , new ModuleDirectory( "site-modules" , "local.modules" , context , scope ) );
+        }
+
+                            
     }
 
     private synchronized void _init(){
-
+        
         if ( D ) System.out.println( "\t " + _base + " _init.  _initSources : " + _initSources );
 
         if ( ! _doInit ){
@@ -197,6 +199,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
     }
 
     public File getFileFromPath( String path ){
+        _init();
         Object o = getFromPath( path , false );
 
         if ( o instanceof File )
@@ -229,6 +232,8 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
     public Object getFromPath( String path , boolean evalToFunction ){
         if ( path == null || path.trim().length() == 0 )
             return this;
+        
+        _init();
 
         path = cleanPath( path );
 
