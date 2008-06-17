@@ -267,9 +267,7 @@ IfNode.prototype = {
 
 var LoadNode =
     defaulttags.LoadNode =
-    function(library_files) {
-        
-    this.library_files = library_files;
+    function() {
 
 };
 LoadNode.prototype = {
@@ -491,18 +489,16 @@ var load =
     defaulttags.load =
     function(parser, token) {
 
-    var library_files = [];
     var bits = token.split_contents();
     for(var i=1; i<bits.length; i++) {
         var library_file = djang10.loadLibrary(bits[i]);
-        library_files.push(library_file);
 
         var evalScope = scope.child();
         evalScope.setGlobal(true);
         evalScope.eval("library_file()");
         var library = evalScope.get("register");
         
-        parser.add_library(library);
+        parser.add_library(library_file["_jxpSource"], library);
     }
     return new LoadNode(library_files);
 };

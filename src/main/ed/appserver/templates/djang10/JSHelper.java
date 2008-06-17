@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.ListIterator;
 
 import ed.appserver.JSFileLibrary;
+import ed.appserver.jxp.JxpSource;
 import ed.js.JSDate;
 import ed.js.JSFunction;
 import ed.js.JSObjectBase;
@@ -15,6 +16,7 @@ import ed.js.engine.JSCompiledScript;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
 import ed.js.func.JSFunctionCalls2;
+import ed.util.Pair;
 
 public class JSHelper extends JSObjectBase {
 
@@ -22,12 +24,12 @@ public class JSHelper extends JSObjectBase {
 
     private final ArrayList<JSFileLibrary> templateRoots;
     private final ArrayList<JSFileLibrary> moduleRoots;
-    private final ArrayList<Library> defaultLibraries;
+    private final ArrayList<Pair<JxpSource,Library>> defaultLibraries;
 
     public JSHelper() {
         templateRoots = new ArrayList<JSFileLibrary>();
         moduleRoots = new ArrayList<JSFileLibrary>();
-        defaultLibraries = new ArrayList<Library>();
+        defaultLibraries = new ArrayList<Pair<JxpSource,Library>>();
         
 
         // add the basic helpers
@@ -45,6 +47,7 @@ public class JSHelper extends JSObjectBase {
         this.set("TextNode", Node.TextNode.CONSTRUCTOR);
         this.set("VariableNode", Node.VariableNode.CONSTRUCTOR);
         this.set("Expression", Expression.CONSTRUCTOR);
+
     }
 
     public static JSHelper install(Scope scope) {
@@ -157,10 +160,10 @@ public class JSHelper extends JSObjectBase {
     };
 
 
-    public void addDefaultLibrary(Library library) {
-        defaultLibraries.add(library);
+    public void addDefaultLibrary(JxpSource source, Library library) {
+        defaultLibraries.add(new Pair<JxpSource, Library>(source, library));
     }
-    public List<Library> getDefaultLibraries() {
+    public List<Pair<JxpSource,Library>> getDefaultLibraries() {
         return defaultLibraries;
     }
     

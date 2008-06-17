@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 import org.jruby.RubyProcess.Sys;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import ed.appserver.jxp.JxpSource;
 import ed.appserver.templates.djang10.Node.VariableNode;
 import ed.js.JSArray;
 import ed.js.JSFunction;
@@ -61,6 +62,7 @@ public class Parser extends JSObjectBase{
     private final Set<Library> loadedLibraries;
     private final Map<String, JSFunction> filterMapping;
     private final Map<String, JSFunction> tagHandlerMapping;
+    private final Set<JxpSource> dependencies;
 
     public Parser(String string) {
         super(CONSTRUCTOR);
@@ -69,6 +71,7 @@ public class Parser extends JSObjectBase{
         loadedLibraries = new HashSet<Library>();
         this.filterMapping = new HashMap<String, JSFunction>();
         this.tagHandlerMapping = new HashMap<String, JSFunction>();
+        dependencies = new HashSet<JxpSource>();
 
         int line = 1;
         boolean inTag = false;
@@ -189,10 +192,12 @@ public class Parser extends JSObjectBase{
         return new FilterExpression(this, str);
     }
     
-    public void add_library(Library library) {
-        add_library(library, true);
+    public void add_library(JxpSource source, Library library) {
+        add_library(source, library, true);
     }
-    public void add_library(Library library, boolean overwrite) {
+    public void add_library(JxpSource source, Library library, boolean overwrite) {
+        dependencies.add(source);
+        
         if(loadedLibraries.contains(library))
             return;
         loadedLibraries.add(library);
@@ -218,6 +223,13 @@ public class Parser extends JSObjectBase{
         return tagHandlerMapping;
     }
 
+    public void add_dependency(JxpSource file) {
+        dependencies.add(file);
+    }
+    public Set<JxpSource> get_dependencies() {
+        return dependencies;
+    }
+    
     
     public static final JSFunction CONSTRUCTOR = new JSFunctionCalls0() {
         public Object call(Scope scope, Object[] extra) {
