@@ -108,6 +108,7 @@ var ForNode =
     this.nodelist_loop = nodelist_loop;
     
 };
+
 ForNode.prototype = {
     __proto__: djang10.Node.prototype,
     
@@ -498,7 +499,7 @@ var load =
         
         parser.add_library(library);
     }
-    return new LoadNode(libFiles);
+    return new LoadNode(library_files);
 };
 register.tag("load", load);
 
