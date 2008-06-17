@@ -123,14 +123,14 @@ DBCollection.prototype._dbCommand = function( cmdObj ) {
     return this.getDB().$cmd.findOne(cmdObj);
 }
 
-DBCollection.prototype.sample = function( num , query ){
+DBCollection.prototype.sample = function( num , query , fields ){
     var r = this.getDB().dbEval(
         function(){
-            var a = db[args[0]].find().limit(10000).toArray();
+            var a = db[args[0]].find( args[2] || {} , args[3] ).limit(10000).toArray();
             a.shuffle();
             return a.splice( 0 , args[1] );
         } ,
-        this.getName() , num , query 
+        this.getName() , num , query , fields 
     );
     var a = [];
     for ( var k in r ){
