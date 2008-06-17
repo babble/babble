@@ -126,7 +126,7 @@ DBCollection.prototype._dbCommand = function( cmdObj ) {
 DBCollection.prototype.sample = function( num , query ){
     var r = this.getDB().dbEval(
         function(){
-            var a = db[args[0]].find().toArray();
+            var a = db[args[0]].find().limit(10000).toArray();
             a.shuffle();
             return a.splice( 0 , args[1] );
         } ,
