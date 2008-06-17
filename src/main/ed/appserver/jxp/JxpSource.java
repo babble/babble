@@ -64,7 +64,7 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
         if ( _func != null )
             return _func;
         
-        _lastParse = lastUpdated();
+        _lastParse = Calendar.getInstance().getTimeInMillis();
         _dependencies.clear();
 
         Template t = new Template( getName() , getContent() , Language.find( getName() ) );
