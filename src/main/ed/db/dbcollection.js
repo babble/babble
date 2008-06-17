@@ -110,10 +110,15 @@ DBCollection.prototype.clean = function() {
  * @return number of objects in the collection that optionally match the filter condition
  */
 DBCollection.prototype.count = function(query) {
-	
-	var countFunction = function() { 
-		return db[args[0]].find(args[1]||{}, {_id:ObjId()}).length();
-	}
+    var countFunction = function() { 
+	var c = db[args[0]].find(args[1]||{}, {_id:ObjId()});
+        var i = 0;
+        while ( c.hasNext() ){
+            c.next();
+            i++;
+        }
+        return i;
+    }
    return this.getDB().dbEval(countFunction, this.getName(), query);
 }
 
