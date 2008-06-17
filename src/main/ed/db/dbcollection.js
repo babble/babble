@@ -123,6 +123,22 @@ DBCollection.prototype._dbCommand = function( cmdObj ) {
     return this.getDB().$cmd.findOne(cmdObj);
 }
 
+DBCollection.prototype.sample = function( num , query ){
+    var r = this.getDB().dbEval(
+        function(){
+            var a = db[args[0]].find().toArray();
+            a.shuffle();
+            return a.splice( 0 , args[1] );
+        } ,
+        this.getName() , num , query 
+    );
+    var a = [];
+    for ( var k in r ){
+        a.push( r[k] );
+    }
+    return a;
+}
+
 var mydb  = arguments[0];
 
 if (!mydb) {
