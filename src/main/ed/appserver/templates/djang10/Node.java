@@ -4,6 +4,7 @@ import ed.js.JSArray;
 import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.JSObjectBase;
+import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
 import ed.js.func.JSFunctionCalls1;
@@ -17,7 +18,7 @@ public class Node extends JSObjectBase {
     protected Node(Constructor constructor) {
         super(constructor);
     }
-
+    
     public static Constructor CONSTRUCTOR = new Constructor(); 
     public static class Constructor  extends JSFunctionCalls0 {
         public Object call(Scope scope, Object[] extra) {
@@ -81,7 +82,7 @@ public class Node extends JSObjectBase {
             });
             _prototype.set("toString", new JSFunctionCalls0() {
                 public Object call(Scope scope, Object[] extra) {
-                    return scope.getThis().toString();
+                    return "<Node>";
                 } 
             });
         }
@@ -92,23 +93,15 @@ public class Node extends JSObjectBase {
     
     //Text Node
     public static class TextNode extends Node {
-        private String text;
-        
-        public TextNode(String text) {
+        public TextNode(JSString text) {
             super(CONSTRUCTOR);
-            this.text = text;
-        }
-
-        public String toString() {
-            String str = text.replaceAll("\\s+", " ");
-            str = str.substring(0, Math.min(20, str.length()));
-            return "<Text Node: \"" + str + "\">";
+            this.set("text", text);
         }
         
         public static Node.Constructor CONSTRUCTOR = new Constructor() {
             public Object call(Scope scope, Object[] extra) {
-                TextNode node = (TextNode)scope.getThis();
-                node.text = extra[0].toString();
+                JSObject node = (JSObject)scope.getThis();
+                node.set("text", extra[0]);
                 return null;
             }
             protected void init() {
@@ -116,10 +109,19 @@ public class Node extends JSObjectBase {
                 _prototype.set("__proto__", Node.CONSTRUCTOR.getPrototype());
                 _prototype.set("__render", new JSFunctionCalls2() {
                     public Object call(Scope scope, Object contextObj, Object printerObj, Object[] extra) {
-                        TextNode thisObj = (TextNode)scope.getThis();
-                        ((JSFunction)printerObj).call(scope.child(), thisObj.text);
+                        JSObject thisObj = (JSObject)scope.getThis();
+                        ((JSFunction)printerObj).call(scope.child(), thisObj.get("text"));
                         return null;
                     }
+                });
+                _prototype.set("toString", new JSFunctionCalls0() {
+                    public Object call(Scope scope, Object[] extra) {
+                        JSObject thisObj = (JSObject)scope.getThis();
+                        String str = String.valueOf(thisObj.get("text"));
+                        str = str.replaceAll("\\s+", " ");
+                        str = str.substring(0, Math.min(20, str.length()));
+                        return "<Text Node: \"" + str + "\">";
+                    };
                 });
             }
             public JSObject newOne() {
@@ -132,21 +134,15 @@ public class Node extends JSObjectBase {
     
     
     public static class VariableNode extends Node {
-        private FilterExpression expression;
-
         public VariableNode(FilterExpression expression) {
             super(CONSTRUCTOR);
-            this.expression = expression;
-        }
-
-        public String toString() {
-            return "<Variable Node: \"" + expression.toString() + "\">";
+            this.set("expression", expression);
         }
         
         public static final Node.Constructor CONSTRUCTOR = new Constructor() {
             public Object call(Scope scope, Object[] extra) {
-                VariableNode thisObj = (VariableNode)scope.getThis();
-                thisObj.expression = (FilterExpression)extra[0];
+                JSObject thisObj = (JSObject)scope.getThis();
+                thisObj.set("expression", extra[0]);
                 return null;
             }
             protected void init() {
@@ -154,11 +150,20 @@ public class Node extends JSObjectBase {
                 _prototype.set("__proto__", Node.CONSTRUCTOR.getPrototype());
                 _prototype.set("__render", new JSFunctionCalls2() {
                     public Object call(Scope scope, Object contextObj, Object printerObj, Object[] extra) {
-                        VariableNode thisObj = (VariableNode)scope.getThis();
-                        Object result = thisObj.expression.resolve(scope, (Context)contextObj);
+                        JSObject thisObj = (JSObject)scope.getThis();
+                        FilterExpression expr = (FilterExpression)thisObj.get("expression");
+                        Object result = expr.resolve(scope, (Context)contextObj);
                         if(result != null && result != Expression.UNDEFINED_VALUE)
                             ((JSFunction)printerObj).call(scope.child(), result.toString());
                         return null;
+                    }
+                });
+                _prototype.set("toString", new JSFunctionCalls0() {
+                    public Object call(Scope scope, Object[] extra) {
+                        JSObject thisObj = (JSObject)scope.getThis();
+                        FilterExpression expr = (FilterExpression)thisObj.get("expression");
+                        
+                        return "<Variable Node: \"" + expr.toString() + "\">";
                     }
                 });
             }

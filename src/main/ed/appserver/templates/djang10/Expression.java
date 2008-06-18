@@ -193,6 +193,10 @@ public class Expression extends JSObjectBase {
     public static boolean isTrue(Object value) {
         if (value == null)
             return false;
+        if((value instanceof JSString) && value.equals(""))
+            return false;
+        if("".equals(value))
+            return false;
         if (value == Boolean.FALSE)
             return false;
         if (value == UNDEFINED_VALUE)

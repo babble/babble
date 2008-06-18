@@ -47,7 +47,8 @@ public class JSHelper extends JSObjectBase {
         this.set("TextNode", Node.TextNode.CONSTRUCTOR);
         this.set("VariableNode", Node.VariableNode.CONSTRUCTOR);
         this.set("Expression", Expression.CONSTRUCTOR);
-
+        
+        this.set("TEMPLATE_STRING_IF_INVALID", new JSString(""));
     }
 
     public static JSHelper install(Scope scope) {

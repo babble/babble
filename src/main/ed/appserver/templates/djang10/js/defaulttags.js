@@ -135,7 +135,7 @@ ForNode.prototype = {
         context.push();
         
         var values = this.sequence.resolve(context);
-        if(values == null || values == djang10.Expression.UNDEFINED_VALUE)
+        if(!djang10.Expression.is_true(values))
             values = [];
         if(this.is_reversed)
             values.reverse();

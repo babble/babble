@@ -6,6 +6,7 @@ import java.util.List;
 import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.JSObjectBase;
+import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
 import ed.js.func.JSFunctionCalls2;
@@ -62,7 +63,24 @@ public class FilterExpression extends JSObjectBase {
     }
     
     public Object resolve(Scope scope, Context context) {
+        return resolve(scope, context, false);
+    }
+    public Object resolve(Scope scope, Context context, boolean ignore_failures) {
         Object value = expression.resolve(scope, context);
+        
+        if(value == Expression.UNDEFINED_VALUE) {
+            if(ignore_failures) {
+                value = null;
+            }
+            else {
+                JSHelper jsHelper = (JSHelper)scope.get(JSHelper.NS);
+                JSString invalid_var_format_string = (JSString)jsHelper.get("TEMPLATE_STRING_IF_INVALID");
+                if(invalid_var_format_string != null && !invalid_var_format_string.equals("")) {
+                    return new JSString(invalid_var_format_string.toString().replace("%s", expression.toString()));
+                }
+                value = invalid_var_format_string;
+            }
+        }
         
         for(FilterSpec filterSpec : filterSpecs) {
             value = filterSpec.apply(scope, context, value);
@@ -121,7 +139,7 @@ public class FilterExpression extends JSObjectBase {
             return filter.call(scope.child(), value, paramValue);
         }
         public String toString() {
-            return filterName + ":" + param.toString();
+            return filterName + ":" + String.valueOf(param);
         }
     }
 }

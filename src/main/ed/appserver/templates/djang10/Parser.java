@@ -113,17 +113,17 @@ public class Parser extends JSObjectBase{
                 if (token.getContents().length() == 0)
                     throw new TemplateException(token.getStartLine(), "Empty Variable Tag");
 
-                FilterExpression variableExpression = compile_filter(token.getContents());
+                FilterExpression variableExpression = compile_filter(token.getContents().toString());
                 VariableNode varNode = create_variable_node(variableExpression);
                 extend_nodelist(nodelist, varNode, token);
             }
             else if (token.type == TagDelimiter.Type.Block) {
-                if(untilTagsList.contains(new JSString(token.getContents()))) {
+                if(untilTagsList.contains(token.getContents())) {
                     prepend_token(token);
                     return nodelist;
                 }
                 
-                String command = token.getContents().split("\\s")[0];
+                String command = token.getContents().toString().split("\\s")[0];
                 
                 JSFunction handler = getTagHandlers().get(command);
                 if(handler == null)
@@ -271,19 +271,19 @@ public class Parser extends JSObjectBase{
             set("contents", new JSString(contents));
         }
 
-        public String getContents() {
-            return get("contents").toString();
+        public JSString getContents() {
+            return (JSString)get("contents");
         }
 
         public int getStartLine() {
             return startLine;
         }
         public String[] split_contents() {
-            return Parser.smartSplit(getContents());
+            return Parser.smartSplit(getContents().toString());
         }
         
         public String toString() {
-            return "<" + type + ": " + getContents().substring(0, Math.min(20, getContents().length())) + "...>";
+            return "<" + type + ": " + getContents().toString().substring(0, Math.min(20, getContents().length())) + "...>";
         }
         
         public static final JSFunction CONSTRUCTOR = new JSFunctionCalls3() {
