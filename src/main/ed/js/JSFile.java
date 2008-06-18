@@ -137,7 +137,7 @@ public abstract class JSFile extends JSObjectBase {
             retTemp = site_temp;
         }
         if( ! retTemp.isDirectory() )
-            throw new RuntimeException( "couldn't find suitable directory for temporary file" );
+            throw new RuntimeException( "file exists but is not a directory : " + retTemp.toString() );
 
         return retTemp;
     }
@@ -159,9 +159,8 @@ public abstract class JSFile extends JSObjectBase {
             f = new File( name );
         }
         else {
-            File dir;
-            if( name.indexOf('/') != -1 ){
-                dir = new File( root , name.replaceAll( "/[^/]+$" , "/" ) );
+            if( name.contains("/") ){
+                File dir = new File( root , name.replaceAll( "/[^/]+$" , "/" ) );
                 dir.mkdirs();
             }
             else {
