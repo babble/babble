@@ -38,6 +38,9 @@ public class FilterExpression extends JSObjectBase {
                 filterParamPart = filterParts[1].trim();
 
             JSFunction filter = parser.getFilters().get(filterNamePart);
+            if(filter == null)
+                throw new TemplateException("Unknow filter: " + filterNamePart);
+
             Expression filterParam = (filterParamPart == null) ? null : new Expression(filterParamPart);
             filterSpecs.add(new FilterSpec(filterNamePart, filter, filterParam));
         }
