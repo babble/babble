@@ -2,10 +2,7 @@ package ed.appserver.templates.djang10;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Calendar;
 import java.util.Collection;
-import java.util.Date;
-import java.util.GregorianCalendar;
 
 import ed.appserver.JSFileLibrary;
 import ed.appserver.jxp.JxpSource;
@@ -26,7 +23,7 @@ public class Djang10Source extends JxpFileSource {
     public synchronized JSFunction getFunction() throws IOException {
         if(_needsParsing() || compiledScript == null) {
           
-            _lastParse = Calendar.getInstance().getTimeInMillis();
+            _lastParse = lastUpdated();
             _dependencies.clear();
             
             NodeList nodes = null;
