@@ -24,7 +24,7 @@ public class MimeTypes {
     
     public static String get( String ext ){
         ext = getExtension( ext );
-        return _mimeTypes.getProperty( ext );
+        return _mimeTypes.getProperty( ext.toLowerCase() );
     }
 
     static final Properties _mimeTypes;
