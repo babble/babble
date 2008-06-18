@@ -130,9 +130,10 @@ var do_extends =
    
     var parent_name_expr = parser.compile_filter(bits[1]);
     if(parent_name_expr.is_literal()) {
-        var parent = djang10.loadTemplate(parent_name);
+        var parent = djang10.loadTemplate(parent_name_expr.get_literal_value());
         var parent_libs = parent.loadedLibraries;
         if(parent_libs !=null) {
+
             for(var i=0; i<parent_libs.length; i++) {
                 parser.add_library(parent_libs[i], false);
             }

@@ -15,7 +15,10 @@ public class Djang10CompiledScript extends JSFunctionCalls1 {
     public Djang10CompiledScript(NodeList nodes, Collection<Library> loadedLibraries) {
         super();
         this.nodes = nodes;
-        set("loadedLibraries", new JSArray( loadedLibraries));
+        
+        JSArray arr = new JSArray();
+        arr.addAll(loadedLibraries);
+        set("loadedLibraries", new JSArray( arr));
         
         set("nodelist", nodes);
     }

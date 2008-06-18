@@ -60,7 +60,7 @@ public class Expression extends JSObjectBase {
     }
 
     public boolean is_literal() {
-        if(!(parsedExpression.getFirstChild() != parsedExpression.getLastChild()))
+        if(parsedExpression.getFirstChild() != parsedExpression.getLastChild())
             return false;
         
         int childType = parsedExpression.getFirstChild().getType();

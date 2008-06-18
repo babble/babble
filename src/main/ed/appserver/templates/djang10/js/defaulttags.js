@@ -493,7 +493,8 @@ var load =
         var library_file = djang10.loadLibrary(bits[i]);
         var library = djang10.evalLibrary(library_file);
         
-        parser.add_library(library_file["_jxpSource"], library);
+        parser.add_library(library);
+        parser.add_dependency(library_file["_jxpSource"]);
     }
     return new LoadNode();
 };

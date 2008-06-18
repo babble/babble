@@ -192,12 +192,10 @@ public class Parser extends JSObjectBase{
         return new FilterExpression(this, str);
     }
     
-    public void add_library(JxpSource source, Library library) {
-        add_library(source, library, true);
+    public void add_library(Library library) {
+        add_library(library, true);
     }
-    public void add_library(JxpSource source, Library library, boolean overwrite) {
-        dependencies.add(source);
-        
+    public void add_library(Library library, boolean overwrite) {
         if(loadedLibraries.contains(library))
             return;
         loadedLibraries.add(library);

@@ -37,8 +37,10 @@ public class Djang10Source extends JxpFileSource {
             try {
                 Parser parser = new Parser(contents);
                 JSHelper jsHelper = (JSHelper)Scope.getThreadLocal().get(JSHelper.NS);
-                for(Pair<JxpSource,Library> lib : jsHelper.getDefaultLibraries())
-                    parser.add_library(lib.first, lib.second);
+                for(Pair<JxpSource,Library> lib : jsHelper.getDefaultLibraries()) {
+                    parser.add_dependency(lib.first);
+                    parser.add_library(lib.second);
+                }
                 
                 nodes = parser.parse(Scope.getThreadLocal(), new JSArray());
                 libraries = parser.getLoadedLibraries();
@@ -67,8 +69,10 @@ public class Djang10Source extends JxpFileSource {
 
         Parser parser = new Parser(contents);
         JSHelper jsHelper = (JSHelper)scope.get(JSHelper.NS);
-        for(Pair<JxpSource,Library> lib : jsHelper.getDefaultLibraries())
-            parser.add_library(lib.first, lib.second);
+        for(Pair<JxpSource,Library> lib : jsHelper.getDefaultLibraries()) {
+            parser.add_dependency(lib.first);
+            parser.add_library(lib.second);
+        }
 
         return parser.parse(scope, new JSArray());
     }
