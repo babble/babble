@@ -12,6 +12,7 @@ import ed.lang.*;
 import ed.util.*;
 import ed.appserver.*;
 import ed.appserver.templates.*;
+import ed.appserver.templates.djang10.Djang10Source;
 
 public abstract class JxpSource implements Dependency , DependencyTracker {
     
@@ -30,6 +31,10 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
     public static JxpSource getSource( File f , JSFileLibrary lib ){
         if ( f == null )
             throw new NullPointerException( "can't have null file" );
+        
+        if(f.getName().endsWith(".djang10"))
+            return new Djang10Source(f);
+
         JxpSource s = new JxpFileSource( f );
         s._lib = lib;
         return s;
@@ -39,9 +44,14 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
 
     abstract String getContent() throws IOException;
     abstract InputStream getInputStream() throws IOException ;
-    public abstract long lastUpdated();
+    public abstract long lastUpdated(Set<Dependency> visitedDeps);
     abstract String getName();
 
+    //Convenience wrapper, override lastUpdated(Set<Dependency> visitedDeps) instead
+    public final long lastUpdated() {
+        return lastUpdated(new HashSet<Dependency>());
+    }
+    
     /**
      * @return File if it makes sense, otherwise nothing
      */
@@ -59,7 +69,7 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
         if ( _func != null )
             return _func;
         
-        _lastParse = lastUpdated();
+        _lastParse = Calendar.getInstance().getTimeInMillis();
         _dependencies.clear();
 
         Template t = new Template( getName() , getContent() , Language.find( getName() ) );
@@ -126,24 +136,17 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
         _servlet = null;
     }
 
-    private boolean _needsParsing(){
+    protected boolean _needsParsing(){
 
-        if ( _lastParse < lastUpdated() )
-            return true;
-
-        for ( Dependency d : _dependencies )
-            if ( _lastParse < d.lastUpdated() )
-                return true;
-
-        return false;
+        return ( _lastParse < lastUpdated(new HashSet<Dependency>()) );
     }
 
     public String toString(){
         return getName();
     }
     
-    private long _lastParse = 0;
-    private List<Dependency> _dependencies = new ArrayList<Dependency>();
+    protected long _lastParse = 0;
+    protected List<Dependency> _dependencies = new ArrayList<Dependency>();
     
     private JSFunction _func;
     private JxpServlet _servlet;
@@ -154,7 +157,7 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
     // -------------------
     
     public static class JxpFileSource extends JxpSource {
-        JxpFileSource( File f ){
+        protected JxpFileSource( File f ){
             _f = f;
         }
         
@@ -162,7 +165,7 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
             return _f.toString();
         }
 
-        String getContent()
+        protected String getContent()
             throws IOException {
             return StreamUtil.readFully( _f );
         }
@@ -172,8 +175,15 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
             return new FileInputStream( _f );
         }
         
-        public long lastUpdated(){
-            return _f.lastModified();
+        public long lastUpdated(Set<Dependency> visitedDeps){
+            visitedDeps.add(this);
+
+            long lastUpdated = _f.lastModified();
+            for(Dependency dep : _dependencies)
+                if(!visitedDeps.contains(dep))
+                    lastUpdated = Math.max(lastUpdated, dep.lastUpdated(visitedDeps));
+            
+            return lastUpdated;
         }
 
         public File getFile(){

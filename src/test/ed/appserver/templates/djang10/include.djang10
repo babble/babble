@@ -3,4 +3,4 @@
 {% include "/djang10-if" %}
 {% include "djang10-if" %}
 {% include includedTemplate %}
-{% include includedTemplateJsFunction %}
+{#  DISABLED!!!!!!!!!!!!!!!!!! include includedTemplateJsFunction #}

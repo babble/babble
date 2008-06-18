@@ -4,7 +4,6 @@ import java.io.File;
 
 import org.testng.annotations.Test;
 
-import ed.appserver.templates.Djang10Converter;
 import ed.js.JSFunction;
 import ed.js.func.JSFunctionCalls0;
 import ed.util.ScriptTestInstance;

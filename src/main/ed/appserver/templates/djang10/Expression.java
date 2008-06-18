@@ -1,47 +1,45 @@
 package ed.appserver.templates.djang10;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.mozilla.javascript.CompilerEnvirons;
 import org.mozilla.javascript.Node;
 import org.mozilla.javascript.ScriptOrFnNode;
 import org.mozilla.javascript.Token;
 
-import ed.appserver.templates.djang10.generator.JSWriter;
 import ed.js.JSArray;
 import ed.js.JSFunction;
 import ed.js.JSMap;
 import ed.js.JSNumericFunctions;
 import ed.js.JSObject;
+import ed.js.JSObjectBase;
 import ed.js.JSString;
 import ed.js.engine.JSCompiledScript;
 import ed.js.engine.Scope;
+import ed.js.func.JSFunctionCalls0;
 import ed.js.func.JSFunctionCalls1;
-import ed.js.func.JSFunctionCalls2;
-import ed.js.func.JSFunctionCalls3;
 
-public class Expression {
-    public final static String GET_PROP = "getProp";
-    public final static String LOOKUP = "lookup";
-    public final static String CALL = "call";
-    public final static String IS_TRUE = "isTrue";
-    public final static String DEFAULT_VALUE = "defaultValue";
+public class Expression extends JSObjectBase {
+    public final static Object UNDEFINED_VALUE = new Object() {
+        public String toString() {
+            return "UNDEFINED_VALUE";
+        };
+    };
 
-    public final static Object UNDEFINED_VALUE = new Object();
+    private String expression;
+    private Node parsedExpression;
 
-    private final String expression;
-    private final boolean callLeaf;
-    private final Node parsedExpression;
-
-    public Expression(String expression) throws TemplateException {
-        this(expression, true);
+    protected Expression() {
+        super(CONSTRUCTOR);
     }
-
-    public Expression(String expression, boolean callLeaf) throws TemplateException {
+    
+    public Expression(String expression) throws TemplateException {
+        this();
         this.expression = expression;
-        this.callLeaf = callLeaf;
-
+        init();
+    }
+    private void init() throws TemplateException {
         CompilerEnvirons ce = new CompilerEnvirons();
         org.mozilla.javascript.Parser parser = new org.mozilla.javascript.Parser(ce, ce.getErrorReporter());
         ScriptOrFnNode scriptNode;
@@ -61,238 +59,143 @@ public class Expression {
             throw new TemplateException("Not an expression");
     }
 
-    public String toJavascript() throws TemplateException {
-        StringBuilder buffer = new StringBuilder();
-        Node child = parsedExpression.getFirstChild();
-        toJavascript(buffer, child, callLeaf);
-        return buffer.toString();
+    public boolean is_literal() {
+        if(!(parsedExpression.getFirstChild() != parsedExpression.getLastChild()))
+            return false;
+        
+        int childType = parsedExpression.getFirstChild().getType();
+        if(childType == Token.STRING || childType == Token.NUMBER || childType == Token.NULL)
+            return true;
+        
+        //FIXME: check array litrals
+        return false;
     }
-
-    private static void toJavascript(StringBuilder buffer, Node node, boolean autoCall) throws TemplateException {
+    public Object get_literal_value() {
+        if(!is_literal())
+            throw new IllegalStateException();
+        
+        return resolve(null, null);
+    }
+    
+    
+    public Object resolve(Scope scope, Context ctx) {
+        try {
+            Object obj = resolve(scope, ctx, parsedExpression.getFirstChild(), true);
+            return JSNumericFunctions.fixType(obj);
+            
+        } catch(Throwable t) {
+            return UNDEFINED_VALUE;
+        }
+    }
+    private static Object resolve(Scope scope, Context ctx, Node node, boolean autoCall) throws TemplateException {
+        Object temp;
         switch (node.getType()) {
         case Token.GETELEM:
         case Token.GETPROP:
-            buffer.append(JSHelper.NS + "." + GET_PROP + "(");
-            toJavascript(buffer, node.getFirstChild(), true);
-            buffer.append(", ");
-            toJavascript(buffer, node.getLastChild(), true);
-            buffer.append(", " + autoCall + ")");
-            break;
+            JSObject obj = (JSObject)resolve(scope, ctx, node.getFirstChild(), true);
+            Object prop = resolve(scope, ctx, node.getLastChild(), true);
+            
+            Object val = obj.get(prop);
+            if(val == null)
+                val = ctx.containsKey(node.getString()) ? null : UNDEFINED_VALUE;
+            
+            if (autoCall && val instanceof JSFunction && !(val instanceof JSCompiledScript) && !(val instanceof Djang10CompiledScript))
+                val = ((JSFunction)val).callAndSetThis(scope.child(), obj, new Object[0]);
+            
+            return val;
 
         case Token.CALL:
-            buffer.append(JSHelper.NS + "." + CALL + "(");
-
+            JSObject callThisObj = null;
+            JSFunction callMethodObj = null;
             Node callArgs = node.getFirstChild();
-
+            
             if (callArgs.getType() == Token.GETELEM || callArgs.getType() == Token.GETPROP) {
-                toJavascript(buffer, callArgs.getFirstChild(), true);
-                buffer.append(", ");
-                toJavascript(buffer, callArgs.getLastChild(), false);
+                callThisObj = (JSObject)resolve(scope, ctx, callArgs.getFirstChild(), true);
+                callMethodObj = (JSFunction)callThisObj.get(resolve(scope, ctx, callArgs.getLastChild(), false));
             } else {
-                buffer.append("null");
-                buffer.append(", ");
-                toJavascript(buffer, callArgs, false);
+                callMethodObj = (JSFunction)resolve(scope, ctx, callArgs, false);
             }
 
             // arguments
-            callArgs = callArgs.getNext();
-            while (callArgs != null) {
-                buffer.append(", ");
-                toJavascript(buffer, callArgs, true);
+            List<Object> argList = new ArrayList<Object>();             
+            
+            for(callArgs = callArgs.getNext(); callArgs != null; callArgs = callArgs.getNext())
+                argList.add(resolve(scope, ctx, callArgs, true));
 
-                callArgs = callArgs.getNext();
-            }
-            buffer.append(")");
-            break;
+            Scope callScope = Scope.getThreadLocal().child();
+            callScope.setGlobal(true);
+            
+            if(callThisObj != null)
+                return callMethodObj.callAndSetThis(callScope, callThisObj, argList.toArray());
+            else
+                return callMethodObj.call(callScope, argList.toArray());
 
         case Token.NAME:
-            buffer.append(JSHelper.NS + "." + LOOKUP + "(\"" + node.getString() + "\", " + autoCall + ")");
-            break;
+            Object lookupValue = ctx.get(node.getString());
+            if(lookupValue == null)
+                lookupValue = ctx.containsKey(node.getString()) ? null : UNDEFINED_VALUE;
+            
+            // XXX: fallback on scope look ups
+            if (lookupValue == UNDEFINED_VALUE) {
+                lookupValue = Scope.getThreadLocal().get(node.getString());
 
-        case Token.ARRAYLIT:
-            buffer.append("[");
-            Node arrElem = node.getFirstChild();
-            while (arrElem != null) {
-                toJavascript(buffer, arrElem, true);
-
-                arrElem = arrElem.getNext();
-                if (arrElem != null)
-                    buffer.append(",");
+                if (lookupValue == null) {
+                    lookupValue = Scope.getThreadLocal().keySet().contains(node.getString()) ? null : UNDEFINED_VALUE;
+                }
             }
-            buffer.append("]");
-            break;
+            
+            if (autoCall && lookupValue instanceof JSFunction && !(lookupValue instanceof JSCompiledScript))
+                lookupValue = ((JSFunction) lookupValue).call(Scope.getThreadLocal().child());
+            return lookupValue;
+
+            
+        case Token.ARRAYLIT:
+            JSArray arrayLit = new JSArray();
+            
+            for(Node arrElem = node.getFirstChild(); arrElem != null; arrElem = arrElem.getNext())
+                arrayLit.add(resolve(scope, ctx, arrElem, true));
+
+            return arrayLit;
+
 
         case Token.STRING:
-            buffer.append("\"" + node.getString() + "\"");
-            break;
+            return new JSString(node.getString());
+
 
         case Token.NUMBER:
             double n = node.getDouble();
             if (JSNumericFunctions.couldBeInt(n))
-                buffer.append(Integer.toString((int) n));
+                return (int)n;
             else
-                buffer.append(n);
-
-            break;
+                return n;
 
         case Token.NULL:
-            buffer.append("null");
-            break;
+            return null;
+
 
         case Token.TRUE:
-            buffer.append("true");
-            break;
+            return true;
+
 
         case Token.FALSE:
-            buffer.append("false");
-            break;
+            return false;
+
 
         default:
             throw new TemplateException("Invalid token: " + node);
         }
     }
-
+    
     public String toString() {
         return expression;
     }
 
-    public static Map<String, JSFunction> getHelpers() {
-        HashMap<String, JSFunction> helpers = new HashMap<String, JSFunction>();
-
-        helpers.put(LOOKUP, new JSFunctionCalls2() {
-            public Object call(Scope scope, Object name, Object autoCall, Object[] extra) {
-                if (!(name instanceof JSString))
-                    return UNDEFINED_VALUE;
-
-                return lookupSymbol(scope, name.toString(), autoCall == Boolean.TRUE);
-            }
-        });
-        helpers.put(GET_PROP, new JSFunctionCalls3() {
-            public Object call(Scope scope, Object obj, Object prop, Object autoCall, Object[] extra) {
-                if (!(obj instanceof JSObject))
-                    return UNDEFINED_VALUE;
-
-                return getProp(scope, (JSObject) obj, prop, autoCall == Boolean.TRUE);
-            }
-        });
-        helpers.put(CALL, new JSFunctionCalls2() {
-            public Object call(Scope scope, Object thisObj, Object method, Object[] extra) {
-                if (thisObj != null && !(thisObj instanceof JSObject))
-                    return UNDEFINED_VALUE;
-
-                return Expression.call(scope, (JSObject) thisObj, method, extra);
-            }
-        });
-        helpers.put(IS_TRUE, new JSFunctionCalls1() {
-            public Object call(Scope scope, Object p0, Object[] extra) {
-                return isTrue(p0);
-            }
-        });
-        helpers.put(DEFAULT_VALUE, new JSFunctionCalls2() {
-            public Object call(Scope scope, Object value, Object defaultValue, Object[] extra) {
-                return defaultValue(value, defaultValue);
-            }
-        });
-
-        return helpers;
-    }
-
-    public static Object lookupSymbol(Scope scope, String symbol, boolean autoCall) {
-        Object varValue;
-        try {
-            if (UNDEFINED_VALUE == symbol || symbol == null)
-                return UNDEFINED_VALUE;
-
-            Context contextStack = (Context) scope.get(JSWriter.CONTEXT_STACK_VAR);
-            varValue = contextStack.get(symbol);
-
-            if (varValue == null)
-                varValue = contextStack.containsKey(symbol.toString()) ? null : UNDEFINED_VALUE;
-
-            // XXX: fallback on scope look ups
-            if (varValue == UNDEFINED_VALUE) {
-                varValue = scope.get(symbol);
-
-                if (varValue == null) {
-                    varValue = scope.keySet().contains(symbol.toString()) ? null : UNDEFINED_VALUE;
-                }
-            }
-
-            if (autoCall && varValue instanceof JSFunction && !(varValue instanceof JSCompiledScript))
-                varValue = ((JSFunction) varValue).call(scope.child());
-
-        } catch (Throwable t) {
-            varValue = UNDEFINED_VALUE;
-        }
-        return varValue;
-    }
-
-    public static Object getProp(Scope scope, JSObject obj, Object propName, boolean autoCall) {
-        if (obj == null || propName == null)
-            return UNDEFINED_VALUE;
-
-        Object ret;
-
-        if (obj instanceof JSArray && propName instanceof Number) {
-            if (((JSArray) obj).size() <= ((Number) propName).longValue())
-                return UNDEFINED_VALUE;
-        } else {
-            //FIXME: this really should be in JSObjectBase
-            Object current = obj;
-            while(current instanceof JSObject) {
-                if(((JSObject)current).keySet().contains(propName))
-                    break;
-                
-                current = ((JSObject)current).get("__proto__");
-            }
-            if(!(current instanceof JSObject)) {
-                return UNDEFINED_VALUE;
-            }
-        }
-            
-
-        ret = obj.get(propName);
-
-        if (autoCall && ret instanceof JSFunction && !(ret instanceof JSCompiledScript))
-            ret = ((JSFunction) ret).callAndSetThis(scope.child(), obj, null);
-
-        return ret;
-    }
-
-    public static Object call(Scope scope, JSObject thisObj, Object method, Object[] params) {
-        if (method == null || method == UNDEFINED_VALUE)
-            return UNDEFINED_VALUE;
-
-        JSFunction func;
-        if (thisObj == null) {
-            if (!(method instanceof JSFunction))
-                method = scope.get(method);
-
-            if (!(method instanceof JSFunction))
-                return UNDEFINED_VALUE;
-
-            func = (JSFunction) method;
-        } else {
-            if (!(thisObj instanceof JSObject))
-                return UNDEFINED_VALUE;
-
-            Object temp = ((JSObject) thisObj).get(method);
-
-            if (!(temp instanceof JSFunction))
-                return UNDEFINED_VALUE;
-
-            func = (JSFunction) temp;
-        }
-
-        if (thisObj != null) {
-            return func.callAndSetThis(scope.child(), thisObj, params);
-        } else {
-            return func.call(scope.child(), params);
-        }
-    }
-
     public static boolean isTrue(Object value) {
         if (value == null)
+            return false;
+        if((value instanceof JSString) && value.equals(""))
+            return false;
+        if("".equals(value))
             return false;
         if (value == Boolean.FALSE)
             return false;
@@ -307,10 +210,40 @@ public class Expression {
 
         return true;
     }
-
-    public static Object defaultValue(Object value, Object defaultValue) {
-        if (value == null || value == UNDEFINED_VALUE)
-            return defaultValue;
-        return value;
-    }
+    
+    public static final JSFunction CONSTRUCTOR = new JSFunctionCalls1() {
+        public Object call(Scope scope, Object expressionObj, Object[] extra) {
+            Expression thisObj = (Expression)scope.getThis();
+            thisObj.expression = expressionObj.toString();
+            try {
+                thisObj.init();
+            } catch (TemplateException e) {
+                throw new RuntimeException(e);
+            }
+            return null;
+        }
+        public JSObject newOne() {
+            return new Expression();
+        }
+        protected void init() {
+            set("UNDEFINED_VALUE", UNDEFINED_VALUE);
+            set("is_true", new JSFunctionCalls1() {
+                public Object call(Scope scope, Object p0, Object[] extra) {
+                    return isTrue(p0);
+                }
+            });
+            set("resolve", new JSFunctionCalls1() {
+                public Object call(Scope scope, Object contextObj, Object[] extra) {
+                    Expression thisObj = (Expression)scope.getThis();
+                    return thisObj.resolve(scope, (Context)contextObj);
+                };
+            });
+            set("toString", new JSFunctionCalls0() {
+                public Object call(Scope scope, Object[] extra) {
+                    Expression thisObj = (Expression)scope.getThis();
+                    return thisObj.toString();
+                };
+            });
+        }
+    };
 }

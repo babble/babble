@@ -5,6 +5,7 @@ revcounter: 5
 revcounter0: 4
 first: true
 last: false
+01234
 
 n:1
 counter: 2
@@ -13,6 +14,7 @@ revcounter: 4
 revcounter0: 3
 first: false
 last: false
+01234
 
 n:2
 counter: 3
@@ -21,6 +23,7 @@ revcounter: 3
 revcounter0: 2
 first: false
 last: false
+01234
 
 n:3
 counter: 4
@@ -29,6 +32,7 @@ revcounter: 2
 revcounter0: 1
 first: false
 last: false
+01234
 
 n:4
 counter: 5
@@ -37,3 +41,4 @@ revcounter: 1
 revcounter0: 0
 first: false
 last: true
+01234

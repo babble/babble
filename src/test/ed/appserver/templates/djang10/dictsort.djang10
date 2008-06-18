@@ -2,6 +2,6 @@
     {{ num.myProp }}
 {% endfor %}
 
-{% for num in array2|dictsortreverse:"myProp" %}
+{% for num in array2|dictsortreversed:"myProp" %}
     {{ num.myProp }}
 {% endfor %}
