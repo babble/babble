@@ -44,9 +44,14 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
 
     abstract String getContent() throws IOException;
     abstract InputStream getInputStream() throws IOException ;
-    public abstract long lastUpdated();
+    public abstract long lastUpdated(Set<Dependency> visitedDeps);
     abstract String getName();
 
+    //Convenience wrapper, override lastUpdated(Set<Dependency> visitedDeps) instead
+    public final long lastUpdated() {
+        return lastUpdated(new HashSet<Dependency>());
+    }
+    
     /**
      * @return File if it makes sense, otherwise nothing
      */
@@ -133,14 +138,7 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
 
     protected boolean _needsParsing(){
 
-        if ( _lastParse < lastUpdated() )
-            return true;
-
-        for ( Dependency d : _dependencies )
-            if ( _lastParse < d.lastUpdated() )
-                return true;
-
-        return false;
+        return ( _lastParse < lastUpdated(new HashSet<Dependency>()) );
     }
 
     public String toString(){
@@ -177,8 +175,15 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
             return new FileInputStream( _f );
         }
         
-        public long lastUpdated(){
-            return _f.lastModified();
+        public long lastUpdated(Set<Dependency> visitedDeps){
+            visitedDeps.add(this);
+
+            long lastUpdated = _f.lastModified();
+            for(Dependency dep : _dependencies)
+                if(!visitedDeps.contains(dep))
+                    lastUpdated = Math.max(lastUpdated, dep.lastUpdated(visitedDeps));
+            
+            return lastUpdated;
         }
 
         public File getFile(){
