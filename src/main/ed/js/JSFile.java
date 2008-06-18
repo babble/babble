@@ -112,6 +112,35 @@ public abstract class JSFile extends JSObjectBase {
     public Sender sender(){
         return new Sender( getFirstChunk() );
     }        
+
+    /** Get a temporary directory suitable for the instance described by root.
+     *  This has to be on the same filesystem as root, because we rename(2) a
+     *  file from this temp directory to the proper location, and it has to be
+     *  atomic.
+     *  @returns a directory on the same filesystem as root
+    */
+    public static File getTempDirectory( File root ){
+        // We try root + .git/tmp and then root + .tmp
+        File git = new File( root , ".git" );
+        File retTemp = null;
+        if( git.exists() && git.isDirectory() ){
+            File git_temp = new File( git , "tmp" );
+            if( ! git_temp.exists() ){
+                git_temp.mkdir();
+            }
+            retTemp = git_temp;
+        }
+        if( retTemp == null || ! retTemp.isDirectory() ){
+            File site_temp = new File( root , ".tmp" );
+            if( ! site_temp.exists() )
+                site_temp.mkdir();
+            retTemp = site_temp;
+        }
+        if( ! retTemp.isDirectory() )
+            throw new RuntimeException( "couldn't find suitable directory for temporary file" );
+
+        return retTemp;
+    }
     
     /**
      * @return full path
@@ -142,7 +171,9 @@ public abstract class JSFile extends JSObjectBase {
             f = new File( root , name );
         }
         
-        File temp = File.createTempFile( "writeToLocalFile" , ".tmpaa" );
+        File tempdir = JSFile.getTempDirectory(root);
+
+        File temp = File.createTempFile( "writeToLocalFile" , ".tmpaa" , tempdir );
 
         FileOutputStream out = new FileOutputStream( temp);
         write( out );
