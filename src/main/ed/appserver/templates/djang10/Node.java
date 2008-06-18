@@ -80,7 +80,7 @@ public class Node extends JSObjectBase {
                     return nodeList;
                 }
             });
-            _prototype.set("toString", new JSFunctionCalls0() {
+            _prototype.set("toString", new JSFunctionCalls0(Scope.getThreadLocal().child(), "toString") {
                 public Object call(Scope scope, Object[] extra) {
                     return "<Node>";
                 } 
@@ -114,7 +114,7 @@ public class Node extends JSObjectBase {
                         return null;
                     }
                 });
-                _prototype.set("toString", new JSFunctionCalls0() {
+                _prototype.set("toString", new JSFunctionCalls0(Scope.getThreadLocal().child(), "toString") {
                     public Object call(Scope scope, Object[] extra) {
                         JSObject thisObj = (JSObject)scope.getThis();
                         String str = String.valueOf(thisObj.get("text"));
@@ -158,7 +158,7 @@ public class Node extends JSObjectBase {
                         return null;
                     }
                 });
-                _prototype.set("toString", new JSFunctionCalls0() {
+                _prototype.set("toString", new JSFunctionCalls0(Scope.getThreadLocal().child(), "toString") {
                     public Object call(Scope scope, Object[] extra) {
                         JSObject thisObj = (JSObject)scope.getThis();
                         FilterExpression expr = (FilterExpression)thisObj.get("expression");
