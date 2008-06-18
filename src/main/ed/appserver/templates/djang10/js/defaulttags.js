@@ -478,7 +478,6 @@ var do_if =
     }
     else {
         nodelist_false = parser.create_nodelist();
-        parser.delete_first_token();
     }
     
     return new IfNode(boolvars, nodelist_true, nodelist_false, link_type);
