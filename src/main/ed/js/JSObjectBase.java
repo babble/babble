@@ -448,8 +448,13 @@ public class JSObjectBase implements JSObject {
         
         JSFunction f = (JSFunction)temp;
 
-        Scope s = f.getScope().child();
-        s.setThis( this );
+        Scope s;
+        try {
+            s= f.getScope().child();
+            s.setThis( this );
+        } catch(RuntimeException t) {
+            throw t;
+        }
         
         Object res = f.call( s );
         if ( res == null )

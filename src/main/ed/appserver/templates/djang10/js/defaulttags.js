@@ -491,15 +491,11 @@ var load =
     var bits = token.split_contents();
     for(var i=1; i<bits.length; i++) {
         var library_file = djang10.loadLibrary(bits[i]);
-
-        var evalScope = scope.child();
-        evalScope.setGlobal(true);
-        evalScope.eval("library_file()");
-        var library = evalScope.get("register");
+        var library = djang10.evalLibrary(library_file);
         
         parser.add_library(library_file["_jxpSource"], library);
     }
-    return new LoadNode(library_files);
+    return new LoadNode();
 };
 register.tag("load", load);
 

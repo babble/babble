@@ -80,10 +80,8 @@ public class Djang10Source extends JxpFileSource {
         
         for(String jsFile : new String[] {"defaulttags", "loader_tags", "defaultfilters", "tengen_extras"}) {
             JSFunction jsFileFn = (JSFunction)js.get(jsFile);
-            Scope child = scope.child();
-            child.setGlobal(true);
-            jsFileFn.call(child);
-            Library lib = (Library)child.get("register");
+            Library lib = (Library) jsHelper.evalLibrary.call(scope, jsFileFn);
+
             jsHelper.addDefaultLibrary((JxpSource)jsFileFn.get(JxpSource.JXP_SOURCE_PROP), lib);
         }
         

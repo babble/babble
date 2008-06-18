@@ -122,7 +122,7 @@ public class Expression extends JSObjectBase {
             for(callArgs = callArgs.getNext(); callArgs != null; callArgs = callArgs.getNext())
                 argList.add(resolve(scope, ctx, callArgs, true));
 
-            Scope callScope = Scope.getThreadLocal().child();
+            Scope callScope = scope.child();
             callScope.setGlobal(true);
             
             if(callThisObj != null)
@@ -137,15 +137,15 @@ public class Expression extends JSObjectBase {
             
             // XXX: fallback on scope look ups
             if (lookupValue == UNDEFINED_VALUE) {
-                lookupValue = Scope.getThreadLocal().get(node.getString());
+                lookupValue = scope.get(node.getString());
 
                 if (lookupValue == null) {
-                    lookupValue = Scope.getThreadLocal().keySet().contains(node.getString()) ? null : UNDEFINED_VALUE;
+                    lookupValue = scope.keySet().contains(node.getString()) ? null : UNDEFINED_VALUE;
                 }
             }
             
             if (autoCall && lookupValue instanceof JSFunction && !(lookupValue instanceof JSCompiledScript))
-                lookupValue = ((JSFunction) lookupValue).call(Scope.getThreadLocal().child());
+                lookupValue = ((JSFunction) lookupValue).call(scope.child());
             return lookupValue;
 
             

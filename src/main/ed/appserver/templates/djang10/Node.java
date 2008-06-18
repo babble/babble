@@ -152,9 +152,17 @@ public class Node extends JSObjectBase {
                     public Object call(Scope scope, Object contextObj, Object printerObj, Object[] extra) {
                         JSObject thisObj = (JSObject)scope.getThis();
                         FilterExpression expr = (FilterExpression)thisObj.get("expression");
+                        JSFunction printer = (JSFunction)printerObj;
+                        
+                        scope = scope.child();
+                        scope.setGlobal(true);
+                        scope.set("print", printer);
+                        
                         Object result = expr.resolve(scope, (Context)contextObj);
                         if(result != null && result != Expression.UNDEFINED_VALUE)
-                            ((JSFunction)printerObj).call(scope.child(), result.toString());
+                            printer.call(scope, result.toString());
+                        
+                        
                         return null;
                     }
                 });

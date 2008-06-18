@@ -1,0 +1,8 @@
+{{ print("moo") }}
+
+{{ print("before")|default:"after" }}
+
+{% filter upper %}
+    before
+    {{ print("after") }}
+{% endfilter %}
