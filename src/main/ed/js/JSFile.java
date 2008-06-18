@@ -130,8 +130,15 @@ public abstract class JSFile extends JSObjectBase {
             f = new File( name );
         }
         else {
-            File dir = new File( root , name.replaceAll( "/[^/]+$" , "/" ) );
-            dir.mkdirs();
+            File dir;
+            if( name.indexOf('/') != -1 ){
+                dir = new File( root , name.replaceAll( "/[^/]+$" , "/" ) );
+                dir.mkdirs();
+            }
+            else {
+                root.mkdirs();
+            }
+
             f = new File( root , name );
         }
         
