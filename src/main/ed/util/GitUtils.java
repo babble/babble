@@ -54,15 +54,34 @@ public class GitUtils {
             return head.substring( 16 ).trim();
 
         if ( head.length() == 40 ){
-            for ( File t : (new File( git , "refs/tags/" ) ).listFiles() ){
-                String tag = StreamUtil.readFully( t ).trim();
-                if ( tag.equals( head ) )
-                    return t.getName();
-            }
+            String tag = _findTag( git , head );
+            if ( tag != null )
+                return tag;
+
             return head;
         }
         
         throw new RuntimeException( "dont know what to do with HEAD [" + head + "]" );
+    }
+    
+    private static String _findTag( final File git , final String hash )
+        throws IOException {
+        for ( File t : (new File( git , "refs/tags/" ) ).listFiles() ){
+            String tag = StreamUtil.readFully( t ).trim();
+            if ( tag.equals( hash ) )
+                return t.getName();
+
+            SysExec.Result r = SysExec.exec( "git log " + t.getName() + " -n1" , null , git , null );
+            
+            if ( r.getOut().startsWith( "commit " ) ){
+                int idx = r.getOut().indexOf( "\n" );
+                final String newHash = r.getOut().substring( 7 , idx ).trim();
+                if ( newHash.equals( hash ) )
+                    return t.getName();
+            }
+
+        }
+        return null;
     }
     
     /**
