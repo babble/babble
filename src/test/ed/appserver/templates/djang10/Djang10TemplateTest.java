@@ -123,10 +123,10 @@ public class Djang10TemplateTest extends TestCase {
         }
         o.set("array2", array2);
         
-
+        /* DISABLED
         JSFileLibrary localLib = (JSFileLibrary)testScope.get("local");
         o.set("includedTemplateJsFunction", localLib.get("djang10-if"));
-        
+        */
         o.set("echoFunc", new JSFunctionCalls1() {
            public Object call(Scope scope, Object in, Object[] extra) {
                return in;
@@ -146,7 +146,7 @@ public class Djang10TemplateTest extends TestCase {
         }
         
         @Test
-        public void test() throws TemplateException, IOException {
+        public void test() throws Throwable {
             Scope scope = initScope();
             final StringBuilder output = new StringBuilder();
             
@@ -183,7 +183,15 @@ public class Djang10TemplateTest extends TestCase {
                 NodeList nodes = source.compile(scope);
                 nodes.__render(scope, args , myout);
             } catch(Throwable t) {
-                t.printStackTrace();
+                while(t != null) {
+                    t.printStackTrace(System.err);
+                 
+                    t=t.getCause();
+                    if(t != null) {
+                        System.err.println("caused by:");
+                    }
+                }
+                throw t;
             }
             
             String got = _clean( output.toString() );
