@@ -698,7 +698,12 @@ public class JSArray extends JSObjectBase implements Iterable , List {
     }
 
     public boolean contains( Object foo ){
-        return _array.contains( foo );
+        for ( int i=0; i<_array.size(); i++ ){
+            Object o = _array.get(i);
+            if ( o != null && o.equals( foo ) )
+                return true;
+        }
+        return false;
     }
 
     public boolean isEmpty(){
