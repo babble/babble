@@ -183,15 +183,20 @@ public class Djang10TemplateTest extends TestCase {
                 NodeList nodes = source.compile(scope);
                 nodes.__render(scope, args , myout);
             } catch(Throwable t) {
-                while(t != null) {
-                    t.printStackTrace(System.err);
-                 
-                    t=t.getCause();
-                    if(t != null) {
-                        System.err.println("caused by:");
-                    }
-                }
-                throw t;
+                
+                throw new Exception("For file " + file.toString(), t);
+
+//                while(t != null) {
+//                    
+//                    
+//                    t.printStackTrace(System.err);
+//                 
+//                    t=t.getCause();
+//                    if(t != null) {
+//                        System.err.println("caused by:");
+//                    }
+//                }
+//                throw t;
             }
             
             String got = _clean( output.toString() );
