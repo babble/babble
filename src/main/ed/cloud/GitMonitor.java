@@ -47,7 +47,7 @@ public class GitMonitor {
 		_checkHeads( heads );
 
 		File tags = new File( root , ".git/refs/tags" );
-                if ( tags.exist() ){
+                if ( tags.exists() ){
                     _watch( root , tags );
                     _checkHeads( tags );
                 }
