@@ -246,6 +246,8 @@ public class AppContext {
             f = _core.getFileFromPath( uri.substring( 3 ) );
         else if ( uri.startsWith( "/@@/" ) || uri.startsWith( "@@/" ) )
             f = _external.getFileFromPath( uri.substring( 3 ) );
+        else if ( uri.startsWith( "/modules/" ) )
+            f = _jxpObject.getFileFromPath( uri );
         else
             f = new File( _rootFile , uri );
         
