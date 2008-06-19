@@ -297,7 +297,7 @@ var cycle =
     var args = token.split_contents();
     
     if(args.length < 2)
-        throw "'cycle' tag requires at least two arguments";
+        throw djang10.NewTemplateException("'cycle' tag requires at least two arguments");
 
 
     
@@ -311,7 +311,7 @@ var cycle =
         var name = args[1];
 
         if(!("_namedCycleNodes" in parser))
-            throw "No named cycles in template. '" + name + "' is not defined";
+            throw djang10.NewTemplateException("No named cycles in template. '" + name + "' is not defined");
         return parser["_namedCycleNodes"][name];
     }
 
@@ -355,13 +355,13 @@ var do_for =
         
     var bits = token.split_contents();
     if(bits.length < 4)
-        throw "'for' statements should have at least four words: " + token.contents;
+        throw djang10.NewTemplateException("'for' statements should have at least four words: " + token.contents);
     
     var loopvar = bits[1];
     
     var is_reversed = (bits[bits.length - 1] == "reversed");
     if(bits[2] != "in")
-        throw "'for' statements should use the format 'for x in y': " + token.contents;
+        throw djang10.NewTemplateException("'for' statements should use the format 'for x in y': " + token.contents);
     
     var sequenceStr = bits.slice(3, is_reversed? -1:null).join(" ");
     var sequence = parser.compile_filter(sequenceStr);
@@ -379,7 +379,7 @@ var do_ifequal =
         
     var bits = token.split_contents();
     if(bits.length != 3)
-        throw bits[0] + " takes two arguments";
+        throw djang10.NewTemplateException(bits[0] + " takes two arguments");
 
     var var1 = parser.compile_expression(bits[1]);
     var var2 = parser.compile_expression(bits[2]);
@@ -419,9 +419,9 @@ var firstof =
     defaulttags.firstof =
     function(parser, token) {
 
-    var bits = token.split_contents();
+    var bits = token.split_contents().slice(1);
     if(bits.length < 1)
-        throw "'firstof' statement requires at least one argument";
+        throw djang10.NewTemplateException("'firstof' statement requires at least one argument");
     
     var exprs = bits.map(function(bit) { return parser.compile_expression(bit); });
     return new FirstOfNode(exprs);
@@ -435,7 +435,7 @@ var do_if =
     var bits = token.contents.split(/\s+/);
     bits.shift();
     if(bits.length == 0)
-        throw "'if' statement requires at least one argument";
+        throw djang10.NewTemplateException("'if' statement requires at least one argument");
     
     var bitstr = "" + bits.join(" ");
     var boolpairs = bitstr.split(" and ");
@@ -449,7 +449,7 @@ var do_if =
     else {
         link_type = IfNode.LinkTypes.and_;
         if(bitstr.indexOf(" or ") > -1)
-        throw "'if' tags can't mix 'and' and 'or'";
+        throw djang10.NewTemplateException("'if' tags can't mix 'and' and 'or'");
     }
     
     for(var i=0; i<boolpairs.length; i++) {
@@ -461,7 +461,7 @@ var do_if =
             var boolvar = boolpair_parts[1];
             
             if(not != 'not')
-                throw "Expected 'not' in if statement";
+                throw djang10.NewTemplateException("Expected 'not' in if statement");
             boolvars.push(new IfNode.BoolExpr(true, parser.compile_filter(boolvar)));
         }
         else {

@@ -34,12 +34,12 @@ public class Expression extends JSObjectBase {
         super(CONSTRUCTOR);
     }
     
-    public Expression(String expression) throws TemplateException {
+    public Expression(String expression) {
         this();
         this.expression = expression;
         init();
     }
-    private void init() throws TemplateException {
+    private void init() {
         CompilerEnvirons ce = new CompilerEnvirons();
         org.mozilla.javascript.Parser parser = new org.mozilla.javascript.Parser(ce, ce.getErrorReporter());
         ScriptOrFnNode scriptNode;
@@ -47,16 +47,16 @@ public class Expression extends JSObjectBase {
         try {
             scriptNode = parser.parse(expression, "foo", 0);
         } catch (Throwable t) {
-            throw new TemplateException("Failed to parse expression", t);
+            throw new TemplateException("Failed to parse expression: " + expression, t);
         }
 
         if (scriptNode.getFirstChild() != scriptNode.getLastChild())
-            throw new TemplateException("Only one expression is allowed");
+            throw new TemplateException("Only one expression is allowed, got: "+expression);
 
         parsedExpression = scriptNode.getFirstChild();
 
         if (parsedExpression.getType() != org.mozilla.javascript.Token.EXPR_RESULT)
-            throw new TemplateException("Not an expression");
+            throw new TemplateException("Not an expression: " + expression);
     }
 
     public boolean is_literal() {
@@ -72,32 +72,38 @@ public class Expression extends JSObjectBase {
     }
     public Object get_literal_value() {
         if(!is_literal())
-            throw new IllegalStateException();
+            throw new IllegalStateException("Expression is not a literal: " + expression);
         
         return resolve(null, null);
     }
     
     
     public Object resolve(Scope scope, Context ctx) {
-        try {
-            Object obj = resolve(scope, ctx, parsedExpression.getFirstChild(), true);
-            return JSNumericFunctions.fixType(obj);
-            
-        } catch(Throwable t) {
-            return UNDEFINED_VALUE;
-        }
+
+        Object obj = resolve(scope, ctx, parsedExpression.getFirstChild(), true);
+        return JSNumericFunctions.fixType(obj);
     }
-    private static Object resolve(Scope scope, Context ctx, Node node, boolean autoCall) throws TemplateException {
+    private Object resolve(Scope scope, Context ctx, Node node, boolean autoCall) {
         Object temp;
         switch (node.getType()) {
         case Token.GETELEM:
         case Token.GETPROP:
-            JSObject obj = (JSObject)resolve(scope, ctx, node.getFirstChild(), true);
+            //get the object
+            temp = resolve(scope, ctx, node.getFirstChild(), true);
+            if(temp == null || temp == UNDEFINED_VALUE)
+                return UNDEFINED_VALUE;
+            if(!(temp instanceof JSObject))
+                throw new TemplateException("Can't handle native objects of type:" + temp.getClass().getName() + ", expression: " + expression);
+            JSObject obj = (JSObject)temp;
+            
+            //get the property
             Object prop = resolve(scope, ctx, node.getLastChild(), true);
+            if(prop == null || prop == UNDEFINED_VALUE)
+                return UNDEFINED_VALUE;
             
             Object val = obj.get(prop);
             if(val == null)
-                val = ctx.containsKey(node.getString()) ? null : UNDEFINED_VALUE;
+                val = obj.containsKey(prop.toString()) ? null : UNDEFINED_VALUE;
             
             if (autoCall && val instanceof JSFunction && !(val instanceof JSCompiledScript) && !(val instanceof Djang10CompiledScript))
                 val = ((JSFunction)val).callAndSetThis(scope.child(), obj, new Object[0]);
@@ -110,10 +116,21 @@ public class Expression extends JSObjectBase {
             Node callArgs = node.getFirstChild();
             
             if (callArgs.getType() == Token.GETELEM || callArgs.getType() == Token.GETPROP) {
-                callThisObj = (JSObject)resolve(scope, ctx, callArgs.getFirstChild(), true);
-                callMethodObj = (JSFunction)callThisObj.get(resolve(scope, ctx, callArgs.getLastChild(), false));
+                //get the method
+                temp = resolve(scope, ctx, callArgs, false);
+                if(temp == null || temp == UNDEFINED_VALUE)
+                    return UNDEFINED_VALUE;
+                if(!(temp instanceof JSFunction))
+                    throw new TemplateException("Can only call functions, expression: " + expression);
+                callMethodObj = (JSFunction)temp;
+                
+                //get this
+                callThisObj = (JSObject)resolve(scope, ctx, callArgs.getFirstChild(), true);;
             } else {
-                callMethodObj = (JSFunction)resolve(scope, ctx, callArgs, false);
+                temp = resolve(scope, ctx, callArgs, false);
+                if(!(temp instanceof JSFunction))
+                    throw new TemplateException("Can only call functions, expression: " + expression);
+                callMethodObj = (JSFunction)temp;
             }
 
             // arguments

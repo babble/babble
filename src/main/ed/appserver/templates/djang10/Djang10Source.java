@@ -31,23 +31,19 @@ public class Djang10Source extends JxpFileSource {
             
             String contents = getContent();
             
-            try {
-                Parser parser = new Parser(contents);
-                JSHelper jsHelper = (JSHelper)Scope.getThreadLocal().get(JSHelper.NS);
-                for(Pair<JxpSource,Library> lib : jsHelper.getDefaultLibraries()) {
-                    parser.add_dependency(lib.first);
-                    parser.add_library(lib.second);
-                }
-                
-                nodes = parser.parse(Scope.getThreadLocal(), new JSArray());
-                libraries = parser.getLoadedLibraries();
-                
-                _dependencies.addAll(parser.get_dependencies());
-                
-            } catch(TemplateException e) {
-                //FIXME: TemplateException should be subclass runtime exception
-                throw new RuntimeException(e);
+
+            Parser parser = new Parser(contents);
+            JSHelper jsHelper = JSHelper.get(Scope.getThreadLocal());
+            for(Pair<JxpSource,Library> lib : jsHelper.getDefaultLibraries()) {
+                parser.add_dependency(lib.first);
+                parser.add_library(lib.second);
             }
+            
+            nodes = parser.parse(Scope.getThreadLocal(), new JSArray());
+            libraries = parser.getLoadedLibraries();
+            
+            _dependencies.addAll(parser.get_dependencies());
+                
             compiledScript = new Djang10CompiledScript(nodes, libraries);
             compiledScript.set(JxpSource.JXP_SOURCE_PROP, this);            
         }
@@ -55,17 +51,17 @@ public class Djang10Source extends JxpFileSource {
         return compiledScript;
     }
 
-    public NodeList compile(Scope scope) throws TemplateException {
+    public NodeList compile(Scope scope) {
         String contents;
 
         try {
             contents = getContent();
         } catch (IOException e) {
-            throw new TemplateException("Failed to read the template source", e);
+            throw new TemplateException("Failed to read the template source from: " + getFile(), e);
         }
 
         Parser parser = new Parser(contents);
-        JSHelper jsHelper = (JSHelper)scope.get(JSHelper.NS);
+        JSHelper jsHelper = JSHelper.get(scope);
         for(Pair<JxpSource,Library> lib : jsHelper.getDefaultLibraries()) {
             parser.add_dependency(lib.first);
             parser.add_library(lib.second);

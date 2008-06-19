@@ -18,11 +18,11 @@ public class FilterExpression extends JSObjectBase {
     protected FilterExpression() {
         setConstructor(CONSTRUCTOR);
     }
-    public FilterExpression(Parser parser, String filterExpression) throws TemplateException {
+    public FilterExpression(Parser parser, String filterExpression) {
         this();
         init(parser, filterExpression);
     }
-    private void init(Parser parser, String filterExpression) throws TemplateException {
+    private void init(Parser parser, String filterExpression) {
         String[] parts = Parser.smartSplit(filterExpression.trim(), "|");
 
         this.expression = new Expression(parts[0]);
@@ -37,9 +37,7 @@ public class FilterExpression extends JSObjectBase {
             if (filterParts.length > 1)
                 filterParamPart = filterParts[1].trim();
 
-            JSFunction filter = parser.getFilters().get(filterNamePart);
-            if(filter == null)
-                throw new TemplateException("Unknown filter: " + filterNamePart);
+            JSFunction filter = parser.find_filter(filterNamePart);
 
             Expression filterParam = (filterParamPart == null) ? null : new Expression(filterParamPart);
             filterSpecs.add(new FilterSpec(filterNamePart, filter, filterParam));
@@ -76,7 +74,7 @@ public class FilterExpression extends JSObjectBase {
                 value = null;
             }
             else {
-                JSHelper jsHelper = (JSHelper)scope.get(JSHelper.NS);
+                JSHelper jsHelper = JSHelper.get(scope);
                 JSString invalid_var_format_string = (JSString)jsHelper.get("TEMPLATE_STRING_IF_INVALID");
                 if(invalid_var_format_string != null && !invalid_var_format_string.equals("")) {
                     return new JSString(invalid_var_format_string.toString().replace("%s", expression.toString()));
@@ -104,11 +102,7 @@ public class FilterExpression extends JSObjectBase {
         public Object call(Scope scope, Object parserObj, Object filterExpressionObj, Object[] extra) {
             FilterExpression thisObj = (FilterExpression)scope.getThis();
             
-            try {
-                thisObj.init((Parser)parserObj, filterExpressionObj.toString());
-            } catch (TemplateException e) {
-                throw new RuntimeException(e);
-            }
+            thisObj.init((Parser)parserObj, filterExpressionObj.toString());
             
             return null;
         }
