@@ -1,3 +1,0 @@
-{% extends "/local/blockTest" %}
-{% block base1 %}replaced content1{% endblock %}
-{% block base2 %}reaplced content2{% endblock %}

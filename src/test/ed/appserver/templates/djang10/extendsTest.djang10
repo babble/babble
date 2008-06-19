@@ -1,0 +1,3 @@
+{% extends "/local/blockTest" %}
+{% block base1 %}replaced content1 {{ garbage|moo }}{% endblock %}
+{% block base2 %}reaplced content2{% endblock %}

@@ -19,6 +19,16 @@ public class ModuleDirectory extends JSObjectLame implements JSLibrary {
         _name = name;
         _context = context;
         _scope = scope;
+
+        if ( ! _root.exists() ){
+            _root.mkdirs();
+            if ( ! _root.exists() )
+                throw new RuntimeException( "modules directory [" + _root + "] does not exist" );
+        }
+    }
+    
+    public File getRoot(){
+        return _root;
     }
     
     public synchronized Module getModule( String name ){
@@ -26,7 +36,9 @@ public class ModuleDirectory extends JSObjectLame implements JSLibrary {
         if ( m != null )
             return m;
         
-        m = new Module( new File( _root , name ) , _name + "." + name , true );
+        final File moddir = new File( _root , name );
+        
+        m = new Module( moddir , _name + "." + name , true );
         _modules.put( name , m );
         return m;
     }
@@ -38,7 +50,7 @@ public class ModuleDirectory extends JSObjectLame implements JSLibrary {
 
         Module m = getModule( name );
         lib = m.getLibrary( getDesiredVersion( name ) , _context , _scope );
-        System.err.println( "created JSFileLibrary : " + name + " : " + lib.hashCode() );
+        System.err.println( "created JSFileLibrary : " + name );
         _libraries.put( name , lib );
         return lib;
     }

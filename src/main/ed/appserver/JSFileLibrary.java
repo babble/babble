@@ -67,19 +67,21 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
 
         
         if ( uriBase != null ){
-	        if ( uriBase.equals( "core" ) && ! doInit )
-	            throw new RuntimeException( "you are stupid" );
-	           
-	        // this is ugly - please fix
-	        if ( uriBase.equals( "core" ) )
-	            set( "modules" , new ModuleDirectory( "core-modules" , "core.modules" , context , scope ) );
-	        else if ( uriBase.equals( "local" ) || uriBase.equals( "jxp" ) )
-	            set( "modules" , new ModuleDirectory( "site-modules" , "local.modules" , context , scope ) );
-	    }
+            if ( uriBase.equals( "core" ) && ! doInit )
+                throw new RuntimeException( "you are stupid" );
+            
+            // this is ugly - please fix
+            if ( uriBase.equals( "core" ) )
+                set( "modules" , new ModuleDirectory( "core-modules" , "core.modules" , context , scope ) );
+            else if ( uriBase.equals( "local" ) || uriBase.equals( "jxp" ) )
+                set( "modules" , new ModuleDirectory( "site-modules" , "local.modules" , context , scope ) );
+        }
+
+                            
     }
 
     private synchronized void _init(){
-
+        
         if ( D ) System.out.println( "\t " + _base + " _init.  _initSources : " + _initSources );
 
         if ( ! _doInit ){
@@ -197,6 +199,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
     }
 
     public File getFileFromPath( String path ){
+        _init();
         Object o = getFromPath( path , false );
 
         if ( o instanceof File )
@@ -229,6 +232,8 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
     public Object getFromPath( String path , boolean evalToFunction ){
         if ( path == null || path.trim().length() == 0 )
             return this;
+        
+        _init();
 
         path = cleanPath( path );
 
@@ -262,13 +267,38 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         return lib.getFromPath( next , evalToFunction );
     }
 
-    public boolean isIn( File f ){
-        // TODO make less slow
-        if ( _fileCache.containsKey( f ) )
-            return true;
-        return f.toString().startsWith( _base.toString() );
-    }
+    JSLibrary _findLibraryForFile( File f ){
+        for ( String s : keySet() ){
+            Object o = super.get( s );
+            if ( o == null )
+                continue;
+            
+            if ( o instanceof JSLibrary && 
+                 f.getAbsolutePath().startsWith( ((JSLibrary)o).getRoot().getAbsolutePath() ) )
+                return (JSLibrary)o;
+        }
 
+        return null;
+    }
+    
+    public boolean isIn( File f ){
+        
+        if ( f.toString().startsWith( _base.toString() ) )
+            return true;
+        
+        if ( _findLibraryForFile( f ) != null )
+            return true;
+        
+        File temp = f;
+        while ( temp != null ){
+            if ( _fileCache.containsKey( temp ) )
+                return true;
+            temp = temp.getParentFile();
+        }
+        
+        return false;
+    }
+    
     JxpSource getSource( File f )
         throws IOException {
         return getSource( f , true );
@@ -286,9 +316,23 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         String parentString = f.getParent();
         String rootString = _base.toString();
         if ( ! parentString.equals( rootString ) ){
+            
+            if ( ! parentString.startsWith( rootString ) ){
+            
+                JSLibrary lib = _findLibraryForFile( f );
+                if ( lib == null )
+                    throw new RuntimeException( "[" + f.getParent() + "] not a subdir of [" + _base + "] and can't find a sub-lib for it" );
 
-            if ( ! parentString.startsWith( rootString ) )
-                throw new RuntimeException( "[" + f.getParent() + "] not a subdir if [" + _base + "]" );
+                String nextPath = f.getAbsolutePath().substring( lib.getRoot().getAbsolutePath().length() );
+                while ( nextPath.startsWith( "/" ) )
+                    nextPath = nextPath.substring(1);
+                
+                Object o = lib.getFromPath( nextPath , false );
+                if ( ! ( o instanceof JxpSource ) )
+                    throw new RuntimeException( "wasn't jxp source..." );
+
+                return (JxpSource)o;
+            }
             
             String follow = parentString.substring( rootString.length() );
             while ( follow.startsWith( "/" ) )
@@ -407,6 +451,10 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
             return old;
         
         return old.substring( l._base.toString().length() );
+    }
+
+    public File getRoot(){
+        return _base;
     }
 
     final JSFileLibrary _parent;

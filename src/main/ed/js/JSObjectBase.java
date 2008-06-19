@@ -448,8 +448,13 @@ public class JSObjectBase implements JSObject {
         
         JSFunction f = (JSFunction)temp;
 
-        Scope s = f.getScope().child();
-        s.setThis( this );
+        Scope s;
+        try {
+            s= f.getScope().child();
+            s.setThis( this );
+        } catch(RuntimeException t) {
+            throw t;
+        }
         
         Object res = f.call( s );
         if ( res == null )
@@ -605,9 +610,9 @@ public class JSObjectBase implements JSObject {
         
         if ( _map != null ){
             for ( Map.Entry<String,Object> e : _map.entrySet() ){
-                hash *= e.getKey().hashCode();
+                hash += ( 3 * e.getKey().hashCode() );
                 if ( e.getValue() != null )
-                    hash *= e.getValue().hashCode();
+                    hash += ( 7 * e.getValue().hashCode() );
             }
         }
 

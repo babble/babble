@@ -21,7 +21,8 @@ public class ImageUtil {
         String ext = "jpg";
         if ( filename != null && filename.indexOf( "." ) >= 0 ){
             String test = MimeTypes.getExtension( filename );
-            if ( MimeTypes.get( test ).startsWith( "image/" ) )
+            String mime = MimeTypes.get( test );
+            if ( mime != null && mime.startsWith( "image/" ) )
                 ext = test;
         }
         String mime = MimeTypes.get( ext );

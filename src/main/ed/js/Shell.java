@@ -14,6 +14,7 @@ import ed.js.func.*;
 import ed.js.engine.*;
 import ed.appserver.*;
 import ed.appserver.templates.*;
+import ed.appserver.templates.djang10.Djang10Source;
 
 public class Shell {
     
@@ -70,7 +71,7 @@ public class Shell {
                 }
             } , true);
         
-        Djang10Converter.injectHelpers(s);
+        Djang10Source.install(s);
     }
     
     public static void main( String args[] )
@@ -132,7 +133,7 @@ public class Shell {
                     t = r.getNewTemplate();
                 }
                 try {
-                    s.eval( t.getContent() );
+                    s.eval( t.getContent() , a );
                 }
                 catch ( Exception e ){
                     StackTraceHolder.getInstance().fix( e );

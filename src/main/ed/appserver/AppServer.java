@@ -19,7 +19,7 @@ public class AppServer implements HttpHandler {
     private static final int DEFAULT_PORT = 8080;
 
     static boolean D = Boolean.getBoolean( "DEBUG.APP" );
-    static String OUR_DOMAINS[] = new String[]{ ".latenightcoders.com" , ".10gen.com" };
+    static String OUR_DOMAINS[] = new String[]{ ".latenightcoders.com" , ".local.10gen.com" , ".10gen.com" };
     static String CDN_HOST[] = new String[]{ "origin." , "origin-local." , "static." , "static-local." , "secure." };
 
     public AppServer( String defaultWebRoot , String root ){
@@ -201,7 +201,7 @@ public class AppServer implements HttpHandler {
         return ac.createRequest( request , newUri[0] );
     }
     
-    public boolean handles( HttpRequest request , Box<Boolean> fork ){
+    public boolean handles( HttpRequest request , Info info ){
         String uri = request.getURI();
         
         if ( ! uri.startsWith( "/" ) )
@@ -209,7 +209,8 @@ public class AppServer implements HttpHandler {
         
         AppRequest ar = createRequest( request );
         request.setAttachment( ar );
-        fork.set( ar.fork() );
+        info.fork = ar.fork();
+        info.admin = uri.startsWith( "/~~/core/sys/" );
         return true;
     }
     

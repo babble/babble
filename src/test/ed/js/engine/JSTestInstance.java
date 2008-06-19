@@ -76,8 +76,7 @@ public class JSTestInstance extends ScriptTestInstanceBase{
     }
     
     private String _clean(String s) {
-        s = s.replaceAll("tempFunc_\\d+_" , "tempFunc_");
-        return s;
+        return ConvertTest._clean( s );
     }
     
     public static void main(String[] args) throws Exception {

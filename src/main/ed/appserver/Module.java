@@ -48,12 +48,35 @@ public class Module {
         _root = root;
         _uriBase = uriBase;
         _doInit = doInit;
-
+        
+        _giturl = _findGitUrl();
+        
         _versioned = ! GitUtils.isSourceDirectory( _root );
         
         _default = _versioned ? new File( _root , "master" ) : _root;
+        
+        if ( ! _root.exists() && _giturl != null ){
+            _root.mkdirs();
+            GitUtils.clone( _giturl , _root , "master" );
+        }
+        
         if ( ! _default.exists() )
-            throw new RuntimeException( "Module root for [" + uriBase + "] does not exist : " + _default );
+            throw new RuntimeException( "Module root for [" + uriBase + "] does not exist : " + _default + " giturl [" + _giturl + "]" );
+    }
+
+    String _findGitUrl(){
+        final String str = _root.toString();
+        if ( str.contains( "/core-modules/" ) || 
+             str.contains( "/site-modules/" ) ){
+            
+            int idx = str.indexOf( "/core-modules/" );
+            if ( idx < 0 )
+                idx = str.indexOf( "/site-modules/" );
+            
+            return "ssh://git.10gen.com/data/gitroot" + str.substring( idx );
+        }
+
+        return null;
     }
     
     public JSFileLibrary getLibrary( String version , AppContext context ){
@@ -100,6 +123,7 @@ public class Module {
     final File _root;
     final String _uriBase;
     final boolean _doInit;
+    final String _giturl;
 
     final boolean _versioned;
 

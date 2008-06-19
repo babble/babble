@@ -45,6 +45,10 @@ public class Shell {
     static String _string( Object val ){
         if ( val == null )
             return "null";
+        
+        if ( val instanceof JSDate )
+            return ((JSDate)val).strftime( "%D %T" );
+
         String s = val.toString();
         if ( s.length() > 30 )
             return s.substring( 0 , 27 ) + "...";
@@ -73,9 +77,9 @@ public class Shell {
                 
                 Integer old = fields.get( f );
                 if ( old == null )
-                    old = 0;
+                    old = 4;
                 
-                fields.put( f , Math.max( old , _string( blah ).length() ) );
+                fields.put( f , Math.max( f.length() , Math.max( old , _string( blah ).length() ) ) );
             }
         }
         

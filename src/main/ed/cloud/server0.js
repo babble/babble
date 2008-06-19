@@ -22,7 +22,11 @@ Cloud.Server.prototype.gridServer = function(){
     return this.location + "-" + this.provider + "-grid.10gen.com";
 };
 
+Cloud.Server.prototype.toString = function(){
+    return "{Server.  location:" + this.location + " provider:" + this.provider + " n:" + this.number + "}";
+}
+
 me = new Cloud.Server( SERVER_NAME );
-log.debug( "me : " + tojson( me ) );
-log.debug( "grid server : " + me.gridServer() );
+log.info( "me : " + me );
+log.info( "grid server : " + me.gridServer() );
 db = connect( "grid" , me.gridServer() );

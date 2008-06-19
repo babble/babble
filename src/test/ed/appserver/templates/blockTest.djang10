@@ -1,2 +1,0 @@
-{% block base1 %}{% endblock %}
-{% block base2 %}Default Base2 Text{% endblock %}

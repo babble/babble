@@ -4,7 +4,6 @@ import java.io.File;
 
 import org.testng.annotations.Test;
 
-import ed.appserver.templates.Djang10Converter;
 import ed.js.JSFunction;
 import ed.js.func.JSFunctionCalls0;
 import ed.util.ScriptTestInstance;
@@ -43,7 +42,7 @@ public abstract class ScriptTestInstanceBase extends MyAsserts implements Script
     @Test
     public void test() throws Exception {
 
-        System.out.println("ScriptTestInstanceBase : running " + _file);
+        // System.out.println("ScriptTestInstanceBase : running " + _file);
 
         JSFunction f = convert();
 

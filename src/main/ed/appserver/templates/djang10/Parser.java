@@ -1,30 +1,32 @@
 package ed.appserver.templates.djang10;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.jruby.RubyProcess.Sys;
+
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import ed.appserver.jxp.JxpSource;
 import ed.appserver.templates.djang10.Node.VariableNode;
-import ed.appserver.templates.djang10.filters.Filter;
-import ed.appserver.templates.djang10.tagHandlers.TagHandler;
 import ed.js.JSArray;
 import ed.js.JSFunction;
-import ed.js.JSON;
 import ed.js.JSObject;
 import ed.js.JSObjectBase;
 import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
+import ed.js.func.JSFunctionCalls1;
 import ed.js.func.JSFunctionCalls3;
-import ed.util.DependencyTracker;
 
-public class Parser {
+public class Parser extends JSObjectBase{
 
     private static final Map<String, TagDelimiter> tags;
     static {
@@ -53,18 +55,23 @@ public class Parser {
         regex = Pattern.compile(buffer.toString());
     }
 
+    
+//==============================================================================================================================
+    
     private final LinkedList<Token> tokens;
-    private final Map<Class<? extends TagHandler>, Object> stateVariables;
-    private final Map<String, Filter> filterMapping;
-    private final Map<String, TagHandler> tagHandlerMapping;
-    private final DependencyTracker tracker;
+    private final Set<Library> loadedLibraries;
+    private final Map<String, JSFunction> filterMapping;
+    private final Map<String, JSFunction> tagHandlerMapping;
+    private final Set<JxpSource> dependencies;
 
-    public Parser(String string, DependencyTracker tracker, Map<String, ? extends Filter> filterMapping, Map<String, ? extends TagHandler> tagHandlerMapping) {
+    public Parser(String string) {
+        super(CONSTRUCTOR);
+
         this.tokens = new LinkedList<Token>();
-        this.stateVariables = new HashMap<Class<? extends TagHandler>, Object>();
-        this.tracker = tracker;
-        this.filterMapping = new HashMap<String, Filter>(filterMapping);
-        this.tagHandlerMapping = new HashMap<String, TagHandler>( tagHandlerMapping );
+        loadedLibraries = new HashSet<Library>();
+        this.filterMapping = new HashMap<String, JSFunction>();
+        this.tagHandlerMapping = new HashMap<String, JSFunction>();
+        dependencies = new HashSet<JxpSource>();
 
         int line = 1;
         boolean inTag = false;
@@ -89,76 +96,164 @@ public class Parser {
             inTag = !inTag;
         }
     }
+ 
+    public NodeList parse(Scope scope, JSArray untilTagsList ) throws TemplateException {
+        NodeList nodelist = create_nodelist();
 
-    public LinkedList<Node> parse(String... untilTags) throws TemplateException {
-        LinkedList<Node> nodes = new LinkedList<Node>();
-
+        if(untilTagsList == null)
+            untilTagsList = new JSArray();
+        
         while (!tokens.isEmpty()) {
-            Token token = nextToken();
+            Token token = next_token();
 
             if (token.type == TagDelimiter.Type.Text) {
-                nodes.add(new Node.TextNode(token));
-            } else if (token.type == TagDelimiter.Type.Var) {
+                extend_nodelist(nodelist, new Node.TextNode(token.getContents()), token);
+            }
+            else if (token.type == TagDelimiter.Type.Var) {
                 if (token.getContents().length() == 0)
                     throw new TemplateException(token.getStartLine(), "Empty Variable Tag");
 
-                FilterExpression variableExpression = new FilterExpression(this, token.getContents());
-                VariableNode varNode = new VariableNode(token, variableExpression);
-                nodes.add(varNode);
-            } else if (token.type == TagDelimiter.Type.Block) {
-                for (String untilTag : untilTags) {
-                    if (token.getContents().contains(untilTag)) {
-                        tokens.addFirst(token);
-                        return nodes;
-                    }
+                FilterExpression variableExpression = compile_filter(token.getContents().toString());
+                VariableNode varNode = create_variable_node(variableExpression);
+                extend_nodelist(nodelist, varNode, token);
+            }
+            else if (token.type == TagDelimiter.Type.Block) {
+                if(untilTagsList.contains(token.getContents())) {
+                    prepend_token(token);
+                    return nodelist;
                 }
-
-                String command = token.getContents().split("\\s")[0];
-                TagHandler handler = getTagHandlers().get(command);
-                Node node = handler.compile(this, command, token);
-                nodes.add(node);
+                
+                String command = token.getContents().toString().split("\\s")[0];
+                
+                JSFunction handler = getTagHandlers().get(command);
+                if(handler == null)
+                    throw new TemplateException("Unknown block tag: " + command);
+                
+                try {
+                    JSObject node = (JSObject)handler.call(scope, this, token);
+                    extend_nodelist(nodelist, node, token);
+                } catch(TemplateException e) {
+                    throw e;
+                } catch(Exception e) {
+                
+                    throw new TemplateException("Failed to compile the block tag: " + command, e);
+                }
             }
         }
 
-        if (untilTags.length > 0)
-            throw new TemplateException("Unclosed tags: " + Arrays.toString(untilTags));
+        if (untilTagsList.size() > 0) {
+            throw new TemplateException("Unclosed tags ");
+        }
 
-        return nodes;
+        return nodelist;
     }
 
-    public Token nextToken() {
+    public void skip_past(JSString endtag) throws TemplateException {
+        while(!tokens.isEmpty()) {
+            Token token = next_token();
+            if(token.type == TagDelimiter.Type.Block && endtag.equals(token.getContents()))
+                return;
+        }
+        throw new TemplateException("Unclosed tags ");
+    }
+    public Token next_token() {
         return tokens.remove();
     }
-
-    public DependencyTracker getTracker() {
-        return tracker;
+    public void prepend_token(Token token) {
+        tokens.addFirst(token);
+    }
+    public void delete_first_token() {
+        next_token();
     }
 
-    public Map<String, Filter> getFilters() {
+    
+    public NodeList create_nodelist() {
+        return new NodeList();
+    }
+    public void extend_nodelist(NodeList nodeList, JSObject node, Token token) throws TemplateException  {
+        boolean must_be_first = node.get("must_be_first") == Boolean.TRUE;
+        if(must_be_first && nodeList.get("contains_nontext") == Boolean.TRUE)
+            throw new TemplateException(node + "must be the first nontext node in the template");
+
+        if(!(node instanceof Node.TextNode))
+            nodeList.set("contains_nontext", true);
+        
+        nodeList.add(node);
+    }
+    
+    
+    public Node.VariableNode create_variable_node(FilterExpression expression) {
+        return new Node.VariableNode(expression);
+    }
+    public Expression compile_expression(String str) throws TemplateException {
+        return new Expression(str);
+    }
+    public FilterExpression compile_filter(String str) throws TemplateException {
+        return new FilterExpression(this, str);
+    }
+    
+    public void add_library(Library library) {
+        add_library(library, true);
+    }
+    public void add_library(Library library, boolean overwrite) {
+        if(loadedLibraries.contains(library))
+            return;
+        loadedLibraries.add(library);
+        for(String tagName : library.getTags().keySet()) {
+            if(!overwrite && tagHandlerMapping.containsKey(tagName))
+                continue;
+            tagHandlerMapping.put(tagName, (JSFunction)library.getTags().get(tagName));
+        }
+        for(String filterName : library.getFilters().keySet()) {
+            if(!overwrite && filterMapping.containsKey(filterName))
+                continue;
+            filterMapping.put(filterName, (JSFunction)library.getFilters().get(filterName));
+        }
+    }
+
+    public Set<Library> getLoadedLibraries() {
+        return loadedLibraries;
+    }
+    public Map<String, JSFunction> getFilters() {
         return filterMapping;
     }
-
-    public Map<String, TagHandler> getTagHandlers() {
+    public Map<String, JSFunction> getTagHandlers() {
         return tagHandlerMapping;
     }
 
-    public <T> void setStateVariable(Class<? extends TagHandler> key, T value) {
-        stateVariables.put(key, value);
+    public void add_dependency(JxpSource file) {
+        dependencies.add(file);
     }
-
-    public <T> T getStateVariable(Class<? extends TagHandler> key) {
-        return (T) stateVariables.get(key);
+    public Set<JxpSource> get_dependencies() {
+        return dependencies;
     }
-
-    public void clearStateVariable(Class<? extends TagHandler> key) {
-        stateVariables.remove(key);
-    }
-
+    
+    
+    public static final JSFunction CONSTRUCTOR = new JSFunctionCalls0() {
+        public Object call(Scope scope, Object[] extra) {
+            throw new NotImplementedException();
+        }
+        protected void init() {
+            super.init();
+            _prototype.set("parse", new JSFunctionCalls1() {
+                public Object call(Scope scope, Object p0, Object[] extra) {
+                    Parser thisObj = (Parser)scope.getThis();
+                    try {
+                        return thisObj.parse(scope, (JSArray)p0);
+                    } catch (TemplateException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+        }
+    };
+//==============================================================================================================================
+    
+    
     public static class Token extends JSObjectBase {
         public static final String NAME = "Token";
         
         private TagDelimiter.Type type;
-        private String contents;
 
         private int startLine;
 
@@ -169,27 +264,24 @@ public class Parser {
         public Token(TagDelimiter.Type type, String contents, int startLine) {
             this();
             this.type = type;
-            this.contents = contents;
             this.startLine = startLine;
+            
+            set("contents", new JSString(contents));
         }
 
-        public String getContents() {
-            return contents;
+        public JSString getContents() {
+            return (JSString)get("contents");
         }
 
         public int getStartLine() {
             return startLine;
         }
         public String[] split_contents() {
-            return Parser.smartSplit(contents);
-        }
-        
-        public String toJavascript() {
-            return "( new " + JSHelper.NS + "." + NAME + "(\"" + type + "\", " + JSON.serialize(contents) + ", " + startLine + ") )";
+            return Parser.smartSplit(getContents().toString());
         }
         
         public String toString() {
-            return "<" + type + ": " + contents.substring(0, Math.max(20, contents.length())) + "...>";
+            return "<" + type + ": " + getContents().toString().substring(0, Math.min(20, getContents().length())) + "...>";
         }
         
         public static final JSFunction CONSTRUCTOR = new JSFunctionCalls3() {
@@ -201,7 +293,7 @@ public class Parser {
                 int startLine = (Integer)startLineObj;
                 
                 thisObj.type = Enum.valueOf(TagDelimiter.Type.class, type.toString());
-                thisObj.contents = contents.toString();
+                thisObj.set("contents", contents.toString());
                 thisObj.startLine = startLine;
 
                 return null;

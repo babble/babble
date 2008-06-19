@@ -762,8 +762,9 @@ public class JSArray extends JSObjectBase implements Iterable , List {
         return Integer.parseInt( str );
     }
 
-    public void shuffle(){
+    public JSArray shuffle(){
         Collections.shuffle( _array );
+        return this;
     }
 
     public void lock(){

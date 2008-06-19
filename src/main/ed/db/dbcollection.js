@@ -110,10 +110,15 @@ DBCollection.prototype.clean = function() {
  * @return number of objects in the collection that optionally match the filter condition
  */
 DBCollection.prototype.count = function(query) {
-	
-	var countFunction = function() { 
-		return db[args[0]].find(args[1]||{}, {_id:ObjId()}).length();
-	}
+    var countFunction = function() { 
+	var c = db[args[0]].find(args[1]||{}, {_id:ObjId()});
+        var i = 0;
+        while ( c.hasNext() ){
+            c.next();
+            i++;
+        }
+        return i;
+    }
    return this.getDB().dbEval(countFunction, this.getName(), query);
 }
 
@@ -121,6 +126,22 @@ DBCollection.prototype.count = function(query) {
 */
 DBCollection.prototype._dbCommand = function( cmdObj ) {
     return this.getDB().$cmd.findOne(cmdObj);
+}
+
+DBCollection.prototype.sample = function( num , query , fields ){
+    var r = this.getDB().dbEval(
+        function(){
+            var a = db[args[0]].find( args[2] || {} , args[3] ).limit(10000).toArray();
+            a.shuffle();
+            return a.splice( 0 , args[1] );
+        } ,
+        this.getName() , num , query , fields 
+    );
+    var a = [];
+    for ( var k in r ){
+        a.push( r[k] );
+    }
+    return a;
 }
 
 var mydb  = arguments[0];

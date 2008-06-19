@@ -1,7 +1,7 @@
 
 function blah( a ){
     scope["a"] = a + 1;
-    print( arguments.length )
+    assert( 1 == arguments.length );
     return a;
 }
 

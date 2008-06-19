@@ -175,14 +175,21 @@ public class JSMath extends JSObjectBase {
                 public Object call( Scope s , Object xObject , Object nObject , Object foo[] ){
                     double X = ((Number)xObject).doubleValue();
                     double N = nObject == null ? 3 : ((Number)nObject).doubleValue();
-                    double p = Math.pow( 10, N - Math.ceil( Math.log( Math.abs(X) ) / LN10 ) );
-                    return Math.round(X*p)/p;
+                    return sigFig( X , N );
                 }
             } );
-
+        
     }
     
-
+    public static double sigFig( double X ){
+        return sigFig( X , 3 );
+    }
+    
+    public static double sigFig( double X , double N ){
+        double p = Math.pow( 10, N - Math.ceil( Math.log( Math.abs(X) ) / LN10 ) );
+        return Math.round(X*p)/p;
+    }
+    
     public static final double LN10 = Math.log(10);
 
 }

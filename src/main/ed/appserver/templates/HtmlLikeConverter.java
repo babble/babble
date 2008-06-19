@@ -139,13 +139,12 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
                     continue;
                 }
                 
-                state.eatWhiteSpace();
+                String whiteSpace = state.eatWhiteSpace();
                 if ( tag.startsWith( "/" ) && state.peek() != '>' ){
                     text.append( "<" + tag + " " );
                     continue;
                 }
                     
-
                 gotText( g , text.toString() );
                 text.setLength( 0 );
                 
@@ -157,7 +156,7 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
                 }
                 else 
                     if ( ! gotStartTag( g , tag , state ) )
-                        text.append( "<" + tag + " " );
+                        text.append( "<" + tag + whiteSpace );
                 
                 continue;
             }
@@ -221,10 +220,14 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
             return curChar;
         }
         
-        final void eatWhiteSpace(){
+        final String eatWhiteSpace(){
+            StringBuilder buf = new StringBuilder();
             while ( pos < data.length() && 
-                    Character.isWhitespace( data.charAt( pos ) ))
+                    Character.isWhitespace( data.charAt( pos ) )){
+                buf.append( data.charAt( pos ) );
                 pos++;
+            }
+            return buf.toString();
         }
 
         final String readRestOfTag(){

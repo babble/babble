@@ -1,111 +1,87 @@
-/**
- * 
- */
+
 package ed.appserver.templates.djang10;
 
+import java.nio.Buffer;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Map;
 
 import ed.appserver.JSFileLibrary;
-import ed.appserver.templates.Djang10Converter;
-import ed.appserver.templates.djang10.Parser.Token;
-import ed.appserver.templates.djang10.filters.JavaFilter;
-import ed.appserver.templates.djang10.tagHandlers.TagHandler;
+import ed.appserver.jxp.JxpSource;
+import ed.js.JSDate;
 import ed.js.JSFunction;
+import ed.js.JSObject;
 import ed.js.JSObjectBase;
 import ed.js.JSString;
 import ed.js.engine.JSCompiledScript;
 import ed.js.engine.Scope;
+import ed.js.func.JSFunctionCalls0;
 import ed.js.func.JSFunctionCalls1;
+import ed.js.func.JSFunctionCalls2;
+import ed.log.Logger;
+import ed.util.Pair;
 
 public class JSHelper extends JSObjectBase {
 
-    public static final String ADD_TEMPLATE_ROOT = "addTemplateRoot";
-    public static final String CALL_PATH = "callPath";
-    public static final String LOAD_PATH = "loadPath";
-
-    public static final String ADD_MODULE_ROOT = "addModuleRoot";
-    public static final String CALL_MODULE = "callModule";
-    public static final String LOAD_MODULE = "loadModule";
-
-    public static final String CONTEXT_CLASS = "Context";
-    public static final String LIBRARY_CLASS = "Library";
-    public static final String NS = "__djang10";
-    public static final String publicApi = "publicApi";
+    public static final String NS = "djang10";
 
     private final ArrayList<JSFileLibrary> templateRoots;
     private final ArrayList<JSFileLibrary> moduleRoots;
+    private final ArrayList<Pair<JxpSource,Library>> defaultLibraries;
 
     public JSHelper() {
         templateRoots = new ArrayList<JSFileLibrary>();
         moduleRoots = new ArrayList<JSFileLibrary>();
-
-        // add the template helpers
-        Map<String, JSFunction> helpers = new HashMap<String, JSFunction>();
-        helpers.putAll(Expression.getHelpers());
-        helpers.putAll(JavaFilter.getHelpers());
-        for (TagHandler tagHandler : Djang10Converter.getTagHandlers().values()) {
-            helpers.putAll(tagHandler.getHelpers());
-        }
-
-        for (String name : helpers.keySet()) {
-            this.set(name, helpers.get(name));
-        }
+        defaultLibraries = new ArrayList<Pair<JxpSource,Library>>();
+        
 
         // add the basic helpers
-        this.set(LOAD_PATH, loadPath);
-        this.set(CALL_PATH, callPath);
-        this.set(ADD_TEMPLATE_ROOT, addTemplateRoot);
+        this.set("loadTemplate", loadPath);
+        this.set("addTemplateRoot", addTemplateRoot);
 
-        this.set(ADD_MODULE_ROOT, addModuleRoot);
-        this.set(CALL_MODULE, callModule);
-        this.set(LOAD_MODULE, loadModule);
+        this.set("addTemplateTagsRoot", addModuleRoot);
+        this.set("loadLibrary", loadLibrary);
+        this.set("evalLibrary", evalLibrary);
+        
+        this.set("formatDate", formatDate);
 
-        this.set(CONTEXT_CLASS, Context.CONSTRUCTOR);
-        this.set(LIBRARY_CLASS, Library.CONSTRUCTOR);
-        this.set(Token.NAME, Token.CONSTRUCTOR);
+        this.set("Context", Context.CONSTRUCTOR);
+        this.set("Library", Library.CONSTRUCTOR);
+        this.set("Node", Node.CONSTRUCTOR);
+        this.set("TextNode", Node.TextNode.CONSTRUCTOR);
+        this.set("VariableNode", Node.VariableNode.CONSTRUCTOR);
+        this.set("Expression", Expression.CONSTRUCTOR);
         
-        this.set(publicApi, new PublicApi());
-        
-        this.lock();
+        this.set("TEMPLATE_STRING_IF_INVALID", new JSString(""));
     }
 
-    private class PublicApi extends JSObjectBase {
-        public PublicApi() {
-            set("addTemplateRoot", addTemplateRoot);
-            set("loadTemplate", loadPath);
-            set("Context", Context.CONSTRUCTOR);
-            
-            set("addTemplateTagsRoot", addModuleRoot);
-            set("Library", Library.CONSTRUCTOR);
-        }
+    public static JSHelper install(Scope scope) {
+        JSHelper helper = new JSHelper();
+        scope.set(NS, helper);
+        return helper;
     }
     
-    private final JSFunction callPath = new JSFunctionCalls1() {
-        public Object call(Scope scope, Object pathObj, Object[] extra) {
-            Object loadedObj = loadPath.call(scope, pathObj, extra);
-
-            if (loadedObj instanceof JSCompiledScript)
-                return ((JSCompiledScript) loadedObj).call(scope.child(), extra);
-
-            return null;
-        }
+    public JSFunction formatDate = new JSFunctionCalls2() {
+        public Object call(Scope scope, Object p0, Object p1, Object[] extra) {
+            JSDate date = (JSDate)p0;
+            String format = p1.toString();
+            
+            return new JSString( Util.formatDate(new Date(date.getTime()), format) );
+        };
     };
-
-    private final JSFunction loadPath = new JSFunctionCalls1() {
+    
+    public final JSFunction loadPath = new JSFunctionCalls1() {
         public Object call(Scope scope, Object pathObj, Object[] extra) {
 
             if (pathObj == null || pathObj == Expression.UNDEFINED_VALUE)
                 return null;
 
-            if (pathObj instanceof JSCompiledScript)
+            if (pathObj instanceof Djang10CompiledScript)
                 return pathObj;
 
             String path = ((JSString) pathObj).toString().trim().replaceAll("/+", "/").replaceAll("\\.\\w*$", "");
-            JSCompiledScript target = null;
+            Djang10CompiledScript target = null;
 
             if (path.startsWith("/")) {
                 String[] newRootPathParts = path.split("/", 3);
@@ -125,11 +101,11 @@ public class JSHelper extends JSObjectBase {
                     // fallback on resolving absolute paths against site
                     newRootBaseObj = ((JSFileLibrary) scope.get("local")).getFromPath(path);
 
-                    return (newRootBaseObj instanceof JSCompiledScript) ? newRootBaseObj : null;
+                    return (newRootBaseObj instanceof Djang10CompiledScript) ? newRootBaseObj : null;
                 } else {
                     Object targetObj = ((JSFileLibrary) newRootBaseObj).getFromPath(newRootPathParts[2]);
 
-                    return (targetObj instanceof JSCompiledScript) ? targetObj : null;
+                    return (targetObj instanceof Djang10CompiledScript) ? targetObj : null;
                 }
             } else {
                 for (int i = templateRoots.size() - 1; i >= 0; i--) {
@@ -137,8 +113,8 @@ public class JSHelper extends JSObjectBase {
 
                     Object targetObj = fileLibrary.getFromPath(path);
 
-                    if (targetObj instanceof JSCompiledScript) {
-                        target = (JSCompiledScript) targetObj;
+                    if (targetObj instanceof Djang10CompiledScript) {
+                        target = (Djang10CompiledScript) targetObj;
                         break;
                     }
                 }
@@ -150,7 +126,7 @@ public class JSHelper extends JSObjectBase {
         }
     };
 
-    private final JSFunction addTemplateRoot = new JSFunctionCalls1() {
+    public final JSFunction addTemplateRoot = new JSFunctionCalls1() {
         public Object call(Scope scope, Object newRoot, Object[] extra) {
             JSFileLibrary templateFileLib;
 
@@ -167,7 +143,7 @@ public class JSHelper extends JSObjectBase {
         }
     };
 
-    private final JSFunction addModuleRoot = new JSFunctionCalls1() {
+    public final JSFunction addModuleRoot = new JSFunctionCalls1() {
         public Object call(Scope scope, Object newRoot, Object[] extra) {
             JSFileLibrary tagFileLib;
 
@@ -183,41 +159,41 @@ public class JSHelper extends JSObjectBase {
             return null;
         }
     };
-
-    private final JSFunction callModule = new JSFunctionCalls1() {
-        public Object call(Scope scope, Object pathObj, Object[] extra) {
-
-            return callModule(scope, ((JSString) pathObj).toString());
+    private final JSFunction loadLibrary = new JSFunctionCalls1() {
+        public Object call(Scope scope, Object p0, Object[] extra) {
+            return loadModule(scope, p0.toString());
         }
     };
+    
+    public final JSFunction evalLibrary = new JSFunctionCalls1() {
+        public Object call(Scope scope, Object moduleFileObj, Object[] extra) {
+            Scope child = scope.child();
+            child.setGlobal(true);
+            ((JSCompiledScript) moduleFileObj).call(child);
+            Library lib = (Library)child.get("register");
 
-    private final JSFunction loadModule = new JSFunctionCalls1() {
-        public Object call(Scope scope, Object pathObj, Object[] extra) {
+            //wrap all the tag handlers
+            JSObject tagHandlers = lib.getTags();
+            for(String tagName : tagHandlers.keySet()) {
+                JSFunction tagHandler = (JSFunction)tagHandlers.get(tagName);
+                TagHandlerWrapper wrapper = new TagHandlerWrapper(tagHandler);
+                tagHandlers.set(tagName, wrapper);
+            }
 
-            return loadModule(scope, ((JSString) pathObj).toString());
-        }
+            return lib;
+        };
     };
 
+    public void addDefaultLibrary(JxpSource source, Library library) {
+        defaultLibraries.add(new Pair<JxpSource, Library>(source, library));
+    }
+    public List<Pair<JxpSource,Library>> getDefaultLibraries() {
+        return defaultLibraries;
+    }
+    
     public void addModuleRoot(JSFileLibrary newRoot) {
         if (newRoot != null)
             moduleRoots.add(newRoot);
-    }
-
-    public Library callModule(Scope scope, String name) {
-        JSCompiledScript module = loadModule(scope, name);
-
-        if (module == null)
-            return null;
-
-        Scope evalScope = scope.child();
-        evalScope.setGlobal(true);
-        module.call(evalScope);
-
-        Object registerObj = evalScope.get("register");
-        if (!(registerObj instanceof Library))
-            return null;
-
-        return (Library) registerObj;
     }
 
     public JSCompiledScript loadModule(Scope scope, String name) {
@@ -277,5 +253,85 @@ public class JSHelper extends JSObjectBase {
         }
 
         return templateFileLib;
+    }
+    
+    
+    
+    //hacks to allow backwards compatibility with print
+    private static class TagHandlerWrapper extends JSFunctionCalls2 {
+        private final JSFunction tagHandler;
+        public TagHandlerWrapper(JSFunction tagHandler) {
+            this.tagHandler = tagHandler;
+        }
+        @Override
+        public Object call(Scope scope, Object parserObj, Object tokenObj, Object[] extra) {
+            JSObject node = (JSObject)tagHandler.call(scope.child(), parserObj, tokenObj);
+
+            node.set("render", new RenderWrapper((JSFunction)node.get("render")));
+            node.set("__render", new __RenderWrapper((JSFunction)node.get("__render")));
+            
+            return node;
+        }
+    };
+    private static final class RenderWrapper extends JSFunctionCalls1 {
+        private final JSFunction renderFunc;
+        
+        public RenderWrapper(JSFunction renderFunc) {
+            this.renderFunc = renderFunc;
+        }
+
+        public Object call(Scope scope, Object contextObj, Object[] extra) {
+            JSObject thisObj = (JSObject)scope.getThis();
+            
+            scope = scope.child();
+            PrintWrapper printWrapper = new PrintWrapper();
+            scope.set("print", printWrapper);
+            
+            Object ret = renderFunc.callAndSetThis(scope, thisObj, new Object[] { contextObj });
+            
+            if(printWrapper.buffer.length() > 0)
+                return printWrapper.buffer + (ret == null? "" : ret.toString());
+            else
+                return ret;
+        }
+    };
+    private static final class __RenderWrapper extends JSFunctionCalls2 {
+        private final JSFunction __renderFunc;
+        
+        public __RenderWrapper(JSFunction func) {
+            __renderFunc = func;
+        }
+        
+        public Object call(Scope scope, Object contextObj, Object printer, Object[] extra) {
+            JSObject thisObj = (JSObject)scope.getThis();
+            
+            scope = scope.child();
+            scope.setGlobal(true);
+            scope.put("print", printer, true);
+            
+            __renderFunc.callAndSetThis(scope, thisObj, new Object[] { contextObj, printer });
+            
+            return null;
+        }
+
+        
+    };
+    
+    public static class PrintWrapper extends JSFunctionCalls1 {
+        public final StringBuilder buffer = new StringBuilder();
+        
+        public Object call(Scope scope, Object p0, Object[] extra) {
+            String error = "calling print while rendering has undefined behavior which will change in the future.";
+            try {
+                Object logger = scope.get("log");
+                if(logger instanceof Logger)
+                    ((Logger)logger).error(error);
+            } catch(Throwable t) {
+                System.out.println(error);
+            }
+            
+            buffer.append(p0);
+            return null;
+        }
     }
 }

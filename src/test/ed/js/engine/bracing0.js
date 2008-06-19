@@ -5,5 +5,5 @@ function a(){
     var g = 2;
     return f;
 }
-print( a() );
+print( a() == 5 );
 

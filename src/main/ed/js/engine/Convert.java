@@ -16,7 +16,8 @@ import ed.util.*;
 
 public class Convert implements StackTraceFixer {
 
-    static boolean D = Boolean.getBoolean( "DEBUG.JS" );
+    static boolean DJS = Boolean.getBoolean( "DEBUG.JS" );
+    final boolean D;
     public static final String DEFAULT_PACKAGE = "ed.js.gen";
 
     public static JSFunction makeAnon( String code ){
@@ -88,6 +89,11 @@ public class Convert implements StackTraceFixer {
 
     public Convert( String name , String source, boolean invokedFromEval , Language sourceLanguage )
         throws IOException {
+
+        D = DJS 
+            && ! name.contains( "src/main/ed/lang" )
+            && ! name.contains( "src_main_ed_lang" )
+            ;
 
         _invokedFromEval = invokedFromEval;
         _sourceLanguage = sourceLanguage;
@@ -285,17 +291,21 @@ public class Convert implements StackTraceFixer {
             _assertOne( n );
             
             Node tempChild = n.getFirstChild();
-            if ( ( tempChild.getType() == Token.NAME || tempChild.getType() == Token.GETVAR ) &&
-                 state.useLocalVariable( tempChild.getString() ) )
-                throw new RuntimeException( "can't increment local variables" );
 
-            _append( "JS_inc( " , n );
-            _createRef( n.getFirstChild() , state );
-            _append( " , " , n );
-            _append( String.valueOf( ( n.getIntProp( Node.INCRDECR_PROP , 0 ) & Node.POST_FLAG ) > 0 ) , n );
-            _append( " , " , n );
-            _append( String.valueOf( n.getType() == Token.INC ? 1 : -1 ) , n );
-            _append( ")" , n );
+            if ( ( tempChild.getType() == Token.NAME || tempChild.getType() == Token.GETVAR ) && state.useLocalVariable( tempChild.getString() ) ){
+                if ( ! state.isNumber( tempChild.getString() ) )
+                    throw new RuntimeException( "can't increment local variable : " + tempChild.getString()  );
+                _append( tempChild.getString() + "++ " , n );
+            }
+            else {
+                _append( "JS_inc( " , n );
+                _createRef( n.getFirstChild() , state );
+                _append( " , " , n );
+                _append( String.valueOf( ( n.getIntProp( Node.INCRDECR_PROP , 0 ) & Node.POST_FLAG ) > 0 ) , n );
+                _append( " , " , n );
+                _append( String.valueOf( n.getType() == Token.INC ? 1 : -1 ) , n );
+                _append( ")" , n );
+            }
             break;
             
         case Token.USE_STACK:
@@ -401,15 +411,10 @@ public class Convert implements StackTraceFixer {
         case Token.NUMBER:
             double d = n.getDouble();
             String temp = String.valueOf( d );
-
-            boolean useInt = 
-                temp.endsWith( ".0" ) || 
-                JSNumericFunctions.couldBeInt( d );
-            if ( useInt )
-                temp = "Integer.valueOf( " + ((int)d) + " ) ";
-            else
-                temp = "Double.valueOf( " + temp + " ) ";
-            _append( temp , n );
+            if ( temp.endsWith( ".0" ) || 
+                 JSNumericFunctions.couldBeInt( d ) )
+                temp = String.valueOf( (int)d );
+            _append( "JSNumber.self( " + temp + ")" , n );
             break;
         case Token.STRING:
             final String theString = n.getString();
@@ -444,10 +449,12 @@ public class Convert implements StackTraceFixer {
             if ( state.useLocalVariable( foo ) ){
                 if ( ! state.hasSymbol( foo ) )
                     throw new RuntimeException( "something is wrong" );
-                _append( "JSInternalFunctions.self ( " , n );
+                if ( ! state.isPrimitive( foo ) )
+                    _append( "JSInternalFunctions.self ( " , n );
                 _append( foo + " = " , n );
                 _add( n.getFirstChild().getNext() , state );
-                _append( " )\n" , n );
+                if ( ! state.isPrimitive( foo ) )
+                    _append( " )\n" , n );
             }
             else {
                 _setVar( foo , 
@@ -520,12 +527,21 @@ public class Convert implements StackTraceFixer {
             _add( n.getFirstChild() , state );
             break;
 
-        case Token.NE:
-            _append( " ! " , n );
+
+        case Token.ADD:
+            if ( state.isNumber( n.getFirstChild() ) &&
+                 state.isNumber( n.getFirstChild().getNext() ) ){
+                _append( "(" , n );
+                _add( n.getFirstChild() , state );
+                _append( " + " , n );
+                _add( n.getFirstChild().getNext() , state );
+                _append( ")" , n );
+                break;
+            }
             
+        case Token.NE:
         case Token.MUL:
         case Token.DIV:
-        case Token.ADD:
         case Token.SUB:
         case Token.EQ:
         case Token.SHEQ:
@@ -541,6 +557,10 @@ public class Convert implements StackTraceFixer {
         case Token.RSH:
         case Token.LSH:
         case Token.MOD:
+            
+            if ( n.getType() == Token.NE )
+                _append( " ! " , n );
+
             _append( "JS_" , n );
             String fooooo = _2ThingThings.get( n.getType() );
             if ( fooooo == null )
@@ -1088,47 +1108,15 @@ public class Convert implements StackTraceFixer {
             return;
         }
 
-        FunctionNode fn = (FunctionNode)n;
         _assertOne( n );
 
-        state = state.child();
-        state._hasLambdaExpressions = fn.getFunctionCount() > 0;
-        
+        FunctionNode fn = (FunctionNode)n;
+        FunctionInfo fi = FunctionInfo.create( fn );
 
-        boolean hasArguments = false;
-        {
-            List<Node> toSearch = new ArrayList<Node>();
-            toSearch.add( n );
-            while ( toSearch.size() > 0 ){
-                Node cur = toSearch.remove( toSearch.size() - 1 );
-                
-                if ( cur.getType() == Token.NAME ||
-                     cur.getType() == Token.GETVAR ){
-                    if ( cur.getString().equals( "arguments" ) || cur.getString().equals( "processArgs" ) )
-                        hasArguments = true;
-                    if ( cur.getString().equals( "scope" ) )
-                        state._hasLambdaExpressions = true;
-                }
-                
-                if ( cur.getType() == Token.INC || 
-                     cur.getType() == Token.DEC ){
-                    
-                    if ( cur.getFirstChild().getType() == Token.GETVAR || 
-                         cur.getFirstChild().getType() == Token.NAME ){
-                        state.addBadLocal( cur.getFirstChild().getString() );
-                    }
-                    
-                }
-                if ( cur.getNext() != null )
-                    toSearch.add( cur.getNext() );
-                if ( cur.getFirstChild() != null )
-                    toSearch.add( cur.getFirstChild() );
-                
-            }
-            
-        }
+        state = state.child();
+        state._fi = fi;
         
-        //state.debug();
+        boolean hasArguments = fi.usesArguemnts();
 
         _append( "new JSFunctionCalls" + fn.getParamCount() + "( scope , null ){ \n" , n );
 
@@ -1195,7 +1183,11 @@ public class Convert implements StackTraceFixer {
             final String foo = fn.getParamOrVarName( i );
             if ( state.useLocalVariable( foo ) ){
                 state.addSymbol( foo );
-                _append( "Object " + foo + " = null;\n" , n );
+                if ( state.isNumber( foo ) ){
+                    _append( "double " + foo + " = 0;\n" , n );
+                }
+                else
+                    _append( "Object " + foo + " = null;\n" , n );
             }
             else {
                 _append( "scope.put( \"" + foo + "\" , null , true );\n" , n );
@@ -1343,11 +1335,14 @@ public class Convert implements StackTraceFixer {
     
     private void _setVar( String name , Node val , State state , boolean local ){
         if ( state.useLocalVariable( name ) && state.hasSymbol( name ) ){
-            _append( "JSInternalFunctions.self( " , val );
+            boolean prim = state.isPrimitive( name );
+            if ( ! prim )
+                _append( "JSInternalFunctions.self( " , val );
             _append( name + " = " , val );
             _add( val , state );
             _append( "\n" , val );
-            _append( ")\n" , val );
+            if ( ! prim )
+                _append( ")\n" , val );
             return;
         }
         _append( "scope.put( \"" + name + "\" , " , val);
@@ -1542,7 +1537,7 @@ public class Convert implements StackTraceFixer {
             return _it;
         
         try {
-            Class c = CompileUtil.compile( _package , getClassName() , getClassString() );
+            Class c = CompileUtil.compile( _package , getClassName() , getClassString() , this );
             JSCompiledScript it = (JSCompiledScript)c.newInstance();
             it._convert = this;
             

@@ -14,6 +14,9 @@ import ed.log.*;
 public class Cloud extends JSObjectBase {
 
     static Logger _log = Logger.getLogger( "cloud" );
+    static {
+        _log.setLevel( Level.INFO );
+    }
 
     private static final Cloud INSTANCE = new Cloud();
 
@@ -41,7 +44,7 @@ public class Cloud extends JSObjectBase {
 	_scope.set( "log" , _log );
 
 	try {
-	    _scope.set( "SERVER_NAME" , InetAddress.getLocalHost().getHostName() );
+	    _scope.set( "SERVER_NAME" , System.getProperty( "SERVER-NAME" , InetAddress.getLocalHost().getHostName() ) );
 	}
 	catch ( Exception e ){
 	    throw new RuntimeException( "should be impossible : " + e );
@@ -175,6 +178,21 @@ public class Cloud extends JSObjectBase {
 
     public Scope getScope(){
         return _scope;
+    }
+    
+    public boolean isRealServer(){
+        if ( _bad )
+            return false;
+    
+        JSObject me = (JSObject)(_scope.get("me"));
+        if ( me == null )
+            return false;
+
+        return ! JSInternalFunctions.JS_evalToBool( me.get( "bad" ) );
+    }
+    
+    public String toString(){
+        return "{ Cloud.  real: " + isRealServer() + "}";
     }
 
     final Scope _scope;

@@ -45,7 +45,13 @@ public class GitMonitor {
 		File heads = new File( root , ".git/refs/heads" );
 		_watch( root , heads );
 		_checkHeads( heads );
-		
+
+		File tags = new File( root , ".git/refs/tags" );
+                if ( tags.exist() ){
+                    _watch( root , tags );
+                    _checkHeads( tags );
+                }
+                
 	    }
 	    catch ( IOException ioe ){
 		ioe.printStackTrace();
