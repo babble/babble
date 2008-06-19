@@ -39,7 +39,7 @@ public class FilterExpression extends JSObjectBase {
 
             JSFunction filter = parser.getFilters().get(filterNamePart);
             if(filter == null)
-                throw new TemplateException("Unknow filter: " + filterNamePart);
+                throw new TemplateException("Unknown filter: " + filterNamePart);
 
             Expression filterParam = (filterParamPart == null) ? null : new Expression(filterParamPart);
             filterSpecs.add(new FilterSpec(filterNamePart, filter, filterParam));

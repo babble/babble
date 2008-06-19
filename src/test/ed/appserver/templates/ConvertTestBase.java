@@ -110,7 +110,7 @@ public abstract class ConvertTestBase extends TestCase {
                 System.out.println( "*********************");
             }
 
-            System.out.println("ConvertTestBase : testing = " + _file);
+            // System.out.println("ConvertTestBase : testing = " + _file);
 
             final String in = StreamUtil.readFully( new FileInputStream( _file ) );            
             
