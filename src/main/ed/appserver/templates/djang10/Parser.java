@@ -122,18 +122,10 @@ public class Parser extends JSObjectBase{
                 }
                 
                 String command = token.getContents().toString().split("\\s")[0];
-                
                 JSFunction handler = find_taghandler(command);
-                
-                //try {
-                    JSObject node = (JSObject)handler.call(scope, this, token);
-                    extend_nodelist(nodelist, node, token);
-                //} catch(TemplateException e) {
-                  //  throw e;
-                //} catch(Exception e) {
-                
-                //    throw new TemplateException("Failed to compile the block tag: " + command, e);
-                //}
+                JSObject node = (JSObject)handler.call(scope, this, token);
+                extend_nodelist(nodelist, node, token);
+
             }
         }
 
@@ -242,11 +234,8 @@ public class Parser extends JSObjectBase{
             _prototype.set("parse", new JSFunctionCalls1() {
                 public Object call(Scope scope, Object p0, Object[] extra) {
                     Parser thisObj = (Parser)scope.getThis();
-                    try {
-                        return thisObj.parse(scope, (JSArray)p0);
-                    } catch (TemplateException e) {
-                        throw new RuntimeException(e);
-                    }
+
+                    return thisObj.parse(scope, (JSArray)p0);
                 }
             });
         }

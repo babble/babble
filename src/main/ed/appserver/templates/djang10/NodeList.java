@@ -27,14 +27,10 @@ public class NodeList extends JSArray {
 
     public static final JSFunction __render = new JSFunctionCalls2() {
         public Object call(Scope scope, Object contextObj, Object printerObj, Object[] extra) {
-            try {
-                NodeList thisObj = (NodeList) scope.getThis();
+            NodeList thisObj = (NodeList) scope.getThis();
 
-                thisObj.__render(scope, (Context) contextObj, (JSFunction) printerObj);
-                return null;
-            } catch (ClassCastException e) {
-                throw e;
-            }
+            thisObj.__render(scope, (Context) contextObj, (JSFunction) printerObj);
+            return null;
         }
     };
 
