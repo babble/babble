@@ -133,7 +133,7 @@ public class Shell {
                     t = r.getNewTemplate();
                 }
                 try {
-                    s.eval( t.getContent() );
+                    s.eval( t.getContent() , a );
                 }
                 catch ( Exception e ){
                     StackTraceHolder.getInstance().fix( e );

@@ -267,13 +267,38 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         return lib.getFromPath( next , evalToFunction );
     }
 
-    public boolean isIn( File f ){
-        // TODO make less slow
-        if ( _fileCache.containsKey( f ) )
-            return true;
-        return f.toString().startsWith( _base.toString() );
-    }
+    JSLibrary _findLibraryForFile( File f ){
+        for ( String s : keySet() ){
+            Object o = super.get( s );
+            if ( o == null )
+                continue;
+            
+            if ( o instanceof JSLibrary && 
+                 f.getAbsolutePath().startsWith( ((JSLibrary)o).getRoot().getAbsolutePath() ) )
+                return (JSLibrary)o;
+        }
 
+        return null;
+    }
+    
+    public boolean isIn( File f ){
+        
+        if ( f.toString().startsWith( _base.toString() ) )
+            return true;
+        
+        if ( _findLibraryForFile( f ) != null )
+            return true;
+        
+        File temp = f;
+        while ( temp != null ){
+            if ( _fileCache.containsKey( temp ) )
+                return true;
+            temp = temp.getParentFile();
+        }
+        
+        return false;
+    }
+    
     JxpSource getSource( File f )
         throws IOException {
         return getSource( f , true );
@@ -291,9 +316,23 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         String parentString = f.getParent();
         String rootString = _base.toString();
         if ( ! parentString.equals( rootString ) ){
+            
+            if ( ! parentString.startsWith( rootString ) ){
+            
+                JSLibrary lib = _findLibraryForFile( f );
+                if ( lib == null )
+                    throw new RuntimeException( "[" + f.getParent() + "] not a subdir of [" + _base + "] and can't find a sub-lib for it" );
 
-            if ( ! parentString.startsWith( rootString ) )
-                throw new RuntimeException( "[" + f.getParent() + "] not a subdir if [" + _base + "]" );
+                String nextPath = f.getAbsolutePath().substring( lib.getRoot().getAbsolutePath().length() );
+                while ( nextPath.startsWith( "/" ) )
+                    nextPath = nextPath.substring(1);
+                
+                Object o = lib.getFromPath( nextPath , false );
+                if ( ! ( o instanceof JxpSource ) )
+                    throw new RuntimeException( "wasn't jxp source..." );
+
+                return (JxpSource)o;
+            }
             
             String follow = parentString.substring( rootString.length() );
             while ( follow.startsWith( "/" ) )
@@ -412,6 +451,10 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
             return old;
         
         return old.substring( l._base.toString().length() );
+    }
+
+    public File getRoot(){
+        return _base;
     }
 
     final JSFileLibrary _parent;

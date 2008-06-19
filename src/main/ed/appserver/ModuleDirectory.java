@@ -27,6 +27,10 @@ public class ModuleDirectory extends JSObjectLame implements JSLibrary {
         }
     }
     
+    public File getRoot(){
+        return _root;
+    }
+    
     public synchronized Module getModule( String name ){
         Module m = _modules.get( name );
         if ( m != null )
