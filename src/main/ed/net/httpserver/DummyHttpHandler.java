@@ -8,8 +8,8 @@ public class DummyHttpHandler {
 
     public static class Echo implements HttpHandler {
 
-        public boolean handles( HttpRequest request , Box<Boolean> fork ){
-            fork.set( request.getBoolean( "fork" , false ) );
+        public boolean handles( HttpRequest request , Info info ){
+            info.fork = request.getBoolean( "fork" , false );
             return request.getURI().equals( "/~echo" );
         }
 

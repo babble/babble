@@ -16,6 +16,9 @@ import ed.appserver.*;
 
 public class HttpServer extends NIOServer {
 
+    static final int WORKER_THREADS = 30;
+    static final int ADMIN_WORKER_THREADS = 10;
+
     static final boolean D = Boolean.getBoolean( "DEBUG.HTTP" );
     static final Logger LOGGER = Logger.getLogger( "httpserver" );
     
@@ -31,12 +34,21 @@ public class HttpServer extends NIOServer {
     protected boolean handle( HttpRequest request , HttpResponse response )
         throws IOException {
 
-        Box<Boolean> fork = new Box<Boolean>(true);
+        _numRequests++;
+
+        HttpHandler.Info info = new HttpHandler.Info();
         for ( int i=0; i<_handlers.size(); i++ ){
-            if ( _handlers.get( i ).handles( request , fork ) ){
+            info.reset();
+            if ( _handlers.get( i ).handles( request , info ) ){
                 request._handler.pause();
-                if ( fork.get() ){
-                    if ( _forkThreads.offer( new Task( request , response , _handlers.get( i ) ) ) ){
+                if ( info.fork ){
+                    
+                    WorkerThreadPool tp = info.admin ? _forkThreadsAdmin : _forkThreads;
+                    
+                    if ( info.fork ) _numRequestsForked++;
+                    if ( info.admin ) _numRequestsAdmin++;
+
+                    if ( tp.offer( new Task( request , response , _handlers.get( i ) ) ) ){
                         if ( D ) System.out.println( "successfully gave thing to a forked thing" );
                         return false;
                     }
@@ -236,14 +248,20 @@ public class HttpServer extends NIOServer {
             _response = res;
             _handler = han;
         }
-
+        
         final HttpRequest _request;
         final HttpResponse _response;
         final HttpHandler _handler;
     }
 
-    private final ThreadPool<Task> _forkThreads = 
-        new ThreadPool<Task>( "HttpServer" , 50 ){
+    private final WorkerThreadPool _forkThreads = new WorkerThreadPool( "main" , WORKER_THREADS );
+    private final WorkerThreadPool _forkThreadsAdmin = new WorkerThreadPool( "admin" , ADMIN_WORKER_THREADS );
+    
+    static class WorkerThreadPool extends ThreadPool<Task> {
+
+        WorkerThreadPool( String name , int num ){
+            super( "HttpServer-" + name , num );
+        }
         
         public void handle( Task t ) throws IOException {
             t._handler.handle( t._request , t._response );
@@ -282,11 +300,10 @@ public class HttpServer extends NIOServer {
             );
         
     }
-    static List<HttpHandler> _handlers = new ArrayList<HttpHandler>();
 
     static final HttpHandler _stats = new HttpHandler(){
 
-            public boolean handles( HttpRequest request , Box<Boolean> fork ){
+            public boolean handles( HttpRequest request , Info info ){
                 return request.getURI().equals( "/~stats" );
             }
             
@@ -300,18 +317,40 @@ public class HttpServer extends NIOServer {
                 out.print( "---\n" );
                 
                 out.print( "forked queue length : " + request._handler._server._forkThreads.queueSize()  + "\n" );
+                out.print( "admin queue length : " + request._handler._server._forkThreadsAdmin.queueSize()  + "\n" );
+
+                out.print( "\n" );
+                
+                out.print( "numRequests : " + _numRequests + "\n" );
+                out.print( "numRequestsForked : " + _numRequestsForked + "\n" );
+                out.print( "numRequestsAdmin : " + _numRequestsAdmin + "\n" );
+                
+                out.print( "\n" );
+                
+                out.print( "uptime : " + ed.js.JSMath.sigFig( ( System.currentTimeMillis() - _startTime ) / ( 1000 * 60.0 ) ) + " min\n" );
+                
                 
             }
             
             public double priority(){
                 return Double.MIN_VALUE;
             }
+
+            final long _startTime = System.currentTimeMillis();
         };
+
+    static List<HttpHandler> _handlers = new ArrayList<HttpHandler>();
     
     static {
         DummyHttpHandler.setup();
         addGlobalHandler( _stats );
     }
+    
+    private static int _numRequests = 0;
+    private static int _numRequestsForked = 0;
+    private static int _numRequestsAdmin = 0;
+
+    // ---
 
     public static void main( String args[] )
         throws Exception {
