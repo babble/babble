@@ -1,7 +1,5 @@
 {% load customTags %}
 
-{{ 5|asda }}
-
 {{ 5|moo }}
 
 {% myTag %}
