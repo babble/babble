@@ -175,7 +175,7 @@ public class Djang10TemplateTest extends TestCase {
                 System.out.println(file);
                 System.out.println("*********************");
             }
-            System.out.println("Djang10TemplateTest : testing = " + file);
+            //System.out.println("Djang10TemplateTest : testing = " + file);
             
             
             try {

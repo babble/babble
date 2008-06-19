@@ -42,7 +42,7 @@ public abstract class ScriptTestInstanceBase extends MyAsserts implements Script
     @Test
     public void test() throws Exception {
 
-        System.out.println("ScriptTestInstanceBase : running " + _file);
+        // System.out.println("ScriptTestInstanceBase : running " + _file);
 
         JSFunction f = convert();
 
