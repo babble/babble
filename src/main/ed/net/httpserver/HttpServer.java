@@ -33,8 +33,11 @@ public class HttpServer extends NIOServer {
     
     protected boolean handle( HttpRequest request , HttpResponse response )
         throws IOException {
-
+        
         _numRequests++;
+        _reqPerSecTracker.hit();
+        _reqPerSmallTracker.hit();
+        _reqPerMinTracker.hit();
 
         HttpHandler.Info info = new HttpHandler.Info();
         for ( int i=0; i<_handlers.size(); i++ ){
@@ -329,7 +332,23 @@ public class HttpServer extends NIOServer {
                 
                 out.print( "uptime : " + ed.js.JSMath.sigFig( ( System.currentTimeMillis() - _startTime ) / ( 1000 * 60.0 ) ) + " min\n" );
                 
+                out.print( "\n" );
                 
+                _printTracker( "Request Per Second" , _reqPerSecTracker , out );
+                _printTracker( "Request Per " + _trackerSmall + " Seconds" , _reqPerSmallTracker , out );
+                _printTracker( "Request Per Minute" , _reqPerMinTracker , out );
+
+            }
+
+            
+            void _printTracker( String name , ThingsPerTimeTracker tracker , JxpWriter out ){
+                out.print( name + "\n" );
+                for ( int i=0; i<tracker.size(); i++ ){
+                    out.print( tracker.get( i ) );
+                    out.print( " " );
+                }
+                
+                out.print( "\n" );
             }
             
             public double priority(){
@@ -349,6 +368,13 @@ public class HttpServer extends NIOServer {
     private static int _numRequests = 0;
     private static int _numRequestsForked = 0;
     private static int _numRequestsAdmin = 0;
+
+    private static final int _trackerSmall = 10;
+
+    private static ThingsPerTimeTracker _reqPerSecTracker = new ThingsPerTimeTracker( 1000  , 30 );
+    private static ThingsPerTimeTracker _reqPerSmallTracker = new ThingsPerTimeTracker( 1000 * 10 , 30 );
+    private static ThingsPerTimeTracker _reqPerMinTracker = new ThingsPerTimeTracker( 1000 * 60 , 30 );
+    
 
     // ---
 
