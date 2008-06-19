@@ -95,14 +95,26 @@ public class ByteEncoder extends Bytes {
             putObjectId( "_id" , (ObjectId)possibleId );
         }
             
+        JSArray transientFields = null;
+        {
+            Object temp = o.get( "_transientFields" );
+            if ( temp instanceof JSArray )
+                transientFields = (JSArray)temp;
+        }
+        
+
         for ( String s : o.keySet() ){
             
             if ( s.equals( "_ns" )  
                  || s.equals( "_save" )
                  || s.equals( "_update" )
+                 || s.equals( "_transientFields" )
                  || s.equals( "_id" ) )
                 continue;
             
+            if ( transientFields != null && transientFields.contains( s ) )
+                continue;
+
             if ( DEBUG ) System.out.println( "\t put thing : " + s );
 
             Object val = o.get( s );
