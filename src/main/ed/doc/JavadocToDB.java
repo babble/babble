@@ -130,8 +130,8 @@ public class JavadocToDB {
         FieldDoc fields[] = c.fields();
         JSArray jsFields = new JSArray();
         for(int j=0; j<fields.length; j++) {
-            Tag[] mtags = fields[j].tags("expose");
-            if(mtags.length == 0) continue;
+            Tag[] mtags = fields[j].tags("unexpose");
+            if(mtags.length > 0) continue;
 
             JSObjectBase tempField = new JSObjectBase();
             tempField.set("desc", fields[j].commentText());
@@ -152,8 +152,8 @@ public class JavadocToDB {
         MethodDoc methods[] = c.methods();
         JSArray jsMethods = new JSArray();
         for (int j = 0; j < methods.length; j++) {
-            Tag[] mtags = methods[j].tags("expose");
-            if(mtags.length == 0) continue;
+            Tag[] mtags = methods[j].tags("unexpose");
+            if(mtags.length > 0) continue;
 
             jsMethods.add(getMethod(methods[j]));
         }
