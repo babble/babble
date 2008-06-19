@@ -2,7 +2,6 @@ package ed.appserver.templates.djang10;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -36,9 +35,6 @@ public class Djang10TemplateTest extends TestCase {
         
         for(File f : dir.listFiles()) { 
             if(f.getPath().endsWith(".djang10")) {
-//                if(!f.getPath().endsWith("defaultFilterTest.djang10"))
-//                    continue;
-                
                 
                 FileTest fileTest = new FileTest(f);
                 _all.add(fileTest);
@@ -169,13 +165,11 @@ public class Djang10TemplateTest extends TestCase {
 
             Context args = getArgs(scope);
             
-            // Convert to Javascript
             if (DEBUG) {
                 System.out.println("*********************");
                 System.out.println(file);
                 System.out.println("*********************");
             }
-            //System.out.println("Djang10TemplateTest : testing = " + file);
             
             
             try {
@@ -183,20 +177,7 @@ public class Djang10TemplateTest extends TestCase {
                 NodeList nodes = source.compile(scope);
                 nodes.__render(scope, args , myout);
             } catch(Throwable t) {
-                
                 throw new Exception("For file " + file.toString(), t);
-
-//                while(t != null) {
-//                    
-//                    
-//                    t.printStackTrace(System.err);
-//                 
-//                    t=t.getCause();
-//                    if(t != null) {
-//                        System.err.println("caused by:");
-//                    }
-//                }
-//                throw t;
             }
             
             String got = _clean( output.toString() );

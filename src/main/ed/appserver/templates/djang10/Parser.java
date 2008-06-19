@@ -11,8 +11,6 @@ import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.jruby.RubyProcess.Sys;
-
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import ed.appserver.jxp.JxpSource;
 import ed.appserver.templates.djang10.Node.VariableNode;
@@ -97,7 +95,7 @@ public class Parser extends JSObjectBase{
         }
     }
  
-    public NodeList parse(Scope scope, JSArray untilTagsList ) throws TemplateException {
+    public NodeList parse(Scope scope, JSArray untilTagsList ) {
         NodeList nodelist = create_nodelist();
 
         if(untilTagsList == null)
@@ -124,20 +122,10 @@ public class Parser extends JSObjectBase{
                 }
                 
                 String command = token.getContents().toString().split("\\s")[0];
-                
-                JSFunction handler = getTagHandlers().get(command);
-                if(handler == null)
-                    throw new TemplateException("Unknown block tag: " + command);
-                
-                try {
-                    JSObject node = (JSObject)handler.call(scope, this, token);
-                    extend_nodelist(nodelist, node, token);
-                } catch(TemplateException e) {
-                    throw e;
-                } catch(Exception e) {
-                
-                    throw new TemplateException("Failed to compile the block tag: " + command, e);
-                }
+                JSFunction handler = find_taghandler(command);
+                JSObject node = (JSObject)handler.call(scope, this, token);
+                extend_nodelist(nodelist, node, token);
+
             }
         }
 
@@ -148,13 +136,13 @@ public class Parser extends JSObjectBase{
         return nodelist;
     }
 
-    public void skip_past(JSString endtag) throws TemplateException {
+    public void skip_past(JSString endtag) {
         while(!tokens.isEmpty()) {
             Token token = next_token();
             if(token.type == TagDelimiter.Type.Block && endtag.equals(token.getContents()))
                 return;
         }
-        throw new TemplateException("Unclosed tags ");
+        throw new TemplateException("Unclosed tags, exptected: " + endtag);
     }
     public Token next_token() {
         return tokens.remove();
@@ -170,7 +158,7 @@ public class Parser extends JSObjectBase{
     public NodeList create_nodelist() {
         return new NodeList();
     }
-    public void extend_nodelist(NodeList nodeList, JSObject node, Token token) throws TemplateException  {
+    public void extend_nodelist(NodeList nodeList, JSObject node, Token token) {
         boolean must_be_first = node.get("must_be_first") == Boolean.TRUE;
         if(must_be_first && nodeList.get("contains_nontext") == Boolean.TRUE)
             throw new TemplateException(node + "must be the first nontext node in the template");
@@ -185,10 +173,10 @@ public class Parser extends JSObjectBase{
     public Node.VariableNode create_variable_node(FilterExpression expression) {
         return new Node.VariableNode(expression);
     }
-    public Expression compile_expression(String str) throws TemplateException {
+    public Expression compile_expression(String str) {
         return new Expression(str);
     }
-    public FilterExpression compile_filter(String str) throws TemplateException {
+    public FilterExpression compile_filter(String str) {
         return new FilterExpression(this, str);
     }
     
@@ -214,11 +202,19 @@ public class Parser extends JSObjectBase{
     public Set<Library> getLoadedLibraries() {
         return loadedLibraries;
     }
-    public Map<String, JSFunction> getFilters() {
-        return filterMapping;
+    public JSFunction find_filter(String name) {
+        JSFunction filter = this.filterMapping.get(name);
+        if(filter == null)
+            throw new TemplateException("Undefined filter: " + name);
+        
+        return filter;
     }
-    public Map<String, JSFunction> getTagHandlers() {
-        return tagHandlerMapping;
+    public JSFunction find_taghandler(String name) {
+        JSFunction handler = this.tagHandlerMapping.get(name);
+        if(handler == null)
+            throw new TemplateException("Undefined tag: " + name);
+        
+        return handler;
     }
 
     public void add_dependency(JxpSource file) {
@@ -238,11 +234,8 @@ public class Parser extends JSObjectBase{
             _prototype.set("parse", new JSFunctionCalls1() {
                 public Object call(Scope scope, Object p0, Object[] extra) {
                     Parser thisObj = (Parser)scope.getThis();
-                    try {
-                        return thisObj.parse(scope, (JSArray)p0);
-                    } catch (TemplateException e) {
-                        throw new RuntimeException(e);
-                    }
+
+                    return thisObj.parse(scope, (JSArray)p0);
                 }
             });
         }

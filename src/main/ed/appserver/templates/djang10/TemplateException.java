@@ -1,6 +1,8 @@
 package ed.appserver.templates.djang10;
 
-public class TemplateException extends Exception {
+import ed.js.JSException;
+
+public class TemplateException extends JSException {
 
     public TemplateException(String message) {
         super(message);
@@ -13,5 +15,4 @@ public class TemplateException extends Exception {
     public TemplateException(int startLine, String message) {
         super(message + ". On Line: " + startLine);
     }
-
 }

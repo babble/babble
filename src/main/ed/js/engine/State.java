@@ -36,10 +36,24 @@ class State {
         return _localSymbols.add( s );
     }
 
+    boolean isNumberAndLocal( String s ){
+        return isNumber( s ) && useLocalVariable( s );
+    }
+
     boolean isNumber( String s ){
         if ( _fi == null )
             return false;
         return _fi.isNumber( s );
+    }
+
+    boolean isNumberAndLocal( Node n ){
+        if ( ! isNumber( n ) )
+            return false;
+
+        if ( n.getType() == Token.GETVAR || n.getType() == Token.NAME )
+            return useLocalVariable( n.getString() );
+        
+        return true;
     }
 
     boolean isNumber( Node n ){
