@@ -529,8 +529,8 @@ public class Convert implements StackTraceFixer {
 
 
         case Token.ADD:
-            if ( state.isNumber( n.getFirstChild() ) &&
-                 state.isNumber( n.getFirstChild().getNext() ) ){
+            if ( state.isNumberAndLocal( n.getFirstChild() ) &&
+                 state.isNumberAndLocal( n.getFirstChild().getNext() ) ){
                 _append( "(" , n );
                 _add( n.getFirstChild() , state );
                 _append( " + " , n );
