@@ -11,6 +11,13 @@ import ed.util.*;
 public class ByteEncoder extends Bytes {
 
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.BE" );
+    
+    public static boolean dbOnlyField( String s ){
+        return 
+            s.equals( "_ns" )  
+            || s.equals( "_save" )
+            || s.equals( "_update" );
+    }
 
     static ByteEncoder get(){
         return _pool.get();
@@ -105,10 +112,8 @@ public class ByteEncoder extends Bytes {
 
         for ( String s : o.keySet() ){
             
-            if ( s.equals( "_ns" )  
-                 || s.equals( "_save" )
-                 || s.equals( "_update" )
-                 || s.equals( "_transientFields" )
+            if ( dbOnlyField( s ) 
+                 || s.equals( "_transientFields" ) 
                  || s.equals( "_id" ) )
                 continue;
             
