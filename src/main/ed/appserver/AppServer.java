@@ -37,6 +37,12 @@ public class AppServer implements HttpHandler {
         if ( ! uri.startsWith( "/" ) )
             return false;
         
+        if ( uri.equals( "/~appserverstats" ) ){
+            info.fork = false;
+            info.admin = true;
+            return true;
+        }
+
         info.fork = true;
         info.admin = uri.startsWith( "/~~/core/sys/" );
 
@@ -54,6 +60,11 @@ public class AppServer implements HttpHandler {
 
     private void _handle( HttpRequest request , HttpResponse response ){
 
+        if ( request.getURI().equals( "/~appserverstats" ) ){
+            handleStats( request , response );
+            return;
+        }
+
         final long start = System.currentTimeMillis();
         
         AppRequest ar = (AppRequest)request.getAttachment();
@@ -61,9 +72,21 @@ public class AppServer implements HttpHandler {
             ar = createRequest( request );
         
         ar.getScope().makeThreadLocal();
-        ar.getContext()._usage.hit( "bytes_in" , request.totalSize() );
-        ar.getContext()._usage.hit( "requests" , 1 );
         
+        final UsageTracker usage = ar.getContext()._usage;
+        final SimpleStats stats = _getStats( ar.getContext()._name + ":" + ar.getContext()._environment );
+
+        {
+            final int inSize  = request.totalSize();
+
+            usage.hit( "bytes_in" , inSize );
+            usage.hit( "requests" , 1 );
+            
+            stats.req.hit();
+            stats.netIn.hit( inSize );
+        }
+        
+
 	ar.setResponse( response );
 	ar.getContext().getScope().setTLPreferred( ar.getScope() );
 
@@ -81,9 +104,17 @@ public class AppServer implements HttpHandler {
                 ar.getContext()._logger.getChild( "slow" ).info( request.getURL() + " " + t + "ms" );
             
             ar.done( response );
+            
+            {
 
-            ar.getContext()._usage.hit( "cpu_millis" , t );
-            ar.getContext()._usage.hit( "bytes_out" , response.totalSize() );
+                final int outSize = response.totalSize();
+
+                usage.hit( "cpu_millis" , t );
+                usage.hit( "bytes_out" , outSize );
+
+                stats.cpu.hit( (int)t );
+                stats.netOut.hit( outSize );
+            }
             
             Scope.clearThreadLocal();
         }
@@ -265,7 +296,82 @@ public class AppServer implements HttpHandler {
         return 10000;
     }
 
+    SimpleStats _getStats( String name ){
+        SimpleStats stats = _stats.get( name );
+
+        if ( stats == null ){
+            stats = new SimpleStats( name );
+            _stats.put( name , stats );
+        }
+
+        return stats;
+    }
+    
+    void handleStats( HttpRequest request , HttpResponse response ){
+        response.setHeader( "Content-Type" , "text/plain" );
+        
+        JxpWriter out = response.getWriter();
+        
+        List<String> lst = new ArrayList<String>();
+        lst.addAll( _stats.keySet() );
+        
+        Collections.sort( lst );
+
+        out.print( "app server stats\n----\n\n" );
+        
+        for ( String site : lst ){
+            _stats.get( site ).print( out );
+            out.print( "\n--- \n " );
+        }
+    }        
+    
+    class SimpleStats  {
+
+        SimpleStats( String name ){
+            this.name = name;
+        }
+
+        void print( JxpWriter out ){
+            out.print( name + " over 30 seconds\n" );
+            printTracker( "req" , req , out );
+            printTracker( "cpu (total seconds)" , cpu , out );
+            printTracker( "net-in kbps" , netIn , out );
+            printTracker( "net-out kbps" , netOut , out );
+        }
+
+        void printTracker( String name , ThingsPerTimeTracker tracker , JxpWriter out ){
+            out.print( "\t" + name + "\n\t" );
+            for ( int i=0; i<tracker.size(); i++ ){
+                
+                if ( name.startsWith( "cpu" ) )
+                    out.print( JSMath.sigFig( ( (double)tracker.get( i )) / seconds ) );
+                else if ( name.startsWith( "net" ) ){
+                    double perSec = ((double)tracker.get( i )) / seconds;
+                    perSec = perSec / 1024;
+                    out.print( JSMath.sigFig( perSec ) );
+                }
+                else 
+                    out.print( tracker.get( i ) );
+
+                out.print( " " );
+            }
+            
+            out.print( "\n" );
+        }
+        
+        
+        
+        final String name;
+        final int seconds = 30;
+
+        final ThingsPerTimeTracker req = new ThingsPerTimeTracker( 1000 * seconds , 30 );
+        final ThingsPerTimeTracker cpu = new ThingsPerTimeTracker( 1000 * seconds , 30 );
+        final ThingsPerTimeTracker netIn = new ThingsPerTimeTracker( 1000 * seconds , 30 );
+        final ThingsPerTimeTracker netOut = new ThingsPerTimeTracker( 1000 * seconds , 30 );
+    }
+
     private final AppContextHolder _contextHolder;
+    private final Map<String,SimpleStats> _stats = Collections.synchronizedMap( new StringMap<SimpleStats>() );
 
     // ---------
 
