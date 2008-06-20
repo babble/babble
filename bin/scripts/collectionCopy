@@ -1,0 +1,29 @@
+#!/usr/bin/env ./bin/jssh
+
+function _usage(){
+    print( "usage : adduser <database name> <collection name> <src host> <dst host>" );    
+}
+
+if ( arguments.length < 4 ){
+    _usage();
+    return -1
+}
+
+src = connect( arguments[0] , arguments[2] );
+dst = connect( arguments[0] , arguments[3] );
+
+srcCollection = src[arguments[1]];
+dstCollection = dst[arguments[1]];
+
+num = 0;
+srcCollection.find().forEach(
+    function(z){
+        if ( num % 100 == 0 )
+            printnoln( "." );
+        dstCollection.save( z );
+        num++;
+    }
+)
+print( "" );
+
+print( "total: " + num );
