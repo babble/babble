@@ -53,6 +53,10 @@ public class ThingsPerTimeTracker {
         return _counts[ p ];
     }
 
+    public int validate(){
+        _hit( 0 );
+    }
+
     private long _lastBucket;
     private int _pos = 0;
     

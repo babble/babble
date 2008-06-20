@@ -340,6 +340,9 @@ public class AppServer implements HttpHandler {
         }
 
         void printTracker( String name , ThingsPerTimeTracker tracker , JxpWriter out ){
+
+            tracker.validate();
+            
             out.print( "\t" + name + "\n\t" );
             for ( int i=0; i<tracker.size(); i++ ){
                 
