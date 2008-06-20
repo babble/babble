@@ -251,8 +251,8 @@ public class AppServer implements HttpHandler {
             if ( t > 1500 )
                 ar.getContext()._logger.getChild( "slow" ).info( request.getURL() + " " + t + "ms" );
             
-            ar.getContext().getScope().setTLPreferred( null );
-            
+            ar.done( response );
+
             ar.getContext()._usage.hit( "cpu_millis" , t );
             ar.getContext()._usage.hit( "bytes_out" , response.totalSize() );
             

@@ -198,14 +198,17 @@ public class AppContext {
     public String getName(){
         return _name;
     }
+    
+    DBBase getDB(){
+        return (DBBase)_scope.get( "db" );        
+    }
 
     JSFile getJSFile( String id ){
 
         if ( id == null )
             return null;
         
-        DBBase db = (DBBase)_scope.get( "db" );
-        DBCollection f = db.getCollection( "_files" );
+        DBCollection f = getDB().getCollection( "_files" );
         return (JSFile)(f.find( new ObjectId( id ) ));
     }
 

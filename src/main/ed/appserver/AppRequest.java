@@ -36,9 +36,12 @@ public class AppRequest {
 
             _scope.put( "request" , _request , true );
             _scope.lock( "request" );
+
             _scope.put( "head" , _head , true );
             _scope.lock( "head" );
             
+            _scope.put( "session" , Session.get( _request.getCookie( Session.COOKIE_NAME ) , _context.getDB() ) , true );
+            _scope.lock( "session" );
             
             _context.getScope().setTLPreferred( _scope );
         }
@@ -136,6 +139,13 @@ public class AppRequest {
         return _context._logger;
     }
 
+    void done( HttpResponse response ){
+        _context.getScope().setTLPreferred( null );
+        Session session = (Session)_scope.get( "session" );
+        if ( session.sync( _context.getDB() ) )
+            response.addCookie( Session.COOKIE_NAME , session.getCookie() );
+    }
+    
     final String _uri;
     final HttpRequest _request;
     final AppContext _context;
