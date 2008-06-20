@@ -53,7 +53,7 @@ public class ThingsPerTimeTracker {
         return _counts[ p ];
     }
 
-    public int validate(){
+    public void validate(){
         hit( 0 );
     }
 
