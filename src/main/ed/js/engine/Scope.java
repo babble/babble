@@ -701,6 +701,8 @@ public class Scope implements JSObject {
         return _parent.getRoot();
     }
 
+    // special or/and stuff
+
     public boolean orSave( Object a ){
 
         boolean res = JSInternalFunctions.JS_evalToBool( a );
@@ -724,6 +726,8 @@ public class Scope implements JSObject {
     public Object getandSave(){
         return _andSave;
     }
+
+    // ---- 
 
     public void debug(){
         debug( 0 );
