@@ -14,13 +14,17 @@ import static ed.js.JSInternalFunctions.*;
  */
 public class Generate {
 
-    /** Takes objects from the db and makes them into HTML pages
-     * @expose
+    /** Takes objects from the db and makes them into HTML pages.  Uses a default output directory.
+     * @param A jsoned obj from the db
      */
     public static void toHTML(String objStr) {
         toHTML(objStr, "../../www/html/doc/");
     }
 
+    /** Takes objects from the db and makes them into HTML pages.
+     * @param A jsoned obj from the db
+     * @param The output dir
+     */
     public static void toHTML(String objStr, String path) {
         try {
             Process p = Runtime.getRuntime().exec(new String[]{"java", "-jar", "jsrun.jar", "app/run.js", "-d="+path, "-t=templates/jsdoc2"},
@@ -55,9 +59,13 @@ public class Generate {
     }
 
 
+    /** Takes source files/dirs, generates jsdoc from them, stores resulting js obj in the db
+     * @param Path to the file or folder to be documented
+     */
     public static void JSToDb(String path) {
         try {
-            Process p = Runtime.getRuntime().exec(new String[]{"java", "-jar", "jsrun.jar", "app/run.js", "-r", "-d=../../www/html/doc", "-o=../../www/html/doc/log", "-t=templates/json", "../../corejs/"},
+            //"../../corejs/"
+            Process p = Runtime.getRuntime().exec(new String[]{"java", "-jar", "jsrun.jar", "app/run.js", "-r", "-d=../../www/html/doc", "-o=../../www/html/doc/log", "-t=templates/json", path},
                                                   null,
                                                   new File("../core-modules/docgen/")
                                                   );
@@ -95,41 +103,20 @@ public class Generate {
         }
     }
 
-    public static void JavadocToDb(String path) {
-        path = "../"+path;
-        try {
-            Process p = Runtime.getRuntime().exec(new String[]{"javadoc",
-                                                               "-doclet",
-                                                               "JavadocToDB",
-                                                               "-docletpath",
-                                                               "./", path},
-                                                  null,
-                                                  new File(".")
-                                                  );
-
-            BufferedReader out = new BufferedReader(new InputStreamReader( p.getInputStream()));
-            String line2 = "";
-            StringBuffer jsdoc = new StringBuffer();
-            while ((line2 = out.readLine()) != null){
-                System.out.println(line2);
+    /** Generate a js obj from javadoc
+     * @param Path to file or folder to be documented
+     */
+    public static void JavadocArgHelper(String arg) throws IOException {
+        File f = new File(arg);
+        if(!f.exists()) return;
+        if(f.isDirectory()) {
+            File farray[] = f.listFiles();
+            for(int i=0; i<farray.length; i++) {
+                JavadocArgHelper(farray[i].getCanonicalPath());
             }
-
-            BufferedReader err = new BufferedReader(new InputStreamReader( p.getErrorStream()));
-            String line;
-            while ((line = err.readLine()) != null) {
-                System.out.println(line);
-            }
-
-            p.waitFor();
-            System.out.println("exit: "+p.exitValue());
         }
-        catch(Exception e) {
-            e.printStackTrace();
+        else {
+            com.sun.tools.javadoc.Main.execute(new String[]{"-doclet", "JavadocToDB", "-docletpath", "./", arg } );
         }
-    }
-
-    public static void JavadocArgHelper(String arg) {
-        arg = "../"+arg;
-        com.sun.tools.javadoc.Main.execute(new String[]{"-doclet", "JavadocToDB", "-docletpath", "./", arg } );
     }
 }
