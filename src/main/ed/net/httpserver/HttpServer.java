@@ -342,6 +342,9 @@ public class HttpServer extends NIOServer {
 
             
             void _printTracker( String name , ThingsPerTimeTracker tracker , JxpWriter out ){
+
+                tracker.validate();
+
                 out.print( name + "\n" );
                 for ( int i=0; i<tracker.size(); i++ ){
                     out.print( tracker.get( i ) );

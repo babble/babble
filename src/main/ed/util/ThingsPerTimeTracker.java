@@ -14,6 +14,10 @@ public class ThingsPerTimeTracker {
     }
     
     public void hit(){
+        hit(1);
+    }
+
+    public void hit( int num ){
         long b = _bucket();
         while ( _lastBucket < b ){
             _pos++;
@@ -24,7 +28,7 @@ public class ThingsPerTimeTracker {
             _lastBucket += _interval;
         }
         
-        _counts[_pos]++;
+        _counts[_pos] += num;
         return;        
     }
 
@@ -47,6 +51,10 @@ public class ThingsPerTimeTracker {
         if ( p < 0 )
             p += _counts.length;
         return _counts[ p ];
+    }
+
+    public int validate(){
+        _hit( 0 );
     }
 
     private long _lastBucket;

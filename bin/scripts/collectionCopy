@@ -1,0 +1,66 @@
+#!/usr/bin/env ./bin/jssh
+
+function _usage(){
+    print( "usage : adduser <database name> <collection name> <src host> <dst host> <wipe old>" );    
+}
+
+if ( arguments.length < 4 ){
+    _usage();
+    return -1
+}
+
+dbname = arguments[0];
+wipeOld = arguments[4];
+
+src = connect( dbname , arguments[2] );
+dst = connect( dbname , arguments[3] );
+
+colls = [];
+if ( arguments[1] == "*" ){
+    src.system.namespaces.find().forEach(
+        function(z){
+            var c = z.name;
+            c = c.substring( dbname.length + 1 );
+            if ( c.match( /\$/ ) ||
+                 c == "_logs" || 
+                 c.match( /^_system/ ) || 
+                 c.match( /^analytics/ )
+               ){
+                return;
+            }
+            
+            colls.push( c );
+        }
+    );
+    print( colls );
+}
+else
+    colls.push( arguments[1] );
+
+colls.forEach(
+    function(c){
+        print( c );
+        
+        srcCollection = src[c];
+        dstCollection = dst[c];
+        
+        if ( wipeOld ){
+            print( "wiping old" );
+            dstCollection.remove( {} );
+        }
+
+        num = 0;
+        srcCollection.find().forEach(
+            function(z){
+                if ( num % 100 == 0 )
+                    printnoln( "." );
+        dstCollection.save( z );
+                num++;
+            }
+        )
+        print( "" );
+        
+        print( "total: " + num );
+
+    }
+);
