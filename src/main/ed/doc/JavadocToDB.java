@@ -3,6 +3,7 @@ import com.sun.tools.doclets.formats.html.*;
 import java.util.*;
 import ed.js.*;
 import ed.db.*;
+import ed.js.engine.Scope;
 
 public class JavadocToDB {
 
@@ -188,8 +189,11 @@ public class JavadocToDB {
     }
 
     public static boolean start(RootDoc root) {
+        Scope s = Scope.getThreadLocal();
+        Object dbo = s.get("db");
+        if(! (dbo instanceof DBApiLayer)) throw new RuntimeException("your database is having an identity crisis");
 
-        DBApiLayer db = DBProvider.get("admin", "127.0.0.1", 27017);
+        DBApiLayer db = (DBApiLayer)dbo;
         DBCollection collection = db.getCollection("doc");
 
         ClassDoc[] classes = root.classes();
