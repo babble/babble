@@ -54,7 +54,7 @@ public class ThingsPerTimeTracker {
     }
 
     public int validate(){
-        _hit( 0 );
+        hit( 0 );
     }
 
     private long _lastBucket;
