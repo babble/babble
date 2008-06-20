@@ -621,6 +621,7 @@ public class Convert implements StackTraceFixer {
             break;
 
         case Token.AND:
+            /*
             _append( " ( " , n );
             Node c = n.getFirstChild();
             while ( c != null ){
@@ -634,7 +635,7 @@ public class Convert implements StackTraceFixer {
             }
             _append( " ) " , n );
             break;
-            
+            */
         case Token.OR:
             Node cc = n.getFirstChild();
 
@@ -643,9 +644,10 @@ public class Convert implements StackTraceFixer {
             if ( cc.getNext().getNext() != null )
                 throw new RuntimeException( "what?" );
             
-            _append( "JSInternalFunctions.self( scope.orSave( " , n );
+            String mod = n.getType() == Token.AND ? "and" : "or";
+            _append( "JSInternalFunctions.self( scope." + mod + "Save( " , n );
             _add( cc , state );
-            _append( " ) ? scope.getOrSave() : ( " , n );
+            _append( " ) ? scope.get" + mod + "Save() : ( " , n );
             _add( cc.getNext() , state );
             _append( " ) ) " , n );
 

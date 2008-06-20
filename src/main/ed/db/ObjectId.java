@@ -30,9 +30,12 @@ public class ObjectId {
         return new ObjectId();
     }
     
-    public ObjectId( String s ){
+    public static boolean isValid( String s ){
+        if ( s == null )
+            return false;
+        
         if ( s.length() < 18 )
-            throw new RuntimeException( "invalid ObjectId : bad length : " + s.length() );
+            return false;
 
         for ( int i=0; i<s.length(); i++ ){
             char c = s.charAt( i );
@@ -42,8 +45,18 @@ public class ObjectId {
                 continue;
             if ( c >= 'A' && c <= 'F' )
                 continue;
-            throw new RuntimeException( "invalid ObjectId : bad character : " + c );
-        }
+
+            return false;
+        }        
+
+        return true;
+    }
+
+    public ObjectId( String s ){
+
+        if ( ! isValid( s ) )
+            throw new IllegalArgumentException( "invalid ObjectId [" + s + "]" );
+
         String baseString = s.substring( 0 , 16 );
         String incString = s.substring( 16 );
 
