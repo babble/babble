@@ -9,6 +9,7 @@ import ed.js.engine.*;
 import ed.db.*;
 import static ed.js.JSInternalFunctions.*;
 import ed.js.engine.Scope;
+import ed.appserver.AppContext;
 
 /** Documentation generator for JavaScript and Java
  * @expose
@@ -28,7 +29,13 @@ public class Generate {
      */
     public static void toHTML(String objStr, String path) {
         try {
-            Process p = Runtime.getRuntime().exec(new String[]{"java", "-jar", "jsrun.jar", "app/run.js", "-d="+path, "-t=templates/jsdoc2"},
+            Scope s = Scope.getThreadLocal();
+            Object dbo = s.get("__instance__");
+            if(! (dbo instanceof AppContext)) throw new RuntimeException("your appserver is having an identity crisis");
+            String instanceName = ((AppContext)dbo).getName();
+            System.out.println("instance: "+instanceName);
+
+            Process p = Runtime.getRuntime().exec(new String[]{"java", "-jar", "jsrun.jar", "app/run.js", "-d=../../"+instanceName+"/"+path, "-t=templates/jsdoc2"},
                                                   null,
                                                   new File("../core-modules/docgen/")
                                                   );
