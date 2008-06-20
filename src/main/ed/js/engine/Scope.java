@@ -709,9 +709,20 @@ public class Scope implements JSObject {
 
         return res;
     }
-
-    public Object getOrSave(){
+    public Object getorSave(){
         return _orSave;
+    }
+
+    public boolean andSave( Object a ){
+
+        boolean res = ! JSInternalFunctions.JS_evalToBool( a );
+        if ( res )
+            _andSave = a;
+
+        return res;
+    }
+    public Object getandSave(){
+        return _andSave;
     }
 
     public void debug(){
@@ -824,6 +835,7 @@ public class Scope implements JSObject {
     Stack<Throwable> _exceptions;
     Stack<JSObject> _with;
     Object _orSave;
+    Object _andSave;
     JSObject _globalThis;
 
 
