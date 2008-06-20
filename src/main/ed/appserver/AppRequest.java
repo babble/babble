@@ -61,10 +61,6 @@ public class AppRequest {
         return "";
     }
 
-    boolean fork(){
-        return true;
-    }
-
     boolean isStatic(){
         String uri = getWantedURI();
         
