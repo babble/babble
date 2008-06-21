@@ -84,6 +84,13 @@ public class DBProvider {
     }
 
     private static DBApiLayer create(String root , String ip, int port){
+
+        final int colon = ip.indexOf( ":" );
+        if ( colon > 0 ){
+            port = Integer.parseInt( ip.substring( colon + 1 ) );
+            ip = ip.substring( 0 , colon );
+        }
+
     	System.out.println("DBApiLayer : DBTCP : " + ip + ":" + port + "/" + root);
         return new DBTCP( root , ip, port);
     }
