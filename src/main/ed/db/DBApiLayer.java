@@ -190,8 +190,11 @@ public abstract class DBApiLayer extends DBBase {
             encoder._buf.putInt( 0 ); // reserved
             encoder._put( _fullNameSpace );            
             
-            if ( o.keySet().size() == 1 && 
-                 o.get( o.keySet().iterator().next() ) instanceof ObjectId )
+            Collection<String> keys = o.keySet();
+
+            if ( keys.size() == 1 && 
+                 keys.iterator().next().equals( "_id" ) && 
+                 o.get( keys.iterator().next() ) instanceof ObjectId )
                 encoder._buf.putInt( 1 );
             else
                 encoder._buf.putInt( 0 );
