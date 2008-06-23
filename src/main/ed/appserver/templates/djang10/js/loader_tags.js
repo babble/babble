@@ -59,9 +59,12 @@ ExtendsNode.prototype = {
         });
         
         context.push();
-        var child_blocks = context["__child_blocks"] = context["__child_blocks"];
+        var child_blocks = context["__child_blocks"];
         if(child_blocks == null)
             child_blocks = context["__child_blocks"] = [];
+        else
+            child_blocks = context["__child_blocks"] = context["__child_blocks"].slice();
+ 
         child_blocks.push(my_blocks);
 
         parent.nodelist.__render(context, printer);
