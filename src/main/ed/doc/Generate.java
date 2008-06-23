@@ -34,9 +34,16 @@ public class Generate {
             Object dbo = s.get("__instance__");
             if(! (dbo instanceof AppContext)) throw new RuntimeException("your appserver is having an identity crisis");
             String instanceName = ((AppContext)dbo).getName();
-            System.out.println("instance: "+instanceName);
 
-            SysExec.exec("java -jar jsrun.jar app/run.js -d=../../"+instanceName+"/"+path+" -t=templates/jsdoc2", null, new File("../core-modules/docgen/"), objStr);
+            File check = new File("../"+instanceName+"/"+path+"DOC_DIR");
+            if(check.exists())
+                removeOldDocs("../"+instanceName+"/"+path);
+
+            System.out.println("instance: "+instanceName+" path: "+path);
+            SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -d=../../"+instanceName+"/"+path+" -t=templates/jsdoc2", null, new File("../core-modules/docgen/"), objStr);
+            // System.out.println(r.getOut());
+
+            check.createNewFile();
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -62,7 +69,7 @@ public class Generate {
         }
         else {
             try {
-                SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -r -o=../"+path+" -t=templates/json ../"+path, null, new File("../core-modules/docgen/"), "");
+                SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -r -t=templates/json ../"+path, null, new File("../core-modules/docgen/"), "");
 
                 JSObjectBase ss = new JSObjectBase();
                 ss.set("symbolSet", r.getOut());
@@ -98,6 +105,20 @@ public class Generate {
         }
         else {
             com.sun.tools.javadoc.Main.execute(new String[]{"-doclet", "JavadocToDB", "-docletpath", "./", arg } );
+        }
+    }
+
+    public static void removeOldDocs(String path) throws IOException {
+        File f = new File(path);
+        if(!f.exists()) return;
+        if(f.isDirectory()) {
+            File farray[] = f.listFiles();
+            for(int i=0; i<farray.length; i++) {
+                removeOldDocs(farray[i].getCanonicalPath());
+            }
+        }
+        else {
+            f.delete();
         }
     }
 }
