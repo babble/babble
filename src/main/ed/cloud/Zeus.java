@@ -8,6 +8,7 @@ import java.net.*;
 import com.zeus.soap.zxtm._1_0.*;
 
 import ed.io.*;
+import ed.util.*;
 
 public class Zeus {
 
@@ -73,7 +74,28 @@ public class Zeus {
     public void updateResolveRule()
         throws Exception {
         
-        String old = null;
+        String old = getRule( "resolver" );
+        final String n = generateResolveTS();        
+        
+	if ( old.equals( n ) )
+	    return;
+
+        if ( old == null ){
+            throw new RuntimeException( "no old resolver rule - i'm dying" );
+        }
+        
+        if ( Math.abs( n.length() - old.length() ) > ( n.length() / 70 ) ){
+            throw new RuntimeException( "too much has changed (length)" );
+        }
+
+        {
+            String diff = DiffUtil.computeDiff( old , n );
+            if ( diff.length() > ( n.length() / 50 ) ){
+                throw new RuntimeException( "too much has changed (diff)" );
+            }
+        }
+
+	System.out.println( "sanity check done.  old length:" + old.length() + " new length:" + n.length() );
 
         for ( int i=7; i>0; i-- ){
             old = getRule( getResolverName( i - 1 ) );
@@ -81,8 +103,6 @@ public class Zeus {
                 setRule( getResolverName( i ) , old );
         }
 
-        String n = generateResolveTS();
-        
         setRule( "resolver" , n );
     }
     

@@ -40,7 +40,7 @@ public abstract class SimplePool<T> {
                 
                 if ( _maxTotal <= 0 || _all.size() < _maxTotal ){
                     T t = createNew();
-                    _all.put( t , "as" );
+                    _all.add( t );
                     return t;
                 }
             }
@@ -53,6 +53,6 @@ public abstract class SimplePool<T> {
     final int _maxTotal;
 
     private final List<T> _avail = new ArrayList<T>();
-    private final WeakHashMap<T,String> _all = new WeakHashMap<T,String>();
+    private final WeakBag<T> _all = new WeakBag<T>();
 
 }

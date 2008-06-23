@@ -9,3 +9,7 @@ Should not see me2
 {% else %}
 Should see me 2
 {% endif %}
+
+{% if foo and not notFoo %}
+Should see me 3
+{% endif %}

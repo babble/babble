@@ -17,6 +17,17 @@ class AppContextHolder {
     static String OUR_DOMAINS[] = new String[]{ ".latenightcoders.com" , ".local.10gen.com" , ".10gen.com" };
     static String CDN_HOST[] = new String[]{ "origin." , "origin-local." , "static." , "static-local." , "secure." };
 
+    static final Set<String> CDN_HOSTNAMES;
+    static {
+        Set<String> s = new HashSet<String>();
+        
+        for ( String d : OUR_DOMAINS )
+            for ( String h : CDN_HOST )
+                s.add( (h + d).replaceAll( "\\.+" , "." ) );
+        
+        CDN_HOSTNAMES = Collections.unmodifiableSet( s );
+    }
+
     private static final String LOCAL_BRANCH_LIST[] = new String[]{ "master" , "test" , "www" };
     private static final String WWW_BRANCH_LIST[] = new String[]{ "test" , "master" };
 
@@ -213,6 +224,79 @@ class AppContextHolder {
         
     }
     
+    static List<Info> getPossibleSiteNames( String host , String uri ){
+
+        List<Info> all = new ArrayList<Info>( 6 );
+        
+        Info base = fixBase( host , uri );
+        all.add( base );
+        host = base.host;
+        uri = base.uri;
+        
+        String domain = DNSUtil.getDomain( host );
+        if ( ! domain.equals( host ) )
+            all.add( new Info( domain , uri ) );
+        
+        int idx = domain.indexOf( "." );
+        if ( idx > 0 )
+            all.add( new Info( domain.substring( 0 , idx ) , uri ) );
+
+        return all;
+    }
+    
+    static Info fixBase( String host , String uri ){
+        
+        if ( uri == null ){
+            uri = "/";
+        }
+        else {
+            if ( ! uri.startsWith( "/" ) )
+                uri = "/" + uri;
+        }
+
+        if ( CDN_HOSTNAMES.contains( host ) ){
+
+            if ( uri.indexOf( "/" , 1 ) < 0 )
+                throw new RuntimeException( "static host without valid  host:[" + host + "] uri:[" + uri + "]" );
+            
+            final int idx = uri.indexOf( "/" , 1 );
+            host = uri.substring( 1 , idx );
+            uri = uri.substring( idx  );
+        }
+        
+        for ( String d : OUR_DOMAINS ){
+            if ( host.endsWith( d ) ){
+                host = host.substring( 0 , host.length() - d.length() );
+                if ( host.indexOf( "." ) < 0 )
+                    host += ".com";
+                break;
+            }
+        }
+        
+        if ( host.startsWith( "www." ) )
+            host = host.substring( 4 );
+
+        if ( host.equals( "com" ) )
+            host = "www.com";
+
+        return new Info( host , uri );
+    }
+    
+    static class Info {
+        
+        Info( String host , String uri ){
+            this.host = host;
+            this.uri = uri;
+        }
+
+        public String toString(){
+            return host + uri;
+        }
+
+        final String host;
+        final String uri;
+    }
+
     final String _root;
     final File _rootFile;
 
