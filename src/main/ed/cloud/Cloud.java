@@ -18,7 +18,23 @@ public class Cloud extends JSObjectBase {
         _log.setLevel( Level.INFO );
     }
 
-    private static final Cloud INSTANCE = new Cloud();
+    private static final Cloud INSTANCE;
+    static {
+        
+        Cloud c = null;
+        
+        try {
+            c = new Cloud();
+        }
+        catch ( Throwable t ){
+            t.printStackTrace();
+            System.err.println( "couldn't load cloud - dying" );
+            System.exit(-1);
+        }
+        finally {
+            INSTANCE = c;
+        }
+    }
 
     public static synchronized Cloud getInstance(){
 	return INSTANCE;

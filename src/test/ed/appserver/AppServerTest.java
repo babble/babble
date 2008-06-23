@@ -28,7 +28,7 @@ public class AppServerTest extends ed.TestCase {
         assertEquals( _root + "alleyinsider" , as.getContext( "origin.10gen.com" , "/alleyinsider/images/logo.gif" , newUri ).getRoot() );
         assertEquals( "/images/logo.gif" , newUri[0] );
         assertEquals( _root + "admin" , as.getContext( "www.10gen.com" , "/alleyinsider/images/logo.gif" , newUri ).getRoot() );
-        assertEquals( null , newUri[0] );
+        assertEquals( "/alleyinsider/images/logo.gif" , newUri[0] );
     }
 
 

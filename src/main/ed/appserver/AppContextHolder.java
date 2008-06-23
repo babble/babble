@@ -47,87 +47,35 @@ class AppContextHolder {
 
         if ( host != null )
             host = host.trim();
-
+        
         if ( host == null || _root == null || host.length() == 0 ){
             if ( D ) System.out.println( " using default context for [" + host + "]" );
             return _getDefaultContext();
         }
+        
+        Info info = fixBase( host , uri );
+        host = info.host;
+        uri = info.uri;
+        if ( newUri != null )
+            newUri[0] = info.uri;
+
+	if ( host.equals( "corejs.com" ) )
+	    return _getCoreContext();
 
         AppContext ac = _getContextFromMap( host );
         if ( ac != null )
             return ac;
 
-        {
-            int colon = host.indexOf( ":" );
-            if ( colon > 0 )
-                host = host.substring( 0 , colon );
-        }
-
-        // raw {admin.latenightcoders.com}
-        File temp = new File( _root , host );
-        if ( temp.exists() )
-            return getFinalContext( temp , host , host );
-        
-        // check for virtual hosting under us 
-        // foo.latenightcoders.com -> foo.com
-        String useHost = host;
-        for ( String d : OUR_DOMAINS ){
-            if ( useHost.endsWith( d ) ){
-                useHost = useHost.substring( 0 , useHost.length() - d.length() ) + ".com";
-                break;
-            }
-        }
-        if ( useHost.startsWith( "www." ) )
-            useHost = useHost.substring( 4 );
-
-        if ( uri != null && uri.length() > 0 && uri.indexOf( "/" , 1 ) > 0 ){
-            for ( String d : CDN_HOST ){
-                if ( useHost.startsWith( d ) ){
-                    String thing = uri.substring(1);
-
-                    int idx = thing.indexOf( "/" );
-                    String newUriNow = thing.substring( idx );                    
-                    thing = thing.substring( 0 , thing.indexOf( "/" ) );
-                    
-                    if ( newUri != null )
-                        newUri[0] = newUriNow;
-                    return getContext( thing , newUriNow , null );
-                }
-            }
-        }
-	
-	if ( useHost.equals( "corejs.com" ) ){
-	    return _coreContext;
-	}
-
-        if ( useHost.equals( "com" ) )
-            useHost = "www.com";
-
-        if ( D ) System.out.println( "useHost : " + useHost );
-        
-        // check for full host
-        temp = new File( _root , useHost );
-        if ( temp.exists() )
-            return getFinalContext( temp , host , useHost );
-        
-        // domain www.{alleyinsider.com}
-        String domain = useHost.indexOf(".") >= 0 ? DNSUtil.getDomain( useHost ) : useHost;
-        temp = new File( _rootFile , domain );
-        if ( temp.exists() )
-            return getFinalContext( temp , host , useHost );
-
-        // just name www.{alleyinsider}.com
-        int idx = domain.indexOf( "." );
-        if ( idx > 0 ){
-            temp = new File( _rootFile , domain.substring( 0 , idx ) );
+        for ( Info i : getPossibleSiteNames( info ) ){
+            File temp = new File( _root , i.host );
             if ( temp.exists() )
-                return getFinalContext( temp , host , useHost );
+                return getFinalContext( temp , i , host );
         }
-
+        
         return _getDefaultContext();
     }
 
-    AppContext getFinalContext( final File dir , String host , String useHost ){
+    AppContext getFinalContext( final File dir , final Info info , String host ){
         if ( ! dir.exists() )
             throw new RuntimeException( "trying to map [" + host + "] to " + dir + " which doesn't exist" );
 
@@ -135,10 +83,6 @@ class AppContextHolder {
         if ( ac != null )
             return ac;
         
-        ac = _getContextFromMap( dir.toString() );
-        if ( ac != null )
-            return ac;
-
         File f = dir;
         
         if ( D ) System.out.println( "mapping directory [" + host + "] to " + f );
@@ -148,14 +92,14 @@ class AppContextHolder {
         }
         else {
             if ( D ) System.out.println( "\t this is a holder for branches" );
-            f = getBranch( f , DNSUtil.getSubdomain( useHost ) );
+            f = getBranch( f , DNSUtil.getSubdomain( host ) );
             if ( D ) System.out.println( "\t using full path : " + f );
             
             ac = new AppContext( f.toString() , dir.getName() , f.getName() );
         }
 
+        _context.put( info.host , ac );
         _context.put( host , ac );
-        _context.put( f.toString() , ac );
         return ac;
     }
 
@@ -223,15 +167,18 @@ class AppContextHolder {
         return false;
         
     }
-    
+
     static List<Info> getPossibleSiteNames( String host , String uri ){
+        return getPossibleSiteNames( fixBase( host , uri ) );
+    }
+    
+    static List<Info> getPossibleSiteNames( Info base ){
 
         List<Info> all = new ArrayList<Info>( 6 );
-        
-        Info base = fixBase( host , uri );
         all.add( base );
-        host = base.host;
-        uri = base.uri;
+        
+        final String host = base.host;
+        final String uri = base.uri;
         
         String domain = DNSUtil.getDomain( host );
         if ( ! domain.equals( host ) )
@@ -246,6 +193,12 @@ class AppContextHolder {
     
     static Info fixBase( String host , String uri ){
         
+        {
+            int idx = host.indexOf( ":" );
+            if ( idx >= 0 )
+                host = host.substring( 0 , idx );
+        }
+
         if ( uri == null ){
             uri = "/";
         }
@@ -297,13 +250,19 @@ class AppContextHolder {
         final String uri;
     }
 
+    private synchronized AppContext _getCoreContext(){
+        if ( _coreContext == null )
+            _coreContext = new AppContext( CoreJS.get().getRootFile( null ) );
+        return _coreContext;
+    }
+
     final String _root;
     final File _rootFile;
 
     private final String _defaultWebRoot;
     private AppContext _defaultContext;
 
-    private final AppContext _coreContext = new AppContext( CoreJS.get().getRootFile( null ) );
+    private AppContext _coreContext;
 
     private final Map<String,AppContext> _context = Collections.synchronizedMap( new StringMap<AppContext>() );
 }
