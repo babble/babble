@@ -77,6 +77,9 @@ public class Zeus {
         String old = getRule( "resolver" );
         final String n = generateResolveTS();        
         
+	if ( old.equals( n ) )
+	    return;
+
         if ( old == null ){
             throw new RuntimeException( "no old resolver rule - i'm dying" );
         }
@@ -91,6 +94,8 @@ public class Zeus {
                 throw new RuntimeException( "too much has changed (diff)" );
             }
         }
+
+	System.out.println( "sanity check done.  old length:" + old.length() + " new length:" + n.length() );
 
         for ( int i=7; i>0; i-- ){
             old = getRule( getResolverName( i - 1 ) );
