@@ -539,7 +539,8 @@ public class JSDate extends JSObjectBase implements Comparable {
         new SimpleDateFormat( "yyyy-dd-MM HH:mm:ss z" ) ,
         new SimpleDateFormat( "yyyy-dd-MM HH:mm: z" ) ,
         new SimpleDateFormat( "yyyy-dd-MM HH:mm:ss" ) ,
-        new SimpleDateFormat( "yyyy-dd-MM HH:mm" )
+        new SimpleDateFormat( "yyyy-dd-MM HH:mm" ) ,
+        new SimpleDateFormat( "dd/MMM/yyyy:HH:mm:ss" )
     };
 
 }
