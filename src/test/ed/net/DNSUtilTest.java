@@ -14,6 +14,8 @@ public class DNSUtilTest extends TestCase {
         assertEquals( "com" , DNSUtil.getTLD( "www.shopwiki.com" ) );
         assertEquals( "com" , DNSUtil.getTLD( "asd.shopwiki.com" ) );
         assertEquals( "net" , DNSUtil.getTLD( "asd.shopwiki.net" ) );
+        assertEquals( "co.uk" , DNSUtil.getTLD( "asd.shopwiki.co.uk" ) );
+        assertEquals( "edu" , DNSUtil.getTLD( "asd.shopwiki.edu" ) );
     }
 
     @Test(groups = {"basic"})
@@ -23,7 +25,7 @@ public class DNSUtilTest extends TestCase {
         assertEquals( "shopwiki.com" , DNSUtil.getDomain( "asd.shopwiki.com" ) );
         assertEquals( "shopwiki.net" , DNSUtil.getDomain( "asd.shopwiki.net" ) );
 
-        assertEquals( "a.a" , DNSUtil.getDomain( "a.a.a.a.a" ) );
+        assertEquals( "foo.co.uk" , DNSUtil.getDomain( "foo.foo.co.uk" ) );
     }
 
     @Test(groups = {"basic"})

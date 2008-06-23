@@ -28,8 +28,14 @@ public class DNSUtil {
             return host;
         return host.substring( idx + 1 );
     }
-
+    
     public static String getTLD( String host ){
+        
+        host = host.toLowerCase();
+
+        // efficiency hack
+        if ( host.endsWith( ".com" ) )
+            return "com";
         
         int idx = host.lastIndexOf( "." );
 
@@ -38,12 +44,29 @@ public class DNSUtil {
 
         if ( idx == host.length() - 1 )
             idx = host.lastIndexOf( "." , host.length() - 2 );
-
+        
         if ( idx < 0 )
             throw new RuntimeException( "not a host:" + host );
 
-        // TODO: 2nd level domains
-        return host.substring( idx + 1 );
+        String tld = host.substring( idx + 1 );
+        
+        if ( TLDS.contains( tld ) )
+            return tld;
+        
+        int idx2 = host.lastIndexOf( "." , idx - 1 );
+        String moreTLD = idx2 < 0 ? host : host.substring( idx2 + 1 );
+
+        if ( TLDS.contains( moreTLD ) )
+            return moreTLD;
+
+        
+        if ( tld.length() >= 3 )
+            return tld;
+
+        if ( idx - idx2 > 3 )
+            return tld;
+
+        return moreTLD;
     }
 
     public static List<InetAddress> getPublicAddresses()
@@ -84,6 +107,17 @@ public class DNSUtil {
             lst.add( e.nextElement() );
 
         return lst;
+    }
+
+    final static Set<String> TLDS = new HashSet<String>();
+    static {
+        for ( String s : new ed.io.LineReader( ClassLoader.getSystemClassLoader().getResourceAsStream( "tlds.txt" ) ) ){
+            s = s.toLowerCase().trim();
+            if ( s.length() == 0 )
+                continue;
+            s = s.replaceAll( "\\-\\-.*" , "" );
+            TLDS.add( s );
+        }
     }
 
     public static void main( String args[] )
