@@ -255,7 +255,7 @@ IfNode.prototype = {
                 var bool_expr = this.bool_exprs[i];
 
                 var value = bool_expr.bool_expr.resolve(context);
-                if(djang10.Expression.is_true(value) != bool_expr.ifnot)
+                if(djang10.Expression.is_true(value) == bool_expr.ifnot)
                     return this.nodelist_false.__render(context, printer);
                 
                 return this.nodelist_true.__render(context, printer);
