@@ -28,8 +28,6 @@ class AppContextHolder {
         CDN_HOSTNAMES = Collections.unmodifiableSet( s );
     }
 
-
-
     private static final String LOCAL_BRANCH_LIST[] = new String[]{ "master" , "test" , "www" };
     private static final String WWW_BRANCH_LIST[] = new String[]{ "test" , "master" };
 
@@ -232,7 +230,7 @@ class AppContextHolder {
         
         Info base = fixBase( host , uri );
         all.add( base );
-        host = base.site;
+        host = base.host;
         uri = base.uri;
         
         String domain = DNSUtil.getDomain( host );
@@ -286,16 +284,16 @@ class AppContextHolder {
     
     static class Info {
         
-        Info( String site , String uri ){
-            this.site = site;
+        Info( String host , String uri ){
+            this.host = host;
             this.uri = uri;
         }
 
         public String toString(){
-            return site + uri;
+            return host + uri;
         }
 
-        final String site;
+        final String host;
         final String uri;
     }
 

@@ -10,7 +10,6 @@ public class AppServerTest extends ed.TestCase {
 
     @Test(groups = {"basic"})
     public void testGetContext(){
-        if ( true ) return;
         AppContextHolder as = new AppContextHolder( _root + "admin" , _root );
         
         assertEquals( _root + "alleyinsider" , as.getContext( "alleyinsider.latenightcoders.com" , "" , null ).getRoot() );
