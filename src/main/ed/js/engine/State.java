@@ -74,6 +74,9 @@ class State {
         if ( name.equals( "arguments" ) )
             return false;
         
+        if ( JAVA_RESERVED_WORDS.contains( name ) )
+            return false;
+
         if ( _fi == null )
             return false;
         
@@ -90,5 +93,10 @@ class State {
 
     FunctionInfo _fi;
     
+    final static Set<String> JAVA_RESERVED_WORDS = new HashSet<String>();
+    static {
+        JAVA_RESERVED_WORDS.add( "first" );
+        
+    }
 
 }
