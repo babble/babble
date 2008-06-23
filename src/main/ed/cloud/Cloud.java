@@ -122,6 +122,11 @@ public class Cloud extends JSObjectBase {
         return (JSObject)(evalFunc( "Cloud.Site.forName" , name , create ));
     }
 
+    public Zeus createZeus( String host , String user , String pass )
+        throws IOException {
+        return new Zeus( host , user , pass );
+    }
+
     Object evalFunc( String funcName , Object ... args ){
         return evalFunc( null , funcName , args );
     }
