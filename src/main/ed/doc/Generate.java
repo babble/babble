@@ -35,15 +35,11 @@ public class Generate {
             if(! (dbo instanceof AppContext)) throw new RuntimeException("your appserver is having an identity crisis");
             String instanceName = ((AppContext)dbo).getName();
 
-            File check = new File("../"+instanceName+"/"+path+"DOC_DIR");
-            if(check.exists())
-                removeOldDocs("../"+instanceName+"/"+path);
-
-            System.out.println("instance: "+instanceName+" path: "+path);
             SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -d=../../"+instanceName+"/"+path+" -t=templates/jsdoc2", null, new File("../core-modules/docgen/"), objStr);
-            // System.out.println(r.getOut());
 
-            check.createNewFile();
+            File check = new File("../"+instanceName+"/"+path+"DOC_DIR");
+            if(!check.exists())
+                check.createNewFile();
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -109,16 +105,23 @@ public class Generate {
     }
 
     public static void removeOldDocs(String path) throws IOException {
+        File check = new File(path+"/DOC_DIR");
+        if(!check.exists()) return;
+
         File f = new File(path);
-        if(!f.exists()) return;
         if(f.isDirectory()) {
             File farray[] = f.listFiles();
             for(int i=0; i<farray.length; i++) {
-                removeOldDocs(farray[i].getCanonicalPath());
+                farray[i].delete();
             }
         }
-        else {
-            f.delete();
+
+        f = new File(path+"/symbols");
+        if(f.isDirectory()) {
+            File farray[] = f.listFiles();
+            for(int i=0; i<farray.length; i++) {
+                farray[i].delete();
+            }
         }
     }
 }
