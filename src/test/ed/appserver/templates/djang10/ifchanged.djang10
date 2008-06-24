@@ -1,0 +1,8 @@
+{% for item in [1,2,2,4,5] %}
+    {% ifchanged item %} {{ item }} {% endifchanged %}
+{% endfor %}
+
+
+{% for item in [1,2,2,4,5] %}
+    {% ifchanged %} {{ item }} {% endifchanged %}
+{% endfor %}

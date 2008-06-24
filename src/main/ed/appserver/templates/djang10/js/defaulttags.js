@@ -167,6 +167,65 @@ ForNode.prototype = {
     }
 };
 
+var IfChangedNode =
+    defaulttags.IfChangedNode =
+    function(nodelist, exprs) {
+
+    this.nodelist = nodelist;
+    this._varlist = exprs;    
+};
+IfChangedNode.are_equal = function(a, b){
+    if(typeof(a) != "object" || typeof(b) != "object")
+        return a == b;
+
+    if((a instanceof Array) && (b instanceof Array)) {
+        if(a.length != b.length) return false;
+        for(var i=0; i<a.length; i++)
+            if(!IfChangedNode.are_equal(a[i], b[i]))
+                return false;
+        return true; 
+    }
+        
+    if(a.equals instanceof Function)
+        return a.equals(b);
+    
+    if(b.equals instanceof Function)
+        return b.equals(a);
+    
+    return a == b;
+};
+IfChangedNode.prototype = {
+    __proto__: djang10.Node.prototype,
+    
+    toString: function() {
+        return "<IfChanged Node: " + tojson(this.exprs) + ">";
+    },
+    __render: function(context, printer) {
+        var template_vars = context["__render_vars"];
+        if(template_vars == null)
+            template_vars = context["__render_vars"] = new Map();
+
+        var last_seen = (("forloop" in context) && context.forloop.first)? null : template_vars.get(this);
+        
+        var compare_to;
+        var is_same;
+        if(this._varlist.length > 0)
+            compare_to = this._varlist.map(function(expr) { return expr.resolve(context); });
+        else
+            compare_to = this.nodelist.render(context);
+            
+        if(!IfChangedNode.are_equal(last_seen, compare_to)) {
+            var firstloop = (last_seen == null);
+            last_seen = compare_to;
+            template_vars.set(this, last_seen);
+            
+            context.push();
+            context["ifchanged"] = {"firstloop": firstloop};
+            this.nodelist.__render(context, printer);
+            context.pop();
+        }
+    }
+};
 
 var IfEqualNode =
     defaulttags.IfEqualNode =
@@ -491,6 +550,23 @@ var do_if =
     return new IfNode(boolvars, nodelist_true, nodelist_false, link_type);
 };
 register.tag("if", do_if);
+
+var ifchanged =
+    defaulttags.ifchanged =
+    function(parser, token) {
+
+    var bits = token.contents.split(/\s+/);
+    var nodelist = parser.parse(["endifchanged"]);
+    parser.delete_first_token();
+    
+    var exprs = [];
+    for(var i=1; i<bits.length; i++) {
+        exprs.push(parser.compile_expression(bits[i]) );
+    }
+    
+    return new IfChangedNode(nodelist, exprs);
+};
+register.tag("ifchanged", ifchanged);
 
 var load =
     defaulttags.load =
