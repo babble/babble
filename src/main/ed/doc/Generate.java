@@ -2,6 +2,8 @@ package ed.doc;
 
 import java.io.*;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Iterator;
 
 import ed.js.*;
 import ed.js.func.*;
@@ -16,6 +18,18 @@ import ed.io.SysExec;
  * @expose
  */
 public class Generate {
+
+    private static String version;
+
+    public static void setVersion(String v) {
+        version = v;
+    }
+
+    public static String getVersion() {
+        if(version == null) return "";
+        return version;
+    }
+
 
     /** Takes objects from the db and makes them into HTML pages.  Uses a default output directory.
      * @param A jsoned obj from the db
@@ -67,11 +81,26 @@ public class Generate {
             try {
                 SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -r -t=templates/json ../"+path, null, new File("../core-modules/docgen/"), "");
 
+                String rout = r.getOut();
                 JSObjectBase ss = new JSObjectBase();
-                ss.set("symbolSet", r.getOut());
+                ss.set("symbolSet", rout);
+
+                System.out.println("rout: "+rout);
+
+                JSObject json = (JSObject)JS.eval("("+rout+")");
+                Collection keyset = json.keySet();
+                JSArray keys = new JSArray();
+                Iterator k = keyset.iterator();
+                while(k.hasNext()) {
+                    String name = (k.next()).toString();
+                    keys.add(name);
+                }
+
                 JSObjectBase obj = new JSObjectBase();
                 obj.set("ts", Calendar.getInstance().getTime().toString());
                 obj.set("_index", ss);
+                obj.set("version", Generate.getVersion());
+                obj.set("name", keys);
 
                 Scope s = Scope.getThreadLocal();
                 Object dbo = s.get("db");
@@ -104,6 +133,11 @@ public class Generate {
         }
     }
 
+    /** Remove old documentation files.
+     * The first time docgen is run, existing files in the directory will be ignored.  After that, the entire directory will
+     * be wiped each time docgen is run.
+     * @param path to documentation directory
+     */
     public static void removeOldDocs(String path) throws IOException {
         File check = new File(path+"/DOC_DIR");
         if(!check.exists()) return;

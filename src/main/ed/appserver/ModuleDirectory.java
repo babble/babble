@@ -49,7 +49,7 @@ public class ModuleDirectory extends JSObjectLame implements JSLibrary {
             return lib;
 
         Module m = getModule( name );
-        lib = m.getLibrary( getDesiredVersion( name ) , _context , _scope );
+        lib = m.getLibrary( getDesiredVersion( name ) , _context , _scope , true );
         System.err.println( "created JSFileLibrary : " + name );
         _libraries.put( name , lib );
         return lib;
