@@ -347,6 +347,25 @@ LoadNode.prototype = {
     }
 };
 
+var NowNode =
+    defaulttags.NodeNode =
+    function(format_expr) {
+
+    this.format_expr = format_expr;
+};
+NowNode.prototype = {
+    __proto__: djang10.Node.prototype,
+    
+    toString: function() {
+        return "<Now Node: " + this.format_Expr + ">";
+    },
+    __render: function(context, printer) {
+        var format = this.format_expr.resolve(context);
+        var formatted_date = djang10.formatDate(new Date(), format);
+        printer(formatted_date);
+    }
+};
+
 //Registration
 var comment =
     defaulttags.comment =
@@ -584,6 +603,19 @@ var load =
 };
 register.tag("load", load);
 
+
+var now =
+    defaulttags.now =
+    function(parser, token) {
+
+    var bits = token.split_contents();
+    if(bits.length != 2)
+        throw djang10.NewTemplateException("'now' statement takes one argument");
+    var expr = parser.compile_expression(bits[1]);
+    
+    return new NowNode(expr);
+};
+register.tag("now", now);
 
 //private helpers
 var quote = function(str) { return '"' + str + '"';};
