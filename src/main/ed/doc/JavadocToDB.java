@@ -5,6 +5,7 @@ import ed.js.*;
 import ed.db.*;
 import ed.js.engine.Scope;
 import java.util.regex.*;
+import ed.doc.Generate;
 
 public class JavadocToDB {
 

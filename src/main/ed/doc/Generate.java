@@ -85,6 +85,8 @@ public class Generate {
                 JSObjectBase ss = new JSObjectBase();
                 ss.set("symbolSet", rout);
 
+                System.out.println("rout: "+rout);
+
                 JSObject json = (JSObject)JS.eval("("+rout+")");
                 Collection keyset = json.keySet();
                 JSArray keys = new JSArray();
