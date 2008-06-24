@@ -313,20 +313,17 @@ IfNode.prototype = {
                 var value = bool_expr.bool_expr.resolve(context);
                 if(djang10.Expression.is_true(value) != bool_expr.ifnot)
                     return this.nodelist_true.__render(context, printer);
-                
-                return this.nodelist_false.__render(context, printer);
             }
+            return this.nodelist_false.__render(context, printer);
         }
         else {
             for(var i=0; i<this.bool_exprs.length; i++) {
                 var bool_expr = this.bool_exprs[i];
-
                 var value = bool_expr.bool_expr.resolve(context);
                 if(djang10.Expression.is_true(value) == bool_expr.ifnot)
                     return this.nodelist_false.__render(context, printer);
-                
-                return this.nodelist_true.__render(context, printer);
-            };
+            }
+            return this.nodelist_true.__render(context, printer);
         }
     }
 };
@@ -403,6 +400,25 @@ NowNode.prototype = {
         var format = this.format_expr.resolve(context);
         var formatted_date = djang10.formatDate(new Date(), format);
         printer(formatted_date);
+    }
+};
+
+var SpacelessNode =
+    defaulttags.SpacelessNode =
+    function(nodelist) {
+
+    this.nodelist = nodelist;
+};
+SpacelessNode.prototype ={
+    __proto__: djang10.Node.prototype,
+    
+    toString: function() {
+        return "<Spaceless Node>";
+    },
+    __render: function(context, printer) {
+        var content = this.nodelist.render(context);
+        content = content.replace(/>\s+</, "><");
+        printer(content);
     }
 };
 
@@ -674,6 +690,16 @@ var regroup =
     return new RegroupNode(list_expr, prop_name, var_name);
 };
 register.tag("regroup", regroup);
+
+var spaceless =
+    defaulttags.spaceless =
+    function(parser, token) {
+
+    var nodelist = parser.parse(["endspaceless"]);
+    parser.delete_first_token();
+    return new SpacelessNode(nodelist);
+};
+register.tag("spaceless", spaceless);
 
 //private helpers
 var quote = function(str) { return '"' + str + '"';};
