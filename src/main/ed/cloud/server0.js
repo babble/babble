@@ -27,6 +27,7 @@ Cloud.Server.prototype.toString = function(){
 }
 
 me = new Cloud.Server( SERVER_NAME );
+log.info( "SERVER_NAME : " + SERVER_NAME );
 log.info( "me : " + me );
 log.info( "grid server : " + me.gridServer() );
 db = connect( "grid" , me.gridServer() );
