@@ -78,21 +78,14 @@ public class Module {
 
         return null;
     }
-    
-    public JSFileLibrary getLibrary( String version , AppContext context ){
-        return getLibrary( version , context , null );
-    }
 
-    public JSFileLibrary getLibrary( String version , Scope scope ){
-        return getLibrary( version , null , scope );
-    }
-
-    public JSFileLibrary getLibrary( String version , AppContext context , Scope scope ){
+    public JSFileLibrary getLibrary( String version , AppContext context , Scope scope , boolean pull ){
         File f = getRootFile( version );
-        GitUtils.pull( f );
+        if ( pull )
+            GitUtils.pull( f );
         return new JSFileLibrary( null , f , _uriBase , context , scope , _doInit );
     }
-
+    
     /**
      *  return the base for informational purposes
      * @return

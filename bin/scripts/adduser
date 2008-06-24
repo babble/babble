@@ -3,7 +3,7 @@
 numTimes = 0;
 
 function _usage(){
-    print( "usage : adduser <database> <name> <email> <pass>" );    
+    print( "usage : adduser <database> <name> <email> <pass> [optional permissions, just add as extra parameters]" );    
 }
 
 if ( arguments.length < 4 ){
