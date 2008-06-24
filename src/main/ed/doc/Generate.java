@@ -2,6 +2,8 @@ package ed.doc;
 
 import java.io.*;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Iterator;
 
 import ed.js.*;
 import ed.js.func.*;
@@ -35,7 +37,9 @@ public class Generate {
             if(! (dbo instanceof AppContext)) throw new RuntimeException("your appserver is having an identity crisis");
             String instanceName = ((AppContext)dbo).getName();
 
+            System.out.println("about to exec: ../../"+instanceName+"/"+path);
             SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -d=../../"+instanceName+"/"+path+" -t=templates/jsdoc2", null, new File("../core-modules/docgen/"), objStr);
+            System.out.println("execed: "+r.getOut());
 
             File check = new File("../"+instanceName+"/"+path+"DOC_DIR");
             if(!check.exists())
@@ -67,11 +71,23 @@ public class Generate {
             try {
                 SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -r -t=templates/json ../"+path, null, new File("../core-modules/docgen/"), "");
 
+                String rout = r.getOut();
                 JSObjectBase ss = new JSObjectBase();
-                ss.set("symbolSet", r.getOut());
+                ss.set("symbolSet", rout);
+
+                JSObject json = (JSObject)JS.eval("("+rout+")");
+                Collection keyset = json.keySet();
+                JSArray keys = new JSArray();
+                Iterator k = keyset.iterator();
+                while(k.hasNext()) {
+                    String name = (k.next()).toString();
+                    keys.add(name);
+                }
+
                 JSObjectBase obj = new JSObjectBase();
                 obj.set("ts", Calendar.getInstance().getTime().toString());
                 obj.set("_index", ss);
+                obj.set("name", keys);
 
                 Scope s = Scope.getThreadLocal();
                 Object dbo = s.get("db");
@@ -104,6 +120,11 @@ public class Generate {
         }
     }
 
+    /** Remove old documentation files.
+     * The first time docgen is run, existing files in the directory will be ignored.  After that, the entire directory will
+     * be wiped each time docgen is run.
+     * @param path to documentation directory
+     */
     public static void removeOldDocs(String path) throws IOException {
         File check = new File(path+"/DOC_DIR");
         if(!check.exists()) return;
