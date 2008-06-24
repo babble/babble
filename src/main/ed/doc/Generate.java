@@ -19,6 +19,18 @@ import ed.io.SysExec;
  */
 public class Generate {
 
+    private static String version;
+
+    public static void setVersion(String v) {
+        version = v;
+    }
+
+    public static String getVersion() {
+        if(version == null) return "";
+        return version;
+    }
+
+
     /** Takes objects from the db and makes them into HTML pages.  Uses a default output directory.
      * @param A jsoned obj from the db
      */
@@ -85,6 +97,7 @@ public class Generate {
                 JSObjectBase obj = new JSObjectBase();
                 obj.set("ts", Calendar.getInstance().getTime().toString());
                 obj.set("_index", ss);
+                obj.set("version", Generate.getVersion());
                 obj.set("name", keys);
 
                 Scope s = Scope.getThreadLocal();
