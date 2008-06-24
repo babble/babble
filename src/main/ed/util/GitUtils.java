@@ -94,6 +94,20 @@ public class GitUtils {
     }
     
     
+    public static boolean checkout( File dir , String pathspec ){
+        _log.info( "checkout " + dir + " to " + pathspec );
+        SysExec.Result r = SysExec.exec( "git checkout " + pathspec , null , dir , null );
+        return 
+            ( r.getErr() + "\n" + r.getOut() ).indexOf( "error:" ) < 0;
+    }
+
+    public static boolean pull( File dir ){
+        _log.info( "pull " + dir );
+        SysExec.Result r = SysExec.exec( "git pull" , null , dir , null );
+        return 
+            ( r.getErr() + "\n" + r.getOut() ).indexOf( "error:" ) < 0;
+    }
+
     public static void main( String args[] )
         throws Exception {
         System.out.println( getBranchOrTagName( new File( args[0] ) ) );
