@@ -37,9 +37,7 @@ public class Generate {
             if(! (dbo instanceof AppContext)) throw new RuntimeException("your appserver is having an identity crisis");
             String instanceName = ((AppContext)dbo).getName();
 
-            System.out.println("about to exec: ../../"+instanceName+"/"+path);
             SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -d=../../"+instanceName+"/"+path+" -t=templates/jsdoc2", null, new File("../core-modules/docgen/"), objStr);
-            System.out.println("execed: "+r.getOut());
 
             File check = new File("../"+instanceName+"/"+path+"DOC_DIR");
             if(!check.exists())

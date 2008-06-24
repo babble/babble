@@ -4,6 +4,7 @@ import java.util.*;
 import ed.js.*;
 import ed.db.*;
 import ed.js.engine.Scope;
+import java.util.regex.*;
 
 public class JavadocToDB {
 
@@ -200,50 +201,31 @@ public class JavadocToDB {
 
         // get stupid anonymous inner classes
         Tag anon[] = c.tags("anonymous");
-        System.out.println("anonymous tags: "+anon.length);
         if(anon.length > 0) {
             JSArray jsAnon = new JSArray();
             for(int j=0; j<anon.length; j++) {
-                String aText = anon[j].text();
-                int idx;
-                System.out.println("text: "+aText);
                 JSObjectBase a = new JSObjectBase();
-                if((idx=aText.indexOf("name : {")) >= 0 ) {
-                    System.out.println("name: "+aText.substring(idx+8, aText.indexOf('}', idx+8)));
-                    a.set("name", aText.substring(idx+8, aText.indexOf('}', idx+8)));
-                    a.set("alias", aText.substring(idx+8, aText.indexOf('}', idx+8)));
-                }
-                if((idx=aText.indexOf("param : {")) >= 0 ) {
-                    String txt[] = aText.substring(idx+10, aText.indexOf('}', idx+10)).split("||");
-                    JSArray params = new JSArray();
-                    for(int k=0; k>txt.length; k++) {
-                        JSObjectBase p = new JSObjectBase();
-                        String pstr[] = txt[k].split("|");
-                        if(pstr.length > 0) p.set("name", pstr[0]);
-                        if(pstr.length > 1) p.set("type", pstr[1]);
-                        if(pstr.length > 2) p.set("desc", pstr[2]);
-                        params.add(p);
+                String aText = anon[j].text();
+
+                Pattern tagger = Pattern.compile("([a-z]+) : \\{([^\\}]+)\\}");
+                Matcher m = tagger.matcher(aText);
+                JSArray params = new JSArray();
+                while(m.find()) {
+                    if(m.group(1).equals("param")) {
+                        params.add(m.group(2));
                     }
-                    a.set("params", params);
+                    else if(m.group(1).equals("return")) {
+                        a.set("returns", m.group(2));
+                    }
+                    else if(m.group(1).equals("name")) {
+                        a.set("alias", m.group(2));
+                        a.set("name", m.group(2));
+                    }
+                    else {
+                        a.set(m.group(1), m.group(2));
+                    }
                 }
-                if((idx=aText.indexOf("author : {")) >= 0 ) {
-                    a.set("author", aText.substring(idx+10, aText.indexOf('}', idx+10)));
-                }
-                if((idx=aText.indexOf("returns : {")) >= 0) {
-                    String txt[] = aText.substring(idx+11, aText.indexOf('}', idx+11)).split("||");
-                    JSArray returns = new JSArray();
-                    JSObjectBase tempReturn = new JSObjectBase();
-                    tempReturn.set("title", "return");
-                    if(txt.length > 0) tempReturn.set("type", txt[0]);
-                    if(txt.length > 1) tempReturn.set("desc", txt[1]);
-                    returns.add(tempReturn);
-                    a.set("type", txt[0]);
-                    a.set("returns", returns);
-                }
-                if( (idx=aText.indexOf("desc : {")) >= 0) {
-                    System.out.println("desc: "+aText.substring(idx+8, aText.indexOf('}', idx+8)));
-                    a.set("desc", aText.substring(idx+8, aText.indexOf('}', idx+8)));
-                }
+                a.set("params", params);
                 jsAnon.add(a);
             }
             temp.set("anonymous", jsAnon);
