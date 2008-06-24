@@ -93,10 +93,10 @@ public class AppContext {
             throw new RuntimeException( "couldn't load config" , e );
         }
 
-        _core = CoreJS.get().getLibrary( JS.toString( _scope.get( "corejsversion" ) ) , this , null );
+        _core = CoreJS.get().getLibrary( JS.toString( _scope.get( "corejsversion" ) ) , this , null , true );
         _scope.put( "core" , _core , true );
 
-        _external = Module.getModule( "external" ).getLibrary( null , this );
+        _external = Module.getModule( "external" ).getLibrary( null , this , null , true );
         _scope.put( "external" , _external , true );
 
         _scope.put( "_rootFile" , _rootFile , true );
