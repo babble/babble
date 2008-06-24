@@ -40,13 +40,13 @@ public class DNSUtil {
         int idx = host.lastIndexOf( "." );
 
         if ( idx < 0 )
-            throw new RuntimeException( "not a host:" + host );
+            return "";
 
         if ( idx == host.length() - 1 )
             idx = host.lastIndexOf( "." , host.length() - 2 );
         
         if ( idx < 0 )
-            throw new RuntimeException( "not a host:" + host );
+            return "";
 
         String tld = host.substring( idx + 1 );
         
