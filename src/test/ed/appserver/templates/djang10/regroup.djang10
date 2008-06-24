@@ -1,0 +1,9 @@
+{% regroup regroup_list by prop1 as grouped %}
+
+{% for group in grouped %}
+    {{ group.grouper }}
+    
+    {% for item in group.list %}
+        {{ item.prop2 }}
+    {% endfor %}
+{% endfor %} 

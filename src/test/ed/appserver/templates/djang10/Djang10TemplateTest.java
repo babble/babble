@@ -131,6 +131,17 @@ public class Djang10TemplateTest extends TestCase {
         
         o.set("prototypedObj", testScope.eval("function PrototypedClazz() {}; PrototypedClazz.prototype.getProp = function() { return 'moo'; }; return new PrototypedClazz();") );
 
+        JSArray regroup_list = new JSArray();
+        for(int groupId=0; groupId<4; groupId ++) {
+            for(int objId = 0; objId < 3; objId ++) {
+                JSObjectBase obj = new JSObjectBase();
+                obj.set("prop1", "group#"+groupId);
+                obj.set("prop2", "group#"+groupId + "obj#" + objId);
+                regroup_list.add(obj);
+            }
+        }
+        o.set("regroup_list", regroup_list);        
+        
         return o;
     }
 
