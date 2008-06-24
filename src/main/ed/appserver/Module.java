@@ -88,7 +88,9 @@ public class Module {
     }
 
     public JSFileLibrary getLibrary( String version , AppContext context , Scope scope ){
-        return new JSFileLibrary( null , getRootFile( version ) , _uriBase , context , scope , _doInit );
+        File f = getRootFile( version );
+        GitUtils.pull( f );
+        return new JSFileLibrary( null , f , _uriBase , context , scope , _doInit );
     }
 
     /**
@@ -112,12 +114,16 @@ public class Module {
         File f = new File( _root , version );
         if ( f.exists() )
             return f;
+
+        if ( ! GitUtils.clone( _giturl , _root , version ) )
+            throw new RuntimeException( "couldn't clone [" + _giturl + "]" );
         
-        /*
-          TODO: do smart stuff here
-          pin to 0.0 should go to latest 0.0.x
-        */
-        throw new RuntimeException( "can't find version [" + version + "] for [" + _uriBase + "]" );
+        if ( ! GitUtils.checkout( f , version ) ){
+            ed.io.FileUtil.deleteDirectory( f );
+            throw new RuntimeException( "couldn't checkout version [" + version + "] for [" + f + "]" );
+        }
+        
+        return f;
     }
 
     final File _root;
