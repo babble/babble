@@ -403,6 +403,25 @@ NowNode.prototype = {
     }
 };
 
+var SpacelessNode =
+    defaulttags.SpacelessNode =
+    function(nodelist) {
+
+    this.nodelist = nodelist;
+};
+SpacelessNode.prototype ={
+    __proto__: djang10.Node.prototype,
+    
+    toString: function() {
+        return "<Spaceless Node>";
+    },
+    __render: function(context, printer) {
+        var content = this.nodelist.render(context);
+        content = content.replace(/>\s+</, "><");
+        printer(content);
+    }
+};
+
 //Registration
 var comment =
     defaulttags.comment =
@@ -671,6 +690,16 @@ var regroup =
     return new RegroupNode(list_expr, prop_name, var_name);
 };
 register.tag("regroup", regroup);
+
+var spaceless =
+    defaulttags.spaceless =
+    function(parser, token) {
+
+    var nodelist = parser.parse(["endspaceless"]);
+    parser.delete_first_token();
+    return new SpacelessNode(nodelist);
+};
+register.tag("spaceless", spaceless);
 
 //private helpers
 var quote = function(str) { return '"' + str + '"';};
