@@ -1,7 +1,7 @@
 #!/usr/bin/env ./bin/jssh
 
 function _usage(){
-    print( "usage : adduser <database name> <collection name> <src host> <dst host> <wipe old>" );    
+    print( "usage : collectionCopy <database name> <collection name> <src host> <dst host> <wipe old>" );    
 }
 
 if ( arguments.length < 4 ){
