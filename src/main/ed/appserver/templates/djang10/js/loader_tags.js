@@ -58,15 +58,18 @@ ExtendsNode.prototype = {
             my_blocks[node.name] = node;
         });
         
+        //prep context
         context.push();
         var child_blocks = context["__child_blocks"];
         if(child_blocks == null)
             child_blocks = context["__child_blocks"] = [];
         else
             child_blocks = context["__child_blocks"] = context["__child_blocks"].slice();
- 
         child_blocks.push(my_blocks);
-
+        
+        //__render_vars stay in context because they are needed by the imported child_blocks
+        
+        //render & cleanup
         parent.nodelist.__render(context, printer);
         context.pop();
     }
@@ -91,7 +94,14 @@ IncludeNode.prototype = {
         var templateName = this.templatePathExpr.resolve(context);
         var template = djang10.loadTemplate(templateName);
         
+        //prep context
+        context.push();
+        context["__child_blocks"] = [];
+        context["__render_vars"] = new Map();
+        
+        //render & cleanup
         template.nodelist.__render(context, printer);
+        context.pop();
     }
 };
 

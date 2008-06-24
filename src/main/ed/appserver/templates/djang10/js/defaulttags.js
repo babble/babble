@@ -38,11 +38,19 @@ CycleNode.prototype = {
         return "<Cycle Node: cycleVars: " + this.cyclevars + ", name: " + this.variable_name + ">"; 
     },
     __render: function(context, printer) {
-        var value = this.cyclevars[this.i].resolve(context);
+        var template_vars = context["__render_vars"];
+        if(template_vars == null)
+            template_vars = context["__render_vars"] = new Map();
+        
+        var i = template_vars.get(this) || 0;
 
-        if(++this.i >= this.cyclevars.length)
-            this.i = 0;
-            
+        
+        var value = this.cyclevars[i].resolve(context);
+
+        if(++i >= this.cyclevars.length)
+            i = 0;
+        template_vars.set(this, i);
+
         if(this.variable_name)
             context[this.variable_name] = value;
         
