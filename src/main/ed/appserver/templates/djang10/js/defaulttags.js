@@ -313,24 +313,61 @@ IfNode.prototype = {
                 var value = bool_expr.bool_expr.resolve(context);
                 if(djang10.Expression.is_true(value) != bool_expr.ifnot)
                     return this.nodelist_true.__render(context, printer);
-                
-                return this.nodelist_false.__render(context, printer);
             }
+            return this.nodelist_false.__render(context, printer);
         }
         else {
             for(var i=0; i<this.bool_exprs.length; i++) {
                 var bool_expr = this.bool_exprs[i];
-
                 var value = bool_expr.bool_expr.resolve(context);
                 if(djang10.Expression.is_true(value) == bool_expr.ifnot)
                     return this.nodelist_false.__render(context, printer);
-                
-                return this.nodelist_true.__render(context, printer);
-            };
+            }
+            return this.nodelist_true.__render(context, printer);
         }
     }
 };
 
+var RegroupNode =
+    defaulttags.RegroupNode =
+    function(the_list, prop_name, var_name) {
+
+    this.the_list = the_list;
+    this.prop_name = prop_name;
+    this.var_name = var_name;
+};
+RegroupNode.prototype = {
+    __proto__: djang10.Node.prototype,
+    
+    toString: function() {
+        return "<Regroup Node: " + this.the_list + " by " + this.prop_name + " as " + this.var_name +">";
+    },
+    __render: function(context, printer) {
+        var obj_list = this.the_list.resolve(context);
+        if(obj_list == null || obj_list == djang10.Expression.UNDEFINED_VALUE) {
+            context[this.var_name] = [];
+            return;
+        }
+        
+        var grouped = [];
+        var group = null;
+        
+        var prop_name = this.prop_name;
+        
+        obj_list.each(function(item) {
+            if(group == null || group.grouper != item[prop_name]) {
+                group = {
+                    grouper: item[prop_name],
+                    list: []
+                };
+                grouped.push(group);
+            }
+            group.list.push(item);
+        });
+        
+        context[this.var_name] = grouped;
+    }
+};
 
 var LoadNode =
     defaulttags.LoadNode =
@@ -616,6 +653,24 @@ var now =
     return new NowNode(expr);
 };
 register.tag("now", now);
+
+var regroup =
+    defaulttags.regroup =
+    function(parser, token) {
+
+    var pattern = /^\s*\S+\s+(.+?)\s+by\s+(\S+)\s+as\s+(\S+)\s*$/;
+    var match = pattern.exec(token.contents);
+    
+    if(match == null)
+        throw djang10.NewTemplateException("'regroup' tag requires the format: {% regroup list_expression|optional_filter:with_optional_param by prop_name as result_var_name %}. got: " + token);
+    
+    var list_expr = parser.compile_filter(match[1]);
+    var prop_name = match[2];
+    var var_name = match[3];
+    
+    return new RegroupNode(list_expr, prop_name, var_name);
+};
+register.tag("regroup", regroup);
 
 //private helpers
 var quote = function(str) { return '"' + str + '"';};

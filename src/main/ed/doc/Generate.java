@@ -19,6 +19,18 @@ import ed.io.SysExec;
  */
 public class Generate {
 
+    private static String version;
+
+    public static void setVersion(String v) {
+        version = v;
+    }
+
+    public static String getVersion() {
+        if(version == null) return "";
+        return version;
+    }
+
+
     /** Takes objects from the db and makes them into HTML pages.  Uses a default output directory.
      * @param A jsoned obj from the db
      */
@@ -37,9 +49,7 @@ public class Generate {
             if(! (dbo instanceof AppContext)) throw new RuntimeException("your appserver is having an identity crisis");
             String instanceName = ((AppContext)dbo).getName();
 
-            System.out.println("about to exec: ../../"+instanceName+"/"+path);
             SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -d=../../"+instanceName+"/"+path+" -t=templates/jsdoc2", null, new File("../core-modules/docgen/"), objStr);
-            System.out.println("execed: "+r.getOut());
 
             File check = new File("../"+instanceName+"/"+path+"DOC_DIR");
             if(!check.exists())
@@ -75,6 +85,8 @@ public class Generate {
                 JSObjectBase ss = new JSObjectBase();
                 ss.set("symbolSet", rout);
 
+                System.out.println("rout: "+rout);
+
                 JSObject json = (JSObject)JS.eval("("+rout+")");
                 Collection keyset = json.keySet();
                 JSArray keys = new JSArray();
@@ -87,6 +99,7 @@ public class Generate {
                 JSObjectBase obj = new JSObjectBase();
                 obj.set("ts", Calendar.getInstance().getTime().toString());
                 obj.set("_index", ss);
+                obj.set("version", Generate.getVersion());
                 obj.set("name", keys);
 
                 Scope s = Scope.getThreadLocal();
