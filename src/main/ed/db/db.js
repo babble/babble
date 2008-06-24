@@ -47,6 +47,14 @@ DB.prototype.createCollection = function(name, opt) {
     return res;
 }
 
+/**
+  Erase the entire database.  (!)
+ 
+ * @return Object returned has member ok set to true if operation succeeds, false otherwise.
+*/
+DB.prototype.dropDatabase = function() { 
+    return this._dbCommand( { dropDatabase: 1 } );
+}
 
 /**
  *  Returns the current profiling level of this database
