@@ -14,18 +14,18 @@ public abstract class DBBase extends JSObjectLame {
     public DBBase( String name ){
     	_name = name;
 	
-		/*
-		 *  augment the db object 
-		 */
-
+        /*
+         *  augment the db object 
+         */
+        
     	Scope s = Scope.newGlobal();
 
         JSFileLibrary lib = JSFileLibrary.loadLibraryFromEd("ed/db/", null, s);
-
-	    ((JSFunction)(lib.get( "db" ))).call( s, this );
-	    ((JSFunction)(lib.get( "dbcollection" ))).call( s, this);	
+        
+        ((JSFunction)(lib.get( "db" ))).call( s, this );
+        ((JSFunction)(lib.get( "dbcollection" ))).call( s, this);	
     }
-
+    
     public abstract DBCollection getCollectionFromFull( String fullNameSpace );
     public abstract DBCollection getCollection( String name );
     public abstract Collection<String> getCollectionNames();
