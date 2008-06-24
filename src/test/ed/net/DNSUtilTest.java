@@ -17,8 +17,9 @@ public class DNSUtilTest extends TestCase {
         assertEquals( "co.uk" , DNSUtil.getTLD( "asd.shopwiki.co.uk" ) );
         assertEquals( "edu" , DNSUtil.getTLD( "asd.shopwiki.edu" ) );
         assertEquals( "" , DNSUtil.getTLD( "localhost" ) );
+        assertEquals( "" , DNSUtil.getTLD( "foo.bar" ) );
     }
-
+    
     @Test(groups = {"basic"})
     public void testDomain(){
         assertEquals( "shopwiki.com" , DNSUtil.getDomain( "shopwiki.com" ) );

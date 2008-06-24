@@ -59,14 +59,7 @@ public class DNSUtil {
         if ( TLDS.contains( moreTLD ) )
             return moreTLD;
 
-        
-        if ( tld.length() >= 3 )
-            return tld;
-
-        if ( idx - idx2 > 3 )
-            return tld;
-
-        return moreTLD;
+        return "";
     }
 
     public static List<InetAddress> getPublicAddresses()
