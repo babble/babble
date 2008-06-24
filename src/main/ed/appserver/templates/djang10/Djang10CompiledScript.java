@@ -25,16 +25,14 @@ public class Djang10CompiledScript extends JSFunctionCalls1 {
 
 
     public Object call(Scope scope, Object contextObj, Object[] extra) {
-        Context context;
         
-        if(contextObj instanceof Context)
-            context = (Context)contextObj;
-        else if(contextObj instanceof JSObject)
-            context = new Context((JSObject)contextObj);
-        else
-            context = new Context(scope);
+        //init context
+        Context context = (contextObj instanceof JSObject)? new Context((JSObject)contextObj) : new Context(scope);
+        context.push();
         
+        //render
         nodes.__render(scope, context, (JSFunction)scope.get("print"));
+        
         return null;
     }
 }
