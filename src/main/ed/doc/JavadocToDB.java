@@ -242,10 +242,8 @@ public class JavadocToDB {
         query.set("version", Generate.getVersion());
         Iterator it = db.find(query);
 
-
-        // jsObj has sections: methods, fields, constructors, etc.
+        // todo: jsObj has sections: methods, fields, constructors, etc.
         // obj must be divied up appropriately between these
-
         if(it != null) {
             JSObject obj = (JSObjectBase)it.next();
             obj = (JSObject)obj.get("_index");
@@ -253,18 +251,16 @@ public class JavadocToDB {
 
             // parse the obj
             JSObject conflict = (JSObject)JS.eval("("+objStr+")");
-            //System.out.println("js: "+JSON.serialize(js));
             JSArray methods = (JSArray)jsObj.get("methods");
             for ( String s : conflict.keySet() ) {
-                System.out.println("adding: "+s);
                 methods.add(conflict.get( s ) );
             }
             jsObj.set("methods", methods);
 
             // remove the repeated class
-            /*            JSObject dquery = new JSObjectBase();
+            JSObject dquery = new JSObjectBase();
             query.set("_id", obj.get("_id"));
-            db.remove(dquery);*/
+            db.remove(dquery);
         }
     }
 
