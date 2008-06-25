@@ -24,7 +24,7 @@ function saveSome(coll, start, n, o) {
     return i;
 }
 
-db = connect("blob");
+db = connect("testblob");
 collection = "blobtest1";
 db[collection].ensureIndex({n:1});
 
@@ -44,5 +44,8 @@ while(1) {
 	print("ERROR : count should be " + next + " : current count = " + count);
 	break;
     }
+
+    if ( count > 20000 )
+        break;
 }
 

@@ -384,8 +384,14 @@ public abstract class DBCollection extends JSObjectLame {
                 lookup.set( "_id" , e.get( "_id" ) );
                 
                 JSFunction otherUpdate = (JSFunction)e.get( "_update" );
-                if ( otherUpdate == null )
+                if ( otherUpdate == null ){
+                    
+                    // already taken care of
+                    if ( e instanceof DBRef )
+                        continue;
+
                     throw new RuntimeException( "_update is null.  keyset : " + e.keySet() + " ns:" + e.get( "_ns" ) );
+                }
                 
                 otherUpdate.call( s , lookup , e , _upsertOptions );
                 
