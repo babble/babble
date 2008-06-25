@@ -22,6 +22,9 @@ public class Shell {
 
     void _handleShow( String cmd ){
 
+        if (cmd.endsWith(";")) {
+            cmd = cmd.substring(0,cmd.length()-1);
+        }
         if ( cmd.equalsIgnoreCase( "tables" ) || cmd.equalsIgnoreCase( "collections" ) ){
             for ( String c : _db.getCollectionNames() ){
                 _out.println( c );
@@ -29,7 +32,7 @@ public class Shell {
             return;
         }
         
-        _out.print( "don't know how to show [" + cmd + "]" );
+        _out.println( "don't know how to show [" + cmd + "]" );
     }
     
     void _iterateCursor( boolean expectMore ){
@@ -126,15 +129,25 @@ public class Shell {
                 continue;
             }
             
-            Object res = _scope.eval( "db." + line );
-            
-            if ( res instanceof DBCursor ){
-                _scope.put( "last" , res , true );
-                _displayCursor( (DBCursor)res );
-                continue;
+            try {
+                Object res = _scope.eval( "db." + line );
+                
+                if ( res instanceof DBCursor ){
+                    _scope.put( "last" , res , true );
+                    _displayCursor( (DBCursor)res );
+                    continue;
+                }
+    
+                _out.println( res );
             }
-
-            _out.println( res );
+            catch(RuntimeException e) { 
+                if (e.getMessage().startsWith("can't compile")) {
+                    _out.println("Error in command.");
+                }
+                else { 
+                    e.printStackTrace(_out);
+                }
+            }
             
         }
         

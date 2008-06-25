@@ -17,6 +17,7 @@ function bar( a , b ){
     return v();   
 }
 print( "108=" + bar( 2 , 3 ) );
+print( "A" );
 
 function bar2( a , b ){
     var c = a + b;
@@ -25,6 +26,8 @@ function bar2( a , b ){
 }
 
 print( bar2( 4 , 2 ) );
+
+print( "B" );
 
 function bar3( a ){
     var silly = Array( 7 , 1 ) , silly2 = Array(2);
@@ -38,6 +41,7 @@ function bar3( a ){
 bar3( 4 );
 bar3( 1 );
 
+print( "C" );
 
 function f(){
     

@@ -66,11 +66,11 @@ public class ConvertTest extends TestCase {
             if ( _file.toString().contains( "/engine/" ) ){
                 JSFunction myout = new JSFunctionCalls1(){
                         public Object call( Scope scope ,Object o , Object extra[] ){
-                            out.println( o );
+                            out.println( JSInternalFunctions.JS_toString( o ) );
                             return null;
                         }
                     };
-
+                
                 scope.put( "print" , myout , true );
                 scope.put( "SYSOUT" , myout , true );
             }
@@ -104,7 +104,6 @@ public class ConvertTest extends TestCase {
 
     static String _clean( String s ){
         s = s.replaceAll( "tempFunc_\\d+_" , "tempFunc_" );
-        s = s.replaceAll( "(\\d)\\.0\\b" , "$1" );
         return s;
     }
 

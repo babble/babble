@@ -151,7 +151,7 @@ public class JxpServlet {
             if ( o == null )
                 print( "null" );
             else
-                print( o.toString() );
+                print( JSInternalFunctions.JS_toString( o ) );
             
             return null;
         }
