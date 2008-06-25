@@ -96,40 +96,45 @@
 
  </target>
 
-    <target name="rebuild" depends="clean, compile"/>
+ <target name="rebuild" depends="clean, compile"/>
+ 
+ <!-- - - - - - - - - - - - - - - - - - - - - - -->
+ <!--  test stuff                               -->
+ <!-- - - - - - - - - - - - - - - - - - - - - - -->
+ 
+ <taskdef name="testng" 
+          classpathref="classpath"
+          classname="org.testng.TestNGAntTask" 
+          >
+ </taskdef>
 
-    <!-- - - - - - - - - - - - - - - - - - - - - - -->
-    <!--  test stuff                               -->
-    <!-- - - - - - - - - - - - - - - - - - - - - - -->
-
-    <taskdef name="testng" classpathref="classpath"
-              classname="org.testng.TestNGAntTask" />
-
-    <target name="test" depends="compile, test-basic, test-corejs, test-db"/>
-    <target name="test-no-db" depends="compile, test-basic, test-corejs"/>
-
-    <target  name="test-basic" depends="init">
-        <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
-            <xmlfileset dir="." includes="testng.xml"/>
-        </testng>
-    </target>
-
-    <target  name="test-db" depends="init">
-        <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true">
-            <xmlfileset dir="." includes="testng-db.xml"/>
-        </testng>
-    </target>
-
-    <target  name="test-corejs" depends="init">
-      <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
-        <xmlfileset dir="." includes="testng-corejs.xml"/>
-      </testng>
-    </target>
-
-    <target  name="test-db-load" depends="init">
-      <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
-        <xmlfileset dir="." includes="testng-db-load.xml"/>
-      </testng>
-    </target>
-
+ 
+ <target name="test" depends="compile, test-basic, test-corejs, test-db"/>
+ <target name="test-no-db" depends="compile, test-basic, test-corejs"/>
+ 
+ <target  name="test-basic" depends="init">
+   <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
+     <xmlfileset dir="." includes="testng.xml"/>
+   </testng>
+ </target>
+ 
+ <target  name="test-db" depends="init">
+   <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true">
+     <jvmarg value="-Xmx500m" />
+     <xmlfileset dir="." includes="testng-db.xml"/>
+   </testng>
+ </target>
+ 
+ <target  name="test-corejs" depends="init">
+   <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
+     <xmlfileset dir="." includes="testng-corejs.xml"/>
+   </testng>
+ </target>
+ 
+ <target  name="test-db-load" depends="init">
+   <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
+     <xmlfileset dir="." includes="testng-db-load.xml"/>
+   </testng>
+ </target>
+ 
 </project>

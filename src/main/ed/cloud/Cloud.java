@@ -137,6 +137,17 @@ public class Cloud extends JSObjectBase {
             return null;
         return (JSObject)(evalFunc( "Cloud.Site.forName" , name , create ));
     }
+    
+    public JSObject findEnvironment( String name , String env ){
+        if ( _bad ) 
+            return null;
+        
+        JSObject s = findSite( name , false );
+        if ( s == null )
+            return null;
+        
+        return (JSObject)(evalFunc( s , "findEnvironmentByName" , env ) );
+    }
 
     public Zeus createZeus( String host , String user , String pass )
         throws IOException {
