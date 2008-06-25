@@ -1,22 +1,32 @@
 package ed.appserver.templates.djang10;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
+import java.util.Set;
 
 import ed.appserver.JSFileLibrary;
 import ed.appserver.jxp.JxpSource;
-import ed.appserver.jxp.JxpSource.JxpFileSource;
+import ed.io.StreamUtil;
 import ed.js.JSArray;
 import ed.js.JSFunction;
 import ed.js.engine.Scope;
+import ed.util.Dependency;
 import ed.util.Pair;
 
-public class Djang10Source extends JxpFileSource {
+public class Djang10Source extends JxpSource {
+    private final Djang10Content content;
     private Djang10CompiledScript compiledScript;
 
     public Djang10Source(File f) {
-        super(f);
+        content = new Djang10File(f);
+        compiledScript = null;
+    }
+    public Djang10Source(String content) {
+        this.content = new DJang10String(content);
         compiledScript = null;
     }
 
@@ -50,7 +60,30 @@ public class Djang10Source extends JxpFileSource {
 
         return compiledScript;
     }
+    
+    public File getFile() {
+        return (content instanceof Djang10File)? ((Djang10File)content).getFile() : null;
+    }
+    public long lastUpdated(Set<Dependency> visitedDeps) {
+        visitedDeps.add(this);
 
+        long lastUpdated = content.lastUpdated();
+        for(Dependency dep : _dependencies)
+            if(!visitedDeps.contains(dep))
+                lastUpdated = Math.max(lastUpdated, dep.lastUpdated(visitedDeps));
+        
+        return lastUpdated;
+    }
+    protected String getContent() throws IOException {
+        return content.getContent();
+    }
+    protected InputStream getInputStream() throws IOException {
+        return content.getInputStream();
+    }
+    protected String getName() {
+        return content.getName();
+    }
+    
     public NodeList compile(Scope scope) {
         String contents;
 
@@ -83,5 +116,55 @@ public class Djang10Source extends JxpFileSource {
         }
         
         return jsHelper;
+    }
+    
+    private static interface Djang10Content {
+        public String getContent() throws IOException;
+        public InputStream getInputStream() throws IOException;
+        public long lastUpdated();
+        public String getName();
+    }
+    private static class Djang10File implements Djang10Content {
+        private final File file;
+        
+        public Djang10File(File file) {
+            this.file = file;
+        }
+        public String getContent() throws IOException {
+            return StreamUtil.readFully(file);
+        }
+        public InputStream getInputStream() throws IOException {
+            return new FileInputStream(file);
+        }
+        public long lastUpdated() {
+            return file.lastModified();
+        }
+        public File getFile() {
+            return file;
+        }
+        public String getName() {
+            return file.toString();
+        }
+    }
+    private static class DJang10String implements Djang10Content {
+        private final String content;
+        private final long timestamp;
+        
+        public DJang10String(String content) {
+            this.content = content;
+            timestamp = System.currentTimeMillis();
+        }
+        public String getContent() throws IOException {
+            return content;
+        }
+        public InputStream getInputStream() throws IOException {
+            return new ByteArrayInputStream(content.getBytes());
+        }
+        public long lastUpdated() {
+            return timestamp;
+        }
+        public String getName() {
+            return "temp"+timestamp+".djang10";
+        }
     }
 }
