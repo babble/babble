@@ -50,6 +50,7 @@ public class Generate {
             String instanceName = ((AppContext)dbo).getName();
 
             SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -d=../../"+instanceName+"/"+path+" -t=templates/jsdoc2", null, new File("../core-modules/docgen/"), objStr);
+            System.out.println(r.getOut());
 
             File check = new File("../"+instanceName+"/"+path+"DOC_DIR");
             if(!check.exists())
@@ -84,8 +85,6 @@ public class Generate {
                 String rout = r.getOut();
                 JSObjectBase ss = new JSObjectBase();
                 ss.set("symbolSet", rout);
-
-                System.out.println("rout: "+rout);
 
                 JSObject json = (JSObject)JS.eval("("+rout+")");
                 Collection keyset = json.keySet();
