@@ -66,9 +66,14 @@ DBCollection.prototype.dropIndexes = function() {
  */
 DBCollection.prototype.validate = function() {
     var res = this._dbCommand( { validate: this.getName() } );
-    res.valid = 
-        res && res.result && 
-        ! ( res.result.match( /exception/ ) || res.result.match( /corrupt/ ) );
+    
+    res.valid = false;
+
+    if ( res.result ){
+        var str = "-" + tojson( res.result );
+        res.valid = ! ( str.match( /exception/ ) || str.match( /corrupt/ ) );
+    }
+    
     return res;
 }
 
