@@ -42,10 +42,10 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
 
     // -----
 
-    abstract String getContent() throws IOException;
-    abstract InputStream getInputStream() throws IOException ;
+    protected abstract String getContent() throws IOException;
+    protected abstract InputStream getInputStream() throws IOException ;
     public abstract long lastUpdated(Set<Dependency> visitedDeps);
-    abstract String getName();
+    protected abstract String getName();
 
     //Convenience wrapper, override lastUpdated(Set<Dependency> visitedDeps) instead
     public final long lastUpdated() {
@@ -161,7 +161,7 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
             _f = f;
         }
         
-        String getName(){
+        protected String getName(){
             return _f.toString();
         }
 
@@ -170,7 +170,7 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
             return StreamUtil.readFully( _f );
         }
 
-        InputStream getInputStream()
+        protected InputStream getInputStream()
             throws IOException {
             return new FileInputStream( _f );
         }

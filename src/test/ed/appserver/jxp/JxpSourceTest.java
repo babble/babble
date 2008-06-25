@@ -20,15 +20,15 @@ public class JxpSourceTest extends ed.TestCase {
             return null;
         }
         
-        String getName(){
+        protected String getName(){
             return "temp.jxp";
         }
 
-        String getContent() {
+        protected String getContent() {
             return _s;
         }
 
-        InputStream getInputStream(){
+        protected InputStream getInputStream(){
             return new ByteArrayInputStream( _s.getBytes() );
         }
         
