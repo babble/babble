@@ -235,6 +235,39 @@ public class JavadocToDB {
         return temp;
     }
 
+    public static void resolveConflicts(ClassDoc newClass, JSObjectBase jsObj, DBCollection db) {
+        // is there a conflict with a js class?
+        JSObject query = new JSObjectBase();
+        query.set("name", newClass.name());
+        query.set("version", Generate.getVersion());
+        Iterator it = db.find(query);
+
+
+        // jsObj has sections: methods, fields, constructors, etc.
+        // obj must be divied up appropriately between these
+
+        if(it != null) {
+            JSObject obj = (JSObjectBase)it.next();
+            obj = (JSObject)obj.get("_index");
+            JSString objStr = (JSString)obj.get("symbolSet");
+
+            // parse the obj
+            JSObject conflict = (JSObject)JS.eval("("+objStr+")");
+            //System.out.println("js: "+JSON.serialize(js));
+            JSArray methods = (JSArray)jsObj.get("methods");
+            for ( String s : conflict.keySet() ) {
+                System.out.println("adding: "+s);
+                methods.add(conflict.get( s ) );
+            }
+            jsObj.set("methods", methods);
+
+            // remove the repeated class
+            /*            JSObject dquery = new JSObjectBase();
+            query.set("_id", obj.get("_id"));
+            db.remove(dquery);*/
+        }
+    }
+
     public static boolean start(RootDoc root) {
         Scope s = Scope.getThreadLocal();
         Object dbo = s.get("db");
@@ -249,19 +282,15 @@ public class JavadocToDB {
             Tag[] tags = classes[i].tags("expose");
             if(tags.length == 0) continue;
 
-            JSObject query = new JSObjectBase();
-            query.set("name", classes[i].name());
-            Iterator it = collection.find(query);
-            while(it != null && it.hasNext())
-                System.out.println("Conflicting class names: "+it.next());
-
-
             JSObjectBase obj = new JSObjectBase();
             JSObjectBase jsClasses = new JSObjectBase();
 
-            jsClasses.set(classes[i].name(), getClasses(classes[i]));
+            JSObjectBase javaClass = getClasses(classes[i]);
+            resolveConflicts(classes[i], javaClass, collection);
+            jsClasses.set(classes[i].name(), javaClass);
             jsClasses.set("fromJava", true);
             obj.set("symbolSet", jsClasses);
+
 
             JSObjectBase topLevel = new JSObjectBase();
             topLevel.set("_index", obj);
