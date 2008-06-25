@@ -18,7 +18,10 @@ function saveSome(coll, start, n, o) {
 	o.n = i;
 	db[coll].save(o);
         o._id = null;
-        if (i % 100 == 0) { print ("--> " + i);  }
+        if (i % 100 == 0) { 
+            assert( db[coll].validate().valid );
+            print ("--> " + i);  
+        }
     }
 
     return i;

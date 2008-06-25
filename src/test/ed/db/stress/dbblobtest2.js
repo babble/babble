@@ -14,9 +14,13 @@ function saveSome(coll, start, n, o) {
     
     for (var i=start; i < start + n; i++) { 
 	o.n = i;
-	db[ coll + ( i % 10 ) ].save(o);
+        var myCollection = db[ coll + ( i % 10 ) ];
+	myCollection.save(o);
         o._id = null;
-        if ( total++ % 100 == 0){ print( "total run: " + total ); };
+        if ( total++ % 100 == 0){ 
+            assert( myCollection.validate().valid );
+            print( "total run: " + total ); 
+        };
     }
     
     return i;

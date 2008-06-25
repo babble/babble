@@ -65,7 +65,10 @@ DBCollection.prototype.dropIndexes = function() {
  * @return SOMETHING_FIXME
  */
 DBCollection.prototype.validate = function() {
-    return this._dbCommand( { validate: this.getName() } );
+    var res = this._dbCommand( { validate: this.getName() } );
+    res.valid = ! ( res.result.match( /exception/ ) ||
+                    res.result.match( /corrupt/ ) );
+    return res;
 }
 
 /** 
