@@ -105,6 +105,24 @@ IncludeNode.prototype = {
     }
 };
 
+var UnparsedIncludeNode =
+    loader_tags.UnparsedIncludeNode =
+    function(path) {
+
+    this.path = path;
+};
+UnparsedIncludeNode.prototype = {
+    __proto__: djang10.Node.prototype,
+    
+    toString: function() {
+        return "<UnparsedInclude Node: " + this.path + ">";
+    },
+    __render: function(context, printer) {
+        var f = openFile(this.path);
+        printer(f.asString());
+    }
+};
+
 var do_block =
     loader_tags.do_block =
     function(parser, token) {
@@ -174,6 +192,36 @@ var do_include =
 };
 register.tag("include", do_include);
 
+
+//NOTE: parsed ssi's act a static includes, unparsed ssi's require an absolute path rooted at /local
+var ssi =
+    loader_tags.ssi =
+    function(parser, token) {
+
+    var bits = token.contents.split(/\s+/);
+    if(bits.length != 2 && bits.length != 3)
+        throw djang10.NewTemplateException("'ssi' tag takes one argument: the path to the file to be included");
+
+    var path = bits[1];
+    var parsed = false;
+    if(bits.length == 3) {
+        if(bits[2] == "parsed")
+            parsed = true;
+        else
+            throw djang10.NewTemplateException("Second (optional) argument to "+bits[0]+" tag  must be 'parsed'");
+    }
+    if (parsed) {
+        return new IncludeNode(parser.compile_expression('"' + path + '"'));
+    }
+    else {
+        if(path.indexOf("/local/") != 0)
+            throw djang10.NewTemplateException("Unparsed includes can only be in the /local");
+        
+        path = path.substring("/local/".length);
+        return new UnparsedIncludeNode(path);
+    }  
+};
+register.tag("ssi", ssi);
 
 var isinstance = function(object, constructor){
     while (object != null && (typeof object == "object")) {

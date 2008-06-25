@@ -17,6 +17,7 @@ import ed.js.Encoding;
 import ed.js.JSArray;
 import ed.js.JSDate;
 import ed.js.JSFunction;
+import ed.js.JSLocalFile;
 import ed.js.JSObjectBase;
 import ed.js.JSString;
 import ed.js.engine.Scope;
@@ -56,6 +57,12 @@ public class Djang10TemplateTest extends TestCase {
         scope.makeThreadLocal();
         
         Encoding.install(scope);
+        
+        scope.put("openFile", new JSFunctionCalls1() {
+            public Object call(Scope s, Object name, Object extra[]) {
+                return new JSLocalFile(new File("src/test/ed/appserver/templates/djang10"), name.toString());
+            }
+        }, true);
         
         JSFileLibrary localLib = new JSFileLibrary(new File("src/test/ed/appserver/templates/djang10"), "local", scope);
         scope.put("local", localLib, true);
