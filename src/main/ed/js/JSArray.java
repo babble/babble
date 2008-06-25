@@ -632,7 +632,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
             if ( i > 0 )
                 buf.append( "," );
             Object val = _array.get( i );
-            buf.append( val == null ? "" : val );
+            buf.append( val == null ? "" : JSInternalFunctions.JS_toString( val ) );
         }
         return buf.toString();
     }

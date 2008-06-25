@@ -158,8 +158,8 @@ public class JSNumericFunctions extends JSObjectBase {
             return Double.NaN;
         }
 
-        String s1 = a == null ? "null" : a.toString();
-        String s2 = b == null ? "null" : b.toString();
+        String s1 = JS_toString( a );
+        String s2 = JS_toString( b );
         
         return new JSString( s1 + s2 );
     }
@@ -278,6 +278,17 @@ public class JSNumericFunctions extends JSObjectBase {
         if ( a instanceof Number )
             return ~((Number)a).intValue();
         return -1;
+    }
+    
+    public static String JS_toString( Object o ){
+
+        if ( o == null )
+            return "null";
+        
+        if ( o instanceof Float || o instanceof Double )
+            o = fixType( o );
+
+        return o.toString();
     }
 
     static final Object _parseNumber( final Object orig ){
