@@ -60,8 +60,24 @@ DBCollection.prototype.dropIndexes = function() {
     return res;
 }
 
+/**
+ *   <p>
+ *    Returns an array of the indexes for the collection.
+ *   </p>
+ *   <p>
+ *   Each entry in the array is an index descriptor object than contains the 
+ *   following properties :  
+ *   </p>
+ *   <ul>
+ *   <li> name : name of the index</li>
+ *   <li> ns : name of the namespace the index is in</li>
+ *   <li> key : object property that's being indexed<li>
+ *   </ul>
+ * 
+ *   @return {Array} Array of index descriptor objects
+ */
 DBCollection.prototype.getIndexes = function(){
-    return this.getDB().system.indexes.find( { name : RegExp( this.getFullName() + "[.][$]" ) } );
+    return this.getDB().system.indexes.find( { ns : this.getFullName() } );
 }
 
 
@@ -73,7 +89,9 @@ DBCollection.prototype.reIndex = function(){
     
     all.forEach(
         function(z){
+            print( z.name );
             coll.dropIndex( z.name );
+            coll._dbCommand( { clean: coll + ".$" + z.name } );
             coll.ensureIndex( z.key );
         }
     );
@@ -327,25 +345,7 @@ DBCollection.prototype.findOne = function(criteria) {
     throw {exception : "Native Call findOne(): shouldn't have JS implementation"};
 }
 
-/**
- *   <p>
- *    Returns an array of the indexes for the collection.
- *   </p>
- *   <p>
- *   Each entry in the array is an index descriptor object than contains the 
- *   following properties :  
- *   </p>
- *   <ul>
- *   <li> name : name of the index</li>
- *   <li> ns : name of the namespace the index is in</li>
- *   <li> key : object property that's being indexed<li>
- *   </ul>
- * 
- *   @return {Array} Array of index descriptor objects
- */
-DBCollection.prototype.getIndexes = function() {
-    throw {exception : "Native Call getIndexes() : shouldn't have JS implementation"};
-}
+
 
 
 /**

@@ -296,8 +296,6 @@ public abstract class DBCollection extends JSObjectLame {
                           }
                       } );
 
-        _entries.put( "getIndexes" , Convert.makeAnon( "return this.getBase().system.indexes.find( { ns : /^\\w+\\." + getName() + "$/ } );" ) );
-        
     }
 
     private final Object _handleThis( Scope s , Object o ){
