@@ -59,7 +59,26 @@ DBCollection.prototype.dropIndexes = function() {
     
     return res;
 }
- 
+
+DBCollection.prototype.getIndexes = function(){
+    return this.getDB().system.indexes.find( { name : RegExp( this.getFullName() + "[.][$]" ) } );
+}
+
+
+DBCollection.prototype.reIndex = function(){
+    
+    var coll = this;
+    
+    var all = this.getDB().system.indexes.find( { ns : this.getFullName() } ).toArray();
+    
+    all.forEach(
+        function(z){
+            coll.dropIndex( z.name );
+            coll.ensureIndex( z.key );
+        }
+    );
+}
+
 /** 
  * Validate the data in a collection, returning some stats.
  * @return SOMETHING_FIXME
