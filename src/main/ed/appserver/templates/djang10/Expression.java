@@ -1,7 +1,11 @@
 package ed.appserver.templates.djang10;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
+import java.util.Stack;
 
 import org.mozilla.javascript.CompilerEnvirons;
 import org.mozilla.javascript.Node;
@@ -27,6 +31,19 @@ public class Expression extends JSObjectBase {
         };
     };
 
+    private static final List<Integer> SUPPORTED_TOKENS = Arrays.asList(
+        Token.GETELEM,
+        Token.GETPROP,
+        Token.CALL,
+        Token.NAME,
+        Token.ARRAYLIT,
+        Token.STRING,
+        Token.NUMBER,
+        Token.NULL,
+        Token.TRUE,
+        Token.FALSE
+    );
+    
     private String expression;
     private Node parsedExpression;
 
@@ -57,6 +74,20 @@ public class Expression extends JSObjectBase {
 
         if (parsedExpression.getType() != org.mozilla.javascript.Token.EXPR_RESULT)
             throw new TemplateException("Not an expression: " + expression);
+        
+        //Verify the expression
+        Queue<Node> workQueue = new LinkedList<Node>();
+        workQueue.add(parsedExpression.getFirstChild());
+        
+        while(!workQueue.isEmpty()) {
+            Node token = workQueue.remove();
+            if(!SUPPORTED_TOKENS.contains(token.getType()))
+                throw new TemplateException("Failed to parse expression: " + expression +". Unsupported token: " + token);
+            
+            for(token = token.getFirstChild(); token !=null; token = token.getNext())
+                workQueue.add(token);
+        }
+        
     }
 
     public boolean is_literal() {
@@ -199,7 +230,8 @@ public class Expression extends JSObjectBase {
 
 
         default:
-            throw new TemplateException("Invalid token: " + node);
+            //Should never happen
+            throw new IllegalStateException();
         }
     }
     
