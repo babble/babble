@@ -1,0 +1,21 @@
+#!/usr/bin/env ./bin/jssh
+
+numTimes = 0;
+
+function _usage(){
+    print( "usage : deploylog <module> <environment> <version>" );    
+}
+
+if ( arguments.length < 3 ){
+    _usage();
+    return -1
+}
+
+cloud = javaStatic( "ed.cloud.Cloud" , "getInstance" );
+db = cloud.getScope().db;
+
+assert( db );
+
+db.deploys.save( { module : arguments[0] , environment : arguments[1] , version : arguments[2] , when : new Date() } );
+
+db.deploys.ensureIndex( { when : 1 } );
