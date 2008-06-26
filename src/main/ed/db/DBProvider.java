@@ -32,13 +32,9 @@ public class DBProvider {
     }
 
     public static DBApiLayer get( String root , boolean useCache , String ip ){
-
-        if ( ip == null || ip.trim().length() == 0 ){
-            ip = System.getenv( "db_ip" );
-            if ( ip == null || ip.trim().length() == 0 ) {
-                ip = "127.0.0.1";
-            }
-        }
+        
+        if ( ip == null || ip.trim().length() == 0 )
+            ip = getDefaultHost();
         
         int port = DBPort.PORT;
         
@@ -81,6 +77,13 @@ public class DBProvider {
 
         return db;
 
+    }
+
+    static String getDefaultHost(){
+        String ip = System.getenv( "db_ip" );
+        if ( ip == null || ip.trim().length() == 0 )
+            ip = "127.0.0.1";
+        return ip;
     }
 
     private static DBApiLayer create(String root , String ip, int port){
