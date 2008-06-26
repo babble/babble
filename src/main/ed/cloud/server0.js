@@ -1,7 +1,7 @@
 
 Cloud.Server = function( name ){
     var r = /(\w\w\w)\-(\w\w+)\-n(\d+)\./.exec( name );
-
+    
     if ( ! r ){
         this.bad = true;
         this.location = "unknown";
@@ -10,10 +10,12 @@ Cloud.Server = function( name ){
         return;
     }
     
+    this.real = true;
+
     this.location = r[1];
     this.provider = r[2];
     this.number = parseInt( r[3] );
-
+    
 };
 
 Cloud.Server.prototype.gridServer = function(){
