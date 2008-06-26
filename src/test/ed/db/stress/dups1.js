@@ -21,11 +21,11 @@ for ( var i=0; i<100000; i++ ){
     t.save( { foo : val} );
     
     if ( i % 10000 == 0 )
-        t.validate();
+        assert( t.validate().valid ) ;
 }
 
 print( "done inserting" );
-assert( t.validate() );
+assert( t.validate().valid );
 
 for ( var val in counts ){
     var num = counts[val];
@@ -33,7 +33,7 @@ for ( var val in counts ){
     assert( dbcount == num , " dbcount:" + dbcount + " mycount:" + num );
 }
 
-assert( t.validate() );
+assert( t.validate().valid );
 
 print( "going to go crazy" );
 
@@ -51,12 +51,12 @@ for ( var val in counts ){
 
             
             if ( num % 1000 == 0 )
-                assert( t.validate() );
+                assert( t.validate().valid );
         }
     );
 }
 
-assert( t.validate() );
+assert( t.validate().valid );
 
 for ( var val in counts ){
     var num = counts[val];
@@ -64,4 +64,4 @@ for ( var val in counts ){
     assert( dbcount == num , " dbcount:" + dbcount + " mycount:" + num );
 }
 
-assert( t.validate() );
+assert( t.validate().valid );
