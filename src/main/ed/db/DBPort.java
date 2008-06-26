@@ -29,8 +29,15 @@ public class DBPort {
     
     DBPort( String host , int port )
         throws IOException {
+        this( host , port , null );
+    }
+    
+    DBPort( String host , int port , DBPortPool pool )
+        throws IOException {
         _host = host;
         _port = port;
+        _pool = pool;
+
         _array[0].order( ByteOrder.LITTLE_ENDIAN );
         _addr = new InetSocketAddress( _host , _port );
 
@@ -107,6 +114,9 @@ public class DBPort {
                 _error( "connect fail" );
             }
             
+            if ( _pool != null && ! _pool._everWorked )
+                throw lastError;
+
             long sleptSoFar = System.currentTimeMillis() - start;
 
             if ( sleptSoFar >= CONN_RETRY_TIME_MS )
@@ -143,7 +153,8 @@ public class DBPort {
     final int _port;
     final int _hashCode;
     final InetSocketAddress _addr;
-    
+    final DBPortPool _pool;
+
     private final ByteBuffer[] _array = new ByteBuffer[]{ ByteBuffer.allocateDirect( DBMessage.HEADER_LENGTH ) , null };
     private SocketChannel _sock;
 }
