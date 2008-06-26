@@ -91,7 +91,6 @@ def convert(py_tests):
     for name, vals in py_tests:
         if [pattern for pattern in unsupported_tests if re.search(pattern, name)]:
             continue
-       
         
         if isinstance(vals[2], tuple):
             normal_string_result = vals[2][0]
@@ -110,7 +109,10 @@ def convert(py_tests):
 
 
 def serialize_test(name, a_test):
-    return '    { name: %s, content: %s, model: %s, results: %s }' % ( serialize(name), serialize(a_test[0]), serialize(a_test[1]), serialize(a_test[2]))
+    #rename var to var1
+    content = a_test[0]
+    content = escape_var(content)
+    return '    { name: %s, content: %s, model: %s, results: %s }' % ( serialize(name), serialize(content), serialize(a_test[1]), serialize(a_test[2]))
 
 def serialize(m):
     if m is None:
@@ -120,12 +122,10 @@ def serialize(m):
         return "[ %s ]" % ", ".join( ["%s" % serialize(item) for item in m] )
 
     elif isinstance(m, dict):
-        return '{ %s }' % ", ".join( ['%s: %s' % (serialize(key), serialize(value)) for key, value in m.items()] )
+        return '{ %s }' % ", ".join( ['%s: %s' % (serialize(escape_var(key)), serialize(value)) for key, value in m.items()] )
 
     elif isinstance(m, str):
-        def replace(match):
-            return ESCAPE_DCT[match.group(0)]
-        return '"%s"' % ESCAPE.sub(replace, m)
+        return '"%s"' % escape_str(m)
     
     elif isinstance(m, (int, long, float, complex)):
         return "%d" % m
@@ -148,6 +148,16 @@ def serialize(m):
         raise Exception("can't serialize the model: %s" % m)
 
 
+
+def escape_var(var):
+    if isinstance(var, str):
+        return re.sub(r'([^\w]|^)var([^\w]|$)', r"\1var_ex\2", var)
+    return var
+
+def escape_str(str):
+    def replace(match):
+        return ESCAPE_DCT[match.group(0)]
+    return ESCAPE.sub(replace, str)
 
 ''' String escaping'''
 ESCAPE = re.compile(r'[\x00-\x1f\\"\b\f\n\r\t]')
