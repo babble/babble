@@ -64,6 +64,11 @@ class DBPortPool extends SimplePool<DBPort> {
         _port = port;
     }
 
+    void gotError(){
+        System.out.println( "emptying DBPortPool b/c of error" );
+        clear();
+    }
+
     protected DBPort createNew(){
         try {
             return new DBPort( _ip, _port);

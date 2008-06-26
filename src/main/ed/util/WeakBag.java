@@ -25,6 +25,10 @@ public class WeakBag<T> {
         return _set.size();
     }
 
+    public void clear(){
+        _set.clear();
+    }
+
     public void clean(){
         for ( Iterator<WeakReference<T>> i = _set.iterator(); i.hasNext(); ){
             WeakReference<T> ref = i.next();
