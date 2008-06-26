@@ -12,3 +12,8 @@ for ( var i=1; i<50; i++ ){
     
     print( n );
 }
+
+
+var x = 5;
+x++;
+print( "abc" + x );

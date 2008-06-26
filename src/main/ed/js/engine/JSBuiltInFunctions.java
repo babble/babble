@@ -415,7 +415,7 @@ public class JSBuiltInFunctions {
                         return false;
                     
                     char c = s.charAt( 0 );
-                    return c == 't' || c == 'T';
+                    return c == 't' || c == 'T' || c == '1';
                 }
             } , true );
 

@@ -36,7 +36,7 @@ public class JSTestInstance extends ScriptTestInstanceBase{
         if (jsFile.toString().contains("/engine/")) {
             JSFunction myout = new JSFunctionCalls1() {
                 public Object call(Scope scope ,Object o , Object extra[]){
-                    out.println(o);
+                    out.println(ed.js.JSInternalFunctions.JS_toString(o));
                     return null;
                 }
             };

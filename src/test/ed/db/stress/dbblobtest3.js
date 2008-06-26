@@ -20,7 +20,7 @@ function saveSome(coll, start, n ) {
         if ( i % 10 == 0 )
             o.c = blob;
         
-	db[ collection ].save(o);
+	db[collection].save(o);
         
         o._id = null;
         
@@ -32,8 +32,9 @@ function saveSome(coll, start, n ) {
             }
         }
         
-        if ( total++ % 100 == 0){ 
+        if ( total++ % 200 == 0){ 
             print( "total run: " + total ); 
+            assert( db[collection].validate().valid );
         }
     }
     
