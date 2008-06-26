@@ -85,34 +85,44 @@ public class Generate {
             try {
                 SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -r -t=templates/json ../"+path, null, new File("../core-modules/docgen/"), "");
 
-                String rout = r.getOut();
-                JSObjectBase ss = new JSObjectBase();
-                ss.set("symbolSet", rout);
-
-                JSObject json = (JSObject)JS.eval("("+rout+")");
-                Collection keyset = json.keySet();
-                JSArray keys = new JSArray();
-                Iterator k = keyset.iterator();
-                while(k.hasNext()) {
-                    String name = (k.next()).toString();
-                    keys.add(name);
-                }
-
-                JSObjectBase obj = new JSObjectBase();
-                obj.set("ts", Calendar.getInstance().getTime().toString());
-                obj.set("_index", ss);
-                obj.set("version", Generate.getVersion());
-                obj.set("name", keys);
-
                 Scope s = Scope.getThreadLocal();
                 Object dbo = s.get("db");
                 if(! (dbo instanceof DBApiLayer)) throw new RuntimeException("your database is having an identity crisis");
 
                 DBApiLayer db = (DBApiLayer)dbo;
                 DBCollection collection = db.getCollection("doc");
-                collection.save(obj);
+
+                String rout = r.getOut();
+                String classes[] = rout.split("---=---");
+                for(int i=0; i<classes.length; i++) {
+                    JSObject json = (JSObject)JS.eval("("+classes[i]+")");
+                    if(json != null) {
+                        Collection keyset = json.keySet();
+                        JSArray keys = new JSArray();
+                        Iterator k = keyset.iterator();
+                        while(k.hasNext()) {
+                            String name = (k.next()).toString();
+                            keys.add(name);
+                        }
+
+                        JSObjectBase ss = new JSObjectBase();
+                        ss.set("symbolSet", json);
+                        JSObjectBase obj = new JSObjectBase();
+                        obj.set("ts", Calendar.getInstance().getTime().toString());
+                        obj.set("_index", ss);
+                        obj.set("version", Generate.getVersion());
+                        obj.set("name", keys);
+
+                        collection.save(obj);
+                    }
+                    else {
+                        System.out.println("Something went wrong parsing the json: "+classes[i]);
+                        System.out.println("num classes: "+classes.length);
+                    }
+                }
             }
             catch(Exception e) {
+                System.out.println("messed up, probably on eval: ");
                 e.printStackTrace();
             }
         }
