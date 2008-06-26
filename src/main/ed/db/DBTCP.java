@@ -23,6 +23,7 @@ public class DBTCP extends DBMessageLayer {
             _portPool.done( port );
         }
         catch ( IOException ioe ){
+            _portPool.gotError();
             throw new JSException( "can't say something" );
         }
     }
@@ -37,6 +38,7 @@ public class DBTCP extends DBMessageLayer {
             return b.dataLen();
         }
         catch ( IOException ioe ){
+            _portPool.gotError();
             throw new JSException( "can't call something" , ioe );
         }
     }
