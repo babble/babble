@@ -7,11 +7,16 @@ import java.net.*;
 import java.nio.*;
 import java.nio.channels.*;
 
-public class DBPort {
+import ed.util.*;
 
+public class DBPort {
+    
     static final int PORT = 27017;
     static final boolean USE_NAGLE = false;
     
+    static final long CONN_RETRY_TIME_MS = 15000;
+    
+
     DBPort()
         throws IOException {
         this( "127.0.0.1" , PORT );
@@ -81,18 +86,57 @@ public class DBPort {
     
     void _open()
         throws IOException {
-        _sock = SocketChannel.open();
-        _sock.connect( _addr );
+        
+        long sleepTime = 100;
 
-        _sock.socket().setTcpNoDelay( ! USE_NAGLE );
+        final long start = System.currentTimeMillis();
+        while ( true ){
+            
+            IOException lastError = null;
+
+            try {
+                _sock = SocketChannel.open();
+                _sock.connect( _addr );
+                
+                _sock.socket().setTcpNoDelay( ! USE_NAGLE );
+                
+                return;
+            }
+            catch ( IOException ioe ){
+                lastError = ioe;
+                _error( "connect fail" );
+            }
+            
+            long sleptSoFar = System.currentTimeMillis() - start;
+
+            if ( sleptSoFar >= CONN_RETRY_TIME_MS )
+                throw lastError;
+            
+            if ( sleepTime + sleptSoFar > CONN_RETRY_TIME_MS )
+                sleepTime = CONN_RETRY_TIME_MS - sleptSoFar;
+
+            _error( "going to sleep and retry.  total sleep time after = " + ( sleptSoFar + sleptSoFar ) + "ms  this time:" + sleepTime + "ms" );
+            ThreadUtil.sleep( sleepTime );
+            sleepTime *= 2;
+            
+        }
+        
     }
 
     public int hashCode(){
         return _hashCode;
     }
     
+    public String host(){
+        return _host + ":" + _port;
+    }
+    
     public String toString(){
-        return "{DBPort  host:" + _host + " port:" + _port + "}";
+        return "{DBPort  " + host() + "}";
+    }
+
+    void _error( String msg ){
+        System.err.println( "DBPort " + host() + " " + msg );
     }
     
     final String _host;

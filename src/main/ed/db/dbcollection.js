@@ -59,16 +59,58 @@ DBCollection.prototype.dropIndexes = function() {
     
     return res;
 }
- 
+
+/**
+ *   <p>
+ *    Returns an array of the indexes for the collection.
+ *   </p>
+ *   <p>
+ *   Each entry in the array is an index descriptor object than contains the 
+ *   following properties :  
+ *   </p>
+ *   <ul>
+ *   <li> name : name of the index</li>
+ *   <li> ns : name of the namespace the index is in</li>
+ *   <li> key : object property that's being indexed<li>
+ *   </ul>
+ * 
+ *   @return {Array} Array of index descriptor objects
+ */
+DBCollection.prototype.getIndexes = function(){
+    return this.getDB().system.indexes.find( { ns : this.getFullName() } );
+}
+
+
+DBCollection.prototype.reIndex = function(){
+    
+    var coll = this;
+    
+    var all = this.getDB().system.indexes.find( { ns : this.getFullName() } ).toArray();
+    
+    all.forEach(
+        function(z){
+            print( z.name );
+            coll.dropIndex( z.name );
+            coll._dbCommand( { clean: coll + ".$" + z.name } );
+            coll.ensureIndex( z.key );
+        }
+    );
+}
+
 /** 
  * Validate the data in a collection, returning some stats.
  * @return SOMETHING_FIXME
  */
 DBCollection.prototype.validate = function() {
     var res = this._dbCommand( { validate: this.getName() } );
-    res.valid = 
-        res && res.result && 
-        ! ( res.result.match( /exception/ ) || res.result.match( /corrupt/ ) );
+    
+    res.valid = false;
+
+    if ( res.result ){
+        var str = "-" + tojson( res.result );
+        res.valid = ! ( str.match( /exception/ ) || str.match( /corrupt/ ) );
+    }
+    
     return res;
 }
 
@@ -303,25 +345,7 @@ DBCollection.prototype.findOne = function(criteria) {
     throw {exception : "Native Call findOne(): shouldn't have JS implementation"};
 }
 
-/**
- *   <p>
- *    Returns an array of the indexes for the collection.
- *   </p>
- *   <p>
- *   Each entry in the array is an index descriptor object than contains the 
- *   following properties :  
- *   </p>
- *   <ul>
- *   <li> name : name of the index</li>
- *   <li> ns : name of the namespace the index is in</li>
- *   <li> key : object property that's being indexed<li>
- *   </ul>
- * 
- *   @return {Array} Array of index descriptor objects
- */
-DBCollection.prototype.getIndexes = function() {
-    throw {exception : "Native Call getIndexes() : shouldn't have JS implementation"};
-}
+
 
 
 /**
