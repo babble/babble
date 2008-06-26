@@ -48,6 +48,11 @@ public abstract class SimplePool<T> {
         }
     }
 
+    protected void clear(){
+        _avail.clear();
+        _all.clear();
+    }
+
     final String _name;
     final int _maxToKeep;
     final int _maxTotal;
