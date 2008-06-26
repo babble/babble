@@ -50,7 +50,7 @@ for ( var val in counts ){
             t.save( z );
 
             
-            if ( num % 1000 == 0 )
+            if ( num % 10000 == 0 )
                 assert( t.validate().valid );
         }
     );
