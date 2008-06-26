@@ -1,0 +1,60 @@
+#!/usr/bin/env ./bin/jssh
+
+function _usage(){
+    print( "usage : validateDB <database name> <host> <try to fix>" );    
+}
+
+if ( arguments.length < 2 ){
+    _usage();
+    return -1
+}
+
+dbname = arguments[0];
+host = arguments[1];
+tryToFix = parseBool( arguments[2] );
+
+db = connect( dbname , host );
+   
+db.system.namespaces.find().toArray().forEach(
+    function(z){
+        var c = z.name;
+        c = c.substring( dbname.length + 1 );
+        
+        if ( c.match( /\$/ ) ) // index
+            return;
+        
+        var coll = db[c];
+        
+        print( c );
+
+        var res = coll.validate();
+
+        if ( res.valid ){
+            print( "\t valid" );
+            return;
+        }
+        
+        print( "\t some problem" );
+        print( tojson( res ) );
+        
+        if ( tryToFix ){
+            print( "\t going to clean" );
+            coll.clean();
+            if ( coll.validate().valid ){
+                print( "\t clean worked!" );
+                return;
+            }
+
+            print( "\t going to reIndex" );
+            coll.reIndex();
+            if ( coll.validate().valid ){
+                print( "\t reIndex worked!" );
+                return;
+            }
+            
+            print( "can't fix :(" );
+            
+        }
+    }
+);
+
