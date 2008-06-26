@@ -13,6 +13,10 @@ dbname = arguments[0];
 host = arguments[1];
 tryToFix = parseBool( arguments[2] );
 
+print( "dbname   : " + dbname );
+print( "host     : " + host );
+print( "tryToFix : " + tryToFix );
+
 db = connect( dbname , host );
    
 db.system.namespaces.find().toArray().forEach(
@@ -44,7 +48,7 @@ db.system.namespaces.find().toArray().forEach(
                 print( "\t clean worked!" );
                 return;
             }
-
+            
             print( "\t going to reIndex" );
             coll.reIndex();
             if ( coll.validate().valid ){
