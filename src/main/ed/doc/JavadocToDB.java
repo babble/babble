@@ -235,31 +235,44 @@ public class JavadocToDB {
         return temp;
     }
 
-    public static void resolveConflicts(ClassDoc newClass, JSObjectBase jsObj, DBCollection db) {
+    public static void resolveConflicts(ClassDoc newClass, JSObjectBase javadocObj, DBCollection db) {
         // is there a conflict with a js class?
         JSObject query = new JSObjectBase();
         query.set("name", newClass.name());
         query.set("version", Generate.getVersion());
         Iterator it = db.find(query);
 
-        // todo: jsObj has sections: methods, fields, constructors, etc.
-        // obj must be divied up appropriately between these
         if(it != null) {
-            JSObject obj = (JSObjectBase)it.next();
-            obj = (JSObject)obj.get("_index");
-            JSString objStr = (JSString)obj.get("symbolSet");
+            // drill down to get the relevant obj
+            JSObject jsdocObj = (JSObjectBase)it.next();
 
-            // parse the obj
-            JSObject conflict = (JSObject)JS.eval("("+objStr+")");
-            JSArray methods = (JSArray)jsObj.get("methods");
-            for ( String s : conflict.keySet() ) {
-                methods.add(conflict.get( s ) );
+            // for later, when we need to delete this obj
+            JSObject dquery = new JSObjectBase();
+            dquery.set("_id", (ed.db.ObjectId)jsdocObj.get("_id"));
+
+            jsdocObj = (JSObject)jsdocObj.get("_index");
+            jsdocObj = (JSObject)jsdocObj.get("symbolSet");
+            jsdocObj = (JSObject)jsdocObj.get(newClass.name());
+
+            JSArray javadocCons = (JSArray)javadocObj.get("constructors");
+            JSArray jsCons = (JSArray)jsdocObj.get("constructors");
+            if(jsCons != null) {
+                Iterator p = jsCons.iterator();
+                while(p.hasNext())
+                    javadocCons.add(p.next());
             }
-            jsObj.set("methods", methods);
+
+            JSArray javadocMethod = (JSArray)javadocObj.get("methods");
+            Iterator p = ((JSArray)jsdocObj.get("methods")).iterator();
+            while(p.hasNext())
+                javadocMethod.add(p.next());
+
+            JSArray javadocProp = (JSArray)javadocObj.get("properties");
+            p = ((JSArray)jsdocObj.get("properties")).iterator();
+            while(p.hasNext())
+                javadocProp.add(p.next());
 
             // remove the repeated class
-            JSObject dquery = new JSObjectBase();
-            query.set("_id", obj.get("_id"));
             db.remove(dquery);
         }
     }
@@ -267,7 +280,7 @@ public class JavadocToDB {
     public static boolean start(RootDoc root) {
         Scope s = Scope.getThreadLocal();
         Object dbo = s.get("db");
-        if(! (dbo instanceof DBApiLayer)) throw new RuntimeException("your database is having an identity crisis");
+        if(! (dbo instanceof DBApiLayer)) throw new RuntimeException("your database isn't a database");
 
         DBApiLayer db = (DBApiLayer)dbo;
         DBCollection collection = db.getCollection("doc");
