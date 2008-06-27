@@ -4,6 +4,8 @@ package ed.appserver;
 
 import org.testng.annotations.Test;
 
+import static ed.appserver.AppContextHolder.Info;
+
 public class AppServerTest extends ed.TestCase {
 
     String _root = "src/test/data/";
@@ -40,6 +42,8 @@ public class AppServerTest extends ed.TestCase {
 
         assertEquals( "[abc.foo.com/, foo.com/, foo/]" , AppContextHolder.getPossibleSiteNames( "abc.foo.com" , "/" ).toString() );
         assertEquals( "[abc.foo.com/, foo.com/, foo/]" , AppContextHolder.getPossibleSiteNames( "abc.foo.com.10gen.com" , "/" ).toString() );
+
+        assertEquals( "[abc.foo/, foo/]" , AppContextHolder.getPossibleSiteNames( "abc.foo.10gen.com" , "/" ).toString() );
     }
     
     @Test(groups = {"basic"})
@@ -62,6 +66,22 @@ public class AppServerTest extends ed.TestCase {
         assertEquals( "foo.co.uk/abc" , AppContextHolder.fixBase( "foo.co.uk" , "abc" ).toString() );
         assertEquals( "foo.co.uk/abc" , AppContextHolder.fixBase( "foo.co.uk.10gen.com" , "abc" ).toString() );
 
+    }
+
+    @Test(groups = {"basic"})
+    public void testGetEnvironmentName(){
+        assertEquals( "www" , ( new Info( "www.alleyinsider.com" ) ).getEnvironment( "www.alleyinsider.com" ) );
+        assertEquals( "www" , ( new Info( "alleyinsider.com" ) ).getEnvironment( "www.alleyinsider.com" ) );
+        assertEquals( "www" , ( new Info( "www.alleyinsider.com" ) ).getEnvironment( "alleyinsider.com" ) );
+
+        assertEquals( "dev" , ( new Info( "alleyinsider.com" ) ).getEnvironment( "dev.alleyinsider.com" ) );
+
+    }
+
+
+    @Test(groups = {"basic"})
+    public void testNotExist(){
+        
     }
 
     public static void main( String args[] ){
