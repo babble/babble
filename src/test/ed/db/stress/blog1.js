@@ -12,6 +12,7 @@ db.blog.posts.remove( {} );
 randGen = core.util.random().getRandom(1);
 
 posts = [];
+comments = 0;
 
 for(var i=1; i<=1000; i++) {
     
@@ -46,13 +47,35 @@ for(var i=1; i<=1000; i++) {
     if ( i % 10 == 5 ){
         assert( db.blog.posts.count() == posts.length );
         print( i );
+        assert(db.blog.validate().isValid);
+ //       print("posts = " + i + " comments = " + comments  + " : " + printCommentDistribution());
     }
 }
 
+function printCommentDistribution(){ 
+    var max = -1;
+    var min = 1000000000;
+    var unique = 0;
+    for (var i = 0; i < posts.length; i++) {
+        var n = posts[i].comments.length;
+        if (n > 0) {
+            unique++;
+            if (n > max) {
+                max = n;
+            }
+            if (n < min) {
+                min = n;
+            }            
+        }
+    }
+    
+    return "uniq = " + unique + " max/min = " + max + "/" + min;
+    
+}
 function addComment( post ){
     
     if ( ! post ){
-        var randNum = Math.floor(randGen.nextFloat()*totalPosts);
+        var randNum = Math.floor(randGen.nextFloat()*posts.length);
         post = posts[randNum];        
         if ( ! post )
             print( randNum );
@@ -69,6 +92,8 @@ function addComment( post ){
     };
 
     Blog.handlePosts( r , post , user );
+    
+    comments++;
     
     if ( db.blog.posts.findOne({_id : id} ) )
         return;
