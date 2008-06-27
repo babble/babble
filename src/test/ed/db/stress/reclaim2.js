@@ -27,11 +27,16 @@ correctLength = t.count();
 
 randGen = core.util.random().getRandom(1);
 
-for ( i=0; i<100000; i++ ){
+iterations = length * 50;
+
+for ( i=0; i<iterations; i++ ){
     
     var namea = "abc" + ( randGen.nextFloat() * correctLength ).toFixed(0);
     var nameb = "abc" + ( randGen.nextFloat() * correctLength ).toFixed(0);
 
+    if ( namea == "abc" + length || 
+         nameb == "abc" + length )
+        continue;
 
     var a = t.findOne( { name : namea } );
     var b = t.findOne( { name : nameb } );
@@ -47,10 +52,14 @@ for ( i=0; i<100000; i++ ){
     t.save( a );
     t.save( b );
     
-    if ( ! ( i % 100 ) ){
+    if ( i > 0 && ! ( i % length / 2 ) ){
+
         var v = t.validate();
+
+        print( ( 100 * i / iterations ) + "%  increase:" + ( 100 * v.lastExtentSize / correctSize ) + "%" );
+
         assert( v.valid , "not valid" );
-        assert( v.lastExtentSize < correctSize * 2 , "got too big" );
+        assert( v.lastExtentSize < correctSize * 3 , "got too big" );
         assert( t.count() == correctLength , "wrong size" );
     }
 }
