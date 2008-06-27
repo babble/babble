@@ -85,7 +85,7 @@ var default_if_none =
     defaultfilters.default_if_none =
     function(value, arg) {
         
-    return (value == djang10.Expression.UNDEFINED_VALUE)? arg : value;
+    return (value == null)? arg : value;
 };
 
 register.filter("lower", lower);
