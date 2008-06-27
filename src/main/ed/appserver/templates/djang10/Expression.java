@@ -13,6 +13,7 @@ import org.mozilla.javascript.ScriptOrFnNode;
 import org.mozilla.javascript.Token;
 
 import ed.js.JSArray;
+import ed.js.JSException;
 import ed.js.JSFunction;
 import ed.js.JSMap;
 import ed.js.JSNumericFunctions;
@@ -136,8 +137,21 @@ public class Expression extends JSObjectBase {
             if(val == null)
                 val = obj.containsKey(prop.toString()) ? null : UNDEFINED_VALUE;
             
-            if (autoCall && val instanceof JSFunction && !(val instanceof JSCompiledScript) && !(val instanceof Djang10CompiledScript))
-                val = ((JSFunction)val).callAndSetThis(scope.child(), obj, new Object[0]);
+            if (autoCall && val instanceof JSFunction && !(val instanceof JSCompiledScript) && !(val instanceof Djang10CompiledScript)) {
+                try {
+                    val = ((JSFunction)val).callAndSetThis(scope.child(), obj, new Object[0]);
+                }
+                catch(JSException e) {
+                    if(isTrue(e.get("silent_variable_failure")))
+                        return UNDEFINED_VALUE;
+                    
+                    temp = e.getObject();
+                    if(temp instanceof JSObject && isTrue( ((JSObject)temp).get("silent_variable_failure") ))
+                        return UNDEFINED_VALUE;
+                    
+                    throw e;
+                }
+            }
             
             return val;
 
@@ -173,10 +187,23 @@ public class Expression extends JSObjectBase {
             Scope callScope = scope.child();
             callScope.setGlobal(true);
             
-            if(callThisObj != null)
-                return callMethodObj.callAndSetThis(callScope, callThisObj, argList.toArray());
-            else
-                return callMethodObj.call(callScope, argList.toArray());
+            try {
+                if(callThisObj != null)
+                    return callMethodObj.callAndSetThis(callScope, callThisObj, argList.toArray());
+                else
+                    return callMethodObj.call(callScope, argList.toArray());
+            }
+            catch(JSException e) {
+                if(isTrue(e.get("silent_variable_failure")))
+                    return UNDEFINED_VALUE;
+                
+                temp = e.getObject();
+                if(temp instanceof JSObject && isTrue( ((JSObject)temp).get("silent_variable_failure") ))
+                    return UNDEFINED_VALUE;
+                
+                throw e;
+            }
+            
 
         case Token.NAME:
             Object lookupValue = ctx.get(node.getString());

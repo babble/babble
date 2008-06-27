@@ -324,7 +324,7 @@ tests=[
     { name: "namedendblocks05", content: "1{% block first %}_{% block second %}2{% endblock first %}", model: {  }, results: TemplateSyntaxError },
     { name: "namedendblocks06", content: "1{% block first %}_{% block second %}2{% endblock %}_{% endblock first %}3", model: {  }, results: "1_2_3" },
     { name: "namedendblocks07", content: "1{% block first %}_{% block second %}2{% endblock second %}_{% endblock %}3", model: {  }, results: "1_2_3" },
-    { name: "now01", content: "{% now \"j n Y\"%}", model: {  }, results: "26 6 2008" },
+    { name: "now01", content: "{% now \"j n Y\"%}", model: {  }, results: ((new Date()).getDate()) + " " + ((new Date()).getMonth() + 1) + " " + ((new Date()).getYear()) },
     { name: "now02", content: "{% now \"j \"n\" Y\"%}", model: {  }, results: TemplateSyntaxError },
     { name: "regroup01", content: "{% regroup data by bar as grouped %}{% for group in grouped %}{{ group.grouper }}:{% for item in group.list %}{{ item.foo }}{% endfor %},{% endfor %}", model: { "data": [ { "foo": "c", "bar": 1 }, { "foo": "d", "bar": 1 }, { "foo": "a", "bar": 2 }, { "foo": "b", "bar": 2 }, { "foo": "x", "bar": 3 } ] }, results: "1:cd,2:ab,3:x," },
     { name: "regroup02", content: "{% regroup data by bar as grouped %}{% for group in grouped %}{{ group.grouper }}:{% for item in group.list %}{{ item.foo }}{% endfor %},{% endfor %}", model: {  }, results: "" },

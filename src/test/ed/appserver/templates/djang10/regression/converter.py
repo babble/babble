@@ -110,10 +110,15 @@ def convert(py_tests):
 
 
 def serialize_test(name, a_test):
+    #special case dates
+    if name == 'now01':
+        results =  '%s + " " + %s + " " + %s' % ("((new Date()).getDate())", "((new Date()).getMonth() + 1)", "((new Date()).getYear())") 
+    else:
+        results = serialize(a_test[2])
     #rename var to var1
     content = a_test[0]
     content = escape_var(content)
-    return '    { name: %s, content: %s, model: %s, results: %s }' % ( serialize(name), serialize(content), serialize(a_test[1]), serialize(a_test[2]))
+    return '    { name: %s, content: %s, model: %s, results: %s }' % ( serialize(name), serialize(content), serialize(a_test[1]), results)
 
 def serialize(m):
     if m is None:
