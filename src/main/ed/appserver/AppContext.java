@@ -41,8 +41,15 @@ public class AppContext {
     }
 
     public AppContext( String root , String name , String environment ){
+        this( root , new File( root ) , name , environment );
+    }
+
+    public AppContext( String root , File rootFile , String name , String environment ){
         if ( root == null )
             throw new NullPointerException( "AppContext root can't be null" );
+
+        if ( rootFile == null )
+            throw new NullPointerException( "AppContext rootFile can't be null" );
         
         if ( name == null )
             name = guessNameAndEnv( root )[0];
@@ -52,7 +59,7 @@ public class AppContext {
         
         _name = name;
         _root = root;
-        _rootFile = new File( _root );
+        _rootFile = rootFile;
         
         _environment = environment;
         _gitBranch = GitUtils.hasGit( _rootFile ) ? GitUtils.getBranchOrTagName( _rootFile ) : null;
