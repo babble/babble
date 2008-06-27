@@ -90,8 +90,8 @@ DBCollection.prototype.reIndex = function(){
     all.forEach(
         function(z){
             print( z.name );
-            coll.dropIndex( z.name );
             coll._dbCommand( { clean: coll + ".$" + z.name } );
+            coll.dropIndex( z.name );
             coll.ensureIndex( z.key );
         }
     );

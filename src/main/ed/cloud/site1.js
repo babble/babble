@@ -127,5 +127,7 @@ Cloud.Site.forName = function( name , create ){
 
 
 db.sites.setConstructor( Cloud.Site );
-db.sites.ensureIndex( { name : 1 } );
+if ( me.real ){
+    db.sites.ensureIndex( { name : 1 } );
+}
 

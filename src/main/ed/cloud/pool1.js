@@ -6,8 +6,6 @@ Cloud.Pool = function(){
     this.machines = [];
 };
 
-db.pools.ensureIndex( { name : 1 } );
-db.pools.setConstructor( Cloud.Pool );
 
 Cloud.DB = function(){
     this.name = null;
@@ -19,6 +17,11 @@ Cloud.findDBByName = function( name ){
     return db.dbs.findOne( { name : name } );
 }
 
+db.pools.setConstructor( Cloud.Pool );
 db.dbs.setConstructor( Cloud.DB );
-db.dbs.ensureIndex( { machine : 1 } );
+
+if ( me.real ){
+    db.pools.ensureIndex( { name : 1 } );
+    db.dbs.ensureIndex( { machine : 1 } );
+}
 

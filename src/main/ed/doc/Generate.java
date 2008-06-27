@@ -85,32 +85,40 @@ public class Generate {
             try {
                 SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -r -t=templates/json ../"+path, null, new File("../core-modules/docgen/"), "");
 
-                String rout = r.getOut();
-                JSObjectBase ss = new JSObjectBase();
-                ss.set("symbolSet", rout);
-
-                JSObject json = (JSObject)JS.eval("("+rout+")");
-                Collection keyset = json.keySet();
-                JSArray keys = new JSArray();
-                Iterator k = keyset.iterator();
-                while(k.hasNext()) {
-                    String name = (k.next()).toString();
-                    keys.add(name);
-                }
-
-                JSObjectBase obj = new JSObjectBase();
-                obj.set("ts", Calendar.getInstance().getTime().toString());
-                obj.set("_index", ss);
-                obj.set("version", Generate.getVersion());
-                obj.set("name", keys);
-
                 Scope s = Scope.getThreadLocal();
                 Object dbo = s.get("db");
-                if(! (dbo instanceof DBApiLayer)) throw new RuntimeException("your database is having an identity crisis");
+                if(! (dbo instanceof DBApiLayer)) throw new RuntimeException("your database is not a database");
 
                 DBApiLayer db = (DBApiLayer)dbo;
                 DBCollection collection = db.getCollection("doc");
-                collection.save(obj);
+
+                String rout = r.getOut();
+                String jsdocUnits[] = rout.split("---=---");
+                for(int i=0; i<jsdocUnits.length; i++) {
+                    JSObject json = (JSObject)JS.eval("("+jsdocUnits[i]+")");
+                    if(json == null) {
+                        System.out.println("couldn't parse: "+jsdocUnits[i]);
+                        continue;
+                    }
+
+                    Iterator k = (json.keySet()).iterator();
+                    while(k.hasNext()) {
+                        String name = (k.next()).toString();
+                        JSObject unit = (JSObject)json.get(name);
+                        JSString isa = (JSString)unit.get("isa");
+                        if(isa.equals("GLOBAL") || isa.equals("CONSTRUCTOR")) {
+                            JSObjectBase ss = new JSObjectBase();
+                            ss.set("symbolSet", json);
+                            JSObjectBase obj = new JSObjectBase();
+                            obj.set("ts", Calendar.getInstance().getTime().toString());
+                            obj.set("_index", ss);
+                            obj.set("version", Generate.getVersion());
+                            obj.set("name", name);
+
+                            collection.save(obj);
+                        }
+                    }
+                }
             }
             catch(Exception e) {
                 e.printStackTrace();

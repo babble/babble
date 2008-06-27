@@ -83,4 +83,5 @@ Cloud.Git.findByName = function( name ){
 
 
 db.git.setConstructor( Cloud.Git.Repository );
-db.git.ensureIndex( { name : 1 } );
+if ( me.real )
+    db.git.ensureIndex( { name : 1 } );

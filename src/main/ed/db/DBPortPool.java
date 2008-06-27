@@ -68,10 +68,12 @@ class DBPortPool extends SimplePool<DBPort> {
         System.out.println( "emptying DBPortPool b/c of error" );
         clear();
     }
-
+    
     protected DBPort createNew(){
         try {
-            return new DBPort( _ip, _port);
+            DBPort p = new DBPort( _ip, _port , this );
+            _everWorked = true;
+            return p;
         }
         catch ( IOException ioe ){
             throw new RuntimeException( "can't create port to:" + _ip + ":" + _port, ioe );
@@ -80,4 +82,5 @@ class DBPortPool extends SimplePool<DBPort> {
     
     final String _ip;
     final int _port;
+    boolean _everWorked = false;
 }
