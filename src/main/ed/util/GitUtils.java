@@ -108,6 +108,13 @@ public class GitUtils {
             ( r.getErr() + "\n" + r.getOut() ).indexOf( "error:" ) < 0;
     }
 
+    public static boolean fetch( File dir ){
+        _log.info( "fetch " + dir );
+        SysExec.Result r = SysExec.exec( "git fetch" , null , dir , null );
+        return 
+            ( r.getErr() + "\n" + r.getOut() ).indexOf( "error:" ) < 0;
+    }
+
     public static void main( String args[] )
         throws Exception {
         System.out.println( getBranchOrTagName( new File( args[0] ) ) );
