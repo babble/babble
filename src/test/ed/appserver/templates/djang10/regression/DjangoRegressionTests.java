@@ -168,12 +168,12 @@ public class DjangoRegressionTests extends TestCase {
         @Test
         public void testWrapper() {
             try {
-                test();
+                realTest();
             } catch(Throwable t) {
                 throw new RuntimeException("Failed[" + name + "]: " + t + ". content: " + content);
             }
         }
-        public void test() throws IOException {
+        public void realTest() throws IOException {
             Djang10Source template = new Djang10Source(this.content);
             
             if(result instanceof ExceptionResult) {
