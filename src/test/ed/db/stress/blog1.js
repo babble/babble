@@ -47,7 +47,8 @@ for(var i=1; i<=1000; i++) {
     if ( i % 10 == 5 ){
         assert( db.blog.posts.count() == posts.length );
         print( i );
-        assert(db.blog.validate().isValid);
+        var vRes = db.blog.posts.validate();
+        assert( vRes.valid || vRes.isValid );
  //       print("posts = " + i + " comments = " + comments  + " : " + printCommentDistribution());
     }
 }
