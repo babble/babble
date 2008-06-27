@@ -29,10 +29,20 @@ public class DjangoRegressionTests extends TestCase {
         "^templatetag.*",
         "^url.*",
         
+        //unimplemented filters:
+        "filter-syntax09",  //removetags
+        "filter-syntax12",  //yesno
+        "filter-syntax17",  //join
+        "truncatewords",    //truncatewords
+        "filter04",         //cut
+        
+        
+        
         //requires architecture impl
         "^autoescape-.*",
         "^inheritance.*",
         "^include.*",
+        "basic-syntax27",
         
         //will never be supported
         "^for-tag-unpack.*",
@@ -156,6 +166,13 @@ public class DjangoRegressionTests extends TestCase {
             scope.set("print", printer);
         }
         @Test
+        public void testWrapper() {
+            try {
+                test();
+            } catch(Throwable t) {
+                throw new RuntimeException("Failed[" + name + "]: " + t + ". content: " + content);
+            }
+        }
         public void test() throws IOException {
             Djang10Source template = new Djang10Source(this.content);
             
