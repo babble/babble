@@ -33,7 +33,7 @@ public class DjangoRegressionTests extends TestCase {
         "filter-syntax09",  //removetags
         "filter-syntax12",  //yesno
         "filter-syntax17",  //join
-        "truncatewords",    //truncatewords
+        "filter-syntax19",    //truncatewords
         "filter04",         //cut
         
         
