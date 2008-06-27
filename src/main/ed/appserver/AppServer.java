@@ -121,66 +121,68 @@ public class AppServer implements HttpHandler {
     }
     
     private void _handle( HttpRequest request , HttpResponse response , AppRequest ar ){
-	JSString jsURI = new JSString( ar.getURI() );
-	
-        if ( ar.getScope().get( "allowed" ) != null ){
-            Object foo = ar.getScope().getFunction( "allowed" ).call( ar.getScope() , request , response , jsURI );
-            if ( foo != null ){
-                if ( response.getResponseCode() == 200 ){
-                    response.setResponseCode( 401 );
-                    response.getWriter().print( "not allowed" );
+
+        try {
+            
+            JSString jsURI = new JSString( ar.getURI() );
+            
+            if ( ar.getScope().get( "allowed" ) != null ){
+                Object foo = ar.getScope().getFunction( "allowed" ).call( ar.getScope() , request , response , jsURI );
+                if ( foo != null ){
+                    if ( response.getResponseCode() == 200 ){
+                        response.setResponseCode( 401 );
+                        response.getWriter().print( "not allowed" );
+                    }
+                    return;
                 }
-                return;
             }
-        }
-        
-        if ( ar.getURI().equals( "/~f" ) ){
-            JSFile f = ar.getContext().getJSFile( request.getParameter( "id" ) );
-            if ( f == null ){
-                response.setResponseCode( 404 );
-                response.getWriter().print( "not found\n\n" );
-                return;
-            }
-            response.sendFile( f );
-            return;
-        }
-
-        File f = ar.getFile();
-
-	if ( response.getResponseCode() >= 300 )
-	    return;
-
-        if ( f.toString().endsWith( ".cgi" ) ){
-            handleCGI( request , response , ar , f );
-            return;
-        }
-        
-        if ( ar.isStatic() && f.exists() ){
-            if ( D ) System.out.println( f );
-
-            if ( f.isDirectory() ){
-                response.setResponseCode( 301 );
-                response.getWriter().print( "listing not allowed\n" );
+            
+            if ( ar.getURI().equals( "/~f" ) ){
+                JSFile f = ar.getContext().getJSFile( request.getParameter( "id" ) );
+                if ( f == null ){
+                    response.setResponseCode( 404 );
+                    response.getWriter().print( "not found\n\n" );
+                    return;
+                }
+                response.sendFile( f );
                 return;
             }
             
-	    int cacheTime = getCacheTime( ar , jsURI , request , response );
-	    if ( cacheTime >= 0 )
-		response.setCacheTime( cacheTime );
-
-            final String fileString = f.toString();
-            int idx = fileString.lastIndexOf( "." );
-            if ( idx > 0 ){
-                String ext = fileString.substring( idx + 1 );
-                String type = MimeTypes.get( ext );
-                if ( type != null )
-                    response.setHeader( "Content-Type" , type );
+            File f = ar.getFile();
+            
+            if ( response.getResponseCode() >= 300 )
+                return;
+            
+            if ( f.toString().endsWith( ".cgi" ) ){
+                handleCGI( request , response , ar , f );
+                return;
             }
-            response.sendFile( f );
-            return;
-        }
-        
-        try {
+            
+            if ( ar.isStatic() && f.exists() ){
+                if ( D ) System.out.println( f );
+                
+                if ( f.isDirectory() ){
+                    response.setResponseCode( 301 );
+                    response.getWriter().print( "listing not allowed\n" );
+                    return;
+                }
+                
+                int cacheTime = getCacheTime( ar , jsURI , request , response );
+                if ( cacheTime >= 0 )
+                    response.setCacheTime( cacheTime );
+                
+                final String fileString = f.toString();
+                int idx = fileString.lastIndexOf( "." );
+                if ( idx > 0 ){
+                    String ext = fileString.substring( idx + 1 );
+                    String type = MimeTypes.get( ext );
+                    if ( type != null )
+                    response.setHeader( "Content-Type" , type );
+                }
+                response.sendFile( f );
+                return;
+            }
+            
             JxpServlet servlet = ar.getContext().getServlet( f );
             if ( servlet == null ){
                 response.setResponseCode( 404 );
@@ -189,6 +191,12 @@ public class AppServer implements HttpHandler {
             else {
                 servlet.handle( request , response , ar );
             }
+        }
+        catch ( FileNotFoundException fnf ){
+            response.setResponseCode( 404 );
+
+            JxpWriter writer = response.getWriter();
+            writer.print( "can't find : " + fnf.getMessage() );
         }
         catch ( JSException.Quiet q ){
             response.setHeader( "X-Exception" , "quiet" );

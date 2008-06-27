@@ -312,8 +312,8 @@ public class JxpServlet {
 	    }
 	    else {
 		if ( _context != null ){
-                    File f = _context.getFile( uri );
-                    if ( f.exists() ){
+                    File f = _context.getFileSafe( uri );
+                    if ( f != null && f.exists() ){
                         cdnTags = "lm=" + f.lastModified();
                     }
                 }

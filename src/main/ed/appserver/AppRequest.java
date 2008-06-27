@@ -118,7 +118,8 @@ public class AppRequest {
     }
     
 
-    File getFile(){
+    File getFile()
+        throws FileNotFoundException {
         return _context.getFile( getWantedURI() );
     }
 

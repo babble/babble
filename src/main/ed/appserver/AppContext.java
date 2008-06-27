@@ -2,12 +2,8 @@
 
 package ed.appserver;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.io.*;
+import java.util.*;
 
 import ed.appserver.jxp.JxpServlet;
 import ed.appserver.jxp.JxpSource;
@@ -239,7 +235,17 @@ public class AppContext {
         return _scope;
     }
     
-    public File getFile( final String uri ){
+    public File getFileSafe( final String uri ){
+        try {
+            return getFile( uri );
+        }
+        catch ( FileNotFoundException fnf ){
+            return null;
+        }
+    }
+
+    public File getFile( final String uri )
+        throws FileNotFoundException {
         File f = _files.get( uri );
         
         if ( f != null )
@@ -255,7 +261,7 @@ public class AppContext {
             f = new File( _rootFile , uri );
         
         if ( f == null )
-            throw new RuntimeException( "can't find file for [" + uri + "]" );
+            throw new FileNotFoundException( uri );
 
         _files.put( uri , f );
         return f;
@@ -330,9 +336,9 @@ public class AppContext {
                 break; 
             String foo = uri.substring( 0 , idx );
 
-            File temp = getFile( foo + ".jxp" );
-
-            if ( temp.exists() )
+            File temp = getFileSafe( foo + ".jxp" );
+            
+            if ( temp != null && temp.exists() )
                 f = temp;
             
             start = idx + 1;
