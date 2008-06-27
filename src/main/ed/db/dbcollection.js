@@ -109,6 +109,12 @@ DBCollection.prototype.validate = function() {
     if ( res.result ){
         var str = "-" + tojson( res.result );
         res.valid = ! ( str.match( /exception/ ) || str.match( /corrupt/ ) );
+
+        var p = /lastExtentSize:(\d+)/;
+        var r = p.exec( str );
+        if ( r ){
+            res.lastExtentSize = parseNumber( r[1] );
+        }
     }
     
     return res;
