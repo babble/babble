@@ -32,11 +32,12 @@ exported_classes = (
 )
 
 unsupported_tests = (
-    r'^autoescape-',
-    r'^for-tag-unpack',
     r'^url05$',
     r'^i18n',
     r'^filter-syntax18$',
+    r'autoescape-tag07',
+    r'autoescape-tag09',
+    r'autoescape-tag10',
 )
 
 
