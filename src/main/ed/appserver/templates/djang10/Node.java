@@ -42,7 +42,7 @@ public class Node extends JSObjectBase {
                     
                     JSObject thisObj = (JSObject)scope.getThis();
                     ((JSFunction)thisObj.get("__render")).call(scope.child(), contextObj, printer);
-                    return buffer.toString();
+                    return new JSString( buffer.toString() );
                 }
             });
             _prototype.set("__render", new JSFunctionCalls2() {

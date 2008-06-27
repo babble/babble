@@ -5,6 +5,7 @@ import java.util.List;
 import ed.js.JSArray;
 import ed.js.JSFunction;
 import ed.js.JSObject;
+import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
 import ed.js.func.JSFunctionCalls2;
@@ -46,7 +47,7 @@ public class NodeList extends JSArray {
             };
             NodeList thisObj = (NodeList) scope.getThis();
             ((JSFunction) thisObj.get("__render")).callAndSetThis(scope.child(), thisObj, new Object[] { contextObj, printer });
-            return buffer.toString();
+            return new JSString( buffer.toString() );
         }
     };
 

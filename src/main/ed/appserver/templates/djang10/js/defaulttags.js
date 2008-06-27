@@ -417,7 +417,7 @@ SpacelessNode.prototype ={
     },
     __render: function(context, printer) {
         var content = this.nodelist.render(context);
-        content = content.replace(/>\s+</, "><");
+        content = content.trim().replace(/>\s+</g, "><");
         printer(content);
     }
 };
