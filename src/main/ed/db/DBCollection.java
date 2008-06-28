@@ -78,7 +78,10 @@ public abstract class DBCollection extends JSObjectLame {
         for ( String s : keys.keySet() ){
             if ( name.length() > 0 )
                 name += "_";
-            name += s + "_" + keys.get( s ).toString().replace( ' ' , '_' );
+            name += s + "_";
+            Object val = keys.get( s );
+            if ( ! ( val instanceof ObjectId ) )
+                name += val.toString().replace( ' ' , '_' );
         }
         return name;
     }
