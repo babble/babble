@@ -7,3 +7,7 @@ x.forEach(function(z){
         first = true;
     }
 });
+
+var foo = function(action, extra){
+    return extra;
+}; 

@@ -1152,7 +1152,7 @@ public class Convert implements StackTraceFixer {
             
             callLine += " ";
         }
-        callLine += " , Object extra[] ){\n" ;
+        callLine += " , Object ___extra[] ){\n" ;
         
         _append( callLine + " final Scope scope = usePassedInScope() ? passedIn : new Scope( \"temp scope for: \" + _name  , getScope() , passedIn , getFileLanguage() ); " , n );
         if ( hasArguments ){
@@ -1177,7 +1177,7 @@ public class Convert implements StackTraceFixer {
 
         _append(  varSetup , n );
         if ( hasArguments ){
-            _append( "if ( extra != null ) for ( Object TTTT : extra ) arguments.add( TTTT );\n" , n );
+            _append( "if ( ___extra != null ) for ( Object TTTT : ___extra ) arguments.add( TTTT );\n" , n );
             _append( "{ Integer numArgs = _lastStart.get(); _lastStart.set( null ); while( numArgs != null && arguments.size() > numArgs && arguments.get( arguments.size() -1 ) == null ) arguments.remove( arguments.size() - 1 ); }" , n );
         }
 
