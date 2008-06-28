@@ -9,6 +9,7 @@ import java.util.*;
 
 import ed.js.*;
 import ed.js.engine.*;
+import ed.log.*;
 import ed.net.*;
 import ed.util.*;
 import ed.net.httpserver.*;
@@ -212,9 +213,9 @@ public class AppServer implements HttpHandler {
 
     void handleError( HttpRequest request , HttpResponse response , Throwable t , AppContext ctxt ){
         if ( ctxt == null )
-            ctxt = _contextHolder.getContext( request , null );
-
-        ctxt._logger.error( request.getURL() , t );
+	    Logger.getLogger( "appserver.nocontext" ).error( request.getURI() , t );
+	else 
+	    ctxt._logger.error( request.getURL() , t );
 
         response.setResponseCode( 500 );
         

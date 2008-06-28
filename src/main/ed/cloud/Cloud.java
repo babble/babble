@@ -107,6 +107,8 @@ public class Cloud extends JSObjectBase {
 	    }
 	}
 	
+	_log.info( "isRealServer : " + isRealServer() );
+
     }
 
     public String getDBHost( String name , String environment ){
@@ -218,7 +220,7 @@ public class Cloud extends JSObjectBase {
     
         JSObject me = (JSObject)(_scope.get("me"));
         if ( me == null )
-            return false;
+	    throw new RuntimeException( "why doesn't me exist" );
 
         return ! JSInternalFunctions.JS_evalToBool( me.get( "bad" ) );
     }

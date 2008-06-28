@@ -8,6 +8,7 @@ import java.util.*;
 import ed.js.*;
 import ed.net.*;
 import ed.net.httpserver.*;
+import ed.log.*;
 import ed.util.*;
 import ed.cloud.*;
 
@@ -190,7 +191,7 @@ public class AppContextHolder {
             }
         }
         
-        throw new RuntimeException( "can't find environment [" + subdomain + "] in [" + root + "]" );
+        throw new RuntimeException( "can't find environment [" + subdomain + "] in [" + root + "]  siteName [" + siteName + "] found site:" + ( site != null )  );
     }
 
     private void _checkout( File f , String what ){
