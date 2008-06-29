@@ -7,6 +7,7 @@ Cloud.Environment = function(){
     this.db = null;
     this.pool = null;
     this.iid = ObjectId();
+    this.aliases = [];
 };
 
 Cloud.SiteDB = function(){
@@ -39,11 +40,17 @@ Cloud.Site.prototype.findEnvironmentByName = function( name ){
         return null;
     
     var ret = null;
+    var ali = null;
     this.environments.forEach( function(z){
+
         if ( z.name == name )
             ret = z;
+
+        if ( z.aliases && z.aliases.contains( name ) )
+            ali = z;
     } );
-    return ret;
+
+    return ret || ali;
 };
 
 Cloud.Site.prototype.findEnvironmentById = function( iid ){
