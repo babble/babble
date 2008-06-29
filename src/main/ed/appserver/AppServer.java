@@ -72,6 +72,11 @@ public class AppServer implements HttpHandler {
         if ( ar == null )
             ar = createRequest( request );
         
+        if ( request.getURI().equals( "/~reset" ) ){
+            handleReset( ar , request , response );
+            return;
+        }
+
         ar.getScope().makeThreadLocal();
         
         final UsageTracker usage = ar.getContext()._usage;
@@ -332,6 +337,24 @@ public class AppServer implements HttpHandler {
             _stats.get( site ).print( out );
             out.print( "\n--- \n " );
         }
+    }        
+
+    void handleReset( AppRequest ar , HttpRequest request , HttpResponse response ){
+        response.setHeader( "Content-Type" , "text/plain" );
+        
+        JxpWriter out = response.getWriter();
+        
+        out.print( "want to reset\n" );
+        
+        if ( request.getRemoteIP().equals( "127.0.0.1" ) && 
+             request.getHeader( "X-Cluster-Cluster-Ip" ) == null ){
+            out.print( "you did it\n" );
+            ar.getContext().reset();
+        }
+        else {
+            out.print( "you suck" );
+        }
+
     }        
     
     class SimpleStats  {
