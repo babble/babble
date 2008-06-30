@@ -108,8 +108,10 @@ public class Module {
         if ( f.exists() )
             return f;
 
-        if ( ! GitUtils.clone( _giturl , _root , version ) )
+        if ( ! GitUtils.clone( _giturl , _root , version ) ){
+            ed.io.FileUtil.deleteDirectory( f );
             throw new RuntimeException( "couldn't clone [" + _giturl + "]" );
+        }
         
         if ( ! GitUtils.checkout( f , version ) ){
             ed.io.FileUtil.deleteDirectory( f );
