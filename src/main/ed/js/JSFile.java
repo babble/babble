@@ -170,7 +170,13 @@ public abstract class JSFile extends JSObjectBase {
             f = new File( root , name );
         }
         
-        File tempdir = JSFile.getTempDirectory(root);
+        File tempdir;
+        if( root != null ){
+            tempdir = JSFile.getTempDirectory(root);
+        }
+        else {
+            tempdir = new File("/tmp");
+        }
 
         File temp = File.createTempFile( "writeToLocalFile" , ".tmpaa" , tempdir );
 
