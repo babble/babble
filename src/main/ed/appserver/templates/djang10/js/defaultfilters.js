@@ -18,6 +18,29 @@ var upper =
         return value.toUpperCase();
 };
 
+var truncatewords =
+    defaultfilters.truncatewords =
+    function(value, arg) {
+
+    try {
+        var length = parseInt(arg);
+        var words = value.split(/\s+/);
+        
+        if(words.length > length) {
+            words = words.slice(0, length);
+            var lastword = words[words.length - 1];
+
+            if(lastword.length > 2 && lastword.substring(lastword.length - 3) != "...")
+                words.push("...");
+        }
+        return words.join(" ");
+    }
+    catch(e) {
+        return value;
+    }
+};
+
+
 var urlencode =
     defaultfilters.urlencode =
     function(value) {
@@ -141,6 +164,7 @@ register.filter("default_if_none", default_if_none);
 register.filter("removetags", removetags);
 register.filter("yesno", yesno);
 register.filter("join", join);
+register.filter("truncatewords", truncatewords);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
