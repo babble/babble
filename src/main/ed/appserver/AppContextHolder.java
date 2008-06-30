@@ -26,11 +26,11 @@ class AppContextHolder {
         _rootFile = _root == null ? null : new File( _root );
     }
 
-    AppContext getContext( HttpRequest request , String newUri[] ){
+    synchronized AppContext getContext( HttpRequest request , String newUri[] ){
         return getContext( request.getHeader( "Host" ) , request.getURI() , newUri );
     }
 
-    AppContext getContext( String host , String uri , String newUri[] ){
+    synchronized AppContext getContext( String host , String uri , String newUri[] ){
         if ( newUri != null )
             newUri[0] = null;
 
