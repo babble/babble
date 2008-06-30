@@ -25,11 +25,26 @@ var urlencode =
     return scope.getParent().getParent().getParent().getParent().escape(value);      
 };
 
+//django calls this escape, but its name clashes
 var escapeFilter =
     defaultfilters.escapeFilter =
     function(value) {
     
     return escapeHTML(value);
+};
+
+var removetags =
+    defaultfilters.removetags =
+    function(value, tags) {
+
+    var tags_re = "(" + tags.split(/\s+/).map(escape_pattern).join("|") + ")";
+    var starttag_re =  new RegExp('<'+tags_re+'(/?>|(\s+[^>]*>))', "g");
+    var endtag_re = new RegExp('</' + tags_re + '>', "g");
+       
+    value = value.replace(starttag_re, "");
+    value = value.replace(endtag_re, "");
+    
+    return value;
 };
 
 var dictsort =
@@ -99,5 +114,11 @@ register.filter("length_is", length_is);
 register.filter("date", date);
 register.filter("default", default_);
 register.filter("default_if_none", default_if_none);
+register.filter("removetags", removetags);
+
+
+//helpers
+var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
+
 
 return defaultfilters;

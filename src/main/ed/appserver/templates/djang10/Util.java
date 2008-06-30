@@ -68,6 +68,18 @@ public class Util {
         return parts.toArray(new String[parts.size()]);
     }
     
+    public static String escape(String pattern) {
+        StringBuilder buffer = new StringBuilder();
+        for(int i=0; i<pattern.length(); i++) {
+            char c = pattern.charAt(i);
+            if(!Character.isLetterOrDigit(c))
+                buffer.append("\\");
+            
+            buffer.append(c);
+        }
+        return buffer.toString();
+    }
+    
     public static String formatDate(Date date, String format) {
         StringBuilder buffer = new StringBuilder();
         boolean escapeNext = false;
