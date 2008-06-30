@@ -31,11 +31,6 @@ public class DjangoRegressionTests {
         "^templatetag.*",
         "^url.*",
         
-        //unimplemented filters:
-        "filter04",         //cut
-        
-        
-        
         //requires architecture impl
         "^autoescape-.*",
         "^inheritance.*",

@@ -48,6 +48,13 @@ var urlencode =
     return scope.getParent().getParent().getParent().getParent().escape(value);      
 };
 
+var cut =
+    defaultfilters.cut =
+    function(value, arg) {
+
+    return value.replace(arg, "");
+};
+
 //django calls this escape, but its name clashes
 var escapeFilter =
     defaultfilters.escapeFilter =
@@ -165,6 +172,7 @@ register.filter("removetags", removetags);
 register.filter("yesno", yesno);
 register.filter("join", join);
 register.filter("truncatewords", truncatewords);
+register.filter("cut", cut);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
