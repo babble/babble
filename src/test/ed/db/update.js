@@ -1,4 +1,6 @@
 db = connect("kristina");
+db.asdf.drop();
+
 asdf = db.asdf;
 
 var txt = "asdf";
@@ -15,12 +17,8 @@ for(var i=1; i<=5000; i++) {
     asdf.update(obj, obj2);
 
     if(i%100 == 0) {
-        log("c: "+c+" i: "+i);
         var c = asdf.count();
-        if(c != i) {
-            log("DB: "+c+" i: "+i+"!");
-            return;
-        }
+        assert(c == i);
     }
 }
 
