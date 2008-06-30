@@ -90,29 +90,47 @@ public class GitUtils {
     public static boolean clone( String cloneurl , File dirToCloneInto , String name ){
         _log.info( "cloning " + cloneurl + " to " + dirToCloneInto );
         SysExec.Result r = SysExec.exec( "git clone " + cloneurl + " " + ( name == null ? "" : name  ) , null , dirToCloneInto , null );
-        return r.getErr().trim().length() == 0;
+
+        if ( r.exitValue() == 0 )
+            return true;
+        
+        _log.error( "error cloning " + cloneurl + " to " + dirToCloneInto + " " + r );
+        return false;
     }
     
     
     public static boolean checkout( File dir , String pathspec ){
         _log.info( "checkout " + dir + " to " + pathspec );
         SysExec.Result r = SysExec.exec( "git checkout " + pathspec , null , dir , null );
-        return 
-            ( r.getErr() + "\n" + r.getOut() ).indexOf( "error:" ) < 0;
+
+        if ( r.exitValue() == 0 )
+            return true;
+        
+        _log.error( "error checking out " + dir + " to " + pathspec + " " + r );
+        return false;
     }
 
     public static boolean pull( File dir ){
         _log.info( "pull " + dir );
         SysExec.Result r = SysExec.exec( "git pull" , null , dir , null );
-        return 
-            ( r.getErr() + "\n" + r.getOut() ).indexOf( "error:" ) < 0;
+
+        if ( r.exitValue() == 0 )
+            return true;
+        
+        _log.error( "error pull " + dir + " " + r );
+        return false;
     }
 
     public static boolean fetch( File dir ){
         _log.info( "fetch " + dir );
         SysExec.Result r = SysExec.exec( "git fetch" , null , dir , null );
-        return 
-            ( r.getErr() + "\n" + r.getOut() ).indexOf( "error:" ) < 0;
+
+        if ( r.exitValue() == 0 )
+            return true;
+
+        _log.info( "error fetch " + dir + " " + r );
+
+        return false;
     }
 
     public static void main( String args[] )

@@ -1,5 +1,7 @@
 package ed.appserver.templates.djang10.regression;
 
+import static org.testng.AssertJUnit.assertEquals;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -8,7 +10,6 @@ import java.util.List;
 import org.testng.annotations.Factory;
 import org.testng.annotations.Test;
 
-import ed.TestCase;
 import ed.appserver.jxp.JxpSource;
 import ed.appserver.templates.djang10.Djang10Source;
 import ed.db.JSHook;
@@ -20,7 +21,8 @@ import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
 
-public class DjangoRegressionTests extends TestCase {
+public class DjangoRegressionTests {
+    private static final boolean DEBUG =  Boolean.getBoolean("DJANG10_DEBUG");
     private static final String[] UNSUPPORTED_TESTS = {
         //unimplemented tags:
         "^cache.*",
@@ -73,50 +75,84 @@ public class DjangoRegressionTests extends TestCase {
         "regroup02"
     };
     
+       
+    public DjangoRegressionTests(){ }
     
-    private final Scope scope;
-    //private final JSObject HackTemplate;
-    private final JSFunction TemplateSyntaxError, SomeException, SomeOtherException;
+    @Factory
+    public Object[] getAllTests()  throws IOException {
+        if(DEBUG)
+            System.out.println("Loading django regression tests");
 
-    private List<ExportedTestCase> testCases = new ArrayList<ExportedTestCase>(); 
-    
-    public DjangoRegressionTests() throws IOException {
-        scope = initScope();
-        
-        //load the js tests
-        String path = JSHook.whereIsEd;
-        if ( path == null ) 
-            path = "";
-        else
-            path += "/";
+        //Locate the test script
+        String path = (JSHook.whereIsEd == null)? "" : JSHook.whereIsEd + "/";
         path += "src/test/ed/appserver/templates/djang10/regression/tests.js";
         
-        JxpSource exportedTestsSource = JxpSource.getSource(new File(path));
-        JSFunction exportedTests = exportedTestsSource.getFunction();
-        exportedTests.call(scope.child());
-        
-        //pull out exported classes
-        //HackTemplate = (JSObject)scope.get("HackTemplate");
-        TemplateSyntaxError = (JSFunction)scope.get("TemplateSyntaxError");
-        SomeException = (JSFunction)scope.get("SomeException");
-        SomeOtherException = (JSFunction)scope.get("SomeOtherException");
-        
-        //pull out the tests
-        int unsupportedCount = 0;
-        
-        JSArray jsTestArr = (JSArray)scope.get("tests");
-        for(Object jsTest : jsTestArr) {
-            ExportedTestCase testCase = new ExportedTestCase(scope.child(), (JSObject)jsTest);
-            
-            if(!isSupported(testCase)) {
-                unsupportedCount++;
-                continue;
-            }
-            
-            testCases.add(testCase);
-            add(testCase);
+        //Initialize the Scope
+        Scope oldScope = Scope.getThreadLocal();
+        Scope globalScope = Scope.newGlobal().child();
+        globalScope.setGlobal(true);
+        globalScope.makeThreadLocal();
+
+        //Load native objects
+        try {
+            Encoding.install(globalScope);
+            Djang10Source.install(globalScope);
         }
-        System.out.println("Skipping " + unsupportedCount + " tests");
+        finally {
+            if(oldScope != null) oldScope.makeThreadLocal();
+            else Scope.clearThreadLocal();
+        }
+            
+        //Load the test script & pull out variables
+        //final JSFunction hackTemplateCons = (JSObject)scope.get("HackTemplate");
+        final JSFunction templateSyntaxErrorCons;
+        final JSFunction someExceptionCons;
+        final JSFunction someOtherExceptionCons;
+        final JSArray tests;
+        
+        try {
+            //create isolated scope for the script
+            Scope loadingScope = globalScope.child();
+            loadingScope.setGlobal(true);
+            loadingScope.makeThreadLocal();
+            
+            //invoke the script
+            JxpSource testSource = JxpSource.getSource(new File(path));
+            JSFunction compiledTests = testSource.getFunction();
+            compiledTests.call(loadingScope);
+        
+            //pull out exported classes
+            templateSyntaxErrorCons = (JSFunction)loadingScope.get("TemplateSyntaxError");
+            someExceptionCons = (JSFunction)loadingScope.get("SomeException");
+            someOtherExceptionCons = (JSFunction)loadingScope.get("SomeOtherException");
+            tests = (JSArray)loadingScope.get("tests");
+        }
+        finally {
+            if(oldScope != null) oldScope.makeThreadLocal();
+            else Scope.clearThreadLocal();
+        }
+        
+        //Process the tests
+        List<ExportedTestCase> testCases = new ArrayList<ExportedTestCase>();
+        int count = 0, skipped = 0;
+        
+        for(Object jsTest : tests) {
+            Scope testScope = globalScope.child();
+            testScope.setGlobal(true);
+            ExportedTestCase testCase = new ExportedTestCase(testScope, (JSObject)jsTest, templateSyntaxErrorCons, someExceptionCons, someOtherExceptionCons);
+            
+            if(isSupported(testCase)) testCases.add(testCase);
+            else skipped++;
+            
+            count++;
+        }
+        
+        if(DEBUG) {
+            String msg = String.format("Found %d tests, skipping %d of them", count, skipped);
+            System.out.println( msg );
+        }
+
+        return testCases.toArray();
     }
     
     private static boolean isSupported(ExportedTestCase testCase) {
@@ -128,33 +164,19 @@ public class DjangoRegressionTests extends TestCase {
             if(testCase.name.matches(unsupportedTest))
                 return false;
         
-        
-        for(String failedTest: FAILED_TESTS)
-            if(testCase.name.matches(failedTest))
-                return false;
+        if(!DEBUG) {
+            for(String failedTest: FAILED_TESTS)
+                if(testCase.name.matches(failedTest))
+                    return false;
+        }
 
-        
         return true;
     }
-    @Factory
-    public Object[] getAllTests() {
-        return testCases.toArray();
-    }
     
-    Scope initScope() {
-        Scope scope = Scope.getAScope().child();
-        scope.makeThreadLocal();
-        
-        Encoding.install(scope);
-        
-        Djang10Source.install(scope);
-        
-        return scope;
-    }
-    
+
     // ====================================
     
-    public class ExportedTestCase extends TestCase {
+    public class ExportedTestCase {
         private final Scope scope;
         private final String name;
         private final String content;
@@ -164,7 +186,7 @@ public class DjangoRegressionTests extends TestCase {
         private final Printer printer;
         
         
-        public ExportedTestCase(Scope scope, JSObject test) {
+        public ExportedTestCase(Scope scope, JSObject test, JSFunction templateSyntaxErrorCons, JSFunction someExceptionCons, JSFunction someOtherExceptionCons) {
             this.scope = scope;
             this.name = ((JSString)test.get("name")).toString();
             this.content = ((JSString)test.get("content")).toString();
@@ -188,7 +210,7 @@ public class DjangoRegressionTests extends TestCase {
                 this.result = new NormalResult(normal, invalid, invalid_setting);
             }
             else {
-                if(temp == TemplateSyntaxError || temp == SomeException || temp == SomeOtherException)
+                if(temp == templateSyntaxErrorCons || temp == someExceptionCons || temp == someOtherExceptionCons)
                     this.result = new ExceptionResult(temp);
                 else
                     throw new IllegalStateException("unkown type: " + temp);
@@ -200,10 +222,20 @@ public class DjangoRegressionTests extends TestCase {
         }
         @Test
         public void testWrapper() {
+            Scope oldScope = Scope.getThreadLocal();
+            scope.makeThreadLocal();
+            
+            System.out.println("Testing: " + name);
+            
             try {
                 realTest();
-            } catch(Throwable t) {
+            }
+            catch(Throwable t) {
                 throw new RuntimeException("Failed[" + name + "]: " + t + ". content: " + content);
+            }
+            finally {
+                if(oldScope != null) oldScope.makeThreadLocal();
+                else Scope.clearThreadLocal();
             }
         }
         public void realTest() throws IOException {
@@ -254,13 +286,5 @@ public class DjangoRegressionTests extends TestCase {
             buffer.append(p0);
             return null;
         }
-    }
-    
-    
-    public static void main(String[] args) throws IOException {
-        DjangoRegressionTests tests = new DjangoRegressionTests();
-        
-        tests.runConsole();
-        return;
     }
 }
