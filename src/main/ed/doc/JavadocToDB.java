@@ -12,7 +12,12 @@ public class JavadocToDB {
     public static void getTags(Doc from, JSObjectBase dest) {
         Tag cTags[] = from.tags();
         for(int j=0; j<cTags.length; j++) {
-            dest.set(cTags[j].name().substring(1), cTags[j].text());
+            if(cTags[j].name().substring(1).equals("return") ||
+               cTags[j].name().substring(1).equals("example") ||
+               cTags[j].name().substring(1).equals("param") ||
+               cTags[j].name().substring(1).equals("anonymous")) {
+                dest.set(cTags[j].name().substring(1), cTags[j].text());
+            }
         }
     }
 
@@ -33,7 +38,6 @@ public class JavadocToDB {
         tempMethod.set("see", new JSArray());
         tempMethod.set("requires", new JSArray());
 
-        JSArray examples = new JSArray();
 
         Tag mTags[] = m.tags();
         for(int k=0; k<mTags.length; k++) {
@@ -46,16 +50,24 @@ public class JavadocToDB {
                 returns.add(tempReturn);
                 tempMethod.set("returns", returns);
             }
-            else if(mTags[k].name().equals("@example")) {
-                examples.add(mTags[k].text());
-            }
             else {
                 tempMethod.set(mTags[k].name(), mTags[k].text());
             }
         }
-        if(!tempMethod.containsKey("returns"))
-            tempMethod.set("returns", new JSArray());
+        if(!tempMethod.containsKey("returns")) {
+            JSArray returns = new JSArray();
+            JSObjectBase tempReturn = new JSObjectBase();
+            tempReturn.set("title", "return");
+            tempReturn.set("type", m.returnType().typeName());
+            returns.add(tempReturn);
+            tempMethod.set("returns", returns);
+        }
 
+        JSArray examples = new JSArray();
+        Tag eg[] = m.tags("example");
+        for(int j=0; j<eg.length; j++) {
+            examples.add(eg[j].text());
+        }
         tempMethod.set("example", examples);
 
         ParamTag params[] = m.paramTags();
@@ -67,7 +79,6 @@ public class JavadocToDB {
             tempParam.set("desc", params[k].parameterComment());
             tempParam.set("type", p2[k].typeName());
             tempParam.set("name", p2[k].name());
-            tempParam.set("isOptional", "false");
             jsParams.add(tempParam);
         }
         tempMethod.set("_params", jsParams);
@@ -85,7 +96,7 @@ public class JavadocToDB {
         tempMethod.set("isProtected", m.isProtected());
         tempMethod.set("isPublic", m.isPublic());
         tempMethod.set("isa", "CONSTRUCTOR");
-        tempMethod.set("memberof", m.containingClass().name());
+        tempMethod.set("memberOf", m.containingClass().name());
         getTags(m, tempMethod);
 
         ParamTag params[] = m.paramTags();
@@ -97,7 +108,6 @@ public class JavadocToDB {
             tempParam.set("desc", params[k].parameterComment());
             tempParam.set("type", p2[k].typeName());
             tempParam.set("name", p2[k].name());
-            tempParam.set("isOptional", "false");
             jsParams.add(tempParam);
         }
         tempMethod.set("_params", jsParams);
@@ -151,7 +161,7 @@ public class JavadocToDB {
             tempField.set("isPublic", fields[j].isPublic());
             getTags(fields[j], tempField);
             tempField.set("isa", "FUNCTION");
-            tempField.set("memberof", c.name());
+            tempField.set("memberOf", c.name());
             jsFields.add(tempField);
         }
         temp.set("properties", jsFields);
@@ -198,6 +208,8 @@ public class JavadocToDB {
         temp.set("returns", new JSArray());
         temp.set("requires", new JSArray());
         temp.set("see", new JSArray());
+
+        // pick up any other tags
         getTags(c, temp);
 
         // get stupid anonymous inner classes
@@ -305,7 +317,6 @@ public class JavadocToDB {
             topLevel.set("_index", obj);
             topLevel.set("version", Generate.getVersion());
             topLevel.set("ts", Calendar.getInstance().getTime().toString());
-
 
             collection.save((JSObject)topLevel);
         }
