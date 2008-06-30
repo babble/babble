@@ -32,7 +32,6 @@ public class DjangoRegressionTests {
         "^url.*",
         
         //unimplemented filters:
-        "filter-syntax12",  //yesno
         "filter-syntax17",  //join
         "filter-syntax19",    //truncatewords
         "filter04",         //cut

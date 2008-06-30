@@ -103,6 +103,21 @@ var default_if_none =
     return (value == null)? arg : value;
 };
 
+var yesno =
+    defaultfilters.yesno =
+    function(value, arg) {
+
+    var bits = (arg || "yes,no,maybe" ).split(",");
+    if(bits.length < 2)
+        return value;
+    
+    var yes = bits[0];
+    var no = bits[1];
+    var maybe = bits[2] || bits[1];
+    
+    return (value == null)? maybe : (djang10.Expression.is_true(value))? yes : no;     
+};
+
 register.filter("lower", lower);
 register.filter("upper", upper);
 register.filter("urlencode", urlencode);
@@ -115,7 +130,7 @@ register.filter("date", date);
 register.filter("default", default_);
 register.filter("default_if_none", default_if_none);
 register.filter("removetags", removetags);
-
+register.filter("yesno", yesno);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
