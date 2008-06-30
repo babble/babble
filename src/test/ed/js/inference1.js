@@ -18,7 +18,7 @@ function bad( num ){
     return x;
 }
 
-var num = 20000;
+var num = 40000;
 var numCalls = 10;
 
 assert( good( num ) == bad( num ) );
