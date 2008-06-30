@@ -175,6 +175,9 @@ var IfChangedNode =
     this._varlist = exprs;    
 };
 IfChangedNode.are_equal = function(a, b){
+    if(typeof(a) != typeof(b))
+        return false;
+
     if(typeof(a) != "object" || typeof(b) != "object")
         return a == b;
 
@@ -249,12 +252,7 @@ IfEqualNode.prototype = {
         var value1 = this.var1.resolve(context);
         var value2 = this.var2.resolve(context);
         
-        if(value1 == djang10.Expression.UNDEFINED_VALUE)
-            value1 = null;
-        if(value2 == djang10.Expression.UNDEFINED_VALUE)
-            value2 = null;
-        
-        if(this.negate != (value1 == value2)) {
+        if(this.negate != IfChangedNode.are_equal(value1, value2)) {
             this.nodelist_true.__render(context, printer);
         }
         else {
