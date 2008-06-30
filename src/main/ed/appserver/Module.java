@@ -62,6 +62,8 @@ public class Module {
         
         if ( ! _default.exists() )
             throw new RuntimeException( "Module root for [" + uriBase + "] does not exist : " + _default + " giturl [" + _giturl + "]" );
+
+        _lock = ( "Module-LockKey-" + _root.getAbsolutePath() ).intern();
     }
 
     String _findGitUrl(){
@@ -79,11 +81,13 @@ public class Module {
         return null;
     }
 
-    public JSFileLibrary getLibrary( String version , AppContext context , Scope scope , boolean pull ){
-        File f = getRootFile( version );
-        if ( pull )
-            GitUtils.pull( f );
-        return new JSFileLibrary( null , f , _uriBase , context , scope , _doInit );
+    public synchronized JSFileLibrary getLibrary( String version , AppContext context , Scope scope , boolean pull ){
+        synchronized ( _lock ){
+            File f = getRootFile( version );
+            if ( pull )
+                GitUtils.pull( f );
+            return new JSFileLibrary( null , f , _uriBase , context , scope , _doInit );
+        }
     }
     
     /**
@@ -129,4 +133,6 @@ public class Module {
     final boolean _versioned;
 
     final File _default;
+
+    final String _lock;
 }
