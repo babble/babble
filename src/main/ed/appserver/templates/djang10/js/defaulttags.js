@@ -100,8 +100,10 @@ FirstOfNode.prototype = {
         for(var i=0; i<this.exprs.length; i++) {
             var expr = this.exprs[i];
             var value = expr.resolve(context);
-            if(djang10.Expression.is_true(value))
+            if(djang10.Expression.is_true(value)) {
                 printer(value);
+                return;
+            }
         }
     }
 }
