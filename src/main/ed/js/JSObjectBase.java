@@ -669,6 +669,29 @@ public class JSObjectBase implements JSObject {
             _jitCache.clear();
     }
 
+    public long approxSize(){
+        long size = JSObjectSize.OBJ_OVERHEAD + 128;
+
+        if ( _name != null )
+            size += JSObjectSize.OBJ_OVERHEAD + ( _name.length() * 2 );
+        
+        if ( _keys != null ){
+            size += 32 + ( _keys.size() * 4 ) ; // overhead for Collection
+            for ( String s : _keys )
+                size += ( s.length() * 2 );
+        }
+        
+        if ( _map != null ){
+            size += 32 + ( _map.size() * 8 );
+            for ( Map.Entry<String,Object> e : _map.entrySet() ){
+                size += e.getKey().length() * 2;
+                size += JSObjectSize.size( e.getValue() );
+            }
+        }
+        
+        return size;
+    }
+
     protected Map<String,Object> _map = null;
     protected Map<String,Pair<JSFunction,JSFunction>> _setterAndGetters = null;
     private Collection<String> _keys = null;

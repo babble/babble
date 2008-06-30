@@ -79,7 +79,17 @@ public class DBPort {
         DBMessage msgResponse = new DBMessage( _array[0] , response );
         
         _reset( response );
-        response.limit( msgResponse._len - DBMessage.HEADER_LENGTH );
+
+        if ( msgResponse._len <= DBMessage.HEADER_LENGTH )
+            throw new IllegalArgumentException( "db sent invalid length : " + msgResponse._len );
+        
+
+        final int bodySize = msgResponse._len - DBMessage.HEADER_LENGTH;
+
+        if ( bodySize > response.capacity() )
+            throw new IllegalArgumentException( "db message size is too big (" + bodySize + ") max is (" + response.capacity() + ")" );
+
+        response.limit( bodySize );
         while ( response.remaining() > 0 )
             _sock.read( response );
         

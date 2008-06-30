@@ -16,10 +16,7 @@ for(var i=0; i<10000; i++) {
 }
 
 var num = t.find().count();
-if(num != 10000) {
-    print("num : "+num+", messed up on initial fill!");
-    return;
-}
+assert(num == 10000);
 
 for(var i=0; i<100000; i++) {
     var q = {};
@@ -28,16 +25,15 @@ for(var i=0; i<100000; i++) {
     if(x) {
         for(var j in x) {
             if(j.startsWith("x")) {
-                print("x: "+tojson(x)+" j: "+j);
                 x[j].push(i);
             }
         }
         t.save(x);
     }
+    if(i%100 == 0) {
+        assert(t.count() == 10000)
+    }
 }
 
 var num = t.find().count();
-if(num != 10000) {
-    print("num : "+num+", messed up after array mod!");
-    return;
-}
+assert(num == 10000);

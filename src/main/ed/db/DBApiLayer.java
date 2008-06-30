@@ -316,6 +316,8 @@ public abstract class DBApiLayer extends DBBase {
     class SingleResult {
 
         SingleResult( String fullNameSpace , ByteDecoder decoder , Set<ObjectId> seen ){
+            _bytes = decoder.remaining();
+            
             _fullNameSpace = fullNameSpace;
             _reserved = decoder.getInt();
             _cursor = decoder.getLong();
@@ -360,6 +362,8 @@ public abstract class DBApiLayer extends DBBase {
             return "reserved:" + _reserved + " _cursor:" + _cursor + " _startingFrom:" + _startingFrom + " _num:" + _num ;
         }
         
+        final long _bytes;
+
         final String _fullNameSpace;
         final int _reserved;
         final long _cursor;
@@ -378,6 +382,8 @@ public abstract class DBApiLayer extends DBBase {
         }
 
         private void init( SingleResult res ){
+            _totalBytes += res._bytes;
+
             _curResult = res;
             for ( JSObject o : res._lst ){
                 ObjectId id = (ObjectId)o.get( "_id" );
@@ -386,7 +392,7 @@ public abstract class DBApiLayer extends DBBase {
             }
             _cur = res._lst.iterator();
         }
-
+        
         public JSObject next(){
             if ( _cur.hasNext() )
                 return _cur.next();
@@ -445,12 +451,18 @@ public abstract class DBApiLayer extends DBBase {
             if ( _curResult != null && _curResult._cursor > 0 )
                 _deadCursorIds.add( _curResult._cursor );
         }
+        
+        public long totalBytes(){
+            return _totalBytes;
+        }
 
         SingleResult _curResult;
         Iterator<JSObject> _cur;
         final Set<ObjectId> _seen = new HashSet<ObjectId>();
         final MyCollection _collection;
         final int _numToReturn;
+
+        private long _totalBytes = 0;
     }
 
     final String _root;
