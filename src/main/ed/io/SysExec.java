@@ -89,9 +89,11 @@ public class SysExec extends ed.js.func.JSFunctionCalls4 {
             }
                 
             a.join();
-                
+            
             if ( threadException[0] != null )
                 throw threadException[0];
+
+            res.exitValue( p.exitValue() );
 
             return res;
         }
@@ -143,7 +145,7 @@ public class SysExec extends ed.js.func.JSFunctionCalls4 {
                 throw new JSException("directory offset problem", e);	            
             }	        
         }
-
+        
         return exec( o.toString() , env , procDir , toSend );
     }        
 
@@ -155,6 +157,10 @@ public class SysExec extends ed.js.func.JSFunctionCalls4 {
         void setErr( String s ){
             set( "err" , s );
         }
+        
+        void exitValue( int ev ){
+            set( "exitValue" , ev );
+        }
 
         public String getOut(){
             return get( "out" ).toString();
@@ -162,6 +168,19 @@ public class SysExec extends ed.js.func.JSFunctionCalls4 {
 
         public String getErr(){
             return get( "err" ).toString();
+        }
+
+        public int exitValue(){
+            return ((Number)get( "exitValue" )).intValue();
+        }
+
+        public String toString(){
+            return 
+                "{\n" + 
+                "\t exitValue : " + exitValue() + " , \n " + 
+                "\t out : " + getOut() + " , \n " + 
+                "\t err : " + getErr() + " , \n " + 
+                "}\n";
         }
 
     }
