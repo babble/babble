@@ -344,7 +344,7 @@ RegroupNode.prototype = {
     },
     __render: function(context, printer) {
         var obj_list = this.the_list.resolve(context);
-        if(obj_list == null || obj_list == djang10.Expression.UNDEFINED_VALUE) {
+        if(!djang10.Expression.is_true(obj_list)) {
             context[this.var_name] = [];
             return;
         }
@@ -354,17 +354,18 @@ RegroupNode.prototype = {
         
         var prop_name = this.prop_name;
         
-        obj_list.each(function(item) {
-            if(group == null || group.grouper != item[prop_name]) {
-                group = {
-                    grouper: item[prop_name],
-                    list: []
-                };
-                grouped.push(group);
-            }
-            group.list.push(item);
-        });
-        
+        if(prop_name) {
+            obj_list.each(function(item){
+                if (group == null || group.grouper != item[prop_name]) {
+                    group = {
+                        grouper: item[prop_name],
+                        list: []
+                    };
+                    grouped.push(group);
+                }
+                group.list.push(item);
+            });
+        }
         context[this.var_name] = grouped;
     }
 };

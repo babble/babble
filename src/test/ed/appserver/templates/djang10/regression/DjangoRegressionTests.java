@@ -44,7 +44,7 @@ public class DjangoRegressionTests {
         "^autoescape-.*",
         "^inheritance.*",
         "^include.*",
-        "basic-syntax27",
+        "basic-syntax27",   //need support for translating _( )
         "^list-index.*",    //need to preprocess the string
         "ifequal-numeric07", //need to preprocess: throw error on 2.
         
@@ -58,7 +58,6 @@ public class DjangoRegressionTests {
         "ifequal-split08",
         "ifequal-split09",
         "ifequal-split10",
-        "regroup02"
     };
     
        
