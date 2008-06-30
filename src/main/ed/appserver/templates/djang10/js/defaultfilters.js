@@ -18,6 +18,29 @@ var upper =
         return value.toUpperCase();
 };
 
+var truncatewords =
+    defaultfilters.truncatewords =
+    function(value, arg) {
+
+    try {
+        var length = parseInt(arg);
+        var words = value.split(/\s+/);
+        
+        if(words.length > length) {
+            words = words.slice(0, length);
+            var lastword = words[words.length - 1];
+
+            if(lastword.length > 2 && lastword.substring(lastword.length - 3) != "...")
+                words.push("...");
+        }
+        return words.join(" ");
+    }
+    catch(e) {
+        return value;
+    }
+};
+
+
 var urlencode =
     defaultfilters.urlencode =
     function(value) {
@@ -25,11 +48,26 @@ var urlencode =
     return scope.getParent().getParent().getParent().getParent().escape(value);      
 };
 
+//django calls this escape, but its name clashes
 var escapeFilter =
     defaultfilters.escapeFilter =
     function(value) {
     
     return escapeHTML(value);
+};
+
+var removetags =
+    defaultfilters.removetags =
+    function(value, tags) {
+
+    var tags_re = "(" + tags.split(/\s+/).map(escape_pattern).join("|") + ")";
+    var starttag_re =  new RegExp('<'+tags_re+'(/?>|(\s+[^>]*>))', "g");
+    var endtag_re = new RegExp('</' + tags_re + '>', "g");
+       
+    value = value.replace(starttag_re, "");
+    value = value.replace(endtag_re, "");
+    
+    return value;
 };
 
 var dictsort =
@@ -52,6 +90,15 @@ var dictsortreversed =
     return dictsort(value, arg).reverse();
 };
 
+var join =
+    defaultfilters.join =
+    function(value, arg) {
+
+    if(!(value.join instanceof Function))
+        return value;
+    else
+        return value.join(arg);        
+};
 
 var length =
     defaultfilters.length =
@@ -88,6 +135,21 @@ var default_if_none =
     return (value == null)? arg : value;
 };
 
+var yesno =
+    defaultfilters.yesno =
+    function(value, arg) {
+
+    var bits = (arg || "yes,no,maybe" ).split(",");
+    if(bits.length < 2)
+        return value;
+    
+    var yes = bits[0];
+    var no = bits[1];
+    var maybe = bits[2] || bits[1];
+    
+    return (value == null)? maybe : (djang10.Expression.is_true(value))? yes : no;     
+};
+
 register.filter("lower", lower);
 register.filter("upper", upper);
 register.filter("urlencode", urlencode);
@@ -99,5 +161,13 @@ register.filter("length_is", length_is);
 register.filter("date", date);
 register.filter("default", default_);
 register.filter("default_if_none", default_if_none);
+register.filter("removetags", removetags);
+register.filter("yesno", yesno);
+register.filter("join", join);
+register.filter("truncatewords", truncatewords);
+
+//helpers
+var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
+
 
 return defaultfilters;

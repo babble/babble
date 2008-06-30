@@ -32,10 +32,6 @@ public class DjangoRegressionTests {
         "^url.*",
         
         //unimplemented filters:
-        "filter-syntax09",  //removetags
-        "filter-syntax12",  //yesno
-        "filter-syntax17",  //join
-        "filter-syntax19",    //truncatewords
         "filter04",         //cut
         
         
@@ -48,18 +44,15 @@ public class DjangoRegressionTests {
         "^list-index.*",    //need to preprocess the string
         "ifequal-numeric07", //need to preprocess: throw error on 2.
         
-        //will never be supported
-        "^for-tag-unpack.*",
-    };
-    
-    private static String[] FAILED_TESTS = {
-        "filter-syntax15",
-        "filter-syntax16",
-        "ifequal-split08",
+        //django doesn't escape strings
         "ifequal-split09",
         "ifequal-split10",
-    };
-    
+        "filter-syntax15",
+        "filter-syntax16",
+        
+        //will never be supported
+        "^for-tag-unpack.*",
+    };    
        
     public DjangoRegressionTests(){ }
     
@@ -149,12 +142,6 @@ public class DjangoRegressionTests {
             if(testCase.name.matches(unsupportedTest))
                 return false;
         
-        if(!DEBUG) {
-            for(String failedTest: FAILED_TESTS)
-                if(testCase.name.matches(failedTest))
-                    return false;
-        }
-
         return true;
     }
     

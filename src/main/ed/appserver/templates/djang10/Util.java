@@ -1,11 +1,16 @@
 package ed.appserver.templates.djang10;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Util {
     public static int countOccurance(CharSequence str, char character) {
@@ -19,6 +24,62 @@ public class Util {
         return count;
     }
 
+    private static final String splitPatternFormat = "(\"(?:[^\"\\\\]*(?:\\\\.[^\"\\\\]*)*)\"|\'(?:[^\'\\\\]*(?:\\\\.[^\'\\\\]*)*)\'|[^%s]+)";
+    
+    public static String[] smart_split(String str) {
+        return smart_split(str, "\\s");
+    }
+    
+    public static String[] smart_split(String str, String splitChars) {
+        String patternStr = String.format(splitPatternFormat, splitChars);
+        Pattern pattern = Pattern.compile(patternStr);
+        
+        List<String> results = new ArrayList<String>();
+        List<Character> quotes = Arrays.asList( new Character[] { '"', '\'' } );
+        Matcher m = pattern.matcher(str);
+
+        while(m.find()) {
+            String bit = m.group(0);
+            
+            if(quotes.contains(bit.charAt(0)) && bit.charAt(bit.length() - 1) == bit.charAt(0)) {
+                char quote = bit.charAt(0);
+                
+                bit = quote + bit.substring(1, bit.length() -1) + quote;
+            }
+            results.add(bit);
+        }
+        return results.toArray(new String[results.size()]);
+    }
+    public static String[] split(Pattern regex, String str, int maxsplit) {
+        List<String> parts = new ArrayList<String>();
+        Matcher m = regex.matcher(str);
+        
+        int lastI = 0;
+        
+        while(m.find()) {
+            parts.add(str.substring(lastI, m.start()));
+            for(int i = 1; i < m.groupCount() + 1; i++)
+                parts.add(m.group(i));
+            
+            lastI = m.end();
+        }
+        parts.add(str.substring(lastI));
+        
+        return parts.toArray(new String[parts.size()]);
+    }
+    
+    public static String escape(String pattern) {
+        StringBuilder buffer = new StringBuilder();
+        for(int i=0; i<pattern.length(); i++) {
+            char c = pattern.charAt(i);
+            if(!Character.isLetterOrDigit(c))
+                buffer.append("\\");
+            
+            buffer.append(c);
+        }
+        return buffer.toString();
+    }
+    
     public static String formatDate(Date date, String format) {
         StringBuilder buffer = new StringBuilder();
         boolean escapeNext = false;

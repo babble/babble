@@ -23,7 +23,7 @@ public class FilterExpression extends JSObjectBase {
         init(parser, filterExpression);
     }
     private void init(Parser parser, String filterExpression) {
-        String[] parts = Parser.smartSplit(filterExpression.trim(), "|");
+        String[] parts = Util.smart_split(filterExpression.trim(), "\\|");
 
         this.expression = new Expression(parts[0]);
         this.filterSpecs = new ArrayList<FilterSpec>();

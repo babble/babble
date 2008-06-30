@@ -19,6 +19,9 @@ public class HttpServer extends NIOServer {
     static final int WORKER_THREADS = 30;
     static final int ADMIN_WORKER_THREADS = 10;
 
+    static final int WORKER_THREAD_QUEUE_MAX = 500;
+    static final int ADMIN_THREAD_QUEUE_MAX = 50;
+
     static final boolean D = Boolean.getBoolean( "DEBUG.HTTP" );
     static final Logger LOGGER = Logger.getLogger( "httpserver" );
     
@@ -56,8 +59,8 @@ public class HttpServer extends NIOServer {
                         return false;
                     }
                     
-                    response.setResponseCode( 501 );
-                    response.getWriter().print( "no more threads\n" );
+                    response.setResponseCode( 500 );
+                    response.getWriter().print( "no more threads (appsrv h612)\n" );
                     response.done();
                     return false;
                 }
@@ -122,7 +125,7 @@ public class HttpServer extends NIOServer {
                 if ( _lastResponse == null )
                     _lastResponse = new HttpResponse( _lastRequest );
 
-                _lastResponse.setResponseCode( 501 );
+                _lastResponse.setResponseCode( 500 );
                 _lastResponse.getWriter().print( "error : " + re + "\n\n" );
                 _lastResponse.done();
             }
@@ -257,13 +260,13 @@ public class HttpServer extends NIOServer {
         final HttpHandler _handler;
     }
 
-    private final WorkerThreadPool _forkThreads = new WorkerThreadPool( "main" , WORKER_THREADS );
-    private final WorkerThreadPool _forkThreadsAdmin = new WorkerThreadPool( "admin" , ADMIN_WORKER_THREADS );
+    private final WorkerThreadPool _forkThreads = new WorkerThreadPool( "main" , WORKER_THREADS , WORKER_THREAD_QUEUE_MAX );
+    private final WorkerThreadPool _forkThreadsAdmin = new WorkerThreadPool( "admin" , ADMIN_WORKER_THREADS , ADMIN_THREAD_QUEUE_MAX );
     
     static class WorkerThreadPool extends ThreadPool<Task> {
 
-        WorkerThreadPool( String name , int num ){
-            super( "HttpServer-" + name , num );
+        WorkerThreadPool( String name , int num , int maxQueue ){
+            super( "HttpServer-" + name , num , maxQueue );
         }
         
         public void handle( Task t ) throws IOException {
