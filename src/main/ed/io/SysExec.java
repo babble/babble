@@ -93,7 +93,7 @@ public class SysExec extends ed.js.func.JSFunctionCalls4 {
             if ( threadException[0] != null )
                 throw threadException[0];
 
-            res.exitValue( p.exitValue() );
+            res.exitValue( p.waitFor() );
 
             return res;
         }
