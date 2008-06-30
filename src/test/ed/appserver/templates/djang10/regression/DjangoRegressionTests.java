@@ -44,7 +44,9 @@ public class DjangoRegressionTests {
         "^autoescape-.*",
         "^inheritance.*",
         "^include.*",
-        "basic-syntax27",
+        "basic-syntax27",   //need support for translating _( )
+        "^list-index.*",    //need to preprocess the string
+        "ifequal-numeric07", //need to preprocess: throw error on 2.
         
         //will never be supported
         "^for-tag-unpack.*",
@@ -53,26 +55,9 @@ public class DjangoRegressionTests {
     private static String[] FAILED_TESTS = {
         "filter-syntax15",
         "filter-syntax16",
-        "firstof05",
-        "ifequal-numeric01",
-        "ifequal-numeric04",
-        "ifequal-numeric05",
-        "ifequal-numeric06",
-        "ifequal-numeric07",
-        "ifequal-numeric08",
-        "ifequal-numeric11",
-        "ifequal-numeric12",
         "ifequal-split08",
         "ifequal-split09",
         "ifequal-split10",
-        "list-index01",
-        "list-index02",
-        "list-index03",
-        "list-index04",
-        "list-index05",
-        "list-index06",
-        "list-index07",
-        "regroup02"
     };
     
        
@@ -251,7 +236,7 @@ public class DjangoRegressionTests {
                 templateFn.call(scope, model);
                 String output = printer.buffer.toString();
                 
-                assertEquals(output, normalResult.normal);
+                assertEquals(normalResult.normal, output);
             }
             
             
