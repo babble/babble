@@ -39,11 +39,11 @@ public class AppContextHolder {
         _rootFile = _root == null ? null : new File( _root );
     }
 
-    public AppContext getContext( HttpRequest request , String newUri[] ){
+    public synchronized AppContext getContext( HttpRequest request , String newUri[] ){
         return getContext( request.getHeader( "Host" ) , request.getURI() , newUri );
     }
     
-    public AppContext getContext( String host , String uri , String newUri[] ){
+    public synchronized AppContext getContext( String host , String uri , String newUri[] ){
         if ( newUri != null )
             newUri[0] = null;
 
@@ -87,7 +87,7 @@ public class AppContextHolder {
         return _getDefaultContext();
     }
 
-    AppContext getEnvironmentContext( final File siteRoot , final Info info , final String originalHost ){
+    synchronized AppContext getEnvironmentContext( final File siteRoot , final Info info , final String originalHost ){
 
         if ( ! siteRoot.exists() )
             throw new RuntimeException( "\t trying to map [" + originalHost + "] to " + siteRoot + " which doesn't exist" );
@@ -193,7 +193,7 @@ public class AppContextHolder {
         
         throw new RuntimeException( "can't find environment [" + subdomain + "] in [" + root + "]  siteName [" + siteName + "] found site:" + ( site != null )  );
     }
-
+    
     private void _checkout( File f , String what ){
         if ( GitUtils.checkout( f , what ) )
             return;
