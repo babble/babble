@@ -8,9 +8,14 @@ import java.util.concurrent.*;
 public abstract class ThreadPool<T> {
     
     public ThreadPool( String name , int numThreads ){
+        this( name , numThreads , Integer.MAX_VALUE );
+    }
+    
+    public ThreadPool( String name , int numThreads , int maxQueueSize ){
         _name = name;
         _maxThreads = numThreads;
         _threads.add( new MyThread() );
+        _queue = new LinkedBlockingQueue<T>( maxQueueSize );
     }
     
     public abstract void handle( T t )
@@ -60,5 +65,6 @@ public abstract class ThreadPool<T> {
     final String _name;
     final int _maxThreads;
     final List<MyThread> _threads = new Vector<MyThread>();
-    private final BlockingQueue<T> _queue = new LinkedBlockingQueue<T>();
+    private final BlockingQueue<T> _queue;
+    
 }

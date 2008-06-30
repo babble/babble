@@ -79,7 +79,6 @@ public class JavadocToDB {
             tempParam.set("desc", params[k].parameterComment());
             tempParam.set("type", p2[k].typeName());
             tempParam.set("name", p2[k].name());
-            tempParam.set("isOptional", "false");
             jsParams.add(tempParam);
         }
         tempMethod.set("_params", jsParams);
@@ -109,7 +108,6 @@ public class JavadocToDB {
             tempParam.set("desc", params[k].parameterComment());
             tempParam.set("type", p2[k].typeName());
             tempParam.set("name", p2[k].name());
-            tempParam.set("isOptional", "false");
             jsParams.add(tempParam);
         }
         tempMethod.set("_params", jsParams);
