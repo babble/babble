@@ -55,7 +55,6 @@ public class DjangoRegressionTests {
     private static String[] FAILED_TESTS = {
         "filter-syntax15",
         "filter-syntax16",
-        "ifequal-split08",
         "ifequal-split09",
         "ifequal-split10",
     };

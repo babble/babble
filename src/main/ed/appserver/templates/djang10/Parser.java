@@ -270,7 +270,7 @@ public class Parser extends JSObjectBase{
             return startLine;
         }
         public String[] split_contents() {
-            return Parser.smartSplit(getContents().toString());
+            return Util.smart_split(getContents().toString());
         }
         
         public String toString() {
@@ -384,52 +384,6 @@ public class Parser extends JSObjectBase{
         public void remove() {
             throw new UnsupportedOperationException();
         }
-    }
-
-    public static String[] smartSplit(String str) {
-        return smartSplit(str, " \t\r\n");
-    }
-
-    public static String[] smartSplit(String str, String delims) {
-        return smartSplit(str, delims, -1);
-    }
-
-    public static String[] smartSplit(String str, String delims, int limit) {
-        String quotes = "\'\"";
-        delims += quotes;
-
-        ArrayList<String> parts = new ArrayList<String>();
-        StringTokenizer tokenizer = new StringTokenizer(str, delims, true);
-        int pos = 0;
-        StringBuilder buffer = new StringBuilder();
-        char openQuote = '\"';
-        boolean inQuote = false;
-
-        while (tokenizer.hasMoreTokens() && (parts.size() < limit - 1 || limit < 0)) {
-            String token = tokenizer.nextToken();
-            pos += token.length();
-
-            boolean isQuote = token.length() == 1 && quotes.contains(token);
-            boolean isDelim = token.length() == 1 && delims.contains(token);
-
-            if (isQuote) {
-                if (!inQuote) {
-                    openQuote = token.charAt(0);
-                    inQuote = true;
-                } else if (openQuote == token.charAt(0))
-                    inQuote = false;
-            } else if (!inQuote && isDelim) {
-                parts.add(buffer.toString());
-                buffer.setLength(0);
-
-                continue;
-            }
-            buffer.append(token);
-        }
-        parts.add(buffer.toString() + str.substring(pos));
-
-        String[] partArray = new String[parts.size()];
-        return parts.toArray(partArray);
     }
 
     public static String dequote(String str) {
