@@ -300,7 +300,7 @@ public class AppServer implements HttpHandler {
         }
         catch ( Exception e ){
             ar.getContext()._logger.error( request.getURL() , e );
-            response.setResponseCode( 501 );
+            response.setResponseCode( 500 );
             response.getWriter().print( "<br><br><hr>" );
             response.getWriter().print( e.toString() );
         }

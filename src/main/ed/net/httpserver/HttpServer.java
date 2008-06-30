@@ -56,8 +56,8 @@ public class HttpServer extends NIOServer {
                         return false;
                     }
                     
-                    response.setResponseCode( 501 );
-                    response.getWriter().print( "no more threads\n" );
+                    response.setResponseCode( 500 );
+                    response.getWriter().print( "no more threads (appsrv h612)\n" );
                     response.done();
                     return false;
                 }
@@ -122,7 +122,7 @@ public class HttpServer extends NIOServer {
                 if ( _lastResponse == null )
                     _lastResponse = new HttpResponse( _lastRequest );
 
-                _lastResponse.setResponseCode( 501 );
+                _lastResponse.setResponseCode( 500 );
                 _lastResponse.getWriter().print( "error : " + re + "\n\n" );
                 _lastResponse.done();
             }
