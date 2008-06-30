@@ -45,6 +45,7 @@ public class DjangoRegressionTests {
         "^inheritance.*",
         "^include.*",
         "basic-syntax27",
+        "^list-index.*",    //need to preprocess the string
         
         //will never be supported
         "^for-tag-unpack.*",
@@ -65,13 +66,6 @@ public class DjangoRegressionTests {
         "ifequal-split08",
         "ifequal-split09",
         "ifequal-split10",
-        "list-index01",
-        "list-index02",
-        "list-index03",
-        "list-index04",
-        "list-index05",
-        "list-index06",
-        "list-index07",
         "regroup02"
     };
     
