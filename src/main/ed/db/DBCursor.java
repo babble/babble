@@ -11,6 +11,8 @@ import ed.util.*;
 
 public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
 
+    public static final long MAX_RAW_BYTES = 1024 * 1024 * 25;
+    public static final long MAX_OBJ_BYTES = 1024 * 1024 * 50;
 
     public DBCursor( DBCollection collection , JSObject q , JSObject k , JSFunction cons ){
         _collection = collection;
@@ -102,6 +104,19 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
         }
         
         if ( _cursorType == CursorType.ARRAY ){
+            
+            if ( _it instanceof DBApiLayer.Result ){
+                final long tb = ((DBApiLayer.Result)_it).totalBytes();
+                if ( tb >= MAX_RAW_BYTES ){
+                    throw new RuntimeException( "database cursor in array mode and trying to store too much data" );
+                }
+            }
+
+            _totalObjectSize += JSObjectSize.size( _cur );
+
+            if ( _totalObjectSize > MAX_OBJ_BYTES )
+                throw new RuntimeException( "database cursor in array mode and total object size is too big" );
+
             _nums.add( String.valueOf( _all.size() ) );
             _all.add( _cur );
         }
@@ -249,8 +264,10 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
     
     private JSObject _cur = null;
     private int _num = 0;
+    
+    private long _totalObjectSize = 0;
 
     private final List<JSObject> _all = new ArrayList<JSObject>();
     private final List<String> _nums = new ArrayList<String>();
-
+    
 }

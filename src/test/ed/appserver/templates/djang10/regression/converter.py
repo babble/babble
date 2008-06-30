@@ -133,8 +133,11 @@ def serialize(m):
     elif isinstance(m, str):
         return '"%s"' % escape_str(m)
     
-    elif isinstance(m, (int, long, float, complex)):
+    elif isinstance(m , (int, long) ):
         return "%d" % m
+    
+    elif isinstance(m, float):
+        return "%f" % m
 
     elif isinstance(m, type):
         if(m in exported_classes):

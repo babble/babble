@@ -100,8 +100,10 @@ FirstOfNode.prototype = {
         for(var i=0; i<this.exprs.length; i++) {
             var expr = this.exprs[i];
             var value = expr.resolve(context);
-            if(djang10.Expression.is_true(value))
+            if(djang10.Expression.is_true(value)) {
                 printer(value);
+                return;
+            }
         }
     }
 }
@@ -175,6 +177,9 @@ var IfChangedNode =
     this._varlist = exprs;    
 };
 IfChangedNode.are_equal = function(a, b){
+    if(typeof(a) != typeof(b))
+        return false;
+
     if(typeof(a) != "object" || typeof(b) != "object")
         return a == b;
 
@@ -249,12 +254,7 @@ IfEqualNode.prototype = {
         var value1 = this.var1.resolve(context);
         var value2 = this.var2.resolve(context);
         
-        if(value1 == djang10.Expression.UNDEFINED_VALUE)
-            value1 = null;
-        if(value2 == djang10.Expression.UNDEFINED_VALUE)
-            value2 = null;
-        
-        if(this.negate != (value1 == value2)) {
+        if(this.negate != IfChangedNode.are_equal(value1, value2)) {
             this.nodelist_true.__render(context, printer);
         }
         else {
@@ -344,7 +344,7 @@ RegroupNode.prototype = {
     },
     __render: function(context, printer) {
         var obj_list = this.the_list.resolve(context);
-        if(obj_list == null || obj_list == djang10.Expression.UNDEFINED_VALUE) {
+        if(!djang10.Expression.is_true(obj_list)) {
             context[this.var_name] = [];
             return;
         }
@@ -354,17 +354,18 @@ RegroupNode.prototype = {
         
         var prop_name = this.prop_name;
         
-        obj_list.each(function(item) {
-            if(group == null || group.grouper != item[prop_name]) {
-                group = {
-                    grouper: item[prop_name],
-                    list: []
-                };
-                grouped.push(group);
-            }
-            group.list.push(item);
-        });
-        
+        if(prop_name) {
+            obj_list.each(function(item){
+                if (group == null || group.grouper != item[prop_name]) {
+                    group = {
+                        grouper: item[prop_name],
+                        list: []
+                    };
+                    grouped.push(group);
+                }
+                group.list.push(item);
+            });
+        }
         context[this.var_name] = grouped;
     }
 };

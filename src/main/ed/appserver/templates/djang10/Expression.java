@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.Stack;
 
 import org.mozilla.javascript.CompilerEnvirons;
 import org.mozilla.javascript.Node;
@@ -39,6 +38,8 @@ public class Expression extends JSObjectBase {
         Token.NAME,
         Token.ARRAYLIT,
         Token.STRING,
+        Token.POS,
+        Token.NEG,
         Token.NUMBER,
         Token.NULL,
         Token.TRUE,
@@ -236,6 +237,12 @@ public class Expression extends JSObjectBase {
         case Token.STRING:
             return new JSString(node.getString());
 
+        case Token.POS:
+            return resolve(scope, ctx, node.getFirstChild(), true);
+            
+        case Token.NEG:
+            temp = resolve(scope, ctx, node.getFirstChild(), true);
+            return (temp instanceof Double)?  -1 * ((Double)temp) :  -1 * ((Integer)temp);
 
         case Token.NUMBER:
             double n = node.getDouble();
