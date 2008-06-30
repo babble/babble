@@ -19,12 +19,18 @@ import ed.io.SysExec;
  */
 public class Generate {
 
+    /** Documentation version string... can be anything: "1.3.3", "dev", "BLARGH!", whatever
+     */
     private static String version;
 
+    /** Version setter
+     */
     public static void setVersion(String v) {
         version = v;
     }
 
+    /** Version getter
+     */
     public static String getVersion() {
         if(version == null) return "";
         return version;
@@ -46,7 +52,7 @@ public class Generate {
         try {
             Scope s = Scope.getThreadLocal();
             Object dbo = s.get("__instance__");
-            if(! (dbo instanceof AppContext)) throw new RuntimeException("your appserver is having an identity crisis");
+            if(! (dbo instanceof AppContext)) throw new RuntimeException("your appserver isn't an appserver");
             String instanceName = ((AppContext)dbo).getName();
 
             SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -d=../../"+instanceName+"/"+path+" -t=templates/jsdoc2", null, new File("../core-modules/docgen/"), objStr);
@@ -129,13 +135,13 @@ public class Generate {
     /** Generate a js obj from javadoc
      * @param Path to file or folder to be documented
      */
-    public static void JavadocArgHelper(String arg) throws IOException {
+    public static void JavaToDb(String arg) throws IOException {
         File f = new File(arg);
         if(!f.exists()) return;
         if(f.isDirectory()) {
             File farray[] = f.listFiles();
             for(int i=0; i<farray.length; i++) {
-                JavadocArgHelper(farray[i].getCanonicalPath());
+                JavaToDb(farray[i].getCanonicalPath());
             }
         }
         else {
