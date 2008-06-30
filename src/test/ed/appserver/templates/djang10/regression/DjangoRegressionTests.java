@@ -244,7 +244,7 @@ public class DjangoRegressionTests {
                 templateFn.call(scope, model);
                 String output = printer.buffer.toString();
                 
-                assertEquals(output, normalResult.normal);
+                assertEquals(normalResult.normal, output);
             }
             
             
