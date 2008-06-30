@@ -46,6 +46,7 @@ public class DjangoRegressionTests {
         "^include.*",
         "basic-syntax27",
         "^list-index.*",    //need to preprocess the string
+        "ifequal-numeric07", //need to preprocess: throw error on 2.
         
         //will never be supported
         "^for-tag-unpack.*",
@@ -54,8 +55,6 @@ public class DjangoRegressionTests {
     private static String[] FAILED_TESTS = {
         "filter-syntax15",
         "filter-syntax16",
-        "ifequal-numeric07",
-        "ifequal-numeric12",
         "ifequal-split08",
         "ifequal-split09",
         "ifequal-split10",
