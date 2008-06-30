@@ -67,6 +67,15 @@ var dictsortreversed =
     return dictsort(value, arg).reverse();
 };
 
+var join =
+    defaultfilters.join =
+    function(value, arg) {
+
+    if(!(value.join instanceof Function))
+        return value;
+    else
+        return value.join(arg);        
+};
 
 var length =
     defaultfilters.length =
@@ -131,6 +140,7 @@ register.filter("default", default_);
 register.filter("default_if_none", default_if_none);
 register.filter("removetags", removetags);
 register.filter("yesno", yesno);
+register.filter("join", join);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
