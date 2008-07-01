@@ -188,8 +188,9 @@ public class DjangoRegressionTests {
         public void testWrapper() {
             Scope oldScope = Scope.getThreadLocal();
             scope.makeThreadLocal();
-            
-            System.out.println("Testing: " + name);
+
+            if(DEBUG)
+                System.out.println("Testing: " + name);
             
             try {
                 realTest();

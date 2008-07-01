@@ -13,6 +13,8 @@ import ed.appserver.jxp.JxpSource;
 import ed.io.StreamUtil;
 import ed.js.JSArray;
 import ed.js.JSFunction;
+import ed.js.JSObject;
+import ed.js.engine.JSCompiledScript;
 import ed.js.engine.Scope;
 import ed.util.Dependency;
 import ed.util.Pair;
@@ -106,6 +108,7 @@ public class Djang10Source extends JxpSource {
     public static JSHelper install(Scope scope) {
         JSHelper jsHelper = JSHelper.install(scope);
         
+        //FIXME: this whole injection is ugly, fix it!
         JSFileLibrary js = JSFileLibrary.loadLibraryFromEd("ed/appserver/templates/djang10/js", "djang10", scope);
         
         for(String jsFile : new String[] {"defaulttags", "loader_tags", "defaultfilters", "tengen_extras"}) {
@@ -113,6 +116,18 @@ public class Djang10Source extends JxpSource {
             Library lib = (Library) jsHelper.evalLibrary.call(scope, jsFileFn);
 
             jsHelper.addDefaultLibrary((JxpSource)jsFileFn.get(JxpSource.JXP_SOURCE_PROP), lib);
+        }
+        
+        JSFileLibrary defaultLoaders = (JSFileLibrary)js.get("loaders");
+        JSArray loaders = (JSArray)jsHelper.get("TEMPLATE_LOADERS");
+        
+        for(String jsFile : new String[] { "filesystem", "absolute", "site_relative" }) {
+            JSCompiledScript loaderFile = (JSCompiledScript)defaultLoaders.get(jsFile);
+            Scope child = scope.child();
+            loaderFile.call(child);
+
+            JSFunction loaderFunc = (JSFunction)((JSObject)((JSObject)jsHelper.get("loaders")).get(jsFile)).get("load_template_source");
+            loaders.add(loaderFunc);
         }
         
         return jsHelper;
