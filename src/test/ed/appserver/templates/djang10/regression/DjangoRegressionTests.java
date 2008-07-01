@@ -12,14 +12,17 @@ import org.testng.annotations.Test;
 
 import ed.appserver.jxp.JxpSource;
 import ed.appserver.templates.djang10.Djang10Source;
+import ed.appserver.templates.djang10.JSHelper;
 import ed.db.JSHook;
 import ed.js.Encoding;
 import ed.js.JSArray;
+import ed.js.JSException;
 import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
+import ed.js.func.JSFunctionCalls2;
 
 public class DjangoRegressionTests {
     private static final boolean DEBUG =  Boolean.getBoolean("DJANG10_DEBUG");
@@ -31,7 +34,6 @@ public class DjangoRegressionTests {
         //requires architecture impl
         "^autoescape-.*",
         "^inheritance.*",
-        "^include.*",
         "basic-syntax27",   //need support for translating _( )
         "^list-index.*",    //need to preprocess the string
         "ifequal-numeric07", //need to preprocess: throw error on 2.
@@ -64,9 +66,10 @@ public class DjangoRegressionTests {
         globalScope.makeThreadLocal();
 
         //Load native objects
+        JSHelper jsHelper;
         try {
             Encoding.install(globalScope);
-            Djang10Source.install(globalScope);
+            jsHelper = Djang10Source.install(globalScope);
         }
         finally {
             if(oldScope != null) oldScope.makeThreadLocal();
@@ -103,7 +106,7 @@ public class DjangoRegressionTests {
         }
         
         //Process the tests
-        List<ExportedTestCase> testCases = new ArrayList<ExportedTestCase>();
+        final List<ExportedTestCase> testCases = new ArrayList<ExportedTestCase>();
         int count = 0, skipped = 0;
         
         for(Object jsTest : tests) {
@@ -116,6 +119,25 @@ public class DjangoRegressionTests {
             
             count++;
         }
+
+        //Create a custom template loader
+        JSFunctionCalls2 custom_loader = new JSFunctionCalls2() {
+            public Object call(Scope scope, Object templateNameObj, Object p1, Object[] extra) {
+                for(Object testObj : testCases) {
+                    ExportedTestCase testCase = (ExportedTestCase)testObj;
+                    if(templateNameObj.toString().equals(testCase.name))
+                        try {
+                            return (new Djang10Source(testCase.content)).getFunction();
+                        } catch(Throwable t) {
+                            throw new RuntimeException(t);
+                        }
+                }
+                throw new JSException(new JSString("Template not found") );
+            }
+        };
+        JSArray loaders = (JSArray) jsHelper.get("TEMPLATE_LOADERS");
+        loaders.clear();
+        loaders.add(custom_loader);
         
         if(DEBUG) {
             String msg = String.format("Found %d tests, skipping %d of them", count, skipped);
