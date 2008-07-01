@@ -13,7 +13,33 @@ class HackTemplate(Template):
 import django.template
 django.template.Template = HackTemplate
 
+#patch datetime.now
+import datetime
+olddatetime = datetime.datetime
+class HackDatetime(datetime.datetime):
+    @classmethod
+    def now(cls):
+        wrapped = HackDatetime.wrap(olddatetime.now())
+        wrapped.delta = datetime.timedelta()
+        return wrapped
+    
+    def __add__(self, delta):
+        wrapper = HackDatetime.wrap(olddatetime.__add__(self, delta))
+        wrapper.delta = self.delta + delta
+        return wrapper 
+    
+    def __sub__(self, delta):
+        wrapper = HackDatetime.wrap(olddatetime.__sub__(self, delta))
+        wrapper.delta = self.delta - delta
+        return wrapper
+    
+    @classmethod
+    def wrap(cls, dt):
+        return HackDatetime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.microsecond, dt.tzinfo)
 
+datetime.datetime = HackDatetime
+
+#import django stuff
 from django import template
 from django.template import TemplateSyntaxError
 from regressiontests.templates  import tests
