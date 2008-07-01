@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.ArrayList;
 
 import ed.js.*;
 import ed.js.func.*;
@@ -75,8 +76,9 @@ public class Generate {
 
     }
 
+    private static ArrayList<String> javaSrcs = new ArrayList<String>();
 
-    public static void srcToDb(String path) {
+    public static void srcToDb(String path) throws IOException {
         File f = new File(path);
         if(!f.exists()) {
             System.out.println("File does not exist: "+path);
@@ -91,6 +93,9 @@ public class Generate {
         else {
             processFile(f);
         }
+        for(int i=0; i<javaSrcs.size(); i++) {
+            javaToDb(javaSrcs.get(i));
+        }
     }
 
     private static void processFile(File f) {
@@ -98,7 +103,7 @@ public class Generate {
             if((f.getName()).endsWith(".js"))
                 jsToDb(f.getCanonicalPath());
             else if((f.getName()).endsWith(".java"))
-                javaToDb(f.getCanonicalPath());
+                javaSrcs.add(f.getCanonicalPath());
         }
         catch(IOException e) {
             System.out.println("error getting the name of file "+f);
@@ -146,7 +151,8 @@ public class Generate {
                         obj.set("version", Generate.getVersion());
                         obj.set("name", name);
 
-                        collection.save(obj);
+                        if(!name.equals("_global_"))
+                            collection.save(obj);
                     }
                 }
             }
@@ -157,12 +163,11 @@ public class Generate {
     }
 
     /** Generate a js obj from javadoc
-     * @param Path to file or folder to be documented
+     * @param path to file or folder to be documented
      */
-    public static void javaToDb(String arg) throws IOException {
-        System.out.println(arg);
-        File f = new File(arg);
-        com.sun.tools.javadoc.Main.execute(new String[]{"-doclet", "JavadocToDB", "-docletpath", "./", arg } );
+    public static void javaToDb(String path) throws IOException {
+        System.out.println(path);
+        com.sun.tools.javadoc.Main.execute(new String[]{"-doclet", "JavadocToDB", "-docletpath", "./", path } );
     }
 
     /** Remove old documentation files.
