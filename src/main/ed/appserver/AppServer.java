@@ -97,7 +97,7 @@ public class AppServer implements HttpHandler {
 	ar.getContext().getScope().setTLPreferred( ar.getScope() );
 
         response.setHeader( "X-ctx" , ar.getContext()._root );
-        response.setHeader( "X-git" , ar.getContext()._gitBranch );
+        response.setHeader( "X-git" , ar.getContext().getGitBranch() );
         response.setHeader( "X-env" , ar.getContext()._environment );
 
         response.setAppRequest( ar );
