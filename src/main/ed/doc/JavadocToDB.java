@@ -309,7 +309,6 @@ public class JavadocToDB {
             JSObjectBase javaClass = getClasses(classes[i]);
             resolveConflicts(classes[i], javaClass, collection);
             jsClasses.set(classes[i].name(), javaClass);
-            jsClasses.set("fromJava", true);
             obj.set("symbolSet", jsClasses);
 
 
