@@ -59,6 +59,10 @@ public class ModuleDirectory extends JSObjectLame implements JSLibrary {
         return getJSFileLibrary( n.toString() );
     }
 
+    public boolean isLoaded( String name ){
+        return _modules.containsKey( name );
+    }
+    
     public String getDesiredVersion( String name ){
 
         if ( _scope != null )
