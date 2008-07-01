@@ -14,8 +14,8 @@ public abstract class ThreadPool<T> {
     public ThreadPool( String name , int numThreads , int maxQueueSize ){
         _name = name;
         _maxThreads = numThreads;
-        _threads.add( new MyThread() );
         _queue = new LinkedBlockingQueue<T>( maxQueueSize );
+        _threads.add( new MyThread() );
     }
     
     public abstract void handle( T t )
