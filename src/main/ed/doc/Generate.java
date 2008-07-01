@@ -79,6 +79,7 @@ public class Generate {
     private static ArrayList<String> javaSrcs = new ArrayList<String>();
 
     public static void srcToDb(String path) throws IOException {
+        javaSrcs.clear();
         File f = new File(path);
         if(!f.exists()) {
             System.out.println("File does not exist: "+path);
