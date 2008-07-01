@@ -1387,36 +1387,55 @@ public class Convert implements StackTraceFixer {
         throw new RuntimeException( msg );
     }
 
-    private void _setLineNumbers( Node n , final ScriptOrFnNode sof ){
-        final int line = n.getLineno();
-
-        if ( line < 0 )
-            throw new RuntimeException( "something is wrong" );
+    private void _setLineNumbers( final Node startN , final ScriptOrFnNode startSOF ){
         
-        List<Node> todo = new LinkedList<Node>();
-        
-        _nodeToSourceLine.put( n , line );
-        _nodeToSOR.put( n , sof );
+        final Set<Integer> seen = new HashSet<Integer>();
 
-        if ( n.getFirstChild() != null )
-            todo.add( n.getFirstChild() );
-        if ( n.getNext() != null )
-            todo.add( n.getNext() );
+        final List<Pair<Node,ScriptOrFnNode>> overallTODO = new LinkedList<Pair<Node,ScriptOrFnNode>>();
+        overallTODO.add( new Pair<Node,ScriptOrFnNode>( startN , startSOF ) );
         
-        while ( todo.size() > 0 ){
-            n = todo.remove(0);
-            if ( n.getLineno() > 0 ){
-                _setLineNumbers( n , n instanceof ScriptOrFnNode ? (ScriptOrFnNode)n : sof );
-                continue;
-            }
-
+        while ( overallTODO.size() > 0 ){
+            final Pair<Node,ScriptOrFnNode> temp = overallTODO.remove( 0 );
+            
+            Node n = temp.first;
+            final ScriptOrFnNode sof = temp.second;
+   
+            final int line = n.getLineno();
+            
+            if ( line < 0 )
+                throw new RuntimeException( "something is wrong" );
+            
+            List<Node> todo = new LinkedList<Node>();
+            
             _nodeToSourceLine.put( n , line );
-            _nodeToSOR.put( n , sof );            
-
+            _nodeToSOR.put( n , sof );
+            
             if ( n.getFirstChild() != null )
                 todo.add( n.getFirstChild() );
             if ( n.getNext() != null )
                 todo.add( n.getNext() );
+            
+            while ( todo.size() > 0 ){
+                n = todo.remove(0);
+                
+                if ( seen.contains( n.hashCode() ) )
+                    continue;
+                
+                seen.add( n.hashCode() );
+                
+                if ( n.getLineno() > 0 ){
+                    overallTODO.add( new Pair<Node,ScriptOrFnNode>( n , n instanceof ScriptOrFnNode ? (ScriptOrFnNode)n : sof ) );
+                    continue;
+                }
+                
+                _nodeToSourceLine.put( n , line );
+                _nodeToSOR.put( n , sof );            
+                
+                if ( n.getFirstChild() != null )
+                    todo.add( n.getFirstChild() );
+                if ( n.getNext() != null )
+                    todo.add( n.getNext() );
+            }
         }
     }
 
