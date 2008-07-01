@@ -78,6 +78,9 @@ public class Module {
             return "ssh://git.10gen.com/data/gitroot" + str.substring( idx );
         }
 
+        if ( str.endsWith( "/corejs" ) )
+            return "ssh://git.10gen.com/data/gitroot/corejs";
+
         return null;
     }
 
