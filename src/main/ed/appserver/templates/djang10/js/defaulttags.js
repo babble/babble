@@ -423,6 +423,34 @@ SpacelessNode.prototype ={
     }
 };
 
+var TemplateTagNode =
+    defaulttags.TemplateTagNode =
+    function(tagtype) {
+
+    this.tagtype = tagtype;
+};
+//FIXME: these need to be configurable in the parser, and this should be read from the parser
+TemplateTagNode.mapping = {
+    'openblock': "{%",
+    'closeblock': "%}",
+    'openvariable': "{{",
+    'closevariable': "}}",
+    'openbrace': "{",
+    'closebrace': "}",
+    'opencomment': "{#",
+    'closecomment': "#}",  
+};
+TemplateTagNode.prototype = {
+    __proto__: djang10.Node.prototype,
+    
+    toString: function() {
+        return "<TemplateTag Node: '" + this.tagtype + "'>"
+    },
+    __render: function(context, printer) {
+        printer(TemplateTagNode.mapping[this.tagtype]);
+    }
+};
+
 var WidthRatioNode =
     defaulttags.WidthRatioNode =
     function(val_expr, max_expr, max_width) {
@@ -732,6 +760,22 @@ var spaceless =
 };
 register.tag("spaceless", spaceless);
 
+var templatetag =
+    defaulttags.templatetag =
+    function(parser, token) {
+
+    var bits = token.contents.split(/\s+/);
+
+    if(bits.length != 2)
+        throw djang10.NewTemplateException("'templatetag' statement takes one argument")
+    
+    var tag = bits[1];
+    if(!(tag in TemplateTagNode.mapping))
+        throw djang10.NewTemplateException("Invalid templatetag argument: '"+tag+"'. Must be one of: " + TemplateTagNode.mapping.keySet().join(", "));
+    
+    return new TemplateTagNode(tag);
+};
+register.tag("templatetag", templatetag);
 
 var widthratio =
     defaulttags.widthratio =

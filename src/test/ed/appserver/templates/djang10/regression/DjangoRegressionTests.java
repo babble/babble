@@ -27,7 +27,6 @@ public class DjangoRegressionTests {
         //unimplemented tags:
         "^cache.*",
         "^with.*",
-        "^templatetag.*",
         "^url.*",
         
         //requires architecture impl
