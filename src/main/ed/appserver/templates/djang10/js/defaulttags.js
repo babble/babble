@@ -423,6 +423,36 @@ SpacelessNode.prototype ={
     }
 };
 
+var WidthRatioNode =
+    defaulttags.WidthRatioNode =
+    function(val_expr, max_expr, max_width) {
+
+    this.val_expr = val_expr;
+    this.max_expr = max_expr;
+    this.max_width = max_width;
+};
+WidthRatioNode.prototype = {
+    __proto__: djang10.Node.prototype,
+    
+    toString: function() {
+        return "<WidthRatio Node: val_expr: " + this.val_expr + ", max_expr: " + this.max_expr + ", max_width: " + this.max_width + ">";
+    },
+    __render: function(context, printer) {
+        try {
+            var value = parseFloat( this.val_expr.resolve(context) );
+            var maxvalue = parseFloat( this.max_expr.resolve(context) );
+            var ratio = (value/maxvalue) * parseInt(this.max_width);
+            
+            if(!isNaN(ratio))            
+                printer(Math.round(ratio) );
+        }
+        catch(e) {
+            //fail silently
+        }
+    }
+};
+
+
 //Registration
 var comment =
     defaulttags.comment =
@@ -701,6 +731,29 @@ var spaceless =
     return new SpacelessNode(nodelist);
 };
 register.tag("spaceless", spaceless);
+
+
+var widthratio =
+    defaulttags.widthratio =
+    function(parser, token) {
+
+    var bits = token.contents.split(/\s+/);
+    if(bits.length != 4)
+        throw djang10.NewTemplateException("widthratio takes three arguments");
+    var this_value_expr = bits[1];
+    var max_value_expr = bits[2];
+    var max_width = bits[3];
+    
+    try {
+        max_width = parseInt(max_width);
+    }
+    catch(e) {
+        throw djang10.NewTemplateException("widthratio final argument must be an integer");
+    }
+    
+    return new WidthRatioNode(parser.compile_filter(this_value_expr), parser.compile_filter(max_value_expr), max_width);
+};
+register.tag("widthratio", widthratio);
 
 //private helpers
 var quote = function(str) { return '"' + str + '"';};

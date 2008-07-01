@@ -26,7 +26,6 @@ public class DjangoRegressionTests {
     private static final String[] UNSUPPORTED_TESTS = {
         //unimplemented tags:
         "^cache.*",
-        "^widthratio.*",
         "^with.*",
         "^templatetag.*",
         "^url.*",
