@@ -488,6 +488,16 @@ public class JSDate extends JSObjectBase implements Comparable {
         return new JSDate( c );
     }
 
+    /**
+     * As required by the spec.  Spec apparently gives us freedom for format. Silly spec.
+     * @return value of date object in UTC
+     */
+    public String toUTCString() { 
+    	synchronized(_utcFormat) {
+    		return _utcFormat.format( new Date( _time ) );
+    	}
+    }
+
     public JSDate utc(){
         return this;
     }
@@ -530,8 +540,11 @@ public class JSDate extends JSObjectBase implements Comparable {
 
     public static final DateFormat _simpleFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm");
     public static final DateFormat _webFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
+    public static final DateFormat _utcFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
     static {
 	_webFormat.setTimeZone( TimeZone.getTimeZone("GMT") );
+	_utcFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
 
     private final static DateFormat[] DATE_FORMATS = new DateFormat[]{
