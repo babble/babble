@@ -457,7 +457,7 @@ public class AppServer implements HttpHandler {
         System.out.println("         webRoot = " + webRoot);
         System.out.println("      serverRoot = " + serverRoot);
         System.out.println("     listen port = " + portNum);
-                System.out.println("==================================");
+        System.out.println("==================================");
 
         AppServer as = new AppServer( webRoot , serverRoot);
         
