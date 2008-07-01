@@ -39,3 +39,5 @@ var resolve_abs_path =
 
     return (parts[2])? root.getFromPath(parts[2]) : root;
 };
+
+return absolute;

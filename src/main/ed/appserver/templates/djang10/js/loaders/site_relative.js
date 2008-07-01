@@ -19,3 +19,5 @@ var load_template_source =
 
     throw "Template not found";
 };
+
+return site_relative;
