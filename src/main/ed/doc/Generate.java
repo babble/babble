@@ -55,16 +55,20 @@ public class Generate {
             Object dbo = s.get("__instance__");
             if(! (dbo instanceof AppContext)) throw new RuntimeException("your appserver isn't an appserver");
             String instanceName = ((AppContext)dbo).getName();
+            File check = new File(((AppContext)dbo).getRoot()+"/"+path+"DOC_DIR");
+            File docdir = new File(((AppContext)dbo).getRoot()+"/"+path);
+            if(!docdir.exists()) {
+                System.err.println("Creating the directory "+docdir.getCanonicalPath()+" for documentation...");
+                docdir.mkdirs();
+            }
+            if(!check.exists())
+                check.createNewFile();
 
-            SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -d=../../"+instanceName+"/"+path+" -t=templates/jsdoc2", null, new File("../core-modules/docgen/"), objStr);
+            SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -d=../"+((AppContext)dbo).getRoot()+"/"+path+" -t=templates/jsdoc2", null, new File("../core-modules/docgen/"), objStr);
             String out = r.getOut();
             if(!out.trim().equals("")) {
                 System.out.println("jsdoc says: "+out);
             }
-
-            File check = new File("../"+instanceName+"/"+path+"DOC_DIR");
-            if(!check.exists())
-                check.createNewFile();
         }
         catch(Exception e) {
             e.printStackTrace();
