@@ -30,20 +30,34 @@ public class DjangoRegressionTests {
         //unimplemented tags:
         "^cache.*",
         "^url.*",
-        
+
         //requires architecture impl
         "^autoescape-.*",
-        "^inheritance.*",
         "basic-syntax27",   //need support for translating _( )
         "^list-index.*",    //need to preprocess the string
         "ifequal-numeric07", //need to preprocess: throw error on 2.
-        
+
         //django doesn't escape strings
         "ifequal-split09",
         "ifequal-split10",
         "filter-syntax15",
         "filter-syntax16",
-        
+
+        //need to add custom tags to test
+        "inheritance17",
+        "inheritance18",
+        "inheritance19",
+
+        //requires block.super
+        "inheritance20",
+        "inheritance21",
+        "inheritance22",
+        "inheritance23",
+
+        //need to add template wrapper to test
+        "inheritance24",
+        "inheritance25",
+
         //will never be supported
         "^for-tag-unpack.*",
     };    
