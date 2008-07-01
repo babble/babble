@@ -394,7 +394,7 @@ public class JSDate extends JSObjectBase implements Comparable {
         _time = _c.getTimeInMillis();
         return _c.getTimeInMillis();
     }
-
+    
     public long setTime(int ms) {
         _cal();
         _c.setTimeInMillis(ms);
@@ -402,17 +402,24 @@ public class JSDate extends JSObjectBase implements Comparable {
     }
 
     public String toString(){
-        String format = "EEE MMM dd yyyy HH:mm:ss 'GMT'Z (z)";
-        return format(format);
-        //        return new Date( _time ).toString();
+        return format( _defaultFormat );
     }
-
+    
     public String strftime( String theFormat ){
         return format( ed.util.Strftime.convertDateFormat( theFormat ) );
     }
-
+    
     public String format( String theFormat ){
+        return format( theFormat , TimeZone.getDefault() );
+    }
+
+    public String format( String theFormat , String tz ){
+        return format( theFormat , TimeZone.getTimeZone( tz ) );
+    }
+
+    public String format( String theFormat , TimeZone tz ){
         SimpleDateFormat df = new SimpleDateFormat( theFormat );
+        df.setTimeZone( tz );
         return df.format( new Date( _time ) );
     }
 
@@ -425,7 +432,20 @@ public class JSDate extends JSObjectBase implements Comparable {
     }
 
     public String format( DateFormat df ){
+        return format( df , TimeZone.getDefault() );
+    }
+    
+    public String format( DateFormat df , String tz ){
+        return format( df , TimeZone.getTimeZone( tz ) );
+    }
+
+    public String format( DateFormat df , TimeZone tz ){
+
+        if ( tz == null )
+            tz = TimeZone.getDefault();
+        
         synchronized ( df ){
+            df.setTimeZone( tz );
             return df.format( new Date( _time ) );
         }
     }
@@ -527,6 +547,8 @@ public class JSDate extends JSObjectBase implements Comparable {
 
     long _time;
     Calendar _c;
+
+    public static final DateFormat _defaultFormat = new SimpleDateFormat( "EEE MMM dd yyyy HH:mm:ss 'GMT'Z (z)" );
 
     public static final DateFormat _simpleFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm");
     public static final DateFormat _webFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
