@@ -60,7 +60,11 @@ public class Module {
             GitUtils.clone( _giturl , _root , "master" );
         }
         
-        if ( ! _default.exists() )
+	if ( root.exists() && ! _default.exists() && _giturl != null )
+            GitUtils.clone( _giturl , _root , "master" );
+	    
+
+	if ( ! _default.exists() )
             throw new RuntimeException( "Module root for [" + uriBase + "] does not exist : " + _default + " giturl [" + _giturl + "]" );
 
         _lock = ( "Module-LockKey-" + _root.getAbsolutePath() ).intern();
@@ -78,6 +82,9 @@ public class Module {
             return "ssh://git.10gen.com/data/gitroot" + str.substring( idx );
         }
 
+        if ( str.endsWith( "/corejs" ) )
+            return "ssh://git.10gen.com/data/gitroot/corejs";
+
         return null;
     }
 
@@ -85,7 +92,7 @@ public class Module {
         synchronized ( _lock ){
             File f = getRootFile( version );
             if ( pull )
-                GitUtils.pull( f );
+                GitUtils.pull( f , false );
             return new JSFileLibrary( null , f , _uriBase , context , scope , _doInit );
         }
     }
@@ -111,6 +118,10 @@ public class Module {
         File f = new File( _root , version );
         if ( f.exists() )
             return f;
+        
+        if ( _giturl == null ){
+            throw new RuntimeException( "don't have a giturl for root:[" + _root + "] uri:[" + _uriBase + "] version:[" + version + "]" );
+        }
 
         if ( ! GitUtils.clone( _giturl , _root , version ) ){
             ed.io.FileUtil.deleteDirectory( f );

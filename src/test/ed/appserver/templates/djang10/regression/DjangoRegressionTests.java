@@ -26,9 +26,6 @@ public class DjangoRegressionTests {
     private static final String[] UNSUPPORTED_TESTS = {
         //unimplemented tags:
         "^cache.*",
-        "^widthratio.*",
-        "^with.*",
-        "^templatetag.*",
         "^url.*",
         
         //requires architecture impl
@@ -198,7 +195,7 @@ public class DjangoRegressionTests {
                 realTest();
             }
             catch(Throwable t) {
-                throw new RuntimeException("Failed[" + name + "]: " + t + ". content: " + content);
+                throw new RuntimeException("Failed[" + name + "]: " + t + ". content: " + content, t);
             }
             finally {
                 if(oldScope != null) oldScope.makeThreadLocal();

@@ -423,6 +423,86 @@ SpacelessNode.prototype ={
     }
 };
 
+var TemplateTagNode =
+    defaulttags.TemplateTagNode =
+    function(tagtype) {
+
+    this.tagtype = tagtype;
+};
+//FIXME: these need to be configurable in the parser, and this should be read from the parser
+TemplateTagNode.mapping = {
+    'openblock': "{%",
+    'closeblock': "%}",
+    'openvariable': "{{",
+    'closevariable': "}}",
+    'openbrace': "{",
+    'closebrace': "}",
+    'opencomment': "{#",
+    'closecomment': "#}",  
+};
+TemplateTagNode.prototype = {
+    __proto__: djang10.Node.prototype,
+    
+    toString: function() {
+        return "<TemplateTag Node: '" + this.tagtype + "'>"
+    },
+    __render: function(context, printer) {
+        printer(TemplateTagNode.mapping[this.tagtype]);
+    }
+};
+
+var WidthRatioNode =
+    defaulttags.WidthRatioNode =
+    function(val_expr, max_expr, max_width) {
+
+    this.val_expr = val_expr;
+    this.max_expr = max_expr;
+    this.max_width = max_width;
+};
+WidthRatioNode.prototype = {
+    __proto__: djang10.Node.prototype,
+    
+    toString: function() {
+        return "<WidthRatio Node: val_expr: " + this.val_expr + ", max_expr: " + this.max_expr + ", max_width: " + this.max_width + ">";
+    },
+    __render: function(context, printer) {
+        try {
+            var value = parseFloat( this.val_expr.resolve(context) );
+            var maxvalue = parseFloat( this.max_expr.resolve(context) );
+            var ratio = (value/maxvalue) * parseInt(this.max_width);
+            
+            if(!isNaN(ratio))            
+                printer(Math.round(ratio) );
+        }
+        catch(e) {
+            //fail silently
+        }
+    }
+};
+
+var WithNode =
+    defaulttags.WithNode =
+    function(var_, name, nodelist) {
+
+    this.var_ = var_;
+    this.name = name;
+    this.nodelist = nodelist;
+};
+WithNode.prototype = {
+    __proto__: djang10.Node.prototype,
+    
+    toString: function() {
+        return "<WithNode>";
+    },
+    __render: function(context, printer) {
+        var val = this.var_.resolve(context);
+        context.push();
+        context[this.name] = val;
+        this.nodelist.__render(context, printer);
+        context.pop();
+    }
+}
+
 //Registration
 var comment =
     defaulttags.comment =
@@ -701,6 +781,62 @@ var spaceless =
     return new SpacelessNode(nodelist);
 };
 register.tag("spaceless", spaceless);
+
+var templatetag =
+    defaulttags.templatetag =
+    function(parser, token) {
+
+    var bits = token.contents.split(/\s+/);
+
+    if(bits.length != 2)
+        throw djang10.NewTemplateException("'templatetag' statement takes one argument")
+    
+    var tag = bits[1];
+    if(!(tag in TemplateTagNode.mapping))
+        throw djang10.NewTemplateException("Invalid templatetag argument: '"+tag+"'. Must be one of: " + TemplateTagNode.mapping.keySet().join(", "));
+    
+    return new TemplateTagNode(tag);
+};
+register.tag("templatetag", templatetag);
+
+var widthratio =
+    defaulttags.widthratio =
+    function(parser, token) {
+
+    var bits = token.contents.split(/\s+/);
+    if(bits.length != 4)
+        throw djang10.NewTemplateException("widthratio takes three arguments");
+    var this_value_expr = bits[1];
+    var max_value_expr = bits[2];
+    var max_width = bits[3];
+    
+    try {
+        max_width = parseInt(max_width);
+    }
+    catch(e) {
+        throw djang10.NewTemplateException("widthratio final argument must be an integer");
+    }
+    
+    return new WidthRatioNode(parser.compile_filter(this_value_expr), parser.compile_filter(max_value_expr), max_width);
+};
+register.tag("widthratio", widthratio);
+
+var do_with =
+    defaulttags.do_with =
+    function(parser, token) {
+
+    var bits = token.split_contents();
+    if(bits.length != 4 || bits[2] != "as")
+        throw djang10.NewTemplateException(bits[0] + " expected format is 'value as name'");
+    
+    var var_ = parser.compile_filter(bits[1]);
+    var name = bits[3];
+    var nodelist = parser.parse([ "end" + bits[0] ]);
+    parser.delete_first_token();
+    
+    return new WithNode(var_, name, nodelist);
+};
+register.tag("with", do_with);
 
 //private helpers
 var quote = function(str) { return '"' + str + '"';};

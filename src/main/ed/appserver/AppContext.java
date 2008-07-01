@@ -523,14 +523,24 @@ public class AppContext {
         return _numRequests;
     }
 
-    public String getStartupGitBranch(){
+    public String getGitBranch(){
         return _gitBranch;
     }
 
     public String getCurrentGitBranch(){
         if ( _gitBranch == null )
             return null;
-        return GitUtils.getBranchOrTagName( _rootFile );
+        
+        if ( _gitFile == null )
+            _gitFile = new File( _rootFile , ".git/HEAD" );
+        
+        if ( ! _gitFile.exists() )
+            throw new RuntimeException( "this should be impossible" );
+        
+        if ( _lastScopeInitTime < _gitFile.lastModified() )
+            _gitBranch = GitUtils.getBranchOrTagName( _rootFile );
+        
+        return _gitBranch;
     }
     
     public String getEnvironmentName(){
@@ -541,7 +551,7 @@ public class AppContext {
     final String _root;
     final File _rootFile;
 
-    final String _gitBranch;
+    private String _gitBranch;
     final String _environment;
 
     JSFileLibrary _jxpObject;
@@ -566,4 +576,8 @@ public class AppContext {
     boolean _reset = false;
     int _numRequests = 0;
     final JSDate _created = new JSDate();
+
+
+    private File _gitFile = null;
+    private long _lastGitCheckTime = 0;
 }
