@@ -50,20 +50,25 @@ public class Generate {
      */
     public static void toHTML(String objStr, String path) {
         try {
+            System.out.print(".");
             Scope s = Scope.getThreadLocal();
             Object dbo = s.get("__instance__");
             if(! (dbo instanceof AppContext)) throw new RuntimeException("your appserver isn't an appserver");
             String instanceName = ((AppContext)dbo).getName();
+            File check = new File(((AppContext)dbo).getRoot()+"/"+path+"DOC_DIR");
+            File docdir = new File(((AppContext)dbo).getRoot()+"/"+path);
+            if(!docdir.exists()) {
+                System.err.println("Creating the directory "+docdir.getCanonicalPath()+" for documentation...");
+                docdir.mkdirs();
+            }
+            if(!check.exists())
+                check.createNewFile();
 
-            SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -d=../../"+instanceName+"/"+path+" -t=templates/jsdoc2", null, new File("../core-modules/docgen/"), objStr);
+            SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -d=../"+((AppContext)dbo).getRoot()+"/"+path+" -t=templates/jsdoc2", null, new File("../core-modules/docgen/"), objStr);
             String out = r.getOut();
             if(!out.trim().equals("")) {
                 System.out.println("jsdoc says: "+out);
             }
-
-            File check = new File("../"+instanceName+"/"+path+"DOC_DIR");
-            if(!check.exists())
-                check.createNewFile();
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -75,7 +80,7 @@ public class Generate {
     /** Takes source files/dirs, generates jsdoc from them, stores resulting js obj in the db
      * @param Path to the file or folder to be documented
      */
-    public static void JSToDb(String path) throws IOException {
+    public static void jsToDb(String path) throws IOException {
         File f = new File(path);
         if(!f.exists()) {
             System.out.println("File does not exist: "+path);
@@ -84,11 +89,12 @@ public class Generate {
         if(f.isDirectory()) {
             File farray[] = f.listFiles();
             for(int i=0; i<farray.length; i++) {
-                JSToDb(farray[i].getCanonicalPath());
+                jsToDb(farray[i].getCanonicalPath());
             }
         }
         else {
             try {
+                System.out.println(path);
                 SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -r -t=templates/json ../"+path, null, new File("../core-modules/docgen/"), "");
 
                 Scope s = Scope.getThreadLocal();
@@ -135,16 +141,17 @@ public class Generate {
     /** Generate a js obj from javadoc
      * @param Path to file or folder to be documented
      */
-    public static void JavaToDb(String arg) throws IOException {
+    public static void javaToDb(String arg) throws IOException {
         File f = new File(arg);
         if(!f.exists()) return;
         if(f.isDirectory()) {
             File farray[] = f.listFiles();
             for(int i=0; i<farray.length; i++) {
-                JavaToDb(farray[i].getCanonicalPath());
+                javaToDb(farray[i].getCanonicalPath());
             }
         }
         else {
+            System.out.println(arg);
             com.sun.tools.javadoc.Main.execute(new String[]{"-doclet", "JavadocToDB", "-docletpath", "./", arg } );
         }
     }

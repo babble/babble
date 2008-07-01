@@ -9,8 +9,8 @@ public class JSException extends RuntimeException implements JSObject {
 
     public final static JSFunction _quietCons = new JSFunctionCalls1(){
             
-            public JSObjectBase newOne(){
-                throw new JSException( "don't use new" );
+            public JSObject newOne(){
+                return new Quiet( "quiet" );
             }
 
             public Object call( Scope scope , Object msg , Object[] extra ){
@@ -24,8 +24,8 @@ public class JSException extends RuntimeException implements JSObject {
     
 
     public final static JSFunction _redirectCons = new JSFunctionCalls1(){
-            public JSObjectBase newOne(){
-                throw new JSException( "don't use new" );
+            public JSObject newOne(){
+                return new Quiet( "redirect" );
             }
             public Object call( Scope scope , Object to , Object[] extra){
                 return new Redirect( to );
@@ -38,17 +38,19 @@ public class JSException extends RuntimeException implements JSObject {
 
     public static class cons extends JSFunctionCalls1{
         
-        public JSObjectBase newOne(){
-            // TODO: need a work-around for this
-            return new cons();
+        public JSObject newOne(){
+            return new JSException( "no msg set yet" );
         }
         
         public Object call( Scope scope , Object msg , Object[] extra ){
             Object foo = scope.getThis();
+            
             if ( foo == null || ! ( foo instanceof JSException ) )
                 return new JSException( msg , null , true );
+            
             JSException e = (JSException)foo;
             e._msg = msg;
+            e._object = msg;
             return e;
         }
         
@@ -165,8 +167,8 @@ public class JSException extends RuntimeException implements JSObject {
     }
 
     JSFunction _mycons;
-    Object _msg;
-    final Object _object;
-    final boolean _wantedJSException;
+    private Object _msg;
+    private Object _object;
+    private boolean _wantedJSException;
 
 }

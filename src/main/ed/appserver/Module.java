@@ -60,7 +60,11 @@ public class Module {
             GitUtils.clone( _giturl , _root , "master" );
         }
         
-        if ( ! _default.exists() )
+	if ( root.exists() && ! _default.exists() && _giturl != null )
+            GitUtils.clone( _giturl , _root , "master" );
+	    
+
+	if ( ! _default.exists() )
             throw new RuntimeException( "Module root for [" + uriBase + "] does not exist : " + _default + " giturl [" + _giturl + "]" );
 
         _lock = ( "Module-LockKey-" + _root.getAbsolutePath() ).intern();
