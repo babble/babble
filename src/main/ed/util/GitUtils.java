@@ -111,13 +111,18 @@ public class GitUtils {
     }
 
     public static boolean pull( File dir ){
+        return pull( dir , true );
+    }
+    
+    public static boolean pull( File dir , boolean careAboutError ){
         _log.info( "pull " + dir );
         SysExec.Result r = SysExec.exec( "git pull" , null , dir , null );
 
         if ( r.exitValue() == 0 )
             return true;
         
-        _log.error( "error pull " + dir + " " + r );
+        if ( careAboutError )
+            _log.info( "error pull " + dir + " " + r );
         return false;
     }
 

@@ -88,7 +88,7 @@ public class Module {
         synchronized ( _lock ){
             File f = getRootFile( version );
             if ( pull )
-                GitUtils.pull( f );
+                GitUtils.pull( f , false );
             return new JSFileLibrary( null , f , _uriBase , context , scope , _doInit );
         }
     }
