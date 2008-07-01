@@ -1,17 +1,16 @@
 
 package ed.appserver.templates.djang10;
 
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
 
-import org.jruby.RubyProcess.Sys;
-
 import ed.appserver.JSFileLibrary;
 import ed.appserver.jxp.JxpSource;
+import ed.js.JSArray;
 import ed.js.JSDate;
+import ed.js.JSException;
 import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.JSObjectBase;
@@ -27,21 +26,24 @@ public class JSHelper extends JSObjectBase {
 
     public static final String NS = "djang10";
 
-    private final ArrayList<JSFileLibrary> templateRoots;
     private final ArrayList<JSFileLibrary> moduleRoots;
     private final ArrayList<Pair<JxpSource,Library>> defaultLibraries;
 
     public JSHelper() {
-        templateRoots = new ArrayList<JSFileLibrary>();
         moduleRoots = new ArrayList<JSFileLibrary>();
         defaultLibraries = new ArrayList<Pair<JxpSource,Library>>();
-        
 
         // add the basic helpers
-        this.set("loadTemplate", loadPath);
+        this.set("TEMPLATE_DIRS", new JSArray());
+        this.set("TEMPLATE_LOADERS", new JSArray());
+        this.set("get_template", get_template);
+        //backwards compat
+        this.set("loadTemplate", get_template);
         this.set("addTemplateRoot", addTemplateRoot);
 
+        
         this.set("addTemplateTagsRoot", addModuleRoot);
+        
         this.set("loadLibrary", loadLibrary);
         this.set("evalLibrary", evalLibrary);
         
@@ -85,74 +87,49 @@ public class JSHelper extends JSObjectBase {
         };
     };
     
-    public final JSFunction loadPath = new JSFunctionCalls1() {
-        public Object call(Scope scope, Object pathObj, Object[] extra) {
+    public final JSFunction get_template = new JSFunctionCalls2() {
+        public Object call(Scope scope, Object pathObj, Object dirsObj, Object[] extra) {
             if (pathObj == null || pathObj == Expression.UNDEFINED_VALUE)
                 throw new NullPointerException("Can't load a null or undefined template");
 
-            if (pathObj instanceof Djang10CompiledScript)
-                return pathObj;
-            String path = ((JSString) pathObj).toString().trim().replaceAll("/+", "/").replaceAll("\\.\\w*$", "");
-            Djang10CompiledScript target = null;
-
-            //absolute path
-            if (path.startsWith("/")) {
-                String[] newRootPathParts = path.split("/", 3);
-                //make there's a file component in the path instead of just /
-                if (newRootPathParts.length < 2 || newRootPathParts[1].trim().length() == 0)
-                    throw new TemplateDoesNotExist(path);
-
-                //find the root
-                String newRootBasePath = newRootPathParts[1];
-                Object newRootBaseObj = null;
-                if (newRootPathParts.length == 3) {
-                    newRootBaseObj = scope.get(newRootBasePath);
-                    if (!(newRootBaseObj instanceof JSFileLibrary))
-                        newRootBaseObj = null;
+            JSArray loaders = (JSArray)JSHelper.this.get("TEMPLATE_LOADERS");
+            
+            for(Object loaderObj : loaders) {
+                JSFunction loader;
+                if(loaderObj instanceof JSString || loaderObj instanceof String) {
+                    String loaderStr = loaderObj.toString();
+                    int firstDot = loaderStr.indexOf('.');
+                    int lastDot = loaderStr.lastIndexOf('.');
+                    String rootPart = loaderStr.substring(0, firstDot);
+                    String filePart = loaderStr.substring(firstDot+1, lastDot);
+                    String methodPart = loaderStr.substring(lastDot+1);
+                    
+                    JSFileLibrary root = (JSFileLibrary)scope.get(rootPart);
+                    JSCompiledScript file = (JSCompiledScript)root.getFromPath(filePart.replace('.', '/'));
+                    
+                    Scope childScope = scope.child();
+                    file.call(childScope);
+                    loader = scope.getFunction(methodPart);
                 }
-
-                if (newRootBaseObj == null) {
-                    // fallback on resolving absolute paths against site
-                    newRootBaseObj = ((JSFileLibrary) scope.get("local")).getFromPath(path);
-
-                    target = (Djang10CompiledScript)((newRootBaseObj instanceof Djang10CompiledScript) ? newRootBaseObj : null);
-                } else {
-                    Object targetObj = ((JSFileLibrary) newRootBaseObj).getFromPath(newRootPathParts[2]);
-
-                    target = (Djang10CompiledScript)((targetObj instanceof Djang10CompiledScript) ? targetObj : null);
+                else
+                    loader = (JSFunction)loaderObj;
+                
+                try {
+                    Scope childScope = scope.child();
+                    childScope.setGlobal(true);
+                    return (Djang10CompiledScript)loader.call(childScope, pathObj, dirsObj);
                 }
-            } else {
-                for (int i = templateRoots.size() - 1; i >= 0; i--) {
-                    JSFileLibrary fileLibrary = templateRoots.get(i);
-
-                    Object targetObj = fileLibrary.getFromPath(path);
-
-                    if (targetObj instanceof Djang10CompiledScript) {
-                        target = (Djang10CompiledScript) targetObj;
-                        break;
-                    }
-                }
+                catch(Throwable t) {}
             }
-
-            if (target == null)
-                throw new TemplateDoesNotExist(pathObj.toString());
-            return target;
+            throw new JSException(new JSString("Template not found"));
         }
     };
 
     public final JSFunction addTemplateRoot = new JSFunctionCalls1() {
         public Object call(Scope scope, Object newRoot, Object[] extra) {
-            JSFileLibrary templateFileLib;
+            JSArray template_dirs = (JSArray)JSHelper.this.get("TEMPLATE_DIRS");
+            template_dirs.add(newRoot);
 
-            if (newRoot instanceof JSString) {
-                templateFileLib = resolvePath(scope, newRoot.toString());
-            } else if (newRoot instanceof JSFileLibrary) {
-                templateFileLib = (JSFileLibrary) newRoot;
-            } else {
-                throw new IllegalArgumentException("Only Paths and FileLibraries are accepted");
-            }
-
-            templateRoots.add(templateFileLib);
             return null;
         }
     };
