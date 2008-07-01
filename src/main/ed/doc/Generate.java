@@ -38,13 +38,6 @@ public class Generate {
     }
 
 
-    /** Takes objects from the db and makes them into HTML pages.  Uses a default output directory.
-     * @param A jsoned obj from the db
-     */
-    public static void toHTML(String objStr) {
-        toHTML(objStr, "../../www/html/doc/");
-    }
-
     /** Takes objects from the db and makes them into HTML pages.
      * @param A jsoned obj from the db
      * @param The output dir
@@ -69,6 +62,28 @@ public class Generate {
             if(!out.trim().equals("")) {
                 System.out.println("jsdoc says: "+out);
             }
+
+            Object dbo = s.get("db");
+            if(! (dbo instanceof DBApiLayer)) throw new RuntimeException("your database is not a database");
+
+            DBApiLayer db = (DBApiLayer)dbo;
+            DBCollection collection = db.getCollection("doc.html");
+
+            File blobs[] = docdir.listFiles();
+            for(int i=0; i<blobs.length; i++) {
+                if(!(blobs[i].getName()).endsWith(".out")) continue;
+
+                FileInputStream fis = new FileInputStream(blobs[i]);
+                StringBuffer sb = new StringBuffer();
+                while(fis.available() > 0) {
+                    sb.append((char)(fis.read()));
+                }
+                JSObjectBase obj = new JSObjectBase();
+                obj.set("name", blobs[i].getName());
+                obj.set("content", sb.toString());
+                collection.save(obj);
+            }
+
         }
         catch(Exception e) {
             e.printStackTrace();
