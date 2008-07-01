@@ -480,6 +480,28 @@ WidthRatioNode.prototype = {
     }
 };
 
+var WithNode =
+    defaulttags.WithNode =
+    function(var_, name, nodelist) {
+
+    this.var_ = var_;
+    this.name = name;
+    this.nodelist = nodelist;
+};
+WithNode.prototype = {
+    __proto__: djang10.Node.prototype,
+    
+    toString: function() {
+        return "<WithNode>";
+    },
+    __render: function(context, printer) {
+        var val = this.var_.resolve(context);
+        context.push();
+        context[this.name] = val;
+        this.nodelist.__render(context, printer);
+        context.pop();
+    }
+}
 
 //Registration
 var comment =
@@ -798,6 +820,23 @@ var widthratio =
     return new WidthRatioNode(parser.compile_filter(this_value_expr), parser.compile_filter(max_value_expr), max_width);
 };
 register.tag("widthratio", widthratio);
+
+var do_with =
+    defaulttags.do_with =
+    function(parser, token) {
+
+    var bits = token.split_contents();
+    if(bits.length != 4 || bits[2] != "as")
+        throw djang10.NewTemplateException(bits[0] + " expected format is 'value as name'");
+    
+    var var_ = parser.compile_filter(bits[1]);
+    var name = bits[3];
+    var nodelist = parser.parse([ "end" + bits[0] ]);
+    parser.delete_first_token();
+    
+    return new WithNode(var_, name, nodelist);
+};
+register.tag("with", do_with);
 
 //private helpers
 var quote = function(str) { return '"' + str + '"';};
