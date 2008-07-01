@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.ArrayList;
 
 import ed.js.*;
 import ed.js.func.*;
@@ -52,19 +53,22 @@ public class Generate {
         try {
             System.out.print(".");
             Scope s = Scope.getThreadLocal();
-            Object dbo = s.get("__instance__");
-            if(! (dbo instanceof AppContext)) throw new RuntimeException("your appserver isn't an appserver");
-            String instanceName = ((AppContext)dbo).getName();
+            Object app = s.get("__instance__");
+            if(! (app instanceof AppContext)) throw new RuntimeException("your appserver isn't an appserver");
+            File check = new File(((AppContext)app).getRoot()+"/"+path+"DOC_DIR");
+            File docdir = new File(((AppContext)app).getRoot()+"/"+path);
+            if(!docdir.exists()) {
+                System.err.println("Creating the directory "+docdir.getCanonicalPath()+" for documentation...");
+                docdir.mkdirs();
+            }
+            if(!check.exists())
+                check.createNewFile();
 
-            SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -d=../../"+instanceName+"/"+path+" -t=templates/jsdoc2", null, new File("../core-modules/docgen/"), objStr);
+            SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -d=../"+((AppContext)app).getRoot()+"/"+path+" -t=templates/jsdoc2", null, new File("../core-modules/docgen/"), objStr);
             String out = r.getOut();
             if(!out.trim().equals("")) {
                 System.out.println("jsdoc says: "+out);
             }
-
-            File check = new File("../"+instanceName+"/"+path+"DOC_DIR");
-            if(!check.exists())
-                check.createNewFile();
         }
         catch(Exception e) {
             e.printStackTrace();
@@ -72,11 +76,10 @@ public class Generate {
 
     }
 
+    private static ArrayList<String> javaSrcs = new ArrayList<String>();
 
-    /** Takes source files/dirs, generates jsdoc from them, stores resulting js obj in the db
-     * @param Path to the file or folder to be documented
-     */
-    public static void jsToDb(String path) throws IOException {
+    public static void srcToDb(String path) throws IOException {
+        javaSrcs.clear();
         File f = new File(path);
         if(!f.exists()) {
             System.out.println("File does not exist: "+path);
@@ -85,71 +88,87 @@ public class Generate {
         if(f.isDirectory()) {
             File farray[] = f.listFiles();
             for(int i=0; i<farray.length; i++) {
-                jsToDb(farray[i].getCanonicalPath());
+                processFile(farray[i]);
             }
         }
         else {
-            try {
-                System.out.println(path);
-                SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -r -t=templates/json ../"+path, null, new File("../core-modules/docgen/"), "");
+            processFile(f);
+        }
+        for(int i=0; i<javaSrcs.size(); i++) {
+            javaToDb(javaSrcs.get(i));
+        }
+    }
 
-                Scope s = Scope.getThreadLocal();
-                Object dbo = s.get("db");
-                if(! (dbo instanceof DBApiLayer)) throw new RuntimeException("your database is not a database");
+    private static void processFile(File f) {
+        try {
+            if((f.getName()).endsWith(".js"))
+                jsToDb(f.getCanonicalPath());
+            else if((f.getName()).endsWith(".java"))
+                javaSrcs.add(f.getCanonicalPath());
+        }
+        catch(IOException e) {
+            System.out.println("error getting the name of file "+f);
+            e.printStackTrace();
+        }
+    }
 
-                DBApiLayer db = (DBApiLayer)dbo;
-                DBCollection collection = db.getCollection("doc");
 
-                String rout = r.getOut();
-                String jsdocUnits[] = rout.split("---=---");
-                for(int i=0; i<jsdocUnits.length; i++) {
-                    JSObject json = (JSObject)JS.eval("("+jsdocUnits[i]+")");
-                    if(json == null) {
-                        System.out.println("couldn't parse: "+jsdocUnits[i]);
-                        continue;
-                    }
+    /** Takes source files/dirs, generates jsdoc from them, stores resulting js obj in the db
+     * @param Path to the file or folder to be documented
+     */
+    public static void jsToDb(String path) throws IOException {
+        System.out.println(path);
+        File f = new File(path);
+        try {
+            SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -r -t=templates/json "+f.getCanonicalPath(), null, new File("../core-modules/docgen/"), "");
 
-                    Iterator k = (json.keySet()).iterator();
-                    while(k.hasNext()) {
-                        String name = (k.next()).toString();
-                        JSObject unit = (JSObject)json.get(name);
-                        JSString isa = (JSString)unit.get("isa");
-                        if(isa.equals("GLOBAL") || isa.equals("CONSTRUCTOR")) {
-                            JSObjectBase ss = new JSObjectBase();
-                            ss.set("symbolSet", json);
-                            JSObjectBase obj = new JSObjectBase();
-                            obj.set("ts", Calendar.getInstance().getTime().toString());
-                            obj.set("_index", ss);
-                            obj.set("version", Generate.getVersion());
-                            obj.set("name", name);
+            Scope s = Scope.getThreadLocal();
+            Object dbo = s.get("db");
+            if(! (dbo instanceof DBApiLayer)) throw new RuntimeException("your database is not a database");
 
+            DBApiLayer db = (DBApiLayer)dbo;
+            DBCollection collection = db.getCollection("doc");
+
+            String rout = r.getOut();
+            String jsdocUnits[] = rout.split("---=---");
+            for(int i=0; i<jsdocUnits.length; i++) {
+                JSObject json = (JSObject)JS.eval("("+jsdocUnits[i]+")");
+                if(json == null) {
+                    System.out.println("couldn't parse: "+jsdocUnits[i]);
+                    continue;
+                }
+
+                Iterator k = (json.keySet()).iterator();
+                while(k.hasNext()) {
+                    String name = (k.next()).toString();
+                    JSObject unit = (JSObject)json.get(name);
+                    JSString isa = (JSString)unit.get("isa");
+                    if(isa.equals("GLOBAL") || isa.equals("CONSTRUCTOR")) {
+                        JSObjectBase ss = new JSObjectBase();
+                        ss.set("symbolSet", json);
+                        JSObjectBase obj = new JSObjectBase();
+                        obj.set("ts", Calendar.getInstance().getTime().toString());
+                        obj.set("_index", ss);
+                        obj.set("version", Generate.getVersion());
+                        obj.set("name", name);
+
+                        if(!name.equals("_global_"))
                             collection.save(obj);
-                        }
                     }
                 }
             }
-            catch(Exception e) {
-                e.printStackTrace();
-            }
+        }
+        catch(Exception e) {
+            e.printStackTrace();
         }
     }
 
     /** Generate a js obj from javadoc
-     * @param Path to file or folder to be documented
+     * @param path to file or folder to be documented
      */
-    public static void javaToDb(String arg) throws IOException {
-        File f = new File(arg);
-        if(!f.exists()) return;
-        if(f.isDirectory()) {
-            File farray[] = f.listFiles();
-            for(int i=0; i<farray.length; i++) {
-                javaToDb(farray[i].getCanonicalPath());
-            }
-        }
-        else {
-            System.out.println(arg);
-            com.sun.tools.javadoc.Main.execute(new String[]{"-doclet", "JavadocToDB", "-docletpath", "./", arg } );
-        }
+    public static void javaToDb(String path) throws IOException {
+        System.out.println(path);
+        com.sun.tools.javadoc.Main.execute(new String[]{"-doclet", "JavadocToDB", "-docletpath", "./", path } );
     }
 
     /** Remove old documentation files.
@@ -162,14 +181,6 @@ public class Generate {
         if(!check.exists()) return;
 
         File f = new File(path);
-        if(f.isDirectory()) {
-            File farray[] = f.listFiles();
-            for(int i=0; i<farray.length; i++) {
-                farray[i].delete();
-            }
-        }
-
-        f = new File(path+"/symbols");
         if(f.isDirectory()) {
             File farray[] = f.listFiles();
             for(int i=0; i<farray.length; i++) {

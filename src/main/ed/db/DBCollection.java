@@ -9,17 +9,20 @@ import ed.js.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 
+/** DB Collection
+ * @expose
+ */
 public abstract class DBCollection extends JSObjectLame {
 
     final static boolean DEBUG = Boolean.getBoolean( "DEBUG.DB" );
-    
+
     protected abstract JSObject doSave( JSObject o );
     public abstract JSObject update( JSObject q , JSObject o , boolean upsert , boolean apply );
 
     protected abstract void doapply( JSObject o );
     public abstract int remove( JSObject id );
-    
-    protected abstract JSObject dofind( ObjectId id );    
+
+    protected abstract JSObject dofind( ObjectId id );
     public abstract Iterator<JSObject> find( JSObject ref , JSObject fields , int numToSkip , int numToReturn );
 
     public abstract void ensureIndex( JSObject keys , String name );
@@ -29,12 +32,12 @@ public abstract class DBCollection extends JSObjectLame {
     public final JSObject find( ObjectId id ){
 
         JSObject ret = dofind( id );
-        
+
         if ( ret == null )
             return null;
-        
+
         apply( ret , false );
-        
+
         return ret;
     }
 
@@ -61,9 +64,9 @@ public abstract class DBCollection extends JSObjectLame {
 
         if ( ! ( force || doEnsureIndex ) )
             return;
-        
+
         ensureIndex( keys , name );
-        
+
         _createIndexes.add( name );
         if ( _anyUpdateSave )
             _createIndexesAfterSave.add( name );
@@ -98,17 +101,17 @@ public abstract class DBCollection extends JSObjectLame {
 
         if ( ! ( o instanceof JSObject ) )
             throw new RuntimeException( "can only apply JSObject" );
-        
+
         JSObject jo = (JSObject)o;
         jo.set( "_save" , _save );
         jo.set( "_update" , _update );
-        
+
         ObjectId id = (ObjectId)jo.get( "_id" );
         if ( ensureID && id == null ){
             id = ObjectId.get();
             jo.set( "_id" , id );
         }
-        
+
         doapply( jo );
 
         return id;
@@ -121,20 +124,20 @@ public abstract class DBCollection extends JSObjectLame {
     public JSFunction getConstructor(){
 	return _constructor;
     }
-    
+
     public final Object save( Object o ){
         if ( checkReadOnly( true ) ) return null;
         return save( null , o );
     }
-        
+
     public final Object save( Scope s , Object o ){
         if ( checkReadOnly( true ) ) return o;
         o = _handleThis( s , o );
-        
+
         _checkObject( o , false );
-        
+
         JSObject jo = (JSObject)o;
-        
+
         if ( s != null ){
             Object presaveObject = jo.get( "presave" );
             if ( presaveObject != null ){
@@ -147,13 +150,13 @@ public abstract class DBCollection extends JSObjectLame {
                     System.out.println( "warning, presave is a " + presaveObject.getClass() );
                 }
             }
-            
+
             _findSubObject( s , jo );
         }
-        
+
         ObjectId id = (ObjectId)jo.get( "_id" );
         if ( DEBUG ) System.out.println( "id : " + id );
-        
+
         if ( id == null || id._new ){
             if ( DEBUG ) System.out.println( "saving new object" );
             if ( id != null )
@@ -161,7 +164,7 @@ public abstract class DBCollection extends JSObjectLame {
             doSave( jo );
             return jo;
         }
-        
+
         if ( DEBUG ) System.out.println( "doing implicit upsert : " + jo.get( "_id" ) );
         JSObject q = new JSObjectBase();
         q.set( "_id" , id );
@@ -186,28 +189,28 @@ public abstract class DBCollection extends JSObjectLame {
             };
         _entries.put( "save" , _save );
 
-        
+
         _update = new JSFunctionCalls2() {
                 public Object call( Scope s , Object q , Object o , Object foo[] ){
                     if ( checkReadOnly( true ) ) return o;
 
                     _anyUpdateSave = true;
-                                        
+
                     _checkObject( q , false );
                     _checkObject( o , false );
-                    
+
                     if ( s != null )
                         _findSubObject( s , (JSObject)o );
 
                     boolean upsert = false;
                     boolean apply = true;
-                    
+
                     if ( o instanceof JSObject && ((JSObject)o).containsKey( "$inc" ) )
                         apply = false;
 
                     if ( foo != null && foo.length > 0 && foo[0] instanceof JSObject ){
                         JSObject params = (JSObject)foo[0];
-                        
+
                         upsert = JSInternalFunctions.JS_evalToBool( params.get( "upsert" ) );
                         if ( params.get( "ids" ) != null )
                             apply = JSInternalFunctions.JS_evalToBool( params.get( "ids" ) );
@@ -218,24 +221,24 @@ public abstract class DBCollection extends JSObjectLame {
             };
         _entries.put( "update" , _update );
 
-        _entries.put( "remove" , 
+        _entries.put( "remove" ,
                       new JSFunctionCalls1(){
                           public Object call( Scope s , Object o , Object foo[] ){
                               if ( checkReadOnly( true ) ) return o;
-                              
+
                               o = _handleThis( s , o );
-                              
+
                               if ( ! ( o instanceof JSObject ) )
                                   throw new RuntimeException( "can't only save JSObject" );
-                              
+
                               return remove( (JSObject)o );
-                              
+
                           }
                       } );
 
-                          
-        
-        
+
+
+
         _apply = new JSFunctionCalls1() {
                 public Object call( Scope s , Object o , Object foo[] ){
                     return apply( o );
@@ -245,29 +248,29 @@ public abstract class DBCollection extends JSObjectLame {
 
         _find = new JSFunctionCalls2() {
                 public Object call( Scope s , Object o , Object fieldsWantedO , Object foo[] ){
-                    
+
                     if ( o == null )
                         o = new JSObjectBase();
-                    
+
                     if ( o instanceof ObjectId )
                         return find( (ObjectId)o );
 
                     if ( o instanceof JSObject ){
                         return new DBCursor( DBCollection.this , (JSObject)o , (JSObject)fieldsWantedO , _constructor );
                     }
-                    
+
                     throw new RuntimeException( "wtf : " + o.getClass() );
                 }
             };
         _entries.put( "find" , _find );
 
-        _entries.put( "findOne" , 
+        _entries.put( "findOne" ,
                       new JSFunctionCalls1() {
                           public Object call( Scope s , Object o , Object foo[] ){
                               Object res = _find.call( s , o , foo );
                               if ( res == null )
                                   return null;
-			      
+
 			      if ( res instanceof DBCursor )
 				  ((DBCursor)res).limit( 1 );
 
@@ -277,7 +280,7 @@ public abstract class DBCollection extends JSObjectLame {
                                       return null;
                                   return a.getInt( 0 );
                               }
-			      
+
                               if ( res instanceof Iterator ){
                                   Iterator<JSObject> it = (Iterator<JSObject>)res;
                                   if ( ! it.hasNext() )
@@ -287,12 +290,12 @@ public abstract class DBCollection extends JSObjectLame {
 
                               if ( res instanceof JSObject )
                                   return res;
-                              
+
                               throw new RuntimeException( "wtf : " + res.getClass() );
                           }
                       } );
 
-        _entries.put( "tojson" , 
+        _entries.put( "tojson" ,
                       new JSFunctionCalls0() {
                           public Object call( Scope s , Object foo[] ){
                               return "{DBCollection:" + DBCollection.this._fullName + "}";
@@ -304,14 +307,14 @@ public abstract class DBCollection extends JSObjectLame {
     private final Object _handleThis( Scope s , Object o ){
         if ( o != null )
             return o;
-        
+
         Object t = s.getThis();
         if ( t == null )
             return null;
-        
+
         if ( t.getClass() != JSObjectBase.class )
             return null;
-        
+
         return o;
     }
 
@@ -324,7 +327,7 @@ public abstract class DBCollection extends JSObjectLame {
 
         if ( o instanceof JSObject )
             return;
-        
+
         throw new IllegalArgumentException( " has to be a JSObject not : " + o.getClass() );
     }
 
@@ -335,20 +338,20 @@ public abstract class DBCollection extends JSObjectLame {
         LinkedList<JSObject> toSearch = new LinkedList();
         Map<JSObject,String> seen = new IdentityHashMap<JSObject,String>();
         toSearch.add( jo );
-        
+
         while ( toSearch.size() > 0 ){
             JSObject n = toSearch.remove(0);
             for ( String name : n.keySet() ){
                 Object foo = n.get( name );
                 if ( foo == null )
                     continue;
-                
+
                 if ( ! ( foo instanceof JSObject ) )
                     continue;
-                
+
                 if ( foo instanceof JSFunction )
                     continue;
-                
+
 		if ( foo instanceof JSString )
 		    continue;
 
@@ -361,7 +364,7 @@ public abstract class DBCollection extends JSObjectLame {
                 if ( e instanceof JSFileChunk ){
                     _base.getCollection( "_chunks" ).apply( e );
                 }
-                
+
                 if ( e.get( "_ns" ) == null ){
                     if ( seen.containsKey( e ) )
                         throw new RuntimeException( "you have a loop. key : " + name + " from a " + n.getClass()  + " whis is a : " + e.getClass() );
@@ -369,9 +372,9 @@ public abstract class DBCollection extends JSObjectLame {
                     toSearch.add( e );
                     continue;
                 }
-                
+
                 // ok - now we knows its a reference
-                
+
                 if ( e.get( "_id" ) == null ){ // new object, lets save it
                     JSFunction otherSave = (JSFunction)e.get( "_save" );
                     if ( otherSave == null )
@@ -379,23 +382,23 @@ public abstract class DBCollection extends JSObjectLame {
                     otherSave.call( s , e , null );
                     continue;
                 }
-                
+
                 // old object, lets update TODO: dirty tracking
                 JSObject lookup = new JSObjectBase();
                 lookup.set( "_id" , e.get( "_id" ) );
-                
+
                 JSFunction otherUpdate = (JSFunction)e.get( "_update" );
                 if ( otherUpdate == null ){
-                    
+
                     // already taken care of
                     if ( e instanceof DBRef )
                         continue;
 
                     throw new RuntimeException( "_update is null.  keyset : " + e.keySet() + " ns:" + e.get( "_ns" ) );
                 }
-                
+
                 otherUpdate.call( s , lookup , e , _upsertOptions );
-                
+
             }
         }
     }
@@ -406,7 +409,7 @@ public abstract class DBCollection extends JSObjectLame {
         Object foo = _entries.get( n.toString() );
         if ( foo != null )
             return foo;
-        
+
         foo = _base._collectionPrototype.get( n );
         if ( foo != null )
             return foo;
@@ -449,17 +452,17 @@ public abstract class DBCollection extends JSObjectLame {
     protected boolean checkReadOnly( boolean strict ){
         if ( ! _base._readOnly )
             return false;
-        
+
         if ( ! strict )
             return true;
 
         Scope scope = Scope.getThreadLocal();
         if ( scope == null )
             throw new JSException( "db is read only" );
-        
+
         Object foo = scope.get( "dbStrict" );
         if ( foo == null || JSInternalFunctions.JS_evalToBool( foo ) )
-            throw new JSException( "db is read only" );            
+            throw new JSException( "db is read only" );
 
         return true;
     }
@@ -467,20 +470,20 @@ public abstract class DBCollection extends JSObjectLame {
     public String toString(){
         return "{DBCollection:" + _name + "}";
     }
-    
+
     final DBBase _base;
-    
+
     final JSFunction _save;
     final JSFunction _update;
     final JSFunction _apply;
     final JSFunction _find;
-    
+
     static Set<String> _methods;
 
     protected Map _entries = new TreeMap();
     final protected String _name;
     final protected String _fullName;
-    
+
     protected JSFunction _constructor;
 
     private boolean _anyUpdateSave = false;
