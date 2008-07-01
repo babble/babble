@@ -111,6 +111,10 @@ public class Module {
         File f = new File( _root , version );
         if ( f.exists() )
             return f;
+        
+        if ( _giturl == null ){
+            throw new RuntimeException( "don't have a giturl for root:[" + _root + "] uri:[" + _uriBase + "] version:[" + version + "]" );
+        }
 
         if ( ! GitUtils.clone( _giturl , _root , version ) ){
             ed.io.FileUtil.deleteDirectory( f );
