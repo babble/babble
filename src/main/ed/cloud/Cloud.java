@@ -224,6 +224,16 @@ public class Cloud extends JSObjectBase {
 
         return ! JSInternalFunctions.JS_evalToBool( me.get( "bad" ) );
     }
+
+    public String getModuleSymLink( String moduleName , String version ){
+        if ( _bad )
+            return null;
+        
+        Object res = evalFunc( "Cloud.getModuleSymLink" , moduleName , version );
+        if ( res == null )
+            return null;
+        return res.toString();
+    }
     
     public String toString(){
         return "{ Cloud.  real: " + isRealServer() + "}";

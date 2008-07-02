@@ -9,11 +9,13 @@ import ed.js.*;
 import ed.js.engine.*;
 import ed.log.*;
 import ed.util.*;
+import ed.cloud.*;
 
 public class Module {
 
     static final Logger _log = Logger.getLogger( "modules" );    
     public static final String _baseFile; 
+    public static final String GITROOT = "ssh://git.10gen.com/data/gitroot/";
     
     static { 
         String s = System.getenv( "BASE" ) == null ? "/data/" : System.getenv( "BASE" );
@@ -50,6 +52,7 @@ public class Module {
         _doInit = doInit;
         
         _giturl = _findGitUrl();
+        _moduleName = _giturl == null ? null : _giturl.substring( GITROOT.length() + 1 );
         
         _versioned = ! GitUtils.isSourceDirectory( _root );
         
@@ -79,11 +82,11 @@ public class Module {
             if ( idx < 0 )
                 idx = str.indexOf( "/site-modules/" );
             
-            return "ssh://git.10gen.com/data/gitroot" + str.substring( idx );
+            return GITROOT + str.substring( idx );
         }
 
         if ( str.endsWith( "/corejs" ) )
-            return "ssh://git.10gen.com/data/gitroot/corejs";
+            return GITROOT + "/corejs";
 
         return null;
     }
@@ -113,6 +116,17 @@ public class Module {
             _log.getLogger( version ).info( "Module [" + _uriBase + "] want version [" + version + "] but not in versioned mode" );
             return _root;
         }
+        
+        if ( _moduleName != null ){
+            Cloud c = Cloud.getInstance();
+            if ( c.isRealServer() ){
+                String symlink = c.getModuleSymLink( _moduleName , version );
+                if ( symlink != null )
+                    version = symlink;
+            }
+
+
+        }
 
         // now try to find best match
         File f = new File( _root , version );
@@ -139,7 +153,9 @@ public class Module {
     final File _root;
     final String _uriBase;
     final boolean _doInit;
+
     final String _giturl;
+    final String _moduleName;
 
     final boolean _versioned;
 
