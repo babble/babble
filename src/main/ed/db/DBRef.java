@@ -53,9 +53,22 @@ public class DBRef extends JSObjectBase {
 
         if ( o instanceof JSObjectBase )
             setConstructor( ((JSObjectBase)o).getConstructor() );
+        
         addAll( o );
+        
+        _doneLoading = true;
+        _loadHash = hashCode();
+    }
+    
+    public Object set( Object n , Object v ){
+        _dirty = _dirty || ( _doneLoading && ! ByteEncoder.dbOnlyField( n ) );
+        return super.set( n , v );
     }
 
+    public boolean isDirty(){
+        return _doneLoading && ( _dirty || _loadHash != hashCode() );
+    }
+    
     final JSObject _parent;
     final String _fieldName;
 
@@ -65,4 +78,8 @@ public class DBRef extends JSObjectBase {
     
     boolean _inited = false;
     boolean _loaded = false;
+    boolean _doneLoading = false;
+
+    private boolean _dirty = false;
+    private int _loadHash = 0;
 }

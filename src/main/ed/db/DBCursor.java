@@ -93,6 +93,10 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
         _collection.apply( _cur , false );
         _num++;
         
+        if ( _keysWanted != null && _keysWanted.keySet().size() > 0 && _cur instanceof JSObjectBase ){
+            ((JSObjectBase)_cur).markAsPartiableObject();
+        }
+
         if ( _constructor != null && 
              _cur instanceof JSObjectBase ){
             

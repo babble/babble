@@ -225,15 +225,27 @@ public class AppServer implements HttpHandler {
         response.setResponseCode( 500 );
         
         JxpWriter writer = response.getWriter();
-            
-        writer.print( "\n<br><br><hr><b>Error</b><br>" );
-        writer.print( t.toString() + "<BR>" );
         
-        while ( t != null ){
-            for ( StackTraceElement element : t.getStackTrace() ){
-                writer.print( element + "<BR>\n" );
+        if ( t instanceof JSCompileException ){
+            JSCompileException jce = (JSCompileException)t;
+            
+            writer.print( "<br><br><hr>" );
+            writer.print( "<h3>Compile Error</h3>" );
+            writer.print( "<b>Message:</b> " + jce.getError() + "<BR>" );
+            writer.print( "<b>File Name:</b> " + jce.getFileName() + "<BR>" );
+            writer.print( "<b>Line # :</b> " + jce.getLineNumber() + "<BR>" );
+        }
+        
+        else {
+            writer.print( "\n<br><br><hr><b>Error</b><br>" );
+            writer.print( t.toString() + "<BR>" );
+            
+            while ( t != null ){
+                for ( StackTraceElement element : t.getStackTrace() ){
+                    writer.print( element + "<BR>\n" );
+                }
+                t = t.getCause();
             }
-            t = t.getCause();
         }
         
     }
@@ -257,7 +269,15 @@ public class AppServer implements HttpHandler {
     }
 
     void handleCGI( HttpRequest request , HttpResponse response , AppRequest ar , File f ){
+        
         try {
+
+            if ( ! ed.security.Security.isCoreJS() ){
+                response.setResponseCode( 501 );
+                response.getWriter().print( "you are not allowed to run cgi programs" );
+                return;
+            }
+                
             
             if ( ! f.exists() ){
                 response.setResponseCode( 404 );

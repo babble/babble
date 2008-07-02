@@ -4,6 +4,7 @@ package ed.js.engine;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.*;
 
 import com.twmacinta.util.*;
 
@@ -113,7 +114,7 @@ public class Convert implements StackTraceFixer {
             theNode = p.parse( _source , _name , 0 );
         }
         catch ( org.mozilla.javascript.EvaluatorException ee ){
-            throw new RuntimeException( "can't compile [" + ee.getMessage() + "]" );
+            throw JSCompileException.create( ee );
         }
         _encodedSource = p.getEncodedSource();
         init( theNode );
@@ -315,11 +316,15 @@ public class Convert implements StackTraceFixer {
         case Token.SETPROP_OP:
         case Token.SETELEM_OP:
             Node theOp = n.getFirstChild().getNext().getNext();
-            if ( theOp.getType() == Token.ADD &&
+            if ( ( theOp.getType() == Token.ADD || 
+                   theOp.getType() == Token.SUB ||
+                   theOp.getType() == Token.MUL ||
+                   theOp.getType() == Token.DIV )
+                 &&
                  ( theOp.getFirstChild().getType() == Token.USE_STACK || 
                    theOp.getFirstChild().getNext().getType() == Token.USE_STACK ) ){
                 _append( "\n" , n );
-                _append( "JS_setDefferedPlus( (JSObject) " , n );
+                _append( "JS_setDefferedOp( (JSObject) " , n );
                 _add( n.getFirstChild() , state );
                 _append( " , " , n );
                 _add( n.getFirstChild().getNext() , state );
@@ -328,6 +333,7 @@ public class Convert implements StackTraceFixer {
                       theOp.getFirstChild().getNext() : 
                       theOp.getFirstChild() ,
                       state );
+                _append( " , " + theOp.getType() , n );
                 _append( " \n ) \n" , n );
                 break;
             }
@@ -1668,6 +1674,8 @@ public class Convert implements StackTraceFixer {
             s.contains( "ed.js.JSFunctionBase.call(" ) ||
             s.contains( "ed.js.engine.JSCompiledScript.call" );
     }
+
+
 
     String getSource( FunctionNode fn ){
         final int start = fn.getEncodedSourceStart();

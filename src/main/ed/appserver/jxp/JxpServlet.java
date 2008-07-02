@@ -15,6 +15,8 @@ import ed.appserver.*;
 import ed.net.httpserver.*;
 
 public class JxpServlet {
+
+    public static final int MAX_WRITTEN_LENGTH = 1024 * 1024 * 15;
     
     JxpServlet( AppContext context , JxpSource source , JSFunction func ){
         _context = context;
@@ -158,36 +160,42 @@ public class JxpServlet {
         
         public void print( String s ){
             
+            if ( ( _writtenLength += s.length() ) > MAX_WRITTEN_LENGTH )
+                throw new RuntimeException( "trying to write a dynamic page more than " + MAX_WRITTEN_LENGTH + " chars long" );
+
             if ( _writer.closed() )
                 throw new RuntimeException( "output closed.  are you using an old print function" );
             
-            if ( _extra.length() > 0 ){
-                _extra.append( s );
-                s = _extra.toString();
-                _extra.setLength( 0 );
+            while ( s.length() > 0 ){
+                
+                if ( _extra.length() > 0 ){
+                    _extra.append( s );
+                    s = _extra.toString();
+                    _extra.setLength( 0 );
+                }
+                
+                _matcher.reset( s );
+                if ( ! _matcher.find() ){
+                    _writer.print( s );
+                    return;
+                }
+                
+                _writer.print( s.substring( 0 , _matcher.start() ) );
+                
+                s = s.substring( _matcher.start() );
+                int end = endOfTag( s );
+                if ( end == -1 ){
+                    _extra.append( s );
+                    return;
+                }
+                
+                String wholeTag = s.substring( 0 , end + 1 );
+                
+                if ( ! printTag( _matcher.group(1) , wholeTag ) )
+                    _writer.print( wholeTag );
+                
+                s = s.substring( end + 1 );
             }
-            
-            _matcher.reset( s );
-            if ( ! _matcher.find() ){
-                _writer.print( s );
-                return;
-            }
-
-            _writer.print( s.substring( 0 , _matcher.start() ) );
-
-            s = s.substring( _matcher.start() );
-            int end = endOfTag( s );
-            if ( end == -1 ){
-                _extra.append( s );
-                return;
-            }
-            
-            String wholeTag = s.substring( 0 , end + 1 );
-            
-            if ( ! printTag( _matcher.group(1) , wholeTag ) )
-                _writer.print( wholeTag );
-
-            print( s.substring( end + 1 ) );
             
         }
 
@@ -362,7 +370,8 @@ public class JxpServlet {
         String _cdnPrefix;
         JSObject _formInput = null;
         String _formInputPrefix = null;
-
+        
+        int _writtenLength = 0;
     }
     
     final AppContext _context;

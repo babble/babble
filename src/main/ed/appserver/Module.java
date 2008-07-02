@@ -9,11 +9,13 @@ import ed.js.*;
 import ed.js.engine.*;
 import ed.log.*;
 import ed.util.*;
+import ed.cloud.*;
 
 public class Module {
 
     static final Logger _log = Logger.getLogger( "modules" );    
     public static final String _baseFile; 
+    public static final String GITROOT = "ssh://git.10gen.com/data/gitroot/";
     
     static { 
         String s = System.getenv( "BASE" ) == null ? "/data/" : System.getenv( "BASE" );
@@ -50,26 +52,31 @@ public class Module {
         _doInit = doInit;
         
         _giturl = _findGitUrl();
+        _moduleName = _giturl == null ? null : _giturl.substring( GITROOT.length() + 1 );
+        
+        if ( ! _root.exists() && _giturl != null )
+            _root.mkdirs();
         
         _versioned = ! GitUtils.isSourceDirectory( _root );
         
-        _default = _versioned ? new File( _root , "master" ) : _root;
         
-        if ( ! _root.exists() && _giturl != null ){
-            _root.mkdirs();
-            GitUtils.clone( _giturl , _root , "master" );
+        if ( _versioned ){
+            String defaultVersion = getSymLink( "stable" );
+            if ( defaultVersion == null )
+                defaultVersion = "master";
+            
+            _default = getRootFile( defaultVersion );
+        }
+        else {
+            _default = _root;
         }
         
-	if ( root.exists() && ! _default.exists() && _giturl != null )
-            GitUtils.clone( _giturl , _root , "master" );
-	    
-
 	if ( ! _default.exists() )
             throw new RuntimeException( "Module root for [" + uriBase + "] does not exist : " + _default + " giturl [" + _giturl + "]" );
-
+        
         _lock = ( "Module-LockKey-" + _root.getAbsolutePath() ).intern();
     }
-
+    
     String _findGitUrl(){
         final String str = _root.toString();
         if ( str.contains( "/core-modules/" ) || 
@@ -79,11 +86,11 @@ public class Module {
             if ( idx < 0 )
                 idx = str.indexOf( "/site-modules/" );
             
-            return "ssh://git.10gen.com/data/gitroot" + str.substring( idx );
+            return GITROOT + str.substring( idx );
         }
 
         if ( str.endsWith( "/corejs" ) )
-            return "ssh://git.10gen.com/data/gitroot/corejs";
+            return GITROOT + "/corejs";
 
         return null;
     }
@@ -105,6 +112,17 @@ public class Module {
         return _baseFile;
     }
     
+    private String getSymLink( String version ){
+        if ( _moduleName == null )
+            return null;
+        
+        Cloud c = Cloud.getInstance();
+        if ( c == null || ! c.isRealServer() )
+            return null;
+
+        return c.getModuleSymLink( _moduleName , version );
+    }
+
     public File getRootFile( String version ){
         if ( version == null )
             return _default;
@@ -113,6 +131,10 @@ public class Module {
             _log.getLogger( version ).info( "Module [" + _uriBase + "] want version [" + version + "] but not in versioned mode" );
             return _root;
         }
+
+        String symlink = getSymLink( version );
+        if ( symlink != null )
+            version = symlink;        
 
         // now try to find best match
         File f = new File( _root , version );
@@ -139,7 +161,9 @@ public class Module {
     final File _root;
     final String _uriBase;
     final boolean _doInit;
+
     final String _giturl;
+    final String _moduleName;
 
     final boolean _versioned;
 

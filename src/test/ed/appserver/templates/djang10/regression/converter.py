@@ -1,7 +1,7 @@
+from __future__ import with_statement
 import sys
 import re
 from django.utils import safestring
-
 
 #patch Template to save the damn source
 from django.template import Template 
@@ -18,8 +18,8 @@ import datetime
 olddatetime = datetime.datetime
 class HackDatetime(datetime.datetime):
     @classmethod
-    def now(cls):
-        wrapped = HackDatetime.wrap(olddatetime.now())
+    def now(cls, *args, **kw):
+        wrapped = HackDatetime.wrap(olddatetime.now(*args, **kw))
         wrapped.delta = datetime.timedelta()
         return wrapped
     
@@ -40,10 +40,10 @@ class HackDatetime(datetime.datetime):
 datetime.datetime = HackDatetime
 
 #import django stuff
-from django import template
+from django.utils.safestring import SafeData, EscapeString
 from django.template import TemplateSyntaxError
 from regressiontests.templates  import tests
-
+from regressiontests.templates import filters
 
 
 
@@ -53,6 +53,9 @@ exported_classes = (
     tests.SomeClass,
     tests.OtherClass,
     
+    filters.SafeClass,
+    filters.UnsafeClass,
+    
     TemplateSyntaxError,
     HackTemplate,   # requires args
 )
@@ -61,13 +64,16 @@ unsupported_tests = (
     r'^url05$',
     r'^i18n',
     r'^filter-syntax18$',
-    r'autoescape-tag07',
-    r'autoescape-tag09',
-    r'autoescape-tag10',
+    
+    r'autoescape-stringfilter01',
 )
 
 
 preamble = """
+SafeData = function(str) {
+    this.str = str;
+};
+
 HackTemplate = function(content) {
     this.content = content;
 };
@@ -104,6 +110,22 @@ OtherClass.prototype = {
         return "OtherClass.method";
     }
 };
+
+UnsafeClass = function() {};
+UnsafeClass.prototype.toString = function() {
+    return "you & me";
+};
+
+SafeClass = function() {};
+SafeClass.prototype.toString = function() {
+    return new SafeData("you &gt; me");
+};
+
+var from_now = function(sec_offset) {
+    var now = new Date();
+    now.setSeconds(now.getSeconds() + sec_offset);
+    return now;
+};
 """
 
 
@@ -115,8 +137,10 @@ def convert(py_tests):
     buffer = preamble
     buffer += "tests=[\n"
     
+    skip_count = 0
     for name, vals in py_tests:
         if [pattern for pattern in unsupported_tests if re.search(pattern, name)]:
+            skip_count += 1
             continue
         
         if isinstance(vals[2], tuple):
@@ -132,6 +156,7 @@ def convert(py_tests):
             #ignoring LANGUAGE_CORE for now
         buffer += serialize_test(name, vals) + ",\n" 
     
+    print("Skipping %d tests, out of %d" % (skip_count, len(py_tests)))
     return buffer + "\n];"
 
 
@@ -155,6 +180,18 @@ def serialize(m):
 
     elif isinstance(m, dict):
         return '{ %s }' % ", ".join( ['%s: %s' % (serialize(escape_var(key)), serialize(value)) for key, value in m.items()] )
+    
+    elif isinstance(m, SafeData):
+        return 'new SafeData(%s)' % serialize(str(m))
+
+    elif isinstance(m, HackDatetime):
+        secs = m.delta.days * 3600 * 24
+        secs += m.delta.seconds
+        
+        return "from_now(%d)" % secs;
+
+    elif isinstance(m, unicode):
+        return serialize(str(m))
 
     elif isinstance(m, str):
         return '"%s"' % escape_str(m)
@@ -211,8 +248,22 @@ for i in range(0x20):
 
 
 ''' Main '''
+#do tag tests
+print("converting tag tests")
 items = tests.Templates("test_templates").get_template_tests().items()
 items.sort()
-result = convert(items)
-print result
+
+with open("tests.js", "w") as f:
+    result = convert(items)
+    f.writelines(result)
+
+
+#do filter tests
+print("\nconverting filter tests")
+items = filters.get_filter_tests().items()
+items.sort()
+
+with open("filter_tests.js", "w") as f:
+    result = convert(items)
+    f.writelines(result)
     

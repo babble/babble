@@ -324,10 +324,14 @@ public abstract class DBCollection extends JSObjectLame {
                 return;
             throw new NullPointerException( "can't be null" );
         }
+        
+        if ( o instanceof JSObjectBase && 
+             ((JSObjectBase)o).isPartialObject() )
+            throw new IllegalArgumentException( "can't save partial objects" );
 
         if ( o instanceof JSObject )
             return;
-
+        
         throw new IllegalArgumentException( " has to be a JSObject not : " + o.getClass() );
     }
 
@@ -396,6 +400,9 @@ public abstract class DBCollection extends JSObjectLame {
 
                     throw new RuntimeException( "_update is null.  keyset : " + e.keySet() + " ns:" + e.get( "_ns" ) );
                 }
+
+                if ( e instanceof DBRef && ! ((DBRef)e).isDirty() )
+                    continue;
 
                 otherUpdate.call( s , lookup , e , _upsertOptions );
 

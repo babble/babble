@@ -97,6 +97,9 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
             _func.set(JXP_SOURCE_PROP, this);
             return _func;
         }
+        catch ( JSCompileException jce ){
+            throw jce;
+        }
         catch ( Exception e ){
             String thing = e.toString();
             if ( thing.indexOf( ":" ) >= 0 )

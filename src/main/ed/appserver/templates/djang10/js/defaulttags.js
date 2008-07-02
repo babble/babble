@@ -5,6 +5,28 @@ var defaulttags =
 register = new djang10.Library();
 
 
+var AutoEscapeControlNode =
+    defaulttags.AutoEscapeControlNode =
+    function(setting, nodelist) {
+
+    this.setting = setting;
+    this.nodelist = nodelist;
+};
+AutoEscapeControlNode.prototype = {
+    __proto__: djang10.Node.prototype,
+    
+    toString: function() {
+        return "<AutoEscapeControlNode: " + this.setting + ">";
+    },
+    __render: function(context, printer) {
+        var has_setting = "autoescape" in context;
+        var old_setting = context.autoescape;
+        context.autoescape = this.setting;
+        this.nodelist.__render(context, printer);
+        if(has_setting)
+            context.autoescape = old_setting;
+    }
+};
 
 var CommentNode =
     defaulttags.CommentNode =
@@ -504,6 +526,25 @@ WithNode.prototype = {
 }
 
 //Registration
+var autoescape =
+    defaulttags.autoescape =
+    function(parser, token) {
+
+    var args = token.contents.split(/\s+/);
+    if(args.length != 2)
+        throw djang10.NewTemplateException("'Autoescape' tag requires exactly one argument.");
+
+    var arg = args[1];
+    if(! ["on", "off"].contains(arg))
+        throw djang10.NewTemplateException("'"+args[0]+"' argument should be 'on' or 'off'");
+    
+    var nodelist = parser.parse(["end"+args[0]]);
+    parser.delete_first_token();
+    
+    return new AutoEscapeControlNode(arg == "on", nodelist);
+};
+register.tag("autoescape", autoescape);
+
 var comment =
     defaulttags.comment =
     function(parser, token) {
