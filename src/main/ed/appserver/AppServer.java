@@ -273,11 +273,11 @@ public class AppServer implements HttpHandler {
 
             String envarr[] = new String[env.size()];
             env.toArray( envarr );
-
+            
             Process p = Runtime.getRuntime().exec( new String[]{ f.getAbsolutePath() } , envarr , f.getParentFile() );
 
             boolean inHeader = true;
-
+            
             BufferedReader in = new BufferedReader( new InputStreamReader( p.getInputStream() ) );
             String line;
             while ( ( line = in.readLine() ) != null ){
@@ -285,6 +285,14 @@ public class AppServer implements HttpHandler {
                     if ( line.trim().length() == 0 ){
                         inHeader = false;
                         continue;
+                    }
+                    
+                    line = line.trim();
+                    final int idx = line.indexOf( ":" );
+                    if ( idx > 0 ){
+                        final String name = line.substring( 0 , idx ).trim();
+                        final String val = line.substring( idx + 1 ).trim();
+                        response.setHeader( name , val );
                     }
                     continue;
                 }
