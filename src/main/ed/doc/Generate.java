@@ -89,7 +89,7 @@ public class Generate {
         File docdir = new File(((AppContext)app).getRoot()+"/" + path);
 
         Object dbo = s.get("db");
-        if(! (dbo instanceof DBApiLayer)) {
+        if(! (dbo instanceof DBBase)) {
             throw new RuntimeException("your database is not a database");
         }
 
@@ -97,7 +97,7 @@ public class Generate {
             throw new RuntimeException("Error - doc dir was never setup : " + docdir);
         }
 
-        DBApiLayer db = (DBApiLayer)dbo;
+        DBBase db = (DBBase)dbo;
         DBCollection collection = db.getCollection("doc.html");
 
         File blobs[] = docdir.listFiles();
@@ -129,6 +129,9 @@ public class Generate {
     public static void toHTML(String objStr, String path) {
 
         System.out.print(".");
+
+        System.out.println("WOO! : " + path);
+        
         Scope s = Scope.getThreadLocal();
         Object app = s.get("__instance__");
 
@@ -160,7 +163,9 @@ public class Generate {
         	throw new RuntimeException("Can't find 'docgen' file lib in my module directory");
         }
 
-        SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -d=../" + docdir
+        System.out.println("WOOGO! : " + jsfl.getRoot() + " docdir = " + docdir.getAbsolutePath().toString());
+        
+        SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -d=" + docdir.getAbsolutePath().toString()
                 + " -t=templates/jsdoc2", null, jsfl.getRoot(), objStr);
 
 
@@ -223,11 +228,11 @@ public class Generate {
 
         Scope s = Scope.getThreadLocal();
         Object dbo = s.get("db");
-        if(! (dbo instanceof DBApiLayer)) {
+        if(! (dbo instanceof DBBase)) {
             throw new RuntimeException("your database is not a database");
         }
 
-        DBApiLayer db = (DBApiLayer)dbo;
+        DBBase db = (DBBase)dbo;
         DBCollection collection = db.getCollection("doc");
 
         String rout = r.getOut();

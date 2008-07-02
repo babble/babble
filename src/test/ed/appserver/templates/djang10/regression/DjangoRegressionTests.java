@@ -32,7 +32,8 @@ public class DjangoRegressionTests {
         "^url.*",
 
         //requires architecture impl
-        "^autoescape-.*",
+        "^autoescape-filtertag01$",
+        "^autoescape-tag(0[3-9]|1.*)",
         "basic-syntax27",   //need support for translating _( )
         "^list-index.*",    //need to preprocess the string
         "ifequal-numeric07", //need to preprocess: throw error on 2.
@@ -70,8 +71,8 @@ public class DjangoRegressionTests {
             System.out.println("Loading django regression tests");
 
         //Locate the test script
-        String path = (JSHook.whereIsEd == null)? "" : JSHook.whereIsEd + "/";
-        path += "src/test/ed/appserver/templates/djang10/regression/tests.js";
+        String basePath = (JSHook.whereIsEd == null)? "" : JSHook.whereIsEd + "/";
+        basePath += "src/test/ed/appserver/templates/djang10/regression/";
         
         //Initialize the Scope
         Scope oldScope = Scope.getThreadLocal();
@@ -89,49 +90,29 @@ public class DjangoRegressionTests {
             if(oldScope != null) oldScope.makeThreadLocal();
             else Scope.clearThreadLocal();
         }
-            
-        //Load the test script & pull out variables
-        //final JSFunction hackTemplateCons = (JSObject)scope.get("HackTemplate");
-        final JSFunction templateSyntaxErrorCons;
-        final JSFunction someExceptionCons;
-        final JSFunction someOtherExceptionCons;
-        final JSArray tests;
-        
-        try {
-            //create isolated scope for the script
-            Scope loadingScope = globalScope.child();
-            loadingScope.setGlobal(true);
-            loadingScope.makeThreadLocal();
-            
-            //invoke the script
-            JxpSource testSource = JxpSource.getSource(new File(path));
-            JSFunction compiledTests = testSource.getFunction();
-            compiledTests.call(loadingScope);
-        
-            //pull out exported classes
-            templateSyntaxErrorCons = (JSFunction)loadingScope.get("TemplateSyntaxError");
-            someExceptionCons = (JSFunction)loadingScope.get("SomeException");
-            someOtherExceptionCons = (JSFunction)loadingScope.get("SomeOtherException");
-            tests = (JSArray)loadingScope.get("tests");
-        }
-        finally {
-            if(oldScope != null) oldScope.makeThreadLocal();
-            else Scope.clearThreadLocal();
-        }
-        
-        //Process the tests
+
+        //Load the test scripts & pull out variables
         final List<ExportedTestCase> testCases = new ArrayList<ExportedTestCase>();
         int count = 0, skipped = 0;
         
-        for(Object jsTest : tests) {
-            Scope testScope = globalScope.child();
-            testScope.setGlobal(true);
-            ExportedTestCase testCase = new ExportedTestCase(testScope, (JSObject)jsTest, templateSyntaxErrorCons, someExceptionCons, someOtherExceptionCons);
+        //FIXME: enable the filter tests
+        for(String testFilename : new String[] {"tests.js", "filter_tests.js"}) {
+            String path = basePath + testFilename;
+            JSTestScript testScript = new JSTestScript(globalScope, path);
             
-            if(isSupported(testCase)) testCases.add(testCase);
-            else skipped++;
-            
-            count++;
+            for(Object jsTest : testScript.tests) {
+                Scope testScope = globalScope.child();
+                testScope.setGlobal(true);
+                
+                ExportedTestCase testCase = new ExportedTestCase(testScope, (JSObject)jsTest, 
+                        testScript.templateSyntaxErrorCons, testScript.someExceptionCons, testScript.someOtherExceptionCons);
+                
+                //FIXME: enable filter tests
+                if((!"filter_tests.js".equals(testFilename)) && isSupported(testCase)) testCases.add(testCase);
+                else skipped++;
+                
+                count++;
+            }
         }
 
         //Create a custom template loader
@@ -159,6 +140,39 @@ public class DjangoRegressionTests {
         }
 
         return testCases.toArray();
+    }
+    
+    private static class JSTestScript {
+        //final JSFunction hackTemplateCons = (JSObject)scope.get("HackTemplate");
+        public final JSFunction templateSyntaxErrorCons;
+        public final JSFunction someExceptionCons;
+        public final JSFunction someOtherExceptionCons;
+        public final JSArray tests;
+        
+        public JSTestScript(Scope globalScope, String path) throws IOException {
+            Scope oldScope = Scope.getThreadLocal();
+            try {
+                //create isolated scope for the script
+                Scope loadingScope = globalScope.child();
+                loadingScope.setGlobal(true);
+                loadingScope.makeThreadLocal();
+                
+                //invoke the script
+                JxpSource testSource = JxpSource.getSource(new File(path));
+                JSFunction compiledTests = testSource.getFunction();
+                compiledTests.call(loadingScope);
+            
+                //pull out exported classes
+                templateSyntaxErrorCons = (JSFunction)loadingScope.get("TemplateSyntaxError");
+                someExceptionCons = (JSFunction)loadingScope.get("SomeException");
+                someOtherExceptionCons = (JSFunction)loadingScope.get("SomeOtherException");
+                tests = (JSArray)loadingScope.get("tests");
+            }
+            finally {
+                if(oldScope != null) oldScope.makeThreadLocal();
+                else Scope.clearThreadLocal();
+            }
+        }
     }
     
     private static boolean isSupported(ExportedTestCase testCase) {
