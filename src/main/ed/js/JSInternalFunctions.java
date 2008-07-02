@@ -4,6 +4,8 @@ package ed.js;
 
 import java.util.*;
 
+import org.mozilla.javascript.*;
+
 import ed.js.engine.*;
 import ed.js.func.*;
 
@@ -137,8 +139,16 @@ public class JSInternalFunctions extends JSNumericFunctions {
         return o;
     }
 
-    public Object JS_setDefferedPlus( JSObject obj , Object place , Object other ){
-        return obj.set( place , JS_add( obj.get( place ) , other ) );
+    public Object JS_setDefferedOp( JSObject obj , Object place , Object other , int type ){
+        Object nv = null;
+        switch ( type ){
+        case Token.ADD: nv = JS_add( obj.get( place ) , other ); break;
+        case Token.SUB: nv = JS_sub( obj.get( place ) , other ); break;
+        case Token.MUL: nv = JS_mul( obj.get( place ) , other ); break;
+        case Token.DIV: nv = JS_div( obj.get( place ) , other ); break;
+        default: throw new JSException( "unknown op" );
+        }
+        return obj.set( place , nv );
     }
     
     public Object JS_inc( JSRef ref , boolean post , int num ){
