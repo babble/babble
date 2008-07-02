@@ -696,8 +696,12 @@ public class JSObjectBase implements JSObject {
         return _isPartialObject;
     }
     
-    public void markAsPartiableObject(){
+    public void markAsPartialObject(){
         _isPartialObject = true;
+    }
+
+    public void forceNonPartial(){
+        _isPartialObject = false;
     }
 
     protected Map<String,Object> _map = null;
