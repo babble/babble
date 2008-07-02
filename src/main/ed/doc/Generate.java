@@ -13,6 +13,9 @@ import ed.db.*;
 import static ed.js.JSInternalFunctions.*;
 import ed.js.engine.Scope;
 import ed.appserver.AppContext;
+import ed.appserver.JSFileLibrary;
+import ed.appserver.Module;
+import ed.appserver.ModuleDirectory;
 import ed.io.SysExec;
 
 /** Documentation generator for JavaScript and Java
@@ -139,11 +142,27 @@ public class Generate {
             throw new RuntimeException("Error - doc dir was never setup : " + docdir);
         }
         
-        /*
-         *  fix me - get rid of "../core-modules/..."
-         */
+        JSObject foo = (JSObject) s.get("core");
+        
+        if (foo == null) { 
+        	throw new RuntimeException("Can't find 'core' in my scope");
+        }
+
+        ModuleDirectory md = (ModuleDirectory) foo.get("modules");
+        
+        if (md == null) { 
+        	throw new RuntimeException("Can't find 'modules' directory in my core object");
+        }
+        
+        JSFileLibrary jsfl = md.getJSFileLibrary("docgen");
+        
+        if (jsfl == null) { 
+        	throw new RuntimeException("Can't find 'docgen' file lib in my module directory");
+        }
+
         SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -d=../" + docdir 
-                + " -t=templates/jsdoc2", null, new File("../core-modules/docgen/"), objStr);
+                + " -t=templates/jsdoc2", null, jsfl.getRoot(), objStr);
+        
         
         String out = r.getOut();
         
