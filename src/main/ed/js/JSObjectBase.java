@@ -692,12 +692,23 @@ public class JSObjectBase implements JSObject {
         return size;
     }
 
+    public boolean isPartialObject(){
+        return _isPartialObject;
+    }
+    
+    public void markAsPartiableObject(){
+        _isPartialObject = true;
+    }
+
     protected Map<String,Object> _map = null;
     protected Map<String,Pair<JSFunction,JSFunction>> _setterAndGetters = null;
     private Collection<String> _keys = null;
     private JSFunction _constructor;
     private boolean _readOnly = false;
     private String _name;
+    
+    private boolean _isPartialObject = false;
+    
 
     // jit stuff
     
