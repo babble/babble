@@ -12,6 +12,16 @@ public class ByteEncoder extends Bytes {
 
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.BE" );
     
+    public static boolean dbOnlyField( Object o ){
+        if ( o == null )
+            return false;
+        
+        if ( o instanceof String || o instanceof JSString )
+            return dbOnlyField( o.toString() );
+        
+        return false;
+    }
+
     public static boolean dbOnlyField( String s ){
         return 
             s.equals( "_ns" )  
