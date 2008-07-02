@@ -803,6 +803,14 @@ public class JSArray extends JSObjectBase implements Iterable , List {
         return f.call( s , o );
     }
 
+    public int hashCode(){
+        int hash = super.hashCode();
+        if ( _array != null ){
+            hash += _array.hashCode();
+        }
+        return hash;
+    }
+
     private boolean _locked = false;
     private boolean _new = false;
     final List<Object> _array;

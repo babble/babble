@@ -225,15 +225,27 @@ public class AppServer implements HttpHandler {
         response.setResponseCode( 500 );
         
         JxpWriter writer = response.getWriter();
-            
-        writer.print( "\n<br><br><hr><b>Error</b><br>" );
-        writer.print( t.toString() + "<BR>" );
         
-        while ( t != null ){
-            for ( StackTraceElement element : t.getStackTrace() ){
-                writer.print( element + "<BR>\n" );
+        if ( t instanceof JSCompileException ){
+            JSCompileException jce = (JSCompileException)t;
+            
+            writer.print( "<br><br><hr>" );
+            writer.print( "<h3>Compile Error</h3>" );
+            writer.print( "<b>Message:</b> " + jce.getError() + "<BR>" );
+            writer.print( "<b>File Name:</b> " + jce.getFileName() + "<BR>" );
+            writer.print( "<b>Line # :</b> " + jce.getLineNumber() + "<BR>" );
+        }
+        
+        else {
+            writer.print( "\n<br><br><hr><b>Error</b><br>" );
+            writer.print( t.toString() + "<BR>" );
+            
+            while ( t != null ){
+                for ( StackTraceElement element : t.getStackTrace() ){
+                    writer.print( element + "<BR>\n" );
+                }
+                t = t.getCause();
             }
-            t = t.getCause();
         }
         
     }
@@ -273,11 +285,11 @@ public class AppServer implements HttpHandler {
 
             String envarr[] = new String[env.size()];
             env.toArray( envarr );
-
+            
             Process p = Runtime.getRuntime().exec( new String[]{ f.getAbsolutePath() } , envarr , f.getParentFile() );
 
             boolean inHeader = true;
-
+            
             BufferedReader in = new BufferedReader( new InputStreamReader( p.getInputStream() ) );
             String line;
             while ( ( line = in.readLine() ) != null ){
@@ -285,6 +297,14 @@ public class AppServer implements HttpHandler {
                     if ( line.trim().length() == 0 ){
                         inHeader = false;
                         continue;
+                    }
+                    
+                    line = line.trim();
+                    final int idx = line.indexOf( ":" );
+                    if ( idx > 0 ){
+                        final String name = line.substring( 0 , idx ).trim();
+                        final String val = line.substring( idx + 1 ).trim();
+                        response.setHeader( name , val );
                     }
                     continue;
                 }

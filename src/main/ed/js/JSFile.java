@@ -67,6 +67,14 @@ public abstract class JSFile extends JSObjectBase {
     public String getContentType(){
         return getJavaString( "contentType" );
     }
+    
+    public String getContentDisposition(){
+        String s = getJavaString( "contentDisposition" );
+        if ( s != null )
+            return s;
+
+        return ed.appserver.MimeTypes.getDispositionFromMimeType( getContentType() );   
+    }
 
     public long getLength(){
         return ((Number)get( "length" )).longValue();

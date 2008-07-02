@@ -6,6 +6,7 @@ import java.io.*;
 import java.util.*;
 
 import ed.util.*;
+import ed.lang.*;
 
 public class TemplateEngine {
     
@@ -19,6 +20,7 @@ public class TemplateEngine {
         
         try {
             final TemplateConverter.Result r = tc.convert( t , tracker );
+        
             if ( OUTPUT ){
                 try {
                     File f = new File( tmp , r.getNewTemplate().getName() );
@@ -30,6 +32,12 @@ public class TemplateEngine {
                 catch ( IOException ioe ){
                     ioe.printStackTrace();
                 }
+            }
+
+            if ( r.getLineMapping() != null ){
+                final StackTraceHolder sth = StackTraceHolder.getInstance();
+                sth.set( r.getNewTemplate().getName() , 
+                         new BasicLineNumberMapper( t.getName() , r.getNewTemplate().getName() , r.getLineMapping() ) );
             }
                 
             return r;

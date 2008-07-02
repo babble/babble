@@ -27,6 +27,12 @@ public class MimeTypes {
         return _mimeTypes.getProperty( ext.toLowerCase() );
     }
 
+    public static String getDispositionFromMimeType( String mimeType ){
+        if ( mimeType.startsWith( "image/" ) )
+            return "inline";
+        return "attachment";
+    }
+
     static final Properties _mimeTypes;
 
     static {

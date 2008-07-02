@@ -397,6 +397,9 @@ public abstract class DBCollection extends JSObjectLame {
                     throw new RuntimeException( "_update is null.  keyset : " + e.keySet() + " ns:" + e.get( "_ns" ) );
                 }
 
+                if ( e instanceof DBRef && ! ((DBRef)e).isDirty() )
+                    continue;
+
                 otherUpdate.call( s , lookup , e , _upsertOptions );
 
             }
