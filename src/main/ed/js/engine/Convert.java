@@ -114,7 +114,7 @@ public class Convert implements StackTraceFixer {
             theNode = p.parse( _source , _name , 0 );
         }
         catch ( org.mozilla.javascript.EvaluatorException ee ){
-            throw new RuntimeException( "can't compile [" + getExceptionMessage( ee ) + "]" );
+            throw JSCompileException.create( ee );
         }
         _encodedSource = p.getEncodedSource();
         init( theNode );
@@ -1670,21 +1670,7 @@ public class Convert implements StackTraceFixer {
             s.contains( "ed.js.engine.JSCompiledScript.call" );
     }
 
-    static String getExceptionMessage( EvaluatorException ee ){
-        String s = ee.getMessage();
-        Pattern p = Pattern.compile( "^.*\\(([\\w/\\\\.]+)#(\\d+)\\)$" );
-        Matcher m = p.matcher( s );
-        if ( ! m.find() )
-            return s;
-        
-        StackTraceElement broken = new StackTraceElement( m.group(1) , "---" , m.group(1) , Integer.parseInt( m.group(2) ) );
-        StackTraceElement fixed = StackTraceHolder.getInstance().fix( broken );
 
-        if ( broken == fixed || fixed == null )
-            return s;
-        
-        return s.substring( 0 , m.start(1) ) + fixed.getFileName() + "#" + fixed.getLineNumber() + s.substring( m.end(2) );
-    }
 
     String getSource( FunctionNode fn ){
         final int start = fn.getEncodedSourceStart();
