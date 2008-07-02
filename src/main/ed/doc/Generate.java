@@ -89,7 +89,7 @@ public class Generate {
         File docdir = new File(((AppContext)app).getRoot()+"/" + path);
 
         Object dbo = s.get("db");
-        if(! (dbo instanceof DBApiLayer)) {
+        if(! (dbo instanceof DBBase)) {
             throw new RuntimeException("your database is not a database");
         }
 
@@ -97,7 +97,7 @@ public class Generate {
             throw new RuntimeException("Error - doc dir was never setup : " + docdir);
         }
 
-        DBApiLayer db = (DBApiLayer)dbo;
+        DBBase db = (DBBase)dbo;
         DBCollection collection = db.getCollection("doc.html");
 
         File blobs[] = docdir.listFiles();
@@ -228,11 +228,11 @@ public class Generate {
 
         Scope s = Scope.getThreadLocal();
         Object dbo = s.get("db");
-        if(! (dbo instanceof DBApiLayer)) {
+        if(! (dbo instanceof DBBase)) {
             throw new RuntimeException("your database is not a database");
         }
 
-        DBApiLayer db = (DBApiLayer)dbo;
+        DBBase db = (DBBase)dbo;
         DBCollection collection = db.getCollection("doc");
 
         String rout = r.getOut();
