@@ -32,11 +32,10 @@ public class DjangoRegressionTests {
         "^url.*",
 
         //requires architecture impl
-        "^autoescape-filtertag01$",
-        "^autoescape-tag(0[3-9]|1.*)",
         "basic-syntax27",   //need support for translating _( )
         "^list-index.*",    //need to preprocess the string
         "ifequal-numeric07", //need to preprocess: throw error on 2.
+        "^filter-truncatewords02",  //needs autoescape
 
         //django doesn't escape strings
         "ifequal-split09",
@@ -61,6 +60,62 @@ public class DjangoRegressionTests {
 
         //will never be supported
         "^for-tag-unpack.*",
+        
+        //unimplemented filters
+        "chaining0[56]",   //capfirst
+        "chaining(07|08|09|10)",   //missing force_escape
+        "chaining(11|14|12|13)",       //missing safe
+        "chaining02",       //missing center
+        "autoescape-filtertag01$",  //missing safe
+        "autoescape-stringfilter0[2-4]",    //missing safe
+        "filter-addslash.*",
+        "filter-capfirst.*",
+        "filter-center.*",
+        "filter-cut.*",
+        "filter-escape.*",
+        "filter-first.*",
+        "filter-fix_ampersands.*",
+        "filter-floatformat.*",
+        "filter-force-escape.*",
+        "filter-iriencode.*",
+        "filter-last.*",
+        "filter-linebreaks.*",
+        "filter-linenumbers.*",
+        "filter-ljust.*",
+        "filter-make_list.*",
+        "filter-phone2numeric.*",
+        "filter-random.*",
+        "filter-rjust.*",
+        "filter-safe.*",
+        "filter-slice.*",
+        "filter-slugify.*",
+        "filter-stringformat.*",
+        "filter-striptag.*",
+        "filter-timesince.*",
+        "filter-timeuntil.*",
+        "filter-unordered.*",
+        "filter-urlize.*",
+        "filter-wordwrap.*",
+
+        
+        //broken filters
+        "autoescape-tag(0[3-9]|10)",
+        "chaining0[134]",
+        "filter-default0[34]",
+        "filter-lower.*",
+        "filter-removetags.*",
+        "filter-truncatewords.*",
+        "filter-upper.*",
+        "filter-wordcount.*"
+        
+        /*
+            chaining05,
+            chaining06,
+            filter-default01,
+            filter-default02,
+            ilter-default_if_none01,
+            ilter-default_if_none02
+         */
     };    
        
     public DjangoRegressionTests(){ }
@@ -108,7 +163,7 @@ public class DjangoRegressionTests {
                         testScript.templateSyntaxErrorCons, testScript.someExceptionCons, testScript.someOtherExceptionCons);
                 
                 //FIXME: enable filter tests
-                if((!"filter_tests.js".equals(testFilename)) && isSupported(testCase)) testCases.add(testCase);
+                if(isSupported(testCase)) testCases.add(testCase);
                 else skipped++;
                 
                 count++;
