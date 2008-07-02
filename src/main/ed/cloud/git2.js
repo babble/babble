@@ -82,6 +82,17 @@ Cloud.Git.findByName = function( name ){
 };
 
 
+Cloud.getModuleSymLink = function( moduleName , version ){
+    var git = Cloud.Git.findByName( moduleName );
+    if ( ! git )
+        return null;
+    
+    if ( ! git.symlinks )
+        return null;
+    
+    return git.symlinks[ version ];
+}
+
 db.git.setConstructor( Cloud.Git.Repository );
 if ( me.real )
     db.git.ensureIndex( { name : 1 } );
