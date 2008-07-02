@@ -269,7 +269,15 @@ public class AppServer implements HttpHandler {
     }
 
     void handleCGI( HttpRequest request , HttpResponse response , AppRequest ar , File f ){
+        
         try {
+
+            if ( ! ed.security.Security.isCoreJS() ){
+                response.setResponseCode( 501 );
+                response.getWriter().print( "you are not allowed to run cgi programs" );
+                return;
+            }
+                
             
             if ( ! f.exists() ){
                 response.setResponseCode( 404 );
