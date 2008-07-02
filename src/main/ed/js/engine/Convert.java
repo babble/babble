@@ -595,7 +595,7 @@ public class Convert implements StackTraceFixer {
             _append( "break " + n.getString() + ";\n" , n );
             break;
         case Token.CONTINUE:
-            _append( "continue " + n.getString() + ";\n" , n );
+            _append( "if ( true ) continue " + n.getString() + ";\n" , n );
             break;
             
         case Token.WHILE:
