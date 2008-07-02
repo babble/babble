@@ -91,6 +91,7 @@ public class Zeus {
         {
             String diff = DiffUtil.computeDiff( old , n );
             if ( diff.length() > ( n.length() / 50 ) ){
+		System.out.println( diff );
                 throw new RuntimeException( "too much has changed (diff)" );
             }
         }
