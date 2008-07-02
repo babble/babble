@@ -32,7 +32,8 @@ public class DjangoRegressionTests {
         "^url.*",
 
         //requires architecture impl
-        "^autoescape-.*",
+        "^autoescape-filtertag01$",
+        "^autoescape-tag(0[3-9]|1.*)",
         "basic-syntax27",   //need support for translating _( )
         "^list-index.*",    //need to preprocess the string
         "ifequal-numeric07", //need to preprocess: throw error on 2.
