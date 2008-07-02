@@ -432,8 +432,9 @@ public class HttpResponse extends JSObjectBase {
             return;
         }
         
-        if ( f.getFileName() != null && _headers.get( "Content-Disposition" ) == null )
-            _headers.put( "Content-Disposition" , "attachment; filename=\"" + f.getFileName() + "\"" );
+        if ( f.getFileName() != null && _headers.get( "Content-Disposition" ) == null ){
+            _headers.put( "Content-Disposition" , f.getContentDisposition() + "; filename=\"" + f.getFileName() + "\"" );
+        }
 
         long length = f.getLength();
         _jsfile = f.sender();
