@@ -150,6 +150,12 @@ public abstract class JSFunction extends JSFunctionBase {
             _callCache = myCache;
         }
         
+        myCache = _callCache;
+
+        // yes, its possible for 2 threads to create their own cache and each to use a different one, but thats ok
+        // all that happens is that 2 threads both do the work.  
+        // but its a race condition anyway, so behavior is a bit odd no matter what
+
         synchronized ( myCache ){
             
             final long hash = JSInternalFunctions.hash( args );
