@@ -2,19 +2,14 @@ package ed.doc;
 
 import java.io.*;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.ArrayList;
 
 import ed.js.*;
-import ed.js.func.*;
-import ed.js.engine.*;
 import ed.db.*;
-import static ed.js.JSInternalFunctions.*;
 import ed.js.engine.Scope;
 import ed.appserver.AppContext;
 import ed.appserver.JSFileLibrary;
-import ed.appserver.Module;
 import ed.appserver.ModuleDirectory;
 import ed.io.SysExec;
 
@@ -22,6 +17,8 @@ import ed.io.SysExec;
  * @expose
  */
 public class Generate {
+
+    private static boolean debug = true;
 
     /** Documentation version string... can be anything: "1.3.3", "dev", "BLARGH!", whatever
      */
@@ -115,7 +112,8 @@ public class Generate {
                 obj.set("name", blobs[i].getName().substring(0, blobs[i].getName().indexOf(".out")));
                 obj.set("content", sb.toString());
 
-                System.out.println("Generate.postHTMLGeneration() : processing " + blobs[i].getName());
+                if(debug)
+                    System.out.println("Generate.postHTMLGeneration() : processing " + blobs[i].getName());
 
                 collection.save(obj);
             }
@@ -130,8 +128,6 @@ public class Generate {
 
         System.out.print(".");
 
-        System.out.println("WOO! : " + path);
-        
         Scope s = Scope.getThreadLocal();
         Object app = s.get("__instance__");
 
@@ -163,11 +159,8 @@ public class Generate {
         	throw new RuntimeException("Can't find 'docgen' file lib in my module directory");
         }
 
-        System.out.println("WOOGO! : " + jsfl.getRoot() + " docdir = " + docdir.getAbsolutePath().toString());
-        
         SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -d=" + docdir.getAbsolutePath().toString()
                 + " -t=templates/jsdoc2", null, jsfl.getRoot(), objStr);
-
 
         String out = r.getOut();
 
@@ -185,6 +178,11 @@ public class Generate {
             System.out.println("File does not exist: "+path);
             return;
         }
+        if(f.getName().charAt(0) == '.') {
+            System.out.println("Ignoring hidden file "+path);
+            return;
+        }
+
         if(f.isDirectory()) {
             jsToDb(f.getCanonicalPath());
             File farray[] = f.listFiles();
@@ -202,7 +200,8 @@ public class Generate {
 
     private static void processFile(File f) {
 
-        System.out.println("Generate.processFile() : processing " + f);
+        if(debug)
+            System.out.println("Generate.processFile() : processing " + f);
 
         try {
             if((f.getName()).endsWith(".java"))
@@ -220,7 +219,8 @@ public class Generate {
      */
     public static void jsToDb(String path) throws IOException {
 
-        System.out.println("Generate.jsToDB() : processing " + path);
+        if(debug)
+            System.out.println("Generate.jsToDB() : processing " + path);
 
         File f = new File(path);
 
@@ -237,7 +237,6 @@ public class Generate {
 
         String rout = r.getOut();
         String jsdocUnits[] = rout.split("---=---");
-        System.out.println("classes: "+jsdocUnits.length);
         for(int i=0; i<jsdocUnits.length; i++) {
             JSObject json = (JSObject)JS.eval("("+jsdocUnits[i]+")");
             if(json == null) {
@@ -250,7 +249,6 @@ public class Generate {
                 String name = (k.next()).toString();
                 JSObject unit = (JSObject)json.get(name);
                 JSString isa = (JSString)unit.get("isa");
-                System.out.println("name: "+name+" isa: "+isa);
                 if(isa.equals("GLOBAL") || isa.equals("CONSTRUCTOR")) {
                     JSObjectBase ss = new JSObjectBase();
                     ss.set("symbolSet", json);
@@ -272,7 +270,8 @@ public class Generate {
      * @param path to file or folder to be documented
      */
     public static void javaToDb(String path) throws IOException {
-        System.out.println("Generate.javaToDB() : processing " + path);
+        if(debug)
+            System.out.println("Generate.javaToDB() : processing " + path);
         com.sun.tools.javadoc.Main.execute(new String[]{"-doclet", "JavadocToDB", "-docletpath", "./", path } );
     }
 
