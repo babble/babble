@@ -2,19 +2,14 @@ package ed.doc;
 
 import java.io.*;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.ArrayList;
 
 import ed.js.*;
-import ed.js.func.*;
-import ed.js.engine.*;
 import ed.db.*;
-import static ed.js.JSInternalFunctions.*;
 import ed.js.engine.Scope;
 import ed.appserver.AppContext;
 import ed.appserver.JSFileLibrary;
-import ed.appserver.Module;
 import ed.appserver.ModuleDirectory;
 import ed.io.SysExec;
 
@@ -130,8 +125,6 @@ public class Generate {
 
         System.out.print(".");
 
-        System.out.println("WOO! : " + path);
-        
         Scope s = Scope.getThreadLocal();
         Object app = s.get("__instance__");
 
@@ -163,11 +156,8 @@ public class Generate {
         	throw new RuntimeException("Can't find 'docgen' file lib in my module directory");
         }
 
-        System.out.println("WOOGO! : " + jsfl.getRoot() + " docdir = " + docdir.getAbsolutePath().toString());
-        
         SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -d=" + docdir.getAbsolutePath().toString()
                 + " -t=templates/jsdoc2", null, jsfl.getRoot(), objStr);
-
 
         String out = r.getOut();
 
