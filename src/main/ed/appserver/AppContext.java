@@ -5,27 +5,15 @@ package ed.appserver;
 import java.io.*;
 import java.util.*;
 
-import ed.appserver.jxp.JxpServlet;
-import ed.appserver.jxp.JxpSource;
-import ed.appserver.templates.djang10.Djang10Source;
-import ed.db.DBBase;
-import ed.db.DBCollection;
-import ed.db.DBProvider;
-import ed.db.ObjectId;
-import ed.js.CoreJS;
-import ed.js.JS;
-import ed.js.JSArray;
-import ed.js.JSDate;
-import ed.js.JSFile;
-import ed.js.JSFunction;
-import ed.js.JSLocalFile;
-import ed.js.JSObject;
-import ed.js.engine.Scope;
-import ed.js.func.JSFunctionCalls1;
-import ed.lang.Language;
-import ed.lang.StackTraceHolder;
-import ed.net.httpserver.HttpRequest;
-import ed.util.GitUtils;
+import ed.appserver.jxp.*;
+import ed.appserver.templates.djang10.*;
+import ed.db.*;
+import ed.js.*;
+import ed.js.engine.*;
+import ed.js.func.*;
+import ed.lang.*;
+import ed.net.httpserver.*;
+import ed.util.*;
 
 public class AppContext {
 
