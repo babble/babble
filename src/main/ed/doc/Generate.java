@@ -18,6 +18,8 @@ import ed.io.SysExec;
  */
 public class Generate {
 
+    private static boolean debug = true;
+
     /** Documentation version string... can be anything: "1.3.3", "dev", "BLARGH!", whatever
      */
     private static String version;
@@ -110,7 +112,8 @@ public class Generate {
                 obj.set("name", blobs[i].getName().substring(0, blobs[i].getName().indexOf(".out")));
                 obj.set("content", sb.toString());
 
-                System.out.println("Generate.postHTMLGeneration() : processing " + blobs[i].getName());
+                if(debug)
+                    System.out.println("Generate.postHTMLGeneration() : processing " + blobs[i].getName());
 
                 collection.save(obj);
             }
@@ -175,6 +178,11 @@ public class Generate {
             System.out.println("File does not exist: "+path);
             return;
         }
+        if(f.getName().charAt(0) == '.') {
+            System.out.println("Ignoring hidden file "+path);
+            return;
+        }
+
         if(f.isDirectory()) {
             jsToDb(f.getCanonicalPath());
             File farray[] = f.listFiles();
@@ -192,7 +200,8 @@ public class Generate {
 
     private static void processFile(File f) {
 
-        System.out.println("Generate.processFile() : processing " + f);
+        if(debug)
+            System.out.println("Generate.processFile() : processing " + f);
 
         try {
             if((f.getName()).endsWith(".java"))
@@ -210,7 +219,8 @@ public class Generate {
      */
     public static void jsToDb(String path) throws IOException {
 
-        System.out.println("Generate.jsToDB() : processing " + path);
+        if(debug)
+            System.out.println("Generate.jsToDB() : processing " + path);
 
         File f = new File(path);
 
@@ -227,7 +237,6 @@ public class Generate {
 
         String rout = r.getOut();
         String jsdocUnits[] = rout.split("---=---");
-        System.out.println("classes: "+jsdocUnits.length);
         for(int i=0; i<jsdocUnits.length; i++) {
             JSObject json = (JSObject)JS.eval("("+jsdocUnits[i]+")");
             if(json == null) {
@@ -240,7 +249,6 @@ public class Generate {
                 String name = (k.next()).toString();
                 JSObject unit = (JSObject)json.get(name);
                 JSString isa = (JSString)unit.get("isa");
-                System.out.println("name: "+name+" isa: "+isa);
                 if(isa.equals("GLOBAL") || isa.equals("CONSTRUCTOR")) {
                     JSObjectBase ss = new JSObjectBase();
                     ss.set("symbolSet", json);
@@ -262,7 +270,8 @@ public class Generate {
      * @param path to file or folder to be documented
      */
     public static void javaToDb(String path) throws IOException {
-        System.out.println("Generate.javaToDB() : processing " + path);
+        if(debug)
+            System.out.println("Generate.javaToDB() : processing " + path);
         com.sun.tools.javadoc.Main.execute(new String[]{"-doclet", "JavadocToDB", "-docletpath", "./", path } );
     }
 
