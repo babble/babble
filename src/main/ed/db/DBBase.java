@@ -77,8 +77,12 @@ public abstract class DBBase extends JSObjectLame {
              n instanceof JSString ){
             String s = n.toString();
             if ( s.startsWith( "." ) ){
-                if ( s.indexOf( "." , 1 ) > 0 )
-                    return getCollectionFromFull( s.substring(1) );
+                if ( s.indexOf( "." , 1 ) > 0 ){
+                    final String other = s.substring(1);
+                    if ( ! allowedToAccess( other ) )
+                        throw new JSException( "not allowed to access db from [" + other + "]" );
+                    return getCollectionFromFull( other );
+                }
                 return DBProvider.get( s.substring(1) );
             }
             return getCollection( s );
@@ -107,6 +111,13 @@ public abstract class DBBase extends JSObjectLame {
 
     public String toString(){
         return _name;
+    }
+
+    public boolean allowedToAccess( String other ){
+        if ( ed.security.Security.isCoreJS() )
+            return true;
+
+        return false;
     }
 
     final tojson _tojson = new tojson();

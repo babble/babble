@@ -4,6 +4,7 @@ package ed.db;
 
 import java.util.*;
 
+import ed.cloud.*;
 import ed.appserver.*;
 
 public class DBProvider {
@@ -16,7 +17,7 @@ public class DBProvider {
         if ( env == null )
             return get( root , false );
 
-        return get( root , false , ed.cloud.Cloud.getInstance().getDBHost( root , env ) );
+        return get( root , false , ed.cloud.Cloud.getInstance().getDBHostForSite( root , env ) );
     }
 
     public static DBApiLayer get( String root ){
@@ -92,6 +93,16 @@ public class DBProvider {
         if ( colon > 0 ){
             port = Integer.parseInt( ip.substring( colon + 1 ) );
             ip = ip.substring( 0 , colon );
+        }
+
+        if ( ip.indexOf( "." ) < 0 && ip.indexOf( "-" ) < 0 ){
+            // we're going to assume its not a host or an ip, but a db name.
+            Cloud c = Cloud.getInstance();
+            if ( c != null && c.isRealServer() ){
+                String temp = c.getDBHost( ip );
+                if ( temp != null )
+                    ip = temp;
+            }
         }
 
     	System.out.println("DBApiLayer : DBTCP : " + ip + ":" + port + "/" + root);

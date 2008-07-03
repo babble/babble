@@ -111,18 +111,10 @@ public class Cloud extends JSObjectBase {
 
     }
 
-    public String getDBHost( String name , String environment ){
+    public String getDBHost( String dbname ){
         if ( _bad )
             return null;
 
-        JSObject site = findSite( name , false );
-        if ( site == null )
-            return null;
-        
-        String dbname = evalFunc( site , "getDatabaseServerForEnvironmentName" , environment ).toString();
-	if ( dbname == null )
-	    throw new RuntimeException( "why is dbname null for : " + name + ":" + environment );
-	
 	JSObject db = (JSObject)evalFunc( "Cloud.findDBByName" , dbname );
 	if ( db == null )
 	    throw new RuntimeException( "can't find global db named [" + dbname + "]" );
@@ -132,6 +124,21 @@ public class Cloud extends JSObjectBase {
 	    throw new RuntimeException( "global db [" + dbname + "] doesn't have machine set" );
 
         return machine.toString();
+    }
+
+    public String getDBHostForSite( String siteName , String environment ){
+        if ( _bad )
+            return null;
+
+        JSObject site = findSite( siteName , false );
+        if ( site == null )
+            return null;
+        
+        String dbname = evalFunc( site , "getDatabaseServerForEnvironmentName" , environment ).toString();
+	if ( dbname == null )
+	    throw new RuntimeException( "why is dbname null for : " + siteName + ":" + environment );
+        
+        return getDBHost( dbname );
     }
 
     public JSObject findSite( String name , boolean create ){
