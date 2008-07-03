@@ -23,6 +23,7 @@ public class Generate {
     /** Documentation version string... can be anything: "1.3.3", "dev", "BLARGH!", whatever
      */
     private static String version;
+    private static ArrayList<String> processedFiles = new ArrayList<String>();
 
     /** Version setter
      */
@@ -169,11 +170,25 @@ public class Generate {
         }
     }
 
+    /** javaSrcs is a list of Java classes to be processed.  In order to be merged correctly when
+     * there is a Java and JS class with the same name, java classes must be processed second.
+     */
     private static ArrayList<String> javaSrcs = new ArrayList<String>();
 
     public static void srcToDb(String path) throws IOException {
         javaSrcs.clear();
+        processedFiles.clear();
+        _srcToDb(path);
+
+        for(int i=0; i<javaSrcs.size(); i++) {
+            javaToDb(javaSrcs.get(i));
+        }
+    }
+
+    private static void _srcToDb(String path) throws IOException {
         File f = new File(path);
+
+        // check for invalid paths and hidden files
         if(!f.exists()) {
             System.out.println("File does not exist: "+path);
             return;
@@ -183,36 +198,42 @@ public class Generate {
             return;
         }
 
-        if(f.isDirectory()) {
+
+        // if it hasn't been done already, process any .js files
+        if(!processedFiles.contains(path))
             jsToDb(f.getCanonicalPath());
+
+        // if it's a directory, process all its files
+        if(f.isDirectory()) {
             File farray[] = f.listFiles();
             for(int i=0; i<farray.length; i++) {
-                srcToDb(farray[i].getCanonicalPath());
+                _srcToDb(farray[i].getCanonicalPath());
             }
         }
-        else {
-            processFile(f);
-        }
-        for(int i=0; i<javaSrcs.size(); i++) {
-            javaToDb(javaSrcs.get(i));
+        // if it's a java file, add it to the list
+        else if((f.getName()).endsWith(".java") && !javaSrcs.contains(f.getCanonicalPath())) {
+            javaSrcs.add(f.getCanonicalPath());
         }
     }
 
-    private static void processFile(File f) {
-
-        if(debug)
-            System.out.println("Generate.processFile() : processing " + f);
-
-        try {
-            if((f.getName()).endsWith(".java"))
-                javaSrcs.add(f.getCanonicalPath());
+    /** Recursively adds a folder and all subfolders/files to the "done" list
+     * @param Canonical pathname of a file/directory
+     */
+    private static void addToProcessedFiles(String path) throws IOException {
+        File f = new File(path);
+        if(!f.exists()) {
+            System.out.println("File does not exist: "+path);
+            return;
         }
-        catch(IOException e) {
-            System.out.println("error getting the name of file "+f);
-            e.printStackTrace();
+        if(f.isDirectory()) {
+            File farray[] = f.listFiles();
+            for(int i=0; i<farray.length; i++) {
+                addToProcessedFiles(farray[i].getCanonicalPath());
+            }
         }
+        if(!processedFiles.contains(f.getCanonicalPath()))
+           processedFiles.add(path);
     }
-
 
     /** Takes source files/dirs, generates jsdoc from them, stores resulting js obj in the db
      * @param Path to the file or folder to be documented
@@ -223,6 +244,11 @@ public class Generate {
             System.out.println("Generate.jsToDB() : processing " + path);
 
         File f = new File(path);
+        addToProcessedFiles(path);
+        System.out.println("added files: ");
+        for(int i=0; i<processedFiles.size(); i++) {
+            System.out.println(processedFiles.get(i));
+        }
 
         SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -r -t=templates/json "+f.getCanonicalPath(), null, new File("../core-modules/docgen/"), "");
 

@@ -12,10 +12,10 @@ public class JavadocToDB {
     public static void getTags(Doc from, JSObjectBase dest) {
         Tag cTags[] = from.tags();
         for(int j=0; j<cTags.length; j++) {
-            if(cTags[j].name().substring(1).equals("return") ||
+            if(!(cTags[j].name().substring(1).equals("return") ||
                cTags[j].name().substring(1).equals("example") ||
                cTags[j].name().substring(1).equals("param") ||
-               cTags[j].name().substring(1).equals("anonymous")) {
+                 cTags[j].name().substring(1).equals("anonymous"))) {
                 dest.set(cTags[j].name().substring(1), cTags[j].text());
             }
         }
@@ -111,6 +111,7 @@ public class JavadocToDB {
             jsParams.add(tempParam);
         }
         tempMethod.set("_params", jsParams);
+        tempMethod.set("params", jsParams);
         return tempMethod;
     }
 
