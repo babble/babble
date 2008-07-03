@@ -30,6 +30,32 @@ public class GitMonitor {
 
 
 	fullCheck();
+
+        _fullChecker = new Thread( "GitMonitor-FullChecker" ){
+                public void run(){
+                    while ( true ){
+
+                        try {
+                            Thread.sleep( 1000 * 60 );
+                        }
+                        catch ( Exception e ){
+                            break;
+                        }
+                        
+                        try {
+                            fullCheck();
+                        }
+                        catch ( Throwable t ){
+                            t.printStackTrace();
+                        }
+                        
+                    }
+                }
+            };
+        
+        _fullChecker.setDaemon( true );
+        _fullChecker.start();
+
     }
 
     
@@ -189,7 +215,9 @@ public class GitMonitor {
 
     final Set<File> _watchedDirs = new HashSet<File>();
     final ChangeListener _changeListener = new ChangeListener();
-
+    
+    final Thread _fullChecker;
+    
     static final int LISTEN_MASK = 
 	JNotify.FILE_CREATED | 
 	JNotify.FILE_DELETED | 
