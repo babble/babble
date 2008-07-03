@@ -141,34 +141,42 @@ public abstract class JSFunction extends JSFunctionBase {
         return old;
     }
 
-    synchronized Object _cache( Scope s , long cacheTime , Object args[] ){
-        if ( _callCache == null )
-            _callCache = new LRUCache<Long,Pair<Object,String>>( 1000 * 3600 );
+    Object _cache( Scope s , long cacheTime , Object args[] ){
         
-        final long hash = JSInternalFunctions.hash( args );
+        LRUCache<Long,Pair<Object,String>> myCache = _callCache;
 
-        Pair<Object,String> p = _callCache.get( hash , cacheTime );
-
-        if ( p == null ){
-            
-            PrintBuffer buf = new PrintBuffer();
-            getScope( true ).set( "print" , buf );
-            
-            p = new Pair<Object,String>();
-            p.first = call( s , args );
-            p.second = buf.toString();
-
-            _callCache.put( hash , p , cacheTime  );
-            clearScope();
-
+        if ( myCache == null ){
+            myCache = new LRUCache<Long,Pair<Object,String>>( 1000 * 3600 );
+            _callCache = myCache;
         }
         
-        JSFunction print = (JSFunction)(s.get( "print" ));
-        if ( print == null )
-            throw new JSException( "print is null" );
-        print.call( s , p.second );
-
-        return p.first;
+        synchronized ( myCache ){
+            
+            final long hash = JSInternalFunctions.hash( args );
+            
+            Pair<Object,String> p = myCache.get( hash , cacheTime );
+            
+            if ( p == null ){
+                
+                PrintBuffer buf = new PrintBuffer();
+                getScope( true ).set( "print" , buf );
+                
+                p = new Pair<Object,String>();
+                p.first = call( s , args );
+                p.second = buf.toString();
+                
+                myCache.put( hash , p , cacheTime  );
+                clearScope();
+                
+            }
+            
+            JSFunction print = (JSFunction)(s.get( "print" ));
+            if ( print == null )
+                throw new JSException( "print is null" );
+            print.call( s , p.second );
+            
+            return p.first;
+        }
     }
     
     public Object callAndSetThis( Scope s , Object obj , Object args[] ){

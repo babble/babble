@@ -630,21 +630,30 @@ public class JSObjectBase implements JSObject {
     public void _setName( String n ){
         _name = n;
     }
+    
+    private Pair<JSFunction,JSFunction> _getSetterAndGetter( String name , boolean add ){
 
-    private synchronized Pair<JSFunction,JSFunction> _getSetterAndGetter( String name , boolean add ){
+        if ( _setterAndGetters == null && ! add )
+            return null;
+
         if ( _setterAndGetters == null ){
-            if ( ! add )
-                return null;
-            _setterAndGetters = new TreeMap<String,Pair<JSFunction,JSFunction>>();                
+            Map<String,Pair<JSFunction,JSFunction>> m = new TreeMap<String,Pair<JSFunction,JSFunction>>();
+            synchronized ( _setterAndGettersSetLOCK ){
+                if ( _setterAndGetters == null )
+                    _setterAndGetters = m;
+            }
         }
         
-        Pair<JSFunction,JSFunction> p = _setterAndGetters.get( name );
-        if ( ! add || p != null )
+        synchronized ( _setterAndGetters ){
+            
+            Pair<JSFunction,JSFunction> p = _setterAndGetters.get( name );
+            if ( ! add || p != null )
+                return p;
+            
+            p = new Pair<JSFunction,JSFunction>();
+            _setterAndGetters.put( name , p );
             return p;
-
-        p = new Pair<JSFunction,JSFunction>();
-        _setterAndGetters.put( name , p );
-        return p;
+        }
     }
 
     private Object _mapGet( final String s ){
@@ -713,7 +722,8 @@ public class JSObjectBase implements JSObject {
     
     private boolean _isPartialObject = false;
     
-
+    private final static String _setterAndGettersSetLOCK = "_setterAndGettersSetLOCK-asdhaskfhk32qsdsfdasd";
+    
     // jit stuff
     
     private long _lastModified = System.currentTimeMillis();
