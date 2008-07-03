@@ -106,6 +106,10 @@ public class AppContext {
 			if ( name.equals( _lastSetTo ) )
 			    return true;
 			
+                        DBBase db = (DBBase)s.get( "db" );
+                        if ( ! db.allowedToAccess( name.toString() ) )
+                            throw new JSException( "you are not allowed to access db [" + name + "]" );
+
                         s.put( "db" , DBProvider.get( name.toString() , AppContext.this ) , false );
 			_lastSetTo = name.toString();
 
