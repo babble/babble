@@ -146,7 +146,7 @@ public abstract class JSFunction extends JSFunctionBase {
         LRUCache<Long,Pair<Object,String>> myCache = _callCache;
 
         if ( myCache == null ){
-            myCache = new LRUCache<Long,Pair<Object,String>>( 1000 * 3600 );
+            myCache = new LRUCache<Long,Pair<Object,String>>( 1000 * 3600 , 100 );
             _callCache = myCache;
         }
         
