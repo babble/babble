@@ -176,6 +176,16 @@ public abstract class NIOServer extends Thread {
                         
                     }
                 }
+                catch ( OutOfMemoryError oom ){
+                    try {
+                        System.err.println( "got at OutOfMemoryError.  exiting" );
+                        oom.printStackTrace();
+                    }
+                    catch ( Throwable t ){
+                        // this means we're so screwed we can't print a stack trace
+                    } 
+                    Runtime.getRuntime().halt( -2 );
+                }
                 catch ( Exception e ){
                     if ( sc != null ){
                         try {
