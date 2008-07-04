@@ -198,9 +198,42 @@ public class AppServer implements HttpHandler {
                 servlet.handle( request , response , ar );
             }
         }
+        catch ( OutOfMemoryError oom ){
+            // 2 choices here, this request caused all sorts of problems
+            // or the server is screwed.
+            
+            long before = MemUtil.bytesAvailable();
+            System.gc();
+            long after = MemUtil.bytesAvailable();
+            
+            if ( after < ( 100 * MemUtil.MBYTE ) ||
+                 ( after - before ) < ( 100 * MemUtil.MBYTE ) ){
+                
+                try {
+                    System.err.println( "OutOfMemoryError in AppServer - not enough free, so dying" );
+                }
+                catch ( Exception e ){
+                }
+                
+                Runtime.getRuntime().halt( -3 );
+            }
+            
+            // either this thread was the problem, or whatever
+            
+            try {
+                response.setResponseCode( 500 );
+                JxpWriter writer = response.getWriter();
+                writer.print( "There was an error handling your request<br>" );
+                writer.print( "ERR 71<br>" );
+            }
+            catch ( OutOfMemoryError oom2 ){
+                // forget it - we're super hosed
+                Runtime.getRuntime().halt( -3 );                
+            }
+        }
         catch ( FileNotFoundException fnf ){
             response.setResponseCode( 404 );
-
+            
             JxpWriter writer = response.getWriter();
             writer.print( "can't find : " + fnf.getMessage() );
         }
