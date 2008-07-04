@@ -203,7 +203,7 @@ public class AppServer implements HttpHandler {
             // or the server is screwed.
             
             long before = MemUtil.bytesAvailable();
-            System.gc();
+            MemUtil.fullGC();
             long after = MemUtil.bytesAvailable();
             
             if ( after < ( 100 * MemUtil.MBYTE ) ||

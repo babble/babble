@@ -14,6 +14,12 @@ public class MemUtil {
     public static final long MBYTE = 1024 * KBYTE;
     public static final long GBYTE = 1024 * MBYTE;
 
+    public static final void fullGC(){
+        System.gc();
+        System.gc();
+        System.gc();
+    }
+
     public static final long bytesAvailable(){
         final Runtime r = Runtime.getRuntime();
         return ( r.maxMemory() - r.totalMemory() ) + r.freeMemory();
