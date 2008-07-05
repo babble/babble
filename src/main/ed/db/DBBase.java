@@ -118,7 +118,7 @@ public abstract class DBBase extends JSObjectLame {
             return true;
 
         // if you're running not in production, you can do whatever you want
-        if ( Cloud.getInstanceIfReal() == null )
+        if ( ed.cloud.Cloud.getInstanceIfReal() == null )
             return true;
 
         return false;
