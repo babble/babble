@@ -117,6 +117,10 @@ public abstract class DBBase extends JSObjectLame {
         if ( ed.security.Security.isCoreJS() )
             return true;
 
+        // if you're running not in production, you can do whatever you want
+        if ( Cloud.getInstanceIfReal() == null )
+            return true;
+
         return false;
     }
 
