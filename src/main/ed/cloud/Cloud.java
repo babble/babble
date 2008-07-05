@@ -41,6 +41,17 @@ public class Cloud extends JSObjectBase {
     }
 
 
+    public static Cloud getInstanceIfReal(){
+        Cloud c = getInstance();
+        if ( c == null )
+            return null;
+        
+        if ( ! c.isRealServer() )
+            return null;
+        
+        return c;
+    }
+
     // ---
 
     private Cloud(){
