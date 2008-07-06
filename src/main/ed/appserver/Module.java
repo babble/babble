@@ -116,8 +116,8 @@ public class Module {
         if ( _moduleName == null )
             return null;
         
-        Cloud c = Cloud.getInstance();
-        if ( c == null || ! c.isRealServer() )
+        Cloud c = Cloud.getInstanceIfOnGrid();
+        if ( c == null )
             return null;
 
         return c.getModuleSymLink( _moduleName , version );

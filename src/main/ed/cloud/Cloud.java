@@ -41,12 +41,12 @@ public class Cloud extends JSObjectBase {
     }
 
 
-    public static Cloud getInstanceIfReal(){
+    public static Cloud getInstanceIfOnGrid(){
         Cloud c = getInstance();
         if ( c == null )
             return null;
         
-        if ( ! c.isRealServer() )
+        if ( ! c.isOnGrid() )
             return null;
         
         return c;
@@ -118,7 +118,7 @@ public class Cloud extends JSObjectBase {
 	    }
 	}
 	
-	_log.info( "isRealServer : " + isRealServer() );
+	_log.info( "isOnGrid : " + isOnGrid() );
 
     }
 
@@ -232,7 +232,7 @@ public class Cloud extends JSObjectBase {
         return _scope;
     }
     
-    public boolean isRealServer(){
+    public boolean isOnGrid(){
         if ( _bad )
             return false;
     
@@ -254,7 +254,7 @@ public class Cloud extends JSObjectBase {
     }
     
     public String toString(){
-        return "{ Cloud.  real: " + isRealServer() + "}";
+        return "{ Cloud.  ongrid: " + isOnGrid() + "}";
     }
 
     final Scope _scope;

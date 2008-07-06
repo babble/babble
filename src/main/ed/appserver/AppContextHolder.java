@@ -233,15 +233,15 @@ public class AppContextHolder {
     }
 
     private static JSObject getEnvironmentFromCloud( String siteName , String envName ){
-        Cloud theCloud = Cloud.getInstance();
-        if ( theCloud == null || ! theCloud.isRealServer() )
+        Cloud theCloud = Cloud.getInstanceIfOnGrid();
+        if ( theCloud == null )
             return null;
         return theCloud.findEnvironment( siteName , envName );
     }
 
     private static JSObject getSiteFromCloud( String name ){
-        Cloud theCloud = Cloud.getInstance();
-        if ( theCloud == null || ! theCloud.isRealServer() )
+        Cloud theCloud = Cloud.getInstanceIfOnGrid();
+        if ( theCloud == null )
             return null;
         
         return theCloud.findSite( name , false );
