@@ -405,15 +405,18 @@ public class AppServer implements HttpHandler {
         
         JxpWriter out = response.getWriter();
         
-        out.print( "want to reset\n" );
+        out.print( "so, you want to reset?\n" );
         
         if ( request.getRemoteIP().equals( "127.0.0.1" ) && 
              request.getHeader( "X-Cluster-Cluster-Ip" ) == null ){
-            out.print( "you did it\n" );
+            out.print( "you did it!\n" );
+            ar.getContext()._logger.info("About to reset context via /~reset");
             ar.getContext().reset();
         }
         else {
-            out.print( "you suck" );
+            ar.getContext()._logger.error("Failed attempted context reset via /~reset from " + request.getRemoteIP());
+            out.print( "you suck!" );
+            response.setResponseCode(403);
         }
 
     }        
