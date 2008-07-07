@@ -37,19 +37,20 @@ public class Shell {
 
     public final static PrintStream _myPrintStream = new PrintStream( _myOutputStream );
 
+    public static class ConnectDB extends JSFunctionCalls2 {
+        public Object call( Scope s , Object name , Object ip , Object crap[] ){
+            return DBProvider.get( name.toString() , ip == null ? null : ip.toString() );
+        }
+        
+    }
+    
     public static void addNiceShellStuff( Scope s ){
-
+        
         s.put( "core" , CoreJS.get().getLibrary( null , null , s , false ) , true );
         s.put( "external" , Module.getModule( "external" ).getLibrary( null , null , s , false ) , true );
         s.put( "local" , new JSFileLibrary( new File( "." ) ,  "local" , s ) , true );
 
-        s.put( "connect" , new JSFunctionCalls2(){
-                public Object call( Scope s , Object name , Object ip , Object crap[] ){
-                    return DBProvider.get( name.toString() , ip == null ? null : ip.toString() );
-                }
-                
-                Map<String,DBJni> _dbs = new HashMap<String,DBJni>();
-            } , true  );
+        s.put( "connect" , new ConnectDB() , true );
         
         s.put( "openFile" , new JSFunctionCalls1(){
                 public Object call( Scope s , Object fileName , Object crap[] ){

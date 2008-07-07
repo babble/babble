@@ -66,7 +66,7 @@ public class Cloud extends JSObjectBase {
         }
 
 
-	Shell.addNiceShellStuff( _scope );
+        _scope.set( "connect" , new Shell.ConnectDB() );
 	_scope.set( "Cloud" , this );
 	_scope.set( "log" , _log );
 
