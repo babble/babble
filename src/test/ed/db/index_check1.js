@@ -23,3 +23,5 @@ db.somecollection.save({a:1});
 db.somecollection.ensureIndex({a:1});
 
 //assert(db.system.namespaces.find({name:/somecollection/}).length() == 2);
+
+print("ed/db/index_check1 : please remember to uncomment my asserts!");
