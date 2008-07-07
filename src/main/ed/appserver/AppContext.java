@@ -447,6 +447,9 @@ public class AppContext {
     }
 
     private void _initScope(){
+        if ( _inScopeInit )
+            return;
+
         final Scope saveTLPref = _scope.getTLPreferred();
         _scope.setTLPreferred( null );
 
