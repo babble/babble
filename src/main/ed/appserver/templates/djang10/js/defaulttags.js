@@ -167,9 +167,16 @@ ForNode.prototype = {
         context.push();
         
         var values = this.sequence.resolve(context);
+
         if(!djang10.Expression.is_true(values))
             values = [];
-        if(this.is_reversed)
+
+        if ( values.getClass().getName() == "ed.db.DBCursor" ){
+            // TODO: use iteration method instead of toArray
+            values = values.toArray();
+        }
+
+        if( this.is_reversed )
             values.reverse();
         
         var loop_dict = context["forloop"] = {parentloop: parentloop};
