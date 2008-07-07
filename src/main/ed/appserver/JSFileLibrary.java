@@ -160,13 +160,20 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
                 s.setTLPreferred( pref );
             }
 
-            _lastInit = initTime;
+            _lastInit = _maxInitTime();
         }
         finally {
             _inInit = false;
             _initStack.get().pop();
         }
         
+    }
+
+    private long _maxInitTime(){
+        long initTime = 0;
+        for ( JxpSource source : _initSources )
+            initTime = Math.max( initTime , source.lastUpdated() );
+        return initTime;
     }
 
     public JSFunction getFunction( final Object n ){
