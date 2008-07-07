@@ -137,7 +137,6 @@ public class Generate {
         }
 
         File docdir = new File(((AppContext)app).getRoot()+"/"+path);
-
         if(!docdir.exists()) {
             throw new RuntimeException("Error - doc dir was never setup : " + docdir);
         }
@@ -245,10 +244,6 @@ public class Generate {
 
         File f = new File(path);
         addToProcessedFiles(path);
-        System.out.println("added files: ");
-        for(int i=0; i<processedFiles.size(); i++) {
-            System.out.println(processedFiles.get(i));
-        }
 
         SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -r -t=templates/json "+f.getCanonicalPath(), null, new File("../core-modules/docgen/"), "");
 
@@ -262,6 +257,7 @@ public class Generate {
         DBCollection collection = db.getCollection("doc");
 
         String rout = r.getOut();
+
         String jsdocUnits[] = rout.split("---=---");
         for(int i=0; i<jsdocUnits.length; i++) {
             JSObject json = (JSObject)JS.eval("("+jsdocUnits[i]+")");
@@ -275,7 +271,8 @@ public class Generate {
                 String name = (k.next()).toString();
                 JSObject unit = (JSObject)json.get(name);
                 JSString isa = (JSString)unit.get("isa");
-                if(isa.equals("GLOBAL") || isa.equals("CONSTRUCTOR")) {
+                boolean isNamespace = ((Boolean)unit.get("isNamespace")).booleanValue();
+                if(isa.equals("GLOBAL") || isa.equals("CONSTRUCTOR") || isNamespace) {
                     JSObjectBase ss = new JSObjectBase();
                     ss.set("symbolSet", json);
                     JSObjectBase obj = new JSObjectBase();

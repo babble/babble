@@ -31,18 +31,18 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
      * @return Library or null if can't be found
      */
     public static JSFileLibrary loadLibraryFromEd(String location,  String uriBase, Scope scope){ 
-	    String root = JSHook.whereIsEd;
-	    if ( root == null ) 
-	        root = "";
-            else
-                root += "/";
-	    root += "src/main/" + location;	    
-	    File rootFile = new File( root );
-	    if ( ! rootFile.exists() ){
-                System.out.println( "does not exist [" + rootFile + "]" );
-	    	return null;
-	    }	
-	    return new JSFileLibrary( rootFile , uriBase, scope);
+        String root = JSHook.whereIsEd;
+        if ( root == null ) 
+            root = "";
+        else
+            root += "/";
+        root += "src/main/" + location;	    
+        File rootFile = new File( root );
+        if ( ! rootFile.exists() ){
+            System.out.println( "does not exist [" + rootFile + "]" );
+            return null;
+        }	
+        return new JSFileLibrary( rootFile , uriBase, scope);
     }
     
     public JSFileLibrary( File base , String uriBase , AppContext context ){
@@ -83,7 +83,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
     private synchronized void _init(){
         
         if ( D ) System.out.println( "\t " + _base + " _init.  _initSources : " + _initSources );
-
+        
         if ( ! _doInit ){
             if ( D ) System.out.println( "\t skipping becuase no _doInit" );
             return;
@@ -93,19 +93,21 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
             if ( D ) System.out.println( "\t skipping becuase _inInit" );
             return;
         }
-
+        
         boolean somethingChanged = false;
+
+        long initTime = 0;
 
         Object init = get( "_init" , false );
         if ( init != _initFunction )
             somethingChanged = true;
         else {
-            for ( JxpSource source : _initSources ){
-                if ( source.lastUpdated() > _lastInit ){
-                    somethingChanged = true;
-                    break;
-                }
-            }
+            
+            for ( JxpSource source : _initSources )
+                initTime = Math.max( initTime , source.lastUpdated() );
+            
+            if ( initTime > _lastInit )
+                somethingChanged = true;
         }
         
         if ( D ) System.out.println( "\t\t somethingChanged : " + somethingChanged + " init : " + init + " _initFunction : " + _initFunction );
@@ -135,6 +137,8 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
             }
             
             if ( init instanceof JSFunction ){
+                if ( D ) System.out.println( "\t\t\t runnning _init" );
+
                 Scope s = null;
                 if ( _context != null )
                     s = _context.getScope();
@@ -142,7 +146,6 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
                     s = _scope;
                 else 
                     throw new RuntimeException( "no scope :(" );
-                
                 _initFunction = (JSFunction)init;
                 
                 Scope pref = s.getTLPreferred();
@@ -157,7 +160,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
                 s.setTLPreferred( pref );
             }
 
-            _lastInit = System.currentTimeMillis();
+            _lastInit = initTime;
         }
         finally {
             _inInit = false;
