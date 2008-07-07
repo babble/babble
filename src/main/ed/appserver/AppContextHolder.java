@@ -136,7 +136,7 @@ public class AppContextHolder {
 
         JSObject envConfig = getEnvironmentFromCloud( siteName , subdomain );
         if ( envConfig != null ){
-            GitUtils.fetch( f );
+            GitUtils.pull( f );
             String branch = envConfig.get( "branch" ).toString() ;
             if ( D ) System.out.println( "\t using branch [" + branch + "]" );
             _checkout( f , branch );
