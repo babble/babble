@@ -1,4 +1,4 @@
-1// JSFileLibrary.java
+// JSFileLibrary.java
 
 package ed.appserver;
 
