@@ -20,6 +20,11 @@ public class MemUtil {
         System.gc();
     }
 
+    public static final int bytesToMB( long bytes ){
+        bytes = bytes / MBYTE;
+        return (int)bytes;
+    }
+
     public static final long bytesAvailable(){
         final Runtime r = Runtime.getRuntime();
         return ( r.maxMemory() - r.totalMemory() ) + r.freeMemory();
