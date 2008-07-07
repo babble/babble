@@ -58,14 +58,14 @@ public class AppServer implements HttpHandler {
             handleError( request , response , e , null );
         }
     }
-
+    
     private void _handle( HttpRequest request , HttpResponse response ){
 
         if ( request.getURI().equals( "/~appserverstats" ) ){
             handleStats( request , response );
             return;
         }
-
+        
         final long start = System.currentTimeMillis();
         
         AppRequest ar = (AppRequest)request.getAttachment();
@@ -99,12 +99,15 @@ public class AppServer implements HttpHandler {
         response.setHeader( "X-ctx" , ar.getContext()._root );
         response.setHeader( "X-git" , ar.getContext().getGitBranch() );
         response.setHeader( "X-env" , ar.getContext()._environment );
-
+        
         response.setAppRequest( ar );
         try {
+            ar.getContext().getDB().requestStart();
             _handle( request , response , ar );
         }
         finally {
+            ar.getContext().getDB().requestDone();
+
             final long t = System.currentTimeMillis() - start;
             if ( t > 1500 )
                 ar.getContext()._logger.getChild( "slow" ).info( request.getURL() + " " + t + "ms" );
