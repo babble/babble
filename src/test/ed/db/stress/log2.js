@@ -2,7 +2,7 @@
 var myFoo = core.util.random();
 randGen = myFoo.getRandom(1);
 
-db = connect("kristina");
+db = connect("ed_db_stress_log2");
 db.log100.drop();
 
 db.createCollection( "log100" , {size:10000, max:100, capped:true} );

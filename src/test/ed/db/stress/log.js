@@ -1,4 +1,4 @@
-db = connect( "kristina" )
+db = connect( "ed_db_stress_log" )
 t = db.lotsafields
 t.clean();
 t.drop();
