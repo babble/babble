@@ -25,6 +25,9 @@ public abstract class DBBase extends JSObjectLame {
         ((JSFunction)(lib.get( "db" ))).call( s, this );
         ((JSFunction)(lib.get( "dbcollection" ))).call( s, this);	
     }
+
+    public void requestStart(){}
+    public void requestDone(){}
     
     public abstract DBCollection getCollectionFromFull( String fullNameSpace );
     protected abstract DBCollection doGetCollection( String name );
