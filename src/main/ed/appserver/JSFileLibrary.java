@@ -1,4 +1,4 @@
-// JSFileLibrary.java
+1// JSFileLibrary.java
 
 package ed.appserver;
 
@@ -31,18 +31,18 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
      * @return Library or null if can't be found
      */
     public static JSFileLibrary loadLibraryFromEd(String location,  String uriBase, Scope scope){ 
-	    String root = JSHook.whereIsEd;
-	    if ( root == null ) 
-	        root = "";
-            else
-                root += "/";
-	    root += "src/main/" + location;	    
-	    File rootFile = new File( root );
-	    if ( ! rootFile.exists() ){
-                System.out.println( "does not exist [" + rootFile + "]" );
-	    	return null;
-	    }	
-	    return new JSFileLibrary( rootFile , uriBase, scope);
+        String root = JSHook.whereIsEd;
+        if ( root == null ) 
+            root = "";
+        else
+            root += "/";
+        root += "src/main/" + location;	    
+        File rootFile = new File( root );
+        if ( ! rootFile.exists() ){
+            System.out.println( "does not exist [" + rootFile + "]" );
+            return null;
+        }	
+        return new JSFileLibrary( rootFile , uriBase, scope);
     }
     
     public JSFileLibrary( File base , String uriBase , AppContext context ){
