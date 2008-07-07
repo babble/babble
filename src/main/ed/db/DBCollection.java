@@ -474,6 +474,14 @@ public abstract class DBCollection extends JSObjectLame {
         return true;
     }
 
+    public int hashCode(){
+        return _fullName.hashCode();
+    }
+
+    public boolean equals( Object o ){
+        return o == this;
+    }
+
     public String toString(){
         return "{DBCollection:" + _name + "}";
     }

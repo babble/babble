@@ -28,7 +28,7 @@ public abstract class DBApiLayer extends DBBase {
     protected abstract int doQuery( ByteBuffer out , ByteBuffer in );
     protected abstract int doGetMore( ByteBuffer out , ByteBuffer in );
 
-    public MyCollection getCollection( String name ){
+    protected MyCollection doGetCollection( String name ){
         MyCollection c = _collections.get( name );
         if ( c != null )
             return c;
@@ -56,7 +56,7 @@ public abstract class DBApiLayer extends DBBase {
         
         if ( fullNameSpace.indexOf( "." ) < 0 ) {
             // assuming local
-            return getCollection( fullNameSpace );
+            return doGetCollection( fullNameSpace );
         }
 
         final int idx = fullNameSpace.indexOf( "." );        
@@ -65,9 +65,9 @@ public abstract class DBApiLayer extends DBBase {
         final String table = fullNameSpace.substring( idx + 1 );
         
         if ( _root.equals( root ) )
-            return getCollection( table );
+            return doGetCollection( table );
         
-        return DBProvider.get( root ).getCollection( table );
+        return DBProvider.get( root ).doGetCollection( table );
     }
     
     public Collection<String> getCollectionNames(){
@@ -307,7 +307,7 @@ public abstract class DBApiLayer extends DBBase {
             o.set( "key" , keys );
             
 	    //dm-system isnow in our database 
-	    DBApiLayer.this.getCollection( "system.indexes" ).save( o , false );
+	    DBApiLayer.this.doGetCollection( "system.indexes" ).save( o , false );
         }
 
         final String _fullNameSpace;

@@ -27,11 +27,18 @@ public abstract class DBBase extends JSObjectLame {
     }
     
     public abstract DBCollection getCollectionFromFull( String fullNameSpace );
-    public abstract DBCollection getCollection( String name );
+    protected abstract DBCollection doGetCollection( String name );
     public abstract Collection<String> getCollectionNames();
 
     public abstract String getConnectPoint();
 
+    public final DBCollection getCollection( String name ){
+        DBCollection c = doGetCollection( name );
+        if ( c != null )
+            _seenCollections.add( c );
+        return c;
+    }
+    
     public DBCollection getCollectionFromString( String s ){
         DBCollection foo = null;
         
@@ -123,10 +130,17 @@ public abstract class DBBase extends JSObjectLame {
 
         return false;
     }
-
+    
+    public void resetIndexCache(){
+        System.out.println( _seenCollections );
+        for ( DBCollection c : _seenCollections )
+            c.resetIndexCache();
+    }
+    
     final tojson _tojson = new tojson();
     final String _name;
     protected boolean _readOnly = false;
     final JSObjectBase _collectionPrototype = new JSObjectBase();
     final Map _entries = new HashMap();
+    final Set<DBCollection> _seenCollections = new HashSet<DBCollection>();
 }
