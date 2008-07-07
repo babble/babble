@@ -134,6 +134,9 @@ DBCollection.prototype.drop = function()
 		this.getDB().system.namespaces.remove( { name: this.getFullName() } );
 		this.getDB().system.namespaces.remove( { name: RegExp(this.getFullName() + "[.][$].*") } );
     }
+
+    this.resetIndexCache();
+    
     return res;
 }
 
