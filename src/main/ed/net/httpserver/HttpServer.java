@@ -358,6 +358,7 @@ public class HttpServer extends NIOServer {
         addGlobalHandler( _stats );
         addGlobalHandler( new HttpMonitor.MemMonitor() );
         addGlobalHandler( new HttpMonitor.ThreadMonitor() );
+        addGlobalHandler( new HttpMonitor.FavIconHack() );
     }
     
     private static int _numRequests = 0;
