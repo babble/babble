@@ -83,18 +83,18 @@ public class Zeus {
         if ( old == null ){
             throw new RuntimeException( "no old resolver rule - i'm dying" );
         }
-        
-        if ( Math.abs( n.length() - old.length() ) > ( n.length() / 70 ) ){
+
+	String diff = DiffUtil.computeDiff( old , n );
+	
+	if ( Math.abs( n.length() - old.length() ) > ( n.length() / 30 ) ){
+	    System.out.println( diff );
             throw new RuntimeException( "too much has changed (length)" );
         }
 
-        {
-            String diff = DiffUtil.computeDiff( old , n );
-            if ( diff.length() > ( n.length() / 50 ) ){
-		System.out.println( diff );
-                throw new RuntimeException( "too much has changed (diff)" );
-            }
-        }
+	if ( diff.length() > ( n.length() / 30 ) ){
+	    System.out.println( diff );
+	    throw new RuntimeException( "too much has changed (diff)" );
+	}
 
 	System.out.println( "sanity check done.  old length:" + old.length() + " new length:" + n.length() );
 
