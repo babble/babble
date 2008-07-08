@@ -78,10 +78,12 @@ public class AppServer implements HttpHandler {
             return;
         }
 
+        final AppContext ctxt = ar.getContext();
+
         ar.getScope().makeThreadLocal();
         
-        final UsageTracker usage = ar.getContext()._usage;
-        final SimpleStats stats = _getStats( ar.getContext()._name + ":" + ar.getContext()._environment );
+        final UsageTracker usage = ctxt._usage;
+        final SimpleStats stats = _getStats( ctxt._name + ":" + ctxt._environment );
 
         {
             final int inSize  = request.totalSize();
@@ -95,19 +97,21 @@ public class AppServer implements HttpHandler {
         
 
 	ar.setResponse( response );
-	ar.getContext().getScope().setTLPreferred( ar.getScope() );
+	ctxt.getScope().setTLPreferred( ar.getScope() );
 
-        response.setHeader( "X-ctx" , ar.getContext()._root );
-        response.setHeader( "X-git" , ar.getContext().getGitBranch() );
-        response.setHeader( "X-env" , ar.getContext()._environment );
+        response.setHeader( "X-ctx" , ctxt._root );
+        response.setHeader( "X-git" , ctxt.getGitBranch() );
+        response.setHeader( "X-env" , ctxt._environment );
         
         response.setAppRequest( ar );
+        
+        final ed.db.DBBase db = ctxt.getDB();
         try {
-            ar.getContext().getDB().requestStart();
+            db.requestStart();
             _handle( request , response , ar );
         }
         finally {
-            ar.getContext().getDB().requestDone();
+            db.requestDone();
 
             final long t = System.currentTimeMillis() - start;
             if ( t > 1500 )
