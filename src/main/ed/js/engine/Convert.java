@@ -223,6 +223,8 @@ public class Convert implements StackTraceFixer {
         case Token.REGEXP:
             int myId = _regex.size();
             ScriptOrFnNode parent  = _nodeToSOR.get( n );
+            if ( parent == null )
+                throw new RuntimeException( "how is parent null" );
             int rId = n.getIntProp( Node.REGEXP_PROP , -1 );
             
             _regex.add( new Pair<String,String>( parent.getRegexpString( rId ) , parent.getRegexpFlags( rId ) ) );
