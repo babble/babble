@@ -29,6 +29,7 @@ public class DBTCP extends DBMessageLayer {
                 
         try {
             port.say( new DBMessage( op , buf ) );
+            mp.done( port );
         }
         catch ( IOException ioe ){
             mp.error();
