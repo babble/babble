@@ -141,6 +141,9 @@ public class JavadocToDB {
         ConstructorDoc cons[] = c.constructors();
         JSArray jsCons = new JSArray();
         for(int j=0; j<cons.length; j++) {
+            Tag[] mtags = cons[j].tags("unexpose");
+            if(mtags.length > 0) continue;
+
             jsCons.add(getConstructor(cons[j]));
         }
         temp.set("constructors", jsCons);
