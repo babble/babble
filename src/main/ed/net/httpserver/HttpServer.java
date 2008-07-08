@@ -307,18 +307,9 @@ public class HttpServer extends NIOServer {
         
     }
 
-    static final HttpHandler _stats = new HttpHandler(){
+    static final HttpHandler _stats = new HttpMonitor( "stats" ){
 
-            public boolean handles( HttpRequest request , Info info ){
-                return request.getURI().equals( "/~stats" );
-            }
-            
-            public void handle( HttpRequest request , HttpResponse response ){
-                response.setHeader( "Content-Type" , "text/plain" );
-                
-                JxpWriter out = response.getWriter();
-
-                
+            public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
                 out.print( "stats\n" );
                 out.print( "---\n" );
                 
@@ -357,10 +348,6 @@ public class HttpServer extends NIOServer {
                 out.print( "\n" );
             }
             
-            public double priority(){
-                return Double.MIN_VALUE;
-            }
-
             final long _startTime = System.currentTimeMillis();
         };
 
@@ -369,6 +356,9 @@ public class HttpServer extends NIOServer {
     static {
         DummyHttpHandler.setup();
         addGlobalHandler( _stats );
+        addGlobalHandler( new HttpMonitor.MemMonitor() );
+        addGlobalHandler( new HttpMonitor.ThreadMonitor() );
+        addGlobalHandler( new HttpMonitor.FavIconHack() );
     }
     
     private static int _numRequests = 0;

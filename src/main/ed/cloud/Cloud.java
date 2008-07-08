@@ -13,6 +13,8 @@ import ed.log.*;
 
 public class Cloud extends JSObjectBase {
 
+    static final boolean FORCE_GRID = Boolean.getBoolean( "FORCE-GRID" );
+
     static Logger _log = Logger.getLogger( "cloud" );
     static {
         _log.setLevel( Level.INFO );
@@ -66,7 +68,7 @@ public class Cloud extends JSObjectBase {
         }
 
 
-	Shell.addNiceShellStuff( _scope );
+        _scope.set( "connect" , new Shell.ConnectDB() );
 	_scope.set( "Cloud" , this );
 	_scope.set( "log" , _log );
 
@@ -233,6 +235,9 @@ public class Cloud extends JSObjectBase {
     }
     
     public boolean isOnGrid(){
+        if ( FORCE_GRID )
+            return true;
+
         if ( _bad )
             return false;
     

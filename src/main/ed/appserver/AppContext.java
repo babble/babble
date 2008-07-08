@@ -85,6 +85,7 @@ public class AppContext {
         }
 
         _core = CoreJS.get().getLibrary( JS.toString( _scope.get( "corejsversion" ) ) , this , null , true );
+        _logger.info( "corejs : " + _core.getRoot() );
         _scope.put( "core" , _core , true );
 
         _external = Module.getModule( "external" ).getLibrary( null , this , null , true );
@@ -447,6 +448,9 @@ public class AppContext {
     }
 
     private void _initScope(){
+        if ( _inScopeInit )
+            return;
+
         final Scope saveTLPref = _scope.getTLPreferred();
         _scope.setTLPreferred( null );
 

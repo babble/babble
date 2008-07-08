@@ -37,9 +37,10 @@ public class AppServerTest extends ed.TestCase {
     @Test(groups = {"basic"})
     public void testGetPossibleSiteNames(){    
         assertEquals( "[foo.com/abc, foo/abc]" , AppContextHolder.getPossibleSiteNames( "static.10gen.com" , "/www.foo.com/abc" ).toString() );
+        assertEquals( "[foo.com/abc, foo/abc]" , AppContextHolder.getPossibleSiteNames( "origin.10gen.com" , "/www.foo.com/abc" ).toString() );
         assertEquals( "[foo.com/abc, foo/abc]" , AppContextHolder.getPossibleSiteNames( "static.10gen.com" , "/foo.com/abc" ).toString() );
         assertEquals( "[foo.co.uk/abc, foo/abc]" , AppContextHolder.getPossibleSiteNames( "static.10gen.com" , "/www.foo.co.uk/abc" ).toString() );
-
+        
         assertEquals( "[abc.foo.com/, foo.com/, foo/]" , AppContextHolder.getPossibleSiteNames( "abc.foo.com" , "/" ).toString() );
         assertEquals( "[abc.foo.com/, foo.com/, foo/]" , AppContextHolder.getPossibleSiteNames( "abc.foo.com.10gen.com" , "/" ).toString() );
 

@@ -53,6 +53,9 @@ DB.prototype.createCollection = function(name, opt) {
  * @return Object returned has member ok set to true if operation succeeds, false otherwise.
 */
 DB.prototype.dropDatabase = function() { 
+
+    this.resetIndexCache();
+	
     return this._dbCommand( { dropDatabase: 1 } );
 }
 

@@ -84,7 +84,7 @@ public abstract class DBCollection extends JSObjectLame {
             name += s + "_";
             Object val = keys.get( s );
             if ( ! ( val instanceof ObjectId ) )
-                name += val.toString().replace( ' ' , '_' );
+                name += JSInternalFunctions.JS_toString( val ).replace( ' ' , '_' );
         }
         return name;
     }
@@ -472,6 +472,14 @@ public abstract class DBCollection extends JSObjectLame {
             throw new JSException( "db is read only" );
 
         return true;
+    }
+
+    public int hashCode(){
+        return _fullName.hashCode();
+    }
+
+    public boolean equals( Object o ){
+        return o == this;
     }
 
     public String toString(){

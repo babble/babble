@@ -14,6 +14,7 @@ import ed.net.*;
 import ed.util.*;
 import ed.net.httpserver.*;
 import ed.appserver.jxp.*;
+import ed.security.*;
 
 public class AppServer implements HttpHandler {
 
@@ -58,14 +59,14 @@ public class AppServer implements HttpHandler {
             handleError( request , response , e , null );
         }
     }
-
+    
     private void _handle( HttpRequest request , HttpResponse response ){
 
         if ( request.getURI().equals( "/~appserverstats" ) ){
             handleStats( request , response );
             return;
         }
-
+        
         final long start = System.currentTimeMillis();
         
         AppRequest ar = (AppRequest)request.getAttachment();
@@ -77,10 +78,12 @@ public class AppServer implements HttpHandler {
             return;
         }
 
+        final AppContext ctxt = ar.getContext();
+
         ar.getScope().makeThreadLocal();
         
-        final UsageTracker usage = ar.getContext()._usage;
-        final SimpleStats stats = _getStats( ar.getContext()._name + ":" + ar.getContext()._environment );
+        final UsageTracker usage = ctxt._usage;
+        final SimpleStats stats = _getStats( ctxt._name + ":" + ctxt._environment );
 
         {
             final int inSize  = request.totalSize();
@@ -94,17 +97,22 @@ public class AppServer implements HttpHandler {
         
 
 	ar.setResponse( response );
-	ar.getContext().getScope().setTLPreferred( ar.getScope() );
+	ctxt.getScope().setTLPreferred( ar.getScope() );
 
-        response.setHeader( "X-ctx" , ar.getContext()._root );
-        response.setHeader( "X-git" , ar.getContext().getGitBranch() );
-        response.setHeader( "X-env" , ar.getContext()._environment );
-
+        response.setHeader( "X-ctx" , ctxt._root );
+        response.setHeader( "X-git" , ctxt.getGitBranch() );
+        response.setHeader( "X-env" , ctxt._environment );
+        
         response.setAppRequest( ar );
+        
+        final ed.db.DBBase db = ctxt.getDB();
         try {
+            db.requestStart();
             _handle( request , response , ar );
         }
         finally {
+            db.requestDone();
+
             final long t = System.currentTimeMillis() - start;
             if ( t > 1500 )
                 ar.getContext()._logger.getChild( "slow" ).info( request.getURL() + " " + t + "ms" );
@@ -305,7 +313,7 @@ public class AppServer implements HttpHandler {
         
         try {
 
-            if ( ! ed.security.Security.isCoreJS() ){
+            if ( ! Security.isAllowedSite( ar.getContext().getName() ) ){
                 response.setResponseCode( 501 );
                 response.getWriter().print( "you are not allowed to run cgi programs" );
                 return;

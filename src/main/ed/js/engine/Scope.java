@@ -937,7 +937,7 @@ public class Scope implements JSObject {
             }
         };
 
-    private static Map< Class , Map< String , List<Method> > > _classToMethods = new HashMap< Class , Map< String , List<Method> > >();
+    private static final Map< Class , Map< String , List<Method> > > _classToMethods = new HashMap< Class , Map< String , List<Method> > >();
     
     private static List<Method> getMethods( Class c , String n ){
         Map<String,List<Method>> m = _classToMethods.get( c );
@@ -959,13 +959,22 @@ public class Scope implements JSObject {
         m.put( n , l );
         return l;
     }
-    
+
+    private static final Set<String> _disallowedNativeNames = new HashSet<String>();
+    static {
+        _disallowedNativeNames.add( "getClassLoader" );
+        _disallowedNativeNames.add( "loadClass" );
+    }
 
     public static Object callNative( Scope s , Object obj , String name , Object params[] ){
         return callNative( s , obj , name , params , false );
     }
     
     public static Object callNative( Scope s , Object obj , String name , Object params[]  , boolean debug ){
+        
+        if ( _disallowedNativeNames.contains( name ) )
+            throw new JSException( "[" + name + "] is not allowed" );
+
         List<Method> methods = getMethods( obj.getClass() , name );
         if ( methods != null && methods.size() > 0 ){
             methods:
@@ -1008,6 +1017,9 @@ public class Scope implements JSObject {
                     return ret;
                 }
                 catch ( InvocationTargetException e ){
+                    StackTraceHolder.getInstance().fix( e.getCause() );
+                    if ( e.getCause() instanceof RuntimeException )
+                        throw (RuntimeException)(e.getCause());
                     throw new RuntimeException( e.getCause() );
                 }
                 catch ( RuntimeException e ){

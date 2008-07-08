@@ -245,9 +245,29 @@ public class Generate {
         File f = new File(path);
         addToProcessedFiles(path);
 
-        SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -r -t=templates/json "+f.getCanonicalPath(), null, new File("../core-modules/docgen/"), "");
-
         Scope s = Scope.getThreadLocal();
+
+        JSObject foo = (JSObject) s.get("core");
+
+        if (foo == null) {
+        	throw new RuntimeException("Can't find 'core' in my scope");
+        }
+
+        ModuleDirectory md = (ModuleDirectory) foo.get("modules");
+
+        if (md == null) {
+        	throw new RuntimeException("Can't find 'modules' directory in my core object");
+        }
+
+        JSFileLibrary jsfl = md.getJSFileLibrary("docgen");
+
+        if (jsfl == null) {
+        	throw new RuntimeException("Can't find 'docgen' file lib in my module directory");
+        }
+
+        SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -r -t=templates/json "+f.getCanonicalPath(), 
+        		null, jsfl.getRoot(), "");
+
         Object dbo = s.get("db");
         if(! (dbo instanceof DBBase)) {
             throw new RuntimeException("your database is not a database");
