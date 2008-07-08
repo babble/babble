@@ -2,6 +2,8 @@
 
 package ed.security;
 
+import java.util.*;
+
 import ed.appserver.*;
 import ed.js.engine.*;
 
@@ -9,6 +11,18 @@ public class Security {
 
     public final static boolean OFF = Boolean.getBoolean( "NO-SECURITY" );
     public final static String _baseClass = Convert.cleanName( Module.getBase());
+
+    public final static Set<String> allowedSites;
+    static {
+	Set<String> s = new HashSet<String>();
+	s.add( "admin" );
+	s.add( "www" );
+	allowedSites = Collections.synchronizedSet( s );
+    }
+
+    public final static boolean isAllowedSite( String siteName ){
+	return allowedSites.contains( siteName );
+    }
 
     final static String SECURE[] = new String[]{ 
         Convert.DEFAULT_PACKAGE + "." + _baseClass + "corejs_" , 

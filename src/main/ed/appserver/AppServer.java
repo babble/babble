@@ -14,6 +14,7 @@ import ed.net.*;
 import ed.util.*;
 import ed.net.httpserver.*;
 import ed.appserver.jxp.*;
+import ed.security.*;
 
 public class AppServer implements HttpHandler {
 
@@ -308,7 +309,7 @@ public class AppServer implements HttpHandler {
         
         try {
 
-            if ( ! ed.security.Security.isCoreJS() ){
+            if ( ! Security.isAllowedSite( ar.getContext().getName() ) ){
                 response.setResponseCode( 501 );
                 response.getWriter().print( "you are not allowed to run cgi programs" );
                 return;
