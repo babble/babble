@@ -17,7 +17,13 @@ public abstract class HttpMonitor implements HttpHandler {
     public abstract void handle( JxpWriter out , HttpRequest request , HttpResponse response );
     
     public boolean handles( HttpRequest request , Info info ){
-        return request.getURI().equals( _uri );
+        if ( ! request.getURI().equals( _uri ) )
+            return false;
+
+        info.fork = false;
+        info.admin = true;
+        
+        return true;
     }
     
     public void handle( HttpRequest request , HttpResponse response ){
@@ -152,4 +158,38 @@ public abstract class HttpMonitor implements HttpHandler {
         final String _style;
     }
 
+
+    public static class FavIconHack implements HttpHandler {
+        
+        public boolean handles( HttpRequest request , Info info ){
+            if ( ! request.getURI().equals( "/favicon.ico" ) )
+                return false;
+            
+            String host = request.getHost();
+            if ( host == null )
+                return false;
+            
+            if ( ! host.contains( "10gen" ) )
+                return false;
+
+            String ref = request.getHeader( "Referer" );
+            if ( ref == null )
+                return false;
+            
+            int idx = ref.indexOf( "/~" );
+            if ( idx < 0 || idx + 3 >= ref.length() )
+                return false;
+            
+            return Character.isLetter( ref.charAt( idx + 2 ) );
+        }
+        
+        public void handle( HttpRequest request , HttpResponse response ){
+            response.setResponseCode( 404 );
+            response.setCacheTime( 86400 );
+        }
+
+        public double priority(){
+            return Double.MIN_VALUE;
+        }
+    }
 }
