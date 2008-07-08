@@ -13,11 +13,10 @@ import java.util.*;
 public class WeakBag<T> {
 
     public WeakBag(){
-        
     }
     
     public void add( T t ){
-        _set.add( new WeakReference<T>( t ) );
+        _set.add( new MyRef( t ) );
     }
 
     public int size(){
@@ -28,15 +27,21 @@ public class WeakBag<T> {
     public void clear(){
         _set.clear();
     }
-
+    
     public void clean(){
-        for ( Iterator<WeakReference<T>> i = _set.iterator(); i.hasNext(); ){
-            WeakReference<T> ref = i.next();
+        for ( Iterator<MyRef> i = _set.iterator(); i.hasNext(); ){
+            MyRef ref = i.next();
             if ( ref.get() == null )
                 i.remove();
         }
     }
 
-    private final List<WeakReference<T>> _set = new ArrayList<WeakReference<T>>();
+    class MyRef extends WeakReference<T> {
+        MyRef( T t ){
+            super( t );
+        }
+    }
+    
+    private final List<MyRef> _set = new ArrayList<MyRef>();
 }
 
