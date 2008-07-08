@@ -11,6 +11,8 @@ for j in `ls ${ED_HOME}include/*.jar`; do
     export CLASSPATH=$CLASSPATH:$j
 done
 
+export CLASSPATH=$CLASSPATH:/opt/java/lib/tools.jar
+
 export headless="-Djava.awt.headless=true"
 
 java -ea -Djava.library.path=include $headless -ea -Xmx1000m -XX:MaxDirectMemorySize=600M "$@"
