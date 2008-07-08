@@ -23,7 +23,7 @@ public class TestDB extends DBBase {
         throw new RuntimeException( "not implemented" );
     }
     
-    public DBCollection getCollection( String name ){
+    protected DBCollection doGetCollection( String name ){
         DBCollection c = _collections.get( name );
         if ( c == null ){
             c = new MyCollection( name );
