@@ -146,9 +146,10 @@ public abstract class HttpMonitor implements HttpHandler {
                 final StackTraceElement e = es[i];
                 if ( e == null )
 		    continue;
-                if ( e.getClassName().contains( filter ) 
-                     || e.getFileName().contains( filter )
-                     || e.getMethodName().contains( filter )
+		
+                if ( ( e.getClassName() != null && e.getClassName().contains( filter )  )
+                     || ( e.getFileName() != null && e.getFileName().contains( filter ) )
+                     || ( e.getMethodName() != null && e.getMethodName().contains( filter ) )
                      )
                     return true;
             }
