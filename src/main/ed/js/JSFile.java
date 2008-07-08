@@ -11,18 +11,26 @@ import ed.io.*;
 import ed.js.*;
 import ed.js.engine.*;
 
+/**
+ * The system stores files as a linked list of chunks.  Thus, to delete a file, one must delete each chunk.
+ * @expose
+ */
 public abstract class JSFile extends JSObjectBase {
 
+    /** Default chunk size: 1024 * 256 */
     protected static final int DEF_CHUNK_SIZE = 1024 * 256;
 
+    /** @unexpose */
     protected JSFile(){
         set( "_ns" , "_files" );
     }
-    
+
+    /** @unexpose */
     protected JSFile( String filename , String contentType , long length ){
         this( null , filename , contentType , length );
     }
 
+    /** @unexpose */
     protected JSFile( ObjectId id , String filename , String contentType , long length ){
         this();
 
@@ -33,26 +41,34 @@ public abstract class JSFile extends JSObjectBase {
 
         if ( contentType == null && filename != null )
             contentType = ed.appserver.MimeTypes.get( filename );
-        
+
         set( "filename" , filename );
         set( "contentType" , contentType );
         set( "length" , length );
     }
-    
+
+    /** Returns the first chunk for this file.
+     * @return The first chunk for this file or null if this file has 0 length.
+     * @throws NullPointerException If the first chunk is there but null.
+     */
     public JSFileChunk getFirstChunk(){
         if ( getLength() == 0 )
             return null;
 
         ((JSObject)get( "next" )).keySet();
-        JSFileChunk chunk = (JSFileChunk)get( "next" );        
+        JSFileChunk chunk = (JSFileChunk)get( "next" );
         if ( chunk == null )
             throw new NullPointerException( "first chunk is null :(" );
         return chunk;
     }
 
+    /** Write a stream to this file.
+     * @param out Stream to write.
+     * @throws IOException
+     */
     public void write( OutputStream out )
         throws IOException {
-        
+
         JSFileChunk chunk = getFirstChunk();
         while ( chunk != null ){
             chunk.getData().write( out );
@@ -60,30 +76,48 @@ public abstract class JSFile extends JSObjectBase {
         }
     }
 
+    /** Returns this file's filename.
+     * @return This file's filename.
+     */
     public String getFileName(){
         return getJavaString( "filename" );
     }
-    
+
+    /** Returns this file's content type.
+     * @return This file's content type.
+     */
     public String getContentType(){
         return getJavaString( "contentType" );
     }
-    
+
+    /** Returns this file's content disposition, which could be inline, attachment, or extension-token.
+     * @return This file's content disposition.
+     */
     public String getContentDisposition(){
         String s = getJavaString( "contentDisposition" );
         if ( s != null )
             return s;
 
-        return ed.appserver.MimeTypes.getDispositionFromMimeType( getContentType() );   
+        return ed.appserver.MimeTypes.getDispositionFromMimeType( getContentType() );
     }
 
+    /** Return the length of this file in bytes.
+     * @return This file's length.
+     */
     public long getLength(){
         return ((Number)get( "length" )).longValue();
     }
-    
+
+    /** Return the number of chunks this file is stored over.
+     * @return The number of chunks used for this file.
+     */
     public int numChunks(){
         return (int)Math.ceil( (double)getLength() / getChunkSize() );
     }
 
+    /** Return the chunk size this file uses.
+     * @return The chunk size used.
+     */
     public int getChunkSize(){
         Object foo = get( "chunkSize" );
         if ( foo == null ){
@@ -93,6 +127,9 @@ public abstract class JSFile extends JSObjectBase {
         return ((Number)foo).intValue();
     }
 
+    /** Returns the date that this file was uploaded.
+     * @return The date that this file was uploaded.
+     */
     public JSDate getUploadDate(){
         JSDate d = (JSDate)get( "uploadDate" );
         if ( d != null )
@@ -100,6 +137,10 @@ public abstract class JSFile extends JSObjectBase {
         return new JSDate();
     }
 
+    /** Returns this file's contents as a string.
+     * @return This file's contents as a string.
+     * @throws IOException
+     */
     public String asString(){
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         WritableByteChannelConnector w = new WritableByteChannelConnector( bout );
@@ -112,20 +153,28 @@ public abstract class JSFile extends JSObjectBase {
         }
         return new String( bout.toByteArray() );
     }
-    
+
+    /** Returnshis file's filename.
+     * @return This file's filename.
+     */
     public String toString(){
         return getFileName();
     }
 
+    /** Create an input stream to send the file.
+     * @return A modified input stream
+     */
     public Sender sender(){
         return new Sender( getFirstChunk() );
-    }        
+    }
 
     /** Get a temporary directory suitable for the instance described by root.
      *  This has to be on the same filesystem as root, because we rename(2) a
      *  file from this temp directory to the proper location, and it has to be
      *  atomic.
-     *  @returns a directory on the same filesystem as root
+     * @param root The desired temporary directory.
+     * @returns a directory on the same filesystem as root
+     * @throws RuntimeException If <tt>root</tt> exists but is not a directory
     */
     public static File getTempDirectory( File root ){
         // We try root + .git/tmp and then root + .tmp
@@ -149,17 +198,19 @@ public abstract class JSFile extends JSObjectBase {
 
         return retTemp;
     }
-    
-    /**
+
+    /** Create a file and any required parent directories.
+     * @param name File path/name
      * @return full path
+     * @throws IOException If the temporary file created cannot be renamed to <tt>name</tt>
      */
     public String writeToLocalFile( String name )
         throws IOException {
-        
+
         Scope s = Scope.getThreadLocal();
         if ( s == null )
             throw new JSException( "need a scope" );
-        
+
         File f = null;
 
         File root = (File)s.get( "_rootFile" );
@@ -177,7 +228,7 @@ public abstract class JSFile extends JSObjectBase {
 
             f = new File( root , name );
         }
-        
+
         File tempdir = null;
         if( root != null ){
             tempdir = JSFile.getTempDirectory(root);
@@ -196,9 +247,9 @@ public abstract class JSFile extends JSObjectBase {
     }
 
     public class Sender extends InputStream {
-        
+
         Sender( JSFileChunk chunk ){
-            
+
             if ( chunk == null ){
                 _chunk = null;
                 _buf = null;
@@ -216,22 +267,22 @@ public abstract class JSFile extends JSObjectBase {
          */
         boolean _done()
             throws IOException {
-            
+
             if ( _maxPostion >= 0 && _bytesWritten > _maxPostion )
                 return true;
 
             if ( _chunk == null )
                 return true;
-            
+
             if ( _buf.remaining() > 0 )
                 return false;
-            
+
             _buf = null;
             _chunk = _chunk.getNext();
-            
+
             if ( _chunk == null )
                 return true;
-                
+
             _buf = _chunk.getData().asByteBuffer();
 
             if ( _maxPostion > 0 ){
@@ -240,7 +291,7 @@ public abstract class JSFile extends JSObjectBase {
                 if ( ( _buf.limit() - _buf.position() ) > bytesLeft )
                     _buf.limit( _buf.position() + (int)bytesLeft );
             }
-            
+
             return false;
         }
 
@@ -249,10 +300,10 @@ public abstract class JSFile extends JSObjectBase {
          */
         public boolean write( WritableByteChannel out )
             throws IOException {
-            
+
             if ( _done() )
                 return true;
-            
+
             _bytesWritten += out.write( _buf );
             return false;
         }
@@ -264,7 +315,7 @@ public abstract class JSFile extends JSObjectBase {
 
             final long start = _bytesWritten;
 
-            
+
             WritableByteChannel out = new WritableByteChannel(){
                     public int write ( ByteBuffer src )
                         throws IOException {
@@ -272,14 +323,14 @@ public abstract class JSFile extends JSObjectBase {
                             src.get();
                         return (int)num;
                     }
-                    
+
                     public void close(){}
                     public boolean isOpen(){ return true; }
-                    
+
                 };
 
             while ( _bytesWritten - start < num && ! write( out ) );
-            
+
             return _bytesWritten - start;
         }
 
@@ -298,18 +349,18 @@ public abstract class JSFile extends JSObjectBase {
         public int read(){
             throw new RuntimeException( "not supported" );
         }
-        
+
         public int read(byte[] b)
             throws IOException {
             return read( b , 0 , b.length );
         }
-        
+
         public int read(byte[] b, int off, int len)
             throws IOException {
 
             if ( _done() )
                 return -1;
-            
+
             final int toCopy = Math.min( len , _buf.remaining() );
 
             _buf.get( b , off , toCopy );
@@ -327,13 +378,17 @@ public abstract class JSFile extends JSObjectBase {
         public void reset(){
             throw new RuntimeException( "not supported" );
         }
-        
+
         JSFileChunk _chunk;
         ByteBuffer _buf;
         long _bytesWritten = 0;
         long _maxPostion = -1;
     }
 
+    /** Given a path, get rid of everything other than the filename. (For example, cleanFilename("/x/y/z/log.out") would return "log.out").
+     * @param filename Filename to be cleaned.
+     * @return Cleaned filename.
+     */
     public static String cleanFilename( String filename ){
         if ( filename == null )
             return null;
@@ -345,7 +400,7 @@ public abstract class JSFile extends JSObjectBase {
         idx = filename.lastIndexOf( "\\" );
         if ( idx > 0 )
             filename = filename.substring( idx + 1 );
-        
+
         return filename;
     }
 
