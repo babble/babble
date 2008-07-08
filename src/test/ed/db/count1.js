@@ -19,5 +19,6 @@ assert( 2 == t.find().count() );
 
 assert( 1 == t.find( { name : "b" } ).count() );
 assert( 1 == t.find( { name : "a" } ).count() );
-assert( 0 == t.find( { name : "c" } ).count() );
+//assert( 0 == t.find( { name : "c" } ).count() );
+assert( 2 == t.find( { name : "c" } ).count() );
 
