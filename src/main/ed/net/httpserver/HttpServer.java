@@ -313,8 +313,13 @@ public class HttpServer extends NIOServer {
                 out.print( "stats\n" );
                 out.print( "---\n" );
                 
-                out.print( "forked queue length : " + request._handler._server._forkThreads.queueSize()  + "\n" );
+                final int forkedQueueSize = request._handler._server._forkThreads.queueSize();
+
+                out.print( "forked queue length : " + forkedQueueSize  + "\n" );
                 out.print( "admin queue length : " + request._handler._server._forkThreadsAdmin.queueSize()  + "\n" );
+
+                if ( forkedQueueSize >= WORKER_THREAD_QUEUE_MAX )
+                    response.setResponseCode( 510 );
 
                 out.print( "\n" );
                 
