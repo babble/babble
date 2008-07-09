@@ -37,7 +37,7 @@ public class LogReplayer {
         final Socket sock = new Socket( host , port );
         Thread t = new Thread(){
                 public void run(){
-                    byte buf[] = new byte[128];
+                    byte buf[] = new byte[1024];
                     try {
                         InputStream in = sock.getInputStream();
                         while ( running  ){
