@@ -10,7 +10,18 @@ import ed.js.func.*;
 import ed.js.engine.*;
 import ed.log.Logger;
 
-/** @expose
+/**  Methods to serialize objects into JSON.
+ *   These are exposed to Javascript as tojson and tojson_u.  tojson
+ *   serializes dates as strings of the form <tt>new Date( 1215614349 )</tt>
+ *   and serializes ObjectIds as strings of the form
+ *   <tt>ObjectId( "4874e0ca0bea01fd00d330d3" )</tt>.  This might not be
+ *   appropriate if you're going to parse it using YUI or any other JSON
+ *   library.  <tt>tojson_u</tt> instead serializes these as <tt>1215614349</tt>
+ *   and <tt>"4874e0ca0bea01fd00d330d3"</tt>, respectively.
+ *
+ *   tojson will try to serialize functions; tojson_u will simply refuse.
+ *
+ *   @expose
  */
 public class JSON {
 
@@ -47,9 +58,9 @@ public class JSON {
             } , true );
     }
 
-    /** Serializes an object.  Assumes a trusted object.
+    /** Serializes an object.  Assumes trusted mode.
      * @param o Object to be serialized.
-     * @param <tt>o</tt> in serialized form.
+     * @return <tt>o</tt> in serialized form.
      */
     public static String serialize( Object o ){
         // Backwards compatibility
@@ -58,18 +69,18 @@ public class JSON {
 
     /** Serializes an object.
      * @param o Object to be serialized.
-     * @param trusted If an object is untrustworthy, object ids and dates will be converted to strings before being displayed.  Trying to serialize untrusted functions will throw an exception.
-     * @param <tt>o</tt> in serialized form.
+     * @param trusted Trusted mode; see {@link JSON}.
+     * @return <tt>o</tt> in serialized form.
      */
     public static String serialize( Object o , boolean trusted ){
         return serialize( o , trusted , "\n" );
     }
 
-    /** Serializes an object.
+    /** Serializes an object with the given newline string.
      * @param o Object to be serialized.
-     * @param trusted If an object is untrustworthy, object ids and dates will be converted to strings before being displayed.  Trying to serialize untrusted functions will throw an exception.
-     * @param nl Newline characters to use.
-     * @param <tt>o</tt> in serialized form.
+     * @param trusted Trusted mode; see {@link JSON}.
+     * @param nl Newline string to use.
+     * @return <tt>o</tt> in serialized form.
      */
     public static String serialize( Object o , boolean trusted , String nl ){
         StringBuilder buf = new StringBuilder();
@@ -82,23 +93,21 @@ public class JSON {
         return buf.toString();
     }
 
-    /** Serializes an object.
+    /** Serializes an object to the given Appendable.
      * @param a Appender for serialized object.
      * @param o Object to be serialized.
-     * @param trusted If an object is untrustworthy, object ids and dates will be converted to strings before being displayed.  Trying to serialize untrusted functions will throw an exception.
-     * @param <tt>o</tt> in serialized form.
+     * @param trusted Trusted mode; see {@link JSON}.
      */
     public static void serialize( Appendable a , Object o , boolean trusted )
         throws java.io.IOException {
         serialize( a , o , trusted , "\n" );
     }
 
-    /** Serializes an object.
+    /** Serializes an object to the given Appendable.
      * @param a Appender for serialized object.
      * @param o Object to be serialized.
-     * @param trusted If an object is untrustworthy, object ids and dates will be converted to strings before being displayed.  Trying to serialize untrusted functions will throw an exception.
+     * @param trusted Trusted mode; see {@link JSON}.
      * @param nl Newline character to use.
-     * @param <tt>o</tt> in serialized form.
      */
     public static void serialize( Appendable a , Object o , boolean trusted , String nl )
         throws java.io.IOException {
@@ -281,7 +290,7 @@ public class JSON {
 
     /** Parse a string in JSON form to create an object.
      * @param s String to be parsed.
-     * @return Object creating from parsing string.
+     * @return Object created from parsing string.
      * @throws JSException If the parsed "object" is neither an object nor an array
      */
     public static Object parse( String s ){
