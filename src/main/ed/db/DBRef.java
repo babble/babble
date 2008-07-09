@@ -2,8 +2,11 @@
 
 package ed.db;
 
+import java.util.*;
+
 import ed.*;
 import ed.js.*;
+import ed.appserver.*;
 
 public class DBRef extends JSObjectBase {
 
@@ -35,8 +38,18 @@ public class DBRef extends JSObjectBase {
         if ( _db == null )
             throw new RuntimeException( "db is null" );
         
+        final RefCache rc = getRefCache();
+
         DBCollection coll = _db.getCollectionFromString( _ns );
-        JSObject o = coll.find( _id );
+        
+        JSObject o = rc == null ? null : rc.get( _id );
+        
+        if ( o == null ){
+            o = coll.find( _id );
+            if ( o != null && rc != null )
+                rc.put( _id , o );
+        }
+        
         if ( o == null ){
             System.out.println( "can't find ref.  ns:" + _ns + " id:" + _id );
             _parent.set( _fieldName , null );
@@ -76,4 +89,21 @@ public class DBRef extends JSObjectBase {
     boolean _loaded = false;
     boolean _doneLoading = false;
 
+    private static RefCache getRefCache(){
+        AppRequest r = AppRequest.getThreadLocal();
+        if ( r == null )
+            return null;
+        
+        RefCache c = _refCache.get( r );
+        if ( c != null )
+            return c;
+        
+        c = new RefCache();
+        _refCache.put( r , c );
+        return c;
+    }
+    
+    private static class RefCache extends HashMap<ObjectId,JSObject>{};
+
+    private static Map<AppRequest,RefCache> _refCache = Collections.synchronizedMap( new WeakHashMap<AppRequest,RefCache>() );
 }
