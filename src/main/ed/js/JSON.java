@@ -10,15 +10,20 @@ import ed.js.func.*;
 import ed.js.engine.*;
 import ed.log.Logger;
 
+/** @expose
+ */
 public class JSON {
 
+    /** Hidden fields to ignore.  Includes _save, _ns, and _update. */
     public static Set<String> IGNORE_NAMES = new HashSet<String>();
     static {
         IGNORE_NAMES.add( "_save" );
         IGNORE_NAMES.add( "_update" );
         IGNORE_NAMES.add( "_ns" );
     }
-    
+
+    /** Initialize json functions tojson, tojson_u, and fromjson.
+     */
     public static void init( Scope s ){
 
         s.put( "tojson" , new JSFunctionCalls1(){
@@ -34,7 +39,7 @@ public class JSON {
                 }
             } , true
             );
-        
+
         s.put( "fromjson" , new JSFunctionCalls1(){
                 public Object call( Scope s , Object o , Object foo[] ){
                     return parse( o.toString() );
@@ -42,15 +47,30 @@ public class JSON {
             } , true );
     }
 
+    /** Serializes an object.  Assumes a trusted object.
+     * @param o Object to be serialized.
+     * @param <tt>o</tt> in serialized form.
+     */
     public static String serialize( Object o ){
         // Backwards compatibility
         return serialize( o, true );
     }
 
+    /** Serializes an object.
+     * @param o Object to be serialized.
+     * @param trusted If an object is untrustworthy, object ids and dates will be converted to strings before being displayed.  Trying to serialize untrusted functions will throw an exception.
+     * @param <tt>o</tt> in serialized form.
+     */
     public static String serialize( Object o , boolean trusted ){
         return serialize( o , trusted , "\n" );
     }
 
+    /** Serializes an object.
+     * @param o Object to be serialized.
+     * @param trusted If an object is untrustworthy, object ids and dates will be converted to strings before being displayed.  Trying to serialize untrusted functions will throw an exception.
+     * @param nl Newline characters to use.
+     * @param <tt>o</tt> in serialized form.
+     */
     public static String serialize( Object o , boolean trusted , String nl ){
         StringBuilder buf = new StringBuilder();
         try {
@@ -62,20 +82,33 @@ public class JSON {
         return buf.toString();
     }
 
+    /** Serializes an object.
+     * @param a Appender for serialized object.
+     * @param o Object to be serialized.
+     * @param trusted If an object is untrustworthy, object ids and dates will be converted to strings before being displayed.  Trying to serialize untrusted functions will throw an exception.
+     * @param <tt>o</tt> in serialized form.
+     */
     public static void serialize( Appendable a , Object o , boolean trusted )
         throws java.io.IOException {
         serialize( a , o , trusted , "\n" );
     }
 
+    /** Serializes an object.
+     * @param a Appender for serialized object.
+     * @param o Object to be serialized.
+     * @param trusted If an object is untrustworthy, object ids and dates will be converted to strings before being displayed.  Trying to serialize untrusted functions will throw an exception.
+     * @param nl Newline character to use.
+     * @param <tt>o</tt> in serialized form.
+     */
     public static void serialize( Appendable a , Object o , boolean trusted , String nl )
         throws java.io.IOException {
         Serializer.go( a , o , trusted , 0 , nl );
     }
-    
+
     static class Serializer {
 
         static Map<Integer,String> _indents = new HashMap<Integer,String>();
-        
+
         static String _i( final int i ){
             String s = _indents.get( i );
             if ( s == null ){
@@ -86,7 +119,7 @@ public class JSON {
             }
             return s;
         }
-        
+
         static void string( Appendable a , String s )
             throws java.io.IOException {
             a.append("\"");
@@ -102,7 +135,7 @@ public class JSON {
                     a.append("\\r");
                 else if(c == '\t')
                     a.append("\\t");
-                else 
+                else
                     a.append(c);
             }
             a.append("\"");
@@ -110,7 +143,7 @@ public class JSON {
 
         static void go( Appendable a , Object something , boolean trusted , int indent , String nl  )
             throws java.io.IOException {
-            
+
             if ( nl.length() > 0 ){
                 if ( a instanceof StringBuilder ){
                     StringBuilder sb = (StringBuilder)a;
@@ -125,8 +158,8 @@ public class JSON {
                 a.append( "null" );
                 return;
             }
-    
-            if ( something instanceof Number || 
+
+            if ( something instanceof Number ||
                  something instanceof Boolean ||
                  something instanceof JSRegex ){
                 a.append( something.toString() );
@@ -144,7 +177,7 @@ public class JSON {
                 }
 	    }
 
-            if ( something instanceof JSString || 
+            if ( something instanceof JSString ||
                  something instanceof String ){
                 string( a , something.toString() );
                 return;
@@ -168,7 +201,7 @@ public class JSON {
                 }
                 throw new java.io.IOException("can't serialize functions in untrusted mode");
             }
-            
+
             if ( something instanceof ed.db.ObjectId ){
                 if ( trusted ) {
                     a.append( "ObjectId( \"" + something + "\" )" );
@@ -184,7 +217,7 @@ public class JSON {
                 string( a , something.toString() );
                 return;
             }
-            
+
             if ( something instanceof JSArray ){
                 JSArray arr = (JSArray)something;
                 a.append( "[ " );
@@ -204,7 +237,7 @@ public class JSON {
 
             JSObject o = (JSObject)something;
 
-            { 
+            {
                 Object foo = o.get( "tojson" );
                 if ( foo != null && foo instanceof JSFunction ){
                     a.append( ((JSFunction)foo).call( Scope.getAScope() ).toString() );
@@ -214,11 +247,11 @@ public class JSON {
 
             a.append( _i( indent ) );
             a.append( "{" );
-            
+
             boolean first = true;
 
             for ( String s : o.keySet() ){
-                
+
                 if ( IGNORE_NAMES.contains( s ) )
                     continue;
 
@@ -231,9 +264,9 @@ public class JSON {
 
                 if ( first )
                     first = false;
-                else 
+                else
                     a.append( " ,"  );
-                
+
                 a.append( _i( indent + 1 ) );
                 string( a , s );
                 a.append( " : " );
@@ -246,7 +279,11 @@ public class JSON {
 
     }
 
-
+    /** Parse a string in JSON form to create an object.
+     * @param s String to be parsed.
+     * @return Object creating from parsing string.
+     * @throws JSException If the parsed "object" is neither an object nor an array
+     */
     public static Object parse( String s ){
         CompilerEnvirons ce = new CompilerEnvirons();
         Parser p = new Parser( ce , ce.getErrorReporter() );
@@ -254,38 +291,38 @@ public class JSON {
         s = "return " + s.trim() + ";";
 
         ScriptOrFnNode theNode = p.parse( s , "foo" , 0 );
-        
+
         Node ret = theNode.getFirstChild();
         Convert._assertType( ret , Token.RETURN , null );
         Convert._assertOne( ret );
-        
+
         Node lit = ret.getFirstChild();
         if ( lit.getType() != Token.OBJECTLIT && lit.getType() != Token.ARRAYLIT ){
             Debug.printTree( lit , 0 );
             throw new JSException( "not a literal" );
         }
-        
+
         return build( lit );
     }
 
     private static Object build( Node n ){
         if ( n == null )
             return null;
-        
+
         Node c;
 
         switch ( n.getType() ){
-            
+
         case Token.OBJECTLIT:
             JSObject o = new JSObjectBase();
             Object[] names = (Object[])n.getProp( Node.OBJECT_IDS_PROP );
             int i=0;
-            
+
             c = n.getFirstChild();
             while ( c != null ){
                 o.set( names[i++].toString() , build( c ) );
                 c = c.getNext();
-            }            
+            }
 
             return o;
 
@@ -297,7 +334,7 @@ public class JSON {
                 c = c.getNext();
             }
             return a;
-        
+
         case Token.NUMBER:
             double d = n.getDouble();
             if ( JSNumericFunctions.couldBeInt( d ) )
@@ -307,7 +344,7 @@ public class JSON {
             return new JSString( n.getString() );
 
         }
-        
+
         Debug.printTree( n , 0 );
         throw new RuntimeException( "what: " + n.getType() );
     }
