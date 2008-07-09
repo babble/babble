@@ -28,6 +28,7 @@ public abstract class DBBase extends JSObjectLame {
 
     public void requestStart(){}
     public void requestDone(){}
+    public void requestEnsureConnection(){}
     
     public abstract DBCollection getCollectionFromFull( String fullNameSpace );
     protected abstract DBCollection doGetCollection( String name );

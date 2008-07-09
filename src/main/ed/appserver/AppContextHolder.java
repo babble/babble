@@ -39,11 +39,11 @@ public class AppContextHolder {
         _rootFile = _root == null ? null : new File( _root );
     }
 
-    public synchronized AppContext getContext( HttpRequest request , String newUri[] ){
+    public AppContext getContext( HttpRequest request , String newUri[] ){
         return getContext( request.getHeader( "Host" ) , request.getURI() , newUri );
     }
     
-    public synchronized AppContext getContext( String host , String uri , String newUri[] ){
+    public AppContext getContext( String host , String uri , String newUri[] ){
         if ( newUri != null )
             newUri[0] = null;
 
@@ -70,24 +70,31 @@ public class AppContextHolder {
         if ( ac != null )
             return ac;
 
-        for ( Info i : getPossibleSiteNames( info ) ){
-            if ( D ) System.out.println( "\t possible site name [" + i.host + "]" );
-            File temp = new File( _root , i.host );
-            if ( temp.exists() )
-                return getEnvironmentContext( temp , i , host );
+        synchronized ( _contextCreationLock ){
             
-            JSObject site = getSiteFromCloud( i.host );
-            if ( site != null ){
-                if ( D ) System.out.println( "\t found site from cloud" );
-                temp.mkdirs();
-                return getEnvironmentContext( temp , i , host );
+            ac = _getContextFromMap( host );
+            if ( ac != null )
+                return ac;
+
+            for ( Info i : getPossibleSiteNames( info ) ){
+                if ( D ) System.out.println( "\t possible site name [" + i.host + "]" );
+                File temp = new File( _root , i.host );
+                if ( temp.exists() )
+                    return getEnvironmentContext( temp , i , host );
+                
+                JSObject site = getSiteFromCloud( i.host );
+                if ( site != null ){
+                    if ( D ) System.out.println( "\t found site from cloud" );
+                    temp.mkdirs();
+                    return getEnvironmentContext( temp , i , host );
+                }
             }
         }
         
         return _getDefaultContext();
     }
 
-    synchronized AppContext getEnvironmentContext( final File siteRoot , final Info info , final String originalHost ){
+    private AppContext getEnvironmentContext( final File siteRoot , final Info info , final String originalHost ){
 
         if ( ! siteRoot.exists() )
             throw new RuntimeException( "\t trying to map [" + originalHost + "] to " + siteRoot + " which doesn't exist" );
@@ -114,17 +121,17 @@ public class AppContextHolder {
             ac = new AppContext( envRoot.toString() , envRoot , siteRoot.getName() , env );
         }
 
-        _context.put( info.host , ac );
-        _context.put( originalHost , ac );
+        _contextCache.put( info.host , ac );
+        _contextCache.put( originalHost , ac );
         return ac;
     }
 
     private AppContext _getContextFromMap( String host ){
 
-        AppContext ac = _context.get( host );
+        AppContext ac = _contextCache.get( host );
         
         if (ac != null && ac.isReset()) {
-            _context.put( host , null );
+            _contextCache.put( host , null );
             ac = null;
         }
         
@@ -365,5 +372,6 @@ public class AppContextHolder {
 
     private AppContext _coreContext;
 
-    private final Map<String,AppContext> _context = Collections.synchronizedMap( new StringMap<AppContext>() );
+    private final Map<String,AppContext> _contextCache = Collections.synchronizedMap( new StringMap<AppContext>() );
+    private final String _contextCreationLock = ( "AppContextHolder-Lock-" + Math.random() ).intern();
 }
