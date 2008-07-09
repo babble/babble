@@ -22,6 +22,10 @@ public class DBTCP extends DBMessageLayer {
     public void requestDone(){
         _threadPort.get().requestDone();
     }
+    
+    public void requestEnsureConnection(){
+        _threadPort.get().requestEnsureConnection();
+    }
 
     protected void say( int op , ByteBuffer buf ){
         MyPort mp = _threadPort.get();
@@ -80,6 +84,16 @@ public class DBTCP extends DBMessageLayer {
             _portPool.gotError();
         }
 
+        void requestEnsureConnection(){
+            if ( ! _inRequest )
+                return;
+            
+            if ( _port != null )
+                return;
+            
+            _port = _portPool.get();
+        }
+        
         void requestStart(){
             _inRequest = true;
             if ( _port != null ){

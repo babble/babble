@@ -195,7 +195,7 @@ public class AppContext {
         return _name;
     }
     
-    DBBase getDB(){
+    public DBBase getDB(){
         return (DBBase)_scope.get( "db" );        
     }
 

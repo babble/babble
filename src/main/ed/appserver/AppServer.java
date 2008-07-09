@@ -107,11 +107,13 @@ public class AppServer implements HttpHandler {
         
         final ed.db.DBBase db = ctxt.getDB();
         try {
+            ar.makeThreadLocal();
             db.requestStart();
             _handle( request , response , ar );
         }
         finally {
             db.requestDone();
+            ar.unmakeThreadLocal();
 
             final long t = System.currentTimeMillis() - start;
             if ( t > 1500 )

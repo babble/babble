@@ -2,8 +2,11 @@
 
 package ed.js;
 
+import java.util.concurrent.*;
+
 import ed.lang.*;
 import ed.util.*;
+import ed.appserver.*;
 import ed.js.engine.Scope;
 
 /** @expose */
@@ -209,33 +212,55 @@ public abstract class JSFunction extends JSFunctionBase {
         // all that happens is that 2 threads both do the work.
         // but its a race condition anyway, so behavior is a bit odd no matter what
 
+        final long hash = JSInternalFunctions.hash( args );
+        Pair<Object,String> p = null;
+
         synchronized ( myCache ){
-
-            final long hash = JSInternalFunctions.hash( args );
-
-            Pair<Object,String> p = myCache.get( hash , cacheTime );
-
-            if ( p == null ){
-
-                PrintBuffer buf = new PrintBuffer();
-                getScope( true ).set( "print" , buf );
-
-                p = new Pair<Object,String>();
-                p.first = call( s , args );
-                p.second = buf.toString();
-
-                myCache.put( hash , p , cacheTime  );
-                clearScope();
-
-            }
-
-            JSFunction print = (JSFunction)(s.get( "print" ));
-            if ( print == null )
-                throw new JSException( "print is null" );
-            print.call( s , p.second );
-
-            return p.first;
+            p = myCache.get( hash , cacheTime );
         }
+
+        if ( p == null ){
+
+            // make sure i have a real db connection
+            AppRequest ar = AppRequest.getThreadLocal();
+            if ( ar != null )
+                ar.getContext().getDB().requestEnsureConnection();
+
+            boolean got = false;
+            try {
+                _callCacheSem.acquireUninterruptibly();
+                got = true;
+
+                synchronized ( myCache ){
+                    p = myCache.get( hash , cacheTime );
+                }
+
+                if ( p == null ){
+
+                    PrintBuffer buf = new PrintBuffer();
+                    getScope( true ).set( "print" , buf );
+
+                    p = new Pair<Object,String>();
+                    p.first = call( s , args );
+                    p.second = buf.toString();
+
+                    synchronized( myCache ){
+                        myCache.put( hash , p , cacheTime  );
+                    }
+                    clearScope();
+                }
+            }
+            finally {
+                _callCacheSem.release();
+            }
+        }
+
+        JSFunction print = (JSFunction)(s.get( "print" ));
+        if ( print == null )
+            throw new JSException( "print is null" );
+        print.call( s , p.second );
+
+        return p.first;
     }
 
     public Object callAndSetThis( Scope s , Object obj , Object args[] ){
@@ -269,6 +294,7 @@ public abstract class JSFunction extends JSFunctionBase {
     protected String _name = "NO NAME SET";
 
     private LRUCache<Long,Pair<Object,String>> _callCache;
+    private Semaphore _callCacheSem = new Semaphore( 1 );
 
     public static JSFunction _call = new ed.js.func.JSFunctionCalls1(){
             public Object call( Scope s , Object obj , Object[] args ){

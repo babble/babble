@@ -69,6 +69,12 @@ public class Cloud extends JSObjectBase {
 
 
         _scope.set( "connect" , new Shell.ConnectDB() );
+        _scope.set( "openFile" , new ed.js.func.JSFunctionCalls1(){
+                public Object call( Scope s , Object fileName , Object crap[] ){
+                    return new JSLocalFile( fileName.toString() );
+                }
+            } );
+
 	_scope.set( "Cloud" , this );
 	_scope.set( "log" , _log );
 

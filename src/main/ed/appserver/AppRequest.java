@@ -143,6 +143,18 @@ public class AppRequest {
             response.addCookie( Session.COOKIE_NAME , session.getCookie() );
     }
     
+    void makeThreadLocal(){
+        _tl.set( this );
+    }
+
+    void unmakeThreadLocal(){
+        _tl.set( null );
+    }
+
+    public static AppRequest getThreadLocal(){
+        return _tl.get();
+    }
+
     final String _uri;
     final HttpRequest _request;
     final AppContext _context;
@@ -151,4 +163,6 @@ public class AppRequest {
     private Scope _scope;
     
     String _wantedURI = null;
+
+    static ThreadLocal<AppRequest> _tl = new ThreadLocal<AppRequest>();
 }
