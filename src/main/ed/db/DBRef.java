@@ -20,6 +20,7 @@ public class DBRef extends JSObjectBase {
         super.set( "_ns" , ns );
         super.set( "_id" , id );
         _inited = true;
+        markClean();
     }
     
     public void prefunc(){
@@ -57,16 +58,11 @@ public class DBRef extends JSObjectBase {
         addAll( o );
         
         _doneLoading = true;
-        _loadHash = hashCode();
+        markClean();
     }
     
-    public Object set( Object n , Object v ){
-        _dirty = _dirty || ( _doneLoading && ! ByteEncoder.dbOnlyField( n ) );
-        return super.set( n , v );
-    }
-
     public boolean isDirty(){
-        return _doneLoading && ( _dirty || _loadHash != hashCode() );
+        return _doneLoading && super.isDirty();
     }
     
     final JSObject _parent;
@@ -80,6 +76,4 @@ public class DBRef extends JSObjectBase {
     boolean _loaded = false;
     boolean _doneLoading = false;
 
-    private boolean _dirty = false;
-    private int _loadHash = 0;
 }

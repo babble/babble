@@ -41,6 +41,8 @@ public class JSObjectBase implements JSObject {
         _readOnlyCheck();
         prefunc();
         
+        _dirty = _dirty || ! ByteEncoder.dbOnlyField( n );
+        
         if ( n == null )
             n = "null";
         
@@ -713,13 +715,25 @@ public class JSObjectBase implements JSObject {
         _isPartialObject = false;
     }
 
+    public boolean isDirty(){
+        return _dirty || _lastHash != hashCode();
+    }
+    
+    public void markClean(){
+        _dirty = false;
+        _lastHash = hashCode();
+    }
+
     protected Map<String,Object> _map = null;
     protected Map<String,Pair<JSFunction,JSFunction>> _setterAndGetters = null;
     private Collection<String> _keys = null;
     private JSFunction _constructor;
     private boolean _readOnly = false;
     private String _name;
-    
+
+    private boolean _dirty = true;
+    private long _lastHash = 0;
+
     private boolean _isPartialObject = false;
     
     private final static String _setterAndGettersSetLOCK = "_setterAndGettersSetLOCK-asdhaskfhk32qsdsfdasd";

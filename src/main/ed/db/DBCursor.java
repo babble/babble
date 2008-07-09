@@ -124,6 +124,10 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
             _nums.add( String.valueOf( _all.size() ) );
             _all.add( _cur );
         }
+
+        if ( _cur instanceof JSObjectBase )
+            ((JSObjectBase)_cur).markClean();
+
         return _cur;
     }
 
