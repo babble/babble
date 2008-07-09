@@ -6,15 +6,24 @@ import ed.util.StringParseUtil;
 import ed.js.func.*;
 import ed.js.engine.*;
 
+/** @expose
+ * @anonymous name : { max }, desc : { Returns the greater of two numbers. }
+ * @anonymous name : { min }, desc : { Returns the lesser of two numbers. }
+ * @anonymous name : { random }, desc : { Returns a double value with a positive sign, greater than or equal to 0.0 and less than 1.0. }
+ * @anonymous name : { floor }, desc : { Rounds a given number down. }
+ * @anonymous name : { ceil }, desc : { Rounds a given number up. }
+ * @anonymous name : { round }, desc : { Rounds a given number. }
+ * @anonymous name : { abs }, desc : { Returns the absolute value of a number. }
+ */
 public class JSMath extends JSObjectBase {
 
     private static JSMath _instance = new JSMath();
     public static JSMath getInstance(){
         return _instance;
     }
-    
+
     private JSMath(){
-        set( "max" , 
+        set( "max" ,
              new JSFunctionCalls2(){
                  public Object call( Scope s , Object a , Object b , Object foo[] ){
 
@@ -23,21 +32,21 @@ public class JSMath extends JSObjectBase {
 
                      if ( b != null && ! ( b instanceof Number ) )
                          return Double.NaN;
-                     
+
                      if ( a == null && b == null )
                          return 0;
-                     
+
                      if ( a == null )
                          return b;
 
                      if ( b == null )
                          return a;
-                     
+
                      return ((Number)a).doubleValue() > ((Number)b).doubleValue() ? a : b;
                  }
              } );
 
-        set( "min" , 
+        set( "min" ,
              new JSFunctionCalls2(){
                  public Object call( Scope s , Object a , Object b , Object foo[] ){
 
@@ -46,16 +55,16 @@ public class JSMath extends JSObjectBase {
 
                      if ( b != null && ! ( b instanceof Number ) )
                          return Double.NaN;
-                     
+
                      if ( a == null && b == null )
                          return 0;
-                     
+
                      if ( a == null )
                          return b;
 
                      if ( b == null )
                          return a;
-                     
+
                      return ((Number)a).doubleValue() < ((Number)b).doubleValue() ? a : b;
                  }
              } );
@@ -82,7 +91,7 @@ public class JSMath extends JSObjectBase {
                      return (int)Math.floor(((Number)a).doubleValue());
                  }
              } );
-        
+
         set( "ceil" ,
              new JSFunctionCalls1(){
                  public Object call( Scope s , Object a , Object foo[] ){
@@ -114,11 +123,11 @@ public class JSMath extends JSObjectBase {
                      return (int)Math.round(((Number)a).doubleValue());
                  }
              } );
-        
+
         set( "abs" ,
              new JSFunctionCalls1(){
                  public Object call( Scope s , Object a , Object foo[] ){
-                     if ( a == null ) 
+                     if ( a == null )
                          return 0;
                      if ( ! ( a instanceof Number ) )
                          try {
@@ -131,16 +140,16 @@ public class JSMath extends JSObjectBase {
                      if ( a instanceof Integer )
                          return Math.abs(((Integer)a).intValue());
                      return Math.abs(((Number)a).doubleValue());
-                     
+
                  }
-                 
+
              } );
 
 
         set( "sqrt" ,
              new JSFunctionCalls1(){
                  public Object call( Scope s , Object a , Object foo[] ){
-                     if ( a == null ) 
+                     if ( a == null )
                          return 0;
                      if ( ! ( a instanceof Number ) )
                          try {
@@ -154,13 +163,13 @@ public class JSMath extends JSObjectBase {
                  }
 
              } );
-        
+
         set( "posOrNeg" , new JSFunctionCalls1(){
                 public Object call( Scope s , Object a , Object foo[] ){
 
                     if ( ! ( a instanceof Number ) )
                         return 0;
-                    
+
                     Number n = (Number)a;
                     double d = n.doubleValue();
                     if ( d > 0 )
@@ -178,18 +187,18 @@ public class JSMath extends JSObjectBase {
                     return sigFig( X , N );
                 }
             } );
-        
+
     }
-    
+
     public static double sigFig( double X ){
         return sigFig( X , 3 );
     }
-    
+
     public static double sigFig( double X , double N ){
         double p = Math.pow( 10, N - Math.ceil( Math.log( Math.abs(X) ) / LN10 ) );
         return Math.round(X*p)/p;
     }
-    
+
     public static final double LN10 = Math.log(10);
 
 }
