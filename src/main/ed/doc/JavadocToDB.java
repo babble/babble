@@ -73,7 +73,7 @@ public class JavadocToDB {
         ParamTag params[] = m.paramTags();
         Parameter p2[] = m.parameters();
         JSArray jsParams = new JSArray();
-        for(int k=0; k<params.length; k++) {
+        for(int k=0; k<Math.min(params.length, p2.length); k++) {
             JSObjectBase tempParam = new JSObjectBase();
             tempParam.set("title", "param");
             tempParam.set("desc", params[k].parameterComment());
@@ -159,6 +159,7 @@ public class JavadocToDB {
             tempField.set("desc", fields[j].commentText());
             tempField.set("name", fields[j].name());
             tempField.set("alias", fields[j].qualifiedName());
+            tempField.set("type", (fields[j].type()).typeName());
             tempField.set("isStatic", fields[j].isStatic());
             tempField.set("isPrivate", fields[j].isPrivate());
             tempField.set("isProtected", fields[j].isProtected());
