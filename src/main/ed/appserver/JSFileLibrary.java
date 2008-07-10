@@ -338,8 +338,12 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
                     nextPath = nextPath.substring(1);
                 
                 Object o = lib.getFromPath( nextPath , false );
-                if ( ! ( o instanceof JxpSource ) )
-                    throw new RuntimeException( "wasn't jxp source..." );
+                if ( o == null )
+                    throw new RuntimeException( "can't find [" + nextPath + "]" );
+                
+                if ( ! ( o instanceof JxpSource ) ){
+                    throw new RuntimeException( "wasn't jxp source.  was [" + o.getClass() + "]" );
+                }
 
                 return (JxpSource)o;
             }
