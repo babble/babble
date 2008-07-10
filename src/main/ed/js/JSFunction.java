@@ -277,6 +277,9 @@ public abstract class JSFunction extends JSFunctionBase {
         return _sourceLanguage;
     }
 
+    /** The hash code value of this function.
+     * @return The hash code value of this function.
+     */
     public int hashCode(){
         return System.identityHashCode( this );
     }
@@ -287,15 +290,20 @@ public abstract class JSFunction extends JSFunctionBase {
     private final ThreadLocal<Boolean> _forceUsePassedInScopeTL = new ThreadLocal<Boolean>();
 
 
+    /** @unexpose */
     protected JSObjectBase _prototype;
+    /** @unexpose */
     protected Language _sourceLanguage = Language.JS;
 
+    /** @unexpose */
     protected JSArray _arguments;
+    /** @unexpose */
     protected String _name = "NO NAME SET";
 
     private LRUCache<Long,Pair<Object,String>> _callCache;
     private Semaphore _callCacheSem = new Semaphore( 1 );
 
+    /** @unexpose */
     public static JSFunction _call = new ed.js.func.JSFunctionCalls1(){
             public Object call( Scope s , Object obj , Object[] args ){
                 JSFunction func = (JSFunction)s.getThis();
