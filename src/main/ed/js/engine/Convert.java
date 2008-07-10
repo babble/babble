@@ -845,7 +845,7 @@ public class Convert implements StackTraceFixer {
             if ( n.getType() == Token.LOCAL_BLOCK &&
                  n.getFirstChild().getType() == Token.CATCH_SCOPE ){
                 
-                _append( " \n catch ( Throwable " + javaEName + " ){ \n " , n );
+                _append( " \n catch ( Exception " + javaEName + " ){ \n " , n );
                 _append( " \n Object " + javaName + " = ( " + javaEName + " instanceof JSException ) ? " + 
                          "  ((JSException)" + javaEName + ").getObject() : " + javaEName + " ; \n" , n );
                 
@@ -1535,7 +1535,7 @@ public class Convert implements StackTraceFixer {
 
         buf.append( "public class " ).append( _className ).append( " extends JSCompiledScript {\n" );
 
-        buf.append( "\tpublic Object _call( Scope scope , Object extra[] ) throws Throwable {\n" );
+        buf.append( "\tpublic Object _call( Scope scope , Object extra[] ) throws Exception {\n" );
 
         buf.append( "\t\t final Scope passedIn = scope; \n" );
 

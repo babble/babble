@@ -137,8 +137,8 @@ public class XMLHttpRequest extends JSObjectBase {
                         _doSend( post );
                         if ( DEBUG ) System.out.println( "done with async" );
                     }
-                    catch ( Throwable t ){
-                        t.printStackTrace();
+                    catch ( Exception e ){
+                        e.printStackTrace();
                     }
                 }
             };
@@ -269,7 +269,7 @@ public class XMLHttpRequest extends JSObjectBase {
 	    try {
 		sock.close();
 	    }
-	    catch ( Throwable t ){}
+	    catch ( Exception e ){}
             setStatus( DONE );        
         }
 

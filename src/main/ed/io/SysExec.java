@@ -97,8 +97,8 @@ public class SysExec extends ed.js.func.JSFunctionCalls4 {
 
             return res;
         }
-        catch ( Throwable t ){
-            throw new JSException( t.toString() , t );
+        catch ( Exception e ){
+            throw new JSException( e.toString() , e );
         }
     }
 

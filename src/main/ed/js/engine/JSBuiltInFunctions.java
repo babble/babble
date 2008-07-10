@@ -189,8 +189,8 @@ public class JSBuiltInFunctions {
             catch ( NoSuchFieldException n ){
                 throw new JSException( "can't find field [" + fieldNameJS + "] from [" + clazz.getName() + "]" );
             }
-            catch ( Throwable t ){
-                throw new JSException( "can't get field [" + fieldNameJS + "] from [" + clazz.getName() + "] b/c " + t );
+            catch ( Exception e ){
+                throw new JSException( "can't get field [" + fieldNameJS + "] from [" + clazz.getName() + "] b/c " + e );
             }
         }        
     }

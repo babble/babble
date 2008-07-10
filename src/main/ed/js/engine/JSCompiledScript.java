@@ -13,25 +13,22 @@ import ed.js.func.*;
 
 public abstract class JSCompiledScript extends JSFunctionCalls0 {
  
-    protected abstract Object _call( Scope scope , Object extra[] ) throws Throwable ;
+    protected abstract Object _call( Scope scope , Object extra[] ) throws Exception;
     
     public Object call( Scope scope , Object extra[] ){
         try {
             return _call( scope, extra );
-        }
-        catch ( Error e ){
-            throw e;
         }
         catch ( RuntimeException re ){
             if ( Convert.DJS ) re.printStackTrace();
             _convert.fixStack( re );
             throw re;
         }
-        catch ( Throwable t ){
-            t.printStackTrace();
-            if ( Convert.DJS ) t.printStackTrace();
-            _convert.fixStack( t );
-            throw new RuntimeException( "weird error : " + t.getClass().getName() , t );
+        catch ( Exception e ){
+            e.printStackTrace();
+            if ( Convert.DJS ) e.printStackTrace();
+            _convert.fixStack( e );
+            throw new RuntimeException( "weird error : " + e.getClass().getName() , e );
         }
     }
     
