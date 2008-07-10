@@ -209,37 +209,7 @@ public class AppServer implements HttpHandler {
             }
         }
         catch ( OutOfMemoryError oom ){
-            // 2 choices here, this request caused all sorts of problems
-            // or the server is screwed.
-            
-            long before = MemUtil.bytesAvailable();
-            MemUtil.fullGC();
-            long after = MemUtil.bytesAvailable();
-            
-            if ( after < ( 100 * MemUtil.MBYTE ) ||
-                 ( after - before ) < ( 100 * MemUtil.MBYTE ) ){
-                
-                try {
-                    System.err.println( "OutOfMemoryError in AppServer - not enough free, so dying" );
-                }
-                catch ( Exception e ){
-                }
-                
-                Runtime.getRuntime().halt( -3 );
-            }
-            
-            // either this thread was the problem, or whatever
-            
-            try {
-                response.setResponseCode( 500 );
-                JxpWriter writer = response.getWriter();
-                writer.print( "There was an error handling your request<br>" );
-                writer.print( "ERR 71<br>" );
-            }
-            catch ( OutOfMemoryError oom2 ){
-                // forget it - we're super hosed
-                Runtime.getRuntime().halt( -3 );                
-            }
+            handleOutOfMemoryError( response );
         }
         catch ( FileNotFoundException fnf ){
             response.setResponseCode( 404 );
@@ -259,12 +229,52 @@ public class AppServer implements HttpHandler {
         }
     }
 
+    void handleOutOfMemoryError( HttpResponse response ){
+        // 2 choices here, this request caused all sorts of problems
+        // or the server is screwed.
+        
+        long before = MemUtil.bytesAvailable();
+        MemUtil.fullGC();
+        long after = MemUtil.bytesAvailable();
+        
+        if ( after < ( 100 * MemUtil.MBYTE ) ||
+             ( after - before ) < ( 100 * MemUtil.MBYTE ) ){
+            
+            try {
+                System.err.println( "OutOfMemoryError in AppServer - not enough free, so dying" );
+            }
+            catch ( Exception e ){
+            }
+            
+            Runtime.getRuntime().halt( -3 );
+        }
+        
+        // either this thread was the problem, or whatever
+        
+        try {
+            response.setResponseCode( 500 );
+            JxpWriter writer = response.getWriter();
+            writer.print( "There was an error handling your request (appsrv 123)<br>" );
+            writer.print( "ERR 71<br>" );
+        }
+        catch ( OutOfMemoryError oom2 ){
+            // forget it - we're super hosed
+            Runtime.getRuntime().halt( -3 );                
+        }
+    }
+
     void handleError( HttpRequest request , HttpResponse response , Throwable t , AppContext ctxt ){
+        
+        if ( t.getCause() instanceof OutOfMemoryError ){
+            handleOutOfMemoryError( response );
+            return;
+        }
+
         if ( ctxt == null )
 	    Logger.getLogger( "appserver.nocontext" ).error( request.getURI() , t );
 	else 
 	    ctxt._logger.error( request.getURL() , t );
-
+        
         response.setResponseCode( 500 );
         
         JxpWriter writer = response.getWriter();
