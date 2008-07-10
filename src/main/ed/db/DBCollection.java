@@ -30,7 +30,8 @@ public abstract class DBCollection extends JSObjectLame {
     // ------
 
     public final JSObject find( ObjectId id ){
-
+        ensureIDIndex();
+        
         JSObject ret = dofind( id );
 
         if ( ret == null )
@@ -41,6 +42,29 @@ public abstract class DBCollection extends JSObjectLame {
         return ret;
     }
 
+    public void checkForIDIndex( JSObject key ){
+        if ( _checkedIdIndex ) // we already created it, so who cares
+            return;
+
+        if ( key.get( "_id" ) == null )
+            return;
+        
+        if ( key.keySet().size() > 1 )
+            return;
+        
+        ensureIDIndex();
+    }
+
+    public void ensureIDIndex(){
+        if ( _checkedIdIndex )
+            return;
+        
+        ensureIndex( _idKey );
+        _checkedIdIndex = true;
+
+        System.out.println( "TEMP: verify _id index on " + _fullName );
+    }
+    
     public final void ensureIndex( final JSObject keys ){
         ensureIndex( keys , false );
     }
@@ -248,15 +272,17 @@ public abstract class DBCollection extends JSObjectLame {
 
         _find = new JSFunctionCalls2() {
                 public Object call( Scope s , Object o , Object fieldsWantedO , Object foo[] ){
-
+                    
                     if ( o == null )
                         o = new JSObjectBase();
 
                     if ( o instanceof ObjectId )
                         return find( (ObjectId)o );
-
+                    
                     if ( o instanceof JSObject ){
-                        return new DBCursor( DBCollection.this , (JSObject)o , (JSObject)fieldsWantedO , _constructor );
+                        JSObject key = (JSObject)o;
+                        checkForIDIndex( key );
+                        return new DBCursor( DBCollection.this , key , (JSObject)fieldsWantedO , _constructor );
                     }
 
                     throw new RuntimeException( "wtf : " + o.getClass() );
@@ -503,12 +529,19 @@ public abstract class DBCollection extends JSObjectLame {
 
     private boolean _anyUpdateSave = false;
 
+    private boolean _checkedIdIndex = false;
     final private Set<String> _createIndexes = new HashSet<String>();
     final private Set<String> _createIndexesAfterSave = new HashSet<String>();
-
+    
     private final static JSObjectBase _upsertOptions = new JSObjectBase();
     static {
         _upsertOptions.set( "upsert" , true );
         _upsertOptions.setReadOnly( true );
+    }
+
+    private final static JSObjectBase _idKey = new JSObjectBase();
+    static {
+        _idKey.set( "_id" , ObjectId.get() );
+        _idKey.setReadOnly( true );
     }
 }
