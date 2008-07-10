@@ -1020,6 +1020,8 @@ public class Scope implements JSObject {
                     StackTraceHolder.getInstance().fix( e.getCause() );
                     if ( e.getCause() instanceof RuntimeException )
                         throw (RuntimeException)(e.getCause());
+                    if ( e.getCause() instanceof Error )
+                        throw (Error)e.getCause();
                     throw new RuntimeException( e.getCause() );
                 }
                 catch ( RuntimeException e ){
