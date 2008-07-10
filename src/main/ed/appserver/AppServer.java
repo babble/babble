@@ -209,7 +209,7 @@ public class AppServer implements HttpHandler {
             }
         }
         catch ( OutOfMemoryError oom ){
-            handleOutOfMemoryError( response );
+            handleOutOfMemoryError( oom , response );
         }
         catch ( FileNotFoundException fnf ){
             response.setResponseCode( 404 );
@@ -229,7 +229,7 @@ public class AppServer implements HttpHandler {
         }
     }
 
-    void handleOutOfMemoryError( HttpResponse response ){
+    void handleOutOfMemoryError( OutOfMemoryError oom , HttpResponse response ){
         // 2 choices here, this request caused all sorts of problems
         // or the server is screwed.
         
@@ -241,7 +241,10 @@ public class AppServer implements HttpHandler {
              ( after - before ) < ( 100 * MemUtil.MBYTE ) ){
             
             try {
-                System.err.println( "OutOfMemoryError in AppServer - not enough free, so dying" );
+                System.err.println( "OutOfMemoryError in AppServer - not enough free, so dying." );
+                System.err.println( "before : " + ( before / MemUtil.MBYTE ) );
+                System.err.println( "after : " + ( after / MemUtil.MBYTE ) );
+                oom.printStackTrace();
             }
             catch ( Exception e ){
             }
@@ -266,7 +269,7 @@ public class AppServer implements HttpHandler {
     void handleError( HttpRequest request , HttpResponse response , Throwable t , AppContext ctxt ){
         
         if ( t.getCause() instanceof OutOfMemoryError ){
-            handleOutOfMemoryError( response );
+            handleOutOfMemoryError( (OutOfMemoryError)t.getCause() , response );
             return;
         }
 
