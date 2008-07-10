@@ -98,7 +98,7 @@ public class Module {
     public synchronized JSFileLibrary getLibrary( String version , AppContext context , Scope scope , boolean pull ){
         synchronized ( _lock ){
             File f = getRootFile( version );
-            if ( pull )
+            if ( pull && _versioned )
                 GitUtils.pull( f , false );
             return new JSFileLibrary( null , f , _uriBase , context , scope , _doInit );
         }
