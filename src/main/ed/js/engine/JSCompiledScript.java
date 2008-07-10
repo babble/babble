@@ -19,6 +19,9 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
         try {
             return _call( scope, extra );
         }
+        catch ( Error e ){
+            throw e;
+        }
         catch ( RuntimeException re ){
             if ( Convert.DJS ) re.printStackTrace();
             _convert.fixStack( re );
@@ -31,7 +34,7 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
             throw new RuntimeException( "weird error : " + t.getClass().getName() , t );
         }
     }
-
+    
     protected void _throw( Object foo ){
         
         if ( foo instanceof JSException )
