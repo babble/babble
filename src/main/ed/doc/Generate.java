@@ -38,6 +38,8 @@ public class Generate {
         return version;
     }
 
+    public static JSObjectBase _global;
+
     /**
      *  Gets things ready for a "db blob to HTML" generation run.  Ensure
      *  the directory exists, and ensure that it's empty
@@ -46,7 +48,6 @@ public class Generate {
 
         Scope s = Scope.getThreadLocal();
         Object app = s.get("__instance__");
-
         if(! (app instanceof AppContext)) {
             throw new RuntimeException("your appserver isn't an appserver");
         }
@@ -142,19 +143,16 @@ public class Generate {
         }
 
         JSObject foo = (JSObject) s.get("core");
-
         if (foo == null) {
         	throw new RuntimeException("Can't find 'core' in my scope");
         }
 
         ModuleDirectory md = (ModuleDirectory) foo.get("modules");
-
         if (md == null) {
         	throw new RuntimeException("Can't find 'modules' directory in my core object");
         }
 
         JSFileLibrary jsfl = md.getJSFileLibrary("docgen");
-
         if (jsfl == null) {
         	throw new RuntimeException("Can't find 'docgen' file lib in my module directory");
         }
@@ -167,6 +165,38 @@ public class Generate {
         if(!out.trim().equals("")) {
             System.out.println("jsdoc says: "+out);
         }
+    }
+
+    public static void globalToDb() {
+        JSObjectBase ss = new JSObjectBase();
+        ss.set("symbolSet", _global);
+        JSObjectBase newGlobal = new JSObjectBase();
+        newGlobal.set("_index", ss);
+        newGlobal.set("ts", Calendar.getInstance().getTime().toString());
+        newGlobal.set("version", Generate.getVersion());
+        newGlobal.set("name", "global");
+
+        JSObjectBase oldGlobal = new JSObjectBase();
+        oldGlobal.set("name", "global");
+        oldGlobal.set("version", Generate.getVersion());
+
+        Scope s = Scope.getThreadLocal();
+
+        Object dbo = s.get("db");
+        if(! (dbo instanceof DBBase)) {
+            throw new RuntimeException("your database is not a database");
+        }
+
+        DBBase db = (DBBase)dbo;
+        DBCollection collection = db.getCollection("doc");
+        collection.remove(oldGlobal);
+        collection.save(newGlobal);
+    }
+
+    public static void globalToHTML(String path) {
+        JSObjectBase ss = new JSObjectBase();
+        ss.set("symbolSet", _global);
+        toHTML(JSON.serialize(ss), path);
     }
 
     /** javaSrcs is a list of Java classes to be processed.  In order to be merged correctly when
@@ -265,7 +295,7 @@ public class Generate {
         	throw new RuntimeException("Can't find 'docgen' file lib in my module directory");
         }
 
-        SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -r -t=templates/json "+f.getCanonicalPath(), 
+        SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -r -t=templates/json "+f.getCanonicalPath(),
         		null, jsfl.getRoot(), "");
 
         Object dbo = s.get("db");
@@ -301,13 +331,35 @@ public class Generate {
                     obj.set("version", Generate.getVersion());
                     obj.set("name", name);
 
-                    if(!name.equals("_global_")) {
+                    if(name.equals("_global_")) {
+                        if(_global == null) {
+                            _global = (JSObjectBase)json;
+                        }
+                        else {
+                            addToGlobal("methods", (JSArray)unit.get("methods"));
+                            addToGlobal("properties", (JSArray)unit.get("properties"));
+                        }
+                    }
+                    else {
                         collection.save(obj);
                     }
                 }
             }
         }
     }
+
+    public static void addToGlobal(String field, JSArray obj) {
+        JSObjectBase gobj = (JSObjectBase)_global.get("_global_");
+        JSArray garray = (JSArray)gobj.get(field);
+        if(garray == null) garray = new JSArray();
+
+        for ( String key : obj.keySet() ) {
+            garray.add( obj.get( key ) );
+        }
+        gobj.set(field, garray);
+        _global.set("_global_", gobj);
+    }
+
 
     /** Generate a js obj from javadoc
      * @param path to file or folder to be documented
