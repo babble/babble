@@ -9,34 +9,39 @@ import com.twmacinta.util.*;
 import ed.db.*;
 import ed.js.*;
 
+/** Keeps track of user sessions.
+ * @expose
+ */
 public class Session extends JSObjectBase {
 
+    /** Database collection to track sessions: "_sessions" */
     static final String DB_COLLECTION_NAME = "_sessions";
+    /** Session cookie name: "__TG_SESSION_ID__" */
     static final String COOKIE_NAME = "__TG_SESSION_ID__";
 
     static Session get( String s , DBBase db ){
         if ( s == null )
             return new Session();
-        
+
         Session session = new Session( s );
 
         JSObjectBase ref = new JSObjectBase();
         ref.set( "_key" , s );
-        
+
         final DBCollection coll = db.getCollection( DB_COLLECTION_NAME );
         coll.ensureIndex( ref );
 
         Iterator<JSObject> cursor = coll.find( ref , null , 0 , 1 );
         if ( cursor != null && cursor.hasNext() )
             session._copy( cursor.next() );
-        
+
         return session;
     }
 
     Session(){
         this( _genKey() );
     }
-    
+
     Session( String key ){
         _key = key;
         super.set( "_key" , key ); // calling super b/c this dosn't count as dirtying
@@ -51,7 +56,7 @@ public class Session extends JSObjectBase {
             return;
 
         for ( String s : o.keySet() ){
-            
+
             if ( ByteEncoder.dbOnlyField( s ) )
                 continue;
 
@@ -73,7 +78,7 @@ public class Session extends JSObjectBase {
             return false;
 
         super.set( "_lastModified" , new JSDate() );
-        
+
         DBCollection c = db.getCollection( DB_COLLECTION_NAME );
         c.save( this );
         return true;
@@ -84,7 +89,7 @@ public class Session extends JSObjectBase {
         for ( int i=0; i<10; i++ )
             buf.append( Math.random() );
         buf.append( System.currentTimeMillis() );
-        
+
         final String s = buf.toString();
         synchronized( _myMd5 ){
             _myMd5.Init();
@@ -92,9 +97,9 @@ public class Session extends JSObjectBase {
             return _myMd5.asHex();
         }
     }
-    
+
     private final static MD5 _myMd5 = new MD5();
-    
+
     final String _key;
     private boolean _dirty = false;
 }

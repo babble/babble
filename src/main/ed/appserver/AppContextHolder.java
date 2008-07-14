@@ -22,11 +22,11 @@ public class AppContextHolder {
     static final Set<String> CDN_HOSTNAMES;
     static {
         Set<String> s = new HashSet<String>();
-        
+
         for ( String d : OUR_DOMAINS )
             for ( String h : CDN_HOST )
                 s.add( (h + d).replaceAll( "\\.+" , "." ) );
-        
+
         CDN_HOSTNAMES = Collections.unmodifiableSet( s );
     }
 
@@ -42,21 +42,21 @@ public class AppContextHolder {
     public AppContext getContext( HttpRequest request , String newUri[] ){
         return getContext( request.getHeader( "Host" ) , request.getURI() , newUri );
     }
-    
+
     public AppContext getContext( String host , String uri , String newUri[] ){
         if ( newUri != null )
             newUri[0] = null;
 
         if ( host != null )
             host = host.trim();
-        
+
         if ( D ) System.out.println( host + uri );
 
         if ( host == null || _root == null || host.length() == 0 ){
             if ( D ) System.out.println( "\t using default context for [" + host + "]" );
             return _getDefaultContext();
         }
-        
+
         Info info = fixBase( host , uri );
         host = info.host;
         uri = info.uri;
@@ -65,13 +65,13 @@ public class AppContextHolder {
 
 	if ( host.equals( "corejs.com" ) )
 	    return _getCoreContext();
-        
+
         AppContext ac = _getContextFromMap( host );
         if ( ac != null )
             return ac;
 
         synchronized ( _contextCreationLock ){
-            
+
             ac = _getContextFromMap( host );
             if ( ac != null )
                 return ac;
@@ -81,7 +81,7 @@ public class AppContextHolder {
                 File temp = new File( _root , i.host );
                 if ( temp.exists() )
                     return getEnvironmentContext( temp , i , host );
-                
+
                 JSObject site = getSiteFromCloud( i.host );
                 if ( site != null ){
                     if ( D ) System.out.println( "\t found site from cloud" );
@@ -90,7 +90,7 @@ public class AppContextHolder {
                 }
             }
         }
-        
+
         return _getDefaultContext();
     }
 
@@ -102,22 +102,22 @@ public class AppContextHolder {
         AppContext ac = _getContextFromMap( originalHost );
         if ( ac != null )
             return ac;
-        
+
         if ( D ) System.out.println( "\t mapping directory [" + originalHost + "] to " + siteRoot );
-        
+
         if ( hasGit( siteRoot ) ){
             ac = new AppContext( siteRoot );
         }
         else {
 
             if ( D ) System.out.println( "\t this is a holder for branches" );
-            
+
             final String env = info.getEnvironment( originalHost );
             if ( D ) System.out.println( "\t\t env : " + env );
-            
+
             File envRoot = getBranch( siteRoot , env , info.host );
             if ( D ) System.out.println( "\t using full path : " + envRoot );
-            
+
             ac = new AppContext( envRoot.toString() , envRoot , siteRoot.getName() , env );
         }
 
@@ -129,15 +129,15 @@ public class AppContextHolder {
     private AppContext _getContextFromMap( String host ){
 
         AppContext ac = _contextCache.get( host );
-        
+
         if (ac != null && ac.isReset()) {
             _contextCache.put( host , null );
             ac = null;
         }
-        
+
         return ac;
     }
-    
+
     File getBranch( File root , String subdomain , String siteName ){
         File f = _getBranch( root , subdomain , siteName );
 
@@ -148,7 +148,7 @@ public class AppContextHolder {
             if ( D ) System.out.println( "\t using branch [" + branch + "]" );
             _checkout( f , branch );
         }
-        
+
         return f;
     }
 
@@ -156,13 +156,13 @@ public class AppContextHolder {
         File test = new File( root , subdomain );
         if ( test.exists() )
             return test;
-        
+
         JSObject site = getSiteFromCloud( siteName );
         if ( site != null ){
-            
+
             Object gitObject = site.get( "giturl" );
             if ( gitObject != null ){
-                
+
                 String giturl = gitObject.toString();
                 JSObject envConfig = getEnvironmentFromCloud( siteName , subdomain );
                 if ( envConfig != null ){
@@ -170,7 +170,7 @@ public class AppContextHolder {
                     if ( D ) System.out.println( "\t found an env in grid" );
                     if ( ! GitUtils.clone( giturl , root , subdomain ) )
                         throw new RuntimeException( "couldn't clone [" + siteName + "] from [" + giturl + "]" );
-                    
+
                     _checkout( test , envConfig.get( "branch" ).toString() );
                     return test;
                 }
@@ -182,9 +182,9 @@ public class AppContextHolder {
             if ( test.exists() )
                 return test;
         }
-        
+
         String searchList[] = null;
-        
+
         if ( subdomain.equals( "local" ) )
             searchList = LOCAL_BRANCH_LIST;
         else if ( subdomain.equals( "www" ) )
@@ -197,20 +197,20 @@ public class AppContextHolder {
                     return test;
             }
         }
-        
+
         throw new RuntimeException( "can't find environment [" + subdomain + "] in [" + root + "]  siteName [" + siteName + "] found site:" + ( site != null )  );
     }
-    
+
     private void _checkout( File f , String what ){
         if ( GitUtils.checkout( f , what ) )
             return;
 
         if ( GitUtils.checkout( f , "origin/" + what ) )
             return;
-        
+
         throw new RuntimeException( "couldn't checkout [" + what + "] for [" + f + "]" );
     }
-    
+
 
     private synchronized AppContext _getDefaultContext(){
         if ( _defaultWebRoot == null )
@@ -218,10 +218,10 @@ public class AppContextHolder {
 
         if ( _defaultContext != null && _defaultContext._reset )
             _defaultContext = null;
-        
+
         if ( _defaultContext != null )
             return _defaultContext;
-        
+
         _defaultContext = new AppContext( _defaultWebRoot );
         return _defaultContext;
     }
@@ -236,7 +236,7 @@ public class AppContextHolder {
             return true;
 
         return false;
-        
+
     }
 
     private static JSObject getEnvironmentFromCloud( String siteName , String envName ){
@@ -250,35 +250,35 @@ public class AppContextHolder {
         Cloud theCloud = Cloud.getInstanceIfOnGrid();
         if ( theCloud == null )
             return null;
-        
+
         return theCloud.findSite( name , false );
     }
 
     static List<Info> getPossibleSiteNames( String host , String uri ){
         return getPossibleSiteNames( fixBase( host , uri ) );
     }
-    
+
     static List<Info> getPossibleSiteNames( Info base ){
 
         List<Info> all = new ArrayList<Info>( 6 );
         all.add( base );
-        
+
         final String host = base.host;
         final String uri = base.uri;
 
         String domain = DNSUtil.getDomain( host );
         if ( ! domain.equals( host ) )
             all.add( new Info( domain , uri ) );
-        
+
         int idx = domain.indexOf( "." );
         if ( idx > 0 )
             all.add( new Info( domain.substring( 0 , idx ) , uri ) );
 
         return all;
     }
-    
+
     static Info fixBase( String host , String uri ){
-        
+
         {
             int idx = host.indexOf( ":" );
             if ( idx >= 0 )
@@ -297,12 +297,12 @@ public class AppContextHolder {
 
             if ( uri.indexOf( "/" , 1 ) < 0 )
                 throw new RuntimeException( "static host without valid  host:[" + host + "] uri:[" + uri + "]" );
-            
+
             final int idx = uri.indexOf( "/" , 1 );
             host = uri.substring( 1 , idx );
             uri = uri.substring( idx  );
         }
-        
+
         for ( String d : OUR_DOMAINS ){
             if ( host.endsWith( d ) ){
                 host = host.substring( 0 , host.length() - d.length() );
@@ -311,7 +311,7 @@ public class AppContextHolder {
                 break;
             }
         }
-        
+
         if ( host.startsWith( "www." ) )
             host = host.substring( 4 );
 
@@ -320,22 +320,22 @@ public class AppContextHolder {
 
         return new Info( host , uri );
     }
-    
+
     static class Info {
-        
+
         Info( String host ){
             this( host , "/" );
         }
-        
+
         Info( String host , String uri ){
             this.host = host;
             this.uri = uri;
         }
-        
+
         String getEnvironment( String big ){
 
             if ( big.equalsIgnoreCase( host ) ||
-                 host.startsWith( "www." ) || 
+                 host.startsWith( "www." ) ||
                  big.startsWith( host + "." ) )
                 return "www";
 
@@ -345,9 +345,9 @@ public class AppContextHolder {
                 if ( idx < 0 )
                     throw new RuntimeException( "something is wrong host:" + host + " big:" + big );
             }
-            
+
             return big.substring( 0 , idx );
-            
+
         }
 
         public String toString(){

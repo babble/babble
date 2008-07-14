@@ -21,18 +21,18 @@ public abstract class JSNewFile extends JSFile {
             c.set( "_id" , ObjectId.get() );
             if ( i == 0 )
                 set( "next" , c );
-            
+
             _chunks.add( c );
             if ( i > 0 )
                 _chunks.get( i - 1 ).set( "next" , c );
-            
+
         }
-	
+
 	set( "uploadDate" , new JSDate() );
-	
+
     }
 
-    
+
     protected abstract JSFileChunk newChunk( int num );
 
     public ObjectId getChunkID( int num ){
@@ -45,5 +45,5 @@ public abstract class JSNewFile extends JSFile {
 
     final List<JSFileChunk> _chunks = new ArrayList<JSFileChunk>();
 
-}        
+}
 

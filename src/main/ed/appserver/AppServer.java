@@ -16,29 +16,65 @@ import ed.net.httpserver.*;
 import ed.appserver.jxp.*;
 import ed.security.*;
 
+/** The server to handle HTTP requests.
+ * @expose
+ */
 public class AppServer implements HttpHandler {
 
+    /** This appserver's default port, 8080 */
     private static final int DEFAULT_PORT = 8080;
 
     static boolean D = Boolean.getBoolean( "DEBUG.APP" );
 
+    /** Constructs a newly allocated AppServer object for the site <tt>defaultWebRoot</tt>.
+     * @example If one is running the appserver for the site foo.10gen.com and has the directory structure
+     *
+     * gitroot
+     * |- ed
+     * |  |- master
+     * |  |- 2.1.1
+     * |  |- 2.2.0
+     * |- foo
+     * |  |-bar1.jxp
+     * |  |-bar2.jxp
+     *
+     * And this appserver is started via the commands:
+     * $ cd gitroot/ed/master
+     * $ ./runAnt.bash ed.appserver.AppServer ../../foo
+     *
+     * Then this appserver's defaultWebRoot will be "../../foo"
+     *
+     * @param defaultWebRoot The site that will be run.
+     * @param root The location in git of sites ("/data/sites").
+     */
     public AppServer( String defaultWebRoot , String root ){
         _contextHolder = new AppContextHolder( defaultWebRoot , root );
     }
 
 
+    /** Creates a new AppRequest using the given HttpRequest.
+     * @param request The HTTP request that needs to be processed
+     * @return The corresponding AppRequest
+     */
     AppRequest createRequest( HttpRequest request ){
         String newUri[] = new String[1];
         AppContext ac = _contextHolder.getContext( request , newUri );
         return ac.createRequest( request , newUri[0] );
     }
-    
+
+    /** Checks if the request's uri starts with a "/" and, if so, sets some information about the request.
+     * If the request's URI is "/~appserverstats", <tt>info.fork</tt> is set to false and <tt>info.admin</tt> is set to true.
+     * Otherwise, <tt>info.fork</tt> is set to true.
+     * If the URI is "/~~/core/sys", <tt>info.admin</tt> is set to true.
+     * @param request HTTP request to be processed
+     * @param info The object to store URI information.
+     */
     public boolean handles( HttpRequest request , Info info ){
         String uri = request.getURI();
-        
+
         if ( ! uri.startsWith( "/" ) )
             return false;
-        
+
         if ( uri.equals( "/~appserverstats" ) ){
             info.fork = false;
             info.admin = true;
@@ -50,7 +86,11 @@ public class AppServer implements HttpHandler {
 
         return true;
     }
-    
+
+    /** Handles an HTTP request and generates puts the response in the given HTTP response object.
+     * @param request HTTP request to handle
+     * @param HTTP response to fill in
+     */
     public void handle( HttpRequest request , HttpResponse response ){
         try {
             _handle( request , response );
@@ -59,20 +99,20 @@ public class AppServer implements HttpHandler {
             handleError( request , response , e , null );
         }
     }
-    
+
     private void _handle( HttpRequest request , HttpResponse response ){
 
         if ( request.getURI().equals( "/~appserverstats" ) ){
             handleStats( request , response );
             return;
         }
-        
+
         final long start = System.currentTimeMillis();
-        
+
         AppRequest ar = (AppRequest)request.getAttachment();
         if ( ar == null )
             ar = createRequest( request );
-        
+
         if ( request.getURI().equals( "/~reset" ) ){
             handleReset( ar , request , response );
             return;
@@ -81,7 +121,7 @@ public class AppServer implements HttpHandler {
         final AppContext ctxt = ar.getContext();
 
         ar.getScope().makeThreadLocal();
-        
+
         final UsageTracker usage = ctxt._usage;
         final SimpleStats stats = _getStats( ctxt._name + ":" + ctxt._environment );
 
@@ -90,11 +130,11 @@ public class AppServer implements HttpHandler {
 
             usage.hit( "bytes_in" , inSize );
             usage.hit( "requests" , 1 );
-            
+
             stats.req.hit();
             stats.netIn.hit( inSize );
         }
-        
+
 
 	ar.setResponse( response );
 	ctxt.getScope().setTLPreferred( ar.getScope() );
@@ -102,9 +142,9 @@ public class AppServer implements HttpHandler {
         response.setHeader( "X-ctx" , ctxt._root );
         response.setHeader( "X-git" , ctxt.getGitBranch() );
         response.setHeader( "X-env" , ctxt._environment );
-        
+
         response.setAppRequest( ar );
-        
+
         final ed.db.DBBase db = ctxt.getDB();
         try {
             ar.makeThreadLocal();
@@ -118,9 +158,9 @@ public class AppServer implements HttpHandler {
             final long t = System.currentTimeMillis() - start;
             if ( t > 1500 )
                 ar.getContext()._logger.getChild( "slow" ).info( request.getURL() + " " + t + "ms" );
-            
+
             ar.done( response );
-            
+
             {
 
                 final int outSize = response.totalSize();
@@ -131,17 +171,17 @@ public class AppServer implements HttpHandler {
                 stats.cpu.hit( (int)t );
                 stats.netOut.hit( outSize );
             }
-            
+
             Scope.clearThreadLocal();
         }
     }
-    
+
     private void _handle( HttpRequest request , HttpResponse response , AppRequest ar ){
 
         try {
-            
+
             JSString jsURI = new JSString( ar.getURI() );
-            
+
             if ( ar.getScope().get( "allowed" ) != null ){
                 Object foo = ar.getScope().getFunction( "allowed" ).call( ar.getScope() , request , response , jsURI );
                 if ( foo != null ){
@@ -152,7 +192,7 @@ public class AppServer implements HttpHandler {
                     return;
                 }
             }
-            
+
             if ( ar.getURI().equals( "/~f" ) ){
                 JSFile f = ar.getContext().getJSFile( request.getParameter( "id" ) );
                 if ( f == null ){
@@ -163,30 +203,30 @@ public class AppServer implements HttpHandler {
                 response.sendFile( f );
                 return;
             }
-            
+
             File f = ar.getFile();
-            
+
             if ( response.getResponseCode() >= 300 )
                 return;
-            
+
             if ( f.toString().endsWith( ".cgi" ) ){
                 handleCGI( request , response , ar , f );
                 return;
             }
-            
+
             if ( ar.isStatic() && f.exists() ){
                 if ( D ) System.out.println( f );
-                
+
                 if ( f.isDirectory() ){
                     response.setResponseCode( 301 );
                     response.getWriter().print( "listing not allowed\n" );
                     return;
                 }
-                
+
                 int cacheTime = getCacheTime( ar , jsURI , request , response );
                 if ( cacheTime >= 0 )
                     response.setCacheTime( cacheTime );
-                
+
                 final String fileString = f.toString();
                 int idx = fileString.lastIndexOf( "." );
                 if ( idx > 0 ){
@@ -198,7 +238,7 @@ public class AppServer implements HttpHandler {
                 response.sendFile( f );
                 return;
             }
-            
+
             JxpServlet servlet = ar.getContext().getServlet( f );
             if ( servlet == null ){
                 response.setResponseCode( 404 );
@@ -213,7 +253,7 @@ public class AppServer implements HttpHandler {
         }
         catch ( FileNotFoundException fnf ){
             response.setResponseCode( 404 );
-            
+
             JxpWriter writer = response.getWriter();
             writer.print( "can't find : " + fnf.getMessage() );
         }
@@ -229,17 +269,23 @@ public class AppServer implements HttpHandler {
         }
     }
 
+    /** Kills this appserver if it runs out of memory.  Does a garbage collection
+     * and checks if enough memory was freed.  If not, or if the response writer fails,
+     * the appserver quits with a -3 exit code.
+     * @param oom The out-of-memory error
+     * @param response The HTTP response to inform the user of the error
+     */
     void handleOutOfMemoryError( OutOfMemoryError oom , HttpResponse response ){
         // 2 choices here, this request caused all sorts of problems
         // or the server is screwed.
-        
+
         long before = MemUtil.bytesAvailable();
         MemUtil.fullGC();
         long after = MemUtil.bytesAvailable();
-        
+
         if ( after < ( 100 * MemUtil.MBYTE ) ||
              ( after - before ) < ( 100 * MemUtil.MBYTE ) ){
-            
+
             try {
                 System.err.println( "OutOfMemoryError in AppServer - not enough free, so dying." );
                 System.err.println( "before : " + ( before / MemUtil.MBYTE ) );
@@ -248,12 +294,12 @@ public class AppServer implements HttpHandler {
             }
             catch ( Exception e ){
             }
-            
+
             Runtime.getRuntime().halt( -3 );
         }
-        
+
         // either this thread was the problem, or whatever
-        
+
         try {
             response.setResponseCode( 500 );
             JxpWriter writer = response.getWriter();
@@ -262,12 +308,18 @@ public class AppServer implements HttpHandler {
         }
         catch ( OutOfMemoryError oom2 ){
             // forget it - we're super hosed
-            Runtime.getRuntime().halt( -3 );                
+            Runtime.getRuntime().halt( -3 );
         }
     }
 
+    /** Handles this appserver's errors.
+     * @param request The request that caused the error
+     * @param response The response to fill
+     * @param t The error thrown
+     * @param ctxt The app context to use for logging
+     */
     void handleError( HttpRequest request , HttpResponse response , Throwable t , AppContext ctxt ){
-        
+
         if ( t.getCause() instanceof OutOfMemoryError ){
             handleOutOfMemoryError( (OutOfMemoryError)t.getCause() , response );
             return;
@@ -275,27 +327,27 @@ public class AppServer implements HttpHandler {
 
         if ( ctxt == null )
 	    Logger.getLogger( "appserver.nocontext" ).error( request.getURI() , t );
-	else 
+	else
 	    ctxt._logger.error( request.getURL() , t );
-        
+
         response.setResponseCode( 500 );
-        
+
         JxpWriter writer = response.getWriter();
-        
+
         if ( t instanceof JSCompileException ){
             JSCompileException jce = (JSCompileException)t;
-            
+
             writer.print( "<br><br><hr>" );
             writer.print( "<h3>Compile Error</h3>" );
             writer.print( "<b>Message:</b> " + jce.getError() + "<BR>" );
             writer.print( "<b>File Name:</b> " + jce.getFileName() + "<BR>" );
             writer.print( "<b>Line # :</b> " + jce.getLineNumber() + "<BR>" );
         }
-        
+
         else {
             writer.print( "\n<br><br><hr><b>Error</b><br>" );
             writer.print( t.toString() + "<BR>" );
-            
+
             while ( t != null ){
                 for ( StackTraceElement element : t.getStackTrace() ){
                     writer.print( element + "<BR>\n" );
@@ -303,9 +355,16 @@ public class AppServer implements HttpHandler {
                 t = t.getCause();
             }
         }
-        
+
     }
-    
+
+    /** Checks how long it takes to get a page from the cache.
+     * @param ar The app request which contains the staticCacheTime function
+     * @param jsURI The URI to find in the cache
+     * @param request The HTTP request to process
+     * @param response The HTTP response to generate
+     * @return The time, in milliseconds
+     */
     int getCacheTime( AppRequest ar , JSString jsURI , HttpRequest request , HttpResponse response ){
         if ( ar.getScope().get( "staticCacheTime" ) == null )
             return -1;
@@ -313,19 +372,27 @@ public class AppServer implements HttpHandler {
 	JSFunction f = ar.getScope().getFunction( "staticCacheTime" );
 	if ( f == null )
 	    return -1;
-	
+
 	Object ret = f.call( ar.getScope() , jsURI , request , response );
 	if ( ret == null )
 	    return -1;
-	
+
 	if ( ret instanceof Number )
 	    return ((Number)ret).intValue();
 
 	return -1;
     }
 
+    /** Processes a request for a .cgi script.  This checks if the site allows access to cgi scripts and
+     * if the script exists.  If the request passes both tests, this function sets up an environment and
+     * sysexecs the script and sets the response based on its output.
+     * @param request The HTTP request
+     * @param response The HTTP response to set
+     * @param ar The app request, used to get the site's name to determine whether cgi scripts are allowed
+     * @param f The cgi file to execute
+     */
     void handleCGI( HttpRequest request , HttpResponse response , AppRequest ar , File f ){
-        
+
         try {
 
             if ( ! Security.isAllowedSite( ar.getContext().getName() ) ){
@@ -333,8 +400,8 @@ public class AppServer implements HttpHandler {
                 response.getWriter().print( "you are not allowed to run cgi programs" );
                 return;
             }
-                
-            
+
+
             if ( ! f.exists() ){
                 response.setResponseCode( 404 );
                 response.getWriter().print("file not found" );
@@ -349,11 +416,11 @@ public class AppServer implements HttpHandler {
 
             String envarr[] = new String[env.size()];
             env.toArray( envarr );
-            
+
             Process p = Runtime.getRuntime().exec( new String[]{ f.getAbsolutePath() } , envarr , f.getParentFile() );
 
             boolean inHeader = true;
-            
+
             BufferedReader in = new BufferedReader( new InputStreamReader( p.getInputStream() ) );
             String line;
             while ( ( line = in.readLine() ) != null ){
@@ -362,7 +429,7 @@ public class AppServer implements HttpHandler {
                         inHeader = false;
                         continue;
                     }
-                    
+
                     line = line.trim();
                     final int idx = line.indexOf( ":" );
                     if ( idx > 0 ){
@@ -389,11 +456,15 @@ public class AppServer implements HttpHandler {
             response.getWriter().print( e.toString() );
         }
     }
-    
+
+    /** This appserver's priority for the HTTP request handler.
+     * @return 10000
+     */
     public double priority(){
         return 10000;
     }
 
+    /** @unexpose */
     SimpleStats _getStats( String name ){
         SimpleStats stats = _stats.get( name );
 
@@ -404,33 +475,42 @@ public class AppServer implements HttpHandler {
 
         return stats;
     }
-    
+
+    /** Get stats about this site.
+     * @param request
+     * @param response Sets stats as content of this
+     */
     void handleStats( HttpRequest request , HttpResponse response ){
         response.setHeader( "Content-Type" , "text/plain" );
-        
+
         JxpWriter out = response.getWriter();
-        
+
         List<String> lst = new ArrayList<String>();
         lst.addAll( _stats.keySet() );
-        
+
         Collections.sort( lst );
 
         out.print( "app server stats\n----\n\n" );
-        
+
         for ( String site : lst ){
             _stats.get( site ).print( out );
             out.print( "\n--- \n " );
         }
-    }        
+    }
 
+    /** Resets the app content.
+     * @param ar Used to find the context to reset and logger
+     * @param request
+     * @param response Set to inform the user what happens
+     */
     void handleReset( AppRequest ar , HttpRequest request , HttpResponse response ){
         response.setHeader( "Content-Type" , "text/plain" );
-        
+
         JxpWriter out = response.getWriter();
-        
+
         out.print( "so, you want to reset?\n" );
-        
-        if ( request.getRemoteIP().equals( "127.0.0.1" ) && 
+
+        if ( request.getRemoteIP().equals( "127.0.0.1" ) &&
              request.getHeader( "X-Cluster-Cluster-Ip" ) == null ){
             out.print( "you did it!\n" );
             ar.getContext()._logger.info("About to reset context via /~reset");
@@ -442,8 +522,8 @@ public class AppServer implements HttpHandler {
             response.setResponseCode(403);
         }
 
-    }        
-    
+    }
+
     class SimpleStats  {
 
         SimpleStats( String name ){
@@ -461,10 +541,10 @@ public class AppServer implements HttpHandler {
         void printTracker( String name , ThingsPerTimeTracker tracker , JxpWriter out ){
 
             tracker.validate();
-            
+
             out.print( "\t" + name + "\n\t" );
             for ( int i=0; i<tracker.size(); i++ ){
-                
+
                 if ( name.startsWith( "cpu" ) )
                     out.print( JSMath.sigFig( ( (double)tracker.get( i )) / seconds ) );
                 else if ( name.startsWith( "net" ) ){
@@ -472,17 +552,17 @@ public class AppServer implements HttpHandler {
                     perSec = perSec / 1024;
                     out.print( JSMath.sigFig( perSec ) );
                 }
-                else 
+                else
                     out.print( tracker.get( i ) );
 
                 out.print( " " );
             }
-            
+
             out.print( "\n" );
         }
-        
-        
-        
+
+
+
         final String name;
         final int seconds = 30;
 
@@ -497,9 +577,10 @@ public class AppServer implements HttpHandler {
 
     // ---------
 
+    /** @unexpose */
     public static void main( String args[] )
         throws Exception {
-        
+
 
         String webRoot = "/data/sites/admin/";
         String serverRoot = "/data/sites";
@@ -547,9 +628,9 @@ public class AppServer implements HttpHandler {
         System.out.println("==================================");
 
         AppServer as = new AppServer( webRoot , serverRoot);
-        
+
         HttpServer.addGlobalHandler( as );
-        
+
         HttpServer hs = new HttpServer(portNum);
         hs.start();
         hs.join();

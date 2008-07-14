@@ -13,12 +13,12 @@ import ed.util.*;
 /** @expose */
 public class JSObjectBase implements JSObject {
 
-    /** Prefix for getters and setters: "_____gs____" (asymmetric) */
+    /** Prefix for getters and setters: <tt>_____gs____</tt> (asymmetric) */
     public static final String GETSET_PREFIX = "_____gs____";
-    /** Prefix for scope failovers: "_____scope_failover____" (asymmetric) */
+    /** Prefix for scope failovers: <tt>_____scope_failover____</tt> (asymmetric) */
     public static final String SCOPE_FAILOVER_PREFIX = "_____scope_failover____";
 
-    /** Reserved key names: __proto__, __constructor__, constructor, and __parent____ */
+    /** Reserved key names: <tt>__proto__</tt>, <tt>__constructor__</tt>, <tt>constructor</tt>, and <tt>__parent____</tt> */
     static final Set<String> BAD_KEY_NAMES = new HashSet<String>();
     static {
         BAD_KEY_NAMES.add( "__proto__" );
@@ -36,7 +36,9 @@ public class JSObjectBase implements JSObject {
     public JSObjectBase(){
     }
 
-    /** Initialize a new object and set its constructor */
+    /** Initialize a new object and set its constructor
+     * @param constructor The constructor for this object to use
+     */
     public JSObjectBase( JSFunction constructor ){
         setConstructor( constructor );
     }
@@ -441,18 +443,26 @@ public class JSObjectBase implements JSObject {
     // ---
 
     /** Set this object's setter.
-     * @
+     * @param name Identifier for the getter/setter pair
+     * @param func Function to which to set setter
      */
     void setSetter( String name , JSFunction func ){
         _dirtyMyself();
         _getSetterAndGetter( name , true ).second = func;
     }
 
+    /** Set this object's getter.
+     * @param name Identifier for the getter/setter pair
+     * @param func Function to which to set getter
+     */
     void setGetter( String name , JSFunction func ){
         _dirtyMyself();
         _getSetterAndGetter( name , true ).first = func;
     }
 
+    /** Get this object's setter.
+     * @param name Identifier for the getter/setter pair
+     */
     JSFunction getSetter( String name ){
         Pair<JSFunction,JSFunction> p = _getSetterAndGetter( name, false );
         if ( p != null )
@@ -465,6 +475,9 @@ public class JSObjectBase implements JSObject {
         return null;
     }
 
+    /** Get this object's getter.
+     * @param name Identifier for the getter/setter pair
+     */
     JSFunction getGetter( String name ){
         Pair<JSFunction,JSFunction> p = _getSetterAndGetter( name, false );
         if ( p != null )
@@ -477,16 +490,27 @@ public class JSObjectBase implements JSObject {
         return null;
     }
 
+    /** Get a string representation of the setter's name
+     * @param name Getter/setter identifier
+     * @return GETSET_PREFIX+"SET"+name
+     */
     public static String setterName( String name ){
         return GETSET_PREFIX + "SET" + name;
     }
 
+    /** Get a string representation of the getter's name
+     * @param name Getter/setter identifier
+     * @return GETSET_PREFIX+"GET"+name
+     */
     public static String getterName( String name ){
         return GETSET_PREFIX + "GET" + name;
     }
 
     // ---
 
+    /** Get the string representation of this object.
+     * @return the string representation of this object.
+     */
     public String toString(){
         Object temp = get( "toString" );
 
@@ -509,6 +533,9 @@ public class JSObjectBase implements JSObject {
         return res.toString();
     }
 
+    /** Given an object, add all of its key/value pairs to this object.
+     * @param other The source object
+     */
     protected void addAll( JSObject other ){
         for ( String s : other.keySet() )
             set( s , other.get( s ) );
@@ -525,6 +552,10 @@ public class JSObjectBase implements JSObject {
         }
     }
 
+    /** Gets a given field in this object and returns it as a string.
+     * @param name Name of the field to find.
+     * @return The field as a string.
+     */
     public String getJavaString( Object name ){
         Object foo = get( name );
         if ( foo == null )
@@ -532,14 +563,26 @@ public class JSObjectBase implements JSObject {
         return foo.toString();
     }
 
+    /** Set a constructor for this object.
+     * @param cons Function to be this object's constructor.
+     */
     public void setConstructor( JSFunction cons ){
         setConstructor( cons , false , null );
     }
 
+    /** Set a constructor for this object and choose whether or not to execute it.
+     * @param cons Function to be this object's constructor.
+     * @param exec If the constructor should be executed now.
+     */
     public void setConstructor( JSFunction cons , boolean exec ){
         setConstructor( cons , exec , null );
     }
 
+    /** Set a constructor for this object, choose whether or not to execute it, and if so pass it arguments.
+     * @param cons Function to be this object's constructor.
+     * @param exec If the constructor should be executed now.
+     * @param args Arguments to pass to the constructor if it is to be executed now.
+     */
     public void setConstructor( JSFunction cons , boolean exec , Object args[] ){
         _readOnlyCheck();
         _dirtyMyself();
@@ -565,10 +608,16 @@ public class JSObjectBase implements JSObject {
         }
     }
 
+    /** Returns this object's constructor.
+     * @return The constructor.
+     */
     public JSFunction getConstructor(){
         return _constructor;
     }
 
+    /** Get the prototype for this object.
+     * @return The prototype or constructor's prototype, if found, otherwise null.
+     */
     public JSObject getSuper(){
 
         if ( _map != null ){
@@ -584,10 +633,14 @@ public class JSObjectBase implements JSObject {
         return null;
     }
 
+    /** Lock this object to prevent setting fields. Makes the object immutable. */
     public void lock(){
         setReadOnly( true );
     }
 
+    /** Sets if an object is locked or not.
+     * @param readOnly If this object's fields should be read-only.
+     */
     public void setReadOnly( boolean readOnly ){
         _readOnly = readOnly;
     }
@@ -597,6 +650,9 @@ public class JSObjectBase implements JSObject {
             throw new RuntimeException( "can't modify JSObject - read only" );
     }
 
+    /** Given an object, add all of its key/value pairs to this object.
+     * @param other The source object
+     */
     public void extend( JSObject other ){
         if ( other == null )
             return;
@@ -607,6 +663,7 @@ public class JSObjectBase implements JSObject {
 
     }
 
+    /** @unexpose */
     public void debug(){
         try {
             debug( 0 , System.out );
@@ -616,6 +673,7 @@ public class JSObjectBase implements JSObject {
         }
     }
 
+    /** @unexpose */
     Appendable _space( int level , Appendable a )
         throws IOException {
         for ( int i=0; i<level; i++ )
@@ -623,6 +681,7 @@ public class JSObjectBase implements JSObject {
         return a;
     }
 
+    /** @unexpose */
     public void debug( int level , Appendable a )
         throws IOException {
         _space( level , a );
@@ -649,6 +708,9 @@ public class JSObjectBase implements JSObject {
         }
     }
 
+    /** The hash code value of this object.
+     * @return The hash code value of this object.
+     */
     public int hashCode(){
         int hash = 81623;
 
@@ -670,10 +732,12 @@ public class JSObjectBase implements JSObject {
     // name is very weird. it probably doesn't work the way you think or want
     // ----
 
+    /** @unexpose */
     public String _getName(){
         return _name;
     }
 
+    /** @unexpose */
     public void _setName( String n ){
         _name = n;
     }
@@ -725,6 +789,9 @@ public class JSObjectBase implements JSObject {
             _jitCache.clear();
     }
 
+    /** Returns the size of this object (approximately) in bytes.
+     * @return The approximate size of this object.
+     */
     public long approxSize(){
         long size = JSObjectSize.OBJ_OVERHEAD + 128;
 
@@ -748,22 +815,31 @@ public class JSObjectBase implements JSObject {
         return size;
     }
 
+    /** Returns if this is a partial object.
+     * @return if this is a partial object.
+     */
     public boolean isPartialObject(){
         return _isPartialObject;
     }
 
+    /** Sets this to be a partial object. */
     public void markAsPartialObject(){
         _isPartialObject = true;
     }
 
+    /** Forces this to be a non-partial object.  It can still be set to be a partial object, later. */
     public void forceNonPartial(){
         _isPartialObject = false;
     }
 
+    /** Determines whether this object has been modified since last created or cleaned.
+     * @return If this object has been modified.
+     */
     public boolean isDirty(){
         return _dirty || _lastHash != hashCode();
     }
 
+    /** Indicate that an object is now "clean", that is, unmodified. */
     public void markClean(){
         _dirty = false;
         _lastHash = hashCode();
@@ -799,7 +875,9 @@ public class JSObjectBase implements JSObject {
     private int _getFromParentCalls = 0;
     private Map<String,Object> _jitCache;
 
+    /** An empty, unchangeable HashSet. */
     static final Set<String> EMPTY_SET = Collections.unmodifiableSet( new HashSet<String>() );
+    /** The value "undefined", which this implementation does not currently use.  */
     static final Object UNDEF = new Object(){
             public String toString(){
                 return "undefined";
