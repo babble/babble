@@ -111,7 +111,9 @@ public class Generate {
                 }
 
                 JSObjectBase obj = new JSObjectBase();
+                // Set the class name
                 obj.set("name", blobs[i].getName().substring(0, blobs[i].getName().indexOf(".out")));
+                obj.set("version", getVersion());
                 obj.set("content", sb.toString());
 
                 if(debug)
@@ -330,6 +332,17 @@ public class Generate {
                     obj.set("_index", ss);
                     obj.set("version", Generate.getVersion());
                     obj.set("name", name);
+
+                    // if one exists, get the class description
+                    if(unit.get("classDesc") != null) {
+                        obj.set("desc", (JSString)unit.get("classDesc"));
+                    }
+                    else if(unit.get("desc") != null) {
+                        obj.set("desc", (JSString)unit.get("desc"));
+                    }
+                    else {
+                        obj.set("desc", "");
+                    }
 
                     if(name.equals("_global_")) {
                         if(_global == null) {

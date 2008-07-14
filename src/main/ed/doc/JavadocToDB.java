@@ -322,6 +322,7 @@ public class JavadocToDB {
             topLevel.set("version", Generate.getVersion());
             topLevel.set("ts", Calendar.getInstance().getTime().toString());
             topLevel.set("name", classes[i].name());
+            topLevel.set("desc", classes[i].commentText());
 
             collection.save((JSObject)topLevel);
         }
