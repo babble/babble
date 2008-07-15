@@ -28,8 +28,8 @@ public class JSSaxParser extends DefaultHandler {
 		this.handler = handler;
 	}
 
-    /** Get this parser.
-     * @return This parser
+    /** Gets the parsing function.
+     * @return The parsing function
      */
 	public static JSFunction getParser(){
 		return _realParseFunction;
@@ -59,6 +59,7 @@ public class JSSaxParser extends DefaultHandler {
 
 	};
 
+    /** If there is a function defined to handle the beginning of the document, call it. */
 	@Override
 	public void startDocument() throws SAXException {
 		Object jsHandlerObj = handler.get("startDocument");
@@ -69,6 +70,8 @@ public class JSSaxParser extends DefaultHandler {
 			jsHandlerFn.call(scope);
 		}
 	}
+
+    /** If there is a function defined to handle the end of the document, call it. */
 	@Override
 	public void endDocument() throws SAXException {
 		Object jsHandlerObj = handler.get("endDocument");
@@ -79,6 +82,7 @@ public class JSSaxParser extends DefaultHandler {
 			jsHandlerFn.call(scope);
 		}
 	}
+
 	@Override
 	public void startElement(String uri, String localName, String name, Attributes attributes) throws SAXException {
 		if(textBuffer.length() > 0)
@@ -118,6 +122,11 @@ public class JSSaxParser extends DefaultHandler {
 		((JSFunction)jsHandlerObj).call(scope, uri, localName, name);
 	}
 
+    /** Appends a character sequence to the output buffer.
+     * @param ch Character sequence
+     * @param start Index of the first char to append
+     * @param length The number of character to append
+     */
 	@Override
 	public void characters(char[] ch, int start, int length)
 			throws SAXException {
@@ -125,6 +134,7 @@ public class JSSaxParser extends DefaultHandler {
 		textBuffer.append(ch, start, length);
 	}
 
+    /** Calls the function in the handler's "text" field to do something with the text buffer and then reset it. */
 	private void notifyText() {
 		Object jsHandlerObj = handler.get("text");
 
@@ -135,6 +145,9 @@ public class JSSaxParser extends DefaultHandler {
 		textBuffer.setLength(0);
 	}
 
+    /** Calls the function in the handler's "warning" field for a given exception.
+     * @param e The exception for which to generate the warning
+     */
 	@Override
 	public void warning(SAXParseException e) throws SAXException {
 		Object jsHandlerObj = handler.get("warning");
@@ -144,6 +157,10 @@ public class JSSaxParser extends DefaultHandler {
 
 		((JSFunction)jsHandlerObj).call(scope, e.getMessage(), e.getLineNumber(), e.getColumnNumber());
 	}
+
+    /** Calls the function in the handler's "error" field for a given exception.
+     * @param e The exception for which to generate the error
+     */
 	@Override
 	public void error(SAXParseException e) throws SAXException {
 		Object jsHandlerObj = handler.get("error");
@@ -153,6 +170,10 @@ public class JSSaxParser extends DefaultHandler {
 
 		((JSFunction)jsHandlerObj).call(scope, e.getMessage(), e.getLineNumber(), e.getColumnNumber());
 	}
+
+    /** Calls the function in the handler's "fatalError" field for a given exception.
+     * @param e The exception for which to generate the fatal error
+     */
 	@Override
 	public void fatalError(SAXParseException e) throws SAXException {
 		Object jsHandlerObj = handler.get("fatalError");
