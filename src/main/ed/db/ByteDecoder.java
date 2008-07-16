@@ -24,7 +24,8 @@ public class ByteDecoder extends Bytes {
         _pool.done( this );
     }
 
-    private final static SimplePool<ByteDecoder> _pool = new SimplePool<ByteDecoder>( "ByteDecoders" , 10 , -1 ){
+    private final static int _poolSize = 6 * BUFS_PER_50M;
+    private final static SimplePool<ByteDecoder> _pool = new SimplePool<ByteDecoder>( "ByteDecoders" , -1 , _poolSize ){
         protected ByteDecoder createNew(){
 	    if ( D ) System.out.println( "creating new ByteDecoder" );
             return new ByteDecoder();
