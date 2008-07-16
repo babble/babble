@@ -179,8 +179,10 @@ public class JSHook {
                 s += _guessSize( (JSObject)foo );
             else if ( foo instanceof Boolean )
                 s += 2;
+            else if ( foo instanceof ObjectId )
+                s += 12;
             else {
-                System.err.println( "guessing on : " + foo.getClass() );
+                System.err.println( "JSHook : guessing size for : " + foo.getClass() );
                 s += foo.toString().length() * 10;
             }
             
