@@ -90,8 +90,11 @@ public class JxpServlet {
 
         if ( host.indexOf( "." ) < 0 )
             return "";
-
+        
         if ( request.getPort() > 0 )
+            return "";
+
+        if ( request.getHeader( "X-SSL" ) != null )
             return "";
 
         String prefix= "http://static";
