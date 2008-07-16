@@ -304,6 +304,11 @@ public class HttpRequest extends JSObjectLame {
 
     // -------
 
+    public void addParameter( String name , String val ){
+        _finishParsing();
+        _addParm( name , val , true );
+    }
+
     public Object set( Object n , Object v ){
         final String name = n.toString();
         _finishParsing();
