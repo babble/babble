@@ -33,7 +33,7 @@ print( "READY" );
 
 going = true;
 
-function testCursor( cursor ){
+function testCursor( cursor , sizeCheck ){
     var num = 0;
     
     cursor.forEach(
@@ -42,7 +42,7 @@ function testCursor( cursor ){
         }
     );
     
-    if ( num != total ){
+    if ( num != total && sizeCheck ){
         print( "X : " + num + " should be (" + total + ") validated : " + t.validate().valid );
         if ( total - num < 10 )
             return;
@@ -57,9 +57,9 @@ function reader(){
     while ( going ){
         
         testCursor( t.find() );
-        testCursor( t.find().sort( { name : 1 } ) );
-        testCursor( t.find().sort( { sub : -1 } ) );
-        testCursor( t.find().sort( { blah : 1 } ) );
+        testCursor( t.find().sort( { name : 1 } ) , true );
+        testCursor( t.find().sort( { sub : -1 } ) , false );
+        testCursor( t.find().sort( { blah : 1 } ) , true );
 
         assert( t.validate().valid );
     }
