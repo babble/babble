@@ -104,22 +104,18 @@ DB.prototype.setProfilingLevel = function(level) {
  * </p>
  *
  * <p>
- * Use _dbEval() if you would like a return code for the evaluation.  _dbEval returns
- * { retval: functionReturnValue, ok: num [, errno: num] [, errmsg: str] }
+ * If the eval fails, an exception is thrown of the form:
  * </p>
+ * <code>{ dbEvalException: { retval: functionReturnValue, ok: num [, errno: num] [, errmsg: str] } }</code>
  * 
- * <p>
- *  dbEval() simply returns the return value of the function that was invoked at the
- *  server.  If invocation fails (an exception occurs for example) null is returned.
- * </p>
  * <p>Example: </p>
- * <code>print( "count(*): " + dbEval( function(){db.mycoll.find({},{_id:ObjId()}).length();} );</code>
+ * <code>print( "mycount: " + db.eval( function(){db.mycoll.find({},{_id:ObjId()}).length();} );</code>
  *
- * @param {Function} jsfunction Javascript function to run on server 
+ * @param {Function} jsfunction Javascript function to run on server.  Note this it not a closure, but rather just "code".
  * @return result of your function, or null if error
  * 
  */
-DB.prototype.dbEval = function(jsfunction) {
+DB.prototype.eval = function(jsfunction) {
     var cmd = { $eval: jsfunction };
     if( arguments.length > 1 ) {
 		cmd.args = arguments.slice(1);
@@ -131,6 +127,10 @@ DB.prototype.dbEval = function(jsfunction) {
     }
     
     return res.retval;
+}
+DB.prototype.dbEval = function(jsfunction) { 
+    log("deprecated db.dbEval() called");
+    return this.eval(jsfunction);
 }
 
 
@@ -215,7 +215,7 @@ DB.prototype.group = function(parmsObj) {
 		delete parms.keyf;
     }
     
-    return this.dbEval(groupFunction, parms);
+    return this.eval(groupFunction, parms);
 }
 
 /* Run the specified database "command" object.
