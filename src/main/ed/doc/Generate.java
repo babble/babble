@@ -281,12 +281,13 @@ public class Generate {
         Scanner sc = new Scanner(f);
         char ch;
         while(sc.hasNextLine()) {
-            buff.append(sc.nextLine());
+            buff.append(sc.nextLine()+"<br />");
         }
         JSObjectBase obj = new JSObjectBase();
         obj.set("filename", f.getCanonicalPath());
         obj.set("version", Generate.getVersion());
-        obj.set("src", buff.toString());
+        obj.set("ts", Calendar.getInstance().getTime().toString());
+        obj.set("content", buff.toString());
         codedb.save(obj);
     }
 
