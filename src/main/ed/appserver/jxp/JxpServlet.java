@@ -15,9 +15,10 @@ import ed.appserver.*;
 import ed.net.httpserver.*;
 
 public class JxpServlet {
-
-    public static final int MAX_WRITTEN_LENGTH = 1024 * 1024 * 15;
     
+    public static final int MAX_WRITTEN_LENGTH = 1024 * 1024 * 15;
+    public static final boolean NOCDN = Config.get().getBoolean( "NO-CDN" );
+
     JxpServlet( AppContext context , JxpSource source , JSFunction func ){
         _context = context;
         _source = source;
@@ -82,6 +83,9 @@ public class JxpServlet {
     }
     
     String getStaticPrefix( HttpRequest request , AppRequest ar ){
+        
+        if ( NOCDN )
+            return "";
 
         String host = request.getHost();
         

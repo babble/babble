@@ -52,6 +52,12 @@ public class JSObjectSize {
             // TODO
             return 128;
         }
+        
+        if ( o instanceof JSRegex ){
+            // this is a total guess
+            // TODO: make it a litlte more realistic
+            return o.toString().length() * 4;
+        }
 
         if ( o.getClass() == JSObjectBase.class ){
             return ((JSObjectBase)o).approxSize();
