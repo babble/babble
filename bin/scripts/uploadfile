@@ -1,0 +1,26 @@
+#!/usr/bin/env ./bin/jssh
+
+/**
+ *   Utility to upload files to the GridFS filesystem
+ */
+ 
+function _usage(){
+    print( "usage : uploadfile <host> <database> <file1> [<file2> .... <fileN>]" );    
+}
+
+if (arguments.length < 3){
+    _usage();
+    return -1
+}
+
+host = arguments.shift();
+database = arguments.shift();
+
+core.user.user();
+db = connect(database, host);
+
+arguments.forEach( function(file) {
+    var f = openFile(file);    
+    db._files.save(f);
+    print("Uploaded file " + file + " id=" + f._id);
+});
