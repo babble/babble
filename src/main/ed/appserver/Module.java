@@ -16,7 +16,7 @@ public class Module {
     static final Logger _log = Logger.getLogger( "modules" );    
     public static final String _baseFile; 
     public static final String GITROOT = "ssh://git.10gen.com/data/gitroot/";
-    public static final boolean USE_GIT = ! Boolean.getBoolean( "NO-GIT" );
+    public static final boolean USE_GIT = ! Config.get().getBoolean( "NO-GIT" );
     
 
     static { 

@@ -9,7 +9,7 @@ import ed.js.engine.*;
 
 public class Security {
 
-    public final static boolean OFF = Boolean.getBoolean( "NO-SECURITY" );
+    public final static boolean OFF = ed.util.Config.get().getBoolean( "NO-SECURITY" );
     public final static String _baseClass = Convert.cleanName( Module.getBase());
 
     public final static Set<String> allowedSites;

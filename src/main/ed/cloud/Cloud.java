@@ -13,7 +13,7 @@ import ed.log.*;
 
 public class Cloud extends JSObjectBase {
 
-    static final boolean FORCE_GRID = Boolean.getBoolean( "FORCE-GRID" );
+    static final boolean FORCE_GRID = ed.util.Config.get().getBoolean( "FORCE-GRID" );
 
     static Logger _log = Logger.getLogger( "cloud" );
     static {

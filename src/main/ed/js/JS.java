@@ -16,7 +16,7 @@ public class JS {
     /** @unexpose  */
     public static final boolean DI = false;
     /** @unexpose  */
-    public static final boolean RAW_EXCPETIONS = Boolean.getBoolean( "RAWE" );
+    public static final boolean RAW_EXCPETIONS = ed.util.Config.get().getBoolean( "RAWE" );
 
     /** @unexpose  */
     public static void _debugSI( String name , String place ){
