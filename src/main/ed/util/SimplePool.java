@@ -54,7 +54,7 @@ public abstract class SimplePool<T> {
             return;
 
         synchronized ( _avail ){
-            if ( _maxToKeep > 0 && _avail.size() < _maxToKeep )
+            if ( _maxToKeep < 0 || _avail.size() < _maxToKeep )
                 _avail.add( t );
         }
     }
