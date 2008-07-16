@@ -16,10 +16,13 @@ public class Module {
     static final Logger _log = Logger.getLogger( "modules" );    
     public static final String _baseFile; 
     public static final String GITROOT = "ssh://git.10gen.com/data/gitroot/";
+    public static final boolean USE_GIT = ! Config.get().getBoolean( "NO-GIT" );
     
+
     static { 
-        String s = System.getenv( "BASE" ) == null ? "/data/" : System.getenv( "BASE" );
-        if (s != null && !s.endsWith("/")) {
+        String s = Config.get().getProperty( "BASE" , "/data/" );
+        s = System.getenv( "BASE" ) == null ? s : System.getenv( "BASE" );
+        if ( s != null && !s.endsWith("/")) {
             s += "/";
         }
         _baseFile = s;
@@ -78,6 +81,9 @@ public class Module {
     }
     
     String _findGitUrl(){
+        if ( ! USE_GIT )
+            return null;
+        
         final String str = _root.toString();
         if ( str.contains( "/core-modules/" ) || 
              str.contains( "/site-modules/" ) ){
