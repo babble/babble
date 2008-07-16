@@ -275,18 +275,21 @@ public class Generate {
     }
 
     public static void addToCodeCollection(File f) throws IOException {
-        if(f.isDirectory()) return;
+        if(f.isDirectory() || (!f.getName().endsWith(".js") && !f.getName().endsWith(".java"))) return;
 
         StringBuffer buff = new StringBuffer("");
         Scanner sc = new Scanner(f);
         char ch;
         while(sc.hasNextLine()) {
-            buff.append(sc.nextLine());
+            buff.append(sc.nextLine()+"\n");
         }
+        sc.close();
         JSObjectBase obj = new JSObjectBase();
         obj.set("filename", f.getCanonicalPath());
+        obj.set("name", f.getName());
         obj.set("version", Generate.getVersion());
-        obj.set("src", buff.toString());
+        obj.set("ts", Calendar.getInstance().getTime().toString());
+        obj.set("content", buff.toString());
         codedb.save(obj);
     }
 
