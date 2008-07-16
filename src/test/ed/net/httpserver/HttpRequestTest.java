@@ -40,7 +40,7 @@ public class HttpRequestTest extends TestCase {
         assertEquals( 1 , r.getPostParameterNames().size() );
         assertEquals( 3 , r.getURLParameterNames().size() );
     }
-
+    
     @Test(groups = {"basic"})    
     public static void testJSInterface(){
         HttpRequest r = HttpRequest.getDummy( "/crazy/me?a=2" );        
@@ -48,6 +48,29 @@ public class HttpRequestTest extends TestCase {
         r.set( "a" , "3" );
         assertEquals( "3" , r.get( "a" ).toString() );
     }    
+
+    @Test(groups = {"basic"})
+    public static void testMonitorGetFilter(){
+        // yes, this shouldn't be here.
+
+        HttpRequest r = HttpRequest.getDummy( "/?f=data" );        
+        assertEquals( "data" , HttpMonitor.ThreadMonitor.getFilter( r ) );
+        
+        r = HttpRequest.getDummy( "/?a=data" );        
+        assertEquals( null , HttpMonitor.ThreadMonitor.getFilter( r ) );
+
+        r = HttpRequest.getDummy( "/?a=data" , "Host: www.alleyinsider.com" );        
+        assertEquals( "alleyinsider" , HttpMonitor.ThreadMonitor.getFilter( r ) );
+
+        r = HttpRequest.getDummy( "/?a=data" , "Host: www.10gen.com" );        
+        assertEquals( "www" , HttpMonitor.ThreadMonitor.getFilter( r ) );
+
+        r = HttpRequest.getDummy( "/?a=data" , "Host: iad-sb-n7.10gen.cc" );        
+        assertEquals( null , HttpMonitor.ThreadMonitor.getFilter( r ) );
+        r = HttpRequest.getDummy( "/?a=data" , "Host: iad-sb-n7.10gen.cc:8080" );        
+        assertEquals( null , HttpMonitor.ThreadMonitor.getFilter( r ) );
+        
+    }
 
     public static void main( String args[] ){
         (new HttpRequestTest()).runConsole();
