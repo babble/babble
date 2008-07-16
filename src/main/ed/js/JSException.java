@@ -87,9 +87,19 @@ public class JSException extends RuntimeException implements JSObject {
      * @param wantedJSException
      */
     public JSException( Object o , Throwable t , boolean wantedJSException ){
-        super( ( o == null ? "" : o.toString() ).toString() , _fix( t ) );
+        super( _toString( o ) , _fix( t ) );
         _object = o;
         _wantedJSException = wantedJSException;
+    }
+
+    static String _toString( Object o ){
+        if ( o == null )
+            return "";
+        
+        if ( o instanceof JSObjectBase )
+            return ((JSObjectBase)o).toPrettyString();
+
+        return o.toString();
     }
 
     /** Returns the description of the exception or the whole exception.
@@ -193,9 +203,9 @@ public class JSException extends RuntimeException implements JSObject {
      */
     public String toString(){
         if ( _msg != null )
-            return _msg.toString();
+            return _toString( _msg );
         if ( _object != null )
-            return _object.toString();
+            return _toString( _object );
         return "";
     }
 
