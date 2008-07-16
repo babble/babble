@@ -283,6 +283,7 @@ public class Generate {
         while(sc.hasNextLine()) {
             buff.append(sc.nextLine()+"<br />");
         }
+        sc.close();
         JSObjectBase obj = new JSObjectBase();
         obj.set("filename", f.getCanonicalPath());
         obj.set("version", Generate.getVersion());
