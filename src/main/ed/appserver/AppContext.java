@@ -152,11 +152,23 @@ public class AppContext {
     }
 
     public String getVersionForLibrary( String name ){
-        return getVersionForLibrary( _scope , name );
+        return getVersionForLibrary( _scope , name , this );
     }
 
-    public static String getVersionForLibrary( Scope s , String name){
-        JSObject o = (JSObject)s.get( "version" );
+    public static String getVersionForLibrary( Scope s , String name ){
+        AppRequest ar = AppRequest.getThreadLocal();
+        return getVersionForLibrary( s , name , ar == null ? null : ar.getContext() );
+    }
+
+    public static String getVersionForLibrary( Scope s , String name , AppContext ctxt ){
+
+        JSObject o = null;
+        if ( ctxt != null ) 
+            o = (JSObject)s.get( "version-" + ctxt.getEnvironmentName() );
+        
+        if ( o == null )
+            o = (JSObject)s.get( "version" );
+        
         if ( o == null )
             return null;
 
