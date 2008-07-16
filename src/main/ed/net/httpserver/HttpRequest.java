@@ -305,16 +305,19 @@ public class HttpRequest extends JSObjectLame {
     // -------
 
     public Object set( Object n , Object v ){
-        String name = n.toString();
+        final String name = n.toString();
         _finishParsing();
         
         Object prev = getParameter( name );
-        _addParm( name , v == null ? null : v.toString() , false );
+        _getParamList( name , true , true ).clear();
+        _addParm( name , v == null ? null : v.toString() , true );
         return prev;
     }
-
+    
     public Object get( Object n ){
-        String foo = getParameter( n.toString() , null );
+        final String name = n.toString();        
+
+        String foo = getParameter( name , null );
         if ( foo == null )
             return null;
         return new ed.js.JSString( foo );

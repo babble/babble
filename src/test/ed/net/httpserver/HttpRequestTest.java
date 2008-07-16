@@ -41,6 +41,14 @@ public class HttpRequestTest extends TestCase {
         assertEquals( 3 , r.getURLParameterNames().size() );
     }
 
+    @Test(groups = {"basic"})    
+    public static void testJSInterface(){
+        HttpRequest r = HttpRequest.getDummy( "/crazy/me?a=2" );        
+        assertEquals( "2" , r.get( "a" ).toString() );
+        r.set( "a" , "3" );
+        assertEquals( "3" , r.get( "a" ).toString() );
+    }    
+
     public static void main( String args[] ){
         (new HttpRequestTest()).runConsole();
     }
