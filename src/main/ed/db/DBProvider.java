@@ -35,8 +35,16 @@ public class DBProvider {
 
     public static DBApiLayer get( String root , boolean useCache , String ip ){
         
-        if ( ip == null || ip.trim().length() == 0 )
-            ip = getDefaultHost();
+        if ( ip == null || ip.trim().length() == 0 ){
+            int idx = root.indexOf( "/" );
+            if ( idx > 0 ){
+                ip = root.substring( idx + 1 );
+                root = root.substring( 0 , idx );
+            }
+            else {
+                ip = getDefaultHost();
+            }
+        }
         
         int port = Integer.parseInt(Config.get().getTryEnvFirst("db_port", Integer.toString(DBPort.PORT)));
         
