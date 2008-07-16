@@ -275,7 +275,7 @@ public class Generate {
     }
 
     public static void addToCodeCollection(File f) throws IOException {
-        if(f.isDirectory()) return;
+        if(f.isDirectory() || (!f.getName().endsWith(".js") && !f.getName().endsWith(".java"))) return;
 
         StringBuffer buff = new StringBuffer("");
         Scanner sc = new Scanner(f);
