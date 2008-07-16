@@ -96,6 +96,14 @@ public class Config extends Properties {
         return def;
     }
 
+    public String getTryEnvFirst( String name , String def ){
+        String s = System.getenv( name );
+        if ( s != null )
+            return s;
+        
+        return getProperty( name , def );
+    }
+
     public Object setProperty(String key, String value){
         throw new RuntimeException( "can't set something on config" );
     }
