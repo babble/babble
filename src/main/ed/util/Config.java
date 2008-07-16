@@ -12,7 +12,7 @@ public class Config extends Properties {
     }
     
     static String _placesToLook[] = new String[]{
-        "" , 
+        "./" , 
         "conf" , 
         "/etc/" , 
         System.getenv( "ED_HOME" ) + "/" ,
@@ -111,5 +111,4 @@ public class Config extends Properties {
     public Object put(String key, String value){
         throw new RuntimeException( "can't set something on config" );
     }
-
 }
