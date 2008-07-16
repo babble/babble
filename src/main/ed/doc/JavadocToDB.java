@@ -228,12 +228,31 @@ public class JavadocToDB {
                 Pattern tagger = Pattern.compile("([a-z]+) : \\{([^\\}]+)\\}");
                 Matcher m = tagger.matcher(aText);
                 JSArray params = new JSArray();
+                JSArray returns = new JSArray();
                 while(m.find()) {
                     if(m.group(1).equals("param")) {
-                        params.add(m.group(2));
+                        Pattern subtagger = Pattern.compile("([a-z]+) : \\(([^\\)]+)\\)");
+                        Matcher subm = subtagger.matcher(m.group(2));
+                        JSObjectBase pgroup = new JSObjectBase();
+                        pgroup.set("title", "param");
+                        while(subm.find()) {
+                            pgroup.set(subm.group(1), subm.group(2));
+                        }
+                        params.add(pgroup);
                     }
                     else if(m.group(1).equals("return")) {
-                        a.set("returns", m.group(2));
+                        Pattern subtagger = Pattern.compile("([a-z]+) : \\(([^\\)]+)\\)");
+                        Matcher subm = subtagger.matcher(m.group(2));
+                        JSObjectBase pgroup = new JSObjectBase();
+                        pgroup.set("title", "return");
+                        while(subm.find()) {
+                            pgroup.set(subm.group(1), subm.group(2));
+                            if(subm.group(1).equals("type")) {
+                                a.set("type", subm.group(2));
+                            }
+                        }
+                        returns.add(pgroup);
+                        a.set("returns", returns);
                     }
                     else if(m.group(1).equals("name")) {
                         a.set("alias", m.group(2));
@@ -243,6 +262,7 @@ public class JavadocToDB {
                         a.set(m.group(1), m.group(2));
                     }
                 }
+                a.set("_params", params);
                 a.set("params", params);
                 jsAnon.add(a);
             }
