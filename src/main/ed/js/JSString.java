@@ -560,6 +560,10 @@ public class JSString extends JSObjectBase implements Comparable {
         return _s;
     }
 
+    public String toPrettyString(){
+        return _s;
+    }
+
     /** Compare this string with an object. The empty string matches null.
      * @param o The object with which to compare this string.
      * @return 1, -1, or 0 if this string is semantically greater than, less than, or equal to the given object.
