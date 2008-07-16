@@ -20,8 +20,9 @@ public class Module {
     
 
     static { 
-        String s = System.getenv( "BASE" ) == null ? "/data/" : System.getenv( "BASE" );
-        if (s != null && !s.endsWith("/")) {
+        String s = Config.get().getProperty( "BASE" , "/data/" );
+        s = System.getenv( "BASE" ) == null ? s : System.getenv( "BASE" );
+        if ( s != null && !s.endsWith("/")) {
             s += "/";
         }
         _baseFile = s;
