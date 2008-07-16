@@ -87,7 +87,7 @@ public class AppServer implements HttpHandler {
         return true;
     }
 
-    /** Handles an HTTP request and generates puts the response in the given HTTP response object.
+    /** Handles an HTTP request and puts the response in the given HTTP response object.
      * @param request HTTP request to handle
      * @param HTTP response to fill in
      */
