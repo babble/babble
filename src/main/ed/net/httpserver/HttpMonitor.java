@@ -93,7 +93,7 @@ public abstract class HttpMonitor implements HttpHandler {
             final Map<Thread,StackTraceElement[]> all = Thread.getAllStackTraces();
             final Thread cur = Thread.currentThread();
             
-            final String filter = request.getParameter( "f" );
+            final String filter = getFilter( request );
 
             final StackTraceHolder holder = StackTraceHolder.getInstance();
 
@@ -155,6 +155,26 @@ public abstract class HttpMonitor implements HttpHandler {
             }
 
             return false;
+        }
+        
+        public static String getFilter( HttpRequest request ){
+            String f = request.getParameter( "f" );
+            if ( f != null )
+                return f;
+            
+            f = request.getHost();
+            if ( f == null )
+                return null;
+            
+            if ( f.endsWith( ".10gen.cc" ) )
+                return null;
+
+            if ( f.endsWith( ".10gen.com" ) )
+                f = f.substring( 0 , f.length() - 10 ) + ".com";
+            
+            f = ed.net.DNSUtil.getJustDomainName( f );
+
+            return f;
         }
 
         final String _style;
