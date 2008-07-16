@@ -4,9 +4,11 @@ package ed.util;
 
 import java.util.*;
 
+/** @expose */
 public abstract class SimplePool<T> {
 
-    /**
+    /** Initializes a new pool of objects.
+     * @param name name for the pool
      * @param maxToKeep max to hold to at any given time can be -1
      * @param maxTotal how many to have at any given time
      */
@@ -14,9 +16,11 @@ public abstract class SimplePool<T> {
         this( name , maxToKeep , maxTotal , false );
     }
 
-    /**
+    /** Initializes a new pool of objects.
+     * @param name name for the pool
      * @param maxToKeep max to hold to at any given time can be -1
      * @param maxTotal how many to have at any given time
+     * @param trackLeaks if leaks should be tracked
      */
     public SimplePool( String name , int maxToKeep , int maxTotal , boolean trackLeaks ){
         _name = name;
@@ -25,12 +29,21 @@ public abstract class SimplePool<T> {
         _trackLeaks = trackLeaks;
     }
 
+    /** Creates a new object of this pool's type.
+     * @return the new object.
+     */
     protected abstract T createNew();
 
+    /** Checks if a given object is okay.
+     * @return true
+     */
     public boolean ok( T t ){
         return true;
     }
 
+    /** If there is space available, add the given object to the pool.
+     * @param t Object to add
+     */
     public void done( T t ){
         _where.remove( _hash( t ) );
 
@@ -42,7 +55,10 @@ public abstract class SimplePool<T> {
                 _avail.add( t );
         }
     }
-    
+
+    /** Gets an object from the pool.
+     * @return An object from the pool
+     */
     public T get(){
         final T t = _get();
         if ( t != null && _trackLeaks ){
@@ -62,13 +78,13 @@ public abstract class SimplePool<T> {
             synchronized ( _avail ){
                 if ( _avail.size() > 0 )
                     return _avail.remove( _avail.size() - 1 );
-                
+
                 if ( _maxTotal <= 0 || _all.size() < _maxTotal ){
                     T t = createNew();
                     _all.add( t );
                     return t;
                 }
-                
+
                 if ( _trackLeaks && _trackPrintCount++ % 200 == 0 ){
                     _wherePrint();
                     _trackPrintCount = 1;
@@ -87,19 +103,24 @@ public abstract class SimplePool<T> {
                 buf.append( "  " ).append( st[i] ).append( "\n" );
             buf.append( "----\n" );
         }
-        
+
         System.out.println( buf );
     }
 
+    /** Clears the pool of all objects. */
     protected void clear(){
         _avail.clear();
         _all.clear();
         _where.clear(); // is this correct
     }
 
+    /** @unexpose */
     final String _name;
+    /** @unexpose */
     final int _maxToKeep;
+    /** @unexpose */
     final int _maxTotal;
+    /** @unexpose */
     final boolean _trackLeaks;
 
     private final List<T> _avail = new ArrayList<T>();

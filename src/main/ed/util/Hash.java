@@ -2,8 +2,13 @@
 
 package ed.util;
 
+/** @expose */
 public final class Hash {
 
+    /** Creates a hash for a string.
+     * @param s String to hash
+     * @return the hash code
+     */
     public static final int hashBackward( String s ) {
         int hash = 0;
         for ( int i = s.length()-1; i >= 0; i-- )
@@ -11,6 +16,10 @@ public final class Hash {
         return hash;
     }
 
+    /** Creates a long hash for a string.
+     * @param s the string to hash
+     * @return the hash code
+     */
     public static final long hashBackwardLong( String s ) {
         long hash = 0;
         for ( int i = s.length()-1; i >= 0; i-- )
@@ -18,12 +27,14 @@ public final class Hash {
         return hash;
     }
 
+    /** @unexpose */
     static final long _longHashConstant = 4095;
 
     /**
      * 64-bit hash, using longs, in stead of ints, for less collisions, for when it matters.
      * Calls longHash( s , 0 , s.length() )
      * @param s         The String to hash.
+     * @return the hash code
      */
     public static final long longHash( String s ) {
         return longHash( s , 0 , s.length() );
@@ -34,6 +45,7 @@ public final class Hash {
      * @param s         The string to hash.
      * @param start     Where to start the hash.
      * @param end       Where to end the hash.
+     * @return the hash code
      */
     public static final long longHash( String s , int start , int end ) {
         long hash = 0;
@@ -46,6 +58,7 @@ public final class Hash {
      * Same as longHash(String), using only lower-case values of letters.
      * Calls longhash( s , 0 , s.length() ).
      * @param s     The string to Hash.
+     * @return the hash code
      */
     public static final long longLowerHash( String s ) {
         return longLowerHash( s , 0 , s.length() );
@@ -56,6 +69,7 @@ public final class Hash {
      * @param s      The string to hash.
      * @param start  where to start hashing.
      * @param end    Where to stop hashing.
+     * @return the hash code
      */
     public static final long longLowerHash( String s , int start , int end ) {
         long hash = 0;
@@ -69,6 +83,7 @@ public final class Hash {
      * @param s      The string to hash.
      * @param start  where to start hashing.
      * @param end    Where to stop hashing.
+     * @return the hash code
      */
     public static final long longLowerHash( String s , int start , int end , long hash ) {
         for ( ; start < end; start++ )
@@ -76,16 +91,28 @@ public final class Hash {
         return hash;
     }
 
+    /** Adds the lower-case equivalent of a character to an existing hash code.
+     * @param hash the existing hash code
+     * @param c the character to add
+     * @return the hash code
+     */
     public static final long longLowerHashAppend( long hash , char c ) {
         return hash * _longHashConstant + Character.toLowerCase( c );
     }
 
+    /** Adds a character to an existing hash code.
+     * @param hash the existing hash code
+     * @param c the character to add
+     * @return the hash code
+     */
     public static final long longHashAppend( long hash , char c ) {
         return hash * _longHashConstant + c;
     }
-    
+
     /**
      * This is an exact copy of the String <code>hashCode()</code> function, aside from the lowercasing.
+     * @param s string to be hashed
+     * @return the hash code
      */
     public static final int lowerCaseHash( String s ) {
 	int h = 0;
@@ -95,6 +122,13 @@ public final class Hash {
         return h;
     }
 
+    /**
+     * Creates a hash code of a lowercase string from [start-end)
+     * @param s string to be hashed
+     * @param start the starting index
+     * @param end the ending index
+     * @return the hash code
+     */
     public static final int lowerCaseHash( String s , int start , int end ) {
 	int h = 0;
         final int len = s.length();
@@ -103,6 +137,13 @@ public final class Hash {
         return h;
     }
 
+    /**
+     * Creates a hash code of a string from [start-end)
+     * @param s string to be hashed
+     * @param start the starting index
+     * @param end the ending index
+     * @return the hash code
+     */
     public static final int hashCode( CharSequence s , int start , int end ) {
 	int h = 0;
         final int len = s.length();
@@ -111,6 +152,13 @@ public final class Hash {
         return h;
     }
 
+    /**
+     * Creates a hash code of a lowercase string with whitespace removed from [start-end)
+     * @param s string to be hashed
+     * @param start the starting index
+     * @param end the ending index
+     * @return the hash code
+     */
     public static final int nospaceLowerHash( String s , int start , int end ) {
 	int h = 0;
         final int len = s.length();
@@ -126,6 +174,8 @@ public final class Hash {
     /**
      * This is an exact copy of the String <code>hashCode()</code> function, aside from the lowercasing.
      * No, it's not.  It also ignores consecutive whitespace.
+     * @param s string to be hashed
+     * @return the hash code
      */
     public static final int lowerCaseSpaceTrimHash( String s ) {
 	int h = 0;
@@ -143,6 +193,13 @@ public final class Hash {
         return h;
     }
 
+    /**
+     * Creates a hash code of a lowercase string from [start-end) ignoring whitespace
+     * @param s string to be hashed
+     * @param start the starting index
+     * @param end the ending index
+     * @return the hash code
+     */
     public static final int lowerCaseSpaceTrimHash( String s , int start , int end ) {
 	int h = 0;
         int len = s.length();

@@ -8,10 +8,12 @@ import java.util.regex.*;
 
 import bmsi.util.*;
 
-
+/** @expose */
 public class DiffUtil {
 
-    /**
+    /** Calculates the differences between two strings.
+     * @param a First string
+     * @param b Second string
      * @return diff to get back to a from b
      */
     public static String computeDiff( String a , String b ){
@@ -20,10 +22,10 @@ public class DiffUtil {
 	    a = "";
 	if ( b == null )
 	    b = "";
-	
+
 	String aSplit[] = a.split("\r?\n");
 	String bSplit[] = b.split("\r?\n");
-	
+
 	Diff d = new Diff( aSplit , bSplit );
 	DiffPrint.Base p = new DiffPrint.NormalPrint( aSplit , bSplit );
 	StringWriter out = new StringWriter();
@@ -32,6 +34,11 @@ public class DiffUtil {
 	return out.toString();
     }
 
+    /** Applies a given series of diff commands to a string.
+     * @param base String to apply commands to
+     * @param script String from which to parse commands
+     * @return The resulting string
+     */
     public static String applyScript( String base , String script ){
         List<Command> commands = parseScript( script );
         List<String> lines = stringToLines( base );
@@ -39,7 +46,7 @@ public class DiffUtil {
         for ( int i=commands.size()-1; i>=0 ; i-- ){
             Command c = commands.get(i);
             c.applyBackwards( lines );
-            
+
         }
 
         StringBuilder buf = new StringBuilder( base.length() );
@@ -48,7 +55,10 @@ public class DiffUtil {
         return buf.toString().trim();
     }
 
-
+    /** Creates a list of diff commands from a given string.
+     * @param script String to parse
+     * @return List of commands
+     */
     static List<Command> parseScript( String script ){
 
         List<String> scriptLines = stringToLines( script );
@@ -73,11 +83,17 @@ public class DiffUtil {
         return commands;
     }
 
+    /** End-of-line representation.  Value is "([\n])". */
     final static Pattern EOL = Pattern.compile("([\n])");
+
+    /** Creates a list of lines from a given string.
+     * @param s String to divide into lines
+     * @return A list of lines in the string
+     */
     static List stringToLines( String s ){
         List<String> l = new ArrayList<String>();
         Matcher m = EOL.matcher( s );
-        
+
         int prev = 0;
         while ( m.find() ){
             String temp = s.substring( prev , m.end()  );
@@ -93,7 +109,7 @@ public class DiffUtil {
         return l;
     }
 
-
+    /** Format for diff lines.  Value is: "^(\\d+),?(\\d*)([adc])(\\d+),?(\\d*)$". */
     static final Pattern command = Pattern.compile("^(\\d+),?(\\d*)([adc])(\\d+),?(\\d*)$");
 
     static class Command {
@@ -254,6 +270,10 @@ public class DiffUtil {
 
     }
 
+    /** Replaces "\r"s with "EOR"s and "\n"s with "EON"s for the string.
+     * @param s String to alter
+     * @return Altered string
+     */
     static String explain( String s ){
         return s.replaceAll("\r","EOR").replaceAll("\n","EON" );
     }

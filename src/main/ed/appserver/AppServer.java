@@ -358,7 +358,8 @@ public class AppServer implements HttpHandler {
 
     }
 
-    /** Checks how long it takes to get a page from the cache.
+    /** Determines how long this response should be cached for.
+        result is to set Cache-Time and Expires
      * @param ar The app request which contains the staticCacheTime function
      * @param jsURI The URI to find in the cache
      * @param request The HTTP request to process

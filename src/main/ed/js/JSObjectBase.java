@@ -508,6 +508,19 @@ public class JSObjectBase implements JSObject {
 
     // ---
 
+    /**
+     * @return a nice String representation.  user defined if available
+     *         or json
+     */
+    public String toPrettyString(){
+        Object temp = get( "toString" );
+        
+        if ( ! ( temp instanceof JSFunction ) )
+            return JSON.serialize( this );
+        
+        return toString();
+    }
+    
     /** Get the string representation of this object.
      * @return the string representation of this object.
      */

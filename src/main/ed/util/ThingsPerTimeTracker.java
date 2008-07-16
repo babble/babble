@@ -2,21 +2,27 @@
 
 package ed.util;
 
+/** @expose */
 public class ThingsPerTimeTracker {
 
-    /**
+    /** Initializes a new time tracker
      * @param interval bucket size.  so for per second, use 1000
+     * @param intervalsBack the number of intervals to save
      */
     public ThingsPerTimeTracker( long interval , int intervalsBack ){
         _interval = interval;
         _counts = new int[intervalsBack];
         _lastBucket = System.currentTimeMillis();
     }
-    
+
+    /** Add one to a bucket */
     public void hit(){
         hit(1);
     }
 
+    /** Adds a given number to a bucket
+     * @param num the number to add
+     */
     public void hit( int num ){
         long b = _bucket();
         while ( _lastBucket < b ){
@@ -24,27 +30,31 @@ public class ThingsPerTimeTracker {
             if ( _pos == _counts.length )
                 _pos = 0;
             _counts[_pos] = 0;
-            
+
             _lastBucket += _interval;
         }
-        
+
         _counts[_pos] += num;
-        return;        
+        return;
     }
 
     private long _bucket(){
         final long t = System.currentTimeMillis();
         return t - ( t % _interval );
     }
-    
+
+    /** Returns the number of intervals to save.
+     * @return the number of intervals to save
+     */
     public int size(){
         return _counts.length;
     }
 
-    /**
+    /** Gets a given interval
      * @param num
      *   0 = now
      *   MAX = farthest back
+     * @return the number of hits on that interval
      */
     public int get( int num ){
         int p = _pos - num;
@@ -53,13 +63,14 @@ public class ThingsPerTimeTracker {
         return _counts[ p ];
     }
 
+    /** Performs a 0-count hit */
     public void validate(){
         hit( 0 );
     }
 
     private long _lastBucket;
     private int _pos = 0;
-    
+
     private final int _counts[];
     private final long _interval;
 }
