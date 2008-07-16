@@ -28,7 +28,7 @@ public class MimeTypes {
     }
 
     public static String getDispositionFromMimeType( String mimeType ){
-        if ( mimeType.startsWith( "image/" ) )
+        if ( mimeType != null && mimeType.startsWith( "image/" ) )
             return "inline";
         return "attachment";
     }
