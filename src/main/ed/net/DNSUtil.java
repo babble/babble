@@ -28,6 +28,16 @@ public class DNSUtil {
             return host;
         return host.substring( idx + 1 );
     }
+
+    public static String getJustDomainName( String host ){
+        String tld = getTLD( host );
+        host = host.substring( 0 , host.length() - ( tld.length() + 1 ) );
+
+        int idx = host.lastIndexOf( "." );
+        if ( idx < 0 )
+            return host;
+        return host.substring( idx + 1 );
+    }
     
     public static String getTLD( String host ){
         
