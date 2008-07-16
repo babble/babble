@@ -46,6 +46,7 @@ public class GitMonitor {
                             fullCheck();
                         }
                         catch ( Throwable t ){
+			    System.err.println( "full check failed" );
                             t.printStackTrace();
                         }
                         
@@ -78,6 +79,8 @@ public class GitMonitor {
                     _checkHeads( tags );
                 }
                 
+		_watchedDirs.add( root );
+
 	    }
 	    catch ( IOException ioe ){
 		ioe.printStackTrace();
