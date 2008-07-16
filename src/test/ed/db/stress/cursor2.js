@@ -58,8 +58,16 @@ function reader(){
         
         testCursor( t.find() );
         testCursor( t.find().sort( { name : 1 } ) , true );
+        testCursor( t.find().sort( { name : 1 } ).limit( 100 ) , false );
+        testCursor( t.find().sort( { name : -1 } ).limit( 100 ) , false );
+
         testCursor( t.find().sort( { sub : -1 } ) , false );
+        testCursor( t.find().sort( { sub : -1 } ).limit( 100 ) , false );
+        testCursor( t.find().sort( { sub : 1 } ).limit( 100 ) , false );
+        
         testCursor( t.find().sort( { blah : 1 } ) , true );
+        testCursor( t.find().sort( { blah : 1 } ).limit( 100 ) , false );
+        testCursor( t.find().sort( { blah : -1 } ).limit( 100 ) , false );
 
         assert( t.validate().valid );
     }
