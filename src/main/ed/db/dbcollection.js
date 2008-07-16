@@ -187,7 +187,7 @@ DBCollection.prototype._dbCommand = function( cmdObj ) {
 }
 
 DBCollection.prototype.sample = function( num , query , fields ){
-    var r = this.getDB().dbEval(
+    var r = this.getDB().eval(
         function(){
             var a = db[args[0]].find( args[2] || {} , args[3] ).limit(10000).toArray();
             a.shuffle();
