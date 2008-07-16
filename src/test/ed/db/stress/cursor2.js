@@ -43,13 +43,14 @@ function testCursor( cursor ){
     );
     
     if ( num != total ){
-        print( "X : " + num + tojson( t.validate() ) );
+        print( "X : " + num + " should be (" + total + ") validated : " + t.validate().valid );
         if ( total - num < 10 )
             return;
         
         going = false;
         assert( 0 );
     }
+    
 }
 
 function reader(){
