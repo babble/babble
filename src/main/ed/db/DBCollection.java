@@ -302,7 +302,7 @@ public abstract class DBCollection extends JSObjectLame {
         _base = base;
         _name = name;
         _fullName = _base.getName() + "." + name;
-
+        
         _entries.put( "base" , _base.getName() );
         _entries.put( "name" , _name );
 
@@ -428,7 +428,12 @@ public abstract class DBCollection extends JSObjectLame {
                               return "{DBCollection:" + DBCollection.this._fullName + "}";
                           }
                       } );
-
+     
+        if ( _name.equals( "_file" ) )
+            JSFile.setup( this );
+        else if ( _name.equals( "_chunks" ) )
+            JSFileChunk.setup( this );
+   
     }
 
     private final Object _handleThis( Scope s , Object o ){
