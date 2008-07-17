@@ -10,28 +10,77 @@ import ed.js.func.*;
 import ed.js.engine.*;
 
 /** DB Collection
+ * @anonymous name : {base}, desc : {The name of the database containing this collection.} type : {String}, isField : {true}
+ * @anonymous name : {name}, desc : {The name of this collection}, type : {String}, isField : {true}
+ * @anonymous name : {save}, desc : {Saves an object to the collection.}, return : {type : (JSObject), desc : (new object from the collection)}, param : {type : (JSObject), name : (o), desc : (object to save)}
+ * @anonymous name : {update}, desc : {Updates an object in the collection.}, return : {type : (JSObject), desc : (the updated object)}, param : {type : (JSObject), name : (o), desc : (object to update)}, param : { type : (JSObject), name : (newo), desc : (object with which to update the old object)}, param : { type : (JSObject), name : (opts), desc : (boolean options to set for update)}
+ * @anonymous name : {remove}, desc : {Removes an object from this collection.}, return : {type : (int), desc : (-1)}, param : {type : (JSObject), name : (q), desc : (removes object that match this query)}
+ * @anonymous name : {apply}, desc : {Prepares an object for insertion into the collection.}, return : {type : (JSObject), desc : (given object with added "hidden" database fields)}, param : {type : (JSObject), name : (o), desc : (object to prepare) }
+ * @anonymous name : {find}, desc : {Finds objects in this collection matching a given query.}, return : {type : (DBCursor), desc : (a cursor over any matching elements)}, param : {type : (JSObject), name : (query), desc : (query to use)}, param : { type : (JSObject), name : (f), desc : (fields to return)
+ * @anonymous name : {findOne}, desc : {Returns the first object in this collection matching a given query.}, return : {type : (JSObject), desc : (the first matching element)}, param : {type : (JSObject), name : (query), desc : (query to use)}, param : { type : (JSObject), name : (f), desc : (fields to return)
+ * @anonymous name : {tojson}, desc : {Returns a description of this collection as a string.}, return : {type : (String), desc : ("{DBCollection:this.collection.name}")}
  * @expose
  */
 public abstract class DBCollection extends JSObjectLame {
 
+    /** @unexpose */
     final static boolean DEBUG = Boolean.getBoolean( "DEBUG.DB" );
 
+    /** Saves an object to the database.
+     * @param o object to save
+     * @return the new database object
+     */
     protected abstract JSObject doSave( JSObject o );
+
+    /** Performs an update operation.
+     * @param q search query for old object to update
+     * @param o object with which to update <tt>q</tt>
+     * @param upsert if the database should create the element if it does not exist
+     * @param apply if an _id field should be added to the new object
+     */
     public abstract JSObject update( JSObject q , JSObject o , boolean upsert , boolean apply );
 
+    /** Adds any necessary fields to a given object before saving it to the collection.
+     * @param o object to which to add the fields
+     */
     protected abstract void doapply( JSObject o );
+
+    /** Removes an object from the collection.
+     * @param id The _id of the object to be removed
+     * @return -1
+     */
     public abstract int remove( JSObject id );
 
+    /** Finds an object by its id.
+     * @param id the id of the object
+     * @return the object, if found
+     */
     protected abstract JSObject dofind( ObjectId id );
+
+    /** Finds an object.
+     * @param ref query used to search
+     * @param fields the fields of matching objects to return
+     * @param numToSkip will not return the first <tt>numToSkip</tt> matches
+     * @param numToReturn limit the results to this number
+     * @return the objects, if found
+     */
     public abstract Iterator<JSObject> find( JSObject ref , JSObject fields , int numToSkip , int numToReturn );
 
+    /** Ensures an index on this collection.
+     * @param keys fields to use for index
+     * @param name an identifier for the index
+     */
     public abstract void ensureIndex( JSObject keys , String name );
 
     // ------
 
+    /** Finds an object by its id.
+     * @param id the id of the object
+     * @return the object, if found
+     */
     public final JSObject find( ObjectId id ){
         ensureIDIndex();
-        
+
         JSObject ret = dofind( id );
 
         if ( ret == null )
@@ -42,37 +91,53 @@ public abstract class DBCollection extends JSObjectLame {
         return ret;
     }
 
+    /** Ensures an index on the id field, if one does not already exist.
+     * @param key an object with an _id field.
+     */
     public void checkForIDIndex( JSObject key ){
         if ( _checkedIdIndex ) // we already created it, so who cares
             return;
 
         if ( key.get( "_id" ) == null )
             return;
-        
+
         if ( key.keySet().size() > 1 )
             return;
-        
+
         ensureIDIndex();
     }
 
+    /** Creates an index on the id field, if one does not already exist.
+     * @param key an object with an _id field.
+     */
     public void ensureIDIndex(){
         if ( _checkedIdIndex )
             return;
-        
+
         ensureIndex( _idKey );
         _checkedIdIndex = true;
 
         System.out.println( "TEMP: verify _id index on " + _fullName );
     }
-    
+
+    /** Creates an index on a set of fields, if one does not already exist.
+     * @param keys an object with a key set of the fields desired for the index
+     */
     public final void ensureIndex( final JSObject keys ){
         ensureIndex( keys , false );
     }
 
+    /** Forces creation of an index on a set of fields, if one does not already exist.
+     * @param keys an object with a key set of the fields desired for the index
+     */
     public final void createIndex( final JSObject keys ){
         ensureIndex( keys , true );
     }
 
+    /** Creates an index on a set of fields, if one does not already exist.
+     * @param keys an object with a key set of the fields desired for the index
+     * @param force if index creation should be forced, even if it is unnecessary
+     */
     public final void ensureIndex( final JSObject keys , final boolean force ){
         if ( checkReadOnly( false ) ) return;
 
@@ -96,10 +161,15 @@ public abstract class DBCollection extends JSObjectLame {
             _createIndexesAfterSave.add( name );
     }
 
+    /** Clear all indices on this collection. */
     public void resetIndexCache(){
         _createIndexes.clear();
     }
 
+    /** Generate an index name from the set of fields it is over.
+     * @param keys the names of the fields used in this index
+     * @return a string representation of this index's fields
+     */
     public String genIndexName( JSObject keys ){
         String name = "";
         for ( String s : keys.keySet() ){
@@ -113,14 +183,26 @@ public abstract class DBCollection extends JSObjectLame {
         return name;
     }
 
+    /** Queries for an object in this collection.
+     * @param ref object for which to search
+     * @return an iterator over the results
+     */
     public final Iterator<JSObject> find( JSObject ref ){
         return find( ref , null , 0 , 0 );
     }
 
+    /**
+     */
     public final ObjectId apply( Object o ){
         return apply( o , true );
     }
 
+    /** Adds the "private" fields _save, _update, and _id to an object.
+     * @param o object to which to add fields
+     * @param ensureID if an _id field is needed
+     * @return the _id assigned to the object
+     * @throws RuntimeException if <tt>o</tt> is not a JSObject
+     */
     public final ObjectId apply( Object o , boolean ensureID ){
 
         if ( ! ( o instanceof JSObject ) )
@@ -141,19 +223,34 @@ public abstract class DBCollection extends JSObjectLame {
         return id;
     }
 
+    /** Sets a constructor to use for objects in this collection.
+     * @param cons the constructor to use
+     */
     public void setConstructor( JSFunction cons ){
         _constructor = cons;
     }
 
+    /** Returns the constructor for this collection.
+     * @return the constructor function
+     */
     public JSFunction getConstructor(){
 	return _constructor;
     }
 
+    /** Saves an object to this collection.
+     * @param o the object to save
+     * @return the new object from the collection
+     */
     public final Object save( Object o ){
         if ( checkReadOnly( true ) ) return null;
         return save( null , o );
     }
 
+    /** Saves an object to this collection executing the presave function in a given scope.
+     * @param s scope to use (can be null)
+     * @param o the object to save
+     * @return the new object from the collection
+     */
     public final Object save( Scope s , Object o ){
         if ( checkReadOnly( true ) ) return o;
         o = _handleThis( s , o );
@@ -197,6 +294,10 @@ public abstract class DBCollection extends JSObjectLame {
 
     // ------
 
+    /** Initializes a new collection.
+     * @param base database in which to create the collection
+     * @param name the name of the collection
+     */
     protected DBCollection( DBBase base , String name ){
         _base = base;
         _name = name;
@@ -272,13 +373,13 @@ public abstract class DBCollection extends JSObjectLame {
 
         _find = new JSFunctionCalls2() {
                 public Object call( Scope s , Object o , Object fieldsWantedO , Object foo[] ){
-                    
+
                     if ( o == null )
                         o = new JSObjectBase();
 
                     if ( o instanceof ObjectId )
                         return find( (ObjectId)o );
-                    
+
                     if ( o instanceof JSObject ){
                         JSObject key = (JSObject)o;
                         checkForIDIndex( key );
@@ -328,6 +429,11 @@ public abstract class DBCollection extends JSObjectLame {
                           }
                       } );
 
+        if ( _name.equals( "_file" ) )
+            JSFile.setup( this );
+        else if ( _name.equals( "_chunks" ) )
+            JSFileChunk.setup( this );
+
     }
 
     private final Object _handleThis( Scope s , Object o ){
@@ -350,14 +456,14 @@ public abstract class DBCollection extends JSObjectLame {
                 return;
             throw new NullPointerException( "can't be null" );
         }
-        
-        if ( o instanceof JSObjectBase && 
+
+        if ( o instanceof JSObjectBase &&
              ((JSObjectBase)o).isPartialObject() )
             throw new IllegalArgumentException( "can't save partial objects" );
 
         if ( o instanceof JSObject )
             return;
-        
+
         throw new IllegalArgumentException( " has to be a JSObject not : " + o.getClass() );
     }
 
@@ -436,6 +542,10 @@ public abstract class DBCollection extends JSObjectLame {
         }
     }
 
+    /** Gets any type of object matching the given object from this collection's database.
+     * @param n object to find
+     * @return the object, if found
+     */
     public Object get( Object n ){
         if ( n == null )
             return null;
@@ -462,26 +572,45 @@ public abstract class DBCollection extends JSObjectLame {
         return getCollection( s );
     }
 
+    /** Find a collection that is prefixed with this collection's name.
+     * @param n the name of the collection to find
+     * @return the matching collection
+     */
     public DBCollection getCollection( String n ){
         return _base.getCollection( _name + "." + n );
     }
 
+    /** Returns the name of this collection.
+     * @return  the name of this collection
+     */
     public String getName(){
         return _name;
     }
 
+    /** Returns the full name of this collection, with the database name as a prefix.
+     * @return  the name of this collection
+     */
     public String getFullName(){
         return _fullName;
     }
 
+    /** Returns the database this collection is a member of.
+     * @return this collection's database
+     */
     public DBBase getDB(){
         return _base;
     }
 
+    /** Returns the database this collection is a member of.
+     * @return this collection's database
+     */
     public DBBase getBase(){
         return _base;
     }
 
+    /** Returns if this collection can be modified.
+     * @return if this collection can be modified
+     */
     protected boolean checkReadOnly( boolean strict ){
         if ( ! _base._readOnly )
             return false;
@@ -500,39 +629,60 @@ public abstract class DBCollection extends JSObjectLame {
         return true;
     }
 
+    /** Calculates the hash code for this collection.
+     * @return the hash code
+     */
     public int hashCode(){
         return _fullName.hashCode();
     }
 
+    /** Checks if this collection is equal to another object.
+     * @param o object with which to compare this collection
+     * @return if the two collections are equal
+     */
     public boolean equals( Object o ){
         return o == this;
     }
 
+    /** Returns a string representation of this collection, that is, "{DBCollection: name.of.this.collection}"
+     * @return a string representation of this collection
+     */
     public String toString(){
         return "{DBCollection:" + _name + "}";
     }
 
+    /** @unexpose */
     final DBBase _base;
 
+    /** @unexpose */
     final JSFunction _save;
+    /** @unexpose */
     final JSFunction _update;
+    /** @unexpose */
     final JSFunction _apply;
+    /** @unexpose */
     final JSFunction _find;
 
+    /** @unexpose */
     static Set<String> _methods;
 
+    /** @unexpose */
     protected Map _entries = new TreeMap();
+    /** @unexpose */
     final protected String _name;
+    /** @unexpose */
     final protected String _fullName;
 
+    /** @unexpose */
     protected JSFunction _constructor;
 
+    /** @unexpose */
     private boolean _anyUpdateSave = false;
 
     private boolean _checkedIdIndex = false;
     final private Set<String> _createIndexes = new HashSet<String>();
     final private Set<String> _createIndexesAfterSave = new HashSet<String>();
-    
+
     private final static JSObjectBase _upsertOptions = new JSObjectBase();
     static {
         _upsertOptions.set( "upsert" , true );

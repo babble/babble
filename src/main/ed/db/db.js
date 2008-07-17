@@ -129,7 +129,7 @@ DB.prototype.eval = function(jsfunction) {
     return res.retval;
 }
 DB.prototype.dbEval = function(jsfunction) { 
-    log("deprecated db.dbEval() called");
+    //log("deprecated db.dbEval() called");
     return this.eval(jsfunction);
 }
 

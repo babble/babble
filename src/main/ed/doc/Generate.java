@@ -16,7 +16,7 @@ import ed.io.SysExec;
  */
 public class Generate {
 
-    private static boolean debug = true;
+    private static boolean debug = false;
 
     /** Documentation version string... can be anything: "1.3.3", "dev", "BLARGH!", whatever
      */
@@ -28,6 +28,13 @@ public class Generate {
     private static DBCollection codedb;
     private static DBCollection docdb;
     private static DBCollection htmldb;
+
+    public static boolean generateInProgress = false;
+
+    public static void initialize() {
+        javaSrcs.clear();
+        processedFiles.clear();
+    }
 
     public static void connectToDb() {
         if ( connected ) return;
@@ -66,6 +73,7 @@ public class Generate {
      *  the directory exists, and ensure that it's empty
      */
     public static void setupHTMLGeneration(String path) throws Exception {
+        generateInProgress = true;
 
         Scope s = Scope.getThreadLocal();
         Object app = s.get("__instance__");
@@ -210,17 +218,14 @@ public class Generate {
      */
     private static ArrayList<String> javaSrcs = new ArrayList<String>();
 
-    public static void srcToDb(String path) throws IOException {
-        javaSrcs.clear();
-        processedFiles.clear();
-        _srcToDb(path);
-
+    // Once javaSrcs has been filled in, process the java files
+    public static void javaSrcsToDb() throws IOException {
         for(int i=0; i<javaSrcs.size(); i++) {
             javaToDb(javaSrcs.get(i));
         }
     }
 
-    private static void _srcToDb(String path) throws IOException {
+    public static void srcToDb(String path) throws IOException {
         File f = new File(path);
 
         // check for invalid paths and hidden files
@@ -243,7 +248,7 @@ public class Generate {
         if(f.isDirectory()) {
             File farray[] = f.listFiles();
             for(int i=0; i<farray.length; i++) {
-                _srcToDb(farray[i].getCanonicalPath());
+                srcToDb(farray[i].getCanonicalPath());
             }
         }
         // if it's a java file, add it to the list

@@ -208,15 +208,18 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         return foo;
     }
 
-    public File getFileFromPath( String path ){
+    public File getFileFromPath( final String path ){
         _init();
         Object o = getFromPath( path , false );
 
         if ( o instanceof File )
             return (File)o;
         
-        if ( o instanceof JSFileLibrary )
-            return ((JSFileLibrary)o)._base;
+        if ( o instanceof JSFileLibrary ){
+            File f = ((JSFileLibrary)o)._base;
+            getFileFromPath( path + "/index.jxp" );
+            return f;
+        }
 
         JxpSource js = null;
 
@@ -229,9 +232,10 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
             return null;
         
         File f = js.getFile();
-
+        
         if ( f != null )
             _fileCache.put( f , js );
+
         return f;
     }
 
@@ -240,8 +244,9 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
     }
 
     public Object getFromPath( String path , boolean evalToFunction ){
-        if ( path == null || path.trim().length() == 0 )
+        if ( path == null || path.trim().length() == 0 ){
             return this;
+        }
         
         _init();
 
@@ -271,7 +276,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
             return null;
         
         if ( ! ( foo instanceof JSLibrary ) )
-            throw new RuntimeException( dir + " is not a directory" );
+            return null;
         
         JSLibrary lib = (JSLibrary)foo;
         return lib.getFromPath( next , evalToFunction );
@@ -339,7 +344,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
                 
                 Object o = lib.getFromPath( nextPath , false );
                 if ( o == null )
-                    throw new RuntimeException( "can't find [" + nextPath + "]" );
+                    throw new RuntimeException( "can't find [" + nextPath + "] from [" + _base + "]" );
                 
                 if ( ! ( o instanceof JxpSource ) ){
                     throw new RuntimeException( "wasn't jxp source.  was [" + o.getClass() + "]" );

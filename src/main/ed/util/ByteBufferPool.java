@@ -36,8 +36,8 @@ public class ByteBufferPool extends SimplePool<ByteBuffer> {
         return bb;
     }
 
-    /** Sets the size of a given buffer to its capacity and resets the buffer's mark's position to 0.
-     * @param buf Buffer to reset.
+    /** Called when the given buffer is added to the pool.  Sets the size to its capacity and resets its mark's position to 0.
+     * @param buf Buffer to be added.
      * @return true
      */
     public boolean ok( ByteBuffer buf ){

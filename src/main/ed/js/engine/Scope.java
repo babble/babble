@@ -812,6 +812,7 @@ public class Scope implements JSObject {
     public void pushException( Throwable t ){
         if ( _exceptions == null )
             _exceptions = new Stack<Throwable>();
+        StackTraceHolder.getInstance().fix( t );
         _exceptions.push( t );
     }
 
