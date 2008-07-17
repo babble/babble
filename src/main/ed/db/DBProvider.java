@@ -83,10 +83,7 @@ public class DBProvider {
     }
 
     static String getDefaultHost(){
-        String ip = System.getenv( "db_ip" );
-        if ( ip == null || ip.trim().length() == 0 )
-            ip = "127.0.0.1";
-        return ip;
+        return Config.get().getTryEnvFirst( "db_ip" , "127.0.0.1" );
     }
 
     private static DBApiLayer create(String root , String ip, int port){
