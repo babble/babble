@@ -71,6 +71,15 @@ public class JSObjectSize {
             return temp;
         }
 
+        if ( o instanceof JSFileChunk ){
+            JSFileChunk chunk = (JSFileChunk)o;
+            Object data = chunk.get( "data" );
+            if ( data == null )
+                return 32;
+            
+            return OBJ_OVERHEAD + ((JSBinaryData)data).length();
+        }
+
         String blah = o.getClass().toString();
         if ( ! _seenClasses.contains( blah ) ){
             System.err.println( "can't size : " + blah );
