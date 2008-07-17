@@ -20,6 +20,11 @@ db = connect(database, host);
 
 arguments.forEach( function(file) {
     var f = openFile(file);    
-    db._files.save(f);
-    print("Uploaded file " + file + " id=" + f._id);
+    if (f.exists()) {
+        db._files.save(f);
+        print("Uploaded file " + file + " id=" + f._id);
+    }
+    else {
+        print(file + ": No such file");
+    }
 });
