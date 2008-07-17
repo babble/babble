@@ -10,6 +10,32 @@ import static ed.js.JSInternalFunctions.*;
 
 
 /** @expose
+ * @anonymous name : {toSource}, desc : {Returns this array serialized as json.}, return : {type : (String), desc : (the array in json form)}
+ * @anonymous name : {valueOf}, desc : {Returns this array.}, return : {type : (JSArray), desc : (the array)}
+ * @anonymous name : {reverse}, desc : {Reverses this array in place.}, return : {type : (JSArray), desc : (the reversed array)}
+ * @anonymous name : {pop}, desc : {Removes the last element of this array and returns it.}, return : {type : (JSObject), desc : (the former last element of the array)}
+ * @anonymous name : {shift}, desc : {Removes the first element of this array and returns it.}, return : {type : (JSObject), desc : (the former first element of this array)}
+ * @anonymous name : {join}, desc : {Creates a string from the array using a given delimeter.} param : {type : (String), name : (d), desc : (delimiter to use)}, return : { type : (String), desc : (delimiter-separated string of elements)}
+ * @anonymous name : {splice}, desc : {Inserts and removes elements from this array in place.}, param : {type : (int), name : (idx), desc : (index at which to start insertion and/or deletion)}, param : { type : (int), name : (num), desc : (number of elements to delete)}, param : {type : (any), name : (elem1 ... elemn), desc : (elements to insert into the array)}, return : {desc : (the deleted elements), type : (Array)}
+ * @anonymous name : {remove}, desc : {Removes the element at a given index of this array.}, return : { type : (any), desc : (the element removed)}, param : {name : (idx), desc : (index of the element to remove), type : (number)}
+ * @anonymous name : {push}, desc : {Adds a given object to the end of this array, returning the length of the array.}, return : {type : (number), desc : (the length of this array)}, param : {type : (any), name : (o), desc : (the element to add to the end of this array)}
+ * @anonymous name : {unshift}, desc : {Adds a given object to the beginning of this array.}, return : { type : (number), desc : (the length of this array)}, param : {type : (any), name : (o), desc : (the element to add to the end of this array)}
+ * @anonymous name : {concat}, desc : {Adds elements of a given array to this array.}, return : {type : (Array), desc : (the modified array)}, param : {type : (Array), name : (ar), desc : (an array of values to be added)}
+ * @anonymous name : {filter}, desc : {Returns the elements for which a given function returned true.}, return : {type : (Array), desc : (the elements for which the function returned true)}, param : { type : (function), name : (f), desc : (function to perform on each element)}
+ * @anonymous name : {reduce}, desc : {Apply a function simultaneously against two values of the array (from left-to-right) as to reduce it to a single value.}, return : {type : (any), desc : (single-value result)}, param : { type : (function), name : (f), desc : (function to perform on each pair of elements)}, param : {name : (initialValue), desc : (value to pass to the function with the first element of the array), type : (any) }
+ * @anonymous name : {reduceRight}, desc : {Apply a function simultaneously against two values of the array (from right-to-left) as to reduce it to a single value.}, return : {type : (any), desc : (single-value result)}, param : { type : (function), name : (f), desc : (function to perform on each pair of elements)}, param : {name : (initialValue), desc : (value to pass to the function with the last element of the array), type : (any) }
+ * @anonymous name : {dup}, desc : {Creates a duplicate of this array.}, return : {type : (Array), desc : (a copy of this array)}
+ * @anonymous name : {forEach}, desc : {Executes a function on each element of this array.}, param : {type : (function), name : (f), desc : (function to perform on each element)}
+ * @anonymous name : {every}, desc : {Tests whether all elements in the array pass the test implemented by the provided function.}, return : {type : (boolean), desc : (if every element passes)}, param : { type : (function), name : (f), desc : (function to test each element)}
+ * @anonymous name : {some}, desc : {Tests whether some element in the array passes the test implemented by the provided function.}, return : {type : (boolean), desc : (if there exists an element that passes)}, param : {type : (function), name : (f), desc : (function to test each element)}
+ * @anonymous name : {collect}, desc : {Creates a new array with the results of calling a provided function on every element in this array.}, return : {type : (Array), desc : (result of running a function on each element)}, param : {type : (function), name : (f), desc : (function to call on each element)}
+ * @anonymous name : {contains}, desc : {Checks if this array contains a given value.}, return : {type : (boolean), desc : (if this array contains the value)}, param : {type : (any), name : (o), value : (object for which to check)}
+ * @anonymous name : {indexOf}, desc : {Finds the first occurence of a given object in this array.}, return : {type : (boolean), desc : (the index of the first occurence of this value, or -1)}, param : {type : (any), name : (o), value : (object for which to check)}
+ * @anonymous name : {lastIndexOf}, desc : {Finds the last occurence of a given object in this array.}, return : {type : (boolean), desc : (the index of the last occurence of this value, or -1)}, param : {type : (any), name : (o), value : (object for which to check)}
+ * @anonymous name : {sort}, desc : {Sorts the elements of this array, optionally based on a given function.  Sorts this array in place. }, return : {type : (Array), desc : (the sorted array)}, param : {type : (function), name : (f), desc : (sorting function taking two parameters and returning 1, 0, or -1.)}
+ * @anonymous name : {compact}, desc : {Returns this array with any null elements removed.  Does not alter this array.}, return : {type : (Array), desc : (array without nulls)}
+ * @anonymous name : {each}, desc : {Executes a function on each element of this array, breaking if the function returns a false value.}, param : {type : (function), name : (f), desc : (function to perform on each element)}
+ *
  * http://developer.mozilla.org/en/docs/Core_JavaScript_1.5_Reference:Global_Objects:Array#Iteration_methods
  */
 public class JSArray extends JSObjectBase implements Iterable , List {
