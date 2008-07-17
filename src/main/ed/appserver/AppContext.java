@@ -87,7 +87,7 @@ public class AppContext {
             throw new RuntimeException( "couldn't load config" , e );
         }
 
-        _core = CoreJS.get().getLibrary( getCoreJSVersion() ) , this , null , true );
+        _core = CoreJS.get().getLibrary( getCoreJSVersion() , this , null , true );
         _logger.info( "corejs : " + _core.getRoot() );
         _scope.put( "core" , _core , true );
 
@@ -153,8 +153,10 @@ public class AppContext {
 
     public String getCoreJSVersion(){
         Object o = _scope.get( "corejsversion" );
-        if ( o != null )
+        if ( o != null ){
+            _logger.error( "you are using corejsversion which is deprecated.  please use version.corejs" );
             return JS.toString( o );
+        }
         
         return getVersionForLibrary( "corejs" );
     }
