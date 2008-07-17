@@ -73,19 +73,35 @@ public class HttpRequest extends JSObjectLame {
     public String getURL(){
         return _url;
     }
-
+    
+    /**
+     * Gets the entire http header
+     * @return the entire http header
+     */
     public String getRawHeader(){
         return _rawHeader;
     }
 
+    /**
+     * This will be either GET, POST, HEAD, etc...
+     * @return http method used
+     */
     public String getMethod(){
         return _command;
     }
     
+    /**
+     * for "/foo?a=1"
+     * would return "a=1"
+     * @return the query part of the request.  null if there was none
+     */
     public String getQueryString(){
         return _queryString;
     }
-
+    
+    /**
+     * @return the total size of the http message, header + body
+     */
     public int totalSize(){
         int size = _rawHeader.length();
         size += getIntHeader( "Content-Length" , 0 );
@@ -96,16 +112,23 @@ public class HttpRequest extends JSObjectLame {
         _finishParsing();
         return _command + " " + _uri + " HTTP/1." + ( _http11 ? "1" : "" ) + " : " + _headers + "  " + _urlParameters + " " + _postParameters;
     }
-    
+
+    /**
+     * @unexpose
+     */
     public boolean keepAlive(){
         String c = getHeader( "connection" );
         if ( c != null )
             return ! c.equalsIgnoreCase( "close" );
         return _http11;
     }
-
+    
     // header stuff
 
+    /**
+     * this returns the host header minus ant port information if there is any
+     * @return the host to which the request was sent
+     */
     public String getHost(){
         String host = getHeader( "Host" );
         if ( host == null )
@@ -125,7 +148,10 @@ public class HttpRequest extends JSObjectLame {
         
         return host;
     }
-
+    
+    /**
+     * @return the port the request was for
+     */
     public int getPort(){
         String host = getHeader( "Host" );
         if ( host == null )
@@ -137,15 +163,29 @@ public class HttpRequest extends JSObjectLame {
         
         return StringParseUtil.parseInt( host.substring( idx + 1 ) , 0 );
     }
+    
 
+    /**
+     * gets the raw http header
+     * @param h case insensitive
+     * @return the header 
+     */
     public String getHeader( String h ){
         return _headers.get( h );
     }
 
+    /**
+     * gets the http header parsed into an int
+     * if the header wasn't sent or can't be parsed as an int, def is returned
+     * @return the header parsed as an int
+     */
     public int getIntHeader( String h , int def ){
         return StringParseUtil.parseInt( getHeader( h ) , def );
     }
 
+    /**
+     * @return an array of http header names
+     */
     public JSArray getHeaderNames(){
         JSArray a = new JSArray();
         a.addAll( _headers.keySet() );
@@ -154,6 +194,11 @@ public class HttpRequest extends JSObjectLame {
 
     // cookies
 
+
+    /**
+     * cookie access
+     * @return the cookie value.  null if it doesn't exist
+     */
     public String getCookie( String s ){
         if ( _cookies == null ){
             JSObjectBase m = new JSObjectBase();
@@ -176,6 +221,11 @@ public class HttpRequest extends JSObjectLame {
         return _cookies.getAsString( s );
     }
 
+
+    /**
+     * Gets all cookie names
+     * @return array of cookie names
+     */
     public JSArray getCookieNames(){
         getCookie( "" );
         JSArray a = new JSArray();
@@ -183,6 +233,12 @@ public class HttpRequest extends JSObjectLame {
         return a;
     }
 
+    /**
+     * expose cookies as a javascript object
+     * this is so you can request.getCookies().username
+     * NOTE: you can't add cookies like this
+     * @return all cookies as a javascript obejct
+     */
     public JSObject getCookies(){
         getCookie( "" );
         return _cookies;
@@ -190,6 +246,11 @@ public class HttpRequest extends JSObjectLame {
     
     // param stuff
 
+    /** 
+     * gets all the paramter names specified in the request.  
+     * this include GET and POST paramters
+     * @return array of paramter names
+     */
     public JSArray getParameterNames(){
         _finishParsing();
         
@@ -206,26 +267,39 @@ public class HttpRequest extends JSObjectLame {
         
         return a;
     }
-
+    
+    /**
+     * parses the parameter n as a boolean
+     * if it doesn't exist, or can't be parsed as a boolean, def is returned
+     * @return true/false if paramter is specified or def
+     */
     public boolean getBoolean( String n , boolean def ){
         return StringParseUtil.parseBoolean( getParameter( n ) , def );
     }
 
+    /**
+     * parses the parameter n as an int
+     * if it doesn't exist, or can't be parsed as an int, def is returned
+     * @return number if paramter is specified or def
+     */
     public int getInt( String n , int def ){
         return StringParseUtil.parseInt( getParameter( n ) , def );
     }
-
-    // -----
-
+    
     List<String> _getParameter( String name ){
         List<String> l = _postParameters.get( name );
         if ( l != null )
             return l;
         return _urlParameters.get( name );
     }
+    
 
-    // -----
-
+    /**
+     * this is used when you have multiple values for the same paramter
+     * i.e. "/foo?a=1&a=2"
+     * in this case it would return [ "1" , "2" ]
+     * @return array of values specified by name
+     */
     public JSArray getParameters( String name ){
         List<String> lst = _getParameter( name );
         if ( lst == null )
@@ -237,10 +311,18 @@ public class HttpRequest extends JSObjectLame {
 	return a;
     }
 
+    /**
+     * parameter access
+     * @return paramter specified by name, null if none
+     */
     public String getParameter( String name ){
         return getParameter( name , null );
     }
 
+    /**
+     * parameter access
+     * @return paramter specified by name, def if none
+     */
     public String getParameter( String name , String def ){
         _finishParsing();
         List<String> s = _getParameter( name );
@@ -454,24 +536,40 @@ public class HttpRequest extends JSObjectLame {
         return l;
     }
 
+    /**
+     * @unexpose
+     */
+
     public Object getAttachment(){
         return _attachment;
     }
 
+    /**
+     * @unexpose
+     */
     public void setAttachment( Object o ){
         if ( _attachment != null )
             throw new RuntimeException( "attachment already set" );
         _attachment = o;
     }
 
+    /**
+     * @unexpose
+     */
     public PostData getPostData(){
         return _postData;
     }
 
+    /**
+     * @return date at which request started
+     */
     public JSDate getStart(){
         return _start;
     }
 
+    /**
+     * @unexpose
+     */
     public long[] getRange(){
         if ( _rangeChecked )
             return _range;
@@ -484,6 +582,11 @@ public class HttpRequest extends JSObjectLame {
         return _range;
     }
 
+
+    /**
+     * gets the ip of the client
+     * @return the ip of the client
+     */
     public String getRemoteIP(){
         if ( _remoteIP != null )
             return _remoteIP;
@@ -496,6 +599,9 @@ public class HttpRequest extends JSObjectLame {
         return _remoteIP;
     }
 
+    /**
+     * @unexpose
+     */    
     public static long[] _parseRange( String s ){
         if ( s == null )
             return null;
