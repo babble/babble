@@ -87,7 +87,7 @@ public class AppContext {
             throw new RuntimeException( "couldn't load config" , e );
         }
 
-        _core = CoreJS.get().getLibrary( JS.toString( _scope.get( "corejsversion" ) ) , this , null , true );
+        _core = CoreJS.get().getLibrary( getCoreJSVersion() ) , this , null , true );
         _logger.info( "corejs : " + _core.getRoot() );
         _scope.put( "core" , _core , true );
 
@@ -149,6 +149,14 @@ public class AppContext {
         Djang10Source.install(_scope);
 	_scope.lock( "user" ); // protection against global user object
 
+    }
+
+    public String getCoreJSVersion(){
+        Object o = _scope.get( "corejsversion" );
+        if ( o != null )
+            return JS.toString( o );
+        
+        return getVersionForLibrary( "corejs" );
     }
 
     public String getVersionForLibrary( String name ){
@@ -377,7 +385,7 @@ public class AppContext {
      * @return new File for index.jxp in that directory, or same file object if not
      */
     File tryIndex( File f ){
-
+        
         if ( ! ( f.isDirectory() && f.exists() ) )
             return f;
 
