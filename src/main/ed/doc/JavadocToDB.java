@@ -225,13 +225,13 @@ public class JavadocToDB {
                 JSObjectBase a = new JSObjectBase();
                 String aText = anon[j].text();
 
-                Pattern tagger = Pattern.compile("([a-z]+) : \\{([^\\}]+)\\}");
+                Pattern tagger = Pattern.compile("([A-Za-z]+) : \\{([^\\}]+)\\}");
                 Matcher m = tagger.matcher(aText);
                 JSArray params = new JSArray();
                 JSArray returns = new JSArray();
                 while(m.find()) {
                     if(m.group(1).equals("param")) {
-                        Pattern subtagger = Pattern.compile("([a-z]+) : \\(([^\\)]+)\\)");
+                        Pattern subtagger = Pattern.compile("([A-Za-z]+) : \\(([^\\)]+)\\)");
                         Matcher subm = subtagger.matcher(m.group(2));
                         JSObjectBase pgroup = new JSObjectBase();
                         pgroup.set("title", "param");
@@ -241,7 +241,7 @@ public class JavadocToDB {
                         params.add(pgroup);
                     }
                     else if(m.group(1).equals("return")) {
-                        Pattern subtagger = Pattern.compile("([a-z]+) : \\(([^\\)]+)\\)");
+                        Pattern subtagger = Pattern.compile("([A-Za-z]+) : \\(([^\\)]+)\\)");
                         Matcher subm = subtagger.matcher(m.group(2));
                         JSObjectBase pgroup = new JSObjectBase();
                         pgroup.set("title", "return");
@@ -309,6 +309,7 @@ public class JavadocToDB {
             while(p.hasNext())
                 javadocProp.add(p.next());
 
+            javadocObj.set("srcFile", (jsdocObj.get("srcFile")).toString());
             // remove the repeated class
             db.remove(dquery);
         }

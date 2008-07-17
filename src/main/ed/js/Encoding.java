@@ -13,21 +13,21 @@ import ed.js.engine.*;
  */
 public class Encoding {
 
-    /** Function to replace nonalphanumeric characters with their %hex equivalents.  Does not replace '@', '*', '-', '_', '+', '/', or '.'. */
+    /** Function to replace nonalphanumeric characters with their %hex equivalents.  Does not replace '@', '*', '-', '_', '+', '/', or '.'. This is an implementation of the JavaScript builtin method.  */
     public static JSFunction escape = new JSFunctionCalls1(){
             public Object call( Scope s , Object o , Object [] extra ){
                 return _escape( o.toString() , _noEscaping );
             }
         };
 
-    /** Function to replace nonalphanumeric characters with their %hex equivalents.  Does not replace '~', '!', '@', '#', '$', '&', '*', '(', ')', '-', '_', '+', '=', ';', ':', '/', ''', '?', ',', or '.'. */
+    /** Function to replace nonalphanumeric characters with their %hex equivalents.  Does not replace '~', '!', '@', '#', '$', '&', '*', '(', ')', '-', '_', '+', '=', ';', ':', '/', ''', '?', ',', or '.'.  This is an implementation of the JavaScript builtin method. */
     public static JSFunction encodeURI = new JSFunctionCalls1(){
             public Object call( Scope s , Object o , Object [] extra ){
                 return _escape( o.toString() , _noEncoding );
             }
         };
 
-    /** Function to replace nonalphanumeric characters with their %hex equivalents.  Does not replace '~', '!', '*', '(', ')', '-', '_', ''', or '.'. */
+    /** Function to replace nonalphanumeric characters with their %hex equivalents.  Does not replace '~', '!', '*', '(', ')', '-', '_', ''', or '.'.  This is an implementation of the JavaScript builtin method. */
     public static JSFunction encodeURIComponent = new JSFunctionCalls1(){
             public Object call( Scope s , Object o , Object [] extra ){
                 return _escape( o.toString() , _noEncodingComonent );

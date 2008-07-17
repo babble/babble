@@ -5,9 +5,7 @@ import ed.js.engine.*;
 import ed.js.func.*;
 import ed.util.*;
 
-/**  Methods borrowed from Prototype
- * @expose
- */
+/**  Methods borrowed from Prototype */
 public class Prototype {
 
     /** Object.extend: copy properties from src to dest.
