@@ -136,6 +136,25 @@ public abstract class JSFile extends JSObjectBase {
             return d;
         return new JSDate();
     }
+    
+    /**
+     * @return mutable array of aliases or null if there are none
+     */
+    public JSArray getAliases(){
+        return (JSArray)get( "aliases" );
+    }
+    
+    /**
+     * adds an alias for this file
+     */
+    public void addAlias( String newAlias ){
+        JSArray a = (JSArray)get("aliases");
+        if ( a == null ){
+            a = new JSArray();
+            set( "aliases" , a );
+        }
+        a.add( newAlias );
+    }
 
     /** Returns this file's contents as a string.
      * @return This file's contents as a string.
@@ -404,6 +423,22 @@ public abstract class JSFile extends JSObjectBase {
         return filename;
     }
 
+    public static void setup( DBCollection db ){
+        db.ensureIDIndex();
+        
+        JSObject o = new JSObjectBase();
+        o.set( "aliases" , 1 );
+        db.ensureIndex( o );
+
+        o = new JSObjectBase();
+        o.set( "filename" , 1 );
+        db.ensureIndex( o );
+
+        o = new JSObjectBase();
+        o.set( "uploadDate" , 1 );
+        db.ensureIndex( o );
+        
+    }
 
 }
 
