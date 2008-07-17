@@ -271,7 +271,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
             return null;
         
         if ( ! ( foo instanceof JSLibrary ) )
-            throw new RuntimeException( dir + " is not a directory" );
+            return null;
         
         JSLibrary lib = (JSLibrary)foo;
         return lib.getFromPath( next , evalToFunction );

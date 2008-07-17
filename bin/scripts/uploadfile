@@ -16,7 +16,6 @@ if (arguments.length < 3){
 host = arguments.shift();
 database = arguments.shift();
 
-core.user.user();
 db = connect(database, host);
 
 arguments.forEach( function(file) {

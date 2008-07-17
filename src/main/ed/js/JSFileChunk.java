@@ -4,6 +4,8 @@ package ed.js;
 
 import java.util.*;
 
+import ed.db.*;
+
 /** @expose */
 public class JSFileChunk extends JSObjectBase {
 
@@ -62,6 +64,10 @@ public class JSFileChunk extends JSObjectBase {
         if ( get( "data") == null )
             set( "data" , getData() );
         return super.keySet();
+    }
+
+    public static void setup( DBCollection db ){
+        db.ensureIDIndex();
     }
 
 
