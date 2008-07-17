@@ -15,9 +15,10 @@ import ed.appserver.*;
 import ed.net.httpserver.*;
 
 public class JxpServlet {
-
-    public static final int MAX_WRITTEN_LENGTH = 1024 * 1024 * 15;
     
+    public static final int MAX_WRITTEN_LENGTH = 1024 * 1024 * 15;
+    public static final boolean NOCDN = Config.get().getBoolean( "NO-CDN" );
+
     JxpServlet( AppContext context , JxpSource source , JSFunction func ){
         _context = context;
         _source = source;
@@ -82,6 +83,9 @@ public class JxpServlet {
     }
     
     String getStaticPrefix( HttpRequest request , AppRequest ar ){
+        
+        if ( NOCDN )
+            return "";
 
         String host = request.getHost();
         
@@ -304,12 +308,19 @@ public class JxpServlet {
 		src = src.substring( 3 );
             }
 	    
+            boolean doVersioning = true;
+
 	    // weird special case
             if ( ! src.startsWith( "/" ) ){ // i'm not smart enough to handle local file case yet
-                _writer.print( src );
-                return;
+                nocdn = true;
+                doVersioning = false;
             }
-
+            
+            if ( src.startsWith( "//" ) ){ // this is the special //www.slashdot.org/foo.jpg syntax
+                nocdn = true;
+                doVersioning = false;
+            }
+            
 	    // setup 
 
             String uri = src;
@@ -322,7 +333,7 @@ public class JxpServlet {
 		cdnTags = ""; // TODO: should i put a version or timestamp here?
 	    }
 	    else {
-		if ( _context != null ){
+		if ( doVersioning && _context != null ){
                     File f = _context.getFileSafe( uri );
                     if ( f != null && f.exists() ){
                         cdnTags = "lm=" + f.lastModified();
@@ -331,7 +342,7 @@ public class JxpServlet {
 	    }
 	    
 	    // print
-
+            
 	    if ( forcecdn || ( ! nocdn && cdnTags != null ) )
 		_writer.print( _cdnPrefix );
 

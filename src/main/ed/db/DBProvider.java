@@ -5,6 +5,7 @@ package ed.db;
 import java.util.*;
 
 import ed.cloud.*;
+import ed.util.Config;
 import ed.appserver.*;
 
 public class DBProvider {
@@ -34,17 +35,18 @@ public class DBProvider {
 
     public static DBApiLayer get( String root , boolean useCache , String ip ){
         
-        if ( ip == null || ip.trim().length() == 0 )
-            ip = getDefaultHost();
-        
-        int port = DBPort.PORT;
-        
-        String s = System.getenv("db_port");
-        
-        if (s != null && ip.trim().length() > 0) { 
-            // deliberately don't check this - the NumFormatExpn should drop the server
-            port = Integer.valueOf(s);
+        if ( ip == null || ip.trim().length() == 0 ){
+            int idx = root.indexOf( "/" );
+            if ( idx > 0 ){
+                ip = root.substring( idx + 1 );
+                root = root.substring( 0 , idx );
+            }
+            else {
+                ip = getDefaultHost();
+            }
         }
+        
+        int port = Integer.parseInt(Config.get().getTryEnvFirst("db_port", Integer.toString(DBPort.PORT)));
         
         return get( root , useCache , ip , port);
     }

@@ -1,9 +1,7 @@
 package ed.doc;
 
 import java.io.*;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.ArrayList;
+import java.util.*;
 
 import ed.js.*;
 import ed.db.*;
@@ -24,6 +22,29 @@ public class Generate {
      */
     private static String version;
     private static ArrayList<String> processedFiles = new ArrayList<String>();
+
+    private static boolean connected = false;
+    private static DBBase db;
+    private static DBCollection codedb;
+    private static DBCollection docdb;
+    private static DBCollection htmldb;
+
+    public static void connectToDb() {
+        if ( connected ) return;
+
+        Scope s = Scope.getThreadLocal();
+        Object app = s.get("__instance__");
+        Object dbo = s.get("db");
+        if(! (dbo instanceof DBBase)) {
+            throw new RuntimeException("your database is not a database");
+        }
+
+        db = (DBBase)dbo;
+        docdb = db.getCollection("doc");
+        codedb = db.getCollection("doc.code");
+        htmldb = db.getCollection("doc.html");
+        connected = true;
+    }
 
     /** Version setter
      */
@@ -87,17 +108,9 @@ public class Generate {
 
         File docdir = new File(((AppContext)app).getRoot()+"/" + path);
 
-        Object dbo = s.get("db");
-        if(! (dbo instanceof DBBase)) {
-            throw new RuntimeException("your database is not a database");
-        }
-
         if(!docdir.exists()) {
             throw new RuntimeException("Error - doc dir was never setup : " + docdir);
         }
-
-        DBBase db = (DBBase)dbo;
-        DBCollection collection = db.getCollection("doc.html");
 
         File blobs[] = docdir.listFiles();
         for(int i=0; i<blobs.length; i++) {
@@ -119,7 +132,7 @@ public class Generate {
                 if(debug)
                     System.out.println("Generate.postHTMLGeneration() : processing " + blobs[i].getName());
 
-                collection.save(obj);
+                htmldb.save(obj);
             }
         }
     }
@@ -182,17 +195,8 @@ public class Generate {
         oldGlobal.set("name", "global");
         oldGlobal.set("version", Generate.getVersion());
 
-        Scope s = Scope.getThreadLocal();
-
-        Object dbo = s.get("db");
-        if(! (dbo instanceof DBBase)) {
-            throw new RuntimeException("your database is not a database");
-        }
-
-        DBBase db = (DBBase)dbo;
-        DBCollection collection = db.getCollection("doc");
-        collection.remove(oldGlobal);
-        collection.save(newGlobal);
+        docdb.remove(oldGlobal);
+        docdb.save(newGlobal);
     }
 
     public static void globalToHTML(String path) {
@@ -231,8 +235,9 @@ public class Generate {
 
 
         // if it hasn't been done already, process any .js files
-        if(!processedFiles.contains(path))
+        if(!processedFiles.contains(path)) {
             jsToDb(f.getCanonicalPath());
+        }
 
         // if it's a directory, process all its files
         if(f.isDirectory()) {
@@ -243,6 +248,7 @@ public class Generate {
         }
         // if it's a java file, add it to the list
         else if((f.getName()).endsWith(".java") && !javaSrcs.contains(f.getCanonicalPath())) {
+            addToCodeCollection(f);
             javaSrcs.add(f.getCanonicalPath());
         }
     }
@@ -262,8 +268,29 @@ public class Generate {
                 addToProcessedFiles(farray[i].getCanonicalPath());
             }
         }
-        if(!processedFiles.contains(f.getCanonicalPath()))
-           processedFiles.add(path);
+        if(!processedFiles.contains(f.getCanonicalPath())) {
+            addToCodeCollection(f);
+            processedFiles.add(path);
+        }
+    }
+
+    public static void addToCodeCollection(File f) throws IOException {
+        if(f.isDirectory() || (!f.getName().endsWith(".js") && !f.getName().endsWith(".java"))) return;
+
+        StringBuffer buff = new StringBuffer("");
+        Scanner sc = new Scanner(f);
+        char ch;
+        while(sc.hasNextLine()) {
+            buff.append(sc.nextLine()+"\n");
+        }
+        sc.close();
+        JSObjectBase obj = new JSObjectBase();
+        obj.set("filename", f.getCanonicalPath());
+        obj.set("name", f.getName());
+        obj.set("version", Generate.getVersion());
+        obj.set("ts", Calendar.getInstance().getTime().toString());
+        obj.set("content", buff.toString());
+        codedb.save(obj);
     }
 
     /** Takes source files/dirs, generates jsdoc from them, stores resulting js obj in the db
@@ -299,14 +326,6 @@ public class Generate {
 
         SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -r -t=templates/json "+f.getCanonicalPath(),
         		null, jsfl.getRoot(), "");
-
-        Object dbo = s.get("db");
-        if(! (dbo instanceof DBBase)) {
-            throw new RuntimeException("your database is not a database");
-        }
-
-        DBBase db = (DBBase)dbo;
-        DBCollection collection = db.getCollection("doc");
 
         String rout = r.getOut();
 
@@ -354,7 +373,7 @@ public class Generate {
                         }
                     }
                     else {
-                        collection.save(obj);
+                        docdb.save(obj);
                     }
                 }
             }

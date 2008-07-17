@@ -7,10 +7,8 @@ import java.util.*;
 /** @expose */
 public abstract class SimplePool<T> {
 
-    /** Initializes a new pool of objects.
-     * @param name name for the pool
-     * @param maxToKeep max to hold to at any given time can be -1
-     * @param maxTotal how many to have at any given time
+    /** 
+     * See full constructor docs
      */
     public SimplePool( String name , int maxToKeep , int maxTotal ){
         this( name , maxToKeep , maxTotal , false );
@@ -18,8 +16,8 @@ public abstract class SimplePool<T> {
 
     /** Initializes a new pool of objects.
      * @param name name for the pool
-     * @param maxToKeep max to hold to at any given time can be -1
-     * @param maxTotal how many to have at any given time
+     * @param maxToKeep max to hold to at any given time. if < 0 then no limit
+     * @param maxTotal max to have allocated at any point.  if there are no more, get() will block
      * @param trackLeaks if leaks should be tracked
      */
     public SimplePool( String name , int maxToKeep , int maxTotal , boolean trackLeaks ){
@@ -34,14 +32,19 @@ public abstract class SimplePool<T> {
      */
     protected abstract T createNew();
 
-    /** Checks if a given object is okay.
-     * @return true
+    /** 
+     * callback to determin if an object is ok to be added back to the pool
+     * by default just returns true.  override to return false in some cases if you want 
+     * an object to be tossed under certain conditions
+     * @return true iff the object is ok to be added back to pool
      */
     public boolean ok( T t ){
         return true;
     }
 
-    /** If there is space available, add the given object to the pool.
+    /** 
+     * call done when you are done with an object form the pool
+     * if there is room and the object is ok will get added
      * @param t Object to add
      */
     public void done( T t ){
@@ -51,12 +54,13 @@ public abstract class SimplePool<T> {
             return;
 
         synchronized ( _avail ){
-            if ( _maxToKeep > 0 && _avail.size() < _maxToKeep )
+            if ( _maxToKeep < 0 || _avail.size() < _maxToKeep )
                 _avail.add( t );
         }
     }
 
     /** Gets an object from the pool.
+     * will block if none are available
      * @return An object from the pool
      */
     public T get(){

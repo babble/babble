@@ -162,8 +162,12 @@ public class GitUtils {
      * @retirm if the fetch was successful
      */
     public static boolean fetch( File dir ){
+        return fetch( dir , "" );
+    }
+    
+    public static boolean fetch( File dir , String options ){
         _log.info( "fetch " + dir );
-        SysExec.Result r = SysExec.exec( "git fetch" , null , dir , null );
+        SysExec.Result r = SysExec.exec( "git fetch " + ( options == null ? "" : options ) , null , dir , null );
 
         if ( r.exitValue() == 0 )
             return true;
@@ -171,6 +175,14 @@ public class GitUtils {
         _log.info( "error fetch " + dir + " " + r );
 
         return false;
+    }
+
+    public static boolean fullUpdate( File dir ){
+        boolean ok = true;
+        ok = ok && fetch( dir , "" );
+        ok = ok && fetch( dir , " --tags " );
+        ok = ok && pull( dir );
+        return ok;
     }
 
     /** @unexpose */
