@@ -88,12 +88,15 @@ public abstract class HttpMonitor implements HttpHandler {
         public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
             response.setHeader( "Content-Type" , "text/html" );
             
-            out.print( "<html><head>" ).print( _style ).print( "</head><body>" );
+            out.print( "<html><head>" ).print( _style ).print( "</head><body>Threads<br>" );
 
             final Map<Thread,StackTraceElement[]> all = Thread.getAllStackTraces();
             final Thread cur = Thread.currentThread();
             
             final String filter = getFilter( request );
+            
+            if ( filter != null )
+                out.print( "filter : <b>" ).print( filter ).print( "</b><br>" );
 
             final StackTraceHolder holder = StackTraceHolder.getInstance();
 
