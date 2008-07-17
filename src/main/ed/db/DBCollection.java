@@ -10,8 +10,8 @@ import ed.js.func.*;
 import ed.js.engine.*;
 
 /** DB Collection
- * @anonymous name : {base}, desc : {The name of the database containing this collection.} type : {String}
- * @anonymous name : {name}, desc : {The name of this collection}, type : {String}
+ * @anonymous name : {base}, desc : {The name of the database containing this collection.} type : {String}, isField : {true}
+ * @anonymous name : {name}, desc : {The name of this collection}, type : {String}, isField : {true}
  * @anonymous name : {save}, desc : {Saves an object to the collection.}, return : {type : (JSObject), desc : (new object from the collection)}, param : {type : (JSObject), name : (o), desc : (object to save)}
  * @anonymous name : {update}, desc : {Updates an object in the collection.}, return : {type : (JSObject), desc : (the updated object)}, param : {type : (JSObject), name : (o), desc : (object to update)}, param : { type : (JSObject), name : (newo), desc : (object with which to update the old object)}, param : { type : (JSObject), name : (opts), desc : (boolean options to set for update)}
  * @anonymous name : {remove}, desc : {Removes an object from this collection.}, return : {type : (int), desc : (-1)}, param : {type : (JSObject), name : (q), desc : (removes object that match this query)}
@@ -302,7 +302,7 @@ public abstract class DBCollection extends JSObjectLame {
         _base = base;
         _name = name;
         _fullName = _base.getName() + "." + name;
-        
+
         _entries.put( "base" , _base.getName() );
         _entries.put( "name" , _name );
 
@@ -428,12 +428,12 @@ public abstract class DBCollection extends JSObjectLame {
                               return "{DBCollection:" + DBCollection.this._fullName + "}";
                           }
                       } );
-     
+
         if ( _name.equals( "_file" ) )
             JSFile.setup( this );
         else if ( _name.equals( "_chunks" ) )
             JSFileChunk.setup( this );
-   
+
     }
 
     private final Object _handleThis( Scope s , Object o ){
