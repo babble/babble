@@ -9,16 +9,35 @@ import java.util.regex.*;
 import ed.js.*;
 import ed.util.*;
 
+/**
+ * Class to represent a request from a browser.
+ *
+ * @expose
+ */
 public class HttpRequest extends JSObjectLame {
     
+    /**
+     * Generate a "dummy" request, coming from a browser trying to access the
+     * given URL.
+     * @param url a URL
+     */
     public static HttpRequest getDummy( String url ){
         return getDummy( url , "" );
     }
 
+    /**
+     * Generate a "dummy" request, coming from a browser trying to access a
+     * URL with some additional headers.
+     * @param url a URL
+     * @param extraHeaders a set of headers in HTTP format, separated by "\n"
+     */
     public static HttpRequest getDummy( String url , String extraHeaders ){
         return new HttpRequest( null , "GET " + url + " HTTP/1.0\n" + extraHeaders + "\n" );
     }
 
+    /**
+     * Read a HttpRequest from a SocketHandler.
+     */
     HttpRequest( HttpServer.HttpSocketHandler handler , String header ){
         _handler = handler;
         _rawHeader = header;
@@ -66,41 +85,51 @@ public class HttpRequest extends JSObjectLame {
         }
     }
 
+    /**
+     * Get the URI of the request (the path without hostname or query
+     * arguments).
+     */
     public String getURI(){
         return _uri;
     }
 
+    /**
+     * Get the URL of the request (the path and query arguments without
+     * hostname).
+     */
     public String getURL(){
         return _url;
     }
     
     /**
-     * Gets the entire http header
-     * @return the entire http header
+     * Gets the request's entire HTTP header as an unparsed string.
+     * @return the entire HTTP header
      */
     public String getRawHeader(){
         return _rawHeader;
     }
 
     /**
+     * Gets the HTTP method used in making this request.
      * This will be either GET, POST, HEAD, etc...
-     * @return http method used
+     * @return the HTTP method used
      */
     public String getMethod(){
         return _command;
     }
     
     /**
-     * for "/foo?a=1"
-     * would return "a=1"
-     * @return the query part of the request.  null if there was none
+     * Returns the query string of a request as an unparsed string.
+     * For a request with URL "/foo?a=1", this method would return "a=1".
+     * @return the query part of the request,  null if there was none.
      */
     public String getQueryString(){
         return _queryString;
     }
     
     /**
-     * @return the total size of the http message, header + body
+     * Gets the total size of the HTTP request.
+     * @return the total size of the HTTP message, including header and body
      */
     public int totalSize(){
         int size = _rawHeader.length();
@@ -108,6 +137,9 @@ public class HttpRequest extends JSObjectLame {
         return size;
     }
 
+    /**
+     * Returns the request in an approximation of HTTP protocol.
+     */
     public String toString(){
         _finishParsing();
         return _command + " " + _uri + " HTTP/1." + ( _http11 ? "1" : "" ) + " : " + _headers + "  " + _urlParameters + " " + _postParameters;
@@ -126,8 +158,10 @@ public class HttpRequest extends JSObjectLame {
     // header stuff
 
     /**
-     * this returns the host header minus ant port information if there is any
-     * @return the host to which the request was sent
+     * Returns the hostname this request was directed at. This works by using
+     * the Host header (mandated by HTTP/1.1), and subtracting any port
+     * information (if any).
+     * @return the host to which the request was sent as a string
      */
     public String getHost(){
         String host = getHeader( "Host" );
@@ -150,6 +184,8 @@ public class HttpRequest extends JSObjectLame {
     }
     
     /**
+     * Returns the port this request was directed at. This works by using the
+     * Host header (mandated by HTTP/1.1), and subtracting the hostname.
      * @return the port the request was for
      */
     public int getPort(){
@@ -166,17 +202,18 @@ public class HttpRequest extends JSObjectLame {
     
 
     /**
-     * gets the raw http header
-     * @param h case insensitive
-     * @return the header 
+     * Gets a raw HTTP header specified by the parameter.
+     * @param h the name of an HTTP header. Case insensitive.
+     * @return the header as a string
      */
     public String getHeader( String h ){
         return _headers.get( h );
     }
 
     /**
-     * gets the http header parsed into an int
-     * if the header wasn't sent or can't be parsed as an int, def is returned
+     * Gets a http header parsed into an int.
+     * If the header wasn't sent or can't be parsed as an int, def is returned.
+     * @param h the name of an HTTP header. Case insensitive.
      * @return the header parsed as an int
      */
     public int getIntHeader( String h , int def ){
@@ -184,7 +221,8 @@ public class HttpRequest extends JSObjectLame {
     }
 
     /**
-     * @return an array of http header names
+     * Get every HTTP header that was sent as an array of header names.
+     * @return an array of HTTP header names
      */
     public JSArray getHeaderNames(){
         JSArray a = new JSArray();
@@ -196,7 +234,8 @@ public class HttpRequest extends JSObjectLame {
 
 
     /**
-     * cookie access
+     * Get the value for a cookie, specified by name.
+     * @param s a cookie name
      * @return the cookie value.  null if it doesn't exist
      */
     public String getCookie( String s ){
@@ -223,7 +262,7 @@ public class HttpRequest extends JSObjectLame {
 
 
     /**
-     * Gets all cookie names
+     * Gets the names of all cookies sent in this request.
      * @return array of cookie names
      */
     public JSArray getCookieNames(){
@@ -234,10 +273,10 @@ public class HttpRequest extends JSObjectLame {
     }
 
     /**
-     * expose cookies as a javascript object
-     * this is so you can request.getCookies().username
-     * NOTE: you can't add cookies like this
-     * @return all cookies as a javascript obejct
+     * Expose cookies as a JavaScript object.
+     * This is so you can request.getCookies().username
+     * NOTE: you can't add cookies using this object.
+     * @return all cookies as a JavaScript obejct
      */
     public JSObject getCookies(){
         getCookie( "" );
@@ -247,9 +286,9 @@ public class HttpRequest extends JSObjectLame {
     // param stuff
 
     /** 
-     * gets all the paramter names specified in the request.  
-     * this include GET and POST paramters
-     * @return array of paramter names
+     * Gets all the parameter names specified in the request.
+     * This includes both GET and POST parameters.
+     * @return an array of parameter names
      */
     public JSArray getParameterNames(){
         _finishParsing();
@@ -269,18 +308,20 @@ public class HttpRequest extends JSObjectLame {
     }
     
     /**
-     * parses the parameter n as a boolean
-     * if it doesn't exist, or can't be parsed as a boolean, def is returned
-     * @return true/false if paramter is specified or def
+     * Parses the parameter specified by n as a boolean.
+     * If it doesn't exist, or can't be parsed as a boolean, def is returned.
+     * @param n the parameter to look up
+     * @return true/false if the paramater was specified, or def otherwise
      */
     public boolean getBoolean( String n , boolean def ){
         return StringParseUtil.parseBoolean( getParameter( n ) , def );
     }
 
     /**
-     * parses the parameter n as an int
-     * if it doesn't exist, or can't be parsed as an int, def is returned
-     * @return number if paramter is specified or def
+     * Parses the parameter specified by n as an int.
+     * If it doesn't exist, or can't be parsed as an int, def is returned.
+     * @param n the parameter to look up.
+     * @return number if parameter is specified, or def otherwise
      */
     public int getInt( String n , int def ){
         return StringParseUtil.parseInt( getParameter( n ) , def );
@@ -295,10 +336,12 @@ public class HttpRequest extends JSObjectLame {
     
 
     /**
-     * this is used when you have multiple values for the same paramter
-     * i.e. "/foo?a=1&a=2"
-     * in this case it would return [ "1" , "2" ]
-     * @return array of values specified by name
+     * Return all the parameters given for a key.
+     * This is used when you have multiple values for the same parameter.
+     * i.e. if this request was created with the URL "/foo?a=1&a=2",
+     * calling getParameters("a") would return [ "1" , "2" ].
+     * @param name a parameter name
+     * @return array of all values associated with this parameter
      */
     public JSArray getParameters( String name ){
         List<String> lst = _getParameter( name );
@@ -312,16 +355,21 @@ public class HttpRequest extends JSObjectLame {
     }
 
     /**
-     * parameter access
-     * @return paramter specified by name, null if none
+     * Return any value for the parameter specified by name.
+     * This returns the "first" value for this parameter.
+     * @return string value of the parameter specified by name, null if none
      */
     public String getParameter( String name ){
         return getParameter( name , null );
     }
 
     /**
-     * parameter access
-     * @return paramter specified by name, def if none
+     * Return any value for the parameter specified by name.
+     * This returns the "first" value for the parameter, or def if this
+     * parameter was not given.
+     * @param name the name of the parameter to look up
+     * @param def a default in case the parameter wasn't given
+     * @return string value of the parameter specified by name, def if none
      */
     public String getParameter( String name , String def ){
         _finishParsing();
@@ -561,6 +609,7 @@ public class HttpRequest extends JSObjectLame {
     }
 
     /**
+     * Gets the time at which this request started.
      * @return date at which request started
      */
     public JSDate getStart(){
@@ -584,7 +633,7 @@ public class HttpRequest extends JSObjectLame {
 
 
     /**
-     * gets the ip of the client
+     * Gets the ip of the client as a string.
      * @return the ip of the client
      */
     public String getRemoteIP(){
