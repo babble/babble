@@ -116,7 +116,7 @@ public class Shell {
             String data = StreamUtil.readFully( new FileInputStream( args[1] ) );
 
             if ( data.startsWith( "#!" ) )
-                data = data.substring( data.indexOf( "\n" ) + 1);
+                data = data.substring( data.indexOf( "\n" ) );
 
             JSFunction func = Convert.makeAnon( data );
             Object jsArgs[] = new Object[ args.length - 2 ];
