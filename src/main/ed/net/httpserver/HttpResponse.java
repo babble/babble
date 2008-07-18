@@ -208,11 +208,23 @@ public class HttpResponse extends JSObjectBase {
         return f;
     }
 
+    /**
+     * Send a permanent (301) redirect to the given location.
+     * Equivalent to calling setResponseCode( 301 ) followed by
+     * setHeader( "Location" , loc ).
+     * @param loc the location to redirect to
+     */
     public void sendRedirectPermanent(String loc){
         setResponseCode( 301 );
         setHeader("Location", loc);
     }
 
+    /**
+     * Send a temporary (302) redirect to the given location.
+     * Equivalent to calling setResponseCode( 302 ) followed by
+     * setHeader( "Location" , loc ).
+     * @param loc the location to redirect to
+     */
     public void sendRedirectTemporary(String loc){
         setResponseCode( 302 );
         setHeader("Location", loc);
@@ -379,6 +391,11 @@ public class HttpResponse extends JSObjectBase {
         return a;
     }
 
+    /**
+     * Compute the size of this response's headers.
+     * Slightly expensive.
+     * @return the size of the headers
+     */
     public int totalSize(){
         final int size[] = new int[]{ 0 };
         Appendable a = new Appendable(){
@@ -423,6 +440,10 @@ public class HttpResponse extends JSObjectBase {
         return size[0];
     }
     
+    /**
+     * Return this response, formatted as a string: HTTP response, headers,
+     * cookies.
+     */
     public String toString(){
         try {
             return _genHeader();
@@ -432,6 +453,9 @@ public class HttpResponse extends JSObjectBase {
         }
     }
 
+    /**
+     * @unexpose
+     */
     public JxpWriter getWriter(){
         if ( _writer == null ){
             if ( _cleaned )
@@ -450,6 +474,9 @@ public class HttpResponse extends JSObjectBase {
         _stringContent.add( bb );
     }
 
+    /**
+     * @unexpose
+     */
     public boolean keepAlive(){
         if ( ! _request.keepAlive() )
             return false;
@@ -465,10 +492,17 @@ public class HttpResponse extends JSObjectBase {
         return false;
     }
 
+    /**
+     * @unexpose
+     */
     public String getContentEncoding(){
         return DEFAULT_CHARSET;
     }
 
+    /**
+     * Sends a file to the browser.
+     * @param f a file to send
+     */
     public void sendFile( File f ){
         if ( ! f.exists() )
             throw new IllegalArgumentException( "file doesn't exist" );
@@ -477,6 +511,11 @@ public class HttpResponse extends JSObjectBase {
 	_stringContent = null;
     }
 
+    /**
+     * Sends a file to the browser, including (for database-stored files)
+     * sending a sensible Content-Disposition.
+     * @param f a file to send
+     */
     public void sendFile( JSFile f ){
         if ( f instanceof JSLocalFile ){
             sendFile( ((JSLocalFile)f).getRealFile() );
@@ -546,12 +585,19 @@ public class HttpResponse extends JSObjectBase {
             throw new RuntimeException( "no data set" );
     }
 
+    /**
+     * Adds a "hook" function to be called after this response has been sent.
+     * @param f a function
+     */
     public void addDoneHook( Scope s , JSFunction f ){
         if ( _doneHooks == null )
             _doneHooks = new ArrayList<Pair<Scope,JSFunction>>();
         _doneHooks.add( new Pair<Scope,JSFunction>( s , f ) );
     }
     
+    /**
+     * @unexpose
+     */
     public void setAppRequest( AppRequest ar ){
         _appRequest = ar;
     }
