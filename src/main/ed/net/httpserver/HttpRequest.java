@@ -10,7 +10,7 @@ import ed.js.*;
 import ed.util.*;
 
 /**
- * Class to represent a request from a browser.
+ * Class to represent an HTTP request 
  *
  * @expose
  */
@@ -559,15 +559,13 @@ public class HttpRequest extends JSObjectLame {
     }
 
     /**
-     * Handler for array-type sets: request[1].
-     * This operation is not supported on requests.
+     * @unexpose
      */
     public Object setInt( int n , Object v ){
         throw new RuntimeException( "can't set things on an HttpRequest" );
     }
     /**
-     * Handler for array-type gets: request[1].
-     * This operation is not supported on requests.
+     * @unexpose
      */
     public Object getInt( int n ){
         throw new RuntimeException( "you're stupid" );
