@@ -161,7 +161,7 @@ public class HttpRequest extends JSObjectLame {
      * Returns the hostname this request was directed at. This works by using
      * the Host header (mandated by HTTP/1.1), and subtracting any port
      * information (if any).
-     * @return the host to which the request was sent as a string
+     * @return the host to which this request was sent as a string
      */
     public String getHost(){
         String host = getHeader( "Host" );
@@ -186,7 +186,7 @@ public class HttpRequest extends JSObjectLame {
     /**
      * Returns the port this request was directed at. This works by using the
      * Host header (mandated by HTTP/1.1), and subtracting the hostname.
-     * @return the port the request was for
+     * @return the port this request was for
      */
     public int getPort(){
         String host = getHeader( "Host" );
@@ -286,7 +286,7 @@ public class HttpRequest extends JSObjectLame {
     // param stuff
 
     /** 
-     * Gets all the parameter names specified in the request.
+     * Gets all the parameter names specified in this request.
      * This includes both GET and POST parameters.
      * @return an array of parameter names
      */
@@ -369,7 +369,8 @@ public class HttpRequest extends JSObjectLame {
      * parameter was not given.
      * @param name the name of the parameter to look up
      * @param def a default in case the parameter wasn't given
-     * @return string value of the parameter specified by name, def if none
+     * @return string value of the parameter specified by name, def if
+     * none
      */
     public String getParameter( String name , String def ){
         _finishParsing();
@@ -381,6 +382,15 @@ public class HttpRequest extends JSObjectLame {
 
     // -------
 
+    /**
+     * Gets all values for the parameter specified by name from either
+     * the query arguments or the POST arguments.  If post is true,
+     * get all the values from the POST; otherwise, get them from the
+     * query arguments.
+     * @param name the name of a parameter to look up
+     * @param post true to consult the POST; false to consult the URL
+     * @return an array of parameter values as strings
+     */
     public JSArray getParameters( String name , boolean post ){
         List<String> lst = post ? _postParameters.get( name ) : _urlParameters.get( name );
         if ( lst == null )
@@ -392,10 +402,26 @@ public class HttpRequest extends JSObjectLame {
 	return a;
     }
 
+    /**
+     * Gets one value for a parameter specified by name from either the
+     * query arguments or the POST arguments. Returns null if none was found.
+     * @param name the name of the parameter to look up
+     * @param post true to consult the POST; false to consult the URL
+     * @return a parameter value as a string
+     */
     public String getParameter( String name , boolean post ){
         return getParameter( name , null , post  );
     }
 
+    /**
+     * Gets one value for a parameter specified by name from either
+     * the query arguments or the POST arguments, defaulting to def if
+     * none was found.
+     * @param name the name of the parameter to look up
+     * @param def the default to use if none is found
+     * @param post true to consult the POST; false to consult the URL
+     * @return a parameter value as a string
+     */
     public String getParameter( String name , String def , boolean post  ){
         _finishParsing();
         List<String> lst = post ? _postParameters.get( name ) : _urlParameters.get( name );
@@ -406,39 +432,91 @@ public class HttpRequest extends JSObjectLame {
     
     // -
 
-    public JSArray getPostParmeters( String name ){
+    /**
+     * Gets all parameters matching the name from the POST.
+     * @param name the name of the parameter to look up
+     * @return an array of all the values for the matching parameters
+     * in the POST
+     */
+    public JSArray getPostParameters( String name ){
         return getParameters( name , true );
     }
 
-    public String getPostParmeter( String name ){
+    /**
+     * Gets the first parameter matching the name from the POST.
+     * @param name the name of the parameter to look up
+     * @return the value of the first matching parameter in the POST
+     */
+    public String getPostParameter( String name ){
         return getParameter( name , null , true );
     }
 
-    public String getPostParmeter( String name , String def ){
+    /**
+     * Gets the first parameter matching the name from the POST.
+     * @param name the name of the parameter to look up
+     * @param def the default to use if no matching parameter is found
+     * @return the value of the first matching parameter in the POST,
+     * or def if none
+     */
+    public String getPostParameter( String name , String def ){
         return getParameter( name , def , true );
     }
 
     // -
 
-    public JSArray getURLParmeters( String name ){
+    /**
+     * Gets all parameters matching the name from the URL.
+     * @param name the name of the parameter to look up
+     * @return an array of all the values for the matching parameters
+     * in the POST
+     */
+    public JSArray getURLParameters( String name ){
         return getParameters( name , false );
     }
 
-    public String getURLParmeter( String name ){
+    /**
+     * Gets the first parameter matching the name from the URL, or
+     * null if none is found.
+     * @param name the name of the parameter to look up
+     * @return the value of the first matching parameter in the URL,
+     * or null if none
+     */
+    public String getURLParameter( String name ){
         return getParameter( name , null , false );
     }
 
-    public String getURLParmeter( String name , String def ){
+    /**
+     * Gets the first parameter matching the name from the URL.
+     * @param name the name of the parameter to look up
+     * @param def the default to use if no matching parameter is found
+     * @return the value of the first matching parameter in the URL,
+     * or def if none
+     */
+    public String getURLParameter( String name , String def ){
         return getParameter( name , def , false );
     }
 
     // -------
 
+    /**
+     * Adds a parameter to this request.
+     * @param name the name of the parameter to add
+     * @param val the value of the parameter to add
+     */
     public void addParameter( String name , Object val ){
         _finishParsing();
         _addParm( name , val == null ? null : val.toString() , true );
     }
 
+    /**
+     * Handler for setting attributes on this request.
+     * Currently, overwrite all previous parameters with the given name,
+     * and to convert all values to strings.
+     * @jsset
+     * @param n the name of the parameter to set
+     * @param v the value to set as a string or an object with a
+     * toString() method
+     */
     public Object set( Object n , Object v ){
         final String name = n.toString();
         _finishParsing();
@@ -449,6 +527,13 @@ public class HttpRequest extends JSObjectLame {
         return prev;
     }
     
+    /**
+     * Handler for getting an attribute from this object.
+     * Equivalent to <tt>getParameter( attribute )</tt>.
+     * @jsget
+     * @param n the name of the attribute to get
+     * @return the value of any parameter with this name, as a string
+     */
     public Object get( Object n ){
         final String name = n.toString();        
 
@@ -458,6 +543,14 @@ public class HttpRequest extends JSObjectLame {
         return new ed.js.JSString( foo );
     }
 
+    /**
+     * Get an uploaded file field from this request, or null if none.
+     * Files are uploaded in POSTs like other form fields, and have
+     * names like other form fields. This fetches a form value as a 
+     * file.
+     * @param name the name to look up in the POST
+     * @return the file corresponding to this name
+     */
     public UploadFile getFile( String name ){
         if ( _postData == null )
             return null;
@@ -465,24 +558,44 @@ public class HttpRequest extends JSObjectLame {
         return _postData._files.get( name );
     }
 
+    /**
+     * Handler for array-type sets: request[1].
+     * This operation is not supported on requests.
+     */
     public Object setInt( int n , Object v ){
         throw new RuntimeException( "can't set things on an HttpRequest" );
     }
+    /**
+     * Handler for array-type gets: request[1].
+     * This operation is not supported on requests.
+     */
     public Object getInt( int n ){
         throw new RuntimeException( "you're stupid" );
     }
 
+    /**
+     * Handler for iterating over all the keys in this request.
+     * @return all the keys in the URL and the POST
+     */
     public Set<String> keySet(){
         Set<String> s = new HashSet<String>();
         s.addAll( _urlParameters.keySet() );
         s.addAll( _postParameters.keySet() );
         return s;
     }
-    
+
+    /** 
+     * Get the names of all the parameters in the URL.
+     * @return the names of all the parameters in the URL
+     */    
     public Set<String> getURLParameterNames(){
         return _urlParameters.keySet();
     }
 
+    /**
+     * Get the names of all the parameters in the POST.
+     * @return the names of all the parameters in the POST
+     */
     public Set<String> getPostParameterNames(){
         return _postParameters.keySet();
     }
@@ -507,6 +620,17 @@ public class HttpRequest extends JSObjectLame {
         return s;
     }
     
+    /**
+     * Sets parameters in the request according to the given regular
+     * expression.  The regular expression is matched against the URI,
+     * and the captured groups in the regular expression become
+     * parameters of the request with the names supplied by the <tt>names</tt>
+     * parameter.
+     * @param regex a regular expression to match against a URL
+     * @param names the names of the parameters to fit to the captured
+     * subgroups
+     * @return true if the regular expression matched
+     */
     public boolean applyServletParams( JSRegex regex , JSArray names ){
         
         Matcher m = regex.getCompiled().matcher( getURI() );
@@ -556,6 +680,9 @@ public class HttpRequest extends JSObjectLame {
 
     }
 
+    /**
+     * @unexpose
+     */
     void _addParm( String n , String val , boolean post ){
         
         n = n.trim();
