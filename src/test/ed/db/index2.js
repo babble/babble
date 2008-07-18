@@ -1,12 +1,10 @@
 /* test indexing where the key is an embedded object.
  */
 
-core.db.db();
-
 db = connect( "test" );
 t = db.embeddedIndexTest2;
 
-drop("embeddedIndexTest2");
+t.drop();
 assert( t.findOne() == null );
 
 o = { name : "foo" , z : { a : 17 } };

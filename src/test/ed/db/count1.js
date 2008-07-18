@@ -1,8 +1,6 @@
 /* test indexing where the key is an embedded object.
  */
 
-core.db.db();
-
 db = connect( "test" );
 t = db.counttest;
 
