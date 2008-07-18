@@ -17,6 +17,9 @@ import ed.log.*;
 import ed.util.*;
 import ed.appserver.*;
 
+/**
+ * @expose
+ */
 public class HttpResponse extends JSObjectBase {
 
     static final boolean USE_POOL = true;
@@ -39,7 +42,9 @@ public class HttpResponse extends JSObjectBase {
 	SERVER_HEADERS = "Server: ED\r\nX-svr: " + hostname + "\r\n";
     }
 
-
+    /**
+     * Create a response to a given request.
+     */
     HttpResponse( HttpRequest request ){
         _request = request;
         _handler = _request._handler;
@@ -51,18 +56,31 @@ public class HttpResponse extends JSObjectBase {
         set( "prototype" , _prototype );
     }
 
+    /**
+     * Set the HTTP response code for this response.
+     * A list of HTTP status codes is available at
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html .
+     * @param rc a response code according to the HTTP spec
+     */
     public void setResponseCode( int rc ){
         if ( _sentHeader )
             throw new RuntimeException( "already sent header " );
         _responseCode = rc;
     }
 
+    /**
+     * Get the HTTP response code for this response.
+     * @return this response's HTTP status code
+     */
     public int getResponseCode(){
         return _responseCode;
     }
 
 
     /**
+     * Add an additional cookie to be sent in this response.
+     * All cookies will be sent to the browser, but browsers typically only
+     * keep the last cookie with a given name.
      * @param name cookie name
      * @param value cookie value
      * @param maxAge
@@ -75,6 +93,8 @@ public class HttpResponse extends JSObjectBase {
     }
 
     /**
+     * Add a cookie to be sent in this response. This sends a session cookie
+     * (which is typically deleted when the browser is closed).
      * @param name cookie name
      * @param value cookie value
      */
@@ -83,27 +103,50 @@ public class HttpResponse extends JSObjectBase {
     }
     
     /**
-     * equivilant to "addCookie( name , null , -1 )"
+     * Equivalent to "addCookie( name , null , -1 )". Tells the browser
+     * that the cookie with this name is already expired.
+     * @param name cookie name
      */
     public void removeCookie( String name ){
         _cookies.add( new Cookie( name , "asd" , -1 ) );
     }
 
+    /**
+     * Set a cache time for this response.
+     * @param seconds the number of seconds that this response should be cached
+     */
     public void setCacheTime( int seconds ){
 	setHeader("Cache-Control" , "max-age=" + seconds );
 	setDateHeader( "Expires" , System.currentTimeMillis() + ( 1000 * seconds ) );
     }
     
+    /**
+     * Set a header as a date.
+     *
+     * Formats a time, passed as an integer number of milliseconds, as a date,
+     * and sets a header with this date.
+     *
+     * @param n the name of the header
+     * @param t the value of the header, as a number of milliseconds
+     */
     public void setDateHeader( String n , long t ){
 	synchronized( HeaderTimeFormat ) {
 	    setHeader( n , HeaderTimeFormat.format( new Date(t) ) );
 	}
     }
 
+    /**
+     * Set a header in the response.
+     * @param n the name of the header to set
+     * @param v the value of the header to set, as a string
+     */
     public void setHeader( String n , String v ){
         _headers.put( n , v );
     }
 
+    /**
+     * @unexpose
+     */
     void cleanup(){
         if ( _cleaned )
             return;
@@ -146,7 +189,10 @@ public class HttpResponse extends JSObjectBase {
         }
         
     }
-    
+
+    /**
+     * @unexpose
+     */
     public boolean done()
         throws IOException {
 
