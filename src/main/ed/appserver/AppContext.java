@@ -15,7 +15,8 @@ import ed.lang.*;
 import ed.net.httpserver.*;
 import ed.util.*;
 
-/** The context in which the appserver runs.
+/** The context in which the appserver runs.  An AppContext is exposed
+ * to JS in the magic variable __instance__.
  * @expose
  */
 public class AppContext {
@@ -151,6 +152,10 @@ public class AppContext {
 
     }
 
+    /**
+     * Get the version of corejs to run for this AppContext.
+     * @return the version of corejs as a string
+     */
     public String getCoreJSVersion(){
         Object o = _scope.get( "corejsversion" );
         if ( o != null ){
@@ -161,6 +166,11 @@ public class AppContext {
         return getVersionForLibrary( "corejs" );
     }
 
+    /**
+     * Get the version of a library to run.
+     * @param name the name of the library to look up
+     * @return the version of the library to run as a string
+     */
     public String getVersionForLibrary( String name ){
         return getVersionForLibrary( _scope , name , this );
     }
@@ -531,6 +541,11 @@ public class AppContext {
     }
 
 
+    /**
+     * Convert this AppContext to a string by returning the name of
+     * the directory it's running in.
+     * @return the filename of its root directory
+     */
     public String toString(){
         return _rootFile.toString();
     }
@@ -539,22 +554,45 @@ public class AppContext {
         StackTraceHolder.getInstance().fix( t );
     }
 
+    /**
+     * Get a "global" head array. This array contains HTML that will
+     * be inserted into the head of every request served by this app
+     * context. It's analagous to the <tt>head</tt> array, but
+     * persistent.
+     * @return a mutable array
+     */
     public JSArray getGlobalHead(){
         return _globalHead;
     }
 
+    /**
+     * Gets the date of creation for this app context.
+     * @return the creation date as a JS Date.
+     */
     public JSDate getWhenCreated(){
         return _created;
     }
 
+    /**
+     * Gets the number of requests served by this app context.
+     * @return the number of requests served
+     */
     public int getNumRequests(){
         return _numRequests;
     }
 
+    /**
+     * Get the name of the git branch we think we're running.
+     * @return the name of the git branch, as a string
+     */
     public String getGitBranch(){
         return _gitBranch;
     }
 
+    /**
+     * Update the git branch that we're running and return it.
+     * @return the name of the git branch, or null if there isn't any
+     */
     public String getCurrentGitBranch(){
         if ( _gitBranch == null )
             return null;
@@ -571,6 +609,10 @@ public class AppContext {
         return _gitBranch;
     }
 
+    /**
+     * Get the environment in which this site is running
+     * @return the environment name as a string
+     */
     public String getEnvironmentName(){
         return _environment;
     }

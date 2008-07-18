@@ -12,10 +12,10 @@ public class HttpRequestTest extends TestCase {
     public static void testGetParams(){
         HttpRequest r = HttpRequest.getDummy( "/crazy/me?a=1&b=2&b=3" );
         assertEquals( "1" , r.getParameter( "a" ) );
-        assertEquals( "1" , r.getURLParmeter( "a" ) );
-        assertEquals( "1" , r.getURLParmeter( "a" , "asdsad" ) );
-        assertEquals( "Z" , r.getURLParmeter( "c" , "Z" ) );
-        assertNull( r.getPostParmeter( "a" ) );
+        assertEquals( "1" , r.getURLParameter( "a" ) );
+        assertEquals( "1" , r.getURLParameter( "a" , "asdsad" ) );
+        assertEquals( "Z" , r.getURLParameter( "c" , "Z" ) );
+        assertNull( r.getPostParameter( "a" ) );
 
         assertEquals( 2 , r.getParameters( "b" ).size() );
         assertEquals( "2" , r.getParameter( "b" ) );
@@ -32,9 +32,9 @@ public class HttpRequestTest extends TestCase {
         
         r._addParm( "c" , "Y" , true );
         
-        assertEquals( "Y" , r.getPostParmeter( "c" ) );
+        assertEquals( "Y" , r.getPostParameter( "c" ) );
         assertEquals( "Y" , r.getParameter( "c" ) );
-        assertEquals( "Z" , r.getURLParmeter( "c" ) );
+        assertEquals( "Z" , r.getURLParameter( "c" ) );
 
         assertEquals( 3 , r.getParameterNames().size() );
         assertEquals( 1 , r.getPostParameterNames().size() );
