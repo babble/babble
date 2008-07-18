@@ -17,6 +17,7 @@ public class Security {
 	Set<String> s = new HashSet<String>();
 	s.add( "admin" );
 	s.add( "www" );
+	s.add( "grid" );
 	allowedSites = Collections.synchronizedSet( s );
     }
 
@@ -28,6 +29,7 @@ public class Security {
         Convert.DEFAULT_PACKAGE + "." + _baseClass + "corejs_" , 
         Convert.DEFAULT_PACKAGE + "." + _baseClass + "sites_admin_" , 
         Convert.DEFAULT_PACKAGE + "." + _baseClass + "sites_www_" , 
+        Convert.DEFAULT_PACKAGE + "." + _baseClass + "sites_grid_" , 
         Convert.DEFAULT_PACKAGE + ".lastline" ,
         Convert.DEFAULT_PACKAGE + "._home_yellow_code_for_hudson" 
     };
