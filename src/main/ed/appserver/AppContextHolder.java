@@ -118,7 +118,7 @@ public class AppContextHolder {
             final File envRoot = getBranch( siteRoot , env , info.host );
             if ( D ) System.out.println( "\t using full path : " + envRoot );
             
-            final String envRootString = envRoot.getAbsolutePath();
+            final String envRootString = envRoot.toString();
 
             ac = _contextCache.get( envRootString );
             if ( ac == null ){
