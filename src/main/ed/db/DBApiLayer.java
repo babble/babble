@@ -11,9 +11,14 @@ import ed.js.*;
 /** @expose */
 public abstract class DBApiLayer extends DBBase {
 
+    /** @unexpose */
     static final boolean D = Boolean.getBoolean( "DEBUG.DB" );
+    /** The maximum number of cursors allowed */
     static final int NUM_CURSORS_BEFORE_KILL = 100;
 
+    /** Initializes a new API layer for a database with a given name.
+     * @param root name of the database
+     */
     protected DBApiLayer( String root ){
         super( root );
 
