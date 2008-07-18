@@ -50,6 +50,15 @@ public class JavadocToDB {
                 returns.add(tempReturn);
                 tempMethod.set("returns", returns);
             }
+            else if (mTags[k].name().equals("@jsget")) {
+                tempMethod.set("desc", "Getter for the class "+m.containingClass().name());
+            }
+            else if (mTags[k].name().equals("@jsset")) {
+                tempMethod.set("desc", "Setter for the class "+m.containingClass().name());
+            }
+            else if (mTags[k].name().equals("@jskeyset")) {
+                tempMethod.set("desc", "Returns the keyset of the class "+m.containingClass().name());
+            }
             else {
                 tempMethod.set(mTags[k].name(), mTags[k].text());
             }

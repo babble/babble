@@ -113,6 +113,7 @@ public class HttpResponse extends JSObjectBase {
 
     /**
      * Set a cache time for this response.
+     * Sets the Cache-Control and Expires headers
      * @param seconds the number of seconds that this response should be cached
      */
     public void setCacheTime( int seconds ){
@@ -137,6 +138,7 @@ public class HttpResponse extends JSObjectBase {
 
     /**
      * Set a header in the response.
+     * Overwrites previous headers with the same name
      * @param n the name of the header to set
      * @param v the value of the header to set, as a string
      */
@@ -193,7 +195,7 @@ public class HttpResponse extends JSObjectBase {
     /**
      * @unexpose
      */
-    public boolean done()
+    protected boolean done()
         throws IOException {
 
         if ( _cleaned )
