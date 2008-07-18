@@ -19,8 +19,8 @@ public class HttpServer extends NIOServer {
     static final int WORKER_THREADS = 30;
     static final int ADMIN_WORKER_THREADS = 10;
 
-    static final int WORKER_THREAD_QUEUE_MAX = 500;
-    static final int ADMIN_THREAD_QUEUE_MAX = 50;
+    static final int WORKER_THREAD_QUEUE_MAX = 200;
+    static final int ADMIN_THREAD_QUEUE_MAX = 10;
 
     static final boolean D = Boolean.getBoolean( "DEBUG.HTTP" );
     static final Logger LOGGER = Logger.getLogger( "httpserver" );
