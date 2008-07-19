@@ -116,8 +116,6 @@ public abstract class DBCollection extends JSObjectLame {
 
         ensureIndex( _idKey );
         _checkedIdIndex = true;
-
-        System.out.println( "TEMP: verify _id index on " + _fullName );
     }
 
     /** Creates an index on a set of fields, if one does not already exist.
