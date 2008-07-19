@@ -392,7 +392,8 @@ public class HttpResponse extends JSObjectBase {
     }
 
     /**
-     * Compute the size of this response's headers.
+     * Tries to compute the size of this entire response
+     * Adds the size of the headers plus the content-length know about so far
      * Slightly expensive.
      * @return the size of the headers
      */
