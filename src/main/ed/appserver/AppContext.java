@@ -15,8 +15,9 @@ import ed.lang.*;
 import ed.net.httpserver.*;
 import ed.util.*;
 
-/** The context in which the appserver runs.  An AppContext is exposed
- * to JS in the magic variable __instance__.
+/** 
+ * This is the container for an instance of a site on a single server.
+ * This can be access via __instance__ 
  * @expose
  */
 public class AppContext {
@@ -154,7 +155,7 @@ public class AppContext {
 
     /**
      * Get the version of corejs to run for this AppContext.
-     * @return the version of corejs as a string
+     * @return the version of corejs as a string. null if should use default
      */
     public String getCoreJSVersion(){
         Object o = _scope.get( "corejsversion" );
@@ -169,17 +170,24 @@ public class AppContext {
     /**
      * Get the version of a library to run.
      * @param name the name of the library to look up
-     * @return the version of the library to run as a string
+     * @return the version of the library to run as a string.  null if should use default
      */
     public String getVersionForLibrary( String name ){
         return getVersionForLibrary( _scope , name , this );
     }
 
+    /**
+     * @unexpose
+     */
     public static String getVersionForLibrary( Scope s , String name ){
         AppRequest ar = AppRequest.getThreadLocal();
         return getVersionForLibrary( s , name , ar == null ? null : ar.getContext() );
     }
 
+
+    /**
+     * @unexpose
+     */
     public static String getVersionForLibrary( Scope s , String name , AppContext ctxt ){
 
         JSObject o = null;
@@ -277,6 +285,9 @@ public class AppContext {
         return _scope;
     }
 
+    /**
+     * @unexpose
+     */
     public File getFileSafe( final String uri ){
         try {
             return getFile( uri );
@@ -286,6 +297,9 @@ public class AppContext {
         }
     }
 
+    /**
+     * @unexpose
+     */
     public File getFile( final String uri )
         throws FileNotFoundException {
         File f = _files.get( uri );
@@ -309,6 +323,11 @@ public class AppContext {
         return f;
     }
 
+    /**
+     * this causes the AppContext to be started over
+     * all context level variable will be lost
+     * if code is being managed, will cause it to check that its up to date
+     */
     public void reset(){
         _reset = true;
     }
