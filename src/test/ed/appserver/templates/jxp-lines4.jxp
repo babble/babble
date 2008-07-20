@@ -18,9 +18,9 @@ hola
  
 <%
 print("q");
-blah; // LINE5
-asd; // LINE6
+blah; // LINE21
+asd; // LINE22
  
 %>
-<%= 6 + "LINE9"  %>
+<%= 6 + "LINE25"  %>
  
