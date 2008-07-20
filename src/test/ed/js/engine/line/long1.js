@@ -14,7 +14,7 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-print( "LINE_1_" );
+print( "LINE_17_" );
 Rails.mapURI = function( uri ){
     
     var mime = MimeTypes.get( uri );

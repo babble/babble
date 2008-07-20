@@ -14,9 +14,9 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-print( "LINE_1_" );
+print( "LINE_17_" );
 a = 5;
 if ( z ){
-    print( "LINE_4_" );
+    print( "LINE_20_" );
 }
                 
