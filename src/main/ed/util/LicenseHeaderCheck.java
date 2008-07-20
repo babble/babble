@@ -1,5 +1,21 @@
 // LicenseHeaderCheck.java
 
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package ed.util;
 
 import java.io.*;
@@ -54,10 +70,13 @@ public class LicenseHeaderCheck {
             return true;
 
         final String name = f.getName();
-
+        
         if ( name.endsWith( "~" ) )
             return true;
-        
+
+        if ( name.equals( "db" ) )
+            return true;
+
         if ( ! Character.isLetterOrDigit( name.charAt(0) ) )
             return true;
 
@@ -100,7 +119,8 @@ public class LicenseHeaderCheck {
             break;
         }
         
-        if ( lines[start].startsWith( type._start ) && 
+        if ( lines.length > _headerLines.length &&
+             lines[start].startsWith( type._start ) && 
              ( lines[start].contains( "Copyright"  ) || 
                lines[start+1].contains( "Copyright" ) || 
                lines[start+2].contains( "Copyright" ) )
@@ -122,7 +142,7 @@ public class LicenseHeaderCheck {
         for ( int i=start; i<lines.length; i++ )
             buf.append( lines[i] ).append( "\n" );
 
-        System.out.println( f + " : " );
+        System.out.println( f );
 
         FileOutputStream out = new FileOutputStream( f );
         out.write( buf.toString().getBytes() );
@@ -166,6 +186,14 @@ public class LicenseHeaderCheck {
         CodeType jxpStyle = new CodeType( "<% /**" , "*/ %>" , "*" );
         _extensions.put( "jxp" , jxpStyle );
         _extensions.put( "html" , jxpStyle );
+
+        _extensions.put( "rb" , new CodeType( "=begin" , "=end" , "" ) );
+
+        CodeType djang10 = new CodeType( "{% comment %}" , "{% endcomment %}" , "" );
+        _extensions.put( "djang10" , djang10 );
+        _extensions.put( "django" , djang10 );
+
+        _extensions.put( "py" , new CodeType( "'''" , "'''" , "" ) );
     }
     
     private static final Set<String> _skipExtensions = new HashSet<String>();
@@ -177,28 +205,32 @@ public class LicenseHeaderCheck {
         _skipExtensions.add( "vcproj" );
         _skipExtensions.add( "user" );
         _skipExtensions.add( "gch" );
-
+        
         // intermediate files
         _skipExtensions.add( "o" );
         _skipExtensions.add( "class" );
         _skipExtensions.add( "a" );
-
+        _skipExtensions.add( "ts" );
+        _skipExtensions.add( "out" );
+        
         // text files
         _skipExtensions.add( "log" );
         _skipExtensions.add( "txt" );
+        _skipExtensions.add( "properties" );
 
         // zip
         _skipExtensions.add( "gz" );
         _skipExtensions.add( "tar" );
         _skipExtensions.add( "zip" );
-
+        
         // meadia
         _skipExtensions.add( "jpg" );
         _skipExtensions.add( "gif" );
         _skipExtensions.add( "png" );
         _skipExtensions.add( "ico" );
-
-
+        
+        
+        
     }
 
     public static void main( String args[] )
