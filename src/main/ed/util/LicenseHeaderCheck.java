@@ -74,7 +74,8 @@ public class LicenseHeaderCheck {
         if ( name.endsWith( "~" ) )
             return true;
 
-        if ( name.equals( "db" ) )
+        if ( name.equals( "db" ) 
+             || name.equals( "README" ) )
             return true;
 
         if ( ! Character.isLetterOrDigit( name.charAt(0) ) )
@@ -103,7 +104,7 @@ public class LicenseHeaderCheck {
         
         final String raw = StreamUtil.readFully( ( new FileInputStream( f ) ) );
         final String lines[] = raw.split( "\r?\n" );
-        if ( ( raw.length() / lines.length ) > 1000 )
+        if ( lines.length > 0 && ( raw.length() / lines.length ) > 1000 )
             throw new RuntimeException( "Something is wrong on : " + f );
         
         int start = 0;
@@ -119,6 +120,11 @@ public class LicenseHeaderCheck {
             break;
         }
         
+        if ( start == lines.length ){
+            // entire file commented out
+            start = 0;
+        }
+
         if ( lines.length > _headerLines.length &&
              lines[start].startsWith( type._start ) && 
              ( lines[start].contains( "Copyright"  ) || 
@@ -194,6 +200,8 @@ public class LicenseHeaderCheck {
         _extensions.put( "django" , djang10 );
 
         _extensions.put( "py" , new CodeType( "'''" , "'''" , "" ) );
+
+        _extensions.put( "xml" , new CodeType( "<!--" , "-->" , "" ) );
     }
     
     private static final Set<String> _skipExtensions = new HashSet<String>();
@@ -217,10 +225,13 @@ public class LicenseHeaderCheck {
         _skipExtensions.add( "log" );
         _skipExtensions.add( "txt" );
         _skipExtensions.add( "properties" );
-
+        _skipExtensions.add( "conf" );
+        _skipExtensions.add( "tmpl" );
+        
         // zip
         _skipExtensions.add( "gz" );
         _skipExtensions.add( "tar" );
+        _skipExtensions.add( "jar" );
         _skipExtensions.add( "zip" );
         
         // meadia
@@ -229,7 +240,8 @@ public class LicenseHeaderCheck {
         _skipExtensions.add( "png" );
         _skipExtensions.add( "ico" );
         
-        
+        // random
+        _skipExtensions.add( "old" );
         
     }
 
