@@ -1,0 +1,12 @@
+#!/bin/tcsh
+
+#database
+./runAnt.bash ed.util.LicenseHeaderCheck conf/agpl_1.txt ../p/db/ ../p ../p/db/ ../p/grid/ ../p/lib/ ../p/util/
+
+#corejs
+./runAnt.bash ed.util.LicenseHeaderCheck -r conf/apache_1.txt /data/corejs/
+
+#core modules
+./runAnt.bash ed.util.LicenseHeaderCheck -r conf/apache_1.txt /data/core-modules/
+
+

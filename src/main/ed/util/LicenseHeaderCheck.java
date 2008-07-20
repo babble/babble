@@ -86,8 +86,6 @@ public class LicenseHeaderCheck {
         final String lines[] = raw.split( "\r?\n" );
         if ( ( raw.length() / lines.length ) > 150 )
             throw new RuntimeException( "Something is wrong on : " + f );
-
-        System.out.print( f + " : " );
         
         int start = 0;
         for ( ; start < lines.length; start++ ){
@@ -107,7 +105,6 @@ public class LicenseHeaderCheck {
                lines[start+1].contains( "Copyright" ) || 
                lines[start+2].contains( "Copyright" ) )
              ){
-            System.out.println( " already done" );
             // TODO : all this means is that their is a Copyright.
             //        need to make sure its correct
             return;
@@ -125,7 +122,7 @@ public class LicenseHeaderCheck {
         for ( int i=start; i<lines.length; i++ )
             buf.append( lines[i] ).append( "\n" );
 
-            System.out.println( " doing" );
+        System.out.println( f + " : " );
 
         FileOutputStream out = new FileOutputStream( f );
         out.write( buf.toString().getBytes() );
