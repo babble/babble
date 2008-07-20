@@ -103,7 +103,7 @@ public class LicenseHeaderCheck {
         
         final String raw = StreamUtil.readFully( ( new FileInputStream( f ) ) );
         final String lines[] = raw.split( "\r?\n" );
-        if ( ( raw.length() / lines.length ) > 150 )
+        if ( ( raw.length() / lines.length ) > 1000 )
             throw new RuntimeException( "Something is wrong on : " + f );
         
         int start = 0;
