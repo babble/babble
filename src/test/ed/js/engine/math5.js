@@ -1,3 +1,19 @@
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 print( Math.max( null , null ) );
 print( Math.max( 1 , 2 ) );
 print( Math.max( 1 , null ) );
@@ -48,4 +64,3 @@ print( Math.round( "44" ) );
 print( Math.round( "4.32" ) );
 print( Math.round( "0x45" ) );
 print( Math.round( "3a" ) );
-
