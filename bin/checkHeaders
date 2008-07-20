@@ -10,6 +10,6 @@
 ./runLight.bash ed.util.LicenseHeaderCheck -r conf/apache_1.txt /data/corejs/
 
 #core modules
-#./runLight.bash ed.util.LicenseHeaderCheck -r conf/apache_1.txt /data/core-modules/
+./runLight.bash ed.util.LicenseHeaderCheck -r conf/apache_1.txt /data/core-modules/
 
 
