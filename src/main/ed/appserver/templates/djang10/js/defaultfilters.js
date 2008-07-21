@@ -71,6 +71,8 @@ var linebreaks =
     var paras = value.split(/\n{2,}/);
     for(var i=0; i < paras.length; i++)
         paras[i] = "<p>" + paras[i].trim().replace(/\n/g, "<br />") + "</p>";
+        
+    return paras.join("\n\n");
 };
 
 var linebreaksbr =
