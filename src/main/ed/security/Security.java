@@ -43,6 +43,7 @@ public class Security {
 
     final static String SECURE[] = new String[]{ 
         Convert.DEFAULT_PACKAGE + "." + _baseClass + "corejs_" , 
+        Convert.DEFAULT_PACKAGE + "." + _baseClass + "core_modules_admin_" , 
         Convert.DEFAULT_PACKAGE + "." + _baseClass + "sites_admin_" , 
         Convert.DEFAULT_PACKAGE + "." + _baseClass + "sites_www_" , 
         Convert.DEFAULT_PACKAGE + "." + _baseClass + "sites_grid_" , 
