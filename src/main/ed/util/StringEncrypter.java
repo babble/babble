@@ -1,7 +1,28 @@
 // StringEncrypter.java
 
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package ed.util;
 
+import java.io.*;
+import java.security.*;
+import java.security.spec.*;
+import javax.crypto.*;
+import javax.crypto.spec.*;
 
 /**
  * Downloaded from: http://www.idevelopment.info/data/Programming/java/security/java_cryptography_extension/StringEncrypter.java
@@ -19,14 +40,8 @@ package ed.util;
  *      PBEWithMD5AndTripleDES
  *      TripleDES
  * -----------------------------------------------------------------------------
+ * @expose
  */
-
-import java.io.*;
-import java.security.*;
-import java.security.spec.*;
-import javax.crypto.*;
-import javax.crypto.spec.*;
-
 public class StringEncrypter {
 
     Cipher ecipher;
@@ -66,7 +81,7 @@ public class StringEncrypter {
      *                   decrypter instances.
      */
     public StringEncrypter(String passPhrase) {
-	
+
         // 8-bytes Salt
         byte[] salt = {
             (byte)0xA9, (byte)0x9B, (byte)0xC8, (byte)0x32,
@@ -131,7 +146,7 @@ public class StringEncrypter {
 
 
     /**
-     * Takes a encrypted String as an argument, decrypts and returns the 
+     * Takes a encrypted String as an argument, decrypts and returns the
      * decrypted String.
      * @param str Encrypted String to be decrypted
      * @return <code>String</code> Decrypted version of the provided String
@@ -175,7 +190,7 @@ public class StringEncrypter {
             String secretString = "Attack at dawn!";
 
             // Generate a temporary key for this example. In practice, you would
-            // save this key somewhere. Keep in mind that you can also use a 
+            // save this key somewhere. Keep in mind that you can also use a
             // Pass Phrase.
             SecretKey desKey       = KeyGenerator.getInstance("DES").generateKey();
             SecretKey blowfishKey  = KeyGenerator.getInstance("Blowfish").generateKey();
@@ -259,6 +274,7 @@ public class StringEncrypter {
      * Sole entry point to the class and application used for testing the
      * String Encrypter class.
      * @param args Array of String arguments.
+     * @unexpose
      */
     public static void main(String[] args) {
         testUsingSecretKey();
@@ -266,4 +282,3 @@ public class StringEncrypter {
     }
 
 }
-

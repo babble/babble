@@ -1,5 +1,21 @@
 // Cloud.java
 
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package ed.cloud;
 
 import java.io.*;
@@ -12,6 +28,8 @@ import ed.js.engine.*;
 import ed.log.*;
 
 public class Cloud extends JSObjectBase {
+
+    static final boolean FORCE_GRID = ed.util.Config.get().getBoolean( "FORCE-GRID" );
 
     static Logger _log = Logger.getLogger( "cloud" );
     static {
@@ -41,6 +59,17 @@ public class Cloud extends JSObjectBase {
     }
 
 
+    public static Cloud getInstanceIfOnGrid(){
+        Cloud c = getInstance();
+        if ( c == null )
+            return null;
+        
+        if ( ! c.isOnGrid() )
+            return null;
+        
+        return c;
+    }
+
     // ---
 
     private Cloud(){
@@ -55,7 +84,13 @@ public class Cloud extends JSObjectBase {
         }
 
 
-	Shell.addNiceShellStuff( _scope );
+        _scope.set( "connect" , new Shell.ConnectDB() );
+        _scope.set( "openFile" , new ed.js.func.JSFunctionCalls1(){
+                public Object call( Scope s , Object fileName , Object crap[] ){
+                    return new JSLocalFile( fileName.toString() );
+                }
+            } );
+
 	_scope.set( "Cloud" , this );
 	_scope.set( "log" , _log );
 
@@ -107,22 +142,14 @@ public class Cloud extends JSObjectBase {
 	    }
 	}
 	
-	_log.info( "isRealServer : " + isRealServer() );
+	_log.info( "isOnGrid : " + isOnGrid() );
 
     }
 
-    public String getDBHost( String name , String environment ){
+    public String getDBHost( String dbname ){
         if ( _bad )
             return null;
 
-        JSObject site = findSite( name , false );
-        if ( site == null )
-            return null;
-        
-        String dbname = evalFunc( site , "getDatabaseServerForEnvironmentName" , environment ).toString();
-	if ( dbname == null )
-	    throw new RuntimeException( "why is dbname null for : " + name + ":" + environment );
-	
 	JSObject db = (JSObject)evalFunc( "Cloud.findDBByName" , dbname );
 	if ( db == null )
 	    throw new RuntimeException( "can't find global db named [" + dbname + "]" );
@@ -132,6 +159,21 @@ public class Cloud extends JSObjectBase {
 	    throw new RuntimeException( "global db [" + dbname + "] doesn't have machine set" );
 
         return machine.toString();
+    }
+
+    public String getDBHostForSite( String siteName , String environment ){
+        if ( _bad )
+            return null;
+
+        JSObject site = findSite( siteName , false );
+        if ( site == null )
+            return null;
+        
+        String dbname = evalFunc( site , "getDatabaseServerForEnvironmentName" , environment ).toString();
+	if ( dbname == null )
+	    throw new RuntimeException( "why is dbname null for : " + siteName + ":" + environment );
+        
+        return getDBHost( dbname );
     }
 
     public JSObject findSite( String name , boolean create ){
@@ -214,7 +256,10 @@ public class Cloud extends JSObjectBase {
         return _scope;
     }
     
-    public boolean isRealServer(){
+    public boolean isOnGrid(){
+        if ( FORCE_GRID )
+            return true;
+
         if ( _bad )
             return false;
     
@@ -236,7 +281,7 @@ public class Cloud extends JSObjectBase {
     }
     
     public String toString(){
-        return "{ Cloud.  real: " + isRealServer() + "}";
+        return "{ Cloud.  ongrid: " + isOnGrid() + "}";
     }
 
     final Scope _scope;

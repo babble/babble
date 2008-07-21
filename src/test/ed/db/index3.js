@@ -1,9 +1,8 @@
 
 db = connect( "foo");
-core.db.db();
 
 t = db.index3;
-deleteIndexes( "index3" );
+t.dropIndexes();
 t.remove( {} );
 sleep( 100 );
 

@@ -1,12 +1,28 @@
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 /*
  * Copyright 1999,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,7 +41,7 @@ import java.util.TimeZone;
 /**
  * Converts dates to strings using the same format specifiers as strftime
  *
- * Note: This does not mimic strftime perfectly.  Certain strftime commands, 
+ * Note: This does not mimic strftime perfectly.  Certain strftime commands,
  *       are not supported, and will convert as if they were literals.
  *
  *       Certain complicated commands, like those dealing with the week of the year
@@ -40,6 +56,7 @@ import java.util.TimeZone;
  * @author Bip Thelin
  * @author Dan Sandberg
  * @version $Revision: 1.4 $, $Date: 2004/08/29 16:46:13 $
+ * @expose
  */
 public class Strftime {
     protected static Properties translate;
@@ -118,7 +135,7 @@ public class Strftime {
 
     /**
      * Create an instance of this date formatting class
-     * 
+     *
      * @param origFormat the strftime-style formatting string
      * @param locale the locale to use for locale-specific conversions
      */
@@ -196,7 +213,7 @@ public class Strftime {
                         buf.append("'");
                         inside = true;
                     }
-                    
+
                     buf.append(c);
                 }
             }
@@ -237,14 +254,14 @@ public class Strftime {
         //O and E are modifiers, they mean to present an alternative representation of the next char
         //we just handle the next char as if the O or E wasn't there
         if ( firstChar == 'O' || firstChar == 'E' ) {
-            if ( index + 1 < pattern.length() ) {               
+            if ( index + 1 < pattern.length() ) {
                 newInside = translateCommand( buf, pattern, index + 1, oldInside );
             } else {
                 buf.append( quote("%" + firstChar, oldInside ) );
             }
         } else {
             String command = translate.getProperty( String.valueOf( firstChar ) );
-            
+
             //If we don't find a format, treat it as a literal--That's what apache does
             if ( command == null ) {
                 buf.append( quote( "%" + firstChar, oldInside ) );

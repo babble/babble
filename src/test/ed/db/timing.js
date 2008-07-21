@@ -53,7 +53,7 @@ function makeIdx() {
     return post-pre;
 }
 
-db = connect("foobar");
+db = connect("ed_db_timing");
 var myFoo = core.util.random();
 randGen = myFoo.getRandom(1);
 

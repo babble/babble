@@ -1,3 +1,19 @@
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 import com.sun.javadoc.*;
 import com.sun.tools.doclets.formats.html.*;
 import java.util.*;
@@ -12,10 +28,10 @@ public class JavadocToDB {
     public static void getTags(Doc from, JSObjectBase dest) {
         Tag cTags[] = from.tags();
         for(int j=0; j<cTags.length; j++) {
-            if(cTags[j].name().substring(1).equals("return") ||
+            if(!(cTags[j].name().substring(1).equals("return") ||
                cTags[j].name().substring(1).equals("example") ||
                cTags[j].name().substring(1).equals("param") ||
-               cTags[j].name().substring(1).equals("anonymous")) {
+                 cTags[j].name().substring(1).equals("anonymous"))) {
                 dest.set(cTags[j].name().substring(1), cTags[j].text());
             }
         }
@@ -50,6 +66,15 @@ public class JavadocToDB {
                 returns.add(tempReturn);
                 tempMethod.set("returns", returns);
             }
+            else if (mTags[k].name().equals("@jsget")) {
+                tempMethod.set("desc", "Getter for the class "+m.containingClass().name());
+            }
+            else if (mTags[k].name().equals("@jsset")) {
+                tempMethod.set("desc", "Setter for the class "+m.containingClass().name());
+            }
+            else if (mTags[k].name().equals("@jskeyset")) {
+                tempMethod.set("desc", "Returns the keyset of the class "+m.containingClass().name());
+            }
             else {
                 tempMethod.set(mTags[k].name(), mTags[k].text());
             }
@@ -73,7 +98,7 @@ public class JavadocToDB {
         ParamTag params[] = m.paramTags();
         Parameter p2[] = m.parameters();
         JSArray jsParams = new JSArray();
-        for(int k=0; k<params.length; k++) {
+        for(int k=0; k<Math.min(params.length, p2.length); k++) {
             JSObjectBase tempParam = new JSObjectBase();
             tempParam.set("title", "param");
             tempParam.set("desc", params[k].parameterComment());
@@ -111,6 +136,7 @@ public class JavadocToDB {
             jsParams.add(tempParam);
         }
         tempMethod.set("_params", jsParams);
+        tempMethod.set("params", jsParams);
         return tempMethod;
     }
 
@@ -140,6 +166,9 @@ public class JavadocToDB {
         ConstructorDoc cons[] = c.constructors();
         JSArray jsCons = new JSArray();
         for(int j=0; j<cons.length; j++) {
+            Tag[] mtags = cons[j].tags("unexpose");
+            if(mtags.length > 0) continue;
+
             jsCons.add(getConstructor(cons[j]));
         }
         temp.set("constructors", jsCons);
@@ -155,6 +184,7 @@ public class JavadocToDB {
             tempField.set("desc", fields[j].commentText());
             tempField.set("name", fields[j].name());
             tempField.set("alias", fields[j].qualifiedName());
+            tempField.set("type", (fields[j].type()).typeName());
             tempField.set("isStatic", fields[j].isStatic());
             tempField.set("isPrivate", fields[j].isPrivate());
             tempField.set("isProtected", fields[j].isProtected());
@@ -220,15 +250,34 @@ public class JavadocToDB {
                 JSObjectBase a = new JSObjectBase();
                 String aText = anon[j].text();
 
-                Pattern tagger = Pattern.compile("([a-z]+) : \\{([^\\}]+)\\}");
+                Pattern tagger = Pattern.compile("([A-Za-z]+) : \\{([^\\}]+)\\}");
                 Matcher m = tagger.matcher(aText);
                 JSArray params = new JSArray();
+                JSArray returns = new JSArray();
                 while(m.find()) {
                     if(m.group(1).equals("param")) {
-                        params.add(m.group(2));
+                        Pattern subtagger = Pattern.compile("([A-Za-z]+) : \\(([^\\)]+)\\)");
+                        Matcher subm = subtagger.matcher(m.group(2));
+                        JSObjectBase pgroup = new JSObjectBase();
+                        pgroup.set("title", "param");
+                        while(subm.find()) {
+                            pgroup.set(subm.group(1), subm.group(2));
+                        }
+                        params.add(pgroup);
                     }
                     else if(m.group(1).equals("return")) {
-                        a.set("returns", m.group(2));
+                        Pattern subtagger = Pattern.compile("([A-Za-z]+) : \\(([^\\)]+)\\)");
+                        Matcher subm = subtagger.matcher(m.group(2));
+                        JSObjectBase pgroup = new JSObjectBase();
+                        pgroup.set("title", "return");
+                        while(subm.find()) {
+                            pgroup.set(subm.group(1), subm.group(2));
+                            if(subm.group(1).equals("type")) {
+                                a.set("type", subm.group(2));
+                            }
+                        }
+                        returns.add(pgroup);
+                        a.set("returns", returns);
                     }
                     else if(m.group(1).equals("name")) {
                         a.set("alias", m.group(2));
@@ -238,6 +287,7 @@ public class JavadocToDB {
                         a.set(m.group(1), m.group(2));
                     }
                 }
+                a.set("_params", params);
                 a.set("params", params);
                 jsAnon.add(a);
             }
@@ -284,6 +334,7 @@ public class JavadocToDB {
             while(p.hasNext())
                 javadocProp.add(p.next());
 
+            javadocObj.set("srcFile", (jsdocObj.get("srcFile")).toString());
             // remove the repeated class
             db.remove(dquery);
         }
@@ -316,6 +367,8 @@ public class JavadocToDB {
             topLevel.set("_index", obj);
             topLevel.set("version", Generate.getVersion());
             topLevel.set("ts", Calendar.getInstance().getTime().toString());
+            topLevel.set("name", classes[i].name());
+            topLevel.set("desc", classes[i].commentText());
 
             collection.save((JSObject)topLevel);
         }

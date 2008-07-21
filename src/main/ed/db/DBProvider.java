@@ -4,6 +4,8 @@ package ed.db;
 
 import java.util.*;
 
+import ed.cloud.*;
+import ed.util.Config;
 import ed.appserver.*;
 
 public class DBProvider {
@@ -16,7 +18,7 @@ public class DBProvider {
         if ( env == null )
             return get( root , false );
 
-        return get( root , false , ed.cloud.Cloud.getInstance().getDBHost( root , env ) );
+        return get( root , false , ed.cloud.Cloud.getInstance().getDBHostForSite( root , env ) );
     }
 
     public static DBApiLayer get( String root ){
@@ -33,17 +35,18 @@ public class DBProvider {
 
     public static DBApiLayer get( String root , boolean useCache , String ip ){
         
-        if ( ip == null || ip.trim().length() == 0 )
-            ip = getDefaultHost();
-        
-        int port = DBPort.PORT;
-        
-        String s = System.getenv("db_port");
-        
-        if (s != null && ip.trim().length() > 0) { 
-            // deliberately don't check this - the NumFormatExpn should drop the server
-            port = Integer.valueOf(s);
+        if ( ip == null || ip.trim().length() == 0 ){
+            int idx = root.indexOf( "/" );
+            if ( idx > 0 ){
+                ip = root.substring( 0 , idx );
+                root = root.substring( idx + 1 );
+            }
+            else {
+                ip = getDefaultHost();
+            }
         }
+        
+        int port = Integer.parseInt(Config.get().getTryEnvFirst("db_port", Integer.toString(DBPort.PORT)));
         
         return get( root , useCache , ip , port);
     }
@@ -80,10 +83,7 @@ public class DBProvider {
     }
 
     static String getDefaultHost(){
-        String ip = System.getenv( "db_ip" );
-        if ( ip == null || ip.trim().length() == 0 )
-            ip = "127.0.0.1";
-        return ip;
+        return Config.get().getTryEnvFirst( "db_ip" , "127.0.0.1" );
     }
 
     private static DBApiLayer create(String root , String ip, int port){
@@ -92,6 +92,16 @@ public class DBProvider {
         if ( colon > 0 ){
             port = Integer.parseInt( ip.substring( colon + 1 ) );
             ip = ip.substring( 0 , colon );
+        }
+
+        if ( ip.indexOf( "." ) < 0 && ip.indexOf( "-" ) < 0 ){
+            // we're going to assume its not a host or an ip, but a db name.
+            Cloud c = Cloud.getInstanceIfOnGrid();
+            if ( c != null ){
+                String temp = c.getDBHost( ip );
+                if ( temp != null )
+                    ip = temp;
+            }
         }
 
     	System.out.println("DBApiLayer : DBTCP : " + ip + ":" + port + "/" + root);

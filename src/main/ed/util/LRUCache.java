@@ -1,4 +1,20 @@
-// LRUCache.java 
+// LRUCache.java
+
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 package ed.util;
 
@@ -8,6 +24,7 @@ import java.util.Map;
 
 /**
  * simple lru cache
+ * @expose
  */
 public class LRUCache<K,V> {
 
@@ -15,7 +32,7 @@ public class LRUCache<K,V> {
 
     /**
      *  Creates a LRUCache of no size limit
-     *  
+     *
      * @param defaultCacheTime default time to cache elements (in milliseconds)
      */
     public LRUCache( long defaultCacheTime ){
@@ -24,7 +41,7 @@ public class LRUCache<K,V> {
 
     /**
      *  Creates a LRUCache of limited size.
-     *  
+     *
      * @param defaultCacheTime default time to cache elements (in milliseconds)
      * @param maxSize maximum number of entries in the cache
      */
@@ -32,11 +49,11 @@ public class LRUCache<K,V> {
         _defaultCacheTime = defaultCacheTime;
         _maxSize = maxSize;
     }
-    
+
     /**
-     * Adds an element to the map.  Element will be cached for the default cache 
+     * Adds an element to the map.  Element will be cached for the default cache
      * time specified in the CTOR
-     * 
+     *
      * @param k
      * @param v
      */
@@ -53,15 +70,15 @@ public class LRUCache<K,V> {
     public void put( K k , V v , long cacheTime ){
         _cache.put( k , new Entry( v , cacheTime ) );
     }
-    
+
     /**
-     *  Gets the value specified by the key as long as the value has been 
+     *  Gets the value specified by the key as long as the value has been
      *  cached less than the specified cache time
-     *  
+     *
      * @param k
      * @param cacheTime maximum age of cached element to return (in milliseconds)
      * @return value for key if found, null if not found, if the value is expired, or
-     *         if value has been in cache longer than specified cacheTime 
+     *         if value has been in cache longer than specified cacheTime
      */
     public V get( K k , long cacheTime ){
 
@@ -70,19 +87,19 @@ public class LRUCache<K,V> {
             if ( D ) System.out.println( "LRUCache.get : null" );
             return null;
         }
-        
+
         if ( ! e.valid( cacheTime ) ){
             if ( D ) System.out.println( "LRUCache.get : invalid" );
             _cache.remove( k );
             return null;
-        }        
+        }
 
         return e._v;
     }
 
     /**
      *  Gets the value specified by the key
-     *  
+     *
      * @param k
      * @param cacheTime maximum age of cached element to return (in milliseconds)
      * @return value for key if found, null if not or if value expired
@@ -93,7 +110,7 @@ public class LRUCache<K,V> {
             if ( D ) System.out.println( "LRUCache.get : null" );
             return null;
         }
-        
+
         if ( ! e.valid() ){
             if ( D ) System.out.println( "LRUCache.get : invalid" );
             _cache.remove( k );
@@ -103,7 +120,7 @@ public class LRUCache<K,V> {
         return e._v;
     }
 
-    /**
+    /** Returns the number of elements in the cache.
      * @return the number of elements in the cache (irrespective of validity?)
      */
     public int size(){
@@ -116,9 +133,9 @@ public class LRUCache<K,V> {
             _cacheTime = cacheTime;
             _expireTime = _createTime + _cacheTime;
         }
-        
+
         boolean valid( long cacheTime ){
-            return valid() && 
+            return valid() &&
                 ( _createTime + cacheTime ) > System.currentTimeMillis();
         }
 
@@ -129,21 +146,24 @@ public class LRUCache<K,V> {
         final V _v;
         final long _cacheTime;
         final long _expireTime;
-        
+
         final long _createTime = System.currentTimeMillis();
     }
 
+    /** @unexpose */
     final long _defaultCacheTime;
+    /** @unexpose */
     final int _maxSize;
+    /** @unexpose */
     final Map<K,Entry> _cache = new LinkedHashMap<K,Entry>(){
         static final long serialVersionUID = -1;
-        
+
         protected boolean removeEldestEntry( Map.Entry<K,Entry> eldest){
 
             // if its too big, kill the oldest
             if ( _maxSize > 0 && size() > _maxSize )
                 return true;
-            
+
             // if the oldest is invalid, get rid of no matter what
             if ( ! eldest.getValue().valid() )
                 return true;
@@ -153,4 +173,3 @@ public class LRUCache<K,V> {
     };
 
 }
-

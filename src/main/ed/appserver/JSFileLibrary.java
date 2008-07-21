@@ -1,5 +1,21 @@
 // JSFileLibrary.java
 
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package ed.appserver;
 
 import java.io.*;
@@ -31,18 +47,18 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
      * @return Library or null if can't be found
      */
     public static JSFileLibrary loadLibraryFromEd(String location,  String uriBase, Scope scope){ 
-	    String root = JSHook.whereIsEd;
-	    if ( root == null ) 
-	        root = "";
-            else
-                root += "/";
-	    root += "src/main/" + location;	    
-	    File rootFile = new File( root );
-	    if ( ! rootFile.exists() ){
-                System.out.println( "does not exist [" + rootFile + "]" );
-	    	return null;
-	    }	
-	    return new JSFileLibrary( rootFile , uriBase, scope);
+        String root = JSHook.whereIsEd;
+        if ( root == null ) 
+            root = "";
+        else
+            root += "/";
+        root += "src/main/" + location;	    
+        File rootFile = new File( root );
+        if ( ! rootFile.exists() ){
+            System.out.println( "does not exist [" + rootFile + "]" );
+            return null;
+        }	
+        return new JSFileLibrary( rootFile , uriBase, scope);
     }
     
     public JSFileLibrary( File base , String uriBase , AppContext context ){
@@ -83,7 +99,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
     private synchronized void _init(){
         
         if ( D ) System.out.println( "\t " + _base + " _init.  _initSources : " + _initSources );
-
+        
         if ( ! _doInit ){
             if ( D ) System.out.println( "\t skipping becuase no _doInit" );
             return;
@@ -93,19 +109,21 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
             if ( D ) System.out.println( "\t skipping becuase _inInit" );
             return;
         }
-
+        
         boolean somethingChanged = false;
+
+        long initTime = 0;
 
         Object init = get( "_init" , false );
         if ( init != _initFunction )
             somethingChanged = true;
         else {
-            for ( JxpSource source : _initSources ){
-                if ( source.lastUpdated() > _lastInit ){
-                    somethingChanged = true;
-                    break;
-                }
-            }
+            
+            for ( JxpSource source : _initSources )
+                initTime = Math.max( initTime , source.lastUpdated() );
+            
+            if ( initTime > _lastInit )
+                somethingChanged = true;
         }
         
         if ( D ) System.out.println( "\t\t somethingChanged : " + somethingChanged + " init : " + init + " _initFunction : " + _initFunction );
@@ -135,6 +153,8 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
             }
             
             if ( init instanceof JSFunction ){
+                if ( D ) System.out.println( "\t\t\t runnning _init" );
+
                 Scope s = null;
                 if ( _context != null )
                     s = _context.getScope();
@@ -142,7 +162,6 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
                     s = _scope;
                 else 
                     throw new RuntimeException( "no scope :(" );
-                
                 _initFunction = (JSFunction)init;
                 
                 Scope pref = s.getTLPreferred();
@@ -157,13 +176,20 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
                 s.setTLPreferred( pref );
             }
 
-            _lastInit = System.currentTimeMillis();
+            _lastInit = _maxInitTime();
         }
         finally {
             _inInit = false;
             _initStack.get().pop();
         }
         
+    }
+
+    private long _maxInitTime(){
+        long initTime = 0;
+        for ( JxpSource source : _initSources )
+            initTime = Math.max( initTime , source.lastUpdated() );
+        return initTime;
     }
 
     public JSFunction getFunction( final Object n ){
@@ -198,15 +224,18 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         return foo;
     }
 
-    public File getFileFromPath( String path ){
+    public File getFileFromPath( final String path ){
         _init();
         Object o = getFromPath( path , false );
 
         if ( o instanceof File )
             return (File)o;
         
-        if ( o instanceof JSFileLibrary )
-            return ((JSFileLibrary)o)._base;
+        if ( o instanceof JSFileLibrary ){
+            File f = ((JSFileLibrary)o)._base;
+            getFileFromPath( path + "/index.jxp" );
+            return f;
+        }
 
         JxpSource js = null;
 
@@ -219,9 +248,10 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
             return null;
         
         File f = js.getFile();
-
+        
         if ( f != null )
             _fileCache.put( f , js );
+
         return f;
     }
 
@@ -230,8 +260,9 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
     }
 
     public Object getFromPath( String path , boolean evalToFunction ){
-        if ( path == null || path.trim().length() == 0 )
+        if ( path == null || path.trim().length() == 0 ){
             return this;
+        }
         
         _init();
 
@@ -261,7 +292,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
             return null;
         
         if ( ! ( foo instanceof JSLibrary ) )
-            throw new RuntimeException( dir + " is not a directory" );
+            return null;
         
         JSLibrary lib = (JSLibrary)foo;
         return lib.getFromPath( next , evalToFunction );
@@ -328,8 +359,12 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
                     nextPath = nextPath.substring(1);
                 
                 Object o = lib.getFromPath( nextPath , false );
-                if ( ! ( o instanceof JxpSource ) )
-                    throw new RuntimeException( "wasn't jxp source..." );
+                if ( o == null )
+                    throw new RuntimeException( "can't find [" + nextPath + "] from [" + _base + "]" );
+                
+                if ( ! ( o instanceof JxpSource ) ){
+                    throw new RuntimeException( "wasn't jxp source.  was [" + o.getClass() + "]" );
+                }
 
                 return (JxpSource)o;
             }

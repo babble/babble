@@ -17,7 +17,7 @@
  * 
  *  <p>Note : alpha: space is not reclaimed</p>
  *
- * @return SOMETHING_FIXME
+ * @return A result object.  result.ok will be true if successful.
  */
 DBCollection.prototype.dropIndexes = function() {
     var res = this._dbCommand( { deleteIndexes: this.getName(), index: "*" } );
@@ -41,7 +41,7 @@ DBCollection.prototype.dropIndexes = function() {
  *
  * <p>Note :  alpha: space is not reclaimed </p>
  * @param {String} name of index to delete.
- * @return SOMETHING_FIXME
+ * @return A result object.  result.ok will be true if successful.
  */
  DBCollection.prototype.dropIndex =  function(index) {
     assert(index);
@@ -74,7 +74,7 @@ DBCollection.prototype.dropIndexes = function() {
  *   <li> key : object property that's being indexed<li>
  *   </ul>
  * 
- *   @return {Array} Array of index descriptor objects
+ *   @return database cursor of index descriptor objects
  */
 DBCollection.prototype.getIndexes = function(){
     return this.getDB().system.indexes.find( { ns : this.getFullName() } );
@@ -99,7 +99,12 @@ DBCollection.prototype.reIndex = function(){
 
 /** 
  * Validate the data in a collection, returning some stats.
- * @return SOMETHING_FIXME
+ * @return An object with several fields set including:
+ * <ul>
+ *  <li>result : textual description of the validation result</li>
+ *  <li>ok : true if validate operation was performed</li>
+ *  <li>valid : true if the collection is not corrupt</li>
+ * </ul>
  */
 DBCollection.prototype.validate = function() {
     var res = this._dbCommand( { validate: this.getName() } );
@@ -124,15 +129,21 @@ DBCollection.prototype.validate = function() {
  * <p>drops all objects in the collection</p>
  * <p>Note :  alpha: space not reclaimed.</p>
  * 
- * @return SOMETHING_FIXME
+ * @return A result object.  result.ok will be true if successful.
  */
 DBCollection.prototype.drop = function()
 {
-    var res = this._dbCommand( { drop: this.getName() } );
+    var res = this.dropIndexes();
+    if( !res ) 
+	return res;
+    if( !res.ok ) {
+	res.errmsg = "dropping indexes..." + res.errmsg;
+	return res;
+    }
+
+    res = this._dbCommand( { drop: this.getName() } );
     if( res && res.ok && res.ok == 1 ) {
-        this.getDB().system.indexes.remove( { ns: this.getFullName() } );
-		this.getDB().system.namespaces.remove( { name: this.getFullName() } );
-		this.getDB().system.namespaces.remove( { name: RegExp(this.getFullName() + "[.][$].*") } );
+	this.getDB().system.namespaces.remove( { name: this.getFullName() } );
     }
     return res;
 }
@@ -162,16 +173,11 @@ DBCollection.prototype.clean = function() {
  * @return number of objects in the collection that optionally match the filter condition
  */
 DBCollection.prototype.count = function(query) {
-    var countFunction = function() { 
-	var c = db[args[0]].find(args[1]||{}, {_id:ObjId()});
-        var i = 0;
-        while ( c.hasNext() ){
-            c.next();
-            i++;
-        }
-        return i;
-    }
-   return this.getDB().dbEval(countFunction, this.getName(), query);
+    var cmd = { count: this.getName() };
+    if( query ) cmd.query = query;
+    var res = this._dbCommand( cmd );
+    if( res && res.n != null ) return res.n;
+    throw { exception: "count failed", res: res };
 }
 
 /* Run the specified database "command" object.
@@ -181,7 +187,7 @@ DBCollection.prototype._dbCommand = function( cmdObj ) {
 }
 
 DBCollection.prototype.sample = function( num , query , fields ){
-    var r = this.getDB().dbEval(
+    var r = this.getDB().eval(
         function(){
             var a = db[args[0]].find( args[2] || {} , args[3] ).limit(10000).toArray();
             a.shuffle();

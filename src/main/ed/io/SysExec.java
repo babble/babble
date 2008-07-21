@@ -1,5 +1,21 @@
 // SysExec.java
 
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package ed.io;
 
 import java.io.*;
@@ -55,6 +71,10 @@ public class SysExec extends ed.js.func.JSFunctionCalls4 {
         return base;
     }
 
+    public static Result exec( String cmdString ){
+        return exec( cmdString , null , null , null );
+    }
+
     public static Result exec( String cmdString , String env[] , File procDir , String toSend ){
         
         String cmd[] = fix( cmdString );
@@ -97,8 +117,8 @@ public class SysExec extends ed.js.func.JSFunctionCalls4 {
 
             return res;
         }
-        catch ( Throwable t ){
-            throw new JSException( t.toString() , t );
+        catch ( Exception e ){
+            throw new JSException( e.toString() , e );
         }
     }
 

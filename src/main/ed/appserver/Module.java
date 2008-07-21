@@ -1,5 +1,21 @@
 // Module.java
 
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package ed.appserver;
 
 import java.io.*;
@@ -16,10 +32,13 @@ public class Module {
     static final Logger _log = Logger.getLogger( "modules" );    
     public static final String _baseFile; 
     public static final String GITROOT = "ssh://git.10gen.com/data/gitroot/";
+    public static final boolean USE_GIT = ! Config.get().getBoolean( "NO-GIT" );
     
+
     static { 
-        String s = System.getenv( "BASE" ) == null ? "/data/" : System.getenv( "BASE" );
-        if (s != null && !s.endsWith("/")) {
+        String s = Config.get().getProperty( "BASE" , "/data/" );
+        s = System.getenv( "BASE" ) == null ? s : System.getenv( "BASE" );
+        if ( s != null && !s.endsWith("/")) {
             s += "/";
         }
         _baseFile = s;
@@ -78,6 +97,9 @@ public class Module {
     }
     
     String _findGitUrl(){
+        if ( ! USE_GIT )
+            return null;
+        
         final String str = _root.toString();
         if ( str.contains( "/core-modules/" ) || 
              str.contains( "/site-modules/" ) ){
@@ -98,7 +120,7 @@ public class Module {
     public synchronized JSFileLibrary getLibrary( String version , AppContext context , Scope scope , boolean pull ){
         synchronized ( _lock ){
             File f = getRootFile( version );
-            if ( pull )
+            if ( pull && _versioned )
                 GitUtils.pull( f , false );
             return new JSFileLibrary( null , f , _uriBase , context , scope , _doInit );
         }
@@ -116,8 +138,8 @@ public class Module {
         if ( _moduleName == null )
             return null;
         
-        Cloud c = Cloud.getInstance();
-        if ( c == null || ! c.isRealServer() )
+        Cloud c = Cloud.getInstanceIfOnGrid();
+        if ( c == null )
             return null;
 
         return c.getModuleSymLink( _moduleName , version );

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+export CLASSPATH=.:build:conf:$CLASSPATH
+
+for j in `ls include/*.jar`; do
+    export CLASSPATH=$CLASSPATH:$j
+done
+
+export CLASSPATH=$CLASSPATH:/opt/java/lib/tools.jar
+
+ java -Djava.library.path=include -ea $headless -Xmx1000m  -XX:MaxDirectMemorySize=600M  ed.js.Shell "$@"
+

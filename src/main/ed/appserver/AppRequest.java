@@ -1,5 +1,21 @@
 // AppRequest.java
 
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package ed.appserver;
 
 import java.io.*;
@@ -143,6 +159,18 @@ public class AppRequest {
             response.addCookie( Session.COOKIE_NAME , session.getCookie() );
     }
     
+    void makeThreadLocal(){
+        _tl.set( this );
+    }
+
+    void unmakeThreadLocal(){
+        _tl.set( null );
+    }
+
+    public static AppRequest getThreadLocal(){
+        return _tl.get();
+    }
+
     final String _uri;
     final HttpRequest _request;
     final AppContext _context;
@@ -151,4 +179,6 @@ public class AppRequest {
     private Scope _scope;
     
     String _wantedURI = null;
+
+    static ThreadLocal<AppRequest> _tl = new ThreadLocal<AppRequest>();
 }

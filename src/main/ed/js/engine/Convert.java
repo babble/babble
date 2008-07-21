@@ -1,5 +1,21 @@
 // Convert.java
 
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package ed.js.engine;
 
 import java.io.*;
@@ -223,6 +239,8 @@ public class Convert implements StackTraceFixer {
         case Token.REGEXP:
             int myId = _regex.size();
             ScriptOrFnNode parent  = _nodeToSOR.get( n );
+            if ( parent == null )
+                throw new RuntimeException( "how is parent null" );
             int rId = n.getIntProp( Node.REGEXP_PROP , -1 );
             
             _regex.add( new Pair<String,String>( parent.getRegexpString( rId ) , parent.getRegexpFlags( rId ) ) );
@@ -843,7 +861,7 @@ public class Convert implements StackTraceFixer {
             if ( n.getType() == Token.LOCAL_BLOCK &&
                  n.getFirstChild().getType() == Token.CATCH_SCOPE ){
                 
-                _append( " \n catch ( Throwable " + javaEName + " ){ \n " , n );
+                _append( " \n catch ( Exception " + javaEName + " ){ \n " , n );
                 _append( " \n Object " + javaName + " = ( " + javaEName + " instanceof JSException ) ? " + 
                          "  ((JSException)" + javaEName + ").getObject() : " + javaEName + " ; \n" , n );
                 
@@ -1533,7 +1551,7 @@ public class Convert implements StackTraceFixer {
 
         buf.append( "public class " ).append( _className ).append( " extends JSCompiledScript {\n" );
 
-        buf.append( "\tpublic Object _call( Scope scope , Object extra[] ) throws Throwable {\n" );
+        buf.append( "\tpublic Object _call( Scope scope , Object extra[] ) throws Exception {\n" );
 
         buf.append( "\t\t final Scope passedIn = scope; \n" );
 

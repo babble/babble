@@ -1,42 +1,72 @@
 // WeakBag.java
 
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package ed.util;
 
 import java.lang.ref.*;
 import java.util.*;
 
 /**
-   if its not obvious what a weak bag should do, then, well...
-   
-   very very not thead safe
+ * if its not obvious what a weak bag should do, then, well...
+ * very very not thead safe
+ * @expose
  */
 public class WeakBag<T> {
 
+    /** Initializes a new weak bag. */
     public WeakBag(){
-        
-    }
-    
-    public void add( T t ){
-        _set.add( new WeakReference<T>( t ) );
     }
 
+    /** Adds an element to the bag.
+     * @param t Element to add
+     */
+    public void add( T t ){
+        _set.add( new MyRef( t ) );
+    }
+
+    /** Returns the size of the bag.
+     * @return the size of the bag
+     */
     public int size(){
         clean();
         return _set.size();
     }
 
+    /** Removes all object from the bag. */
     public void clear(){
         _set.clear();
     }
 
+    /** Removes any null objects from the bag. */
     public void clean(){
-        for ( Iterator<WeakReference<T>> i = _set.iterator(); i.hasNext(); ){
-            WeakReference<T> ref = i.next();
+        for ( Iterator<MyRef> i = _set.iterator(); i.hasNext(); ){
+            MyRef ref = i.next();
             if ( ref.get() == null )
                 i.remove();
         }
     }
 
-    private final List<WeakReference<T>> _set = new ArrayList<WeakReference<T>>();
-}
+    class MyRef extends WeakReference<T> {
+        MyRef( T t ){
+            super( t );
+        }
+    }
 
+    /** @unexpose */
+    private final List<MyRef> _set = new ArrayList<MyRef>();
+}

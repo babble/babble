@@ -1,5 +1,21 @@
 // Scope.java
 
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package ed.js.engine;
 
 import java.io.*;
@@ -812,6 +828,7 @@ public class Scope implements JSObject {
     public void pushException( Throwable t ){
         if ( _exceptions == null )
             _exceptions = new Stack<Throwable>();
+        StackTraceHolder.getInstance().fix( t );
         _exceptions.push( t );
     }
 
@@ -937,7 +954,7 @@ public class Scope implements JSObject {
             }
         };
 
-    private static Map< Class , Map< String , List<Method> > > _classToMethods = new HashMap< Class , Map< String , List<Method> > >();
+    private static final Map< Class , Map< String , List<Method> > > _classToMethods = new HashMap< Class , Map< String , List<Method> > >();
     
     private static List<Method> getMethods( Class c , String n ){
         Map<String,List<Method>> m = _classToMethods.get( c );
@@ -959,13 +976,22 @@ public class Scope implements JSObject {
         m.put( n , l );
         return l;
     }
-    
+
+    private static final Set<String> _disallowedNativeNames = new HashSet<String>();
+    static {
+        _disallowedNativeNames.add( "getClassLoader" );
+        _disallowedNativeNames.add( "loadClass" );
+    }
 
     public static Object callNative( Scope s , Object obj , String name , Object params[] ){
         return callNative( s , obj , name , params , false );
     }
     
     public static Object callNative( Scope s , Object obj , String name , Object params[]  , boolean debug ){
+        
+        if ( _disallowedNativeNames.contains( name ) )
+            throw new JSException( "[" + name + "] is not allowed" );
+
         List<Method> methods = getMethods( obj.getClass() , name );
         if ( methods != null && methods.size() > 0 ){
             methods:
@@ -1008,6 +1034,11 @@ public class Scope implements JSObject {
                     return ret;
                 }
                 catch ( InvocationTargetException e ){
+                    StackTraceHolder.getInstance().fix( e.getCause() );
+                    if ( e.getCause() instanceof RuntimeException )
+                        throw (RuntimeException)(e.getCause());
+                    if ( e.getCause() instanceof Error )
+                        throw (Error)e.getCause();
                     throw new RuntimeException( e.getCause() );
                 }
                 catch ( RuntimeException e ){

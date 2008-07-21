@@ -1,5 +1,21 @@
 // HttpServer
 
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package ed.net.httpserver;
 
 import java.io.*;
@@ -19,8 +35,8 @@ public class HttpServer extends NIOServer {
     static final int WORKER_THREADS = 30;
     static final int ADMIN_WORKER_THREADS = 10;
 
-    static final int WORKER_THREAD_QUEUE_MAX = 500;
-    static final int ADMIN_THREAD_QUEUE_MAX = 50;
+    static final int WORKER_THREAD_QUEUE_MAX = 200;
+    static final int ADMIN_THREAD_QUEUE_MAX = 10;
 
     static final boolean D = Boolean.getBoolean( "DEBUG.HTTP" );
     static final Logger LOGGER = Logger.getLogger( "httpserver" );
@@ -307,23 +323,19 @@ public class HttpServer extends NIOServer {
         
     }
 
-    static final HttpHandler _stats = new HttpHandler(){
+    static final HttpHandler _stats = new HttpMonitor( "stats" ){
 
-            public boolean handles( HttpRequest request , Info info ){
-                return request.getURI().equals( "/~stats" );
-            }
-            
-            public void handle( HttpRequest request , HttpResponse response ){
-                response.setHeader( "Content-Type" , "text/plain" );
-                
-                JxpWriter out = response.getWriter();
-
-                
+            public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
                 out.print( "stats\n" );
                 out.print( "---\n" );
                 
-                out.print( "forked queue length : " + request._handler._server._forkThreads.queueSize()  + "\n" );
+                final int forkedQueueSize = request._handler._server._forkThreads.queueSize();
+
+                out.print( "forked queue length : " + forkedQueueSize  + "\n" );
                 out.print( "admin queue length : " + request._handler._server._forkThreadsAdmin.queueSize()  + "\n" );
+
+                if ( forkedQueueSize >= WORKER_THREAD_QUEUE_MAX )
+                    response.setResponseCode( 510 );
 
                 out.print( "\n" );
                 
@@ -357,10 +369,6 @@ public class HttpServer extends NIOServer {
                 out.print( "\n" );
             }
             
-            public double priority(){
-                return Double.MIN_VALUE;
-            }
-
             final long _startTime = System.currentTimeMillis();
         };
 
@@ -369,6 +377,9 @@ public class HttpServer extends NIOServer {
     static {
         DummyHttpHandler.setup();
         addGlobalHandler( _stats );
+        addGlobalHandler( new HttpMonitor.MemMonitor() );
+        addGlobalHandler( new HttpMonitor.ThreadMonitor() );
+        addGlobalHandler( new HttpMonitor.FavIconHack() );
     }
     
     private static int _numRequests = 0;

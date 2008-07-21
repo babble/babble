@@ -1,10 +1,27 @@
 // CustomHashMap.java
 
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package ed.util;
 
 import java.util.*;
 import java.io.*;
 
+/** @expose */
 public abstract class CustomHashMap<K,V> implements Map<K,V> , Cloneable , Serializable {
 
     /**
@@ -42,13 +59,13 @@ public abstract class CustomHashMap<K,V> implements Map<K,V> , Cloneable , Seria
      * The number of key-value mappings contained in this identity hash map.
      */
     transient int size;
-  
+
     /**
      * The next size value at which to resize (capacity * load factor).
      * @serial
      */
     int threshold;
-  
+
     /**
      * The load factor for the hash table.
      *
@@ -86,15 +103,15 @@ public abstract class CustomHashMap<K,V> implements Map<K,V> , Cloneable , Seria
 
         // Find a power of 2 >= initialCapacity
         int capacity = 1;
-        while (capacity < initialCapacity) 
+        while (capacity < initialCapacity)
             capacity <<= 1;
-    
+
         this.loadFactor = loadFactor;
         threshold = (int)(capacity * loadFactor);
         table = new Entry[capacity];
         init();
     }
-  
+
     /**
      * Constructs an empty <tt>HashMap</tt> with the specified initial
      * capacity and the default load factor (0.75).
@@ -164,10 +181,10 @@ public abstract class CustomHashMap<K,V> implements Map<K,V> , Cloneable , Seria
     }
 
     /**
-     * Returns a hash value for the specified object.  In addition to 
+     * Returns a hash value for the specified object.  In addition to
      * the object's own hashCode, this method applies a "supplemental
      * hash function," which defends against poor quality hash functions.
-     * This is critical because HashMap uses power-of two length 
+     * This is critical because HashMap uses power-of two length
      * hash tables.<p>
      *
      * The shift distances in this function were chosen as the result
@@ -183,20 +200,20 @@ public abstract class CustomHashMap<K,V> implements Map<K,V> , Cloneable , Seria
         return h;
     }
 
-    /** 
-     * Check for equality of non-null reference x and possibly-null y. 
+    /**
+     * Check for equality of non-null reference x and possibly-null y.
      */
     final boolean eq(Object x, Object y) {
         return x == y || doEquals( x , y );//x.equals(y);
     }
 
     /**
-     * Returns index for hash code h. 
+     * Returns index for hash code h.
      */
     static int indexFor(int h, int length) {
         return h & (length-1);
     }
- 
+
     /**
      * Returns the number of key-value mappings in this map.
      *
@@ -205,7 +222,7 @@ public abstract class CustomHashMap<K,V> implements Map<K,V> , Cloneable , Seria
     public int size() {
         return size;
     }
-  
+
     /**
      * Returns <tt>true</tt> if this map contains no key-value mappings.
      *
@@ -232,11 +249,11 @@ public abstract class CustomHashMap<K,V> implements Map<K,V> , Cloneable , Seria
         Object k = maskNull(key);
         int hash = hash(k);
         int i = indexFor(hash, table.length);
-        Entry<K,V> e = table[i]; 
+        Entry<K,V> e = table[i];
         while (true) {
             if (e == null)
                 return null;
-            if (e.hash == hash && eq(k, e.key)) 
+            if (e.hash == hash && eq(k, e.key))
                 return e.value;
             e = e.next;
         }
@@ -254,9 +271,9 @@ public abstract class CustomHashMap<K,V> implements Map<K,V> , Cloneable , Seria
         Object k = maskNull(key);
         int hash = hash(k);
         int i = indexFor(hash, table.length);
-        Entry e = table[i]; 
+        Entry e = table[i];
         while (e != null) {
-            if (e.hash == hash && eq(k, e.key)) 
+            if (e.hash == hash && eq(k, e.key))
                 return true;
             e = e.next;
         }
@@ -272,12 +289,12 @@ public abstract class CustomHashMap<K,V> implements Map<K,V> , Cloneable , Seria
         Object k = maskNull(key);
         int hash = hash(k);
         int i = indexFor(hash, table.length);
-        Entry<K,V> e = table[i]; 
+        Entry<K,V> e = table[i];
         while (e != null && !(e.hash == hash && eq(k, e.key)))
             e = e.next;
         return e;
     }
-  
+
     /**
      * Associates the specified value with the specified key in this map.
      * If the map previously contained a mapping for this key, the old
@@ -370,7 +387,7 @@ public abstract class CustomHashMap<K,V> implements Map<K,V> , Cloneable , Seria
         threshold = (int)(newCapacity * loadFactor);
     }
 
-    /** 
+    /**
      * Transfer all entries from current table to newTable.
      */
     void transfer(Entry[] newTable) {
@@ -382,7 +399,7 @@ public abstract class CustomHashMap<K,V> implements Map<K,V> , Cloneable , Seria
                 src[j] = null;
                 do {
                     Entry<K,V> next = e.next;
-                    int i = indexFor(e.hash, newCapacity);  
+                    int i = indexFor(e.hash, newCapacity);
                     e.next = newTable[i];
                     newTable[i] = e;
                     e = next;
@@ -429,7 +446,7 @@ public abstract class CustomHashMap<K,V> implements Map<K,V> , Cloneable , Seria
             put(e.getKey(), e.getValue());
         }
     }
-  
+
     /**
      * Removes the mapping for this key from this map if present.
      *
@@ -461,7 +478,7 @@ public abstract class CustomHashMap<K,V> implements Map<K,V> , Cloneable , Seria
             if (e.hash == hash && eq(k, e.key)) {
                 modCount++;
                 size--;
-                if (prev == e) 
+                if (prev == e)
                     table[i] = next;
                 else
                     prev.next = next;
@@ -471,7 +488,7 @@ public abstract class CustomHashMap<K,V> implements Map<K,V> , Cloneable , Seria
             prev = e;
             e = next;
         }
-   
+
         return e;
     }
 
@@ -494,7 +511,7 @@ public abstract class CustomHashMap<K,V> implements Map<K,V> , Cloneable , Seria
             if (e.hash == hash && e.equals(entry)) {
                 modCount++;
                 size--;
-                if (prev == e) 
+                if (prev == e)
                     table[i] = next;
                 else
                     prev.next = next;
@@ -504,7 +521,7 @@ public abstract class CustomHashMap<K,V> implements Map<K,V> , Cloneable , Seria
             prev = e;
             e = next;
         }
-   
+
         return e;
     }
 
@@ -514,7 +531,7 @@ public abstract class CustomHashMap<K,V> implements Map<K,V> , Cloneable , Seria
     public void clear() {
         modCount++;
         Entry[] tab = table;
-        for (int i = 0; i < tab.length; i++) 
+        for (int i = 0; i < tab.length; i++)
             tab[i] = null;
         size = 0;
     }
@@ -528,7 +545,7 @@ public abstract class CustomHashMap<K,V> implements Map<K,V> , Cloneable , Seria
      *         specified value.
      */
     public boolean containsValue(Object value) {
-	if (value == null) 
+	if (value == null)
             return containsNullValue();
 
 	Entry[] tab = table;
@@ -574,13 +591,13 @@ public abstract class CustomHashMap<K,V> implements Map<K,V> , Cloneable , Seria
         public V getValue() {
             return value;
         }
-    
+
         public V setValue(V newValue) {
 	    V oldValue = value;
             value = newValue;
             return oldValue;
         }
-    
+
         public boolean equals(Object o) {
             if (!(o instanceof Map.Entry))
                 return false;
@@ -590,17 +607,17 @@ public abstract class CustomHashMap<K,V> implements Map<K,V> , Cloneable , Seria
             if (k1 == k2 || (k1 != null && k1.equals(k2))) {
                 Object v1 = getValue();
                 Object v2 = e.getValue();
-                if (v1 == v2 || (v1 != null && v1.equals(v2))) 
+                if (v1 == v2 || (v1 != null && v1.equals(v2)))
                     return true;
             }
             return false;
         }
-    
+
         public int hashCode() {
             return (key==NULL_KEY ? 0 : key.hashCode()) ^
                    (value==null   ? 0 : value.hashCode());
         }
-    
+
         public String toString() {
             return getKey() + "=" + getValue();
         }
@@ -623,7 +640,7 @@ public abstract class CustomHashMap<K,V> implements Map<K,V> , Cloneable , Seria
 
     /**
      * Add a new entry with the specified key, value and hash code to
-     * the specified bucket.  It is the responsibility of this 
+     * the specified bucket.  It is the responsibility of this
      * method to resize the table if appropriate.
      *
      * Subclass overrides this to alter the behavior of put method.
@@ -651,8 +668,8 @@ public abstract class CustomHashMap<K,V> implements Map<K,V> , Cloneable , Seria
 
     private abstract class HashIterator<E> implements Iterator<E> {
         Entry<K,V> next;	// next entry to return
-        int expectedModCount;	// For fast-fail 
-        int index;		// current slot 
+        int expectedModCount;	// For fast-fail
+        int index;		// current slot
         Entry<K,V> current;	// current entry
 
         HashIterator() {
@@ -672,13 +689,13 @@ public abstract class CustomHashMap<K,V> implements Map<K,V> , Cloneable , Seria
             return next != null;
         }
 
-        Entry<K,V> nextEntry() { 
+        Entry<K,V> nextEntry() {
             if (modCount != expectedModCount)
                 throw new ConcurrentModificationException();
             Entry<K,V> e = next;
-            if (e == null) 
+            if (e == null)
                 throw new NoSuchElementException();
-                
+
             Entry<K,V> n = e.next;
             Entry[] t = table;
             int i = index;
@@ -852,7 +869,7 @@ public abstract class CustomHashMap<K,V> implements Map<K,V> , Cloneable , Seria
      *		   for each key-value mapping represented by the HashMap
      *             The key-value mappings are emitted in the order that they
      *             are returned by <tt>entrySet().iterator()</tt>.
-     * 
+     *
      */
     private void writeObject(java.io.ObjectOutputStream s)
         throws IOException
@@ -1050,7 +1067,7 @@ public abstract class CustomHashMap<K,V> implements Map<K,V> , Cloneable , Seria
 	buf.append("}");
 	return buf.toString();
     }
-    
+
     /**
      * Returns a shallow copy of this <tt>AbstractMap</tt> instance: the keys
      * and values themselves are not cloned.

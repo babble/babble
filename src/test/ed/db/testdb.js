@@ -6,8 +6,6 @@
 var t = connect("test");
 db=t;
 
-core.db.db();
-
 var z = 0;
 function progress() {}// print(++z); }
 
@@ -70,7 +68,7 @@ function index2() {
 
 function giantIndexTest() { 
     //print("giantIndexTest");
-    drop("giant");
+    db.giant.drop();
     db.giant.save({moe:1,foo:[33],bar:"aaaaa"});
 
     var z = 0;
@@ -94,7 +92,7 @@ function giantIndexTest() {
 
 function giant2() { 
     //print("giant2");
-    drop("giant");
+    db.giant.drop();
     db.giant.save({moe:1,foo:[33],bar:"aaaaa",q:-1});
 
     var z = 0;
@@ -170,9 +168,9 @@ function testarrayindexing() {
 
 function testcapped(max) { 
     //print("testcapped");
-    drop("capped");
+    db.capped.drop();
 
-    assert( createCollection("capped", { size: 4096, capped:true, max:max } ).ok );
+    assert( db.createCollection("capped", { size: 4096, capped:true, max:max } ).ok );
 
     capped = db.capped;
     for(i=0; i<500; i++ ) { 
@@ -188,7 +186,7 @@ function testcapped(max) {
 
 function testgetmore() { 
     //print("testgetmore");
-    drop("gm");
+    db.gm.drop();
     gm=t.gm;
     for(i=0;i<50000;i++){
 	gm.save({a:i, b:"adsffffffffffffffffffffffffffffffffffffffffffffffff\nfffffffffffffffffffffffffffffffffffffffffffffffffffff\nfffffffffffffffffffffffffffffffff"})

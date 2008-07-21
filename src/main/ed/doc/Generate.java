@@ -1,20 +1,29 @@
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package ed.doc;
 
 import java.io.*;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.ArrayList;
+import java.util.*;
 
 import ed.js.*;
-import ed.js.func.*;
-import ed.js.engine.*;
 import ed.db.*;
-import static ed.js.JSInternalFunctions.*;
 import ed.js.engine.Scope;
 import ed.appserver.AppContext;
 import ed.appserver.JSFileLibrary;
-import ed.appserver.Module;
 import ed.appserver.ModuleDirectory;
 import ed.io.SysExec;
 
@@ -23,9 +32,42 @@ import ed.io.SysExec;
  */
 public class Generate {
 
+    private static boolean debug = false;
+
     /** Documentation version string... can be anything: "1.3.3", "dev", "BLARGH!", whatever
      */
     private static String version;
+    private static ArrayList<String> processedFiles = new ArrayList<String>();
+
+    private static boolean connected = false;
+    private static DBBase db;
+    private static DBCollection codedb;
+    private static DBCollection docdb;
+    private static DBCollection htmldb;
+
+    public static boolean generateInProgress = false;
+
+    public static void initialize() {
+        javaSrcs.clear();
+        processedFiles.clear();
+    }
+
+    public static void connectToDb() {
+        if ( connected ) return;
+
+        Scope s = Scope.getThreadLocal();
+        Object app = s.get("__instance__");
+        Object dbo = s.get("db");
+        if(! (dbo instanceof DBBase)) {
+            throw new RuntimeException("your database is not a database");
+        }
+
+        db = (DBBase)dbo;
+        docdb = db.getCollection("doc");
+        codedb = db.getCollection("doc.code");
+        htmldb = db.getCollection("doc.html");
+        connected = true;
+    }
 
     /** Version setter
      */
@@ -40,15 +82,17 @@ public class Generate {
         return version;
     }
 
+    public static JSObjectBase _global;
+
     /**
      *  Gets things ready for a "db blob to HTML" generation run.  Ensure
      *  the directory exists, and ensure that it's empty
      */
     public static void setupHTMLGeneration(String path) throws Exception {
+        generateInProgress = true;
 
         Scope s = Scope.getThreadLocal();
         Object app = s.get("__instance__");
-
         if(! (app instanceof AppContext)) {
             throw new RuntimeException("your appserver isn't an appserver");
         }
@@ -88,17 +132,9 @@ public class Generate {
 
         File docdir = new File(((AppContext)app).getRoot()+"/" + path);
 
-        Object dbo = s.get("db");
-        if(! (dbo instanceof DBBase)) {
-            throw new RuntimeException("your database is not a database");
-        }
-
         if(!docdir.exists()) {
             throw new RuntimeException("Error - doc dir was never setup : " + docdir);
         }
-
-        DBBase db = (DBBase)dbo;
-        DBCollection collection = db.getCollection("doc.html");
 
         File blobs[] = docdir.listFiles();
         for(int i=0; i<blobs.length; i++) {
@@ -112,12 +148,15 @@ public class Generate {
                 }
 
                 JSObjectBase obj = new JSObjectBase();
+                // Set the class name
                 obj.set("name", blobs[i].getName().substring(0, blobs[i].getName().indexOf(".out")));
+                obj.set("version", getVersion());
                 obj.set("content", sb.toString());
 
-                System.out.println("Generate.postHTMLGeneration() : processing " + blobs[i].getName());
+                if(debug)
+                    System.out.println("Generate.postHTMLGeneration() : processing " + blobs[i].getName());
 
-                collection.save(obj);
+                htmldb.save(obj);
             }
         }
     }
@@ -130,8 +169,6 @@ public class Generate {
 
         System.out.print(".");
 
-        System.out.println("WOO! : " + path);
-        
         Scope s = Scope.getThreadLocal();
         Object app = s.get("__instance__");
 
@@ -140,10 +177,155 @@ public class Generate {
         }
 
         File docdir = new File(((AppContext)app).getRoot()+"/"+path);
-
         if(!docdir.exists()) {
             throw new RuntimeException("Error - doc dir was never setup : " + docdir);
         }
+
+        JSObject foo = (JSObject) s.get("core");
+        if (foo == null) {
+        	throw new RuntimeException("Can't find 'core' in my scope");
+        }
+
+        ModuleDirectory md = (ModuleDirectory) foo.get("modules");
+        if (md == null) {
+        	throw new RuntimeException("Can't find 'modules' directory in my core object");
+        }
+
+        JSFileLibrary jsfl = md.getJSFileLibrary("docgen");
+        if (jsfl == null) {
+        	throw new RuntimeException("Can't find 'docgen' file lib in my module directory");
+        }
+
+        SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -d=" + docdir.getAbsolutePath().toString()
+                + " -t=templates/jsdoc2", null, jsfl.getRoot(), objStr);
+
+        String out = r.getOut();
+
+        if(!out.trim().equals("")) {
+            System.out.println("jsdoc says: "+out);
+        }
+    }
+
+    public static void globalToDb() {
+        JSObjectBase ss = new JSObjectBase();
+        ss.set("symbolSet", _global);
+        JSObjectBase newGlobal = new JSObjectBase();
+        newGlobal.set("_index", ss);
+        newGlobal.set("ts", Calendar.getInstance().getTime().toString());
+        newGlobal.set("version", Generate.getVersion());
+        newGlobal.set("name", "global");
+
+        JSObjectBase oldGlobal = new JSObjectBase();
+        oldGlobal.set("name", "global");
+        oldGlobal.set("version", Generate.getVersion());
+
+        docdb.remove(oldGlobal);
+        docdb.save(newGlobal);
+    }
+
+    public static void globalToHTML(String path) {
+        JSObjectBase ss = new JSObjectBase();
+        ss.set("symbolSet", _global);
+        toHTML(JSON.serialize(ss), path);
+    }
+
+    /** javaSrcs is a list of Java classes to be processed.  In order to be merged correctly when
+     * there is a Java and JS class with the same name, java classes must be processed second.
+     */
+    private static ArrayList<String> javaSrcs = new ArrayList<String>();
+
+    // Once javaSrcs has been filled in, process the java files
+    public static void javaSrcsToDb() throws IOException {
+        for(int i=0; i<javaSrcs.size(); i++) {
+            javaToDb(javaSrcs.get(i));
+        }
+    }
+
+    public static void srcToDb(String path) throws IOException {
+        File f = new File(path);
+
+        // check for invalid paths and hidden files
+        if(!f.exists()) {
+            System.out.println("File does not exist: "+path);
+            return;
+        }
+        if(f.getName().charAt(0) == '.') {
+            System.out.println("Ignoring hidden file "+path);
+            return;
+        }
+
+
+        // if it hasn't been done already, process any .js files
+        if(!processedFiles.contains(path)) {
+            jsToDb(f.getCanonicalPath());
+        }
+
+        // if it's a directory, process all its files
+        if(f.isDirectory()) {
+            File farray[] = f.listFiles();
+            for(int i=0; i<farray.length; i++) {
+                srcToDb(farray[i].getCanonicalPath());
+            }
+        }
+        // if it's a java file, add it to the list
+        else if((f.getName()).endsWith(".java") && !javaSrcs.contains(f.getCanonicalPath())) {
+            addToCodeCollection(f);
+            javaSrcs.add(f.getCanonicalPath());
+        }
+    }
+
+    /** Recursively adds a folder and all subfolders/files to the "done" list
+     * @param Canonical pathname of a file/directory
+     */
+    private static void addToProcessedFiles(String path) throws IOException {
+        File f = new File(path);
+        if(!f.exists()) {
+            System.out.println("File does not exist: "+path);
+            return;
+        }
+        if(f.isDirectory()) {
+            File farray[] = f.listFiles();
+            for(int i=0; i<farray.length; i++) {
+                addToProcessedFiles(farray[i].getCanonicalPath());
+            }
+        }
+        if(!processedFiles.contains(f.getCanonicalPath())) {
+            addToCodeCollection(f);
+            processedFiles.add(path);
+        }
+    }
+
+    public static void addToCodeCollection(File f) throws IOException {
+        if(f.isDirectory() || (!f.getName().endsWith(".js") && !f.getName().endsWith(".java"))) return;
+
+        StringBuffer buff = new StringBuffer("");
+        Scanner sc = new Scanner(f);
+        char ch;
+        while(sc.hasNextLine()) {
+            buff.append(sc.nextLine()+"\n");
+        }
+        sc.close();
+        JSObjectBase obj = new JSObjectBase();
+        obj.set("filename", f.getCanonicalPath());
+        obj.set("name", f.getName());
+        obj.set("version", Generate.getVersion());
+        obj.set("ts", Calendar.getInstance().getTime().toString());
+        obj.set("content", buff.toString());
+        codedb.save(obj);
+    }
+
+    /** Takes source files/dirs, generates jsdoc from them, stores resulting js obj in the db
+     * @param Path to the file or folder to be documented
+     */
+    public static void jsToDb(String path) throws IOException {
+
+        if(debug)
+            System.out.println("Generate.jsToDB() : processing " + path);
+
+        File f = new File(path);
+        addToProcessedFiles(path);
+
+        Scope s = Scope.getThreadLocal();
 
         JSObject foo = (JSObject) s.get("core");
 
@@ -163,81 +345,12 @@ public class Generate {
         	throw new RuntimeException("Can't find 'docgen' file lib in my module directory");
         }
 
-        System.out.println("WOOGO! : " + jsfl.getRoot() + " docdir = " + docdir.getAbsolutePath().toString());
-        
-        SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -d=" + docdir.getAbsolutePath().toString()
-                + " -t=templates/jsdoc2", null, jsfl.getRoot(), objStr);
-
-
-        String out = r.getOut();
-
-        if(!out.trim().equals("")) {
-            System.out.println("jsdoc says: "+out);
-        }
-    }
-
-    private static ArrayList<String> javaSrcs = new ArrayList<String>();
-
-    public static void srcToDb(String path) throws IOException {
-        javaSrcs.clear();
-        File f = new File(path);
-        if(!f.exists()) {
-            System.out.println("File does not exist: "+path);
-            return;
-        }
-        if(f.isDirectory()) {
-            jsToDb(f.getCanonicalPath());
-            File farray[] = f.listFiles();
-            for(int i=0; i<farray.length; i++) {
-                srcToDb(farray[i].getCanonicalPath());
-            }
-        }
-        else {
-            processFile(f);
-        }
-        for(int i=0; i<javaSrcs.size(); i++) {
-            javaToDb(javaSrcs.get(i));
-        }
-    }
-
-    private static void processFile(File f) {
-
-        System.out.println("Generate.processFile() : processing " + f);
-
-        try {
-            if((f.getName()).endsWith(".java"))
-                javaSrcs.add(f.getCanonicalPath());
-        }
-        catch(IOException e) {
-            System.out.println("error getting the name of file "+f);
-            e.printStackTrace();
-        }
-    }
-
-
-    /** Takes source files/dirs, generates jsdoc from them, stores resulting js obj in the db
-     * @param Path to the file or folder to be documented
-     */
-    public static void jsToDb(String path) throws IOException {
-
-        System.out.println("Generate.jsToDB() : processing " + path);
-
-        File f = new File(path);
-
-        SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -r -t=templates/json "+f.getCanonicalPath(), null, new File("../core-modules/docgen/"), "");
-
-        Scope s = Scope.getThreadLocal();
-        Object dbo = s.get("db");
-        if(! (dbo instanceof DBBase)) {
-            throw new RuntimeException("your database is not a database");
-        }
-
-        DBBase db = (DBBase)dbo;
-        DBCollection collection = db.getCollection("doc");
+        SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -r -t=templates/json "+f.getCanonicalPath(),
+        		null, jsfl.getRoot(), "");
 
         String rout = r.getOut();
+
         String jsdocUnits[] = rout.split("---=---");
-        System.out.println("classes: "+jsdocUnits.length);
         for(int i=0; i<jsdocUnits.length; i++) {
             JSObject json = (JSObject)JS.eval("("+jsdocUnits[i]+")");
             if(json == null) {
@@ -250,8 +363,8 @@ public class Generate {
                 String name = (k.next()).toString();
                 JSObject unit = (JSObject)json.get(name);
                 JSString isa = (JSString)unit.get("isa");
-                System.out.println("name: "+name+" isa: "+isa);
-                if(isa.equals("GLOBAL") || isa.equals("CONSTRUCTOR")) {
+                boolean isNamespace = ((Boolean)unit.get("isNamespace")).booleanValue();
+                if(isa.equals("GLOBAL") || isa.equals("CONSTRUCTOR") || isNamespace) {
                     JSObjectBase ss = new JSObjectBase();
                     ss.set("symbolSet", json);
                     JSObjectBase obj = new JSObjectBase();
@@ -260,19 +373,53 @@ public class Generate {
                     obj.set("version", Generate.getVersion());
                     obj.set("name", name);
 
-                    if(!name.equals("_global_")) {
-                        collection.save(obj);
+                    // if one exists, get the class description
+                    if(unit.get("classDesc") != null) {
+                        obj.set("desc", (JSString)unit.get("classDesc"));
+                    }
+                    else if(unit.get("desc") != null) {
+                        obj.set("desc", (JSString)unit.get("desc"));
+                    }
+                    else {
+                        obj.set("desc", "");
+                    }
+
+                    if(name.equals("_global_")) {
+                        if(_global == null) {
+                            _global = (JSObjectBase)json;
+                        }
+                        else {
+                            addToGlobal("methods", (JSArray)unit.get("methods"));
+                            addToGlobal("properties", (JSArray)unit.get("properties"));
+                        }
+                    }
+                    else {
+                        docdb.save(obj);
                     }
                 }
             }
         }
     }
 
+    public static void addToGlobal(String field, JSArray obj) {
+        JSObjectBase gobj = (JSObjectBase)_global.get("_global_");
+        JSArray garray = (JSArray)gobj.get(field);
+        if(garray == null) garray = new JSArray();
+
+        for ( String key : obj.keySet() ) {
+            garray.add( obj.get( key ) );
+        }
+        gobj.set(field, garray);
+        _global.set("_global_", gobj);
+    }
+
+
     /** Generate a js obj from javadoc
      * @param path to file or folder to be documented
      */
     public static void javaToDb(String path) throws IOException {
-        System.out.println("Generate.javaToDB() : processing " + path);
+        if(debug)
+            System.out.println("Generate.javaToDB() : processing " + path);
         com.sun.tools.javadoc.Main.execute(new String[]{"-doclet", "JavadocToDB", "-docletpath", "./", path } );
     }
 

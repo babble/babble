@@ -1,6 +1,6 @@
 // blog1.js
 
-db = connect( "testblog" );
+db = connect( "ed_db_stress_blog1" );
 
 core.user.user();
 core.blog.urls();
