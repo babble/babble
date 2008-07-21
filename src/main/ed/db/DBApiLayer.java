@@ -471,6 +471,7 @@ public abstract class DBApiLayer extends DBBase {
         private long _totalBytes = 0;
     }
 
+    /** @unexpose */
     final String _root;
     final Map<String,MyCollection> _collections = Collections.synchronizedMap( new HashMap<String,MyCollection>() );
     List<Long> _deadCursorIds = new Vector<Long>();

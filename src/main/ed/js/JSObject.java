@@ -8,12 +8,14 @@ import java.util.*;
 public interface JSObject {
 
     /** Sets a name/value pair in this object.
+     * @jsset
      * @param n Name to set
      * @param v Corresponding value
      * @return <tt>v</tt>
      */
     public Object set( Object n , Object v );
     /** Gets a field from this object by a given name.
+     * @jsget
      * @param n The name of the field fetch
      * @return The field, if found
      */
@@ -45,6 +47,7 @@ public interface JSObject {
     public boolean containsKey( String s );
 
     /** Returns this object's fields' names
+     * @jskeyset
      * @return The names of the fields in this object
      */
     public Collection<String> keySet();

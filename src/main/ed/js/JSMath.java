@@ -7,13 +7,16 @@ import ed.js.func.*;
 import ed.js.engine.*;
 
 /** @expose
- * @anonymous name : { max }, desc : { Returns the greater of two numbers. }
- * @anonymous name : { min }, desc : { Returns the lesser of two numbers. }
- * @anonymous name : { random }, desc : { Returns a double value with a positive sign, greater than or equal to 0.0 and less than 1.0. }
- * @anonymous name : { floor }, desc : { Rounds a given number down. }
- * @anonymous name : { ceil }, desc : { Rounds a given number up. }
- * @anonymous name : { round }, desc : { Rounds a given number. }
- * @anonymous name : { abs }, desc : { Returns the absolute value of a number. }
+ * @anonymous name : { max }, desc : { Returns the greater of two numbers. }, param : {type : (number), name : (a)} param : {type : (number), name : (b)} return : {type : (number), desc : (whichever number was greater)}
+ * @anonymous name : { min }, desc : { Returns the lesser of two numbers. }, param : {type : (number), name : (a)} param : {type : (number), name : (b)} return : {type : (number), desc : (whichever number was smaller)}
+ * @anonymous name : { random }, desc : { Returns a double value with a positive sign, greater than or equal to 0.0 and less than 1.0. } return : {type : (number), desc : (a random number between 0 and 1)}
+ * @anonymous name : { floor }, desc : { Rounds a given number down. }, param : {type : (number), name : (a)} return : {type : (number)}
+ * @anonymous name : { ceil }, desc : { Rounds a given number up. }, param : {type : (number), name : (a)} return : {type : (number)}
+ * @anonymous name : { round }, desc : { Rounds a given number. }, param : {type : (number), name : (a)} return : {type : (number)}
+ * @anonymous name : { abs }, desc : { Returns the absolute value of a number. },  param : {type : (number), name : (a)}  return : {type : (number), desc : (the absolute value)}
+ * @anonymous name : {sqrt}, desc : {Returns the square route of a number.},   param : {type : (number), name : (a)} return : {type : (number), desc : (the square root)}
+ * @anonymous name : {posOrNeg}, desc : {Returns if the number is greater, less than, or equal to 0.}, return : {type : (number), desc : (1 if the number is positive, -1 if negative, 0 if the number is zero)},  param : {type : (number), name : (a)}
+ * @anonymous name : {sigFig}, desc : {Returns the number with all but the three most significant digits set to 0.},  return : {type : (number)}, param : {type : (number), name : (a), desc : (number from which to drop insignificant digits)}
  */
 public class JSMath extends JSObjectBase {
 
