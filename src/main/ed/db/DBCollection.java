@@ -10,6 +10,11 @@ import ed.js.func.*;
 import ed.js.engine.*;
 
 /** DB Collection
+ * 
+ * Class for database collection objects.  When you invoke something like:
+ *   var my_coll = db.students;
+ * you get back a collection which can be used to perform various database operations.
+ *
  * @anonymous name : {base}, desc : {The name of the database containing this collection.} type : {String}, isField : {true}
  * @anonymous name : {name}, desc : {The name of this collection}, type : {String}, isField : {true}
  * @anonymous name : {save}, desc : {Saves an object to the collection.}, return : {type : (JSObject), desc : (new object from the collection)}, param : {type : (JSObject), name : (o), desc : (object to save)}
@@ -37,6 +42,7 @@ public abstract class DBCollection extends JSObjectLame {
      * @param o object with which to update <tt>q</tt>
      * @param upsert if the database should create the element if it does not exist
      * @param apply if an _id field should be added to the new object
+     * See www.10gen.com/wiki/db.update
      */
     public abstract JSObject update( JSObject q , JSObject o , boolean upsert , boolean apply );
 
@@ -45,7 +51,7 @@ public abstract class DBCollection extends JSObjectLame {
      */
     protected abstract void doapply( JSObject o );
 
-    /** Removes an object from the collection.
+    /** Removes an object from the database collection.
      * @param id The _id of the object to be removed
      * @return -1
      */
@@ -66,7 +72,8 @@ public abstract class DBCollection extends JSObjectLame {
      */
     public abstract Iterator<JSObject> find( JSObject ref , JSObject fields , int numToSkip , int numToReturn );
 
-    /** Ensures an index on this collection.
+    /** Ensures an index on this collection (that is, the index will be created if it does not exist).
+     * ensureIndex is optimized and is inexpensive if the index already exists.
      * @param keys fields to use for index
      * @param name an identifier for the index
      */
