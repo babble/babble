@@ -294,25 +294,8 @@ public class AppServer implements HttpHandler {
     void handleOutOfMemoryError( OutOfMemoryError oom , HttpResponse response ){
         // 2 choices here, this request caused all sorts of problems
         // or the server is screwed.
-
-        long before = MemUtil.bytesAvailable();
-        MemUtil.fullGC();
-        long after = MemUtil.bytesAvailable();
-
-        if ( after < ( 100 * MemUtil.MBYTE ) ||
-             ( after - before ) < ( 100 * MemUtil.MBYTE ) ){
-
-            try {
-                System.err.println( "OutOfMemoryError in AppServer - not enough free, so dying." );
-                System.err.println( "before : " + ( before / MemUtil.MBYTE ) );
-                System.err.println( "after : " + ( after / MemUtil.MBYTE ) );
-                oom.printStackTrace();
-            }
-            catch ( Exception e ){
-            }
-
-            Runtime.getRuntime().halt( -3 );
-        }
+        
+        MemUtil.checkMemoryAndHalt( "AppServer" , oom );
 
         // either this thread was the problem, or whatever
 
