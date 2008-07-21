@@ -1,15 +1,15 @@
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -43,7 +43,6 @@ public class Generate {
     private static DBBase db;
     private static DBCollection codedb;
     private static DBCollection docdb;
-    private static DBCollection htmldb;
 
     public static boolean generateInProgress = false;
 
@@ -65,7 +64,6 @@ public class Generate {
         db = (DBBase)dbo;
         docdb = db.getCollection("doc");
         codedb = db.getCollection("doc.code");
-        htmldb = db.getCollection("doc.html");
         connected = true;
     }
 
@@ -147,16 +145,19 @@ public class Generate {
                     sb.append((char)(fis.read()));
                 }
 
-                JSObjectBase obj = new JSObjectBase();
-                // Set the class name
-                obj.set("name", blobs[i].getName().substring(0, blobs[i].getName().indexOf(".out")));
-                obj.set("version", getVersion());
-                obj.set("content", sb.toString());
+                JSObjectBase q = new JSObjectBase();
+                q.set("alias", blobs[i].getName().substring(0, blobs[i].getName().indexOf(".out")));
+                q.set("version", Generate.getVersion());
+                Iterator it = docdb.find(q);
+                while(it != null && it.hasNext()) {
+                    JSObject next = (JSObject)it.next();
+                    next.set("content", sb.toString());
+                    docdb.save(next);
+                }
 
                 if(debug)
                     System.out.println("Generate.postHTMLGeneration() : processing " + blobs[i].getName());
 
-                htmldb.save(obj);
             }
         }
     }
@@ -374,15 +375,17 @@ public class Generate {
                     obj.set("name", name);
 
                     // if one exists, get the class description
+                    String desc;
                     if(unit.get("classDesc") != null) {
-                        obj.set("desc", (JSString)unit.get("classDesc"));
+                        desc = ((JSString)unit.get("classDesc")).toString();
                     }
                     else if(unit.get("desc") != null) {
-                        obj.set("desc", (JSString)unit.get("desc"));
+                        desc = ((JSString)unit.get("desc")).toString();
                     }
                     else {
-                        obj.set("desc", "");
+                        desc = "";
                     }
+                    obj.set("desc", desc.substring(0,desc.indexOf(".")+1));
 
                     if(name.equals("_global_")) {
                         if(_global == null) {
