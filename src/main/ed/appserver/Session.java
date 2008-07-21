@@ -1,5 +1,21 @@
 // Session.java
 
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package ed.appserver;
 
 import java.util.*;
@@ -9,7 +25,16 @@ import com.twmacinta.util.*;
 import ed.db.*;
 import ed.js.*;
 
-/** Keeps track of user sessions.
+/** Keeps track of user sessions.  A Session is just a JavaScript
+ * object, and can be treated as such.  It keeps track of whether it's
+ * "dirty" and serializes to the database when necessary.  Be careful
+ * with embedded objects; setting fields of an embedded object does
+ * not mark a Session as dirty.
+ * A session is provided in the application context in a variable called
+ * "session". If you use it, it will automatically send a cookie to the user
+ * to track sessions.
+ * @example
+ * session.pageviews = session.pageviews + 1;
  * @expose
  */
 public class Session extends JSObjectBase {
@@ -66,6 +91,11 @@ public class Session extends JSObjectBase {
 
     }
 
+    /**
+     * Handler for setting an attribute on a Session.
+     * Marks this session as dirty.
+     * @jsset
+     */
     public Object set( Object n , Object v ){
         if ( n.toString().equals( "_key" ) )
             throw new RuntimeException( "can't set _key on a session" );

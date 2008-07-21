@@ -6,6 +6,7 @@ import java.io.*;
 import java.nio.*;
 import java.util.*;
 
+import ed.io.*;
 import ed.js.*;
 
 /** @expose */
@@ -118,11 +119,10 @@ public abstract class DBApiLayer extends DBBase {
 	    return lst;
 
 	for ( String s : dir.list() ){
-	    if ( ! s.endsWith( ".ns" ) )
+            s = _cleanAndValidateDBFileName( s );
+            if ( s == null )
 		continue;
-	    if ( s.startsWith( "sys." ) )
-		continue;
-	    lst.add( s.substring( 0 , s.length() - 3 ) );
+	    lst.add( s );
 	}
 
 	return lst;
@@ -132,7 +132,40 @@ public abstract class DBApiLayer extends DBBase {
 	if ( ip.equals( "127.0.0.1" ) )
 	    return getRootNamespacesLocal();
 
-	throw new RuntimeException( "getRootNamespaces isn't working remotely right now" );
+        if ( ip.indexOf( "." ) < 0 )
+            ip += ".10gen.cc";
+        
+        SysExec.Result r = SysExec.exec( "ssh -o StrictHostKeyChecking=no " + ip + " ls /data/db/" );
+
+        List<String> all = new ArrayList<String>();
+
+        for ( String s : r.getOut().split( "[\r\n]+" ) ){
+            s = _cleanAndValidateDBFileName( s );
+            if ( s == null )
+                continue;
+            all.add( s );
+        }
+        
+        return all;
+    }
+
+    private static String _cleanAndValidateDBFileName( String s ){
+
+        s = s.trim();
+        if ( s.length() == 0 )
+            return null;
+        
+        int idx = s.lastIndexOf( "/" );
+        if ( idx > 0 )
+            s = s.substring( idx + 1 );
+        
+        if ( ! s.endsWith( ".ns" ) )
+            return null;
+        
+        if ( s.startsWith( "sys." ) )
+            return null;
+        
+        return s.substring( 0 , s.length() - 3 );
     }
 
     class MyCollection extends DBCollection {

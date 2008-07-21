@@ -1,5 +1,21 @@
 // AppContextHolder.java
 
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package ed.appserver;
 
 import java.io.*;
@@ -115,10 +131,17 @@ public class AppContextHolder {
             final String env = info.getEnvironment( originalHost );
             if ( D ) System.out.println( "\t\t env : " + env );
 
-            File envRoot = getBranch( siteRoot , env , info.host );
+            final File envRoot = getBranch( siteRoot , env , info.host );
             if ( D ) System.out.println( "\t using full path : " + envRoot );
+            
+            final String envRootString = envRoot.toString();
 
-            ac = new AppContext( envRoot.toString() , envRoot , siteRoot.getName() , env );
+            ac = _getContextFromMap( envRootString );
+            if ( ac == null ){
+                ac = new AppContext( envRootString , envRoot , siteRoot.getName() , env );
+                _contextCache.put( envRootString , ac );
+            }
+            
         }
 
         _contextCache.put( info.host , ac );

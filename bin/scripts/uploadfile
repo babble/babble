@@ -2,28 +2,72 @@
 
 /**
  *   Utility to upload files to the GridFS filesystem
+ *
+ *  usage :  dbURL  file[:alias]*  [ file[:alias]* ...]
+ *
+ *  where : 
+ *           dbURL : database to insert file(s) into.  Composed as [host/]database, where 
+ *                   optional host defaults to localhost
+ *
+ *           file[:alias]* : file to upload, with one or more optional aliases
  */
  
 function _usage(){
-    print( "usage : uploadfile <host> <database> <file1> [<file2> .... <fileN>]" );    
+    print( "usage :  dbURL  file[:alias]*  [ file[:alias]* ...]" );    
+    print( "where :");
+    print( "         dbURL : database to insert file(s) into.  Composed as [host/]database, where");
+    print( "                 optional host defaults to localhost");
+    print( "");
+    print( "         file[:alias]* : file to upload, with one or more optional aliases");
+    print("");
+    print("  example : uploadfile  localhost/admin   myfile.tgz:stable.tgz:foo");
 }
 
-if (arguments.length < 3){
+if (arguments.length < 2){
     _usage();
-    return -1
+    return -1;
 }
 
-host = arguments.shift();
-database = arguments.shift();
 
-db = connect(database, host);
+//
+// these are required arguments : hostname, database and a file
+//
+dbURL = arguments.shift();
 
-arguments.forEach( function(file) {
-    var f = openFile(file);    
+//
+// make connection to db.  This is 'lazy' - nothing really will happen until it's needed.
+//
+var db = connect(dbURL);
+
+//
+// now every argument left in the args array should be a file:alias element, so just
+// iterate over them and process one at a time
+//
+arguments.forEach(function(fna) {
+
+    var arr = fna.split(":");    
+    var filename = arr.shift();
+       
+    //
+    //  open the local file.  the openFile() function is one found only in the shell - it is not 
+    //  available in the appserver environment as you don't really know what machine you're running
+    //  on
+    //
+    var f = openFile(filename);
+    
+    //
+    // now if the file exists, add any aliases that were specified (they're like tags), and
+    // save the file to the database
+    //
     if (f.exists()) {
+        print("Uploading file : " + filename);
+        arr.forEach(function(alias) { 
+            print("   adding alias : " + alias);
+            f.addAlias(alias);
+        });
         db._files.save(f);
-        print("Uploaded file " + file + " id=" + f._id);
-    }
+        print("Uploaded file " + filename + " id=" + f._id);
+    }    
     else {
         print(file + ": No such file");
     }

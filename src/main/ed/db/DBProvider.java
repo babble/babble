@@ -38,8 +38,8 @@ public class DBProvider {
         if ( ip == null || ip.trim().length() == 0 ){
             int idx = root.indexOf( "/" );
             if ( idx > 0 ){
-                ip = root.substring( idx + 1 );
-                root = root.substring( 0 , idx );
+                ip = root.substring( 0 , idx );
+                root = root.substring( idx + 1 );
             }
             else {
                 ip = getDefaultHost();
