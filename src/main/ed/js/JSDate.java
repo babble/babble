@@ -39,18 +39,20 @@ public class JSDate extends JSObjectBase implements Comparable {
             public Object call( Scope s , Object foo , Object[] args ){
 
                 if ( args != null && args.length > 0 ) {
-                    int [] myargs = new int[7];
-                    int i;
-                    for(i = 0; i < args.length+1; i++){
+                    int [] myargs = new int[8];
+                    for( int i = 0; i < args.length+1 && i < myargs.length ; i++){
                         Object o = (i == 0 ? foo : args[i-1]);
                         if ( o instanceof JSString )
                             o = StringParseUtil.parseStrict(((JSString)o).toString());
                         if ( o instanceof Number )
                             myargs[i] = ((Number)o).intValue();
                     }
+                    
                     Calendar c = Calendar.getInstance();
-                    c.set(myargs[0], myargs[1], myargs[2], myargs[3], myargs[4], myargs[5]);
-                    c.setTimeInMillis(c.getTimeInMillis()+myargs[6]);
+                    c.set( myargs[0], myargs[1], myargs[2], myargs[3], myargs[4], myargs[5] );
+                    
+                    c.set( c.MILLISECOND , myargs[6] );
+                    
                     foo = new Long(c.getTimeInMillis());
                 }
 
