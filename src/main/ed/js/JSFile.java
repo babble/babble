@@ -1,3 +1,4 @@
+
 // JSFile.java
 
 /**
@@ -29,6 +30,11 @@ import ed.js.engine.*;
 
 /**
  * The system stores files as a linked list of chunks.  Thus, to delete a file, one must delete each chunk.
+ * In the 10gen Java source, we define two subclasses, JSDBFile for GridFS files, and JSLocalFile for 
+ * files in the small Source Code Filesystem (SCF).
+ * 
+ * See also <a href="http://www.10gen.com/wiki/Files">Files</a> in the wiki documentation.
+ *
  * @expose
  */
 public abstract class JSFile extends JSObjectBase {
@@ -132,6 +138,7 @@ public abstract class JSFile extends JSObjectBase {
     }
 
     /** Return the chunk size this file uses.
+     *  GridFS files are stored in chunks in the db._chunks collection.
      * @return The chunk size used.
      */
     public int getChunkSize(){
