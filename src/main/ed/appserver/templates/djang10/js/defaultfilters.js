@@ -63,6 +63,23 @@ var escapeFilter =
     return escapeHTML(value);
 };
 
+var linebreaks =
+    defaultfilters.linebreaks =
+    function(value) {
+
+    value = value.replace(/\r\n|\r|\n/g, "\n");
+    var paras = value.split(/\n{2,}/);
+    for(var i=0; i < paras.length; i++)
+        paras[i] = "<p>" + paras[i].trim().replace(/\n/g, "<br />") + "</p>";
+};
+
+var linebreaksbr =
+    defaultfilters.linebreaks =
+    function(value) {
+
+    return value.replace(/\n/g, "<br />");
+};
+
 var removetags =
     defaultfilters.removetags =
     function(value, tags) {
@@ -173,6 +190,8 @@ register.filter("yesno", yesno);
 register.filter("join", join);
 register.filter("truncatewords", truncatewords);
 register.filter("cut", cut);
+register.filter("linebreaks", linebreaks);
+register.filter("linebreaksbr", linebreaksbr);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
