@@ -1,5 +1,5 @@
 
-db = connect( "test" );
+db = connect( "ed_db_stress_cursor1" );
 t = db.cursor1;
 
 t.clean();

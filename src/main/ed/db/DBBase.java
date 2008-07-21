@@ -25,13 +25,24 @@ public abstract class DBBase extends JSObjectLame {
         ((JSFunction)(lib.get( "db" ))).call( s, this );
         ((JSFunction)(lib.get( "dbcollection" ))).call( s, this);	
     }
+
+    public void requestStart(){}
+    public void requestDone(){}
+    public void requestEnsureConnection(){}
     
     public abstract DBCollection getCollectionFromFull( String fullNameSpace );
-    public abstract DBCollection getCollection( String name );
+    protected abstract DBCollection doGetCollection( String name );
     public abstract Collection<String> getCollectionNames();
 
     public abstract String getConnectPoint();
 
+    public final DBCollection getCollection( String name ){
+        DBCollection c = doGetCollection( name );
+        if ( c != null )
+            _seenCollections.add( c );
+        return c;
+    }
+    
     public DBCollection getCollectionFromString( String s ){
         DBCollection foo = null;
         
@@ -77,8 +88,12 @@ public abstract class DBBase extends JSObjectLame {
              n instanceof JSString ){
             String s = n.toString();
             if ( s.startsWith( "." ) ){
-                if ( s.indexOf( "." , 1 ) > 0 )
-                    return getCollectionFromFull( s.substring(1) );
+                if ( s.indexOf( "." , 1 ) > 0 ){
+                    final String other = s.substring(1);
+                    if ( ! allowedToAccess( other ) )
+                        throw new JSException( "not allowed to access db from [" + other + "]" );
+                    return getCollectionFromFull( other );
+                }
                 return DBProvider.get( s.substring(1) );
             }
             return getCollection( s );
@@ -109,9 +124,27 @@ public abstract class DBBase extends JSObjectLame {
         return _name;
     }
 
+    public boolean allowedToAccess( String other ){
+        if ( ed.security.Security.isCoreJS() )
+            return true;
+
+        // if you're running not in production, you can do whatever you want
+        if ( ed.cloud.Cloud.getInstanceIfOnGrid() == null )
+            return true;
+
+        return false;
+    }
+    
+    public void resetIndexCache(){
+        System.out.println( _seenCollections );
+        for ( DBCollection c : _seenCollections )
+            c.resetIndexCache();
+    }
+    
     final tojson _tojson = new tojson();
     final String _name;
     protected boolean _readOnly = false;
     final JSObjectBase _collectionPrototype = new JSObjectBase();
     final Map _entries = new HashMap();
+    final Set<DBCollection> _seenCollections = new HashSet<DBCollection>();
 }

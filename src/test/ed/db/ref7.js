@@ -54,9 +54,11 @@ prev = b.thing.a.hashCode();
 b.thing.a.push( 3 );
 assert( 3 == b.thing.a.length );
 assert( prev != b.thing.a.hashCode() , "hash didn't change : " + b.thing.a.hashCode() + " == " + prev );
+assert( b.thing.isDirty() );
 
 tb.save( b );
 
+assert( tb.find().toArray().length == 1 );
 b = tb.findOne();
 assert( 3 == b.thing.num );
 assert( 3 == b.thing.a.length , b.thing.a.length );

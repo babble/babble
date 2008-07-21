@@ -59,7 +59,7 @@ class DBPortPool extends SimplePool<DBPort> {
     }
 
     DBPortPool( String ip, int port){
-        super( "DBPortPool:" + ip + ":" + port, 10 , 20 );
+        super( "DBPortPool:" + ip + ":" + port, 10 , Bytes.CONNECTIONS_PER_HOST );
         _ip = ip;
         _port = port;
     }

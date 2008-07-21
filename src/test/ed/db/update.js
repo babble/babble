@@ -1,4 +1,4 @@
-db = connect("kristina");
+db = connect("ed_db_update");
 db.asdf.drop();
 
 asdf = db.asdf;

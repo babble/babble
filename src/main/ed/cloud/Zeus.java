@@ -1,5 +1,21 @@
 // Zeus.java
 
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package ed.cloud;
 
 import java.io.*;
@@ -83,18 +99,18 @@ public class Zeus {
         if ( old == null ){
             throw new RuntimeException( "no old resolver rule - i'm dying" );
         }
-        
-        if ( Math.abs( n.length() - old.length() ) > ( n.length() / 70 ) ){
+
+	String diff = DiffUtil.computeDiff( old , n );
+	
+	if ( Math.abs( n.length() - old.length() ) > ( n.length() / 30 ) ){
+	    System.out.println( diff );
             throw new RuntimeException( "too much has changed (length)" );
         }
 
-        {
-            String diff = DiffUtil.computeDiff( old , n );
-            if ( diff.length() > ( n.length() / 50 ) ){
-		System.out.println( diff );
-                throw new RuntimeException( "too much has changed (diff)" );
-            }
-        }
+	if ( diff.length() > ( n.length() / 30 ) ){
+	    System.out.println( diff );
+	    throw new RuntimeException( "too much has changed (diff)" );
+	}
 
 	System.out.println( "sanity check done.  old length:" + old.length() + " new length:" + n.length() );
 

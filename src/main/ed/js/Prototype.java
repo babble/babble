@@ -1,3 +1,19 @@
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package ed.js;
 import ed.log.*;
 import ed.js.*;
@@ -5,7 +21,7 @@ import ed.js.engine.*;
 import ed.js.func.*;
 import ed.util.*;
 
-// Methods borrowed from Prototype
+/**  Methods borrowed from Prototype */
 public class Prototype {
 
     /** Object.extend: copy properties from src to dest.
@@ -13,7 +29,7 @@ public class Prototype {
      */
     public static class Object_extend extends JSFunctionCalls2 {
         public Object call( Scope s , Object dest , Object src , Object [] extra ){
-            
+
             if ( dest == null )
                 throw new RuntimeException( "Object.extends dest is null" );
 
@@ -31,13 +47,13 @@ public class Prototype {
             for(String key : jsrc.keySet()){
                 jdest.set(key, jsrc.get(key));
             }
-            
+
             return dest;
         }
     }
 
     /** Object.keys: fetch all the property names from an object
-     *  @returns a JavaScript Array, each element containing a key from the 
+     *  @returns a JavaScript Array, each element containing a key from the
      *  object
      */
     public static class Object_keys extends JSFunctionCalls1 {
@@ -47,7 +63,7 @@ public class Prototype {
             for(String key : jo.keySet()){
                 jar.add(new JSString(key));
             }
-            
+
             return jar;
         }
     }
@@ -63,7 +79,7 @@ public class Prototype {
             for(String key : jo.keySet()){
                 jar.add(jo.get(key));
             }
-            
+
             return jar;
         }
     }
@@ -142,6 +158,7 @@ public class Prototype {
             };
         }
     }
+    /** @unexpose  */
     public static final JSFunction _functionBind = new Function_bind();
 
     /** Function.wrap: creates a wrapper function around this function
@@ -180,6 +197,7 @@ public class Prototype {
 
         }
     }
+    /** @unexpose  */
     public static final JSFunction _functionWrap = new Function_wrap();
 
     public static class Class_create extends JSFunctionCalls0 {
@@ -233,10 +251,11 @@ public class Prototype {
             prototype.set("constructor", klass);
 
             return klass;
-            
+
         }
     }
 
+    /** @unexpose  */
     public static final JSFunction _classCreate = new Class_create();
 
     public static class Class_addMethods extends JSFunctionCalls1 {
@@ -256,19 +275,19 @@ public class Prototype {
                        ((JSFunction)value).argumentNames().getInt(0).equals("$super")) {
                         final String methodname = property;
                         final Object method = value;
-                        
+
                         value = new JSFunctionCalls0 () {
                                 public Object call( Scope s, Object [] extra){
                                     JSFunction m = (JSFunction)((JSObject)ancestor).get(methodname);
                                     return m.call(s, extra);
                                 }
                             };
-                        
+
                         s.setThis(value);
                         value = Prototype._functionWrap.call(s, method);
-                        
+
                         s.clearThisNormal(true);
-                        
+
                         ((JSObject)value).set("valueOf", new JSFunctionCalls0 () {
                                 public Object call( Scope s, Object [] extra){
                                     return method;
@@ -288,8 +307,10 @@ public class Prototype {
         }
     }
 
+    /** @unexpose  */
     public static final JSFunction _classAddMethods = new Class_addMethods();
 
+    /** @unexpose  */
     public static final JSObjectBase _class = new JSObjectBase();
     static {
         JSObject m = new JSObjectBase();

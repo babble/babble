@@ -1,5 +1,21 @@
 // HttpResponse.java
 
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package ed.net.httpserver;
 
 import java.io.*;
@@ -17,6 +33,9 @@ import ed.log.*;
 import ed.util.*;
 import ed.appserver.*;
 
+/**
+ * @expose
+ */
 public class HttpResponse extends JSObjectBase {
 
     static final boolean USE_POOL = true;
@@ -39,7 +58,9 @@ public class HttpResponse extends JSObjectBase {
 	SERVER_HEADERS = "Server: ED\r\nX-svr: " + hostname + "\r\n";
     }
 
-
+    /**
+     * Create a response to a given request.
+     */
     HttpResponse( HttpRequest request ){
         _request = request;
         _handler = _request._handler;
@@ -51,18 +72,31 @@ public class HttpResponse extends JSObjectBase {
         set( "prototype" , _prototype );
     }
 
+    /**
+     * Set the HTTP response code for this response.
+     * A list of HTTP status codes is available at
+     * http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html .
+     * @param rc a response code according to the HTTP spec
+     */
     public void setResponseCode( int rc ){
         if ( _sentHeader )
             throw new RuntimeException( "already sent header " );
         _responseCode = rc;
     }
 
+    /**
+     * Get the HTTP response code for this response.
+     * @return this response's HTTP status code
+     */
     public int getResponseCode(){
         return _responseCode;
     }
 
 
     /**
+     * Add an additional cookie to be sent in this response.
+     * All cookies will be sent to the browser, but browsers typically only
+     * keep the last cookie with a given name.
      * @param name cookie name
      * @param value cookie value
      * @param maxAge
@@ -75,6 +109,8 @@ public class HttpResponse extends JSObjectBase {
     }
 
     /**
+     * Add a cookie to be sent in this response. This sends a session cookie
+     * (which is typically deleted when the browser is closed).
      * @param name cookie name
      * @param value cookie value
      */
@@ -83,27 +119,52 @@ public class HttpResponse extends JSObjectBase {
     }
     
     /**
-     * equivilant to "addCookie( name , null , -1 )"
+     * Equivalent to "addCookie( name , null , -1 )". Tells the browser
+     * that the cookie with this name is already expired.
+     * @param name cookie name
      */
     public void removeCookie( String name ){
         _cookies.add( new Cookie( name , "asd" , -1 ) );
     }
 
+    /**
+     * Set a cache time for this response.
+     * Sets the Cache-Control and Expires headers
+     * @param seconds the number of seconds that this response should be cached
+     */
     public void setCacheTime( int seconds ){
 	setHeader("Cache-Control" , "max-age=" + seconds );
 	setDateHeader( "Expires" , System.currentTimeMillis() + ( 1000 * seconds ) );
     }
     
+    /**
+     * Set a header as a date.
+     *
+     * Formats a time, passed as an integer number of milliseconds, as a date,
+     * and sets a header with this date.
+     *
+     * @param n the name of the header
+     * @param t the value of the header, as a number of milliseconds
+     */
     public void setDateHeader( String n , long t ){
 	synchronized( HeaderTimeFormat ) {
 	    setHeader( n , HeaderTimeFormat.format( new Date(t) ) );
 	}
     }
 
+    /**
+     * Set a header in the response.
+     * Overwrites previous headers with the same name
+     * @param n the name of the header to set
+     * @param v the value of the header to set, as a string
+     */
     public void setHeader( String n , String v ){
         _headers.put( n , v );
     }
 
+    /**
+     * @unexpose
+     */
     void cleanup(){
         if ( _cleaned )
             return;
@@ -146,8 +207,11 @@ public class HttpResponse extends JSObjectBase {
         }
         
     }
-    
-    public boolean done()
+
+    /**
+     * @unexpose
+     */
+    protected boolean done()
         throws IOException {
 
         if ( _cleaned )
@@ -160,11 +224,23 @@ public class HttpResponse extends JSObjectBase {
         return f;
     }
 
+    /**
+     * Send a permanent (301) redirect to the given location.
+     * Equivalent to calling setResponseCode( 301 ) followed by
+     * setHeader( "Location" , loc ).
+     * @param loc the location to redirect to
+     */
     public void sendRedirectPermanent(String loc){
         setResponseCode( 301 );
         setHeader("Location", loc);
     }
 
+    /**
+     * Send a temporary (302) redirect to the given location.
+     * Equivalent to calling setResponseCode( 302 ) followed by
+     * setHeader( "Location" , loc ).
+     * @param loc the location to redirect to
+     */
     public void sendRedirectTemporary(String loc){
         setResponseCode( 302 );
         setHeader("Location", loc);
@@ -331,6 +407,12 @@ public class HttpResponse extends JSObjectBase {
         return a;
     }
 
+    /**
+     * Tries to compute the size of this entire response
+     * Adds the size of the headers plus the content-length know about so far
+     * Slightly expensive.
+     * @return the size of the headers
+     */
     public int totalSize(){
         final int size[] = new int[]{ 0 };
         Appendable a = new Appendable(){
@@ -375,6 +457,10 @@ public class HttpResponse extends JSObjectBase {
         return size[0];
     }
     
+    /**
+     * Return this response, formatted as a string: HTTP response, headers,
+     * cookies.
+     */
     public String toString(){
         try {
             return _genHeader();
@@ -384,6 +470,9 @@ public class HttpResponse extends JSObjectBase {
         }
     }
 
+    /**
+     * @unexpose
+     */
     public JxpWriter getWriter(){
         if ( _writer == null ){
             if ( _cleaned )
@@ -394,11 +483,17 @@ public class HttpResponse extends JSObjectBase {
         return _writer;
     }
 
+    /**
+     * @unexpose
+     */
     public void setData( ByteBuffer bb ){
         _stringContent = new LinkedList<ByteBuffer>();
         _stringContent.add( bb );
     }
 
+    /**
+     * @unexpose
+     */
     public boolean keepAlive(){
         if ( ! _request.keepAlive() )
             return false;
@@ -414,10 +509,17 @@ public class HttpResponse extends JSObjectBase {
         return false;
     }
 
+    /**
+     * @unexpose
+     */
     public String getContentEncoding(){
         return DEFAULT_CHARSET;
     }
 
+    /**
+     * Sends a file to the browser.
+     * @param f a file to send
+     */
     public void sendFile( File f ){
         if ( ! f.exists() )
             throw new IllegalArgumentException( "file doesn't exist" );
@@ -426,6 +528,11 @@ public class HttpResponse extends JSObjectBase {
 	_stringContent = null;
     }
 
+    /**
+     * Sends a file to the browser, including (for database-stored files)
+     * sending a sensible Content-Disposition.
+     * @param f a file to send
+     */
     public void sendFile( JSFile f ){
         if ( f instanceof JSLocalFile ){
             sendFile( ((JSLocalFile)f).getRealFile() );
@@ -495,12 +602,19 @@ public class HttpResponse extends JSObjectBase {
             throw new RuntimeException( "no data set" );
     }
 
+    /**
+     * Adds a "hook" function to be called after this response has been sent.
+     * @param f a function
+     */
     public void addDoneHook( Scope s , JSFunction f ){
         if ( _doneHooks == null )
             _doneHooks = new ArrayList<Pair<Scope,JSFunction>>();
         _doneHooks.add( new Pair<Scope,JSFunction>( s , f ) );
     }
     
+    /**
+     * @unexpose
+     */
     public void setAppRequest( AppRequest ar ){
         _appRequest = ar;
     }

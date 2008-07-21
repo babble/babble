@@ -17,6 +17,9 @@ public class Bytes {
     static final boolean D = Boolean.getBoolean( "DEBUG.DB" );
 
     static final int BUF_SIZE = 1024 * 1024 * 5;
+    
+    static final int CONNECTIONS_PER_HOST = 20;
+    static final int BUFS_PER_50M = ( 1024 * 1024 * 50 ) / BUF_SIZE;
 
     static final byte EOO = 0;    
     static final byte NUMBER = 1;

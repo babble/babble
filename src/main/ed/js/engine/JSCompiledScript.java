@@ -1,5 +1,21 @@
 // JSCompiledScript.java
 
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package ed.js.engine;
 
 import java.util.*;
@@ -13,7 +29,7 @@ import ed.js.func.*;
 
 public abstract class JSCompiledScript extends JSFunctionCalls0 {
  
-    protected abstract Object _call( Scope scope , Object extra[] ) throws Throwable ;
+    protected abstract Object _call( Scope scope , Object extra[] ) throws Exception;
     
     public Object call( Scope scope , Object extra[] ){
         try {
@@ -24,14 +40,14 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
             _convert.fixStack( re );
             throw re;
         }
-        catch ( Throwable t ){
-            t.printStackTrace();
-            if ( Convert.DJS ) t.printStackTrace();
-            _convert.fixStack( t );
-            throw new RuntimeException( "weird error : " + t.getClass().getName() , t );
+        catch ( Exception e ){
+            e.printStackTrace();
+            if ( Convert.DJS ) e.printStackTrace();
+            _convert.fixStack( e );
+            throw new RuntimeException( "weird error : " + e.getClass().getName() , e );
         }
     }
-
+    
     protected void _throw( Object foo ){
         
         if ( foo instanceof JSException )
