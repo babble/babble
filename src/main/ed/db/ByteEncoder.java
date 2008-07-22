@@ -193,6 +193,11 @@ public class ByteEncoder extends Bytes {
             return true;
         }
         
+        if ( o.get( Bytes.NO_REF_HACK ) != null ){
+            o.removeField( Bytes.NO_REF_HACK );
+            return false;
+        }
+
         if ( name != null && 
              ( o.get( "_id" ) != null && 
                o.get( "_ns" ) != null ) ){ 
