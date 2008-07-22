@@ -25,7 +25,7 @@ import ed.js.func.*;
 
 import java.util.*;
 
-/** See the wiki page describing <a href="http://www.10gen.com/wiki/ref.Map">map</a>.
+/** See the wiki page describing <a href="http://www.10gen.com/wiki/ref.Map">Map</a>.
  * @expose */
 public class JSMap extends JSObjectBase {
 
