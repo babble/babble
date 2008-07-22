@@ -54,6 +54,7 @@ public class MemUtil {
                 System.err.print( "OutOfMemoryError in " + location + " - not enough free, so dying." );
                 System.err.println( "before : " + ( before / MemUtil.MBYTE ) );
                 System.err.println( "after : " + ( after / MemUtil.MBYTE ) );
+                ed.lang.StackTraceHolder.getInstance().fix( oom );
                 oom.printStackTrace();
             }
             catch ( Exception e ){
