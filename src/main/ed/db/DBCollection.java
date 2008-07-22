@@ -493,9 +493,12 @@ public abstract class DBCollection extends JSObjectLame {
                 if ( foo instanceof JSFunction )
                     continue;
 
-		if ( foo instanceof JSString )
+		if ( foo instanceof JSString 
+                     || foo instanceof JSRegex
+                     || foo instanceof JSDate )
 		    continue;
-
+                
+                
                 JSObject e = (JSObject)foo;
                 if ( e instanceof JSObjectBase )
                     ((JSObjectBase)e).prefunc();
