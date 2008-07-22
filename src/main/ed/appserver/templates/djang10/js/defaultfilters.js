@@ -20,6 +20,16 @@ var defaultfilters =
 
 register = new djang10.Library();
 
+
+
+var addslashes =
+    defaultfilters.addslashes =
+    function(value) {
+
+    return value.replace("\\", "\\\\").replace('"', '\\"').replace("'", "\\'");
+};
+addslashes.is_safe = true;
+
 var lower =
     defaultfilters.lower =
     function(value) {
@@ -223,6 +233,7 @@ register.filter("truncatewords", truncatewords);
 register.filter("cut", cut);
 register.filter("linebreaks", linebreaks);
 register.filter("linebreaksbr", linebreaksbr);
+register.filter("addslashes", addslashes);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};

@@ -84,7 +84,6 @@ public class DjangoRegressionTests {
         "chaining02",       //missing center
         "autoescape-filtertag01$",  //missing safe
         "autoescape-stringfilter0[2-4]",    //missing safe
-        "filter-addslash.*",
         "filter-capfirst.*",
         "filter-center.*",
         "filter-cut.*",
@@ -120,16 +119,10 @@ public class DjangoRegressionTests {
         "filter-removetags.*",
         "filter-truncatewords.*",
         "filter-upper.*",
-        "filter-wordcount.*"
+        "filter-wordcount.*",
         
-        /*
-            chaining05,
-            chaining06,
-            filter-default01,
-            filter-default02,
-            ilter-default_if_none01,
-            ilter-default_if_none02
-         */
+        //pending escapeHTML
+        "filter-addslash02",
     };    
        
     public DjangoRegressionTests(){ }
