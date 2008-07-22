@@ -146,7 +146,7 @@ UnsafeClass.prototype.toString = function() {
 
 SafeClass = function() {};
 SafeClass.prototype.toString = function() {
-    return Djang10.mark_safe("you &gt; me");
+    return djang10.mark_safe("you &gt; me");
 };
 
 var from_now = function(sec_offset) {
