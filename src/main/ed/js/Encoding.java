@@ -197,7 +197,7 @@ public class Encoding {
         _noEncodingComonent.add( '.' );
     }
 
-    /** Function to escape special HTML characters: &lt;, &gt;, &amp;, &quot; &apos;. */
+    /** Function to escape special HTML characters: &lt;, &gt;, &amp;, &quot; &#39;. */
     public static JSFunction escapeHTML = new JSFunctionCalls1(){
             public Object call( Scope s , Object o , Object [] extra ){
                 if ( o == null )
@@ -220,7 +220,7 @@ public class Encoding {
             case '>': buf.append( "&gt;" ); break;
             case '&': buf.append( "&amp;" ); break;
             case '"': buf.append( "&quot;" ); break;
-            case '\'': buf.append( "&apos;" ); break;
+            case '\'': buf.append( "&#39;" ); break;
             default: buf.append( c ); break;
             }
         }
