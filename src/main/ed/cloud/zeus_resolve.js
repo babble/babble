@@ -65,7 +65,7 @@ Cloud.Zeus.resolveTS = function(){
                     var alias = e.aliases[aliasNumber];
                     var crap = oneEnv.replace( /!branch/g , alias );
                     crap = crap.replace( /!pool/g , e.pool );
-                    crap = crap.replace( /!extra/g , "http.setHeader( \"X-Host\" , http.getHostHeader() ); \n http.setHeader( \"Host\" , string.replace( http.getHostHeader() , \"" +  alias  + "\" , \"" + e.name  + "\" ) );" );
+                    crap = crap.replace( /!extra/g , "http.setHeader( \"X-Host\" , string.replace( http.getHostHeader() , \"" +  alias  + "\" , \"" + e.name  + "\" ) );" );
 
                     envs += crap;
                 }
