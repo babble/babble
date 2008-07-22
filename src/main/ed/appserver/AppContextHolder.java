@@ -253,7 +253,7 @@ public class AppContextHolder {
         throw new RuntimeException( "can't find environment [" + subdomain + "] in [" + root + "]  siteName [" + siteName + "] found site:" + ( site != null )  );
     }
 
-    private void _checkout( File f , String what ){
+    static void _checkout( File f , String what ){
         if ( GitUtils.checkout( f , what ) )
             return;
 
@@ -291,7 +291,7 @@ public class AppContextHolder {
 
     }
 
-    private static JSObject getEnvironmentFromCloud( String siteName , String envName ){
+    static JSObject getEnvironmentFromCloud( String siteName , String envName ){
         Cloud theCloud = Cloud.getInstanceIfOnGrid();
         if ( theCloud == null )
             return null;

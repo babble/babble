@@ -134,6 +134,11 @@ public class AppServer implements HttpHandler {
             return;
         }
 
+        if ( request.getURI().equals( "/~update" ) ){
+            handleUpdate( ar , request , response );
+            return;
+        }
+
         final AppContext ctxt = ar.getContext();
 
         ar.getScope().makeThreadLocal();
@@ -515,8 +520,7 @@ public class AppServer implements HttpHandler {
 
         out.print( "so, you want to reset?\n" );
 
-        if ( request.getRemoteIP().equals( "127.0.0.1" ) &&
-             request.getHeader( "X-Cluster-Cluster-Ip" ) == null ){
+        if ( _administrativeAllowed( request ) ){
             out.print( "you did it!\n" );
             ar.getContext()._logger.info("About to reset context via /~reset");
             ar.getContext().reset();
@@ -527,6 +531,42 @@ public class AppServer implements HttpHandler {
             response.setResponseCode(403);
         }
 
+    }
+
+    void handleUpdate( AppRequest ar , HttpRequest request , HttpResponse response ){
+        response.setHeader( "Content-Type" , "text/plain" );
+        
+        JxpWriter out = response.getWriter();
+
+        out.print( "you are going to update\n" );
+        
+        if ( _administrativeAllowed( request ) ){
+            out.print( "you did it!\n" );
+            ar.getContext()._logger.info("About to update context via /~update");
+            try {
+                String branch = ar.getContext().updateCode();
+                if ( branch == null )
+                    out.print( "couldn't update." );
+                else 
+                    out.print( "updated to [" + branch + "]" );
+            }
+            catch ( Exception e ){
+                out.print( "Fail : " + e );
+            }
+            out.print( "\n" );
+        }
+        else {
+            ar.getContext()._logger.error("Failed attempted context reset via /~update from " + request.getRemoteIP());
+            out.print( "you suck!" );
+            response.setResponseCode(403);
+        }
+
+    }
+
+    boolean _administrativeAllowed( HttpRequest request ){
+        return 
+            request.getRemoteIP().equals( "127.0.0.1" ) &&
+            request.getHeader( "X-Cluster-Cluster-Ip" ) == null;
     }
 
     class SimpleStats  {
