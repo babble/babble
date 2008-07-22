@@ -118,9 +118,6 @@ public class DjangoRegressionTests {
         "filter-truncatewords.*",
         "filter-upper.*",
         "filter-wordcount.*",
-        
-        //pending escapeHTML
-        "filter-addslash02",
     };    
        
     public DjangoRegressionTests(){ }
