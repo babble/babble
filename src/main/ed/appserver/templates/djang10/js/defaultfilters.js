@@ -63,6 +63,14 @@ var escapejs =
     return value;
 };
 
+var fix_ampersands =
+    defaultfilters.fix_ampersands =
+    function(value){
+
+    return value.replace(/&(?!(\w+|#\d+);)/, "&amp;");
+};
+fix_ampersands.is_safe = true;
+
 var lower =
     defaultfilters.lower =
     function(value) {
@@ -269,6 +277,7 @@ register.filter("linebreaksbr", linebreaksbr);
 register.filter("addslashes", addslashes);
 register.filter("capfirst", capfirst);
 register.filter("escapejs", escapejs);
+register.filter("fix_ampersands",fix_ampersands);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
