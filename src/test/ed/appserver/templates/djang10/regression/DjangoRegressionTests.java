@@ -78,13 +78,11 @@ public class DjangoRegressionTests {
         "^for-tag-unpack.*",
         
         //unimplemented filters
-        "chaining0[56]",   //capfirst
         "chaining(07|08|09|10)",   //missing force_escape
         "chaining(11|14|12|13)",       //missing safe
         "chaining02",       //missing center
         "autoescape-filtertag01$",  //missing safe
         "autoescape-stringfilter0[2-4]",    //missing safe
-        "filter-capfirst.*",
         "filter-center.*",
         "filter-cut.*",
         "filter-escape.*",
@@ -113,7 +111,7 @@ public class DjangoRegressionTests {
 
         
         //broken filters
-        "chaining0[134]",
+        "chaining0[1345]",
         "filter-default0[34]",
         "filter-lower.*",
         "filter-removetags.*",

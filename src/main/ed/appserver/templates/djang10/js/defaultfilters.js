@@ -30,6 +30,18 @@ var addslashes =
 };
 addslashes.is_safe = true;
 
+var capfirst =
+    defaultfilters.capfirst =
+    function(value) {
+
+    if(!value)
+        return value;
+
+    return value[0].toUpperCase() + value.substring(1);
+};
+capfirst.is_safe = true;
+
+
 var lower =
     defaultfilters.lower =
     function(value) {
@@ -234,6 +246,7 @@ register.filter("cut", cut);
 register.filter("linebreaks", linebreaks);
 register.filter("linebreaksbr", linebreaksbr);
 register.filter("addslashes", addslashes);
+register.filter("capfirst", capfirst);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
