@@ -136,7 +136,7 @@ public class JxpServlet {
             return "";
         
         final AppContext ctxt = ar.getContext();
-        return "ctxt=" + ctxt.getName() + "" + ctxt.getGitBranch() ;
+        return "ctxt=" + ctxt.getEnvironmentName() + "" + ctxt.getGitBranch() ;
     }
     
     public static class MyWriter extends JSFunctionCalls1 {
