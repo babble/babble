@@ -163,6 +163,7 @@ public class AppServer implements HttpHandler {
         response.setHeader( "X-ctx" , ctxt._root );
         response.setHeader( "X-git" , ctxt.getGitBranch() );
         response.setHeader( "X-env" , ctxt._environment );
+        response.setHeader( "X-ctxhash" , String.valueOf( System.identityHashCode( ctxt ) ) ); // this is kind of tempoary until AppContextHolder is totally vettedx
 
         response.setAppRequest( ar );
 
