@@ -86,8 +86,10 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
             JSObject foo = _query;
             if ( _orderBy != null && _orderBy.keySet().size() > 0 ){
                 foo = new JSObjectBase();
-                if ( _query != null )
+                if ( _query != null ){
+                    _query.set( Bytes.NO_REF_HACK , "z" );
                     foo.set( "query" , _query );
+                }
                 foo.set( "orderby" , _orderBy );
             }
 
