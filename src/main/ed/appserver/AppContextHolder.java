@@ -66,7 +66,7 @@ public class AppContextHolder {
                 host = host.substring( 0 , idx );
         }
 
-        return getContext( request.getHeader( "Host" ) , request.getURI() , newUri );
+        return getContext( host , request.getURI() , newUri );
     }
 
     public AppContext getContext( String host , String uri , String newUri[] ){
