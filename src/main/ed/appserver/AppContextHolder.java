@@ -54,8 +54,18 @@ public class AppContextHolder {
         _root = root;
         _rootFile = _root == null ? null : new File( _root );
     }
-
+    
     public AppContext getContext( HttpRequest request , String newUri[] ){
+        String host = request.getHeader( "X-Host" );
+        if ( host == null )
+            host = request.getHeader( "Host" );
+
+        if ( host != null ){
+            int idx = host.indexOf( ":" );
+            if ( idx > 0 )
+                host = host.substring( 0 , idx );
+        }
+
         return getContext( request.getHeader( "Host" ) , request.getURI() , newUri );
     }
 
