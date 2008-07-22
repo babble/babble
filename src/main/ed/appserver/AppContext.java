@@ -651,6 +651,35 @@ public class AppContext {
     public String getEnvironmentName(){
         return _environment;
     }
+    
+
+    /**
+     * updates the context to the correct branch based on environment
+     * and to the latest version of the code
+     * if name or environemnt is missing, does nothing
+     */
+    public String updateCode(){
+        
+        if ( ! GitUtils.isSourceDirectory( _rootFile ) )
+            throw new RuntimeException( _rootFile + " is not a git repo" );
+        
+        _logger.info( "going to update code" );
+        GitUtils.fullUpdate( _rootFile );
+        
+        if ( _name == null || _environment == null )
+            return getCurrentGitBranch();
+        
+        JSObject env = AppContextHolder.getEnvironmentFromCloud( _name , _environment );
+        if ( env == null )
+            return null;
+        
+
+        String branch = env.get( "branch" ).toString() ;
+        _logger.info( "updating to [" + branch + "]"  );
+        AppContextHolder._checkout( _rootFile , branch );
+
+        return getCurrentGitBranch();
+    }
 
     final String _name;
     final String _root;

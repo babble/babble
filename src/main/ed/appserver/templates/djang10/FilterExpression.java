@@ -149,7 +149,17 @@ public class FilterExpression extends JSObjectBase {
         
         public Object apply(Scope scope, Context context, Object value) {
             Object paramValue = (param == null)? null : param.resolve(scope, context);
-            return filter.call(scope.child(), value, paramValue);
+            Object new_obj;
+            
+            if(filter.get("needs_autoescape") == Boolean.TRUE)
+                new_obj = filter.call(scope.child(), value, context.get("autoescape") != Boolean.FALSE, paramValue);
+            else
+                new_obj = filter.call(scope.child(), value, paramValue);
+            
+            if(filter.get("is_safe") == Boolean.TRUE && JSHelper.is_safe(value) && (new_obj instanceof JSObject))
+                new_obj = JSHelper.mark_safe((JSObject)new_obj);
+            
+            return new_obj;
         }
         public String toString() {
             return filterName + ":" + String.valueOf(param);

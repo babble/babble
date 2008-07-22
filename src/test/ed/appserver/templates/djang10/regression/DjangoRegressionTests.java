@@ -29,6 +29,7 @@ import org.testng.annotations.Test;
 import ed.appserver.jxp.JxpSource;
 import ed.appserver.templates.djang10.Djang10Source;
 import ed.appserver.templates.djang10.JSHelper;
+import ed.appserver.templates.djang10.Printer;
 import ed.db.JSHook;
 import ed.js.Encoding;
 import ed.js.JSArray;
@@ -37,7 +38,6 @@ import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.JSString;
 import ed.js.engine.Scope;
-import ed.js.func.JSFunctionCalls1;
 import ed.js.func.JSFunctionCalls2;
 
 public class DjangoRegressionTests {
@@ -78,24 +78,19 @@ public class DjangoRegressionTests {
         "^for-tag-unpack.*",
         
         //unimplemented filters
-        "chaining0[56]",   //capfirst
         "chaining(07|08|09|10)",   //missing force_escape
         "chaining(11|14|12|13)",       //missing safe
         "chaining02",       //missing center
         "autoescape-filtertag01$",  //missing safe
         "autoescape-stringfilter0[2-4]",    //missing safe
-        "filter-addslash.*",
-        "filter-capfirst.*",
         "filter-center.*",
         "filter-cut.*",
         "filter-escape.*",
         "filter-first.*",
-        "filter-fix_ampersands.*",
         "filter-floatformat.*",
         "filter-force-escape.*",
         "filter-iriencode.*",
         "filter-last.*",
-        "filter-linebreaks.*",
         "filter-linenumbers.*",
         "filter-ljust.*",
         "filter-make_list.*",
@@ -115,23 +110,13 @@ public class DjangoRegressionTests {
 
         
         //broken filters
-        "autoescape-tag(0[3-9]|10)",
-        "chaining0[134]",
+        "chaining0[1345]",
         "filter-default0[34]",
         "filter-lower.*",
         "filter-removetags.*",
         "filter-truncatewords.*",
         "filter-upper.*",
-        "filter-wordcount.*"
-        
-        /*
-            chaining05,
-            chaining06,
-            filter-default01,
-            filter-default02,
-            ilter-default_if_none01,
-            ilter-default_if_none02
-         */
+        "filter-wordcount.*",
     };    
        
     public DjangoRegressionTests(){ }
@@ -177,8 +162,7 @@ public class DjangoRegressionTests {
                 
                 ExportedTestCase testCase = new ExportedTestCase(testScope, (JSObject)jsTest, 
                         testScript.templateSyntaxErrorCons, testScript.someExceptionCons, testScript.someOtherExceptionCons);
-                
-                //FIXME: enable filter tests
+
                 if(isSupported(testCase)) testCases.add(testCase);
                 else skipped++;
                 
@@ -268,7 +252,7 @@ public class DjangoRegressionTests {
         private final JSObject model;
         private final Result result;
         
-        private final Printer printer;
+        private final Printer.RedirectedPrinter printer;
         
         
         public ExportedTestCase(Scope scope, JSObject test, JSFunction templateSyntaxErrorCons, JSFunction someExceptionCons, JSFunction someOtherExceptionCons) {
@@ -302,7 +286,7 @@ public class DjangoRegressionTests {
             }
             
             
-            printer = new Printer();
+            printer = new Printer.RedirectedPrinter();
             scope.set("print", printer);
         }
         @Test
@@ -335,12 +319,10 @@ public class DjangoRegressionTests {
                 NormalResult normalResult = (NormalResult)result;
                 JSFunction templateFn = template.getFunction();
                 templateFn.call(scope, model);
-                String output = printer.buffer.toString();
+                String output = printer.getJSString().toString();
                 
                 assertEquals(normalResult.normal, output);
             }
-            
-            
         }
         
     }
@@ -362,15 +344,6 @@ public class DjangoRegressionTests {
             this.normal = normal;
             this.invalid = invalid;
             this.invalid_setting = invalid_setting;
-        }
-    }
-    
-    private static class Printer extends JSFunctionCalls1 {
-        public final StringBuilder buffer = new StringBuilder();
-        
-        public Object call(Scope scope, Object p0, Object[] extra) {
-            buffer.append(p0);
-            return null;
         }
     }
 }

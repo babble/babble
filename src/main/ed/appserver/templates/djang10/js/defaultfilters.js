@@ -20,6 +20,57 @@ var defaultfilters =
 
 register = new djang10.Library();
 
+
+
+var addslashes =
+    defaultfilters.addslashes =
+    function(value) {
+
+    return value.replace("\\", "\\\\").replace('"', '\\"').replace("'", "\\'");
+};
+addslashes.is_safe = true;
+
+var capfirst =
+    defaultfilters.capfirst =
+    function(value) {
+
+    if(!value)
+        return value;
+
+    return value[0].toUpperCase() + value.substring(1);
+};
+capfirst.is_safe = true;
+
+var _js_escapes = [
+    ['\\', '\\\\'],
+    ['"', '\\"'],
+    ["'", "\\'"],
+    ['\n', '\\n'],
+    ['\r', '\\r'],
+    ['\b', '\\b'],
+    ['\f', '\\f'],
+    ['\t', '\\t'],
+    ['\v', '\\v'],
+    ['</', '<\\/']
+];
+var escapejs =
+    defaultfilters.escapejs =
+    function(value) {
+
+    for(var i=0; i<_js_escapes.length; i++)
+        value = value.replace(_js_escapes[i][0], _js_escapes[i][1]);
+    
+    return value;
+};
+
+var fix_ampersands =
+    defaultfilters.fix_ampersands =
+    function(value){
+
+    return value.replace(/&(?!(\w+|#\d+);)/, "&amp;");
+};
+fix_ampersands.is_safe = true;
+
 var lower =
     defaultfilters.lower =
     function(value) {
@@ -81,22 +132,35 @@ var escapeFilter =
 
 var linebreaks =
     defaultfilters.linebreaks =
-    function(value) {
+    function(value, autoescape) {
 
+    autoescape = autoescape && !djang10.is_safe(value);
+    
     value = value.replace(/\r\n|\r|\n/g, "\n");
     var paras = value.split(/\n{2,}/);
-    for(var i=0; i < paras.length; i++)
-        paras[i] = "<p>" + paras[i].trim().replace(/\n/g, "<br />") + "</p>";
+    for (var i = 0; i < paras.length; i++) {
+        if(autoescape)
+            paras[i] = escapeHTML(paras[i].trim());
+        paras[i] = "<p>" + paras[i].replace(/\n/g, "<br />") + "</p>";
+    }
         
-    return paras.join("\n\n");
+    return djang10.mark_safe("" + paras.join("\n\n"));
 };
+linebreaks.is_safe = true;
+linebreaks.needs_autoescape = true;
 
 var linebreaksbr =
     defaultfilters.linebreaks =
-    function(value) {
+    function(value, autoescape) {
 
-    return value.replace(/\n/g, "<br />");
+    autoescape = autoescape && !djang10.is_safe(value);
+    if(autoescape)
+        value = escapeHTML(value);
+
+    return djang10.mark_safe( value.replace(/\n/g, "<br />") );
 };
+linebreaksbr.is_safe = true;
+linebreaksbr.needs_autoescape = true;
 
 var removetags =
     defaultfilters.removetags =
@@ -210,6 +274,10 @@ register.filter("truncatewords", truncatewords);
 register.filter("cut", cut);
 register.filter("linebreaks", linebreaks);
 register.filter("linebreaksbr", linebreaksbr);
+register.filter("addslashes", addslashes);
+register.filter("capfirst", capfirst);
+register.filter("escapejs", escapejs);
+register.filter("fix_ampersands",fix_ampersands);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};

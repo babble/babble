@@ -358,8 +358,11 @@ public abstract class DBCollection extends JSObjectLame {
 
                               o = _handleThis( s , o );
 
+                              if ( o == null )
+                                  throw new NullPointerException( "can't pass null to collection.remove. if you mean to remove everything, do remove( {} ) " );
+
                               if ( ! ( o instanceof JSObject ) )
-                                  throw new RuntimeException( "can't only save JSObject" );
+                                  throw new RuntimeException( "have to pass collection.remove a javascript object" );
 
                               return remove( (JSObject)o );
 
@@ -378,13 +381,16 @@ public abstract class DBCollection extends JSObjectLame {
 
         _find = new JSFunctionCalls2() {
                 public Object call( Scope s , Object o , Object fieldsWantedO , Object foo[] ){
+                    
+                    if ( o instanceof DBRef )
+                        o = ((DBRef)o)._id;
 
                     if ( o == null )
                         o = new JSObjectBase();
-
+                    
                     if ( o instanceof ObjectId )
                         return find( (ObjectId)o );
-
+                    
                     if ( o instanceof JSObject ){
                         JSObject key = (JSObject)o;
                         checkForIDIndex( key );

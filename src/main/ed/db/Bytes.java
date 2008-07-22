@@ -89,4 +89,6 @@ public class Bytes {
         return 0;
     }
 
+
+    static final String NO_REF_HACK = "_____nodbref_____";
 }

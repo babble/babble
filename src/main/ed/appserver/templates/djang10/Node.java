@@ -16,6 +16,7 @@
 
 package ed.appserver.templates.djang10;
 
+import ed.js.Encoding;
 import ed.js.JSArray;
 import ed.js.JSFunction;
 import ed.js.JSObject;
@@ -48,17 +49,12 @@ public class Node extends JSObjectBase {
             _prototype.set("render", new JSFunctionCalls1() {
                 public Object call(Scope scope, Object contextObj, Object[] extra) {
                     
-                    final StringBuilder buffer = new StringBuilder();
-                    JSFunctionCalls1 printer = new JSFunctionCalls1() {
-                        public Object call(Scope scope, Object str, Object[] extra) {
-                            buffer.append(str);
-                            return null;
-                        }
-                    };
+                    Printer.RedirectedPrinter printer = new Printer.RedirectedPrinter();
                     
                     JSObject thisObj = (JSObject)scope.getThis();
                     ((JSFunction)thisObj.get("__render")).call(scope.child(), contextObj, printer);
-                    return new JSString( buffer.toString() );
+                    
+                    return printer.getJSString();
                 }
             });
             _prototype.set("__render", new JSFunctionCalls2() {
@@ -167,17 +163,33 @@ public class Node extends JSObjectBase {
                 _prototype.set("__render", new JSFunctionCalls2() {
                     public Object call(Scope scope, Object contextObj, Object printerObj, Object[] extra) {
                         JSObject thisObj = (JSObject)scope.getThis();
+                        Context context = (Context)contextObj;
                         FilterExpression expr = (FilterExpression)thisObj.get("expression");
-                        JSFunction printer = (JSFunction)printerObj;
+                        boolean isAutoEscape = context.get("autoescape") != Boolean.FALSE;
+
+                        JSFunction printer;
+                        //redirect output if autoescape is on
+                        if(isAutoEscape)
+                            printer = new Printer.RedirectedPrinter();
+                        else
+                            printer = (JSFunction)printerObj;
                         
                         scope = scope.child();
                         scope.setGlobal(true);
                         scope.set("print", printer);
                         
-                        Object result = expr.resolve(scope, (Context)contextObj);
+                        Object result = expr.resolve(scope, (Context)contextObj);                        
                         if(result != null && result != Expression.UNDEFINED_VALUE)
-                            printer.call(scope, result.toString());
+                            printer.call(scope, result);
                         
+                        if(isAutoEscape) {
+                            Printer.RedirectedPrinter rePrint = (Printer.RedirectedPrinter)printer;
+                            String output = rePrint.getJSString().toString();
+                            if(!JSHelper.is_safe(rePrint)) {
+                                output = Encoding._escapeHTML(output);
+                            }
+                            ((JSFunction)printerObj).call(scope.child(), new JSString(output));                                
+                        }
                         
                         return null;
                     }
