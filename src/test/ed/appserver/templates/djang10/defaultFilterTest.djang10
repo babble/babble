@@ -14,6 +14,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 {% endcomment %}
 
+{% autoescape off %}
+
 {{ unknownVar|default:"should see me" }}
 {{ unknownVar|default:a }}
 {{ urlParam|urlencode }}
@@ -29,3 +31,5 @@ a   ,A ,b  ,d ,D  ,f   ,F       ,g,G ,h ,H ,i ,j ,l     ,L    ,m ,M  ,n ,N   ,O 
 {% if array|length_is:"5" %}should see me{% endif %}
 
 {{ array|length }} 
+
+{% endautoescape %}
