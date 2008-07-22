@@ -114,7 +114,6 @@ public class DjangoRegressionTests {
 
         
         //broken filters
-        "autoescape-tag(0[3-9]|10)",
         "chaining0[134]",
         "filter-default0[34]",
         "filter-lower.*",

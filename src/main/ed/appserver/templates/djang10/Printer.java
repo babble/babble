@@ -1,6 +1,7 @@
 package ed.appserver.templates.djang10;
 
 import ed.js.JSFunction;
+import ed.js.JSObject;
 import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
@@ -10,6 +11,10 @@ public abstract class Printer extends JSFunctionCalls1 {
         JSHelper.mark_safe(this);
     }
     public Object call(Scope scope, Object p0, Object[] extra) {
+        if((p0 != null) && (p0 instanceof JSObject) && (((JSObject)p0).get("toString") instanceof JSFunction)) {
+            JSFunction toStringFn = (JSFunction)((JSObject)p0).get("toString");
+            p0 = toStringFn.callAndSetThis(scope.child(), p0, new Object[0]);
+        }
         
         boolean is_safe =  JSHelper.is_safe(p0);
         if(!is_safe)
