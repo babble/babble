@@ -8,6 +8,11 @@
  /**
   * Database Cursor API 
  *  @class 10gen Database Cursor  API
+ * 
+ *  When you call find() on a database collection, a DBCursor is returned which can be used to iterate the results.
+ * 
+ *  Example:
+ *    var cursor = db.students.find();
  */
  var DBCursor = function(){}
 
@@ -38,7 +43,10 @@ DBCursor.prototype.sort = function(criteria) {
 
 /**
  *  <p>
- * Limits the returned result set to a fixed number of objects
+ * Limits the returned result set to a maximum number of objects.  This function is analogous to 
+ * the LIMIT keyword in MySQL.
+ * 
+ * Use of limit(), when appropriate, is very important for optimal performance.
  * </p>
  * 
  * <p>Example :</p>
@@ -55,12 +63,14 @@ DBCursor.prototype.limit = function(count) {
 
 /**
  *  <p>
- * Skips the number of specified objects that would be returned by the find()
+ * Skips past n objects before beginning to return data.  Often used with "paged" user interfaces to 
+ * start at a certain position.  Skip is performed server side, and is thus reasonable fast if the 
+ * query is not too expensive.
  * </p>
  * 
  * <p>Example :</p>
  * <code>
- * db.test.find().skip(20);
+ * var cursor = db.test.find().skip(20);
  * </code>
  * 
  * @param {Integer} count Number of objects to skip 

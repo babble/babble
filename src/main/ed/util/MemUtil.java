@@ -39,11 +39,31 @@ public class MemUtil {
     /** Value is 1024^3 */
     public static final long GBYTE = 1024 * MBYTE;
 
-    /** Collects all garbage. */
-    public static final void fullGC(){
+    public static final synchronized void checkMemoryAndHalt( String location , OutOfMemoryError oom  ){
+
+        long before = MemUtil.bytesAvailable();
         System.gc();
         System.gc();
         System.gc();
+        long after = MemUtil.bytesAvailable();
+
+        if ( after < ( 100 * MemUtil.MBYTE ) ||
+             ( after - before ) < ( 100 * MemUtil.MBYTE ) ){
+
+            try {
+                System.err.print( "OutOfMemoryError in " + location + " - not enough free, so dying." );
+                System.err.println( "before : " + ( before / MemUtil.MBYTE ) );
+                System.err.println( "after : " + ( after / MemUtil.MBYTE ) );
+                ed.lang.StackTraceHolder.getInstance().fix( oom );
+                oom.printStackTrace();
+            }
+            catch ( Exception e ){
+            }
+
+            Runtime.getRuntime().halt( -3 );
+        }
+
+
     }
 
     /** Converts a given number of bytes to megabytes.

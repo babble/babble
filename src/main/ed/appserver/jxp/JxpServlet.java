@@ -55,7 +55,9 @@ public class JxpServlet {
         final String cdnPrefix = cdnFromScope != null ? cdnFromScope.toString() : getStaticPrefix( request , ar );
         scope.put( "CDN" , cdnPrefix , true );
         
-        MyWriter writer = new MyWriter( response.getWriter() , cdnPrefix , ar.getContext() , ar);
+        final String cdnSuffix = getStaticSuffix( request , ar , cdnPrefix );
+
+        MyWriter writer = new MyWriter( response.getWriter() , cdnPrefix , cdnSuffix , ar.getContext() , ar);
         scope.put( "print" , writer  , true );
         
         try {
@@ -102,7 +104,7 @@ public class JxpServlet {
         
         if ( NOCDN )
             return "";
-
+        
         String host = request.getHost();
         
         if ( host == null )
@@ -125,12 +127,24 @@ public class JxpServlet {
         prefix += ".10gen.com/" + host;
         return prefix;
     }
+
+    String getStaticSuffix( HttpRequest request , AppRequest ar , String cdnPrefix ){
+        if ( NOCDN )
+            return "";        
+        
+        if ( cdnPrefix == null || cdnPrefix.length() == 0 )
+            return "";
+        
+        final AppContext ctxt = ar.getContext();
+        return "ctxt=" + ctxt.getEnvironmentName() + "" + ctxt.getGitBranch() ;
+    }
     
     public static class MyWriter extends JSFunctionCalls1 {
 
-        public MyWriter( JxpWriter writer , String cdnPrefix , AppContext context , AppRequest ar ){
+        public MyWriter( JxpWriter writer , String cdnPrefix , String cdnSuffix , AppContext context , AppRequest ar ){
             _writer = writer;
             _cdnPrefix = cdnPrefix;
+            _cdnSuffix = cdnSuffix;
             _context = context;
             _request = ar;
             
@@ -161,6 +175,8 @@ public class JxpServlet {
         public Object get( Object n ){
             if ( "cdnPrefix".equals( n ) )
                 return _cdnPrefix;
+            if ( "cdnSuffix".equals( n ) )
+                return _cdnSuffix;
             return super.get( n );
         }
 
@@ -168,6 +184,10 @@ public class JxpServlet {
             if ( "cdnPrefix".equals( n ) ){
                 _cdnPrefix = v.toString();
                 return _cdnPrefix;
+            }
+            if ( "cdnSuffix".equals( n ) ){
+                _cdnSuffix = v.toString();
+                return _cdnSuffix;
             }
             return super.set( n  , v );
         }
@@ -349,10 +369,16 @@ public class JxpServlet {
 		cdnTags = ""; // TODO: should i put a version or timestamp here?
 	    }
 	    else {
+                cdnTags = _cdnSuffix;
+                if ( cdnTags == null )
+                    cdnTags = "";
+                else if ( cdnTags.length() > 0 )
+                    cdnTags += "&";
+                
 		if ( doVersioning && _context != null ){
                     File f = _context.getFileSafe( uri );
                     if ( f != null && f.exists() ){
-                        cdnTags = "lm=" + f.lastModified();
+                        cdnTags += "lm=" + f.lastModified();
                     }
                 }
 	    }
@@ -396,8 +422,9 @@ public class JxpServlet {
         final JxpWriter _writer;
         final AppContext _context;
         final AppRequest _request;
-
+        
         String _cdnPrefix;
+        String _cdnSuffix;
         JSObject _formInput = null;
         String _formInputPrefix = null;
         

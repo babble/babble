@@ -1,36 +1,24 @@
-  
-security
-
- - files
- - network
-
-----
-
-Phase 3 - 11/15
-  javascript
-    - with
- 
- jxp/app server
-    - git system
-    - webdav ?
-    - debugging
 
 
-Phase 2 - 11/1
-  javascript
-    - js -> xml -> js for ajax
-    - XMLHttpRequest
-    - subclasses
-    - switch
-    - scope with exceptions
+10gen application server (ed)
 
-  jxp/app server
-    - access()
-       - file.header.indexof
-       - isMedia
-    - servlets
+Layout 
+ - src/         : all source code
+ - src/langcore : some low level stuff that main depends on
+ - src/main/ed  : this is the where the bulk of the code lives
+ - src/test     : unit tests
+ - src/jni      : deprecated
+ - bin/scripts  : some nice tools to interact with your site/db
+ - conf         : basic configuration, has to be on your classpath
+ - include      : jars, all jars have to be on your classpath
 
-  http
-    - chunking
+To Run AppServer:
 
+ant
+./runLight.bash ed.appserver.AppServer <options>
 
+or
+
+./runAnt.bash ed.appserver.AppServer <options>
+
+To see option information, see SDK quickstart

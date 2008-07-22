@@ -212,8 +212,7 @@ public class AppServer implements HttpHandler {
             if ( ar.getURI().equals( "/~f" ) ){
                 JSFile f = ar.getContext().getJSFile( request.getParameter( "id" ) );
                 if ( f == null ){
-                    response.setResponseCode( 404 );
-                    response.getWriter().print( "not found\n\n" );
+		    handle404( request , response , null );
                     return;
                 }
                 response.sendFile( f );
@@ -257,8 +256,7 @@ public class AppServer implements HttpHandler {
 
             JxpServlet servlet = ar.getContext().getServlet( f );
             if ( servlet == null ){
-                response.setResponseCode( 404 );
-                response.getWriter().print( "not found" );
+		handle404( request , response , null );
             }
             else {
                 servlet.handle( request , response , ar );
@@ -268,10 +266,7 @@ public class AppServer implements HttpHandler {
             handleOutOfMemoryError( oom , response );
         }
         catch ( FileNotFoundException fnf ){
-            response.setResponseCode( 404 );
-
-            JxpWriter writer = response.getWriter();
-            writer.print( "can't find : " + fnf.getMessage() );
+	    handle404( request , response , fnf.getMessage() );
         }
         catch ( JSException.Quiet q ){
             response.setHeader( "X-Exception" , "quiet" );
@@ -285,6 +280,17 @@ public class AppServer implements HttpHandler {
         }
     }
 
+    void handle404( HttpRequest request , HttpResponse response , String extra ){
+	response.setResponseCode( 404 );
+	response.getWriter().print( "not found<br>" );
+	
+	if ( extra != null )
+	    response.getWriter().print( extra + "<BR>" );
+
+	response.getWriter().print( request.getRawHeader().replaceAll( "[\r\n]+" , "<br>" ) );
+			
+    }
+
     /** Kills this appserver if it runs out of memory.  Does a garbage collection
      * and checks if enough memory was freed.  If not, or if the response writer fails,
      * the appserver quits with a -3 exit code.
@@ -294,25 +300,8 @@ public class AppServer implements HttpHandler {
     void handleOutOfMemoryError( OutOfMemoryError oom , HttpResponse response ){
         // 2 choices here, this request caused all sorts of problems
         // or the server is screwed.
-
-        long before = MemUtil.bytesAvailable();
-        MemUtil.fullGC();
-        long after = MemUtil.bytesAvailable();
-
-        if ( after < ( 100 * MemUtil.MBYTE ) ||
-             ( after - before ) < ( 100 * MemUtil.MBYTE ) ){
-
-            try {
-                System.err.println( "OutOfMemoryError in AppServer - not enough free, so dying." );
-                System.err.println( "before : " + ( before / MemUtil.MBYTE ) );
-                System.err.println( "after : " + ( after / MemUtil.MBYTE ) );
-                oom.printStackTrace();
-            }
-            catch ( Exception e ){
-            }
-
-            Runtime.getRuntime().halt( -3 );
-        }
+        
+        MemUtil.checkMemoryAndHalt( "AppServer" , oom );
 
         // either this thread was the problem, or whatever
 
@@ -420,8 +409,7 @@ public class AppServer implements HttpHandler {
 
 
             if ( ! f.exists() ){
-                response.setResponseCode( 404 );
-                response.getWriter().print("file not found" );
+		handle404( request , response , null );
                 return;
             }
 
