@@ -369,7 +369,10 @@ public class JavadocToDB {
             topLevel.set("ts", Calendar.getInstance().getTime().toString());
             topLevel.set("alias", classes[i].name());
             topLevel.set("name", classes[i].qualifiedName());
-            topLevel.set("desc", classes[i].commentText());
+
+            int summarylen = classes[i].commentText().indexOf(". ")+1;
+            if(summarylen == 0) summarylen = classes[i].commentText().length();
+            topLevel.set("desc", classes[i].commentText().substring(0, summarylen));
 
             collection.save((JSObject)topLevel);
         }

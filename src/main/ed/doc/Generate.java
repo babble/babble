@@ -44,8 +44,6 @@ public class Generate {
     private static DBCollection codedb;
     private static DBCollection docdb;
 
-    public static boolean generateInProgress = false;
-
     public static void initialize() {
         javaSrcs.clear();
         processedFiles.clear();
@@ -87,8 +85,6 @@ public class Generate {
      *  the directory exists, and ensure that it's empty
      */
     public static void setupHTMLGeneration(String path) throws Exception {
-        generateInProgress = true;
-
         Scope s = Scope.getThreadLocal();
         Object app = s.get("__instance__");
         if(! (app instanceof AppContext)) {
@@ -380,7 +376,7 @@ public class Generate {
                     obj.set("version", Generate.getVersion());
                     obj.set("name", name);
 
-                    // if one exists, get the class description
+                    // get the class description
                     String desc;
                     if(unit.get("classDesc") != null) {
                         desc = ((JSString)unit.get("classDesc")).toString();
@@ -391,7 +387,9 @@ public class Generate {
                     else {
                         desc = "";
                     }
-                    obj.set("desc", desc.substring(0,desc.indexOf(".")+1));
+                    int summarylen = desc.indexOf(". ")+1;
+                    if(summarylen == 0) summarylen = desc.indexOf(". ")+1;
+                    obj.set("desc", desc.substring(0,summarylen));
 
                     if(name.equals("_global_")) {
                         if(_global == null) {
