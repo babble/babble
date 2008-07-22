@@ -57,16 +57,35 @@ public class AppContextHolder {
     
     public AppContext getContext( HttpRequest request , String newUri[] ){
         String host = request.getHeader( "X-Host" );
-        if ( host == null )
+	String uri = request.getURI();
+	
+        if ( host != null ){
+	    // if there is an X-Host, lets see if this is a cdn thing
+	    if ( CDN_HOSTNAMES.contains( request.getHost() ) && 
+		 ! CDN_HOSTNAMES.contains( host ) &&
+		 ! host.equals( request.getHost() )  // this should never happen, but is a weird case.
+		 ){
+		// X-Host was cleaned by someone else
+		// so we need strip cdn thing from uri.
+		int idx = uri.indexOf( "/" , 1 );
+		if ( idx > 0 ){
+		    uri = uri.substring( idx );
+		}
+		
+	    }
+	}
+	else { 
+	    // no X-Host
             host = request.getHeader( "Host" );
+	}
 
         if ( host != null ){
             int idx = host.indexOf( ":" );
             if ( idx > 0 )
                 host = host.substring( 0 , idx );
         }
-
-        return getContext( host , request.getURI() , newUri );
+	
+        return getContext( host , uri , newUri );
     }
 
     public AppContext getContext( String host , String uri , String newUri[] ){
@@ -328,10 +347,12 @@ public class AppContextHolder {
 
         if ( CDN_HOSTNAMES.contains( host ) ){
 
-            if ( uri.indexOf( "/" , 1 ) < 0 )
-                throw new RuntimeException( "static host without valid  host:[" + host + "] uri:[" + uri + "]" );
 
             final int idx = uri.indexOf( "/" , 1 );
+	    
+            if ( idx < 0 )
+                throw new RuntimeException( "static host without valid  host:[" + host + "] uri:[" + uri + "]" );
+
             host = uri.substring( 1 , idx );
             uri = uri.substring( idx  );
         }
