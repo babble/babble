@@ -192,6 +192,9 @@ public abstract class HttpMonitor implements HttpHandler {
                 f = f.substring( 0 , f.length() - 10 ) + ".com";
             
             f = ed.net.DNSUtil.getJustDomainName( f );
+            
+            if ( f.startsWith( "local" ) )
+                return null;
 
             return f;
         }
