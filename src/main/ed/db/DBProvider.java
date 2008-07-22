@@ -18,7 +18,8 @@ public class DBProvider {
         if ( env == null )
             return get( root , false );
 
-        return get( root , false , ed.cloud.Cloud.getInstance().getDBHostForSite( root , env ) );
+        Cloud c = ed.cloud.Cloud.getInstanceIfOnGrid();
+        return get( root , false , c == null ? null : c.getDBHostForSite( root , env ) );
     }
 
     public static DBApiLayer get( String root ){
