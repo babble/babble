@@ -86,9 +86,21 @@ unsupported_tests = (
 
 
 preamble = """
-SafeData = function(str) {
-    this.str = str;
-};
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 HackTemplate = function(content) {
     this.content = content;
@@ -134,7 +146,7 @@ UnsafeClass.prototype.toString = function() {
 
 SafeClass = function() {};
 SafeClass.prototype.toString = function() {
-    return new SafeData("you &gt; me");
+    return Djang10.mark_safe("you &gt; me");
 };
 
 var from_now = function(sec_offset) {
@@ -198,7 +210,7 @@ def serialize(m):
         return '{ %s }' % ", ".join( ['%s: %s' % (serialize(escape_var(key)), serialize(value)) for key, value in m.items()] )
     
     elif isinstance(m, SafeData):
-        return 'new SafeData(%s)' % serialize(str(m))
+        return 'djang10.mark_safe(%s)' % serialize(str(m))
 
     elif isinstance(m, HackDatetime):
         secs = m.delta.days * 3600 * 24

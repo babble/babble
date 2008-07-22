@@ -95,7 +95,6 @@ public class DjangoRegressionTests {
         "filter-force-escape.*",
         "filter-iriencode.*",
         "filter-last.*",
-        "filter-linebreaks.*",
         "filter-linenumbers.*",
         "filter-ljust.*",
         "filter-make_list.*",
