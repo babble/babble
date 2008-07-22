@@ -71,6 +71,21 @@ public class JSHelper extends JSObjectBase {
         this.set("TextNode", Node.TextNode.CONSTRUCTOR);
         this.set("VariableNode", Node.VariableNode.CONSTRUCTOR);
         this.set("Expression", Expression.CONSTRUCTOR);
+        this.set("mark_safe", new JSFunctionCalls1() {
+            public Object call(Scope scope, Object p0, Object[] extra) {
+                return mark_safe((JSObject)p0);
+            }
+        });
+        this.set("mark_escape", new JSFunctionCalls1() {
+            public Object call(Scope scope, Object p0, Object[] extra) {
+                return mark_escape((JSObject)p0);
+            }
+        });
+        this.set("is_safe", new JSFunctionCalls1() {
+            public Object call(Scope scope, Object p0, Object[] extra) {
+                return is_safe((JSObject)p0);
+            }
+        });
         
         this.set("TEMPLATE_STRING_IF_INVALID", new JSString(""));
         
@@ -273,6 +288,29 @@ public class JSHelper extends JSObjectBase {
         return templateFileLib;
     }
     
+    public static JSObject mark_safe(JSObject obj) {
+        obj.set("__safe_data", true);
+        return obj;
+    }
+    public static JSObject mark_escape(JSObject obj) {
+        obj.removeField("__safe_data");
+        return obj;
+    }
+    public static boolean is_safe(Object obj) {
+        if(obj == null || "".equals(obj))
+            return true;
+        
+        if((obj instanceof JSString) && obj.equals(""))
+            return true;
+        
+        if(obj instanceof Number)
+            return true;
+
+        if(obj instanceof JSObject)
+            return ((JSObject)obj).get("__safe_data") == Boolean.TRUE;
+        
+        return false;
+    }
     
     
     //hacks to allow backwards compatibility with print
