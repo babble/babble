@@ -16,6 +16,7 @@ if ( $h == "origin.10gen.com"
 }
 
 ## handle alleyinsider.10gen.com
+$cleanHost = $h
 $h = string.iReplace( $h , ".10gen.com" , ".com" );
 $hr = string.reverse( $h );
 
