@@ -9,17 +9,21 @@ import ed.js.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 
+/**
+ * @anonymous name : {jdbc}, desc : {Attempts to connect to a mySQL database using Java's database connector.}, param : {type : (string), name : (url), desc : (url of database to connect to)}, param : {type: (string) isOptional : (true), name : (username), desc : (username with which to connect to the database)},  param : {type: (string) isOptional : (true), name : (password), desc : (password with which to connect to the database)}, return : { type : (jdbcConnection), desc : (a conneection to the mySQL database specified)}
+ * @expose
+ */
 public class Drivers {
 
     public static void init( Scope s ){
 
         s.put( "jdbc" , new JSFunctionCalls1(){
-                
+
                 public Object call( Scope s , Object nameObject , Object[] extra ){
                     String url = "jdbc:" + nameObject.toString();
                     String user = extra != null && extra.length > 0 ? extra[0].toString() : null;
                     String pass = extra != null && extra.length > 1 ? extra[1].toString() : null;
-                    
+
                     try {
                         if ( nameObject.toString().startsWith( "mysql" ) ){
                             return new JDBCConnection( url , Mysql._createConnection( url , null , user , pass ) );
@@ -32,7 +36,7 @@ public class Drivers {
                 }
             } , true );
     }
-    
+
     static class JDBCConnection extends JSObjectBase {
 
         JDBCConnection( String url , Connection conn )
@@ -40,7 +44,7 @@ public class Drivers {
             _url = url;
             _conn = conn;
         }
-        
+
         public MyResult query( String s )
             throws SQLException {
             Statement stmt = null;
@@ -50,7 +54,7 @@ public class Drivers {
                 stmt = _conn.createStatement();
             return new MyResult( stmt , stmt.executeQuery( s ) );
         }
-        
+
         public int exec( String s )
             throws SQLException {
             Statement stmt = null;
@@ -68,9 +72,9 @@ public class Drivers {
         private final Connection _conn;
         private final String _url;
         private List<Statement> _stmts = new LinkedList<Statement>();
-        
+
         class MyResult extends JSObjectBase {
-            
+
             MyResult( Statement stmt , ResultSet res )
                 throws SQLException {
                 _stmt = stmt;
@@ -95,21 +99,21 @@ public class Drivers {
 
                 return b;
             }
-            
+
             public Object get( Object o ){
                 String name = o.toString();
-                
+
                 if ( name.equals( "hasNext" ) ||
-                     name.equals( "asObject" ) || 
-                     name.equals( "toObject" ) || 
-                     name.equals( "asArray" ) || 
-                     name.equals( "toArray" ) || 
+                     name.equals( "asObject" ) ||
+                     name.equals( "toObject" ) ||
+                     name.equals( "asArray" ) ||
+                     name.equals( "toArray" ) ||
                      name.equals( "keySet" ) )
                     return null;
 
                 try {
                     Object foo = _res.getObject( name );
-                    if ( foo instanceof String) 
+                    if ( foo instanceof String)
                         foo = new JSString( foo.toString() );
                     else if ( foo instanceof java.util.Date )
                         foo = new JSDate( (java.util.Date)foo );
@@ -119,7 +123,7 @@ public class Drivers {
                     throw new RuntimeException( se );
                 }
             }
-            
+
             public JSObject toObject(){
                 return asObject();
             }
@@ -140,13 +144,13 @@ public class Drivers {
                 throws SQLException {
                 if ( _doneAnything )
                     throw new RuntimeException( "too late to call toArray()" );
-                
+
                 JSArray a = new JSArray();
                 while ( hasNext() )
                     a.add( asObject() );
                 return a;
             }
-            
+
             public void close()
                 throws SQLException {
                 _res.close();
@@ -154,7 +158,7 @@ public class Drivers {
                     _stmts.add( _stmt );
                 _addedBack = true;
             }
-            
+
             public Collection<String> keySet(){
                 return _fields;
             }
@@ -162,7 +166,7 @@ public class Drivers {
             private final Statement _stmt;
             private final ResultSet _res;
             private final List<String> _fields = new ArrayList<String>();
-            
+
             private boolean _addedBack = false;
             private boolean _doneAnything = false;
         }
