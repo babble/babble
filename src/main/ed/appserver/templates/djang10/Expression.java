@@ -64,9 +64,11 @@ public class Expression extends JSObjectBase {
     
     private String expression;
     private Node parsedExpression;
+    private Boolean isLiteral;
 
     protected Expression() {
         super(CONSTRUCTOR);
+        isLiteral = null;
     }
     
     public Expression(String expression) {
@@ -109,15 +111,20 @@ public class Expression extends JSObjectBase {
     }
 
     public boolean is_literal() {
-        if(parsedExpression.getFirstChild() != parsedExpression.getLastChild())
+        if(isLiteral == null)
+            isLiteral = is_literal(this.parsedExpression);
+        
+        return isLiteral;
+    }
+    private static boolean is_literal(Node node) {
+        if(node.getType() == Token.NAME)
             return false;
         
-        int childType = parsedExpression.getFirstChild().getType();
-        if(childType == Token.STRING || childType == Token.NUMBER || childType == Token.NULL)
-            return true;
+        for(node = node.getFirstChild(); node != null; node = node.getNext())
+            if(!is_literal(node))
+                return false;
         
-        //FIXME: check array litrals
-        return false;
+        return true;
     }
     public Object get_literal_value() {
         if(!is_literal())
@@ -130,7 +137,12 @@ public class Expression extends JSObjectBase {
     public Object resolve(Scope scope, Context ctx) {
 
         Object obj = resolve(scope, ctx, parsedExpression.getFirstChild(), true);
-        return JSNumericFunctions.fixType(obj);
+        obj = JSNumericFunctions.fixType(obj);
+        
+        if(is_literal() && (obj instanceof JSObject))
+            JSHelper.mark_safe((JSObject)obj);
+        
+        return obj;
     }
     private Object resolve(Scope scope, Context ctx, Node node, boolean autoCall) {
         Object temp;

@@ -21,7 +21,6 @@ import java.util.List;
 import ed.js.JSArray;
 import ed.js.JSFunction;
 import ed.js.JSObject;
-import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
 import ed.js.func.JSFunctionCalls2;
@@ -54,16 +53,11 @@ public class NodeList extends JSArray {
     public static final JSFunction render = new JSFunctionCalls1() {
         public Object call(Scope scope, Object contextObj, Object[] extra) {
 
-            final StringBuilder buffer = new StringBuilder();
-            JSFunctionCalls1 printer = new JSFunctionCalls1() {
-                public Object call(Scope scope, Object str, Object[] extra) {
-                    buffer.append(str);
-                    return null;
-                }
-            };
+            Printer.RedirectedPrinter printer = new Printer.RedirectedPrinter();
+            
             NodeList thisObj = (NodeList) scope.getThis();
             ((JSFunction) thisObj.get("__render")).callAndSetThis(scope.child(), thisObj, new Object[] { contextObj, printer });
-            return new JSString( buffer.toString() );
+            return printer.getJSString();
         }
     };
 

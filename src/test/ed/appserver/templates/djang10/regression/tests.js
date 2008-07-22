@@ -15,10 +15,6 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-SafeData = function(str) {
-    this.str = str;
-};
-
 HackTemplate = function(content) {
     this.content = content;
 };
@@ -63,7 +59,7 @@ UnsafeClass.prototype.toString = function() {
 
 SafeClass = function() {};
 SafeClass.prototype.toString = function() {
-    return new SafeData("you &gt; me");
+    return djang10.mark_safe("you &gt; me");
 };
 
 var from_now = function(sec_offset) {
@@ -78,8 +74,8 @@ tests=[
     { name: "autoescape-tag03", content: "{% autoescape on %}{{ first }}{% endautoescape %}", model: { "first": "<b>hello</b>" }, results: "&lt;b&gt;hello&lt;/b&gt;" },
     { name: "autoescape-tag04", content: "{% autoescape off %}{{ first }} {% autoescape  on%}{{ first }}{% endautoescape %}{% endautoescape %}", model: { "first": "<a>" }, results: "<a> &lt;a&gt;" },
     { name: "autoescape-tag05", content: "{% autoescape on %}{{ first }}{% endautoescape %}", model: { "first": "<b>first</b>" }, results: "&lt;b&gt;first&lt;/b&gt;" },
-    { name: "autoescape-tag06", content: "{{ first }}", model: { "first": new SafeData("<b>first</b>") }, results: "<b>first</b>" },
-    { name: "autoescape-tag07", content: "{% autoescape on %}{{ first }}{% endautoescape %}", model: { "first": new SafeData("<b>Apple</b>") }, results: "<b>Apple</b>" },
+    { name: "autoescape-tag06", content: "{{ first }}", model: { "first": djang10.mark_safe("<b>first</b>") }, results: "<b>first</b>" },
+    { name: "autoescape-tag07", content: "{% autoescape on %}{{ first }}{% endautoescape %}", model: { "first": djang10.mark_safe("<b>Apple</b>") }, results: "<b>Apple</b>" },
     { name: "autoescape-tag08", content: "{% autoescape on %}{{ var_ex|default_if_none:\" endquote\\\" hah\" }}{% endautoescape %}", model: { "var_ex": null }, results: " endquote\" hah" },
     { name: "autoescape-tag09", content: "{{ unsafe }}", model: { "unsafe": new UnsafeClass() }, results: "you &amp; me" },
     { name: "autoescape-tag10", content: "{{ safe }}", model: { "safe": new SafeClass() }, results: "you &gt; me" },

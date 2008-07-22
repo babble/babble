@@ -81,22 +81,35 @@ var escapeFilter =
 
 var linebreaks =
     defaultfilters.linebreaks =
-    function(value) {
+    function(value, autoescape) {
 
+    autoescape = autoescape && !djang10.is_safe(value);
+    
     value = value.replace(/\r\n|\r|\n/g, "\n");
     var paras = value.split(/\n{2,}/);
-    for(var i=0; i < paras.length; i++)
-        paras[i] = "<p>" + paras[i].trim().replace(/\n/g, "<br />") + "</p>";
+    for (var i = 0; i < paras.length; i++) {
+        if(autoescape)
+            paras[i] = escapeHTML(paras[i].trim());
+        paras[i] = "<p>" + paras[i].replace(/\n/g, "<br />") + "</p>";
+    }
         
-    return paras.join("\n\n");
+    return djang10.mark_safe("" + paras.join("\n\n"));
 };
+linebreaks.is_safe = true;
+linebreaks.needs_autoescape = true;
 
 var linebreaksbr =
     defaultfilters.linebreaks =
-    function(value) {
+    function(value, autoescape) {
 
-    return value.replace(/\n/g, "<br />");
+    autoescape = autoescape && !djang10.is_safe(value);
+    if(autoescape)
+        value = escapeHTML(value);
+
+    return djang10.mark_safe( value.replace(/\n/g, "<br />") );
 };
+linebreaksbr.is_safe = true;
+linebreaksbr.needs_autoescape = true;
 
 var removetags =
     defaultfilters.removetags =
