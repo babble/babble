@@ -89,10 +89,21 @@ public class DBProvider {
 
     private static DBApiLayer create(String root , String ip, int port){
 
-        final int colon = ip.indexOf( ":" );
-        if ( colon > 0 ){
-            port = Integer.parseInt( ip.substring( colon + 1 ) );
-            ip = ip.substring( 0 , colon );
+        final int colon = ip.lastIndexOf( ":" );
+        if ( colon > 0 && colon + 1 < ip.length() ){
+            boolean allDigits = true;
+
+            for ( int i=colon+1; i<ip.length(); i++ ){
+                if ( ! Character.isDigit( ip.charAt(i) ) ){
+                    allDigits = false;
+                    break;
+                }
+            }
+            
+            if ( allDigits ){
+                port = Integer.parseInt( ip.substring( colon + 1 ) );
+                ip = ip.substring( 0 , colon );
+            }
         }
 
         if ( ip.indexOf( "." ) < 0 && ip.indexOf( "-" ) < 0 ){
