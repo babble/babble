@@ -149,6 +149,12 @@ public class Generate {
                 q.set("alias", blobs[i].getName().substring(0, blobs[i].getName().indexOf(".out")));
                 q.set("version", Generate.getVersion());
                 Iterator it = docdb.find(q);
+                if(it == null) {
+                    q = new JSObjectBase();
+                    q.set("name", blobs[i].getName().substring(0, blobs[i].getName().indexOf(".out")));
+                    q.set("version", Generate.getVersion());
+                    it = docdb.find(q);
+                }
                 while(it != null && it.hasNext()) {
                     JSObject next = (JSObject)it.next();
                     next.set("content", sb.toString());
