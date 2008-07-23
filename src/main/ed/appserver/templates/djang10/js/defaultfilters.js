@@ -102,7 +102,34 @@ var floatformat =
 };
 floatformat.is_safe = true;
 
+//TODO: iriencode
 
+var _zero_pad = function(num, width) {
+    var zero_count = Math.max(0, width - num.toString().length);
+    var buff = "";
+
+    while(zero_count-- > 0)
+        buff += "0";
+
+    return buff + num;
+};
+var linenumbers =
+    defaultfilters.linenumbers =
+    function(value, autoescape) {
+
+    var lines = value.split("\n");
+    var width = lines.length.toString().length;
+    autoescape = autoescape && !djang10.is_safe(value);
+    
+    for(var i=0; i<lines.length; i++) {
+        var line = autoescape? escapeHTML(lines[i]) : lines[i];
+        
+        lines[i] = _zero_pad(i + 1, width) + ". " + line;
+    }
+    return djang10.mark_safe(lines.join("\n"));
+};
+linenumbers.is_safe = true;
+linenumbers.needs_autoescape = true;
 
 var lower =
     defaultfilters.lower =
@@ -110,6 +137,20 @@ var lower =
 
     return value.toLowerCase();
 };
+lower.is_safe = true;
+
+//FIXME: js & python representations of arrays is different so this diverges from django output
+var make_list =
+    defaultfilters.make_list =
+    function(value) {
+
+    return value.split("");
+};
+make_list.is_safe = false;
+
+//TODO: slugify
+//TODO: stringformat
+//TODO: title
 
 var upper =
     defaultfilters.upper =
@@ -122,22 +163,19 @@ var truncatewords =
     defaultfilters.truncatewords =
     function(value, arg) {
 
-    try {
-        var length = parseInt(arg);
-        var words = value.split(/\s+/);
-        
-        if(words.length > length) {
-            words = words.slice(0, length);
-            var lastword = words[words.length - 1];
-
-            if(lastword.length > 2 && lastword.substring(lastword.length - 3) != "...")
-                words.push("...");
-        }
-        return words.join(" ");
-    }
-    catch(e) {
+    var length = parseInt(arg);
+    if(isNaN(length))
         return value;
+    
+    var words = value.split(/\s+/);
+    if(words.length > length) {
+        words = words.slice(0, length);
+        var lastword = words[words.length - 1];
+
+        if(lastword.substring(lastword.length - 3) != "...")
+            words.push("...");
     }
+    return words.join(" ");    
 };
 
 
@@ -208,6 +246,7 @@ var removetags =
     
     return value;
 };
+removetags.is_safe = true;
 
 var dictsort =
     defaultfilters.dictsort =
@@ -312,6 +351,8 @@ register.filter("capfirst", capfirst);
 register.filter("escapejs", escapejs);
 register.filter("fix_ampersands",fix_ampersands);
 register.filter("floatformat", floatformat);
+register.filter("linenumbers", linenumbers);
+register.filter("make_list", make_list);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
