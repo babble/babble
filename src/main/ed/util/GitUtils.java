@@ -208,7 +208,7 @@ public class GitUtils {
         _getHeads( all , new File( dir , ".git/refs/tags" ) );
         _getHeads( all , new File( dir , ".git/refs/remotes/origin" ) );
         all.remove( "HEAD" );
-        return all;
+        return new ed.js.JSArray( all );
     }
 
     private static void _getHeads( Collection<String> all , File dir ){
