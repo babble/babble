@@ -22,6 +22,10 @@ register = new djang10.Library();
 
 
 
+///////////////////////
+// STRINGS           //
+///////////////////////
+
 var addslashes =
     defaultfilters.addslashes =
     function(value) {
@@ -152,13 +156,6 @@ make_list.is_safe = false;
 //TODO: stringformat
 //TODO: title
 
-var upper =
-    defaultfilters.upper =
-    function(value) {
-        
-        return value.toUpperCase();
-};
-
 var truncatewords =
     defaultfilters.truncatewords =
     function(value, arg) {
@@ -177,7 +174,17 @@ var truncatewords =
     }
     return words.join(" ");    
 };
+truncatewords.is_safe = true;
 
+//TODO: truncatewords_html
+
+var upper =
+    defaultfilters.upper =
+    function(value) {
+        
+        return value.toUpperCase();
+};
+upper.is_safe = false;
 
 var urlencode =
     defaultfilters.urlencode =
@@ -185,6 +192,7 @@ var urlencode =
 
     return scope.getParent().getParent().getParent().getParent().escape(value);      
 };
+urlencode.is_safe = true;
 
 var cut =
     defaultfilters.cut =
