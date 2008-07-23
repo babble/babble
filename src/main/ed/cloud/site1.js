@@ -149,7 +149,15 @@ Cloud.Site.prototype.getGitBranchNames = function( force ){
     var base = javaCreate( "java.io.File" , "/data/tmp/externalgit/" );
     base.mkdirs();
     var root = javaCreate( "java.io.File" , base , this.name );
-
+    
+    if ( root.exists() ){
+        var conf = javaStatic( "ed.util.GitUtils" , "readConfig" , root );
+        if ( conf.remote.origin.url != this.giturl ){
+            log.git.info( "giturl changed for site [" + this.name + "]  was [" + conf.remote.origin.url + "] now is [" + this.giturl + "]" );
+            javaStatic( "ed.io.FileUtil" , "deleteDirectory" , root );
+        }
+    }
+    
     if ( ! root.exists() ){
         var msg = "clone [" + this.giturl + "] to [" + root + "]";
         

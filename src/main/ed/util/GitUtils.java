@@ -22,6 +22,7 @@ import java.io.*;
 import java.util.*;
 
 import ed.io.*;
+import ed.js.*;
 import ed.log.*;
 
 /** @expose */
@@ -208,7 +209,7 @@ public class GitUtils {
         _getHeads( all , new File( dir , ".git/refs/tags" ) );
         _getHeads( all , new File( dir , ".git/refs/remotes/origin" ) );
         all.remove( "HEAD" );
-        return new ed.js.JSArray( all );
+        return new JSArray( all );
     }
 
     private static void _getHeads( Collection<String> all , File dir ){
@@ -217,6 +218,71 @@ public class GitUtils {
         
      	for ( File head : dir.listFiles() )
             all.add( head.getName() );
+    }
+
+    public static JSObject readConfig( File dir )
+        throws IOException {
+        if ( ! dir.exists() )
+            throw new FileNotFoundException( dir.toString() );
+        
+        if ( ! dir.isDirectory() )
+            return _readConfig( dir );
+        
+        File t = new File( dir , ".git/config" );
+        if ( t.exists() )
+            return _readConfig( t );
+
+        t = new File( dir , "config" );
+        if ( t.exists() )
+            return _readConfig( t );
+
+        throw new FileNotFoundException( ".git/config" );
+    }
+
+    private static JSObject _readConfig( File f )
+        throws IOException {
+        
+        JSObject config = new JSObjectBase();
+        
+        JSObject cur = null;
+        
+        LineReader in = new LineReader( f );
+        for ( String line : in ){
+            line = line.trim();
+            if ( line.startsWith( "[" ) && line.endsWith( "]" ) ){
+
+                line = line.substring(1);
+                line = line.substring( 0 , line.length() - 1 ).trim();
+                
+                cur = config;
+
+                for ( String foo : line.split( "[\\s\"]+" ) ){
+                    foo = foo.trim();
+                    if ( foo.length() == 0 )
+                        continue;
+                    
+                    
+                    JSObject o = new JSObjectBase();
+                    cur.set( foo , o );
+                    cur = o;
+                }
+
+                continue;
+            }
+                
+            if ( cur == null )
+                throw new RuntimeException( "invalid config" );
+            
+            int idx = line.indexOf( "=" );
+            if ( idx < 0 )
+                throw new RuntimeException( "invalid config" );
+            
+            String n = line.substring( 0 , idx ).trim();
+            String v = line.substring( idx + 1 ).trim();
+            cur.set( n , v );
+        }
+        
+        return config;
     }
 
     /** @unexpose */
