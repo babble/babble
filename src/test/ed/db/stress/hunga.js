@@ -1,4 +1,7 @@
-// stress test for database
+/* stress test for database
+
+   Note: see ../hmini.js -- which uses this file -- before you change this and break that!
+ */
 
 // todo: 
 //  x indexes
@@ -174,6 +177,12 @@ function runquery() {
     var criteria = rand(query2, {});
     //    print("  runquery: " + tojson(criteria));
     var q = coll().find( criteria );
+
+    if( r.nextInt(50) == 0 ) { 
+	q.count(); 
+	return;
+    }
+
     rand(
 	 function() { q.limit( r.nextInt(20000) ); }, 
 	 function() { q.skip( r.nextInt(2000) ); }, 
@@ -197,7 +206,7 @@ var ops = [
 	   insertMany, insert, insert, insert, update, update,  update, remove, runquery, runquery
 	    ];
 
-var ntodo = 25000;
+var ntodo = 10000;
 
 function beginPass() { 
     t.a.dropIndexes();
@@ -217,8 +226,10 @@ function beginPass() {
     ntodo *= 2;
 }
 
+npasses = 10;
+
 function worker(threadid) { 
-    for( var pass = 0; pass < 10; pass++ ) {
+    for( var pass = 0; pass < npasses; pass++ ) {
 	print("\nt" + threadid + " pass: " + pass);
 	beginPass();
     }
