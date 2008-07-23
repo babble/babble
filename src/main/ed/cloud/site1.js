@@ -22,6 +22,7 @@ Cloud.Environment = function(){
     this.name = this.branch;
     this.db = null;
     this.pool = null;
+    this.giturl = null;
     this.iid = ObjectId();
     this.aliases = [];
 };
@@ -131,6 +132,51 @@ Cloud.Site.prototype.findDBById = function( did ){
             ret = z;
     } );
     return ret;
+};
+
+Cloud.Site.prototype.getGitBranchNames = function( force ){
+
+    if ( ! this.giturl || this.giturl.startsWith( "ssh://git.10gen.com/data/gitroot/" ) ){
+        var g = db.git.findOne( { name : "sites/" + this.name } );
+        if ( ! g )
+            return null;
+        return g.branches.keySet();
+    }
+    
+    var base = javaCreate( "java.io.File" , "/data/tmp/externalgit/" );
+    base.mkdirs();
+    var root = javaCreate( "java.io.File" , base , this.name );
+
+    if ( ! root.exists() ){
+        var msg = "clone [" + this.giturl + "] to [" + root + "]";
+        
+        log.git.info( msg );
+        if ( ! javaStatic( "ed.util.GitUtils" , "clone" , this.giturl , base , this.name ) ){
+            log.git.error( "failed " + msg );
+            throw "couldn't " + msg;
+        }
+        force = true;
+    }
+    
+    var now = new Date();
+
+    var ts = javaCreate( "java.io.File" , root , ".git/10gents" );
+    if ( ! ts.exists() ){
+        force = true;
+        ts.createNewFile();
+    }
+    else {
+        if ( ( ts.lastModified() + ( 1000 * 60 * 5 ) ) < now.getTime() )
+            force = true;
+    }
+
+    if ( force ){
+        log.git.info( " doing full update for [" + this.name + "]" );
+        javaStatic( "ed.util.GitUtils" , "fullUpdate" , root );
+        ts.setLastModified( now.getTime() );
+    }
+    
+    return javaStatic( "ed.util.GitUtils" , "getAllBranchAndTagNames" , root );
 };
 
 Cloud.Site.prototype.toString = function(){

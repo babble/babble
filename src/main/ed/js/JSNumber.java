@@ -100,19 +100,19 @@ public class JSNumber {
                             num--;
                         }
                     }
-                    return s;
+                    return new JSString( s );
                 }
 
                 if ( s.length() - idx <= num ){ // need more
                     int toAdd = ( num + 1 ) - ( s.length() - idx );
                     for ( int i=0; i<toAdd; i++ )
                         s += "0";
-                    return s;
+                    return new JSString( s );
                 }
 
                 if ( num == 0 )
                     return s.substring( 0 , idx  );
-                return s.substring( 0 , idx + 1 + num  );
+                return new JSString( s.substring( 0 , idx + 1 + num  ) );
             }
         };
 

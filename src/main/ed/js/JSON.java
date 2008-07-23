@@ -2,16 +2,16 @@
 
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -37,6 +37,9 @@ import ed.log.Logger;
  *
  *   tojson will try to serialize functions; tojson_u will simply refuse.
  *
+ *   @anonymous name : {fromjson} desc : {Takes a string in json form and converts it to an object.}, return : {type : (Object), desc : (the object created from the given string)}, param : {type : (string) desc : (the string representation of an object), name : (jsonStr)}
+ *   @anonymous name : {tojson} desc : {Serializes an object into JSON form.}, return : {type : (string), desc : (the string created from the given object)}, param : {type : (Object) desc : (the object to convert), name : (obj)}
+ *   @anonymous name : {tojson_u} desc : {Serializes an untrusted object into escaped JSON form.}, return : {type : (string), desc : (the safe string created from the given object)}, param : {type : (Object) desc : (the untrusted object to convert), name : (obj)}
  *   @expose
  */
 public class JSON {

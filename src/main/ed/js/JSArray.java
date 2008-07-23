@@ -153,7 +153,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                             buf.append( a._array.get( i ).toString() );
                         }
 
-                        return buf.toString();
+                        return new JSString( buf.toString() );
                     }
                 } );
 
