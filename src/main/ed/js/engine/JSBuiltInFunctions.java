@@ -115,6 +115,10 @@ public class JSBuiltInFunctions {
                     try {
                         return allCons[i].newInstance( params );
                     }
+                    catch ( RuntimeException re ){
+                        ed.lang.StackTraceHolder.getInstance().fix( re );
+                        throw re;
+                    }
                     catch ( Exception e ){
                         throw new JSException( "can' instantiate" , e );
                     }
