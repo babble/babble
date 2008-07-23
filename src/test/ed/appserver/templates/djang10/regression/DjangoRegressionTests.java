@@ -80,7 +80,7 @@ public class DjangoRegressionTests {
         //unimplemented filters
         "chaining(07|08|09|10)",   //missing force_escape
         "chaining(11|14|12|13)",       //missing safe
-        "chaining02",       //missing center
+        "chaining0[12]",       //missing center
         "autoescape-filtertag01$",  //missing safe
         "autoescape-stringfilter0[2-4]",    //missing safe
         "filter-center.*",
@@ -105,15 +105,11 @@ public class DjangoRegressionTests {
         "filter-unordered.*",
         "filter-urlize.*",
         "filter-wordwrap.*",
+        "filter-wordcount.*",
 
         
         //broken filters
-        "chaining0[1345]",
-        "filter-default0[34]",
-        "filter-lower.*",
-        "filter-removetags.*",
-        "filter-upper.*",
-        "filter-wordcount.*",
+        "chaining0[35]",
         "filter-make_list0[1,2]", //js & python print different representations of arrays
     };    
        
