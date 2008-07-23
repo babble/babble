@@ -246,6 +246,7 @@ var removetags =
     
     return value;
 };
+removetags.is_safe = true;
 
 var dictsort =
     defaultfilters.dictsort =
