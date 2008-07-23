@@ -577,7 +577,13 @@ public class Scope implements JSObject {
 
     public Object clearThisNew( Object whoCares ){
         if ( DEBUG ) System.out.println( "popping this from (clearThisNew) : " + _id );
-        return _this.pop()._this;
+        
+        Object o = _this.pop()._this;
+
+        if ( o instanceof JSNumber )
+            return ((JSNumber)o).get();
+
+        return o;
     }
 
     public Object clearThisNormal( Object o ){
