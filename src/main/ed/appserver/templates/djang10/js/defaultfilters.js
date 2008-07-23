@@ -237,6 +237,23 @@ var rjust =
 };
 rjust.is_safe = true;
 
+var center =
+    defaultfilters.center =
+    function(value, arg) {
+
+    var width = parseInt(arg);
+    
+    var nspaces = Math.max(0, width - value.length);
+    
+    var leftspaces = nspaces/2;
+    var rightspaces = nspaces - leftspaces;
+    
+    value = ljust(value, rightspaces + value.length);
+    value = rjust(value, leftspaces + value.length);
+    
+    return value;
+};
+center.is_safe = true;
 
 var cut =
     defaultfilters.cut =
@@ -417,6 +434,7 @@ register.filter("striptags", striptags);
 register.filter("wordcount", wordcount);
 register.filter("ljust", ljust);
 register.filter("rjust", rjust);
+register.filter("center", center);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
