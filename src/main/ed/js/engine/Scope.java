@@ -577,7 +577,13 @@ public class Scope implements JSObject {
 
     public Object clearThisNew( Object whoCares ){
         if ( DEBUG ) System.out.println( "popping this from (clearThisNew) : " + _id );
-        return _this.pop()._this;
+        
+        Object o = _this.pop()._this;
+
+        if ( o instanceof JSNumber )
+            return ((JSNumber)o).get();
+
+        return o;
     }
 
     public Object clearThisNormal( Object o ){
@@ -692,6 +698,9 @@ public class Scope implements JSObject {
             if ( foo == null )
                 throw new NullPointerException( soFar );
             
+            if ( foo instanceof Number )
+                return JSNumber.CONS.getPrototype().get( origName );
+
             if ( ! ( foo instanceof JSObject ) )
                 throw new JSException( soFar + " is not a JSObject" );
             

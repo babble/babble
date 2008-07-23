@@ -80,6 +80,7 @@ public abstract class ScriptTestInstanceBase extends MyAsserts implements Script
                 }
             } , true );
 
+        ed.appserver.JSFileLibrary.addPath( f , new ed.appserver.JSFileLibrary( _file.getParentFile() , "asd" , scope ) );
         
         try {
             f.call(scope);
