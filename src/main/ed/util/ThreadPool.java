@@ -20,6 +20,7 @@ package ed.util;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.*;
 
 /** @expose */
 public abstract class ThreadPool<T> {
@@ -69,7 +70,8 @@ public abstract class ThreadPool<T> {
      * @return if the object was successfully added
      */
     public boolean offer( T t ){
-        if ( _queue.size() > 0 && _threads.size() < _maxThreads )
+        if ( ( _queue.size() > 0 || _inProgress.get() == _threads.size() ) && 
+             _threads.size() < _maxThreads )
             _threads.add( new MyThread() );
         return _queue.offer( t );
     }
@@ -95,21 +97,24 @@ public abstract class ThreadPool<T> {
                     continue;
 
                 try {
+                    _inProgress.incrementAndGet();
                     handle( t );
                 }
                 catch ( Exception e ){
                     handleError( t , e );
                 }
+                finally {
+                    _inProgress.decrementAndGet();
+                }
             }
         }
     }
 
-    /** @unexpose */
     final String _name;
-    /** @unexpose */
     final int _maxThreads;
-    /** @unexpose */
-    final List<MyThread> _threads = new Vector<MyThread>();
+
+    private final AtomicInteger _inProgress = new AtomicInteger(0);
+    private final List<MyThread> _threads = new Vector<MyThread>();
     private final BlockingQueue<T> _queue;
 
 }

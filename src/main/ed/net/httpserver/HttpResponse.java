@@ -34,6 +34,8 @@ import ed.util.*;
 import ed.appserver.*;
 
 /**
+ * Represents response to an HTTP request.  On each request, the 10gen app server defines 
+ * the variable 'response' which is of this type.
  * @expose
  */
 public class HttpResponse extends JSObjectBase {

@@ -7,25 +7,31 @@ import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
 
 public abstract class Printer extends JSFunctionCalls1 {
+    private Boolean is_safe;
+    
     public Printer() {
-        JSHelper.mark_safe(this);
+        this.is_safe = null;
     }
-    public Object call(Scope scope, Object p0, Object[] extra) {
-        if((p0 != null) && (p0 instanceof JSObject) && (((JSObject)p0).get("toString") instanceof JSFunction)) {
-            JSFunction toStringFn = (JSFunction)((JSObject)p0).get("toString");
-            p0 = toStringFn.callAndSetThis(scope.child(), p0, new Object[0]);
-        }
+    public Object call(Scope scope, Object arg, Object[] extra) {
         
-        boolean is_safe =  JSHelper.is_safe(p0);
-        if(!is_safe)
-            JSHelper.mark_escape(this);
+        if((arg != null) && (arg instanceof JSObject) && (((JSObject)arg).get("toString") instanceof JSFunction)) {
+            JSFunction toStringFn = (JSFunction)((JSObject)arg).get("toString");
+            arg = toStringFn.callAndSetThis(scope.child(), arg, new Object[0]);
+        }
 
-        print(scope, p0);
+        Boolean arg_safety = JSHelper.is_safe(arg);
+
+        if(arg_safety == Boolean.FALSE)
+            this.is_safe = false;
+        else if(this.is_safe != Boolean.FALSE && arg_safety != null)
+            this.is_safe = arg_safety;
+        print(scope, arg);
+
         return null;
     }
 
-    public boolean is_safe() {
-        return JSHelper.is_safe(this);
+    public Boolean is_safe() {
+        return is_safe;
     }
     
     protected abstract void print(Scope scope, Object obj);
@@ -56,8 +62,10 @@ public abstract class Printer extends JSFunctionCalls1 {
         }
         public JSString getJSString() {
             JSString str = new JSString(buffer.toString());
-            if(is_safe())
+            if(is_safe() == Boolean.TRUE)
                 str = (JSString)JSHelper.mark_safe(str);
+            else if(is_safe() == Boolean.FALSE)
+                str = (JSString)JSHelper.mark_escape(str);
             
             return str;
         }

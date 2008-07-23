@@ -28,8 +28,23 @@ import ed.js.engine.*;
    i'm not really sure what to do with this
    right now its just holder for weird stuff
  */
-public class JSNumber {
+public class JSNumber extends JSObjectLame {
 
+    JSNumber( Number val ){
+        _val = val;
+    }
+
+    public Number get(){
+        return _val;
+    }
+    
+    public String toString(){
+        return _val.toString();
+    }
+
+    private Number _val;
+    // -----------
+    
     /** Returns a given double.
      * @param A number.
      * @return <tt>x</tt>
@@ -46,8 +61,46 @@ public class JSNumber {
         return x;
     }
 
+
+    /** Function to parse a number using a given base.  */
+    public static final JSFunction CONS = new JSFunctionCalls2(){
+            
+            public JSObject newOne(){
+                return new JSNumber( 0 );
+            }
+
+            public Object call( Scope scope , Object a , Object b , Object extra[] ){
+
+                if ( scope.getThis() instanceof JSNumber ){
+                    JSNumber n = (JSNumber)(scope.getThis());
+                    n._val = _parse( a , b );
+                    return n._val;
+                }
+                
+                return _parse( a , b );
+            }
+            
+            Number _parse( Object a , Object b ){
+                
+                if ( a instanceof Number )
+                    return (Number)a;
+                
+                if ( a instanceof JSDate )
+                    return ((JSDate)a).getTime();
+
+                if ( a != null )
+                    return StringParseUtil.parseNumber( a.toString() , (Number)b );
+                
+                if ( b != null )
+                    return (Number)b;
+                throw new RuntimeException( "not a number [" + a + "]" );
+            }
+
+
+        };
+
     /** A collection of numeric functions */
-    public static JSObjectBase functions = new JSObjectBase();
+    public static JSObjectBase functions = (JSObjectBase)(CONS.get( "prototype" ) );
     /** Returns a function, given its name
      * @param Function name
      * @return Function corresponding to the given name.
@@ -56,23 +109,6 @@ public class JSNumber {
         return (JSFunction)functions.get( name );
     }
 
-    /** Function to parse a number using a given base.  */
-    public static final JSFunction CONS = new JSFunctionCalls2(){
-            public Object call( Scope scope , Object a , Object b , Object extra[] ){
-
-                if ( a instanceof Number )
-                    return a;
-
-                if ( a != null )
-                    return StringParseUtil.parseNumber( a.toString() , (Number)b );
-
-                if ( b != null )
-                    return b;
-                throw new RuntimeException( "not a number [" + a + "]" );
-            }
-
-
-        };
 
     /** Function that turns a number into string, truncating any fractional part
      */

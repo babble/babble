@@ -167,13 +167,7 @@ public class Node extends JSObjectBase {
                         FilterExpression expr = (FilterExpression)thisObj.get("expression");
                         boolean isAutoEscape = context.get("autoescape") != Boolean.FALSE;
 
-                        JSFunction printer;
-                        //redirect output if autoescape is on
-                        if(isAutoEscape)
-                            printer = new Printer.RedirectedPrinter();
-                        else
-                            printer = (JSFunction)printerObj;
-                        
+                        Printer.RedirectedPrinter printer = new Printer.RedirectedPrinter();                        
                         scope = scope.child();
                         scope.setGlobal(true);
                         scope.set("print", printer);
@@ -182,14 +176,15 @@ public class Node extends JSObjectBase {
                         if(result != null && result != Expression.UNDEFINED_VALUE)
                             printer.call(scope, result);
                         
-                        if(isAutoEscape) {
-                            Printer.RedirectedPrinter rePrint = (Printer.RedirectedPrinter)printer;
-                            String output = rePrint.getJSString().toString();
-                            if(!JSHelper.is_safe(rePrint)) {
-                                output = Encoding._escapeHTML(output);
-                            }
-                            ((JSFunction)printerObj).call(scope.child(), new JSString(output));                                
-                        }
+                        String output = printer.getJSString().toString();
+
+                        boolean needsEscape = isAutoEscape && (printer.is_safe() != Boolean.TRUE);
+                        needsEscape = needsEscape || (printer.is_safe() == Boolean.FALSE);
+                        
+                        if(needsEscape)
+                            output = Encoding._escapeHTML(output);                                
+
+                        ((JSFunction)printerObj).call(scope.child(), new JSString(output));
                         
                         return null;
                     }

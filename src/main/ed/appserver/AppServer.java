@@ -522,9 +522,20 @@ public class AppServer implements HttpHandler {
         out.print( "so, you want to reset?\n" );
 
         if ( _administrativeAllowed( request ) ){
-            out.print( "you did it!\n" );
-            ar.getContext()._logger.info("About to reset context via /~reset");
+            ar.getContext()._logger.info("creating new context" );
+            
+            AppContext newContext = ar.getContext().newCopy();
+            newContext.updateCode();
+            newContext.getScope();
+            newContext.getFileSafe( "index.jxp" );
+            _contextHolder.replace( ar.getContext() , newContext );
+            
+            ar.getContext()._logger.info("done creating new context.  resetting" );
             ar.getContext().reset();
+            
+            out.print( "you did it!\n" );
+            out.print( "old hash:" + System.identityHashCode( ar.getContext() ) + "\n" );
+            out.print( "new hash:" + System.identityHashCode( newContext ) + "\n" );
         }
         else {
             ar.getContext()._logger.error("Failed attempted context reset via /~reset from " + request.getRemoteIP());

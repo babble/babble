@@ -133,7 +133,7 @@ public class JSBuiltInFunctions {
             String clazzName = clazzNameJS.toString();
 
             if ( ! Security.isCoreJS() )
-                throw new JSException( "you can't do create a :" + clazzName );
+                throw new JSException( "you can't do create a :" + clazzName + " from [" + Security.getTopJS() + "]" );
 
             Class clazz = null;
             try {
@@ -152,6 +152,10 @@ public class JSBuiltInFunctions {
                 if ( params != null ){
                     try {
                         return allCons[i].newInstance( params );
+                    }
+                    catch ( RuntimeException re ){
+                        ed.lang.StackTraceHolder.getInstance().fix( re );
+                        throw re;
                     }
                     catch ( Exception e ){
                         throw new JSException( "can' instantiate" , e );
