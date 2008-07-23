@@ -83,7 +83,12 @@ public class JSHelper extends JSObjectBase {
         });
         this.set("is_safe", new JSFunctionCalls1() {
             public Object call(Scope scope, Object p0, Object[] extra) {
-                return is_safe((JSObject)p0);
+                return is_safe(p0);
+            }
+        });
+        this.set("is_escape", new JSFunctionCalls1() {
+            public Object call(Scope scope, Object p0, Object[] extra) {
+                return is_escape(p0);
             }
         });
         
@@ -293,10 +298,13 @@ public class JSHelper extends JSObjectBase {
         return obj;
     }
     public static JSObject mark_escape(JSObject obj) {
-        obj.removeField("__safe_data");
+        if(is_safe(obj) == Boolean.TRUE)
+            return obj;        
+        obj.set("__safe_data", false);
+
         return obj;
     }
-    public static boolean is_safe(Object obj) {
+    public static Boolean is_safe(Object obj) {
         if(obj == null || "".equals(obj))
             return true;
         
@@ -306,10 +314,18 @@ public class JSHelper extends JSObjectBase {
         if(obj instanceof Number)
             return true;
 
-        if(obj instanceof JSObject)
-            return ((JSObject)obj).get("__safe_data") == Boolean.TRUE;
+        if(obj instanceof JSObject)            
+            return (Boolean)((JSObject)obj).get("__safe_data");
         
         return false;
+    }
+    public static Boolean is_escape(Object obj) {
+        Boolean attr = is_safe(obj);
+        
+        if(attr == null)
+            return null;
+        
+        return !attr.booleanValue();
     }
     
     

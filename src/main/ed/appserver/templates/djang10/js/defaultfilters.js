@@ -278,8 +278,10 @@ var escape_ =
     defaultfilters.escape =
     function(value) {
     
-    return escapeHTML(value);
+    return djang10.mark_escape(value);
+//    return escapeHTML(value);
 };
+escape_.is_safe = true;
 
 var linebreaks =
     defaultfilters.linebreaks =
