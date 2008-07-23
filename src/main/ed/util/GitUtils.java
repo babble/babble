@@ -19,6 +19,7 @@
 package ed.util;
 
 import java.io.*;
+import java.util.*;
 
 import ed.io.*;
 import ed.log.*;
@@ -199,6 +200,23 @@ public class GitUtils {
         ok = ok && fetch( dir , " --tags " );
         ok = ok && pull( dir );
         return ok;
+    }
+
+    public static Collection<String> getAllBranchAndTagNames( File dir ){
+        Set<String> all = new HashSet<String>();
+        _getHeads( all , new File( dir , ".git/refs/heads" ) );
+        _getHeads( all , new File( dir , ".git/refs/tags" ) );
+        _getHeads( all , new File( dir , ".git/refs/remotes/origin" ) );
+        all.remove( "HEAD" );
+        return all;
+    }
+
+    private static void _getHeads( Collection<String> all , File dir ){
+        if ( ! dir.exists() )
+            return;
+        
+     	for ( File head : dir.listFiles() )
+            all.add( head.getName() );
     }
 
     /** @unexpose */
