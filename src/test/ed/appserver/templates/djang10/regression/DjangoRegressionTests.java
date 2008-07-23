@@ -99,7 +99,6 @@ public class DjangoRegressionTests {
         "filter-slice.*",
         "filter-slugify.*",
         "filter-stringformat.*",
-        "filter-striptag.*",
         "filter-timesince.*",
         "filter-timeuntil.*",
         "filter-unordered.*",

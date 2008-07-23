@@ -248,6 +248,14 @@ var removetags =
 };
 removetags.is_safe = true;
 
+var striptags =
+    defaultfilters.striptags =
+    function(value) {
+
+    return value.replace(/<[^>]*?>/g, "");
+};
+striptags.is_safe = true;
+
 var dictsort =
     defaultfilters.dictsort =
     function(value, arg) {
@@ -353,6 +361,7 @@ register.filter("fix_ampersands",fix_ampersands);
 register.filter("floatformat", floatformat);
 register.filter("linenumbers", linenumbers);
 register.filter("make_list", make_list);
+register.filter("striptags", striptags);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
