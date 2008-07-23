@@ -282,6 +282,14 @@ var escape_ =
 };
 escape_.is_safe = true;
 
+var force_escape =
+    defaultfilters.force_escape =
+    function(value) {
+
+    return djang10.mark_safe(escapeHTML(value));        
+};
+force_escape.is_safe = true;
+
 var linebreaks =
     defaultfilters.linebreaks =
     function(value, autoescape) {
@@ -447,6 +455,7 @@ register.filter("wordcount", wordcount);
 register.filter("ljust", ljust);
 register.filter("rjust", rjust);
 register.filter("center", center);
+register.filter("force_escape", force_escape);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};

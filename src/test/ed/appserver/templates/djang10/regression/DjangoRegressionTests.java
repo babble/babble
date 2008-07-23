@@ -84,7 +84,6 @@ public class DjangoRegressionTests {
         "autoescape-stringfilter0[2-4]",    //missing safe
         "filter-escape.*",
         "filter-first.*",
-        "filter-force-escape.*",
         "filter-iriencode.*",
         "filter-last.*",
         "filter-make_list0[3,4]",   //needs stringformat 
