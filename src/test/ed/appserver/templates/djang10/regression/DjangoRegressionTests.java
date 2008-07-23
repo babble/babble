@@ -82,7 +82,6 @@ public class DjangoRegressionTests {
         "chaining(11|14|12|13)",       //missing safe
         "autoescape-filtertag01$",  //missing safe
         "autoescape-stringfilter0[2-4]",    //missing safe
-        "filter-cut.*",
         "filter-escape.*",
         "filter-first.*",
         "filter-force-escape.*",

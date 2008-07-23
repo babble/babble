@@ -259,7 +259,13 @@ var cut =
     defaultfilters.cut =
     function(value, arg) {
 
-    return value.replace(arg, "");
+    var safe = djang10.is_safe(value);
+    value = value.replace(arg, "");
+
+    if(safe && (arg != ";"))
+        return djang10.mark_safe(value);
+
+    return value;
 };
 
 //django calls this escape, but its name clashes
