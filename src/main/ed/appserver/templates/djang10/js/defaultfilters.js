@@ -268,9 +268,14 @@ var cut =
     return value;
 };
 
-//django calls this escape, but its name clashes
-var escapeFilter =
-    defaultfilters.escapeFilter =
+
+
+///////////////////////
+// HTML STRINGS      //
+///////////////////////
+
+var escape_ =
+    defaultfilters.escape =
     function(value) {
     
     return escapeHTML(value);
@@ -414,7 +419,7 @@ var yesno =
 register.filter("lower", lower);
 register.filter("upper", upper);
 register.filter("urlencode", urlencode);
-register.filter("escape", escapeFilter);
+register.filter("escape", escape_);
 register.filter("dictsort", dictsort);
 register.filter("dictsortreversed", dictsortreversed);
 register.filter("length", length);
