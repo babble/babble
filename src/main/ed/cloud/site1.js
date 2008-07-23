@@ -138,8 +138,11 @@ Cloud.Site.prototype.getGitBranchNames = function( force ){
 
     if ( ! this.giturl || this.giturl.startsWith( "ssh://git.10gen.com/data/gitroot/" ) ){
         var g = db.git.findOne( { name : "sites/" + this.name } );
-        if ( ! g )
-            return null;
+        if ( ! g ){
+            g = new Cloud.Git.Repository();
+            g.ensureHash( "master" , "0" );
+            db.git.save( g );
+        }
         return g.branches.keySet();
     }
     
