@@ -112,7 +112,6 @@ public class DjangoRegressionTests {
         "filter-default0[34]",
         "filter-lower.*",
         "filter-removetags.*",
-        "filter-truncatewords.*",
         "filter-upper.*",
         "filter-wordcount.*",
         "filter-make_list0[1,2]", //js & python print different representations of arrays

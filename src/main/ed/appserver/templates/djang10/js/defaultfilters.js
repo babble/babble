@@ -159,22 +159,19 @@ var truncatewords =
     defaultfilters.truncatewords =
     function(value, arg) {
 
-    try {
-        var length = parseInt(arg);
-        var words = value.split(/\s+/);
-        
-        if(words.length > length) {
-            words = words.slice(0, length);
-            var lastword = words[words.length - 1];
-
-            if(lastword.length > 2 && lastword.substring(lastword.length - 3) != "...")
-                words.push("...");
-        }
-        return words.join(" ");
-    }
-    catch(e) {
+    var length = parseInt(arg);
+    if(isNaN(length))
         return value;
+    
+    var words = value.split(/\s+/);
+    if(words.length > length) {
+        words = words.slice(0, length);
+        var lastword = words[words.length - 1];
+
+        if(lastword.substring(lastword.length - 3) != "...")
+            words.push("...");
     }
+    return words.join(" ");    
 };
 
 
