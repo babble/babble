@@ -178,6 +178,26 @@ public class AppContextHolder {
         return ac;
     }
 
+    void replace( AppContext oldOne , AppContext newOne ){
+        synchronized ( _contextCreationLock ){
+            List<String> names = new ArrayList<String>( _contextCache.keySet() );
+            for ( String s : names ){
+                AppContext temp = _contextCache.get( s );
+                if ( temp == oldOne ){
+                    _contextCache.put( s , newOne );
+                }
+            }
+
+            _contextCache.put( newOne._root , newOne );
+
+            if ( _defaultContext == oldOne )
+                _defaultContext = newOne;
+            
+            if ( _coreContext == oldOne )
+                _coreContext = newOne;
+        }
+    }
+
     private AppContext _getContextFromMap( String host ){
 
         AppContext ac = _contextCache.get( host );
