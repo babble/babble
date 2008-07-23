@@ -623,6 +623,13 @@ public class JSArray extends JSObjectBase implements Iterable , List {
         _array = lst == null ? new ArrayList() : lst;
     }
 
+    public JSArray( Collection coll ){
+        super( _cons );
+        _array = new ArrayList();
+        if ( coll != null )
+            _array.addAll( coll );
+    }
+
     /** Set an element at a specified index to a given value.
      * If <tt>pos</tt> exceeds the length of this array, this array's size is increased to <tt>pos</tt>+1 and the elements between
      * the original end of this array and the inserted element are set to <tt>null</tt>.
