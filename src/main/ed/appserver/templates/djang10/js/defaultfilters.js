@@ -22,6 +22,10 @@ register = new djang10.Library();
 
 
 
+///////////////////////
+// STRINGS           //
+///////////////////////
+
 var addslashes =
     defaultfilters.addslashes =
     function(value) {
@@ -139,35 +143,48 @@ var lower =
 };
 lower.is_safe = true;
 
+//FIXME: js & python representations of arrays is different so this diverges from django output
+var make_list =
+    defaultfilters.make_list =
+    function(value) {
+
+    return value.split("");
+};
+make_list.is_safe = false;
+
+//TODO: slugify
+//TODO: stringformat
+//TODO: title
+
+var truncatewords =
+    defaultfilters.truncatewords =
+    function(value, arg) {
+
+    var length = parseInt(arg);
+    if(isNaN(length))
+        return value;
+    
+    var words = value.split(/\s+/);
+    if(words.length > length) {
+        words = words.slice(0, length);
+        var lastword = words[words.length - 1];
+
+        if(lastword.substring(lastword.length - 3) != "...")
+            words.push("...");
+    }
+    return words.join(" ");    
+};
+truncatewords.is_safe = true;
+
+//TODO: truncatewords_html
+
 var upper =
     defaultfilters.upper =
     function(value) {
         
         return value.toUpperCase();
 };
-
-var truncatewords =
-    defaultfilters.truncatewords =
-    function(value, arg) {
-
-    try {
-        var length = parseInt(arg);
-        var words = value.split(/\s+/);
-        
-        if(words.length > length) {
-            words = words.slice(0, length);
-            var lastword = words[words.length - 1];
-
-            if(lastword.length > 2 && lastword.substring(lastword.length - 3) != "...")
-                words.push("...");
-        }
-        return words.join(" ");
-    }
-    catch(e) {
-        return value;
-    }
-};
-
+upper.is_safe = false;
 
 var urlencode =
     defaultfilters.urlencode =
@@ -175,12 +192,80 @@ var urlencode =
 
     return scope.getParent().getParent().getParent().getParent().escape(value);      
 };
+urlencode.is_safe = true;
+
+//TODO: urlize
+//TODO: urlizetrunc
+
+var wordcount =
+    defaultfilters.wordcount =
+    function(value) {
+
+    return value.split(/\s+/).length;
+};
+wordcount.is_safe = false;
+
+//TODO: wordwrap
+
+var ljust =
+    defaultfilters.ljust =
+    function(value, arg) {
+
+    var width = parseInt(arg);
+    var buffer = "";
+    
+    var nspaces = Math.max(0, width - value.length);
+    while(nspaces-- > 0)
+        buffer += " ";
+
+    return value + buffer; 
+};
+ljust.is_safe = true;
+
+var rjust =
+    defaultfilters.rjust =
+    function(value, arg) {
+
+    var width = parseInt(arg);
+    var buffer = "";
+    
+    var nspaces = Math.max(0, width - value.length);
+    while(nspaces-- > 0)
+        buffer += " ";
+
+    return buffer + value; 
+};
+rjust.is_safe = true;
+
+var center =
+    defaultfilters.center =
+    function(value, arg) {
+
+    var width = parseInt(arg);
+    
+    var nspaces = Math.max(0, width - value.length);
+    
+    var leftspaces = nspaces/2;
+    var rightspaces = nspaces - leftspaces;
+    
+    value = ljust(value, rightspaces + value.length);
+    value = rjust(value, leftspaces + value.length);
+    
+    return value;
+};
+center.is_safe = true;
 
 var cut =
     defaultfilters.cut =
     function(value, arg) {
 
-    return value.replace(arg, "");
+    var safe = djang10.is_safe(value);
+    value = value.replace(arg, "");
+
+    if(safe && (arg != ";"))
+        return djang10.mark_safe(value);
+
+    return value;
 };
 
 //django calls this escape, but its name clashes
@@ -236,6 +321,15 @@ var removetags =
     
     return value;
 };
+removetags.is_safe = true;
+
+var striptags =
+    defaultfilters.striptags =
+    function(value) {
+
+    return value.replace(/<[^>]*?>/g, "");
+};
+striptags.is_safe = true;
 
 var dictsort =
     defaultfilters.dictsort =
@@ -341,6 +435,12 @@ register.filter("escapejs", escapejs);
 register.filter("fix_ampersands",fix_ampersands);
 register.filter("floatformat", floatformat);
 register.filter("linenumbers", linenumbers);
+register.filter("make_list", make_list);
+register.filter("striptags", striptags);
+register.filter("wordcount", wordcount);
+register.filter("ljust", ljust);
+register.filter("rjust", rjust);
+register.filter("center", center);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
