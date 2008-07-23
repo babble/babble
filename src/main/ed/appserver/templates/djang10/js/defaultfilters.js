@@ -137,6 +137,7 @@ var lower =
 
     return value.toLowerCase();
 };
+lower.is_safe = true;
 
 var upper =
     defaultfilters.upper =
