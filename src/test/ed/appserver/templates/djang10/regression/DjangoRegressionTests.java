@@ -91,7 +91,7 @@ public class DjangoRegressionTests {
         "filter-iriencode.*",
         "filter-last.*",
         "filter-ljust.*",
-        "filter-make_list.*",
+        "filter-make_list0[3,4]",   //needs stringformat 
         "filter-phone2numeric.*",
         "filter-random.*",
         "filter-rjust.*",
@@ -115,6 +115,7 @@ public class DjangoRegressionTests {
         "filter-truncatewords.*",
         "filter-upper.*",
         "filter-wordcount.*",
+        "filter-make_list0[1,2]", //js & python print different representations of arrays
     };    
        
     public DjangoRegressionTests(){ }

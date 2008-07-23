@@ -139,6 +139,15 @@ var lower =
 };
 lower.is_safe = true;
 
+//FIXME: js & python representations of arrays is different so this diverges from django output
+var make_list =
+    defaultfilters.make_list =
+    function(value) {
+
+    return value.split("");
+};
+make_list.is_safe = false;
+
 var upper =
     defaultfilters.upper =
     function(value) {
@@ -341,6 +350,7 @@ register.filter("escapejs", escapejs);
 register.filter("fix_ampersands",fix_ampersands);
 register.filter("floatformat", floatformat);
 register.filter("linenumbers", linenumbers);
+register.filter("make_list", make_list);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
