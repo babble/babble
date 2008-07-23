@@ -148,6 +148,10 @@ var make_list =
 };
 make_list.is_safe = false;
 
+//TODO: slugify
+//TODO: stringformat
+//TODO: title
+
 var upper =
     defaultfilters.upper =
     function(value) {
