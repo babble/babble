@@ -26,7 +26,8 @@ import ed.js.*;
 import ed.util.*;
 
 /**
- * Class to represent an HTTP request 
+ * Class to represent an HTTP request.  The 10gen app server exposes the variable 'request'
+ * which is of this type.
  *
  * @expose
  */
