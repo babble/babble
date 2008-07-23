@@ -61,15 +61,6 @@ public class JSNumber extends JSObjectLame {
         return x;
     }
 
-    /** A collection of numeric functions */
-    public static JSObjectBase functions = new JSObjectBase();
-    /** Returns a function, given its name
-     * @param Function name
-     * @return Function corresponding to the given name.
-     */
-    public static JSFunction getFunction( String name ){
-        return (JSFunction)functions.get( name );
-    }
 
     /** Function to parse a number using a given base.  */
     public static final JSFunction CONS = new JSFunctionCalls2(){
@@ -107,6 +98,17 @@ public class JSNumber extends JSObjectLame {
 
 
         };
+
+    /** A collection of numeric functions */
+    public static JSObjectBase functions = (JSObjectBase)(CONS.get( "prototype" ) );
+    /** Returns a function, given its name
+     * @param Function name
+     * @return Function corresponding to the given name.
+     */
+    public static JSFunction getFunction( String name ){
+        return (JSFunction)functions.get( name );
+    }
+
 
     /** Function that turns a number into string, truncating any fractional part
      */
