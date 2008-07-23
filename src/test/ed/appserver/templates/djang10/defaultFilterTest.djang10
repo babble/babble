@@ -32,4 +32,6 @@ a   ,A ,b  ,d ,D  ,f   ,F       ,g,G ,h ,H ,i ,j ,l     ,L    ,m ,M  ,n ,N   ,O 
 
 {{ array|length }} 
 
+{{ "\n\\'\"\t\f"|escapejs }}
+
 {% endautoescape %}

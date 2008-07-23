@@ -2,16 +2,16 @@
 
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -197,7 +197,7 @@ public class Encoding {
         _noEncodingComonent.add( '.' );
     }
 
-    /** Function to escape special HTML characters: &lt;, &gt;, &amp;, &quot; &apos;. */
+    /** Converts special HTML characters into their entity equivalents: &lt;, &gt;, &amp;, &quot; &#39;. */
     public static JSFunction escapeHTML = new JSFunctionCalls1(){
             public Object call( Scope s , Object o , Object [] extra ){
                 if ( o == null )
@@ -220,7 +220,7 @@ public class Encoding {
             case '>': buf.append( "&gt;" ); break;
             case '&': buf.append( "&amp;" ); break;
             case '"': buf.append( "&quot;" ); break;
-            case '\'': buf.append( "&apos;" ); break;
+            case '\'': buf.append( "&#39;" ); break;
             default: buf.append( c ); break;
             }
         }

@@ -87,7 +87,6 @@ public class DjangoRegressionTests {
         "filter-cut.*",
         "filter-escape.*",
         "filter-first.*",
-        "filter-fix_ampersands.*",
         "filter-floatformat.*",
         "filter-force-escape.*",
         "filter-iriencode.*",
@@ -118,9 +117,6 @@ public class DjangoRegressionTests {
         "filter-truncatewords.*",
         "filter-upper.*",
         "filter-wordcount.*",
-        
-        //pending escapeHTML
-        "filter-addslash02",
     };    
        
     public DjangoRegressionTests(){ }

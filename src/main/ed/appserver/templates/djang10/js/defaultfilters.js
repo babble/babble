@@ -41,6 +41,35 @@ var capfirst =
 };
 capfirst.is_safe = true;
 
+var _js_escapes = [
+    ['\\', '\\\\'],
+    ['"', '\\"'],
+    ["'", "\\'"],
+    ['\n', '\\n'],
+    ['\r', '\\r'],
+    ['\b', '\\b'],
+    ['\f', '\\f'],
+    ['\t', '\\t'],
+    ['\v', '\\v'],
+    ['</', '<\\/']
+];
+var escapejs =
+    defaultfilters.escapejs =
+    function(value) {
+
+    for(var i=0; i<_js_escapes.length; i++)
+        value = value.replace(_js_escapes[i][0], _js_escapes[i][1]);
+    
+    return value;
+};
+
+var fix_ampersands =
+    defaultfilters.fix_ampersands =
+    function(value){
+
+    return value.replace(/&(?!(\w+|#\d+);)/, "&amp;");
+};
+fix_ampersands.is_safe = true;
 
 var lower =
     defaultfilters.lower =
@@ -247,6 +276,8 @@ register.filter("linebreaks", linebreaks);
 register.filter("linebreaksbr", linebreaksbr);
 register.filter("addslashes", addslashes);
 register.filter("capfirst", capfirst);
+register.filter("escapejs", escapejs);
+register.filter("fix_ampersands",fix_ampersands);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
