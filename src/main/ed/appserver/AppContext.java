@@ -206,22 +206,24 @@ public class AppContext {
      */
     public static String getVersionForLibrary( Scope s , String name , AppContext ctxt ){
 
-        JSObject o = null;
-        if ( ctxt != null ) 
-            o = (JSObject)s.get( "version-" + ctxt.getEnvironmentName() );
+        final JSObject o1 = ctxt == null ? null : (JSObject)(s.get( "version_" + ctxt.getEnvironmentName()));
+        final JSObject o2 = (JSObject)s.get( "version" );
         
-        if ( o == null )
-            o = (JSObject)s.get( "version" );
-        
-        if ( o == null )
-            return null;
-
-        Object v = o.get( name );
-        if ( v == null )
-            return null;
-        return v.toString();
+        return _getString( name , o1 , o2 );
     }
-
+    
+    private static String _getString( String name , JSObject ... places ){
+        for ( JSObject o : places ){
+            if ( o == null )
+                continue;
+            Object temp = o.get( name );
+            if ( temp == null )
+                continue;
+            return temp.toString();
+        }
+       return null;
+    }
+    
     private static String[] guessNameAndEnv( String root ){
         String pcs[] = root.split("/");
 
