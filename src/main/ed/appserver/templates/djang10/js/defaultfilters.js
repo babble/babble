@@ -322,6 +322,14 @@ var linebreaksbr =
 linebreaksbr.is_safe = true;
 linebreaksbr.needs_autoescape = true;
 
+var safe =
+    defaultfilters.safe =
+    function(value) {
+
+    return djang10.mark_safe(value);
+};
+safe.is_safe = true;
+
 var removetags =
     defaultfilters.removetags =
     function(value, tags) {
@@ -456,6 +464,7 @@ register.filter("ljust", ljust);
 register.filter("rjust", rjust);
 register.filter("center", center);
 register.filter("force_escape", force_escape);
+register.filter("safe", safe);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};

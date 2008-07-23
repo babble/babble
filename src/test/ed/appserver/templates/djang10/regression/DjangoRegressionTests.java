@@ -78,8 +78,6 @@ public class DjangoRegressionTests {
         "^for-tag-unpack.*",
         
         //unimplemented filters
-        "chaining(11|14|12|13)",       //missing safe
-        "autoescape-filtertag01$",  //missing safe
         "autoescape-stringfilter0[2-4]",    //missing safe
         "filter-first.*",
         "filter-iriencode.*",
@@ -87,7 +85,6 @@ public class DjangoRegressionTests {
         "filter-make_list0[3,4]",   //needs stringformat 
         "filter-phone2numeric.*",
         "filter-random.*",
-        "filter-safe.*",
         "filter-slice.*",
         "filter-slugify.*",
         "filter-stringformat.*",
