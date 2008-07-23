@@ -90,11 +90,9 @@ public class DjangoRegressionTests {
         "filter-force-escape.*",
         "filter-iriencode.*",
         "filter-last.*",
-        "filter-ljust.*",
         "filter-make_list0[3,4]",   //needs stringformat 
         "filter-phone2numeric.*",
         "filter-random.*",
-        "filter-rjust.*",
         "filter-safe.*",
         "filter-slice.*",
         "filter-slugify.*",

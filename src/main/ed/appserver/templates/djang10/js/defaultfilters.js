@@ -205,6 +205,39 @@ var wordcount =
 };
 wordcount.is_safe = false;
 
+//TODO: wordwrap
+
+var ljust =
+    defaultfilters.ljust =
+    function(value, arg) {
+
+    var width = parseInt(arg);
+    var buffer = "";
+    
+    var nspaces = Math.max(0, width - value.length);
+    while(nspaces-- > 0)
+        buffer += " ";
+
+    return value + buffer; 
+};
+ljust.is_safe = true;
+
+var rjust =
+    defaultfilters.rjust =
+    function(value, arg) {
+
+    var width = parseInt(arg);
+    var buffer = "";
+    
+    var nspaces = Math.max(0, width - value.length);
+    while(nspaces-- > 0)
+        buffer += " ";
+
+    return buffer + value; 
+};
+rjust.is_safe = true;
+
+
 var cut =
     defaultfilters.cut =
     function(value, arg) {
@@ -382,6 +415,8 @@ register.filter("linenumbers", linenumbers);
 register.filter("make_list", make_list);
 register.filter("striptags", striptags);
 register.filter("wordcount", wordcount);
+register.filter("ljust", ljust);
+register.filter("rjust", rjust);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
