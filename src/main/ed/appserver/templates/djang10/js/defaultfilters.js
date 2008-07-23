@@ -71,6 +71,39 @@ var fix_ampersands =
 };
 fix_ampersands.is_safe = true;
 
+var floatformat =
+    defaultfilters.floatformat =
+    function(text, arg){
+
+    if(arg == null)
+        arg = -1;
+
+    var num;
+    
+    try {
+        num = parseFloat(text);
+    } catch(e) {
+        return "";
+    }
+    try {
+        arg = parseInt(arg);
+    } catch(e) {
+        return num;
+    }
+    
+    var diff = num - parseInt(num);
+    if(isNaN(diff))
+        return num;
+
+    if((diff == 0) && (arg < 0))
+        return djang10.mark_safe("" + parseInt(num));
+    else
+        return djang10.mark_safe("" + num.toFixed(Math.abs(arg))); 
+};
+floatformat.is_safe = true;
+
+
+
 var lower =
     defaultfilters.lower =
     function(value) {
@@ -278,6 +311,7 @@ register.filter("addslashes", addslashes);
 register.filter("capfirst", capfirst);
 register.filter("escapejs", escapejs);
 register.filter("fix_ampersands",fix_ampersands);
+register.filter("floatformat", floatformat);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};

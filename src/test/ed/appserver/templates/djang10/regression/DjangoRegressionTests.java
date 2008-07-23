@@ -87,7 +87,6 @@ public class DjangoRegressionTests {
         "filter-cut.*",
         "filter-escape.*",
         "filter-first.*",
-        "filter-floatformat.*",
         "filter-force-escape.*",
         "filter-iriencode.*",
         "filter-last.*",
