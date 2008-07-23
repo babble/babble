@@ -104,7 +104,6 @@ public class DjangoRegressionTests {
         "filter-unordered.*",
         "filter-urlize.*",
         "filter-wordwrap.*",
-        "filter-wordcount.*",
 
         
         //broken filters

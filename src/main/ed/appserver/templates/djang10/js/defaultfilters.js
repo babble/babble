@@ -194,6 +194,17 @@ var urlencode =
 };
 urlencode.is_safe = true;
 
+//TODO: urlize
+//TODO: urlizetrunc
+
+var wordcount =
+    defaultfilters.wordcount =
+    function(value) {
+
+    return value.split(/\s+/).length;
+};
+wordcount.is_safe = false;
+
 var cut =
     defaultfilters.cut =
     function(value, arg) {
@@ -370,6 +381,7 @@ register.filter("floatformat", floatformat);
 register.filter("linenumbers", linenumbers);
 register.filter("make_list", make_list);
 register.filter("striptags", striptags);
+register.filter("wordcount", wordcount);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
