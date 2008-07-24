@@ -81,7 +81,6 @@ public class DjangoRegressionTests {
         "filter-iriencode.*",
         "filter-make_list0[3,4]",   //needs stringformat 
         "filter-phone2numeric.*",
-        "filter-random.*",
         "filter-slice.*",
         "filter-slugify.*",
         "filter-stringformat.*",

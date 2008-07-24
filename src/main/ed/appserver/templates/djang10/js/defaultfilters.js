@@ -484,6 +484,19 @@ var length_is =
 };
 length_is.is_safe = true; 
 
+var random =
+    defaultfilters.random =
+    function(value) {
+
+    if(value.length <= 0)
+        throw "Empty array";
+
+    var index = Math.floor( Math.random() * value.length );
+
+    return value[index];
+};
+random.is_safe = true;
+
 var date =
     defaultfilters.date =
     function(value, arg) {
@@ -554,6 +567,7 @@ register.filter("force_escape", force_escape);
 register.filter("safe", safe);
 register.filter("first", first);
 register.filter("last", last);
+register.filter("random", random);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
