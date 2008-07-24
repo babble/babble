@@ -474,13 +474,15 @@ var length =
 
     return value.length;
 };
+length.is_safe = true;
 
 var length_is =
     defaultfilters.length_is =
     function(value, arg) {
 
     return value.length == arg;
-}; 
+};
+length_is.is_safe = true; 
 
 var date =
     defaultfilters.date =
