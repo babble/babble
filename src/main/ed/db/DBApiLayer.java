@@ -363,7 +363,7 @@ public abstract class DBApiLayer extends DBBase {
             _cursor = decoder.getLong();
             _startingFrom = decoder.getInt();
             _num = decoder.getInt();
-
+            
             if ( _num == 0 )
                 _lst = EMPTY;
             else if ( _num < 3 )
@@ -397,6 +397,10 @@ public abstract class DBApiLayer extends DBBase {
                 }
             }
         }
+        
+        boolean hasGetMore(){
+            return _num > 0 && _cursor > 0;
+        }
 
         public String toString(){
             return "reserved:" + _reserved + " _cursor:" + _cursor + " _startingFrom:" + _startingFrom + " _num:" + _num ;
@@ -420,7 +424,7 @@ public abstract class DBApiLayer extends DBBase {
             _collection = coll;
             _numToReturn = numToReturn;
         }
-
+        
         private void init( SingleResult res ){
             _totalBytes += res._bytes;
 
@@ -432,12 +436,12 @@ public abstract class DBApiLayer extends DBBase {
             }
             _cur = res._lst.iterator();
         }
-
+        
         public JSObject next(){
             if ( _cur.hasNext() )
                 return _cur.next();
-
-            if ( _curResult._cursor <= 0 )
+            
+            if ( ! _curResult.hasGetMore() )
 		throw new RuntimeException( "no more" );
 
 	    _advance();
@@ -448,14 +452,15 @@ public abstract class DBApiLayer extends DBBase {
             if ( _cur.hasNext() )
                 return true;
 
-            if ( _curResult._cursor <= 0 )
+            if ( ! _curResult.hasGetMore() )
 		return false;
 
 	    _advance();
 	    return hasNext();
         }
-
+        
 	private void _advance(){
+            
 	    if ( _curResult._cursor <= 0 )
 		throw new RuntimeException( "can't advance a cursor <= 0" );
 
