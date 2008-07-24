@@ -268,13 +268,27 @@ var cut =
     return value;
 };
 
-//django calls this escape, but its name clashes
-var escapeFilter =
-    defaultfilters.escapeFilter =
+
+
+///////////////////////
+// HTML STRINGS      //
+///////////////////////
+
+var escape_ =
+    defaultfilters.escape =
     function(value) {
     
-    return escapeHTML(value);
+    return djang10.mark_escape(value);
 };
+escape_.is_safe = true;
+
+var force_escape =
+    defaultfilters.force_escape =
+    function(value) {
+
+    return djang10.mark_safe(escapeHTML(value));        
+};
+force_escape.is_safe = true;
 
 var linebreaks =
     defaultfilters.linebreaks =
@@ -307,6 +321,14 @@ var linebreaksbr =
 };
 linebreaksbr.is_safe = true;
 linebreaksbr.needs_autoescape = true;
+
+var safe =
+    defaultfilters.safe =
+    function(value) {
+
+    return djang10.mark_safe(value);
+};
+safe.is_safe = true;
 
 var removetags =
     defaultfilters.removetags =
@@ -414,7 +436,7 @@ var yesno =
 register.filter("lower", lower);
 register.filter("upper", upper);
 register.filter("urlencode", urlencode);
-register.filter("escape", escapeFilter);
+register.filter("escape", escape_);
 register.filter("dictsort", dictsort);
 register.filter("dictsortreversed", dictsortreversed);
 register.filter("length", length);
@@ -441,6 +463,8 @@ register.filter("wordcount", wordcount);
 register.filter("ljust", ljust);
 register.filter("rjust", rjust);
 register.filter("center", center);
+register.filter("force_escape", force_escape);
+register.filter("safe", safe);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
