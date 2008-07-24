@@ -452,6 +452,9 @@ public class JSBuiltInFunctions {
         }
     }
 
+    /**
+     * everything that gets put into the scope that is a JSObjetBase gets locked
+     */
     private static void _setupBase( Scope s ){
         s.put( "sysexec" , new ed.io.SysExec() , true );
         s.put( "print" , new print() , true );
