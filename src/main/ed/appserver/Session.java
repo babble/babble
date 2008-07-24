@@ -103,6 +103,11 @@ public class Session extends JSObjectBase {
         return super.set( n , v );
     }
 
+    public Object removeField( Object n ){
+        _dirty = true;
+        return super.removeField( n );
+    }
+
     boolean sync( DBBase db ){
         if ( ! _dirty )
             return false;

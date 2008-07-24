@@ -439,7 +439,9 @@ public abstract class DBCollection extends JSObjectLame {
                               return "{DBCollection:" + DBCollection.this._fullName + "}";
                           }
                       } );
+    }
 
+    protected void _finishInit(){
         if ( _name.equals( "_file" ) )
             JSFile.setup( this );
         else if ( _name.equals( "_chunks" ) )

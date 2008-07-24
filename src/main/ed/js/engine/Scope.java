@@ -698,6 +698,9 @@ public class Scope implements JSObject {
             if ( foo == null )
                 throw new NullPointerException( soFar );
             
+            if ( foo instanceof Number )
+                return JSNumber.CONS.getPrototype().get( origName );
+
             if ( ! ( foo instanceof JSObject ) )
                 throw new JSException( soFar + " is not a JSObject" );
             

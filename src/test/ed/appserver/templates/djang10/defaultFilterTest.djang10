@@ -34,4 +34,10 @@ a   ,A ,b  ,d ,D  ,f   ,F       ,g,G ,h ,H ,i ,j ,l     ,L    ,m ,M  ,n ,N   ,O 
 
 {{ "\n\\'\"\t\f"|escapejs }}
 
+{{ [1,2,3]|join:"-" }}
+
+{{ 30|add:"7" }}
+{{ "1234567890"|get_digit:"4" }}
+
 {% endautoescape %}
+

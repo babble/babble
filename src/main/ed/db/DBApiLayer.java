@@ -172,6 +172,7 @@ public abstract class DBApiLayer extends DBBase {
         MyCollection( String name ){
             super( DBApiLayer.this , name );
             _fullNameSpace = _root + "." + name;
+            _finishInit();
         }
 
         public void doapply( JSObject o ){

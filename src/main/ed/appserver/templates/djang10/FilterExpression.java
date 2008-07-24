@@ -156,8 +156,10 @@ public class FilterExpression extends JSObjectBase {
             else
                 new_obj = filter.call(scope.child(), value, paramValue);
             
-            if(filter.get("is_safe") == Boolean.TRUE && JSHelper.is_safe(value) && (new_obj instanceof JSObject))
+            if( (filter.get("is_safe") == Boolean.TRUE) && (JSHelper.is_safe(value) == Boolean.TRUE) && (new_obj instanceof JSObject) )
                 new_obj = JSHelper.mark_safe((JSObject)new_obj);
+            else if( (JSHelper.is_escape(value) == Boolean.TRUE) && (new_obj instanceof JSObject) )
+                new_obj = JSHelper.mark_escape((JSObject)new_obj);
             
             return new_obj;
         }
