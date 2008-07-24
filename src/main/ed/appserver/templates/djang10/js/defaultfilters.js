@@ -21,6 +21,33 @@ var defaultfilters =
 register = new djang10.Library();
 
 
+///////////////////////
+// STRING DECORATOR  //
+///////////////////////
+
+var stringfilter =
+    defaultfilters.stringfilter =
+    function(func) {
+
+    var f = function() {
+        if (arguments[0] != null && !(arguments[0] instanceof String))
+            arguments[0] = arguments[0].toString();
+        
+        var result = func.apply(null, arguments); 
+        
+        if(djang10.is_safe(arguments[0]) && func.is_safe)
+            result = djang10.mark_safe(result);
+
+        return result; 
+    };
+    
+    ["is_safe", "needs_autoescape"].each(function(k) {
+        if(k in func)
+            f[k] = func[k];
+    });
+    
+    return f;
+};
 
 ///////////////////////
 // STRINGS           //
@@ -33,6 +60,7 @@ var addslashes =
     return value.replace("\\", "\\\\").replace('"', '\\"').replace("'", "\\'");
 };
 addslashes.is_safe = true;
+addslashes = defaultfilters.addslashes = stringfilter(addslashes);
 
 var capfirst =
     defaultfilters.capfirst =
@@ -44,6 +72,7 @@ var capfirst =
     return value[0].toUpperCase() + value.substring(1);
 };
 capfirst.is_safe = true;
+capfirst = defaultfilters.capfirst = stringfilter(capfirst);
 
 var _js_escapes = [
     ['\\', '\\\\'],
@@ -66,6 +95,7 @@ var escapejs =
     
     return value;
 };
+escapejs = defaultfilters.escapejs = stringfilter(escapejs);
 
 var fix_ampersands =
     defaultfilters.fix_ampersands =
@@ -74,6 +104,7 @@ var fix_ampersands =
     return value.replace(/&(?!(\w+|#\d+);)/, "&amp;");
 };
 fix_ampersands.is_safe = true;
+fix_ampersands = defaultfilters.fix_ampersands = stringfilter(fix_ampersands);
 
 var floatformat =
     defaultfilters.floatformat =
@@ -134,6 +165,7 @@ var linenumbers =
 };
 linenumbers.is_safe = true;
 linenumbers.needs_autoescape = true;
+linenumbers = defaultfilters.linenumbers = stringfilter(linenumbers);
 
 var lower =
     defaultfilters.lower =
@@ -142,6 +174,7 @@ var lower =
     return value.toLowerCase();
 };
 lower.is_safe = true;
+lower = defaultfilters.lower = stringfilter(lower);
 
 //FIXME: js & python representations of arrays is different so this diverges from django output
 var make_list =
@@ -151,6 +184,7 @@ var make_list =
     return value.split("");
 };
 make_list.is_safe = false;
+make_list = defaultfilters.make_list = stringfilter(make_list);
 
 //TODO: slugify
 //TODO: stringformat
@@ -175,6 +209,7 @@ var truncatewords =
     return words.join(" ");    
 };
 truncatewords.is_safe = true;
+truncatewords = defaultfilters.truncatewords = stringfilter(truncatewords);
 
 //TODO: truncatewords_html
 
@@ -185,6 +220,7 @@ var upper =
         return value.toUpperCase();
 };
 upper.is_safe = false;
+upper = defaultfilters.upper = stringfilter(upper);
 
 var urlencode =
     defaultfilters.urlencode =
@@ -193,6 +229,7 @@ var urlencode =
     return scope.getParent().getParent().getParent().getParent().escape(value);      
 };
 urlencode.is_safe = true;
+urlencode = defaultfilters.urlencode = stringfilter(urlencode);
 
 //TODO: urlize
 //TODO: urlizetrunc
@@ -204,6 +241,7 @@ var wordcount =
     return value.split(/\s+/).length;
 };
 wordcount.is_safe = false;
+wordcount = defaultfilters.wordcount = stringfilter(wordcount);
 
 //TODO: wordwrap
 
@@ -221,6 +259,7 @@ var ljust =
     return value + buffer; 
 };
 ljust.is_safe = true;
+ljust = defaultfilters.ljust = stringfilter(ljust);
 
 var rjust =
     defaultfilters.rjust =
@@ -236,6 +275,7 @@ var rjust =
     return buffer + value; 
 };
 rjust.is_safe = true;
+rjust = defaultfilters.rjust = stringfilter(rjust);
 
 var center =
     defaultfilters.center =
@@ -254,6 +294,7 @@ var center =
     return value;
 };
 center.is_safe = true;
+center = defaultfilters.center = stringfilter(center);
 
 var cut =
     defaultfilters.cut =
@@ -267,6 +308,7 @@ var cut =
 
     return value;
 };
+cut = defaultfilters.cut = stringfilter(cut);
 
 
 
@@ -281,6 +323,7 @@ var escape_ =
     return djang10.mark_escape(value);
 };
 escape_.is_safe = true;
+escape_ = defaultfilters.escape = stringfilter(escape_);
 
 var force_escape =
     defaultfilters.force_escape =
@@ -289,6 +332,7 @@ var force_escape =
     return djang10.mark_safe(escapeHTML(value));        
 };
 force_escape.is_safe = true;
+force_escape = defaultfilters.force_escape = stringfilter(force_escape);
 
 var linebreaks =
     defaultfilters.linebreaks =
@@ -308,6 +352,7 @@ var linebreaks =
 };
 linebreaks.is_safe = true;
 linebreaks.needs_autoescape = true;
+linebreaks = defaultfilters.linebreaks = stringfilter(linebreaks);
 
 var linebreaksbr =
     defaultfilters.linebreaks =
@@ -321,6 +366,7 @@ var linebreaksbr =
 };
 linebreaksbr.is_safe = true;
 linebreaksbr.needs_autoescape = true;
+linebreaksbr = defaultfilters.linebreaksbr = stringfilter(linebreaksbr);
 
 var safe =
     defaultfilters.safe =
@@ -329,6 +375,7 @@ var safe =
     return djang10.mark_safe(value);
 };
 safe.is_safe = true;
+safe = defaultfilters.safe = stringfilter(safe);
 
 var removetags =
     defaultfilters.removetags =
@@ -344,6 +391,7 @@ var removetags =
     return value;
 };
 removetags.is_safe = true;
+removetags = defaultfilters.removetags = stringfilter(removetags);
 
 var striptags =
     defaultfilters.striptags =
@@ -352,6 +400,7 @@ var striptags =
     return value.replace(/<[^>]*?>/g, "");
 };
 striptags.is_safe = true;
+striptags = defaultfilters.striptags = stringfilter(striptags);
 
 var dictsort =
     defaultfilters.dictsort =

@@ -78,7 +78,6 @@ public class DjangoRegressionTests {
         "^for-tag-unpack.*",
         
         //unimplemented filters
-        "autoescape-stringfilter0[2-4]",    //missing safe
         "filter-first.*",
         "filter-iriencode.*",
         "filter-last.*",
