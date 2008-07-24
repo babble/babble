@@ -402,6 +402,13 @@ var striptags =
 striptags.is_safe = true;
 striptags = defaultfilters.striptags = stringfilter(striptags);
 
+
+
+///////////////////////
+// LISTS             //
+///////////////////////
+
+
 var dictsort =
     defaultfilters.dictsort =
     function(value, arg) {
@@ -412,8 +419,8 @@ var dictsort =
          
         return (val_a < val_b)? -1 : (val_a == val_b)? 0 : 1;
     });
-    
 };
+dictsort.is_safe = false;
 
 var dictsortreversed =
     defaultfilters.dictsortreversed =
@@ -421,6 +428,7 @@ var dictsortreversed =
 
     return dictsort(value, arg).reverse();
 };
+dictsortreversed.is_safe = false;
 
 var join =
     defaultfilters.join =
