@@ -596,6 +596,45 @@ var unordered_list =
 unordered_list.is_safe = true;
 unordered_list.needs_autoescape = true;
 
+
+///////////////////////
+// INTEGERS          //
+///////////////////////
+var add =
+    defaultfilters.add =
+    function(value, arg) {
+
+    return parseInt(value) + parseInt(arg);
+};
+add.is_safe = true;
+
+var get_digit =
+    defaultfilters.get_digit =
+    function(value, arg) {
+
+    arg = parseInt(arg);
+    value = parseInt(value);
+    if(isNaN(arg) || isNaN(value))
+        return value;
+
+    if(arg < 1)
+        return value;
+
+    var value_str = value.toString();
+    if(arg >= value_str.length)
+        return 0;
+    
+    return parseInt(value_str[value_str.length - arg]);
+};
+get_digit.is_safe = true;
+
+
+
+///////////////////////
+// INTEGERS          //
+///////////////////////
+
+
 var date =
     defaultfilters.date =
     function(value, arg) {
@@ -669,7 +708,8 @@ register.filter("last", last);
 register.filter("random", random);
 register.filter("slice", slice_);
 register.filter("unordered_list", unordered_list);
-
+register.filter("add", add);
+register.filter("get_digit", get_digit);
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
 
