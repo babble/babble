@@ -130,6 +130,8 @@ public class AppRequest {
         else
             _wantedURI = getURI();
         
+        _wantedURI = _wantedURI.replaceAll( "//+" , "/" );
+
         return _wantedURI;
     }
     
