@@ -460,6 +460,14 @@ var join =
 };
 join.is_safe = true;
 
+var last =
+    defaultfilters.last =
+    function(value) {
+
+    return (value.length > 0)? value[value.length - 1] : "";
+};
+last.is_safe = true;
+
 var length =
     defaultfilters.length =
     function(value) {
@@ -543,6 +551,7 @@ register.filter("center", center);
 register.filter("force_escape", force_escape);
 register.filter("safe", safe);
 register.filter("first", first);
+register.filter("last", last);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
