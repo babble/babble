@@ -25,14 +25,22 @@ register = new djang10.Library();
 // STRING DECORATOR  //
 ///////////////////////
 
+var force_string = 
+    function(obj) {
+
+    if (obj != null && !(obj instanceof String))
+        obj = obj.toString();
+
+    return obj;
+};
+
 var stringfilter =
     defaultfilters.stringfilter =
     function(func) {
 
     var f = function() {
-        if (arguments[0] != null && !(arguments[0] instanceof String))
-            arguments[0] = arguments[0].toString();
-        
+        arguments[0] = force_string(arguments[0]);
+
         var result = func.apply(null, arguments); 
         
         if(djang10.is_safe(arguments[0]) && func.is_safe)
@@ -442,11 +450,15 @@ var join =
     defaultfilters.join =
     function(value, arg) {
 
-    if(!(value.join instanceof Function))
-        return value;
-    else
-        return value.join(arg);        
+    var data = value.map(force_string).join(arg);
+    var safe_args = value.reduce(function(lhs, rhs) { return lhs && djang10.is_safe(rhs);}, true);
+
+    if(safe_args)
+        data = djang10.mark_safe(data);
+
+    return data;        
 };
+join.is_safe = true;
 
 var length =
     defaultfilters.length =
