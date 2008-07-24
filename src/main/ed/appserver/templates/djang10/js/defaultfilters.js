@@ -519,6 +519,83 @@ var slice_ =
 };
 slice_.is_safe = true;
 
+var unordered_list =
+    defaultfilters.unordered_list =
+    function(value, autoescape) {
+
+    autoescape = !!autoescape;
+    
+    var convert_old_style_list = function(list_) {
+        if(!(list_ instanceof Array) || list_.length != 2)
+            return [list_, false];
+        
+        var first_item = list_[0];
+        var second_item = list_[1];
+        
+        if(second_item.length == 0)
+            return [[first_item], true];
+        var old_style_list = true;
+        var new_second_item = [];
+        for(var i=0; i<second_item.length; i++) {
+            var sublist = second_item[i];
+            var temp = convert_old_style_list(sublist);
+            var item = temp[0];
+            var old_style_list = temp[1];
+            
+            if(!old_style_list)
+                break;
+            new_second_item.push.apply(new_second_item, item);
+        }
+        if(old_style_list)
+            second_item = new_second_item;
+        return [[first_item, second_item], old_style_list];
+    };
+    var _helper = function(list_, tabs) {
+        if(tabs == null) tabs = 1;
+        
+        var indent = "";
+        for(var i=tabs; i>0; i--)
+            indent += "\t";
+        
+        var output = [];
+        var list_length = list_.length;
+        var i=0;
+        
+        while(i < list_length) {
+            var title = list_[i];
+            var sublist = "";
+            var sublist_item = null;
+            
+            if(title instanceof Array) {
+                sublist_item = title;
+                title = "";
+            }
+            else if(i < list_length -1) {
+                var next_item = list_[i+1];
+                if(next_item && (next_item instanceof Array) && next_item.length > 0) {
+                    sublist_item = next_item;
+                    i++;
+                }
+            }
+            if(sublist_item && sublist_item.length > 0) {
+                sublist = _helper(sublist_item, tabs + 1);
+                sublist = "\n"+indent+"<ul>\n"+sublist+"\n"+indent+"</ul>\n" + indent;
+            }
+            title = force_string(title);
+            if(autoescape && !djang10.is_safe(title))
+                title = escapeHTML(title);
+            output.push(indent + "<li>" + title + sublist + "</li>");
+            i++;
+        }
+        return output.join("\n");
+    };
+
+    value = convert_old_style_list(value)[0];
+    return djang10.mark_safe(_helper(value))
+};
+unordered_list.is_safe = true;
+unordered_list.needs_autoescape = true;
+
 var date =
     defaultfilters.date =
     function(value, arg) {
@@ -591,6 +668,7 @@ register.filter("first", first);
 register.filter("last", last);
 register.filter("random", random);
 register.filter("slice", slice_);
+register.filter("unordered_list", unordered_list);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};

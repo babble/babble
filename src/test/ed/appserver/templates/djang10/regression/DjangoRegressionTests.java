@@ -85,7 +85,6 @@ public class DjangoRegressionTests {
         "filter-stringformat.*",
         "filter-timesince.*",
         "filter-timeuntil.*",
-        "filter-unordered.*",
         "filter-urlize.*",
         "filter-wordwrap.*",
 
