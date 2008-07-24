@@ -430,6 +430,14 @@ var dictsortreversed =
 };
 dictsortreversed.is_safe = false;
 
+var first =
+    defaultfilters.first =
+    function(value) {
+
+    return (value.length > 0)? value[0] : "";
+};
+first.is_safe = false;
+
 var join =
     defaultfilters.join =
     function(value, arg) {
@@ -522,6 +530,7 @@ register.filter("rjust", rjust);
 register.filter("center", center);
 register.filter("force_escape", force_escape);
 register.filter("safe", safe);
+register.filter("first", first);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
