@@ -81,7 +81,6 @@ public class DjangoRegressionTests {
         "filter-iriencode.*",
         "filter-make_list0[3,4]",   //needs stringformat 
         "filter-phone2numeric.*",
-        "filter-slice.*",
         "filter-slugify.*",
         "filter-stringformat.*",
         "filter-timesince.*",
@@ -94,6 +93,7 @@ public class DjangoRegressionTests {
         //broken filters
         "chaining0[35]",
         "filter-make_list0[1,2]", //js & python print different representations of arrays
+        "filter-slice.*",   //print diff ^
     };    
        
     public DjangoRegressionTests(){ }

@@ -497,6 +497,28 @@ var random =
 };
 random.is_safe = true;
 
+var slice_ =
+    defaultfilters.slice_ =
+    function(value, arg) {
+
+    try {
+        var bits = arg.split(":");
+        var start = (bits[0] == null)? 0 : parseInt(bits[0]);
+        var end = (bits[1] == null)? value.length : parseInt(bits[1]);
+        var step = (bits[2] == null)? 1 : parseInt(bits[2]);
+        
+        var result = new Array(Math.ceil( value.length/step ))
+        
+        for(var i=0; i<result.length; i++)
+            result[i] = value[start + (i * step)];
+        
+        return result;
+    } catch(e) {
+        return value;
+    }
+};
+slice_.is_safe = true;
+
 var date =
     defaultfilters.date =
     function(value, arg) {
@@ -568,6 +590,7 @@ register.filter("safe", safe);
 register.filter("first", first);
 register.filter("last", last);
 register.filter("random", random);
+register.filter("slice", slice_);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
