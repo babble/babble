@@ -15,15 +15,18 @@
 /**
  *  <p>Drop all indexes on the specified collection.</p>
  * 
- *  <p>Note : alpha: space is not reclaimed</p>
+ *  <p>Note : alpha: space is not reclaimed.</p>
+ *
+ *  <p>Note : When you drop an index, any open cursors for the collection are 
+ *            invalidated (even if those cursors use a different index.</p>
  *
  * @return A result object.  result.ok will be true if successful.
  */
 DBCollection.prototype.dropIndexes = function() {
     var res = this._dbCommand( { deleteIndexes: this.getName(), index: "*" } );
     if( res && res.ok && res.ok == 1 ) {
-        this.getDB().system.indexes.remove( { ns: this.getFullName() } );
-		this.getDB().system.namespaces.remove( { name: RegExp(this.getFullName() + "[.][$].*") } );
+	// this.getDB().system.indexes.remove( { ns: this.getFullName() } );
+	// this.getDB().system.namespaces.remove( { name: RegExp(this.getFullName() + "[.][$].*") } );
     }
     
     this.resetIndexCache();
@@ -51,8 +54,8 @@ DBCollection.prototype.dropIndexes = function() {
     
     var res = this._dbCommand( { deleteIndexes: this.getName(), index: index } );
     if( res && res.ok && res.ok == 1 ) {
-        this.getDB().system.indexes.remove( { ns: this.getFullName(), name: index } );
-		this.getDB().system.namespaces.remove( { name: this.getFullName() + ".$"+index } );
+        //this.getDB().system.indexes.remove( { ns: this.getFullName(), name: index } );
+	//this.getDB().system.namespaces.remove( { name: this.getFullName() + ".$"+index } );
     }
     
     this.resetIndexCache();
@@ -143,7 +146,9 @@ DBCollection.prototype.drop = function()
 
     res = this._dbCommand( { drop: this.getName() } );
     if( res && res.ok && res.ok == 1 ) {
-	this.getDB().system.namespaces.remove( { name: this.getFullName() } );
+	/* note: database does this now.
+	   this.getDB().system.namespaces.remove( { name: this.getFullName() } );
+	*/
     }
     return res;
 }
