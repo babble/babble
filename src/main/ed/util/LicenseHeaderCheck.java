@@ -77,6 +77,9 @@ public class LicenseHeaderCheck {
         if ( name.equals( "db" ) 
              || name.equals( "README" ) )
             return true;
+        
+        if ( name.equals( "_init.js" ) )
+            return false;
 
         if ( ! Character.isLetterOrDigit( name.charAt(0) ) )
             return true;
