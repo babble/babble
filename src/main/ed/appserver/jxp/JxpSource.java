@@ -48,8 +48,11 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
         if ( f == null )
             throw new NullPointerException( "can't have null file" );
         
-        if(f.getName().endsWith(".djang10"))
+        if ( f.getName().endsWith(".djang10") )
             return new Djang10Source(f);
+        
+        if ( f.getName().endsWith( ".py" ) )
+            return new ed.lang.python.PythonJxpSource( f , lib );
 
         JxpSource s = new JxpFileSource( f );
         s._lib = lib;
