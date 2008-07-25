@@ -56,7 +56,7 @@ public class PythonJxpSource extends JxpSource {
                 PySystemState ss = Py.getSystemState();
                 ss.stdout = _stdout;
 
-                return code.call( args , new String[0] , new PYJSObjectWrapper( s ) , new PyObject[0] , null );
+                return code.call( args , new String[0] , new PyJSObjectWrapper( s , false ) , new PyObject[0] , null );
             }
         };
     }

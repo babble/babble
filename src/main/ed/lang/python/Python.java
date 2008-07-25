@@ -7,6 +7,7 @@ import java.io.*;
 import org.python.core.*;
 
 import ed.js.*;
+import static ed.lang.python.PythonSmallWrappers.*;
 
 public class Python {
 
@@ -20,18 +21,34 @@ public class Python {
     }
 
 
-    static Object toJS( PyObject p ){
-        if ( p == null )
+    static Object toJS( Object p ){
+
+        if ( p == null || p instanceof PyNone )
             return null;
  
+        if ( p instanceof JSObject ||
+             p instanceof String || 
+             p instanceof Number )
+            return p;
+
+        if ( p instanceof PyJSObjectWrapper )
+            return ((PyJSObjectWrapper)p)._js;
+
         if ( p instanceof PyInteger )
             return ((PyInteger)p).getValue();
-
+        
         if ( p instanceof PyFloat )
             return ((PyFloat)p).getValue();
-
+        
         if ( p instanceof PyString )
             return p.toString();
+
+        if ( p instanceof PyObjectId )
+            return ((PyObjectId)p)._id;
+        
+        // this needs to be last
+        if ( p instanceof PyObject )
+            return new JSPyObjectWrapper( (PyObject)p );
 
         throw new RuntimeException( "can't convert [" + p.getClass().getName() + "] from py to js" );       
     }
@@ -39,8 +56,14 @@ public class Python {
     static PyObject toPython( Object o ){
         
         if ( o == null )
-            return null;
+            return Py.None;
+        
+        if ( o instanceof JSPyObjectWrapper )
+            return ((JSPyObjectWrapper)o)._p;
 
+        if ( o instanceof PyObject )
+            return (PyObject)o;
+        
         if ( o instanceof Integer )
             return new PyInteger( ((Integer)o).intValue() );
         
@@ -51,14 +74,17 @@ public class Python {
              o instanceof JSString )
             return new PyString( o.toString() );
         
-        // fill in here
+        if ( o instanceof ed.db.ObjectId )
+            return new PyObjectId( (ed.db.ObjectId)o );
+
+        // FILL IN MORE HERE
 
         // these should be at the bottom
         if ( o instanceof JSFunction )
-            return new PYJSFunctionWrapper( (JSFunction)o );
+            return new PyJSFunctionWrapper( (JSFunction)o );
 
         if ( o instanceof JSObject )
-            return new PYJSObjectWrapper( (JSObject)o );
+            return new PyJSObjectWrapper( (JSObject)o );
         
         throw new RuntimeException( "can't convert [" + o.getClass().getName() + "] from js to py" );
     }
