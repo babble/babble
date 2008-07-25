@@ -132,35 +132,34 @@ public class Generate {
 
         File blobs[] = docdir.listFiles();
         for(int i=0; i<blobs.length; i++) {
-            if(blobs[i].getName().endsWith(".out")) {
+            if(! blobs[i].getName().endsWith(".out")) continue;
 
-                FileInputStream fis = new FileInputStream(blobs[i]);
-                StringBuffer sb = new StringBuffer();
+            FileInputStream fis = new FileInputStream(blobs[i]);
+            StringBuffer sb = new StringBuffer();
 
-                while(fis.available() > 0) {
-                    sb.append((char)(fis.read()));
-                }
-
-                JSObjectBase q = new JSObjectBase();
-                q.set("alias", blobs[i].getName().substring(0, blobs[i].getName().indexOf(".out")));
-                q.set("version", Generate.getVersion());
-                Iterator it = docdb.find(q);
-                if(it == null) {
-                    q = new JSObjectBase();
-                    q.set("name", blobs[i].getName().substring(0, blobs[i].getName().indexOf(".out")));
-                    q.set("version", Generate.getVersion());
-                    it = docdb.find(q);
-                }
-                while(it != null && it.hasNext()) {
-                    JSObject next = (JSObject)it.next();
-                    next.set("content", sb.toString());
-                    docdb.save(next);
-                }
-
-                if(debug)
-                    System.out.println("Generate.postHTMLGeneration() : processing " + blobs[i].getName());
-
+            while(fis.available() > 0) {
+                sb.append((char)(fis.read()));
             }
+
+            JSObjectBase q = new JSObjectBase();
+            q.set("alias", blobs[i].getName().substring(0, blobs[i].getName().indexOf(".out")));
+            q.set("version", Generate.getVersion());
+            Iterator it = docdb.find(q);
+            if(it == null) {
+                q = new JSObjectBase();
+                q.set("name", blobs[i].getName().substring(0, blobs[i].getName().indexOf(".out")));
+                q.set("version", Generate.getVersion());
+                it = docdb.find(q);
+            }
+            while(it != null && it.hasNext()) {
+                JSObject next = (JSObject)it.next();
+                next.set("content", sb.toString());
+                docdb.save(next);
+            }
+
+            if(debug)
+                System.out.println("Generate.postHTMLGeneration() : processing " + blobs[i].getName());
+
         }
     }
 
@@ -203,9 +202,13 @@ public class Generate {
                 + " -t=templates/jsdoc2", null, jsfl.getRoot(), objStr);
 
         String out = r.getOut();
-
         if(!out.trim().equals("")) {
             System.out.println("jsdoc says: "+out);
+        }
+
+        String err = r.getErr();
+        if(!err.trim().equals("")) {
+            System.out.println("jsdoc complains: "+err);
         }
     }
 
@@ -216,20 +219,14 @@ public class Generate {
         newGlobal.set("_index", ss);
         newGlobal.set("ts", Calendar.getInstance().getTime().toString());
         newGlobal.set("version", Generate.getVersion());
-        newGlobal.set("name", "global");
+        newGlobal.set("name", "_global_");
 
-        JSObjectBase oldGlobal = new JSObjectBase();
-        oldGlobal.set("name", "global");
-        oldGlobal.set("version", Generate.getVersion());
-
-        docdb.remove(oldGlobal);
         docdb.save(newGlobal);
     }
 
     public static void globalToHTML(String path) {
         JSObjectBase ss = new JSObjectBase();
-        ss.set("symbolSet", _global);
-        toHTML(JSON.serialize(ss), path);
+        toHTML(JSON.serialize((JSObjectBase)_global.get("_index")), path);
     }
 
     /** javaSrcs is a list of Java classes to be processed.  In order to be merged correctly when
@@ -355,6 +352,9 @@ public class Generate {
 
         String jsdocUnits[] = rout.split("---=---");
         for(int i=0; i<jsdocUnits.length; i++) {
+            // as far as I know, jsdocUnits[i] has never been null, but it has been "", which eval doesn't like
+            if(jsdocUnits[i] == null || jsdocUnits[i].trim().equals("")) continue;
+
             JSObject json = (JSObject)JS.eval("("+jsdocUnits[i]+")");
             if(json == null) {
                 System.out.println("couldn't parse: "+jsdocUnits[i]);
@@ -388,7 +388,8 @@ public class Generate {
                         desc = "";
                     }
                     int summarylen = desc.indexOf(". ")+1;
-                    if(summarylen == 0) summarylen = desc.indexOf(". ")+1;
+                    if(summarylen == 0) summarylen = desc.indexOf(".\n")+1;
+                    if(summarylen == 0) summarylen = desc.length();
                     obj.set("desc", desc.substring(0,summarylen));
 
                     if(name.equals("_global_")) {
