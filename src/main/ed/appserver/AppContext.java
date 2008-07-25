@@ -2,16 +2,16 @@
 
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -31,28 +31,55 @@ import ed.lang.*;
 import ed.net.httpserver.*;
 import ed.util.*;
 
-/** 
+/**
  * This is the container for an instance of a site on a single server.
- * This can be access via __instance__ 
+ * This can be access via __instance__
+ *
+ * @anonymous name : {local}, isField : {true}, desc : {Refers to the site being run.}, type: {library}
+ * @anonymous name : {core}, isField : {true}, desc : {Refers to corejs.} example : {core.core.mail() calls corejs/core/mail.js}, type : {library}
+ * @anonymous name : {external}  isField : {true}, desc : {Refers to the external libraries.}, type : {library}
+ * @anonymous name : {db}, isField : {true}, desc : {Refers to the database.}, type : {database}
+ * @anonymous name : {setDB} desc : {changes <tt>db</tt> to refer to a different database.} param : {type : (string) name : (dbname) desc : (name of the database to which to connect)}
+ * @anonymous name : {SYSOUT} desc : {Prints a string.} param : {type : (string) name : (str) desc : (the string to print)}
+ * @anonymous name : {log} desc : {Global logger.} param : {type : (string) name : (str) desc : (the string to log)}
  * @expose
  */
 public class AppContext {
 
+    /** @unexpose */
     static final boolean DEBUG = AppServer.D;
+    /** If these files exist in the directory or parent directories of a file being run, run these files first. Includes _init.js and /~~/core/init.js.  */
     static final String INIT_FILES[] = new String[]{ "_init.js" , "/~~/core/init.js" };
 
+    /** Initializes a new context for a given site directory.
+     * @param f the file to run
+     */
     public AppContext( File f ){
         this( f.toString() );
     }
 
+    /** Initializes a new context for a given site's path.
+     * @param root the path to the site from where ed is being run
+     */
     public AppContext( String root ){
         this( root , guessNameAndEnv( root )[0] , guessNameAndEnv( root )[1] );
     }
 
+    /** Initializes a new context.
+     * @param root the path to the site
+     * @param name the name of the site
+     * @param environment the version of the site
+     */
     public AppContext( String root , String name , String environment ){
         this( root , new File( root ) , name , environment );
     }
 
+    /** Initializes a new context.
+     * @param root the path to the site
+     * @param rootFile the directory in which the site resides
+     * @param name the name of the site
+     * @param environment the version of the site
+     */
     public AppContext( String root , File rootFile , String name , String environment ){
         if ( root == null )
             throw new NullPointerException( "AppContext root can't be null" );
@@ -70,7 +97,7 @@ public class AppContext {
         _rootFile = rootFile;
         _name = name;
         _environment = environment;
-        
+
         _gitBranch = GitUtils.hasGit( _rootFile ) ? GitUtils.getBranchOrTagName( _rootFile ) : null;
 
         _isGrid = name.equals( "grid" );
@@ -86,6 +113,10 @@ public class AppContext {
         _logger.info( "Started Context.  root:" + _root + " environment:" + environment + " git branch: " + _gitBranch );
     }
 
+    /**
+     * Creates a copy of this context.
+     * @return an identical context
+     */
     AppContext newCopy(){
         return new AppContext( _root , _rootFile , _name , _environment );
     }
@@ -183,7 +214,7 @@ public class AppContext {
             _logger.error( "you are using corejsversion which is deprecated.  please use version.corejs" );
             return JS.toString( o );
         }
-        
+
         return getVersionForLibrary( "corejs" );
     }
 
@@ -212,10 +243,10 @@ public class AppContext {
 
         final JSObject o1 = ctxt == null ? null : (JSObject)(s.get( "version_" + ctxt.getEnvironmentName()));
         final JSObject o2 = (JSObject)s.get( "version" );
-        
+
         return _getString( name , o1 , o2 );
     }
-    
+
     private static String _getString( String name , JSObject ... places ){
         for ( JSObject o : places ){
             if ( o == null )
@@ -227,7 +258,7 @@ public class AppContext {
         }
        return null;
     }
-    
+
     private static String[] guessNameAndEnv( String root ){
         String pcs[] = root.split("/");
 
@@ -256,6 +287,10 @@ public class AppContext {
         return new String[]{ pcs[0] , null };
     }
 
+    /**
+     * Returns the name of the site being run.
+     * @return the name of the site
+     */
     public String getName(){
         return _name;
     }
@@ -280,10 +315,16 @@ public class AppContext {
         return (JSFile)(f.find( new ObjectId( id ) ));
     }
 
+    /** Returns (and if necessary, reinitializes) the scope this context is using.
+     * @return the scope
+     */
     public Scope getScope(){
 	return _scope();
     }
 
+    /** Returns a child scope for app requests.
+     * @return a child scope
+     */
     Scope scopeChild(){
         Scope s = _scope().child( "AppRequest" );
         s.setGlobal( true );
@@ -346,26 +387,43 @@ public class AppContext {
     }
 
     /**
-     * this causes the AppContext to be started over
-     * all context level variable will be lost
-     * if code is being managed, will cause it to check that its up to date
+     * This causes the AppContext to be started over.
+     * All context level variable will be lost.
+     * If code is being managed, will cause it to check that its up to date.
      */
     public void reset(){
         _reset = true;
     }
 
+    /**
+     * Checks if this context has been reset.
+     */
     public boolean isReset() {
         return _reset;
     }
 
+    /** Returns the path to the directory the appserver is running. (For example, site/version.)
+     * @return the path
+     */
     public String getRoot(){
         return _root;
     }
 
+    /**
+     * Creates an new request for the app server from an HTTP request.
+     * @param request HTTP request to create
+     * @return the request
+     */
     AppRequest createRequest( HttpRequest request ){
         return createRequest( request , request.getURI() );
     }
 
+    /**
+     * Creates an new request for the app server from an HTTP request.
+     * @param request HTTP request to create
+     * @param uri the URI requested
+     * @return the request
+     */
     AppRequest createRequest( HttpRequest request , String uri ){
         _numRequests++;
         return new AppRequest( this , request , uri );
@@ -389,9 +447,9 @@ public class AppContext {
     }
 
     /**
-     *    Maps a servlet-like URI to a jxp file
+     *    Maps a servlet-like URI to a jxp file.
      *
-     *    /wiki/geir  ->  maps to wiki.jxp if exists
+     * @example   /wiki/geir  ->  maps to wiki.jxp if exists
      *
      * @param f File to check
      * @return new File with <root>.jxp if exists, orig file if not
@@ -438,7 +496,7 @@ public class AppContext {
      * @return new File for index.jxp in that directory, or same file object if not
      */
     File tryIndex( File f ){
-        
+
         if ( ! ( f.isDirectory() && f.exists() ) )
             return f;
 
@@ -448,6 +506,7 @@ public class AppContext {
 
         return f;
     }
+
 
     JxpSource getSource( File f )
         throws IOException {
@@ -657,7 +716,7 @@ public class AppContext {
     public String getEnvironmentName(){
         return _environment;
     }
-    
+
 
     /**
      * updates the context to the correct branch based on environment
@@ -665,20 +724,20 @@ public class AppContext {
      * if name or environemnt is missing, does nothing
      */
     public String updateCode(){
-        
+
         if ( ! GitUtils.isSourceDirectory( _rootFile ) )
             throw new RuntimeException( _rootFile + " is not a git repo" );
-        
+
         _logger.info( "going to update code" );
         GitUtils.fullUpdate( _rootFile );
-        
+
         if ( _name == null || _environment == null )
             return getCurrentGitBranch();
-        
+
         JSObject env = AppContextHolder.getEnvironmentFromCloud( _name , _environment );
         if ( env == null )
             return null;
-        
+
 
         String branch = env.get( "branch" ).toString() ;
         _logger.info( "updating to [" + branch + "]"  );
@@ -687,34 +746,52 @@ public class AppContext {
         return getCurrentGitBranch();
     }
 
+    /** @unexpose */
     final String _name;
+    /** @unexpose */
     final String _root;
+    /** @unexpose */
     final File _rootFile;
 
     private String _gitBranch;
+    /** @unexpose */
     final String _environment;
 
+    /** @unexpose */
     JSFileLibrary _jxpObject;
+    /** @unexpose */
     JSFileLibrary _core;
+    /** @unexpose */
     JSFileLibrary _external;
 
+    /** @unexpose */
     final ed.log.Logger _logger;
+    /** @unexpose */
     final Scope _scope;
+    /** @unexpose */
     final UsageTracker _usage;
 
+    /** @unexpose */
     final JSArray _globalHead = new JSArray();
 
     private final Map<String,File> _files = new HashMap<String,File>();
     private final Set<File> _initFlies = new HashSet<File>();
 
+    /** @unexpose */
     boolean _scopeInited = false;
+    /** @unexpose */
     boolean _inScopeInit = false;
+    /** @unexpose */
     long _lastScopeInitTime = 0;
 
+    /** @unexpose */
     final boolean _isGrid;
 
+    /** @unexpose */
     boolean _reset = false;
+    /** @unexpose */
     int _numRequests = 0;
+    /** @unexpose */
     final JSDate _created = new JSDate();
 
 

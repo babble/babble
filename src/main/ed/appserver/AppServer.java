@@ -2,16 +2,16 @@
 
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -286,15 +286,20 @@ public class AppServer implements HttpHandler {
         }
     }
 
+    /** Creates a 404 (page not found) response.
+     * @param request the HTTP request for the non-existent page
+     * @param response the HTTP response to send back to the client
+     * @param extra any extra text to add to the response
+     */
     void handle404( HttpRequest request , HttpResponse response , String extra ){
 	response.setResponseCode( 404 );
 	response.getWriter().print( "not found<br>" );
-	
+
 	if ( extra != null )
 	    response.getWriter().print( extra + "<BR>" );
 
 	response.getWriter().print( request.getRawHeader().replaceAll( "[\r\n]+" , "<br>" ) );
-			
+
     }
 
     /** Kills this appserver if it runs out of memory.  Does a garbage collection
@@ -306,7 +311,7 @@ public class AppServer implements HttpHandler {
     void handleOutOfMemoryError( OutOfMemoryError oom , HttpResponse response ){
         // 2 choices here, this request caused all sorts of problems
         // or the server is screwed.
-        
+
         MemUtil.checkMemoryAndHalt( "AppServer" , oom );
 
         // either this thread was the problem, or whatever
@@ -523,16 +528,16 @@ public class AppServer implements HttpHandler {
 
         if ( _administrativeAllowed( request ) ){
             ar.getContext()._logger.info("creating new context" );
-            
+
             AppContext newContext = ar.getContext().newCopy();
             newContext.updateCode();
             newContext.getScope();
             newContext.getFileSafe( "index.jxp" );
             _contextHolder.replace( ar.getContext() , newContext );
-            
+
             ar.getContext()._logger.info("done creating new context.  resetting" );
             ar.getContext().reset();
-            
+
             out.print( "you did it!\n" );
             out.print( "old hash:" + System.identityHashCode( ar.getContext() ) + "\n" );
             out.print( "new hash:" + System.identityHashCode( newContext ) + "\n" );
@@ -547,11 +552,11 @@ public class AppServer implements HttpHandler {
 
     void handleUpdate( AppRequest ar , HttpRequest request , HttpResponse response ){
         response.setHeader( "Content-Type" , "text/plain" );
-        
+
         JxpWriter out = response.getWriter();
 
         out.print( "you are going to update\n" );
-        
+
         if ( _administrativeAllowed( request ) ){
             out.print( "you did it!\n" );
             ar.getContext()._logger.info("About to update context via /~update");
@@ -559,7 +564,7 @@ public class AppServer implements HttpHandler {
                 String branch = ar.getContext().updateCode();
                 if ( branch == null )
                     out.print( "couldn't update." );
-                else 
+                else
                     out.print( "updated to [" + branch + "]" );
             }
             catch ( Exception e ){
@@ -576,7 +581,7 @@ public class AppServer implements HttpHandler {
     }
 
     boolean _administrativeAllowed( HttpRequest request ){
-        return 
+        return
             request.getRemoteIP().equals( "127.0.0.1" ) &&
             request.getHeader( "X-Cluster-Cluster-Ip" ) == null;
     }

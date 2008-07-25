@@ -2,16 +2,16 @@
 
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -33,8 +33,7 @@ import ed.js.*;
  * A session is provided in the application context in a variable called
  * "session". If you use it, it will automatically send a cookie to the user
  * to track sessions.
- * @example
- * session.pageviews = session.pageviews + 1;
+ * @example session.pageviews = session.pageviews + 1;
  * @expose
  */
 public class Session extends JSObjectBase {
@@ -44,6 +43,11 @@ public class Session extends JSObjectBase {
     /** Session cookie name: "__TG_SESSION_ID__" */
     static final String COOKIE_NAME = "__TG_SESSION_ID__";
 
+    /**
+     * Returns a session with a given name and database.
+     * @param s session name
+     * @param db session database
+     */
     static Session get( String s , DBBase db ){
         if ( s == null )
             return new Session();
@@ -63,15 +67,24 @@ public class Session extends JSObjectBase {
         return session;
     }
 
+    /**
+     * Initializes a new session with a randomly generated name.
+     */
     Session(){
         this( _genKey() );
     }
 
+    /**
+     * Initializes a new session with a given name.
+     */
     Session( String key ){
         _key = key;
         super.set( "_key" , key ); // calling super b/c this dosn't count as dirtying
     }
 
+    /** Returns this session's name.
+     * @return the name
+     */
     String getCookie(){
         return _key;
     }
@@ -103,11 +116,19 @@ public class Session extends JSObjectBase {
         return super.set( n , v );
     }
 
+    /** Deletes an attribute from this session.  Marks this session as dirty.
+     * @param n the name of the attribute to remove.
+     * @return the value of the attribute removed
+     */
     public Object removeField( Object n ){
         _dirty = true;
         return super.removeField( n );
     }
 
+    /** If the session is dirty, saves it to its database collection.
+     * @param db the database containing this session's collection
+     * @return if the session was dirty
+     */
     boolean sync( DBBase db ){
         if ( ! _dirty )
             return false;

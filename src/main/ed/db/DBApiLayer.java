@@ -26,15 +26,38 @@ public abstract class DBApiLayer extends DBBase {
         _root = root;
     }
 
-
+    /**
+     * @param buf
+     */
     protected abstract void doInsert( ByteBuffer buf );
+    /**
+     * @param buf
+     */
     protected abstract void doDelete( ByteBuffer buf );
+    /**
+     * @param buf
+     */
     protected abstract void doUpdate( ByteBuffer buf );
+    /**
+     * @param buf
+     */
     protected abstract void doKillCursors( ByteBuffer buf );
 
+    /**
+     * @param out
+     * @param in
+     */
     protected abstract int doQuery( ByteBuffer out , ByteBuffer in );
+    /**
+     * @param out
+     * @param in
+     */
     protected abstract int doGetMore( ByteBuffer out , ByteBuffer in );
 
+
+    /**
+     * @param name the name of the collection to find
+     */
     protected MyCollection doGetCollection( String name ){
         MyCollection c = _collections.get( name );
         if ( c != null )
@@ -52,6 +75,7 @@ public abstract class DBApiLayer extends DBBase {
         return c;
     }
 
+    /** @unexpose */
     String _removeRoot( String ns ){
         if ( ! ns.startsWith( _root + "." ) )
             return ns;
@@ -134,7 +158,7 @@ public abstract class DBApiLayer extends DBBase {
 
         if ( ip.indexOf( "." ) < 0 )
             ip += ".10gen.cc";
-        
+
         SysExec.Result r = SysExec.exec( "ssh -o StrictHostKeyChecking=no " + ip + " ls /data/db/" );
 
         List<String> all = new ArrayList<String>();
@@ -145,7 +169,7 @@ public abstract class DBApiLayer extends DBBase {
                 continue;
             all.add( s );
         }
-        
+
         return all;
     }
 
@@ -154,17 +178,17 @@ public abstract class DBApiLayer extends DBBase {
         s = s.trim();
         if ( s.length() == 0 )
             return null;
-        
+
         int idx = s.lastIndexOf( "/" );
         if ( idx > 0 )
             s = s.substring( idx + 1 );
-        
+
         if ( ! s.endsWith( ".ns" ) )
             return null;
-        
+
         if ( s.startsWith( "sys." ) )
             return null;
-        
+
         return s.substring( 0 , s.length() - 3 );
     }
 
@@ -363,7 +387,7 @@ public abstract class DBApiLayer extends DBBase {
             _cursor = decoder.getLong();
             _startingFrom = decoder.getInt();
             _num = decoder.getInt();
-            
+
             if ( _num == 0 )
                 _lst = EMPTY;
             else if ( _num < 3 )
@@ -397,7 +421,7 @@ public abstract class DBApiLayer extends DBBase {
                 }
             }
         }
-        
+
         boolean hasGetMore(){
             return _num > 0 && _cursor > 0;
         }
@@ -424,7 +448,7 @@ public abstract class DBApiLayer extends DBBase {
             _collection = coll;
             _numToReturn = numToReturn;
         }
-        
+
         private void init( SingleResult res ){
             _totalBytes += res._bytes;
 
@@ -436,11 +460,11 @@ public abstract class DBApiLayer extends DBBase {
             }
             _cur = res._lst.iterator();
         }
-        
+
         public JSObject next(){
             if ( _cur.hasNext() )
                 return _cur.next();
-            
+
             if ( ! _curResult.hasGetMore() )
 		throw new RuntimeException( "no more" );
 
@@ -458,9 +482,9 @@ public abstract class DBApiLayer extends DBBase {
 	    _advance();
 	    return hasNext();
         }
-        
+
 	private void _advance(){
-            
+
 	    if ( _curResult._cursor <= 0 )
 		throw new RuntimeException( "can't advance a cursor <= 0" );
 
