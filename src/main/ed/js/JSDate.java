@@ -563,7 +563,7 @@ public class JSDate extends JSObjectBase implements Comparable {
      * @param ms
      * @return New time in milliseconds
      */
-    public long setTime(int ms) {
+    public long setTime(long ms) {
         _cal();
         _c.setTimeInMillis(ms);
         return _time = _c.getTimeInMillis();
