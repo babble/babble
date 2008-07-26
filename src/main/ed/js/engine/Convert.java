@@ -1604,9 +1604,9 @@ public class Convert implements StackTraceFixer {
                 it._regex[i] = foo;
             }
             
-            it._strings = new JSString[ _strings.size() ];
+            it._strings = new String[ _strings.size() ];
             for ( int i=0; i<_strings.size(); i++ )
-                it._strings[i] = new JSString( _strings.get( i ) );
+                it._strings[i] = _strings.get( i );
 
             it.setName( _name );
             
@@ -1719,7 +1719,7 @@ public class Convert implements StackTraceFixer {
     private String getStringCode( String s ){
         int stringId = _strings.size();
         _strings.add( s );
-        return "_strings[" + stringId + "]";
+        return "new JSString( _strings[" + stringId + "] )";
     }
 
     public boolean hasReturn(){

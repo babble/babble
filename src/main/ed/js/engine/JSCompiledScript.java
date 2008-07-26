@@ -67,5 +67,5 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
 
     Convert _convert;
     protected ed.js.JSRegex _regex[];
-    protected ed.js.JSString _strings[];
+    protected String _strings[];
 }
