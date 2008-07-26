@@ -69,7 +69,12 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
         return new JSString( _strings[id] );
     }
 
+    public JSRegex _regex( int id ){
+        Pair<String,String> p = _regex.get( id );
+        return new JSRegex( p.first , p.second );
+    }
+
     Convert _convert;
-    protected ed.js.JSRegex _regex[];
+    protected List<Pair<String,String>> _regex;
     protected String _strings[];
 }
