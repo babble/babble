@@ -27,7 +27,8 @@ import ed.js.engine.*;
 public class JSRegex extends JSObjectBase {
 
     /** @unexpose */
-    public final static JSFunction _cons = new JSFunctionCalls2(){
+    private final static JSFunction _cons = new Cons();
+    public static class Cons extends JSFunctionCalls2{
 
             public JSObject newOne(){
                 return new JSRegex();
@@ -112,7 +113,7 @@ public class JSRegex extends JSObjectBase {
 
     /** Create a new regular expression. */
     public JSRegex(){
-        super( _cons );
+        super( Scope.getThreadLocalFunction( "RegExp" , _cons ) );
     }
 
     /** Create a new regular expression from the given string.
@@ -128,7 +129,7 @@ public class JSRegex extends JSObjectBase {
      * @param f Options
      */
     public JSRegex( String p , String f ){
-        super( _cons );
+        super( Scope.getThreadLocalFunction( "RegExp" , _cons ) );
         init( p , f );
     }
 

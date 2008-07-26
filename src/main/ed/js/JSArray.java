@@ -563,13 +563,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
     } // end CONS
 
     private static JSFunction _getCons(){
-        final Scope s = Scope.getThreadLocal();
-        if ( s == null )
-            return _cons;
-        JSFunction f = s.getFunction( "Array" );
-        if ( f == null )
-            return _cons;
-        return f;
+        return Scope.getThreadLocalFunction( "Array" , _cons );
     }
 
     /** Create this array using a variable number of objects passed as arguments.

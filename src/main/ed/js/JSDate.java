@@ -29,8 +29,9 @@ import ed.js.engine.*;
 public class JSDate extends JSObjectBase implements Comparable {
 
     /** @unexpose */
-    public static JSFunction _cons =
-        new JSFunctionCalls1(){
+    public static JSFunction _cons = new Cons();
+    
+    public static class Cons extends JSFunctionCalls1{
 
             public JSObject newOne(){
                 return new JSDate();
@@ -251,7 +252,7 @@ public class JSDate extends JSObjectBase implements Comparable {
      * @param t Time, in milliseconds, to initialize date as.
      */
     public JSDate( long t ){
-        super( _cons );
+        super( Scope.getThreadLocalFunction( "Date" , _cons ) );
         _time = t;
     }
 

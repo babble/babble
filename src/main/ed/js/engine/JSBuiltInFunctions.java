@@ -650,11 +650,12 @@ public class JSBuiltInFunctions {
 
         s.put( "Object" , new NewObject() , true );
         s.put( "Array" , new JSArray.JSArrayCons() , true );
-        s.put( "Date" , JSDate._cons , true );
+        s.put( "Date" , new JSDate.Cons() , true );
         s.put( "JSDate" , JSDate._cons , true ); // b/c Eliot always types this
-        s.put( "String" , JSString._cons , true );
-        s.put( "RegExp" , JSRegex._cons , true );
-        s.put( "Regexp" , JSRegex._cons , true ); // for Ruby technically
+        s.put( "String" , new JSString.JSStringCons() , true );
+
+        s.put( "RegExp" , new JSRegex.Cons() , true );
+        s.put( "Regexp" , s.get( "RegExp" ) , true ); // for Ruby technically
         s.put( "XMLHttpRequest" , XMLHttpRequest._cons , true );
         s.put( "Function" , JSInternalFunctions.FunctionCons , true );
         s.put( "Math" , JSMath.getInstance() , true );

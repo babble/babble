@@ -887,6 +887,20 @@ public class Scope implements JSObject {
         return _threadLocal.get();
     }
     
+    public static Object getThreadLocal( String name , Object def ){
+        final Scope s = getThreadLocal();
+        if ( s == null )
+            return def;
+        Object o = s.get( name );
+        if ( o == null )
+            return def;
+        return o;
+    }
+
+    public static JSFunction getThreadLocalFunction( String name , JSFunction def ){
+        return (JSFunction)getThreadLocal( name , def );
+    }
+
     public static Scope getLastCreated(){
         return _lastCreated.get();
     }
