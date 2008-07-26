@@ -649,7 +649,7 @@ public class JSBuiltInFunctions {
         // core js
 
         s.put( "Object" , new NewObject() , true );
-        s.put( "Array" , JSArray._cons , true );
+        s.put( "Array" , new JSArray.JSArrayCons() , true );
         s.put( "Date" , JSDate._cons , true );
         s.put( "JSDate" , JSDate._cons , true ); // b/c Eliot always types this
         s.put( "String" , JSString._cons , true );

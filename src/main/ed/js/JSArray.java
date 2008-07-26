@@ -57,8 +57,8 @@ import static ed.js.JSInternalFunctions.*;
 public class JSArray extends JSObjectBase implements Iterable , List {
 
     /** @unexpose  */
-    public final static JSFunction _cons = new JSArrayCons();
-    static class JSArrayCons extends JSFunctionCalls1{
+    private final static JSFunction _cons = new JSArrayCons();
+    public static class JSArrayCons extends JSFunctionCalls1{
 
         public JSObject newOne(){
             JSArray a = new JSArray();
@@ -560,6 +560,16 @@ public class JSArray extends JSObjectBase implements Iterable , List {
 
             _prototype.dontEnumExisting();
         }
+    } // end CONS
+
+    private static JSFunction _getCons(){
+        final Scope s = Scope.getThreadLocal();
+        if ( s == null )
+            return _cons;
+        JSFunction f = s.getFunction( "Array" );
+        if ( f == null )
+            return _cons;
+        return f;
     }
 
     /** Create this array using a variable number of objects passed as arguments.
@@ -582,7 +592,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
      * @param init The initial allocation for the array.  The minimum possible value is 16.
      */
     public JSArray( int init ){
-        super( _cons );
+        super( _getCons() );
 
         _array = new ArrayList( Math.max( 16 , init ) );
         _initSizeSet( init );
@@ -597,7 +607,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
      * @param obj A variable number of objects
      */
     public JSArray( Object ... obj ){
-        super( _cons );
+        super( _getCons() );
         if ( obj == null ){
             _array = new ArrayList();
         }
@@ -613,7 +623,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
      * @param a A JavaScript array.
      */
     public JSArray( JSArray a ){
-        super( _cons );
+        super( _getCons() );
         _array = a == null ? new ArrayList() : new ArrayList( a._array );
     }
 
@@ -621,12 +631,12 @@ public class JSArray extends JSObjectBase implements Iterable , List {
      * @param lst A Java List object
      */
     public JSArray( List lst ){
-        super( _cons );
+        super( _getCons() );
         _array = lst == null ? new ArrayList() : lst;
     }
 
     public JSArray( Collection coll ){
-        super( _cons );
+        super( _getCons() );
         _array = new ArrayList();
         if ( coll != null )
             _array.addAll( coll );
