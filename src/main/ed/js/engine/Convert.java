@@ -414,13 +414,24 @@ public class Convert implements StackTraceFixer {
             break;
 
         case Token.GET_REF:
-            _assertType( n.getFirstChild() , Token.REF_SPECIAL );
-            
-            _append( "((JSObject)" , n );
-            _add( n.getFirstChild().getFirstChild() , state );
-            _append( ").get( \"" , n );
-            _append( n.getFirstChild().getProp( Node.NAME_PROP ).toString() , n );
-            _append( "\" )" , n );
+            if ( n.getFirstChild().getType() == Token.REF_SPECIAL ){
+		_append( "((JSObject)" , n );
+		_add( n.getFirstChild().getFirstChild() , state );
+		_append( ").get( \"" , n );
+		_append( n.getFirstChild().getProp( Node.NAME_PROP ).toString() , n );
+		_append( "\" )" , n );
+	    }
+	    else if ( n.getFirstChild().getType() == Token.REF_MEMBER ){
+		_append( "((JSObject)" , n );
+		_add( n.getFirstChild().getFirstChild() , state );
+		_append( ").get( \"" , n );
+		_append( "@" + n.getFirstChild().getFirstChild().getNext().getString() , n );
+		_append( "\" )" , n );
+	    }
+	    else {
+		Debug.printTree( n , 0 );
+		throw new RuntimeException( "don't know what to do with " + Token.name( n.getFirstChild().getType() ) );
+	    }
             break;
             
         case Token.EXPR_RESULT:
