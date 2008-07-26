@@ -73,7 +73,7 @@ public class LineTest extends TestCase {
                 if ( debug ) System.out.println( line );
                 
                 final int stringid = c.findStringId( m.group() );
-                final String matchString = "_strings[" + stringid + "]";
+                final String matchString = "_string(" + stringid + ")";
                 if ( debug ) System.out.println( "\t" + matchString );
                 
                 int j=0;
