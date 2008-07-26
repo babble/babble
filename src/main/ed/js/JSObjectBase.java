@@ -443,15 +443,28 @@ public class JSObjectBase implements JSObject {
 
         return false;
     }
-
+    
     /** Returns a collection of all the keys for this object.
      * @return The keys for this object.
      */
     public Collection<String> keySet(){
         prefunc();
-        if ( _keys == null )
-            return EMPTY_SET;
-        return _keys;
+
+	List<String> keys = new ArrayList<String>();
+
+        if ( _keys != null )
+	    keys.addAll( _keys );
+	    
+	if ( _dontEnum != null )
+	    keys.removeAll( _dontEnum );
+	
+	return keys;
+    }
+
+    public void dontEnum( String s ){
+	if ( _dontEnum == null )
+	    _dontEnum = new HashSet();
+	_dontEnum.add( s );
     }
 
     // ----
@@ -879,6 +892,7 @@ public class JSObjectBase implements JSObject {
     /** @unexpose */
     protected Map<String,Pair<JSFunction,JSFunction>> _setterAndGetters = null;
     private Collection<String> _keys = null;
+    private Set<String> _dontEnum;
     private JSFunction _constructor;
     private boolean _readOnly = false;
     private String _name;
@@ -1128,6 +1142,13 @@ public class JSObjectBase implements JSObject {
                         return JSInternalFunctions.parseNumber( s.getThis() , null );
                     }
                 } );
+
+	    set( "dontEnum" , new JSFunctionCalls1(){
+		    public Object call( Scope s , Object type , Object args[] ){
+			((JSObjectBase)s.getThis()).dontEnum( type.toString() );
+			return null;
+		    }
+		});
 
         }
 
