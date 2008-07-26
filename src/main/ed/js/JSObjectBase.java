@@ -447,7 +447,7 @@ public class JSObjectBase implements JSObject {
     /** Returns a collection of all the keys for this object.
      * @return The keys for this object.
      */
-    public Collection<String> keySet(){
+    public final Collection<String> keySet(){
         return keySet( true );
     }
     

@@ -113,7 +113,7 @@ public class Context extends JSObjectBase {
         return super._simpleGet(s);
     }
 
-    public Collection<String> keySet() {
+    public Collection<String> keySet( boolean includePrototype ) {
         ArrayList<String> compositeKeySet = new ArrayList<String>();
 
         for (JSObject obj : objectStack) {

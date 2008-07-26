@@ -73,7 +73,7 @@ public class JSFileChunk extends JSObjectBase {
      * @return Collection of keys in this chunk.
      * @throws RuntimeException If this chunk has no chunk number.
      */
-    public Collection<String> keySet(){
+    public Collection<String> keySet( boolean includePrototype ){
         if ( get( "cn" ) == null )
             throw new RuntimeException( "bad chunk" );
 

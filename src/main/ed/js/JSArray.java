@@ -709,7 +709,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
     /** Returns an array of the indices for this array.
      * @return The indices for this array.
      */
-    public Collection<String> keySet(){
+    public Collection<String> keySet( boolean includePrototype ){
         Collection<String> p = super.keySet();
 
         List<String> keys = new ArrayList<String>( p.size() + _array.size() );
