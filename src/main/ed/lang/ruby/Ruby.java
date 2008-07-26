@@ -138,9 +138,12 @@ public class Ruby {
                     JSObject jo = (JSObject)thing;
                     
                     Object func = jo.get( RubyConvert._mangleFunctionName( funcName.toString() ) );
-                    
-                    if ( func == null )
+		    
+                    if ( func == null ){
+			if ( thing.getClass() != JSObjectBase.class )
+			    return Scope.callNative( s , thing , funcName.toString() , null );
                         return null;
+		    }
                     
                     if ( ! ( func instanceof JSFunction ) )
                         return func;
