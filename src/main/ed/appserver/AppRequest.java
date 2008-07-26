@@ -24,6 +24,7 @@ import ed.js.*;
 import ed.js.engine.*;
 import ed.net.httpserver.*;
 import ed.log.*;
+import ed.appserver.jxp.*;
 
 public class AppRequest {
     
@@ -152,6 +153,14 @@ public class AppRequest {
 
     public Logger getLogger(){
         return _context._logger;
+    }
+
+    public void print( String s ){
+        Object o = _scope.get( "print" );
+        if ( ! ( o instanceof JxpServlet.MyWriter ) )
+            System.out.print( s );
+        else
+            ((JxpServlet.MyWriter)o).print( s );
     }
 
     void done( HttpResponse response ){

@@ -371,6 +371,7 @@ public class JavadocToDB {
             topLevel.set("name", classes[i].qualifiedName());
 
             int summarylen = classes[i].commentText().indexOf(". ")+1;
+            if(summarylen == 0) summarylen = classes[i].commentText().indexOf(".\n")+1;
             if(summarylen == 0) summarylen = classes[i].commentText().length();
             topLevel.set("desc", classes[i].commentText().substring(0, summarylen));
 
