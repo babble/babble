@@ -18,3 +18,8 @@ assert( found == 1 );
 
 Date.prototype._dontEnum = true;
 for(var key in (new Date())){ assert(0); }
+
+Date.prototype._dontEnum = false;
+found = 0;
+for(var key in (new Date())){ found++; print( key ); }
+assert( found == 1 );

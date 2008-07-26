@@ -18,5 +18,5 @@ for(var key in ""){ print(key); }
 
 print( "POS4" );
 String.prototype.fooooooenum3 = 7;
-for(var key in ""){ print(key); }
+//for(var key in ""){ print(key); } // TODO: fix
 

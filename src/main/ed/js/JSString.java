@@ -33,7 +33,7 @@ public class JSString extends JSObjectBase implements Comparable {
 
     static { JS._debugSI( "JSString" , "0" ); }
     /** @unexpose  */
-    private static JSFunction _cons = new JSStringCons();
+    public static JSFunction _cons = new JSStringCons();
     static { JS._debugSI( "JSString" , "1" ); }
 
     public static class JSStringCons extends JSFunctionCalls1{
@@ -545,7 +545,7 @@ public class JSString extends JSObjectBase implements Comparable {
      * @param The value for the string.
      */
     public JSString( String s ){
-        super( Scope.getThreadLocalFunction( "String", _cons ) );
+        super( Scope.getThreadLocalFunction( "String", _cons , true  ) );
         _s = s;
     }
 

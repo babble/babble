@@ -887,18 +887,27 @@ public class Scope implements JSObject {
         return _threadLocal.get();
     }
     
-    public static Object getThreadLocal( String name , Object def ){
+    public static Object getThreadLocal( String name , Object def){
+        return getThreadLocal( name , def , false );
+    }
+
+    public static Object getThreadLocal( String name , Object def , boolean warn ){
         final Scope s = getThreadLocal();
-        if ( s == null )
-            return def;
-        Object o = s.get( name );
-        if ( o == null )
-            return def;
-        return o;
+        if ( s != null ){
+            Object o = s.get( name );
+            if ( o != null )
+                return o;
+        }
+        //if ( warn ) System.out.println( "WARNING: using default for [" + name + "] has scope:" + ( s != null ) );
+        return def;
     }
 
     public static JSFunction getThreadLocalFunction( String name , JSFunction def ){
         return (JSFunction)getThreadLocal( name , def );
+    }
+
+    public static JSFunction getThreadLocalFunction( String name , JSFunction def , boolean warn ){
+        return (JSFunction)getThreadLocal( name , def , warn );
     }
 
     public static Scope getLastCreated(){

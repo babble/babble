@@ -41,7 +41,8 @@ public class JSObjectBase implements JSObject {
         BAD_KEY_NAMES.add( "__constructor__" );
         BAD_KEY_NAMES.add( "constructor" );
         BAD_KEY_NAMES.add( "__parent____" );
-
+        BAD_KEY_NAMES.add( "_dontEnum" );
+        
         JS._debugSIStart( "JSObjectBase" );
     }
 

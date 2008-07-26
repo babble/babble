@@ -76,9 +76,10 @@ public class ConvertTest extends TestCase {
             final PrintStream out = new PrintStream( bout );
             
             JSFunction f = c.get();
-            Scope scope = Scope.getAScope().child( new File( "." ) );
+            Scope scope = Scope.newGlobal().child( new File( "." ) );
             scope.setGlobal( true );
-            
+            scope.makeThreadLocal();
+
             if ( _file.toString().contains( "/engine/" ) ){
                 JSFunction myout = new JSFunctionCalls1(){
                         public Object call( Scope scope ,Object o , Object extra[] ){
