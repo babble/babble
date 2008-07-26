@@ -1719,7 +1719,7 @@ public class Convert implements StackTraceFixer {
     private String getStringCode( String s ){
         int stringId = _strings.size();
         _strings.add( s );
-        return "new JSString( _strings[" + stringId + "] )";
+        return "_string(" + stringId + ")";
     }
 
     public boolean hasReturn(){
