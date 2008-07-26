@@ -86,7 +86,7 @@ public class ByteEncoder extends Bytes {
      * this is really for embedded objects
      */
     private int putObject( String name , JSObject o ){
-        if ( DEBUG ) System.out.println( "putObject : " + name + " [" + o.getClass() + "]" + " # keys " + o.keySet().size() );
+        if ( DEBUG ) System.out.println( "putObject : " + name + " [" + o.getClass() + "]" + " # keys " + o.keySet( false ).size() );
             
         if ( _flipped )
             throw new RuntimeException( "already flipped" );
@@ -121,7 +121,7 @@ public class ByteEncoder extends Bytes {
         }
         
 
-        for ( String s : o.keySet() ){
+        for ( String s : o.keySet( false ) ){
             
             if ( dbOnlyField( s ) 
                  || s.equals( "_transientFields" ) 

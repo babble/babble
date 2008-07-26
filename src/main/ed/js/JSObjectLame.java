@@ -34,6 +34,11 @@ public class JSObjectLame implements JSObject {
     }
 
     /** @unexpose */
+    public Collection<String> keySet( boolean includePrototype ){
+        throw new UnsupportedOperationException();
+    }
+
+    /** @unexpose */
     public boolean containsKey( String s ){
         throw new UnsupportedOperationException();
     }

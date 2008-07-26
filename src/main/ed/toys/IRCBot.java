@@ -95,6 +95,10 @@ public class IRCBot extends PircBot implements JSObject {
     }
     
     public Collection<String> keySet(){
+        return keySet( false );
+    }
+
+    public Collection<String> keySet( boolean includePrototype ){
         return _things.keySet();
     }
 

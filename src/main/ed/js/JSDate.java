@@ -181,7 +181,9 @@ public class JSDate extends JSObjectBase implements Comparable {
                         }
                     }
                     );
+                
 
+                _prototype.dontEnumExisting();
             }
 
         };

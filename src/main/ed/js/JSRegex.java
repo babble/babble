@@ -105,6 +105,8 @@ public class JSRegex extends JSObjectBase {
                             return _lastRegex.get();
                         }
                     } );
+                
+                _prototype.dontEnumExisting();
             }
         };
 

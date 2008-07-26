@@ -556,7 +556,9 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                         return new JSArray(new LinkedList());
                     }
                 } );
+            
 
+            _prototype.dontEnumExisting();
         }
     }
 

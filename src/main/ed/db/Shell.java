@@ -71,7 +71,7 @@ public class Shell {
             JSObject obj = c.next();
             all.add( obj );
             
-            for ( String f : obj.keySet() ){
+            for ( String f : obj.keySet( false ) ){
                 
                 if ( JSON.IGNORE_NAMES.contains( f ) )
                     continue;

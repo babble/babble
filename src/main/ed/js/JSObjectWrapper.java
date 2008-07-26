@@ -84,6 +84,11 @@ public class JSObjectWrapper implements JSObject {
         return _wrap.keySet();
     }
 
+
+    public java.util.Collection<String> keySet( boolean includePrototype ){
+        return _wrap.keySet( includePrototype );
+    }
+
     /** Finds the constructor for this object.
      * @return The constructor
      */

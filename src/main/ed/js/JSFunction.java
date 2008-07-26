@@ -376,6 +376,8 @@ public abstract class JSFunction extends JSFunctionBase {
 
         fcons._prototype.set( "cache" , _cache );
 
+        fcons._prototype.dontEnumExisting();
+        
         _staticInited = true;
     }
 

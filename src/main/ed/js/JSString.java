@@ -529,9 +529,10 @@ public class JSString extends JSObjectBase implements Comparable {
                         }
                         return true;
                     }
-
+                    
                 } );
 
+            _prototype.dontEnumExisting();
         }
     };
 

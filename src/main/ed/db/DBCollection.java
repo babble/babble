@@ -108,7 +108,7 @@ public abstract class DBCollection extends JSObjectLame {
         if ( key.get( "_id" ) == null )
             return;
 
-        if ( key.keySet().size() > 1 )
+        if ( key.keySet( false ).size() > 1 )
             return;
 
         ensureIDIndex();
@@ -177,7 +177,7 @@ public abstract class DBCollection extends JSObjectLame {
      */
     public String genIndexName( JSObject keys ){
         String name = "";
-        for ( String s : keys.keySet() ){
+        for ( String s : keys.keySet( false ) ){
             if ( name.length() > 0 )
                 name += "_";
             name += s + "_";
@@ -490,7 +490,7 @@ public abstract class DBCollection extends JSObjectLame {
 
         while ( toSearch.size() > 0 ){
             JSObject n = toSearch.remove(0);
-            for ( String name : n.keySet() ){
+            for ( String name : n.keySet( false ) ){
                 Object foo = n.get( name );
                 if ( foo == null )
                     continue;
@@ -546,7 +546,7 @@ public abstract class DBCollection extends JSObjectLame {
                     if ( e instanceof DBRef )
                         continue;
 
-                    throw new RuntimeException( "_update is null.  keyset : " + e.keySet() + " ns:" + e.get( "_ns" ) );
+                    throw new RuntimeException( "_update is null.  keyset : " + e.keySet( false ) + " ns:" + e.get( "_ns" ) );
                 }
 
                 if ( e instanceof JSObjectBase && ! ((JSObjectBase)e).isDirty() )

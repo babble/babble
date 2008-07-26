@@ -254,7 +254,7 @@ public abstract class DBApiLayer extends DBBase {
             encoder._buf.putInt( 0 ); // reserved
             encoder._put( _fullNameSpace );
 
-            Collection<String> keys = o.keySet();
+            Collection<String> keys = o.keySet( false );
 
             if ( keys.size() == 1 &&
                  keys.iterator().next().equals( "_id" ) &&
@@ -414,8 +414,8 @@ public abstract class DBApiLayer extends DBBase {
                     num++;
 
                     if ( D ) {
-                        System.out.println( "-- : " + o.keySet().size() );
-                        for ( String s : o.keySet() )
+                        System.out.println( "-- : " + o.keySet( false ).size() );
+                        for ( String s : o.keySet( false ) )
                             System.out.println( "\t " + s + " : " + o.get( s ) );
                     }
                 }

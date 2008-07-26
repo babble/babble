@@ -84,7 +84,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
 
         if ( _collection != null && _query != null ){
             JSObject foo = _query;
-            if ( _orderBy != null && _orderBy.keySet().size() > 0 ){
+            if ( _orderBy != null && _orderBy.keySet( false ).size() > 0 ){
                 foo = new JSObjectBase();
                 if ( _query != null ){
                     _query.set( Bytes.NO_REF_HACK , "z" );
@@ -124,7 +124,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
         _collection.apply( _cur , false );
         _num++;
 
-        if ( _keysWanted != null && _keysWanted.keySet().size() > 0 && _cur instanceof JSObjectBase ){
+        if ( _keysWanted != null && _keysWanted.keySet( false ).size() > 0 && _cur instanceof JSObjectBase ){
             ((JSObjectBase)_cur).markAsPartialObject();
         }
 

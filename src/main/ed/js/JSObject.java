@@ -68,6 +68,8 @@ public interface JSObject {
      */
     public Collection<String> keySet();
 
+    public Collection<String> keySet( boolean includePrototype );
+
     /** Finds the constructor for this object.
      * @return The constructor
      */

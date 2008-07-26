@@ -133,6 +133,10 @@ public class Scope implements JSObject {
     }
 
     public Collection<String> keySet(){
+        return keySet( false );
+    }
+
+    public Collection<String> keySet( boolean includePrototype ){
         if ( _objects == null )
             return new HashSet<String>();
         return new HashSet<String>( _objects.keySet() );

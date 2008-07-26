@@ -162,7 +162,7 @@ public class JSHook {
         
         long s = 20;
         
-        for ( String name : o.keySet() ){
+        for ( String name : o.keySet( false ) ){
             s += name.length() + 12;
             Object foo = o.get( name );
             

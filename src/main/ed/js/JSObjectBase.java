@@ -448,6 +448,10 @@ public class JSObjectBase implements JSObject {
      * @return The keys for this object.
      */
     public Collection<String> keySet(){
+        return keySet( true );
+    }
+    
+    public Collection<String> keySet( boolean includePrototype ){
         prefunc();
 
 	List<String> keys = new ArrayList<String>();
@@ -455,10 +459,21 @@ public class JSObjectBase implements JSObject {
         if ( _keys != null )
 	    keys.addAll( _keys );
 	    
+        if ( includePrototype && _constructor != null ){
+            if ( ! JSInternalFunctions.JS_evalToBool( _constructor.getPrototype().get( "_dontEnum" ) ) )
+                keys.addAll( _constructor.getPrototype().keySet() );
+        }
+
 	if ( _dontEnum != null )
 	    keys.removeAll( _dontEnum );
 	
 	return keys;
+    }
+
+    public void dontEnumExisting(){
+	if ( _dontEnum == null )
+	    _dontEnum = new HashSet();
+        _dontEnum.addAll( keySet() );
     }
 
     public void dontEnum( String s ){
