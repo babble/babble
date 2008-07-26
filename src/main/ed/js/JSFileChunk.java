@@ -79,7 +79,8 @@ public class JSFileChunk extends JSObjectBase {
 
         if ( get( "data") == null )
             set( "data" , getData() );
-        return super.keySet();
+
+        return super.keySet( includePrototype );
     }
 
     public static void setup( DBCollection db ){

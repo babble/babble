@@ -119,7 +119,7 @@ public class Context extends JSObjectBase {
         for (JSObject obj : objectStack) {
             compositeKeySet.addAll(obj.keySet());
         }
-        compositeKeySet.addAll(super.keySet());
+        compositeKeySet.addAll(super.keySet( includePrototype ));
 
         return compositeKeySet;
     }
