@@ -413,7 +413,7 @@ public class JSBuiltInFunctions {
             return t;
         }
     }
-
+    
     public static class processArgs extends JSFunctionCalls0 {
         public Object call( Scope scope , Object [] args){
             JSArray a = (JSArray)scope.get("arguments");
@@ -423,6 +423,7 @@ public class JSBuiltInFunctions {
             return null;
         }
     }
+
 
     /** Returns if a given scope is the main scope.
      * @param the scope to check
@@ -624,9 +625,11 @@ public class JSBuiltInFunctions {
 
         s.put( "processArgs", new processArgs(), true );
 
+	s.put( "XML" , E4X.CONS , true );
+
         // mail stuff till i'm done
         s.put( "JAVAXMAILTO" , javax.mail.Message.RecipientType.TO , true );
-
+	
         JSON.init( s );
         Encoding.install( s );
 
