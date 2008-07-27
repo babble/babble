@@ -66,6 +66,10 @@ public class JSPyObjectWrapper implements JSObject {
     
 
     public Collection<String> keySet(){
+        return keySet( false );
+    }
+
+    public Collection<String> keySet( boolean includePrototype ){
         
         List<String> keys = new ArrayList<String>();
     
@@ -77,7 +81,6 @@ public class JSPyObjectWrapper implements JSObject {
             for ( PyObject o : _p.asIterable() ){
                 keys.add( o.toString() );
             }
-            System.out.println( "H1 keys : " + keys );
         }
         
         return keys;
