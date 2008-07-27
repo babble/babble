@@ -60,6 +60,24 @@ DB.prototype.dropDatabase = function() {
 }
 
 /**
+  Clone database on another server to here.
+
+  Generally, you should dropDatabase() first as otherwise the cloned information will MERGE 
+  into whatever data is already present in this database!
+ 
+  This is a low level administrative function will is not typically used.
+
+ * @param {String} clone Where to clone from (db hostname)
+ * @return Object returned has member ok set to true if operation succeeds, false otherwise.
+*/
+DB.prototype.cloneDatabase = function(from) { 
+    assert( isString(from) );
+    this.resetIndexCache();
+	
+    return this._dbCommand( { clone: from } );
+}
+
+/**
  *  Returns the current profiling level of this database
  *  @return SOMETHING_FIXME or null on error
  */
