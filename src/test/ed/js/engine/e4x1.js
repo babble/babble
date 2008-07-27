@@ -23,7 +23,5 @@ myprint( sales.name );
 
 myprint( sales.zzz );
 myprint( sales.item.length() );
-//myprint( sales.item.(@type == "carrot") );
-//myprint( sales.item.(@type == "carrot").@quantity );
 
-//for each( var price in sales..@price ) {  myprint( price ); }
+
