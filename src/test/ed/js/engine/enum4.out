@@ -1,4 +1,4 @@
-prototype
-b
-a
-a
+Foo:prototype
+Foo:b
+Foo.prototype:a
+new Foo:a
