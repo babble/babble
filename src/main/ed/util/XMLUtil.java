@@ -40,7 +40,7 @@ public class XMLUtil {
         return buf.toString();
     }
 
-    static StringBuilder append( Node n , StringBuilder buf , int level ){
+    public static StringBuilder append( Node n , StringBuilder buf , int level ){
         if ( n instanceof CharacterData )
             return _level( buf , level ).append( n.getNodeValue() ).append( "\n" );
         
@@ -54,7 +54,7 @@ public class XMLUtil {
         }
         
         NodeList children = n.getChildNodes();
-        if ( children == null )
+        if ( children == null || children.getLength() == 0 )
             return buf.append( "/>\n" );
         buf.append( ">\n" );
         
@@ -65,7 +65,7 @@ public class XMLUtil {
         
         return _level( buf , level ).append( "</" ).append( n.getNodeName() ).append( ">\n" );
     }
-
+    
     static StringBuilder _level( StringBuilder buf , int level ){
         for ( int i=0; i<level; i++ )
             buf.append( " " );

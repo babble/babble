@@ -109,24 +109,37 @@ public class E4X {
                 return null;
 
             if ( n instanceof Number )
-                return new ENode( _lst.get( ((Number)n).intValue() ) );
+                return child( ((Number)n).intValue() );
             
             if ( n instanceof JSString || n instanceof String ){
                 String s = n.toString();
             
-                if ( s.equals( "length" ) )
+                if ( s.equals( "length" ) || 
+                     s.equals( "toString" ) ||
+                     s.equals( "child" ) )
                     return null;
             }
             
             throw new RuntimeException( "can't handle [" + n + "] from a list" );
         }
         
+        public ENode child( int num ){
+            return new ENode( _lst.get( num ) );
+        }
+
         public int length(){
             if ( _lst == null )
                 return -1;
             return _lst.size();
         }
         
+        public String toString(){
+            StringBuilder buf = new StringBuilder();
+            for ( Node n : _lst )
+                XMLUtil.append( n , buf , 0 );
+            return buf.toString();
+        }
+
         final private List<Node> _lst;
     }
 }
