@@ -11,11 +11,11 @@
     <pathelement path="conf" />
     <pathelement path="build" />
 
-    <fileset dir="include/jython">
+    <fileset dir="include/jython/current">
       <include name="**/*.jar"/>
     </fileset>
 
-    <fileset dir="include/jython/javalib">
+    <fileset dir="include/jython/current/javalib">
       <include name="**/*.jar"/>
     </fileset>
 
