@@ -1,9 +1,26 @@
 
+function myprint( s ){
+    s = s.toString();
+    s = s.replace( /[\r\n\s]+/g , "" );
+    print( s );
+}
+
 var sales = <sales vendor="John">
+    <name>John Smith</name>
+    <silly><foo>a</foo></silly>
     <item type="peas" price="4" quantity="6"/>
     <item type="carrot" price="3" quantity="10"/>
     <item type="chips" price="5" quantity="3"/>
     </sales>;
 
-print( sales );
-//print( sales.@vendor );
+myprint( sales );
+myprint( sales.@vendor );
+myprint( sales.silly );
+myprint( sales.name );
+
+myprint( sales.item.length() );
+//myprint( sales.item[0] );
+//myprint( sales.item.(@type == "carrot") );
+//myprint( sales.item.(@type == "carrot").@quantity );
+
+//for each( var price in sales..@price ) {  myprint( price ); }
