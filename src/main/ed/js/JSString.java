@@ -18,6 +18,7 @@
 
 package ed.js;
 
+import java.util.*;
 import java.util.regex.*;
 
 import com.twmacinta.util.*;
@@ -30,11 +31,7 @@ import ed.js.engine.*;
 public class JSString extends JSObjectBase implements Comparable {
 
     static { JS._debugSIStart( "JSString" ); }
-
     static { JS._debugSI( "JSString" , "0" ); }
-    /** @unexpose  */
-    public static JSFunction _cons = new JSStringCons();
-    static { JS._debugSI( "JSString" , "1" ); }
 
     public static class JSStringCons extends JSFunctionCalls1{
 
@@ -536,6 +533,8 @@ public class JSString extends JSObjectBase implements Comparable {
         }
     };
 
+    static { JS._debugSI( "JSString" , "1" ); }
+    private static JSFunction _cons = new JSStringCons();
     static { JS._debugSI( "JSString" , "2" ); }
 
     /** The empty string: "" */
@@ -635,6 +634,15 @@ public class JSString extends JSObjectBase implements Comparable {
      */
     public byte[] getBytes(){
         return _s.getBytes();
+    }
+
+    public Collection<String> keySet( boolean includePrototype ){
+        List<String> keys = new ArrayList<String>();
+        for ( int i=0; i<_s.length(); i++ )
+            keys.add( String.valueOf( i ) );
+
+        keys.addAll( super.keySet( includePrototype ) );
+        return keys;
     }
 
     /** @unexpose */

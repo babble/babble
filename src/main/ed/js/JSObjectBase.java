@@ -459,10 +459,12 @@ public class JSObjectBase implements JSObject {
 
         if ( _keys != null )
 	    keys.addAll( _keys );
-	    
+        
         if ( includePrototype && _constructor != null ){
-            if ( ! JSInternalFunctions.JS_evalToBool( _constructor.getPrototype().get( "_dontEnum" ) ) )
+            JSObject p = _constructor.getPrototype();
+            if ( p != null && ! JSInternalFunctions.JS_evalToBool( p.get( "_dontEnum" ) ) ){
                 keys.addAll( _constructor.getPrototype().keySet() );
+            }
         }
 
 	if ( _dontEnum != null )
@@ -749,12 +751,13 @@ public class JSObjectBase implements JSObject {
             a.append( " name : [" ).append( _name ).append( "] " );
         if( _keys != null )
             a.append( "keys : " ).append( _keys.toString() );
+        a.append( " " + System.identityHashCode( this ) );
         a.append( "\n" );
 
         if ( _map != null ){
             JSObjectBase p = (JSObjectBase)_simpleGet( "prototype" );
             if ( p != null ){
-                _space( level + 1 , a ).append( "prototype ||\n" );
+                _space( level + 1 , a ).append( "prototype || " + System.identityHashCode( p ) + "\n" );
                 p.debug( level + 2 , a );
             }
 

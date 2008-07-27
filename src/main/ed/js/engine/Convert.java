@@ -244,7 +244,7 @@ public class Convert implements StackTraceFixer {
             int rId = n.getIntProp( Node.REGEXP_PROP , -1 );
             
             _regex.add( new Pair<String,String>( parent.getRegexpString( rId ) , parent.getRegexpFlags( rId ) ) );
-            _append( " _regex[" + myId + "] " , n );
+            _append( " _regex(" + myId + ") " , n );
             break;
 
         case Token.ARRAYLIT:
@@ -1597,16 +1597,11 @@ public class Convert implements StackTraceFixer {
             JSCompiledScript it = (JSCompiledScript)c.newInstance();
             it._convert = this;
             
-            it._regex = new JSRegex[ _regex.size() ];
-            for ( int i=0; i<_regex.size(); i++ ){
-                Pair<String,String> p = _regex.get( i );
-                JSRegex foo = new JSRegex( p.first , p.second );
-                it._regex[i] = foo;
-            }
-            
-            it._strings = new JSString[ _strings.size() ];
+            it._regex = _regex;
+
+            it._strings = new String[ _strings.size() ];
             for ( int i=0; i<_strings.size(); i++ )
-                it._strings[i] = new JSString( _strings.get( i ) );
+                it._strings[i] = _strings.get( i );
 
             it.setName( _name );
             
@@ -1719,7 +1714,7 @@ public class Convert implements StackTraceFixer {
     private String getStringCode( String s ){
         int stringId = _strings.size();
         _strings.add( s );
-        return "_strings[" + stringId + "]";
+        return "_string(" + stringId + ")";
     }
 
     public boolean hasReturn(){
