@@ -414,11 +414,11 @@ public class Scope implements JSObject {
             return _parent.getGlobal();
         if ( _global )
             return this;
-        if ( _parent != null )
-            return _parent.getGlobal();
-        return null;
+        if ( _parent == null )
+	    return this;
+	return _parent.getGlobal();
     }
-    
+
     public Scope getParent(){
 	return _parent;
     }
