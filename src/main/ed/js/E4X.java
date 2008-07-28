@@ -19,7 +19,13 @@ public class E4X {
 	    }
 	    
 	    public Object call( Scope scope , Object str , Object [] args){	
-		ENode e = (ENode)scope.getThis();
+                Object blah = scope.getThis();
+
+                ENode e;
+                if ( blah instanceof ENode) 
+                    e = (ENode)blah;
+                else 
+                    e = new ENode();
 		e.init( str.toString() );
 		return e;
 	    }

@@ -27,3 +27,8 @@ myprint( sales.zzz );
 myprint( sales.item.length() );
 
 
+x = XML( "<foo><a>6</a></foo>" );
+print( x.a );
+
+x = new XML( "<foo><a>6</a></foo>" );
+print( x.a );
