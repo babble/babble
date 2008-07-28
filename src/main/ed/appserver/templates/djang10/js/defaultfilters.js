@@ -13,13 +13,11 @@
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 var defaultfilters =
     djang10.defaultfilters = 
     {};
 
 register = new djang10.Library();
-
 
 ///////////////////////
 // STRING DECORATOR  //
@@ -631,7 +629,7 @@ get_digit.is_safe = true;
 
 
 ///////////////////////
-// INTEGERS          //
+// DATE              //
 ///////////////////////
 
 
@@ -639,7 +637,77 @@ var date =
     defaultfilters.date =
     function(value, arg) {
 
+    if(!value)
+        return "";
+    
+    //TODO: if arg is null, use django.DATE_FORMAT
+
     return djang10.formatDate(value, arg);        
+};
+date.is_safe = true;
+
+//TODO: time
+
+var _time_since = function(d, now) {
+    //TODO: implement and use the actual translation system
+    var ungettext = function(singular, plural, n) { return ((n == 1) || (!plural))? singular : plural; };
+    var chunks = [
+      [60 * 60 * 24 * 365, function(n) { return ungettext('year', 'years', n); }],
+      [60 * 60 * 24 * 30, function(n) { return ungettext('month', 'months', n); }],
+      [60 * 60 * 24 * 7, function(n) { return ungettext('week', 'weeks', n); }],
+      [60 * 60 * 24, function(n) { return ungettext('day', 'days', n); }],
+      [60 * 60, function(n) { return ungettext('hour', 'hours', n); }],
+      [60, function(n) { return ungettext('minute', 'minutes', n); }]
+    ];
+    
+    var now_ms = (now || new Date()).getTime();
+    var then_ms = d.getTime();
+    var diff_secs = (now_ms - then_ms)/1000;
+    
+    if(diff_secs <= 0) return "0 " + ungettext("minutes");
+    
+    var seconds;
+    var name_func;
+    var count;
+    var i;
+    for(i=0; i<chunks.length; i++) {
+        seconds = chunks[i][0];
+        name_func = chunks[i][1];
+        count = Math.floor(diff_secs/seconds);
+        
+        if(count != 0)
+            break;
+    }
+    var s = count + " " + name_func(count);
+    
+    if(i + 1 < chunks.length) {
+        var seconds2 = chunks[i+1][0];
+        var name_func2 = chunks[i+1][1];
+        var count2 = Math.floor( (diff_secs - (seconds * count)) / seconds2 );
+        
+        if(count2 != 0)
+            s += ", " + count2 + " " + name_func2(count2);
+    }
+    return s;
+};
+var timesince =
+    defaultfilters.timesince =
+    function(value, arg) {
+
+    if(!value)
+        return "";
+    
+    return (arg)? _time_since(arg, value) : _time_since(value);
+};
+
+var timeuntil =
+    defaultfilters.timeuntil =
+    function(value, arg) {
+
+    if(!value)
+        return "";
+    
+    return (arg)? _time_since(arg, value) : _time_since(new Date(), value);
 };
 
 var default_ =
@@ -710,6 +778,9 @@ register.filter("slice", slice_);
 register.filter("unordered_list", unordered_list);
 register.filter("add", add);
 register.filter("get_digit", get_digit);
+register.filter("timesince", timesince);
+register.filter("timeuntil", timeuntil);
+
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
 
