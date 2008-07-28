@@ -60,15 +60,12 @@ public abstract class ScriptTestInstanceBase extends MyAsserts implements Script
 
         // System.out.println("ScriptTestInstanceBase : running " + _file);
 
-        JSFunction f = convert();
-
         Scope scope = Scope.newGlobal().child(new File("/tmp"));
         scope.setGlobal( true );
         scope.makeThreadLocal();
-        /*
-         *  augment the scope
-         */
-        
+
+        JSFunction f = convert();
+
         preTest(scope);
         
         Shell.addNiceShellStuff(scope);
