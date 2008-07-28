@@ -1,5 +1,8 @@
 
 function myprint( s ){
+    if ( ! s )
+        return print( s );
+        
     s = s.toString();
     s = s.replace( /[\r\n\s]+/g , "" );
     print( s );
@@ -14,9 +17,18 @@ var sales = <sales vendor="John">
     <zzz a="5" />
     <zzz a="6" />
     <zzz a="7" />
+    <yyy x="a" />
     </sales>;
 
 
+myprint( sales.item.length() );
+myprint( sales.item.(@type == "carrot") == null );
 myprint( sales.item.(@type == "carrot").@quantity );
+myprint( sales.@vendor );
+myprint( sales.name );
 
-//print( sales..@price );
+print( "---" );
+myprint( sales..@x.length() );
+myprint( sales..@price.length() );
+myprint( sales..zzz );
+
