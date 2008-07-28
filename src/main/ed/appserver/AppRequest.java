@@ -49,7 +49,7 @@ public class AppRequest {
     public Scope getScope(){
         
         if ( _scope == null ){
-            _scope = _context.scopeChild();
+            _scope = _context.scopeChild( isAdmin() );
 
             _scope.put( "request" , _request , true );
             _scope.lock( "request" );
@@ -60,10 +60,20 @@ public class AppRequest {
             _scope.put( "session" , Session.get( _request.getCookie( Session.COOKIE_NAME ) , _context.getDB() ) , true );
             _scope.lock( "session" );
             
-            _context.getScope().setTLPreferred( _scope );
+            _context.setTLPreferredScope( this , _scope );
         }
         
         return _scope;
+    }
+
+    public boolean isAdmin(){
+        if ( _uri.startsWith( "/admin/" ) )
+            return true;
+
+        if ( _uri.startsWith( "/~~/modules/admin/" ) )
+            return true;
+        
+        return false;
     }
 
     public String getURI(){
@@ -164,7 +174,7 @@ public class AppRequest {
     }
 
     void done( HttpResponse response ){
-        _context.getScope().setTLPreferred( null );
+        _context.setTLPreferredScope( this , null );
         Session session = (Session)_scope.get( "session" );
         if ( session.sync( _context.getDB() ) )
             response.addCookie( Session.COOKIE_NAME , session.getCookie() );

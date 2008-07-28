@@ -33,11 +33,13 @@ import ed.appserver.templates.djang10.Printer;
 import ed.db.JSHook;
 import ed.js.Encoding;
 import ed.js.JSArray;
+import ed.js.JSDate;
 import ed.js.JSException;
 import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.JSString;
 import ed.js.engine.Scope;
+import ed.js.func.JSFunctionCalls0;
 import ed.js.func.JSFunctionCalls2;
 
 public class DjangoRegressionTests {
@@ -83,12 +85,9 @@ public class DjangoRegressionTests {
         "filter-phone2numeric.*",
         "filter-slugify.*",
         "filter-stringformat.*",
-        "filter-timesince.*",
-        "filter-timeuntil.*",
         "filter-urlize.*",
         "filter-wordwrap.*",
 
-        
         //broken filters
         "chaining0[35]",
         "filter-make_list0[1,2]", //js & python print different representations of arrays
@@ -113,6 +112,25 @@ public class DjangoRegressionTests {
         globalScope.makeThreadLocal();
 
         //Load native objects
+        
+        //override the Date object
+        final long now_ms = System.currentTimeMillis();
+        globalScope.set("Date", new JSFunctionCalls0() {
+            public Object call(Scope scope, Object[] extra) {
+                Object thisObj = scope.getThis();
+                
+                if((extra != null && extra.length > 0) || !(thisObj instanceof JSDate))
+                    throw new IllegalStateException("Date has been intentionally crippled & can only be used as paramless constructor ");
+                
+                JSDate thisDate = (JSDate)thisObj;
+                thisDate.setTime(now_ms);
+                return null;
+            }
+            public JSObject newOne() {
+                return JSDate._cons.newOne();
+            }
+        });
+
         JSHelper jsHelper;
         try {
             Encoding.install(globalScope);
@@ -169,7 +187,7 @@ public class DjangoRegressionTests {
             String msg = String.format("Found %d tests, skipping %d of them", count, skipped);
             System.out.println( msg );
         }
-
+        
         return testCases.toArray();
     }
     
@@ -220,8 +238,6 @@ public class DjangoRegressionTests {
     
 
     // ====================================
-    static int count_left = 0;
-    static int count_run = 0;
     
     public class ExportedTestCase {
         private final Scope scope;
@@ -234,9 +250,6 @@ public class DjangoRegressionTests {
         
         
         public ExportedTestCase(Scope scope, JSObject test, JSFunction templateSyntaxErrorCons, JSFunction someExceptionCons, JSFunction someOtherExceptionCons) {
-            
-            count_left++;
-            
             this.scope = scope;
             this.name = ((JSString)test.get("name")).toString();
             this.content = ((JSString)test.get("content")).toString();
@@ -270,17 +283,8 @@ public class DjangoRegressionTests {
             printer = new Printer.RedirectedPrinter();
             scope.set("print", printer);
         }
-        @Override
-        protected void finalize() throws Throwable {
-            if(DEBUG)
-                System.out.println("FINALIZING: " + (--count_left) + " run: " + count_run);
-            super.finalize();
-        }
-        
         @Test
         public void testWrapper() {
-            if(DEBUG)
-                System.out.println("running: " + (++count_run)); 
             Scope oldScope = Scope.getThreadLocal();
             scope.makeThreadLocal();
 

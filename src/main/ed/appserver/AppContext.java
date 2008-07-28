@@ -49,7 +49,7 @@ public class AppContext {
     /** @unexpose */
     static final boolean DEBUG = AppServer.D;
     /** If these files exist in the directory or parent directories of a file being run, run these files first. Includes _init.js and /~~/core/init.js.  */
-    static final String INIT_FILES[] = new String[]{ "_init.js" , "/~~/core/init.js" };
+    static final String INIT_FILES[] = new String[]{ "_init.js" };
 
     /** Initializes a new context for a given site directory.
      * @param f the file to run
@@ -109,6 +109,10 @@ public class AppContext {
         _usage = new UsageTracker( _name );
 
         _baseScopeInit();
+
+        _adminScope = _scope.child( "admin" );
+        _adminScope.setGlobal( true );
+        _adminScope.set( "contextScope" , _scope );
 
         _logger.info( "Started Context.  root:" + _root + " environment:" + environment + " git branch: " + _gitBranch );
     }
@@ -186,7 +190,7 @@ public class AppContext {
 		    return true;
 		}
 	    } , true );
-
+        
         _scope.put( "log" , _logger , true );
 
         // --- random?
@@ -201,6 +205,22 @@ public class AppContext {
 
         Djang10Source.install(_scope);
 	_scope.lock( "user" ); // protection against global user object
+
+        // --- core routing, etc...
+        try {
+            _inScopeInit = true;
+            File f = getFile( "/~~/core/init.js" );
+            JxpSource s = getSource( f );
+            JSFunction func = s.getFunction();
+            func.call( _scope );
+        }
+        catch ( Exception e ){
+            throw new RuntimeException( "couldn't run core init" , e );
+        }
+        finally {
+            _inScopeInit = false;
+        }
+
 
     }
 
@@ -319,6 +339,11 @@ public class AppContext {
      * @return the scope
      */
     public Scope getScope(){
+        
+        AppRequest ar = AppRequest.getThreadLocal();
+        if ( ar != null && ar.isAdmin() )
+            return _adminScope;
+
 	return _scope();
     }
 
@@ -326,12 +351,26 @@ public class AppContext {
      * @return a child scope
      */
     Scope scopeChild(){
-        Scope s = _scope().child( "AppRequest" );
+        return scopeChild( false );
+    }
+    
+    Scope scopeChild( boolean admin ){
+        Scope s = ( admin ? _adminScope : _scope() ).child( "AppRequest" );
         s.setGlobal( true );
         return s;
     }
 
+    void setTLPreferredScope( AppRequest req , Scope s ){
+        if ( req.isAdmin() )
+            _adminScope.setTLPreferred( s );
+        else
+            _scope.setTLPreferred( s );
+    }
+
     private synchronized Scope _scope(){
+        
+        if ( _inScopeInit )
+            return _scope;
 
         if ( _getScopeTime() > _lastScopeInitTime )
             _scopeInited = false;
@@ -746,52 +785,35 @@ public class AppContext {
         return getCurrentGitBranch();
     }
 
-    /** @unexpose */
     final String _name;
-    /** @unexpose */
     final String _root;
-    /** @unexpose */
     final File _rootFile;
 
     private String _gitBranch;
-    /** @unexpose */
     final String _environment;
 
-    /** @unexpose */
     JSFileLibrary _jxpObject;
-    /** @unexpose */
     JSFileLibrary _core;
-    /** @unexpose */
     JSFileLibrary _external;
 
-    /** @unexpose */
     final ed.log.Logger _logger;
-    /** @unexpose */
     final Scope _scope;
-    /** @unexpose */
+    final Scope _adminScope;
     final UsageTracker _usage;
 
-    /** @unexpose */
     final JSArray _globalHead = new JSArray();
 
     private final Map<String,File> _files = new HashMap<String,File>();
     private final Set<File> _initFlies = new HashSet<File>();
 
-    /** @unexpose */
     boolean _scopeInited = false;
-    /** @unexpose */
     boolean _inScopeInit = false;
-    /** @unexpose */
     long _lastScopeInitTime = 0;
 
-    /** @unexpose */
     final boolean _isGrid;
 
-    /** @unexpose */
     boolean _reset = false;
-    /** @unexpose */
     int _numRequests = 0;
-    /** @unexpose */
     final JSDate _created = new JSDate();
 
 
