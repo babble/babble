@@ -23,6 +23,9 @@ import java.io.*;
 import org.python.core.*;
 
 import ed.js.*;
+import ed.js.engine.*;
+import ed.js.func.*;
+
 import static ed.lang.python.PythonSmallWrappers.*;
 
 public class Python {
@@ -61,7 +64,20 @@ public class Python {
 
         if ( p instanceof PyObjectId )
             return ((PyObjectId)p)._id;
-        
+
+        if ( p instanceof PyMethod || p instanceof PyFunction || p instanceof PyClass || p instanceof PyBuiltinFunction ){
+            final PyObject pyo = (PyObject)p;
+            return new JSFunctionCalls0(){
+                public Object call( Scope s , Object [] params ){
+                    PyObject [] pParams = new PyObject[params.length];
+                    for(int i = 0; i < params.length; ++i){
+                        pParams[i] = toPython(params[i]);
+                    }
+                    return toJS( pyo.__call__( pParams , new String[0] ) );
+                }
+            };
+        }
+
         // this needs to be last
         if ( p instanceof PyObject )
             return new JSPyObjectWrapper( (PyObject)p );
