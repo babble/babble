@@ -56,8 +56,11 @@ public class Ruby {
 
     }
 
-    public static boolean alreadInstalled( Scope s ){
-	s = s.getGlobal();
+    public static boolean alreadyInstalled( Scope s ){
+	if ( s == null )
+	    return false;
+	
+	s = s.getGlobal( true );
 	return s.get( "Ruby" ) != null;
     }
 
@@ -65,14 +68,23 @@ public class Ruby {
 	AppRequest ar = AppRequest.getThreadLocal();
 	if ( ar != null )
 	    return ar.getContext().getScope();
-	
-	return s.getGlobal();
+
+	if ( s == null ){
+	    s = Scope.getThreadLocal();
+	    if ( s == null )
+		return null;
+	}
+
+	return s.getGlobal( true );
     }
 
     public static void install( Scope s ){
 	s = getScopeToUse( s );
-	
-	if ( alreadInstalled( s ) )
+	if ( s == null ){
+	    return;
+	}
+
+	if ( alreadyInstalled( s ) )
 	    return;
 	
 	Scope defer = s.getTLPreferred();
