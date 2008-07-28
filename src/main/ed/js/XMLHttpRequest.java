@@ -84,7 +84,8 @@ public class XMLHttpRequest extends JSObjectBase {
                     } );
 
                 _prototype.dontEnumExisting();
-
+                _prototype.lock();
+                this.lock();
             }
         };
 
