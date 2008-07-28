@@ -220,8 +220,6 @@ public class DjangoRegressionTests {
     
 
     // ====================================
-    static int count_left = 0;
-    static int count_run = 0;
     
     public class ExportedTestCase {
         private final Scope scope;
@@ -234,9 +232,6 @@ public class DjangoRegressionTests {
         
         
         public ExportedTestCase(Scope scope, JSObject test, JSFunction templateSyntaxErrorCons, JSFunction someExceptionCons, JSFunction someOtherExceptionCons) {
-            
-            count_left++;
-            
             this.scope = scope;
             this.name = ((JSString)test.get("name")).toString();
             this.content = ((JSString)test.get("content")).toString();
@@ -270,17 +265,8 @@ public class DjangoRegressionTests {
             printer = new Printer.RedirectedPrinter();
             scope.set("print", printer);
         }
-        @Override
-        protected void finalize() throws Throwable {
-            if(DEBUG)
-                System.out.println("FINALIZING: " + (--count_left) + " run: " + count_run);
-            super.finalize();
-        }
-        
         @Test
         public void testWrapper() {
-            if(DEBUG)
-                System.out.println("running: " + (++count_run)); 
             Scope oldScope = Scope.getThreadLocal();
             scope.makeThreadLocal();
 
