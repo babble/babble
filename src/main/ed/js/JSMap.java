@@ -30,7 +30,7 @@ import java.util.*;
 public class JSMap extends JSObjectBase {
 
     /** @unexpose  */
-    public final static JSFunction _cons = new JSFunctionCalls0(){
+    public static class Cons extends JSFunctionCalls0{
 
             public JSObject newOne(){
                 return new JSMap();

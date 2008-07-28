@@ -622,6 +622,7 @@ public class JSBuiltInFunctions {
         s.put( "JSCaptcha" , new JSCaptcha() , true );
         s.put( "MimeTypes" , new ed.appserver.MimeTypes() , true );
         s.put( "Base64" , new ed.util.Base64() , true );
+        s.put( "download" , new HttpDownload.downloadFunc() , true );
 
         s.put( "processArgs", new processArgs(), true );
 
@@ -638,7 +639,6 @@ public class JSBuiltInFunctions {
             if ( val instanceof JSObjectBase )
                 ((JSObjectBase)val).lock();
         }
-
 
         ed.db.migrate.Drivers.init( s );
     }
@@ -664,11 +664,9 @@ public class JSBuiltInFunctions {
 	s.put( "parseNumber" , JSNumber.CONS , true );
 
         // extensions
-
-        s.put( "Exception" , JSException._cons , true );
-        s.put( "Map" , JSMap._cons , true );
-
-        s.put( "download" , new HttpDownload.downloadFunc() , true );
+        
+        s.put( "Exception" , new JSException.cons() , true );
+        s.put( "Map" , new JSMap.Cons() , true );
 
         s.lock();
     }

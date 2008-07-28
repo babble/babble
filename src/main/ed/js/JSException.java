@@ -25,14 +25,14 @@ import ed.js.engine.*;
 public class JSException extends RuntimeException implements JSObject {
 
     /** @unexpose */
-    public final static JSFunction _quietCons = new JSFunctionCalls1(){
+    static class quietCons extends JSFunctionCalls1{
 
             public JSObject newOne(){
-                return new Quiet( "quiet" );
+                return new Quiet( "quiet" , this );
             }
 
             public Object call( Scope scope , Object msg , Object[] extra ){
-                return new Quiet( msg );
+                return new Quiet( msg , this );
             }
 
             protected void init(){
@@ -42,12 +42,12 @@ public class JSException extends RuntimeException implements JSObject {
 
 
     /** @unexpose */
-    public final static JSFunction _redirectCons = new JSFunctionCalls1(){
+    static class redirectCons extends JSFunctionCalls1{
             public JSObject newOne(){
-                return new Quiet( "redirect" );
+                return new Quiet( "redirect" , this );
             }
             public Object call( Scope scope , Object to , Object[] extra){
-                return new Redirect( to );
+                return new Redirect( to , this );
             }
 
             protected void init(){
@@ -74,13 +74,10 @@ public class JSException extends RuntimeException implements JSObject {
         }
 
         protected void init(){
-            set( "Quiet" , _quietCons );
-            set( "Redirect" , _redirectCons );
+            set( "Quiet" , new quietCons() );
+            set( "Redirect" , new redirectCons() );
         }
     }
-
-    /** @unexpose */
-    public final static JSFunction _cons = new cons();
 
     /** Initializes a new exception
      * @param o Object describing the exception
@@ -136,16 +133,16 @@ public class JSException extends RuntimeException implements JSObject {
     }
 
     public static class Quiet extends JSException {
-        public Quiet( Object msg ){
+        public Quiet( Object msg , JSFunction cons){
             super( msg , null , true );
-            _mycons = _quietCons;
+            _mycons = cons;
         }
     }
 
     public static class Redirect extends JSException {
-        public Redirect( Object location ){
+        public Redirect( Object location , JSFunction cons ){
             super( "redirecting" , null , true );
-            _mycons = _redirectCons;
+            _mycons = cons;
 
             if(location instanceof String){
                 _location = (String)location;
