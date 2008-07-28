@@ -132,30 +132,62 @@ public class E4X {
         final private List<Node> _lst;
     }
     
-    static Object _nodeGet( Node n , String s ){
-	if ( s.startsWith( "@" ) ){
-	    return ((Element)n).getAttribute( s.substring(1) );
-	}
-	
-	List<Node> lst = new ArrayList<Node>();
-	NodeList children = n.getChildNodes();
-	for ( int i=0; i<children.getLength(); i++ ){
-	    Node c = children.item(i);
-	    
-	    if ( c.getNodeName().equals( s ) ){
-		lst.add( c );
-	    }
-	}
+    static Object _nodeGet( Node start , String s ){
         
-	return _handleListReturn( lst );
+        final boolean search = s.startsWith( ".." );
+        if ( search )
+            s = s.substring(2);
+        
+        final boolean attr = s.startsWith( "@" );
+        if ( attr )
+            s = s.substring(1);
+
+        List<Node> traverse = new LinkedList<Node>();
+        traverse.add( start );
+	
+	List<Node> res = new ArrayList<Node>();
+        
+        while ( ! traverse.isEmpty() ){
+            Node n = traverse.remove(0);
+            
+            if ( attr ){
+                NamedNodeMap nnm = n.getAttributes();
+                if ( nnm != null ){
+                    Node a = nnm.getNamedItem( s );
+                    if ( a != null )
+                        res.add( a );
+                }
+            }
+
+            NodeList children = n.getChildNodes();
+            if ( children == null )
+                continue;
+            
+            for ( int i=0; i<children.getLength(); i++ ){
+                Node c = children.item(i);
+                
+                if ( ! attr && c.getNodeName().equals( s ) )
+                    res.add( c );
+                
+                if ( search )
+                    traverse.add( c );
+            }
+            
+        }
+        
+	return _handleListReturn( res );
     }
 
     static Object _handleListReturn( List<Node> lst ){
 	if ( lst.size() == 0 )
 	    return null;
 	
-	if ( lst.size() == 1 )
-	    return new ENode( lst.get(0) );
+	if ( lst.size() == 1 ){
+            Node n = lst.get(0);
+            if ( n instanceof Attr )
+                return n.getNodeValue();
+	    return new ENode( n );
+        }
 	
 	return new EList( lst );
     }
