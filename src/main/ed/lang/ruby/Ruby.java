@@ -56,8 +56,37 @@ public class Ruby {
 
     }
 
-    public static void install( final Scope s ){
-        
+    public static boolean alreadInstalled( Scope s ){
+	s = s.getGlobal();
+	return s.get( "Ruby" ) != null;
+    }
+
+    static Scope getScopeToUse( Scope s ){
+	AppRequest ar = AppRequest.getThreadLocal();
+	if ( ar != null )
+	    return ar.getContext().getScope();
+	
+	return s.getGlobal();
+    }
+
+    public static void install( Scope s ){
+	s = getScopeToUse( s );
+	
+	if ( alreadInstalled( s ) )
+	    return;
+	
+	Scope defer = s.getTLPreferred();
+	try {
+	    s.setTLPreferred( null );
+	    _install( getScopeToUse( s ) );
+	}
+	finally {
+	    s.setTLPreferred( defer );
+	}
+    }
+
+    private static void _install( final Scope s ){
+
         final JSObjectBase r = new JSObjectBase();
         s.put( "Ruby" , r , true );
         final JSArray loadPath = new JSArray();

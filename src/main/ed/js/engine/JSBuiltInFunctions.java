@@ -670,10 +670,6 @@ public class JSBuiltInFunctions {
 
         s.put( "download" , new HttpDownload.downloadFunc() , true );
 
-
-        // packages
-        ed.lang.ruby.Ruby.install( s );
-
         s.lock();
     }
 

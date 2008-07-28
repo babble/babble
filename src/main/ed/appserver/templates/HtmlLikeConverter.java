@@ -62,6 +62,8 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
         return t.getContent();
     }
 
+    protected void convertStart(){}
+
     protected void start( Generator g ){}
     protected void end( Generator g ){}
 
@@ -113,6 +115,8 @@ public abstract class HtmlLikeConverter implements TemplateConverter {
         if ( ! wants( t ) )
             return null;
         
+	convertStart();
+
         final State state = new State( getContent( t ) );
         final Generator g = createGenerator( t , state );
         

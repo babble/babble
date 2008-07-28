@@ -74,6 +74,8 @@ public class RubyConvert extends ed.MyAsserts {
     
     public RubyConvert( String name , InputStream in )
         throws IOException {
+	
+	Ruby.install( Scope.getThreadLocal() );
 
         D = DD && ! name.contains( "src/main/ed/lang/ruby" );
 

@@ -21,6 +21,8 @@ package ed.appserver.templates;
 import java.util.*;
 
 import ed.util.*;
+import ed.js.engine.*;
+import ed.lang.ruby.*;
 
 public class RubyTemplateConverter extends HtmlLikeConverter {
 
@@ -30,6 +32,10 @@ public class RubyTemplateConverter extends HtmlLikeConverter {
 
     protected String getNewName( Template t ){
         return t.getName().replaceAll( "\\.(\\w+)+$" , "_$1.rb" );
+    }
+
+    protected void convertStart(){
+	Ruby.install( Scope.getThreadLocal() );
     }
 
     protected void gotCode( Generator g , CodeMarker cm , String code ){
