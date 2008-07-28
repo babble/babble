@@ -770,11 +770,42 @@ public class Convert implements StackTraceFixer {
             _add( n.getFirstChild() , state );
             break;
         
+	case Token.DOTQUERY:
+
+            _append( "((JSObject)" , n );
+            _add( n.getFirstChild() , state );
+            _append( " ).get( " , n );
+	    _addDotQuery( n.getFirstChild().getNext() , state );
+            _append( ") " , n  );
+
+	    break;
+
         default:
             Debug.printTree( n , 0 );
             throw new RuntimeException( "can't handle : " + n.getType() + ":" + Token.name( n.getType() ) + ":" + n.getClass().getName() + " line no : " + n.getLineno() );
         }
         
+    }
+
+    private void _addDotQuery( Node n , State state ){
+	_append( "(new E4X.Query_" + Token.name( n.getType() )+ "(" , n );
+	
+	{
+	    Node t = n.getFirstChild();
+	    switch ( t.getType() ){
+	    case Token.GET_REF:
+		_append( "\"@\" + " , n );
+		_add( t.getFirstChild().getFirstChild() , state );
+		break;
+	    default:
+		throw new RuntimeException( "don't know how to handle " + Token.name( t.getType() ) + " in a DOTQUERY" );
+	    }
+	    
+	}
+	
+	_append( " , " , n );
+	_add( n.getFirstChild().getNext() , state );
+	_append( "))" , n );
     }
     
     private void _addSwitch( Node n , State state ){
@@ -946,7 +977,7 @@ public class Convert implements StackTraceFixer {
                 n = n.getNext();
                 continue;
             }
-            
+	    
             throw new RuntimeException( "what : " + Token.name( n.getType() ) );
         }
     }

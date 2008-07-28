@@ -48,29 +48,7 @@ public class E4X {
                 return null;
             
             if ( n instanceof String || n instanceof JSString ){
-                String s = n.toString();
-                
-                if ( s.startsWith( "@" ) ){
-                    return ((Element)_node).getAttribute( s.substring(1) );
-                }
-                
-                List<Node> lst = new ArrayList<Node>();
-                NodeList children = _node.getChildNodes();
-                for ( int i=0; i<children.getLength(); i++ ){
-                    Node c = children.item(i);
-                    
-                    if ( c.getNodeName().equals( s ) ){
-                        lst.add( c );
-                    }
-                }
-                
-                if ( lst.size() == 0 )
-                    return null;
-            
-                if ( lst.size() == 1 )
-                    return new ENode( lst.get(0) );
-                
-                return new EList( lst );
+		return _nodeGet( _node , n.toString() );
             }
             
             throw new RuntimeException( "can't handle : " + n.getClass() );
@@ -120,6 +98,17 @@ public class E4X {
                     return null;
             }
             
+	    if ( n instanceof Query ){
+		Query q = (Query)n;
+		List<Node> matching = new ArrayList<Node>();
+		for ( Node theNode : _lst ){
+		    if ( q.match( theNode ) )
+			matching.add( theNode );
+		}
+		return _handleListReturn( matching );
+	    }
+	    
+
             throw new RuntimeException( "can't handle [" + n + "] from a list" );
         }
         
@@ -141,5 +130,61 @@ public class E4X {
         }
 
         final private List<Node> _lst;
+    }
+    
+    static Object _nodeGet( Node n , String s ){
+	if ( s.startsWith( "@" ) ){
+	    return ((Element)n).getAttribute( s.substring(1) );
+	}
+	
+	List<Node> lst = new ArrayList<Node>();
+	NodeList children = n.getChildNodes();
+	for ( int i=0; i<children.getLength(); i++ ){
+	    Node c = children.item(i);
+	    
+	    if ( c.getNodeName().equals( s ) ){
+		lst.add( c );
+	    }
+	}
+        
+	return _handleListReturn( lst );
+    }
+
+    static Object _handleListReturn( List<Node> lst ){
+	if ( lst.size() == 0 )
+	    return null;
+	
+	if ( lst.size() == 1 )
+	    return new ENode( lst.get(0) );
+	
+	return new EList( lst );
+    }
+
+    public static abstract class Query {
+	public Query( String what , JSString match ){
+	    _what = what;
+	    _match = match;
+	}
+
+	abstract boolean match( Node n );
+
+	final String _what;
+	final JSString _match;
+    }
+
+    public static class Query_EQ extends Query {
+
+	public Query_EQ( String what , JSString match ){
+	    super( what , match );
+	}
+
+	boolean match( Node n ){
+	    return JSInternalFunctions.JS_eq( _nodeGet( n , _what ) , _match );
+	}
+	
+	public String toString(){
+	    return " [[ " + _what + " == " + _match + " ]] ";
+	}
+
     }
 }
