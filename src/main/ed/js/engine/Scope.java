@@ -410,12 +410,20 @@ public class Scope implements JSObject {
     }
 
     public final Scope getGlobal(){
+	return getGlobal( false );
+    }
+    
+    public final Scope getGlobal( boolean writable ){
         if ( _killed )
             return _parent.getGlobal();
         if ( _global )
             return this;
         if ( _parent == null )
 	    return this;
+	
+	if ( _parent._locked && writable )
+	    return this;
+
 	return _parent.getGlobal();
     }
 
