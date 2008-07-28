@@ -301,7 +301,6 @@ public class JavadocToDB {
         // is there a conflict with a js class?
         JSObject query = new JSObjectBase();
         query.set("name", newClass.name());
-        query.set("version", Generate.getVersion());
         Iterator it = db.find(query);
 
         if(it != null) {
@@ -365,7 +364,6 @@ public class JavadocToDB {
 
             JSObjectBase topLevel = new JSObjectBase();
             topLevel.set("_index", obj);
-            topLevel.set("version", Generate.getVersion());
             topLevel.set("ts", Calendar.getInstance().getTime().toString());
             topLevel.set("alias", classes[i].name());
             topLevel.set("name", classes[i].qualifiedName());

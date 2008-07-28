@@ -422,11 +422,19 @@ public class Convert implements StackTraceFixer {
 		_append( "\" )" , n );
 	    }
 	    else if ( n.getFirstChild().getType() == Token.REF_MEMBER ){
+                Node rm = n.getFirstChild();
+                
 		_append( "((JSObject)" , n );
-		_add( n.getFirstChild().getFirstChild() , state );
-		_append( ").get( \"" , n );
-		_append( "@" + n.getFirstChild().getFirstChild().getNext().getString() , n );
-		_append( "\" )" , n );
+		_add( rm.getFirstChild() , state );
+		_append( ").get( " , n );
+
+                final int memberTypeFlags = rm.getIntProp(Node.MEMBER_TYPE_PROP, 0);
+                String theName = ( ( memberTypeFlags & Node.ATTRIBUTE_FLAG ) != 0 ? "@" : "" ) + rm.getFirstChild().getNext().getString();
+                if ( ( memberTypeFlags & Node.DESCENDANTS_FLAG ) != 0 )
+                    theName = ".." + theName;
+                _append( "\"" + theName  + "\" " , n );
+
+		_append( " )" , n );
 	    }
 	    else {
 		Debug.printTree( n , 0 );

@@ -1,5 +1,7 @@
 
 function myprint( s ){
+    if ( ! s )
+        return print( s );
     s = s.toString();
     s = s.replace( /[\r\n\s]+/g , "" );
     print( s );
@@ -25,3 +27,8 @@ myprint( sales.zzz );
 myprint( sales.item.length() );
 
 
+x = XML( "<foo><a>6</a></foo>" );
+print( x.a );
+
+x = new XML( "<foo><a>6</a></foo>" );
+print( x.a );

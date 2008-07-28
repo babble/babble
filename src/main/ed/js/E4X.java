@@ -1,5 +1,21 @@
 // E4X.java
 
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package ed.js;
 
 import java.util.*;
@@ -19,7 +35,13 @@ public class E4X {
 	    }
 	    
 	    public Object call( Scope scope , Object str , Object [] args){	
-		ENode e = (ENode)scope.getThis();
+                Object blah = scope.getThis();
+
+                ENode e;
+                if ( blah instanceof ENode) 
+                    e = (ENode)blah;
+                else 
+                    e = new ENode();
 		e.init( str.toString() );
 		return e;
 	    }
@@ -132,30 +154,62 @@ public class E4X {
         final private List<Node> _lst;
     }
     
-    static Object _nodeGet( Node n , String s ){
-	if ( s.startsWith( "@" ) ){
-	    return ((Element)n).getAttribute( s.substring(1) );
-	}
-	
-	List<Node> lst = new ArrayList<Node>();
-	NodeList children = n.getChildNodes();
-	for ( int i=0; i<children.getLength(); i++ ){
-	    Node c = children.item(i);
-	    
-	    if ( c.getNodeName().equals( s ) ){
-		lst.add( c );
-	    }
-	}
+    static Object _nodeGet( Node start , String s ){
         
-	return _handleListReturn( lst );
+        final boolean search = s.startsWith( ".." );
+        if ( search )
+            s = s.substring(2);
+        
+        final boolean attr = s.startsWith( "@" );
+        if ( attr )
+            s = s.substring(1);
+
+        List<Node> traverse = new LinkedList<Node>();
+        traverse.add( start );
+	
+	List<Node> res = new ArrayList<Node>();
+        
+        while ( ! traverse.isEmpty() ){
+            Node n = traverse.remove(0);
+            
+            if ( attr ){
+                NamedNodeMap nnm = n.getAttributes();
+                if ( nnm != null ){
+                    Node a = nnm.getNamedItem( s );
+                    if ( a != null )
+                        res.add( a );
+                }
+            }
+
+            NodeList children = n.getChildNodes();
+            if ( children == null )
+                continue;
+            
+            for ( int i=0; i<children.getLength(); i++ ){
+                Node c = children.item(i);
+                
+                if ( ! attr && c.getNodeName().equals( s ) )
+                    res.add( c );
+                
+                if ( search )
+                    traverse.add( c );
+            }
+            
+        }
+        
+	return _handleListReturn( res );
     }
 
     static Object _handleListReturn( List<Node> lst ){
 	if ( lst.size() == 0 )
 	    return null;
 	
-	if ( lst.size() == 1 )
-	    return new ENode( lst.get(0) );
+	if ( lst.size() == 1 ){
+            Node n = lst.get(0);
+            if ( n instanceof Attr )
+                return n.getNodeValue();
+	    return new ENode( n );
+        }
 	
 	return new EList( lst );
     }

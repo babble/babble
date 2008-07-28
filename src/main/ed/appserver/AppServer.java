@@ -158,7 +158,7 @@ public class AppServer implements HttpHandler {
 
 
 	ar.setResponse( response );
-	ctxt.getScope().setTLPreferred( ar.getScope() );
+	ctxt.setTLPreferredScope( ar , ar.getScope() );
 
         response.setHeader( "X-ctx" , ctxt._root );
         response.setHeader( "X-git" , ctxt.getGitBranch() );
@@ -358,8 +358,13 @@ public class AppServer implements HttpHandler {
             writer.print( "<b>Message:</b> " + jce.getError() + "<BR>" );
             writer.print( "<b>File Name:</b> " + jce.getFileName() + "<BR>" );
             writer.print( "<b>Line # :</b> " + jce.getLineNumber() + "<BR>" );
+            
+            writer.print( "<!--\n" );
+            for ( StackTraceElement element : t.getStackTrace() ){
+                writer.print( element + "<BR>\n" );
+            }
+            writer.print( "-->" );
         }
-
         else {
             writer.print( "\n<br><br><hr><b>Error</b><br>" );
             writer.print( t.toString() + "<BR>" );
