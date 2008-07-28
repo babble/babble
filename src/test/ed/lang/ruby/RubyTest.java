@@ -45,12 +45,11 @@ public class RubyTest extends TestCase {
 
         public void test()
             throws IOException {
-            RubyConvert c = new RubyConvert( _file );
-
+	    
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
             final PrintStream out = new PrintStream( bout );
             
-            JSFunction f = c.get();
+
             Scope scope = Scope.getAScope().getGlobal().child();
             scope.setGlobal( true );
             
@@ -63,8 +62,11 @@ public class RubyTest extends TestCase {
             
             scope.put( "print" , myout , true );
 
-            
             scope.makeThreadLocal();
+
+            RubyConvert c = new RubyConvert( _file );
+            JSFunction f = c.get();
+            
             f.call( scope );
             scope.kill();
 
