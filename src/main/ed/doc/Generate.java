@@ -34,9 +34,6 @@ public class Generate {
 
     private static boolean debug = false;
 
-    /** Documentation version string... can be anything: "1.3.3", "dev", "BLARGH!", whatever
-     */
-    private static String version;
     private static ArrayList<String> processedFiles = new ArrayList<String>();
 
     private static boolean connected = false;
@@ -63,19 +60,6 @@ public class Generate {
         docdb = db.getCollection("doc");
         codedb = db.getCollection("doc.code");
         connected = true;
-    }
-
-    /** Version setter
-     */
-    public static void setVersion(String v) {
-        version = v;
-    }
-
-    /** Version getter
-     */
-    public static String getVersion() {
-        if(version == null) return "";
-        return version;
     }
 
     public static JSObjectBase _global;
@@ -143,12 +127,10 @@ public class Generate {
 
             JSObjectBase q = new JSObjectBase();
             q.set("alias", blobs[i].getName().substring(0, blobs[i].getName().indexOf(".out")));
-            q.set("version", Generate.getVersion());
             Iterator it = docdb.find(q);
             if(it == null) {
                 q = new JSObjectBase();
                 q.set("name", blobs[i].getName().substring(0, blobs[i].getName().indexOf(".out")));
-                q.set("version", Generate.getVersion());
                 it = docdb.find(q);
             }
             while(it != null && it.hasNext()) {
@@ -218,7 +200,6 @@ public class Generate {
         JSObjectBase newGlobal = new JSObjectBase();
         newGlobal.set("_index", ss);
         newGlobal.set("ts", Calendar.getInstance().getTime().toString());
-        newGlobal.set("version", Generate.getVersion());
         newGlobal.set("name", "_global_");
 
         docdb.save(newGlobal);
@@ -308,7 +289,6 @@ public class Generate {
         JSObjectBase obj = new JSObjectBase();
         obj.set("filename", f.getCanonicalPath());
         obj.set("name", f.getName());
-        obj.set("version", Generate.getVersion());
         obj.set("ts", Calendar.getInstance().getTime().toString());
         obj.set("content", buff.toString());
         codedb.save(obj);
@@ -373,7 +353,6 @@ public class Generate {
                     JSObjectBase obj = new JSObjectBase();
                     obj.set("ts", Calendar.getInstance().getTime().toString());
                     obj.set("_index", ss);
-                    obj.set("version", Generate.getVersion());
                     obj.set("name", name);
 
                     // get the class description
