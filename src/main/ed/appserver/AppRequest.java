@@ -49,7 +49,6 @@ public class AppRequest {
     public Scope getScope(){
         
         if ( _scope == null ){
-            System.out.println( _uri + ":" + isAdmin() );
             _scope = _context.scopeChild( isAdmin() );
 
             _scope.put( "request" , _request , true );
