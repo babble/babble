@@ -36,7 +36,7 @@ import ed.util.Dependency;
 import ed.util.Pair;
 
 public class Djang10Source extends JxpSource {
-    public static final boolean DEBUG =  Boolean.getBoolean("DJANG10_DEBUG");
+    public static final boolean DEBUG =  Boolean.getBoolean("DEBUG.DJANG10");
     
     private final Djang10Content content;
     private Djang10CompiledScript compiledScript;
