@@ -31,7 +31,8 @@ var load_template_source =
     if(template_name[0] == "/") {
         if(djang10.DEBUG)
             log("filesystem loader can't load absolute paths: " + template_name);
-        throw "Template not found";
+        
+        return null;
     }
 
     var template_roots = template_dirs || djang10.TEMPLATE_DIRS;
@@ -66,7 +67,8 @@ var load_template_source =
     }
     
     log("filesystem loader failed to find the template: " + template_name);
-    throw "Template not found";
+    
+    return null;
 };
 
 //FIXME: merge w. asbolute
@@ -83,7 +85,7 @@ var resolve_abs_path =
     
     var root = scope[parts[1]];
     if(!(root instanceof "ed.appserver.JSFileLibrary"))
-        throw "Path not found";
+        return null;
 
     return (parts[2])? root.getFromPath(parts[2]) : root;
 };

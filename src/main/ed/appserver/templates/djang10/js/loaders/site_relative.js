@@ -31,7 +31,8 @@ var load_template_source =
     if(template_name[0] != "/") {
         if(djang10.DEBUG)
             log("site relative only supports paths that start w. a leading slash: " + template_name );
-        throw "Template not found";
+        
+        return null;
     }
 
     var template = local.getFromPath(template_name);
@@ -40,7 +41,8 @@ var load_template_source =
 
     if(djang10.DEBUG)
         log("Failed to find the template: " + template_name + " got: " + template);
-    throw "Template not found";
+    
+    return null;
 };
 
 return site_relative;

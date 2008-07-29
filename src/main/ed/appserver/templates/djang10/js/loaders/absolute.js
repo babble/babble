@@ -36,7 +36,7 @@ var load_template_source =
     if(djang10.DEBUG) {
         log("Failed to find the template: " + template_name + " got: " + template);
     }
-    throw "Template not found";
+    return null;
 };
 
 //FIXME: merge w. filesystem
@@ -51,7 +51,7 @@ var resolve_abs_path =
         if(djang10.DEBUG)
             log("No leading slash in: " + path);
 
-        throw "Path not found";
+        return null;
     }
 
     var parts = path_re.exec(path);
@@ -60,7 +60,8 @@ var resolve_abs_path =
     if(!(root instanceof "ed.appserver.JSFileLibrary")) {
         if(djang10.DEBUG)
             log("Path not rooted in a JSFileLibrary: " + path);
-        throw "Path not found";
+        
+        return null;
     }
 
     return (parts[2])? root.getFromPath(parts[2]) : root;
