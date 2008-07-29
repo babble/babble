@@ -330,7 +330,7 @@ public class JSHelper extends JSObjectBase {
     }
     
     
-    //hacks to allow backwards compatibility with print
+    //hacks to allow backwards compatibility with print & DEBUGING of render calls
     private static class TagHandlerWrapper extends JSFunctionCalls2 {
         private final JSFunction tagHandler;
         public TagHandlerWrapper(JSFunction tagHandler) {
@@ -356,6 +356,16 @@ public class JSHelper extends JSObjectBase {
         public Object call(Scope scope, Object contextObj, Object[] extra) {
             JSObject thisObj = (JSObject)scope.getThis();
             
+            if(Djang10Source.DEBUG) {
+                String selfRepr = "Unkown";
+                try {
+                    selfRepr = thisObj.toString();
+                }
+                catch(Throwable t) {}
+                
+                System.out.println("Rendering: " + selfRepr);
+            }
+            
             scope = scope.child();
             PrintWrapper printWrapper = new PrintWrapper();
             scope.set("print", printWrapper);
@@ -377,6 +387,16 @@ public class JSHelper extends JSObjectBase {
         
         public Object call(Scope scope, Object contextObj, Object printer, Object[] extra) {
             JSObject thisObj = (JSObject)scope.getThis();
+            
+            if(Djang10Source.DEBUG) {
+                String selfRepr = "Unkown";
+                try {
+                    selfRepr = thisObj.toString();
+                }
+                catch(Throwable t) {}
+                
+                System.out.println("Rendering: " + selfRepr);
+            }
             
             scope = scope.child();
             scope.setGlobal(true);

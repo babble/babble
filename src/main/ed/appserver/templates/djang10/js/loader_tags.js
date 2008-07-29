@@ -37,8 +37,6 @@ BlockNode.prototype = {
     },
     
     __render: function(context, printer) {
-        if(djang10.DEBUG) log("Rendering: " + this);
-        
         var child_blocks = context["__child_blocks"] || [];
         
         var block_to_render = this;
@@ -69,8 +67,6 @@ ExtendsNode.prototype = {
         return "<Extends Node: extends: '" + this.parent_name_expr +"'>";
     },
     __render: function(context, printer) {
-        if(djang10.DEBUG) log("Rendering: " + this);
-            
         var parent_name = this.parent_name_expr.resolve(context);
         var parent = djang10.loadTemplate(parent_name);
 
@@ -114,8 +110,6 @@ IncludeNode.prototype = {
     __render: function(context, printer) {
         var template;
         
-        if(djang10.DEBUG) log("Rendering: " + this);
-        
         try {
             var templateName = this.templatePathExpr.resolve(context);
             template = djang10.loadTemplate(templateName);
@@ -148,8 +142,6 @@ UnparsedIncludeNode.prototype = {
         return "<UnparsedInclude Node: " + this.path + ">";
     },
     __render: function(context, printer) {
-        if(djang10.DEBUG) log("Rendering: " + this);
-        
         var f = openFile(this.path);
         printer(f.asString());
     }
