@@ -13,7 +13,7 @@ var my_tid;
 
 var r = null;
 
-db=connect("hunga");
+db=connect("_hudsonSmall");
 
 t=db.munga;
 
