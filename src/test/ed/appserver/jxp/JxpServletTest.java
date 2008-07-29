@@ -118,6 +118,12 @@ public class JxpServletTest extends ed.TestCase {
         s = "abc <img src='/foo.com/1.jpg' > 123";
         p.print( s );
         assertClose( "abc <img src='" + STATIC + "/foo.com/1.jpg?lm=" + fooone.lastModified() + "' > 123" , w.getContent() );
+
+        w = new JxpWriter.Basic();
+        p = new JxpServlet.MyWriter( w , "" , SUFFIX , CONTEXT , null  );
+        s = "abc <img src='/foo.com/1.jpg' > 123";
+        p.print( s );
+        assertClose( "abc <img src='/foo.com/1.jpg?lm=" + fooone.lastModified() + "' > 123" , w.getContent() );
     }
 
     public static void main( String args[] ){

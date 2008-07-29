@@ -129,12 +129,6 @@ public class JxpServlet {
     }
 
     String getStaticSuffix( HttpRequest request , AppRequest ar , String cdnPrefix ){
-        if ( NOCDN )
-            return "";        
-        
-        if ( cdnPrefix == null || cdnPrefix.length() == 0 )
-            return "";
-        
         final AppContext ctxt = ar.getContext();
         return "ctxt=" + ctxt.getEnvironmentName() + "" + ctxt.getGitBranch() ;
     }

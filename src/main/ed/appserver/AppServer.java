@@ -424,24 +424,22 @@ public class AppServer implements HttpHandler {
      * @param jsURI The URI to find in the cache
      * @param request The HTTP request to process
      * @param response The HTTP response to generate
-     * @return The time, in milliseconds
+     * @return The time, in seconds
      */
     int getCacheTime( AppRequest ar , JSString jsURI , HttpRequest request , HttpResponse response ){
-        if ( ar.getScope().get( "staticCacheTime" ) == null )
-            return -1;
+        if ( ar.getScope().get( "staticCacheTime" ) != null ){
+            JSFunction f = ar.getScope().getFunction( "staticCacheTime" );
+            if ( f != null ){
+                Object ret = f.call( ar.getScope() , jsURI , request , response );
+                if ( ret instanceof Number )
+                    return ((Number)ret).intValue();
+            }
+        }
+        
+        if ( ar.isStatic() && request.getParameter( "lm" ) != null && request.getParameter( "ctxt" ) != null )
+            return 3600;
 
-	JSFunction f = ar.getScope().getFunction( "staticCacheTime" );
-	if ( f == null )
-	    return -1;
-
-	Object ret = f.call( ar.getScope() , jsURI , request , response );
-	if ( ret == null )
-	    return -1;
-
-	if ( ret instanceof Number )
-	    return ((Number)ret).intValue();
-
-	return -1;
+        return -1;
     }
 
     /** Processes a request for a .cgi script.  This checks if the site allows access to cgi scripts and
