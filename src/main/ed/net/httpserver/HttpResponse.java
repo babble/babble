@@ -660,10 +660,25 @@ public class HttpResponse extends JSObjectBase {
 
             _myStringContent = new LinkedList<ByteBuffer>();
             _stringContent = _myStringContent;
-
+            
             _cur = _charBufPool.get();
             _resetBuf();
         }
+
+        public Appendable append(char c){
+            print( String.valueOf( c ) );
+            return this;
+        }
+        
+        public Appendable append(CharSequence csq){
+            print( csq.toString() );
+            return this;
+        }
+        public Appendable append(CharSequence csq, int start, int end){
+            print( csq.subSequence( start , end ).toString() );
+            return this;
+        }
+
 
         public JxpWriter print( int i ){
             return print( String.valueOf( i ) );
