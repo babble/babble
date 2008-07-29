@@ -53,7 +53,7 @@ public class Djang10Source extends JxpSource {
     public synchronized JSFunction getFunction() throws IOException {
         if(_needsParsing() || compiledScript == null) {
             if(DEBUG)
-                System.out.println("Parsing " + getName());
+                System.out.println("Parsing " + content.getDebugName());
             
             _lastParse = lastUpdated();
             _dependencies.clear();
@@ -158,6 +158,7 @@ public class Djang10Source extends JxpSource {
         public InputStream getInputStream() throws IOException;
         public long lastUpdated();
         public String getName();
+        public String getDebugName();
     }
     private static class Djang10File implements Djang10Content {
         private final File file;
@@ -180,6 +181,9 @@ public class Djang10Source extends JxpSource {
         public String getName() {
             return file.toString();
         }
+        public String getDebugName() {
+            return file.toString();
+        }
     }
     private static class DJang10String implements Djang10Content {
         private final String content;
@@ -200,6 +204,9 @@ public class Djang10Source extends JxpSource {
         }
         public String getName() {
             return "temp"+timestamp+".djang10";
+        }
+        public String getDebugName() {
+            return "String: " + content.replaceAll("\n", "\\n").replace("\t", "\\t"); 
         }
     }
 }

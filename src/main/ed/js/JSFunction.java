@@ -55,7 +55,6 @@ public abstract class JSFunction extends JSFunctionBase {
         _prototype = new JSObjectBase();
 
         set( "prototype" , _prototype );
-
         init();
     }
 
@@ -96,7 +95,17 @@ public abstract class JSFunction extends JSFunctionBase {
         Object foo = super.get( n );
         if ( foo != null )
             return foo;
-        return _prototype.get( n );
+
+        foo = _prototype.get( n );
+        if ( foo != null )
+            return foo;
+
+        
+        foo = _staticFunctions.get( n );
+        if ( foo != null )
+            return foo;
+
+        return null;
     }
 
     /** Set this function's name.
@@ -358,17 +367,34 @@ public abstract class JSFunction extends JSFunctionBase {
             }
         };
 
+
+    private static JSObjectBase _staticFunctions = new JSObjectBase();
+    static {
+        _staticFunctions.set( "wrap" , Prototype._functionWrap );
+        _staticFunctions.set( "bind", Prototype._functionBind );
+        
+        Prototype._functionWrap.lock();
+        Prototype._functionBind.lock();
+
+        _staticFunctions.set( "call" , _call );
+        _staticFunctions.set( "apply" , _apply );
+        _staticFunctions.set( "cache" , _cache );
+        _call.lock();
+        _apply.lock();
+        _cache.lock();
+    }
+    
     static void _init( JSFunction fcons ){
-        fcons._prototype.set( "wrap" , Prototype._functionWrap );
-        fcons._prototype.set( "bind", Prototype._functionBind );
 
-        fcons._prototype.set( "call" , _call );
-        fcons._prototype.set( "apply" , _apply );
-
-        fcons._prototype.set( "cache" , _cache );
+        if ( _staticFunctions == null )
+            return;
+        
+        for ( String s : _staticFunctions.keySet() )
+            fcons._prototype.set( s , _staticFunctions.get( s ) );
 
         fcons._prototype.dontEnumExisting();
     }
+
 
     static {
         JS._debugSIDone( "JSFunction" );

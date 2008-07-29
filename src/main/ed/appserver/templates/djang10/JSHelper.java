@@ -157,7 +157,9 @@ public class JSHelper extends JSObjectBase {
                     return (Djang10CompiledScript)loader.call(childScope, pathObj, dirsObj);
                 }
                 catch(Throwable t) {}
+
             }
+            System.out.println("All loaders failed to load: " + pathObj);
             throw new JSException(new JSString("Template not found"));
         }
     };
