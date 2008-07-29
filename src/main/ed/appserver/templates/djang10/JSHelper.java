@@ -99,6 +99,7 @@ public class JSHelper extends JSObjectBase {
                 return new TemplateException(String.valueOf(p0));
             }
         });
+        this.set("DEBUG", Djang10Source.DEBUG);
     }
 
     public static JSHelper install(Scope scope) {

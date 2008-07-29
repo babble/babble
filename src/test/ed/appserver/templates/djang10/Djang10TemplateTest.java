@@ -41,16 +41,15 @@ import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
 import ed.js.func.JSFunctionCalls1;
+import ed.log.Logger;
 
 
 public class Djang10TemplateTest {
-    private static final boolean DEBUG =  Boolean.getBoolean("DJANG10_DEBUG");
-    
     public Djang10TemplateTest() { }
     
     @Factory
     public Object[] getAllTests(){
-        if(DEBUG)
+        if(Djang10Source.DEBUG)
             System.out.println("Loading Djang10Template Tests");
 
         //Initialize Scope ==================================
@@ -61,6 +60,7 @@ public class Djang10TemplateTest {
         
         try {
             //Load native objects
+            globalScope.set("log", Logger.getLogger("django test"));            
             Encoding.install(globalScope);
             JSHelper helper = Djang10Source.install(globalScope);
             globalScope.set("local", new JSFileLibrary(new File("src/test/ed/appserver/templates/djang10"), "local", globalScope));
@@ -214,9 +214,11 @@ public class Djang10TemplateTest {
         }
         
         @Test
-        public void test() throws Throwable {
-            if(DEBUG)
+        public void test() throws Throwable {           
+            if(Djang10Source.DEBUG) {
                 System.out.println("Testing: " + file.getName());
+            }
+            
             try {
                 Djang10Source source = new Djang10Source(file);
                 Djang10CompiledScript compiled = (Djang10CompiledScript)source.getFunction();
