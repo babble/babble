@@ -1,0 +1,16 @@
+<dvid="1"lunch="false"><name>Breakfast</name><weight>24.0</weight></dv>
+false
+true
+true
+true
+true
+true
+true
+Secondbreakfast
+2
+<dvid="1"lunch="false"><name>Breakfast</name><weight>24.0</weight></dv><dvid="2"lunch="true"><name>Secondbreakfast</name><weight>16.3</weight></dv><dvid="3"lunch="true"><name>Lunch</name><weight>2000</weight></dv><dvid="4"lunch="false"><name>Dinner</name><weight>13.2</weight></dv><dvid="5"lunch="false"><name>Nightcap</name><weight>2</weight></dv>
+true
+++
+$400
+true
+true
