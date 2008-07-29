@@ -50,14 +50,14 @@ public class ByteDecoder extends Bytes {
             throw new RuntimeException( "can't reset private ByteDecoder" );
 
         _buf = buf;
-        if ( _buf.order() != ByteOrder.LITTLE_ENDIAN )
+        if ( _buf.order() != Bytes.ORDER )
             throw new RuntimeException( "this is not correct" );
     }
 
     void reset(){
         _buf.position( 0 );
         _buf.limit( _buf.capacity() );
-        _buf.order( ByteOrder.LITTLE_ENDIAN );        
+        _buf.order( Bytes.ORDER );        
     }
 
     public JSObject readObject(){

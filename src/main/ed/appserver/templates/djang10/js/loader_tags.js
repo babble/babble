@@ -110,13 +110,11 @@ IncludeNode.prototype = {
     __render: function(context, printer) {
         var template;
         
-        try {
-            var templateName = this.templatePathExpr.resolve(context);
-            template = djang10.loadTemplate(templateName);
-        }
-        catch(e) {
+        var templateName = this.templatePathExpr.resolve(context);
+        template = djang10.loadTemplate(templateName);
+
+        if(template == null)
             return;
-        }
         
         //prep context
         context.push();

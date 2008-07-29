@@ -21,19 +21,22 @@ var absolute =
     djang10.loaders.absolute =
     {};
 
+var log = log.djang10.loaders.absolute;
+
 var load_template_source =
     absolute.load_template_source =
     function(template_name, template_dirs){
 
-    if (template_name[0].trim() != "/")
-        throw "Template not found";
-
     var template = resolve_abs_path(template_name);
 
-    if(template instanceof "ed.appserver.templates.djang10.Djang10CompiledScript")
+    if(template instanceof "ed.appserver.templates.djang10.Djang10CompiledScript") {
         return template;
+    }
 
-    throw "Template not found";
+    if(djang10.DEBUG) {
+        log("Failed to find the template: " + template_name + " got: " + template);
+    }
+    return null;
 };
 
 //FIXME: merge w. filesystem
@@ -44,14 +47,22 @@ var resolve_abs_path =
 
     path = path.trim().replace(/\/+/g,"/");
 
-    if(path[0] != "/")
-        throw "Path not found";
+    if(path[0] != "/") {
+        if(djang10.DEBUG)
+            log("No leading slash in: " + path);
+
+        return null;
+    }
 
     var parts = path_re.exec(path);
     
     var root = scope[parts[1]];
-    if(!(root instanceof "ed.appserver.JSFileLibrary"))
-        throw "Path not found";
+    if(!(root instanceof "ed.appserver.JSFileLibrary")) {
+        if(djang10.DEBUG)
+            log("Path not rooted in a JSFileLibrary: " + path);
+        
+        return null;
+    }
 
     return (parts[2])? root.getFromPath(parts[2]) : root;
 };

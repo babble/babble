@@ -151,15 +151,15 @@ public class JSHelper extends JSObjectBase {
                 else
                     loader = (JSFunction)loaderObj;
                 
-                try {
-                    Scope childScope = scope.child();
-                    childScope.setGlobal(true);
-                    return (Djang10CompiledScript)loader.call(childScope, pathObj, dirsObj);
-                }
-                catch(Throwable t) {}
 
+                Scope childScope = scope.child();
+                childScope.setGlobal(true);
+                Djang10CompiledScript template = (Djang10CompiledScript)loader.call(childScope, pathObj, dirsObj);
+                if(template != null)
+                    return template;
             }
-            System.out.println("All loaders failed to load: " + pathObj);
+            if(Djang10Source.DEBUG)
+                System.out.println("All loaders failed to load: " + pathObj);
             throw new JSException(new JSString("Template not found"));
         }
     };

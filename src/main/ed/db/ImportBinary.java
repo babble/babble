@@ -71,7 +71,7 @@ public class ImportBinary {
         FileInputStream fin = new FileInputStream( f );
 
         ByteBuffer bb = ByteBuffer.allocateDirect( (int)(f.length()) );
-        bb.order( ByteOrder.LITTLE_ENDIAN );
+        bb.order( Bytes.ORDER );
         
         FileChannel fc = fin.getChannel();
         fc.read( bb );
