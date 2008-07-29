@@ -8,6 +8,7 @@
       <class name="ed.appserver.AppServerTest" />
       <class name="ed.appserver.jxp.JxpServletTest" />
       <class name="ed.appserver.jxp.JxpSourceTest" />
+      <class name="ed.appserver.CSSFixerTest" />
       <class name="ed.net.DNSUtilTest" />
       <class name="ed.net.httpserver.ReplayTest"/>
       <class name="ed.net.httpserver.HttpRequestTest"/>
