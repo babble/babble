@@ -65,7 +65,7 @@ public class Python {
         if ( p instanceof PyObjectId )
             return ((PyObjectId)p)._id;
 
-        if ( p instanceof PyMethod || p instanceof PyFunction || p instanceof PyClass || p instanceof PyBuiltinFunction ){
+        if ( p instanceof PyMethod || p instanceof PyFunction || p instanceof PyClass || p instanceof PyBuiltinFunction || p instanceof PyType ){
             final PyObject pyo = (PyObject)p;
             return new JSFunctionCalls0(){
                 public Object call( Scope s , Object [] params ){

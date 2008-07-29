@@ -18,3 +18,17 @@ local.src.test.ed.lang.python.module2();
 
 assert(somePythonFoo(4) == 5);
 assert(somePythonBar("kitties") == "kitties is great");
+
+var c = PythonClass("hello");
+
+assert( c.myattr == "hello" );
+assert( c.allattr == "puppies" );
+assert( c.meth1() == 123 );
+assert( c.attr2 == 'myattr' );
+
+var c2 = PythonClassicClass("goodbye");
+
+assert( c2.myattr == "goodbye" );
+assert( c2.allattr == "kitties" );
+assert( c2.meth1() == "classic" );
+assert( c2.attr2 == 989 );

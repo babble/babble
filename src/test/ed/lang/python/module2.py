@@ -19,3 +19,23 @@ def somePythonFoo(x):
 
 def somePythonBar(y):
     return "%s is great"%y
+
+class PythonClass(object):
+    def __init__(self, x):
+        self.myattr = x
+        self.allattr = "puppies"
+
+    def meth1(self):
+        return 123
+
+    attr2 = 'myattr'
+
+class PythonClassicClass:
+    def __init__(self, x):
+        self.myattr = x
+        self.allattr = "kitties"
+
+    def meth1(self):
+        return "classic"
+
+    attr2 = 989
