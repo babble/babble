@@ -166,6 +166,8 @@ public class AppServer implements HttpHandler {
         response.setHeader( "X-ctxhash" , String.valueOf( System.identityHashCode( ctxt ) ) ); // this is kind of tempoary until AppContextHolder is totally vettedx
 
         response.setAppRequest( ar );
+        
+        ar.turnOnProfiling();
 
         final ed.db.DBBase db = ctxt.getDB();
         try {
@@ -266,6 +268,7 @@ public class AppServer implements HttpHandler {
             }
             else {
                 servlet.handle( request , response , ar );
+                _handleEndOfServlet( request , response , ar );
             }
         }
         catch ( OutOfMemoryError oom ){
@@ -284,6 +287,42 @@ public class AppServer implements HttpHandler {
             handleError( request , response , e , ar.getContext() );
             return;
         }
+    }
+    
+    void _handleEndOfServlet( HttpRequest request , HttpResponse response , AppRequest ar ){
+
+        if ( response.getHeader( "Content-Type" ).indexOf( "text/html" ) < 0 )
+            return;
+
+        final JSObject user; 
+        {
+            Object userMaybe = ar.getScope().get( "user" );
+            if ( userMaybe instanceof JSObject )
+                user = (JSObject)userMaybe;
+            else
+                user = null; 
+        }
+        
+        final JxpWriter out = response.getWriter();
+
+        if ( ar._profiler != null && showProfilingInfo( request , user ) ){
+            out.print( "<!--\n" );
+            out.print( ar._profiler.toString() );
+            out.print( "\n-->\n" );
+        }
+        
+    }
+
+    boolean showProfilingInfo( HttpRequest request , JSObject user ){
+        if ( request.getBoolean( "profile" , false ) )
+            return true;
+
+        if ( user != null && 
+             ( user.get( "permissions" ) instanceof JSArray ) &&
+             ((JSArray)(user.get( "permissions" ) ) ).contains( "admin" ) )
+            return true;
+            
+        return false;
     }
 
     /** Creates a 404 (page not found) response.

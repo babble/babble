@@ -25,6 +25,7 @@ import ed.js.engine.*;
 import ed.net.httpserver.*;
 import ed.log.*;
 import ed.appserver.jxp.*;
+import ed.lang.*;
 
 public class AppRequest {
     
@@ -173,6 +174,14 @@ public class AppRequest {
             ((JxpServlet.MyWriter)o).print( s );
     }
 
+    public void turnOnProfiling(){
+        if ( _profiler != null )
+            return;
+        
+        _profiler = new ProfilingTracker("AppRequest : " + _context.getName() + ":" + _context.getEnvironmentName() + ":" + _request.getURL() );
+        _profiler.makeThreadLocal();
+    }
+
     void done( HttpResponse response ){
         _context.setTLPreferredScope( this , null );
         Session session = (Session)_scope.get( "session" );
@@ -200,6 +209,7 @@ public class AppRequest {
     private Scope _scope;
     
     String _wantedURI = null;
+    ProfilingTracker _profiler;
 
     static ThreadLocal<AppRequest> _tl = new ThreadLocal<AppRequest>();
 }

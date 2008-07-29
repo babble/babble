@@ -7,6 +7,7 @@ import java.util.*;
 import ed.js.*;
 import ed.js.func.*;
 import ed.js.engine.*;
+import ed.lang.*;
 import ed.util.*;
 
 /**
@@ -93,7 +94,9 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
                 foo.set( "orderby" , _orderBy );
             }
 
+            final long start = System.currentTimeMillis();
             _it = _collection.find( foo , _keysWanted , _skip , -1 * _numWanted );
+            ProfilingTracker.tlGotTime( "db.queries." + _collection.getFullName() , System.currentTimeMillis() - start , foo );
         }
 
         if ( _it == null )

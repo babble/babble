@@ -88,6 +88,8 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
         if ( _func != null )
             return _func;
         
+        long start = System.currentTimeMillis();
+
         _lastParse = lastUpdated();
         _dependencies.clear();
 
@@ -130,6 +132,9 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
             msg += thing;
 
             throw new RuntimeException( msg , e );
+        }
+        finally {
+            ProfilingTracker.tlGotTime( "compile" , System.currentTimeMillis() - start );
         }
     }
     
