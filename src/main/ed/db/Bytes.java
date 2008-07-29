@@ -16,6 +16,8 @@ public class Bytes {
 
     static final boolean D = Boolean.getBoolean( "DEBUG.DB" );
 
+    public static final ByteOrder ORDER = ByteOrder.LITTLE_ENDIAN;
+
     static final int BUF_SIZE = 1024 * 1024 * 5;
     
     static final int CONNECTIONS_PER_HOST = 20;

@@ -48,14 +48,14 @@ public class ByteEncoder extends Bytes {
 
     public ByteEncoder( ByteBuffer buf ){
         _buf = buf;
-        _buf.order( ByteOrder.LITTLE_ENDIAN );        
+        _buf.order( Bytes.ORDER );        
     }
 
     // ----
     
     private ByteEncoder(){
         _buf = ByteBuffer.allocateDirect( BUF_SIZE );
-        _buf.order( ByteOrder.LITTLE_ENDIAN );
+        _buf.order( Bytes.ORDER );
     }
 
     protected void reset(){

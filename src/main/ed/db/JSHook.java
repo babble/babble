@@ -87,7 +87,7 @@ public class JSHook {
     public static boolean scopeSetObject( long id , String field , ByteBuffer buf ){
         JSObject obj = null;
         if ( buf != null ){
-            buf.order( ByteOrder.LITTLE_ENDIAN );
+            buf.order( Bytes.ORDER );
 
             ByteDecoder bd = _setObjectPool.get();
             bd.reset( buf );
@@ -106,7 +106,7 @@ public class JSHook {
     static SimplePool<ByteDecoder> _setObjectPool = new SimplePool<ByteDecoder>( "JSHook.scopeSetObjectPool" , 10 , 10 ){
         protected ByteDecoder createNew(){
             ByteBuffer temp = ByteBuffer.wrap( new byte[1] );
-            temp.order( ByteOrder.LITTLE_ENDIAN );
+            temp.order( Bytes.ORDER );
             return new ByteDecoder( temp );
         }
     };
