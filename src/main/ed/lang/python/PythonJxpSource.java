@@ -49,7 +49,7 @@ public class PythonJxpSource extends JxpSource {
         return _file.lastModified();
     }
     
-    protected String getName(){
+    public String getName(){
         return _file.toString();
     }
 
