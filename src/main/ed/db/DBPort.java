@@ -38,7 +38,7 @@ public class DBPort {
         _port = port;
         _pool = pool;
 
-        _array[0].order( ByteOrder.LITTLE_ENDIAN );
+        _array[0].order( Bytes.ORDER );
         _addr = new InetSocketAddress( _host , _port );
 
         _hashCode = _host.hashCode() + _port;

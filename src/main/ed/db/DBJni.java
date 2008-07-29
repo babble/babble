@@ -66,7 +66,7 @@ public class DBJni extends DBMessageLayer {
         void reset( ByteBuffer buf ){
             buf.position( 0 );
             buf.limit( buf.capacity() );
-            buf.order( ByteOrder.LITTLE_ENDIAN );
+            buf.order( Bytes.ORDER );
         }
 
         ByteBuffer in = ByteBuffer.allocateDirect( 5 * 1024 * 1024 );
