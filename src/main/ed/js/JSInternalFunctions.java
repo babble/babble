@@ -55,7 +55,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
     static {
         JS._debugSI( "JSInternalFunctions" , "1" );
     }
-
+    
     /** Function call. */
     public static class FunctionCons extends JSFunctionCalls0 {
 
@@ -80,13 +80,17 @@ public class JSInternalFunctions extends JSNumericFunctions {
     
     private static FunctionCons _defaultFunctionCons = new FunctionCons();
 
+    static JSFunction getFunctionCons(){
+        return Scope.getThreadLocalFunction( "Function" , _defaultFunctionCons );
+    }
+
     static {
         JS._debugSI( "JSInternalFunctions" , "2" );
     }
 
     /** Initialize a new set of internal functions. */
     public JSInternalFunctions(){
-        super( Scope.getThreadLocalFunction( "Function" , _defaultFunctionCons ) );
+        super( getFunctionCons() );
     }
 
     /** Returns the given object
