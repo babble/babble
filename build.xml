@@ -118,15 +118,21 @@
  </taskdef>
 
  
- <target name="test" depends="compile, test-basic, test-corejs, test-db"/>
- <target name="test-no-db" depends="compile, test-basic, test-corejs"/>
+ <target name="test" depends="compile, test-basic, test-django, test-corejs, test-db"/>
+ <target name="test-no-db" depends="compile, test-basic, test-django, test-corejs"/>
  
  <target  name="test-basic" depends="init">
    <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
      <xmlfileset dir="." includes="testng.xml"/>
    </testng>
  </target>
- 
+
+  <target  name="test-django" depends="init">
+    <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
+      <xmlfileset dir="." includes="testng-django.xml"/>
+    </testng>
+  </target>
+
  <target  name="test-db" depends="init">
    <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true">
      <jvmarg value="-Xmx500m" />

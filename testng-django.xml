@@ -1,0 +1,12 @@
+<!DOCTYPE suite SYSTEM "http://beust.com/testng/testng-1.0.dtd" >
+
+<suite name="appserver-django" >
+
+  <test name="main tests">
+    <classes>
+      <class name="ed.appserver.templates.djang10.Djang10TemplateTest" />
+      <class name="ed.appserver.templates.djang10.regression.DjangoRegressionTests" />
+    </classes>
+  </test>
+</suite>
+

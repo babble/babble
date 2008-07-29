@@ -40,11 +40,17 @@ public class JSPyObjectWrapper implements JSObject {
 
     public Object get( Object n ){
         PyObject p = toPython( n );
-        
-        Object o = _p.__finditem__( p );
+
+        Object o = null;
+        try {
+            o = _p.__finditem__( p );
+        } catch(PyException e){
+            System.out.println("FIXME: " + e.type);
+        }
+
         if ( o == null )
             o = _p.__findattr__( n.toString() );
-        
+
         return toJS( o );
     }
     

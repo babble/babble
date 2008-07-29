@@ -24,13 +24,14 @@ import ed.js.*;
 import static ed.lang.python.Python.*;
 
 
-public class PyJSObjectWrapper extends PyObject {
+public class PyJSObjectWrapper extends PyDictionary {
     
     public PyJSObjectWrapper( JSObject jsObject ){
         this( jsObject , true );
     }
 
     public PyJSObjectWrapper( JSObject jsObject , boolean returnPyNone ){
+        super( );
         _js = jsObject;
         _returnPyNone = returnPyNone;
         if ( _js == null )
@@ -38,10 +39,21 @@ public class PyJSObjectWrapper extends PyObject {
     }
     
     public PyObject __findattr__(String name) {
-        return _fixReturn( _js.get( name ) );
+        System.out.println("Findattr: " + name);
+        // FIXME: more graceful fail-through etc
+        try{
+            return super.__findattr__(name);
+        }
+        catch(PyException e){
+            return _fixReturn( _js.get( name ) );
+        }
     }    
 
     public PyObject __finditem__(PyObject key){
+        // FIXME: more graceful fail-through etc
+        PyObject p = super.__finditem__(key);
+        if( p != null )
+            return p;
         return _fixReturn( _js.get( toJS( key ) ) );
     }
     
@@ -53,6 +65,7 @@ public class PyJSObjectWrapper extends PyObject {
     }
 
     public void __setitem__(PyObject key, PyObject value) {
+        super.__setitem__(key, value);
         _js.set( toJS( key ) , toJS( value ) );
     }
 
