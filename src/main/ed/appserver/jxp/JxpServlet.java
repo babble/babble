@@ -57,7 +57,7 @@ public class JxpServlet {
         
         final String cdnSuffix = getStaticSuffix( request , ar , cdnPrefix );
 
-        MyWriter writer = new MyWriter( response.getWriter() , cdnPrefix , cdnSuffix , ar.getContext() , ar);
+        MyWriter writer = new MyWriter( response.getWriter() , cdnPrefix , cdnSuffix , ar.getContext() );
         scope.put( "print" , writer  , true );
         
         try {
@@ -135,12 +135,11 @@ public class JxpServlet {
     
     public static class MyWriter extends JSFunctionCalls1 {
 
-        public MyWriter( JxpWriter writer , String cdnPrefix , String cdnSuffix , AppContext context , AppRequest ar ){
+        public MyWriter( JxpWriter writer , String cdnPrefix , String cdnSuffix , AppContext context ){
             _writer = writer;
             _cdnPrefix = cdnPrefix;
             _cdnSuffix = cdnSuffix;
             _context = context;
-            _request = ar;
             
             if ( _writer == null )
                 throw new NullPointerException( "writer can't be null" );
@@ -415,7 +414,6 @@ public class JxpServlet {
 
         final JxpWriter _writer;
         final AppContext _context;
-        final AppRequest _request;
         
         String _cdnPrefix;
         String _cdnSuffix;
