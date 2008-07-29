@@ -54,8 +54,6 @@ public abstract class JSFunction extends JSFunctionBase {
 
         _prototype = new JSObjectBase();
 
-        _init();
-
         set( "prototype" , _prototype );
 
         init();
@@ -360,14 +358,7 @@ public abstract class JSFunction extends JSFunctionBase {
             }
         };
 
-    private static void _init(){
-        if ( _staticInited )
-            return;
-
-        JSFunction fcons = JSInternalFunctions.FunctionCons;
-        if ( fcons == null )
-            return;
-
+    static void _init( JSFunction fcons ){
         fcons._prototype.set( "wrap" , Prototype._functionWrap );
         fcons._prototype.set( "bind", Prototype._functionBind );
 
@@ -377,11 +368,7 @@ public abstract class JSFunction extends JSFunctionBase {
         fcons._prototype.set( "cache" , _cache );
 
         fcons._prototype.dontEnumExisting();
-        
-        _staticInited = true;
     }
-
-    private static boolean _staticInited = false;
 
     static {
         JS._debugSIDone( "JSFunction" );
