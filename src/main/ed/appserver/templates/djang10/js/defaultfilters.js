@@ -41,7 +41,7 @@ var stringfilter =
 
         var result = func.apply(null, arguments); 
         
-        if(djang10.is_safe(arguments[0]) && func.is_safe)
+        if(djang10.is_safe(arguments[0]) && func.is_safe && (result instanceof Object))
             result = djang10.mark_safe(result);
 
         return result; 
