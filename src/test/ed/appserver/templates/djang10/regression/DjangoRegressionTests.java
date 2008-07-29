@@ -41,9 +41,9 @@ import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
 import ed.js.func.JSFunctionCalls2;
+import ed.log.Logger;
 
 public class DjangoRegressionTests {
-    private static final boolean DEBUG =  Boolean.getBoolean("DJANG10_DEBUG");
     private static final String[] UNSUPPORTED_TESTS = {
         //unimplemented tags:
         "^cache.*",
@@ -97,7 +97,7 @@ public class DjangoRegressionTests {
     
     @Factory
     public Object[] getAllTests()  throws IOException {
-        if(DEBUG)
+        if(Djang10Source.DEBUG)
             System.out.println("Loading django regression tests");
 
         //Locate the test script
@@ -111,6 +111,8 @@ public class DjangoRegressionTests {
         globalScope.makeThreadLocal();
 
         //Load native objects
+        globalScope.set("log", Logger.getLogger("django test"));
+        
         
         //override the Date object
         final long now_ms = System.currentTimeMillis();
@@ -182,7 +184,7 @@ public class DjangoRegressionTests {
         loaders.clear();
         loaders.add(custom_loader);
         
-        if(DEBUG) {
+        if(Djang10Source.DEBUG) {
             String msg = String.format("Found %d tests, skipping %d of them", count, skipped);
             System.out.println( msg );
         }
@@ -286,8 +288,8 @@ public class DjangoRegressionTests {
         public void testWrapper() {
             Scope oldScope = Scope.getThreadLocal();
             scope.makeThreadLocal();
-
-            if(DEBUG)
+            
+            if(Djang10Source.DEBUG)
                 System.out.println("Testing: " + name);
             
             try {

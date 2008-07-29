@@ -36,6 +36,8 @@ import ed.util.Dependency;
 import ed.util.Pair;
 
 public class Djang10Source extends JxpSource {
+    public static final boolean DEBUG =  Boolean.getBoolean("DJANG10_DEBUG");
+    
     private final Djang10Content content;
     private Djang10CompiledScript compiledScript;
 
@@ -50,7 +52,9 @@ public class Djang10Source extends JxpSource {
 
     public synchronized JSFunction getFunction() throws IOException {
         if(_needsParsing() || compiledScript == null) {
-          
+            if(DEBUG)
+                System.out.println("Parsing " + getName());
+            
             _lastParse = lastUpdated();
             _dependencies.clear();
             
