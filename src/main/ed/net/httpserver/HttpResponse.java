@@ -164,6 +164,10 @@ public class HttpResponse extends JSObjectBase {
         _headers.put( n , v );
     }
 
+    public String getHeader( String n ){
+        return _headers.get( n );
+    }
+
     /**
      * @unexpose
      */
