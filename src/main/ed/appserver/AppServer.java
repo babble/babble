@@ -256,9 +256,16 @@ public class AppServer implements HttpHandler {
                     String ext = fileString.substring( idx + 1 );
                     String type = MimeTypes.get( ext );
                     if ( type != null )
-                    response.setHeader( "Content-Type" , type );
+                        response.setHeader( "Content-Type" , type );
                 }
-                response.sendFile( f );
+
+                if ( response.getHeader( "Content-Type" ).startsWith( "text/css" ) ){
+                    CSSFixer fixer = new CSSFixer( ar.getURLFixer() );
+                    fixer.fix( new FileInputStream( f ) , response.getWriter() );
+                }
+                else {
+                    response.sendFile( f );
+                }
                 return;
             }
 
