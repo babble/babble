@@ -68,6 +68,9 @@ public class AppRequest {
     }
 
     public boolean isAdmin(){
+
+        if ( true ) return false;
+        
         if ( _uri.startsWith( "/admin/" ) )
             return true;
 
