@@ -86,7 +86,6 @@ public class DjangoRegressionTests {
         "filter-slugify.*",
         "filter-stringformat.*",
         "filter-urlize.*",
-        "filter-wordwrap.*",
 
         //broken filters
         "chaining0[35]",

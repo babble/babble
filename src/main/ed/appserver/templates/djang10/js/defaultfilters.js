@@ -250,6 +250,38 @@ wordcount.is_safe = false;
 wordcount = defaultfilters.wordcount = stringfilter(wordcount);
 
 //TODO: wordwrap
+var wordwrap =
+    defaultfilters.wordwrap =
+    function(value, arg) {
+    
+    var width = parseInt(arg);
+    var words = value.split(" ");
+    var word = value[0];
+    var pos = word.length - word.lastIndexOf("\n") - 1;
+    
+    var results = "";
+    
+    results += word;
+    for(var i=1; i<words.length; i++) {
+        word = words[i];
+        var lines = word.split("\n");
+        
+        pos += lines[0].length + 1
+        if(pos > width) {
+            results += "\n";
+            pos = lines[lines.length - 1].length;
+        }
+        else {
+            results += " ";
+            if(lines.length > 1)
+                pos = lines[lines.length - 1].length;
+        }
+        results += word;
+    }
+    return results;
+};
+wordwrap.is_safe = true;
+wordwrap = defaultfilters.wordwrap = stringfilter(wordwrap);
 
 var ljust =
     defaultfilters.ljust =
@@ -780,6 +812,7 @@ register.filter("add", add);
 register.filter("get_digit", get_digit);
 register.filter("timesince", timesince);
 register.filter("timeuntil", timeuntil);
+register.filter("wordwrap", wordwrap)
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
