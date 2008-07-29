@@ -803,7 +803,7 @@ public class AppContext {
 
     final JSArray _globalHead = new JSArray();
 
-    private final Map<String,File> _files = new HashMap<String,File>();
+    private final Map<String,File> _files = Collections.synchronizedMap( new HashMap<String,File>() );
     private final Set<File> _initFlies = new HashSet<File>();
 
     boolean _scopeInited = false;
