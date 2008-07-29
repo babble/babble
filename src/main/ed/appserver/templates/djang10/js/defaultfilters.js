@@ -764,6 +764,13 @@ var default_if_none =
 };
 default_if_none.is_safe = false;
 
+var divisibleby =
+    defaultfilters.divisibleby =
+    function(value, arg) {
+    
+    return (parseInt(value) % parseInt(arg)) == 0;
+};
+divisibleby.is_safe = false;
 
 var yesno =
     defaultfilters.yesno =
@@ -822,6 +829,7 @@ register.filter("get_digit", get_digit);
 register.filter("timesince", timesince);
 register.filter("timeuntil", timeuntil);
 register.filter("wordwrap", wordwrap)
+register.filter("divisibleby", divisibleby);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
