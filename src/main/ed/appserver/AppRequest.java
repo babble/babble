@@ -37,6 +37,8 @@ public class AppRequest {
             uri = _request.getURI();
         
         _uri = uri.equals( "/" ) ? "/index" : uri;
+
+        _fixer = new URLFixer( _request , this );
     }
 
     void setResponse( HttpResponse response ){
@@ -60,14 +62,21 @@ public class AppRequest {
             
             _scope.put( "session" , Session.get( _request.getCookie( Session.COOKIE_NAME ) , _context.getDB() ) , true );
             _scope.lock( "session" );
-            
+
             _context.setTLPreferredScope( this , _scope );
         }
         
         return _scope;
     }
+    
+    boolean isScopeInited(){
+        return _scope != null;
+    }
 
     public boolean isAdmin(){
+
+        if ( true ) return false;
+        
         if ( _uri.startsWith( "/admin/" ) )
             return true;
 
@@ -201,9 +210,15 @@ public class AppRequest {
         return _tl.get();
     }
 
+    public URLFixer getURLFixer(){
+        return _fixer;
+    }
+
     final String _uri;
     final HttpRequest _request;
     final AppContext _context;
+
+    final URLFixer _fixer;
     final JSArray _head = new HeadArray();
 
     private Scope _scope;

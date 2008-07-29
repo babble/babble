@@ -64,7 +64,7 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
     protected abstract String getContent() throws IOException;
     protected abstract InputStream getInputStream() throws IOException ;
     public abstract long lastUpdated(Set<Dependency> visitedDeps);
-    protected abstract String getName();
+    public abstract String getName();
 
     //Convenience wrapper, override lastUpdated(Set<Dependency> visitedDeps) instead
     public final long lastUpdated() {
@@ -188,7 +188,7 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
             _f = f;
         }
         
-        protected String getName(){
+        public String getName(){
             return _f.toString();
         }
 

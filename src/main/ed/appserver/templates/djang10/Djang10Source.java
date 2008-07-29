@@ -102,7 +102,7 @@ public class Djang10Source extends JxpSource {
     protected InputStream getInputStream() throws IOException {
         return content.getInputStream();
     }
-    protected String getName() {
+    public String getName() {
         return content.getName();
     }
     

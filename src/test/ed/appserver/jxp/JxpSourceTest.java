@@ -36,7 +36,7 @@ public class JxpSourceTest extends ed.TestCase {
             return null;
         }
         
-        protected String getName(){
+        public String getName(){
             return "temp.jxp";
         }
 

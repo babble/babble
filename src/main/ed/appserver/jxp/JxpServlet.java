@@ -50,14 +50,10 @@ public class JxpServlet {
         if ( scope.get( "response" ) == null )
             scope.put( "response" , response , true );
 
+        
         Object cdnFromScope = scope.get( "CDN" );
              
-        final String cdnPrefix = cdnFromScope != null ? cdnFromScope.toString() : getStaticPrefix( request , ar );
-        scope.put( "CDN" , cdnPrefix , true );
-        
-        final String cdnSuffix = getStaticSuffix( request , ar , cdnPrefix );
-
-        MyWriter writer = new MyWriter( response.getWriter() , cdnPrefix , cdnSuffix , ar.getContext() , ar);
+        MyWriter writer = new MyWriter( response.getWriter() , ar.getURLFixer() );
         scope.put( "print" , writer  , true );
         
         try {
@@ -100,53 +96,15 @@ public class JxpServlet {
         
     }
     
-    String getStaticPrefix( HttpRequest request , AppRequest ar ){
-        
-        if ( NOCDN )
-            return "";
-        
-        String host = request.getHost();
-        
-        if ( host == null )
-            return "";
-
-        if ( host.indexOf( "." ) < 0 )
-            return "";
-        
-        if ( request.getPort() > 0 )
-            return "";
-
-        if ( request.getHeader( "X-SSL" ) != null )
-            return "";
-
-        String prefix= "http://static";
-
-        if ( host.indexOf( "local." ) >= 0 )
-            prefix += "-local";
-        
-        prefix += ".10gen.com/" + host;
-        return prefix;
-    }
-
-    String getStaticSuffix( HttpRequest request , AppRequest ar , String cdnPrefix ){
-        if ( NOCDN )
-            return "";        
-        
-        if ( cdnPrefix == null || cdnPrefix.length() == 0 )
-            return "";
-        
-        final AppContext ctxt = ar.getContext();
-        return "ctxt=" + ctxt.getEnvironmentName() + "" + ctxt.getGitBranch() ;
-    }
-    
     public static class MyWriter extends JSFunctionCalls1 {
 
-        public MyWriter( JxpWriter writer , String cdnPrefix , String cdnSuffix , AppContext context , AppRequest ar ){
+        public MyWriter( JxpWriter writer , String cdnPrefix , String cdnSuffix , AppContext context ){
+            this( writer , new URLFixer( cdnPrefix , cdnSuffix , context ) );
+        }
+
+        public MyWriter( JxpWriter writer , URLFixer fixer ){
             _writer = writer;
-            _cdnPrefix = cdnPrefix;
-            _cdnSuffix = cdnSuffix;
-            _context = context;
-            _request = ar;
+            _fixer = fixer;
             
             if ( _writer == null )
                 throw new NullPointerException( "writer can't be null" );
@@ -174,21 +132,17 @@ public class JxpServlet {
 
         public Object get( Object n ){
             if ( "cdnPrefix".equals( n ) )
-                return _cdnPrefix;
+                return _fixer.getCDNPrefix();
             if ( "cdnSuffix".equals( n ) )
-                return _cdnSuffix;
+                return _fixer.getCDNSuffix();
             return super.get( n );
         }
 
         public Object set( Object n , Object v ){
-            if ( "cdnPrefix".equals( n ) ){
-                _cdnPrefix = v.toString();
-                return _cdnPrefix;
-            }
-            if ( "cdnSuffix".equals( n ) ){
-                _cdnSuffix = v.toString();
-                return _cdnSuffix;
-            }
+            if ( "cdnPrefix".equals( n ) )
+                return _fixer.setCDNPrefix( v.toString() );
+            if ( "cdnSuffix".equals( n ) )
+                return _fixer.setCDNSuffix( v.toString() );
             return super.set( n  , v );
         }
         
@@ -326,78 +280,11 @@ public class JxpServlet {
 	 * i.e. /foo -> static.com/foo
 	*/
         void printSRC( String src ){
-
+            
             if ( src == null || src.length() == 0 )
                 return;
 	    
-	    // parse out options
-
-	    boolean nocdn = false;
-	    boolean forcecdn = false;
-	    
-            if ( src.startsWith( "NOCDN/" ) ){
-		nocdn = true;
-		src = src.substring( 5 );
-            }
-            else if ( src.startsWith( "CDN/" ) ){
-		forcecdn = true;
-		src = src.substring( 3 );
-            }
-	    
-            boolean doVersioning = true;
-
-	    // weird special case
-            if ( ! src.startsWith( "/" ) ){ // i'm not smart enough to handle local file case yet
-                nocdn = true;
-                doVersioning = false;
-            }
-            
-            if ( src.startsWith( "//" ) ){ // this is the special //www.slashdot.org/foo.jpg syntax
-                nocdn = true;
-                doVersioning = false;
-            }
-            
-	    // setup 
-
-            String uri = src;
-            int questionIndex = src.indexOf( "?" );
-            if ( questionIndex >= 0 )
-                uri = uri.substring( 0 , questionIndex );
-            
-	    String cdnTags = null;
-	    if ( uri.equals( "/~f" ) || uri.equals( "/~~/f" ) ){
-		cdnTags = ""; // TODO: should i put a version or timestamp here?
-	    }
-	    else {
-                cdnTags = _cdnSuffix;
-                if ( cdnTags == null )
-                    cdnTags = "";
-                else if ( cdnTags.length() > 0 )
-                    cdnTags += "&";
-                
-		if ( doVersioning && _context != null ){
-                    File f = _context.getFileSafe( uri );
-                    if ( f != null && f.exists() ){
-                        cdnTags += "lm=" + f.lastModified();
-                    }
-                }
-	    }
-	    
-	    // print
-            
-	    if ( forcecdn || ( ! nocdn && cdnTags != null ) )
-		_writer.print( _cdnPrefix );
-
-	    _writer.print( src );
-                
-	    if ( cdnTags != null && cdnTags.length() > 0 ){
-		if ( questionIndex < 0 )
-		    _writer.print( "?" );
-		else
-		    _writer.print( "&" );
-		_writer.print( cdnTags );
-	    }
-	    
+            _fixer.fix( src , _writer );
 	}
 
         int endOfTag( String s ){
@@ -420,11 +307,8 @@ public class JxpServlet {
         final StringBuilder _extra = new StringBuilder();
 
         final JxpWriter _writer;
-        final AppContext _context;
-        final AppRequest _request;
-        
-        String _cdnPrefix;
-        String _cdnSuffix;
+        final URLFixer _fixer;
+
         JSObject _formInput = null;
         String _formInputPrefix = null;
         

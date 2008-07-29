@@ -18,7 +18,7 @@
 
 package ed.net.httpserver;
 
-public interface JxpWriter {
+public interface JxpWriter extends Appendable {
 
     public boolean closed();
 
@@ -52,6 +52,20 @@ public interface JxpWriter {
 
         public boolean closed(){
             return false;
+        }
+
+        public Appendable append(char c){
+            _buf.append( c );
+            return this;
+        }
+        
+        public Appendable append(CharSequence csq){
+            _buf.append( csq );
+            return this;
+        }
+        public Appendable append(CharSequence csq, int start, int end){
+            _buf.append( csq , start , end );
+            return this;
         }
         
         public JxpWriter print( String s ){
