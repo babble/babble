@@ -57,7 +57,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
     }
 
     /** Function call. */
-    public static JSFunction FunctionCons = new JSFunctionCalls0(){
+    public static class FunctionCons extends JSFunctionCalls0 {
 
             public Object call( Scope s , Object extra[] ){
                 Object t = s.getThis();
@@ -69,14 +69,16 @@ public class JSInternalFunctions extends JSNumericFunctions {
                         return null;
                     }
                 };
-
+                
             }
 
             protected void init(){
-                JS._debugSI( "JSInternalFunctions" , "FunctionCons init" );
+                JSFunction._init( this );
             }
 
         };
+    
+    private static FunctionCons _defaultFunctionCons = new FunctionCons();
 
     static {
         JS._debugSI( "JSInternalFunctions" , "2" );
@@ -84,7 +86,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
 
     /** Initialize a new set of internal functions. */
     public JSInternalFunctions(){
-        super( FunctionCons );
+        super( Scope.getThreadLocalFunction( "Function" , _defaultFunctionCons ) );
     }
 
     /** Returns the given object
