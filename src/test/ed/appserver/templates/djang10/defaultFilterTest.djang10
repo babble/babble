@@ -39,5 +39,8 @@ a   ,A ,b  ,d ,D  ,f   ,F       ,g,G ,h ,H ,i ,j ,l     ,L    ,m ,M  ,n ,N   ,O 
 {{ 30|add:"7" }}
 {{ "1234567890"|get_digit:"4" }}
 
+{% if 37|divisibleby:"5" %}nope {% else %}yep{% endif %}
+ {% if 35|divisibleby:"5" %}yep{% endif %}
+
 {% endautoescape %}
 
