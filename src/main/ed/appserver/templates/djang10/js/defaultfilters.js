@@ -742,12 +742,19 @@ var timeuntil =
     return (arg)? _time_since(arg, value) : _time_since(new Date(), value);
 };
 
+
+///////////////////////
+//LOGIC              //
+///////////////////////
+
+
 var default_ =
     defaultfilters.default_ =
     function(value, arg) {
         
     return (djang10.Expression.is_true(value))? value : arg;
 };
+default_.is_safe = false;
 
 var default_if_none =
     defaultfilters.default_if_none =
@@ -755,6 +762,8 @@ var default_if_none =
         
     return (value == null)? arg : value;
 };
+default_if_none.is_safe = false;
+
 
 var yesno =
     defaultfilters.yesno =
