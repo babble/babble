@@ -177,7 +177,7 @@ public class DjangoRegressionTests {
                             throw new RuntimeException(t);
                         }
                 }
-                throw new JSException(new JSString("Template not found") );
+                return null;
             }
         };
         JSArray loaders = (JSArray) jsHelper.get("TEMPLATE_LOADERS");

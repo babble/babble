@@ -43,18 +43,13 @@ var load_template_source =
         if(djang10.DEBUG)
             log("checking template root: " + template_root);
         
-        try {
-            if(template_root instanceof String)
-                template_root = resolve_abs_path(template_root);
-        }catch(e) {
-            if(djang10.DEBUG)
-                log("failed to resolve the tempalte root. " + e);
-            template_root = null;
-        }
+
+        if(template_root instanceof String)
+            template_root = resolve_abs_path(template_root);
 
         if(!(template_root instanceof "ed.appserver.JSFileLibrary")) {
             if(djang10.DEBUG) 
-                log("template root: " + template_root + " is not a FileLibrary")
+                log("template root: " + template_root + " is not a FileLibrary, got: " + template_root)
             continue;
         }
 
@@ -79,7 +74,7 @@ var resolve_abs_path =
 
     path = path.trim().replace(/\/+/g,"/");
     if(path[0] != "/")
-        throw "Path not found";
+        return null;
 
     var parts = path_re.exec(path);
     

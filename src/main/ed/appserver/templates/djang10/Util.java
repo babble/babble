@@ -56,6 +56,9 @@ public class Util {
 
         while(m.find()) {
             String bit = m.group(0);
+            if(bit.trim().length() == 0)
+                continue;
+            
             
             if(quotes.contains(bit.charAt(0)) && bit.charAt(bit.length() - 1) == bit.charAt(0)) {
                 char quote = bit.charAt(0);
