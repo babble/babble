@@ -57,7 +57,7 @@ public class JxpServlet {
         
         final String cdnSuffix = getStaticSuffix( request , ar , cdnPrefix );
 
-        MyWriter writer = new MyWriter( response.getWriter() , cdnPrefix , cdnSuffix , ar.getContext() , ar);
+        MyWriter writer = new MyWriter( response.getWriter() , cdnPrefix , cdnSuffix , ar.getContext() );
         scope.put( "print" , writer  , true );
         
         try {
@@ -129,24 +129,17 @@ public class JxpServlet {
     }
 
     String getStaticSuffix( HttpRequest request , AppRequest ar , String cdnPrefix ){
-        if ( NOCDN )
-            return "";        
-        
-        if ( cdnPrefix == null || cdnPrefix.length() == 0 )
-            return "";
-        
         final AppContext ctxt = ar.getContext();
         return "ctxt=" + ctxt.getEnvironmentName() + "" + ctxt.getGitBranch() ;
     }
     
     public static class MyWriter extends JSFunctionCalls1 {
 
-        public MyWriter( JxpWriter writer , String cdnPrefix , String cdnSuffix , AppContext context , AppRequest ar ){
+        public MyWriter( JxpWriter writer , String cdnPrefix , String cdnSuffix , AppContext context ){
             _writer = writer;
             _cdnPrefix = cdnPrefix;
             _cdnSuffix = cdnSuffix;
             _context = context;
-            _request = ar;
             
             if ( _writer == null )
                 throw new NullPointerException( "writer can't be null" );
@@ -421,7 +414,6 @@ public class JxpServlet {
 
         final JxpWriter _writer;
         final AppContext _context;
-        final AppRequest _request;
         
         String _cdnPrefix;
         String _cdnSuffix;

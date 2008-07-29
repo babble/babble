@@ -492,6 +492,12 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         return _base;
     }
 
+    public String getName(){
+        if ( _mySource != null )
+            return _mySource.getName();
+        return _base.getName();
+    }
+
     final JSFileLibrary _parent;
     final File _base;
     final String _uriBase;
