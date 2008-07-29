@@ -77,7 +77,7 @@ public class URLFixer {
                 doVersioning = false;
             }
             else {
-                url = _ar._request.getDirectory() + url;
+                url = _ar.getDirectory() + url;
             }
         }
         
@@ -165,7 +165,7 @@ public class URLFixer {
         if ( NOCDN )
             return "";
         
-        String host = request.getHost();
+        String host = ar.getHost();
         
         if ( host == null )
             return "";

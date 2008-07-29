@@ -29,13 +29,21 @@ import ed.lang.*;
 
 public class AppRequest {
     
-    AppRequest( AppContext context , HttpRequest request , String uri ){
+    AppRequest( AppContext context , HttpRequest request ) {
+        this( context , request , request.getHost() , request.getURI() );
+        
+    }
+
+    AppRequest( AppContext context , HttpRequest request , String host , String uri ){
         _context = context;
         _request = request;
 
+        if ( host == null )
+            host = _request.getHost();
         if ( uri == null )
             uri = _request.getURI();
         
+        _host = host;
         _uri = uri.equals( "/" ) ? "/index" : uri;
 
         _fixer = new URLFixer( _request , this );
@@ -206,6 +214,14 @@ public class AppRequest {
         _tl.set( null );
     }
 
+    public String getHost(){
+        return _host;
+    }
+
+    public String getDirectory(){
+        return HttpRequest.getDirectory( _uri );
+    }
+
     public static AppRequest getThreadLocal(){
         return _tl.get();
     }
@@ -215,6 +231,7 @@ public class AppRequest {
     }
 
     final String _uri;
+    final String _host;
     final HttpRequest _request;
     final AppContext _context;
 

@@ -119,7 +119,11 @@ public class HttpRequest extends JSObjectLame {
     }
     
     public String getDirectory(){
-        String s = _uri;
+        return getDirectory( _uri );
+    }
+    
+    public static String getDirectory( String uri ){
+        String s = uri;
         int idx = s.lastIndexOf( "/" );
         return s.substring( 0 , idx + 1 );
     }

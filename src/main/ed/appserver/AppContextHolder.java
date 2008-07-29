@@ -55,7 +55,7 @@ public class AppContextHolder {
         _rootFile = _root == null ? null : new File( _root );
     }
     
-    public AppContext getContext( HttpRequest request , String newUri[] ){
+    public Result getContext( HttpRequest request ){
         String host = request.getHeader( "X-Host" );
 	String uri = request.getURI();
 	
@@ -85,13 +85,10 @@ public class AppContextHolder {
                 host = host.substring( 0 , idx );
         }
 	
-        return getContext( host , uri , newUri );
+        return getContext( host , uri );
     }
 
-    public AppContext getContext( String host , String uri , String newUri[] ){
-        if ( newUri != null )
-            newUri[0] = null;
-
+    public Result getContext( String host , String uri ){
         if ( host != null )
             host = host.trim();
 
@@ -99,44 +96,42 @@ public class AppContextHolder {
 
         if ( host == null || _root == null || host.length() == 0 ){
             if ( D ) System.out.println( "\t using default context for [" + host + "]" );
-            return _getDefaultContext();
+            return new Result( _getDefaultContext() , host , uri );
         }
 
         Info info = fixBase( host , uri );
         host = info.host;
         uri = info.uri;
-        if ( newUri != null )
-            newUri[0] = info.uri;
 
 	if ( host.equals( "corejs.com" ) )
-	    return _getCoreContext();
+	    return new Result( _getCoreContext() , host , uri );
 
         AppContext ac = _getContextFromMap( host );
         if ( ac != null )
-            return ac;
-
+            return new Result( ac , host , uri );
+        
         synchronized ( _contextCreationLock ){
-
+            
             ac = _getContextFromMap( host );
             if ( ac != null )
-                return ac;
+                return new Result( ac , host, uri );
 
             for ( Info i : getPossibleSiteNames( info ) ){
                 if ( D ) System.out.println( "\t possible site name [" + i.host + "]" );
                 File temp = new File( _root , i.host );
                 if ( temp.exists() )
-                    return getEnvironmentContext( temp , i , host );
+                    return new Result( getEnvironmentContext( temp , i , host ) , i.host , info.uri );
 
                 JSObject site = getSiteFromCloud( i.host );
                 if ( site != null ){
                     if ( D ) System.out.println( "\t found site from cloud" );
                     temp.mkdirs();
-                    return getEnvironmentContext( temp , i , host );
+                    return new Result( getEnvironmentContext( temp , i , host ) , i.host , info.uri );
                 }
             }
         }
-
-        return _getDefaultContext();
+        
+        return new Result( _getDefaultContext() , info.host , info.uri );
     }
 
     private AppContext getEnvironmentContext( final File siteRoot , final Info info , final String originalHost ){
@@ -436,6 +431,27 @@ public class AppContextHolder {
         if ( _coreContext == null )
             _coreContext = new AppContext( CoreJS.get().getRootFile( null ) );
         return _coreContext;
+    }
+
+    class Result {
+        
+        Result( AppContext context , String host , String uri ){
+            this.context = context;
+            this.host = host;
+            this.uri = uri;
+        }
+
+        String getRoot(){
+            return context.getRoot();
+        }
+        
+        public String toString(){
+            return getRoot() + "||" + host + "||" + uri;
+        }
+
+        final AppContext context;
+        final String uri;
+        final String host;
     }
 
     final String _root;

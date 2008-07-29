@@ -28,17 +28,35 @@ public class URLFixerTest extends ed.TestCase {
 
     AppContext CONTEXT = new AppContext( "src/test/samplewww" );
     File one = new File( "src/test/samplewww/1.jpg" );
-    AppRequest REQUEST = new AppRequest( CONTEXT , HttpRequest.getDummy( "/silly" , "Host: www.foo.com" ) , "/silly" );
-    URLFixer fixer = new URLFixer( REQUEST._request , REQUEST );
 
     @Test(groups = {"basic"})    
     public void testBasic(){
-        assertClose( "/1.jpg?ctxt=nullnull&lm=" + one.lastModified() , fixer.fix( "NOCDN/1.jpg" ) );
-        assertClose( "/1.jpg?ctxt=nullnull&lm=" + one.lastModified() , fixer.fix( "NOCDN1.jpg" ) );
-        assertClose( "http://static.10gen.com/www.foo.com/1.jpg?ctxt=nullnull&lm=" + one.lastModified() , fixer.fix( "/1.jpg" ) );
-        assertClose( "http://static.10gen.com/www.foo.com/1.jpg?ctxt=nullnull&lm=" + one.lastModified() , fixer.fix( "1.jpg" ) );
+        AppRequest r = new AppRequest( CONTEXT , HttpRequest.getDummy( "/silly" , "Host: www.foo.com" )  );
+        URLFixer f = new URLFixer( r._request , r );
+
+
+        assertClose( "/1.jpg?ctxt=nullnull&lm=" + one.lastModified() , f.fix( "NOCDN/1.jpg" ) );
+        assertClose( "/1.jpg?ctxt=nullnull&lm=" + one.lastModified() , f.fix( "NOCDN1.jpg" ) );
+        assertClose( "http://static.10gen.com/www.foo.com/1.jpg?ctxt=nullnull&lm=" + one.lastModified() , f.fix( "/1.jpg" ) );
+        assertClose( "http://static.10gen.com/www.foo.com/1.jpg?ctxt=nullnull&lm=" + one.lastModified() , f.fix( "1.jpg" ) );
     }
 
+    @Test(groups = {"basic"})    
+    public void testCDN1(){
+        AppRequest r = new AppRequest( CONTEXT , HttpRequest.getDummy( "/www.foo.com/silly.css" , "Host: static.10gen.com" ) , "www.foo.com" , "/silly.css" );
+        URLFixer f = new URLFixer( r._request , r );
+        assertClose( "http://static.10gen.com/www.foo.com/1.jpg?ctxt=nullnull&lm=" + one.lastModified() , f.fix( "/1.jpg" ) );
+        assertClose( "http://static.10gen.com/www.foo.com/1.jpg?ctxt=nullnull&lm=" + one.lastModified() , f.fix( "1.jpg" ) );
+    }    
+
+    @Test(groups = {"basic"})    
+    public void testCDN2(){
+        AppRequest r = new AppRequest( CONTEXT , HttpRequest.getDummy( "/www.foo.com/silly.css" , "Host: www.bar.com\n" ) );
+        URLFixer f = new URLFixer( r._request , r );
+        assertClose( "http://static.10gen.com/www.bar.com/1.jpg?ctxt=nullnull&lm=" + one.lastModified() , f.fix( "/1.jpg" ) );
+        assertClose( "http://static.10gen.com/www.bar.com/www.foo.com/1.jpg?ctxt=nullnull&" , f.fix( "1.jpg" ) );
+    }    
+    
     public static void main( String args[] ){
         (new URLFixerTest()).runConsole();
     }
