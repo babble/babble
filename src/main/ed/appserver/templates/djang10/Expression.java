@@ -136,7 +136,13 @@ public class Expression extends JSObjectBase {
     
     public Object resolve(Scope scope, Context ctx) {
 
-        Object obj = resolve(scope, ctx, parsedExpression.getFirstChild(), true);
+        Object obj = UNDEFINED_VALUE;
+        try {
+            obj = resolve(scope, ctx, parsedExpression.getFirstChild(), true);
+        } finally {
+            if(Djang10Source.DEBUG && obj == UNDEFINED_VALUE)
+                System.out.println("Failed to resolve: " + this);
+        }
         obj = JSNumericFunctions.fixType(obj);
         
         if(is_literal() && (obj instanceof JSObject))
