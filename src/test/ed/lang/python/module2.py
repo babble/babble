@@ -39,3 +39,11 @@ class PythonClassicClass:
         return "classic"
 
     attr2 = 989
+
+class Callable(object):
+    def __init__(self, y):
+        self.y = y
+
+    def __call__(self, x):
+        return x + self.y
+

@@ -82,7 +82,6 @@ public class DjangoRegressionTests {
         //unimplemented filters
         "filter-iriencode.*",
         "filter-make_list0[3,4]",   //needs stringformat 
-        "filter-phone2numeric.*",
         "filter-slugify.*",
         "filter-stringformat.*",
         "filter-urlize.*",
@@ -177,7 +176,7 @@ public class DjangoRegressionTests {
                             throw new RuntimeException(t);
                         }
                 }
-                throw new JSException(new JSString("Template not found") );
+                return null;
             }
         };
         JSArray loaders = (JSArray) jsHelper.get("TEMPLATE_LOADERS");

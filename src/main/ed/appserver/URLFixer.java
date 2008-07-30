@@ -59,7 +59,7 @@ public class URLFixer {
         boolean nocdn = false;
         boolean forcecdn = false;
 	
-        if ( url.startsWith( "NOCDN/" ) ){
+        if ( url.startsWith( "NOCDN" ) ){
             nocdn = true;
             url = url.substring( 5 );
         }
@@ -70,10 +70,15 @@ public class URLFixer {
 	
         boolean doVersioning = true;
         
-        // weird special case
-        if ( ! url.startsWith( "/" ) ){ // i'm not smart enough to handle local file case yet
-            nocdn = true;
-            doVersioning = false;
+        // weird special cases
+        if ( ! url.startsWith( "/" ) ){
+            if ( _ar == null || url.startsWith( "http://" ) || url.startsWith( "https://" ) ){
+                nocdn = true;
+                doVersioning = false;
+            }
+            else {
+                url = _ar.getDirectory() + url;
+            }
         }
         
         if ( url.startsWith( "//" ) ){ // this is the special //www.slashdot.org/foo.jpg syntax
@@ -160,7 +165,7 @@ public class URLFixer {
         if ( NOCDN )
             return "";
         
-        String host = request.getHost();
+        String host = ar.getHost();
         
         if ( host == null )
             return "";

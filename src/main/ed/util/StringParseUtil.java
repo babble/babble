@@ -159,7 +159,14 @@ public final class StringParseUtil {
         int lastDigit = firstDigit + 1;
         while ( lastDigit < s.length() && Character.isDigit( s.charAt( lastDigit ) ) )
             lastDigit++;
+        
+        boolean isDouble = false;
 
+        if ( firstDigit > 0 && s.charAt( firstDigit - 1 ) == '.' ){
+            firstDigit--;        
+            isDouble = true;
+        }
+        
         if ( firstDigit > 0 && s.charAt( firstDigit - 1 ) == '-' )
             firstDigit--;
 
@@ -167,8 +174,12 @@ public final class StringParseUtil {
             lastDigit++;
             while ( lastDigit < s.length() && Character.isDigit( s.charAt( lastDigit ) ) )
                 lastDigit++;
-            return Double.parseDouble( s.substring( firstDigit , lastDigit ) );
+            
+            isDouble = true;
         }
+        
+        if ( isDouble )
+            return Double.parseDouble( s.substring( firstDigit , lastDigit ) );
 
         return Integer.parseInt( s.substring( firstDigit , lastDigit ) );
 

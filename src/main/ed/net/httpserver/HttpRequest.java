@@ -118,6 +118,16 @@ public class HttpRequest extends JSObjectLame {
         return _url;
     }
     
+    public String getDirectory(){
+        return getDirectory( _uri );
+    }
+    
+    public static String getDirectory( String uri ){
+        String s = uri;
+        int idx = s.lastIndexOf( "/" );
+        return s.substring( 0 , idx + 1 );
+    }
+
     /**
      * Gets the request's entire HTTP header as an unparsed string.
      * @return the entire HTTP header

@@ -73,9 +73,8 @@ public class AppServer implements HttpHandler {
      * @return The corresponding AppRequest
      */
     AppRequest createRequest( HttpRequest request ){
-        String newUri[] = new String[1];
-        AppContext ac = _contextHolder.getContext( request , newUri );
-        return ac.createRequest( request , newUri[0] );
+        AppContextHolder.Result r = _contextHolder.getContext( request );
+        return r.context.createRequest( request , r.host , r.uri );
     }
 
     /** Checks if the request's uri starts with a "/" and, if so, sets some information about the request.
