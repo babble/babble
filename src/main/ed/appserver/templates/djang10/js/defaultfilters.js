@@ -787,6 +787,32 @@ var yesno =
     return (value == null)? maybe : (djang10.Expression.is_true(value))? yes : no;     
 };
 
+
+
+///////////////////////
+//MISC               //
+///////////////////////
+var filesizeformat =
+defaultfilters.filesizeformat =
+function(bytes) {
+
+    bytes = parseFloat(bytes);
+
+    if(isNaN(bytes))
+    return "0 bytes";
+
+    if(bytes < 1024)
+        return (bytes == 1)? (bytes + " byte") : (bytes + " bytes");
+    if(bytes < 1024 * 1024)
+        return (bytes/1024) + " KB";
+    if(bytes < 1024*1024*1024)
+        return (bytes/(1024*1024)) + " MB";
+    return (bytes/(1024*1024*1024)) + " GB";
+};
+filesizeformat.is_safe = true;
+
+
+
 register.filter("lower", lower);
 register.filter("upper", upper);
 register.filter("urlencode", urlencode);
@@ -830,6 +856,8 @@ register.filter("timesince", timesince);
 register.filter("timeuntil", timeuntil);
 register.filter("wordwrap", wordwrap)
 register.filter("divisibleby", divisibleby);
+register.filter("filesizeformat", filesizeformat);
+
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};

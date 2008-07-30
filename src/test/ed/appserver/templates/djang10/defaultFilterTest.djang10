@@ -42,5 +42,10 @@ a   ,A ,b  ,d ,D  ,f   ,F       ,g,G ,h ,H ,i ,j ,l     ,L    ,m ,M  ,n ,N   ,O 
 {% if 37|divisibleby:"5" %}nope {% else %}yep{% endif %}
  {% if 35|divisibleby:"5" %}yep{% endif %}
 
+{{ 0|filesizeformat }}
+{{ 1024|filesizeformat }}
+{{ 1048576|filesizeformat }}
+{{ 1073741824|filesizeformat }}
+
 {% endautoescape %}
 
