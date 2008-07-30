@@ -302,42 +302,76 @@ public class JavadocToDB {
         JSObject query = new JSObjectBase();
         query.set("name", newClass.name());
         Iterator it = db.find(query);
+        if(it == null) return;
+        System.out.println("it != null: "+newClass.name());
 
-        if(it != null) {
-            // drill down to get the relevant obj
-            JSObject jsdocObj = (JSObjectBase)it.next();
+        // drill down to get the relevant obj
+        JSObject jsdocObj = (JSObjectBase)it.next();
 
-            // for later, when we need to delete this obj
-            JSObject dquery = new JSObjectBase();
-            dquery.set("_id", (ed.db.ObjectId)jsdocObj.get("_id"));
+        // for later, when we need to delete this obj
+        JSObject dquery = new JSObjectBase();
+        dquery.set("_id", (ed.db.ObjectId)jsdocObj.get("_id"));
 
-            jsdocObj = (JSObject)jsdocObj.get("_index");
-            jsdocObj = (JSObject)jsdocObj.get("symbolSet");
-            jsdocObj = (JSObject)jsdocObj.get(newClass.name());
+        jsdocObj = (JSObject)jsdocObj.get("_index");
+        jsdocObj = (JSObject)jsdocObj.get("symbolSet");
+        jsdocObj = (JSObject)jsdocObj.get(newClass.name());
+        mergeClasses(javadocObj, jsdocObj);
 
-            JSArray javadocCons = (JSArray)javadocObj.get("constructors");
-            JSArray jsCons = (JSArray)jsdocObj.get("constructors");
-            if(jsCons != null) {
-                Iterator p = jsCons.iterator();
-                while(p.hasNext())
-                    javadocCons.add(p.next());
-            }
-
-            JSArray javadocMethod = (JSArray)javadocObj.get("methods");
-            Iterator p = ((JSArray)jsdocObj.get("methods")).iterator();
-            while(p.hasNext())
-                javadocMethod.add(p.next());
-
-            JSArray javadocProp = (JSArray)javadocObj.get("properties");
-            p = ((JSArray)jsdocObj.get("properties")).iterator();
-            while(p.hasNext())
-                javadocProp.add(p.next());
-
-            javadocObj.set("srcFile", (jsdocObj.get("srcFile")).toString());
-            // remove the repeated class
-            db.remove(dquery);
-        }
+        // remove the repeated class
+        db.remove(dquery);
     }
+
+    public static void attachClass(ClassDoc newClass, JSObjectBase javadocObj, DBCollection db, String jsClassName) {
+        // is there a conflict with a js class?
+        JSObject query = new JSObjectBase();
+        query.set("name", jsClassName);
+        Iterator it = db.find(query);
+        System.out.println("jsClassName: "+jsClassName);
+        if(it == null) {
+            System.out.println("Error: tried to attach "+newClass.name()+" to non-existant JavaScript class "+jsClassName);
+            return;
+        }
+
+        JSObject jsdoc = (JSObject)it.next();
+        JSObject coreobj = (JSObject)jsdoc.get("_index");
+        coreobj = (JSObject)coreobj.get("symbolSet");
+        coreobj = (JSObject)coreobj.get(jsClassName);
+        mergeClasses(coreobj, javadocObj);
+
+        // save to db
+        db.save(jsdoc);
+    }
+
+    public static JSObject mergeClasses(JSObject master, JSObject child) {
+        // merge constructors
+        JSArray javadocCons = (JSArray)master.get("constructors");
+        if(javadocCons == null) javadocCons = new JSArray();
+        JSArray jsCons = (JSArray)child.get("constructors");
+        if(jsCons != null) {
+            Iterator p = jsCons.iterator();
+            while(p.hasNext())
+                javadocCons.add(p.next());
+        }
+
+        // merge methods
+        JSArray javadocMethod = (JSArray)master.get("methods");
+        Iterator p = ((JSArray)child.get("methods")).iterator();
+        while(p.hasNext())
+            javadocMethod.add(p.next());
+
+        // merge props
+        JSArray javadocProp = (JSArray)master.get("properties");
+        p = ((JSArray)child.get("properties")).iterator();
+        while(p.hasNext())
+            javadocProp.add(p.next());
+
+        // add src file, if it exists
+        if(child.get("srcFile") != null) {
+            master.set("srcFile", (child.get("srcFile")).toString());
+        }
+        return master;
+    }
+
 
     public static boolean start(RootDoc root) {
         Scope s = Scope.getThreadLocal();
@@ -357,7 +391,14 @@ public class JavadocToDB {
             JSObjectBase jsClasses = new JSObjectBase();
 
             JSObjectBase javaClass = getClasses(classes[i]);
-            resolveConflicts(classes[i], javaClass, collection);
+            Tag[] attacher = classes[i].tags("attachto");
+            if(attacher.length > 0) {
+                attachClass(classes[i], javaClass, collection, attacher[0].text());
+                continue;
+            }
+            else {
+                resolveConflicts(classes[i], javaClass, collection);
+            }
             jsClasses.set(classes[i].name(), javaClass);
             obj.set("symbolSet", jsClasses);
 
