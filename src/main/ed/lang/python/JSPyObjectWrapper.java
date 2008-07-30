@@ -31,10 +31,27 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
 
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.JSPYOBJECTWRAPPER" );
 
+    private JSPyObjectWrapper( ){
+        _p = null;
+    }
+
     public JSPyObjectWrapper( PyObject o ){
         _p = o;
         if ( _p == null )
             throw new NullPointerException( "don't think you should create a JSPyObjectWrapper for null" );
+    }
+
+    public static JSPyObjectWrapper newShell( ){
+        return new JSPyObjectWrapper();
+    }
+
+    public void setContained( PyObject p ){
+        // Be careful with this
+        _p = p;
+    }
+
+    public PyObject getContained( ){
+        return _p;
     }
     
     public Object set( Object n , Object v ){
@@ -80,11 +97,15 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     }
     
     public Object call( Scope s , Object [] params ){
+        return toJS( callPython( params ) );
+    }
+
+    public PyObject callPython( Object [] params ){
         PyObject [] pParams = new PyObject[params.length];
         for(int i = 0; i < params.length; ++i){
             pParams[i] = toPython(params[i]);
         }
-        return toJS( _p.__call__( pParams , new String[0] ) );
+        return _p.__call__( pParams , new String[0] );
     }
 
     public Collection<String> keySet( boolean includePrototype ){
@@ -116,6 +137,6 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
         return _p.toString();
     }
     
-    final PyObject _p;
+    private PyObject _p;
 }
     
