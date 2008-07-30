@@ -268,8 +268,12 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
 
         path = cleanPath( path );
 
-        if ( path.contains( ".." ) )
-            throw new RuntimeException( "can't have .. in paths [" + path + "]" );
+        while ( path.startsWith( "../" ) ){
+            path = path.substring( 3 );
+            if ( _parent == null )
+                continue;
+            return _parent.getFromPath( path , evalToFunction );
+        }
         
         path = path.replaceAll( "/+" , "/" );
 

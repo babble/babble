@@ -65,7 +65,7 @@ public class Python {
         if ( p instanceof PyObjectId )
             return ((PyObjectId)p)._id;
 
-        if ( p instanceof PyMethod || p instanceof PyFunction || p instanceof PyClass || p instanceof PyBuiltinFunction || p instanceof PyType ){
+        if ( p instanceof PyClass || p instanceof PyType ){
             return new JSPyClassWrapper( (PyObject)p );
         }
 
@@ -82,7 +82,7 @@ public class Python {
             return Py.None;
         
         if ( o instanceof JSPyObjectWrapper )
-            return ((JSPyObjectWrapper)o)._p;
+            return ((JSPyObjectWrapper)o).getContained();
 
         if ( o instanceof PyObject )
             return (PyObject)o;
