@@ -19,16 +19,42 @@ local.src.test.ed.lang.python.module2();
 assert(somePythonFoo(4) == 5);
 assert(somePythonBar("kitties") == "kitties is great");
 
-var c = PythonClass("hello");
+var c = new PythonClass("hello");
 
 assert( c.myattr == "hello" );
 assert( c.allattr == "puppies" );
 assert( c.meth1() == 123 );
 assert( c.attr2 == 'myattr' );
 
-var c2 = PythonClassicClass("goodbye");
+var c2 = new PythonClassicClass("goodbye");
 
 assert( c2.myattr == "goodbye" );
 assert( c2.allattr == "kitties" );
 assert( c2.meth1() == "classic" );
 assert( c2.attr2 == 989 );
+
+var c3 = new Callable(21);
+
+assert( c3( 2 ) == 23 );
+assert( c3( 1 ) == 22 );
+assert( c3( -1 ) == 20 );
+
+try{
+    var c4 = Callable(141);
+}
+catch(e if (new String(e.getClass()) == "class java.lang.UnsupportedOperationException") ) {
+}
+
+assert( e );
+
+e = null;
+// Make sure that we don't accidentally replace a wrapped object
+try {
+    c3.zoom(function(){ return Callable(11); });
+}
+catch(e){
+    print("Hi " + e.getClass());
+}
+
+assert(e);
+assert( c3( 1 ) == 22 );

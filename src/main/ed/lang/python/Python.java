@@ -65,17 +65,8 @@ public class Python {
         if ( p instanceof PyObjectId )
             return ((PyObjectId)p)._id;
 
-        if ( p instanceof PyMethod || p instanceof PyFunction || p instanceof PyClass || p instanceof PyBuiltinFunction || p instanceof PyType ){
-            final PyObject pyo = (PyObject)p;
-            return new JSFunctionCalls0(){
-                public Object call( Scope s , Object [] params ){
-                    PyObject [] pParams = new PyObject[params.length];
-                    for(int i = 0; i < params.length; ++i){
-                        pParams[i] = toPython(params[i]);
-                    }
-                    return toJS( pyo.__call__( pParams , new String[0] ) );
-                }
-            };
+        if ( p instanceof PyClass || p instanceof PyType ){
+            return new JSPyClassWrapper( (PyObject)p );
         }
 
         // this needs to be last
@@ -91,7 +82,7 @@ public class Python {
             return Py.None;
         
         if ( o instanceof JSPyObjectWrapper )
-            return ((JSPyObjectWrapper)o)._p;
+            return ((JSPyObjectWrapper)o).getContained();
 
         if ( o instanceof PyObject )
             return (PyObject)o;

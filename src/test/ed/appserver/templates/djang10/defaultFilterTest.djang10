@@ -57,5 +57,12 @@ a   ,A ,b  ,d ,D  ,f   ,F       ,g,G ,h ,H ,i ,j ,l     ,L    ,m ,M  ,n ,N   ,O 
 1 cand{{ 1|pluralize:"y,ies" }}
 2 cand{{ 2|pluralize:"y,ies" }}
 
+{{ "a mOo anD 1ba37ao"|title }}
+
+{{ "<a>w1 w2<b>w3</b></a>"|truncatewords_html:"2" }}
+{{ "<a>w1 w2<b>w3</b></a>"|truncatewords_html:"3" }}
+{{ "<a>w1 w2<b>w3</b></a>"|truncatewords_html:"30" }}
+{{ "<a>w1 w2<b>w3</b></a>"|truncatewords_html:"1" }}
+
 {% endautoescape %}
 

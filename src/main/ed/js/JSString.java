@@ -49,8 +49,8 @@ public class JSString extends JSObjectBase implements Comparable {
             }
 
             if ( ! ( o instanceof JSString ) )
-                throw new RuntimeException( "something is very broken" );
-
+                return new JSString( foo == null ? "" : foo.toString() );
+            
             JSString str = (JSString)o;
             if ( foo != null )
                 str._s = foo.toString();
