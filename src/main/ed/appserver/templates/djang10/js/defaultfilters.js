@@ -232,7 +232,75 @@ var truncatewords =
 truncatewords.is_safe = true;
 truncatewords = defaultfilters.truncatewords = stringfilter(truncatewords);
 
-//TODO: truncatewords_html
+var truncatewords_html =
+    defaultfilters.truncatewords_html =
+    function(value, arg) {
+    
+    var length = parseInt(arg);
+    if(isNaN(length))
+        return value;
+    
+    
+    if(length <= 0)
+        return "";
+    
+    var html4_singlets = ['br', 'col', 'link', 'base', 'img', 'param', 'area', 'hr', 'input'];
+    var re_words = /&.*?;|<.*?>|(\w[\w-]*)/;
+    var re_tag = /<(\/)?([^ ]+?)(?: (\/)| .*?)?>/;
+    
+    var pos = 0;
+    var ellipsis_pos = 0;
+    var words = 0;
+    var open_tags = new Array();
+
+    
+    while(words <= length) {
+        var cur_value = value.substring(pos);
+        var m = re_words.exec(cur_value);
+        
+        if(m == null)
+            break;
+        pos += m.index + m[0].length;
+        
+        if(m[1]) {
+            words++;
+            if(words == length)
+                ellipsis_pos = pos;
+            continue;
+        }
+        var tag = re_tag.exec(m[0]);
+        if(tag == null || ellipsis_pos)
+            continue;
+        
+        var closing_tag = tag[1];
+        var tagname = tag[2].toLowerCase();
+        var self_closing = tag[3];
+        
+        if(self_closing || html4_singlets.indexOf(tagname) > -1);
+            //pass
+        else if(closing_tag) {
+            var i = open_tags.indexOf(tagname);
+            if(i > -1)
+                open_tags.pop();
+        }
+        else {
+            open_tags.push(tagname);
+        }
+    }
+    if(words <= length)
+        return value;
+    
+    var out = value.substring(0, ellipsis_pos) + " ...";
+ 
+    
+    while(open_tags.length > 0)
+        out += "</" + open_tags.pop() + ">";
+        
+    
+    return out;
+};
+truncatewords_html.is_safe = true;
+truncatewords_html = defaultfilters.truncatewords_html = stringfilter(truncatewords_html);
 
 var upper =
     defaultfilters.upper =
@@ -921,6 +989,7 @@ register.filter("filesizeformat", filesizeformat);
 register.filter("pluralize", pluralize);
 register.filter("phone2numeric", phone2numeric);
 register.filter("title", title);
+register.filter("truncatewords_html", truncatewords_html);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
