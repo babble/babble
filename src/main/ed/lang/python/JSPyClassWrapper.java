@@ -38,11 +38,8 @@ public class JSPyClassWrapper extends JSPyObjectWrapper {
 
     public Object call( Scope s , Object [] params ){
         Object t = s.getThis();
-        if( t == null ){
+        if( t == null || ! ( t instanceof JSPyObjectWrapper ) ){
             throw new UnsupportedOperationException( "please call Python classes using new" );
-        }
-        if( ! ( t instanceof JSPyObjectWrapper ) ){
-            throw new RuntimeException( "calling a python class on a " + t.getClass() );
         }
 
         JSPyObjectWrapper shell = (JSPyObjectWrapper)t;

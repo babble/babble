@@ -42,9 +42,19 @@ assert( c3( -1 ) == 20 );
 try{
     var c4 = Callable(141);
 }
-catch(e){// if (e.getClass() == "class java.lang.UnsupportedOperationException") ) {
-    // FIXME: this should fail, but the exact reason it fails isn't perfect yet
+catch(e if (new String(e.getClass()) == "class java.lang.UnsupportedOperationException") ) {
 }
 
 assert( e );
 
+e = null;
+// Make sure that we don't accidentally replace a wrapped object
+try {
+    c3.zoom(function(){ return Callable(11); });
+}
+catch(e){
+    print("Hi " + e.getClass());
+}
+
+assert(e);
+assert( c3( 1 ) == 22 );

@@ -47,3 +47,5 @@ class Callable(object):
     def __call__(self, x):
         return x + self.y
 
+    def zoom(self, f):
+        return f()
