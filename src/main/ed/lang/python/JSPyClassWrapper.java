@@ -1,3 +1,5 @@
+// JSPyClassWrapper.java
+
 /**
 *    Copyright (C) 2008 10gen Inc.
 *  
@@ -14,28 +16,25 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-local.src.test.ed.lang.python.module2();
+package ed.lang.python;
 
-assert(somePythonFoo(4) == 5);
-assert(somePythonBar("kitties") == "kitties is great");
+import java.util.*;
 
-var c = PythonClass("hello");
+import org.python.core.*;
 
-assert( c.myattr == "hello" );
-assert( c.allattr == "puppies" );
-assert( c.meth1() == 123 );
-assert( c.attr2 == 'myattr' );
+import ed.js.*;
+import static ed.lang.python.Python.*;
 
-var c2 = PythonClassicClass("goodbye");
+public class JSPyClassWrapper extends JSPyObjectWrapper {
+    public JSPyClassWrapper( PyObject o ){
+        super( o );
+    }
 
-assert( c2.myattr == "goodbye" );
-assert( c2.allattr == "kitties" );
-assert( c2.meth1() == "classic" );
-assert( c2.attr2 == 989 );
+    public JSObject newOne(){
+        // FIXME:
+        // instant NPE
+        return new JSPyObjectWrapper(null);
+    }
 
-var c3 = Callable(21);
-
-assert( c3( 2 ) == 23 );
-assert( c3( 1 ) == 22 );
-assert( c3( -1 ) == 20 );
-
+}
+    

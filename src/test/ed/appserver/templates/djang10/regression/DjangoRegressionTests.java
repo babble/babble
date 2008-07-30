@@ -82,7 +82,6 @@ public class DjangoRegressionTests {
         //unimplemented filters
         "filter-iriencode.*",
         "filter-make_list0[3,4]",   //needs stringformat 
-        "filter-phone2numeric.*",
         "filter-slugify.*",
         "filter-stringformat.*",
         "filter-urlize.*",

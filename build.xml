@@ -130,6 +130,7 @@
   <target  name="test-django" depends="init">
     <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
       <xmlfileset dir="." includes="testng-django.xml"/>
+      <sysproperty key="DEBUG.DJANG10" value="${DEBUG.DJANG10}"/>
     </testng>
   </target>
 
