@@ -114,24 +114,30 @@ public class AppContextHolder {
             
             ac = _getContextFromMap( host );
             if ( ac != null )
-                return new Result( ac , host, uri );
+                return _finish( ac , host, uri , host );
 
             for ( Info i : getPossibleSiteNames( info ) ){
                 if ( D ) System.out.println( "\t possible site name [" + i.host + "]" );
                 File temp = new File( _root , i.host );
                 if ( temp.exists() )
-                    return new Result( getEnvironmentContext( temp , i , host ) , i.host , info.uri );
+                    return _finish( getEnvironmentContext( temp , i , host ) , i.host , info.uri , host );
 
                 JSObject site = getSiteFromCloud( i.host );
                 if ( site != null ){
                     if ( D ) System.out.println( "\t found site from cloud" );
                     temp.mkdirs();
-                    return new Result( getEnvironmentContext( temp , i , host ) , i.host , info.uri );
+                    return _finish( getEnvironmentContext( temp , i , host ) , i.host , info.uri , host );
                 }
             }
         }
         
-        return new Result( _getDefaultContext() , info.host , info.uri );
+        return _finish( _getDefaultContext() , info.host , info.uri , host );
+    }
+    
+    private Result _finish( AppContext context , String host , String uri , String origHost ){
+        _contextCache.put( origHost , context );
+        _contextCache.put( host , context );
+        return new Result( context , host , uri );
     }
 
     private AppContext getEnvironmentContext( final File siteRoot , final Info info , final String originalHost ){

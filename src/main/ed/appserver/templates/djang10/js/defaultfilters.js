@@ -787,6 +787,76 @@ var yesno =
     return (value == null)? maybe : (djang10.Expression.is_true(value))? yes : no;     
 };
 
+
+
+///////////////////////
+//MISC               //
+///////////////////////
+var filesizeformat =
+defaultfilters.filesizeformat =
+function(bytes) {
+
+    bytes = parseFloat(bytes);
+
+    if(isNaN(bytes))
+    return "0 bytes";
+
+    if(bytes < 1024)
+        return (bytes == 1)? (bytes + " byte") : (bytes + " bytes");
+    if(bytes < 1024 * 1024)
+        return (bytes/1024) + " KB";
+    if(bytes < 1024*1024*1024)
+        return (bytes/(1024*1024)) + " MB";
+    return (bytes/(1024*1024*1024)) + " GB";
+};
+filesizeformat.is_safe = true;
+
+var pluralize =
+    defaultfilters.pluralize =
+    function(value, arg) {
+    
+    arg = arg || "s";
+    if(arg.indexOf(",") == -1)
+        arg = "," + arg;
+    var bits = arg.split(",");
+    if(bits.length > 2)
+        return "";
+    
+    var singular_suffix = bits[0];
+    var plural_suffix = bits[1];
+    
+    var temp = parseInt(value);
+    if(!isNaN(temp) && temp != 1)
+        return plural_suffix;
+    
+    if((value instanceof Array) && value.length != 1)
+        return plural_suffix;
+    
+    return singular_suffix;
+
+};
+pluralize.is_safe = true;
+
+var phone2numeric =
+    defaultfilters.phone2numeric =
+    function(value) {
+
+    var map = {
+            'a': '2', 'c': '2', 'b': '2', 'e': '3',
+            'd': '3', 'g': '4', 'f': '3', 'i': '4', 'h': '4', 'k': '5',
+            'j': '5', 'm': '6', 'l': '5', 'o': '6', 'n': '6', 'p': '7',
+            's': '7', 'r': '7', 'u': '8', 't': '8', 'w': '9', 'v': '8',
+            'y': '9', 'x': '9'
+    };
+
+    return value.replace(/[A-PR-Y]/gi, 
+            function(match, offset, str) {
+                return map[match.toLowerCase()]; 
+            }
+    );
+};
+phone2numeric.is_safe = true;
+
 register.filter("lower", lower);
 register.filter("upper", upper);
 register.filter("urlencode", urlencode);
@@ -830,6 +900,9 @@ register.filter("timesince", timesince);
 register.filter("timeuntil", timeuntil);
 register.filter("wordwrap", wordwrap)
 register.filter("divisibleby", divisibleby);
+register.filter("filesizeformat", filesizeformat);
+register.filter("pluralize", pluralize);
+register.filter("phone2numeric", phone2numeric);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
