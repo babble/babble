@@ -94,6 +94,52 @@ public class JSBuiltInFunctions {
     }
 
     public static class jsassert extends JSFunctionCalls1 {
+        public jsassert(){
+            JSFunction myThrows = new JSFunctionCalls2(){
+                    public Object call( Scope scope , Object exctype, Object f,
+                                        Object extra[] ){
+                        if( ! ( f instanceof JSFunction ) ){
+                            throw new RuntimeException( "Second argument to assert.throws must be a function" );
+                        }
+                        try {
+                            ((JSFunction)f).call( scope , null );
+                        }
+                        catch(JSException e){
+                            if( exctype instanceof JSString || exctype instanceof String ){
+                                if( e.getObject().equals( exctype.toString() ) )
+                                    return Boolean.TRUE;
+                            }
+                            Object desc = e.getObject();
+                            if( desc instanceof Throwable && match( (Throwable) desc , exctype ) )
+                                return Boolean.TRUE;
+
+                            Throwable cause = e.getCause();
+                            if( match( cause , exctype ) )
+                                return Boolean.TRUE;
+
+                            throw new JSException( "given function threw something else: " + cause.toString() );
+                        }
+                        catch(Throwable e){
+                            if( match( e , exctype.toString() ) ) {
+                                return Boolean.TRUE;
+                            }
+
+                            // FIXME: what if exctype is a JSFunction (i.e.
+                            // an exception type?
+                            // Find out how to do instanceof in JS API
+
+                            throw new JSException( "given function threw something else: " + e.toString() );
+                        }
+                        // Didn't throw anything
+                        throw new JSException( "given function did not throw " + exctype );
+
+                    }
+                };
+
+            set("throws", myThrows);
+            set("raises", myThrows);
+        }
+
         public Object call( Scope scope , Object foo , Object extra[] ){
             if ( JSInternalFunctions.JS_evalToBool( foo ) )
                 return Boolean.TRUE;
@@ -102,6 +148,23 @@ public class JSBuiltInFunctions {
                 throw new JSException( "assert failed : " + extra[0] );
 
             throw new JSException( "assert failed" );
+        }
+
+        public boolean match( Throwable e , Object exctype ){
+            if( exctype instanceof JSString || exctype instanceof String ){
+                String s = exctype.toString();
+                String gotExc = e.getClass().toString();
+
+                if( gotExc.equals( "class " + s ) ) return true;
+                if( gotExc.equals( "class java.lang." + s ) )
+                    return true;
+
+                if( e instanceof JSException && ((JSException)e).getObject().equals( s ) )
+                    return true;
+
+                // FIXME: check subclasses?
+            }
+            return false;
         }
     }
 
