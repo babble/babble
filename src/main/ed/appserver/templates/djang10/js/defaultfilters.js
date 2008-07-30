@@ -196,6 +196,21 @@ make_list = defaultfilters.make_list = stringfilter(make_list);
 //TODO: stringformat
 //TODO: title
 
+var title =
+    defaultfilters.title =
+    function(value) {
+
+    value = value.toLowerCase();
+    value = value.replace(/(?:\b|(?<![a-z]))([a-z]+)(?:\b|(?![a-z]))/ig, function(w){
+        return w.charAt(0).toUpperCase()+w.substring(1);
+    });
+    
+    return value.replace(/([a-z])'([A-Z])/, 
+            function(m) { m.toLowerCase(); });
+};
+title.is_safe = true;
+title = defaultfilters.title = stringfilter(title);
+
 var truncatewords =
     defaultfilters.truncatewords =
     function(value, arg) {
@@ -857,6 +872,8 @@ var phone2numeric =
 };
 phone2numeric.is_safe = true;
 
+//TODO: pprint
+
 register.filter("lower", lower);
 register.filter("upper", upper);
 register.filter("urlencode", urlencode);
@@ -903,6 +920,7 @@ register.filter("divisibleby", divisibleby);
 register.filter("filesizeformat", filesizeformat);
 register.filter("pluralize", pluralize);
 register.filter("phone2numeric", phone2numeric);
+register.filter("title", title);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
