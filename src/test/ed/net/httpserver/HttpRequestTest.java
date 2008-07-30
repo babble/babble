@@ -65,6 +65,21 @@ public class HttpRequestTest extends TestCase {
         assertEquals( "3" , r.get( "a" ).toString() );
     }    
 
+
+    @Test(groups = {"basic"})    
+    public static void testPaths(){
+        HttpRequest r = HttpRequest.getDummy( "/crazy/me?a=2" );        
+        assertEquals( "/crazy/" , r.getDirectory() );
+
+        r = HttpRequest.getDummy( "/crazy/me/?a=2" );        
+        assertEquals( "/crazy/me/" , r.getDirectory() );
+
+        r = HttpRequest.getDummy( "/crazy?a=2" );        
+        assertEquals( "/" , r.getDirectory() );
+
+    }    
+
+
     @Test(groups = {"basic"})
     public static void testMonitorGetFilter(){
         // yes, this shouldn't be here.

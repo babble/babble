@@ -30,23 +30,19 @@ public class AppServerTest extends ed.TestCase {
     public void testGetContext(){
         AppContextHolder as = new AppContextHolder( _root + "admin" , _root );
         
-        assertEquals( _root + "alleyinsider" , as.getContext( "alleyinsider.latenightcoders.com" , "" , null ).getRoot() );
-        assertEquals( _root + "alleyinsider" , as.getContext( "alleyinsider.com" , "" , null ).getRoot() );
+        assertEquals( _root + "alleyinsider" , as.getContext( "alleyinsider.latenightcoders.com" , ""  ).getRoot() );
+        assertEquals( _root + "alleyinsider" , as.getContext( "alleyinsider.com" , ""  ).getRoot() );
         
-        assertEquals( _root + "admin" , as.getContext( "sb1.latenightcoders.com" , "" , null ).getRoot() );
-        assertEquals( _root + "admin" , as.getContext( "latenightcoders.com" , "" , null ).getRoot() );
-        assertEquals( _root + "admin" , as.getContext( "" , "" , null ).getRoot() );
+        assertEquals( _root + "admin" , as.getContext( "sb1.latenightcoders.com" , ""  ).getRoot() );
+        assertEquals( _root + "admin" , as.getContext( "latenightcoders.com" , ""  ).getRoot() );
+        assertEquals( _root + "admin" , as.getContext( "" , ""  ).getRoot() );
         
-        assertEquals( _root + "a/www" , as.getContext( "a.com" , "" , null ).getRoot() );
-        assertEquals( _root + "a/www" , as.getContext( "www.a.com" , "" , null ).getRoot() );
-        assertEquals( _root + "a/dev" , as.getContext( "dev.a.com" , "" , null ).getRoot() );
+        assertEquals( _root + "a/www" , as.getContext( "a.com" , ""  ).getRoot() );
+        assertEquals( _root + "a/www" , as.getContext( "www.a.com" , ""  ).getRoot() );
+        assertEquals( _root + "a/dev" , as.getContext( "dev.a.com" , ""  ).getRoot() );
         
-        String newUri[] = new String[1];
-        
-        assertEquals( _root + "alleyinsider" , as.getContext( "origin.10gen.com" , "/alleyinsider/images/logo.gif" , newUri ).getRoot() );
-        assertEquals( "/images/logo.gif" , newUri[0] );
-        assertEquals( _root + "admin" , as.getContext( "www.10gen.com" , "/alleyinsider/images/logo.gif" , newUri ).getRoot() );
-        assertEquals( "/alleyinsider/images/logo.gif" , newUri[0] );
+        assertEquals( _root + "alleyinsider||alleyinsider||/images/logo.gif" , as.getContext( "origin.10gen.com" , "/alleyinsider/images/logo.gif"  ).toString() );
+        assertEquals( _root + "admin||www.com||/alleyinsider/images/logo.gif" , as.getContext( "www.10gen.com" , "/alleyinsider/images/logo.gif" ).toString() );
     }
 
 

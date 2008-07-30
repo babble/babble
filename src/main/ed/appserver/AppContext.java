@@ -454,7 +454,7 @@ public class AppContext {
      * @return the request
      */
     AppRequest createRequest( HttpRequest request ){
-        return createRequest( request , request.getURI() );
+        return createRequest( request , request.getHost() , request.getURI() );
     }
 
     /**
@@ -463,9 +463,9 @@ public class AppContext {
      * @param uri the URI requested
      * @return the request
      */
-    AppRequest createRequest( HttpRequest request , String uri ){
+    AppRequest createRequest( HttpRequest request , String host , String uri ){
         _numRequests++;
-        return new AppRequest( this , request , uri );
+        return new AppRequest( this , request , host , uri );
     }
 
     /**
