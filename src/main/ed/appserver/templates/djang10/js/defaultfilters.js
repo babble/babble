@@ -837,6 +837,26 @@ var pluralize =
 };
 pluralize.is_safe = true;
 
+var phone2numeric =
+    defaultfilters.phone2numeric =
+    function(value) {
+
+    var map = {
+            'a': '2', 'c': '2', 'b': '2', 'e': '3',
+            'd': '3', 'g': '4', 'f': '3', 'i': '4', 'h': '4', 'k': '5',
+            'j': '5', 'm': '6', 'l': '5', 'o': '6', 'n': '6', 'p': '7',
+            's': '7', 'r': '7', 'u': '8', 't': '8', 'w': '9', 'v': '8',
+            'y': '9', 'x': '9'
+    };
+
+    return value.replace(/[A-PR-Y]/gi, 
+            function(match, offset, str) {
+                return map[match.toLowerCase()]; 
+            }
+    );
+};
+phone2numeric.is_safe = true;
+
 register.filter("lower", lower);
 register.filter("upper", upper);
 register.filter("urlencode", urlencode);
@@ -882,6 +902,7 @@ register.filter("wordwrap", wordwrap)
 register.filter("divisibleby", divisibleby);
 register.filter("filesizeformat", filesizeformat);
 register.filter("pluralize", pluralize);
+register.filter("phone2numeric", phone2numeric);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
