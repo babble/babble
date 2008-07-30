@@ -47,5 +47,15 @@ a   ,A ,b  ,d ,D  ,f   ,F       ,g,G ,h ,H ,i ,j ,l     ,L    ,m ,M  ,n ,N   ,O 
 {{ 1048576|filesizeformat }}
 {{ 1073741824|filesizeformat }}
 
+0 vote{{ 0|pluralize }}
+1 vote{{ 1|pluralize }}
+2 vote{{ 2|pluralize }}
+0 class{{ 0|pluralize:"es" }}
+1 class{{ 1|pluralize:"es" }}
+2 class{{ 2|pluralize:"es" }}
+0 cand{{ 0|pluralize:"y,ies" }}
+1 cand{{ 1|pluralize:"y,ies" }}
+2 cand{{ 2|pluralize:"y,ies" }}
+
 {% endautoescape %}
 

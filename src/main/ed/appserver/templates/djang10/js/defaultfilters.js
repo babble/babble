@@ -811,7 +811,31 @@ function(bytes) {
 };
 filesizeformat.is_safe = true;
 
+var pluralize =
+    defaultfilters.pluralize =
+    function(value, arg) {
+    
+    arg = arg || "s";
+    if(arg.indexOf(",") == -1)
+        arg = "," + arg;
+    var bits = arg.split(",");
+    if(bits.length > 2)
+        return "";
+    
+    var singular_suffix = bits[0];
+    var plural_suffix = bits[1];
+    
+    var temp = parseInt(value);
+    if(!isNaN(temp) && temp != 1)
+        return plural_suffix;
+    
+    if((value instanceof Array) && value.length != 1)
+        return plural_suffix;
+    
+    return singular_suffix;
 
+};
+pluralize.is_safe = true;
 
 register.filter("lower", lower);
 register.filter("upper", upper);
@@ -857,7 +881,7 @@ register.filter("timeuntil", timeuntil);
 register.filter("wordwrap", wordwrap)
 register.filter("divisibleby", divisibleby);
 register.filter("filesizeformat", filesizeformat);
-
+register.filter("pluralize", pluralize);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
