@@ -476,7 +476,7 @@ public class JSBuiltInFunctions {
             return t;
         }
     }
-    
+
     public static class processArgs extends JSFunctionCalls0 {
         public Object call( Scope scope , Object [] args){
             JSArray a = (JSArray)scope.get("arguments");
@@ -689,11 +689,10 @@ public class JSBuiltInFunctions {
 
         s.put( "processArgs", new processArgs(), true );
 
-	s.put( "XML" , E4X.CONS , true );
 
         // mail stuff till i'm done
         s.put( "JAVAXMAILTO" , javax.mail.Message.RecipientType.TO , true );
-	
+
         JSON.init( s );
         Encoding.install( s );
 
@@ -716,7 +715,8 @@ public class JSBuiltInFunctions {
         s.put( "Date" , new JSDate.Cons() , true );
         s.put( "JSDate" , s.get( "Date" ) , true ); // b/c Eliot always types this
         s.put( "String" , new JSString.JSStringCons() , true );
-        
+	s.put( "XML" , new E4X.Cons() , true );
+
         s.put( "RegExp" , new JSRegex.Cons() , true );
         s.put( "Regexp" , s.get( "RegExp" ) , true ); // for Ruby technically
         s.put( "XMLHttpRequest" , XMLHttpRequest._cons , true );
@@ -727,7 +727,7 @@ public class JSBuiltInFunctions {
 	s.put( "parseNumber" , JSNumber.CONS , true );
 
         // extensions
-        
+
         s.put( "Exception" , new JSException.cons() , true );
         s.put( "Map" , new JSMap.Cons() , true );
 
