@@ -131,9 +131,6 @@ public class E4X {
             _raw = s;
             try {
                 _document = XMLUtil.parse( s );
-                _fragment = _document.createDocumentFragment();
-                //                _fragment.appendChild(_document);
-
                 _node = _document.getDocumentElement();
             }
             catch ( Exception e ){
@@ -152,8 +149,26 @@ public class E4X {
             throw new RuntimeException( "can't handle : " + n.getClass() );
         }
 
-        public Object child( Object n ) {
-            return n;
+        public Object child( Object propertyName ) {
+            try {
+                int x = Integer.parseInt(propertyName.toString());
+                return ((EList)get( "*" )).get(new Integer(propertyName.toString()));
+            }
+            catch( NumberFormatException nfe ) {
+                return get(propertyName.toString());
+            }
+        }
+
+        public int childIndex() {
+            Node parent = _node.getParentNode();
+            if( parent == null || parent.getNodeType() == Node.ATTRIBUTE_NODE ) return -1;
+
+            NodeList children = parent.getChildNodes();
+            for( int i=0; i<children.getLength(); i++ ) {
+                if(children.item(i).isEqualNode(_node)) return i;
+            }
+
+            return -1;
         }
 
 
@@ -184,7 +199,6 @@ public class E4X {
         private Document _document;
 
         private Node _node;
-        private DocumentFragment _fragment;
     }
 
     static class EList extends JSObjectBase {
