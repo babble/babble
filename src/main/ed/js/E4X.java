@@ -171,6 +171,33 @@ public class E4X {
             return -1;
         }
 
+        public Object children() {
+            return get( "*" );
+        }
+
+        public Object comments() {
+            NodeList children = _node.getChildNodes();
+            List<Node> comments = new LinkedList<Node>();
+
+            for( int i=0; i<children.getLength(); i++ ) {
+                if(children.item(i).getNodeType() == Node.COMMENT_NODE)
+                    comments.add(children.item(i));
+            }
+
+            return new EList(comments);
+        }
+
+        public boolean contains( Object o ) {
+            if( !(o instanceof Node) )
+                return false;
+            return this._node.equals((Node)o);
+        }
+
+        public Object copy() {
+            boolean deep_copy = true;
+            return this._node.cloneNode(deep_copy);
+        }
+
 
         /**        public DocumentFragment getNode() {
             return _fragment;
