@@ -98,6 +98,18 @@ public class E4X {
                     }
                 } );
 
+            set( "defaultSettings" , new JSFunctionCalls0(){
+                    public Object call( Scope s, Object foo[] ){
+                        JSObjectBase sets = new JSObjectBase();
+                        sets.set("ignoreComments", true);
+                        sets.set("ignoreProcessingInstructions", true);
+                        sets.set("ignoreWhitespace", true);
+                        sets.set("prettyPrinting", true);
+                        sets.set("prettyIndent", 2);
+                        return sets;
+                    }
+                } );
+
             set( "ignoreComments" , true);
             set( "ignoreProcessingInstructions" , true);
             set( "ignoreWhitespace" , true);
@@ -119,6 +131,9 @@ public class E4X {
             _raw = s;
             try {
                 _document = XMLUtil.parse( s );
+                _fragment = _document.createDocumentFragment();
+                //                _fragment.appendChild(_document);
+
                 _node = _document.getDocumentElement();
             }
             catch ( Exception e ){
@@ -137,7 +152,18 @@ public class E4X {
             throw new RuntimeException( "can't handle : " + n.getClass() );
         }
 
+        public Object child( Object n ) {
+            return n;
+        }
 
+
+        /**        public DocumentFragment getNode() {
+            return _fragment;
+        }
+
+        public void appendChild(ENode child) {
+            _node.appendChild(child.getNode());
+            }*/
 
         public String toString(){
             if ( _raw != null )
@@ -158,6 +184,7 @@ public class E4X {
         private Document _document;
 
         private Node _node;
+        private DocumentFragment _fragment;
     }
 
     static class EList extends JSObjectBase {
@@ -177,6 +204,7 @@ public class E4X {
 
                 if ( s.equals( "length" ) ||
                      s.equals( "toString" ) ||
+                     s.equals( "tojson" ) ||
                      s.equals( "child" ) )
                     return null;
             }
@@ -198,6 +226,7 @@ public class E4X {
         public ENode child( int num ){
             return new ENode( _lst.get( num ) );
         }
+
 
         public int length(){
             if ( _lst == null )
@@ -225,6 +254,10 @@ public class E4X {
         if ( attr )
             s = s.substring(1);
 
+        final boolean all = s.endsWith("*");
+        if( all )
+            s = s.substring(0, s.length()-1);
+
         List<Node> traverse = new LinkedList<Node>();
         traverse.add( start );
 
@@ -235,6 +268,11 @@ public class E4X {
 
             if ( attr ){
                 NamedNodeMap nnm = n.getAttributes();
+                if ( all ) {
+                    for(int i=0; i<nnm.getLength(); i++) {
+                        res.add(nnm.item(i));
+                    }
+                }
                 if ( nnm != null ){
                     Node a = nnm.getNamedItem( s );
                     if ( a != null )
@@ -249,7 +287,7 @@ public class E4X {
             for ( int i=0; i<children.getLength(); i++ ){
                 Node c = children.item(i);
 
-                if ( ! attr && c.getNodeName().equals( s ) )
+                if ( all || ( ! attr && c.getNodeName().equals( s ) ) )
                     res.add( c );
 
                 if ( search )
