@@ -82,7 +82,6 @@ public class DjangoRegressionTests {
         //unimplemented filters
         "filter-iriencode.*",
         "filter-make_list0[3,4]",   //needs stringformat 
-        "filter-slugify.*",
         "filter-stringformat.*",
 
         //broken filters
@@ -320,6 +319,7 @@ public class DjangoRegressionTests {
         }
         
     }
+
     
     //Helpers
     private static class Result {}
