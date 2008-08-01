@@ -25,3 +25,8 @@ local.src.test.ed.lang.python.module3();
 assert( pythonGetInstanceAttr( myClass, "foo" ) == myClass.prototype.foo );
 
 assert( pythonGetInstanceAttr( myClass, "myAttr" ) == 214 );
+
+assert( pythonGetClassAttr( myClass, "foo" ) == myClass.prototype.foo );
+
+assert( pythonGetClassAttr( myClass, "bind" ) == Function.prototype.bind );
+
