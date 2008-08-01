@@ -104,10 +104,10 @@ public class Python {
 
         // these should be at the bottom
         if ( o instanceof JSFunction ){
-            Object p = ((JSFunction)o).get("prototype");
+            Object p = ((JSFunction)o).getPrototype();
             if( p instanceof JSObject ){
                 JSObject jsp = (JSObject)p;
-                if( jsp.keySet().size() > 0 )
+                if( ! jsp.keySet().isEmpty() )
                     return new PyJSClassWrapper( (JSFunction)o );
             }
 
