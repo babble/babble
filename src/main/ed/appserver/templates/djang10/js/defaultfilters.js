@@ -432,7 +432,16 @@ urlize.is_safe = true;
 urlize.needs_autoescape = true;
 urlize = defaultfilters.urlize = stringfilter(urlize);
 
-//TODO: urlizetrunc
+//XXX: order of params differs from django
+var urlizetrunc =
+    defaultfilters.urlizetrunc =
+    function(value, autoescape, arg) {
+    
+    return djang10.mark_safe(_urlize(value, parseInt(arg), true, autoescape))
+};
+urlizetrunc.is_safe = true;
+urlizetrunc.needs_autoescape = true;
+urlizetrunc = defaultfilters.urlizetrunc = stringfilter(urlizetrunc);
 
 var wordcount =
     defaultfilters.wordcount =
@@ -1102,6 +1111,7 @@ register.filter("phone2numeric", phone2numeric);
 register.filter("title", title);
 register.filter("truncatewords_html", truncatewords_html);
 register.filter("urlize", urlize);
+register.filter("urlizetrunc", urlizetrunc);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
