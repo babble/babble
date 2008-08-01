@@ -133,7 +133,9 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     }
 
     public JSObject getSuper(){
-        throw new RuntimeException( "not implemented" );
+        // FIXME: This is probably wrong; since we treat all Python objects as
+        // functions, why shouldn't we return JSFunction._prototype?
+        return JSObjectBase._objectLowFunctions;
     }
     
     public String toString(){
