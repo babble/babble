@@ -452,7 +452,6 @@ var wordcount =
 wordcount.is_safe = false;
 wordcount = defaultfilters.wordcount = stringfilter(wordcount);
 
-//TODO: wordwrap
 var wordwrap =
     defaultfilters.wordwrap =
     function(value, arg) {
@@ -881,7 +880,17 @@ var date =
 };
 date.is_safe = true;
 
-//TODO: time
+var time =
+    defaultfilters.time =
+    function(value, arg) {
+
+    if(!value)
+        return "";
+    
+    //TODO: if arg is null, use django.TIME_FORMAT
+    
+    return djang10.formatTime(value, arg);
+};
 
 var _time_since = function(d, now) {
     //TODO: implement and use the actual translation system
@@ -1112,6 +1121,7 @@ register.filter("title", title);
 register.filter("truncatewords_html", truncatewords_html);
 register.filter("urlize", urlize);
 register.filter("urlizetrunc", urlizetrunc);
+register.filter("time", time);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
