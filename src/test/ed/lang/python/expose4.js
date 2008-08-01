@@ -30,3 +30,10 @@ assert( pythonGetClassAttr( myClass, "foo" ) == myClass.prototype.foo );
 
 assert( pythonGetClassAttr( myClass, "bind" ) == Function.prototype.bind );
 
+pythonExtend( myClass );
+
+var c1 = new myClass();
+
+assert( c1.pyList[2] == -3 );
+
+assert( c1.pyMeth(" W. 20th") == "2312 W. 20th" );

@@ -56,4 +56,14 @@ public class PyJSClassWrapper extends PyJSFunctionWrapper {
         return super.__findattr__( name );
     }
 
+    public void __setattr__( String name, PyObject value ){
+        JSObject proto = _func.getPrototype();
+        if( value instanceof PyFunction ){
+            // Have to wrap methods specially to convert implicit this ->
+            // explicit self
+            proto.set( name , new JSPyMethodWrapper( _func , (PyFunction)value ) );
+            return;
+        }
+        proto.set( name, toJS( value ) );
+    }
 }
