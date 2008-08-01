@@ -39,14 +39,15 @@ public class PyJSObjectWrapper extends PyDictionary {
     }
     
     public PyObject __findattr__(String name) {
-        System.out.println("Findattr: " + name);
         // FIXME: more graceful fail-through etc
         try{
-            return super.__findattr__(name);
+            PyObject p = super.__findattr__( name );
+            if( p != null )
+                return p;
         }
         catch(PyException e){
-            return _fixReturn( _js.get( name ) );
         }
+        return _fixReturn( _js.get( name ) );
     }    
 
     public PyObject __finditem__(PyObject key){
@@ -67,6 +68,21 @@ public class PyJSObjectWrapper extends PyDictionary {
     public void __setitem__(PyObject key, PyObject value) {
         super.__setitem__(key, value);
         _js.set( toJS( key ) , toJS( value ) );
+    }
+
+    public void __setattr__( String key , PyObject value ){
+        super.__setitem__(key, value);
+        _js.set( toJS( key ) , toJS( value ) );
+    }
+
+    public void __delattr__( String key ){
+        try {
+            super.__delitem__( key );
+        }
+        catch( PyException e ){
+            // meh
+        }
+        _js.removeField( key );
     }
 
     public String toString(){

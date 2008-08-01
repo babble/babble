@@ -53,7 +53,6 @@ public class DjangoRegressionTests {
         "basic-syntax27",   //need support for translating _( )
         "^list-index.*",    //need to preprocess the string
         "ifequal-numeric07", //need to preprocess: throw error on 2.
-        "^filter-truncatewords02",  //needs autoescape
 
         //django doesn't escape strings
         "ifequal-split09",
@@ -80,14 +79,10 @@ public class DjangoRegressionTests {
         "^for-tag-unpack.*",
         
         //unimplemented filters
-        "filter-iriencode.*",
         "filter-make_list0[3,4]",   //needs stringformat 
-        "filter-slugify.*",
         "filter-stringformat.*",
-        "filter-urlize.*",
 
         //broken filters
-        "chaining0[35]",
         "filter-make_list0[1,2]", //js & python print different representations of arrays
         "filter-slice.*",   //print diff ^
     };    
@@ -115,6 +110,7 @@ public class DjangoRegressionTests {
         
         //override the Date object
         final long now_ms = System.currentTimeMillis();
+        globalScope.set("OldDate", globalScope.get("Date"));
         globalScope.set("Date", new JSFunctionCalls0() {
             public Object call(Scope scope, Object[] extra) {
                 Object thisObj = scope.getThis();
@@ -146,7 +142,7 @@ public class DjangoRegressionTests {
         int count = 0, skipped = 0;
         
         //FIXME: enable the filter tests
-        for(String testFilename : new String[] {"tests.js", "filter_tests.js"}) {
+        for(String testFilename : new String[] {"tests.js", "filter_tests.js", "missing_tests.js"}) {
             String path = basePath + testFilename;
             JSTestScript testScript = new JSTestScript(globalScope, path);
             
@@ -320,6 +316,7 @@ public class DjangoRegressionTests {
         }
         
     }
+
     
     //Helpers
     private static class Result {}

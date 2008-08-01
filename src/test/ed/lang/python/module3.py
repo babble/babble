@@ -14,11 +14,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-pyX = getglobal('x')
-pyY = getglobal('y')
+def pythonGetInstanceAttr(cls, attr):
+    n = cls()
+    return getattr(n, attr)
 
-def pythonAddAttr(obj, k, v):
-    setattr(obj, k, v)
+def pythonGetClassAttr(cls, attr):
+    return getattr(cls, attr)
 
-def pythonAddFoo(obj):
-    obj.foo = "yippee"
+def pythonExtend(cls):
+    def method(self, arg1):
+        return self.foo + arg1
+    cls.pyMeth = method
+
+    cls.pyList = [-1, 2, -3];

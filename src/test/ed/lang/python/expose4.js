@@ -14,22 +14,30 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var someData = {x: 142, y: 'hi'};
-
-getglobal = function(x){
-    return someData[x];
+myClass = function(){
+    this.myAttr = 214;
 };
 
+myClass.prototype.foo = "2312";
 
-local.src.test.ed.lang.python.module();
+local.src.test.ed.lang.python.module3();
 
-assert( pyX == someData.x );
-assert( pyY == someData.y );
+assert( pythonGetInstanceAttr( myClass, "foo" ) == myClass.prototype.foo );
 
-pythonAddAttr(someData, 'z', 11);
+assert( pythonGetInstanceAttr( myClass, "myAttr" ) == 214 );
 
-assert( someData.z == 11 );
+assert( pythonGetClassAttr( myClass, "foo" ) == myClass.prototype.foo );
 
-pythonAddFoo(someData);
+assert( pythonGetClassAttr( myClass, "bind" ) == Function.prototype.bind );
 
-assert( someData.foo == "yippee" );
+pythonExtend( myClass );
+
+var c1 = new myClass();
+
+assert( c1.pyList[2] == -3 );
+
+assert( c1.pyMeth(" W. 20th") == "2312 W. 20th" );
+
+assert( myClass.pyMeth( c1 , "31" ) == "231231" );
+
+assert( myClass.pyMeth.call( c1 , "-14=2298" ) == "2312-14=2298" );
