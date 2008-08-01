@@ -53,7 +53,6 @@ public class DjangoRegressionTests {
         "basic-syntax27",   //need support for translating _( )
         "^list-index.*",    //need to preprocess the string
         "ifequal-numeric07", //need to preprocess: throw error on 2.
-        "^filter-truncatewords02",  //needs autoescape
 
         //django doesn't escape strings
         "ifequal-split09",
@@ -84,7 +83,6 @@ public class DjangoRegressionTests {
         "filter-stringformat.*",
 
         //broken filters
-        "chaining0[35]",
         "filter-make_list0[1,2]", //js & python print different representations of arrays
         "filter-slice.*",   //print diff ^
     };    
