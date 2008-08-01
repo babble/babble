@@ -42,11 +42,13 @@ public class PyJSObjectWrapper extends PyDictionary {
         System.out.println("Findattr: " + name);
         // FIXME: more graceful fail-through etc
         try{
-            return super.__findattr__(name);
+            PyObject p = super.__findattr__( name );
+            if( p != null )
+                return p;
         }
         catch(PyException e){
-            return _fixReturn( _js.get( name ) );
         }
+        return _fixReturn( _js.get( name ) );
     }    
 
     public PyObject __finditem__(PyObject key){
