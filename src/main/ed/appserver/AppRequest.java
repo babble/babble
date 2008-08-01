@@ -60,7 +60,7 @@ public class AppRequest {
     public Scope getScope(){
         
         if ( _scope == null ){
-            _scope = _context.scopeChild( isAdmin() );
+            _scope = _context.scopeChild();
 
             _scope.put( "request" , _request , true );
             _scope.lock( "request" );
@@ -81,16 +81,35 @@ public class AppRequest {
         return _scope != null;
     }
 
-    public boolean isAdmin(){
-
-        if ( true ) return false;
+    public static boolean isAdmin( final HttpRequest request ){
         
-        if ( _uri.startsWith( "/admin/" ) )
-            return true;
-
-        if ( _uri.startsWith( "/~~/modules/admin/" ) )
+        final String uri = request.getURI();
+        if ( isAdminURI( uri ) )
             return true;
         
+        // is this an admin refer request
+        // requirements
+        // 1) static file, image/css/js
+        // 2) has to be in corejs or external
+        // 3) referer has to be from admin
+        if ( isStatic( uri ) && 
+             ( uri.startsWith( "/~~/" ) || uri.startsWith( "/@@/" ) ) && 
+             ! uri.startsWith( "/~~/modules/" ) 
+             ){
+            String referer = request.getRefererNoHost();
+            return referer != null && isAdminURI( referer );
+        }
+        
+        return false;
+    }
+
+    private static boolean isAdminURI( String uri ){
+        if ( uri.startsWith( "/admin/" ) )
+            return true;
+        
+        if ( uri.startsWith( "/~~/modules/admin/" ) )
+            return true;
+
         return false;
     }
 
@@ -107,8 +126,10 @@ public class AppRequest {
     }
 
     boolean isStatic(){
-        String uri = getWantedURI();
-        
+        return isStatic( getWantedURI() );
+    }
+    
+    static boolean isStatic( final String uri ){
         if ( uri.endsWith( ".jxp" ) )
             return false;
         

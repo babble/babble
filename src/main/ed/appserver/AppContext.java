@@ -49,7 +49,8 @@ public class AppContext {
     /** @unexpose */
     static final boolean DEBUG = AppServer.D;
     /** If these files exist in the directory or parent directories of a file being run, run these files first. Includes _init.js and /~~/core/init.js.  */
-    static final String INIT_FILES[] = new String[]{ "_init.js" };
+
+    static final String INIT_FILES[] = new String[]{ "/~~/core/init.js" , "PREFIX_init.js" };
 
     /** Initializes a new context for a given site directory.
      * @param f the file to run
@@ -71,7 +72,7 @@ public class AppContext {
      * @param environment the version of the site
      */
     public AppContext( String root , String name , String environment ){
-        this( root , new File( root ) , name , environment );
+        this( root , new File( root ) , name , environment , false );
     }
 
     /** Initializes a new context.
@@ -80,7 +81,7 @@ public class AppContext {
      * @param name the name of the site
      * @param environment the version of the site
      */
-    public AppContext( String root , File rootFile , String name , String environment ){
+    public AppContext( String root , File rootFile , String name , String environment , boolean admin ){
         if ( root == null )
             throw new NullPointerException( "AppContext root can't be null" );
 
@@ -97,6 +98,7 @@ public class AppContext {
         _rootFile = rootFile;
         _name = name;
         _environment = environment;
+        _admin = admin;
 
         _gitBranch = GitUtils.hasGit( _rootFile ) ? GitUtils.getBranchOrTagName( _rootFile ) : null;
 
@@ -110,11 +112,15 @@ public class AppContext {
 
         _baseScopeInit();
 
-        _adminScope = _scope.child( "admin" );
-        _adminScope.setGlobal( true );
-        _adminScope.set( "contextScope" , _scope );
+        _adminContext = _admin ? null : new AppContext( root , rootFile , name , environment , true );
+        _codePrefix = _admin ? "/~~/modules/admin/" : "";
+        if ( _adminContext != null ){
+            _adminContext._nonAdminParent = this;
+            _adminContext._scope.set( "siteScope" , _scope );
+        }
 
         _logger.info( "Started Context.  root:" + _root + " environment:" + environment + " git branch: " + _gitBranch );
+
     }
 
     /**
@@ -122,7 +128,7 @@ public class AppContext {
      * @return an identical context
      */
     AppContext newCopy(){
-        return new AppContext( _root , _rootFile , _name , _environment );
+        return new AppContext( _root , _rootFile , _name , _environment , _admin );
     }
 
     /**
@@ -136,7 +142,7 @@ public class AppContext {
         _scope.put( "local" , _jxpObject , true );
 
         try {
-            JxpSource config = getSource( new File( _rootFile , "_config.js" ) );
+            JxpSource config = getSource( new File( _rootFile , _codePrefix + "_config.js" ) );
             if ( config != null )
                 config.getFunction().call( _scope );
         }
@@ -206,22 +212,6 @@ public class AppContext {
         Djang10Source.install(_scope);
 	_scope.lock( "user" ); // protection against global user object
 
-        // --- core routing, etc...
-        try {
-            _inScopeInit = true;
-            File f = getFile( "/~~/core/init.js" );
-            JxpSource s = getSource( f );
-            JSFunction func = s.getFunction();
-            func.call( _scope );
-        }
-        catch ( Exception e ){
-            throw new RuntimeException( "couldn't run core init" , e );
-        }
-        finally {
-            _inScopeInit = false;
-        }
-
-
     }
 
     /**
@@ -264,7 +254,14 @@ public class AppContext {
         final JSObject o1 = ctxt == null ? null : (JSObject)(s.get( "version_" + ctxt.getEnvironmentName()));
         final JSObject o2 = (JSObject)s.get( "version" );
 
-        return _getString( name , o1 , o2 );
+        String version = _getString( name , o1 , o2 );
+        if ( version != null )
+            return version;
+        
+        if ( ctxt == null || ctxt._nonAdminParent == null )
+            return null;
+        
+        return ctxt._nonAdminParent.getVersionForLibrary( s , name , ctxt );
     }
 
     private static String _getString( String name , JSObject ... places ){
@@ -339,11 +336,6 @@ public class AppContext {
      * @return the scope
      */
     public Scope getScope(){
-        
-        AppRequest ar = AppRequest.getThreadLocal();
-        if ( ar != null && ar.isAdmin() )
-            return _adminScope;
-
 	return _scope();
     }
 
@@ -351,20 +343,13 @@ public class AppContext {
      * @return a child scope
      */
     Scope scopeChild(){
-        return scopeChild( false );
-    }
-    
-    Scope scopeChild( boolean admin ){
-        Scope s = ( admin ? _adminScope : _scope() ).child( "AppRequest" );
+        Scope s = _scope().child( "AppRequest" );
         s.setGlobal( true );
         return s;
     }
 
     void setTLPreferredScope( AppRequest req , Scope s ){
-        if ( req.isAdmin() )
-            _adminScope.setTLPreferred( s );
-        else
-            _scope.setTLPreferred( s );
+        _scope.setTLPreferred( s );
     }
 
     private synchronized Scope _scope(){
@@ -465,6 +450,11 @@ public class AppContext {
      */
     AppRequest createRequest( HttpRequest request , String host , String uri ){
         _numRequests++;
+        
+        if ( AppRequest.isAdmin( request ) )
+            return new AppRequest( _adminContext , request , host , uri );
+
+
         return new AppRequest( this , request , host , uri );
     }
 
@@ -641,16 +631,8 @@ public class AppContext {
         _inScopeInit = true;
 
         try {
-            for ( int i=0; i<INIT_FILES.length; i++ ){
-                File f = getFile( INIT_FILES[i] );
-                if ( f.exists() ){
-                    _initFlies.add( f );
-                    JxpSource s = getSource( f );
-                    JSFunction func = s.getFunction();
-                    func.call( _scope );
-                }
-            }
-
+            _runInitFiles( INIT_FILES );
+            
             _lastScopeInitTime = _getScopeTime();
         }
         catch ( RuntimeException re ){
@@ -669,6 +651,30 @@ public class AppContext {
                 saveTL.makeThreadLocal();
         }
 
+    }
+
+    private void _runInitFiles( String[] files )
+        throws IOException {
+
+        if ( files == null )
+            return;
+
+        for ( int i=0; i<files.length; i++ )
+            _runInitFile( getFile( files[i].replaceAll( "PREFIX" , _codePrefix ) ) );
+    }
+
+    private void _runInitFile( File f )
+        throws IOException {
+        if ( f == null )
+            return;
+        
+        if ( ! f.exists() )
+            return;
+        
+        _initFlies.add( f );
+        JxpSource s = getSource( f );
+        JSFunction func = s.getFunction();
+        func.call( _scope );
     }
 
     long _getScopeTime(){
@@ -791,6 +797,12 @@ public class AppContext {
 
     private String _gitBranch;
     final String _environment;
+    final boolean _admin;
+
+    final AppContext _adminContext;
+    final String _codePrefix;
+    
+    private AppContext _nonAdminParent;
 
     JSFileLibrary _jxpObject;
     JSFileLibrary _core;
@@ -798,7 +810,6 @@ public class AppContext {
 
     final ed.log.Logger _logger;
     final Scope _scope;
-    final Scope _adminScope;
     final UsageTracker _usage;
 
     final JSArray _globalHead = new JSArray();

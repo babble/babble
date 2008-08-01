@@ -71,6 +71,21 @@ public class PyJSObjectWrapper extends PyDictionary {
         _js.set( toJS( key ) , toJS( value ) );
     }
 
+    public void __setattr__( String key , PyObject value ){
+        super.__setitem__(key, value);
+        _js.set( toJS( key ) , toJS( value ) );
+    }
+
+    public void __delattr__( String key ){
+        try {
+            super.__delitem__( key );
+        }
+        catch( PyException e ){
+            // meh
+        }
+        _js.removeField( key );
+    }
+
     public String toString(){
         return _js.toString();
     }
