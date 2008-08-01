@@ -58,3 +58,5 @@ catch(e){
 
 assert(e);
 assert( c3( 1 ) == 22 );
+
+assert( pyc1( 1, 4, 9, 16 ) == 9 );
