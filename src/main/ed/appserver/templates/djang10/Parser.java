@@ -146,7 +146,7 @@ public class Parser extends JSObjectBase{
         }
 
         if (untilTagsList.size() > 0) {
-            throw new TemplateException("Unclosed tags ");
+            throw new TemplateException("Unclosed tags, expected: ["  + untilTagsList.toString() + "]");
         }
 
         return nodelist;
