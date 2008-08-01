@@ -77,7 +77,10 @@ public class Djang10Source extends JxpSource {
             _dependencies.addAll(parser.get_dependencies());
                 
             compiledScript = new Djang10CompiledScript(nodes, libraries);
-            compiledScript.set(JxpSource.JXP_SOURCE_PROP, this);            
+            compiledScript.set(JxpSource.JXP_SOURCE_PROP, this);
+            
+            if(DEBUG)
+                System.out.println("Done Parsing " + content.getDebugName());
         }
 
         return compiledScript;
