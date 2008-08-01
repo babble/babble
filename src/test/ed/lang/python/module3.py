@@ -21,3 +21,9 @@ def pythonGetInstanceAttr(cls, attr):
 def pythonGetClassAttr(cls, attr):
     return getattr(cls, attr)
 
+def pythonExtend(cls):
+    def method(self, arg1):
+        return self.foo + arg1
+    cls.pyMeth = method
+
+    cls.pyList = [-1, 2, -3];

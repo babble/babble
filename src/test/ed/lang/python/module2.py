@@ -49,3 +49,9 @@ class Callable(object):
 
     def zoom(self, f):
         return f()
+
+pyc1 = PythonClassicClass(None)
+
+def call_c1(*args):
+    return args[2]
+pyc1.__call__ = call_c1
