@@ -114,6 +114,7 @@ public class DjangoRegressionTests {
         
         //override the Date object
         final long now_ms = System.currentTimeMillis();
+        globalScope.set("OldDate", globalScope.get("Date"));
         globalScope.set("Date", new JSFunctionCalls0() {
             public Object call(Scope scope, Object[] extra) {
                 Object thisObj = scope.getThis();
@@ -145,7 +146,7 @@ public class DjangoRegressionTests {
         int count = 0, skipped = 0;
         
         //FIXME: enable the filter tests
-        for(String testFilename : new String[] {"tests.js", "filter_tests.js"}) {
+        for(String testFilename : new String[] {"tests.js", "filter_tests.js", "missing_tests.js"}) {
             String path = basePath + testFilename;
             JSTestScript testScript = new JSTestScript(globalScope, path);
             
