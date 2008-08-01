@@ -38,7 +38,6 @@ var stringfilter =
 
     var f = function() {
         arguments[0] = force_string(arguments[0]);
-
         var result = func.apply(null, arguments); 
         
         if(djang10.is_safe(arguments[0]) && func.is_safe && (result instanceof Object))
@@ -55,6 +54,9 @@ var stringfilter =
     return f;
 };
 
+var re_escape = function(pattern) {
+    return pattern.replace(/\W/, function(c) { return "\\" + c; });
+};
 ///////////////////////
 // STRINGS           //
 ///////////////////////
@@ -320,7 +322,116 @@ var urlencode =
 urlencode.is_safe = true;
 urlencode = defaultfilters.urlencode = stringfilter(urlencode);
 
-//TODO: urlize
+
+var LEADING_PUNCTUATION  = ['(', '<', '&lt;'];
+var TRAILING_PUNCTUATION = ['.', ',', ')', '>', '\n', '&gt;'];
+
+var punctuation_re = new RegExp( 
+    '((?:' +
+    LEADING_PUNCTUATION.map(re_escape).join("|") +
+    ')*)(.*?)((?:' +
+    TRAILING_PUNCTUATION.map(re_escape).join("|") +
+    ')*)$'
+);
+
+var simple_email_re = /^\S+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+$/;
+
+
+var always_safe = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' +
+                    'abcdefghijklmnopqrstuvwxyz' +
+                    '0123456789' + '_.-';
+
+
+var urlquote = function(url, safe) {
+    if(safe == null) safe = "/";
+    safe += always_safe;
+    
+    return url.replace(/./, function(c) {
+        var code = c.charCodeAt(0).toString(16);
+        return (safe.indexOf(c) > -1)? c : "%" + ((code.length == 1)? "0" : "") + code; 
+    });
+    
+};
+
+var _urlize = function(text, trim_url_limit, nofollow, autoescape) {
+    var safe_input = djang10.is_safe(text);
+    var words = djang10.split_str(text, /(\s+)/);
+    var nofollow_attr = nofollow? ' rel="nofollow"' : '';
+   
+    for(var i=0; i<words.length; i++) {
+        var word = words[i];
+
+        var match = punctuation_re.exec(word);
+        if(match) {
+            var lead = match[1];
+            var middle = match[2];
+            var trail = match[3];
+            
+            if(safe_input)
+                middle = djang10.mark_safe(middle);
+            
+            if(middle.startsWith("www.") || (middle.indexOf("@")==-1 && !(middle.startsWith("http://") || middle.startsWith("https://")) &&
+                    middle.length > 0 && /\w/.test(middle[0]) &&
+                    (middle.endsWith('.org') || middle.endsWith('.net') || middle.endsWith('.com')))) {
+                
+                middle = "http://" + middle;
+            }
+            
+            if(middle.startsWith("http://") || middle.startsWith("https://")) {
+                var url = urlquote(middle, "/&=:;#?+*");
+                if(autoescape && !safe_input) {
+                    url = force_escape(url);
+                }
+                var trimmed_url;
+                if(trim_url_limit != null && url.length > trim_url_limit)
+                    trimmed_url = middle.substring(0, Math.max(0, trim_url_limit-3)) + "...";
+                else
+                    trimmed_url = middle;
+                
+                if(autoescape && !djang10.is_safe(trimmed_url))
+                    trimmed_url = force_escape(trimmed_url);
+                
+                middle = '<a href="' +  url + '"' + nofollow_attr + '>' + trimmed_url + "</a>";
+            }
+            else if (middle.indexOf("@") > -1 && !middle.startsWith("www.") &&
+                    middle.indexOf(":")==-1 && simple_email_re.test(middle)) { 
+                
+                if(autoescape && !djang10.is_safe(middle))
+                    middle = force_escape(middle);
+                middle = '<a href="mailto:'+middle+'">'+middle+'</a>';
+            }
+            
+            if(lead + middle + trail != word) {
+                if(autoescape && !safe_input) {
+                    lead = force_escape(lead);
+                    trail = force_escape(trail);
+                }
+                words[i] = djang10.mark_safe(lead + middle + trail);
+            }
+            else if(autoescape && !safe_input) { 
+                words[i] = force_escape(word);
+            }
+        }
+        else if(safe_input) {
+            words[i] = djang10.mark_safe(word);
+        }
+        else if(autoescape) {
+            words[i] = force_escape(word);
+        }
+    }
+    return words.join("");
+};
+
+var urlize =
+    defaultfilters.urlize =
+    function(value, autoescape) {
+
+    return djang10.mark_safe( _urlize(value, null, true, autoescape));
+};
+urlize.is_safe = true;
+urlize.needs_autoescape = true;
+urlize = defaultfilters.urlize = stringfilter(urlize);
+
 //TODO: urlizetrunc
 
 var wordcount =
@@ -990,6 +1101,7 @@ register.filter("pluralize", pluralize);
 register.filter("phone2numeric", phone2numeric);
 register.filter("title", title);
 register.filter("truncatewords_html", truncatewords_html);
+register.filter("urlize", urlize);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
