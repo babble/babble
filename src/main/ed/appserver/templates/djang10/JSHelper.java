@@ -17,6 +17,13 @@
 
 package ed.appserver.templates.djang10;
 
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.CodingErrorAction;
+import java.rmi.UnexpectedException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -106,6 +113,38 @@ public class JSHelper extends JSObjectBase {
         this.set("split_str", split_str);
         
         this.set("DEBUG", Djang10Source.DEBUG);
+        
+        this.set("str_encode", new JSFunctionCalls3() {
+            public Object call(Scope scope, Object strObj, Object charsetNameObj, Object errorsObj, Object[] extra) {
+                String str = ((JSString)strObj).toString();
+                String charsetName = ((JSString)charsetNameObj).toString();
+                String errors = ((JSString)errorsObj).toString();
+                
+                Charset asciiCharset = Charset.forName(charsetName);
+                
+                CodingErrorAction errorAction;
+                if("strict".equals(errors))
+                    errorAction = CodingErrorAction.REPORT;
+                else if("ignore".equals(errors))
+                    errorAction = CodingErrorAction.IGNORE;
+                else if("replace".equals(errors))
+                    errorAction = CodingErrorAction.REPLACE;
+                else 
+                    throw new UnsupportedOperationException("Unsupported error handler: " + errors);
+                
+                ByteBuffer bytes;
+                try {
+                    bytes = asciiCharset.newEncoder()
+                        .onMalformedInput(errorAction)
+                        .onUnmappableCharacter(errorAction)
+                        .encode(CharBuffer.wrap(str));
+                } catch (CharacterCodingException e) {
+                    throw new RuntimeException("Unexpected error:", e);
+                }
+                
+                return new JSString( asciiCharset.decode(bytes).toString() );
+            }
+        });
     }
 
     public static JSHelper install(Scope scope) {

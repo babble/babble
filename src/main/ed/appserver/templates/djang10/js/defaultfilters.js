@@ -26,7 +26,9 @@ register = new djang10.Library();
 var force_string = 
     function(obj) {
 
-    if (obj != null && !(obj instanceof String))
+    if(obj == null)
+        obj = "null";
+    else if (obj != null && !(obj instanceof String))
         obj = obj.toString();
 
     return obj;
@@ -145,7 +147,16 @@ var floatformat =
 };
 floatformat.is_safe = true;
 
-//TODO: iriencode
+var iriencode =
+    defaultfilters.iriencode =
+    function(value) {
+
+    value = urlquote(value, '/#%[]=:;$&()+,!?*');
+    
+    return force_string(value);
+};
+iriencode.is_safe = true;
+iriencode = defaultfilters.iriencode = stringfilter(iriencode);
 
 var _zero_pad = function(num, width) {
     var zero_count = Math.max(0, width - num.toString().length);
@@ -194,9 +205,24 @@ var make_list =
 make_list.is_safe = false;
 make_list = defaultfilters.make_list = stringfilter(make_list);
 
-//TODO: slugify
+var slugify =
+    defaultfilters.slugify =
+    function(value) {
+
+    //TODO: normalize to NFKD
+    
+    value = djang10.str_encode(value, "US-ASCII", "ignore");
+    
+    //get rid of everything except alphanumerics & dashes
+    value = value.replace(/[^\w\s-]/g, "").trim().toLowerCase();
+    value = value.replace(/[-\s]+/g, "-");
+    
+    return djang10.mark_safe(value);
+};
+slugify.is_safe = true;
+slugify = defaultfilters.slugify = stringfilter(slugify);
+
 //TODO: stringformat
-//TODO: title
 
 var title =
     defaultfilters.title =
@@ -1122,6 +1148,8 @@ register.filter("truncatewords_html", truncatewords_html);
 register.filter("urlize", urlize);
 register.filter("urlizetrunc", urlizetrunc);
 register.filter("time", time);
+register.filter("slugify", slugify);
+register.filter("iriencode", iriencode);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
