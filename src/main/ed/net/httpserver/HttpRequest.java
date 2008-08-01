@@ -602,7 +602,7 @@ public class HttpRequest extends JSObjectLame {
      * Handler for iterating over all the keys in this request.
      * @return all the keys in the URL and the POST
      */
-    public Set<String> keySet(){
+    public Set<String> keySet( boolean includePrototype ){
         Set<String> s = new HashSet<String>();
         s.addAll( _urlParameters.keySet() );
         s.addAll( _postParameters.keySet() );

@@ -102,7 +102,7 @@ public abstract class DBBase extends JSObjectLame {
         return null;
     }
 
-    public Collection<String> keySet(){
+    public Collection<String> keySet( boolean includePrototype ){
         return getCollectionNames();
     }
 

@@ -1171,7 +1171,7 @@ public class JSObjectBase implements JSObject {
 
         }
 
-        public Collection<String> keySet(){
+        public Collection<String> keySet( boolean includePrototype ){
             return _things.keySet();
         }
 
