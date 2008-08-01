@@ -26,7 +26,9 @@ register = new djang10.Library();
 var force_string = 
     function(obj) {
 
-    if (obj != null && !(obj instanceof String))
+    if(obj == null)
+        obj = "null";
+    else if (obj != null && !(obj instanceof String))
         obj = obj.toString();
 
     return obj;
@@ -145,7 +147,16 @@ var floatformat =
 };
 floatformat.is_safe = true;
 
-//TODO: iriencode
+var iriencode =
+    defaultfilters.iriencode =
+    function(value) {
+
+    value = urlquote(value, '/#%[]=:;$&()+,!?*');
+    
+    return force_string(value);
+};
+iriencode.is_safe = true;
+iriencode = defaultfilters.iriencode = stringfilter(iriencode);
 
 var _zero_pad = function(num, width) {
     var zero_count = Math.max(0, width - num.toString().length);
@@ -1138,6 +1149,7 @@ register.filter("urlize", urlize);
 register.filter("urlizetrunc", urlizetrunc);
 register.filter("time", time);
 register.filter("slugify", slugify);
+register.filter("iriencode", iriencode);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};

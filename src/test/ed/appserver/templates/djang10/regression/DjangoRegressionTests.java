@@ -80,7 +80,6 @@ public class DjangoRegressionTests {
         "^for-tag-unpack.*",
         
         //unimplemented filters
-        "filter-iriencode.*",
         "filter-make_list0[3,4]",   //needs stringformat 
         "filter-stringformat.*",
 
