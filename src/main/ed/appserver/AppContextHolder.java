@@ -168,7 +168,7 @@ public class AppContextHolder {
 
             ac = _getContextFromMap( envRootString );
             if ( ac == null ){
-                ac = new AppContext( envRootString , envRoot , siteRoot.getName() , env );
+                ac = new AppContext( envRootString , envRoot , siteRoot.getName() , env , false );
                 _contextCache.put( envRootString , ac );
             }
             
