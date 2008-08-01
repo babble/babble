@@ -39,7 +39,6 @@ public class PyJSObjectWrapper extends PyDictionary {
     }
     
     public PyObject __findattr__(String name) {
-        System.out.println("Findattr: " + name);
         // FIXME: more graceful fail-through etc
         try{
             PyObject p = super.__findattr__( name );
