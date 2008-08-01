@@ -123,11 +123,16 @@ public class ByteDecoder extends Bytes {
             o.set( name , val );
             break;
 
+        case SYMBOL:
         case STRING:
             int size = _buf.getInt() - 1;
             _buf.get( _namebuf , 0 , size );
             try {
-                o.set( name , new JSString( new String( _namebuf , 0 , size , "UTF-8" ) ) );
+                String raw = new String( _namebuf , 0 , size , "UTF-8" );
+                if ( type == SYMBOL )
+                    o.set( name , new JSString.Symbol( raw ) );
+                else
+                    o.set( name , new JSString( raw ) );
             }
             catch ( java.io.UnsupportedEncodingException uee ){
                 throw new RuntimeException( "impossible" , uee );
