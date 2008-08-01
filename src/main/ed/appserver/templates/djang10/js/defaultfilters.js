@@ -432,6 +432,7 @@ urlize.is_safe = true;
 urlize.needs_autoescape = true;
 urlize = defaultfilters.urlize = stringfilter(urlize);
 
+//XXX: order of params differs from django
 var urlizetrunc =
     defaultfilters.urlizetrunc =
     function(value, autoescape, arg) {
