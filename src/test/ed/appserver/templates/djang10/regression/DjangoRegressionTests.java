@@ -84,7 +84,6 @@ public class DjangoRegressionTests {
         "filter-make_list0[3,4]",   //needs stringformat 
         "filter-slugify.*",
         "filter-stringformat.*",
-        "filter-urlizetrunc.*",
 
         //broken filters
         "chaining0[35]",
