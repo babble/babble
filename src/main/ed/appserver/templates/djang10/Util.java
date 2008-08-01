@@ -20,6 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -100,6 +101,13 @@ public class Util {
     }
     
     public static String formatDate(Date date, String format) {
+        return _formatDateTime(date, format, DATE_FORMAT_MAP);
+    }
+    public static String formatTime(Date time, String format) {
+        return _formatDateTime(time, format, TIME_FORMAT_MAP);
+    }
+    
+    private static String _formatDateTime(Date dateTime, String format, Map<Character, DateFormatter> formatMap) {
         StringBuilder buffer = new StringBuilder();
         boolean escapeNext = false;
 
@@ -116,9 +124,9 @@ public class Util {
                 continue;
             }
 
-            DateFormatter formatter = map.get(c);
+            DateFormatter formatter = formatMap.get(c);
             if (formatter != null)
-                buffer.append(formatter.format(date));
+                buffer.append(formatter.format(dateTime));
             else
                 buffer.append(c);
         }
@@ -126,8 +134,11 @@ public class Util {
         return buffer.toString();
     }
 
-    private static final Map<Character, DateFormatter> map = new HashMap<Character, DateFormatter>();
+    private static final Map<Character, DateFormatter> DATE_FORMAT_MAP;
     static {
+        final Map<Character, DateFormatter> map = new HashMap<Character, DateFormatter>();
+        DATE_FORMAT_MAP = Collections.unmodifiableMap(map);
+
         map.put('a', new DateFormatter(null) {
             @Override
             public String format(Date date) {
@@ -280,4 +291,23 @@ public class Util {
             return calendar;
         }
     }
+    
+    
+    private static final Map<Character, DateFormatter> TIME_FORMAT_MAP;
+    static {
+        Map<Character, DateFormatter> map = new HashMap<Character, DateFormatter>();
+        TIME_FORMAT_MAP = Collections.unmodifiableMap(map);
+        
+        char[] similarities = { 'a', 'A', 'f', 'g', 'G', 'h', 'H', 'i', 'P', 's' };
+        for(char similarity : similarities)
+            map.put(similarity, DATE_FORMAT_MAP.get(similarity));
+        
+        map.put('B', new DateFormatter(null) {
+            public String format(Date arg0) {
+                throw new UnsupportedOperationException();
+            }
+        });
+    }
+    
+    
 }

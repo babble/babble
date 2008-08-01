@@ -67,6 +67,7 @@ public class JSHelper extends JSObjectBase {
         this.set("evalLibrary", evalLibrary);
         
         this.set("formatDate", formatDate);
+        this.set("formatTime", formatTime);
 
         this.set("Context", Context.CONSTRUCTOR);
         this.set("Library", Library.CONSTRUCTOR);
@@ -126,6 +127,14 @@ public class JSHelper extends JSObjectBase {
             String format = ((JSString)p1).toString();
             
             return new JSString( Util.formatDate(new Date(date.getTime()), format) );
+        };
+    };
+    public JSFunction formatTime = new JSFunctionCalls2() {
+        public Object call(Scope scope, Object p0, Object p1, Object[] extra) {
+            JSDate date = (JSDate)p0;
+            String format = ((JSString)p1).toString();
+            
+            return new JSString( Util.formatTime(new Date(date.getTime()), format) );
         };
     };
     
