@@ -17,10 +17,18 @@
 
 package ed.appserver.templates.djang10;
 
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.CodingErrorAction;
+import java.rmi.UnexpectedException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.regex.Pattern;
 
 import ed.appserver.JSFileLibrary;
 import ed.appserver.jxp.JxpSource;
@@ -30,11 +38,13 @@ import ed.js.JSException;
 import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.JSObjectBase;
+import ed.js.JSRegex;
 import ed.js.JSString;
 import ed.js.engine.JSCompiledScript;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
 import ed.js.func.JSFunctionCalls2;
+import ed.js.func.JSFunctionCalls3;
 import ed.log.Logger;
 import ed.util.Pair;
 
@@ -64,6 +74,7 @@ public class JSHelper extends JSObjectBase {
         this.set("evalLibrary", evalLibrary);
         
         this.set("formatDate", formatDate);
+        this.set("formatTime", formatTime);
 
         this.set("Context", Context.CONSTRUCTOR);
         this.set("Library", Library.CONSTRUCTOR);
@@ -99,7 +110,41 @@ public class JSHelper extends JSObjectBase {
                 return new TemplateException(String.valueOf(p0));
             }
         });
+        this.set("split_str", split_str);
+        
         this.set("DEBUG", Djang10Source.DEBUG);
+        
+        this.set("str_encode", new JSFunctionCalls3() {
+            public Object call(Scope scope, Object strObj, Object charsetNameObj, Object errorsObj, Object[] extra) {
+                String str = ((JSString)strObj).toString();
+                String charsetName = ((JSString)charsetNameObj).toString();
+                String errors = ((JSString)errorsObj).toString();
+                
+                Charset asciiCharset = Charset.forName(charsetName);
+                
+                CodingErrorAction errorAction;
+                if("strict".equals(errors))
+                    errorAction = CodingErrorAction.REPORT;
+                else if("ignore".equals(errors))
+                    errorAction = CodingErrorAction.IGNORE;
+                else if("replace".equals(errors))
+                    errorAction = CodingErrorAction.REPLACE;
+                else 
+                    throw new UnsupportedOperationException("Unsupported error handler: " + errors);
+                
+                ByteBuffer bytes;
+                try {
+                    bytes = asciiCharset.newEncoder()
+                        .onMalformedInput(errorAction)
+                        .onUnmappableCharacter(errorAction)
+                        .encode(CharBuffer.wrap(str));
+                } catch (CharacterCodingException e) {
+                    throw new RuntimeException("Unexpected error:", e);
+                }
+                
+                return new JSString( asciiCharset.decode(bytes).toString() );
+            }
+        });
     }
 
     public static JSHelper install(Scope scope) {
@@ -122,6 +167,28 @@ public class JSHelper extends JSObjectBase {
             
             return new JSString( Util.formatDate(new Date(date.getTime()), format) );
         };
+    };
+    public JSFunction formatTime = new JSFunctionCalls2() {
+        public Object call(Scope scope, Object p0, Object p1, Object[] extra) {
+            JSDate date = (JSDate)p0;
+            String format = ((JSString)p1).toString();
+            
+            return new JSString( Util.formatTime(new Date(date.getTime()), format) );
+        };
+    };
+    
+    public JSFunction split_str = new JSFunctionCalls2() {
+        public Object call(Scope scope, Object strObj, Object regexObj, Object[] extra) {
+            String str = strObj.toString();
+            Pattern pattern = (regexObj != null)? ((JSRegex)regexObj).getCompiled() : Pattern.compile("\\s+");
+            
+            String[] bits = Util.split(pattern, str);
+            JSArray result = new JSArray();
+            for(String bit : bits)
+                result.add(new JSString(bit));
+            
+            return result;
+        }
     };
     
     public final JSFunction get_template = new JSFunctionCalls2() {
