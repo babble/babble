@@ -184,6 +184,23 @@ public class HttpRequest extends JSObjectLame {
     
     // header stuff
 
+    public String getReferer(){
+        return getHeader( "referer" );
+    }
+
+    public String getRefererNoHost(){
+        String s = getReferer();
+        if ( s == null )
+            return null;
+        
+        if ( s.startsWith( "http://" ) || s.startsWith( "https://" ) ){
+            int idx = s.indexOf( "/" , 8 );
+            s = s.substring( idx );
+        }
+        
+        return s;
+    }
+
     /**
      * Returns the hostname this request was directed at. This works by using
      * the Host header (mandated by HTTP/1.1), and subtracting any port
