@@ -18,3 +18,6 @@ def pythonGetInstanceAttr(cls, attr):
     n = cls()
     return getattr(n, attr)
 
+def pythonGetClassAttr(cls, attr):
+    return getattr(cls, attr)
+
