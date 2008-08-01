@@ -45,18 +45,31 @@ public class JSPyMethodWrapper extends JSPyObjectWrapper {
     }
 
     public Object call( Scope s , Object [] params ){
-        // FIXME: check if scope.getThis indicates that this is a method call
-        // If direct, don't add to params
-        return toJS( callPython( s , params , true ) );
+        // Check if scope.getThis indicates that this is a method call
+        // If direct, don't add to params -- "this" could be anything
+        // Maybe it would be JavaScript-ier to just pass this anyhow
+        boolean mcall = JSInternalFunctions.JS_instanceof( s.getThis(),
+                                                           _klass );
+
+        return toJS( callPython( s , params , mcall ) );
     }
 
     public PyObject callPython( Scope s , Object [] params , boolean passThis ){
-        PyObject [] pParams = new PyObject[params.length + 1];
-        pParams[0] = toPython( s.getThis() );
+        int newlength = params.length;
+        if( passThis ) newlength++;
+        PyObject [] pParams = new PyObject[newlength];
+        int offset = 0;
+        if( passThis ){
+            pParams[offset++] = toPython( s.getThis() );
+        }
         for(int i = 0; i < params.length; ++i){
-            pParams[i+1] = toPython(params[i]);
+            pParams[ i + offset ] = toPython(params[i]);
         }
         return _f.__call__( pParams , new String[0] );
+    }
+
+    public JSObject getSuper(){
+        return _prototype;
     }
     
     private PyObject _f;

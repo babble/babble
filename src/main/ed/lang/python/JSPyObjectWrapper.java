@@ -77,6 +77,9 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
         if ( o == null )
             o = _p.__findattr__( n.toString() );
 
+        if ( o == null )
+            return super.get( n );
+
         return toJS( o );
     }
     
