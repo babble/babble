@@ -69,7 +69,7 @@ public class Util {
         }
         return results.toArray(new String[results.size()]);
     }
-    public static String[] split(Pattern regex, String str, int maxsplit) {
+    public static String[] split(Pattern regex, String str) {
         List<String> parts = new ArrayList<String>();
         Matcher m = regex.matcher(str);
         
