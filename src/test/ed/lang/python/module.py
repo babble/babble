@@ -16,3 +16,9 @@
 
 pyX = getglobal('x')
 pyY = getglobal('y')
+
+def pythonAddAttr(obj, k, v):
+    setattr(obj, k, v)
+
+def pythonAddFoo(obj):
+    obj.foo = "yippee"

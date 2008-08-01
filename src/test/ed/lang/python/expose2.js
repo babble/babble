@@ -25,3 +25,11 @@ local.src.test.ed.lang.python.module();
 
 assert( pyX == someData.x );
 assert( pyY == someData.y );
+
+pythonAddAttr(someData, 'z', 11);
+
+assert( someData.z == 11 );
+
+pythonAddFoo(someData);
+
+assert( someData.foo == "yippee" );
