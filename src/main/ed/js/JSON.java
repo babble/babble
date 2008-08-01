@@ -278,7 +278,7 @@ public class JSON {
 
             boolean first = true;
 
-            for ( String s : o.keySet() ){
+            for ( String s : o.keySet( false ) ){
 
                 if ( IGNORE_NAMES.contains( s ) )
                     continue;
