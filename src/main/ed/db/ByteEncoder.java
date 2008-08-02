@@ -151,6 +151,8 @@ public class ByteEncoder extends Bytes {
                 putNull( s );
             else if ( val instanceof Number )
                 putNumber( s , (Number)val );
+            else if ( val instanceof JSString.Symbol )
+                putSymbol( s , val.toString() );
             else if ( val instanceof String || val instanceof JSString )
                 putString( s , val.toString() );
             else if ( val instanceof ObjectId )
@@ -253,6 +255,12 @@ public class ByteEncoder extends Bytes {
         return _buf.position() - start;
     }
 
+    protected int putSymbol( String name , String s ){
+        int start = _buf.position();
+        _put( SYMBOL , name );
+        _putValueString( s );
+        return _buf.position() - start;    
+    }
 
     protected int putString( String name , String s ){
         int start = _buf.position();

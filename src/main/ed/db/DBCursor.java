@@ -280,7 +280,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
     /** Returns this array's keys.
      * @return a collection of keys
      */
-    public Collection<String> keySet(){
+    public Collection<String> keySet( boolean includePrototype ){
         _fill( Integer.MAX_VALUE );
         return _nums;
     }

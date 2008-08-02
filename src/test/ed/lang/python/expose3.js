@@ -39,6 +39,11 @@ assert( c3( 2 ) == 23 );
 assert( c3( 1 ) == 22 );
 assert( c3( -1 ) == 20 );
 
+c3.valueOf(); // this should at least not throw an exception
+
+// unknown attribute -> null (or undefined in real JS)
+assert( c3.randomSuperLongUnusedAttributeNameThatNoOneWillEverUse == null );
+
 try{
     var c4 = Callable(141);
 }
@@ -58,3 +63,5 @@ catch(e){
 
 assert(e);
 assert( c3( 1 ) == 22 );
+
+assert( pyc1( 1, 4, 9, 16 ) == 9 );

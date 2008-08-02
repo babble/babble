@@ -40,6 +40,7 @@ public class Generate {
     private static DBBase db;
     private static DBCollection codedb;
     private static DBCollection docdb;
+    private static DBCollection srcdb;
 
     public static void initialize() {
         javaSrcs.clear();
@@ -59,6 +60,7 @@ public class Generate {
         db = (DBBase)dbo;
         docdb = db.getCollection("doc");
         codedb = db.getCollection("doc.code");
+        srcdb = db.getCollection("doc.src");
         connected = true;
     }
 
@@ -426,5 +428,61 @@ public class Generate {
                 farray[i].delete();
             }
         }
+    }
+
+
+    public static void main(String[] args) throws IOException, Exception {
+        if(args.length == 0) {
+            printUsage();
+            return;
+        }
+        String path = args[0];
+
+        initialize();
+
+        if(!connected) {
+            Scope s = Scope.newGlobal().child( new File("." ) );
+            s.makeThreadLocal();
+
+            Object app = s.get("__instance__");
+            Object dbo = s.get("db");
+            if(! (dbo instanceof DBBase)) {
+                throw new RuntimeException("your database is not a database");
+            }
+
+            db = (DBBase)dbo;
+            docdb = db.getCollection("doc");
+            codedb = db.getCollection("doc.code");
+            srcdb = db.getCollection("doc.src");
+            connected = true;
+        }
+        //        docdb.drop();
+        //        codedb.drop();
+
+        JSObjectBase emptyObj = new JSObjectBase();
+        Iterator it = srcdb.find(emptyObj);
+        while(it.hasNext()) {
+            srcToDb(((JSObject)it.next()).get("filename").toString());
+        }
+
+        javaSrcsToDb();
+
+        // now to html
+        globalToDb();
+        setupHTMLGeneration(path);
+        it = docdb.find(emptyObj);
+        while(it.hasNext()) {
+            toHTML(JSON.serialize((((JSObject)it.next()).get("_index"))), path);
+        }
+        postHTMLGeneration(path);
+
+        JSObjectBase nameIdx = new JSObjectBase();
+        nameIdx.set("name", 1);
+        docdb.ensureIndex(nameIdx);
+    }
+
+    public static void printUsage() {
+        System.out.println("Usage:");
+        System.out.println("\tjava Generate path/to/doc/dir");
     }
 }

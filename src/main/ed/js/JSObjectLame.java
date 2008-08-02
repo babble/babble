@@ -29,8 +29,8 @@ public class JSObjectLame implements JSObject {
     }
 
     /** @unexpose */
-    public Collection<String> keySet(){
-        throw new UnsupportedOperationException();
+    public final Collection<String> keySet(){
+        return keySet( true );
     }
 
     /** @unexpose */

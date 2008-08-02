@@ -77,6 +77,9 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
         if ( o == null )
             o = _p.__findattr__( n.toString() );
 
+        if ( o == null )
+            return super.get( n );
+
         return toJS( o );
     }
     
@@ -88,7 +91,9 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     }
     
     public Object removeField( Object n ){
-        throw new RuntimeException( "not implemented" );
+        super.removeField( n );
+        _p.__delattr__( n.toString() );
+        return null; // FIXME: we removed both of them, who cares
     }
     
     public boolean containsKey( String s ){
@@ -116,11 +121,21 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
             for ( Object o : ((PyDictionary)_p).keySet() )
                 keys.add( o.toString() );
         }
-        else {
-            for ( PyObject o : _p.asIterable() ){
-                keys.add( o.toString() );
+        else try {
+                for ( PyObject o : _p.asIterable() ){
+                    keys.add( o.toString() );
+                }
+                return keys;
             }
-        }
+            catch( PyException e ){
+                PyObject dict = _p.getDict();
+                if( ! ( dict instanceof PyStringMap ) )
+                    throw new RuntimeException( "keySet() of weird __dict__ " + dict.getClass() + "; I give up" );
+
+                for ( Object o : ((PyStringMap)dict).keys() ){
+                    keys.add( o.toString() );
+                }
+            }
         
         return keys;
     }
@@ -130,7 +145,9 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     }
 
     public JSObject getSuper(){
-        throw new RuntimeException( "not implemented" );
+        // FIXME: This is probably wrong; since we treat all Python objects as
+        // functions, why shouldn't we return JSFunction._prototype?
+        return JSObjectBase._objectLowFunctions;
     }
     
     public String toString(){

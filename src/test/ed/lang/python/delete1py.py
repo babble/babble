@@ -14,11 +14,19 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-pyX = getglobal('x')
-pyY = getglobal('y')
+class C(object):
+    pass
 
-def pythonAddAttr(obj, k, v):
-    setattr(obj, k, v)
+pythonObj1 = C()
+pythonObj1.a = 1
+pythonObj1.b = 2
+pythonObj1.c = 4
+pythonObj1.d = 8
 
-def pythonAddFoo(obj):
-    obj.foo = "yippee"
+pythonObj2 = C()
+pythonObj2.foo = "hi"
+pythonObj2.bar = "hello"
+pythonObj2.baz = "yo"
+
+def pythonDelete(o, attr):
+    delattr(o, attr)

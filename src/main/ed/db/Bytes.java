@@ -39,6 +39,8 @@ public class Bytes {
     static final byte REF = 12;
     static final byte CODE = 13;
 
+    static final byte SYMBOL = 14;
+
     /* 
        these are binary types
        so the format would look like

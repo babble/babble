@@ -241,6 +241,12 @@ public class JSON {
                 }
             }
 
+            if ( something instanceof ed.js.E4X.ENode ) {
+                String s =  something.toString();
+                a.append( s.substring(0, s.length()-1) );
+                return;
+            }
+
             if ( ! ( something instanceof JSObject ) ){
                 string( a , something.toString() );
                 return;
@@ -278,7 +284,7 @@ public class JSON {
 
             boolean first = true;
 
-            for ( String s : o.keySet() ){
+            for ( String s : o.keySet( false ) ){
 
                 if ( IGNORE_NAMES.contains( s ) )
                     continue;

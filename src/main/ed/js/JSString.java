@@ -645,8 +645,13 @@ public class JSString extends JSObjectBase implements Comparable {
         return keys;
     }
 
-    /** @unexpose */
     String _s;
+
+    public static class Symbol extends JSString {
+        public Symbol( String s ){
+            super( s );
+        }
+    }
 
     static { JS._debugSIDone( "JSString" ); }
 }

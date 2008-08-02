@@ -14,22 +14,32 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var someData = {x: 142, y: 'hi'};
+local.src.test.ed.lang.python.delete1py();
 
-getglobal = function(x){
-    return someData[x];
-};
+var x = { a: 1, b: 2, c: 4, d: 8 };
 
+assert( Object.keys(x).length == 4 );
 
-local.src.test.ed.lang.python.module();
+pythonDelete( x , 'a' );
+assert( Object.keys(x).length == 3 );
 
-assert( pyX == someData.x );
-assert( pyY == someData.y );
+assert( Object.keys(pythonObj1).length == 4 );
 
-pythonAddAttr(someData, 'z', 11);
+delete pythonObj1.a;
+assert( Object.keys(pythonObj1).length == 3 );
 
-assert( someData.z == 11 );
+delete pythonObj1.b;
+assert( Object.keys(pythonObj1).length == 2 );
 
-pythonAddFoo(someData);
+assert( Object.keys(pythonObj2).length == 3 );
+delete pythonObj2['foo'];
+assert( Object.keys(pythonObj2).length == 2 );
 
-assert( someData.foo == "yippee" );
+var y = { $foo: 21 };
+
+assert( Object.keys(y).length == 1 );
+
+pythonDelete( y , '$foo' );
+
+assert( Object.keys(y).length == 0 );
+
