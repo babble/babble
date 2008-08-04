@@ -106,8 +106,8 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     }
 
     public PyObject callPython( Object [] params ){
-        PyObject [] pParams = new PyObject[params.length];
-        for(int i = 0; i < params.length; ++i){
+        PyObject [] pParams = new PyObject[ params == null ? 0 : params.length];
+        for(int i = 0; i < pParams.length; ++i){
             pParams[i] = toPython(params[i]);
         }
         return _p.__call__( pParams , new String[0] );

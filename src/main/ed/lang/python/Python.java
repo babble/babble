@@ -48,9 +48,12 @@ public class Python {
             return null;
  
         if ( p instanceof JSObject ||
-             p instanceof String || 
+             p instanceof JSString || 
              p instanceof Number )
             return p;
+
+        if ( p instanceof String )
+            return new JSString( p.toString() );
 
         if ( p instanceof PyJSObjectWrapper )
             return ((PyJSObjectWrapper)p)._js;
@@ -79,6 +82,10 @@ public class Python {
     }
     
     static PyObject toPython( Object o ){
+        return toPython( o , null );
+    }
+
+    static PyObject toPython( Object o , Object useThis ){
         
         if ( o == null )
             return Py.None;
@@ -113,7 +120,7 @@ public class Python {
                     return new PyJSClassWrapper( (JSFunction)o );
             }
 
-            return new PyJSFunctionWrapper( (JSFunction)o );
+            return new PyJSFunctionWrapper( (JSFunction)o , useThis );
         }
         if ( o instanceof JSObject )
             return new PyJSObjectWrapper( (JSObject)o );

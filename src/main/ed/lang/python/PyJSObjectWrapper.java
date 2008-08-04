@@ -82,7 +82,7 @@ public class PyJSObjectWrapper extends PyDictionary {
         if ( o == null && ! _returnPyNone )
             return null;
         
-        return toPython( o );
+        return toPython( o , _js );
     }
 
     public void __setitem__(PyObject key, PyObject value) {
