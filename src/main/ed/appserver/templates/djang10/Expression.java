@@ -254,7 +254,10 @@ public class Expression extends JSObjectBase {
                 }
             }
             
-            if (autoCall && lookupValue instanceof JSFunction && !(lookupValue instanceof JSCompiledScript))
+            if (autoCall && lookupValue instanceof JSFunction 
+                && ! ( lookupValue instanceof JSCompiledScript)
+                && ! ( lookupValue instanceof ed.lang.python.JSPyObjectWrapper ) // TODO: this is wrong, but was needed otherwise it called everything
+                )
                 lookupValue = ((JSFunction) lookupValue).call(scope.child());
             return lookupValue;
 
