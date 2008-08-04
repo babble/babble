@@ -21,6 +21,7 @@ package ed.lang.python;
 import org.python.core.*;
 
 import ed.js.*;
+import ed.js.engine.*;
 import static ed.lang.python.Python.*;
 
 
@@ -50,7 +51,12 @@ public class PyJSObjectWrapper extends PyDictionary {
         }
         catch(PyException e){
         }
-        return _fixReturn( _js.get( name ) );
+        
+        Object res = _js.get( name );
+        if ( res == null )
+            res = NativeBridge.getNativeFunc( _js , name );
+        
+        return _fixReturn( res );
     }    
 
     public PyObject __finditem__(PyObject key){
@@ -76,7 +82,7 @@ public class PyJSObjectWrapper extends PyDictionary {
         if ( o == null && ! _returnPyNone )
             return null;
         
-        return toPython( o );
+        return toPython( o , _js );
     }
 
     public void __setitem__(PyObject key, PyObject value) {

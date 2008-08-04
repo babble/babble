@@ -21,14 +21,24 @@ package ed.lang.python;
 import org.python.core.*;
 
 import ed.js.*;
+import ed.js.engine.*;
 import static ed.lang.python.Python.*;
 
 
 public class PyJSFunctionWrapper extends PyJSObjectWrapper {
 
     public PyJSFunctionWrapper( JSFunction func ){
+        this( func , null );
+    }
+
+    public PyJSFunctionWrapper( JSFunction func , Object useThis ){
         super( func );
+        
+        if ( func == null )
+            throw new IllegalArgumentException( "can't create wrapper with null function" );
+        
         _func = func;
+        _this = useThis;
     }
     
     public PyObject __call__(PyObject args[], String keywords[]) {
@@ -40,9 +50,15 @@ public class PyJSFunctionWrapper extends PyJSObjectWrapper {
         for ( int i=0; i<extra.length; i++ )
             extra[i] = toJS( args[i] );
         
-        // TODO: not sure what to do about scope yet, but its not this probably
-        return toPython( _func.call( _func.getScope() , extra ) );
+        Scope s = _func.getScope();
+        if ( s == null )
+            s = Scope.getAScope();
+        s = s.child();
+        
+        s.setThis( _this );
+        return toPython( _func.call( s , extra ) );
     }
 
     final JSFunction _func;
+    final Object _this;
 }
