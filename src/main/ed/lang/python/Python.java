@@ -33,6 +33,7 @@ public class Python {
     static final boolean D = Boolean.getBoolean( "DEBUG.PY" );
 
     static {
+        Options.includeJavaStackInExceptions = true;
         PySystemState.initialize();
     }
     
