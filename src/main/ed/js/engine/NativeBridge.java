@@ -20,8 +20,27 @@ public class NativeBridge {
         _disallowedNativeNames.add( "loadClass" );
     }
 
-    static final JSFunctionCalls0 _nativeFuncCall = new JSFunctionCalls0(){
+    public static final JSFunction getNativeFunc( final Object o , final String name ){
+        if ( o == null )
+            throw new IllegalArgumentException( "o can't be null" );
+        
+        final Class c = o.getClass();
+        if ( c == JSObjectBase.class )
+            return null;
 
+        List<Method> methods = getMethods( o.getClass() , name );
+        if ( methods == null || methods.size() == 0 )
+            return null;
+        
+        return new JSFunctionCalls0(){
+            public Object call( Scope s , Object params[] ){
+                return callNative( s , o , name , params );
+            }
+        };
+    }
+    
+    static final JSFunctionCalls0 _nativeFuncCall = new JSFunctionCalls0(){
+            
             public Object call( Scope s , Object params[] ){
                 
                 final boolean debug = false;
