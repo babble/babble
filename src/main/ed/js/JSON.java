@@ -242,8 +242,7 @@ public class JSON {
             }
 
             if ( something instanceof ed.js.E4X.ENode ) {
-                String s =  something.toString();
-                a.append( s.substring(0, s.length()-1) );
+                a.append( something.toString() );
                 return;
             }
 

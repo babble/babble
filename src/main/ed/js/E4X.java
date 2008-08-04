@@ -124,26 +124,29 @@ public class E4X {
         private ENode(){}
 
         private ENode( Node n ) {
-            this( n, true );
+            children = new LinkedList<ENode>();
+            node = n;
         }
 
-        private ENode( Node n, boolean lock ) {
-            _lst = new LinkedList<Node>();
-            _lst.add(n);
-            if( lock ) oneElement();
+        private ENode( List<ENode> n ) {
+            children = n;
         }
 
-        private ENode( List<Node> n ) {
-            _lst = n;
+        void buildENodeDom(ENode parent) {
+            NodeList kids = parent.node.getChildNodes();
+            for( int i=0; i<kids.getLength(); i++) {
+                ENode n = new ENode(kids.item(i));
+                buildENodeDom(n);
+                parent.children.add(n);
+            }
         }
 
         void init( String s ){
-            //            _raw = s;
             try {
                 _document = XMLUtil.parse( s );
-                _lst = new LinkedList<Node>();
-                _lst.add(_document.getDocumentElement());
-                oneElement();
+                children = new LinkedList<ENode>();
+                node = _document.getDocumentElement();
+                buildENodeDom(this);
             }
             catch ( Exception e ){
                 throw new RuntimeException( "can't parse : " + e );
@@ -165,15 +168,14 @@ public class E4X {
                      s.equals( "tojson" ) ||
                      s.equals( "child" ) )
                     return null;
-
-		return _nodeGet( _lst, s );
+		return _nodeGet( this, s );
             }
 
             if ( n instanceof Query ) {
 		Query q = (Query)n;
-		List<Node> matching = new ArrayList<Node>();
-		for ( Node theNode : _lst ){
-		    if ( q.match( theNode ) )
+		List<ENode> matching = new ArrayList<ENode>();
+		for ( ENode theNode : children ){
+		    if ( q.match( theNode.node ) )
 			matching.add( theNode );
 		}
 		return _handleListReturn( matching );
@@ -182,8 +184,45 @@ public class E4X {
             throw new RuntimeException( "can't handle : " + n.getClass() );
         }
 
+        public Object set( Object n, Object v ) {
+            ENode node = (ENode)get(n);
+            if(node == null) {
+                // figure out its tag name
+                // append to its list of tags
+                if(n instanceof Number) {
+                    //children.add(v);
+                }
+                else {
+                    Node newNode = _document.createElement(n.toString());
+                    newNode.setTextContent(v.toString());
+                    children.add( new ENode(newNode) );
+                }
+            }
+
+            while ( node.length() > 1 ) {
+                //                children.get(0).removeNode(bnode.children.remove(0));
+                ;
+            }
+
+            if(v instanceof ENode) {
+                node.children.remove(0);
+                for(int i=0; i<((ENode)v).length(); i++) {
+                    node.children.add(((ENode)v).children.get(i));
+                }
+            }
+            else {
+                node.children.get(0).node.setTextContent(v.toString());
+                node.children.get(0).children = new LinkedList<ENode>();
+            }
+            return v;
+        }
+
+        public Object removeField(Object o) {
+            return o;
+        }
+
         public ENode child( int idx ) {
-            return new ENode( _lst.get( idx ), false );
+            return children.get( idx );
         }
 
         public ENode child( Object propertyName ) {
@@ -197,12 +236,12 @@ public class E4X {
         }
 
         public int childIndex() {
-            Node parent = _lst.get(0).getParentNode();
+            Node parent = node.getParentNode();
             if( parent == null || parent.getNodeType() == Node.ATTRIBUTE_NODE ) return -1;
 
-            NodeList children = parent.getChildNodes();
-            for( int i=0; i<children.getLength(); i++ ) {
-                if(children.item(i).isEqualNode(_lst.get(0))) return i;
+            NodeList sibs = parent.getChildNodes();
+            for( int i=0; i<sibs.getLength(); i++ ) {
+                if(sibs.item(i).isEqualNode(node)) return i;
             }
 
             return -1;
@@ -213,12 +252,12 @@ public class E4X {
         }
 
         public ENode comments() {
-            NodeList children = _lst.get(0).getChildNodes();
-            List<Node> comments = new LinkedList<Node>();
+            NodeList kids = node.getChildNodes();
+            List<ENode> comments = new LinkedList<ENode>();
 
-            for( int i=0; i<children.getLength(); i++ ) {
-                if(children.item(i).getNodeType() == Node.COMMENT_NODE)
-                    comments.add(children.item(i));
+            for( int i=0; i<kids.getLength(); i++ ) {
+                if(kids.item(i).getNodeType() == Node.COMMENT_NODE)
+                    comments.add(new ENode(kids.item(i)));
             }
 
             return new ENode(comments);
@@ -228,12 +267,12 @@ public class E4X {
         public boolean contains( ENode o ) {
             if( !(o instanceof ENode) )
                 return false;
-            return this._lst.get(0).isEqualNode(o._lst.get(0));
+            return node.isEqualNode(o.node);
         }
 
         public ENode copy() {
             boolean deep_copy = true;
-            return new ENode(this._lst.get(0).cloneNode(deep_copy));
+            return new ENode(this.node.cloneNode(deep_copy));
         }
 
         public ENode descendants() {
@@ -243,93 +282,117 @@ public class E4X {
         public ENode descendants( String name ) {
             if(name == null) name = "*";
 
-            List kids = new LinkedList<Node>();
+            List kids = new LinkedList<ENode>();
 
-            ENode children = (ENode)this.get(name);
-            for( int i=0; i<children.length(); i++) {
-                kids.add(children.get(i));
-                ENode el = ((ENode)children.get(i)).descendants(name);
-                for( int j=0; j<el.length(); j++) {
-                    kids.add(el.get(j));
+            ENode childs = (ENode)this.get(name);
+            for( int i=0; i<childs.children.size(); i++) {
+                kids.add(childs.children.get(i));
+                ENode el = ((ENode)childs.children.get(i)).descendants(name);
+                for( int j=0; j<el.children.size(); j++) {
+                    kids.add(el.children.get(j));
                 }
             }
             return new ENode(kids);
         }
 
         public String toString(){
-            if ( _lst == null )
+            if ( node == null && children == null )
                 return null;
 
-            StringBuffer xml = new StringBuffer();
-            /*            if( this.length() == 1 && _document == null ) {
-                NodeList children = _lst.get(0).getChildNodes();
-                for( int j = 0; children != null && j < children.getLength(); j++) {
-                    xml.append(XMLUtil.toString( children.item(j) ));
+            StringBuilder xml = new StringBuilder();
+            // XML
+            if( node != null ) {
+                if( node.getNodeType() == Node.ATTRIBUTE_NODE || node.getNodeType() == Node.TEXT_NODE )
+                    return node.getNodeValue();
+
+                if ( node.getNodeType() == Node.ELEMENT_NODE &&
+                     children != null &&
+                     children.size() == 1 &&
+                     children.get(0).node.getNodeType() == Node.TEXT_NODE ){
+                    return children.get(0).node.getNodeValue();
+                }
+
+                append( this, xml, 0);
+            }
+            // XMLList
+            else {
+                for( int i=0; i<children.size(); i++ ) {
+                    append( children.get( i ), xml, 0);
                 }
             }
-            else {*/
-                for( int i=0; i<_lst.size(); i++ ) {
-
-                    ///   System.out.println(_lst.get(i).hasChildNodes()+": "+_lst.get(i).getNodeValue());
-
-                    if ( _lst.get(i).getNodeType() == Node.COMMENT_NODE ) {
-                        continue;
-                    }
-                    else if ( _lst.get(i).getNodeType() == Node.ATTRIBUTE_NODE ) {
-                        xml.append( _lst.get(i).getNodeValue() );
-                    }
-                    else if ( _lst.get(i).getChildNodes() != null &&
-                              _lst.get(i).getChildNodes().getLength() == 1 &&
-                              _lst.get(i).getChildNodes().item(0) instanceof CharacterData ) {
-                        //   System.out.println("and here.");
-                        xml.append(XMLUtil.toString( _lst.get(i).getChildNodes().item(0) ));
-                    }
-                    else {
-                        xml.append(XMLUtil.toString( _lst.get( i ) ));
-                    }
-                }
-                //            }
 
             // XMLUtil's toString always appends a "\n" to the end
-            if( xml.length() > 0 && xml.charAt(xml.length() - 1) == '\n' )
+            if( xml.length() > 0 && xml.charAt(xml.length() - 1) == '\n' ) {
                 xml.deleteCharAt(xml.length()-1);
+            }
             return xml.toString();
         }
 
+        public static StringBuilder append( ENode n , StringBuilder buf , int level ){
+            if ( n.node.getNodeType() == Node.ATTRIBUTE_NODE ||
+                 n.node.getNodeType() == Node.TEXT_NODE )
+                return _level( buf , level ).append( n.node.getNodeValue() ).append( "\n" );
+
+
+            _level( buf , level ).append( "<" ).append( n.node.getNodeName() );
+            NamedNodeMap attr = n.node.getAttributes();
+            if ( attr != null ){
+                for ( int i=0; i<attr.getLength(); i++ ){
+                    Node a = attr.item(i);
+                    buf.append( " " ).append( a.getNodeName() ).append( "=\"" ).append( a.getNodeValue() ).append( "\" " );
+                }
+            }
+
+            List<ENode> children = n.children;
+            if ( children == null || children.size() == 0 ) {
+                if( n.node.getNodeValue() != null && !(n.node.getNodeValue().equals( "" ) ) )
+                    _level( buf, level + 1 ).append( n.node.getNodeValue() ).append( ">\n" );
+                else
+                    return buf.append( "/>\n" );
+            }
+            buf.append( ">\n" );
+
+            for ( int i=0; children != null && i<children.size(); i++ ){
+                ENode c = children.get(i);
+                if( c.node.getNodeType() == Node.COMMENT_NODE ||
+                    c.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE )
+                    continue;
+                append( c , buf , level + 1 );
+            }
+
+            return _level( buf , level ).append( "</" ).append( n.node.getNodeName() ).append( ">\n" );
+        }
+
+        private static StringBuilder _level( StringBuilder buf , int level ){
+            for ( int i=0; i<level; i++ )
+                buf.append( "  " );
+            return buf;
+        }
+
+
+        public NodeList getChildNodes() {
+            return node.getChildNodes();
+        }
+
         public int length(){
-            if ( _lst == null )
+            if ( children == null )
                 return 0;
-            else if ( this.isSingleNode() )
-                return 1;
-            return _lst.size();
+            return children.size();
         }
 
-        private void oneElement() {
-            this._lock = true;
-        }
-
-        private boolean isSingleNode() {
-            return this._lock;
-        }
-
-        // if this list cannot have multiple nodes
-        // so, false : multi-node list
-        // true : single node
-        private boolean _lock = false;
-
-        private String _raw;
         private Document _document;
 
-        private List<Node> _lst;
+        private List<ENode> children;
+        private Node node;
     }
 
-    static Object _nodeGet( Node start , String s ){
-        List<Node> ln = new LinkedList<Node>();
+    static Object _nodeGet( ENode start , String s ){
+        List<ENode> ln = new LinkedList<ENode>();
         ln.add(start);
         return _nodeGet( ln, s );
     }
 
-    static Object _nodeGet( List<Node> start , String s ){
+    static Object _nodeGet( List<ENode> start , String s ){
         final boolean search = s.startsWith( ".." );
         if ( search )
             s = s.substring(2);
@@ -342,37 +405,37 @@ public class E4X {
         if( all )
             s = s.substring(0, s.length()-1);
 
-        List<Node> traverse = new LinkedList<Node>();
-	List<Node> res = new ArrayList<Node>();
+        List<ENode> traverse = new LinkedList<ENode>();
+	List<ENode> res = new ArrayList<ENode>();
 
         for(int k=0; k< start.size(); k++) {
             traverse.add( start.get(k) );
 
             while ( ! traverse.isEmpty() ){
-                Node n = traverse.remove(0);
+                ENode n = traverse.remove(0);
 
                 if ( attr ){
-                    NamedNodeMap nnm = n.getAttributes();
+                    NamedNodeMap nnm = n.node.getAttributes();
                     if ( all ) {
                         for(int i=0; i<nnm.getLength(); i++) {
-                            res.add(nnm.item(i));
+                            res.add(new ENode(nnm.item(i)));
                         }
                     }
                     if ( nnm != null ){
                         Node a = nnm.getNamedItem( s );
                         if ( a != null )
-                            res.add( a );
+                            res.add( new ENode( a ) );
                     }
                 }
 
-                NodeList children = n.getChildNodes();
-                if ( children == null )
+                List<ENode> kids = n.children;
+                if ( kids.size() == 0 )
                     continue;
 
-                for ( int i=0; i<children.getLength(); i++ ){
-                    Node c = children.item(i);
+                for ( int i=0; i<kids.size(); i++ ){
+                    ENode c = kids.get(i);
 
-                    if ( ! attr && ( all || c.getNodeName().equals( s ) ) )
+                    if ( ! attr && ( all || c.node.getNodeName().equals( s ) ) )
                         res.add( c );
 
                     if ( search )
@@ -384,18 +447,17 @@ public class E4X {
 	return _handleListReturn( res );
     }
 
-    static Object _handleListReturn( List<Node> lst ){
+    static Object _handleListReturn( List<ENode> lst ){
 	if ( lst.size() == 0 )
 	    return null;
 
 	if ( lst.size() == 1 ){
-            Node n = lst.get(0);
-            if ( n instanceof Attr )
-                return n.getNodeValue();
-	    return new ENode(n, false);
+            ENode n = lst.get(0);
+            if ( n.node instanceof Attr )
+                return n.node.getNodeValue();
+	    return n;
         }
-
-	return new ENode( lst );
+        return new ENode( lst );
     }
 
     public static abstract class Query {
@@ -417,7 +479,7 @@ public class E4X {
 	}
 
 	boolean match( Node n ){
-	    return JSInternalFunctions.JS_eq( _nodeGet( n , _what ) , _match );
+	    return JSInternalFunctions.JS_eq( _nodeGet( new ENode(n) , _what ) , _match );
 	}
 
 	public String toString(){
