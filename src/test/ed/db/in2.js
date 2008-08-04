@@ -13,6 +13,6 @@ assert.eq( 4 , t.find().toArray().length );
 assert.eq( 2 , t.find( { n : { $in : [ 1 , 2 ] } } ).toArray().length );
 
 t.save( { a : 5 } );
-// this next line fails
-//assert.eq( 2 , t.find( { n : { $in : [ 1 , 2 ] } } ).toArray().length );
+
+assert.eq( 2 , t.find( { n : { $in : [ 1 , 2 ] } } ).toArray().length );
 
