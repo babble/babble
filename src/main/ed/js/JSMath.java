@@ -36,12 +36,7 @@ import ed.js.engine.*;
  */
 public class JSMath extends JSObjectBase {
 
-    private static JSMath _instance = new JSMath();
-    public static JSMath getInstance(){
-        return _instance;
-    }
-
-    private JSMath(){
+    public JSMath(){
         set( "max" ,
              new JSFunctionCalls2(){
                  public Object call( Scope s , Object a , Object b , Object foo[] ){

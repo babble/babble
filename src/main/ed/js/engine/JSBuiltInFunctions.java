@@ -730,7 +730,7 @@ public class JSBuiltInFunctions {
         s.put( "Regexp" , s.get( "RegExp" ) , true ); // for Ruby technically
         s.put( "XMLHttpRequest" , XMLHttpRequest._cons , true );
         s.put( "Function" , new JSInternalFunctions.FunctionCons() , true );
-        s.put( "Math" , JSMath.getInstance() , true );
+        s.put( "Math" , new JSMath() , true );
         s.put( "Class", ed.js.Prototype._class , true );
 	s.put( "Number" , JSNumber.CONS , true );
 	s.put( "parseNumber" , JSNumber.CONS , true );
