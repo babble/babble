@@ -57,6 +57,14 @@ public class PyJSObjectWrapper extends PyDictionary {
             return p;
         return _fixReturn( _js.get( toJS( key ) ) );
     }
+
+    public PyObject __dir__(){
+        PyList list = new PyList();
+        for( String s : _js.keySet() ){
+            list.append( Py.newString( s ) );
+        }
+        return list;
+    }
     
     private PyObject _fixReturn( Object o ){
         if ( o == null && ! _returnPyNone )
