@@ -63,6 +63,14 @@ public class PyJSObjectWrapper extends PyDictionary {
             return p;
         return _fixReturn( _js.get( toJS( key ) ) );
     }
+
+    public PyObject __dir__(){
+        PyList list = new PyList();
+        for( String s : _js.keySet() ){
+            list.append( Py.newString( s ) );
+        }
+        return list;
+    }
     
     private PyObject _fixReturn( Object o ){
         if ( o == null && ! _returnPyNone )
@@ -73,11 +81,15 @@ public class PyJSObjectWrapper extends PyDictionary {
 
     public void __setitem__(PyObject key, PyObject value) {
         super.__setitem__(key, value);
-        _js.set( toJS( key ) , toJS( value ) );
+        this.handleSet( toJS( key ) , toJS( value ) );
     }
 
     public void __setattr__( String key , PyObject value ){
         super.__setitem__(key, value);
+        this.handleSet( toJS( key ) , toJS( value ) );
+    }
+
+    public void handleSet( Object key , Object value ){
         _js.set( toJS( key ) , toJS( value ) );
     }
 

@@ -24,6 +24,7 @@ import java.util.*;
 import org.python.core.*;
 
 import ed.js.*;
+import ed.log.*;
 import ed.js.engine.*;
 import ed.lang.*;
 import ed.util.*;
@@ -88,8 +89,10 @@ public class PythonJxpSource extends JxpSource {
                 if ( ! found )
                     ss.path.append( Py.newString( myPath ) );
 
-                PyObject globals = new PyJSObjectWrapper( s , false );
+                PyObject globals = new PyJSScopeWrapper( s , false );
                 __builtin__.fillWithBuiltins( globals );
+                globals.invoke( "update", PySystemState.builtins );
+                //Py.initClassExceptions( globals );
                 globals.__setitem__( "__file__", Py.newString( _file.toString() ) );
                 PyModule module = new PyModule( "main" , globals );
 
@@ -117,11 +120,18 @@ public class PythonJxpSource extends JxpSource {
             public void flush(){}
             
             public void write( String s ){
-                _request.print( s );
+                if( _request == null )
+                    // Log
+                    _log.info( s );
+                else
+                    _request.print( s );
             }
         }
         
         final AppRequest _request;
     }
+
+    final static Logger _log = Logger.getLogger( "python" );
+
 
 }
