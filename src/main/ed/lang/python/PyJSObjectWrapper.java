@@ -39,6 +39,9 @@ public class PyJSObjectWrapper extends PyDictionary {
     }
     
     public PyObject __findattr__(String name) {
+
+        if ( D ) System.out.println( "__findattr__ on [" + name + "]" );
+
         // FIXME: more graceful fail-through etc
         try{
             PyObject p = super.__findattr__( name );
@@ -51,6 +54,9 @@ public class PyJSObjectWrapper extends PyDictionary {
     }    
 
     public PyObject __finditem__(PyObject key){
+
+        if ( D ) System.out.println( "__finditem__ on [" + key + "]" );
+
         // FIXME: more graceful fail-through etc
         PyObject p = super.__finditem__(key);
         if( p != null )
