@@ -21,6 +21,7 @@ package ed.lang.python;
 import org.python.core.*;
 
 import ed.js.*;
+import ed.js.engine.*;
 import static ed.lang.python.Python.*;
 
 
@@ -39,6 +40,9 @@ public class PyJSObjectWrapper extends PyDictionary {
     }
     
     public PyObject __findattr__(String name) {
+
+        if ( D ) System.out.println( "__findattr__ on [" + name + "]" );
+
         // FIXME: more graceful fail-through etc
         try{
             PyObject p = super.__findattr__( name );
@@ -47,15 +51,31 @@ public class PyJSObjectWrapper extends PyDictionary {
         }
         catch(PyException e){
         }
-        return _fixReturn( _js.get( name ) );
+        
+        Object res = _js.get( name );
+        if ( res == null )
+            res = NativeBridge.getNativeFunc( _js , name );
+        
+        return _fixReturn( res );
     }    
 
     public PyObject __finditem__(PyObject key){
+
+        if ( D ) System.out.println( "__finditem__ on [" + key + "]" );
+
         // FIXME: more graceful fail-through etc
         PyObject p = super.__finditem__(key);
         if( p != null )
             return p;
         return _fixReturn( _js.get( toJS( key ) ) );
+    }
+
+    public PyObject __dir__(){
+        PyList list = new PyList();
+        for( String s : _js.keySet() ){
+            list.append( Py.newString( s ) );
+        }
+        return list;
     }
     
     private PyObject _fixReturn( Object o ){
@@ -67,11 +87,15 @@ public class PyJSObjectWrapper extends PyDictionary {
 
     public void __setitem__(PyObject key, PyObject value) {
         super.__setitem__(key, value);
-        _js.set( toJS( key ) , toJS( value ) );
+        this.handleSet( toJS( key ) , toJS( value ) );
     }
 
     public void __setattr__( String key , PyObject value ){
         super.__setitem__(key, value);
+        this.handleSet( toJS( key ) , toJS( value ) );
+    }
+
+    public void handleSet( Object key , Object value ){
         _js.set( toJS( key ) , toJS( value ) );
     }
 

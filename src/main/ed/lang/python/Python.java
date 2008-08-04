@@ -30,6 +30,8 @@ import static ed.lang.python.PythonSmallWrappers.*;
 
 public class Python {
 
+    static final boolean D = Boolean.getBoolean( "DEBUG.PY" );
+
     static {
         PySystemState.initialize();
     }
