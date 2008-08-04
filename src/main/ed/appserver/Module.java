@@ -71,8 +71,9 @@ public class Module {
         _doInit = doInit;
         
         _giturl = _findGitUrl();
-        _moduleName = _giturl == null ? null : _giturl.substring( GITROOT.length() + 1 );
-        
+        _moduleName = _giturl == null ? null : _getModuleNameFromGitUrl( _giturl );
+        //System.out.println( "giturl [" + _giturl + "] moduleName [" + _moduleName + "]" );
+
         if ( ! _root.exists() && _giturl != null )
             _root.mkdirs();
         
@@ -108,13 +109,32 @@ public class Module {
             if ( idx < 0 )
                 idx = str.indexOf( "/site-modules/" );
             
-            return GITROOT + str.substring( idx );
+            return _makeGitUrl( str.substring( idx ) );
         }
 
         if ( str.endsWith( "/corejs" ) )
-            return GITROOT + "/corejs";
-
+            return _makeGitUrl( "corejs" );
+        
         return null;
+    }
+
+    static String _makeGitUrl( String piece ){
+        String url = GITROOT;
+        if ( ! url.endsWith( "/" ) )
+            url += "/";
+        
+        while ( piece.startsWith( "/" ) )
+            piece = piece.substring(1);
+        
+        return url + piece;
+    }
+
+    static String _getModuleNameFromGitUrl( String s ){
+        s = s.substring( GITROOT.length() );
+        while ( s.startsWith( "/" ) )
+            s = s.substring(1);
+        
+        return s;
     }
 
     public synchronized JSFileLibrary getLibrary( String version , AppContext context , Scope scope , boolean pull ){
