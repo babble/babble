@@ -394,7 +394,7 @@ public class JSNumericFunctions extends JSObjectBase {
         Object o = orig;
         if ( o == null )
             return null;
-
+        
         if ( o instanceof Number )
             return o;
 
@@ -406,12 +406,12 @@ public class JSNumericFunctions extends JSObjectBase {
             s = o.toString();
         else if ( o instanceof String )
             s = o.toString();
-
+        
         if ( s == null )
             return orig;
 
-        if ( s.length() > 9 )
-            return s;
+        if ( s.length() == 0 || s.length() > 9 )
+            return 0;
 
         boolean allDigits = true;
         for ( int i=0; i<s.length(); i++ ){

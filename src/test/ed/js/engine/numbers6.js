@@ -33,3 +33,13 @@ for ( var i=1; i<50; i++ ){
 var x = 5;
 x++;
 print( "abc" + x );
+
+print( 5 < 4 );
+print( 5 < "4" );
+print( 5 < "" );
+
+print( 0 < "" );
+print( 0 > "" );
+
+print( 1 < "" );
+print( 1 > "" );
