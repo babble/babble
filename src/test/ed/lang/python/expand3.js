@@ -14,15 +14,9 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-local.src.test.ed.lang.python.listPython();
+jsMap = {a: 1, b: 4};
 
-var pyL = getList();
+jsArray = [4, 8, 2];
 
-assert( pyL.length == 2 );
+local.src.test.ed.lang.python.expandPy();
 
-assert( pyL.some( function(x){ return x == 1; } ) );
-assert( pyL.every( function(x){ return x > 0; } ) );
-
-var jsA = [1, 3, 5];
-
-assert( pyManipList(jsA) );
