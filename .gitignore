@@ -24,6 +24,7 @@ src/main/Eliot.java
 .zeuspw
 
 logs
+oplog.*
 build
 crap
 hs_err_*
