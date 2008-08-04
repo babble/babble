@@ -412,7 +412,7 @@ public class AppServer implements HttpHandler {
         }
         else {
             writer.print( "\n<br><br><hr><b>Error</b><br>" );
-            writer.print( t.toString() + "<BR>" );
+            writer.print( t.toString().replaceAll("\\n", "<br>") + "<BR>" );
 
             while ( t != null ){
                 for ( StackTraceElement element : t.getStackTrace() ){
