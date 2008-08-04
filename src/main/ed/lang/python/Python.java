@@ -71,6 +71,14 @@ public class Python {
             return new JSPyClassWrapper( (PyObject)p );
         }
 
+        if ( p instanceof PyList ){
+            JSArray a = new JSArray();
+            for( Object c : ((PyList)p) ){
+                a.set( "" , toJS( c ) );
+            }
+            return a;
+        }
+
         // this needs to be last
         if ( p instanceof PyObject )
             return new JSPyObjectWrapper( (PyObject)p );
@@ -103,6 +111,14 @@ public class Python {
             return new PyObjectId( (ed.db.ObjectId)o );
 
         // FILL IN MORE HERE
+
+        if ( o instanceof JSArray ){
+            PyList l = new PyList();
+            for( Object c : ((JSArray)o) ){
+                l.append( toPython( c ) );
+            }
+            return l;
+        }
 
         // these should be at the bottom
         if ( o instanceof JSFunction ){
