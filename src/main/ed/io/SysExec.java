@@ -25,7 +25,7 @@ import ed.js.*;
 import ed.js.engine.*;
 import ed.security.*;
 
-public class SysExec extends ed.js.func.JSFunctionCalls4 {
+public class SysExec extends ed.js.func.JSFunctionCalls5 {
 
 
     /**
@@ -72,11 +72,18 @@ public class SysExec extends ed.js.func.JSFunctionCalls4 {
     }
 
     public static Result exec( String cmdString ){
-        return exec( cmdString , null , null , null );
+        return exec( cmdString , null , null , null , null , null );
     }
 
     public static Result exec( String cmdString , String env[] , File procDir , String toSend ){
+	return exec( cmdString , env , procDir , toSend , null , null );
+    }
+
+    public static Result exec( String cmdString , String env[] , File procDir , String toSend , final JSObject handler , final Scope scope ){
         
+	if ( handler != null && handler.get( "in" ) != null )
+	    throw new RuntimeException( "can't handle 'in' handler yet" );
+
         String cmd[] = fix( cmdString );
 
         try {
@@ -94,7 +101,7 @@ public class SysExec extends ed.js.func.JSFunctionCalls4 {
                     public void run(){
                         try {
                             synchronized ( res ){
-                                res.setErr( StreamUtil.readFully( p.getErrorStream() ) );
+                                res.setErr( _handleStream( scope , p.getErrorStream() , handler , "err" ) );
                             }
                         }
                         catch ( IOException e ){
@@ -105,7 +112,7 @@ public class SysExec extends ed.js.func.JSFunctionCalls4 {
             a.start();
                 
             synchronized( res ){
-                res.setOut( StreamUtil.readFully( p.getInputStream() ) );
+                res.setOut( _handleStream( scope , p.getInputStream() , handler , "out" ) );
             }
                 
             a.join();
@@ -121,8 +128,32 @@ public class SysExec extends ed.js.func.JSFunctionCalls4 {
             throw new JSException( e.toString() , e );
         }
     }
+    
+    static String _handleStream( Scope scope , InputStream rawIn , JSObject handlers , String type )
+	throws IOException {
+	JSFunction h = null;
+	if ( handlers != null ){
+	    Object foo = handlers.get( type );
+	    if ( foo instanceof JSFunction )
+		h = (JSFunction)foo;
+	}
 
-    public Object call( Scope scope , Object o , Object toSendObj , Object envObj , Object pathObj , Object extra[] ){
+	if ( h != null && scope == null )
+	    throw new RuntimeException( "hanve handler for '" + type + "' but no scope" );
+
+	BufferedReader in = new BufferedReader( new InputStreamReader( rawIn ) );
+
+	StringBuilder buf = new StringBuilder();
+	String line;
+	while ( ( line = in.readLine() ) != null ){
+	    if ( h != null )
+		h.call( scope , line );
+	    buf.append( line ).append( "\n" );
+	}
+	return buf.toString();
+    }
+
+    public Object call( Scope scope , Object o , Object toSendObj , Object envObj , Object pathObj , Object handlers , Object extra[] ){
         if ( o == null )
             return null;
             
@@ -166,7 +197,7 @@ public class SysExec extends ed.js.func.JSFunctionCalls4 {
             }	        
         }
         
-        return exec( o.toString() , env , procDir , toSend );
+        return exec( o.toString() , env , procDir , toSend , handlers instanceof JSObject ? (JSObject)handlers : null , scope );
     }        
 
     public static class Result extends JSObjectBase {
