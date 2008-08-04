@@ -138,6 +138,15 @@ public class JSBuiltInFunctions {
 
             set("throws", myThrows);
             set("raises", myThrows);
+	    
+	    set( "eq" , new JSFunctionCalls2(){
+		    public Object call( Scope scope , Object a , Object b , Object extra[] ){
+			if ( JSInternalFunctions.JS_eq( a , b ) )
+			    return true;
+
+			throw new JSException( "not the same [" + a + "] != [" + b + "]" );
+		    }
+		} );
         }
 
         public Object call( Scope scope , Object foo , Object extra[] ){
