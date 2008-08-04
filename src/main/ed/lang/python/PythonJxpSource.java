@@ -91,6 +91,8 @@ public class PythonJxpSource extends JxpSource {
 
                 PyObject globals = new PyJSObjectWrapper( s , false );
                 __builtin__.fillWithBuiltins( globals );
+                globals.invoke( "update", PySystemState.builtins );
+                //Py.initClassExceptions( globals );
                 globals.__setitem__( "__file__", Py.newString( _file.toString() ) );
                 PyModule module = new PyModule( "main" , globals );
 
