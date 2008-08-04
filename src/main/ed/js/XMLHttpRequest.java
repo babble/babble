@@ -58,7 +58,10 @@ public class XMLHttpRequest extends JSObjectBase {
 
             public Object open( Scope s , Object methodObj , Object urlObj , Object asyncObj , Object[] args ){
 
-                XMLHttpRequest r = (XMLHttpRequest)s.getThis();
+                XMLHttpRequest r = null;
+                if ( s.getThis() instanceof XMLHttpRequest )
+                    r = (XMLHttpRequest)s.getThis();
+                
                 if ( r == null )
                     r = new XMLHttpRequest();
 
