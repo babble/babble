@@ -37,6 +37,10 @@ public class PyJSObjectWrapper extends PyDictionary {
         _returnPyNone = returnPyNone;
         if ( _js == null )
             throw new NullPointerException( "don't think you should create a PyJSObjectWrapper for null" );
+
+        for( String key : jsObject.keySet() ){
+            super.__setitem__( Py.newString( key ) , toPython( jsObject.get( key ) ) );
+        }
     }
     
     public PyObject __findattr__(String name) {

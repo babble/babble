@@ -23,57 +23,47 @@ import java.util.*;
 /** @expose */
 public class JSObjectLame implements JSObject {
 
-    /** @unexpose */
     public Object get( Object n ){
-        throw new UnsupportedOperationException();
+        throw _getException();
     }
 
-    /** @unexpose */
     public final Collection<String> keySet(){
         return keySet( true );
     }
 
-    /** @unexpose */
     public Collection<String> keySet( boolean includePrototype ){
-        throw new UnsupportedOperationException();
+        throw _getException();
     }
 
-    /** @unexpose */
     public boolean containsKey( String s ){
-        throw new UnsupportedOperationException();
+        throw _getException();
     }
 
-    /** @unexpose */
     public Object set( Object n , Object v ){
-        throw new UnsupportedOperationException();
+        throw _getException();
     }
 
-    /** @unexpose */
     public Object setInt( int n , Object v ){
-        throw new UnsupportedOperationException();
+        throw _getException();
     }
 
-    /** @unexpose */
     public Object getInt( int n ){
-        throw new UnsupportedOperationException();
+        throw _getException();
     }
 
-    /** @unexpose */
     public Object removeField( Object n ){
-        throw new UnsupportedOperationException();
+        throw _getException();
     }
 
-    /** Finds the constructor for this object.
-     * @return null
-     */
     public JSFunction getConstructor(){
         return null;
     }
 
-    /** Gets this object's superclass.
-     * @return null
-     */
     public JSObject getSuper(){
         return null;
+    }
+    
+    UnsupportedOperationException _getException(){
+        return new UnsupportedOperationException( " from class [" + this.getClass().getName() + "]" );
     }
 }

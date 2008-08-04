@@ -59,6 +59,9 @@ public class Python {
         if ( p instanceof PyJSObjectWrapper )
             return ((PyJSObjectWrapper)p)._js;
 
+        if ( p instanceof PyBoolean )
+            return ((PyBoolean)p).getValue() == 1;
+
         if ( p instanceof PyInteger )
             return ((PyInteger)p).getValue();
         
@@ -66,7 +69,7 @@ public class Python {
             return ((PyFloat)p).getValue();
         
         if ( p instanceof PyString )
-            return p.toString();
+            return new JSString( p.toString() );
 
         if ( p instanceof PyObjectId )
             return ((PyObjectId)p)._id;
@@ -105,6 +108,9 @@ public class Python {
         if ( o instanceof PyObject )
             return (PyObject)o;
         
+        if ( o instanceof Boolean )
+            return new PyBoolean( (Boolean)o );
+
         if ( o instanceof Integer )
             return new PyInteger( ((Integer)o).intValue() );
         

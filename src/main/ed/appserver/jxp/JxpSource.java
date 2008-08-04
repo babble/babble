@@ -30,7 +30,7 @@ import ed.appserver.*;
 import ed.appserver.templates.*;
 import ed.appserver.templates.djang10.Djang10Source;
 
-public abstract class JxpSource implements Dependency , DependencyTracker {
+public abstract class JxpSource extends JSObjectLame implements Dependency , DependencyTracker {
     
     public static final String JXP_SOURCE_PROP = "_jxpSource";
 
@@ -166,6 +166,10 @@ public abstract class JxpSource implements Dependency , DependencyTracker {
     protected boolean _needsParsing(){
 
         return ( _lastParse < lastUpdated(new HashSet<Dependency>()) );
+    }
+
+    public Collection<String> keySet( boolean includePrototype ){
+        return new LinkedList<String>();
     }
 
     public String toString(){
