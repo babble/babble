@@ -185,16 +185,15 @@ public class SysExec extends ed.js.func.JSFunctionCalls5 {
         File procDir = root;
 	    
         if ( pathObj instanceof JSString ){
-
+	    
             procDir  = new File( root , pathObj.toString() );
 
             try {
-                if (!procDir.getCanonicalPath().contains(root.getCanonicalPath())) {
+                if ( ! ( Security.isCoreJS() || procDir.getCanonicalPath().contains(root.getCanonicalPath() ) ) )
                     throw new JSException("directory offset moves execution outside of root");
-                }
             } catch (IOException e) {
                 throw new JSException("directory offset problem", e);	            
-            }	        
+	    }	        
         }
         
         return exec( o.toString() , env , procDir , toSend , handlers instanceof JSObject ? (JSObject)handlers : null , scope );
