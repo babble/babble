@@ -89,7 +89,7 @@ public class PythonJxpSource extends JxpSource {
                 if ( ! found )
                     ss.path.append( Py.newString( myPath ) );
 
-                PyObject globals = new PyJSObjectWrapper( s , false );
+                PyObject globals = new PyJSScopeWrapper( s , false );
                 __builtin__.fillWithBuiltins( globals );
                 globals.invoke( "update", PySystemState.builtins );
                 //Py.initClassExceptions( globals );
