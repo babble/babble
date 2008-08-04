@@ -216,10 +216,10 @@ public class JSBuiltInFunctions {
             }
 
             Constructor[] allCons = clazz.getConstructors();
-            Arrays.sort( allCons , Scope._consLengthComparator );
+            Arrays.sort( allCons , NativeBridge._consLengthComparator );
             for ( int i=0; i<allCons.length; i++ ){
 
-                Object params[] = Scope.doParamsMatch( allCons[i].getParameterTypes() , extra );
+                Object params[] = NativeBridge.doParamsMatch( allCons[i].getParameterTypes() , extra );
 
                 if ( params != null ){
                     try {
@@ -258,7 +258,7 @@ public class JSBuiltInFunctions {
             }
 
             Method[] all = clazz.getMethods();
-            Arrays.sort( all , Scope._methodLengthComparator );
+            Arrays.sort( all , NativeBridge._methodLengthComparator );
             for ( int i=0; i<all.length; i++ ){
                 Method m = all[i];
                 if ( debug ) System.out.println( m.getName() );
@@ -273,7 +273,7 @@ public class JSBuiltInFunctions {
                     continue;
                 }
 
-                Object params[] = Scope.doParamsMatch( m.getParameterTypes() , extra , debug );
+                Object params[] = NativeBridge.doParamsMatch( m.getParameterTypes() , extra , debug );
                 if ( params == null ){
                     if ( debug ) System.out.println( "\t params don't match" );
                     continue;
@@ -695,9 +695,9 @@ public class JSBuiltInFunctions {
         s.put( "MimeTypes" , new ed.appserver.MimeTypes() , true );
         s.put( "Base64" , new ed.util.Base64() , true );
         s.put( "download" , new HttpDownload.downloadFunc() , true );
+        s.put( "XMLHttpRequest" , XMLHttpRequest._cons , true );
 
         s.put( "processArgs", new processArgs(), true );
-
 
         // mail stuff till i'm done
         s.put( "JAVAXMAILTO" , javax.mail.Message.RecipientType.TO , true );
@@ -728,12 +728,12 @@ public class JSBuiltInFunctions {
 
         s.put( "RegExp" , new JSRegex.Cons() , true );
         s.put( "Regexp" , s.get( "RegExp" ) , true ); // for Ruby technically
-        s.put( "XMLHttpRequest" , XMLHttpRequest._cons , true );
+
         s.put( "Function" , new JSInternalFunctions.FunctionCons() , true );
         s.put( "Math" , new JSMath() , true );
         s.put( "Class", ed.js.Prototype._class , true );
-	s.put( "Number" , JSNumber.CONS , true );
-	s.put( "parseNumber" , JSNumber.CONS , true );
+	s.put( "Number" , new JSNumber.Cons() , true );
+	s.put( "parseNumber" , s.get( "Number" ) , true );
 
         // extensions
 

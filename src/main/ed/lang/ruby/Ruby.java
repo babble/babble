@@ -167,13 +167,13 @@ public class Ruby {
                         throw new NullPointerException( "funcName can't be null" );
                     
                     if ( thing instanceof Number )
-                        thing = JSNumber.functions;
+                        thing = JSNumber.getFunctions();
 
                     if ( thing instanceof Boolean )
                         thing = JSBoolean.functions;
 
                     if ( ! ( thing instanceof JSObject) )
-                        return Scope.callNative( s , thing , funcName.toString() , null );
+                        return NativeBridge.callNative( s , thing , funcName.toString() , null );
                     
 
                     JSObject jo = (JSObject)thing;
@@ -182,7 +182,7 @@ public class Ruby {
 		    
                     if ( func == null ){
 			if ( thing.getClass() != JSObjectBase.class )
-			    return Scope.callNative( s , thing , funcName.toString() , null );
+			    return NativeBridge.callNative( s , thing , funcName.toString() , null );
                         return null;
 		    }
                     

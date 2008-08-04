@@ -63,52 +63,62 @@ public class JSNumber extends JSObjectLame {
 
 
     /** Function to parse a number using a given base.  */
-    public static final JSFunction CONS = new JSFunctionCalls2(){
+    public static class Cons extends JSFunctionCalls2{
             
-            public JSObject newOne(){
-                return new JSNumber( 0 );
-            }
-
-            public Object call( Scope scope , Object a , Object b , Object extra[] ){
-
-                if ( scope.getThis() instanceof JSNumber ){
-                    JSNumber n = (JSNumber)(scope.getThis());
-                    n._val = _parse( a , b );
-                    return n._val;
-                }
-                
-                return _parse( a , b );
+        public JSObject newOne(){
+            return new JSNumber( 0 );
+        }
+        
+        public Object call( Scope scope , Object a , Object b , Object extra[] ){
+            
+            if ( scope.getThis() instanceof JSNumber ){
+                JSNumber n = (JSNumber)(scope.getThis());
+                n._val = _parse( a , b );
+                return n._val;
             }
             
-            Number _parse( Object a , Object b ){
-                
-                if ( a instanceof Number )
-                    return (Number)a;
-                
-                if ( a instanceof JSDate )
-                    return ((JSDate)a).getTime();
+            return _parse( a , b );
+        }
+        
+        Number _parse( Object a , Object b ){
+            
+            if ( a instanceof Number )
+                return (Number)a;
+            
+            if ( a instanceof JSDate )
+                return ((JSDate)a).getTime();
+            
+            if ( a != null )
+                return StringParseUtil.parseNumber( a.toString() , (Number)b );
+            
+            if ( b != null )
+                return (Number)b;
+            throw new RuntimeException( "not a number [" + a + "]" );
+        }
+        
+        protected void init(){
+            _prototype.addAll( _functions );
+        }
+        
+    }
 
-                if ( a != null )
-                    return StringParseUtil.parseNumber( a.toString() , (Number)b );
-                
-                if ( b != null )
-                    return (Number)b;
-                throw new RuntimeException( "not a number [" + a + "]" );
-            }
-
-
-        };
-
-    /** A collection of numeric functions */
-    public static JSObjectBase functions = (JSObjectBase)(CONS.get( "prototype" ) );
     /** Returns a function, given its name
      * @param Function name
      * @return Function corresponding to the given name.
      */
     public static JSFunction getFunction( String name ){
-        return (JSFunction)functions.get( name );
+        return (JSFunction)getFunctions().get( name );
     }
 
+    public static Cons getCons(){
+        return (Cons)(Scope.getThreadLocalFunction( "Number" , new Cons() ) );
+    }
+
+    public static JSObjectBase getFunctions(){
+        return getCons()._prototype;
+    }
+
+    private static JSObjectBase _functions = new JSObjectBase();
 
     /** Function that turns a number into string, truncating any fractional part
      */
@@ -184,21 +194,21 @@ public class JSNumber extends JSObjectLame {
     }
 
     static {
-        functions.set( "toFixed" , toFixed );
+        _functions.set( "toFixed" , toFixed );
 
-        functions.set( "to_f" , new JSFunctionCalls0(){
+        _functions.set( "to_f" , new JSFunctionCalls0(){
                 public Object call( Scope s , Object foo[] ){
                     return ((Number)s.getThis()).doubleValue();
                 }
             } );
 
-        functions.set( "round" , new JSFunctionCalls0(){
+        _functions.set( "round" , new JSFunctionCalls0(){
                 public Object call( Scope s , Object foo[] ){
                     return (int)( ((Number)s.getThis()).doubleValue() + .5 );
                 }
             } );
 
-        functions.set( "times" , new JSFunctionCalls1(){
+        _functions.set( "times" , new JSFunctionCalls1(){
                 public Object call( Scope s , Object func , Object foo[] ){
                     final int t = ((Number)s.getThis()).intValue();
                     final JSFunction f = (JSFunction)func;
@@ -207,7 +217,7 @@ public class JSNumber extends JSObjectLame {
                 }
             } );
 
-        functions.set( "upto" , new JSFunctionCalls2(){
+        _functions.set( "upto" , new JSFunctionCalls2(){
                 public Object call( Scope s , Object num , Object func , Object foo[] ){
                     final int start = ((Number)s.getThis()).intValue();
                     final int end = ((Number)num).intValue() + 1;
@@ -217,27 +227,27 @@ public class JSNumber extends JSObjectLame {
                 }
             } );
 
-        functions.set( "chr" , new JSFunctionCalls0(){
+        _functions.set( "chr" , new JSFunctionCalls0(){
                 public Object call( Scope s , Object foo[] ){
                     return (char)( ((Number)s.getThis()).intValue() );
                 }
             } );
 
-        functions.set( "zero_q_" , new JSFunctionCalls0(){
+        _functions.set( "zero_q_" , new JSFunctionCalls0(){
                 public Object call( Scope s , Object foo[] ){
                     return ((Number)s.getThis()).doubleValue() == 0;
                 }
             } );
 
-        functions.set( "kilobytes" , new Conversion( 1024 ) );
-        functions.set( "megabytes" , new Conversion( 1024 * 1024 ) );
+        _functions.set( "kilobytes" , new Conversion( 1024 ) );
+        _functions.set( "megabytes" , new Conversion( 1024 * 1024 ) );
 
-        functions.set( "seconds" , new Conversion( 1000 ) );
-        functions.set( "minutes" , new Conversion( 1000 * 60 ) );
-        functions.set( "hours" , new Conversion( 1000 * 60 * 60 ) );
-        functions.set( "days" , new Conversion( 1000 * 60 * 60 * 24 ) );
-        functions.set( "weeks" , new Conversion( 1000 * 60 * 60 * 24 * 7 ) );
-        functions.set( "years" , new Conversion( 1000 * 60 * 60 * 24 * 365.25 ) );
+        _functions.set( "seconds" , new Conversion( 1000 ) );
+        _functions.set( "minutes" , new Conversion( 1000 * 60 ) );
+        _functions.set( "hours" , new Conversion( 1000 * 60 * 60 ) );
+        _functions.set( "days" , new Conversion( 1000 * 60 * 60 * 24 ) );
+        _functions.set( "weeks" , new Conversion( 1000 * 60 * 60 * 24 * 7 ) );
+        _functions.set( "years" , new Conversion( 1000 * 60 * 60 * 24 * 365.25 ) );
 
     }
 }
