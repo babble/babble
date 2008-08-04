@@ -66,7 +66,7 @@ public class Python {
             return ((PyFloat)p).getValue();
         
         if ( p instanceof PyString )
-            return p.toString();
+            return new JSString( p.toString() );
 
         if ( p instanceof PyObjectId )
             return ((PyObjectId)p)._id;
