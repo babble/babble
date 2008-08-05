@@ -396,6 +396,8 @@ public class AppContext {
 
         if ( uri.startsWith( "/~~/" ) || uri.startsWith( "~~/" ) )
             f = _core.getFileFromPath( uri.substring( 3 ) );
+	else if ( uri.startsWith( "/admin/" ) )
+	    f = _core.getFileFromPath( "/modules" + uri );
         else if ( uri.startsWith( "/@@/" ) || uri.startsWith( "@@/" ) )
             f = _external.getFileFromPath( uri.substring( 3 ) );
         else if ( uri.startsWith( "/modules/" ) )
