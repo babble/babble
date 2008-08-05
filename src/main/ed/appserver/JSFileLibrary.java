@@ -538,6 +538,9 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
 
     public static JSFileLibrary findPath(){
         String topjs = Security.getTopJS();
+	if ( topjs == null )
+	    return null;
+
         int idx = topjs.indexOf( "$" );
         if ( idx > 0 )
             topjs = topjs.substring( 0 , idx );

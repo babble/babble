@@ -24,6 +24,7 @@ import java.util.*;
 import ed.appserver.jxp.*;
 import ed.appserver.templates.djang10.*;
 import ed.db.*;
+import ed.log.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.js.func.*;
@@ -104,6 +105,8 @@ public class AppContext {
         _environment = environment;
 	_nonAdminParent = nonAdminParent;
         _admin = _nonAdminParent != null;
+        _codePrefix = _admin ? "/~~/modules/admin/" : "";
+	_deferConfig = _admin;
 
         _gitBranch = GitUtils.hasGit( _rootFile ) ? GitUtils.getBranchOrTagName( _rootFile ) : null;
 
@@ -112,7 +115,7 @@ public class AppContext {
         _scope = new Scope( "AppContext:" + root , _isGrid ? ed.cloud.Cloud.getInstance().getScope() : Scope.newGlobal() , null , Language.JS , _rootFile );
         _scope.setGlobal( true );
 
-        _logger = ed.log.Logger.getLogger( _name + ":" + _environment );
+        _logger = Logger.getLogger( _name + ":" + _environment );
         _usage = new UsageTracker( _name );
 
         _baseScopeInit();
@@ -120,7 +123,6 @@ public class AppContext {
 	    _scope.set( "siteScope" , _nonAdminParent._scope );
 
         _adminContext = _admin ? null : new AppContext( root , rootFile , name , environment , this );
-        _codePrefix = _admin ? "/~~/modules/admin/" : "";
 
         _logger.info( "Started Context.  root:" + _root + " environment:" + environment + " git branch: " + _gitBranch );
 
@@ -144,14 +146,8 @@ public class AppContext {
         _scope.put( "jxp" , _jxpObject , true );
         _scope.put( "local" , _jxpObject , true );
 
-        try {
-            JxpSource config = getSource( new File( _rootFile , _codePrefix + "_config.js" ) );
-            if ( config != null )
-                config.getFunction().call( _scope );
-        }
-        catch ( Exception e ){
-            throw new RuntimeException( "couldn't load config" , e );
-        }
+	if ( ! _deferConfig )
+	    _loadConfig();
 
         _core = CoreJS.get().getLibrary( getCoreJSVersion() , this , null , true );
         _logger.info( "corejs : " + _core.getRoot() );
@@ -217,6 +213,22 @@ public class AppContext {
 
     }
 
+    private void _loadConfig(){
+	try {
+	    File f = getFileSafe( _codePrefix + "_config.js" );
+	    _libraryLogger.info( "config file:" + f );
+	    if ( f != null && f.exists() ){
+		JxpSource config = getSource( f );
+		if ( config != null )
+		    config.getFunction().call( _scope );
+	    }
+        }
+        catch ( Exception e ){
+            throw new RuntimeException( "couldn't load config" , e );
+        }
+
+    }
+
     /**
      * Get the version of corejs to run for this AppContext.
      * @return the version of corejs as a string. null if should use default
@@ -254,13 +266,15 @@ public class AppContext {
      */
     public static String getVersionForLibrary( Scope s , String name , AppContext ctxt ){
 	final String version = _getVersionForLibrary( s , name , ctxt );
-	System.out.println( "library " + ctxt + "\t" + name + "\t" + version );
+	_libraryLogger.info( ctxt + "\t" + name + "\t" + version );
 	return version;
     }
     
     private static String _getVersionForLibrary( Scope s , String name , AppContext ctxt ){
 	final JSObject o1 = ctxt == null ? null : (JSObject)(s.get( "version_" + ctxt.getEnvironmentName()));
         final JSObject o2 = (JSObject)s.get( "version" );
+
+	_libraryLogger.info( ctxt + "\t versionConfig:" + ( o1 != null ) + " config:" + ( o2 != null ) );
 
         String version = _getString( name , o1 , o2 );
         if ( version != null )
@@ -811,6 +825,7 @@ public class AppContext {
 
     final AppContext _adminContext;
     final String _codePrefix;
+    final boolean _deferConfig;
     
     final AppContext _nonAdminParent;
 
@@ -818,7 +833,7 @@ public class AppContext {
     JSFileLibrary _core;
     JSFileLibrary _external;
 
-    final ed.log.Logger _logger;
+    final Logger _logger;
     final Scope _scope;
     final UsageTracker _usage;
 
@@ -840,4 +855,6 @@ public class AppContext {
 
     private File _gitFile = null;
     private long _lastGitCheckTime = 0;
+
+    private static Logger _libraryLogger = Logger.getLogger( "library.load" );
 }

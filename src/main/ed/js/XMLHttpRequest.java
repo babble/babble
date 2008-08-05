@@ -456,7 +456,10 @@ public class XMLHttpRequest extends JSObjectBase {
      * @return An object parsed from the response text.
      */
     public Object getJSON(){
-        return JSON.parse( get( "responseText" ).toString() );
+	Object r = get( "responseText" );
+	if ( r == null )
+	    throw new JSException( "no 'responseText' " );
+        return JSON.parse( r.toString() );
     }
 
     private void _checkURL(){
