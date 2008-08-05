@@ -106,9 +106,12 @@ public class URLFixer {
             
             if ( doVersioning && _context != null ){
                 File f = _context.getFileSafe( uri );
-                if ( f != null && f.exists() ){
+		if ( f == null )
+		    cdnTags += "lm=cantfind";
+		else if ( ! f.exists() )
+		    cdnTags += "lm=doesntexist";
+		else
                     cdnTags += "lm=" + f.lastModified();
-                }
             }
         }
 	
