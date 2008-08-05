@@ -42,6 +42,15 @@ public class PyJSObjectWrapper extends PyDictionary {
         return _js.keySet().size();
     }
 
+    @ExposedMethod
+    public final boolean jswrapper___nonzero__(){
+        return _js.keySet().size() > 0;
+    }
+
+    public boolean __nonzero__(){
+        return jswrapper___nonzero__();
+    }
+
     static {
         try {
             ExposedTypeProcessor etp = new ExposedTypeProcessor(PyJSObjectWrapper.class.getClassLoader()
