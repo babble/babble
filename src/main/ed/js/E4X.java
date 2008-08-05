@@ -337,18 +337,20 @@ public class E4X {
             _level( buf , level ).append( "<" ).append( n.node.getNodeName() );
             NamedNodeMap attr = n.node.getAttributes();
             if ( attr != null ){
+                String[] attrArr = new String[attr.getLength()];
                 for ( int i=0; i<attr.getLength(); i++ ){
                     Node a = attr.item(i);
-                    buf.append( " " ).append( a.getNodeName() ).append( "=\"" ).append( a.getNodeValue() ).append( "\" " );
+                    attrArr[i] = " " + a.getNodeName() + "=\"" + a.getNodeValue() + "\" ";
+                }
+                Arrays.sort(attrArr);
+                for( String a : attrArr ) {
+                    buf.append( a );
                 }
             }
 
             List<ENode> children = n.children;
             if ( children == null || children.size() == 0 ) {
-                if( n.node.getNodeValue() != null && !(n.node.getNodeValue().equals( "" ) ) )
-                    _level( buf, level + 1 ).append( n.node.getNodeValue() ).append( ">\n" );
-                else
-                    return buf.append( "/>\n" );
+                return buf.append( "/>\n" );
             }
             buf.append( ">\n" );
 
