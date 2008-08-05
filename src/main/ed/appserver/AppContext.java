@@ -72,7 +72,7 @@ public class AppContext {
      * @param environment the version of the site
      */
     public AppContext( String root , String name , String environment ){
-        this( root , new File( root ) , name , environment , false );
+        this( root , new File( root ) , name , environment );
     }
 
     /** Initializes a new context.
@@ -81,7 +81,11 @@ public class AppContext {
      * @param name the name of the site
      * @param environment the version of the site
      */
-    public AppContext( String root , File rootFile , String name , String environment , boolean admin ){
+    public AppContext( String root , File rootFile , String name , String environment ){
+	this( root , rootFile , name , environment , null );
+    }
+
+    private AppContext( String root , File rootFile , String name , String environment , AppContext nonAdminParent ){
         if ( root == null )
             throw new NullPointerException( "AppContext root can't be null" );
 
@@ -98,7 +102,8 @@ public class AppContext {
         _rootFile = rootFile;
         _name = name;
         _environment = environment;
-        _admin = admin;
+	_nonAdminParent = nonAdminParent;
+        _admin = _nonAdminParent != null;
 
         _gitBranch = GitUtils.hasGit( _rootFile ) ? GitUtils.getBranchOrTagName( _rootFile ) : null;
 
@@ -111,13 +116,11 @@ public class AppContext {
         _usage = new UsageTracker( _name );
 
         _baseScopeInit();
+	if ( _nonAdminParent != null )
+	    _scope.set( "siteScope" , _nonAdminParent._scope );
 
-        _adminContext = _admin ? null : new AppContext( root , rootFile , name , environment , true );
+        _adminContext = _admin ? null : new AppContext( root , rootFile , name , environment , this );
         _codePrefix = _admin ? "/~~/modules/admin/" : "";
-        if ( _adminContext != null ){
-            _adminContext._nonAdminParent = this;
-            _adminContext._scope.set( "siteScope" , _scope );
-        }
 
         _logger.info( "Started Context.  root:" + _root + " environment:" + environment + " git branch: " + _gitBranch );
 
@@ -128,7 +131,7 @@ public class AppContext {
      * @return an identical context
      */
     AppContext newCopy(){
-        return new AppContext( _root , _rootFile , _name , _environment , _admin );
+        return new AppContext( _root , _rootFile , _name , _environment , _nonAdminParent );
     }
 
     /**
@@ -250,8 +253,13 @@ public class AppContext {
      * @unexpose
      */
     public static String getVersionForLibrary( Scope s , String name , AppContext ctxt ){
-
-        final JSObject o1 = ctxt == null ? null : (JSObject)(s.get( "version_" + ctxt.getEnvironmentName()));
+	final String version = _getVersionForLibrary( s , name , ctxt );
+	System.out.println( "library " + ctxt + "\t" + name + "\t" + version );
+	return version;
+    }
+    
+    private static String _getVersionForLibrary( Scope s , String name , AppContext ctxt ){
+	final JSObject o1 = ctxt == null ? null : (JSObject)(s.get( "version_" + ctxt.getEnvironmentName()));
         final JSObject o2 = (JSObject)s.get( "version" );
 
         String version = _getString( name , o1 , o2 );
@@ -261,7 +269,7 @@ public class AppContext {
         if ( ctxt == null || ctxt._nonAdminParent == null )
             return null;
         
-        return ctxt._nonAdminParent.getVersionForLibrary( s , name , ctxt );
+        return ctxt._nonAdminParent.getVersionForLibrary( name );
     }
 
     private static String _getString( String name , JSObject ... places ){
@@ -804,7 +812,7 @@ public class AppContext {
     final AppContext _adminContext;
     final String _codePrefix;
     
-    private AppContext _nonAdminParent;
+    final AppContext _nonAdminParent;
 
     JSFileLibrary _jxpObject;
     JSFileLibrary _core;
