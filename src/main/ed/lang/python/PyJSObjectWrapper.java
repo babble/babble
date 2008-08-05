@@ -140,6 +140,17 @@ public class PyJSObjectWrapper extends PyDictionary {
         this.handleSet( toJS( key ) , toJS( value ) );
     }
 
+    public boolean __contains__( PyObject key ){
+        return jswrapper___contains__( key );
+    }
+
+    @ExposedMethod
+    public boolean jswrapper___contains__( PyObject key ){
+        if( key instanceof PyString )
+            return _js.containsKey( key.toString() );
+        throw new RuntimeException( "js wrappers cannot contain objects of class " + key.getClass() );
+    }
+
     public void handleSet( Object key , Object value ){
         _js.set( toJS( key ) , toJS( value ) );
     }
