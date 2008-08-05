@@ -731,7 +731,7 @@ public class JSBuiltInFunctions {
 
         s.put( "Function" , new JSInternalFunctions.FunctionCons() , true );
         s.put( "Math" , new JSMath() , true );
-        s.put( "Class", ed.js.Prototype._class , true );
+        s.put( "Class", Prototype.newCopy() , true );
 	s.put( "Number" , new JSNumber.Cons() , true );
 	s.put( "parseNumber" , s.get( "Number" ) , true );
 

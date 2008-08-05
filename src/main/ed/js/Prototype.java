@@ -312,14 +312,20 @@ public class Prototype {
 
     /** @unexpose  */
     public static final JSFunction _classAddMethods = new Class_addMethods();
-
-    /** @unexpose  */
-    public static final JSObjectBase _class = new JSObjectBase();
     static {
-        JSObject m = new JSObjectBase();
+	_classAddMethods.lock();
+    }
+
+    public static JSObjectBase newCopy(){
+	JSObjectBase c = new JSObjectBase();
+        
+	JSObject m = new JSObjectBase();
         m.set("addMethods", _classAddMethods);
-        _class.set("Methods", m);
-        _class.set("create", _classCreate);
+	
+        c.set("Methods", m);
+        c.set("create", _classCreate);
+
+	return c;
     }
 
 }
