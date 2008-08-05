@@ -101,17 +101,15 @@ public class URLFixer {
             cdnTags = _cdnSuffix;
             if ( cdnTags == null )
                 cdnTags = "";
-            else if ( cdnTags.length() > 0 )
-                cdnTags += "&";
             
             if ( doVersioning && _context != null ){
                 File f = _context.getFileSafe( uri );
 		if ( f == null )
-		    cdnTags += "lm=cantfind";
+		    cdnTags = _urlAppendNameValue( cdnTags , "lm=cantfind" );
 		else if ( ! f.exists() )
-		    cdnTags += "lm=doesntexist";
+		    cdnTags = _urlAppendNameValue( cdnTags , "lm=doesntexist" );
 		else
-                    cdnTags += "lm=" + f.lastModified();
+                    cdnTags = _urlAppendNameValue( cdnTags , "lm=" + f.lastModified() );
             }
         }
 	
@@ -191,6 +189,13 @@ public class URLFixer {
         return prefix;
     }
 
+    static String _urlAppendNameValue( String base , String extra ){
+	if ( base.endsWith( "&" ) )
+	    return base + extra;
+	
+	return base + "&" + extra;
+    }
+    
     static String getStaticSuffix( HttpRequest request , AppRequest ar ){
         final AppContext ctxt = ar.getContext();
         return "ctxt=" + ctxt.getEnvironmentName() + "" + ctxt.getGitBranch() ;
