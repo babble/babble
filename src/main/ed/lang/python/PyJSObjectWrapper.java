@@ -105,7 +105,14 @@ public class PyJSObjectWrapper extends PyDictionary {
         PyObject p = super.__finditem__(key);
         if( p != null )
             return p;
-        return _fixReturn( _js.get( toJS( key ) ) );
+        Object o = _js.get( toJS( key ) );
+        // Explicitly return null here rather than converting to None
+        // This isn't findattr, after all; this is the check used to 
+        // see if a dict contains a value.
+        if( o == null )
+            return null;
+
+        return _fixReturn( o );
     }
 
     public PyObject __dir__(){

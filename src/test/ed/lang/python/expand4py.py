@@ -45,7 +45,6 @@ class Foo(object):
         self.b = b
         self.c = c
 
-
 afoo = Foo(c=4, **o)
 
 assert afoo.a is not None
