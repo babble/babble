@@ -17,6 +17,10 @@
 assert jsMap.a == 1
 assert jsMap.b == 4
 
+assert dir(jsMap) == ['a', 'b']
+assert jsMap.keys() == dir(jsMap)
+assert len(jsMap.keys()) == 2
+
 def extract(a=None, b=None):
     assert a == 1
     assert b == 4

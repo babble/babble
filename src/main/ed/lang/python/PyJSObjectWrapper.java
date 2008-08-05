@@ -19,13 +19,42 @@
 package ed.lang.python;
 
 import org.python.core.*;
+import org.python.expose.*;
+import org.python.expose.generate.*;
 
 import ed.js.*;
 import ed.js.engine.*;
 import static ed.lang.python.Python.*;
 
-
+@ExposedType(name = "jswrapper")
 public class PyJSObjectWrapper extends PyDictionary {
+
+    @ExposedMethod
+    public final PyList jswrapper_keys(){
+        PyList l = new PyList();
+        for( String s : _js.keySet() ){
+            l.append( Py.newString( s ) );
+        }
+        return l;
+    }
+
+    public int __len__(){
+        return _js.keySet().size();
+    }
+
+    static {
+        try {
+            ExposedTypeProcessor etp = new ExposedTypeProcessor(PyJSObjectWrapper.class.getClassLoader()
+                                                                .getResourceAsStream("ed/lang/python/PyJSObjectWrapper.class"));
+            TypeBuilder t = etp.getTypeExposer().makeBuilder();
+            PyType.addBuilder(PyJSObjectWrapper.class, t);
+            PyType js = PyType.fromClass(PyJSObjectWrapper.class);
+            PyObject dict = t.getDict(js);
+        }
+        catch(java.io.IOException e){
+            throw new RuntimeException("Couldn't expose PyJSObjectWrapper as Python type");
+        }
+    }
     
     public PyJSObjectWrapper( JSObject jsObject ){
         this( jsObject , true );
@@ -37,10 +66,6 @@ public class PyJSObjectWrapper extends PyDictionary {
         _returnPyNone = returnPyNone;
         if ( _js == null )
             throw new NullPointerException( "don't think you should create a PyJSObjectWrapper for null" );
-
-        for( String key : jsObject.keySet() ){
-            super.__setitem__( Py.newString( key ) , toPython( jsObject.get( key ) ) );
-        }
     }
     
     public PyObject __findattr__(String name) {
@@ -113,10 +138,12 @@ public class PyJSObjectWrapper extends PyDictionary {
         _js.removeField( key );
     }
 
+    @ExposedMethod(names = {"__repr__", "__str__"})
     public String toString(){
         return _js.toString();
     }
 
     final JSObject _js;
     final boolean _returnPyNone;
+
 }
