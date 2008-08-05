@@ -19,4 +19,4 @@ assert "a" in o
 assert "c" not in o
 
 assert 17 in a
-assert 19 in a
+assert 19 not in a
