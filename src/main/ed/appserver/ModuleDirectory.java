@@ -94,6 +94,8 @@ public class ModuleDirectory extends JSObjectLame implements JSLibrary {
     }
 
     String _getDesiredVersion( Scope s , String name ){
+        if ( _context != null )
+            return _context.getVersionForLibrary( name );
         return AppContext.getVersionForLibrary( s , name );
     }
 
