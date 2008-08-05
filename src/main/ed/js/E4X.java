@@ -19,6 +19,7 @@
 package ed.js;
 
 import java.util.*;
+import java.util.regex.*;
 
 import org.w3c.dom.*;
 import org.xml.sax.*;
@@ -52,6 +53,14 @@ public class E4X {
         protected void init() {
 
             final JSFunctionCalls1 bar = this;
+
+            _prototype.set( "copy" , new JSFunctionCalls0() {
+                    public Object call( Scope s, Object foo[] ) {
+                        ENode n = (ENode)s.getThis();
+                        boolean deep_copy = true;
+                        return new ENode(n.node.cloneNode(deep_copy), n.parent);
+                    }
+                });
 
             set( "settings" , new JSFunctionCalls0(){
                     public Object call( Scope s, Object foo[] ){
@@ -128,6 +137,19 @@ public class E4X {
             node = n;
         }
 
+        private ENode( Node n, ENode parent ) {
+            this.children = new LinkedList<ENode>();
+            this.node = n;
+            this.parent = parent;
+        }
+        private ENode( ENode parent, Object o ) {
+            if(parent.node != null)
+                node = parent.node.getOwnerDocument().createElement(o.toString());
+            this.children = new LinkedList<ENode>();
+            this.parent = parent;
+            this._dummy = true;
+        }
+
         private ENode( List<ENode> n ) {
             children = n;
         }
@@ -135,7 +157,7 @@ public class E4X {
         void buildENodeDom(ENode parent) {
             NodeList kids = parent.node.getChildNodes();
             for( int i=0; i<kids.getLength(); i++) {
-                ENode n = new ENode(kids.item(i));
+                ENode n = new ENode(kids.item(i), parent);
                 buildENodeDom(n);
                 parent.children.add(n);
             }
@@ -166,9 +188,11 @@ public class E4X {
                 if ( s.equals( "length" ) ||
                      s.equals( "toString" ) ||
                      s.equals( "tojson" ) ||
-                     s.equals( "child" ) )
+                     s.equals( "child" ))
                     return null;
-		return _nodeGet( this, s );
+		Object o = _nodeGet( this, s );
+                if(o == null) return new ENode( this, n );
+                return o;
             }
 
             if ( n instanceof Query ) {
@@ -184,45 +208,108 @@ public class E4X {
             throw new RuntimeException( "can't handle : " + n.getClass() );
         }
 
-        public Object set( Object n, Object v ) {
-            ENode node = (ENode)get(n);
-            if(node == null) {
-                // figure out its tag name
-                // append to its list of tags
-                if(n instanceof Number) {
-                    //children.add(v);
+        public Object set( Object k, Object v ) {
+            if( v == null ) return "null";
+            if(this.children == null ) this.children = new LinkedList<ENode>();
+
+            // if v is already XML, we ignore k and just add v to this enode's children
+            if( v instanceof ENode ) {
+                this.children.add((ENode)v);
+                return v;
+            }
+
+            // find out if this k/v pair exists
+            ENode n = (ENode)get(k);
+
+            Pattern num = Pattern.compile("-?\\d+");
+            Matcher m = num.matcher(k.toString());
+
+            // k is a number
+            if( m.matches() ) {
+                int index;
+                // the index must be greater than 0
+                if( ( index = Integer.parseInt(k.toString()) ) < 0)
+                    return v;
+
+                // this index is greater than the number of elements existing
+                if( n == null ) {
+                    Node content;
+                    if(this.node != null)
+                        content = this.node.getOwnerDocument().createTextNode(v.toString());
+                    else if(this.children != null && this.children.size() > 0)
+                        content = this.children.get(0).node.getOwnerDocument().createTextNode(v.toString());
+                    // if there is no node or children, we're trying to create an element too deep
+                    else
+                        return v;
+
+                    if( this._dummy ) {
+                        this.node.appendChild(content);
+                        this.parent.node.appendChild(this.node);
+                        appendChild(this.node, this.parent);
+                    }
+                    else {
+                        Node newNode = this.children.get(0).node.getOwnerDocument().createElement(this.children.get(0).node.getNodeName());
+                        newNode.appendChild(content);
+
+                        ENode newEn = new ENode(newNode, this);
+                        buildENodeDom(newEn);
+                        // add a sibling
+                        children.get(0).parent.children.add( newEn );
+                    }
                 }
+                // replace an existing element
                 else {
-                    Node newNode = _document.createElement(n.toString());
-                    newNode.setTextContent(v.toString());
-                    children.add( new ENode(newNode) );
+                    // reset the child list
+                    n.children = new LinkedList<ENode>();
+                    NodeList kids = n.node.getChildNodes();
+                    for( int i=0; kids != null && i<kids.getLength(); i++) {
+                        n.node.removeChild(kids.item(i));
+                    }
+                    Node content = n.node.getOwnerDocument().createTextNode(v.toString());
+                    appendChild(content, n);
                 }
             }
-
-            while ( node.length() > 1 ) {
-                //                children.get(0).removeNode(bnode.children.remove(0));
-                ;
-            }
-
-            if(v instanceof ENode) {
-                node.children.remove(0);
-                for(int i=0; i<((ENode)v).length(); i++) {
-                    node.children.add(((ENode)v).children.get(i));
-                }
-            }
+            // k must be a string
             else {
-                node.children.get(0).node.setTextContent(v.toString());
-                node.children.get(0).children = new LinkedList<ENode>();
+                // if there is more than one matching child, delete them all and replace with the new k/v
+                for( int i = 0; n != null && n.children != null && i < n.children.size(); i++ ) {
+                    children.remove( n.children.get(i) );
+                }
+
+                Node newNode = node.getOwnerDocument().createElement(k.toString());
+                Node content = node.getOwnerDocument().createTextNode(v.toString());
+                newNode.appendChild(content);
+
+                ENode newEn = new ENode(newNode, this);
+                buildENodeDom(newEn);
+                children.add( newEn );
             }
             return v;
         }
 
+        public boolean appendChild(Node child, ENode parent) {
+            if(parent.children == null) parent.children = new LinkedList<ENode>();
+            ENode echild = new ENode(child, parent);
+            buildENodeDom(echild);
+            return parent.children.add(echild);
+        }
+
         public Object removeField(Object o) {
-            return o;
+            ENode n = (ENode)get(o);
+
+            if(n.node != null)
+                return n.parent.children.remove(n);
+
+            for(ENode e : n.children)
+                children.remove(e);
+
+            return true;
         }
 
         public ENode child( int idx ) {
-            return children.get( idx );
+            if( idx >= 0 && idx < children.size() )
+                return children.get( idx );
+            return null;
         }
 
         public ENode child( Object propertyName ) {
@@ -268,11 +355,6 @@ public class E4X {
             if( !(o instanceof ENode) )
                 return false;
             return node.isEqualNode(o.node);
-        }
-
-        public ENode copy() {
-            boolean deep_copy = true;
-            return new ENode(this.node.cloneNode(deep_copy));
         }
 
         public ENode descendants() {
@@ -329,8 +411,9 @@ public class E4X {
         }
 
         public static StringBuilder append( ENode n , StringBuilder buf , int level ){
-            if ( n.node.getNodeType() == Node.ATTRIBUTE_NODE ||
-                 n.node.getNodeType() == Node.TEXT_NODE )
+            if ( n.node.getNodeType() == Node.ATTRIBUTE_NODE )
+                return _level( buf , level ).append( n.node.getNodeValue() );
+            if ( n.node.getNodeType() == Node.TEXT_NODE )
                 return _level( buf , level ).append( n.node.getNodeValue() ).append( "\n" );
 
 
@@ -382,10 +465,42 @@ public class E4X {
             return children.size();
         }
 
+        public ArrayList<ArrayList> getAttributes() {
+            if(node == null && ( children == null || children.size() == 0)) return null;
+
+            ArrayList<String> keys = new ArrayList<String>();
+            ArrayList<Node> vals = new ArrayList<Node>();
+            if(node != null) {
+                NamedNodeMap temp = node.getAttributes();
+                for(int j=0; temp != null && j<temp.getLength(); j++) {
+                    Node n = temp.item(j);
+                    keys.add( n.getNodeName() );
+                    vals.add( n );
+                }
+            }
+            else {
+                for(int i=0; i<children.size(); i++) {
+                    NamedNodeMap temp = children.get(i).node.getAttributes();
+                    for(int j=0; temp != null && j<temp.getLength(); j++) {
+                        Node n = temp.item(j);
+                        keys.add( n.getNodeName() );
+                        vals.add( n );
+                    }
+                }
+            }
+            ArrayList<ArrayList> r = new ArrayList<ArrayList>();
+            r.add(keys);
+            r.add(vals);
+            return r;
+        }
+
         private Document _document;
 
         private List<ENode> children;
+        private ENode parent;
         private Node node;
+
+        private boolean _dummy;
     }
 
     static Object _nodeGet( ENode start , String s ){
@@ -404,8 +519,10 @@ public class E4X {
             s = s.substring(1);
 
         final boolean all = s.endsWith("*");
-        if( all )
-            s = s.substring(0, s.length()-1);
+        if( all ) {
+            if( s.length() > 1) return null;
+            s = "";
+        }
 
         List<ENode> traverse = new LinkedList<ENode>();
 	List<ENode> res = new ArrayList<ENode>();
@@ -417,16 +534,11 @@ public class E4X {
                 ENode n = traverse.remove(0);
 
                 if ( attr ){
-                    NamedNodeMap nnm = n.node.getAttributes();
-                    if ( all ) {
-                        for(int i=0; i<nnm.getLength(); i++) {
-                            res.add(new ENode(nnm.item(i)));
+                    List<ArrayList> nnm = n.getAttributes();
+                    for(int i=0; nnm != null && i < nnm.get(1).size(); i++) {
+                        if( all || ((String)nnm.get(0).get(i)).equals( s ) ) {
+                            res.add( new ENode( (Node)nnm.get(1).get(i) ) );
                         }
-                    }
-                    if ( nnm != null ){
-                        Node a = nnm.getNamedItem( s );
-                        if ( a != null )
-                            res.add( new ENode( a ) );
                     }
                 }
 
@@ -445,7 +557,6 @@ public class E4X {
                 }
             }
         }
-
 	return _handleListReturn( res );
     }
 
