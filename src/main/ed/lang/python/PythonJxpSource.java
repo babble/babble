@@ -106,10 +106,11 @@ public class PythonJxpSource extends JxpSource {
     private PyCode _getCode()
         throws IOException {
         PyCode c = _code;
-        if ( c == null || _lastCompile < _file.lastModified() ){
+	final long lastModified = _file.lastModified();
+        if ( c == null || _lastCompile < lastModified ){
             c = Python.compile( _file );
             _code = c;
-            _lastCompile = _file.lastModified();
+            _lastCompile = lastModified;
         }
         return c;
     }

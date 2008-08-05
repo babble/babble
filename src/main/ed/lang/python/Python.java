@@ -115,7 +115,7 @@ public class Python {
             return new PyInteger( ((Integer)o).intValue() );
         
         if ( o instanceof Number )
-            return new PyFloat( ((Number)o).floatValue() );
+            return new PyFloat( ((Number)o).doubleValue() );
         
         if ( o instanceof String ||
              o instanceof JSString )
