@@ -2,16 +2,16 @@
 
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -51,11 +51,13 @@ public class JSInternalFunctions extends JSNumericFunctions {
     public final static JSString TYPE_FUNCTION = new JSString( "function" );
     /** Object id type description: "objectid" */
     public final static JSString TYPE_OBJECTID = new JSString( "objectid" );
+    /** XML object description */
+    public final static JSString TYPE_XML = new JSString( "xml" );
 
     static {
         JS._debugSI( "JSInternalFunctions" , "1" );
     }
-    
+
     /** Function call. */
     public static class FunctionCons extends JSFunctionCalls0 {
 
@@ -69,7 +71,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
                         return null;
                     }
                 };
-                
+
             }
 
             protected void init(){
@@ -77,7 +79,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
             }
 
         };
-    
+
     private static FunctionCons _defaultFunctionCons = new FunctionCons();
 
     static JSFunction getFunctionCons(){
@@ -167,6 +169,9 @@ public class JSInternalFunctions extends JSNumericFunctions {
 
         if ( obj instanceof ed.db.ObjectId )
             return TYPE_OBJECTID;
+
+        if ( obj instanceof E4X.ENode )
+            return TYPE_XML;
 
         if ( obj instanceof JSObject )
             return TYPE_OBJECT;

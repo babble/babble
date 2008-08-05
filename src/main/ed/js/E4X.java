@@ -176,7 +176,6 @@ public class E4X {
         }
 
         public Object get( Object n ){
-            //            System.out.println("in get: "+n+" node: "+node+" kids: "+children);
             if ( n == null )
                 return null;
 
@@ -189,7 +188,7 @@ public class E4X {
                 if ( s.equals( "length" ) ||
                      s.equals( "toString" ) ||
                      s.equals( "tojson" ) ||
-                     s.equals( "child" ) )
+                     s.equals( "child" ))
                     return null;
 		Object o = _nodeGet( this, s );
                 if(o == null) return new ENode( this, n );
@@ -296,7 +295,15 @@ public class E4X {
         }
 
         public Object removeField(Object o) {
-            return o;
+            ENode n = (ENode)get(o);
+
+            if(n.node != null)
+                return n.parent.children.remove(n);
+
+            for(ENode e : n.children)
+                children.remove(e);
+
+            return true;
         }
 
         public ENode child( int idx ) {
@@ -404,8 +411,9 @@ public class E4X {
         }
 
         public static StringBuilder append( ENode n , StringBuilder buf , int level ){
-            if ( n.node.getNodeType() == Node.ATTRIBUTE_NODE ||
-                 n.node.getNodeType() == Node.TEXT_NODE )
+            if ( n.node.getNodeType() == Node.ATTRIBUTE_NODE )
+                return _level( buf , level ).append( n.node.getNodeValue() );
+            if ( n.node.getNodeType() == Node.TEXT_NODE )
                 return _level( buf , level ).append( n.node.getNodeValue() ).append( "\n" );
 
 
@@ -457,18 +465,33 @@ public class E4X {
             return children.size();
         }
 
-        public NamedNodeMap getAttributes() {
+        public ArrayList<ArrayList> getAttributes() {
             if(node == null && ( children == null || children.size() == 0)) return null;
-            if(node != null) return node.getAttributes();
 
-            NamedNodeMap map = children.get(0).getAttributes();
-            for(int i=1; i<children.size(); i++) {
-                NamedNodeMap temp = children.get(i).getAttributes();
-                for(int j=0; j<temp.getLength(); j++) {
-                    map.setNamedItem( temp.item(j) );
+            ArrayList<String> keys = new ArrayList<String>();
+            ArrayList<Node> vals = new ArrayList<Node>();
+            if(node != null) {
+                NamedNodeMap temp = node.getAttributes();
+                for(int j=0; temp != null && j<temp.getLength(); j++) {
+                    Node n = temp.item(j);
+                    keys.add( n.getNodeName() );
+                    vals.add( n );
                 }
             }
-            return map;
+            else {
+                for(int i=0; i<children.size(); i++) {
+                    NamedNodeMap temp = children.get(i).node.getAttributes();
+                    for(int j=0; temp != null && j<temp.getLength(); j++) {
+                        Node n = temp.item(j);
+                        keys.add( n.getNodeName() );
+                        vals.add( n );
+                    }
+                }
+            }
+            ArrayList<ArrayList> r = new ArrayList<ArrayList>();
+            r.add(keys);
+            r.add(vals);
+            return r;
         }
 
         private Document _document;
@@ -496,8 +519,10 @@ public class E4X {
             s = s.substring(1);
 
         final boolean all = s.endsWith("*");
-        if( all )
-            s = s.substring(0, s.length()-1);
+        if( all ) {
+            if( s.length() > 1) return null;
+            s = "";
+        }
 
         List<ENode> traverse = new LinkedList<ENode>();
 	List<ENode> res = new ArrayList<ENode>();
@@ -509,16 +534,11 @@ public class E4X {
                 ENode n = traverse.remove(0);
 
                 if ( attr ){
-                    NamedNodeMap nnm = n.getAttributes();
-                    if ( all ) {
-                        for(int i=0; nnm != null && i<nnm.getLength(); i++) {
-                            res.add(new ENode(nnm.item(i)));
+                    List<ArrayList> nnm = n.getAttributes();
+                    for(int i=0; nnm != null && i < nnm.get(1).size(); i++) {
+                        if( all || ((String)nnm.get(0).get(i)).equals( s ) ) {
+                            res.add( new ENode( (Node)nnm.get(1).get(i) ) );
                         }
-                    }
-                    if ( nnm != null ){
-                        Node a = nnm.getNamedItem( s );
-                        if ( a != null )
-                            res.add( new ENode( a, n.parent ) );
                     }
                 }
 
@@ -537,7 +557,6 @@ public class E4X {
                 }
             }
         }
-
 	return _handleListReturn( res );
     }
 
