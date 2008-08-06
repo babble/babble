@@ -245,8 +245,16 @@ public class Expression extends JSObjectBase {
             if(lookupValue == null)
                 lookupValue = ctx.containsKey(node.getString()) ? null : UNDEFINED_VALUE;
 
+            boolean use_fallabck = true;
+            if(ctx.get("__use_globals") instanceof Boolean) {
+                use_fallabck = (Boolean)ctx.get("__use_globals");
+            }
+            else if(JSHelper.get(scope).get("ALLOW_GLOBAL_FALLBACK") instanceof Boolean) {
+                use_fallabck = (Boolean)JSHelper.get(scope).get("ALLOW_GLOBAL_FALLBACK");
+            }
+            
             // XXX: fallback on scope look ups
-            if (lookupValue == UNDEFINED_VALUE && ctx.get("__use_globals") == Boolean.TRUE) {
+            if (lookupValue == UNDEFINED_VALUE && use_fallabck) {
                 lookupValue = scope.get(node.getString());
 
                 if (lookupValue == null) {

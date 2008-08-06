@@ -60,6 +60,7 @@ public class JSHelper extends JSObjectBase {
         defaultLibraries = new ArrayList<Pair<JxpSource,Library>>();
 
         // add the basic helpers
+        this.set("ALLOW_GLOBAL_FALLBACK", Boolean.TRUE);
         this.set("TEMPLATE_DIRS", new JSArray());
         this.set("TEMPLATE_LOADERS", new JSArray());
         this.set("get_template", get_template);
