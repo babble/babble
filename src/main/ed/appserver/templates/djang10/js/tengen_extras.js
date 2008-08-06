@@ -37,6 +37,27 @@ SetNode.prototype = {
     }
 };
 
+var GlobalsControlNode =
+    tengen_extras.GlobalsControlNode =
+    function(setting, nodelist) {
+
+    this.setting = setting;
+    this.nodelist = nodelist;
+};
+GlobalsControlNode.prototype = {
+    __proto__: djang10.Node.prototype,
+    
+    toString: function() {
+        return "<GlobalsControlNode: " + this.setting + ">";
+    },
+    __render: function(context, printer) {
+        var has_setting = "__use_globals" in context;
+        var old_setting = context["__use_globals"];
+        context["__use_globals"] = this.setting;
+        this.nodelist.__render(context, printer);
+        context["__use_globals"] = old_setting;
+    }
+};
 
 var do_setNode =
     tengen_extras.do_setNode =
@@ -56,5 +77,23 @@ var do_setNode =
 
 register.tag("set", do_setNode);
 
+var globals_ =
+    tengen_extras.globals_ =
+    function(parser, token) {
+    
+    var args = token.contents.split(/\s+/);
+    if(args.length != 2)
+        throw djang10.NewTemplateException("'globals' tag requires exactly one argument.");
+
+    var arg = args[1];
+    if(! ["on", "off"].contains(arg))
+        throw djang10.NewTemplateException("'"+args[0]+"' argument should be 'on' or 'off'");
+    
+    var nodelist = parser.parse(["end"+args[0]]);
+    parser.delete_first_token();
+    
+    return new GlobalsControlNode(arg == "on", nodelist);
+};
+register.tag("globals", globals_);
 
 return tengen_extras;

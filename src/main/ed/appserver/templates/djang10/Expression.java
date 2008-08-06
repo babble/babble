@@ -244,9 +244,9 @@ public class Expression extends JSObjectBase {
             Object lookupValue = ctx.get(node.getString());
             if(lookupValue == null)
                 lookupValue = ctx.containsKey(node.getString()) ? null : UNDEFINED_VALUE;
-            
+
             // XXX: fallback on scope look ups
-            if (lookupValue == UNDEFINED_VALUE) {
+            if (lookupValue == UNDEFINED_VALUE && ctx.get("__use_globals") == Boolean.TRUE) {
                 lookupValue = scope.get(node.getString());
 
                 if (lookupValue == null) {
