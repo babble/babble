@@ -253,7 +253,7 @@ public class XMLHttpRequest extends JSObjectBase {
             if ( postData != null )
                 sock.getOutputStream().write( postData );
 
-            ByteBuffer buf = ByteBuffer.wrap( new byte[1024 * 1024] );
+            ByteBuffer buf = ByteBuffer.wrap( new byte[1024 * 1024 * 3 ] );
             {
                 byte temp[] = new byte[2048];
                 InputStream in = sock.getInputStream();
