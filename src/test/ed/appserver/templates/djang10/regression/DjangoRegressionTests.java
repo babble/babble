@@ -65,12 +65,6 @@ public class DjangoRegressionTests {
         "inheritance18",
         "inheritance19",
 
-        //requires block.super
-        "inheritance20",
-        "inheritance21",
-        "inheritance22",
-        "inheritance23",
-
         //need to add template wrapper to test
         "inheritance24",
         "inheritance25",

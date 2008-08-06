@@ -22,6 +22,51 @@ var log = log.djang10.loader_tags;
 
 register = new djang10.Library();
 
+
+/* XXX: ugly hack....the original django impl stores heirachy info in the blocks nodes,
+but in this impl, the nodes can't store the state across renderings, so I store em in the 
+Context as BlockNodeData objects when the ExtendsNode is rendered.  Which means that 
+the oldest ancestor isn't put in the context until that BlockNode is rendered.
+****This means that a block can only be rendered once!
+*/
+
+var BlockNodeData = function(name, nodelist, parent) {
+    this.context = null;
+    this.nodelist = nodelist;
+    this.parent = parent;
+    this.name = name;
+};
+BlockNodeData.prototype = {
+    render: function(context) {
+        this.context = context;
+        context.push();
+        
+        context["block"] = this;
+        var ret = this.nodelist.render(context);
+        
+        context.pop();
+        this.context = null;
+
+        return ret;
+    },
+    
+    __render: function(context, printer) {
+        this.context = context;
+        context.push();
+        
+        context["block"] = this;
+        
+        this.nodelist.__render(context, printer);
+        context.pop();
+    },
+    
+    "super_": function() {
+        if(this.parent == null)
+            return "";
+
+        return djang10.mark_safe( this.parent.render(this.context) );
+    }
+};  
 var BlockNode =
     loader_tags.BlockNode =
     function(name, nodelist) {
@@ -35,20 +80,49 @@ BlockNode.prototype = {
     toString: function() {
         return "<Block Node: " + this.name + ". Contents: " + this.nodelist + ">";
     },
-    
+    //called parent -> child
     __render: function(context, printer) {
-        var child_blocks = context["__child_blocks"] || [];
+        var block_data_to_render = null;
         
-        var block_to_render = this;
-        for(var i=0; i<child_blocks.length; i++) {
-            var block_map = child_blocks[i];
-            if(block_map[this.name] != null) {
-                block_to_render = block_map[this.name];
-                break;
-            }
+        if(context["__block_data"])
+            block_data_to_render = context["__block_data"][this.name];
+        
+        if(djang10.DEBUG && block_data_to_render != null) {
+            log("Overriden by: <" + block_data_to_render.nodelist + ">");
+        }
+        
+        var my_data = new BlockNodeData(this.name, this.nodelist, null);
+        
+        if(block_data_to_render == null)
+            block_data_to_render = new BlockNodeData(this.name, this.nodelist, null);
+        else {
+            var temp = block_data_to_render;
+            while(temp.parent != null)
+                temp = temp.parent;
+            temp.parent = new BlockNodeData(this.name, this.nodelist, null);
         }
 
-        block_to_render.nodelist.__render(context, printer);
+        block_data_to_render.__render(context, printer);
+    },
+    // called child -> parent
+    __pre_render: function(context) {
+        var block_data = context["__block_data"];
+        
+        if(!context["__block_data"])
+            block_data = context["__block_data"] = {};
+        
+        
+        var new_node = new BlockNodeData(this.name, this.nodelist);
+        
+        var child = block_data[this.name];
+        if(child) {
+            while(child.parent != null)
+                child = child.parent;
+            
+            child.parent = new_node;
+        }
+        else
+            block_data[this.name] = new_node;
     }
 };
 
@@ -67,26 +141,17 @@ ExtendsNode.prototype = {
         return "<Extends Node: extends: '" + this.parent_name_expr +"'>";
     },
     __render: function(context, printer) {
+      //prep context
+        context.push();
+        this.nodelist.get_nodes_by_type(BlockNode).each(function(node) {
+            node.__pre_render(context);
+        });     
+        //__render_vars stay in context because they are needed by the imported child_blocks
+        
+        //render & cleanup        
         var parent_name = this.parent_name_expr.resolve(context);
         var parent = djang10.loadTemplate(parent_name);
 
-        var my_blocks = {}; 
-        this.nodelist.get_nodes_by_type(BlockNode).each(function(node) {
-            my_blocks[node.name] = node;
-        });
-        
-        //prep context
-        context.push();
-        var child_blocks = context["__child_blocks"];
-        if(child_blocks == null)
-            child_blocks = context["__child_blocks"] = [];
-        else
-            child_blocks = context["__child_blocks"] = context["__child_blocks"].slice();
-        child_blocks.push(my_blocks);
-        
-        //__render_vars stay in context because they are needed by the imported child_blocks
-        
-        //render & cleanup
         parent.nodelist.__render(context, printer);
         context.pop();
     }
