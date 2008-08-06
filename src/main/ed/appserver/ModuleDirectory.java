@@ -94,6 +94,8 @@ public class ModuleDirectory extends JSObjectLame implements JSLibrary {
     }
 
     String _getDesiredVersion( Scope s , String name ){
+        if ( _context != null )
+            return _context.getVersionForLibrary( name );
         return AppContext.getVersionForLibrary( s , name );
     }
 
@@ -120,6 +122,10 @@ public class ModuleDirectory extends JSObjectLame implements JSLibrary {
         if ( next == null )
             return lib;
         return lib.getFromPath( next , evalToFunction );
+    }
+
+    public Collection<String> keySet( boolean includePrototype ){
+        return new ArrayList<String>();
     }
     
     final String _name;

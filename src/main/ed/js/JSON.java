@@ -242,8 +242,7 @@ public class JSON {
             }
 
             if ( something instanceof ed.js.E4X.ENode ) {
-                String s =  something.toString();
-                a.append( s.substring(0, s.length()-1) );
+                a.append( something.toString() );
                 return;
             }
 
@@ -319,6 +318,14 @@ public class JSON {
      * @throws JSException If the parsed "object" is neither an object nor an array
      */
     public static Object parse( String s ){
+
+	if ( s == null )
+	    return null;
+	
+	s = s.trim();
+	if ( s.length() == 0 )
+	    return null;
+
         CompilerEnvirons ce = new CompilerEnvirons();
         Parser p = new Parser( ce , ce.getErrorReporter() );
 

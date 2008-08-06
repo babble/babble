@@ -71,7 +71,7 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
         try {
             o = _p.__finditem__( p );
         } catch(PyException e){
-            System.out.println("FIXME: " + e.type);
+            if ( D ) System.out.println("JSPyObjectWrapper.get FIXME: " + e.type);
         }
 
         if ( o == null )

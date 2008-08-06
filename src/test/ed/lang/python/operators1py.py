@@ -14,23 +14,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-assert jsMap.a == 1
-assert jsMap.b == 4
 
-assert dir(jsMap) == ['a', 'b']
-assert jsMap.keys() == dir(jsMap)
-assert len(jsMap.keys()) == 2
+assert "a" in o
+assert "c" not in o
 
-def extract(a=None, b=None):
-    assert a == 1
-    assert b == 4
-
-extract(**jsMap)
-
-
-def extractAry(a, b, c):
-    assert a == 4
-    assert b == 8
-    assert c == 2
-
-extractAry(*jsArray)
+assert 17 in a
+assert 19 not in a

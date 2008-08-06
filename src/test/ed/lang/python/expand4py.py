@@ -14,23 +14,39 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-assert jsMap.a == 1
-assert jsMap.b == 4
+print o
 
-assert dir(jsMap) == ['a', 'b']
-assert jsMap.keys() == dir(jsMap)
-assert len(jsMap.keys()) == 2
+if o:
+    print "yay"
+else:
+    assert 0 , "shit"
 
-def extract(a=None, b=None):
-    assert a == 1
-    assert b == 4
+assert o.a == 1
+assert o.b == 4
 
-extract(**jsMap)
+assert dir(o) == ['a', 'b']
 
+def foo(a=None, b=None, **kwds):
+    assert a is not None
+    assert b is not None
 
-def extractAry(a, b, c):
-    assert a == 4
-    assert b == 8
-    assert c == 2
+foo(**o)
 
-extractAry(*jsArray)
+def bar(c=3, a=None, b=None, **kwds):
+    assert a is not None
+    assert b is not None
+    assert c == 3
+
+bar(**o)
+
+class Foo(object):
+    def __init__(self, c=3, a=None, b=None, **kwds):
+        self.a=a
+        self.b = b
+        self.c = c
+
+afoo = Foo(c=4, **o)
+
+assert afoo.a is not None
+assert afoo.b is not None
+assert afoo.c == 4

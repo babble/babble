@@ -19,13 +19,51 @@
 package ed.lang.python;
 
 import org.python.core.*;
+import org.python.expose.*;
+import org.python.expose.generate.*;
 
 import ed.js.*;
 import ed.js.engine.*;
 import static ed.lang.python.Python.*;
 
-
+@ExposedType(name = "jswrapper")
 public class PyJSObjectWrapper extends PyDictionary {
+
+    @ExposedMethod
+    public final PyList jswrapper_keys(){
+        PyList l = new PyList();
+        for( String s : _js.keySet() ){
+            l.append( Py.newString( s ) );
+        }
+        return l;
+    }
+
+    public int __len__(){
+        return _js.keySet().size();
+    }
+
+    @ExposedMethod
+    public final boolean jswrapper___nonzero__(){
+        return _js.keySet().size() > 0;
+    }
+
+    public boolean __nonzero__(){
+        return jswrapper___nonzero__();
+    }
+
+    static {
+        try {
+            ExposedTypeProcessor etp = new ExposedTypeProcessor(PyJSObjectWrapper.class.getClassLoader()
+                                                                .getResourceAsStream("ed/lang/python/PyJSObjectWrapper.class"));
+            TypeBuilder t = etp.getTypeExposer().makeBuilder();
+            PyType.addBuilder(PyJSObjectWrapper.class, t);
+            PyType js = PyType.fromClass(PyJSObjectWrapper.class);
+            PyObject dict = t.getDict(js);
+        }
+        catch(java.io.IOException e){
+            throw new RuntimeException("Couldn't expose PyJSObjectWrapper as Python type");
+        }
+    }
     
     public PyJSObjectWrapper( JSObject jsObject ){
         this( jsObject , true );
@@ -37,10 +75,6 @@ public class PyJSObjectWrapper extends PyDictionary {
         _returnPyNone = returnPyNone;
         if ( _js == null )
             throw new NullPointerException( "don't think you should create a PyJSObjectWrapper for null" );
-
-        for( String key : jsObject.keySet() ){
-            super.__setitem__( Py.newString( key ) , toPython( jsObject.get( key ) ) );
-        }
     }
     
     public PyObject __findattr__(String name) {
@@ -71,7 +105,14 @@ public class PyJSObjectWrapper extends PyDictionary {
         PyObject p = super.__finditem__(key);
         if( p != null )
             return p;
-        return _fixReturn( _js.get( toJS( key ) ) );
+        Object o = _js.get( toJS( key ) );
+        // Explicitly return null here rather than converting to None
+        // This isn't findattr, after all; this is the check used to 
+        // see if a dict contains a value.
+        if( o == null )
+            return null;
+
+        return _fixReturn( o );
     }
 
     public PyObject __dir__(){
@@ -99,6 +140,17 @@ public class PyJSObjectWrapper extends PyDictionary {
         this.handleSet( toJS( key ) , toJS( value ) );
     }
 
+    public boolean __contains__( PyObject key ){
+        return jswrapper___contains__( key );
+    }
+
+    @ExposedMethod
+    public boolean jswrapper___contains__( PyObject key ){
+        if( key instanceof PyString )
+            return _js.containsKey( key.toString() );
+        throw new RuntimeException( "js wrappers cannot contain objects of class " + key.getClass() );
+    }
+
     public void handleSet( Object key , Object value ){
         _js.set( toJS( key ) , toJS( value ) );
     }
@@ -113,10 +165,12 @@ public class PyJSObjectWrapper extends PyDictionary {
         _js.removeField( key );
     }
 
+    @ExposedMethod(names = {"__repr__", "__str__"})
     public String toString(){
         return _js.toString();
     }
 
     final JSObject _js;
     final boolean _returnPyNone;
+
 }

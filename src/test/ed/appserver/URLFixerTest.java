@@ -54,7 +54,7 @@ public class URLFixerTest extends ed.TestCase {
         AppRequest r = new AppRequest( CONTEXT , HttpRequest.getDummy( "/www.foo.com/silly.css" , "Host: www.bar.com\n" ) );
         URLFixer f = new URLFixer( r._request , r );
         assertClose( "http://static.10gen.com/www.bar.com/1.jpg?ctxt=nullnull&lm=" + one.lastModified() , f.fix( "/1.jpg" ) );
-        assertClose( "http://static.10gen.com/www.bar.com/www.foo.com/1.jpg?ctxt=nullnull&" , f.fix( "1.jpg" ) );
+        assertClose( "http://static.10gen.com/www.bar.com/www.foo.com/1.jpg?ctxt=nullnull&lm=doesntexist" , f.fix( "1.jpg" ) );
     }    
     
     public static void main( String args[] ){

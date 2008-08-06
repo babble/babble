@@ -253,7 +253,7 @@ public class XMLHttpRequest extends JSObjectBase {
             if ( postData != null )
                 sock.getOutputStream().write( postData );
 
-            ByteBuffer buf = ByteBuffer.wrap( new byte[1024 * 1024] );
+            ByteBuffer buf = ByteBuffer.wrap( new byte[1024 * 1024 * 3 ] );
             {
                 byte temp[] = new byte[2048];
                 InputStream in = sock.getInputStream();
@@ -456,7 +456,10 @@ public class XMLHttpRequest extends JSObjectBase {
      * @return An object parsed from the response text.
      */
     public Object getJSON(){
-        return JSON.parse( get( "responseText" ).toString() );
+	Object r = get( "responseText" );
+	if ( r == null )
+	    throw new JSException( "no 'responseText' " );
+        return JSON.parse( r.toString() );
     }
 
     private void _checkURL(){

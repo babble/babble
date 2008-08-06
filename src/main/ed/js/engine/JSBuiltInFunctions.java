@@ -139,12 +139,29 @@ public class JSBuiltInFunctions {
             set("throws", myThrows);
             set("raises", myThrows);
 	    
-	    set( "eq" , new JSFunctionCalls2(){
-		    public Object call( Scope scope , Object a , Object b , Object extra[] ){
+	    set( "eq" , new JSFunctionCalls3(){
+		    public Object call( Scope scope , Object a , Object b , Object extraMsg , Object extra[] ){
 			if ( JSInternalFunctions.JS_eq( a , b ) )
 			    return true;
 
-			throw new JSException( "not the same [" + a + "] != [" + b + "]" );
+                        String msg = "not the same [" + a + "] != [" + b + "]";
+                        if ( extraMsg != null )
+                            msg += " " + extraMsg;
+
+			throw new JSException( msg );
+		    }
+		} );
+
+	    set( "neq" , new JSFunctionCalls3(){
+		    public Object call( Scope scope , Object a , Object b , Object extraMsg , Object extra[] ){
+			if ( ! JSInternalFunctions.JS_eq( a , b ) )
+			    return true;
+
+                        String msg = "are the same [" + a + "] != [" + b + "]";
+                        if ( extraMsg != null )
+                            msg += " " + extraMsg;
+
+			throw new JSException( msg );
 		    }
 		} );
         }
@@ -686,7 +703,6 @@ public class JSBuiltInFunctions {
                 }
             } , true );
 
-        s.put( "assert" , new jsassert() , true );
         s.put( "javaCreate" , new javaCreate() , true );
         s.put( "javaStatic" , new javaStatic() , true );
         s.put( "javaStaticProp" , new javaStaticProp() , true );
@@ -731,7 +747,7 @@ public class JSBuiltInFunctions {
 
         s.put( "Function" , new JSInternalFunctions.FunctionCons() , true );
         s.put( "Math" , new JSMath() , true );
-        s.put( "Class", ed.js.Prototype._class , true );
+        s.put( "Class", Prototype.newCopy() , true );
 	s.put( "Number" , new JSNumber.Cons() , true );
 	s.put( "parseNumber" , s.get( "Number" ) , true );
 
@@ -739,6 +755,7 @@ public class JSBuiltInFunctions {
 
         s.put( "Exception" , new JSException.cons() , true );
         s.put( "Map" , new JSMap.Cons() , true );
+        s.put( "assert" , new jsassert() , true );
 
         s.lock();
     }

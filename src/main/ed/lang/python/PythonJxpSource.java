@@ -61,7 +61,7 @@ public class PythonJxpSource extends JxpSource {
     public synchronized JSFunction getFunction()
         throws IOException {
         
-        final PyCode code = Python.compile( _file );
+        final PyCode code = _getCode();
         
         return new ed.js.func.JSFunctionCalls0(){
             public Object call( Scope s , Object extra[] ){
@@ -103,9 +103,23 @@ public class PythonJxpSource extends JxpSource {
         };
     }
 
+    private PyCode _getCode()
+        throws IOException {
+        PyCode c = _code;
+	final long lastModified = _file.lastModified();
+        if ( c == null || _lastCompile < lastModified ){
+            c = Python.compile( _file );
+            _code = c;
+            _lastCompile = lastModified;
+        }
+        return c;
+    }
 
     final File _file;
     final JSFileLibrary _lib;
+
+    private PyCode _code;
+    private long _lastCompile;
     
     // static b/c it has to use ThreadLocal anyway
     

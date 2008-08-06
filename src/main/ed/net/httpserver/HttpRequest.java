@@ -626,6 +626,12 @@ public class HttpRequest extends JSObjectLame {
         return s;
     }
 
+    public boolean containsKey( String s ){
+	return 
+	    _urlParameters.containsKey( s ) || 
+	    _postParameters.containsKey( s );
+    }
+
     /** 
      * Get the names of all the parameters in the URL.
      * @return the names of all the parameters in the URL
