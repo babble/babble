@@ -106,7 +106,6 @@ public class AppContext {
 	_nonAdminParent = nonAdminParent;
         _admin = _nonAdminParent != null;
         _codePrefix = _admin ? "/~~/modules/admin/" : "";
-	_deferConfig = _admin;
 
         _gitBranch = GitUtils.hasGit( _rootFile ) ? GitUtils.getBranchOrTagName( _rootFile ) : null;
 
@@ -145,9 +144,8 @@ public class AppContext {
         _jxpObject = new JSFileLibrary( _rootFile , "jxp" , this );
         _scope.put( "jxp" , _jxpObject , true );
         _scope.put( "local" , _jxpObject , true );
-
-	if ( ! _deferConfig )
-	    _loadConfig();
+	
+	_loadConfig();
 
         _core = CoreJS.get().getLibrary( getCoreJSVersion() , this , null , true );
         _logger.info( "corejs : " + _core.getRoot() );
@@ -215,13 +213,20 @@ public class AppContext {
 
     private void _loadConfig(){
 	try {
-	    File f = getFileSafe( _codePrefix + "_config.js" );
-	    _libraryLogger.info( "config file:" + f );
-	    if ( f != null && f.exists() ){
-		JxpSource config = getSource( f );
-		if ( config != null )
-		    config.getFunction().call( _scope );
-	    }
+
+	    File f = null;
+	    if ( ! _admin )
+		f = getFileSafe( "_config.js" );
+	    else 
+		f = new File( Module.getModule( "core-modules/admin" ).getRootFile( getVersionForLibrary( "admin" ) ) , "_config.js" );
+	    
+	    _libraryLogger.info( "config file [" + f + "] exists:" + f.exists() );
+	    
+	    if ( f == null || ! f.exists() )
+		return;
+
+	    Convert c = new Convert( f );
+	    c.get().call( _scope );
         }
         catch ( Exception e ){
             throw new RuntimeException( "couldn't load config" , e );
@@ -825,7 +830,6 @@ public class AppContext {
 
     final AppContext _adminContext;
     final String _codePrefix;
-    final boolean _deferConfig;
     
     final AppContext _nonAdminParent;
 
