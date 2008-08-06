@@ -719,7 +719,7 @@ var do_if =
     defaulttags.do_if =
     function(parser, token) {
         
-    var bits = token.contents.split(/\s+/);
+    var bits = token.split_contents();
     bits.shift();
     if(bits.length == 0)
         throw djang10.NewTemplateException("'if' statement requires at least one argument");
@@ -742,14 +742,16 @@ var do_if =
     for(var i=0; i<boolpairs.length; i++) {
         var boolpair = boolpairs[i];
 
+        
         if( boolpair.indexOf(" ") > -1) {
             var boolpair_parts = boolpair.split(" ");
             var not = boolpair_parts[0];
             var boolvar = boolpair_parts[1];
             
-            if(not != 'not')
-                throw djang10.NewTemplateException("Expected 'not' in if statement");
-            boolvars.push(new IfNode.BoolExpr(true, parser.compile_filter(boolvar)));
+            if(not == 'not')
+                boolvars.push(new IfNode.BoolExpr(true, parser.compile_filter(boolvar)));
+            else
+                boolvars.push(new IfNode.BoolExpr(false, parser.compile_filter(boolpair)));
         }
         else {
             boolvars.push(new IfNode.BoolExpr(false, parser.compile_filter(boolpair)));

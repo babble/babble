@@ -69,9 +69,25 @@ var from_now = function(sec_offset) {
 };
 
 var aDate = new OldDate(1981, 12-1, 20, 15, 11, 37);
+OtherClass2 = function(x) {
+    this.prop = x;
+};
+OtherClass2.prototype = {
+    echo: function(x) {
+        return x;
+    },
+    add: function(x) {
+        return new OtherClass2(x.prop + this.prop);
+    }
+};
 
 tests=[                                                                                                                                                                            //a   ,A ,b  ,d ,D  ,f   ,F       ,g,G ,h ,H ,i ,j ,l     ,L    ,m ,M  ,n ,N   ,O    ,P        ,r                              ,s ,S ,t ,w      
        { name: "filter-date01", content: '{% autoescape off %}{{ d|date:"a,A,b,d,D,f,F,g,G,h,H,i,j,l,L,m,M,n,N,O,P,r,s,S,t,w" }}{% endautoescape %}', model: { d: aDate }, results: "p.m.,PM,dec,20,Sun,3:11,December,3,15,03,15,11,20,Sunday,false,12,Dec,12,Dec.,-0500,3:11 p.m.,Sun, 20 Dec 1981 15:11:37 -0500,37,th,31,0" },
                                                                                                                                                                                    //a   ,A ,f   ,g,G ,h ,H ,i ,P        ,s
        { name: "filter-time01", content: '{% autoescape off %}{{ d|date:"a,A,f,g,G,h,H,i,P,s" }}{% endautoescape %}', model: { d: aDate }, results: "p.m.,PM,3:11,3,15,03,15,11,3:11 p.m.,37" },
+       
+       { name: "if-method chain01", content: '{% autoescape off %}{% if foo.blah(x).bar %}true{% else %}false{% endif %}{% endautoescape %}', model: { }, results: "false" },
+       { name: "if-method chain02", content: '{% autoescape off %}{% if foo.add(x).prop %}true{% endif %}{% endautoescape %}', model: { foo: new OtherClass2(3), x: new OtherClass2(5) }, results: "true" },
+       
+       { name: "if-allow spaces01", content: '{% autoescape off %}{% if foo   .   add(   x    )   .   prop    %}true{% endif %}{% endautoescape %}', model: { foo: new OtherClass2(3), x: new OtherClass2(5) }, results: "true" },
 ];

@@ -55,6 +55,7 @@ public class Djang10Source extends JxpSource {
             if(DEBUG)
                 System.out.println("Parsing " + content.getDebugName());
             
+            compiledScript = null;
             _lastParse = lastUpdated();
             _dependencies.clear();
             

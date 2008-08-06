@@ -26,6 +26,7 @@ import jline.*;
 import ed.db.*;
 import ed.io.*;
 import ed.lang.*;
+import ed.lang.python.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 import ed.appserver.*;
@@ -155,6 +156,17 @@ public class Shell {
                 JSFileLibrary fl = new JSFileLibrary( f.getParentFile() == null ? new File( "." ) : f.getParentFile()  , "blah" , s );
                 try {
                     ((JSFunction)(fl.get( f.getName().replaceAll( ".js$" , "" ) ))).call( s );
+                }
+                catch ( Exception e ){
+                    StackTraceHolder.getInstance().fix( e );
+                    e.printStackTrace();
+                    return;
+                }
+            }
+            else if ( a.endsWith( ".py" ) ){
+                PythonJxpSource py = new PythonJxpSource( new File( a ) , ((JSFileLibrary)(s.get( "local" ) ) ) );
+                try {
+                    py.getFunction().call( s );
                 }
                 catch ( Exception e ){
                     StackTraceHolder.getInstance().fix( e );
