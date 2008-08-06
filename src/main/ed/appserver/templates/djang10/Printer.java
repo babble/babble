@@ -32,7 +32,7 @@ public abstract class Printer extends JSFunctionCalls1 {
     }
     public Object call(Scope scope, Object arg, Object[] extra) {
         
-        if((arg != null) && (arg instanceof JSObject) && (((JSObject)arg).get("toString") instanceof JSFunction)) {
+        if((arg != null) && (arg instanceof JSObject) && (((JSObject)arg).get("toString") instanceof JSFunction) && !(arg instanceof JSString)) {
             JSFunction toStringFn = (JSFunction)((JSObject)arg).get("toString");
             arg = toStringFn.callAndSetThis(scope.child(), arg, new Object[0]);
         }
