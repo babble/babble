@@ -130,7 +130,9 @@ public class E4X {
     };
 
     static class ENode extends JSObjectBase {
-        private ENode(){}
+        private ENode(){
+            children = new LinkedList<ENode>();
+        }
 
         private ENode( Node n ) {
             children = new LinkedList<ENode>();
@@ -190,9 +192,10 @@ public class E4X {
                      s.equals( "tojson" ) ||
                      s.equals( "child" ))
                     return null;
-		Object o = _nodeGet( this, s );
+                /*		Object o = _nodeGet( this, s );
                 if(o == null) return new ENode( this, n );
-                return o;
+                return o;*/
+                return _nodeGet( this, s );
             }
 
             if ( n instanceof Query ) {
@@ -377,6 +380,283 @@ public class E4X {
             return new ENode(kids);
         }
 
+
+
+        public ENode elements( String name ) {
+            if(this.children == null || this.children.size() == 0)
+                return null;
+
+            if(name == null || name == "") {
+                name = "*";
+            }
+
+            ENode list = new ENode();
+            for( ENode n : this.children ) {
+                if( n.node != null && n.node.getNodeType() == Node.ELEMENT_NODE && (name.equals( "*" ) || n.node.getNodeName().equals(name)) )
+                    list.children.add( n );
+            }
+
+            return list;
+        }
+        public ENode elements() {
+            return elements(null);
+        }
+
+        public boolean hasOwnProperty( String prop ) {
+            if(this.children == null || this.children.size() == 0)
+                return false;
+
+            for( ENode n : this.children ) {
+                if( n.node != null && n.node.getNodeName().equals(prop) )
+                    return true;
+            }
+
+            return false;
+        }
+
+        private boolean isSimpleTypeNode( short type ) {
+            if( type == Node.ATTRIBUTE_NODE ||
+                type == Node.PROCESSING_INSTRUCTION_NODE ||
+                type == Node.COMMENT_NODE ||
+                type == Node.TEXT_NODE )
+                return true;
+            return false;
+        }
+
+        /**
+         * Returns if this node contains complex content.  That is, if this node has child nodes that are element-type nodes.
+         */
+        public boolean hasComplexContent( ) {
+            if( isSimpleTypeNode(this.node.getNodeType()) )
+                return false;
+
+            for( ENode n : this.children ) {
+                if( n.node.getNodeType() == Node.ELEMENT_NODE )
+                    return false;
+            }
+            return true;
+        }
+
+        /**
+         * Returns if this node contains simple content.  An XML node is considered to have simple content if it represents a text or attribute node or an XML element with no child elements.
+         */
+        public boolean hasSimpleContent( ) {
+            short type = this.node.getNodeType();
+            if( type == Node.PROCESSING_INSTRUCTION_NODE ||
+                type == Node.COMMENT_NODE )
+                return false;
+
+            for( ENode n : this.children ) {
+                if( n.node.getNodeType() == Node.ELEMENT_NODE )
+                    return false;
+            }
+            return true;
+        }
+
+        public JSArray inScopeNamespace() {
+            throw new RuntimeException("inScopeNamespace not yet implemented");
+        }
+
+        public ENode insertChildAfter( Object child1, ENode child2 ) {
+            return _insertChild(child1, child2, 1);
+        }
+
+        public ENode insertChildBefore( Object child1, ENode child2 ) {
+            return _insertChild(child1, child2, 0);
+        }
+
+        private ENode _insertChild( Object child1, ENode child2, int j ) {
+            if( isSimpleTypeNode(this.node.getNodeType() ) ) return null;
+            if( child1 == null ) {
+                this.children.add( 0, child2 );
+                return this;
+            }
+            else if ( child1 instanceof ENode ) {
+                for( int i=0; i<children.size(); i++) {
+                    if( children.get(i) == child1 ) {
+                        children.add(i+j, child2);
+                        return this;
+                    }
+                }
+            }
+            return null;
+        }
+
+        public int length(){
+            if ( node != null )
+                return 1;
+            return children.size();
+        }
+
+        public String localName() {
+            if(this.node == null) return "";
+            return this.node.getLocalName();
+        }
+
+        public String name() {
+            if(this.node == null) return "";
+            return this.node.getNodeName();
+        }
+
+        public String namespace( String prefix ) {
+            if( prefix == null )
+                return this.node.getNamespaceURI();
+
+            return this.node.lookupNamespaceURI( prefix );
+        }
+
+        public JSArray namespaceDeclarations() {
+            JSArray a = new JSArray();
+            if( isSimpleTypeNode( this.node.getNodeType() ) )
+                return a;
+
+            Node y = this.node.getParentNode();
+            throw new RuntimeException("namespaceDeclarations not yet implemented");
+        }
+
+        public String nodeKind() {
+            switch ( this.node.getNodeType() ) {
+            case Node.ELEMENT_NODE :
+                return "element";
+            case Node.COMMENT_NODE :
+                return "comment";
+            case Node.ATTRIBUTE_NODE :
+                return "attribute";
+            case Node.TEXT_NODE :
+                return "text";
+            case Node.PROCESSING_INSTRUCTION_NODE :
+                return "processing-instruction";
+            default :
+                return "unknown";
+            }
+        }
+
+        /** Merges adjacent text nodes and eliminates empty text nodes */
+        public ENode normalize() {
+            int i=0;
+            while( i< this.children.size()) {
+                if( children.get(i).node.getNodeType() == Node.ELEMENT_NODE ) {
+                    children.get(i).normalize();
+                    i++;
+                }
+                else if( children.get(i).node.getNodeType() == Node.TEXT_NODE )  {
+                    while( i+1 < children.size() && children.get(i+1).node.getNodeType() == Node.TEXT_NODE ) {
+                        children.get(i).node.setNodeValue( children.get(i).node.getNodeValue() + children.get(i+1).node.getNodeValue());
+                        children.remove(i+1);
+                    }
+                    if( children.get(i).node.getNodeValue().length() == 0 ) {
+                        children.remove(i);
+                    }
+                    else {
+                        i++;
+                    }
+                }
+                else {
+                    i++;
+                }
+            }
+            return this;
+        }
+
+        public ENode parent() {
+            return this.parent;
+        }
+
+        public ENode processingInstructions( String name ) {
+            boolean all = ( name == null || name == "*" );
+
+            ENode list = new ENode();
+            for( ENode n : this.children ) {
+                if ( n.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE && ( all || name.equals(n.node.getLocalName()) ) ) {
+                    list.children.add( n );
+                }
+            }
+            return list;
+        }
+
+        /** Inserts the given child into this object prior to the existing XML properties.
+         */
+        public ENode prependChild( ENode value ) {
+            return _insertChild( null, value, 0 );
+        }
+
+        /**
+         * So, the spec says that this should only return toString(prop) == "0".  However, the Rhino implementation returns true
+         * whenever prop is a valid index, so I'm going with that.
+         */
+        public boolean propertyIsEnumerable( String prop ) {
+            ENode n = (ENode)this.get(prop);
+            if(n == null) return false;
+
+            Pattern num = Pattern.compile("\\d+");
+            Matcher m = num.matcher(prop);
+            if( m.matches() )
+                return true;
+
+            return false;
+        }
+
+        public ENode removeNamespace( String namespace ) {
+            throw new RuntimeException("not yet implemented");
+        }
+
+        public Object replace(String name, Object value) {
+            ENode exists = (ENode)this.get(name);
+            if( exists == null )
+                return this;
+
+            return set(name, value);
+        }
+
+        /** not right */
+        public Object setChildren( Object value ) {
+            if ( node != null ) {
+                return set( node.getNodeName(), value );
+            }
+            for( ENode n : this.children ) {
+                set( n.node.getNodeName(), value );
+            }
+            return this;
+        }
+
+        /** FIXME: implement QName
+         */
+        public void setLocalName( Object name ) {
+            if( this.node == null ||
+                this.node.getNodeType() == Node.TEXT_NODE ||
+                this.node.getNodeType() == Node.COMMENT_NODE )
+                return;
+
+        }
+
+        /** FIXME: implement QName
+         */
+        public void setName( Object name ) {
+            if( this.node == null ||
+                this.node.getNodeType() == Node.TEXT_NODE ||
+                this.node.getNodeType() == Node.COMMENT_NODE )
+                return;
+        }
+
+        public ENode setNamespace( String namespace ) {
+            throw new RuntimeException("not yet implemented");
+        }
+
+        public ENode text() {
+            ENode list = new ENode();
+            if( this.node != null && this.node.getNodeType() == Node.TEXT_NODE ) {
+                list.children.add( this );
+                return list;
+            }
+
+            for ( ENode n : this.children ) {
+                if( n.node.getNodeType() == Node.TEXT_NODE ) {
+                    list.children.add( n );
+                }
+            }
+            return list;
+        }
+
         public String toString(){
             if ( node == null && children == null )
                 return null;
@@ -409,6 +689,17 @@ public class E4X {
             }
             return xml.toString();
         }
+
+        /** too painful to do right now */
+        public String toXMLString() {
+            throw new RuntimeException("not yet implemented");
+        }
+
+        public ENode valueOf() {
+            return this;
+        }
+
+
 
         public static StringBuilder append( ENode n , StringBuilder buf , int level ){
             if ( n.node.getNodeType() == Node.ATTRIBUTE_NODE )
@@ -457,12 +748,6 @@ public class E4X {
 
         public NodeList getChildNodes() {
             return node.getChildNodes();
-        }
-
-        public int length(){
-            if ( children == null )
-                return 0;
-            return children.size();
         }
 
         public ArrayList<ArrayList> getAttributes() {

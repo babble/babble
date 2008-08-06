@@ -173,10 +173,15 @@ public class AppContext {
                         DBBase db = (DBBase)s.get( "db" );
                         if ( ! db.allowedToAccess( name.toString() ) )
                             throw new JSException( "you are not allowed to access db [" + name + "]" );
-
+                        
                         s.put( "db" , DBProvider.get( name.toString() , AppContext.this ) , false );
 			_lastSetTo = name.toString();
-
+                        
+                        if ( _adminContext != null ){
+                            // yes, i do want a new copy so Constructors don't get copied for both
+                            _adminContext._scope.put( "db" , DBProvider.get( name.toString() , AppContext.this ) , false );
+                        }
+                        
                         return true;
                     }
 

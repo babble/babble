@@ -92,6 +92,11 @@ public class PythonJxpSource extends JxpSource {
                 PyObject globals = new PyJSScopeWrapper( s , false );
                 __builtin__.fillWithBuiltins( globals );
                 globals.invoke( "update", PySystemState.builtins );
+                PyModule xgenMod = imp.addModule("_10gen");
+                // I know this is appalling but they don't expose this any other
+                // way
+                xgenMod.__dict__ = globals;
+
                 //Py.initClassExceptions( globals );
                 globals.__setitem__( "__file__", Py.newString( _file.toString() ) );
                 PyModule module = new PyModule( "main" , globals );
