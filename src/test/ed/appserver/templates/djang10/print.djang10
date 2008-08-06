@@ -26,3 +26,5 @@
 {% endfilter %}
 
 {% endglobals %}
+
+{{ print("moo2") }}
