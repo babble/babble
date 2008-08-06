@@ -190,6 +190,9 @@ public class URLFixer {
     }
 
     static String _urlAppendNameValue( String base , String extra ){
+	if ( base == null || base.length() == 0 )
+	    return extra;
+	
 	if ( base.endsWith( "&" ) )
 	    return base + extra;
 	
