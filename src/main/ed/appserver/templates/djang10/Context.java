@@ -152,4 +152,8 @@ public class Context extends JSObjectBase {
             throw new IllegalStateException("Can't remove the last backing object");
         objectStack.remove();
     }
+    
+    public void __set_root(String key, Object value) {
+        objectStack.getLast().set(key, value);
+    }
 }
