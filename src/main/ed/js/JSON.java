@@ -318,6 +318,14 @@ public class JSON {
      * @throws JSException If the parsed "object" is neither an object nor an array
      */
     public static Object parse( String s ){
+
+	if ( s == null )
+	    return null;
+	
+	s = s.trim();
+	if ( s.length() == 0 )
+	    return null;
+
         CompilerEnvirons ce = new CompilerEnvirons();
         Parser p = new Parser( ce , ce.getErrorReporter() );
 
