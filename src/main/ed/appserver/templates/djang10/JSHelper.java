@@ -49,7 +49,8 @@ import ed.log.Logger;
 import ed.util.Pair;
 
 public class JSHelper extends JSObjectBase {
-
+    private static final Logger log = Logger.getLogger("djang10.JSHelper");
+    
     public static final String NS = "djang10";
 
     private final ArrayList<JSFileLibrary> moduleRoots;
@@ -226,8 +227,8 @@ public class JSHelper extends JSObjectBase {
                 if(template != null)
                     return template;
             }
-            if(Djang10Source.DEBUG)
-                System.out.println("All loaders failed to load: " + pathObj);
+
+            log.error("get_template: Failed to load: " + pathObj);
             
             return null;
         }
@@ -272,7 +273,7 @@ public class JSHelper extends JSObjectBase {
             
             try {
                 moduleFile.call(child);
-            } catch(Throwable t) {
+            } catch(Exception t) {
                 throw new TemplateException("Failed to load library from file: " + moduleFile.get(JxpSource.JXP_SOURCE_PROP), t);
             }
             Object temp = child.get("register");
@@ -419,6 +420,7 @@ public class JSHelper extends JSObjectBase {
     };
     private static final class RenderWrapper extends JSFunctionCalls1 {
         private final JSFunction renderFunc;
+        private static final Logger log = JSHelper.log.getChild("renderWrapper");
         
         public RenderWrapper(JSFunction renderFunc) {
             this.renderFunc = renderFunc;
@@ -432,7 +434,7 @@ public class JSHelper extends JSObjectBase {
                 try {
                     selfRepr = thisObj.toString();
                 }
-                catch(Throwable t) {}
+                catch(Exception t) {}
                 
                 System.out.println("Rendering: " + selfRepr);
             }
@@ -441,7 +443,17 @@ public class JSHelper extends JSObjectBase {
             PrintWrapper printWrapper = new PrintWrapper();
             scope.set("print", printWrapper);
             
-            Object ret = renderFunc.callAndSetThis(scope, thisObj, new Object[] { contextObj });
+            Object ret;
+            
+            try {
+                ret = renderFunc.callAndSetThis(scope, thisObj, new Object[] { contextObj });
+            } catch(RuntimeException e) {
+                String selfRepr = "Unkown";
+                try { selfRepr = thisObj.toString(); } catch(Exception t) {}
+                
+                log.error("Failed to render: " + selfRepr);
+                throw e;
+            }
             
             if(printWrapper.buffer.length() > 0)
                 return printWrapper.buffer + (ret == null? "" : ret.toString());
@@ -451,6 +463,7 @@ public class JSHelper extends JSObjectBase {
     };
     private static final class __RenderWrapper extends JSFunctionCalls2 {
         private final JSFunction __renderFunc;
+        private static final Logger log = JSHelper.log.getChild("__renderWrapper");
         
         public __RenderWrapper(JSFunction func) {
             __renderFunc = func;
@@ -461,10 +474,7 @@ public class JSHelper extends JSObjectBase {
             
             if(Djang10Source.DEBUG) {
                 String selfRepr = "Unkown";
-                try {
-                    selfRepr = thisObj.toString();
-                }
-                catch(Throwable t) {}
+                try { selfRepr = thisObj.toString(); } catch(Exception t) {}
                 
                 System.out.println("Rendering: " + selfRepr);
             }
@@ -473,7 +483,15 @@ public class JSHelper extends JSObjectBase {
             scope.setGlobal(true);
             scope.put("print", printer, true);
             
-            __renderFunc.callAndSetThis(scope, thisObj, new Object[] { contextObj, printer });
+            try {
+                __renderFunc.callAndSetThis(scope, thisObj, new Object[] { contextObj, printer });
+            } catch(RuntimeException e) {
+                String selfRepr = "Unkown";
+                try { selfRepr = thisObj.toString(); } catch(Exception t) {}
+                
+                log.error("Failed to render: " + selfRepr);
+                throw e;
+            }
             
             return null;
         }
@@ -490,7 +508,7 @@ public class JSHelper extends JSObjectBase {
                 Object logger = scope.get("log");
                 if(logger instanceof Logger)
                     ((Logger)logger).error(error);
-            } catch(Throwable t) {
+            } catch(Exception t) {
                 System.out.println(error);
             }
             
