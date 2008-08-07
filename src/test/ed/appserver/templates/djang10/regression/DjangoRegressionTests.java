@@ -52,6 +52,7 @@ public class DjangoRegressionTests {
         //requires architecture impl
         "basic-syntax27",   //need support for translating _( )
         "^list-index.*",    //need to preprocess the string
+        "for-tag-unpack09", //need to support list indices
         "ifequal-numeric07", //need to preprocess: throw error on 2.
 
         //django doesn't escape strings
@@ -69,9 +70,7 @@ public class DjangoRegressionTests {
         "inheritance24",
         "inheritance25",
 
-        //will never be supported
-        "^for-tag-unpack.*",
-        
+       
         //unimplemented filters
         "filter-make_list0[3,4]",   //needs stringformat 
         "filter-stringformat.*",
