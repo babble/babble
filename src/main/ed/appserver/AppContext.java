@@ -154,9 +154,6 @@ public class AppContext {
         _external = Module.getModule( "external" ).getLibrary( null , this , null , true );
         _scope.put( "external" , _external , true );
 
-        _scope.put( "_rootFile" , _rootFile , true );
-        _scope.lock( "_rootFile" );
-
         _scope.put( "__instance__" , this , true );
         _scope.lock( "__instance__" );
 
