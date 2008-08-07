@@ -86,7 +86,7 @@
 
   <test name="util">
 	<parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
-	<parameter name="dir-name"  value="corejs/util/test"/>
+	<parameter name="dir-name"  value="corejs/master/util/test"/>
 	<parameter name="file-ending"  value=".js"/>
 	<classes>
       <class name="ed.util.ScriptTestFactory"/>
@@ -95,7 +95,7 @@
 
   <test name="git">
 	<parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
-	<parameter name="dir-name"  value="corejs/git/test"/>
+	<parameter name="dir-name"  value="corejs/master/git/test"/>
 	<parameter name="file-ending"  value=".js"/>
 	<classes>
       <class name="ed.util.ScriptTestFactory"/>
