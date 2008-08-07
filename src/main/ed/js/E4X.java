@@ -54,14 +54,6 @@ public class E4X {
 
             final JSFunctionCalls1 bar = this;
 
-            _prototype.set( "copy" , new JSFunctionCalls0() {
-                    public Object call( Scope s, Object foo[] ) {
-                        ENode n = (ENode)s.getThis();
-                        boolean deep_copy = true;
-                        return new ENode(n.node.cloneNode(deep_copy), n.parent);
-                    }
-                });
-
             set( "settings" , new JSFunctionCalls0(){
                     public Object call( Scope s, Object foo[] ){
                         JSObjectBase sets = new JSObjectBase();
@@ -145,7 +137,7 @@ public class E4X {
             this.parent = parent;
         }
         private ENode( ENode parent, Object o ) {
-            if(parent.node != null)
+            if(parent != null && parent.node != null)
                 node = parent.node.getOwnerDocument().createElement(o.toString());
             this.children = new LinkedList<ENode>();
             this.parent = parent;
@@ -175,6 +167,17 @@ public class E4X {
             catch ( Exception e ){
                 throw new RuntimeException( "can't parse : " + e );
             }
+            nativeFuncs.put("copy", new copy());
+        }
+
+        Hashtable<String, ENodeFunction> nativeFuncs = new Hashtable<String, ENodeFunction>();
+
+        public ENodeFunction getENodeFunction( String name ) {
+            return nativeFuncs.get( name );
+            /*            ENode cnode = nativeFuncs.get( name ).cnode;
+            if(cnode == null)
+                cnode = new ENode(this, "copy");
+                return cnode;*/
         }
 
         public Object get( Object n ){
@@ -187,15 +190,17 @@ public class E4X {
             if ( n instanceof String || n instanceof JSString ){
                 String s = n.toString();
 
+                if( s.equals( "copy" ) )
+                    return getENodeFunction( "copy" );
+
                 if ( s.equals( "length" ) ||
                      s.equals( "toString" ) ||
                      s.equals( "tojson" ) ||
                      s.equals( "child" ))
                     return null;
-                /*		Object o = _nodeGet( this, s );
+                Object o = _nodeGet( this, s );
                 if(o == null) return new ENode( this, n );
-                return o;*/
-                return _nodeGet( this, s );
+                return o;
             }
 
             if ( n instanceof Query ) {
@@ -222,7 +227,13 @@ public class E4X {
             }
 
             // find out if this k/v pair exists
-            ENode n = (ENode)get(k);
+            //            ENode n = (ENode)get(k);
+            ENode n;
+            Object obj = get(k);
+            if( obj == null || obj instanceof ENode )
+                n = (ENode)obj;
+            else
+                n = (( ENodeFunction )obj).cnode;
 
             Pattern num = Pattern.compile("-?\\d+");
             Matcher m = num.matcher(k.toString());
@@ -277,6 +288,11 @@ public class E4X {
                 // if there is more than one matching child, delete them all and replace with the new k/v
                 for( int i = 0; n != null && n.children != null && i < n.children.size(); i++ ) {
                     children.remove( n.children.get(i) );
+                }
+
+                if(this.node == null ) {
+                    System.out.println("debug: this: "+this+" k: "+k+" v: "+v);
+                    return v;
                 }
 
                 Node newNode = node.getOwnerDocument().createElement(k.toString());
@@ -359,6 +375,16 @@ public class E4X {
                 return false;
             return node.isEqualNode(o.node);
         }
+
+        public class copy extends ENodeFunction {
+            public Object call( Scope s, Object foo[] ) {
+                ENode n = (ENode)s.getThis();
+                boolean deep_copy = true;
+                ENode newn = new ENode(n.node.cloneNode(deep_copy), n.parent);
+                buildENodeDom(newn);
+                return newn;
+            }
+        };
 
         public ENode descendants() {
             return descendants( null );
@@ -692,14 +718,13 @@ public class E4X {
 
         /** too painful to do right now */
         public String toXMLString() {
-            throw new RuntimeException("not yet implemented");
+            return "hi there";
+            //            throw new RuntimeException("not yet implemented");
         }
 
         public ENode valueOf() {
             return this;
         }
-
-
 
         public static StringBuilder append( ENode n , StringBuilder buf , int level ){
             if ( n.node.getNodeType() == Node.ATTRIBUTE_NODE )
@@ -779,6 +804,45 @@ public class E4X {
             return r;
         }
 
+        public abstract class ENodeFunction extends JSFunctionCalls0 {
+            public ENodeFunction() {
+                super();
+            }
+
+            public Object call( Scope s, Object foo[] ) {
+                return new Object();
+            }
+
+            public String toString() {
+                if( cnode == null )
+                    cnode = (ENode)E4X._nodeGet(ENode.this, "copy");
+                return cnode == null ? "" : cnode.toString();
+            }
+
+            public Object get( Object n ) {
+                if ( cnode == null ) {
+                    cnode = (ENode)E4X._nodeGet(ENode.this, "copy");
+                }
+
+                return cnode.get( n );
+            }
+
+            public Object set( Object n, Object v ) {
+                if( cnode == null ) {
+                    // there's this stupid thing where set is called for every xml node created
+                    if( ENode.this.toString() == null && n.equals("prototype") ) {
+                        return null;
+                    }
+                    cnode = (ENode)E4X._nodeGet(ENode.this, "copy");
+                }
+                if( cnode == null ) return null;
+
+                return cnode.set( n, v );
+            }
+
+            ENode cnode;
+        }
+
         private Document _document;
 
         private List<ENode> children;
@@ -828,7 +892,7 @@ public class E4X {
                 }
 
                 List<ENode> kids = n.children;
-                if ( kids.size() == 0 )
+                if ( kids == null || kids.size() == 0 )
                     continue;
 
                 for ( int i=0; i<kids.size(); i++ ){
@@ -886,3 +950,4 @@ public class E4X {
 
     }
 }
+
