@@ -271,7 +271,7 @@ public abstract class JSFile extends JSObjectBase {
 
         File f = null;
 
-        File root = (File)s.get( "_rootFile" );
+        File root = s.getRoot();
         if ( root == null ){
             f = new File( name );
         }

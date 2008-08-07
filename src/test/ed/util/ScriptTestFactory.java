@@ -67,7 +67,16 @@ public class ScriptTestFactory {
         if (fileEnding == null || fileEnding.length() == 0) { 
             throw new Exception("config error : file ending unspecified");
         }
+        
+        if (!dirName.startsWith("/")) {
+        	String s= System.getProperty("TESTNG:CODE_ROOT", "/data/");
 
+        	if (!s.endsWith("/")) { 
+        		s = s + "/";
+        	}
+        	dirName = s + dirName;
+        }
+        
         List<ScriptTestInstance> list = new ArrayList<ScriptTestInstance>();
         
         File dir = new File(dirName);

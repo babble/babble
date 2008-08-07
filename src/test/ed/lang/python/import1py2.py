@@ -25,3 +25,6 @@ else:
 import _10gen as js
 assert js.jsFoo == 14
 
+assert not hasattr( js , "foo" )
+assert hasattr( js , "jsFoo" )
+
