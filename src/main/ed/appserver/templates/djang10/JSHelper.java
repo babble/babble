@@ -36,6 +36,7 @@ import ed.js.JSArray;
 import ed.js.JSDate;
 import ed.js.JSException;
 import ed.js.JSFunction;
+import ed.js.JSON;
 import ed.js.JSObject;
 import ed.js.JSObjectBase;
 import ed.js.JSRegex;
@@ -228,7 +229,16 @@ public class JSHelper extends JSObjectBase {
                     return template;
             }
 
-            log.error("get_template: Failed to load: " + pathObj);
+            
+            String msg = "get_template: Failed to load: " + pathObj +". ";
+            msg += "TEMPLATE_DIRS: [";
+            try {
+                msg += JSON.serialize(JSHelper.this.get("TEMPLATE_DIRS"));
+            } catch(Exception e) {
+                msg += e.getMessage();
+            }
+            msg += "].";
+            log.error(msg);
             
             return null;
         }
