@@ -128,6 +128,7 @@
    <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
      <jvmarg value="-Xmx256M" />
      <xmlfileset dir="." includes="testng.xml"/>
+    <sysproperty key="TESTNG:CODE_ROOT" value="${codeRoot}"/>
    </testng>
  </target>
 
@@ -149,18 +150,21 @@
    <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true">
      <jvmarg value="-Xmx500m" />
      <xmlfileset dir="." includes="testng-db.xml"/>
+    <sysproperty key="TESTNG:CODE_ROOT" value="${codeRoot}"/>
    </testng>
  </target>
  
  <target  name="test-corejs" depends="init">
    <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
      <xmlfileset dir="." includes="testng-corejs.xml"/>
+    <sysproperty key="TESTNG:CODE_ROOT" value="${codeRoot}"/>
    </testng>
  </target>
  
  <target  name="test-db-load" depends="init">
    <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
      <xmlfileset dir="." includes="testng-db-load.xml"/>
+    <sysproperty key="TESTNG:CODE_ROOT" value="${codeRoot}"/>
    </testng>
  </target>
  

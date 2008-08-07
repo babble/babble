@@ -25,7 +25,7 @@
 
   <test name="engine ruby tests">
 	<parameter name="test-class"  value="ed.lang.ruby.RubyScriptTestInstance"/>
-	<parameter name="dir-name"  value="src/test/ed/lang/ruby/"/>
+	<parameter name="dir-name"  value="ed/src/test/ed/lang/ruby/"/>
 	<parameter name="file-ending"  value=".rb"/>
 	<classes>
       <class name="ed.util.ScriptTestFactory"/>
@@ -34,7 +34,7 @@
 
   <test name="engine js tests">
 	<parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
-	<parameter name="dir-name"  value="src/test/ed/js/engine/"/>
+	<parameter name="dir-name"  value="ed/src/test/ed/js/engine/"/>
 	<parameter name="file-ending"  value=".js"/>
 	<classes>
       <class name="ed.util.ScriptTestFactory"/>
@@ -43,7 +43,7 @@
 
   <test name="app-level js tests">
 	<parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
-	<parameter name="dir-name"  value="src/test/ed/js/"/>
+	<parameter name="dir-name"  value="ed/src/test/ed/js/"/>
 	<parameter name="file-ending"  value=".js"/>
 	<classes>
       <class name="ed.util.ScriptTestFactory"/>
@@ -52,7 +52,7 @@
 
   <test name="python bridge tests">
     <parameter name="test-class" value="ed.js.engine.JSTestInstance"/>
-    <parameter name="dir-name" value="src/test/ed/lang/python/"/>
+    <parameter name="dir-name" value="ed/src/test/ed/lang/python/"/>
     <parameter name="file-ending" value=".js"/>
     <classes>
        <class name="ed.util.ScriptTestFactory"/>
