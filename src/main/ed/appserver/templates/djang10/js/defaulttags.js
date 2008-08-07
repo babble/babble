@@ -148,9 +148,9 @@ FirstOfNode.prototype = {
 
 var ForNode =
     defaulttags.ForNode =
-    function(loopvar, sequence, is_reversed, nodelist_loop) {
+    function(loopvars, sequence, is_reversed, nodelist_loop) {
     
-    this.loopvar = loopvar;
+    this.loopvars = loopvars;
     this.sequence = sequence;
     this.is_reversed = is_reversed;
     this.nodelist_loop = nodelist_loop;
@@ -162,7 +162,7 @@ ForNode.prototype = {
     
     toString: function() {
         var rev_text = this.is_reversed? " reversed" : "";
-        return "<For Node: for " + this.loopvar 
+        return "<For Node: for " + tojson(this.loopvars) 
             + " in " + this.sequence 
             + ", tail_len: " + this.nodelist_loop.length 
             + rev_text + ">"; 
@@ -206,7 +206,11 @@ ForNode.prototype = {
             loop_dict['first'] = (i==0);
             loop_dict['last'] = (i== (values.length -1));
             
-            context[this.loopvar] = item;
+            if(this.loopvars.length == 1)
+                context[this.loopvars[0]] = item;
+            else
+                for(var j=0;j<this.loopvars.length; j++)
+                    context[this.loopvars[j]] = item[j];
             
             this.nodelist_loop.__render(context, printer);
         }
@@ -644,19 +648,27 @@ var do_for =
     if(bits.length < 4)
         throw djang10.NewTemplateException("'for' statements should have at least four words: " + token.contents);
     
-    var loopvar = bits[1];
-    
     var is_reversed = (bits[bits.length - 1] == "reversed");
-    if(bits[2] != "in")
+    var in_index = bits.lastIndexOf("in");
+    
+    if(in_index < 2)
         throw djang10.NewTemplateException("'for' statements should use the format 'for x in y': " + token.contents);
     
-    var sequenceStr = bits.slice(3, is_reversed? -1:null).join(" ");
+    
+    
+    var loopvars = bits.slice(1, in_index).join(" ").split(",").map(function(bit) { return bit.trim(); } );
+    
+    if(loopvars.some(function(bit) { return !bit || bit.contains(" "); } ))
+        throw djang10.NewTemplateException("'for' tag received and invalid argument:" + token.contents)
+    
+    var sequenceStr = bits.slice(in_index+1, is_reversed? -1:null).join(" ");
     var sequence = parser.compile_filter(sequenceStr);
-;    
+ 
     var nodelist_loop = parser.parse(["endfor"]);
     parser.delete_first_token();
     
-    return new ForNode(loopvar, sequence, is_reversed, nodelist_loop);
+
+    return new ForNode(loopvars, sequence, is_reversed, nodelist_loop);
 };
 register.tag("for", do_for);
 

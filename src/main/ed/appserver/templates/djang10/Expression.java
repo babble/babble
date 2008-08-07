@@ -83,7 +83,7 @@ public class Expression extends JSObjectBase {
 
         try {
             scriptNode = parser.parse(expression, "foo", 0);
-        } catch (Throwable t) {
+        } catch (Exception t) {
             throw new TemplateException("Failed to parse expression: " + expression, t);
         }
 
