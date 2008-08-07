@@ -1,0 +1,14 @@
+<!DOCTYPE suite SYSTEM "http://beust.com/testng/testng-1.0.dtd" >
+
+<suite name="core-modules" >
+
+  <test name="djang10">
+    <parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
+    <parameter name="dir-name"  value="core-modules/djang10/test"/>
+    <parameter name="file-ending"  value=".js"/>
+    <classes>
+      <class name="ed.util.ScriptTestFactory"/>
+    </classes>
+  </test>    
+  
+</suite>

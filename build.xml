@@ -3,6 +3,9 @@
 
   <property name="targetdir" value="target"/>
   <property name="testdir" value="${targetdir}/test"/>
+
+  <property name="codeRoot" value="/data/"/>
+	
     
   <path id="classpath">
     <fileset dir="include">
@@ -123,6 +126,7 @@
  
  <target  name="test-basic" depends="init">
    <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
+     <jvmarg value="-Xmx256M" />
      <xmlfileset dir="." includes="testng.xml"/>
    </testng>
  </target>
@@ -133,6 +137,13 @@
       <sysproperty key="DEBUG.DJANG10" value="${DEBUG.DJANG10}"/>
     </testng>
   </target>
+
+<target  name="test-core-modules" depends="init">
+  <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
+    <xmlfileset dir="." includes="testng-core-modules.xml"/>
+    <sysproperty key="TESTNG:CODE_ROOT" value="${codeRoot}"/>
+  </testng>
+</target>
 
  <target  name="test-db" depends="init">
    <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true">
