@@ -109,7 +109,18 @@ public class NativeBridge {
                 
                 m.setAccessible( true );
                 try {
-                    Object ret = m.invoke( obj , nParams );
+                    
+                    Scope prev = Scope.getThreadLocal();
+                    Object ret;
+                    try {
+                        s.makeThreadLocal();
+                        ret = m.invoke( obj , nParams );
+                    }
+                    finally {
+                        if ( prev != null )
+                            prev.makeThreadLocal();
+                    }
+                    
                     if ( ret != null ){
                         if ( ret instanceof String )
                             ret = new JSString( ret.toString() );
