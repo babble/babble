@@ -23,6 +23,7 @@ import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
+import ed.lang.StackTraceHolder;
 
 public class Djang10CompiledScript extends JSFunctionCalls1 {
     private final NodeList nodes;
@@ -47,8 +48,15 @@ public class Djang10CompiledScript extends JSFunctionCalls1 {
         context.push();
         
         //render
-        nodes.__render(scope, context, (JSFunction)scope.get("print"));
-        
+        try {
+            nodes.__render(scope, context, (JSFunction)scope.get("print"));
+        } catch(RuntimeException e) {
+            StackTraceHolder.getInstance().fix(e);
+            throw e;
+        } catch(Exception e) {
+            StackTraceHolder.getInstance().fix( e );
+            throw new RuntimeException( "weird error : " + e.getClass().getName() , e );
+        }
         return null;
     }
 }

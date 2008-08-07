@@ -28,6 +28,7 @@ import ed.js.engine.Scope;
 import ed.js.Shell;
 import ed.MyAsserts;
 
+import ed.appserver.JSFileLibrary;
 
 /**
  * Dynamic test instance for testing any 10genPlatform script
@@ -76,8 +77,9 @@ public abstract class ScriptTestInstanceBase extends MyAsserts implements Script
                     return null;
                 }
             } , true );
-
-        ed.appserver.JSFileLibrary.addPath( f , new ed.appserver.JSFileLibrary( _file.getParentFile() , "asd" , scope ) );
+        
+        JSFileLibrary lib = new ed.appserver.JSFileLibrary( _file.getParentFile() , "asd" , scope );
+        JSFileLibrary.addPath( f , lib );
         
         try {
             f.call(scope);
