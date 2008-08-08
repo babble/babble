@@ -1,5 +1,7 @@
+__pyL = [1, 2];
+
 def getList():
-    return [1, 2]
+    return __pyL
 
 def pyManipList(l): # expecting [1, 3, 5]
     if len([x for x in l if x % 3 == 0]) != 1: return False
@@ -14,3 +16,6 @@ def pyGetLength(l):
 
 def pyCheckEven(l, n):
     return l[n] % 2 == 0
+
+def pyGetSecretLength():
+    return len(__pyL)
