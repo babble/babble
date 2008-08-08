@@ -24,7 +24,7 @@ import java.util.regex.*;
 
 import com.twmacinta.util.*;
 
-import org.mozilla.javascript.*;
+import ed.ext.org.mozilla.javascript.*;
 
 import ed.js.*;
 import ed.io.*;
@@ -129,7 +129,7 @@ public class Convert implements StackTraceFixer {
         try {
             theNode = p.parse( _source , _name , 0 );
         }
-        catch ( org.mozilla.javascript.EvaluatorException ee ){
+        catch ( ed.ext.org.mozilla.javascript.EvaluatorException ee ){
             throw JSCompileException.create( ee );
         }
         _encodedSource = p.getEncodedSource();

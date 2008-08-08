@@ -21,7 +21,7 @@ package ed.js.engine;
 import java.util.*;
 import java.util.regex.*;
 
-import org.mozilla.javascript.*;
+import ed.ext.org.mozilla.javascript.*;
 
 import ed.lang.*;
 
