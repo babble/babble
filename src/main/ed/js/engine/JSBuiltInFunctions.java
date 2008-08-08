@@ -98,13 +98,24 @@ public class JSBuiltInFunctions {
             JSFunction myThrows = new JSFunctionCalls2(){
                     public Object call( Scope scope , Object exctype, Object f,
                                         Object extra[] ){
+
                         if( ! ( f instanceof JSFunction ) ){
-                            throw new RuntimeException( "Second argument to assert.throws must be a function" );
+
+                            if ( exctype instanceof JSFunction && f == null ){
+                                f = exctype;
+                                exctype = null;
+                            }
+                            else 
+                                throw new RuntimeException( "Second argument to assert.throws must be a function" );
                         }
+
                         try {
                             ((JSFunction)f).call( scope , null );
                         }
                         catch(JSException e){
+                            if ( exctype == null )
+                                return true;
+                            
                             if( exctype instanceof JSString || exctype instanceof String ){
                                 if( e.getObject().equals( exctype.toString() ) )
                                     return Boolean.TRUE;
@@ -116,10 +127,14 @@ public class JSBuiltInFunctions {
                             Throwable cause = e.getCause();
                             if( match( cause , exctype ) )
                                 return Boolean.TRUE;
-
+                            
                             throw new JSException( "given function threw something else: " + cause.toString() );
                         }
                         catch(Throwable e){
+
+                            if ( exctype == null )
+                                return true;
+
                             if( match( e , exctype.toString() ) ) {
                                 return Boolean.TRUE;
                             }
