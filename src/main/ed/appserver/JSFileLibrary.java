@@ -302,6 +302,22 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         return lib.getFromPath( next , evalToFunction );
     }
 
+    private boolean _dirEQ( String a , String b ){
+        if ( a.equals( b ) )
+            return true;
+
+        if ( Math.abs( a.length() - b.length() ) > 1 )
+            return false;
+        
+        if ( a.equals( b + "/" ) )
+            return true;
+        
+        if ( b.equals( a + "/" ) )
+            return true;
+        
+        return false;
+    }
+
     JSLibrary _findLibraryForFile( File f ){
         for ( String s : keySet() ){
             Object o = super.get( s );
@@ -350,7 +366,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         
         String parentString = f.getParent();
         String rootString = _base.toString();
-        if ( ! parentString.equals( rootString ) ){
+        if ( ! _dirEQ( parentString , rootString ) ){
             
             if ( ! parentString.startsWith( rootString ) ){
             
