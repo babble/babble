@@ -5,6 +5,7 @@
   <test name="main tests">
     <classes>
       <class name="ed.appserver.templates.djang10.Djang10TemplateTest" />
+      <class name="ed.appserver.templates.djang10.Djang10TemplateReloadTest" />
       <class name="ed.appserver.templates.djang10.regression.DjangoRegressionTests" />
     </classes>
   </test>

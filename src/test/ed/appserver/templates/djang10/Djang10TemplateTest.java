@@ -23,6 +23,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import org.testng.ITest;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Factory;
@@ -172,7 +173,7 @@ public class Djang10TemplateTest {
     }
 
 
-    public static class FileTest {
+    public static class FileTest implements ITest {
         private final File file;
         private final Scope scope;
         private final Context context;
@@ -237,6 +238,9 @@ public class Djang10TemplateTest {
             TestCase.assertClose( expected , got, "Error : " + file + " : " );
         }
 
+        public String getTestName() {
+            return file.getName();
+        }
     }
     
     static String _clean( String s ){
