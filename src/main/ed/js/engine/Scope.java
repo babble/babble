@@ -164,11 +164,13 @@ public class Scope implements JSObject {
     }
     
     public Object put( String name , Object o , boolean local ){
-
+        
         o = JSInternalFunctions.fixType( o );
 
         if ( _locked )
             throw new RuntimeException( "locked" );
+        
+        _throw();
 
         if ( _with != null ){
             for ( int i=_with.size()-1; i>=0; i-- ){
@@ -243,6 +245,8 @@ public class Scope implements JSObject {
         return r;
     }
     private Object _geti( final String origName , Scope alt , JSObject with[] , int depth ){
+        _throw();
+
         String name = origName;
         boolean noThis = false;
 
@@ -857,6 +861,24 @@ public class Scope implements JSObject {
         return _exceptions.pop();
     }
 
+
+    /**
+     * this causes the scope to throw this exception on the next access
+     */
+    public void setToThrow( RuntimeException e ){
+        _toThrow = e;
+    }
+
+    private void _throw(){
+        if ( _toThrow != null )
+            throw _toThrow;
+
+        if ( _parent == null )
+            return;
+
+        _parent._throw();
+    }
+
     final String _name;
     final Scope _parent;
     final Scope _alternate;
@@ -880,7 +902,7 @@ public class Scope implements JSObject {
     Object _andSave;
     JSObject _globalThis;
 
-
+    RuntimeException _toThrow;
     
     public void makeThreadLocal(){
         _threadLocal.set( this );

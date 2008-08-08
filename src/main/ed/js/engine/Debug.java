@@ -18,7 +18,7 @@
 
 package ed.js.engine;
 
-import org.mozilla.javascript.*;
+import ed.ext.org.mozilla.javascript.*;
 
 public class Debug {
 
@@ -37,7 +37,7 @@ public class Debug {
         for ( int i=0; i<indent; i++ )
             System.out.print( "  " );
 
-        System.out.print( Token.name( n.getType() ) + " [" + n.getClass().getName().replaceAll( "org.mozilla.javascript." , "" ) + "]"  );
+        System.out.print( Token.name( n.getType() ) + " [" + n.getClass().getName().replaceAll( "ed.ext.org.mozilla.javascript." , "" ) + "]"  );
 
         if ( n instanceof FunctionNode )
             System.out.print( " " + ((FunctionNode)n).getFunctionName() );

@@ -35,9 +35,8 @@ public class JxpServlet {
     public static final int MAX_WRITTEN_LENGTH = 1024 * 1024 * 15;
     public static final boolean NOCDN = Config.get().getBoolean( "NO-CDN" );
 
-    JxpServlet( AppContext context , JxpSource source , JSFunction func ){
+    public JxpServlet( AppContext context , JSFunction func ){
         _context = context;
-        _source = source;
         _theFunction = func;
     }
 
@@ -316,6 +315,5 @@ public class JxpServlet {
     }
     
     final AppContext _context;
-    final JxpSource _source;
     final JSFunction _theFunction;
 }

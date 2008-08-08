@@ -264,14 +264,26 @@ public abstract class JSFile extends JSObjectBase {
      */
     public String writeToLocalFile( String name )
         throws IOException {
+        return writeToLocalFile( Scope.getThreadLocal() , name );
+    }
 
-        Scope s = Scope.getThreadLocal();
-        if ( s == null )
-            throw new JSException( "need a scope" );
+    /** Create a file and any required parent directories.
+     * @param name File path/name
+     * @return full path
+     * @throws IOException If the temporary file created cannot be renamed to <tt>name</tt>
+     */
+    public String writeToLocalFile( Scope s , String name )
+        throws IOException {
+
+        if ( s == null ){
+            s = Scope.getThreadLocal();
+            if ( s == null )
+                throw new JSException( "need a scope" );
+        }
 
         File f = null;
 
-        File root = (File)s.get( "_rootFile" );
+        File root = s.getRoot();
         if ( root == null ){
             f = new File( name );
         }

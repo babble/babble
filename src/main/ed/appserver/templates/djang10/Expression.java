@@ -22,10 +22,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-import org.mozilla.javascript.CompilerEnvirons;
-import org.mozilla.javascript.Node;
-import org.mozilla.javascript.ScriptOrFnNode;
-import org.mozilla.javascript.Token;
+import ed.ext.org.mozilla.javascript.CompilerEnvirons;
+import ed.ext.org.mozilla.javascript.Node;
+import ed.ext.org.mozilla.javascript.ScriptOrFnNode;
+import ed.ext.org.mozilla.javascript.Token;
 
 import ed.js.JSArray;
 import ed.js.JSException;
@@ -78,12 +78,12 @@ public class Expression extends JSObjectBase {
     }
     private void init() {
         CompilerEnvirons ce = new CompilerEnvirons();
-        org.mozilla.javascript.Parser parser = new org.mozilla.javascript.Parser(ce, ce.getErrorReporter());
+        ed.ext.org.mozilla.javascript.Parser parser = new ed.ext.org.mozilla.javascript.Parser(ce, ce.getErrorReporter());
         ScriptOrFnNode scriptNode;
 
         try {
             scriptNode = parser.parse(expression, "foo", 0);
-        } catch (Throwable t) {
+        } catch (Exception t) {
             throw new TemplateException("Failed to parse expression: " + expression, t);
         }
 
@@ -92,7 +92,7 @@ public class Expression extends JSObjectBase {
 
         parsedExpression = scriptNode.getFirstChild();
 
-        if (parsedExpression.getType() != org.mozilla.javascript.Token.EXPR_RESULT)
+        if (parsedExpression.getType() != ed.ext.org.mozilla.javascript.Token.EXPR_RESULT)
             throw new TemplateException("Not an expression: " + expression);
         
         //Verify the expression

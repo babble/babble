@@ -99,7 +99,7 @@ public class NativeBridge {
             for ( Method m : methods ){
                 if ( debug ) System.out.println( "\t " + m.getName() );
                 
-                Object nParams[] = doParamsMatch( m.getParameterTypes() , params , debug );
+                Object nParams[] = doParamsMatch( m.getParameterTypes() , params , s , debug );
                 if ( nParams == null ){
                     if ( debug ) System.out.println( "\t\t boo" );
                     continue;
@@ -109,7 +109,9 @@ public class NativeBridge {
                 
                 m.setAccessible( true );
                 try {
+                    
                     Object ret = m.invoke( obj , nParams );
+                    
                     if ( ret != null ){
                         if ( ret instanceof String )
                             ret = new JSString( ret.toString() );
@@ -163,11 +165,11 @@ public class NativeBridge {
 
     }
 
-    static Object[] doParamsMatch( Class myClasses[] , Object params[] ){
-        return doParamsMatch( myClasses , params , false );
+    static Object[] doParamsMatch( Class myClasses[] , Object params[] , Scope scope ){
+        return doParamsMatch( myClasses , params , scope , false );
     }
     
-    static Object[] doParamsMatch( Class myClasses[] , Object params[] , final boolean debug ){
+    static Object[] doParamsMatch( Class myClasses[] , Object params[] , Scope scope , final boolean debug ){
         
         if ( myClasses == null )
             myClasses = EMPTY_CLASS_ARRAY;
@@ -175,6 +177,15 @@ public class NativeBridge {
         if ( params == null )
             params = EMPTY_OBJET_ARRAY;
         
+        if ( myClasses.length > 0 && myClasses[0] == Scope.class ){
+
+            Object n[] = new Object[params.length+1];
+            n[0] = scope;
+            for ( int i=0; i<params.length; i++ )
+                n[i+1] = params[i];
+            params = n;
+        }
+
         if ( myClasses.length > params.length ){
             Object n[] = new Object[myClasses.length];
             for ( int i=0; i<params.length; i++ )
@@ -247,8 +258,17 @@ public class NativeBridge {
     
 
     static final int compareParams( Class as[] , Class bs[] ){
-        if ( as.length != bs.length )
-            return as.length - bs.length;
+
+        if ( as.length != bs.length ){
+            int diff = as.length - bs.length;
+            if ( Math.abs( diff ) == 1 ){
+                if ( as.length > 0 && as[0] == Scope.class )
+                    return -1;
+                if ( bs.length > 0 && bs[0] == Scope.class )
+                    return 1;
+            }
+            return diff;
+        }
         
         for ( int i=0; i<as.length; i++ ){
             

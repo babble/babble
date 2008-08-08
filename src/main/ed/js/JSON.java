@@ -20,7 +20,7 @@ package ed.js;
 
 import java.util.*;
 
-import org.mozilla.javascript.*;
+import ed.ext.org.mozilla.javascript.*;
 
 import ed.js.func.*;
 import ed.js.engine.*;
