@@ -108,8 +108,22 @@ public class Djang10TemplateReloadTest {
                 oldScope.makeThreadLocal();
             else
                 Scope.clearThreadLocal();
+            
+            try {
+                
+                rdelete(testDir);
+            } catch (Exception e) {
+            }
         }
         
+    }
+    
+    private static void rdelete(File f) {
+        if(f.isDirectory()) {
+            for(File sf : f.listFiles())
+                rdelete(sf);
+        }
+        f.delete();
     }
     
     private Scope initScope() {
