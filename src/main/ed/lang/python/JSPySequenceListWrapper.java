@@ -27,6 +27,15 @@ import ed.js.func.*;
 import ed.js.engine.*;
 import static ed.lang.python.Python.*;
 
+/**
+ * This class mainly exists to translate JS Array methods/attributes into 
+ * Python.
+ *
+ * Like other wrapper classes, it will probably eventually have to keep a copy
+ * of both the Python and JS versions of any contained objects, so that when 
+ * they get set in JS and then retrieved in JS, the same thing comes out, but
+ * Python also gets a version.
+ */
 public class JSPySequenceListWrapper extends JSPyObjectWrapper {
 
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.JSPYSEQUENCELISTWRAPPER" );
