@@ -148,7 +148,7 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
         _checkTime();
         if ( _servlet == null ){
             JSFunction f = getFunction();
-            _servlet = new JxpServlet( context , this , f );
+            _servlet = new JxpServlet( context , f );
             JSFileLibrary.addPath( f.getClass() , _lib );
         }
         return _servlet;
