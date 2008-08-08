@@ -78,9 +78,9 @@ public class Python {
             return new JSPyClassWrapper( (PyObject)p );
         }
 
-        if ( p instanceof PyList ){
+        if ( p instanceof PySequenceList ){
             JSArray a = new JSArray();
-            for( Object c : ((PyList)p) ){
+            for( Object c : ((PySequenceList)p) ){
                 a.set( "" , toJS( c ) );
             }
             return a;
