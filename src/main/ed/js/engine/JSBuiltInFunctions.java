@@ -236,7 +236,7 @@ public class JSBuiltInFunctions {
             Arrays.sort( allCons , NativeBridge._consLengthComparator );
             for ( int i=0; i<allCons.length; i++ ){
 
-                Object params[] = NativeBridge.doParamsMatch( allCons[i].getParameterTypes() , extra );
+                Object params[] = NativeBridge.doParamsMatch( allCons[i].getParameterTypes() , extra , scope );
 
                 if ( params != null ){
                     try {
@@ -290,7 +290,7 @@ public class JSBuiltInFunctions {
                     continue;
                 }
 
-                Object params[] = NativeBridge.doParamsMatch( m.getParameterTypes() , extra , debug );
+                Object params[] = NativeBridge.doParamsMatch( m.getParameterTypes() , extra , scope , debug );
                 if ( params == null ){
                     if ( debug ) System.out.println( "\t params don't match" );
                     continue;

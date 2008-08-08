@@ -18,7 +18,7 @@
 
 package ed.js.engine;
 
-import org.mozilla.javascript.*;
+import ed.ext.org.mozilla.javascript.*;
 
 import java.util.*;
 

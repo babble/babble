@@ -20,7 +20,7 @@ package ed.js.engine;
 
 import java.util.*;
 
-import org.mozilla.javascript.*;
+import ed.ext.org.mozilla.javascript.*;
 
 /**
  * this is used only by Convert
