@@ -43,7 +43,15 @@ var db = connect(dbURL);
 // now every argument left in the args array should be a file:alias element, so just
 // iterate over them and process one at a time
 //
+
+var track = false;
+
 arguments.forEach(function(fna) {
+
+    if (fna == "--track") {
+        track = true;
+        return;
+    }
 
     var arr = fna.split(":");    
     var filename = arr.shift();
@@ -66,7 +74,7 @@ arguments.forEach(function(fna) {
             f.addAlias(alias);
         });
         
-        f.track = true;
+        f.track = track;
         
         db._files.save(f);
         print("Uploaded file " + filename + " id=" + f._id);
