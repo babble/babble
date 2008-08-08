@@ -56,7 +56,7 @@ public class JxpServlet {
         scope.put( "print" , writer  , true );
         
         try {
-            _theFunction.call( scope );
+            _theFunction.call( scope , request , response , writer );
             
             if ( writer._writer.hasSpot() ){
                 writer._writer.backToSpot();

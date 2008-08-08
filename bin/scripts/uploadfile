@@ -74,7 +74,10 @@ arguments.forEach(function(fna) {
             f.addAlias(alias);
         });
         
-        f.track = track;
+        if ( track ){
+            f.track = track;
+            f.downloads = 0;
+        }
         
         db._files.save(f);
         print("Uploaded file " + filename + " id=" + f._id);
