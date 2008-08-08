@@ -65,6 +65,9 @@ arguments.forEach(function(fna) {
             print("   adding alias : " + alias);
             f.addAlias(alias);
         });
+        
+        f.track = true;
+        
         db._files.save(f);
         print("Uploaded file " + filename + " id=" + f._id);
     }    
