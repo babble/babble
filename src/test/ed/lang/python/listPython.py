@@ -8,3 +8,9 @@ def pyManipList(l): # expecting [1, 3, 5]
 
 
     return True
+
+def pyGetLength(l):
+    return len(l)
+
+def pyCheckEven(l, n):
+    return l[n] % 2 == 0

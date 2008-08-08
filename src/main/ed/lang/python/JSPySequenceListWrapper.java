@@ -74,6 +74,16 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper {
                         return true;
                     }
                 } );
+
+            _prototype.set( "push", new   JSFunctionCalls1() {
+                    public Object call( Scope s , Object fo , Object foo[] ){
+                        JSPySequenceListWrapper a = (JSPySequenceListWrapper)(s.getThis());
+
+                        PyObject p = toPython( fo );
+                        a._pSeq.invoke( "append" , p );
+                        return a._pSeq.__len__();
+                    }
+                } );
         }
     }
 
