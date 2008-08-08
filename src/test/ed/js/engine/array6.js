@@ -24,3 +24,17 @@ print( a[a.length-1] );
 b = new Array( a );
 print( b.length );
 print( b[0] );
+
+// ---
+
+a = [ 1 , 2 , 3 ]
+print( a );
+
+a.foo = 7
+print( a.foo );
+print( a.foo ? "yes" : "no" );
+delete( a.foo );
+print( a.foo ? "yes" : "no" );
+
+delete a[1]
+print( a );
