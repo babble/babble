@@ -126,7 +126,10 @@ public class AppRequest {
     }
 
     boolean isStatic(){
-        return isStatic( getWantedURI() );
+        String uri = getWantedURI();
+        if ( _wantedFunction != null )
+            return false;
+        return isStatic( uri );
     }
     
     static boolean isStatic( final String uri ){
@@ -167,6 +170,12 @@ public class AppRequest {
         Object res = ((JSFunction)o).call( getScope() , new JSString( getURI() ) , _request , getScope().get( "response" ) );
         if ( res == null )
             return null;
+        
+        if ( res instanceof JSFunction ){
+            _wantedFunction = (JSFunction)res;
+            return FUNCTION_CALL_STRING;
+        }
+
         return res.toString();
     }
     
@@ -188,7 +197,10 @@ public class AppRequest {
 
     File getFile()
         throws FileNotFoundException {
-        return _context.getFile( getWantedURI() );
+        String uri = getWantedURI();
+        if ( _wantedFunction != null && uri == FUNCTION_CALL_STRING )
+            return FUNCTION_CALL_FUNC;
+        return _context.getFile( uri );
     }
 
     public JSArray getHead(){
@@ -218,6 +230,15 @@ public class AppRequest {
         
         _profiler = new ProfilingTracker("AppRequest : " + _context.getName() + ":" + _context.getEnvironmentName() + ":" + _request.getURL() );
         _profiler.makeThreadLocal();
+    }
+
+    JxpServlet getServlet( File f )
+        throws IOException {
+        
+        if ( _wantedFunction == null )
+            return _context.getServlet( f );
+
+        return new JxpServlet( _context , _wantedFunction );
     }
 
     void done( HttpResponse response ){
@@ -263,6 +284,9 @@ public class AppRequest {
     
     String _wantedURI = null;
     ProfilingTracker _profiler;
+    JSFunction _wantedFunction = null;
 
     static ThreadLocal<AppRequest> _tl = new ThreadLocal<AppRequest>();
+    static private final String FUNCTION_CALL_STRING = ( "getOverrideURI-FunctionCall-special" + Math.random() ).intern();
+    static private final File FUNCTION_CALL_FUNC = new File( FUNCTION_CALL_STRING );
 }
