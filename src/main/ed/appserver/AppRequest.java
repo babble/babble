@@ -44,7 +44,7 @@ public class AppRequest {
             uri = _request.getURI();
         
         _host = host;
-        _uri = uri.equals( "/" ) ? "/index" : uri;
+        _uri = uri == null ? "/" : uri;
 
         _fixer = new URLFixer( _request , this );
     }
