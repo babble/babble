@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.testng.ITest;
 import org.testng.annotations.Factory;
 import org.testng.annotations.Test;
 
@@ -228,7 +229,7 @@ public class DjangoRegressionTests {
 
     // ====================================
     
-    public class ExportedTestCase {
+    public class ExportedTestCase implements ITest {
         private final Scope scope;
         private final String name;
         private final String content;
@@ -308,6 +309,9 @@ public class DjangoRegressionTests {
             }
         }
         
+        public String getTestName() {
+            return name;
+        }
     }
 
     
