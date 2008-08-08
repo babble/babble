@@ -1,42 +1,22 @@
 <france>
-  <food>
-    pain
-  </food>
-  <food>
-    haricots verts
-  </food>
+  <food>pain</food>
+  <food>haricots verts</food>
+  <food>pomme</food>
   <language>
     francais
-    <accent>
-      parisian
-    </accent>
+    <accent>parisian</accent>
   </language>
-  <capital>
-    paris
-  </capital>
-  <food>
-    pomme
-  </food>
+  <capital>paris</capital>
 </france>
 <france>
+  <food>fromage</food>
   <language>
     francais
-    <accent>
-      parisian
-    </accent>
+    <accent>parisian</accent>
   </language>
-  <capital>
-    paris
-  </capital>
-  <food>
-    fromage
-  </food>
+  <capital>paris</capital>
   <books>
-    <usr>
-      livre
-    </usr>
-    <bin>
-      elles
-    </bin>
+    <usr>livre</usr>
+    <bin>elles</bin>
   </books>
 </france>

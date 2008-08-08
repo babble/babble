@@ -679,7 +679,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
             if ( n instanceof JSString || n instanceof String )
                 if ( n.toString().equals( "length" ) )
                     return _array.size();
-
+        
         int idx = _getInt( n );
 
         if ( idx >=0 )
@@ -708,6 +708,18 @@ public class JSArray extends JSObjectBase implements Iterable , List {
             return super.set( n , v );
 
         return setInt( idx , v );
+    }
+
+    public Object removeField( Object n ){
+
+        int idx = _getInt( n );
+        if ( idx < 0 )
+            return super.removeField( n );
+
+        if ( idx >= _array.size() )
+            return null;
+        
+        return _array.set( idx , null );
     }
 
     /** Returns an array of the indices for this array.
