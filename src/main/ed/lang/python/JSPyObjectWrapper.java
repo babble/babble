@@ -84,10 +84,12 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     }
     
     public Object setInt( int n , Object v ){
-        throw new RuntimeException( "not implemented" );
+        _p.__setitem__( toPython( n ) , toPython( v ) );
+        return v;
     }
+
     public Object getInt( int n ){
-        throw new RuntimeException( "not implemented" );
+        return _p.__getitem__( toPython ( n ) );
     }
     
     public Object removeField( Object n ){
@@ -154,6 +156,6 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
         return _p.toString();
     }
     
-    private PyObject _p;
+    protected PyObject _p;
 }
     
