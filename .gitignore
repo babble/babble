@@ -31,3 +31,4 @@ hs_err_*
 docs
 target
 
+include/jython/*/cachedir

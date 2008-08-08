@@ -268,7 +268,7 @@ public class AppServer implements HttpHandler {
                 return;
             }
 
-            JxpServlet servlet = ar.getContext().getServlet( f );
+            JxpServlet servlet = ar.getServlet( f );
             if ( servlet == null ){
 		handle404( request , response , null );
             }
