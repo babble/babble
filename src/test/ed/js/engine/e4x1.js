@@ -2,7 +2,7 @@
 function myprint( s ){
     if ( ! s )
         return print( s );
-    s = s.toString();
+    s = s+"";
     s = s.replace( /[\r\n\s]+/g , "" );
     print( s );
 }
