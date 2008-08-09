@@ -18,5 +18,5 @@ local.src.test.ed.lang.python.tuple1py();
 
 assert( pythonTuple.length == 3 );
 assert.raises( function(){ pythonTuple[0] = 5; });
-assert.raises( "PyException", function(){ pythonTuple.push(8); });
+assert.raises( function(){ pythonTuple.push(8); });
 
