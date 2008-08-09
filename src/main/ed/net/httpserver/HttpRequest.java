@@ -562,6 +562,9 @@ public class HttpRequest extends JSObjectLame {
      * toString() method
      */
     public Object set( Object n , Object v ){
+	
+	return _attributes.set( n , v );
+	/*
         final String name = n.toString();
         _finishParsing();
         
@@ -569,6 +572,7 @@ public class HttpRequest extends JSObjectLame {
         _getParamList( name , true , true ).clear();
         _addParm( name , v == null ? null : v.toString() , true );
         return prev;
+	*/
     }
     
     /**
@@ -579,12 +583,29 @@ public class HttpRequest extends JSObjectLame {
      * @return the value of any parameter with this name, as a string
      */
     public Object get( Object n ){
+	
+	Object blah = _attributes.get( n );
+	if ( blah != null )
+	    return blah;
+
         final String name = n.toString();        
 
         String foo = getParameter( name , null );
         if ( foo == null )
             return null;
         return new ed.js.JSString( foo );
+    }
+
+    /**
+     * attribuets are user setable things on a request
+     * you can do 
+     * request.foo = 5;
+     * and later get
+     * request.foo
+     * @return an object that you can modify or access parameters on
+     */
+    public JSObject getAttributes(){
+	return _attributes;
     }
 
     /**
@@ -623,6 +644,7 @@ public class HttpRequest extends JSObjectLame {
         Set<String> s = new HashSet<String>();
         s.addAll( _urlParameters.keySet() );
         s.addAll( _postParameters.keySet() );
+	s.addAll( _attributes.keySet() );
         return s;
     }
 
@@ -897,6 +919,7 @@ public class HttpRequest extends JSObjectLame {
     PostData _postData;
     
     boolean _parsedURL = false;
+    final JSObject _attributes = new JSObjectBase();
     final Map<String,List<String>> _urlParameters = new StringMap<List<String>>();
     final Map<String,List<String>> _postParameters = new StringMap<List<String>>();
 
