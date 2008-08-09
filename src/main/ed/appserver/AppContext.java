@@ -726,6 +726,10 @@ public class AppContext {
         return _rootFile.toString();
     }
 
+    public String debugInfo(){
+	return _rootFile + " admin:" + _admin;
+    }
+
     public void fix( Throwable t ){
         StackTraceHolder.getInstance().fix( t );
     }

@@ -81,6 +81,10 @@ public class AppRequest {
         return _scope != null;
     }
 
+    public String debugInfo(){
+	return "uri:" + getURI() + " context:" + _context.debugInfo();
+    }
+
     public static boolean isAdmin( final HttpRequest request ){
         
         final String uri = request.getURI();
