@@ -562,17 +562,7 @@ public class HttpRequest extends JSObjectLame {
      * toString() method
      */
     public Object set( Object n , Object v ){
-	
 	return _attributes.set( n , v );
-	/*
-        final String name = n.toString();
-        _finishParsing();
-        
-        Object prev = getParameter( name );
-        _getParamList( name , true , true ).clear();
-        _addParm( name , v == null ? null : v.toString() , true );
-        return prev;
-	*/
     }
     
     /**
