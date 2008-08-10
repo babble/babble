@@ -141,9 +141,9 @@ public class AppContext {
     private void _baseScopeInit(){
         // --- libraries
 
-        _jxpObject = new JSFileLibrary( _rootFile , "jxp" , this );
-        _scope.put( "jxp" , _jxpObject , true );
-        _scope.put( "local" , _jxpObject , true );
+        _localObject = new JSFileLibrary( _rootFile , "jxp" , this );
+        _scope.put( "local" , _localObject , true );
+        _scope.put( "jxp" , _localObject , true );
 	
 	_loadConfig();
 
@@ -430,7 +430,7 @@ public class AppContext {
         else if ( uri.startsWith( "/@@/" ) || uri.startsWith( "@@/" ) )
             f = _external.getFileFromPath( uri.substring( 3 ) );
         else if ( uri.startsWith( "/modules/" ) )
-            f = _jxpObject.getFileFromPath( uri );
+            f = _localObject.getFileFromPath( uri );
         else
             f = new File( _rootFile , uri );
 
@@ -596,8 +596,8 @@ public class AppContext {
         /*
          *   Ensure that this is w/in the right tree for the context
          */
-        if ( _jxpObject.isIn(temp) )
-            return _jxpObject.getSource(temp);
+        if ( _localObject.isIn(temp) )
+            return _localObject.getSource(temp);
 
         /*
          *  if not, is it core?
@@ -839,9 +839,9 @@ public class AppContext {
     
     final AppContext _nonAdminParent;
 
-    JSFileLibrary _jxpObject;
-    JSFileLibrary _core;
-    JSFileLibrary _external;
+    private JSFileLibrary _localObject;
+    private JSFileLibrary _core;
+    private JSFileLibrary _external;
 
     final Logger _logger;
     final Scope _scope;
