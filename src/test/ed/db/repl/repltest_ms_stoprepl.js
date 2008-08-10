@@ -17,9 +17,9 @@ __path__._repl(
     assert( dbm.test.findOne().n == 1 );
     assert.eq( dbm.test.count() , 1 );
 
-    print( " ****  20 sec wait for replication, then check slave ****" );
+    print( " **** " + info.replTimeMS + "ms wait for replication***" );
     
-    sleep(20000);
+    sleep(info.replTimeMS);
     
     assert( dbs.test.findOne() , "nothing in slave table" );
     assert( dbs.test.findOne().n == 1 , "what's in slave table is wrong" );
@@ -34,17 +34,18 @@ __path__._repl(
     
     connect( "127.0.0.1:" + info.slavePort + "/local" ).sources.drop();
 
-    sleep(2000);
- 
+    print( " **** " + info.replTimeMS + "ms wait for slave stopage***" );
+    
+    sleep(info.replTimeMS);
  
      print( " **** adding second object to master ***" );
     
     dbm.test.save({n:2});
     assert.eq(dbm.test.count() , 2);
 
-     print( " **** 20 sec wait, then check to be sure slave doesn't have it ***" );
+    print( " **** " + info.replTimeMS + "ms wait for replication***" );
     
-    sleep(20000);
+    sleep(info.replTimeMS);
     
     // nothing should be changed
     

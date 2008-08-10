@@ -64,7 +64,9 @@ try {
 	connect( "127.0.0.1:" + masterPort + "/test" ) ,
 	connect( "127.0.0.1:" + slavePort + "/test" ), 
 	{ masterPort : masterPort,
-	  slavePort : slavePort }
+	  slavePort : slavePort,
+	  replTimeMS : 20000
+    }
     );
     
     print(" #####  TEST COMPLETE : STARTING TEARDOWN  #####");

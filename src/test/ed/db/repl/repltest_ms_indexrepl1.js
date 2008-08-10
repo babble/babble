@@ -24,9 +24,9 @@ __path__._repl(
         assert(x.key.n == 1);
     });
     
-    print( " ****  20 sec wait for replication, then check slave ****" );
+    print( " **** " + info.replTimeMS + "ms wait for replication***" );
     
-    sleep(20000);
+    sleep(info.replTimeMS);
     
     assert(dbm.test.getIndexes().length() == 1);
     assert(dbs.test.getIndexes().length() == 1);
