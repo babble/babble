@@ -144,6 +144,7 @@ public class AppContext {
         _localObject = new JSFileLibrary( _rootFile , "jxp" , this );
         _scope.put( "local" , _localObject , true );
         _scope.put( "jxp" , _localObject , true );
+	_scope.warn( "jxp" );
 	
 	_loadConfig();
 
