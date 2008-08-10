@@ -242,6 +242,10 @@ public class Scope implements JSObject {
             if ( r == null && depth == 0 )
                 debug();
         }
+	
+	if ( r != null && _warnedObject != null && _warnedObject.contains( origName ) )
+	    ed.log.Logger.getRoot().getChild( "scope" ).warn( "using [" + origName + "] in scope" );
+
         return r;
     }
     private Object _geti( final String origName , Scope alt , JSObject with[] , int depth ){
@@ -826,6 +830,12 @@ public class Scope implements JSObject {
 	_lockedObject.add( s );
     }
 
+    public void warn( String s ){
+	if ( _warnedObject == null )
+	    _warnedObject = new HashSet<String>();
+	_warnedObject.add( s );
+    }
+
     public JSFunction getConstructor(){
         return null;
     }
@@ -893,6 +903,7 @@ public class Scope implements JSObject {
     
     Map<String,Object> _objects;
     Set<String> _lockedObject;
+    Set<String> _warnedObject;
     private ThreadLocal<Scope> _tlPreferred = null;
 
     Stack<This> _this = new Stack<This>();
