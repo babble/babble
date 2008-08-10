@@ -23,13 +23,10 @@ __path__._repl(
     assert( dbs.test.findOne() , "nothing in slave table" );
     assert( dbs.test.findOne().n == 1 , "what's in slave table is wrong" );
 
-    var cnt = dbs.test.count();
-    
-    print("WOOGIE" + cnt);
-        
+    var cnt = dbs.test.count();    
     assert( cnt == 1 , "object count in slave != 1  found :  " + cnt);
      
-     print( " **** adding second object to master ***" );
+    print( " **** adding second object to master ***" );
     
     dbm.test.save({n:2});
     assert.eq(dbm.test.count() , 2);
