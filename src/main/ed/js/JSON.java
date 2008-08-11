@@ -246,6 +246,11 @@ public class JSON {
                 return;
             }
 
+            if( something instanceof ed.js.E4X.Namespace ) {
+                a.append( something.toString() );
+                return;
+            }
+
             if ( ! ( something instanceof JSObject ) ){
                 string( a , something.toString() );
                 return;
@@ -321,7 +326,7 @@ public class JSON {
 
 	if ( s == null )
 	    return null;
-	
+
 	s = s.trim();
 	if ( s.length() == 0 )
 	    return null;
