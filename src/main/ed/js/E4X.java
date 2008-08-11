@@ -162,9 +162,14 @@ public class E4X {
         }
 
         private ENode( Node n, ENode parent, List<ENode> children ) {
-            if( n.getNodeType() != Node.TEXT_NODE &&
+            if( n != null && children == null &&
+                n.getNodeType() != Node.TEXT_NODE &&
                 n.getNodeType() != Node.ATTRIBUTE_NODE )
-                children = new LinkedList<ENode>();
+                this.children = new LinkedList<ENode>();
+            else if( children != null ) {
+                this.children = children;
+            }
+
             this.node = n;
             this.parent = parent;
             this.inScopeNamespaces = new ArrayList<Namespace>();
@@ -183,9 +188,7 @@ public class E4X {
         }
 
         private ENode( List<ENode> n ) {
-            this.children = n;
-            this.inScopeNamespaces = new ArrayList<Namespace>();
-            addNativeFunctions();
+            this( null, null, n );
         }
 
         void addNativeFunctions() {
