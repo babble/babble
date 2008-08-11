@@ -197,7 +197,7 @@ DBCollection.prototype.checksum = function(){
 	    var sum = 0;
 	    var c = db[args[0]].find();
 	    while ( c.hasNext() ){
-		sum += c.next();
+		sum += c.next().hashCode();
 	    }
 	    return sum;
         } ,

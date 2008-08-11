@@ -780,7 +780,12 @@ public class JSObjectBase implements JSObject {
 
         if ( _map != null ){
             for ( Map.Entry<String,Object> e : _map.entrySet() ){
-                hash += ( 3 * e.getKey().hashCode() );
+		final String key = e.getKey();
+
+		if ( JSON.IGNORE_NAMES.contains( key ) )
+		    continue;
+		
+                hash += ( 3 * key.hashCode() );
                 if ( e.getValue() != null )
                     hash += ( 7 * e.getValue().hashCode() );
             }
