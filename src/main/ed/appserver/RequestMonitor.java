@@ -40,7 +40,7 @@ class RequestMonitor extends Thread {
         _watched.add( new Watched( request , Thread.currentThread() ) );
     }
 
-    static class Watched {
+    class Watched {
         Watched( AppRequest request , Thread thread ){
             _request = new WeakReference<AppRequest>( request );
             _thread = thread;
@@ -85,7 +85,7 @@ class RequestMonitor extends Thread {
             if ( request == null )
                 return;            
             
-            _log.error( "killing : " + request );
+            _logger.error( "killing : " + request );
             
             request.getScope().setToThrow( new AppServerError( "running too long " + ( System.currentTimeMillis() - _start ) + " ms" ) );
             _thread.interrupt();
