@@ -879,9 +879,25 @@ public class Scope implements JSObject {
         _toThrow = e;
     }
 
+    public void setToThrow( Error e ){
+        _toThrowError = e;
+    }
+
+    public void clearToThrow(){
+        _toThrowError = null;
+        _toThrow = null;
+    }
+
     private void _throw(){
-        if ( _toThrow != null )
+        if ( _toThrow != null ){
+            _toThrow.fillInStackTrace();
             throw _toThrow;
+        }
+
+        if ( _toThrowError != null ){
+            _toThrowError.fillInStackTrace();
+            throw _toThrowError;
+        }
 
         if ( _parent == null )
             return;
@@ -914,6 +930,7 @@ public class Scope implements JSObject {
     JSObject _globalThis;
 
     RuntimeException _toThrow;
+    Error _toThrowError;
     
     public void makeThreadLocal(){
         _threadLocal.set( this );
