@@ -33,3 +33,5 @@ docs
 target
 
 include/jython/*/cachedir
+
+TAGS

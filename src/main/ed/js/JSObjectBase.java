@@ -444,6 +444,11 @@ public class JSObjectBase implements JSObject {
 
         return false;
     }
+
+    public boolean hasOwnProperty( String s ){
+        prefunc();
+        return _map != null && _map.containsKey( s );
+    }
     
     /** Returns a collection of all the keys for this object.
      * @return The keys for this object.

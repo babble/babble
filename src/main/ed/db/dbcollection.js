@@ -199,10 +199,17 @@ DBCollection.prototype.checksum = function(){
 	    while ( c.hasNext() ){
 		sum += c.next().hashCode();
 	    }
-	    return sum;
+            
+	    var c = db.system.indexes.find( { ns : args[1] } );
+	    
+	    while(c.hasNext()) {
+	      	sum += c.next().hashCode();
+	    }
+	    
+    	    return sum;
         } ,
-        this.getName()
-    );  
+        this.getName(), this.getFullName()
+    );
     return r;
 }
 
