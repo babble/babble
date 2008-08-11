@@ -202,6 +202,30 @@ public class JSMath extends JSObjectBase {
                 }
             } );
 
+        set( "sin" , new JSFunctionCalls2(){
+            public Object call( Scope s , Object xObject , Object nObject , Object foo[] ){
+                double X = ((Number)xObject).doubleValue();
+                return Math.sin(X);
+            }
+        } );
+
+        set( "cos" , new JSFunctionCalls2(){
+            public Object call( Scope s , Object xObject , Object nObject , Object foo[] ){
+                double X = ((Number)xObject).doubleValue();
+                return Math.cos(X);
+            }
+        } );
+
+        set( "pow" , new JSFunctionCalls2(){
+            public Object call( Scope s , Object baseArg , Object expArg , Object foo[] ){
+                double base = ((Number)baseArg).doubleValue();
+                double exp = ((Number)expArg).doubleValue();
+                return Math.pow(base, exp);
+            }
+        } );
+        
+        set("PI", Math.PI);
+
     }
 
     public static double sigFig( double X ){
@@ -214,5 +238,4 @@ public class JSMath extends JSObjectBase {
     }
 
     public static final double LN10 = Math.log(10);
-
 }
