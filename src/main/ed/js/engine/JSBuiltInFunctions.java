@@ -105,7 +105,7 @@ public class JSBuiltInFunctions {
                                 f = exctype;
                                 exctype = null;
                             }
-                            else 
+                            else
                                 throw new RuntimeException( "Second argument to assert.throws must be a function" );
                         }
 
@@ -115,7 +115,7 @@ public class JSBuiltInFunctions {
                         catch(JSException e){
                             if ( exctype == null )
                                 return true;
-                            
+
                             if( exctype instanceof JSString || exctype instanceof String ){
                                 if( e.getObject().equals( exctype.toString() ) )
                                     return Boolean.TRUE;
@@ -127,7 +127,7 @@ public class JSBuiltInFunctions {
                             Throwable cause = e.getCause();
                             if( match( cause , exctype ) )
                                 return Boolean.TRUE;
-                            
+
                             throw new JSException( "given function threw something else: " + cause.toString() );
                         }
                         catch(Throwable e){
@@ -153,7 +153,7 @@ public class JSBuiltInFunctions {
 
             set("throws", myThrows);
             set("raises", myThrows);
-	    
+
 	    set( "eq" , new JSFunctionCalls3(){
 		    public Object call( Scope scope , Object a , Object b , Object extraMsg , Object extra[] ){
 			if ( JSInternalFunctions.JS_eq( a , b ) )
@@ -756,6 +756,7 @@ public class JSBuiltInFunctions {
         s.put( "JSDate" , s.get( "Date" ) , true ); // b/c Eliot always types this
         s.put( "String" , new JSString.JSStringCons() , true );
 	s.put( "XML" , new E4X.Cons() , true );
+	s.put( "Namespace" , new E4X.NamespaceCons() , true );
 
         s.put( "RegExp" , new JSRegex.Cons() , true );
         s.put( "Regexp" , s.get( "RegExp" ) , true ); // for Ruby technically

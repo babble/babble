@@ -16,8 +16,11 @@
 
 package ed.appserver.templates.djang10;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Stack;
 
+import ed.appserver.templates.djang10.Parser.Token;
 import ed.js.JSArray;
 import ed.js.JSFunction;
 import ed.js.JSObject;
@@ -50,13 +53,49 @@ public class Djang10CompiledScript extends JSFunctionCalls1 {
         //render
         try {
             nodes.__render(scope, context, (JSFunction)scope.get("print"));
-        } catch(RuntimeException e) {
-            StackTraceHolder.getInstance().fix(e);
-            throw e;
         } catch(Exception e) {
-            StackTraceHolder.getInstance().fix( e );
-            throw new RuntimeException( "weird error : " + e.getClass().getName() , e );
-        }
+            StackTraceHolder.getInstance().fix(e);
+            fix(e);
+            throw new RenderException(e.getMessage(), context.getRenderStack(),  e);
+        } 
         return null;
+    }
+    
+    
+    private static void fix(Throwable t) {
+        StackTraceElement[] oldTrace = t.getStackTrace();
+        ArrayList<StackTraceElement> newTrace = new ArrayList<StackTraceElement>();
+        
+        for(int i=0; i<oldTrace.length; i++) {
+            StackTraceElement element = oldTrace[i];
+            
+            if(element.getClassName().startsWith(NodeWrapper.class.getName())) {
+                if(i+1 < oldTrace.length 
+                        && JSFunction.class.getName().equals(oldTrace[i+1].getClassName()) 
+                        && "callAndSetThis".equals(oldTrace[i+1].getMethodName())) 
+                    i++;
+                
+                continue;
+            }
+            newTrace.add(element);
+        }
+        t.setStackTrace(newTrace.toArray(new StackTraceElement[0]));
+    }
+    
+    static class RenderException extends RuntimeException {
+        public RenderException(String msg, Stack<JSObject> renderStack, Throwable cause) {
+            super(msg, cause);
+            StackTraceElement[] stackTrace = new StackTraceElement[renderStack.size()];
+            
+            int i=stackTrace.length - 1;
+            for(JSObject node : renderStack) {
+                String repr = node.toString();
+                Token token = (Token)node.get("__token");
+                
+                stackTrace[i--] = new StackTraceElement("", repr, token.getOrigin(), token.getStartLine());
+            }
+            
+            setStackTrace(stackTrace);
+        }
     }
 }

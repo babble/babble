@@ -112,6 +112,18 @@ public class Config extends Properties {
         return def;
     }
 
+    public long getLong( String name , long def ){
+        String s = getProperty( name );
+        if ( s == null )
+            return def;
+        
+        s = s.trim();
+        if ( s.length() == 0 )
+            return def;
+
+        return Long.parseLong( s );
+    }
+
     public String getTryEnvFirst( String name , String def ){
         String s = System.getenv( name );
         if ( s != null )

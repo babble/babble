@@ -16,20 +16,16 @@
 
 package ed.appserver.templates.djang10;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import ed.appserver.jxp.JxpSource;
-import ed.appserver.templates.djang10.Node.VariableNode;
 import ed.js.JSArray;
 import ed.js.JSFunction;
 import ed.js.JSObject;
@@ -38,7 +34,6 @@ import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
 import ed.js.func.JSFunctionCalls1;
-import ed.js.func.JSFunctionCalls3;
 
 public class Parser extends JSObjectBase{
 
@@ -78,7 +73,7 @@ public class Parser extends JSObjectBase{
     private final Map<String, JSFunction> tagHandlerMapping;
     private final Set<JxpSource> dependencies;
 
-    public Parser(String string) {
+    public Parser(String origin, String string) {
         super(CONSTRUCTOR);
 
         this.tokens = new LinkedList<Token>();
@@ -102,9 +97,9 @@ public class Parser extends JSObjectBase{
                     TagDelimiter delim = tags.get(bit.substring(0, 2));
 
                     String content = bit.substring(2, bit.length() - 2).trim();
-                    tokens.add(new Token(delim.type, content, startLine));
+                    tokens.add(new Token(delim.type, origin, content, startLine));
                 } else {
-                    tokens.add(new Token(TagDelimiter.Type.Text, bit, startLine));
+                    tokens.add(new Token(TagDelimiter.Type.Text, origin, bit, startLine));
                 }
             }
             inTag = !inTag;
@@ -121,14 +116,17 @@ public class Parser extends JSObjectBase{
             Token token = next_token();
 
             if (token.type == TagDelimiter.Type.Text) {
-                extend_nodelist(nodelist, new Node.TextNode(token.getContents()), token);
+                JSObject textNode = new Node.TextNode(token.getContents());
+                textNode = NodeWrapper.wrap(textNode, token);
+                extend_nodelist(nodelist, textNode, token);
             }
             else if (token.type == TagDelimiter.Type.Var) {
                 if (token.getContents().length() == 0)
                     throw new TemplateException(token.getStartLine(), "Empty Variable Tag");
 
                 FilterExpression variableExpression = compile_filter(token.getContents().toString());
-                VariableNode varNode = create_variable_node(variableExpression);
+                JSObject varNode = new Node.VariableNode(variableExpression);
+                varNode = NodeWrapper.wrap(varNode, token);
                 extend_nodelist(nodelist, varNode, token);
             }
             else if (token.type == TagDelimiter.Type.Block) {
@@ -140,6 +138,7 @@ public class Parser extends JSObjectBase{
                 String command = token.getContents().toString().split("\\s")[0];
                 JSFunction handler = find_taghandler(command);
                 JSObject node = (JSObject)handler.call(scope, this, token);
+                node = NodeWrapper.wrap(node, token);
                 extend_nodelist(nodelist, node, token);
 
             }
@@ -186,9 +185,6 @@ public class Parser extends JSObjectBase{
     }
     
     
-    public Node.VariableNode create_variable_node(FilterExpression expression) {
-        return new Node.VariableNode(expression);
-    }
     public Expression compile_expression(String str) {
         return new Expression(str);
     }
@@ -243,7 +239,7 @@ public class Parser extends JSObjectBase{
     
     public static final JSFunction CONSTRUCTOR = new JSFunctionCalls0() {
         public Object call(Scope scope, Object[] extra) {
-            throw new NotImplementedException();
+            throw new UnsupportedOperationException();
         }
         protected void init() {
             super.init();
@@ -262,17 +258,18 @@ public class Parser extends JSObjectBase{
     public static class Token extends JSObjectBase {
         public static final String NAME = "Token";
         
+        private String origin;
         private TagDelimiter.Type type;
-
         private int startLine;
 
         private Token() {
             super(CONSTRUCTOR);
         }
         
-        public Token(TagDelimiter.Type type, String contents, int startLine) {
+        public Token(TagDelimiter.Type type, String origin, String contents, int startLine) {
             this();
             this.type = type;
+            this.origin = origin;
             this.startLine = startLine;
             
             set("contents", new JSString(contents));
@@ -285,43 +282,20 @@ public class Parser extends JSObjectBase{
         public int getStartLine() {
             return startLine;
         }
-        public String[] split_contents() {
-            return Util.smart_split(getContents().toString());
-        }
         
         public String toString() {
             return "<" + type + ": " + getContents().toString().substring(0, Math.min(20, getContents().length())) + "...>";
         }
         
-        public static final JSFunction CONSTRUCTOR = new JSFunctionCalls3() {
-            public Object call(Scope scope, Object typeObj, Object contentsObj, Object startLineObj, Object[] extra) {
-                Token thisObj = (Token)scope.getThis();
-                
-                JSString type = (JSString)typeObj;
-                JSString contents = (JSString)contentsObj;
-                int startLine = (Integer)startLineObj;
-                
-                thisObj.type = Enum.valueOf(TagDelimiter.Type.class, type.toString());
-                thisObj.set("contents", contents.toString());
-                thisObj.startLine = startLine;
-
-                return null;
-            }
-            public JSObject newOne() {
-                return new Token();
-            }
-            protected void init() {
-                _prototype.set("split_contents", new JSFunctionCalls0() {
-                    public Object call(Scope scope, Object[] extra) {
-                        Token thisObj = (Token)scope.getThis();
-                        JSArray parts = new JSArray();
-                        for(String part : thisObj.split_contents())
-                            parts.add(new JSString(part));
-                        return parts;
-                    }
-                });
-            }
-        };
+        public JSArray split_contents() {
+            JSArray parts = new JSArray();
+            for(String part : Util.smart_split(getContents().toString()))
+                parts.add(new JSString(part));
+            return parts;
+        }
+        public String getOrigin() {
+            return origin;
+        }
     }
 
     private static class TagDelimiter {

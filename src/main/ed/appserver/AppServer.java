@@ -138,6 +138,8 @@ public class AppServer implements HttpHandler {
             return;
         }
 
+        _requestMonitor.watch( ar );
+
         final AppContext ctxt = ar.getContext();
 
         ar.getScope().makeThreadLocal();
@@ -288,6 +290,10 @@ public class AppServer implements HttpHandler {
         }
         catch ( JSException.Redirect r ){
             response.sendRedirectTemporary(r.getTarget());
+        }
+        catch ( AppServerError ase ){
+            ar.getScope().clearToThrow();
+            handleError( request , response , ase , ar.getContext() );
         }
         catch ( Exception e ){
             handleError( request , response , e , ar.getContext() );
@@ -684,6 +690,7 @@ public class AppServer implements HttpHandler {
 
     private final AppContextHolder _contextHolder;
     private final Map<String,SimpleStats> _stats = Collections.synchronizedMap( new StringMap<SimpleStats>() );
+    private final RequestMonitor _requestMonitor = RequestMonitor.getInstance();
 
     // ---------
 
