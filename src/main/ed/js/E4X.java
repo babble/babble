@@ -31,6 +31,27 @@ import ed.util.*;
 public class E4X {
 
     public static JSFunction _cons = new Cons();
+    public static JSFunction _ns = new NamespaceCons();
+
+    public static class NamespaceCons extends JSFunctionCalls1 {
+
+        public JSObject newOne(){
+            return new Namespace();
+        }
+
+        public Object call( Scope scope , Object str , Object [] args){
+            Object blah = scope.getThis();
+
+            Namespace n;
+            if ( blah instanceof Namespace)
+                n = (Namespace)blah;
+            else {
+                n = new Namespace( str.toString() );
+            }
+            n.init( str.toString() );
+            return n;
+        }
+    }
 
     public static class Cons extends JSFunctionCalls1 {
 
@@ -1338,148 +1359,149 @@ public class E4X {
         }
         return true;
     }
-}
 
-class Namespace {
+    static class QName {
+        public String localName;
+        public String uri;
 
-    public String prefix;
-    public String uri;
-
-    public Namespace() throws TypeErrorException {
-        this(null, null);
-    }
-
-    public Namespace( Object uri) throws TypeErrorException {
-        this(null, uri);
-    }
-
-    public Namespace( String prefix, Object uri) throws TypeErrorException {
-        if(prefix == null && uri == null) {
-            this.prefix = "";
-            this.uri = "";
+        public QName() throws TypeErrorException {
+            this( null, null );
         }
-        else if (prefix == null) {
-            if ( uri instanceof Namespace ) {
-                this.prefix = ((Namespace)uri).prefix;
-                this.uri = ((Namespace)uri).uri;
-            }
-            else if( uri instanceof QName ) {
-                this.uri = ((QName)uri).uri;
-            }
-            else {
-                this.uri = uri.toString();
-                if( this.uri.equals("") )
-                    this.prefix = "";
-                else
-                    this.prefix = null;
-            }
+
+        public QName( Object name ) throws TypeErrorException {
+            this( null, name );
         }
-        else {
-            if( uri instanceof QName && ((QName)uri).uri != null) {
-                this.uri = ((QName)uri).uri;
-            }
-            else {
-                this.uri = uri.toString();
-            }
-            if( this.uri.equals("") ) {
-                if( prefix == null || prefix.equals("") ) {
-                    this.prefix = "";
+
+        public QName( Namespace namespace, Object name ) throws TypeErrorException {
+            if( name instanceof QName ) {
+                if ( namespace == null ) {
+                    this.localName = ((QName)name).localName;
+                    this.uri = ((QName)name).uri;
+                    return;
                 }
                 else {
-                    throw new TypeErrorException( "Incorrect prefix value" );
+                    this.localName = ((QName)name).localName;
                 }
             }
-            else if( prefix == null ||  !E4X.isXMLName( prefix ) ) {
-                this.prefix = null;
+            if( name == null ) {
+                this.localName = "";
             }
             else {
-                this.prefix = prefix;
+                this.localName = name.toString();
+            }
+            if( namespace == null ) {
+                if( this.localName.equals("*") ) {
+                    namespace = null;
+                }
+                else {
+                    namespace = E4X.getDefaultNamespace();
+                }
+            }
+            if( namespace == null ) {
+                this.uri = null;
+            }
+            else {
+                namespace = new Namespace(namespace);
+                this.uri = namespace.uri;
             }
         }
+
+        public String toString() {
+            String s = "";
+            if( !this.uri.equals("") ) {
+                if( this.uri == null ) {
+                    s = "*::";
+                }
+                else {
+                    s = this.uri + "*::";
+                }
+            }
+            return s + this.localName;
+        }
+
+
     }
 
-    public String toString() {
-        return this.uri;
+    static class Namespace extends JSObjectBase {
+
+        void init( String s ) {
+            this.uri = s;
+            defaultNamespace = new Namespace( s );
+        }
+
+        public String prefix;
+        public String uri;
+
+        public Namespace() {
+            this(null, null);
+        }
+
+        public Namespace( Object uri) {
+            this(null, uri);
+        }
+
+        public Namespace( String prefix, Object uri) {
+            if(prefix == null && uri == null) {
+                this.prefix = "";
+                this.uri = "";
+            }
+            else if (prefix == null) {
+                if ( uri instanceof Namespace ) {
+                    this.prefix = ((Namespace)uri).prefix;
+                    this.uri = ((Namespace)uri).uri;
+                }
+                else if( uri instanceof QName ) {
+                    this.uri = ((QName)uri).uri;
+                }
+                else {
+                    this.uri = uri.toString();
+                    if( this.uri.equals("") )
+                        this.prefix = "";
+                    else
+                        this.prefix = null;
+                }
+            }
+            else {
+                if( uri instanceof QName && ((QName)uri).uri != null) {
+                    this.uri = ((QName)uri).uri;
+                }
+                else {
+                    this.uri = uri.toString();
+                }
+                if( this.uri.equals("") ) {
+                    if( prefix == null || prefix.equals("") ) {
+                        this.prefix = "";
+                    }
+                    else {
+                        return;
+                    }
+                }
+                else if( prefix == null ||  !E4X.isXMLName( prefix ) ) {
+                    this.prefix = null;
+                }
+                else {
+                    this.prefix = prefix;
+                }
+            }
+        }
+
+        public String toString() {
+            return this.uri;
+        }
     }
 
     private static Namespace defaultNamespace;
 
     public static Namespace getDefaultNamespace() {
         if(defaultNamespace == null)
-        try {
             defaultNamespace = new Namespace();
-        }
-        catch( TypeErrorException e ) {
-            System.out.println("type error");
-        }
-
         return defaultNamespace;
     }
-}
 
-class QName {
-    public String localName;
-    public String uri;
-
-    public QName() throws TypeErrorException {
-        this( null, null );
+    public static Namespace setAndGetDefaultNamespace(Object o) {
+        if( o instanceof Namespace )
+            defaultNamespace = (Namespace)o;
+        return defaultNamespace;
     }
 
-    public QName( Object name ) throws TypeErrorException {
-        this( null, name );
-    }
-
-    public QName( Namespace namespace, Object name ) throws TypeErrorException {
-        if( name instanceof QName ) {
-            if ( namespace == null ) {
-                this.localName = ((QName)name).localName;
-                this.uri = ((QName)name).uri;
-                return;
-            }
-            else {
-                this.localName = ((QName)name).localName;
-            }
-        }
-        if( name == null ) {
-            this.localName = "";
-        }
-        else {
-            this.localName = name.toString();
-        }
-        if( namespace == null ) {
-            if( this.localName.equals("*") ) {
-                namespace = null;
-            }
-            else {
-                namespace = Namespace.getDefaultNamespace();
-            }
-        }
-        if( namespace == null ) {
-            this.uri = null;
-        }
-        else {
-            namespace = new Namespace(namespace);
-            this.uri = namespace.uri;
-        }
-    }
-
-    public String toString() {
-        String s = "";
-        if( !this.uri.equals("") ) {
-            if( this.uri == null ) {
-                s = "*::";
-            }
-            else {
-                s = this.uri + "*::";
-            }
-        }
-        return s + this.localName;
-    }
-}
-
-class TypeErrorException extends Exception {
-    public TypeErrorException() {}
-    public TypeErrorException( String msg) {
-        super(msg);
-    }
 }

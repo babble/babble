@@ -240,7 +240,7 @@ public class Parser extends JSObjectBase{
     
     public static final JSFunction CONSTRUCTOR = new JSFunctionCalls0() {
         public Object call(Scope scope, Object[] extra) {
-            throw new NotImplementedException();
+            throw new UnsupportedOperationException();
         }
         protected void init() {
             super.init();
