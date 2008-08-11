@@ -24,7 +24,7 @@ public class TemplateException extends JSException {
         super(message);
     }
 
-    public TemplateException(String message, Throwable t) {
+    public TemplateException(String message, Exception t) {
         super(message, t);
     }
 
