@@ -25,7 +25,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import ed.appserver.jxp.JxpSource;
 import ed.js.JSArray;
 import ed.js.JSFunction;
