@@ -343,11 +343,7 @@ public class Expression extends JSObjectBase {
         public Object call(Scope scope, Object expressionObj, Object[] extra) {
             Expression thisObj = (Expression)scope.getThis();
             thisObj.expression = expressionObj.toString();
-            try {
-                thisObj.init();
-            } catch (TemplateException e) {
-                throw new RuntimeException(e);
-            }
+            thisObj.init();
             return null;
         }
         public JSObject newOne() {
