@@ -194,20 +194,20 @@ DBCollection.prototype._dbCommand = function( cmdObj ) {
 DBCollection.prototype.checksum = function(){ 
     var r = this.getDB().eval(
         function(){
-	      var sum = 0;
-	      var c = db[args[0]].find();
-	      while ( c.hasNext() ){
-		    sum += c.next().hashCode();
-	      }
-
-	      var c = db.system.indexes.find( { ns : args[1] } );
-	      	      
-	      while(c.hasNext()) {
+	    var sum = 0;
+	    var c = db[args[0]].find();
+	    while ( c.hasNext() ){
+		sum += c.next().hashCode();
+	    }
+            
+	    var c = db.system.indexes.find( { ns : args[1] } );
+	    
+	    while(c.hasNext()) {
 	      	sum += c.next().hashCode();
-	      }
-	      
-    	  return sum;
-          } ,
+	    }
+	    
+    	    return sum;
+        } ,
         this.getName(), this.getFullName()
     );
     return r;
