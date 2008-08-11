@@ -37,6 +37,14 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
     /** Types of cursors: iterator or array. */
     static enum CursorType { ITERATOR , ARRAY };
 
+    public DBCursor copy(){
+	DBCursor c = new DBCursor( _collection , _query , _keysWanted , _constructor );
+	c._orderBy = _orderBy;
+	c._numWanted = _numWanted;
+	c._skip = _skip;
+	return c;
+    }
+
     // ---- querty modifiers --------
 
     /** Sorts this cursor's elements.
@@ -334,20 +342,20 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
 
     }
 
-    // ----  members ----
-
-    private Iterator<JSObject> _it;
-
-    private DBCollection _collection;
-    private JSObject _query;
-    private JSObject _keysWanted;
+    // ----  query setup ----
+    final DBCollection _collection;
+    final JSObject _query;
+    final JSObject _keysWanted;
+    final JSFunction _constructor;
+    
     private JSObject _orderBy;
-    private JSFunction _constructor;
     private int _numWanted = 0;
     private int _skip = 0;
 
-    private CursorType _cursorType;
+    // ----  result info ----
+    private Iterator<JSObject> _it;
 
+    private CursorType _cursorType;
     private JSObject _cur = null;
     private int _num = 0;
 
