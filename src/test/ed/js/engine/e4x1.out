@@ -1,4 +1,4 @@
-<salesvendor="John"><name>JohnSmith</name><silly><foo>a</foo></silly><itemtype="peas"price="4"quantity="6"/><itemtype="carrot"price="3"quantity="10"/><itemtype="chips"price="5"quantity="3"/><zzza="5"/><zzza="6"/><zzza="7"/></sales>
+<salesvendor="John"><name>JohnSmith</name><silly><foo>a</foo></silly><itemprice="4"quantity="6"type="peas"/><itemprice="3"quantity="10"type="carrot"/><itemprice="5"quantity="3"type="chips"/><zzza="5"/><zzza="6"/><zzza="7"/></sales>
 John
 <silly><foo>a</foo></silly>
 JohnSmith
