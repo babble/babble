@@ -138,11 +138,11 @@ public class AppContext {
      */
     private void _baseScopeInit(){
         // --- libraries
-
-        _localObject = new JSFileLibrary( _rootFile , "jxp" , this );
-        _scope.put( "local" , _localObject , true );
-        _scope.put( "jxp" , _localObject , true );
-	_scope.warn( "jxp" );
+        
+        if ( _admin )
+            _scope.put( "local" , new JSObjectBase() , true );
+        else
+            _setLocalObject( new JSFileLibrary( _rootFile , "local" , this ) );
 	
 	_loadConfig();
 
@@ -428,7 +428,7 @@ public class AppContext {
 	    f = _core.getFileFromPath( "/modules" + uri );
         else if ( uri.startsWith( "/@@/" ) || uri.startsWith( "@@/" ) )
             f = _external.getFileFromPath( uri.substring( 3 ) );
-        else if ( uri.startsWith( "/modules/" ) )
+        else if ( _localObject != null && uri.startsWith( "/modules/" ) )
             f = _localObject.getFileFromPath( uri );
         else
             f = new File( _rootFile , uri );
@@ -595,7 +595,7 @@ public class AppContext {
         /*
          *   Ensure that this is w/in the right tree for the context
          */
-        if ( _localObject.isIn(temp) )
+        if ( _localObject != null && _localObject.isIn(temp) )
             return _localObject.getSource(temp);
 
         /*
@@ -663,8 +663,10 @@ public class AppContext {
         try {
             _runInitFiles( INIT_FILES );
             
-	    if ( _adminContext != null )
+	    if ( _adminContext != null ){
 		_adminContext._scope.set( "siteScope" , _scope );
+                _adminContext._setLocalObject( _localObject );
+            }
 	    
             _lastScopeInitTime = _getScopeTime();
         }
@@ -826,6 +828,13 @@ public class AppContext {
         AppContextHolder._checkout( _rootFile , branch );
 
         return getCurrentGitBranch();
+    }
+
+    private void _setLocalObject( JSFileLibrary local ){
+        _localObject = local;
+        _scope.put( "local" , _localObject , true );
+        _scope.put( "jxp" , _localObject , true );
+	_scope.warn( "jxp" );
     }
 
     final String _name;
