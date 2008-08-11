@@ -65,7 +65,7 @@ public class Djang10Source extends JxpSource {
             String contents = getContent();
             
 
-            Parser parser = new Parser(contents);
+            Parser parser = new Parser(content.getName(), contents);
             JSHelper jsHelper = JSHelper.get(Scope.getThreadLocal());
             for(Pair<JxpSource,Library> lib : jsHelper.getDefaultLibraries()) {
                 parser.add_dependency(lib.first);
@@ -119,7 +119,7 @@ public class Djang10Source extends JxpSource {
             throw new TemplateException("Failed to read the template source from: " + getFile(), e);
         }
 
-        Parser parser = new Parser(contents);
+        Parser parser = new Parser(this.content.getName(), contents);
         JSHelper jsHelper = JSHelper.get(scope);
         for(Pair<JxpSource,Library> lib : jsHelper.getDefaultLibraries()) {
             parser.add_dependency(lib.first);

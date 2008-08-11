@@ -248,6 +248,7 @@ public class AppRequest {
     }
 
     void done( HttpResponse response ){
+        _done = true;
         _context.setTLPreferredScope( this , null );
         if ( _session.sync( _context.getDB() ) )
             response.addCookie( Session.COOKIE_NAME , _session.getCookie() );
@@ -277,6 +278,10 @@ public class AppRequest {
         return _fixer;
     }
 
+    public boolean isDone(){
+        return _done;
+    }
+
     final String _uri;
     final String _host;
     final HttpRequest _request;
@@ -287,6 +292,7 @@ public class AppRequest {
 
     private Scope _scope;
     private Session _session;
+    private boolean _done = false;
 
     String _wantedURI = null;
     ProfilingTracker _profiler;
