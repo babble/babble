@@ -191,6 +191,21 @@ DBCollection.prototype._dbCommand = function( cmdObj ) {
     return this.getDB().$cmd.findOne(cmdObj);
 }
 
+DBCollection.prototype.checksum = function(){ 
+    var r = this.getDB().eval(
+        function(){
+	    var sum = 0;
+	    var c = db[args[0]].find();
+	    while ( c.hasNext() ){
+		sum += c.next();
+	    }
+	    return sum;
+        } ,
+        this.getName()
+    );  
+    return r;
+}
+
 DBCollection.prototype.sample = function( num , query , fields ){
     var r = this.getDB().eval(
         function(){
