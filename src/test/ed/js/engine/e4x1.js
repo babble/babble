@@ -10,9 +10,9 @@ function myprint( s ){
 var sales = <sales vendor="John">
     <name>John Smith</name>
     <silly><foo>a</foo></silly>
-    <item type="peas" price="4" quantity="6"/>
-    <item type="carrot" price="3" quantity="10"/>
-    <item type="chips" price="5" quantity="3"/>
+    <item price="4" quantity="6" type="peas" />
+    <item price="3" quantity="10" type="carrot" />
+    <item price="5" quantity="3" type="chips"/>
     <zzz a="5" />
     <zzz a="6" />
     <zzz a="7" />
