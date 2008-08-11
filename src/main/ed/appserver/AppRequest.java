@@ -98,7 +98,7 @@ public class AppRequest {
         // 1) static file, image/css/js
         // 2) has to be in corejs or external
         // 3) referer has to be from admin
-        if ( isStatic( uri ) && 
+        if ( ( isStatic( uri ) || uri.startsWith( "/~~/user/" ) ) && 
              ( uri.startsWith( "/~~/" ) || uri.startsWith( "/@@/" ) ) && 
              ! uri.startsWith( "/~~/modules/" ) 
              ){
