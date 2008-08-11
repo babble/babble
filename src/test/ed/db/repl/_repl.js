@@ -57,10 +57,20 @@ try {
     // --------
     
     // START REAL TEST
+    
+    print(" #####  SETUP COMPLETE : STARTING TEST  #####");
+
     arguments[0]( 
 	connect( "127.0.0.1:" + masterPort + "/test" ) ,
-	connect( "127.0.0.1:" + slavePort + "/test" ) 
+	connect( "127.0.0.1:" + slavePort + "/test" ), 
+	{ masterPort : masterPort,
+	  slavePort : slavePort,
+	  replTimeMS : 20000
+    }
     );
+    
+    print(" #####  TEST COMPLETE : STARTING TEARDOWN  #####");
+    
 }
 finally {
     // SHUTDOWN

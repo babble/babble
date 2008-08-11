@@ -51,6 +51,15 @@ public class Logger extends JSFunctionCalls2 {
         return l;
     }
 
+    public static Logger getRoot(){
+	final Logger l = getThreadLocalRoot();
+	return l == null ? getLogger( "noroot" ) : l;
+    }
+
+    public static Logger getThreadLocalRoot(){
+	return _tl.get();
+    }
+
     // -------------------
 
     public Logger( Logger parent , String name ){
@@ -64,6 +73,10 @@ public class Logger extends JSFunctionCalls2 {
 
         if ( _parent == null )
             _appenders = new ArrayList<Appender>( _defaultAppenders );
+    }
+
+    public void makeThreadLocal(){
+	_tl.set( this );
     }
 
     // --------------------
@@ -80,6 +93,13 @@ public class Logger extends JSFunctionCalls2 {
     }
     public void info( String msg , Throwable t ){
         log( Level.INFO , msg , t );
+    }
+
+    public void warn( String msg ){
+        log( Level.WARN , msg , null );
+    }
+    public void warn( String msg , Throwable t ){
+        log( Level.WARN , msg , t );
     }
 
     public void error( String msg ){
@@ -277,6 +297,8 @@ public class Logger extends JSFunctionCalls2 {
     List<Appender> _appenders;
     Level _level = null;
     final Map<Level,JSFunction> _levelLoggers = Collections.synchronizedMap( new TreeMap<Level,JSFunction>() );
+
+    static final ThreadLocal<Logger> _tl = new ThreadLocal<Logger>();
 
     private final static Map<String,Logger> _fullNameToLogger = Collections.synchronizedMap( new HashMap<String,Logger>() );
     private final static List<Appender> _defaultAppenders;

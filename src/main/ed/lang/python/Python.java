@@ -79,11 +79,7 @@ public class Python {
         }
 
         if ( p instanceof PySequenceList ){
-            JSArray a = new JSArray();
-            for( Object c : ((PySequenceList)p) ){
-                a.set( "" , toJS( c ) );
-            }
-            return a;
+            return new JSPySequenceListWrapper((PySequenceList)p);
         }
 
         // this needs to be last

@@ -68,8 +68,10 @@ public class AppRequest {
             _scope.put( "head" , _head , true );
             _scope.lock( "head" );
             
-            _scope.put( "session" , Session.get( _request.getCookie( Session.COOKIE_NAME ) , _context.getDB() ) , true );
+	    _session = Session.get( _request.getCookie( Session.COOKIE_NAME ) , _context.getDB() );
+            _scope.put( "session" , _session , true );
             _scope.lock( "session" );
+	    _request.set( "session" , _session );
 
             _context.setTLPreferredScope( this , _scope );
         }
@@ -79,6 +81,10 @@ public class AppRequest {
     
     boolean isScopeInited(){
         return _scope != null;
+    }
+
+    public String debugInfo(){
+	return "uri:" + getURI() + " context:" + _context.debugInfo();
     }
 
     public static boolean isAdmin( final HttpRequest request ){
@@ -92,7 +98,7 @@ public class AppRequest {
         // 1) static file, image/css/js
         // 2) has to be in corejs or external
         // 3) referer has to be from admin
-        if ( isStatic( uri ) && 
+        if ( ( isStatic( uri ) || uri.startsWith( "/~~/user/" ) ) && 
              ( uri.startsWith( "/~~/" ) || uri.startsWith( "/@@/" ) ) && 
              ! uri.startsWith( "/~~/modules/" ) 
              ){
@@ -243,9 +249,8 @@ public class AppRequest {
 
     void done( HttpResponse response ){
         _context.setTLPreferredScope( this , null );
-        Session session = (Session)_scope.get( "session" );
-        if ( session.sync( _context.getDB() ) )
-            response.addCookie( Session.COOKIE_NAME , session.getCookie() );
+        if ( _session.sync( _context.getDB() ) )
+            response.addCookie( Session.COOKIE_NAME , _session.getCookie() );
     }
     
     void makeThreadLocal(){
@@ -281,7 +286,8 @@ public class AppRequest {
     final JSArray _head = new HeadArray();
 
     private Scope _scope;
-    
+    private Session _session;
+
     String _wantedURI = null;
     ProfilingTracker _profiler;
     JSFunction _wantedFunction = null;

@@ -111,15 +111,13 @@ public class AppContext {
 
         _isGrid = name.equals( "grid" );
 
-        _scope = new Scope( "AppContext:" + root , _isGrid ? ed.cloud.Cloud.getInstance().getScope() : Scope.newGlobal() , null , Language.JS , _rootFile );
+        _scope = new Scope( "AppContext:" + root + ( _admin ? ":admin" : "" ) , _isGrid ? ed.cloud.Cloud.getInstance().getScope() : Scope.newGlobal() , null , Language.JS , _rootFile );
         _scope.setGlobal( true );
 
         _logger = Logger.getLogger( _name + ":" + _environment );
         _usage = new UsageTracker( _name );
 
         _baseScopeInit();
-	if ( _nonAdminParent != null )
-	    _scope.set( "siteScope" , _nonAdminParent._scope );
 
         _adminContext = _admin ? null : new AppContext( root , rootFile , name , environment , this );
 
@@ -140,10 +138,11 @@ public class AppContext {
      */
     private void _baseScopeInit(){
         // --- libraries
-
-        _jxpObject = new JSFileLibrary( _rootFile , "jxp" , this );
-        _scope.put( "jxp" , _jxpObject , true );
-        _scope.put( "local" , _jxpObject , true );
+        
+        if ( _admin )
+            _scope.put( "local" , new JSObjectBase() , true );
+        else
+            _setLocalObject( new JSFileLibrary( _rootFile , "local" , this ) );
 	
 	_loadConfig();
 
@@ -429,8 +428,8 @@ public class AppContext {
 	    f = _core.getFileFromPath( "/modules" + uri );
         else if ( uri.startsWith( "/@@/" ) || uri.startsWith( "@@/" ) )
             f = _external.getFileFromPath( uri.substring( 3 ) );
-        else if ( uri.startsWith( "/modules/" ) )
-            f = _jxpObject.getFileFromPath( uri );
+        else if ( _localObject != null && uri.startsWith( "/modules/" ) )
+            f = _localObject.getFileFromPath( uri );
         else
             f = new File( _rootFile , uri );
 
@@ -596,8 +595,8 @@ public class AppContext {
         /*
          *   Ensure that this is w/in the right tree for the context
          */
-        if ( _jxpObject.isIn(temp) )
-            return _jxpObject.getSource(temp);
+        if ( _localObject != null && _localObject.isIn(temp) )
+            return _localObject.getSource(temp);
 
         /*
          *  if not, is it core?
@@ -664,6 +663,11 @@ public class AppContext {
         try {
             _runInitFiles( INIT_FILES );
             
+	    if ( _adminContext != null ){
+		_adminContext._scope.set( "siteScope" , _scope );
+                _adminContext._setLocalObject( _localObject );
+            }
+	    
             _lastScopeInitTime = _getScopeTime();
         }
         catch ( RuntimeException re ){
@@ -724,6 +728,10 @@ public class AppContext {
      */
     public String toString(){
         return _rootFile.toString();
+    }
+
+    public String debugInfo(){
+	return _rootFile + " admin:" + _admin;
     }
 
     public void fix( Throwable t ){
@@ -822,6 +830,13 @@ public class AppContext {
         return getCurrentGitBranch();
     }
 
+    private void _setLocalObject( JSFileLibrary local ){
+        _localObject = local;
+        _scope.put( "local" , _localObject , true );
+        _scope.put( "jxp" , _localObject , true );
+	_scope.warn( "jxp" );
+    }
+
     final String _name;
     final String _root;
     final File _rootFile;
@@ -835,9 +850,9 @@ public class AppContext {
     
     final AppContext _nonAdminParent;
 
-    JSFileLibrary _jxpObject;
-    JSFileLibrary _core;
-    JSFileLibrary _external;
+    private JSFileLibrary _localObject;
+    private JSFileLibrary _core;
+    private JSFileLibrary _external;
 
     final Logger _logger;
     final Scope _scope;

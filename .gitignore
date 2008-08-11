@@ -24,6 +24,7 @@ src/main/Eliot.java
 .zeuspw
 
 logs
+test-output
 oplog.*
 build
 crap

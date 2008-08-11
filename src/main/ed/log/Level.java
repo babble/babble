@@ -23,7 +23,7 @@ import ed.js.func.*;
 import ed.js.engine.*;
 
 public enum Level {
-    DEBUG , INFO , ERROR , FATAL ;
+    DEBUG , INFO , WARN , ERROR , FATAL ;
 
     static Level forName( String name ){
         if ( name.equalsIgnoreCase( "debug" ) )
@@ -31,7 +31,10 @@ public enum Level {
 
         if ( name.equalsIgnoreCase( "info" ) )
             return INFO;
-        
+
+        if ( name.equalsIgnoreCase( "warn" ) )
+            return WARN;
+	
         if ( name.equalsIgnoreCase( "error" ) )
             return ERROR;
 
@@ -45,9 +48,10 @@ public enum Level {
     static {
         me.set( "DEBUG" , DEBUG );
         me.set( "INFO" , INFO );
+        me.set( "WARN" , WARN );
         me.set( "ERROR" , ERROR );
         me.set( "FATAL" , FATAL );
-
+	
         me.set( "ALL" , DEBUG );
     }
 }

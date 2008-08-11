@@ -14,24 +14,9 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-local.src.test.ed.lang.python.listPython();
+local.src.test.ed.lang.python.tuple1py();
 
-var pyL = getList();
+assert( pythonTuple.length == 3 );
+assert.raises( function(){ pythonTuple[0] = 5; });
+assert.raises( function(){ pythonTuple.push(8); });
 
-assert( pyL.length == 2 );
-
-assert( pyL.some( function(x){ return x == 1; } ) );
-assert( pyL.every( function(x){ return x > 0; } ) );
-
-pyL.push(8);
-
-assert( pyGetLength(pyL) == 3 );
-assert( pyCheckEven(pyL, 2) );
-
-pyL.push(9);
-
-assert( ! pyCheckEven(pyL, 3) );
-
-var jsA = [1, 3, 5];
-
-assert( pyManipList(jsA) );

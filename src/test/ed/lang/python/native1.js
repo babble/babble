@@ -14,24 +14,10 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-local.src.test.ed.lang.python.listPython();
+local.src.test.ed.lang.python.callNative();
 
-var pyL = getList();
+var echoOut = callSysexec('echo hi there');
 
-assert( pyL.length == 2 );
+print(tojson(echoOut));
 
-assert( pyL.some( function(x){ return x == 1; } ) );
-assert( pyL.every( function(x){ return x > 0; } ) );
-
-pyL.push(8);
-
-assert( pyGetLength(pyL) == 3 );
-assert( pyCheckEven(pyL, 2) );
-
-pyL.push(9);
-
-assert( ! pyCheckEven(pyL, 3) );
-
-var jsA = [1, 3, 5];
-
-assert( pyManipList(jsA) );
+assert(echoOut.out == "hi there\n");
