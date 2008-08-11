@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
 
 import ed.js.JSFunction;
 import ed.js.JSObject;
@@ -32,6 +33,8 @@ import ed.js.func.JSFunctionCalls1;
 public class Context extends JSObjectBase {
     public static final String PUSH = "push";
     public static final String POP = "pop";
+    
+    private Stack<JSObject> renderStack;
 
     public final static JSFunction CONSTRUCTOR = new JSFunctionCalls1() {
         public JSObject newOne() {
@@ -76,6 +79,8 @@ public class Context extends JSObjectBase {
     private Context() {
         objectStack = new LinkedList<JSObject>();
         objectStack.add(new JSObjectBase());
+        
+        renderStack = new Stack<JSObject>();
 
         setConstructor(CONSTRUCTOR);
     }
@@ -155,5 +160,15 @@ public class Context extends JSObjectBase {
     
     public void __set_root(String key, Object value) {
         objectStack.getLast().set(key, value);
+    }
+    
+    public void __begin_render_node(JSObject node) {
+        renderStack.push(node);
+    }
+    public void __end_render_node(JSObject node) {
+        renderStack.pop();
+    }
+    public Stack<JSObject> getRenderStack() {
+        return renderStack;
     }
 }

@@ -295,8 +295,7 @@ public class JSHelper extends JSObjectBase {
             JSObject tagHandlers = lib.getTags();
             for(String tagName : tagHandlers.keySet()) {
                 JSFunction tagHandler = (JSFunction)tagHandlers.get(tagName);
-                TagHandlerWrapper wrapper = new TagHandlerWrapper(tagHandler);
-                tagHandlers.set(tagName, wrapper);
+                tagHandlers.set(tagName, tagHandler);
             }
 
             return lib;
@@ -409,121 +408,5 @@ public class JSHelper extends JSObjectBase {
             return null;
         
         return !attr.booleanValue();
-    }
-    
-    
-    //hacks to allow backwards compatibility with print & DEBUGING of render calls
-    private static class TagHandlerWrapper extends JSFunctionCalls2 {
-        private final JSFunction tagHandler;
-        public TagHandlerWrapper(JSFunction tagHandler) {
-            this.tagHandler = tagHandler;
-        }
-        @Override
-        public Object call(Scope scope, Object parserObj, Object tokenObj, Object[] extra) {
-            JSObject node = (JSObject)tagHandler.call(scope.child(), parserObj, tokenObj);
-
-            node.set("render", new RenderWrapper((JSFunction)node.get("render")));
-            node.set("__render", new __RenderWrapper((JSFunction)node.get("__render")));
-            
-            return node;
-        }
-    };
-    private static final class RenderWrapper extends JSFunctionCalls1 {
-        private final JSFunction renderFunc;
-        private static final Logger log = JSHelper.log.getChild("renderWrapper");
-        
-        public RenderWrapper(JSFunction renderFunc) {
-            this.renderFunc = renderFunc;
-        }
-
-        public Object call(Scope scope, Object contextObj, Object[] extra) {
-            JSObject thisObj = (JSObject)scope.getThis();
-            
-            if(Djang10Source.DEBUG) {
-                String selfRepr = "Unkown";
-                try {
-                    selfRepr = thisObj.toString();
-                }
-                catch(Exception t) {}
-                
-                System.out.println("Rendering: " + selfRepr);
-            }
-            
-            scope = scope.child();
-            PrintWrapper printWrapper = new PrintWrapper();
-            scope.set("print", printWrapper);
-            
-            Object ret;
-            
-            try {
-                ret = renderFunc.callAndSetThis(scope, thisObj, new Object[] { contextObj });
-            } catch(RuntimeException e) {
-                String selfRepr = "Unkown";
-                try { selfRepr = thisObj.toString(); } catch(Exception t) {}
-                
-                log.error("Failed to render: " + selfRepr);
-                throw e;
-            }
-            
-            if(printWrapper.buffer.length() > 0)
-                return printWrapper.buffer + (ret == null? "" : ret.toString());
-            else
-                return ret;
-        }
-    };
-    private static final class __RenderWrapper extends JSFunctionCalls2 {
-        private final JSFunction __renderFunc;
-        private static final Logger log = JSHelper.log.getChild("__renderWrapper");
-        
-        public __RenderWrapper(JSFunction func) {
-            __renderFunc = func;
-        }
-        
-        public Object call(Scope scope, Object contextObj, Object printer, Object[] extra) {
-            JSObject thisObj = (JSObject)scope.getThis();
-            
-            if(Djang10Source.DEBUG) {
-                String selfRepr = "Unkown";
-                try { selfRepr = thisObj.toString(); } catch(Exception t) {}
-                
-                System.out.println("Rendering: " + selfRepr);
-            }
-            
-            scope = scope.child();
-            scope.setGlobal(true);
-            scope.put("print", printer, true);
-            
-            try {
-                __renderFunc.callAndSetThis(scope, thisObj, new Object[] { contextObj, printer });
-            } catch(RuntimeException e) {
-                String selfRepr = "Unkown";
-                try { selfRepr = thisObj.toString(); } catch(Exception t) {}
-                
-                log.error("Failed to render: " + selfRepr);
-                throw e;
-            }
-            
-            return null;
-        }
-
-        
-    };
-    
-    public static class PrintWrapper extends JSFunctionCalls1 {
-        public final StringBuilder buffer = new StringBuilder();
-        
-        public Object call(Scope scope, Object p0, Object[] extra) {
-            String error = "calling print while rendering has undefined behavior which will change in the future.";
-            try {
-                Object logger = scope.get("log");
-                if(logger instanceof Logger)
-                    ((Logger)logger).error(error);
-            } catch(Exception t) {
-                System.out.println(error);
-            }
-            
-            buffer.append(p0);
-            return null;
-        }
     }
 }
