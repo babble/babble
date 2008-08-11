@@ -111,15 +111,13 @@ public class AppContext {
 
         _isGrid = name.equals( "grid" );
 
-        _scope = new Scope( "AppContext:" + root , _isGrid ? ed.cloud.Cloud.getInstance().getScope() : Scope.newGlobal() , null , Language.JS , _rootFile );
+        _scope = new Scope( "AppContext:" + root + ( _admin ? ":admin" : "" ) , _isGrid ? ed.cloud.Cloud.getInstance().getScope() : Scope.newGlobal() , null , Language.JS , _rootFile );
         _scope.setGlobal( true );
 
         _logger = Logger.getLogger( _name + ":" + _environment );
         _usage = new UsageTracker( _name );
 
         _baseScopeInit();
-	if ( _nonAdminParent != null )
-	    _scope.set( "siteScope" , _nonAdminParent._scope );
 
         _adminContext = _admin ? null : new AppContext( root , rootFile , name , environment , this );
 
@@ -665,6 +663,9 @@ public class AppContext {
         try {
             _runInitFiles( INIT_FILES );
             
+	    if ( _adminContext != null )
+		_adminContext._scope.set( "siteScope" , _scope );
+	    
             _lastScopeInitTime = _getScopeTime();
         }
         catch ( RuntimeException re ){
