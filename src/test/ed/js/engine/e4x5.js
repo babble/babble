@@ -1,10 +1,10 @@
 // set tests
 
-var french = <france><food>fromage</food><food>haricots verts</food><language>francais</language></france>
+var french = <france><food>fromage</food><food>haricots verts</food><language>francais</language></france>;
 
 french.capital = "paris";
 
-french.food[-1] = "mal";
+//french.food[-1] = "mal";
 french.food[0] = "pain";
 french.food[20] = "pomme";
 
