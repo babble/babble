@@ -158,11 +158,16 @@ public class E4X {
         }
 
         private ENode( Node n, ENode parent ) {
+            this( n, parent, null );
+        }
+
+        private ENode( Node n, ENode parent, List<ENode> children ) {
             if( n.getNodeType() != Node.TEXT_NODE &&
                 n.getNodeType() != Node.ATTRIBUTE_NODE )
                 children = new LinkedList<ENode>();
             this.node = n;
             this.parent = parent;
+            this.inScopeNamespaces = new ArrayList<Namespace>();
             addNativeFunctions();
         }
 
@@ -173,11 +178,13 @@ public class E4X {
             this.children = new LinkedList<ENode>();
             this.parent = parent;
             this._dummy = true;
+            this.inScopeNamespaces = new ArrayList<Namespace>();
             addNativeFunctions();
         }
 
         private ENode( List<ENode> n ) {
             this.children = n;
+            this.inScopeNamespaces = new ArrayList<Namespace>();
             addNativeFunctions();
         }
 
@@ -679,9 +686,29 @@ public class E4X {
             }
         }
 
+        private JSArray inScopeNamespaces() {
+            JSObject inScopeNS = new JSObjectBase();
+            ENode y = this;
+            while( y != null ) {
+                for( Namespace ns : y.inScopeNamespaces ) {
+                    if( inScopeNS.get( ns.prefix ) != null )
+                        inScopeNS.set( ns.prefix.toString(), ns );
+                }
+                y = y.parent;
+            }
+            JSArray a = new JSArray();
+            Iterator k = (inScopeNS.keySet()).iterator();
+            while(k.hasNext()) {
+                a.add( inScopeNS.get(k).toString() );
+            }
+            return a;
+        }
+
         public class inScopeNamespaces extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                throw new RuntimeException("inScopeNamespaces not yet implemented");
+                Object obj = s.getThis();
+                ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
+                return enode.inScopeNamespaces();
             }
         }
 
@@ -1186,11 +1213,8 @@ public class E4X {
         }
 
         public ENode toXML( Object input ) {
-            try {
-                if( input == null )
-                    throw new TypeErrorException("tried to convert a null to XML");
-            }
-            catch(TypeErrorException e) {}
+            if( input == null )
+                return null;
 
             if( input instanceof Boolean ||
                 input instanceof Number ||
@@ -1245,6 +1269,8 @@ public class E4X {
         private Node node;
 
         private boolean _dummy;
+        private ArrayList<Namespace> inScopeNamespaces;
+
     }
 
     static Object _nodeGet( ENode start , String s ){
@@ -1364,15 +1390,15 @@ public class E4X {
         public String localName;
         public String uri;
 
-        public QName() throws TypeErrorException {
+        public QName() {
             this( null, null );
         }
 
-        public QName( Object name ) throws TypeErrorException {
+        public QName( Object name )  {
             this( null, name );
         }
 
-        public QName( Namespace namespace, Object name ) throws TypeErrorException {
+        public QName( Namespace namespace, Object name )  {
             if( name instanceof QName ) {
                 if ( namespace == null ) {
                     this.localName = ((QName)name).localName;
