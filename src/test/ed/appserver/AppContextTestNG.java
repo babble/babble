@@ -94,7 +94,7 @@ import ed.appserver.jxp.*;
          res = ac.getSource(a);
 
          assertTrue(((JxpSource.JxpFileSource) res).getFile().getAbsolutePath().endsWith("directory1/index.jxp"));
-}
+     }
      
      @Test
      /**
@@ -111,6 +111,32 @@ import ed.appserver.jxp.*;
          assertNull(res);
     }
 
+     @Test
+     public void testGuessNameAndEnv(){
+         assertEquals( "silly" , AppContext.guessNameAndEnv( "../silly/www" )[0] );
+         assertEquals( "silly" , AppContext.guessNameAndEnv( "../silly/" )[0] );
+         assertEquals( "silly" , AppContext.guessNameAndEnv( "../silly" )[0] );
+         assertEquals( "www" , AppContext.guessNameAndEnv( "../silly/www" )[1] );
+         assertEquals( "www" , AppContext.guessNameAndEnv( "/silly/www" )[1] );
+
+         assertEquals( "test" , AppContext.guessNameAndEnv( "../test/www" )[0] );
+         assertEquals( "www" , AppContext.guessNameAndEnv( "../test/www" )[1] );
+         assertEquals( "test" , AppContext.guessNameAndEnv( "./test/www" )[0] );
+         assertEquals( "www" , AppContext.guessNameAndEnv( "./test/www" )[1] );
+         assertEquals( "test" , AppContext.guessNameAndEnv( "/data/sites/test/www" )[0] );
+         assertEquals( "www" , AppContext.guessNameAndEnv( "/data/sites/test/www" )[1] );
+         assertEquals( "test" , AppContext.guessNameAndEnv( "/asdasdasdsd123qsa////asds12zd../../.a.sd/sad/sites/test/www" )[0] );
+         assertEquals( "www" , AppContext.guessNameAndEnv( "/aksjd12hlasnciuashdn!@#$!asd124/sites/test/www" )[1] );
+
+         assertEquals( "test" , AppContext.guessNameAndEnv( "../test/test" )[0] );
+         assertEquals( "test" , AppContext.guessNameAndEnv( "../test/test" )[1] );
+         assertEquals( "test" , AppContext.guessNameAndEnv( "./test/test" )[0] );
+         assertEquals( "test" , AppContext.guessNameAndEnv( "./test/test" )[1] );
+         
+         assertEquals( "test" , AppContext.guessNameAndEnv( "../test" )[0] );
+         assertEquals( "test" , AppContext.guessNameAndEnv( "./test" )[0] );
+     }
+
      public static void main(String[] args) throws Exception{
 
          AppContextTestNG f = new AppContextTestNG();
@@ -120,5 +146,6 @@ import ed.appserver.jxp.*;
          f.testGetSourceServlet();
          f.testGetSourceDirIndex();
          f.testGetSourceDirectory();
+         f.testGuessNameAndEnv();
       }
 }
