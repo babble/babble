@@ -79,7 +79,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         _scope = scope;
         _doInit = doInit;
         
-        if ( DS ) System.out.println( "creating : " + _base );
+        if ( DS ) System.out.println( "creating : " + _base + " init:" + _doInit );
 
         
         if ( uriBase != null ){
