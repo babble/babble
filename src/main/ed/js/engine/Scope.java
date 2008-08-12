@@ -260,7 +260,7 @@ public final class Scope implements JSObject {
         }
 
         boolean finder = false;
-        if ( name.startsWith( "@@" ) & name.endsWith( "!!" ) ){
+        if ( name.startsWith( "@@" ) && name.endsWith( "!!" ) ){
             name = name.substring( 2 , name.length() - 2 );
             finder = true;
             System.out.println( " finder on [" + name + "]" );
