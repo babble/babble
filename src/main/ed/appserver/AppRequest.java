@@ -282,6 +282,10 @@ public class AppRequest {
         return _done;
     }
 
+    public String toString(){
+        return "AppRequest: " + _host + _uri;
+    }
+
     final String _uri;
     final String _host;
     final HttpRequest _request;
