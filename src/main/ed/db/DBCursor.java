@@ -139,14 +139,20 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
             ((JSObjectBase)_cur).markAsPartialObject();
         }
 
-        if ( _constructor != null &&
-             _cur instanceof JSObjectBase ){
+        if ( _constructor != null && _cur instanceof JSObjectBase ){
 
             JSObjectBase job = (JSObjectBase)_cur;
-
+	    
             if ( job.getConstructor() == null )
                 job.setConstructor( _constructor , true );
-
+	    
+	    JSFunction postLoad = _constructor.getFunction( "postLoad" , true );
+	    if ( postLoad != null ){
+		Scope s = postLoad.getScope().child();
+		s.setThis( _cur );
+		postLoad.call( s );
+	    }
+		
         }
 
         if ( _cursorType == CursorType.ARRAY ){
