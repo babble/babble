@@ -26,8 +26,9 @@ import ed.io.*;
 import ed.js.*;
 import ed.js.func.*;
 import ed.lang.*;
+import ed.util.*;
 
-public class Scope implements JSObject {
+public final class Scope implements JSObject {
 
     static {
         JS._debugSIStart( "Scope" );
@@ -159,7 +160,7 @@ public class Scope implements JSObject {
             throw new RuntimeException( "killed" );
 
         if ( _objects == null )
-            _objects = new TreeMap<String,Object>();
+            _objects = new HashMap<String,Object>();
         _mapSet( name , o );
     }
     
@@ -197,7 +198,7 @@ public class Scope implements JSObject {
             if ( o == null )
                 o = NULL;
             if ( _objects == null )
-                _objects = new TreeMap<String,Object>();
+                _objects = new HashMap<String,Object>();
 
             Scope pref = getTLPreferred();
 
@@ -232,7 +233,7 @@ public class Scope implements JSObject {
     }
     
     public Object get( final String origName , Scope alt , JSObject with[] ){
-        return _get( origName , alt , with , 0  );
+	return _get( origName , alt , with , 0  );
     }
     
     private Object _get( final String origName , Scope alt , JSObject with[] , int depth ){
@@ -249,7 +250,6 @@ public class Scope implements JSObject {
         return r;
     }
     private Object _geti( final String origName , Scope alt , JSObject with[] , int depth ){
-        _throw();
 
         String name = origName;
         boolean noThis = false;
@@ -409,7 +409,7 @@ public class Scope implements JSObject {
     
     public void enterWith( JSObject o ){
         if ( _with == null )
-            _with = new Stack<JSObject>();
+            _with = new SimpleStack<JSObject>();
         _with.push( o );
     }
     
@@ -848,7 +848,7 @@ public class Scope implements JSObject {
             return;
         
         if ( _objects == null )
-            _objects = new TreeMap<String,Object>();
+            _objects = new HashMap<String,Object>();
 
         _objects.putAll( s._objects );
     }
@@ -862,7 +862,7 @@ public class Scope implements JSObject {
 
     public void pushException( Throwable t ){
         if ( _exceptions == null )
-            _exceptions = new Stack<Throwable>();
+            _exceptions = new SimpleStack<Throwable>();
         StackTraceHolder.getInstance().fix( t );
         _exceptions.push( t );
     }
@@ -930,9 +930,9 @@ public class Scope implements JSObject {
     Set<String> _warnedObject;
     private ThreadLocal<Scope> _tlPreferred = null;
 
-    Stack<This> _this = new Stack<This>();
-    Stack<Throwable> _exceptions;
-    Stack<JSObject> _with;
+    SimpleStack<This> _this = new SimpleStack<This>();
+    SimpleStack<Throwable> _exceptions;
+    SimpleStack<JSObject> _with;
     Object _orSave;
     Object _andSave;
     JSObject _globalThis;
