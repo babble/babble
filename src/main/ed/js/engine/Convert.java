@@ -457,6 +457,11 @@ public class Convert implements StackTraceFixer {
 	    }
             break;
 
+        case Token.ESCXMLTEXT :
+        case Token.ESCXMLATTR :
+            _add( n.getFirstChild(), state );
+            break;
+
         case Token.EXPR_RESULT:
             _assertOne( n );
             _add( n.getFirstChild() , state );
