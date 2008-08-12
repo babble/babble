@@ -153,6 +153,9 @@ public class SysExec extends ed.js.func.JSFunctionCalls5 {
 	return buf.toString();
     }
 
+    /**
+     * sysexec( "git pull" , null , null , "/data/corejs/" );
+     */
     public Object call( Scope scope , Object o , Object toSendObj , Object envObj , Object pathObj , Object handlers , Object extra[] ){
         if ( o == null )
             return null;
