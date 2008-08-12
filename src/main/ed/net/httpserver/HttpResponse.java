@@ -269,10 +269,8 @@ public class HttpResponse extends JSObjectBase {
 
         if ( ! _sentHeader ){
             final String header = _genHeader();
-            
-            ByteBuffer headOut = ByteBuffer.allocateDirect( 1024 );
-            headOut.put( header.getBytes() );
-            headOut.flip();
+            final byte[] bytes = header.getBytes();
+            final ByteBuffer headOut = ByteBuffer.wrap( bytes );
             _handler.getChannel().write( headOut );
             _sentHeader = true;
         }

@@ -334,6 +334,50 @@ public class JSString extends JSObjectBase implements Comparable {
                     }
                 } );
 
+            _prototype.set("slice" , new JSFunctionCalls2(){
+                public Object call(Scope s, Object o1, Object o2, Object [] args){
+                    String str = s.getThis().toString();
+                    
+                    int start = 0;
+                    
+                    if (o1 != null && o1 instanceof Number) {
+                        start = ((Number)o1).intValue();
+                        
+                        if (start < 0) { 
+                            start = str.length() + start;  // add as it's negative
+                        }
+                    }
+
+		    if ( start < 0 )
+			start = 0;
+
+                    if (start >= str.length())
+                        return EMPTY;
+
+                    int end = str.length();
+                    
+                    if (o2 != null && o2 instanceof Number) {
+                        end = ((Number)o2).intValue();
+                        
+                        if (end < 0) { 
+                            end = str.length() + end;  // add as it's negative
+			    if ( end < 0 )
+				end = 0;
+                        }
+                        
+                        if (end > str.length()) {
+                            end = str.length();
+                        }
+			
+			if ( end < start )
+			    end = start;
+                    }
+
+                    return new JSString(str.substring(start, end));
+                }
+            } );
+
+
             _prototype.set( "pluralize" , new JSFunctionCalls0(){
                     public Object call(Scope s, Object [] args){
                         String str = s.getThis().toString();

@@ -157,6 +157,10 @@ public class E4X {
             this( n, null );
         }
 
+        private ENode( List<ENode> n ) {
+            this( null, null, n );
+        }
+
         private ENode( Node n, ENode parent ) {
             this( n, parent, null );
         }
@@ -185,10 +189,6 @@ public class E4X {
             this._dummy = true;
             this.inScopeNamespaces = new ArrayList<Namespace>();
             addNativeFunctions();
-        }
-
-        private ENode( List<ENode> n ) {
-            this( null, null, n );
         }
 
         void addNativeFunctions() {
@@ -689,9 +689,9 @@ public class E4X {
             }
         }
 
-        private JSArray inScopeNamespaces() {
+        private JSObject _getUniqueNamespaces() {
             JSObject inScopeNS = new JSObjectBase();
-            ENode y = this;
+            ENode y = this.copy();
             while( y != null ) {
                 for( Namespace ns : y.inScopeNamespaces ) {
                     if( inScopeNS.get( ns.prefix ) != null )
@@ -699,6 +699,11 @@ public class E4X {
                 }
                 y = y.parent;
             }
+            return inScopeNS;
+        }
+
+        private JSArray inScopeNamespaces() {
+            JSObject inScopeNS = _getUniqueNamespaces();
             JSArray a = new JSArray();
             Iterator k = (inScopeNS.keySet()).iterator();
             while(k.hasNext()) {
@@ -772,19 +777,39 @@ public class E4X {
             }
         }
 
+        private String localName() {
+            return this.name == null ? null : this.name.localName;
+        }
+
         public class localName extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
                 Object obj = s.getThis();
                 ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                return (enode.node == null) ? "" : enode.node.getLocalName();
+                return enode.localName();
             }
+        }
+
+        private QName name() {
+            return this.name;
         }
 
         public class name extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
                 Object obj = s.getThis();
                 ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                return (enode.node == null) ? "" : enode.node.getNodeName();
+                return enode.name();
+            }
+        }
+
+        private Namespace namespace( String prefix ) {
+            JSObject obj = _getUniqueNamespaces();
+            if( prefix == null ) {
+                if( isSimpleTypeNode( this.node.getNodeType() ) )
+                    return null;
+                return this.name.getNamespace( obj );
+            }
+            else {
+                return (Namespace)obj.get( prefix );
             }
         }
 
@@ -792,26 +817,32 @@ public class E4X {
             public Object call(Scope s, Object foo[]) {
                 Object obj = s.getThis();
                 ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                if(foo.length == 0) return null;
-
-                String prefix = foo[0].toString();
-                if( prefix == null )
-                    return enode.node.getNamespaceURI();
-
-                return enode.node.lookupNamespaceURI( prefix );
+                String prefix = (foo.length > 0) ? foo[0].toString() : null;
+                return enode.namespace( prefix );
             }
+        }
+
+
+        private JSArray namespaceDeclarations() {
+            JSArray a = new JSArray();
+            if( isSimpleTypeNode( this.node.getNodeType() ) )
+                return a;
+
+            ArrayList<Namespace> declaredNS = (ArrayList<Namespace>)this.parent.inScopeNamespaces.clone();
+            for( int i=0; i < this.inScopeNamespaces.size(); i++) {
+                declaredNS.remove( this.inScopeNamespaces.get(i) );
+            }
+            for( int i=0; i < declaredNS.size(); i++) {
+                a.add( declaredNS.get(i) );
+            }
+            return a;
         }
 
         public class namespaceDeclarations extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
                 Object obj = s.getThis();
                 ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                JSArray a = new JSArray();
-                if( isSimpleTypeNode( enode.node.getNodeType() ) )
-                    return a;
-
-                Node y = enode.node.getParentNode();
-                throw new RuntimeException("namespaceDeclarations not yet implemented");
+                return enode.namespaceDeclarations();
             }
         }
 
@@ -969,36 +1000,72 @@ public class E4X {
             }
         }
 
-        /** FIXME: implement QName
-         */
+        private void setLocalName( Object name ) {
+            if( this.node == null ||
+                this.node.getNodeType() == Node.TEXT_NODE ||
+                this.node.getNodeType() == Node.COMMENT_NODE )
+                return;
+            this.name.localName = ( name instanceof QName ) ? ((QName)name).localName : name.toString();
+        }
+
         public class setLocalName extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
                 Object obj = s.getThis();
                 ENode n = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                String name = foo[0].toString();
-                if( n.node == null ||
-                    n.node.getNodeType() == Node.TEXT_NODE ||
-                    n.node.getNodeType() == Node.COMMENT_NODE )
+                Object name = (foo.length > 0) ? foo[0] : null;
+                if(name == null)
                     return null;
+                n.setLocalName( name );
                 return null;
             }
         }
 
-        /** FIXME: implement QName
-         */
+        private void setName( Object name ) {
+            if( this.node == null ||
+                this.node.getNodeType() == Node.TEXT_NODE ||
+                this.node.getNodeType() == Node.COMMENT_NODE )
+                return;
+            if ( name instanceof QName && ((QName)name).uri.equals("") )
+                name = ((QName)name).localName;
+            QName n = new QName( name );
+            if( this.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE )
+                n.uri = "";
+            this.name = n;
+            Namespace ns = new Namespace( n.prefix, n.uri );
+            if( this.node.getNodeType() == Node.ATTRIBUTE_NODE ) {
+                if( this.parent == null )
+                    return;
+                this.parent.addInScopeNamespace( ns );
+            }
+            if( this.node.getNodeType() == Node.ELEMENT_NODE )
+                this.addInScopeNamespace( ns );
+        }
+
         public class setName extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                if( foo.length == 0 )
-                    return null;
-
                 Object obj = s.getThis();
                 ENode n = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                String name = foo[0].toString();
-                if( n.node == null ||
-                    n.node.getNodeType() == Node.TEXT_NODE ||
-                    n.node.getNodeType() == Node.COMMENT_NODE )
-                    return null;
+                if (foo.length > 0 )
+                    n.setName(foo[0].toString());
                 return null;
+            }
+        }
+
+        private void setNamespace( Object ns) {
+            if( this.node == null ||
+                this.node.getNodeType() == Node.TEXT_NODE ||
+                this.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE ||
+                this.node.getNodeType() == Node.COMMENT_NODE )
+                return;
+            Namespace ns2 = new Namespace( ns );
+            this.name = new QName( ns2, this.name );
+            if( this.node.getNodeType() == Node.ATTRIBUTE_NODE ) {
+                if (this.parent == null )
+                    return;
+                this.parent.addInScopeNamespace(ns2 );
+            }
+            if( this.node.getNodeType() == Node.ELEMENT_NODE ) {
+                this.addInScopeNamespace(ns2 );
             }
         }
 
@@ -1009,8 +1076,8 @@ public class E4X {
 
                 Object obj = s.getThis();
                 ENode n = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                String namespace = foo[0].toString();
-                throw new RuntimeException("not yet implemented");
+                n.setNamespace( foo[0] );
+                return null;
             }
         }
 
@@ -1186,6 +1253,37 @@ public class E4X {
             return node.getChildNodes();
         }
 
+
+        private void addInScopeNamespace( Namespace n ) {
+            if (this.node == null)
+                return;
+            short type = this.node.getNodeType();
+            if( type == Node.COMMENT_NODE ||
+                type == Node.PROCESSING_INSTRUCTION_NODE ||
+                type == Node.TEXT_NODE ||
+                type == Node.ATTRIBUTE_NODE )
+                return;
+
+            if( n.prefix == null )
+                return;
+
+            if( n.prefix.equals("") && (this.name == null || this.name.uri.equals("") ))
+                return;
+
+            Namespace match = null;
+            for( Namespace ns : this.inScopeNamespaces ) {
+                if( n.prefix.equals( ns.prefix ) ) {
+                    match = ns;
+                }
+            }
+            if( match != null && !match.uri.equals(n.uri) )
+                this.inScopeNamespaces.remove(match);
+            this.inScopeNamespaces.add( n );
+
+            if( this.name.prefix.equals( n.prefix ) )
+                this.name.prefix = null;
+        }
+
         public ArrayList<ArrayList> getAttributes() {
             if(node == null && ( children == null || children.size() == 0)) return null;
 
@@ -1273,7 +1371,7 @@ public class E4X {
 
         private boolean _dummy;
         private ArrayList<Namespace> inScopeNamespaces;
-
+        private QName name;
     }
 
     static Object _nodeGet( ENode start , String s ){
@@ -1392,6 +1490,7 @@ public class E4X {
     static class QName {
         public String localName;
         public String uri;
+        public String prefix;
 
         public QName() {
             this( null, null );
@@ -1448,7 +1547,18 @@ public class E4X {
             return s + this.localName;
         }
 
+        public Namespace getNamespace( JSObject inScopeNS ) {
+            if( this.uri == null )
+                return null;
 
+            if( inScopeNS == null )
+                inScopeNS = new JSObjectBase();
+
+            Namespace ns = (Namespace)inScopeNS.get( this.uri );
+            if( ns == null )
+                return new Namespace( this.uri );
+            return ns;
+        }
     }
 
     static class Namespace extends JSObjectBase {

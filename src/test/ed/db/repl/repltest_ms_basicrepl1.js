@@ -26,6 +26,8 @@ __path__._repl(
     var cnt = dbs.test.count();    
     assert( cnt == 1 , "object count in slave != 1  found :  " + cnt);
      
+    assert(dbm.test.checksum() == dbs.test.checksum());
+    
     print( " **** adding second object to master ***" );
     
     dbm.test.save({n:2});

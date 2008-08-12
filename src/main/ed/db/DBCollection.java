@@ -265,7 +265,10 @@ public abstract class DBCollection extends JSObjectLame {
         JSObject jo = (JSObject)o;
 
         if ( s != null ){
-            Object presaveObject = jo.get( "presave" );
+            Object presaveObject = jo.get( "preSave" );
+	    if ( presaveObject == null )
+		presaveObject = jo.get( "presave" ); // TODO: we should deprecate
+	    
             if ( presaveObject != null ){
                 if ( presaveObject instanceof JSFunction ){
                     s.setThis( jo );
