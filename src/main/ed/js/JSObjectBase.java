@@ -1166,6 +1166,26 @@ public class JSObjectBase implements JSObject {
                     }
                 } );
 
+            set( "__lookupGetter__" , new JSFunctionCalls2(){
+                    public Object call( Scope s , Object name , Object func , Object args[] ){
+                        if ( ! ( s.getThis() instanceof JSObjectBase ) )
+                            throw new RuntimeException( "not a JSObjectBase" );
+			
+                        JSObjectBase o = (JSObjectBase)s.getThis();
+			return o.getGetter( name.toString() );
+                    }
+                } );
+
+            set( "__lookupSetter__" , new JSFunctionCalls2(){
+                    public Object call( Scope s , Object name , Object func , Object args[] ){
+                        if ( ! ( s.getThis() instanceof JSObjectBase ) )
+                            throw new RuntimeException( "not a JSObjectBase" );
+
+                        JSObjectBase o = (JSObjectBase)s.getThis();
+                        return o.getSetter( name.toString() );
+                    }
+                } );
+
             set( "to_i" , new JSFunctionCalls0(){
                     public Object call( Scope s , Object args[] ){
                         return JSInternalFunctions.parseNumber( s.getThis() , null );
