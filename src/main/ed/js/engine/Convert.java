@@ -422,7 +422,7 @@ public class Convert implements StackTraceFixer {
                 if ( ( memberTypeFlags & Node.DESCENDANTS_FLAG ) != 0 )
                     theName = ".." + theName;
                 _append( theName  + "\", " , n );
-                _add( fc.getFirstChild().getNext() , state );
+                _add( fc.getNext() , state );
             }
 
             _append( " )" , n );
