@@ -348,9 +348,11 @@ public class JSString extends JSObjectBase implements Comparable {
                         }
                     }
 
-                    if (start >= str.length()) {
+		    if ( start < 0 )
+			start = 0;
+
+                    if (start >= str.length())
                         return EMPTY;
-                    }
 
                     int end = str.length();
                     
@@ -359,11 +361,16 @@ public class JSString extends JSObjectBase implements Comparable {
                         
                         if (end < 0) { 
                             end = str.length() + end;  // add as it's negative
+			    if ( end < 0 )
+				end = 0;
                         }
                         
                         if (end > str.length()) {
                             end = str.length();
                         }
+			
+			if ( end < start )
+			    end = start;
                     }
 
                     return new JSString(str.substring(start, end));
