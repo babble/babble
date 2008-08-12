@@ -108,6 +108,20 @@ public abstract class JSFunction extends JSFunctionBase {
         return null;
     }
 
+    public JSFunction getFunction( String name , boolean tryLower ){
+	Object blah = _prototype.get( name );
+	if ( blah == null && tryLower )
+	    blah = _prototype.get( name.toLowerCase() );
+	
+	if ( blah == null )
+	    return null;
+	
+	if ( ! ( blah instanceof JSFunction ) )
+	    return null;
+	
+	return (JSFunction)blah;
+    }
+
     /** Set this function's name.
      * @param name Set this function's name.
      */
