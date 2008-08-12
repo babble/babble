@@ -38,6 +38,10 @@ public class JSNumericFunctions extends JSObjectBase {
      * @return The object, possibly converted to an equivalent JS type
      */
     public static final Object fixType( final Object o ){
+	return fixType( o , true );
+    }
+
+    public static final Object fixType( final Object o , final boolean numbers ){
 
         if ( o == null )
             return o;
@@ -45,7 +49,7 @@ public class JSNumericFunctions extends JSObjectBase {
         if ( o instanceof String )
             return new JSString( o.toString() );
 
-        if ( o instanceof Number ){
+        if ( numbers && o instanceof Number ){
             if ( o instanceof Float ||
                  o instanceof Double ){
 

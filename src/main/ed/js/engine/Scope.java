@@ -166,7 +166,7 @@ public final class Scope implements JSObject {
     
     public Object put( String name , Object o , boolean local ){
         
-        o = JSInternalFunctions.fixType( o );
+        o = JSInternalFunctions.fixType( o , false );
 
         if ( _locked )
             throw new RuntimeException( "locked" );
