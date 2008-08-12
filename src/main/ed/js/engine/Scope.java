@@ -778,7 +778,8 @@ public final class Scope implements JSObject {
         
         System.out.print( "||" );
 
-        for ( This t : _this ){
+        for ( int i=0; i<_this.size(); i++ ){
+            This t = _this.get(i);
             System.out.print( t );
             System.out.print( "|" );
         }
