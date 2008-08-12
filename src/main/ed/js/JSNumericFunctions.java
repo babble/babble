@@ -125,7 +125,7 @@ public class JSNumericFunctions extends JSObjectBase {
                 else return mul;
             }
 
-            return fixType( an.doubleValue() * bn.doubleValue() );
+            return an.doubleValue() * bn.doubleValue();
         }
 
         return Double.NaN;
@@ -146,7 +146,7 @@ public class JSNumericFunctions extends JSObjectBase {
             Number an = (Number)a;
             Number bn = (Number)b;
 
-            return fixType( an.doubleValue() / bn.doubleValue() );
+            return an.doubleValue() / bn.doubleValue();
         }
 
         return Double.NaN;
@@ -204,7 +204,7 @@ public class JSNumericFunctions extends JSObjectBase {
                  bn instanceof Integer )
                 return an.intValue() + bn.intValue();
 
-            return fixType( an.doubleValue() + bn.doubleValue() );
+            return an.doubleValue() + bn.doubleValue();
         }
 
         if ( ( a != null && ( a instanceof Number ) && b == null ) ||
