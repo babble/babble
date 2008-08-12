@@ -251,7 +251,7 @@ public abstract class DBCollection extends JSObjectLame {
         return save( null , o );
     }
 
-    /** Saves an object to this collection executing the presave function in a given scope.
+    /** Saves an object to this collection executing the preSave function in a given scope.
      * @param s scope to use (can be null)
      * @param o the object to save
      * @return the new object from the collection
@@ -276,7 +276,7 @@ public abstract class DBCollection extends JSObjectLame {
                     s.clearThisNormal( null );
                 }
                 else {
-                    System.out.println( "warning, presave is a " + presaveObject.getClass() );
+                    System.out.println( "warning, preSave is a " + presaveObject.getClass() );
                 }
             }
 
