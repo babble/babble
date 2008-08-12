@@ -399,25 +399,24 @@ public class JSInternalFunctions extends JSNumericFunctions {
             if ( b == null )
                 return 0;
             if ( b instanceof Number )
-                return _compareNumbers( 0 , (Number)b );
+                return _compare( 0 , (Number)b );
             return 1;
         }
-
+        
         if (  b == null ){
             if ( a == null )
                 return 0;
             if ( a instanceof Number )
-                return _compareNumbers( (Number)a , 0 );
+                return _compare( (Number)a , 0 );
             return -1;
         }
         
         if ( a instanceof Number ){
             b = _parseNumber( b );
             if ( b instanceof Number )
-                return _compareNumbers( (Number)a , (Number)b );
+                return _compare( (Number)a , (Number)b );
         }
-
-        if ( b instanceof Number ){
+        else if ( b instanceof Number ){
             a = _parseNumber( a );
             if ( a instanceof Number )
                 return _compare( (Number)a , (Number)b );
@@ -432,7 +431,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
         return a.toString().compareTo( b.toString() );
     }
 
-    private final int _compareNumbers( final Number a , final Number b ){
+    final int _compare( final Number a , final Number b ){
         final double diff = a.doubleValue() - b.doubleValue();
         if ( diff == 0 )
             return 0;
