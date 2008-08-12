@@ -1,0 +1,40 @@
+#!/usr/bin/env ./bin/jssh
+
+function go( file ){
+    if ( ! file.exists() )
+	return;
+
+    var todo = [];
+    var children = file.listFiles();
+    var done = false;
+    
+    children.forEach(
+	function(z){
+	    if ( ! z.isDirectory() )
+		return;
+
+	    if ( z.getName() == ".git" ){
+		scope.setRoot( file.getAbsolutePath() );
+		var res = sysexec( "git pull" );
+		print( "did pull in : " + file.getAbsolutePath() );
+		print( "\t" + res.out );
+		print( "\t" + res.err );
+		done = true;
+		return;
+	    }
+
+	    todo.add( z );
+	}
+    );
+    
+    if ( done )
+	return;
+
+    todo.forEach( go );
+}
+
+go( openFile( "/data/core-modules/" ) );
+go( openFile( "/data/site-modules/" ) );
+go( openFile( "/data/corejs/" ) );
+
+    
