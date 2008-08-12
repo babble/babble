@@ -219,7 +219,10 @@ public class JSNumericFunctions extends JSObjectBase {
         String s1 = JS_toString( a );
         String s2 = JS_toString( b );
 
-        return new JSString( s1 + s2 );
+	StringBuilder buf = new StringBuilder( s1.length() + s2.length() + 5 );
+	buf.append( s1 ).append( s2 );
+
+        return new JSString( buf.toString() );
     }
 
     /** Performs a bitwise or on two objects.
