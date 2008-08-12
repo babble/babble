@@ -203,6 +203,10 @@ public class JSNumericFunctions extends JSObjectBase {
             if ( an instanceof Integer &&
                  bn instanceof Integer )
                 return an.intValue() + bn.intValue();
+	    
+	    if ( ( an instanceof Long && bn instanceof Integer ) || 
+		 ( an instanceof Integer && bn instanceof Long ) )
+		return an.longValue() + bn.longValue();
 
             return an.doubleValue() + bn.doubleValue();
         }
