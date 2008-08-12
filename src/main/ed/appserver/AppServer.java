@@ -143,6 +143,7 @@ public class AppServer implements HttpHandler {
         final AppContext ctxt = ar.getContext();
 
         ar.getScope().makeThreadLocal();
+        ctxt._logger.makeThreadLocal();
 
         final UsageTracker usage = ctxt._usage;
         final SimpleStats stats = _getStats( ctxt._name + ":" + ctxt._environment );
