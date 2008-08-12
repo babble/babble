@@ -974,6 +974,9 @@ public class JSArray extends JSObjectBase implements Iterable , List {
             return -1;
 
         String str = o.toString();
+	if ( str.length() == 0 )
+	    return -1;
+	
         for ( int i=0; i<str.length(); i++ )
             if ( ! Character.isDigit( str.charAt( i ) ) )
                 return -1;
