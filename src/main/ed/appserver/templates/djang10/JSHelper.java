@@ -32,6 +32,7 @@ import java.util.regex.Pattern;
 
 import ed.appserver.JSFileLibrary;
 import ed.appserver.jxp.JxpSource;
+import ed.appserver.templates.djang10.Parser.Token;
 import ed.js.JSArray;
 import ed.js.JSDate;
 import ed.js.JSException;
@@ -46,6 +47,7 @@ import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
 import ed.js.func.JSFunctionCalls2;
 import ed.js.func.JSFunctionCalls3;
+import ed.js.func.JSFunctionCalls4;
 import ed.log.Logger;
 import ed.util.Pair;
 
@@ -113,6 +115,21 @@ public class JSHelper extends JSObjectBase {
                 return new TemplateException(String.valueOf(p0));
             }
         });
+        
+        this.set("NewTemplateSyntaxException", new JSFunctionCalls3() {
+            public Object call(Scope scope, Object messageObj, Object tokenObj, Object causeObj, Object[] extra) {
+                String msg = messageObj.toString();
+                Token token = (Token)tokenObj;
+                
+                if(causeObj == null)
+                    return new TemplateSyntaxError(msg, token);
+                
+                Throwable cause = (Throwable) causeObj;
+                
+                return new TemplateSyntaxError(msg, token, cause);
+            }
+        });
+        
         this.set("split_str", split_str);
         
         this.set("DEBUG", Djang10Source.DEBUG);

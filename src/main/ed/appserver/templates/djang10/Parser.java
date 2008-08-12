@@ -73,6 +73,8 @@ public class Parser extends JSObjectBase{
     private final Map<String, JSFunction> tagHandlerMapping;
     private final Set<JxpSource> dependencies;
 
+    private Token activeToken = null;
+    
     public Parser(String origin, String string) {
         super(CONSTRUCTOR);
 
@@ -112,38 +114,44 @@ public class Parser extends JSObjectBase{
         if(untilTagsList == null)
             untilTagsList = new JSArray();
         
-        while (!tokens.isEmpty()) {
-            Token token = next_token();
-
-            if (token.type == TagDelimiter.Type.Text) {
-                JSObject textNode = new Node.TextNode(token.getContents());
-                textNode = NodeWrapper.wrap(textNode, token);
-                extend_nodelist(nodelist, textNode, token);
-            }
-            else if (token.type == TagDelimiter.Type.Var) {
-                if (token.getContents().length() == 0)
-                    throw new TemplateException(token.getStartLine(), "Empty Variable Tag");
-
-                FilterExpression variableExpression = compile_filter(token.getContents().toString());
-                JSObject varNode = new Node.VariableNode(variableExpression);
-                varNode = NodeWrapper.wrap(varNode, token);
-                extend_nodelist(nodelist, varNode, token);
-            }
-            else if (token.type == TagDelimiter.Type.Block) {
-                if(untilTagsList.contains(token.getContents())) {
-                    prepend_token(token);
-                    return nodelist;
+        Token parentToken = this.activeToken;
+        try {
+            while (!tokens.isEmpty()) {
+                Token token = this.activeToken = next_token();
+    
+                if (token.type == TagDelimiter.Type.Text) {
+                    JSObject textNode = new Node.TextNode(token.getContents());
+                    textNode = NodeWrapper.wrap(textNode, token);
+                    extend_nodelist(nodelist, textNode, token);
                 }
-                
-                String command = token.getContents().toString().split("\\s")[0];
-                JSFunction handler = find_taghandler(command);
-                JSObject node = (JSObject)handler.call(scope, this, token);
-                node = NodeWrapper.wrap(node, token);
-                extend_nodelist(nodelist, node, token);
-
+                else if (token.type == TagDelimiter.Type.Var) {
+                    if (token.getContents().length() == 0)
+                        throw new TemplateException(token.getStartLine(), "Empty Variable Tag (" + token.getOrigin() + ":" + token.getStartLine() + ")");
+    
+                    FilterExpression variableExpression = compile_filter(token.getContents().toString());
+                    JSObject varNode = new Node.VariableNode(variableExpression);
+                    varNode = NodeWrapper.wrap(varNode, token);
+                    extend_nodelist(nodelist, varNode, token);
+                }
+                else if (token.type == TagDelimiter.Type.Block) {
+                    if(untilTagsList.contains(token.getContents())) {
+                        prepend_token(token);
+                        return nodelist;
+                    }
+                    
+                    String command = token.getContents().toString().split("\\s")[0];
+                    JSFunction handler = find_taghandler(command);
+                    JSObject node = (JSObject)handler.call(scope, this, token);
+                    node = NodeWrapper.wrap(node, token);
+                    extend_nodelist(nodelist, node, token);
+    
+                }
             }
         }
-
+        finally {
+            this.activeToken = parentToken;
+        }
+        
         if (untilTagsList.size() > 0) {
             throw new TemplateException("Unclosed tags, expected: ["  + untilTagsList.toString() + "]");
         }
@@ -186,12 +194,18 @@ public class Parser extends JSObjectBase{
     
     
     public Expression compile_expression(String str) {
-        return new Expression(str);
+        return compile_expression(str, activeToken);
+    }
+    public Expression compile_expression(String str, Token token) {
+        return new Expression(str, token);
     }
     public FilterExpression compile_filter(String str) {
-        return new FilterExpression(this, str);
+        return compile_filter(str, activeToken);
     }
-    
+    public FilterExpression compile_filter(String str, Token token) {
+        return new FilterExpression(this, str, token);
+    }
+
     public void add_library(Library library) {
         add_library(library, true);
     }
@@ -217,14 +231,14 @@ public class Parser extends JSObjectBase{
     public JSFunction find_filter(String name) {
         JSFunction filter = this.filterMapping.get(name);
         if(filter == null)
-            throw new TemplateException("Undefined filter: " + name);
+            throw new TemplateSyntaxError("Undefined filter: " + name, this.activeToken);
         
         return filter;
     }
     public JSFunction find_taghandler(String name) {
         JSFunction handler = this.tagHandlerMapping.get(name);
         if(handler == null)
-            throw new TemplateException("Undefined tag: " + name);
+            throw new TemplateSyntaxError("Undefined tag: " + name, this.activeToken);
         
         return handler;
     }
@@ -237,19 +251,22 @@ public class Parser extends JSObjectBase{
     }
     
     
+    private static class parseFunc extends JSFunctionCalls1 {
+        public Object call(Scope scope, Object p0, Object[] extra) {
+            Parser thisObj = (Parser)scope.getThis();
+
+            return thisObj.parse(scope, (JSArray)p0);
+        }
+    }
+
+    
     public static final JSFunction CONSTRUCTOR = new JSFunctionCalls0() {
         public Object call(Scope scope, Object[] extra) {
             throw new UnsupportedOperationException();
         }
         protected void init() {
             super.init();
-            _prototype.set("parse", new JSFunctionCalls1() {
-                public Object call(Scope scope, Object p0, Object[] extra) {
-                    Parser thisObj = (Parser)scope.getThis();
-
-                    return thisObj.parse(scope, (JSArray)p0);
-                }
-            });
+            _prototype.set("parse", new parseFunc());
         }
     };
 //==============================================================================================================================

@@ -19,6 +19,7 @@ package ed.appserver.templates.djang10;
 import java.util.ArrayList;
 import java.util.List;
 
+import ed.appserver.templates.djang10.Parser.Token;
 import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.JSObjectBase;
@@ -31,17 +32,12 @@ public class FilterExpression extends JSObjectBase {
     private Expression expression;
     private List<FilterSpec> filterSpecs;
 
-    protected FilterExpression() {
+    public FilterExpression(Parser parser, String filterExpression, Token token) {
         setConstructor(CONSTRUCTOR);
-    }
-    public FilterExpression(Parser parser, String filterExpression) {
-        this();
-        init(parser, filterExpression);
-    }
-    private void init(Parser parser, String filterExpression) {
+
         String[] parts = Util.smart_split(filterExpression.trim(), "\\|");
 
-        this.expression = new Expression(parts[0]);
+        this.expression = new Expression(parts[0], token);
         this.filterSpecs = new ArrayList<FilterSpec>();
         
 
@@ -55,7 +51,7 @@ public class FilterExpression extends JSObjectBase {
 
             JSFunction filter = parser.find_filter(filterNamePart);
 
-            Expression filterParam = (filterParamPart == null) ? null : new Expression(filterParamPart);
+            Expression filterParam = (filterParamPart == null) ? null : new Expression(filterParamPart, token);
             filterSpecs.add(new FilterSpec(filterNamePart, filter, filterParam));
         }
 
@@ -116,14 +112,7 @@ public class FilterExpression extends JSObjectBase {
     
     public static JSFunction CONSTRUCTOR = new JSFunctionCalls2() {
         public Object call(Scope scope, Object parserObj, Object filterExpressionObj, Object[] extra) {
-            FilterExpression thisObj = (FilterExpression)scope.getThis();
-            
-            thisObj.init((Parser)parserObj, filterExpressionObj.toString());
-            
-            return null;
-        }
-        public JSObject newOne() {
-            return new FilterExpression();
+            throw new UnsupportedOperationException();
         }
         protected void init() {
             _prototype.set("resolve", new JSFunctionCalls1() {

@@ -559,11 +559,11 @@ var autoescape =
 
     var args = token.contents.split(/\s+/);
     if(args.length != 2)
-        throw djang10.NewTemplateException("'Autoescape' tag requires exactly one argument.");
+        throw djang10.NewTemplateSyntaxException("'Autoescape' tag requires exactly one argument.", token);
 
     var arg = args[1];
     if(! ["on", "off"].contains(arg))
-        throw djang10.NewTemplateException("'"+args[0]+"' argument should be 'on' or 'off'");
+        throw djang10.NewTemplateSyntaxException("'"+args[0]+"' argument should be 'on' or 'off'", token);
     
     var nodelist = parser.parse(["end"+args[0]]);
     parser.delete_first_token();
@@ -588,7 +588,7 @@ var cycle =
     var args = token.split_contents();
     
     if(args.length < 2)
-        throw djang10.NewTemplateException("'cycle' tag requires at least two arguments");
+        throw djang10.NewTemplateSyntaxException("'cycle' tag requires at least two arguments", token);
 
 
     
@@ -602,7 +602,7 @@ var cycle =
         var name = args[1];
 
         if(!("_namedCycleNodes" in parser))
-            throw djang10.NewTemplateException("No named cycles in template. '" + name + "' is not defined");
+            throw djang10.NewTemplateSyntaxException("No named cycles in template. '" + name + "' is not defined", token);
         return parser["_namedCycleNodes"][name];
     }
 
@@ -646,20 +646,20 @@ var do_for =
         
     var bits = token.split_contents();
     if(bits.length < 4)
-        throw djang10.NewTemplateException("'for' statements should have at least four words: " + token.contents);
+        throw djang10.NewTemplateSyntaxException("'for' statements should have at least four words: " + token.contents, token);
     
     var is_reversed = (bits[bits.length - 1] == "reversed");
     var in_index = bits.lastIndexOf("in");
     
     if(in_index < 2)
-        throw djang10.NewTemplateException("'for' statements should use the format 'for x in y': " + token.contents);
+        throw djang10.NewTemplateSyntaxException("'for' statements should use the format 'for x in y': " + token.contents, token);
     
     
     
     var loopvars = bits.slice(1, in_index).join(" ").split(",").map(function(bit) { return bit.trim(); } );
     
     if(loopvars.some(function(bit) { return !bit || bit.contains(" "); } ))
-        throw djang10.NewTemplateException("'for' tag received and invalid argument:" + token.contents)
+        throw djang10.NewTemplateSyntaxException("'for' tag received and invalid argument:" + token.contents, token)
     
     var sequenceStr = bits.slice(in_index+1, is_reversed? -1:null).join(" ");
     var sequence = parser.compile_filter(sequenceStr);
@@ -678,7 +678,7 @@ var do_ifequal =
         
     var bits = token.split_contents();
     if(bits.length != 3)
-        throw djang10.NewTemplateException(bits[0] + " takes two arguments");
+        throw djang10.NewTemplateSyntaxException(bits[0] + " takes two arguments", token);
 
     var var1 = parser.compile_expression(bits[1]);
     var var2 = parser.compile_expression(bits[2]);
@@ -720,7 +720,7 @@ var firstof =
 
     var bits = token.split_contents().slice(1);
     if(bits.length < 1)
-        throw djang10.NewTemplateException("'firstof' statement requires at least one argument");
+        throw djang10.NewTemplateSyntaxException("'firstof' statement requires at least one argument", token);
     
     var exprs = bits.map(function(bit) { return parser.compile_expression(bit); });
     return new FirstOfNode(exprs);
@@ -734,7 +734,7 @@ var do_if =
     var bits = token.split_contents();
     bits.shift();
     if(bits.length == 0)
-        throw djang10.NewTemplateException("'if' statement requires at least one argument");
+        throw djang10.NewTemplateSyntaxException("'if' statement requires at least one argument", token);
     
     var bitstr = "" + bits.join(" ");
     var boolpairs = bitstr.split(" and ");
@@ -748,7 +748,7 @@ var do_if =
     else {
         link_type = IfNode.LinkTypes.and_;
         if(bitstr.indexOf(" or ") > -1)
-        throw djang10.NewTemplateException("'if' tags can't mix 'and' and 'or'");
+        throw djang10.NewTemplateSyntaxException("'if' tags can't mix 'and' and 'or'", token);
     }
     
     for(var i=0; i<boolpairs.length; i++) {
@@ -825,7 +825,7 @@ var now =
 
     var bits = token.split_contents();
     if(bits.length != 2)
-        throw djang10.NewTemplateException("'now' statement takes one argument");
+        throw djang10.NewTemplateSyntaxException("'now' statement takes one argument", token);
     var expr = parser.compile_expression(bits[1]);
     
     return new NowNode(expr);
@@ -840,7 +840,7 @@ var regroup =
     var match = pattern.exec(token.contents);
     
     if(match == null)
-        throw djang10.NewTemplateException("'regroup' tag requires the format: {% regroup list_expression|optional_filter:with_optional_param by prop_name as result_var_name %}. got: " + token);
+        throw djang10.NewTemplateSyntaxException("'regroup' tag requires the format: {% regroup list_expression|optional_filter:with_optional_param by prop_name as result_var_name %}. got: " + token, token);
     
     var list_expr = parser.compile_filter(match[1]);
     var prop_name = match[2];
@@ -867,11 +867,11 @@ var templatetag =
     var bits = token.contents.split(/\s+/);
 
     if(bits.length != 2)
-        throw djang10.NewTemplateException("'templatetag' statement takes one argument")
+        throw djang10.NewTemplateSyntaxException("'templatetag' statement takes one argument", token)
     
     var tag = bits[1];
     if(!(tag in TemplateTagNode.mapping))
-        throw djang10.NewTemplateException("Invalid templatetag argument: '"+tag+"'. Must be one of: " + TemplateTagNode.mapping.keySet().join(", "));
+        throw djang10.NewTemplateSyntaxException("Invalid templatetag argument: '"+tag+"'. Must be one of: " + TemplateTagNode.mapping.keySet().join(", "), token);
     
     return new TemplateTagNode(tag);
 };
@@ -883,7 +883,7 @@ var widthratio =
 
     var bits = token.contents.split(/\s+/);
     if(bits.length != 4)
-        throw djang10.NewTemplateException("widthratio takes three arguments");
+        throw djang10.NewTemplateSyntaxException("widthratio takes three arguments", token);
     var this_value_expr = bits[1];
     var max_value_expr = bits[2];
     var max_width = bits[3];
@@ -892,7 +892,7 @@ var widthratio =
         max_width = parseInt(max_width);
     }
     catch(e) {
-        throw djang10.NewTemplateException("widthratio final argument must be an integer");
+        throw djang10.NewTemplateSyntaxException("widthratio final argument must be an integer", token);
     }
     
     return new WidthRatioNode(parser.compile_filter(this_value_expr), parser.compile_filter(max_value_expr), max_width);
@@ -905,7 +905,7 @@ var do_with =
 
     var bits = token.split_contents();
     if(bits.length != 4 || bits[2] != "as")
-        throw djang10.NewTemplateException(bits[0] + " expected format is 'value as name'");
+        throw djang10.NewTemplateSyntaxException(bits[0] + " expected format is 'value as name'", token);
     
     var var_ = parser.compile_filter(bits[1]);
     var name = bits[3];

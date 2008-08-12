@@ -63,20 +63,15 @@ public class Expression extends JSObjectBase {
     );
     
     private String expression;
+    private ed.appserver.templates.djang10.Parser.Token token;
     private Node parsedExpression;
     private Boolean isLiteral;
 
-    protected Expression() {
+    public Expression(String expression, ed.appserver.templates.djang10.Parser.Token token) {
         super(CONSTRUCTOR);
         isLiteral = null;
-    }
-    
-    public Expression(String expression) {
-        this();
         this.expression = expression;
-        init();
-    }
-    private void init() {
+
         CompilerEnvirons ce = new CompilerEnvirons();
         ed.ext.org.mozilla.javascript.Parser parser = new ed.ext.org.mozilla.javascript.Parser(ce, ce.getErrorReporter());
         ScriptOrFnNode scriptNode;
@@ -84,28 +79,28 @@ public class Expression extends JSObjectBase {
         try {
             scriptNode = parser.parse(expression, "foo", 0);
         } catch (Exception t) {
-            throw new TemplateException("Failed to parse expression: " + expression, t);
+            throw new TemplateSyntaxError("Failed to parse expression: " + expression, token);
         }
 
         if (scriptNode.getFirstChild() != scriptNode.getLastChild())
-            throw new TemplateException("Only one expression is allowed, got: "+expression);
+            throw new TemplateSyntaxError("Only one expression is allowed, got: "+expression, token);
 
         parsedExpression = scriptNode.getFirstChild();
 
         if (parsedExpression.getType() != ed.ext.org.mozilla.javascript.Token.EXPR_RESULT)
-            throw new TemplateException("Not an expression: " + expression);
+            throw new TemplateSyntaxError("Not an expression: " + expression, token);
         
         //Verify the expression
         Queue<Node> workQueue = new LinkedList<Node>();
         workQueue.add(parsedExpression.getFirstChild());
         
         while(!workQueue.isEmpty()) {
-            Node token = workQueue.remove();
-            if(!SUPPORTED_TOKENS.contains(token.getType()))
-                throw new TemplateException("Failed to parse expression: " + expression +". Unsupported token: " + token);
+            Node jsToken = workQueue.remove();
+            if(!SUPPORTED_TOKENS.contains(jsToken.getType()))
+                throw new TemplateSyntaxError("Failed to parse expression: " + expression +". Unsupported token: " + jsToken, this.token);
             
-            for(token = token.getFirstChild(); token !=null; token = token.getNext())
-                workQueue.add(token);
+            for(jsToken = jsToken.getFirstChild(); jsToken !=null; jsToken = jsToken.getNext())
+                workQueue.add(jsToken);
         }
         
     }
@@ -160,7 +155,7 @@ public class Expression extends JSObjectBase {
             if(temp == null || temp == UNDEFINED_VALUE)
                 return UNDEFINED_VALUE;
             if(!(temp instanceof JSObject))
-                throw new TemplateException("Can't handle native objects of type:" + temp.getClass().getName() + ", expression: " + expression);
+                throw new TemplateException("Can't handle native objects of type:" + temp.getClass().getName());
             JSObject obj = (JSObject)temp;
             
             //get the property
