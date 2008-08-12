@@ -138,8 +138,6 @@ public class AppServer implements HttpHandler {
             return;
         }
 
-        _requestMonitor.watch( ar );
-
         final AppContext ctxt = ar.getContext();
 
         ar.getScope().makeThreadLocal();
@@ -174,7 +172,9 @@ public class AppServer implements HttpHandler {
         final ed.db.DBBase db = ctxt.getDB();
         try {
             ar.makeThreadLocal();
+            _requestMonitor.watch( ar );
             db.requestStart();
+            
             _handle( request , response , ar );
         }
         finally {
