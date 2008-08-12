@@ -1,35 +1,43 @@
-// set tests
+// NODES
 
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var french = <france><food>fromage</food><food>haricots verts</food><language>francais</language></france>;
+var x = "foo";
+var y = "bar";
+var z = "zap";
 
-french.capital = "paris";
+var xml = <schools>
+  <elementary />
+  <middle>{z}</middle>
+<highschool attr={z}>{y}</highschool>
+  <college><{x}>myfoo</{x}></college>
+</schools>;
 
-//french.food[-1] = "mal";
-french.food[0] = "pain";
-french.food[20] = "pomme";
+print(xml);
+//attribute
 
-french.language.accent = "parisian";
+//attributes
 
-print(french);
+//comments
 
-french.food = "fromage"
+//processingInstructions
 
-french.places = <books><usr>livre</usr><bin>elles</bin></books>
+//parent
 
-print(french);
+//nodeKind
+
+//propertyIsEnumerable

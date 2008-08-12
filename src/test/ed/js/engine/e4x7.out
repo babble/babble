@@ -1,0 +1,8 @@
+<schools>
+  <elementary/>
+  <middle>zap</middle>
+  <highschool attr="zap">bar</highschool>
+  <college>
+    <foo>myfoo</foo>
+  </college>
+</schools>

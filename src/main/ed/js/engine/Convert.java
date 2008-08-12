@@ -422,7 +422,7 @@ public class Convert implements StackTraceFixer {
                 if ( ( memberTypeFlags & Node.DESCENDANTS_FLAG ) != 0 )
                     theName = ".." + theName;
                 _append( theName  + "\", " , n );
-                _add( fc.getFirstChild().getNext() , state );
+                _add( fc.getNext() , state );
             }
 
             _append( " )" , n );
@@ -455,6 +455,11 @@ public class Convert implements StackTraceFixer {
 		Debug.printTree( n , 0 );
 		throw new RuntimeException( "don't know what to do with " + Token.name( n.getFirstChild().getType() ) );
 	    }
+            break;
+
+        case Token.ESCXMLTEXT :
+        case Token.ESCXMLATTR :
+            _add( n.getFirstChild(), state );
             break;
 
         case Token.EXPR_RESULT:
