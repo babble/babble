@@ -16,7 +16,7 @@
 
 package ed.appserver.templates.djang10;
 
-public class TemplateDoesNotExist extends TemplateException {
+public class TemplateDoesNotExist extends Djang10Exception {
     private String path;
 
     public TemplateDoesNotExist(String path) {

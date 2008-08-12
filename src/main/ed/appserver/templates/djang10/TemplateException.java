@@ -18,7 +18,7 @@ package ed.appserver.templates.djang10;
 
 import ed.js.JSException;
 
-public class TemplateException extends JSException {
+public class TemplateException extends Djang10Exception {
 
     public TemplateException(String message) {
         super(message);
