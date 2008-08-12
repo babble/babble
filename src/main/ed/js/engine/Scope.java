@@ -438,6 +438,12 @@ public final class Scope implements JSObject {
         return _tlPreferred.get();
     }
     
+
+    public void setTLPreferred( Scope from , Scope s ){
+        // this is a hack for the NativeBridge
+        setTLPreferred( s );
+    }
+
     public void setTLPreferred( Scope s ){
 	if ( s == this )
 	    s = null;
