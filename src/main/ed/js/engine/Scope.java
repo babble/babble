@@ -905,12 +905,20 @@ public class Scope implements JSObject {
         _parent._throw();
     }
 
+    public void setRoot( String dir ){
+	if ( ! ed.security.Security.isCoreJS() )
+	    throw new RuntimeException( "you can't set scope root" );
+	_root = new File( dir );
+    }
+
     final String _name;
     final Scope _parent;
     final Scope _alternate;
-    final File _root;
     final JSObjectBase _possibleThis;
     final Language _lang;
+
+    private File _root;
+
     public final long _id = ID++;
     
     boolean _locked = false;
