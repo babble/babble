@@ -66,7 +66,13 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
     }
     
     public JSString _string( int id ){
-        return new JSString( _strings[id] );
+	if ( _jsstrings == null )
+	    _jsstrings = new JSString[ _strings.length ];
+	
+	if ( _jsstrings[id] == null )
+	    _jsstrings[id] = new JSString( _strings[id] );
+
+	return _jsstrings[id];
     }
 
     public JSRegex _regex( int id ){
@@ -77,4 +83,5 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
     Convert _convert;
     protected List<Pair<String,String>> _regex;
     protected String _strings[];
+    protected JSString _jsstrings[];
 }
