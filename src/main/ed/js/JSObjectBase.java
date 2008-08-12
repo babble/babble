@@ -173,12 +173,6 @@ public class JSObjectBase implements JSObject {
         if ( n == null )
             n = "null";
 
-        if ( ! "__preGet".equals( n ) ){
-            Object foo = _simpleGet( "__preGet" );
-            if ( foo != null && foo instanceof JSFunction )
-                _call( (JSFunction)foo , n );
-        }
-	
         if ( n instanceof Number )
             return getInt( ((Number)n).intValue() );
 
@@ -231,7 +225,6 @@ public class JSObjectBase implements JSObject {
 
         if ( depth == 0 &&
              ! "__notFoundHandler".equals( s ) &&
-             ! "__preGet".equals( s ) &&
              ! scopeFailover &&
              ! BAD_KEY_NAMES.contains( s )
              ){
