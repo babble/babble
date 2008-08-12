@@ -38,6 +38,10 @@ public class JSNumericFunctions extends JSObjectBase {
      * @return The object, possibly converted to an equivalent JS type
      */
     public static final Object fixType( final Object o ){
+	return fixType( o , true );
+    }
+
+    public static final Object fixType( final Object o , final boolean numbers ){
 
         if ( o == null )
             return o;
@@ -45,7 +49,7 @@ public class JSNumericFunctions extends JSObjectBase {
         if ( o instanceof String )
             return new JSString( o.toString() );
 
-        if ( o instanceof Number ){
+        if ( numbers && o instanceof Number ){
             if ( o instanceof Float ||
                  o instanceof Double ){
 
@@ -125,7 +129,7 @@ public class JSNumericFunctions extends JSObjectBase {
                 else return mul;
             }
 
-            return fixType( an.doubleValue() * bn.doubleValue() );
+            return an.doubleValue() * bn.doubleValue();
         }
 
         return Double.NaN;
@@ -146,7 +150,7 @@ public class JSNumericFunctions extends JSObjectBase {
             Number an = (Number)a;
             Number bn = (Number)b;
 
-            return fixType( an.doubleValue() / bn.doubleValue() );
+            return an.doubleValue() / bn.doubleValue();
         }
 
         return Double.NaN;
@@ -203,8 +207,12 @@ public class JSNumericFunctions extends JSObjectBase {
             if ( an instanceof Integer &&
                  bn instanceof Integer )
                 return an.intValue() + bn.intValue();
+	    
+	    if ( ( an instanceof Long && bn instanceof Integer ) || 
+		 ( an instanceof Integer && bn instanceof Long ) )
+		return an.longValue() + bn.longValue();
 
-            return fixType( an.doubleValue() + bn.doubleValue() );
+            return an.doubleValue() + bn.doubleValue();
         }
 
         if ( ( a != null && ( a instanceof Number ) && b == null ) ||
@@ -215,7 +223,10 @@ public class JSNumericFunctions extends JSObjectBase {
         String s1 = JS_toString( a );
         String s2 = JS_toString( b );
 
-        return new JSString( s1 + s2 );
+	StringBuilder buf = new StringBuilder( s1.length() + s2.length() + 5 );
+	buf.append( s1 ).append( s2 );
+
+        return new JSString( buf.toString() );
     }
 
     /** Performs a bitwise or on two objects.

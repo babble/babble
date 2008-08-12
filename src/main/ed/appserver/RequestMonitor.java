@@ -1,5 +1,21 @@
 // RequestMonitor.java
 
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package ed.appserver;
 
 import java.util.*;
@@ -40,7 +56,7 @@ class RequestMonitor extends Thread {
         _watched.add( new Watched( request , Thread.currentThread() ) );
     }
 
-    static class Watched {
+    class Watched {
         Watched( AppRequest request , Thread thread ){
             _request = new WeakReference<AppRequest>( request );
             _thread = thread;
@@ -85,7 +101,7 @@ class RequestMonitor extends Thread {
             if ( request == null )
                 return;            
             
-            _log.error( "killing : " + request );
+            _logger.error( "killing : " + request );
             
             request.getScope().setToThrow( new AppServerError( "running too long " + ( System.currentTimeMillis() - _start ) + " ms" ) );
             _thread.interrupt();
@@ -136,4 +152,3 @@ class RequestMonitor extends Thread {
     private final List<Watched> _watched = new Vector<Watched>();
     private final Logger _logger = Logger.getLogger( "requestmonitor" );
 }
-

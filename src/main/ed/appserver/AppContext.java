@@ -304,9 +304,10 @@ public class AppContext {
        return null;
     }
 
-    private static String[] guessNameAndEnv( String root ){
-        String pcs[] = root.split("/");
-
+    static String[] guessNameAndEnv( String root ){
+        root = root.replaceAll( "\\.+/" , "" );
+        String pcs[] = root.split("/+");
+        
         if ( pcs.length == 0 )
             throw new RuntimeException( "no root for : " + root );
 
@@ -315,21 +316,23 @@ public class AppContext {
             if ( pcs[i].equals( "sites" ) ){
                 return new String[]{ pcs[i+1] , i+2 < pcs.length ? pcs[i+2] : null };
             }
-
-        for ( int i=pcs.length-1; i>0; i-- ){
+        
+        final int start = pcs.length-1;
+        for ( int i=start; i>0; i-- ){
             String s = pcs[i];
 
-            if ( s.equals("master" ) ||
-                 s.equals("test") ||
-                 s.equals("www") ||
-                 s.equals("staging") ||
-                 s.equals("dev" ) )
+            if ( i == start && 
+                 ( s.equals("master" ) ||
+                   s.equals("test") ||
+                   s.equals("www") ||
+                   s.equals("staging") ||
+                   s.equals("dev" ) ) )
                 continue;
 
             return new String[]{ s , i + 1 < pcs.length ? pcs[i+1] : null };
         }
 
-        return new String[]{ pcs[0] , null };
+        return new String[]{ pcs[0] , pcs.length > 1 ? pcs[1] : null };
     }
 
     /**

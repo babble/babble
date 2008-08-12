@@ -26,8 +26,9 @@ import ed.io.*;
 import ed.js.*;
 import ed.js.func.*;
 import ed.lang.*;
+import ed.util.*;
 
-public class Scope implements JSObject {
+public final class Scope implements JSObject {
 
     static {
         JS._debugSIStart( "Scope" );
@@ -159,13 +160,13 @@ public class Scope implements JSObject {
             throw new RuntimeException( "killed" );
 
         if ( _objects == null )
-            _objects = new TreeMap<String,Object>();
+            _objects = new HashMap<String,Object>();
         _mapSet( name , o );
     }
     
     public Object put( String name , Object o , boolean local ){
         
-        o = JSInternalFunctions.fixType( o );
+        o = JSInternalFunctions.fixType( o , false );
 
         if ( _locked )
             throw new RuntimeException( "locked" );
@@ -197,7 +198,7 @@ public class Scope implements JSObject {
             if ( o == null )
                 o = NULL;
             if ( _objects == null )
-                _objects = new TreeMap<String,Object>();
+                _objects = new HashMap<String,Object>();
 
             Scope pref = getTLPreferred();
 
@@ -232,7 +233,7 @@ public class Scope implements JSObject {
     }
     
     public Object get( final String origName , Scope alt , JSObject with[] ){
-        return _get( origName , alt , with , 0  );
+	return _get( origName , alt , with , 0  );
     }
     
     private Object _get( final String origName , Scope alt , JSObject with[] , int depth ){
@@ -249,7 +250,6 @@ public class Scope implements JSObject {
         return r;
     }
     private Object _geti( final String origName , Scope alt , JSObject with[] , int depth ){
-        _throw();
 
         String name = origName;
         boolean noThis = false;
@@ -257,13 +257,6 @@ public class Scope implements JSObject {
         if ( name.equals( "__puts__" ) ){
             noThis = true;
             name = "print";
-        }
-
-        boolean finder = false;
-        if ( name.startsWith( "@@" ) & name.endsWith( "!!" ) ){
-            name = name.substring( 2 , name.length() - 2 );
-            finder = true;
-            System.out.println( " finder on [" + name + "]" );
         }
 
         if ( "scope".equals( name ) ){
@@ -289,17 +282,11 @@ public class Scope implements JSObject {
 
         Scope pref = getTLPreferred();
         if ( pref != null && pref._objects.containsKey( name ) ){
-
-            if ( finder ) throw new ScopeFinder( name , this );
-            
             return _fixNull( pref._objects.get( name ) );
         }
         
         Object foo =  _killed || _objects  == null ? null : _objects.get( name );
         if ( foo != null ){
-
-            if ( finder ) throw new ScopeFinder( name , this );
-            
             if ( foo == NULL )
                 return null;
             return foo;
@@ -311,9 +298,6 @@ public class Scope implements JSObject {
                 JSObject temp = _with.get( i );
                 if ( temp == null ) continue;
                 if ( temp.containsKey( name ) ){
-                    
-                    if ( finder ) throw new ScopeFinder( name , this );
-                    
                     if ( with != null && with.length > 0 )
                         with[0] = temp;
                     return temp.get( name );
@@ -350,10 +334,6 @@ public class Scope implements JSObject {
                 foo = _getFromThis( obj , name );
 
                 if ( foo != null ){
-                    
-                    if ( finder )
-                        throw new ScopeFinder( name , this );
-                    
                     if ( foo instanceof JSFunction && with != null )
                         with[0] = pt;
                     
@@ -368,8 +348,6 @@ public class Scope implements JSObject {
                 foo = _getFromThis( _possibleThis , name );
                 
                 if ( foo != null ){
-                    if ( finder )
-                        throw new ScopeFinder( name , this );
                     
                     if ( foo instanceof JSFunction && with != null )
                         with[0] = pt;
@@ -409,7 +387,7 @@ public class Scope implements JSObject {
     
     public void enterWith( JSObject o ){
         if ( _with == null )
-            _with = new Stack<JSObject>();
+            _with = new SimpleStack<JSObject>();
         _with.push( o );
     }
     
@@ -460,6 +438,12 @@ public class Scope implements JSObject {
         return _tlPreferred.get();
     }
     
+
+    public void setTLPreferred( Scope from , Scope s ){
+        // this is a hack for the NativeBridge
+        setTLPreferred( s );
+    }
+
     public void setTLPreferred( Scope s ){
 	if ( s == this )
 	    s = null;
@@ -800,7 +784,8 @@ public class Scope implements JSObject {
         
         System.out.print( "||" );
 
-        for ( This t : _this ){
+        for ( int i=0; i<_this.size(); i++ ){
+            This t = _this.get(i);
             System.out.print( t );
             System.out.print( "|" );
         }
@@ -848,7 +833,7 @@ public class Scope implements JSObject {
             return;
         
         if ( _objects == null )
-            _objects = new TreeMap<String,Object>();
+            _objects = new HashMap<String,Object>();
 
         _objects.putAll( s._objects );
     }
@@ -862,7 +847,7 @@ public class Scope implements JSObject {
 
     public void pushException( Throwable t ){
         if ( _exceptions == null )
-            _exceptions = new Stack<Throwable>();
+            _exceptions = new SimpleStack<Throwable>();
         StackTraceHolder.getInstance().fix( t );
         _exceptions.push( t );
     }
@@ -905,12 +890,20 @@ public class Scope implements JSObject {
         _parent._throw();
     }
 
+    public void setRoot( String dir ){
+	if ( ! ed.security.Security.isCoreJS() )
+	    throw new RuntimeException( "you can't set scope root" );
+	_root = new File( dir );
+    }
+
     final String _name;
     final Scope _parent;
     final Scope _alternate;
-    final File _root;
     final JSObjectBase _possibleThis;
     final Language _lang;
+
+    private File _root;
+
     public final long _id = ID++;
     
     boolean _locked = false;
@@ -922,9 +915,9 @@ public class Scope implements JSObject {
     Set<String> _warnedObject;
     private ThreadLocal<Scope> _tlPreferred = null;
 
-    Stack<This> _this = new Stack<This>();
-    Stack<Throwable> _exceptions;
-    Stack<JSObject> _with;
+    SimpleStack<This> _this = new SimpleStack<This>();
+    SimpleStack<Throwable> _exceptions;
+    SimpleStack<JSObject> _with;
     Object _orSave;
     Object _andSave;
     JSObject _globalThis;
@@ -1022,26 +1015,6 @@ public class Scope implements JSObject {
         JSObjectBase o = new JSObjectBase();
         o.set( "__globalThis" , true );
         return o;
-    }
-
-
-    public static class ScopeFinder extends RuntimeException {
-        ScopeFinder( String name , Scope scope ){
-            super( "Finder found [" + name + "] in " + scope.toString() );
-            _name = name;
-            _scope = scope;
-        }
-
-        public String getName(){
-            return _name;
-        }
-
-        public Scope getScope(){
-            return _scope;
-        }
-
-        final String _name;
-        final Scope _scope;
     }
 
     static {

@@ -1,4 +1,4 @@
-// AppServerError.java
+// IdentitySet.java
 
 /**
 *    Copyright (C) 2008 10gen Inc.
@@ -16,12 +16,19 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ed.appserver;
+package ed.util;
 
-public class AppServerError extends Error {
+import java.util.*;
 
-    public AppServerError( String msg ){
-        super( msg );
+public class IdentitySet<T> {
+
+    public void add( T t ){
+        _map.put( t , "a" );
+    }
+
+    public boolean contains( T t ){
+        return _map.containsKey( t );
     }
     
+    final IdentityHashMap<T,String> _map = new IdentityHashMap<T,String>();
 }

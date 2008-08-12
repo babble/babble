@@ -108,6 +108,20 @@ public abstract class JSFunction extends JSFunctionBase {
         return null;
     }
 
+    public JSFunction getFunction( String name , boolean tryLower ){
+	Object blah = _prototype.get( name );
+	if ( blah == null && tryLower )
+	    blah = _prototype.get( name.toLowerCase() );
+	
+	if ( blah == null )
+	    return null;
+	
+	if ( ! ( blah instanceof JSFunction ) )
+	    return null;
+	
+	return (JSFunction)blah;
+    }
+
     /** Set this function's name.
      * @param name Set this function's name.
      */
@@ -139,18 +153,21 @@ public abstract class JSFunction extends JSFunctionBase {
      * @param threadLocal if this is true, it returns a thread local scope that you can modify for your thread
      */
     public Scope getScope( boolean threadLocal ){
-        Scope s = _tlScope.get();
-        if ( s != null ){
-            return s;
+        Scope s = null;
+        if ( _tlScope != null ){
+            s = _tlScope.get();
+            if ( s != null ){
+                return s;
+            }
         }
-
+        
         if ( threadLocal ){
             if ( _scope == null )
                 s = new Scope( "func tl scope" , null );
             else
                 s = _scope.child( "func tl scope" );
             s.setGlobal( true );
-            _tlScope.set( s );
+            setTLScope( s );
             return s;
         }
 
@@ -161,6 +178,8 @@ public abstract class JSFunction extends JSFunctionBase {
      * @param tl Scope to set to.
      */
     public void setTLScope( Scope tl ){
+        if ( _tlScope == null )
+            _tlScope = new ThreadLocal<Scope>();
         _tlScope.set( tl );
     }
 
@@ -168,14 +187,18 @@ public abstract class JSFunction extends JSFunctionBase {
      * @return The thread local scope.
      */
     public Scope getTLScope(){
+        if ( _tlScope == null )
+            return null;
         return _tlScope.get();
     }
 
     /** Clear all objects and reset this function's scope. */
     public void clearScope(){
-        Scope s = _tlScope.get();
-        if ( s != null )
-            s.reset();
+        if ( _tlScope != null ){
+            Scope s = _tlScope.get();
+            if ( s != null )
+                s.reset();
+        }
     }
 
     /** Return a string representation of this function.
@@ -203,11 +226,15 @@ public abstract class JSFunction extends JSFunctionBase {
      * @return If this function is using a passed in scope.
      */
     public boolean usePassedInScope(){
+        
+        if ( _forceUsePassedInScope )
+            return true;
+        
+	if ( ! _forceUsePassedInScopeTLEver )
+            return false;
+        
         Boolean b = _forceUsePassedInScopeTL.get();
-        if ( b != null )
-            return b;
-
-        return _forceUsePassedInScope;
+        return b == null ? false : b;
     }
 
     public void setUsePassedInScope( boolean usePassedInScope ){
@@ -215,6 +242,7 @@ public abstract class JSFunction extends JSFunctionBase {
     }
 
     public Boolean setUsePassedInScopeTL( Boolean usePassedInScopeTL ){
+	_forceUsePassedInScopeTLEver = _forceUsePassedInScopeTLEver || usePassedInScopeTL;
         Boolean old = _forceUsePassedInScopeTL.get();
         _forceUsePassedInScopeTL.set( usePassedInScopeTL );
         return old;
@@ -308,19 +336,15 @@ public abstract class JSFunction extends JSFunctionBase {
     }
 
     private final Scope _scope;
-    private final ThreadLocal<Scope> _tlScope = new ThreadLocal<Scope>();
+    private ThreadLocal<Scope> _tlScope;
     private boolean _forceUsePassedInScope = false;
     private final ThreadLocal<Boolean> _forceUsePassedInScopeTL = new ThreadLocal<Boolean>();
+    private boolean _forceUsePassedInScopeTLEver = false;
 
-
-    /** @unexpose */
     protected JSObjectBase _prototype;
-    /** @unexpose */
     protected Language _sourceLanguage = Language.JS;
 
-    /** @unexpose */
     protected JSArray _arguments;
-    /** @unexpose */
     protected String _name = "NO NAME SET";
 
     private LRUCache<Long,Pair<Object,String>> _callCache;

@@ -593,6 +593,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
     }
 
     private void _initSizeSet( int init ){
+	_array.ensureCapacity( init );
         for ( int i=0; i<init; i++ )
             _array.add( null );
     }
@@ -626,7 +627,10 @@ public class JSArray extends JSObjectBase implements Iterable , List {
      */
     public JSArray( List lst ){
         super( _getCons() );
-        _array = lst == null ? new ArrayList() : lst;
+        _array = 
+	    lst == null ? 
+	    new ArrayList() : 
+	    ( lst instanceof ArrayList ? (ArrayList)lst : new ArrayList( lst ) );
     }
 
     public JSArray( Collection coll ){
@@ -698,16 +702,16 @@ public class JSArray extends JSObjectBase implements Iterable , List {
      */
     public Object set( Object n , Object v ){
 
+        int idx = _getInt( n );
+	if ( idx >= 0 )
+	    return setInt( idx , v );
+
         if ( n.toString().equals( "" ) ){
             _array.add( v );
             return v;
         }
 
-        int idx = _getInt( n );
-        if ( idx < 0 )
-            return super.set( n , v );
-
-        return setInt( idx , v );
+	return super.set( n , v );
     }
 
     public Object removeField( Object n ){
@@ -970,6 +974,9 @@ public class JSArray extends JSObjectBase implements Iterable , List {
             return -1;
 
         String str = o.toString();
+	if ( str.length() == 0 )
+	    return -1;
+	
         for ( int i=0; i<str.length(); i++ )
             if ( ! Character.isDigit( str.charAt( i ) ) )
                 return -1;
@@ -1049,7 +1056,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
     private boolean _locked = false;
     private boolean _new = false;
     /** @unexpose */
-    final List<Object> _array;
+    final ArrayList<Object> _array;
 
     static class MyComparator implements Comparator {
         MyComparator( Scope s , JSFunction func ){

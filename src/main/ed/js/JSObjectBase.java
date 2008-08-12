@@ -107,6 +107,22 @@ public class JSObjectBase implements JSObject {
             return v;
         }
 
+	// SPECIAL
+
+	if ( name.equals( "constructor" ) || name.equals( "__constructor__" ) ){
+	    _constructor = (JSFunction)v;
+	    _dirtyMyself();
+	    return _constructor;
+	}
+
+	if( name.equals( "__proto__" ) ){
+	    __proto__ = (JSObject)v;
+	    _dirtyMyself();
+	    return __proto__;
+	}
+
+	// END SPECIAL
+
         JSFunction func = getSetter( name );
         if ( func != null )
             return _call( func , v );
@@ -126,7 +142,7 @@ public class JSObjectBase implements JSObject {
 
     private void _checkMap(){
         if ( _map == null )
-            _map = new TreeMap<String,Object>();
+            _map = new HashMap<String,Object>();
 
         if ( _keys == null )
             _keys = new ArrayList<String>();
@@ -157,12 +173,6 @@ public class JSObjectBase implements JSObject {
         if ( n == null )
             n = "null";
 
-        if ( ! "__preGet".equals( n ) ){
-            Object foo = _simpleGet( "__preGet" );
-            if ( foo != null && foo instanceof JSFunction )
-                _call( (JSFunction)foo , n );
-        }
-
         if ( n instanceof Number )
             return getInt( ((Number)n).intValue() );
 
@@ -171,11 +181,33 @@ public class JSObjectBase implements JSObject {
 
     /** @unexpose */
     public Object _simpleGet( String s ){
-        return _simpleGet( s , 0 );
+        return _simpleGet( s , 0 , null );
     }
 
     /** @unexpose */
-    Object _simpleGet( String s , int depth ){
+    Object _simpleGet( String s , int depth , IdentitySet<JSObject> seen ){
+        if ( depth > 100 ) // safety
+            return null;
+        
+        if ( depth > 5 ){
+            if ( seen == null ){
+                seen = new IdentitySet<JSObject>();
+            }
+            else {
+                if ( seen.contains( this ) )
+                    return null;
+                seen.add( this );
+            }
+        }
+        
+	// SPECIAL
+	if ( s.equals( "constructor" ) || s.equals( "__constructor__" ) )
+	    return _constructor;
+	
+	if ( s.equals( "__proto__" ) )
+	    return __proto__;
+
+	// END SPECIAL
 
         final boolean scopeFailover = s.startsWith( SCOPE_FAILOVER_PREFIX );
         if ( scopeFailover )
@@ -194,7 +226,7 @@ public class JSObjectBase implements JSObject {
             if ( res != null || _map.containsKey( s ) ) return res;
         }
 
-        res = _getFromParent( s , depth );
+        res = _getFromParent( s , depth , seen );
         if ( res != null ) return res;
 
         if ( _objectLowFunctions != null
@@ -205,7 +237,6 @@ public class JSObjectBase implements JSObject {
 
         if ( depth == 0 &&
              ! "__notFoundHandler".equals( s ) &&
-             ! "__preGet".equals( s ) &&
              ! scopeFailover &&
              ! BAD_KEY_NAMES.contains( s )
              ){
@@ -252,7 +283,7 @@ public class JSObjectBase implements JSObject {
     // inheritnace jit START
     // ----
 
-    private Object _getFromParent( String s , int depth ){
+    private Object _getFromParent( String s , int depth , IdentitySet<JSObject> seen ){
         _getFromParentCalls++;
 
         if ( s.equals( "__proto__" ) || s.equals( "prototype" ) )
@@ -278,17 +309,14 @@ public class JSObjectBase implements JSObject {
             }
         }
 
-        Object res = _getFromParentHelper( s , depth );
+        Object res = _getFromParentHelper( s , depth , seen );
         if ( jit )
             _jitCache.put( s , res );
 
         return res;
     }
 
-    private Object _getFromParentHelper( String s , int depth ){
-
-        JSObject proto = null;
-        JSObject prototype = null;
+    private Object _getFromParentHelper( String s , int depth , IdentitySet<JSObject> seen ){
 
         _updatePlacesToLook();
 
@@ -296,8 +324,17 @@ public class JSObjectBase implements JSObject {
 
         for ( int i=0; i<max; i++ ){
             JSObject o = _placesToLook[i];
-            if ( o == null )
+            if ( o == null || o == this )
                 continue;
+
+            if ( o instanceof JSObjectBase ){
+                JSObjectBase job = (JSObjectBase)o;
+                Object res = job._simpleGet( s , depth + 1 , seen );
+                if ( res != null )
+                    return res;
+
+                continue;
+            }
 
             Object res = o.get( s );
             if ( res != null )
@@ -312,15 +349,17 @@ public class JSObjectBase implements JSObject {
         if ( _placesToLookUpdated )
             return;
 
-        if ( _map != null ){
-            _placesToLook[0] = (JSObject)_mapGet( "__proto__" );
-            _placesToLook[1] = (JSObject)_mapGet( "prototype" );
-        }
+	_placesToLook[0] = __proto__;
+	_placesToLook[1] = (JSObject)_mapGet( "prototype" );
 
         if ( _constructor != null ){
             _placesToLook[2] = _constructor._prototype;
             _placesToLook[3] = _constructor;
         }
+	else {
+	    _placesToLook[2] = null;
+	    _placesToLook[3] = null;
+	}
 
         for ( int i=1; i<_placesToLook.length; i++ )
             for ( int j=0; j<i; j++ )
@@ -347,7 +386,6 @@ public class JSObjectBase implements JSObject {
     }
 
     private List<JSObjectBase> _dependencies(){
-
         if ( _badDepencies )
             return null;
 
@@ -368,15 +406,21 @@ public class JSObjectBase implements JSObject {
     /** @unexpose */
     protected List<JSObjectBase> _addDependencies( List<JSObjectBase> lst ){
         _updatePlacesToLook();
+	all:
         for ( int i=0; i<_placesToLook.length; i++ ){
-            if ( _placesToLook[i] == null )
+
+            JSObjectBase job = (JSObjectBase)_placesToLook[i];
+            if ( job == null || job == this )
                 continue;
 
             // uh-oh
-            if ( ! ( _placesToLook[i] instanceof JSObjectBase ) )
+            if ( ! ( job instanceof JSObjectBase ) )
                 return null;
+	    
+	    for ( int j=0; j<lst.size(); j++ )
+		if ( lst.get( j ) == job )
+		    continue all;
 
-            JSObjectBase job = (JSObjectBase)_placesToLook[i];
             lst.add( job );
             job._addDependencies( lst  );
         }
@@ -521,7 +565,7 @@ public class JSObjectBase implements JSObject {
             return p.second;
 
         JSObject s = getSuper();
-        if ( s != null )
+        if ( s != null && s != this )
             return ((JSObjectBase)s).getSetter( name );
 
         return null;
@@ -536,7 +580,7 @@ public class JSObjectBase implements JSObject {
             return p.first;
 
         JSObject s = getSuper();
-        if ( s  instanceof JSObjectBase )
+        if ( s instanceof JSObjectBase && s != this )
             return ((JSObjectBase)s).getGetter( name );
 
         return null;
@@ -653,11 +697,11 @@ public class JSObjectBase implements JSObject {
         _dirtyMyself();
 
         _constructor = cons;
-        _mapSet( "__constructor__" , _constructor );
-        _mapSet( "constructor" , _constructor );
+        //_mapSet( "__constructor__" , _constructor );
+        //_mapSet( "constructor" , _constructor );
 
-        Object __proto__ = _constructor == null ? null : _constructor._prototype;
-        _mapSet( "__proto__" , __proto__ );
+	__proto__ = _constructor == null ? null : _constructor._prototype;
+        //_mapSet( "__proto__" , __proto__ );
 
         if ( _constructor != null && exec ){
 
@@ -685,11 +729,8 @@ public class JSObjectBase implements JSObject {
      */
     public JSObject getSuper(){
 
-        if ( _map != null ){
-            JSObject p = (JSObject)_mapGet( "__proto__" );
-            if ( p != null )
-                return p;
-        }
+	if ( __proto__ != null )
+	    return __proto__;
 
         if ( _constructor != null && _constructor._prototype != null )
             return _constructor._prototype;
@@ -916,13 +957,12 @@ public class JSObjectBase implements JSObject {
         _lastHash = hashCode();
     }
 
-    /** @unexpose */
     protected Map<String,Object> _map = null;
-    /** @unexpose */
     protected Map<String,Pair<JSFunction,JSFunction>> _setterAndGetters = null;
     private Collection<String> _keys = null;
     private Set<String> _dontEnum;
     private JSFunction _constructor;
+    private JSObject __proto__ = null;
     private boolean _readOnly = false;
     private String _name;
 
@@ -1163,6 +1203,26 @@ public class JSObjectBase implements JSObject {
                         JSObjectBase o = (JSObjectBase)s.getThis();
                         o.setSetter( name.toString() , (JSFunction)func );
                         return null;
+                    }
+                } );
+
+            set( "__lookupGetter__" , new JSFunctionCalls2(){
+                    public Object call( Scope s , Object name , Object func , Object args[] ){
+                        if ( ! ( s.getThis() instanceof JSObjectBase ) )
+                            throw new RuntimeException( "not a JSObjectBase" );
+			
+                        JSObjectBase o = (JSObjectBase)s.getThis();
+			return o.getGetter( name.toString() );
+                    }
+                } );
+
+            set( "__lookupSetter__" , new JSFunctionCalls2(){
+                    public Object call( Scope s , Object name , Object func , Object args[] ){
+                        if ( ! ( s.getThis() instanceof JSObjectBase ) )
+                            throw new RuntimeException( "not a JSObjectBase" );
+
+                        JSObjectBase o = (JSObjectBase)s.getThis();
+                        return o.getSetter( name.toString() );
                     }
                 } );
 
