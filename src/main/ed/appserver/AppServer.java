@@ -418,17 +418,41 @@ public class AppServer implements HttpHandler {
         }
         else {
             writer.print( "\n<br><br><hr><b>Error</b><br>" );
-            writer.print( t.toString().replaceAll("\\n", "<br>") + "<BR>" );
+            writer.print("<pre>\n");
 
-            while ( t != null ){
-                for ( StackTraceElement element : t.getStackTrace() ){
-                    writer.print( element + "<BR>\n" );
+            
+            StackTraceElement[] parentTrace = new StackTraceElement[0];
+            while(t != null) {
+                //message
+                writer.print( Encoding._escapeHTML(t.toString()) + "\n");
+                
+                //Compute # frames in common
+                StackTraceElement[] currentTrace = t.getStackTrace();
+                
+                int m = currentTrace.length-1, n = parentTrace.length-1;
+                while (m >= 0 && n >=0 && currentTrace[m].equals(currentTrace[n])) {
+                    m--; n--;
                 }
+                int framesInCommon = currentTrace.length - 1 - m;
+                
+                //print the frames
+                for(int i=0; i<= m; i++)
+                    writer.print("\tat " + Encoding._escapeHTML(currentTrace[i].toString()) +"\n");
+                if(framesInCommon != 0)
+                    writer.print("\t... " + framesInCommon + " more\n");
+                
+                parentTrace = currentTrace;
                 t = t.getCause();
+                
+                if(t != null)
+                    writer.print("Caused by: ");
             }
-        }
 
+            writer.print("</pre>\n");
+        }
     }
+    
+    
 
     /** Determines how long this response should be cached for.
         result is to set Cache-Time and Expires
