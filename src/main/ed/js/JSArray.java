@@ -593,6 +593,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
     }
 
     private void _initSizeSet( int init ){
+	_array.ensureCapacity( init );
         for ( int i=0; i<init; i++ )
             _array.add( null );
     }
@@ -626,7 +627,10 @@ public class JSArray extends JSObjectBase implements Iterable , List {
      */
     public JSArray( List lst ){
         super( _getCons() );
-        _array = lst == null ? new ArrayList() : lst;
+        _array = 
+	    lst == null ? 
+	    new ArrayList() : 
+	    ( lst instanceof ArrayList ? (ArrayList)lst : new ArrayList( lst ) );
     }
 
     public JSArray( Collection coll ){
@@ -1049,7 +1053,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
     private boolean _locked = false;
     private boolean _new = false;
     /** @unexpose */
-    final List<Object> _array;
+    final ArrayList<Object> _array;
 
     static class MyComparator implements Comparator {
         MyComparator( Scope s , JSFunction func ){
