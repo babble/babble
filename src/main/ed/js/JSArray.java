@@ -702,16 +702,16 @@ public class JSArray extends JSObjectBase implements Iterable , List {
      */
     public Object set( Object n , Object v ){
 
+        int idx = _getInt( n );
+	if ( idx >= 0 )
+	    return setInt( idx , v );
+
         if ( n.toString().equals( "" ) ){
             _array.add( v );
             return v;
         }
 
-        int idx = _getInt( n );
-        if ( idx < 0 )
-            return super.set( n , v );
-
-        return setInt( idx , v );
+	return super.set( n , v );
     }
 
     public Object removeField( Object n ){
