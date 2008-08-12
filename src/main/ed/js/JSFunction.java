@@ -217,13 +217,15 @@ public abstract class JSFunction extends JSFunctionBase {
      * @return If this function is using a passed in scope.
      */
     public boolean usePassedInScope(){
+        
+        if ( _forceUsePassedInScope )
+            return true;
+        
 	if ( ! _forceUsePassedInScopeTLEver )
-	    return false;
+            return false;
+        
         Boolean b = _forceUsePassedInScopeTL.get();
-        if ( b != null )
-            return b;
-	
-        return _forceUsePassedInScope;
+        return b == null ? false : b;
     }
 
     public void setUsePassedInScope( boolean usePassedInScope ){
