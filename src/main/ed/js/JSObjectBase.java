@@ -181,14 +181,26 @@ public class JSObjectBase implements JSObject {
 
     /** @unexpose */
     public Object _simpleGet( String s ){
-        return _simpleGet( s , 0 );
+        return _simpleGet( s , 0 , null );
     }
 
     /** @unexpose */
-    Object _simpleGet( String s , int depth ){
-	
+    Object _simpleGet( String s , int depth , IdentitySet<JSObject> seen ){
+        if ( depth > 100 ) // safety
+            return null;
+        
+        if ( depth > 5 ){
+            if ( seen == null ){
+                seen = new IdentitySet<JSObject>();
+            }
+            else {
+                if ( seen.contains( this ) )
+                    return null;
+                seen.add( this );
+            }
+        }
+        
 	// SPECIAL
-
 	if ( s.equals( "constructor" ) || s.equals( "__constructor__" ) )
 	    return _constructor;
 	
@@ -214,7 +226,7 @@ public class JSObjectBase implements JSObject {
             if ( res != null || _map.containsKey( s ) ) return res;
         }
 
-        res = _getFromParent( s , depth );
+        res = _getFromParent( s , depth , seen );
         if ( res != null ) return res;
 
         if ( _objectLowFunctions != null
@@ -271,7 +283,7 @@ public class JSObjectBase implements JSObject {
     // inheritnace jit START
     // ----
 
-    private Object _getFromParent( String s , int depth ){
+    private Object _getFromParent( String s , int depth , IdentitySet<JSObject> seen ){
         _getFromParentCalls++;
 
         if ( s.equals( "__proto__" ) || s.equals( "prototype" ) )
@@ -297,14 +309,14 @@ public class JSObjectBase implements JSObject {
             }
         }
 
-        Object res = _getFromParentHelper( s , depth );
+        Object res = _getFromParentHelper( s , depth , seen );
         if ( jit )
             _jitCache.put( s , res );
 
         return res;
     }
 
-    private Object _getFromParentHelper( String s , int depth ){
+    private Object _getFromParentHelper( String s , int depth , IdentitySet<JSObject> seen ){
 
         _updatePlacesToLook();
 
@@ -314,6 +326,15 @@ public class JSObjectBase implements JSObject {
             JSObject o = _placesToLook[i];
             if ( o == null || o == this )
                 continue;
+
+            if ( o instanceof JSObjectBase ){
+                JSObjectBase job = (JSObjectBase)o;
+                Object res = job._simpleGet( s , depth + 1 , seen );
+                if ( res != null )
+                    return res;
+
+                continue;
+            }
 
             Object res = o.get( s );
             if ( res != null )

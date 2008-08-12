@@ -250,8 +250,8 @@ public class Prototype {
                         }
                     });
             }
-	    
-            //prototype.set("constructor", klass);
+            
+            prototype.set("constructor", klass);
 
             return klass;
 
