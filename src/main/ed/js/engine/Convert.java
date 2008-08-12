@@ -402,14 +402,29 @@ public class Convert implements StackTraceFixer {
             break;
 
         case Token.SET_REF:
-            _assertType( n.getFirstChild() , Token.REF_SPECIAL );
+            Node fc = n.getFirstChild();
+            if( fc.getType() != Token.REF_SPECIAL && fc.getType() != Token.REF_MEMBER )
+                throw new RuntimeException( "token is of type "+Token.name(fc.getType())+", should be of type REF_SPECIAL or REF_MEMBER.");
 
             _append( "((JSObject)" , n );
             _add( n.getFirstChild().getFirstChild() , state );
             _append( ").set( \"" , n );
-            _append( n.getFirstChild().getProp( Node.NAME_PROP ).toString() , n );
-            _append( "\" , " , n );
-            _add( n.getFirstChild().getNext() , state );
+
+            if( fc.getType() == Token.REF_SPECIAL ) {
+                _append( fc.getProp( Node.NAME_PROP ).toString() , n );
+                _append( "\" , " , n );
+                _add( fc.getNext() , state );
+            }
+            // xml.@attribute = "value"
+            else if ( fc.getType() == Token.REF_MEMBER ) {
+                final int memberTypeFlags = fc.getIntProp(Node.MEMBER_TYPE_PROP, 0);
+                String theName = ( ( memberTypeFlags & Node.ATTRIBUTE_FLAG ) != 0 ? "@" : "" ) + fc.getFirstChild().getNext().getString();
+                if ( ( memberTypeFlags & Node.DESCENDANTS_FLAG ) != 0 )
+                    theName = ".." + theName;
+                _append( theName  + "\", " , n );
+                _add( fc.getFirstChild().getNext() , state );
+            }
+
             _append( " )" , n );
             break;
 
