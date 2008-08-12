@@ -95,9 +95,9 @@ public class Shell {
                 }
             } , true );
 
-        s.put( "exit" , new JSFunctionCalls0(){
-                public Object call( Scope s , Object crap[] ){
-                    System.exit(0);
+        s.put( "exit" , new JSFunctionCalls1(){
+                public Object call( Scope s , Object code , Object crap[] ){
+                    System.exit( code instanceof Number ? ((Number)code).intValue() : 0 );
                     return null;
                 }
             } , true );
