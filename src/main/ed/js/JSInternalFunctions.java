@@ -392,47 +392,55 @@ public class JSInternalFunctions extends JSNumericFunctions {
     public Boolean JS_gt( Object a , Object b ){
         return _compare( a , b ) > 0;
     }
-
+    
     /** @unexpose */
-    int _compare( Object a , Object b ){
-        if ( a == null && b == null )
-            return 0;
-
+    final int _compare( Object a , Object b ){
         if ( a == null ){
+            if ( b == null )
+                return 0;
             if ( b instanceof Number )
-                a = 0;
-            else
-                return 1;
+                return _compareNumbers( 0 , (Number)b );
+            return 1;
         }
 
         if (  b == null ){
-            if ( a instanceof Number )
-                b = 0;
-            else
-                return -1;
-        }
-
-        if ( a.equals( b ) )
-            return 0;
-
-        if ( a instanceof Number || b instanceof Number ){
-            a = _parseNumber( a );
-            b = _parseNumber( b );
-        }
-
-        if ( a instanceof Number &&
-             b instanceof Number ){
-            double aVal = ((Number)a).doubleValue();
-            double bVal = ((Number)b).doubleValue();
-            if ( aVal == bVal )
+            if ( a == null )
                 return 0;
-            return aVal < bVal ? -1 : 1;
+            if ( a instanceof Number )
+                return _compareNumbers( (Number)a , 0 );
+            return -1;
+        }
+        
+        if ( a instanceof Number ){
+            b = _parseNumber( b );
+            if ( b instanceof Number )
+                return _compareNumbers( (Number)a , (Number)b );
+        }
+
+        if ( b instanceof Number ){
+            a = _parseNumber( a );
+            if ( a instanceof Number )
+                return _compare( (Number)a , (Number)b );
         }
 
         if ( a instanceof Comparable )
             return ((Comparable)a).compareTo( b );
 
+        if ( a.equals( b ) )
+            return 0;
+
         return a.toString().compareTo( b.toString() );
+    }
+
+    private final int _compareNumbers( final Number a , final Number b ){
+        final double diff = a.doubleValue() - b.doubleValue();
+        if ( diff == 0 )
+            return 0;
+        
+        if ( diff < 0 )
+            return -1;
+
+        return 1;
     }
 
     /** If <tt>o</tt> is a number, parses and return it, otherwise parses and returns <tt>def</tt>.

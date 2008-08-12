@@ -21,6 +21,15 @@ print( Number('0') );
 print( Number('-123') );
 
 
+function c( a , b ){
+    print( a < b );
+}
+
+c( 4 , null );
+c( null , 4 );
+c( null , -4 );
+c( -4 , null );
+
 // TODO
 //n = 5;
 //Number.prototype.b = function(){ return 7; };
