@@ -248,10 +248,11 @@ public class JSLocalFile extends JSNewFile {
         }
     }
 
-    /** @unexpose */
+    public String getAbsolutePath(){
+	return _file.getAbsolutePath();
+    }
+
     final File _file;
-    /** @unexpose */
     int _curChunk = 0;
-    /** @unexpose */
     FileChannel _fc;
 }
