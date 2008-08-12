@@ -334,35 +334,37 @@ public class Expression extends JSObjectBase {
         return true;
     }
     
+    
+    //Functors
+    private static class resolveFunc extends JSFunctionCalls1 {
+        public Object call(Scope scope, Object contextObj, Object[] extra) {
+            Expression thisObj = (Expression)scope.getThis();
+            return thisObj.resolve(scope, (Context)contextObj);
+        }
+    }
+    private static class isTrueFunc extends JSFunctionCalls1 {
+        public Object call(Scope scope, Object p0, Object[] extra) {
+            return isTrue(p0);
+        }
+    }
+    private static class toStringFunc extends JSFunctionCalls0 {
+        public Object call(Scope scope, Object[] extra) {
+            Expression thisObj = (Expression)scope.getThis();
+            return thisObj.toString();
+        }
+    }
+    
+    
+    //Constructors
     public static final JSFunction CONSTRUCTOR = new JSFunctionCalls1() {
         public Object call(Scope scope, Object expressionObj, Object[] extra) {
-            Expression thisObj = (Expression)scope.getThis();
-            thisObj.expression = expressionObj.toString();
-            thisObj.init();
-            return null;
-        }
-        public JSObject newOne() {
-            return new Expression();
+            throw new UnsupportedOperationException();
         }
         protected void init() {
             set("UNDEFINED_VALUE", UNDEFINED_VALUE);
-            set("is_true", new JSFunctionCalls1() {
-                public Object call(Scope scope, Object p0, Object[] extra) {
-                    return isTrue(p0);
-                }
-            });
-            set("resolve", new JSFunctionCalls1() {
-                public Object call(Scope scope, Object contextObj, Object[] extra) {
-                    Expression thisObj = (Expression)scope.getThis();
-                    return thisObj.resolve(scope, (Context)contextObj);
-                };
-            });
-            set("toString", new JSFunctionCalls0() {
-                public Object call(Scope scope, Object[] extra) {
-                    Expression thisObj = (Expression)scope.getThis();
-                    return thisObj.toString();
-                };
-            });
+            set("is_true", new isTrueFunc());
+            set("resolve", new resolveFunc());
+            set("toString", new toStringFunc());
         }
     };
 }

@@ -77,6 +77,16 @@ public class Djang10CompiledScript extends JSFunctionCalls1 {
                 
                 continue;
             }
+            
+            if(i+1 < oldTrace.length) {
+                String proxyName = oldTrace[i].getClassName() + "$" + oldTrace[i].getMethodName() + "Func";
+                if(proxyName.startsWith("ed.appserver.templates.djang10") && proxyName.equals(oldTrace[i+1].getClassName())) {
+                    newTrace.add(element);
+                    i++;
+                    continue;
+                }
+            }            
+            
             newTrace.add(element);
         }
         t.setStackTrace(newTrace.toArray(new StackTraceElement[0]));
