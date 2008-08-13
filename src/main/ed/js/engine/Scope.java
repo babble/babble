@@ -148,6 +148,8 @@ public final class Scope implements JSObject {
     }
 
     public Object removeField( String name ){
+        if ( _objects == null )
+            return null;
         return _objects.remove( name );
     }
     
@@ -159,8 +161,8 @@ public final class Scope implements JSObject {
         if ( _killed )
             throw new RuntimeException( "killed" );
 
-        if ( _objects == null )
-            _objects = new HashMap<String,Object>();
+        _ensureObjectMap();
+
         _mapSet( name , o );
     }
     
@@ -189,19 +191,17 @@ public final class Scope implements JSObject {
         }
         
         if ( local
+             || _global
              || _parent == null
              || _parent._locked 
              || ( _objects != null && _objects.containsKey( name ) )
-             || _global
              ){
             
             if ( o == null )
                 o = NULL;
-            if ( _objects == null )
-                _objects = new HashMap<String,Object>();
 
             Scope pref = getTLPreferred();
-
+            
             if ( pref != null ){
                 pref._mapSet( name , o );
                 return _fixNull( o );
@@ -219,6 +219,7 @@ public final class Scope implements JSObject {
     }
 
     private final void _mapSet( String name , Object o ){
+        _ensureObjectMap();
         _objects.put( name , o );
         if ( o instanceof JSObjectBase )
             ((JSObjectBase)o)._setName( name );
@@ -232,36 +233,12 @@ public final class Scope implements JSObject {
         return get( name , alt , null );
     }
     
-    public Object get( final String origName , Scope alt , JSObject with[] ){
-	return _get( origName , alt , with , 0  );
-    }
-    
-    private Object _get( final String origName , Scope alt , JSObject with[] , int depth ){
-        final Object r = _geti( origName , alt ,with , depth  );
-        if ( DEBUG ) {
-            System.out.println( "GET [" + origName + "] = " + r );
-            if ( r == null && depth == 0 )
-                debug();
-        }
-	
-	if ( r != null && _warnedObject != null && _warnedObject.contains( origName ) )
-	    ed.log.Logger.getRoot().getChild( "scope" ).warn( "using [" + origName + "] in scope" );
+    public Object get( String name , Scope alt , JSObject with[] ){
 
-        return r;
-    }
-    private Object _geti( final String origName , Scope alt , JSObject with[] , int depth ){
-
-        String name = origName;
         boolean noThis = false;
-
-        if ( name.equals( "__puts__" ) ){
-            noThis = true;
-            name = "print";
-        }
-
-        if ( "scope".equals( name ) ){
+        
+        if ( "scope".equals( name ) )
             return this;
-        }
 
         if ( "globals".equals( name ) ){
             Scope foo = this;
@@ -279,6 +256,32 @@ public final class Scope implements JSObject {
 
         if ( "__path__".equals( name ) )
             return ed.appserver.JSFileLibrary.findPath();
+
+
+        if ( name.equals( "__puts__" ) ){
+            noThis = true;
+            name = "print";
+        }
+
+	return _get( name , alt , with , noThis , 0 );
+    }
+    
+    private Object _get( final String origName , Scope alt , JSObject with[] , boolean noThis , int depth ){
+        final Object r = _geti( origName , alt ,with , noThis , depth  );
+        if ( DEBUG ) {
+            System.out.println( "GET [" + origName + "] = " + r );
+            if ( r == null && depth == 0 )
+                debug();
+        }
+	
+	if ( r != null && _warnedObject != null && _warnedObject.contains( origName ) )
+	    ed.log.Logger.getRoot().getChild( "scope" ).warn( "using [" + origName + "] in scope" );
+
+        return r;
+    }
+    private Object _geti( final String origName , Scope alt , JSObject with[] , boolean noThis , int depth ){
+
+        String name = origName;
 
         Scope pref = getTLPreferred();
         if ( pref != null && pref._objects.containsKey( name ) ){
@@ -357,7 +360,7 @@ public final class Scope implements JSObject {
             }
         }
 
-        return _parent._get( origName , alt , with , depth + 1 );
+        return _parent._get( origName , alt , with , noThis , depth + 1 );
     }
 
     private Object _getFromThis( JSObjectBase t , String name ){
@@ -378,7 +381,7 @@ public final class Scope implements JSObject {
     }
 
     public Object getOrThis( String name ){
-        return _get( name , null , null , 0  );
+        return _get( name , null , null , false , 0 );
     }
 
     public boolean isRuby(){
@@ -603,7 +606,8 @@ public final class Scope implements JSObject {
     public void reset(){
         if ( _locked )
             throw new RuntimeException( "can't reset locked scope" );
-        _objects.clear();
+        if ( _objects != null )
+            _objects.clear();
         _this.clear();
     }
 
@@ -832,9 +836,7 @@ public final class Scope implements JSObject {
         if ( s._objects == null )
             return;
         
-        if ( _objects == null )
-            _objects = new HashMap<String,Object>();
-
+        _ensureObjectMap();
         _objects.putAll( s._objects );
     }
 
@@ -894,6 +896,11 @@ public final class Scope implements JSObject {
 	if ( ! ed.security.Security.isCoreJS() )
 	    throw new RuntimeException( "you can't set scope root" );
 	_root = new File( dir );
+    }
+
+    private void _ensureObjectMap(){
+        if ( _objects == null )
+            _objects = new HashMap<String,Object>();
     }
 
     final String _name;
