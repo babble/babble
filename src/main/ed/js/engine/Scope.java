@@ -148,6 +148,8 @@ public final class Scope implements JSObject {
     }
 
     public Object removeField( String name ){
+        if ( _objects == null )
+            return null;
         return _objects.remove( name );
     }
     
@@ -159,8 +161,8 @@ public final class Scope implements JSObject {
         if ( _killed )
             throw new RuntimeException( "killed" );
 
-        if ( _objects == null )
-            _objects = new HashMap<String,Object>();
+        _ensureObjectMap();
+
         _mapSet( name , o );
     }
     
@@ -189,19 +191,17 @@ public final class Scope implements JSObject {
         }
         
         if ( local
+             || _global
              || _parent == null
              || _parent._locked 
              || ( _objects != null && _objects.containsKey( name ) )
-             || _global
              ){
             
             if ( o == null )
                 o = NULL;
-            if ( _objects == null )
-                _objects = new HashMap<String,Object>();
 
             Scope pref = getTLPreferred();
-
+            
             if ( pref != null ){
                 pref._mapSet( name , o );
                 return _fixNull( o );
@@ -219,6 +219,7 @@ public final class Scope implements JSObject {
     }
 
     private final void _mapSet( String name , Object o ){
+        _ensureObjectMap();
         _objects.put( name , o );
         if ( o instanceof JSObjectBase )
             ((JSObjectBase)o)._setName( name );
@@ -605,7 +606,8 @@ public final class Scope implements JSObject {
     public void reset(){
         if ( _locked )
             throw new RuntimeException( "can't reset locked scope" );
-        _objects.clear();
+        if ( _objects != null )
+            _objects.clear();
         _this.clear();
     }
 
@@ -834,9 +836,7 @@ public final class Scope implements JSObject {
         if ( s._objects == null )
             return;
         
-        if ( _objects == null )
-            _objects = new HashMap<String,Object>();
-
+        _ensureObjectMap();
         _objects.putAll( s._objects );
     }
 
@@ -896,6 +896,11 @@ public final class Scope implements JSObject {
 	if ( ! ed.security.Security.isCoreJS() )
 	    throw new RuntimeException( "you can't set scope root" );
 	_root = new File( dir );
+    }
+
+    private void _ensureObjectMap(){
+        if ( _objects == null )
+            _objects = new HashMap<String,Object>();
     }
 
     final String _name;
