@@ -19,5 +19,5 @@ local.src.test.ed.lang.python.callable1py();
 assert( pyFoo.isCallable() );
 assert( ! pyBar.isCallable() );
 
-assert( Foo.isCallable() );
 assert( pyCallable.isCallable() );
+assert( pyCallable2.isCallable() );
