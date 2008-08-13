@@ -322,6 +322,9 @@ public class JSInternalFunctions extends JSNumericFunctions {
         if ( _charEQ( a , b ) || _charEQ( b , a ) )
             return true;
 
+        if( a instanceof E4X.ENode || b instanceof E4X.ENode )
+            return a.toString().equals( b.toString() );
+
         return false;
     }
 

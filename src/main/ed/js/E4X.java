@@ -30,7 +30,7 @@ import ed.util.*;
 
 public class E4X {
 
-    public static JSFunction _cons = new Cons();
+    public static JSFunction _cons = new XML();
     public static JSFunction _ns = new NamespaceCons();
 
     public static class NamespaceCons extends JSFunctionCalls1 {
@@ -53,7 +53,7 @@ public class E4X {
         }
     }
 
-    public static class Cons extends JSFunctionCalls1 {
+    public static class XML extends JSFunctionCalls1 {
 
         public JSObject newOne(){
             return new ENode();
@@ -71,76 +71,99 @@ public class E4X {
             return e;
         }
 
-        protected void init() {
-
-            final JSFunctionCalls1 bar = this;
-
-            set( "settings" , new JSFunctionCalls0(){
-                    public Object call( Scope s, Object foo[] ){
-                        JSObjectBase sets = new JSObjectBase();
-                        sets.set("ignoreComments", bar.get("ignoreComments"));
-                        sets.set("ignoreProcessingInstructions", bar.get("ignoreProcessingInstructions"));
-                        sets.set("ignoreWhitespace", bar.get("ignoreWhitespace"));
-                        sets.set("prettyPrinting", bar.get("prettyPrinting"));
-                        sets.set("prettyIndent", bar.get("prettyIndent"));
-                        return sets;
-                    }
-                } );
-
-            set( "setSettings", new JSFunctionCalls0() {
-                    public Object call( Scope s, Object foo[] ){
-                        JSObject settings = new JSObjectBase();
-                        if(foo.length > 0 && foo[0] instanceof JSObjectBase) {
-                            settings = (JSObject)foo[0];
-                            Object setting = settings.get("ignoreComments");
-                            if(setting != null && setting instanceof Boolean) {
-                                bar.set( "ignoreComments" , ((Boolean)setting).booleanValue());
-                            }
-                            setting = settings.get("ignoreProcessingInstructions");
-                            if(setting != null && setting instanceof Boolean)
-                                bar.set( "ignoreProcessingInstructions" , ((Boolean)setting).booleanValue());
-                            setting = settings.get("ignoreWhitespace");
-                            if(setting != null && setting instanceof Boolean)
-                                bar.set( "ignoreWhitespace" , ((Boolean)setting).booleanValue());
-                            setting = settings.get("prettyPrinting");
-                            if(setting != null && setting instanceof Boolean)
-                                bar.set( "prettyPrinting" , ((Boolean)setting).booleanValue());
-                            setting = settings.get("prettyIndent");
-                            if(setting != null && setting instanceof Integer)
-                                bar.set( "prettyIndent" , ((Integer)setting).intValue());
-                        }
-                        else {
-                            bar.set( "ignoreComments" , true);
-                            bar.set( "ignoreProcessingInstructions" , true);
-                            bar.set( "ignoreWhitespace" , true);
-                            bar.set( "prettyPrinting" , true);
-                            bar.set( "prettyIndent" , 2);
-                        }
-                        return null;
-                    }
-                } );
-
-            set( "defaultSettings" , new JSFunctionCalls0(){
-                    public Object call( Scope s, Object foo[] ){
-                        JSObjectBase sets = new JSObjectBase();
-                        sets.set("ignoreComments", true);
-                        sets.set("ignoreProcessingInstructions", true);
-                        sets.set("ignoreWhitespace", true);
-                        sets.set("prettyPrinting", true);
-                        sets.set("prettyIndent", 2);
-                        return sets;
-                    }
-                } );
-
-            set( "ignoreComments" , true);
-            set( "ignoreProcessingInstructions" , true);
-            set( "ignoreWhitespace" , true);
-            set( "prettyPrinting" , true);
-            set( "prettyIndent" , 2);
-
-            _prototype.dontEnumExisting();
+        public Object get( Object o ) {
+            if( o.toString().equals( "ignoreComments" ) )
+                return E4X.ignoreComments;
+            if( o.toString().equals( "ignoreWhitespace" ) )
+                return E4X.ignoreWhitespace;
+            if( o.toString().equals( "ignoreProcessingInstructions" ) )
+                return E4X.ignoreProcessingInstructions;
+            if( o.toString().equals( "prettyPrinting" ) )
+                return E4X.prettyPrinting;
+            if( o.toString().equals( "prettyIndent" ) )
+                return E4X.prettyIndent;
+            return null;
         }
-    };
+
+        public Object set( Object o, Object v ) {
+            if( o.toString().equals( "ignoreComments" ) )
+                E4X.ignoreComments = Boolean.parseBoolean( v.toString() );
+            if( o.toString().equals( "ignoreWhitespace" ) )
+                E4X.ignoreWhitespace = Boolean.parseBoolean( v.toString() );
+            if( o.toString().equals( "ignoreProcessingInstructions" ) )
+                E4X.ignoreProcessingInstructions = Boolean.parseBoolean( v.toString() );
+            if( o.toString().equals( "prettyPrinting" ) )
+                E4X.prettyPrinting = Boolean.parseBoolean( v.toString() );
+            if( o.toString().equals( "prettyIndent" ) )
+                E4X.prettyIndent = Integer.parseInt( v.toString() );
+            return v;
+        }
+
+        public static JSObject settings() {
+            return E4X.settings();
+        }
+
+        public static void setSettings( JSObject obj ) {
+            E4X.setSettings( obj );
+        }
+
+        public static JSObject defaultSettings() {
+            return E4X.defaultSettings();
+        }
+
+    }
+
+
+    public static JSObject settings() {
+        JSObjectBase sets = new JSObjectBase();
+        sets.set("ignoreComments", ignoreComments);
+        sets.set("ignoreProcessingInstructions", ignoreProcessingInstructions);
+        sets.set("ignoreWhitespace", ignoreWhitespace);
+        sets.set("prettyPrinting", prettyPrinting);
+        sets.set("prettyIndent", prettyIndent);
+        return sets;
+    }
+
+    public static void setSettings() {
+        setSettings(null);
+    }
+
+    public static void setSettings( JSObject settings ) {
+        if( settings == null ) {
+            ignoreComments = true;
+            ignoreProcessingInstructions = true;
+            ignoreWhitespace = true;
+            prettyPrinting = true;
+            prettyIndent = 2;
+            return;
+        }
+
+        Object setting = settings.get("ignoreComments");
+        if(setting != null && setting instanceof Boolean)
+            ignoreComments = ((Boolean)setting).booleanValue();
+        setting = settings.get("ignoreProcessingInstructions");
+        if(setting != null && setting instanceof Boolean)
+            ignoreProcessingInstructions = ((Boolean)setting).booleanValue();
+        setting = settings.get("ignoreWhitespace");
+        if(setting != null && setting instanceof Boolean)
+            ignoreWhitespace = ((Boolean)setting).booleanValue();
+        setting = settings.get("prettyPrinting");
+        if(setting != null && setting instanceof Boolean)
+            prettyPrinting = ((Boolean)setting).booleanValue();
+        setting = settings.get("prettyIndent");
+        if(setting != null && setting instanceof Integer)
+            prettyIndent = ((Integer)setting).intValue();
+    }
+
+    public static JSObject defaultSettings() {
+        JSObjectBase sets = new JSObjectBase();
+        sets.set("ignoreComments", true);
+        sets.set("ignoreProcessingInstructions", true);
+        sets.set("ignoreWhitespace", true);
+        sets.set("prettyPrinting", true);
+        sets.set("prettyIndent", 2);
+        return sets;
+    }
 
     public static boolean ignoreComments = true;
     public static boolean ignoreProcessingInstructions = true;
@@ -166,7 +189,8 @@ public class E4X {
         }
 
         private ENode( Node n, ENode parent, List<ENode> children ) {
-            if( n != null && children == null &&
+            if( n != null &&
+                children == null &&
                 n.getNodeType() != Node.TEXT_NODE &&
                 n.getNodeType() != Node.ATTRIBUTE_NODE )
                 this.children = new LinkedList<ENode>();
@@ -289,8 +313,9 @@ public class E4X {
 		Query q = (Query)n;
 		List<ENode> matching = new ArrayList<ENode>();
 		for ( ENode theNode : children ){
-		    if ( q.match( theNode ) )
+		    if ( q.match( theNode ) ) {
 			matching.add( theNode );
+                    }
 		}
 		return _handleListReturn( matching );
             }
@@ -304,6 +329,17 @@ public class E4X {
 
             if( k.toString().startsWith("@") )
                 return setAttribute(k.toString(), v.toString());
+
+            // attach any dummy ancestors to the tree
+            if( this._dummy ) {
+                ENode topParent = this;
+                this._dummy = false;
+                while( topParent.parent._dummy ) {
+                    topParent = topParent.parent;
+                    topParent._dummy = false;
+                }
+                topParent.parent.children.add(topParent);
+            }
 
             // if v is already XML and it's not an XML attribute, just add v to this enode's children
             if( v instanceof ENode ) {
@@ -320,11 +356,14 @@ public class E4X {
             // find out if this k/v pair exists
             ENode n;
             Object obj = get(k);
-            if( obj == null || obj instanceof ENode )
-                n = (ENode)obj;
-            else
+            if( obj instanceof ENode )
+                n = ( ENode )obj;
+            else {
                 n = (( ENodeFunction )obj).cnode;
-
+                if( n == null ) {
+                    n = new ENode();
+                }
+            }
 
             Pattern num = Pattern.compile("-?\\d+");
             Matcher m = num.matcher(k.toString());
@@ -337,31 +376,35 @@ public class E4X {
                     return v;
 
                 // this index is greater than the number of elements existing
-                if( index > n.children.size() ) {
+                if( index >= n.children.size() ) {
                     Node content;
                     if(this.node != null)
                         content = this.node.getOwnerDocument().createTextNode(v.toString());
                     else if(this.children != null && this.children.size() > 0)
                         content = this.children.get(0).node.getOwnerDocument().createTextNode(v.toString());
-                    // if there is no node or children, we're trying to create an element too deep
                     else
-                        return v;
+                        return null;
 
-                    if( this._dummy ) {
-                        this.node.appendChild(content);
-                        this.parent.node.appendChild(this.node);
-                        appendChild(this.node, this.parent);
+                    if( n._dummy ) {
+                        ENode rep = this.parent == null ? this.children.get(this.children.size()-1) : this;
+                        ENode attachee = rep.parent;
+                        n.node = rep.node.getOwnerDocument().createElement(rep.node.getNodeName());
+                        n.children.add( new ENode( content, n ) );
+                        attachee.children.add( rep.childIndex()+1, n );
+                        n._dummy = false;
                     }
                     else {
-                        Node newNode = this.children.get(0).node.getOwnerDocument().createElement(this.children.get(0).node.getNodeName());
+                        Node newNode;
+                        ENode refNode = ( this.node == null ) ? this.children.get( this.children.size() - 1 ) : this.parent;
+                        newNode = refNode.node.getOwnerDocument().createElement(refNode.node.getNodeName());
                         newNode.appendChild(content);
 
                         ENode newEn = new ENode(newNode, this);
                         buildENodeDom(newEn);
 
                         // get the last sibling's position & insert this new one there
-                        int childIdx = this.children.get(this.children.size()-1).childIndex();
-                        this.children.get(0).parent.children.add( childIdx+1, newEn );
+                        int childIdx = refNode.childIndex();
+                        refNode.parent.children.add( childIdx+1, newEn );
                     }
                 }
                 // replace an existing element
@@ -378,24 +421,26 @@ public class E4X {
             }
             // k must be a string
             else {
-                int index = children.size();
-                // if there is more than one matching child, delete them all and replace with the new k/v
-                for( int i = 0; n != null && n.children != null && i < n.children.size(); i++ ) {
-                    index = children.indexOf( n.children.get(i) );
-                    children.remove( n.children.get(i) );
-                }
-
+                // XMLList
                 if(this.node == null ) {
                     return v;
                 }
+                int index = this.children.size();
 
-                Node newNode = node.getOwnerDocument().createElement(k.toString());
+                if( n.node == null ) {
+                    // if there is more than one matching child, delete them all and replace with the new k/v
+                    while( n != null && n.children != null && n.children.size() > 0 ) {
+                        index = this.children.indexOf( n.children.get(0) );
+                        this.children.remove( n.children.get(0) );
+                        n.children.remove( 0 );
+                    }
+                    n.node = node.getOwnerDocument().createElement(k.toString());
+                }
+
                 Node content = node.getOwnerDocument().createTextNode(v.toString());
-                newNode.appendChild(content);
-
-                ENode newEn = new ENode(newNode, this);
-                buildENodeDom(newEn);
-                children.add( index, newEn );
+                n.children.add( new ENode( content, n ) );
+                if( !this.children.contains( n ) )
+                    this.children.add( index, n );
             }
             return v;
         }
@@ -506,8 +551,7 @@ public class E4X {
                 if( i < this.children.size() )
                     return (ENode)this.children.get(i);
                 else {
-                    ENode nud = (ENode)this.get(propertyName.toString());
-                    return nud;
+                    return new ENode( this, this.node == null ? null : this.node.getNodeName() );
                 }
             }
             else {
@@ -528,7 +572,6 @@ public class E4X {
         }
 
         private int childIndex() {
-            ENode parent = this.parent;
             if( parent == null || parent.node.getNodeType() == Node.ATTRIBUTE_NODE )
                 return -1;
 
@@ -569,19 +612,21 @@ public class E4X {
             return newNode;
         }
 
+        public ENode comments() {
+            ENode comments = new ENode();
+
+            for( ENode child : this.children ) {
+                if( child.node.getNodeType() == Node.COMMENT_NODE )
+                    comments.children.add( child );
+            }
+            return comments;
+        }
+
         public class comments extends ENodeFunction {
             public Object call( Scope s, Object foo[] ) {
                 Object obj = s.getThis();
                 ENode t = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                NodeList kids = t.node.getChildNodes();
-                List<ENode> comments = new LinkedList<ENode>();
-
-                for( int i=0; i<kids.getLength(); i++ ) {
-                    if(kids.item(i).getNodeType() == Node.COMMENT_NODE)
-                        comments.add(new ENode(kids.item(i)));
-                }
-
-                return new ENode(comments);
+                return t.comments();
             }
         }
 
@@ -978,21 +1023,22 @@ public class E4X {
          * So, the spec says that this should only return toString(prop) == "0".  However, the Rhino implementation returns true
          * whenever prop is a valid index, so I'm going with that.
          */
+        private boolean propertyIsEnumerable( String prop ) {
+            Pattern num = Pattern.compile("\\d+");
+            Matcher m = num.matcher(prop);
+            if( m.matches() ) {
+                ENode n = this.child(prop);
+                return !n._dummy;
+            }
+            return false;
+        }
+
         public class propertyIsEnumerable extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
                 Object obj = s.getThis();
                 ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-
                 String prop = foo[0].toString();
-                ENode n = (ENode)enode.get(prop);
-                if(n == null) return false;
-
-                Pattern num = Pattern.compile("\\d+");
-                Matcher m = num.matcher(prop);
-                if( m.matches() )
-                    return true;
-
-                return false;
+                return enode.propertyIsEnumerable( prop );
             }
         }
 
@@ -1180,20 +1226,19 @@ public class E4X {
             case Node.TEXT_NODE:
                 return _level(buf, level).append( E4X.prettyPrinting ? n.node.getNodeValue().trim() : n.node.getNodeValue() ).append("\n");
             case Node.COMMENT_NODE:
+                if( E4X.ignoreComments )
+                    return buf;
+                else
+                    return _level(buf, level).append( "<!--"+n.node.getNodeValue()+"-->" ).append("\n");
             case Node.PROCESSING_INSTRUCTION_NODE:
-                return buf;
+                if( E4X.ignoreProcessingInstructions )
+                    return buf;
+                else
+                    return _level(buf, level).append( "<?"+n.node.getNodeName() + attributesToString( n )+"?>").append("\n");
             }
 
             _level( buf , level ).append( "<" ).append( n.node.getNodeName() );
-            ArrayList<ENode> attr = n.getAttributes();
-            String[] attrArr = new String[attr.size()];
-            for( int i = 0; i< attr.size(); i++ ) {
-                attrArr[i] = " " + attr.get(i).node.getNodeName() + "=\"" + attr.get(i).node.getNodeValue() + "\"";
-            }
-            Arrays.sort(attrArr);
-            for( String a : attrArr ) {
-                buf.append( a );
-            }
+            buf.append(attributesToString( n ));
 
             List<ENode> kids = n.printableChildren();
             if ( kids == null || kids.size() == 0 ) {
@@ -1211,7 +1256,7 @@ public class E4X {
 
             for ( int i=0; i<kids.size(); i++ ){
                 ENode c = kids.get(i);
-                if( (E4X.ignoreComments && c.node.getNodeType() == Node.ATTRIBUTE_NODE ) ||
+                if( ( E4X.ignoreComments && c.node.getNodeType() == Node.ATTRIBUTE_NODE ) ||
                     ( E4X.ignoreComments && c.node.getNodeType() == Node.COMMENT_NODE ) ||
                     ( E4X.ignoreProcessingInstructions && c.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE ) )
                     continue;
@@ -1232,13 +1277,27 @@ public class E4X {
             return buf;
         }
 
+        private String attributesToString( ENode n ) {
+            StringBuilder buf = new StringBuilder();
+            ArrayList<ENode> attr = n.getAttributes();
+            String[] attrArr = new String[attr.size()];
+            for( int i = 0; i< attr.size(); i++ ) {
+                attrArr[i] = " " + attr.get(i).node.getNodeName() + "=\"" + attr.get(i).node.getNodeValue() + "\"";
+            }
+            Arrays.sort(attrArr);
+            for( String a : attrArr ) {
+                buf.append( a );
+            }
+            return buf.toString();
+        }
+
         private List<ENode> printableChildren() {
             List list = new LinkedList<ENode>();
             for ( int i=0; this.children != null && i<this.children.size(); i++ ){
                 ENode c = this.children.get(i);
                 if( c.node.getNodeType() == Node.ATTRIBUTE_NODE ||
-                    c.node.getNodeType() == Node.COMMENT_NODE ||
-                    c.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE )
+                    ( c.node.getNodeType() == Node.COMMENT_NODE && E4X.ignoreComments ) ||
+                    ( c.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE && E4X.ignoreProcessingInstructions ) )
                     continue;
                 list.add(c);
             }
@@ -1367,7 +1426,6 @@ public class E4X {
                 if ( cnode == null ) {
                     cnode = (ENode)E4X._nodeGet(ENode.this, this.getClass().getSimpleName());
                 }
-
                 return cnode.get( n );
             }
 
@@ -1398,6 +1456,10 @@ public class E4X {
         private QName name;
     }
 
+    /*    static class XMLList implements List {
+        private List<ENode> nodes;
+    }
+    */
     static Object _nodeGet( ENode start , String s ){
         List<ENode> ln = new LinkedList<ENode>();
         if( start.node == null )
@@ -1465,10 +1527,7 @@ public class E4X {
 	    return null;
 
 	if ( lst.size() == 1 ){
-            ENode n = lst.get(0);
-            if ( n.node instanceof Attr )
-                return n.node.getNodeValue();
-	    return n;
+            return lst.get(0);
         }
         return new ENode(lst);
     }
@@ -1492,7 +1551,13 @@ public class E4X {
 	}
 
 	boolean match( ENode n ){
-	    return JSInternalFunctions.JS_eq( _nodeGet( n , _what ) , _match );
+            ENode result = (ENode)n.get( _what );
+            if( result._dummy )
+                return false;
+            if( result.node.getNodeType() == Node.ATTRIBUTE_NODE )
+                return result.node.getNodeValue().equals( _match.toString() );
+            else
+                return JSInternalFunctions.JS_eq( _nodeGet( n , _what ) , _match );
 	}
 
 	public String toString(){

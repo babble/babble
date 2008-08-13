@@ -1,8 +1,45 @@
-<schools>
-  <elementary/>
+<schools id="0">
+  <elementary grades="k6"/>
   <middle>zap</middle>
+  <!-- lalalalala -->
   <highschool attr="zap">bar</highschool>
   <college>
-    <foo>myfoo</foo>
+    <foo bar="zap">myfoo</foo>
+    <!-- no mr. bond, i expect you to die -->
   </college>
+  <!-- that's all for now, folks!' -->
 </schools>
+attributes
+k6
+zap
+0
+zap
+----
+0
+zap
+<!-- no mr. bond, i expect you to die -->
+null
+<foo>
+  <bar>hi</bar>
+</foo>
+element
+<schools id="0">
+  <elementary grades="k6"/>
+  <middle>zap</middle>
+  <!-- lalalalala -->
+  <highschool attr="zap">bar</highschool>
+  <college>
+    <foo bar="zap">myfoo</foo>
+    <!-- no mr. bond, i expect you to die -->
+  </college>
+  <!-- that's all for now, folks!' -->
+  <foo>
+    <bar>hi</bar>
+  </foo>
+  <foo>bye</foo>
+</schools>
+true
+true
+false
+false
+false
