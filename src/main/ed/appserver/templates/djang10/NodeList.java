@@ -53,7 +53,7 @@ public class NodeList extends JSArray {
         for (Object nodeObj : this) {
             JSObject node = (JSObject) nodeObj;
             JSFunction fn = (JSFunction) node.get("get_nodes_by_type");
-            NodeList childNodes = (NodeList) fn.callAndSetThis(scope.child(), node, new Object[] { constructor });
+            JSArray childNodes = (JSArray) fn.callAndSetThis(scope.child(), node, new Object[] { constructor });
             nodelist.addAll((List) childNodes);
         }
         return nodelist;
