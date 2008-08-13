@@ -1,0 +1,2 @@
+source webtest-config.bash
+

@@ -17,6 +17,7 @@
 package ed.appserver.templates.djang10;
 
 import ed.js.Encoding;
+import ed.js.JSArray;
 import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.JSObjectBase;
@@ -60,11 +61,11 @@ public class Node extends JSObjectBase {
         }
         
         //recurse through children
-        NodeList children = (NodeList) thisObj.get("nodelist");
+        JSArray children = (JSArray) thisObj.get("nodelist");
         if (children != null) {
             for (Object childObj : children) {
                 JSFunction child_fn = (JSFunction)((JSObject)childObj).get("get_nodes_by_type");
-                NodeList childNodes = (NodeList)child_fn.callAndSetThis(scope.child(), childObj, new Object[] { constructor });
+                JSArray childNodes = (JSArray)child_fn.callAndSetThis(scope.child(), childObj, new Object[] { constructor });
                 nodelist.addAll(childNodes);
             }
         }

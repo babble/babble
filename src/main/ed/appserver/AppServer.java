@@ -431,7 +431,7 @@ public class AppServer implements HttpHandler {
                 StackTraceElement[] currentTrace = t.getStackTrace();
                 
                 int m = currentTrace.length-1, n = parentTrace.length-1;
-                while (m >= 0 && n >=0 && currentTrace[m].equals(currentTrace[n])) {
+                while (m >= 0 && n >=0 && currentTrace[m].equals(parentTrace[n])) {
                     m--; n--;
                 }
                 int framesInCommon = currentTrace.length - 1 - m;

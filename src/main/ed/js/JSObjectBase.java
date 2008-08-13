@@ -479,12 +479,33 @@ public class JSObjectBase implements JSObject {
      * @return If the string is a key.
      */
     public boolean containsKey( String s ){
+        return containsKey( s , true );
+    }
+
+    public boolean containsKey( String s , boolean includePrototype){
         prefunc();
         if ( _map != null && _map.containsKey( s ) )
             return true;
 
-        if ( _constructor != null && _constructor._prototype.containsKey( s ) )
-            return true;
+        if ( includePrototype == false || _constructor == null ) return false;
+
+        IdentitySet<JSObjectBase> seen = new IdentitySet<JSObjectBase>();
+
+        JSObjectBase start = _constructor._prototype;
+
+        while ( start != null ){
+            if ( seen.contains( start ) )
+                break;
+
+            if( start.containsKey( s , false ) )
+                return true;
+
+            seen.add( start );
+
+            if ( start._constructor == null )
+                break;
+            start = start._constructor._prototype;
+        }
 
         return false;
     }
@@ -510,9 +531,20 @@ public class JSObjectBase implements JSObject {
 	    keys.addAll( _keys );
         
         if ( includePrototype && _constructor != null ){
-            JSObject p = _constructor.getPrototype();
-            if ( p != null && ! JSInternalFunctions.JS_evalToBool( p.get( "_dontEnum" ) ) ){
-                keys.addAll( _constructor.getPrototype().keySet() );
+
+            IdentitySet<JSObjectBase> seen = new IdentitySet<JSObjectBase>();
+            JSObjectBase start = _constructor._prototype;
+
+            while ( start != null && ! JSInternalFunctions.JS_evalToBool( start.get( "_dontEnum" ) ) ){
+                if ( seen.contains( start ) )
+                    break;
+
+                keys.addAll( start.keySet( false ) );
+                seen.add( start );
+                
+                if ( start._constructor == null )
+                    break;
+                start = start._constructor._prototype;
             }
         }
 

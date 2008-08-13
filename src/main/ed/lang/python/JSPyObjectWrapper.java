@@ -54,6 +54,13 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
         return _p;
     }
     
+    public boolean isCallable(){
+        // All python objects are *potentially* callable, so we subclass
+        // JSFunction.
+        // This function checks whether the wrapped object is callable.
+        return __builtin__.callable( _p );
+    }
+
     public Object set( Object n , Object v ){
         if( _p == null && n.equals( "prototype" ) ){
             if( DEBUG )
