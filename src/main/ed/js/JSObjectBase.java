@@ -510,9 +510,20 @@ public class JSObjectBase implements JSObject {
 	    keys.addAll( _keys );
         
         if ( includePrototype && _constructor != null ){
-            JSObject p = _constructor.getPrototype();
-            if ( p != null && ! JSInternalFunctions.JS_evalToBool( p.get( "_dontEnum" ) ) ){
-                keys.addAll( _constructor.getPrototype().keySet() );
+
+            IdentitySet<JSObjectBase> seen = new IdentitySet<JSObjectBase>();
+            JSObjectBase start = _constructor._prototype;
+
+            while ( start != null && ! JSInternalFunctions.JS_evalToBool( start.get( "_dontEnum" ) ) ){
+                if ( seen.contains( start ) )
+                    break;
+
+                keys.addAll( start.keySet() );
+                seen.add( start );
+                
+                if ( start._constructor == null )
+                    break;
+                start = start._constructor._prototype;
             }
         }
 
