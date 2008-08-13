@@ -22,11 +22,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+import ed.appserver.JSFileLibrary;
 import ed.ext.org.mozilla.javascript.CompilerEnvirons;
 import ed.ext.org.mozilla.javascript.Node;
 import ed.ext.org.mozilla.javascript.ScriptOrFnNode;
 import ed.ext.org.mozilla.javascript.Token;
-
 import ed.js.JSArray;
 import ed.js.JSException;
 import ed.js.JSFunction;
@@ -35,10 +35,10 @@ import ed.js.JSNumericFunctions;
 import ed.js.JSObject;
 import ed.js.JSObjectBase;
 import ed.js.JSString;
-import ed.js.engine.JSCompiledScript;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
 import ed.js.func.JSFunctionCalls1;
+import ed.lang.python.JSPyObjectWrapper;
 
 public class Expression extends JSObjectBase {
     public final static Object UNDEFINED_VALUE = new Object() {
@@ -167,7 +167,14 @@ public class Expression extends JSObjectBase {
             if(val == null)
                 val = obj.containsKey(prop.toString()) ? null : UNDEFINED_VALUE;
             
-            if (autoCall && val instanceof JSFunction && !(val instanceof JSCompiledScript) && !(val instanceof Djang10CompiledScript)) {
+            if (autoCall 
+                    && (val instanceof JSFunction)
+                    && ( 
+                        !(val instanceof JSPyObjectWrapper) 
+                        || ((JSPyObjectWrapper)val).isCallable()
+                        )
+                    ) {
+
                 try {
                     val = ((JSFunction)val).callAndSetThis(scope.child(), obj, new Object[0]);
                 }
@@ -257,9 +264,13 @@ public class Expression extends JSObjectBase {
                 }
             }
             
-            if (autoCall && lookupValue instanceof JSFunction 
-                && ! ( lookupValue instanceof JSCompiledScript)
-                && ! ( lookupValue instanceof ed.lang.python.JSPyObjectWrapper ) // TODO: this is wrong, but was needed otherwise it called everything
+            if (autoCall 
+                && (lookupValue instanceof JSFunction)
+                && !(lookupValue instanceof JSFileLibrary)
+                && ( 
+                    !(lookupValue instanceof JSPyObjectWrapper)
+                    || ((JSPyObjectWrapper)lookupValue).isCallable()
+                    )
                 )
                 lookupValue = ((JSFunction) lookupValue).call(scope.child());
             return lookupValue;
