@@ -243,8 +243,8 @@ public class Scope implements JSObject {
                 debug();
         }
 	
-	if ( r != null && _warnedObject != null && _warnedObject.contains( origName ) )
-	    ed.log.Logger.getRoot().getChild( "scope" ).warn( "using [" + origName + "] in scope" );
+//	if ( r != null && _warnedObject != null && _warnedObject.contains( origName ) )
+//	    ed.log.Logger.getRoot().getChild( "scope" ).warn( "using [" + origName + "] in scope" );
 
         return r;
     }
