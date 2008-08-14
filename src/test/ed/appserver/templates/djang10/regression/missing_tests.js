@@ -90,4 +90,13 @@ tests=[                                                                         
        { name: "if-method chain02", content: '{% autoescape off %}{% if foo.add(x).prop %}true{% endif %}{% endautoescape %}', model: { foo: new OtherClass2(3), x: new OtherClass2(5) }, results: "true" },
        
        { name: "if-allow spaces01", content: '{% autoescape off %}{% if foo   .   add(   x    )   .   prop    %}true{% endif %}{% endautoescape %}', model: { foo: new OtherClass2(3), x: new OtherClass2(5) }, results: "true" },
+       
+       //same as the regular django tests but takes into account that js & python have different type representionations
+       { name: "filter-make_list-jsout01", content: "{% autoescape off %}{{ a|make_list }}{% endautoescape %}", model: { "a": djang10.mark_safe("&") }, results: "&" },
+       { name: "filter-make_list-jsout02", content: "{{ a|make_list }}", model: { "a": djang10.mark_safe("&") }, results: "&amp;" },
+       { name: "filter-make_list-jsout03", content: "{% autoescape off %}{{ a|make_list|stringformat:\"s\"|safe }}{% endautoescape %}", model: { "a": djang10.mark_safe("&") }, results: "&" },
+       { name: "filter-make_list-jsout04", content: "{{ a|make_list|stringformat:\"s\"|safe }}", model: { "a": djang10.mark_safe("&") }, results: "&" },
+       
+       { name: "filter-make_list-jsout-extra01", content: "{% autoescape off %}{{ a|make_list }}{% endautoescape %}", model: { "a": djang10.mark_safe("&&&") }, results: "&,&,&" },
+       { name: "filter-make_list-jsout-extra02", content: "{{ a|make_list }}", model: { "a": djang10.mark_safe("&&&") }, results: "&amp;,&amp;,&amp;" },
 ];
