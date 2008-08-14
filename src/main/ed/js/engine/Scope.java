@@ -76,7 +76,9 @@ public final class Scope implements JSObject {
         _parent = parent;
         _root = root;
         _lang = lang;
-
+    
+        _maybeWritableGlobal = getGlobal( false );
+    
         {
             Object pt = alternate == null ? null : alternate.getThis( false );
             if ( pt instanceof JSObjectBase )
@@ -346,18 +348,16 @@ public final class Scope implements JSObject {
             }
         }
                 
-        if ( depth == 0 && ! name.equals( "print" ) ){ // TODO: this is a hack for ruby right now...
-            if ( _possibleThis != null ){
-                pt = _possibleThis;
-                foo = _getFromThis( _possibleThis , name );
+        if ( depth == 0 && _possibleThis != null && ! name.equals( "print" )  ){ // TODO: this is a hack for ruby right now...
+            pt = _possibleThis;
+            foo = _getFromThis( _possibleThis , name );
+            
+            if ( foo != null ){
                 
-                if ( foo != null ){
-                    
-                    if ( foo instanceof JSFunction && with != null )
-                        with[0] = pt;
-                    
-                    return foo;
-                }
+                if ( foo instanceof JSFunction && with != null )
+                    with[0] = pt;
+                
+                return foo;
             }
         }
 
@@ -400,10 +400,13 @@ public final class Scope implements JSObject {
     }
 
     public final Scope getGlobal(){
-	return getGlobal( false );
+        return _maybeWritableGlobal;
     }
     
     public final Scope getGlobal( boolean writable ){
+        if ( ! writable && _maybeWritableGlobal != null )
+            return _maybeWritableGlobal;
+
         if ( _killed )
             return _parent.getGlobal();
         if ( _global )
@@ -908,6 +911,7 @@ public final class Scope implements JSObject {
 
     final String _name;
     final Scope _parent;
+    final Scope _maybeWritableGlobal;
     final Scope _alternate;
     final JSObjectBase _possibleThis;
     final Language _lang;
