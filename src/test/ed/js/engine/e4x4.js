@@ -33,6 +33,7 @@ print(xml);
 xml.blah[0].@id = "4";
 xml.blah[1].@foo = "bar";
 xml.name = "me";
+xml.name.@attr="foo";
 xml.@name = "me2"
 
 print(xml);
@@ -42,4 +43,5 @@ print(xml.blah[1].@foo);
 
 delete xml.blah;
 
+delete xml.@name;
 print(xml);
