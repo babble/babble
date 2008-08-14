@@ -18,7 +18,7 @@ public final class FastStringMap implements Map<String,Object> {
     // -
         
     public Object put( final String key, final Object value ){
-        return put( key.hashCode() , key.toString() , value );
+        return put( key.hashCode() , key , value );
     }
 
     public Object put( final int hash , final String key, final Object value){
@@ -48,6 +48,10 @@ public final class FastStringMap implements Map<String,Object> {
 
     public Object remove( final Object keyObj ){
         return remove( keyObj.hashCode() , keyObj.toString() );
+    }
+
+    public Object remove( final String key ){
+        return remove( key.hashCode() , key );
     }
     
     public Object remove( final int hash , final String key ){
@@ -257,6 +261,10 @@ public final class FastStringMap implements Map<String,Object> {
         return _size;
     } 
 
+    public boolean isEmpty(){
+        return _size == 0;
+    }
+
     private int _size = 0;
     private MyEntry[] _data;
     private final static int _maxChainLength = 1;
@@ -275,10 +283,6 @@ public final class FastStringMap implements Map<String,Object> {
         throw new UnsupportedOperationException();
     }
     
-    public boolean isEmpty(){
-        throw new UnsupportedOperationException();
-    }
-
     public void putAll(Map<? extends String,? extends Object> t){
         throw new UnsupportedOperationException();
     }
