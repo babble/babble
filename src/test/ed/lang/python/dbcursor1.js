@@ -14,32 +14,11 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-local.src.test.ed.lang.python.listPython();
+db = connect("pytest");
 
-var pyL = getList();
+db.coll.save( { funny: 1 } );
 
-assert( pyL.length == 2 );
+local.src.test.ed.lang.python.dbcursor1py();
 
-assert( pyL.some( function(x){ return x == 1; } ) );
-assert( pyL.every( function(x){ return x > 0; } ) );
-
-pyL.push(8);
-
-assert( pyGetLength(pyL) == 3 );
-assert( pyCheckEven(pyL, 2) );
-
-pyL.push(9);
-
-var i = 0;
-for( key in pyL ){
-    assert( key == i , 'iterating is broken -- #'+i+' key is '+ key );
-    ++i;
-}
-assert( i == pyL.length , 'wrong number of keys; ' + i + ' found, should be ' + pyL.length );
-
-assert( ! pyCheckEven(pyL, 3) );
-
-var jsA = [1, 3, 5];
-
-assert( pyManipList(jsA) );
+db.coll.remove( { } );
 

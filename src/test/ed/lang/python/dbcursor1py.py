@@ -14,24 +14,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-__pyL = [1, 2];
+cursor = db.coll.find()
 
-def getList():
-    return __pyL
-
-def pyManipList(l): # expecting [1, 3, 5]
-    if len([x for x in l if x % 3 == 0]) != 1: return False
-
-    if l.count(3) != 1: return False
-
-
-    return True
-
-def pyGetLength(l):
-    return len(l)
-
-def pyCheckEven(l, n):
-    return l[n] % 2 == 0
-
-def pyGetSecretLength():
-    return len(__pyL)
+local.src.test.ed.lang.python.dbcursor1dj({
+        'result': {
+            'search_results' : cursor.toArray()
+            }
+        })

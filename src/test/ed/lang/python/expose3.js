@@ -65,3 +65,6 @@ assert(e);
 assert( c3( 1 ) == 22 );
 
 assert( pyc1( 1, 4, 9, 16 ) == 9 );
+
+assert( object == null , "python builtin leaked into JS scope");
+assert( str == null , "python builtin leaked into JS scope" );

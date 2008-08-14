@@ -27,3 +27,8 @@ def pythonExtend(cls):
     cls.pyMeth = method
 
     cls.pyList = [-1, 2, -3];
+
+
+pyStr = str   # deliberately expose
+pyCallable = callable
+pyObject = object

@@ -24,14 +24,13 @@ var y = "bar";
 var z = "zap";
 var attrname = "attr";
 
-//<?xml-stylesheet href="my.css" type="text/css"?>
-var xml = <schools id="0">
+var xml = <schools id="0"><?xml-stylesheet href="my.css" type="text/css"?>
   <elementary grades="k6" />
   <middle>{z}</middle>
   <!-- lalalalala -->
   <highschool {attrname}={z}>{y}</highschool>
   <college><{x} {y}={z}>myfoo</{x}><!-- no mr. bond, i expect you to die --></college>
-  <!-- that's all for now, folks!' -->
+  <!-- thats all for now, folks! -->
 </schools>;
 
 print(xml);
@@ -42,7 +41,7 @@ print( xml.elementary.attribute( "grades" ) );
 print( xml.highschool.attribute( "attr" ) );
 print( xml.attribute( "id" ) );
 print( xml.college[x].attribute( y ) );
-//print( xml.attribute( "err" ) );
+print( xml.attribute( "err" ) );
 
 print( "----" );
 //attributes
@@ -50,12 +49,18 @@ print( xml.attributes() );
 print( xml.college[x].attributes() );
 
 //comments
-//print( xml.comments() );
-//print( xml.highschool.comments() );
+// okay, this is funky.  
+// spidermonkey doesn't print the list of comments, although it generates them correctly.  
+// So, before I had print(xml.comments()) which printed a list of comments for me and "" for 
+// spidermonkey. 
+var c = xml.comments();
+print(c[0]);
+print(c[1]);
+print( xml.highschool.comments() );
 print( xml.college.comments() );
 
 //processingInstructions
-//print( xml.processingInstructions() );
+print( xml.processingInstructions() );
 
 //parent
 print( xml.parent() );

@@ -117,31 +117,15 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper {
     }
     
     public Collection<String> keySet( boolean includePrototype ){
-        throw new RuntimeException("not implemented");
-        /*
         List<String> keys = new ArrayList<String>();
-    
-        if ( _p instanceof PyDictionary ){
-            for ( Object o : ((PyDictionary)_p).keySet() )
-                keys.add( o.toString() );
-        }
-        else try {
-                for ( PyObject o : _p.asIterable() ){
-                    keys.add( o.toString() );
-                }
-                return keys;
-            }
-            catch( PyException e ){
-                PyObject dict = _p.getDict();
-                if( ! ( dict instanceof PyStringMap ) )
-                    throw new RuntimeException( "keySet() of weird __dict__ " + dict.getClass() + "; I give up" );
 
-                for ( Object o : ((PyStringMap)dict).keys() ){
-                    keys.add( o.toString() );
-                }
-            }
-        
-            return keys;*/
+        int n = _pSeq.__len__();
+
+        for( int i = 0 ; i < n ; ++i ){
+            keys.add( Integer.toString( i ) );
+        }
+
+        return keys;
     }
     
     public String toString(){
