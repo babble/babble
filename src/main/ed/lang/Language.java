@@ -37,7 +37,9 @@ public enum Language {
             return JS;
 
         if ( extension.equals( "rb" )
-             || extension.equals( "rhtml" ) )
+             || extension.equals( "erb" )
+             || extension.equals( "rhtml" )
+             || extension.equals( "rbx" ) )
             return RUBY;
 
         if ( extension.equals( "php" ) )
