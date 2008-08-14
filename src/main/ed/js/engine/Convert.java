@@ -749,6 +749,23 @@ public class Convert implements StackTraceFixer {
             _add( n.getFirstChild().getNext() , state );
             _append( " ) " , n );
             break;
+
+        case Token.DEL_REF:
+            Node rm = n.getFirstChild();
+
+            _append( "((JSObject)" , n );
+            _add( rm.getFirstChild() , state );
+            _append( ").removeField( " , n );
+            
+            final int memberTypeFlags = rm.getIntProp(Node.MEMBER_TYPE_PROP, 0);
+            String theName = ( ( memberTypeFlags & Node.ATTRIBUTE_FLAG ) != 0 ? "@" : "" ) + rm.getFirstChild().getNext().getString();
+            if ( ( memberTypeFlags & Node.DESCENDANTS_FLAG ) != 0 )
+                theName = ".." + theName;
+            _append( "\"" + theName  + "\" " , n );
+            
+            _append( " )" , n );
+            break;
+
         case Token.SWITCH:
             _addSwitch( n , state );
             break;
