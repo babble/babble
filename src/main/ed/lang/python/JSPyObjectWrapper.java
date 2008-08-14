@@ -96,7 +96,7 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     }
 
     public Object getInt( int n ){
-        return _p.__getitem__( toPython ( n ) );
+        return toJS( _p.__getitem__( toPython ( n ) ) );
     }
     
     public Object removeField( Object n ){
