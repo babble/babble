@@ -8,7 +8,7 @@
     <foo bar="zap">myfoo</foo>
     <!-- no mr. bond, i expect you to die -->
   </college>
-  <!-- that's all for now, folks!' -->
+  <!-- thats all for now, folks! -->
 </schools>
 attributes
 k6
@@ -17,6 +17,11 @@ zap
 zap
 
 ----
+0
+zap
+<!-- lalalalala -->
+<!-- thats all for now, folks! -->
+
 <!-- no mr. bond, i expect you to die -->
 <?xml-stylesheet href="my.css" type="text/css"?>
 null
@@ -34,7 +39,7 @@ element
     <foo bar="zap">myfoo</foo>
     <!-- no mr. bond, i expect you to die -->
   </college>
-  <!-- that's all for now, folks!' -->
+  <!-- thats all for now, folks! -->
   <foo>
     <bar>hi</bar>
   </foo>
