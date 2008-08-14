@@ -69,7 +69,8 @@ print( xml.college.nodeKind() );
 
 //propertyIsEnumerable
 xml.foo[1] = "bye";
-//xml.foo[2] = "blech";
+xml.foo[2] = "blech";
+xml.foo[4] = null;
 
 print(xml);
 
@@ -78,3 +79,6 @@ print( xml.foo.propertyIsEnumerable("1") );
 print( xml.foo.propertyIsEnumerable("0.1") );
 print( xml.foo.propertyIsEnumerable("5") );
 print( xml.foo.propertyIsEnumerable("bar") );
+
+// restore default settings
+XML.setSettings();

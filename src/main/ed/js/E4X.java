@@ -324,7 +324,8 @@ public class E4X {
         }
 
         public Object set( Object k, Object v ) {
-            if( v == null ) return "null";
+            if( v == null ) 
+                v = "null";
             if(this.children == null ) this.children = new LinkedList<ENode>();
 
             if( k.toString().startsWith("@") )
@@ -390,6 +391,7 @@ public class E4X {
                         ENode attachee = rep.parent;
                         n.node = rep.node.getOwnerDocument().createElement(rep.node.getNodeName());
                         n.children.add( new ENode( content, n ) );
+                        n.parent = attachee;
                         attachee.children.add( rep.childIndex()+1, n );
                         n._dummy = false;
                     }
@@ -577,7 +579,7 @@ public class E4X {
 
             List<ENode> sibs = parent.children;
             for( int i=0; i<sibs.size(); i++ ) {
-                if(sibs.get(i).node.isEqualNode(this.node))
+                if(sibs.get(i).equals(this))
                     return i;
             }
             return -1;

@@ -37,6 +37,8 @@ element
     <bar>hi</bar>
   </foo>
   <foo>bye</foo>
+  <foo>blech</foo>
+  <foo>null</foo>
 </schools>
 true
 true
