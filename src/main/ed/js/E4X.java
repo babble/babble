@@ -20,6 +20,7 @@ package ed.js;
 
 import java.util.*;
 import java.util.regex.*;
+import java.io.*;
 
 import org.w3c.dom.*;
 import org.xml.sax.*;
@@ -262,6 +263,23 @@ public class E4X {
             for( int i=0; attr != null && i< attr.getLength(); i++) {
                 parent.children.add( new ENode(attr.item(i)) );
             }
+            if( parent.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE ) {
+                Properties piProp = new Properties();
+                try {
+                    piProp.load(new StringReader(((ProcessingInstruction)parent.node).getData().replaceAll("\" ", "\"\n")));
+                    for (Enumeration e = piProp.propertyNames(); e.hasMoreElements();) {
+                        String propName = e.nextElement().toString();
+                        String propValue = piProp.getProperty( propName );
+                        Attr pi = parent.node.getOwnerDocument().createAttribute(propName.toString());
+                        pi.setValue( propValue.substring(1, propValue.length()-1) );
+                        parent.children.add( new ENode( pi ) );
+                    }
+                }
+                catch (IOException e) {
+                    System.out.println("no processing instructions for you.");
+                    e.printStackTrace();
+                }
+            }
             NodeList kids = parent.node.getChildNodes();
             for( int i=0; i<kids.getLength(); i++) {
                 ENode n = new ENode(kids.item(i), parent);
@@ -386,7 +404,9 @@ public class E4X {
                     else
                         return null;
 
+                    // if k/v doesn't really exist, "get" returns a dummy node, an emtpy node with nodeName = key
                     if( n._dummy ) {
+                        // if there is a list of future siblings, get the last one
                         ENode rep = this.parent == null ? this.children.get(this.children.size()-1) : this;
                         ENode attachee = rep.parent;
                         n.node = rep.node.getOwnerDocument().createElement(rep.node.getNodeName());
