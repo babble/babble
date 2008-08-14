@@ -96,7 +96,7 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     }
 
     public Object getInt( int n ){
-        return _p.__getitem__( toPython ( n ) );
+        return toJS( _p.__getitem__( toPython ( n ) ) );
     }
     
     public Object removeField( Object n ){
@@ -138,11 +138,26 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
             }
             catch( PyException e ){
                 PyObject dict = _p.getDict();
-                if( ! ( dict instanceof PyStringMap ) )
-                    throw new RuntimeException( "keySet() of weird __dict__ " + dict.getClass() + "; I give up" );
+                
+                if( dict == null ){
+                    // try dir()??
+                    return keys;
+                }
 
-                for ( Object o : ((PyStringMap)dict).keys() ){
-                    keys.add( o.toString() );
+                if( dict instanceof PyStringMap ){
+                    for ( Object o : ((PyStringMap)dict).keys() ){
+                        keys.add( o.toString() );
+                    }
+                }
+                else {
+                    PyObject pykeys;
+                    pykeys = dict.invoke( "keys" );
+                    if( pykeys instanceof PySequenceList ){
+                        for( Object o : ((PySequenceList)pykeys) )
+                            keys.add( o.toString() );
+                    }
+                    else
+                        throw new RuntimeException("can't figure out how to get keyset for " + dict.getClass() );
                 }
             }
         
