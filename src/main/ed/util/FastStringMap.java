@@ -183,6 +183,8 @@ public final class FastStringMap implements Map<String,Object> {
                 return e;
 
             grow();
+            if ( _data.length > 100 )
+                _maxChainLength++;
         }
     }
 
@@ -267,7 +269,7 @@ public final class FastStringMap implements Map<String,Object> {
 
     private int _size = 0;
     private MyEntry[] _data;
-    private final static int _maxChainLength = 1;
+    private int _maxChainLength = 1;
 
     // -----------------
 
