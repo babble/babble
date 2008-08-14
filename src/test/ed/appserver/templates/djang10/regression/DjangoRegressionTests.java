@@ -73,12 +73,12 @@ public class DjangoRegressionTests {
 
        
         //unimplemented filters
-        "filter-make_list0[3,4]",   //needs stringformat 
+        "filter-make_list-jsout0[3,4]", 
         "filter-stringformat.*",
 
-        //broken filters
-        "filter-make_list0[1,2]", //js & python print different representations of arrays
-        "filter-slice.*",   //print diff ^
+        //python & js have different string representations of types
+        "filter-make_list0[1-4]", 
+        "filter-slice.*",
     };    
        
     public DjangoRegressionTests(){ }
