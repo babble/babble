@@ -52,11 +52,10 @@ public final class FastStringMap implements Map<String,Object> {
     
     public Object remove( final int hash , final String key ){
         final MyEntry e = _getEntry( hash , key , false );
-        if ( e == null )
-            return null;
-        if ( e._deleted )
+        if ( e == null || e._deleted )
             return null;
         
+        _size--;
         e._deleted = true;
         final Object old = e._value;
         e._value = null;
@@ -195,7 +194,7 @@ public final class FastStringMap implements Map<String,Object> {
         return h;
     }
     
-    private static final MyEntry _getEntry( final int hash , final String key , final boolean create , final MyEntry[] data , final MyEntry toInsert ){
+    private final MyEntry _getEntry( final int hash , final String key , final boolean create , final MyEntry[] data , final MyEntry toInsert ){
         int cur = _indexFor( hash , data.length );
         
         for ( int z=0; z<_maxChainLength; z++ ){
@@ -206,6 +205,7 @@ public final class FastStringMap implements Map<String,Object> {
                     return null;
                 
                 if ( toInsert == null ){
+                    _size++;
                     data[cur] = new MyEntry( hash , key );
                     return data[cur];
                 }
@@ -253,6 +253,11 @@ public final class FastStringMap implements Map<String,Object> {
         
     }
 
+    public int size(){
+        return _size;
+    } 
+
+    private int _size = 0;
     private MyEntry[] _data;
     private final static int _maxChainLength = 1;
 
@@ -278,10 +283,6 @@ public final class FastStringMap implements Map<String,Object> {
         throw new UnsupportedOperationException();
     }
 
-    public int size(){
-        throw new UnsupportedOperationException();
-    } 
-    
     public Collection<Object> values(){
         throw new UnsupportedOperationException();
     }

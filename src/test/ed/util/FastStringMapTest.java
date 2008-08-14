@@ -32,12 +32,14 @@ public class FastStringMapTest extends ed.TestCase {
         assertFalse( m.containsKey( "b" ) );
         assertEquals( 1 , m.keySet().size() );
         assertTrue( m.keySet().contains( "a" ) );
+        assertEquals( 1 , m.size() );
 
         m.put( "b" , 6 );
         assertEquals( 6 , m.get( "b" ) );
         assertEquals( 5 , m.get( "a" ) );
         assertEquals( 2 , m.keySet().size() );
-        
+        assertEquals( 2 , m.size() );        
+
         assertTrue( m.containsKey( "a" ) );
         assertTrue( m.containsKey( "b" ) );
         assertFalse( m.containsKey( "c" ) );
@@ -60,11 +62,13 @@ public class FastStringMapTest extends ed.TestCase {
         assertFalse( m.containsKey( "b" ) );
         assertEquals( 1 , m.keySet().size() );
         assertTrue( m.keySet().contains( "a" ) );
+        assertEquals( 1 , m.size() );
 
         m.remove( "a" );
         assertNull( m.get( "a" ) );
         assertFalse( m.containsKey( "a" ) );
         assertFalse( m.keySet().contains( "a" ) );
+        assertEquals( 0 , m.size() );
 
         m.put( "a" , 5 );
         assertEquals( 5 , m.get( "a" ) );
@@ -72,6 +76,7 @@ public class FastStringMapTest extends ed.TestCase {
         assertFalse( m.containsKey( "b" ) );
         assertEquals( 1 , m.keySet().size() );
         assertTrue( m.keySet().contains( "a" ) );
+        assertEquals( 1 , m.size() );
     }
 
     @Test(groups = {"basic"})
@@ -88,9 +93,9 @@ public class FastStringMapTest extends ed.TestCase {
             assertTrue( m.keySet().contains( String.valueOf( i ) ) );
         }
         
-        
     }
 
+    
 
     public static void main( String args[] ){
         (new FastStringMapTest()).runConsole();
