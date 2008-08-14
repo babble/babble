@@ -263,12 +263,10 @@ public class E4X {
             for( int i=0; attr != null && i< attr.getLength(); i++) {
                 parent.children.add( new ENode(attr.item(i)) );
             }
-            //            System.out.println("ignore processing instructions? "+E4X.ignoreProcessingInstructions);
-            if( parent.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE &&
-                E4X.ignoreProcessingInstructions ) {
+            if( parent.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE ) {
                 Properties piProp = new Properties();
                 try {
-                    piProp.load(new StringBufferInputStream(((ProcessingInstruction)parent.node).getData().replaceAll("\" ", "\"\n")));
+                    piProp.load(new ByteArrayInputStream(((ProcessingInstruction)parent.node).getData().replaceAll("\" ", "\"\n").getBytes("UTF-8")));
                     for (Enumeration e = piProp.propertyNames(); e.hasMoreElements();) {
                         String propName = e.nextElement().toString();
                         String propValue = piProp.getProperty( propName );
@@ -277,14 +275,16 @@ public class E4X {
                         parent.children.add( new ENode( pi ) );
                     }
                 }
-                catch (IOException e) {
+                catch (Exception e) {
                     System.out.println("no processing instructions for you.");
                     e.printStackTrace();
                 }
-                //  System.out.println("PI: "+parent);
             }
             NodeList kids = parent.node.getChildNodes();
             for( int i=0; i<kids.getLength(); i++) {
+                if( ( kids.item(i).getNodeType() == Node.COMMENT_NODE && E4X.ignoreComments ) ||
+                    ( kids.item(i).getNodeType() == Node.PROCESSING_INSTRUCTION_NODE && E4X.ignoreProcessingInstructions ) )
+                    continue;
                 ENode n = new ENode(kids.item(i), parent);
                 buildENodeDom(n);
                 parent.children.add(n);
@@ -1254,15 +1254,9 @@ public class E4X {
             case Node.TEXT_NODE:
                 return _level(buf, level).append( E4X.prettyPrinting ? n.node.getNodeValue().trim() : n.node.getNodeValue() ).append("\n");
             case Node.COMMENT_NODE:
-                if( E4X.ignoreComments )
-                    return buf;
-                else
-                    return _level(buf, level).append( "<!--"+n.node.getNodeValue()+"-->" ).append("\n");
+                return _level(buf, level).append( "<!--"+n.node.getNodeValue()+"-->" ).append("\n");
             case Node.PROCESSING_INSTRUCTION_NODE:
-                if( E4X.ignoreProcessingInstructions )
-                    return buf;
-                else
-                    return _level(buf, level).append( "<?"+n.node.getNodeName() + attributesToString( n )+"?>").append("\n");
+                return _level(buf, level).append( "<?"+n.node.getNodeName() + attributesToString( n )+"?>").append("\n");
             }
 
             _level( buf , level ).append( "<" ).append( n.node.getNodeName() );

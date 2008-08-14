@@ -1,4 +1,5 @@
 <schools id="0">
+  <?xml-stylesheet href="my.css" type="text/css"?>
   <elementary grades="k6"/>
   <middle>zap</middle>
   <!-- lalalalala -->
@@ -17,12 +18,14 @@ zap
 
 ----
 <!-- no mr. bond, i expect you to die -->
+<?xml-stylesheet href="my.css" type="text/css"?>
 null
 <foo>
   <bar>hi</bar>
 </foo>
 element
 <schools id="0">
+  <?xml-stylesheet href="my.css" type="text/css"?>
   <elementary grades="k6"/>
   <middle>zap</middle>
   <!-- lalalalala -->
