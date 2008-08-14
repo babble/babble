@@ -23,8 +23,8 @@ var x = "foo";
 var y = "bar";
 var z = "zap";
 var attrname = "attr";
-
-var xml = <schools id="0"><?xml-stylesheet href="my.css" type="text/css"?>
+//<?xml-stylesheet href="my.css" type="text/css"?>
+var xml = <schools id="0">
   <elementary grades="k6" />
   <middle>{z}</middle>
   <!-- lalalalala -->
@@ -41,12 +41,12 @@ print( xml.elementary.attribute( "grades" ) );
 print( xml.highschool.attribute( "attr" ) );
 print( xml.attribute( "id" ) );
 print( xml.college[x].attribute( y ) );
-//print( xml.attribute( "err" ) );
+print( xml.attribute( "err" ) );
 
 print( "----" );
 //attributes
-print( xml.attributes() );
-print( xml.college[x].attributes() );
+//print( xml.attributes() );
+//print( xml.college[x].attributes() );
 
 //comments
 //print( xml.comments() );
@@ -54,7 +54,7 @@ print( xml.college[x].attributes() );
 print( xml.college.comments() );
 
 //processingInstructions
-print( xml.processingInstructions() );
+//print( xml.processingInstructions() );
 
 //parent
 print( xml.parent() );

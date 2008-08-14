@@ -263,10 +263,12 @@ public class E4X {
             for( int i=0; attr != null && i< attr.getLength(); i++) {
                 parent.children.add( new ENode(attr.item(i)) );
             }
-            if( parent.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE ) {
+            //            System.out.println("ignore processing instructions? "+E4X.ignoreProcessingInstructions);
+            if( parent.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE &&
+                E4X.ignoreProcessingInstructions ) {
                 Properties piProp = new Properties();
                 try {
-                    piProp.load(new StringReader(((ProcessingInstruction)parent.node).getData().replaceAll("\" ", "\"\n")));
+                    piProp.load(new StringBufferInputStream(((ProcessingInstruction)parent.node).getData().replaceAll("\" ", "\"\n")));
                     for (Enumeration e = piProp.propertyNames(); e.hasMoreElements();) {
                         String propName = e.nextElement().toString();
                         String propValue = piProp.getProperty( propName );
@@ -279,6 +281,7 @@ public class E4X {
                     System.out.println("no processing instructions for you.");
                     e.printStackTrace();
                 }
+                //  System.out.println("PI: "+parent);
             }
             NodeList kids = parent.node.getChildNodes();
             for( int i=0; i<kids.getLength(); i++) {
@@ -539,16 +542,19 @@ public class E4X {
             }
         }
 
+        private String attribute( String prop ) {
+            Object o = this.get("@"+prop);
+            return (o == null) ? "" : o.toString();
+        }
+
         public class attribute extends ENodeFunction {
             public Object call( Scope s, Object foo[] ) {
                 if(foo.length == 0)
                     return null;
 
                 Object obj = s.getThis();
-                if(obj instanceof ENode)
-                    return ((ENode)obj).get("@"+foo[0]);
-                else
-                    return ((ENodeFunction)obj).cnode.get("@"+foo[0]);
+                ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
+                return enode.attribute(foo[0].toString());
             }
         }
         public class attributes extends ENodeFunction {
