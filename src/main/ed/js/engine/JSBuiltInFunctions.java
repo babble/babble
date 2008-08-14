@@ -755,7 +755,7 @@ public class JSBuiltInFunctions {
         s.put( "Date" , new JSDate.Cons() , true );
         s.put( "JSDate" , s.get( "Date" ) , true ); // b/c Eliot always types this
         s.put( "String" , new JSString.JSStringCons() , true );
-	s.put( "XML" , new E4X.Cons() , true );
+	s.put( "XML" , new E4X.XML() , true );
 	s.put( "Namespace" , new E4X.NamespaceCons() , true );
 
         s.put( "RegExp" , new JSRegex.Cons() , true );
