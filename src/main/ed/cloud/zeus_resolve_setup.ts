@@ -18,6 +18,9 @@ if ( $h == "origin.10gen.com"
 ## handle alleyinsider.10gen.com
 $cleanHost = $h;
 $h = string.iReplace( $h , ".10gen.com" , ".com" );
+if ( string.endsWith( $h , ".www" ) ){
+    $h = string.append( $h , ".com" );
+}
 $hr = string.reverse( $h );
 
 #log.info( "use host : [" . $h  . "]" );
