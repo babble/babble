@@ -25,7 +25,10 @@ public final class FastStringMap implements Map<String,Object> {
         final MyEntry e = _getEntry( hash , key , true );
         final Object old = e._value;
         e._value = value;
-        e._deleted = false;
+        if ( e._deleted ){
+            e._deleted = false;
+            _size++;
+        }
         return old;
     }
 
@@ -182,6 +185,7 @@ public final class FastStringMap implements Map<String,Object> {
             if ( e != null || ! create )
                 return e;
 
+
             grow();
             if ( _data.length > 100 )
                 _maxChainLength++;
@@ -205,11 +209,11 @@ public final class FastStringMap implements Map<String,Object> {
         
         for ( int z=0; z<_maxChainLength; z++ ){
             
-            if ( data[cur] == null || data[cur]._deleted ){
-
+            if ( data[cur] == null ){
+                
                 if ( ! create )
                     return null;
-                
+
                 if ( toInsert == null ){
                     _size++;
                     data[cur] = new MyEntry( hash , key );

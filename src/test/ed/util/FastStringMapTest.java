@@ -18,6 +18,8 @@
 
 package ed.util;
 
+import java.util.*;
+
 import org.testng.annotations.Test;
 
 public class FastStringMapTest extends ed.TestCase {
@@ -95,7 +97,64 @@ public class FastStringMapTest extends ed.TestCase {
         
     }
 
+
+    @Test(groups = {"basic"})
+    public void testRandom(){
+        Random r = new Random( 123123 );
+        rand( r , 10 , 10 );
+        rand( r , 10 , 100 );
+        rand( r , 100 , 1000 );
+        rand( r , 100 , 10000 );
+        rand( r , 100 , 100000 );
+        rand( r , 10000 , 10 );
+        rand( r , 1000 , 10000 );
+        rand( r , 1000 , 50000 );
+    }
     
+    void rand( Random r , int space , int time ){
+
+        Map<String,Object> m = new HashMap<String,Object>();
+        FastStringMap f = new FastStringMap();
+
+        for ( int i=0; i<time; i++){
+            assertEquals( m.size() , f.size() );
+            
+            String what = String.valueOf( r.nextInt( space ) );
+            
+            switch( r.nextInt(2) ){
+            case 0: 
+                assertEquals( m.get( what ) , f.get( what ) );
+                //System.out.println( "Adding " + what + "  size before: " + m.size() );
+                f.put( what , what );
+                m.put( what , what );
+                assertEquals( m.get( what ) , f.get( what ) );
+
+                break;
+            case 1:
+                //System.out.println( "Removing " + what + "  size before: " + m.size() );
+                f.remove( what );
+                m.remove( what );
+                assertEquals( m.get( what ) , f.get( what ) );
+                break;
+            }
+
+            for ( String s : m.keySet() ){
+                assertEquals( m.get( s ) , f.get( s ) );
+            }
+
+        }
+
+        assertEquals( m.keySet().size() , f.keySet().size() );
+
+        assertEquals( m.size() , f.size() );
+
+
+        for ( String s : m.keySet() ){
+            assertEquals( m.get( s ) , f.get( s ) );
+        }
+        
+    }
+
 
     public static void main( String args[] ){
         (new FastStringMapTest()).runConsole();
