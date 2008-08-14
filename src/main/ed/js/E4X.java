@@ -452,20 +452,30 @@ public class E4X {
                 }
                 int index = this.children.size();
 
-                if( n.node == null ) {
-                    // if there is more than one matching child, delete them all and replace with the new k/v
-                    while( n != null && n.children != null && n.children.size() > 0 ) {
-                        index = this.children.indexOf( n.children.get(0) );
-                        this.children.remove( n.children.get(0) );
-                        n.children.remove( 0 );
+                if( n.node != null && n.node.getNodeType() != Node.ATTRIBUTE_NODE) {
+                    index = this.children.indexOf( n );
+                    this.children.remove( n );
+                }
+                else {
+                // there are a list of children, so delete them all and replace with the new k/v
+                    for( int i=0; n != null && n.children != null && i<n.children.size(); i++) {
+                        if( n.children.get(i).node.getNodeType() == Node.ATTRIBUTE_NODE ) 
+                            continue;
+                        // find the index of this node in the tree
+                        index = this.children.indexOf( n.children.get(i) );
+                        // remove it from the tree
+                        this.children.remove( n.children.get(i) ) ;
                     }
-                    n.node = node.getOwnerDocument().createElement(k.toString());
                 }
 
-                Node content = node.getOwnerDocument().createTextNode(v.toString());
+                n = new ENode(this.node.getOwnerDocument().createElement(k.toString()), this);
+                Node content = this.node.getOwnerDocument().createTextNode(v.toString());
                 n.children.add( new ENode( content, n ) );
                 if( !this.children.contains( n ) )
-                    this.children.add( index, n );
+                    if( index >= 0 )
+                        this.children.add( index, n );
+                    else
+                        this.children.add( n );
             }
             return v;
         }
