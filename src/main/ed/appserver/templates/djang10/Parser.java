@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 
 import ed.appserver.jxp.JxpSource;
 import ed.js.JSArray;
+import ed.js.JSException;
 import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.JSObjectBase;
@@ -41,7 +42,7 @@ public class Parser extends JSObjectBase{
     static {
         tags = new HashMap<String, TagDelimiter>();
         tags.put("{{", new TagDelimiter(TagDelimiter.Type.Var, "{{", "}}"));
-        tags.put("{%", new TagDelimiter(TagDelimiter.Type.Block, "{%", "%}"));
+        tags.put("{%", new TagDelimiter(TagDelimiter.Type.Tag, "{%", "%}"));
         tags.put("{#", new TagDelimiter(TagDelimiter.Type.Comment, "{#", "#}"));
 
     }
@@ -133,7 +134,7 @@ public class Parser extends JSObjectBase{
                     varNode = NodeWrapper.wrap(varNode, token);
                     extend_nodelist(nodelist, varNode, token);
                 }
-                else if (token.type == TagDelimiter.Type.Block) {
+                else if (token.type == TagDelimiter.Type.Tag) {
                     if(untilTagsList.contains(token.getContents())) {
                         prepend_token(token);
                         return nodelist;
@@ -147,6 +148,19 @@ public class Parser extends JSObjectBase{
     
                 }
             }
+        }
+        catch(TemplateSyntaxError e) {
+            throw e;
+        }
+        catch(JSException e) {
+            if(e.getCause() instanceof TemplateSyntaxError)
+                throw e;
+            
+            Throwable t = (e.getCause() instanceof Exception)? e.getCause() : e;
+            throw new TemplateSyntaxError("Failed to parse the token: " + activeToken, activeToken, t);
+        }
+        catch(Exception e) {
+            throw new TemplateSyntaxError("Failed to parse the token: " + activeToken, activeToken, e);
         }
         finally {
             this.activeToken = parentToken;
@@ -162,7 +176,7 @@ public class Parser extends JSObjectBase{
     public void skip_past(JSString endtag) {
         while(!tokens.isEmpty()) {
             Token token = next_token();
-            if(token.type == TagDelimiter.Type.Block && endtag.equals(token.getContents()))
+            if(token.type == TagDelimiter.Type.Tag && endtag.equals(token.getContents()))
                 return;
         }
         throw new TemplateException("Unclosed tags, exptected: " + endtag);
@@ -326,7 +340,7 @@ public class Parser extends JSObjectBase{
         }
         
         public enum Type {
-            Text, Var, Block, Comment
+            Text, Var, Tag, Comment
         }
     }
 
