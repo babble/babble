@@ -163,18 +163,24 @@ public final class Scope implements JSObject {
 
         _ensureObjectMap();
 
-        _mapSet( name , o );
+        _mapSet( name.hashCode() , name , o );
     }
     
     public Object put( String name , Object o , boolean local ){
-        
+        _throw();
         o = JSInternalFunctions.fixType( o , false );
 
+        if ( o == null )
+            o = NULL;
+
+        return _put( name.hashCode() , name , o , local );
+    }
+    
+    private Object _put( final int nameHash , final String name , final Object o , final boolean local ){
+        
         if ( _locked )
             throw new RuntimeException( "locked" );
         
-        _throw();
-
         if ( _with != null ){
             for ( int i=_with.size()-1; i>=0; i-- ){
                 JSObject temp = _with.get( i );
@@ -194,33 +200,30 @@ public final class Scope implements JSObject {
              || _global
              || _parent == null
              || _parent._locked 
-             || ( _objects != null && _objects.containsKey( name ) )
+             || ( _objects != null && _objects.containsKey( nameHash , name ) )
              ){
             
-            if ( o == null )
-                o = NULL;
-
             Scope pref = getTLPreferred();
             
             if ( pref != null ){
-                pref._mapSet( name , o );
+                pref._mapSet( nameHash , name , o );
                 return _fixNull( o );
             }
 	    
 	    if ( _lockedObject != null && _lockedObject.contains( name ) )
 		throw new RuntimeException( "trying to set locked object : " + name );
 
-            _mapSet( name , o );
+            _mapSet( nameHash , name , o );
             return _fixNull( o );
         }
         
-        _parent.put( name , o , false );
+        _parent._put( nameHash , name , o , false );
         return _fixNull( o );
     }
 
-    private final void _mapSet( String name , Object o ){
+    private final void _mapSet( final int nameHash , final String name , final Object o ){
         _ensureObjectMap();
-        _objects.put( name , o );
+        _objects.put( nameHash , name , o );
         if ( o instanceof JSObjectBase )
             ((JSObjectBase)o)._setName( name );
     }
@@ -263,32 +266,30 @@ public final class Scope implements JSObject {
             name = "print";
         }
 
-	return _get( name , alt , with , noThis , 0 );
+	return _get( name.hashCode() , name , alt , with , noThis , 0 );
     }
     
-    private Object _get( final String origName , Scope alt , JSObject with[] , boolean noThis , int depth ){
-        final Object r = _geti( origName , alt ,with , noThis , depth  );
+    private Object _get( final int nameHash , final String name , Scope alt , JSObject with[] , boolean noThis , int depth ){
+        final Object r = _geti( nameHash , name , alt ,with , noThis , depth  );
         if ( DEBUG ) {
-            System.out.println( "GET [" + origName + "] = " + r );
+            System.out.println( "GET [" + name + "] = " + r );
             if ( r == null && depth == 0 )
                 debug();
         }
 	
-	if ( r != null && _warnedObject != null && _warnedObject.contains( origName ) )
-	    ed.log.Logger.getRoot().getChild( "scope" ).warn( "using [" + origName + "] in scope" );
+	if ( r != null && _warnedObject != null && _warnedObject.contains( name ) )
+	    ed.log.Logger.getRoot().getChild( "scope" ).warn( "using [" + name + "] in scope" );
 
         return r;
     }
-    private Object _geti( final String origName , Scope alt , JSObject with[] , boolean noThis , int depth ){
-
-        String name = origName;
+    private Object _geti( final int nameHash , final String name , Scope alt , JSObject with[] , boolean noThis , int depth ){
 
         Scope pref = getTLPreferred();
         if ( pref != null && pref._objects.containsKey( name ) ){
-            return _fixNull( pref._objects.get( name ) );
+            return _fixNull( pref._objects.get( nameHash , name ) );
         }
         
-        Object foo =  _killed || _objects  == null ? null : _objects.get( name );
+        Object foo =  _killed || _objects  == null ? null : _objects.get( nameHash , name );
         if ( foo != null ){
             if ( foo == NULL )
                 return null;
@@ -311,7 +312,7 @@ public final class Scope implements JSObject {
         if ( alt != null && _global ){
             if ( ! alt._global )
                 throw new RuntimeException( "i fucked up" );
-            return alt.get( origName , null );
+            return alt.get( name , null );
         }
         
         if ( _parent == null )
@@ -360,7 +361,7 @@ public final class Scope implements JSObject {
             }
         }
 
-        return _parent._get( origName , alt , with , noThis , depth + 1 );
+        return _parent._get( nameHash , name , alt , with , noThis , depth + 1 );
     }
 
     private Object _getFromThis( JSObjectBase t , String name ){
@@ -381,7 +382,7 @@ public final class Scope implements JSObject {
     }
 
     public Object getOrThis( String name ){
-        return _get( name , null , null , false , 0 );
+        return _get( name.hashCode() , name , null , null , false , 0 );
     }
 
     public boolean isRuby(){
@@ -899,8 +900,10 @@ public final class Scope implements JSObject {
     }
 
     private void _ensureObjectMap(){
-        if ( _objects == null )
-            _objects = new HashMap<String,Object>();
+        if ( _objects == null ){
+            //_objects = new HashMap<String,Object>();
+            _objects = new FastStringMap();
+        }
     }
 
     final String _name;
@@ -917,7 +920,8 @@ public final class Scope implements JSObject {
     boolean _global = false;
     boolean _killed = false;
     
-    Map<String,Object> _objects;
+    //Map<String,Object> _objects;
+    FastStringMap _objects;
     Set<String> _lockedObject;
     Set<String> _warnedObject;
     private ThreadLocal<Scope> _tlPreferred = null;
