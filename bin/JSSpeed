@@ -1,0 +1,8 @@
+#!/bin/tcsh
+
+echo "Rhino then ED"
+foreach f ( `ls src/test/ed/js/speed/$1*.js` );
+    echo $f
+    java -jar include/js.jar $f | tail -n 1
+    ./shell $f -exit | tail -n 1
+end
