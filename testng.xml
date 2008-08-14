@@ -22,7 +22,7 @@
       <class name="ed.appserver.templates.HtmlTemplateTest" />
     </classes>
   </test>
-
+<!--
   <test name="engine ruby tests">
 	<parameter name="test-class"  value="ed.lang.ruby.RubyScriptTestInstance"/>
 	<parameter name="dir-name"  value="ed/src/test/ed/lang/ruby/"/>
@@ -31,7 +31,7 @@
       <class name="ed.util.ScriptTestFactory"/>
     </classes>
   </test>
-
+-->
   <test name="engine js tests">
 	<parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
 	<parameter name="dir-name"  value="ed/src/test/ed/js/engine/"/>
