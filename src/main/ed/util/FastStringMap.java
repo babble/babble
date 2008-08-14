@@ -77,6 +77,10 @@ public final class FastStringMap implements Map<String,Object> {
     };
 
     public Set<String> keySet(){
+        return keySet( false );
+    }
+    
+    public Set<String> keySet( boolean myCopy ){
         Set<String> s = new HashSet<String>( _data.length );
         for ( int i=0; i<_data.length; i++ ){
             MyEntry e = _data[i];

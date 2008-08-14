@@ -140,7 +140,7 @@ public final class Scope implements JSObject {
     public Collection<String> keySet( boolean includePrototype ){
         if ( _objects == null )
             return new HashSet<String>();
-        return new HashSet<String>( _objects.keySet() );
+        return _objects.keySet( true );
     }
 
     public boolean containsKey( String s ){
@@ -285,7 +285,7 @@ public final class Scope implements JSObject {
     private Object _geti( final int nameHash , final String name , Scope alt , JSObject with[] , boolean noThis , int depth ){
 
         Scope pref = getTLPreferred();
-        if ( pref != null && pref._objects.containsKey( name ) ){
+        if ( pref != null && pref._objects.containsKey( nameHash , name ) ){
             return _fixNull( pref._objects.get( nameHash , name ) );
         }
         
