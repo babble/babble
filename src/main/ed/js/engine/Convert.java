@@ -1254,7 +1254,7 @@ public class Convert implements StackTraceFixer {
         }
         callLine += " , Object ___extra[] ){\n" ;
 
-        _append( callLine + " final Scope scope = usePassedInScope() ? passedIn : new Scope( \"temp scope for: \" + _name  , getScope() , passedIn , getFileLanguage() ); " , n );
+        _append( callLine + " final Scope scope = usePassedInScope() ? passedIn : new Scope( \"func scope\" , getScope() , passedIn , getFileLanguage() ); " , n );
         if ( hasArguments ){
             _append( "JSArray arguments = new JSArray();\n" , n );
             _append( "scope.put( \"arguments\" , arguments , true );\n" , n );
