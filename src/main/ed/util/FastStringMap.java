@@ -104,7 +104,7 @@ public final class FastStringMap implements Map<String,Object> {
         }
 
         public boolean equals(Object o){
-            throw new UnsupportedOperationException();
+            return this == o;
         }
 
         public String getKey(){
@@ -116,7 +116,7 @@ public final class FastStringMap implements Map<String,Object> {
         }
 
         public int hashCode(){
-            throw new UnsupportedOperationException();
+            return _hash;
         }
         
         public Object setValue( Object value){
@@ -153,7 +153,23 @@ public final class FastStringMap implements Map<String,Object> {
         }
         a.append( "]" );
     }
+    
+    public void clear(){
+        for ( int i=0; i<_data.length; i++ )
+            _data[i] = null;
+    } 
 
+    public Set<Map.Entry<String,Object>> entrySet(){
+        // TODO: make a lof faster
+        Set<Map.Entry<String,Object>> set = new HashSet<Map.Entry<String,Object>>( _data.length );
+        for ( int i=0; i<_data.length; i++ ){
+            if ( _data[i] == null || _data[i]._deleted )
+                continue;
+            set.add( _data[i] );
+        }
+        return set;
+    }
+    
     private MyEntry _getEntry( final int hash , final String key , final boolean create ){
         if ( key == null )
             throw new NullPointerException( "key is null " );        
@@ -242,18 +258,10 @@ public final class FastStringMap implements Map<String,Object> {
 
     // -----------------
 
-    public void clear(){
-        throw new UnsupportedOperationException();
-    } 
-
     public boolean containsValue(Object value){
         throw new UnsupportedOperationException();
     }
         
-    public Set<Map.Entry<String,Object>> entrySet(){
-        throw new UnsupportedOperationException();
-    }
-    
     public boolean equals(Object o){
         throw new UnsupportedOperationException();
     }
