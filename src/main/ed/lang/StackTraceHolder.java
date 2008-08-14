@@ -117,6 +117,19 @@ public class StackTraceHolder {
     }
     
     public void fix( Throwable t ){
+        fix(t, true);
+    }
+    public void fix(Throwable t, boolean recurse) {
+        while(t != null) {
+            _fix(t);
+            
+            if(!recurse)
+                break;
+            
+            t = t.getCause();
+        }
+    }
+    private void _fix( Throwable t ){
         if ( t == null )
             return;
         
