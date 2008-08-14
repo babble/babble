@@ -89,9 +89,16 @@ public class PythonJxpSource extends JxpSource {
                 if ( ! found )
                     ss.path.append( Py.newString( myPath ) );
 
-                PyObject globals = new PyJSScopeWrapper( s , false );
+                Scope pyglobals = s.child( "scope to hold python builtins" );
+
+                PyObject globals = new PyJSScopeWrapper( pyglobals , false );
+                Scope tl = pyglobals.getTLPreferred();
+
+                pyglobals.setGlobal( true );
                 __builtin__.fillWithBuiltins( globals );
                 globals.invoke( "update", PySystemState.builtins );
+                pyglobals.setGlobal( false );
+
                 PyModule xgenMod = imp.addModule("_10gen");
                 // I know this is appalling but they don't expose this any other
                 // way

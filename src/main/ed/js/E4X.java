@@ -20,6 +20,7 @@ package ed.js;
 
 import java.util.*;
 import java.util.regex.*;
+import java.io.*;
 
 import org.w3c.dom.*;
 import org.xml.sax.*;
@@ -262,8 +263,28 @@ public class E4X {
             for( int i=0; attr != null && i< attr.getLength(); i++) {
                 parent.children.add( new ENode(attr.item(i)) );
             }
+            if( parent.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE ) {
+                Properties piProp = new Properties();
+                try {
+                    piProp.load(new ByteArrayInputStream(((ProcessingInstruction)parent.node).getData().replaceAll("\" ", "\"\n").getBytes("UTF-8")));
+                    for (Enumeration e = piProp.propertyNames(); e.hasMoreElements();) {
+                        String propName = e.nextElement().toString();
+                        String propValue = piProp.getProperty( propName );
+                        Attr pi = parent.node.getOwnerDocument().createAttribute(propName.toString());
+                        pi.setValue( propValue.substring(1, propValue.length()-1) );
+                        parent.children.add( new ENode( pi ) );
+                    }
+                }
+                catch (Exception e) {
+                    System.out.println("no processing instructions for you.");
+                    e.printStackTrace();
+                }
+            }
             NodeList kids = parent.node.getChildNodes();
             for( int i=0; i<kids.getLength(); i++) {
+                if( ( kids.item(i).getNodeType() == Node.COMMENT_NODE && E4X.ignoreComments ) ||
+                    ( kids.item(i).getNodeType() == Node.PROCESSING_INSTRUCTION_NODE && E4X.ignoreProcessingInstructions ) )
+                    continue;
                 ENode n = new ENode(kids.item(i), parent);
                 buildENodeDom(n);
                 parent.children.add(n);
@@ -324,7 +345,8 @@ public class E4X {
         }
 
         public Object set( Object k, Object v ) {
-            if( v == null ) return "null";
+            if( v == null ) 
+                v = "null";
             if(this.children == null ) this.children = new LinkedList<ENode>();
 
             if( k.toString().startsWith("@") )
@@ -385,11 +407,14 @@ public class E4X {
                     else
                         return null;
 
+                    // if k/v doesn't really exist, "get" returns a dummy node, an emtpy node with nodeName = key
                     if( n._dummy ) {
+                        // if there is a list of future siblings, get the last one
                         ENode rep = this.parent == null ? this.children.get(this.children.size()-1) : this;
                         ENode attachee = rep.parent;
                         n.node = rep.node.getOwnerDocument().createElement(rep.node.getNodeName());
                         n.children.add( new ENode( content, n ) );
+                        n.parent = attachee;
                         attachee.children.add( rep.childIndex()+1, n );
                         n._dummy = false;
                     }
@@ -517,16 +542,19 @@ public class E4X {
             }
         }
 
+        private String attribute( String prop ) {
+            Object o = this.get("@"+prop);
+            return (o == null) ? "" : o.toString();
+        }
+
         public class attribute extends ENodeFunction {
             public Object call( Scope s, Object foo[] ) {
                 if(foo.length == 0)
                     return null;
 
                 Object obj = s.getThis();
-                if(obj instanceof ENode)
-                    return ((ENode)obj).get("@"+foo[0]);
-                else
-                    return ((ENodeFunction)obj).cnode.get("@"+foo[0]);
+                ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
+                return enode.attribute(foo[0].toString());
             }
         }
         public class attributes extends ENodeFunction {
@@ -577,7 +605,7 @@ public class E4X {
 
             List<ENode> sibs = parent.children;
             for( int i=0; i<sibs.size(); i++ ) {
-                if(sibs.get(i).node.isEqualNode(this.node))
+                if(sibs.get(i).equals(this))
                     return i;
             }
             return -1;
@@ -1226,15 +1254,9 @@ public class E4X {
             case Node.TEXT_NODE:
                 return _level(buf, level).append( E4X.prettyPrinting ? n.node.getNodeValue().trim() : n.node.getNodeValue() ).append("\n");
             case Node.COMMENT_NODE:
-                if( E4X.ignoreComments )
-                    return buf;
-                else
-                    return _level(buf, level).append( "<!--"+n.node.getNodeValue()+"-->" ).append("\n");
+                return _level(buf, level).append( "<!--"+n.node.getNodeValue()+"-->" ).append("\n");
             case Node.PROCESSING_INSTRUCTION_NODE:
-                if( E4X.ignoreProcessingInstructions )
-                    return buf;
-                else
-                    return _level(buf, level).append( "<?"+n.node.getNodeName() + attributesToString( n )+"?>").append("\n");
+                return _level(buf, level).append( "<?"+n.node.getNodeName() + attributesToString( n )+"?>").append("\n");
             }
 
             _level( buf , level ).append( "<" ).append( n.node.getNodeName() );

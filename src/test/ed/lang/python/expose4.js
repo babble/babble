@@ -41,3 +41,9 @@ assert( c1.pyMeth(" W. 20th") == "2312 W. 20th" );
 assert( myClass.pyMeth( c1 , "31" ) == "231231" );
 
 assert( myClass.pyMeth.call( c1 , "-14=2298" ) == "2312-14=2298" );
+
+// just make sure these don't blow up horribly; no idea what they should 
+// actually return
+pyStr.keySet();
+pyCallable.keySet();
+pyObject.keySet();
