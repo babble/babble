@@ -53,6 +53,8 @@ class RequestMonitor extends Thread {
 
 
     void watch( AppRequest request ){
+        if ( request.canBeLong() )
+            return;
         _watched.add( new Watched( request , Thread.currentThread() ) );
     }
 

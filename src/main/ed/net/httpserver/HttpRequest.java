@@ -264,6 +264,12 @@ public class HttpRequest extends JSObjectLame {
         return StringParseUtil.parseInt( getHeader( h ) , def );
     }
 
+    public boolean getBooleanHeader( String h , boolean def ){
+        return StringParseUtil.parseBoolean( getHeader( h ) , def );
+    }
+
+    
+
     /**
      * Get every HTTP header that was sent as an array of header names.
      * @return an array of HTTP header names

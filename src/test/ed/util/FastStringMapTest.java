@@ -97,6 +97,76 @@ public class FastStringMapTest extends ed.TestCase {
         
     }
 
+    @Test(groups = {"basic"})
+    public void testSize1(){
+        _testSize( 1000 );
+    }
+
+    @Test(groups = {"basic"})
+    public void testSize2(){
+        _testSize( 10000 );
+    }
+
+    @Test(groups = {"basic"})
+    public void testSize3(){
+        _testSize( 100000 );
+    }
+
+    @Test(groups = {"basic"})
+    public void testSize4(){
+        _testSize( 500000 );
+    }
+
+    private void _testSize( int num ){
+
+        System.gc();
+        System.gc();
+        System.gc();
+        long before = MemUtil.bytesAvailable();
+        long start = System.currentTimeMillis();
+        
+        Map<String,Object> m = new HashMap<String,Object>();
+        
+        for ( int i=0; i<num; i++ )
+            m.put( String.valueOf( Math.random() ) , "asdsad" );
+        
+        long javaTime = System.currentTimeMillis() - start;
+        long javaSize = before - MemUtil.bytesAvailable();
+
+
+        m = new FastStringMap();
+        System.gc();
+        System.gc();
+        System.gc();
+        before = MemUtil.bytesAvailable();        
+        start = System.currentTimeMillis();
+        
+        for ( int i=0; i<num; i++ )
+            m.put( String.valueOf( Math.random() ) , "asdsad" );
+        
+        long ourTime = System.currentTimeMillis() - start;
+        long ourSize = before - MemUtil.bytesAvailable();
+
+        assertLess( ourSize , javaSize * 1.2 );
+        assertLess( ourTime , javaTime * 1.1 );
+    }
+
+    @Test(groups = {"basic"})
+    public void testPutAll(){
+        FastStringMap m = new FastStringMap();
+        
+        m.put( "a" , 5 );
+        assertEquals( 5 , m.get( "a" ) );
+        
+        Map<String,Object> other = new HashMap<String,Object>();
+        other.put( "b" , 6 );
+        m.putAll( other );
+
+        assertEquals( 5 , m.get( "a" ) );
+        assertEquals( 6 , m.get( "b" ) );
+        assertEquals( 2 , m.size() );
+
+    }
 
     @Test(groups = {"basic"})
     public void testRandom(){
@@ -111,6 +181,8 @@ public class FastStringMapTest extends ed.TestCase {
         rand( r , 1000 , 50000 );
     }
     
+
+
     void rand( Random r , int space , int time ){
 
         Map<String,Object> m = new HashMap<String,Object>();

@@ -83,6 +83,12 @@ public class AppRequest {
         return _scope != null;
     }
 
+    public boolean canBeLong(){
+        return 
+            _request.getBooleanHeader( "X-Long" , false ) || 
+            _request.getBoolean( "allowLong" , false );
+    }
+
     public String debugInfo(){
 	return "uri:" + getURI() + " context:" + _context.debugInfo();
     }

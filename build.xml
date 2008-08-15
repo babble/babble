@@ -120,15 +120,10 @@
           >
  </taskdef>
 
- 
-<!-- <target name="test" depends="compile, test-basic, test-django, test-corejs, test-db"/>
+  
+  <target name="test" depends="compile, test-basic, test-django, test-corejs, test-db"/>
      
-     gmj : remove test-db temporarily until the db bug gets fixed
- -->
-
-	<target name="test" depends="compile, test-basic, test-django, test-corejs"/>
-
- <target name="test-no-db" depends="compile, test-basic, test-django, test-corejs"/>
+  <target name="test-no-db" depends="compile, test-basic, test-django, test-corejs"/>
  
  <target  name="test-basic" depends="init">
    <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >

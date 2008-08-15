@@ -166,7 +166,7 @@ public final class FastStringMap implements Map<String,Object> {
     } 
 
     public Set<Map.Entry<String,Object>> entrySet(){
-        // TODO: make a lof faster
+        // TODO: make a lot faster
         Set<Map.Entry<String,Object>> set = new HashSet<Map.Entry<String,Object>>( _data.length );
         for ( int i=0; i<_data.length; i++ ){
             if ( _data[i] == null || _data[i]._deleted )
@@ -185,15 +185,19 @@ public final class FastStringMap implements Map<String,Object> {
             if ( e != null || ! create )
                 return e;
 
-
             grow();
-            if ( _data.length > 100 )
-                _maxChainLength++;
         }
     }
 
-    static int _indexFor( int h , int max ){
-
+    int _indexFor( int h , int max ){
+        
+        
+        if ( _slow ){
+            if ( h < 0 )
+                h = h * -1;
+            return h % max;
+        }
+            
         h += ~(h << 9);
         h ^=  (h >>> 14);
         h +=  (h << 4);
@@ -241,8 +245,14 @@ public final class FastStringMap implements Map<String,Object> {
     
     private void grow( int size ){
         
+        _maxChainLength++;
+        
         tries:
         for ( int z=0; z<20; z++ ){
+            
+            if ( size > 1000 )
+                _slow = true;
+
             MyEntry[] newData = new MyEntry[ size ];
             for ( int i=0; i<_data.length; i++ ){
                 MyEntry e = _data[i];
@@ -250,7 +260,12 @@ public final class FastStringMap implements Map<String,Object> {
                     continue;
                 MyEntry n = _getEntry( e._hash , e._key , true , newData , e );
                 if ( n == null ){
-                    size *= 2;
+
+                    if ( z % 2 == 0 )
+                        size *= 1.5;
+                    else
+                        _maxChainLength ++;
+                    
                     continue tries;
                 }
                 if ( n != e ) throw new RuntimeException( "something broke" );
@@ -274,6 +289,7 @@ public final class FastStringMap implements Map<String,Object> {
     private int _size = 0;
     private MyEntry[] _data;
     private int _maxChainLength = 1;
+    private boolean _slow = false;
 
     // -----------------
 
@@ -289,8 +305,16 @@ public final class FastStringMap implements Map<String,Object> {
         throw new UnsupportedOperationException();
     }
     
-    public void putAll(Map<? extends String,? extends Object> t){
-        throw new UnsupportedOperationException();
+    public void putAll( Map<? extends String,? extends Object> other ){
+
+        if ( other == null || other.size() == 0 )
+            return;
+        
+        // TODO: we can do some cool fast stuff here later
+
+        for ( String s : other.keySet() ){
+            put( s , other.get( s ) );
+        }
     }
 
     public Collection<Object> values(){
