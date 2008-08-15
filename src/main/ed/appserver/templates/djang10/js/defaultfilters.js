@@ -17,6 +17,8 @@ var defaultfilters =
     djang10.defaultfilters = 
     {};
 
+var log = log.djang10.defaultfilters; 
+
 register = new djang10.Library();
 
 ///////////////////////
@@ -755,23 +757,68 @@ var random =
 };
 random.is_safe = true;
 
+
 var slice_ =
     defaultfilters.slice_ =
     function(value, arg) {
 
     try {
         var bits = arg.split(":");
-        var start = (bits[0] == null)? 0 : parseInt(bits[0]);
-        var end = (bits[1] == null)? value.length : parseInt(bits[1]);
-        var step = (bits[2] == null)? 1 : parseInt(bits[2]);
+        var start = (bits[0])? parseInt(bits[0]) : 0;
+        var end = (bits[1])? parseInt(bits[1]) : value.length;
+        var step = (bits[2])? parseInt(bits[2]) : 1;
+
+        if(isNaN(start))
+            throw "start isn't a number";
+        if(isNaN(end))
+            throw "end isn't a number";
+        if(isNaN(step))
+            throw "step isn't a number";
         
-        var result = new Array(Math.ceil( value.length/step ))
+        if(step == 0)
+            throw "step can't be zero";
         
-        for(var i=0; i<result.length; i++)
-            result[i] = value[start + (i * step)];
+        if(!(value instanceof Array) && !(value instanceof String))
+            throw "Value must be either a string or an array";
         
-        return result;
+        //adjust for negative indices
+        if(start < 0)
+            start = value.length + start;
+        if(end < 0)
+            end = value.length + end;
+
+        
+        start = Math.max(0, start); 
+        start = Math.min(value.length-1, start);
+        end = Math.max(0, end);
+        end = Math.min(value.length, end);
+        
+        end = (step > 0)? Math.max(start, end) : Math.min(start, end);
+        
+        var result = value;
+        var result_length =  Math.ceil( (end - start)/step ); 
+        
+        if(value instanceof Array) {
+            result = [];
+            
+            for(var i=0; i<result_length; i++)
+                result.push(value[start + (i * step)]);
+
+            return result;
+        }
+        else if(value instanceof String){
+            result = "";
+            
+            for(var j=0; j<result_length; j++)
+                result += value[start + (j * step)];
+
+            return result;
+        }
+        else {
+            throw "Can't happen";
+        }
     } catch(e) {
+        log.error(e)
         return value;
     }
 };
