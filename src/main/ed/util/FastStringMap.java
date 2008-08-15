@@ -166,7 +166,7 @@ public final class FastStringMap implements Map<String,Object> {
     } 
 
     public Set<Map.Entry<String,Object>> entrySet(){
-        // TODO: make a lof faster
+        // TODO: make a lot faster
         Set<Map.Entry<String,Object>> set = new HashSet<Map.Entry<String,Object>>( _data.length );
         for ( int i=0; i<_data.length; i++ ){
             if ( _data[i] == null || _data[i]._deleted )
@@ -289,8 +289,16 @@ public final class FastStringMap implements Map<String,Object> {
         throw new UnsupportedOperationException();
     }
     
-    public void putAll(Map<? extends String,? extends Object> t){
-        throw new UnsupportedOperationException();
+    public void putAll( Map<? extends String,? extends Object> other ){
+
+        if ( other == null || other.size() == 0 )
+            return;
+        
+        // TODO: we can do some cool fast stuff here later
+
+        for ( String s : other.keySet() ){
+            put( s , other.get( s ) );
+        }
     }
 
     public Collection<Object> values(){

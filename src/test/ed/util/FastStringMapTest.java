@@ -97,6 +97,22 @@ public class FastStringMapTest extends ed.TestCase {
         
     }
 
+    @Test(groups = {"basic"})
+    public void testPutAll(){
+        FastStringMap m = new FastStringMap();
+        
+        m.put( "a" , 5 );
+        assertEquals( 5 , m.get( "a" ) );
+        
+        Map<String,Object> other = new HashMap<String,Object>();
+        other.put( "b" , 6 );
+        m.putAll( other );
+
+        assertEquals( 5 , m.get( "a" ) );
+        assertEquals( 6 , m.get( "b" ) );
+        assertEquals( 2 , m.size() );
+
+    }
 
     @Test(groups = {"basic"})
     public void testRandom(){
@@ -111,6 +127,8 @@ public class FastStringMapTest extends ed.TestCase {
         rand( r , 1000 , 50000 );
     }
     
+
+
     void rand( Random r , int space , int time ){
 
         Map<String,Object> m = new HashMap<String,Object>();
