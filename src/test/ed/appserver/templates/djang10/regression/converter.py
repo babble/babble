@@ -196,7 +196,6 @@ def serialize_test(name, a_test):
         results = serialize(a_test[2])
     #rename var to var1
     content = a_test[0]
-    content = escape_var(content)
     return '    { name: %s, content: %s, model: %s, results: %s }' % ( serialize(name), serialize(content), serialize(a_test[1]), results)
 
 def serialize(m):
@@ -207,7 +206,7 @@ def serialize(m):
         return "[ %s ]" % ", ".join( ["%s" % serialize(item) for item in m] )
 
     elif isinstance(m, dict):
-        return '{ %s }' % ", ".join( ['%s: %s' % (serialize(escape_var(key)), serialize(value)) for key, value in m.items()] )
+        return '{ %s }' % ", ".join( ['%s: %s' % (serialize(key), serialize(value)) for key, value in m.items()] )
     
     elif isinstance(m, SafeData):
         return 'djang10.mark_safe(%s)' % serialize(str(m))
@@ -248,11 +247,6 @@ def serialize(m):
         raise Exception("can't serialize the model: %s" % m)
 
 
-
-def escape_var(var):
-    if isinstance(var, str):
-        return re.sub(r'([^\w]|^)var([^\w]|$)', r"\1var_ex\2", var)
-    return var
 
 def escape_str(str):
     def replace(match):
