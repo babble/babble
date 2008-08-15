@@ -24,6 +24,10 @@ import java.util.regex.Pattern;
 import org.testng.annotations.Factory;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Optional;
+import org.testng.annotations.Test;
+
+import ed.js.JSFunction;
+import ed.js.engine.Scope;
 
 
 /**
@@ -45,10 +49,12 @@ public class ScriptTestFactory {
                                         @Optional("") String exclusionRegex) throws Exception {
 
 
+        List<ScriptTestInstance> list = new ArrayList<ScriptTestInstance>();
+
         if (testClassName == null || testClassName.length() == 0) { 
-            throw new Exception("config error : test class name unspecified");
-        }
-        
+            list.add(new FrameworkMisconfigTestInstance("test class name unspecified"));
+            return list.toArray();
+        }        
         
         /*
          *   ensure that the specified class exists and is useful
@@ -56,16 +62,19 @@ public class ScriptTestFactory {
         try { 
             ScriptTestInstance i = (ScriptTestInstance) Class.forName(testClassName).newInstance();
         }
-        catch(ClassCastException cce) { 
-            throw new Exception("config error : specified test class not a ScriptTestInstance?", cce);
+        catch(ClassCastException cce) {
+            list.add(new FrameworkMisconfigTestInstance("specified test class not a ScriptTestInstance?" + cce));
+            return list.toArray();
         }
         
         if (dirName == null || dirName.length() == 0) { 
-            throw new Exception("config error : test directory unspecified");
-        }
+            list.add(new FrameworkMisconfigTestInstance("test directory unspecified"));
+            return list.toArray();
+       }
 
         if (fileEnding == null || fileEnding.length() == 0) { 
-            throw new Exception("config error : file ending unspecified");
+            list.add(new FrameworkMisconfigTestInstance("file ending unspecified"));
+            return list.toArray();
         }
         
         if (!dirName.startsWith("/")) {
@@ -76,13 +85,12 @@ public class ScriptTestFactory {
         	}
         	dirName = s + dirName;
         }
-        
-        List<ScriptTestInstance> list = new ArrayList<ScriptTestInstance>();
-        
+                
         File dir = new File(dirName);
         
         if (!dir.exists()) {
-            throw new Exception("config error : test directory doesn't exist : " + dir);
+            list.add(new FrameworkMisconfigTestInstance("test directory doesn't exist : " + dir));
+            return list.toArray();
         }
 
         Pattern inPattern = null;
@@ -128,5 +136,43 @@ public class ScriptTestFactory {
         }
 
         return list.toArray();
+    }
+    
+    /**
+     * TestNG doesn't seem to grok that calling a test factory and getting an 
+     * Exception or Error thrown means that something isn't quite right (I'm 
+     * sure there's a way to do this, but rather than depend on some incantation
+     * of testng config, lets just return a test that will fail w/ hopefully a 
+     * useful message
+     */
+    public class FrameworkMisconfigTestInstance implements ScriptTestInstance { 
+        
+        private String msg;
+        
+        FrameworkMisconfigTestInstance(String m) { 
+            msg = "FRAMEWORK CONFIG ERROR  : " + m;
+        }
+        
+        @Test
+        public void test() throws Exception {
+            throw new Exception(msg);
+        }
+
+        public JSFunction convert() throws Exception {
+            // don't care - stub
+            return null;
+        }
+
+        public void preTest(Scope s) throws Exception {
+            // don't care - stub
+        }
+
+        public void setTestScriptFile(File f) {
+            // don't care - stub
+        }
+
+        public void validateOutput(Scope s) throws Exception {
+            // don't care - stub
+        }
     }
 }
