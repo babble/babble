@@ -19,11 +19,15 @@
 package ed.lang.ruby;
 
 import org.jruby.*;
+import org.jruby.internal.runtime.methods.JavaMethod;
 import org.jruby.javasupport.JavaUtil;
+import org.jruby.runtime.*;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.util.IdUtil;
+import static org.jruby.runtime.Visibility.PUBLIC;
 
 import ed.js.JSObject;
+import ed.js.JSFunction;
 import ed.js.engine.Scope;
 
 /**
@@ -35,69 +39,66 @@ import ed.js.engine.Scope;
 public class RubyJSObjectWrapper extends RubyObjectWrapper {
 
     private final JSObject _jsobj;
-    private boolean _initializing;
 
     RubyJSObjectWrapper(Scope s, org.jruby.Ruby runtime, JSObject obj) {
 	super(s, runtime, obj);
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("  creating RubyJSObjectWrapper");
-	_initializing = true;
 	_jsobj = (JSObject)_obj;
-	try {
-	    for (String key : _jsobj.keySet()) {
-		String ivarName = "@" + key;
-		if (IdUtil.isValidInstanceVariableName(ivarName)) {
+	_addMethodMissing();
+    }
+
+    // Add a method_missing method to the eigenclass that handles method calls
+    // and accessors.
+    private void _addMethodMissing() {
+	final RubyClass eigenclass = getSingletonClass();
+	final String name = "method_missing".intern();
+	eigenclass.addMethod(name, new JavaMethod(eigenclass, PUBLIC) {
+                public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+		    // args[0] is method name symbol, args[1..-1] are arguments
+		    String key = JavaUtil.convertRubyToJava(args[0]).toString();
 		    if (RubyObjectWrapper.DEBUG)
-			System.err.println("  adding ivar named " + ivarName);
-		    Object val = _jsobj.get(key);
-		    if (val instanceof JSObject) {
-			IRubyObject robj = RubyObjectWrapper.create(_scope, _runtime, val, key, this);
-			if (!(robj instanceof RubyJSFunctionWrapper))
-			    _addIvar(key, robj);
+			System.err.println("method_missing called; symbol = " + key);
+
+		    boolean assign = false;
+		    if (key.endsWith("=")) {
+			assign = true;
+			key = key.substring(0, key.length() - 1);
 		    }
-		    else
-			_addIvar(key, JavaUtil.convertJavaToUsableRubyObject(_runtime, val));
-		}
-	    }
-	}
-	catch (UnsupportedOperationException e) { }
-	if (RubyObjectWrapper.DEBUG)
-	    System.err.println("  done creating RubyJSObjectWrapper");
-	_initializing = false;
-    }
 
-    // Add the ivar @key and accessor methods for that ivar
-    private void _addIvar(String key, IRubyObject val) {
-	RubyClass eigenclass = getSingletonClass();
-	if (RubyObjectWrapper.DEBUG)
-	    System.err.println("    eigenclass of this object is named " + eigenclass.getName()); // DEBUG
-	instance_variable_set(RubySymbol.newSymbol(_runtime, "@" + key), val);
-	eigenclass.attr_accessor(_runtime.getCurrentContext(), new IRubyObject[] {RubySymbol.newSymbol(_runtime, key)}); // attr_accessor symbol is "foo" not "@foo"
-    }
+		    // If this object does now know about key, call superclass method_missing
+		    if (!_jsobj.containsKey(key))
+			return RubyObjectWrapper.create(_scope, _runtime, callSuper(context, args, block), null, null);
 
-    protected IRubyObject variableTableStore(String name, IRubyObject value) {
-	if (!_initializing)
-	    _updateJSObject(name, value, "");
-	return super.variableTableStore(name, value);
-    }
+		    // Write
+		    if (assign) {
+			if (DEBUG)
+			    System.err.println("assigning new value " + key);
+			_jsobj.set(key, RubyObjectWrapper.toJS(_runtime, args[1]));
+			return RubyObjectWrapper.create(_scope, _runtime, JavaUtil.convertRubyToJava(args[1]), null, null);
+		    }
 
-    protected IRubyObject variableTableFastStore(String internedName, IRubyObject value) {
-	if (!_initializing)
-	    _updateJSObject(internedName, value, " (fast)");
-	return super.variableTableFastStore(internedName, value);
-    }
-
-    private void _updateJSObject(String name, IRubyObject value, String storeType) {
-	if (RubyObjectWrapper.DEBUG)
-	    System.err.println("  storing into ivar " + name + storeType + "; value = " + value + "; class of value = " + value.getClass().getName());
-	if (_jsobj != null) {
-	    String key = name.substring(1);
-	    if (_jsobj.containsKey(key)) {
-		Object obj = JavaUtil.convertRubyToJava(value);
-		_jsobj.set(key, obj);
-		if (RubyObjectWrapper.DEBUG)
-		    System.err.println("    class of value stored into ivar is " + obj.getClass().getName());
-	    }
-	}
+		    // Read ivar or call function
+		    Object obj = _jsobj.get(key);
+		    if (obj == null) {
+			if (DEBUG)
+			    System.err.println("returning instance var value");
+			return _runtime.getNil();
+		    }
+		    if (obj instanceof JSFunction) {
+			if (DEBUG)
+			    System.err.println("calling function " + key);
+			Object[] jargs = new Object[args.length - 1];
+			for (int i = 1; i < args.length; ++i)
+			    jargs[i-1] = JavaUtil.convertRubyToJava(args[i]);
+			return RubyObjectWrapper.create(_scope, _runtime, ((JSFunction)obj).call(_scope, jargs), null, null);
+		    }
+		    if (DEBUG)
+			System.err.println("returning instance var value");
+		    return RubyObjectWrapper.create(_scope, _runtime, obj, null, null);
+                }
+                @Override public Arity getArity() { return Arity.ONE_REQUIRED; }
+            });
+	eigenclass.callMethod(_runtime.getCurrentContext(), "method_added", _runtime.fastNewSymbol(name));
     }
 }

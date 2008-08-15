@@ -49,7 +49,6 @@ public class RubyJSFunctionWrapper extends RubyObjectWrapper {
 
     /** Adds this method to <var>eigenclass</var>. */
     private void _addMethod(String name, RubyClass eigenclass) {
-	final ThreadContext context = _runtime.getCurrentContext();
 	final String internedName = name.intern();
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("adding method named " + internedName + " to eigenclass " + eigenclass.getName());
@@ -71,6 +70,6 @@ public class RubyJSFunctionWrapper extends RubyObjectWrapper {
                 }
                 @Override public Arity getArity() { return Arity.createArity(_func.getNumParameters()); }
             });
-	eigenclass.callMethod(context, "method_added", _runtime.fastNewSymbol(internedName));
+	eigenclass.callMethod(_runtime.getCurrentContext(), "method_added", _runtime.fastNewSymbol(internedName));
     }
 }

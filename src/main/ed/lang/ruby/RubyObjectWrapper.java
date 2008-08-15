@@ -25,9 +25,8 @@ import org.jruby.runtime.*;
 import org.jruby.runtime.builtin.IRubyObject;
 import static org.jruby.runtime.Visibility.PUBLIC;
 
-import ed.js.JSFunction;
-import ed.js.JSObject;
-import ed.js.JSObjectLame;
+import ed.db.ObjectId;
+import ed.js.*;
 import ed.js.engine.Scope;
 
 /**
@@ -49,6 +48,8 @@ public class RubyObjectWrapper extends RubyObject {
     public static IRubyObject create(Scope s, org.jruby.Ruby runtime, Object obj, String name, RubyObjectWrapper container) {
 	if (obj == null)
 	    return runtime.getNil();
+	if (obj instanceof ObjectId)
+	    return new RubyObjectId(runtime, (ObjectId)obj);
 	if (obj instanceof JSFunction) {
 	    IRubyObject methodOwner = container == null ? runtime.getTopSelf() : container;
 	    return new RubyJSFunctionWrapper(s, runtime, (JSFunction)obj, name, methodOwner.getSingletonClass());
@@ -56,6 +57,38 @@ public class RubyObjectWrapper extends RubyObject {
 	if (obj instanceof JSObject)
 	    return new RubyJSObjectWrapper(s, runtime, (JSObject)obj);
 	return JavaUtil.convertJavaToUsableRubyObject(runtime, obj);
+    }
+
+    /** Given a Ruby object, returns a JavaScript object. */
+    public static Object toJS(org.jruby.Ruby runtime, IRubyObject r) {
+	if (r == null)
+	    return null;
+	if (r instanceof RubyObjectId)
+	    return ((RubyObjectId)r)._id;
+	if (r instanceof RubyNumeric)
+	    return JavaUtil.convertRubyToJava(r);
+	if (r instanceof RubyString)
+	    return new JSString(JavaUtil.convertRubyToJava(r).toString());
+	if (r instanceof RubyArray) {
+	    RubyArray ra = (RubyArray)r;
+	    int len = ra.getLength();
+	    JSArray ja = new JSArray(len);
+	    for (int i = 0; i < len; ++i)
+		ja.setInt(i, RubyObjectWrapper.toJS(runtime, ra.entry(i)));
+	    return ja;
+	}
+	if (r instanceof RubyHash) {
+	    RubyHash rh = (RubyHash)r;
+	    JSMap map = new JSMap();
+	    RubyArray keys = rh.keys();
+	    int len = keys.getLength();
+	    for (int i = 0; i < len; ++i) {
+		IRubyObject key = keys.entry(i);
+		map.set(JavaUtil.convertRubyToJava(key).toString(), toJS(runtime, rh.op_aref(runtime.getCurrentContext(), key)));
+	    }
+	    return map;
+	}
+	return JavaUtil.convertRubyToJava(r); // punt
     }
 
     RubyObjectWrapper(Scope s, org.jruby.Ruby runtime, Object obj) {
