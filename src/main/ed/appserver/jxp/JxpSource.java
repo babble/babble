@@ -55,7 +55,7 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
             return new ed.lang.python.PythonJxpSource( f , lib );
         
         if ( f.getName().endsWith( ".rbx" ) )
-            return new ed.lang.python.RubyJxpSource( f , lib );
+            return new ed.lang.ruby.RubyJxpSource( f , lib );
 
         JxpSource s = new JxpFileSource( f );
         s._lib = lib;
