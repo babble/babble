@@ -16,7 +16,10 @@
 
 package ed.appserver.templates.djang10;
 
+import java.util.Stack;
+
 import ed.appserver.templates.djang10.Parser.Token;
+import ed.js.JSException;
 import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.engine.Scope;
@@ -49,10 +52,7 @@ public class NodeWrapper {
             
             if(Djang10Source.DEBUG) {
                 String selfRepr = "Unkown";
-                try {
-                    selfRepr = thisObj.toString();
-                }
-                catch(Exception t) {}
+                try { selfRepr = thisObj.toString(); } catch(Exception ignored) {}
                 
                 System.out.println("Rendering: " + selfRepr);
             }
@@ -66,14 +66,16 @@ public class NodeWrapper {
             context.__begin_render_node(thisObj);
             try {
                 ret = renderFunc.callAndSetThis(scope, thisObj, new Object[] { contextObj });
-            } catch(RuntimeException e) {
-                String selfRepr = "Unkown";
-                try { selfRepr = thisObj.toString(); } catch(Exception t) {}
-                
-                log.error("Failed to render: " + selfRepr);
+            } 
+            catch(TemplateRenderException e) {
                 throw e;
             }
-            context.__end_render_node(thisObj);
+            catch(Exception e) {
+                throw new TemplateRenderException(context, e);
+            }
+            finally {
+                context.__end_render_node(thisObj);
+            }
             
             if(printWrapper.buffer.length() > 0)
                 return printWrapper.buffer + (ret == null? "" : ret.toString());
@@ -106,14 +108,23 @@ public class NodeWrapper {
             context.__begin_render_node(thisObj);
             try {
                 __renderFunc.callAndSetThis(scope, thisObj, new Object[] { contextObj, printer });
-            } catch(RuntimeException e) {
-                String selfRepr = "Unkown";
-                try { selfRepr = thisObj.toString(); } catch(Exception t) {}
-                
-                log.error("Failed to render: " + selfRepr);
+            }
+            catch(TemplateRenderException e) {
                 throw e;
             }
-            context.__end_render_node(thisObj);
+            catch(JSException e) {
+                if(e.getCause() instanceof TemplateRenderException)
+                    throw e;
+                
+                Exception t = (e.getCause() instanceof Exception)? (Exception)e.getCause() : e;
+                throw new TemplateRenderException(context, t);
+            }
+            catch(Exception e) {
+                throw new TemplateRenderException(context, e);
+            }
+            finally {
+                context.__end_render_node(thisObj);
+            }
             
             return null;
         }

@@ -14,9 +14,9 @@
 <blargh name="me2">
   <blah id="4">2</blah>
   <blah foo="bar">3</blah>
-  <name>me</name>
+  <name attr="foo">me</name>
 </blargh>
 zap
-<blargh name="me2">
-  <name>me</name>
+<blargh>
+  <name attr="foo">me</name>
 </blargh>

@@ -261,7 +261,7 @@ public class E4X {
         void buildENodeDom(ENode parent) {
             NamedNodeMap attr = parent.node.getAttributes();
             for( int i=0; attr != null && i< attr.getLength(); i++) {
-                parent.children.add( new ENode(attr.item(i)) );
+                parent.children.add( new ENode(attr.item(i), parent ) );
             }
             if( parent.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE ) {
                 Properties piProp = new Properties();

@@ -50,8 +50,9 @@ public class RubyTest extends TestCase {
             final PrintStream out = new PrintStream( bout );
             
 
-            Scope scope = Scope.getAScope().getGlobal().child();
+            Scope scope = Scope.newGlobal().child();
             scope.setGlobal( true );
+            scope.makeThreadLocal();
             
             JSFunction myout = new JSFunctionCalls1(){
                     public Object call( Scope scope ,Object o , Object extra[] ){

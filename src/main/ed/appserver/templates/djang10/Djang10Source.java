@@ -32,6 +32,7 @@ import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.engine.JSCompiledScript;
 import ed.js.engine.Scope;
+import ed.lang.StackTraceHolder;
 import ed.util.Dependency;
 import ed.util.Pair;
 
@@ -50,7 +51,17 @@ public class Djang10Source extends JxpSource {
         compiledScript = null;
     }
 
-    public synchronized JSFunction getFunction() throws IOException {
+    public JSFunction getFunction() throws IOException {
+        try {
+            return _getFunction();
+        } catch(RuntimeException e) {
+            StackTraceHolder.getInstance().fix(e);
+            Djang10CompiledScript.fix(e);
+
+            throw e;
+        }
+    }
+    public synchronized JSFunction _getFunction() throws IOException {
         if(_needsParsing() || compiledScript == null) {
             if(DEBUG)
                 System.out.println("Parsing " + content.getDebugName());
@@ -108,25 +119,6 @@ public class Djang10Source extends JxpSource {
     }
     public String getName() {
         return content.getName();
-    }
-    
-    public NodeList compile(Scope scope) {
-        String contents;
-
-        try {
-            contents = getContent();
-        } catch (IOException e) {
-            throw new TemplateException("Failed to read the template source from: " + getFile(), e);
-        }
-
-        Parser parser = new Parser(this.content.getName(), contents);
-        JSHelper jsHelper = JSHelper.get(scope);
-        for(Pair<JxpSource,Library> lib : jsHelper.getDefaultLibraries()) {
-            parser.add_dependency(lib.first);
-            parser.add_library(lib.second);
-        }
-
-        return parser.parse(scope, new JSArray());
     }
     
     public static JSHelper install(Scope scope) {
