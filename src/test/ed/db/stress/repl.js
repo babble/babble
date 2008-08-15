@@ -1,5 +1,9 @@
 // repl.js - test replication.  two db instances must be running, with master on default port
 //
+// to run:
+//   rm /data/db/* ; ./db --nojni --master
+//   rm /tmp/* ; ./db --slave --nojni --port 8000 --dbpath /tmp/ 
+//   ./shell <path>/repl.js
 
 slocal = connect("local", "localhost:8000"); // slave on 8000
 sfoo   = connect("foo", "localhost:8000");
@@ -78,6 +82,12 @@ function go() {
     chk( { x:2 } );
     chk( { x:3 } );
     chk( { x:4 } );
+
+    print("index check...");
+    mbar.ensureIndex({x:1});
+    sleep(10000);
+    assert( mfoo.system.indexes.find({ns:'foo.bar'}).count() == 1 );
+    assert( sfoo.system.indexes.find({ns:'foo.bar'}).count() == 1 );
 
     assert( mfoo.bar.validate().valid );
     assert( sfoo.bar.validate().valid );
