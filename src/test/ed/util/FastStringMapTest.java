@@ -147,8 +147,8 @@ public class FastStringMapTest extends ed.TestCase {
         long ourTime = System.currentTimeMillis() - start;
         long ourSize = before - MemUtil.bytesAvailable();
 
-        assertLess( ourSize , javaSize * 1.2 );
-        assertLess( ourTime , javaTime * 1.2 );
+        assertLess( ourSize , javaSize * 1.5 );
+        assertLess( ourTime , javaTime * 1.5 );
     }
 
     @Test(groups = {"basic"})
