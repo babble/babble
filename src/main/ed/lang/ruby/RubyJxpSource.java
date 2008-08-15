@@ -20,6 +20,7 @@ package ed.lang.ruby;
 
 import java.io.*;
 import java.util.Set;
+import java.util.HashSet;
 
 import org.jruby.Ruby;
 import org.jruby.RubyIO;
@@ -119,13 +120,17 @@ public class RubyJxpSource extends JxpSource {
 	g.set("$stdout", new RubyIO(_runtime, _getOutputStream(s)));
 
 	// Turn all JSObject scope variables into Ruby global variables
+	Set<String> alreadySeen = new HashSet<String>();
 	while (s != null) {
 	    for (String key : s.keySet()) {
+		if (alreadySeen.contains(key)) // Use most "local" version of var
+		    continue;
 		Object val = s.get(key);
 		if (DEBUG)
 		    System.err.println("about to set $" + key + "; class = " + (val == null ? "<null>" : val.getClass().getName()));
 		String name = "$" + key;
 		g.set(name, RubyObjectWrapper.create(s, _runtime, val, name));
+		alreadySeen.add(key);
 	    }
 	    s = s.getParent();
 	}
