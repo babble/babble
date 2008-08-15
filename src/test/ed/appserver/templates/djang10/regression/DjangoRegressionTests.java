@@ -78,7 +78,6 @@ public class DjangoRegressionTests {
 
         //python & js have different string representations of types
         "filter-make_list0[1-4]", 
-        "filter-slice.*",
     };    
        
     public DjangoRegressionTests(){ }
