@@ -101,4 +101,18 @@ public class MyAsserts {
         throw new MyAssert( "null" );
     }
 
+    public static void assertLess( long lower , long higher ){
+        if ( lower < higher )
+            return;
+
+        throw new MyAssert( lower + " is higher than " + higher );
+    }
+
+    public static void assertLess( double lower , double higher ){
+        if ( lower < higher )
+            return;
+
+        throw new MyAssert( lower + " is higher than " + higher );
+    }
+
 }
