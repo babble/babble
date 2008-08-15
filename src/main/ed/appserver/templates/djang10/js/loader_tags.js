@@ -60,7 +60,7 @@ BlockNodeData.prototype = {
         context.pop();
     },
     
-    "super_": function() {
+    "super": function() {
         if(this.parent == null)
             return "";
 

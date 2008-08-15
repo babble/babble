@@ -18,14 +18,17 @@ package ed.appserver.templates.djang10;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 
 import ed.appserver.JSFileLibrary;
 import ed.ext.org.mozilla.javascript.CompilerEnvirons;
 import ed.ext.org.mozilla.javascript.Node;
-import ed.ext.org.mozilla.javascript.ScriptOrFnNode;
 import ed.ext.org.mozilla.javascript.Token;
 import ed.js.JSArray;
 import ed.js.JSException;
@@ -47,7 +50,7 @@ public class Expression extends JSObjectBase {
         };
     };
 
-    private static final List<Integer> SUPPORTED_TOKENS = Arrays.asList(
+    private static final Set<Integer> SUPPORTED_TOKENS = new HashSet<Integer>(Arrays.asList(
         Token.GETELEM,
         Token.GETPROP,
         Token.CALL,
@@ -60,7 +63,88 @@ public class Expression extends JSObjectBase {
         Token.NULL,
         Token.TRUE,
         Token.FALSE
-    );
+    ));
+    
+    private static final String ESCAPE_PREFIX = "_";
+    private static final List<String> TERMS_TO_ESCAPE;
+    static {
+        List<String> terms = Arrays.asList(
+            //JavaScript Reserved Words
+            "break",
+            "case",
+            "continue",
+            "default",
+            "delete",
+            "do",
+            "else",
+            "export",
+            "for",
+            "function",
+            "if",
+            "in",   //TODO:implement
+            "let",
+            "label", 
+            "new",  //TODO:implement
+            "return",
+            "switch",
+            "this",
+            "typeof", //TODO: implement this
+            "var",
+            "void",
+            "while",
+            "with",
+            "yield",
+            
+            //Java Keywords (Reserved by JavaScript)
+            "abstract",
+            "boolean",
+            "byte",
+            "catch",
+            "char",
+            "class",
+            "const",
+            "debugger",
+            "double",
+            "enum",
+            "extends",
+            "final",
+            "finally",
+            "float",
+            "goto",
+            "implements",
+            "import",
+            "instanceof",   //TODO implement
+            "int",
+            "interface",
+            "long",
+            "native",
+            "package",
+            "private",
+            "protected",
+            "public",
+            "short",
+            "static",
+            "super",
+            "synchronized",
+            "throw",
+            "throws",
+            "transient",
+            "try",
+            "volatile"            
+        );
+        Collections.sort(terms, new Comparator<String>() {
+            public int compare(String o1, String o2) {
+                int result = o1.length() - o2.length();
+                
+                if(result == 0)
+                    result = o1.compareTo(o2);
+                
+                return result;
+            };
+        });
+        
+        TERMS_TO_ESCAPE = Collections.unmodifiableList(terms);
+    }
     
     private String expression;
     private ed.appserver.templates.djang10.Parser.Token token;
@@ -74,14 +158,23 @@ public class Expression extends JSObjectBase {
 
         CompilerEnvirons ce = new CompilerEnvirons();
         ed.ext.org.mozilla.javascript.Parser parser = new ed.ext.org.mozilla.javascript.Parser(ce, ce.getErrorReporter());
-        ScriptOrFnNode scriptNode;
-
+        Node scriptNode;
+        
+        String processedExpr = preprocess(expression);
         try {
-            scriptNode = parser.parse(expression, "foo", 0);
+            scriptNode = parser.parse(processedExpr, "foo", 0);
+            scriptNode = postprocess(scriptNode);
         } catch (Exception t) {
-            throw new TemplateSyntaxError("Failed to parse expression: " + expression, token);
+            String msg;
+            
+            if(Djang10Source.DEBUG)
+                msg = "Failed to parse original expression: " + expression + ". Processed expr: " + processedExpr;
+            else
+                msg = "Failed to expression: " + expression;
+            
+            throw new TemplateSyntaxError(msg, token);
         }
-
+        
         if (scriptNode.getFirstChild() != scriptNode.getLastChild())
             throw new TemplateSyntaxError("Only one expression is allowed, got: "+expression, token);
 
@@ -105,6 +198,46 @@ public class Expression extends JSObjectBase {
         
     }
 
+    private static String preprocess(String exp) {
+        //escape reserved words
+        for(String term : TERMS_TO_ESCAPE)
+            exp = exp.replace(term, ESCAPE_PREFIX + term);
+        
+        return exp;
+    }
+    private static Node postprocess(Node node) {
+        //undo reserved word escapes
+        if(node.getType() == Token.NAME || node.getType() == Token.STRING) {
+            String str = node.getString();
+            
+            for(String term : TERMS_TO_ESCAPE) {
+                String escaped_term = ESCAPE_PREFIX + term;
+                
+                str = str.replace(escaped_term, term); 
+            }
+            
+            if(!str.equals(node.getString())) {
+                Node newNode = Node.newString(node.getType(), str);
+                
+                for(Node child = node.getFirstChild(); child != null; child = child.getNext())
+                    newNode.addChildToBack(child);
+                
+                node = newNode;
+            }
+        }
+        
+        for(Node child = node.getFirstChild(); child != null; child = child.getNext()) {
+            Node newChild = postprocess(child);
+            if(newChild != child)
+                node.replaceChild(child, newChild);
+            child = newChild;
+        }
+        
+        return node;
+    }
+
+    
+    
     public boolean is_literal() {
         if(isLiteral == null)
             isLiteral = is_literal(this.parsedExpression);
