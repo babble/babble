@@ -187,8 +187,15 @@ public final class FastStringMap implements Map<String,Object> {
 
 
             grow();
-            if ( _data.length > 100 )
+            if ( _data.length > 100 ){
+                if ( _data.length > 1000 ){
+                    _maxChainLength++;
+                    if ( _data.length > 10000 ){
+                        _maxChainLength++;
+                    }
+                }
                 _maxChainLength++;
+            }
         }
     }
 
