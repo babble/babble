@@ -44,6 +44,10 @@ public class RubyObjectWrapper extends RubyObject {
     protected final org.jruby.Ruby _runtime;
     protected final Object _obj;
 
+    public static IRubyObject create(Scope s, org.jruby.Ruby runtime, Object obj) {
+	return create(s, runtime, obj, null, null);
+    }
+
     public static IRubyObject create(Scope s, org.jruby.Ruby runtime, Object obj, String name) {
 	return create(s, runtime, obj, name, null);
     }

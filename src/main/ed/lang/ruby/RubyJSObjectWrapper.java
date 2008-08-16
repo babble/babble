@@ -68,14 +68,14 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 
 		    // If this object does now know about key, call superclass method_missing
 		    if (!_jsobj.containsKey(key))
-			return RubyObjectWrapper.create(_scope, _runtime, callSuper(context, args, block), null, null);
+			return RubyObjectWrapper.create(_scope, _runtime, callSuper(context, args, block));
 
 		    // Write
 		    if (assign) {
 			if (DEBUG)
 			    System.err.println("assigning new value " + key);
 			_jsobj.set(key, RubyObjectWrapper.toJS(_runtime, args[1]));
-			return RubyObjectWrapper.create(_scope, _runtime, JavaUtil.convertRubyToJava(args[1]), null, null);
+			return RubyObjectWrapper.create(_scope, _runtime, JavaUtil.convertRubyToJava(args[1]));
 		    }
 
 		    // Read ivar or call function
@@ -91,11 +91,11 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 			Object[] jargs = new Object[args.length - 1];
 			for (int i = 1; i < args.length; ++i)
 			    jargs[i-1] = JavaUtil.convertRubyToJava(args[i]);
-			return RubyObjectWrapper.create(_scope, _runtime, ((JSFunction)obj).call(_scope, jargs), null, null);
+			return RubyObjectWrapper.create(_scope, _runtime, ((JSFunction)obj).call(_scope, jargs));
 		    }
 		    if (DEBUG)
 			System.err.println("returning instance var value");
-		    return RubyObjectWrapper.create(_scope, _runtime, obj, null, null);
+		    return RubyObjectWrapper.create(_scope, _runtime, obj);
                 }
                 @Override public Arity getArity() { return Arity.ONE_REQUIRED; }
             });
