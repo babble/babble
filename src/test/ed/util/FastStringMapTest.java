@@ -97,22 +97,18 @@ public class FastStringMapTest extends ed.TestCase {
         
     }
 
-    @Test(groups = {"basic"})
     public void testSize1(){
         _testSize( 1000 );
     }
 
-    @Test(groups = {"basic"})
     public void testSize2(){
         _testSize( 10000 );
     }
 
-    @Test(groups = {"basic"})
     public void testSize3(){
         _testSize( 100000 );
     }
 
-    @Test(groups = {"basic"})
     public void testSize4(){
         _testSize( 500000 );
     }
