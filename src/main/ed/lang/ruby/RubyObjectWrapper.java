@@ -65,6 +65,10 @@ public class RubyObjectWrapper extends RubyObject {
 	    return null;
 	if (r instanceof RubyObjectId)
 	    return ((RubyObjectId)r)._id;
+	if (r instanceof RubyBignum)
+	    return JavaUtil.convertRubyToJava(r, java.math.BigInteger.class);
+	if (r instanceof RubyBigDecimal)
+	    return ((RubyBigDecimal)r).getValue();
 	if (r instanceof RubyNumeric)
 	    return JavaUtil.convertRubyToJava(r);
 	if (r instanceof RubyString)

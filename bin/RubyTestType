@@ -1,6 +1,6 @@
 #!/bin/tcsh
 
-echo running `ls src/test/ed/lang/ruby/$1*.rb`
+echo running `ls src/test/ed/lang/ruby/data/$1*.rb`
 
 set deb = "-DDEBUG.RUBY=true"
 
@@ -9,4 +9,4 @@ if ( $1 == "" ) then
     set deb = " ";
 endif
 
-ant && ./bin/RubyTestReset $1 && ./runLight.bash $deb ed.lang.ruby.RubyTest src/test/ed/lang/ruby/$1*.rb
+ant && ./bin/RubyTestReset $1 && ./runLight.bash $deb ed.lang.ruby.RubyTest src/test/ed/lang/ruby/data/$1*.rb

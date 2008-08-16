@@ -30,7 +30,7 @@ public class RubyTest extends TestCase {
 
     public RubyTest(){
         
-        File dir = new File( "src/test/ed/lang/ruby/" );
+        File dir = new File( "src/test/ed/lang/ruby/data/" );
         for ( File f : dir.listFiles() )
             if ( f.toString().endsWith( ".rb" ) )
                 add( new RubyFileTest( f ) );
