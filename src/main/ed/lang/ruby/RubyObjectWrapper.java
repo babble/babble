@@ -45,15 +45,21 @@ public class RubyObjectWrapper extends RubyObject {
 	return create(s, runtime, obj, name, null);
     }
 
+    /** Given a Java object (JSObject, Number, etc.), return a Ruby object. */
     public static IRubyObject create(Scope s, org.jruby.Ruby runtime, Object obj, String name, RubyObjectWrapper container) {
 	if (obj == null)
 	    return runtime.getNil();
 	if (obj instanceof ObjectId)
 	    return new RubyObjectId(runtime, (ObjectId)obj);
+	// TODO BigDecimal
+	// TODO BigInteger
+	// TODO Number
 	if (obj instanceof JSFunction) {
 	    IRubyObject methodOwner = container == null ? runtime.getTopSelf() : container;
 	    return new RubyJSFunctionWrapper(s, runtime, (JSFunction)obj, name, methodOwner.getSingletonClass());
 	}
+	// TODO JSArray
+	// TODO JSMap
 	if (obj instanceof JSObject)
 	    return new RubyJSObjectWrapper(s, runtime, (JSObject)obj);
 	return JavaUtil.convertJavaToUsableRubyObject(runtime, obj);

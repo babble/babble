@@ -26,6 +26,8 @@ import org.jruby.javasupport.JavaUtil;
 import org.jruby.runtime.builtin.IRubyObject;
 
 import ed.db.ObjectId;
+import ed.js.JSArray;
+import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.lang.ruby.RubyObjectId;
 import ed.lang.ruby.RubyObjectWrapper;
@@ -81,6 +83,45 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 	Object o = toJS(r, ro);
 	assertTrue(o instanceof Number);
 	assertEquals(val, ((Number)o).doubleValue());
+    }
+
+    public void testToJSString() {
+	Object o = toJS(r, RubyString.newUnicodeString(r, "test string"));
+	assertTrue(o instanceof JSString);
+	assertEquals("test string", o.toString());
+    }
+
+    public void testToJSArray() {
+	RubyArray ra = RubyArray.newArray(r, 3);
+	for (int i = 0; i < 3; ++i)
+	    ra.store(i, new RubyFixnum(r, i + 4));
+	Object o = toJS(r, ra);
+	assertTrue(o instanceof JSArray);
+	JSArray ja = (JSArray)o;
+	for (int i = 0; i < 3; ++i)
+	    assertEquals(i + 4, ((Number)ja.getInt(i)).intValue());
+    }
+
+    public void testToJSArrayDeep() {
+	// Create ruby array [4, "test string", [3]]
+	RubyArray ra = RubyArray.newArray(r, 3);
+	ra.store(0, new RubyFixnum(r, 4));
+	ra.store(1, RubyString.newUnicodeString(r, "test string"));
+	RubyArray subarray = RubyArray.newArray(r, 1);
+	subarray.store(0, new RubyFixnum(r, 3));
+	ra.store(2, subarray);
+
+	Object o = toJS(r, ra);
+	assertTrue(o instanceof JSArray);
+	JSArray ja = (JSArray)o;
+	assertEquals(4, ((Number)ja.getInt(0)).intValue());
+	assertEquals("test string", ja.getInt(1).toString());
+	o = ja.getInt(2);
+	assertTrue(o instanceof JSArray);
+	assertEquals(3, ((Number)((JSArray)o).getInt(0)).intValue());
+    }
+
+    public void testToJSHash() {
     }
 
     public static void main(String args[]) {
