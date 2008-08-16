@@ -26,8 +26,7 @@ import org.jruby.javasupport.JavaUtil;
 import org.jruby.runtime.builtin.IRubyObject;
 
 import ed.db.ObjectId;
-import ed.js.JSArray;
-import ed.js.JSString;
+import ed.js.*;
 import ed.js.engine.Scope;
 import ed.lang.ruby.RubyObjectId;
 import ed.lang.ruby.RubyObjectWrapper;
@@ -91,6 +90,14 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 	assertEquals("test string", o.toString());
     }
 
+    public void testToJSFunction() {
+	// TODO
+    }
+
+    public void testToJSObject() {
+	// TODO
+    }
+
     public void testToJSArray() {
 	RubyArray ra = RubyArray.newArray(r, 3);
 	for (int i = 0; i < 3; ++i)
@@ -121,7 +128,53 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 	assertEquals(3, ((Number)((JSArray)o).getInt(0)).intValue());
     }
 
-    public void testToJSHash() {
+    public void testToJSMap() {
+	// Create ruby hash {"a" => 1, :b => "test string"}
+	RubyHash rh = new RubyHash(r);
+	rh.op_aset(RubyString.newUnicodeString(r, "a"), new RubyFixnum(r, 1));
+	rh.op_aset(RubySymbol.newSymbol(r, "b"), RubyString.newUnicodeString(r, "test string"));
+
+	Object o = toJS(r, rh);
+	assertTrue(o instanceof JSMap);
+	JSMap map = (JSMap)(o);
+
+	Object val = map.get("a");
+	assertNotNull(val);
+	assertTrue(val instanceof Number);
+	assertEquals(1, ((Number)val).intValue());
+
+	val = map.get("b");
+	assertNotNull(val);
+	assertTrue(val instanceof JSString);
+	assertEquals("test string", val.toString());
+    }
+
+    public void testCreateNil() {
+	// TODO
+    }
+
+    public void testCreateOid() {
+	// TODO
+    }
+
+    public void testCreateNumber() {
+	// TODO
+    }
+
+    public void testCreateFunction() {
+	// TODO
+    }
+
+    public void testCreateJSObject() {
+	// TODO
+    }
+
+    public void testCreateJSArray() {
+	// TODO
+    }
+
+    public void testCreateJSMap() {
+	// TODO
     }
 
     public static void main(String args[]) {

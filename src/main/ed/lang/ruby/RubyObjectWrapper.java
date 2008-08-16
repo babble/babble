@@ -18,6 +18,9 @@
 
 package ed.lang.ruby;
   
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
 import org.jruby.*;
 import org.jruby.internal.runtime.methods.JavaMethod;
 import org.jruby.javasupport.JavaUtil;
@@ -51,9 +54,10 @@ public class RubyObjectWrapper extends RubyObject {
 	    return runtime.getNil();
 	if (obj instanceof ObjectId)
 	    return new RubyObjectId(runtime, (ObjectId)obj);
-	// TODO BigDecimal
-	// TODO BigInteger
-	// TODO Number
+	if (obj instanceof BigDecimal)
+	    return new RubyBigDecimal(runtime, (BigDecimal)obj);
+	if (obj instanceof BigInteger)
+	    return new RubyBignum(runtime, (BigInteger)obj);
 	if (obj instanceof JSFunction) {
 	    IRubyObject methodOwner = container == null ? runtime.getTopSelf() : container;
 	    return new RubyJSFunctionWrapper(s, runtime, (JSFunction)obj, name, methodOwner.getSingletonClass());
@@ -72,7 +76,7 @@ public class RubyObjectWrapper extends RubyObject {
 	if (r instanceof RubyObjectId)
 	    return ((RubyObjectId)r)._id;
 	if (r instanceof RubyBignum)
-	    return JavaUtil.convertRubyToJava(r, java.math.BigInteger.class);
+	    return JavaUtil.convertRubyToJava(r, BigInteger.class);
 	if (r instanceof RubyBigDecimal)
 	    return ((RubyBigDecimal)r).getValue();
 	if (r instanceof RubyNumeric)
