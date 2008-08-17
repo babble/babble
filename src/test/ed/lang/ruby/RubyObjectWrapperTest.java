@@ -52,12 +52,12 @@ public class RubyObjectWrapperTest extends ed.TestCase {
     }
 
     public void testToJSNumber() {
-	numberTest(42L, new Byte((byte)42));
-	numberTest(42L, new Short((short)42));
-	numberTest(42L, new Integer(42));
-	numberTest(42L, new Long(42));
-	numberTest(42.0, new Float(42.0));
-	numberTest(42.0, new Double(42.0));
+	jsNumberTest(42L, new Byte((byte)42));
+	jsNumberTest(42L, new Short((short)42));
+	jsNumberTest(42L, new Integer(42));
+	jsNumberTest(42L, new Long(42));
+	jsNumberTest(42.0, new Float(42.0));
+	jsNumberTest(42.0, new Double(42.0));
 
 	IRubyObject ro = new RubyBignum(r, new BigInteger("42"));
 	Object o = toJS(r, ro);
@@ -70,14 +70,14 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 	assertEquals(42.4, ((Number)o).doubleValue());
     }
 
-    void numberTest(long val, Object jobj) {
+    void jsNumberTest(long val, Object jobj) {
 	IRubyObject ro = JavaUtil.convertJavaToUsableRubyObject(r, jobj);
 	Object o = toJS(r, ro);
 	assertTrue(o instanceof Number);
 	assertEquals(val, ((Number)o).longValue());
     }
 
-    void numberTest(double val, Object jobj) {
+    void jsNumberTest(double val, Object jobj) {
 	IRubyObject ro = JavaUtil.convertJavaToUsableRubyObject(r, jobj);
 	Object o = toJS(r, ro);
 	assertTrue(o instanceof Number);
@@ -131,8 +131,8 @@ public class RubyObjectWrapperTest extends ed.TestCase {
     public void testToJSMap() {
 	// Create ruby hash {"a" => 1, :b => "test string"}
 	RubyHash rh = new RubyHash(r);
-	rh.op_aset(RubyString.newUnicodeString(r, "a"), new RubyFixnum(r, 1));
-	rh.op_aset(RubySymbol.newSymbol(r, "b"), RubyString.newUnicodeString(r, "test string"));
+	rh.op_aset(r.getCurrentContext(), RubyString.newUnicodeString(r, "a"), new RubyFixnum(r, 1));
+	rh.op_aset(r.getCurrentContext(), RubySymbol.newSymbol(r, "b"), RubyString.newUnicodeString(r, "test string"));
 
 	Object o = toJS(r, rh);
 	assertTrue(o instanceof JSMap);
@@ -150,15 +150,45 @@ public class RubyObjectWrapperTest extends ed.TestCase {
     }
 
     public void testCreateNil() {
-	// TODO
+	assertEquals(r.getNil(), create(s, r, null));
     }
 
     public void testCreateOid() {
-	// TODO
+	ObjectId oid = new ObjectId("0123456789abcdef01");
+	IRubyObject ro = create(s, r, oid);
+	assertTrue(ro instanceof RubyObjectId);
+	assertEquals(oid, ((RubyObjectId)ro)._id);
     }
 
     public void testCreateNumber() {
-	// TODO
+	createNumberTest(42, new Byte((byte)42));
+	createNumberTest(42, new Short((byte)42));
+	createNumberTest(42, new Integer((byte)42));
+	createNumberTest(42, new Long((byte)42));
+	createNumberTest(42.0, new Float((byte)42));
+	createNumberTest(42.0, new Double((byte)42));
+
+	BigInteger bi = new BigInteger("42");
+	IRubyObject ro = create(s, r, bi);
+	assertTrue(ro instanceof RubyBignum);
+	assertEquals(bi, ((RubyBignum)ro).getValue());
+
+	BigDecimal bd = new BigDecimal("42");
+	ro = create(s, r, bd);
+	assertTrue(ro instanceof RubyBigDecimal);
+	assertEquals(bd, ((RubyBigDecimal)ro).getValue());
+    }
+
+    void createNumberTest(long val, Object jobj) {
+	IRubyObject ro = create(s, r, jobj);
+	assertTrue(ro instanceof RubyNumeric);
+	assertEquals(val, RubyNumeric.num2long(ro));
+    }
+
+    void createNumberTest(double val, Object jobj) {
+	IRubyObject ro = create(s, r, jobj);
+	assertTrue(ro instanceof RubyNumeric);
+	assertEquals(val, RubyNumeric.num2dbl(ro));
     }
 
     public void testCreateFunction() {
