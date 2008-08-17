@@ -56,18 +56,34 @@ public class RubyObjectWrapper extends RubyObject {
     public static IRubyObject create(Scope s, org.jruby.Ruby runtime, Object obj, String name, RubyObjectWrapper container) {
 	if (obj == null)
 	    return runtime.getNil();
+	if (obj instanceof JSString)
+	    return RubyString.newUnicodeString(runtime, obj.toString());
 	if (obj instanceof ObjectId)
 	    return new RubyObjectId(runtime, (ObjectId)obj);
-	if (obj instanceof BigDecimal)
-	    return new RubyBigDecimal(runtime, (BigDecimal)obj);
-	if (obj instanceof BigInteger)
-	    return new RubyBignum(runtime, (BigInteger)obj);
 	if (obj instanceof JSFunction) {
 	    IRubyObject methodOwner = container == null ? runtime.getTopSelf() : container;
 	    return new RubyJSFunctionWrapper(s, runtime, (JSFunction)obj, name, methodOwner.getSingletonClass());
 	}
-	// TODO JSArray
-	// TODO JSMap
+	if (obj instanceof JSArray) {
+	    JSArray ja = (JSArray)obj;
+	    int size = ja.size();
+	    RubyArray ra = RubyArray.newArray(runtime, size);
+	    for (int i = 0; i < size; ++i)
+		ra.store(i, create(s, runtime, ja.getInt(i)));
+	    return ra;
+	}
+	if (obj instanceof JSMap) {
+	    JSMap jm = (JSMap)obj;
+	    RubyHash rh = new RubyHash(runtime);
+	    ThreadContext context = runtime.getCurrentContext();
+	    for (Object key : jm.keys())
+		rh.op_aset(context, create(s, runtime, key), create(s, runtime, jm.get(key)));
+	    return rh;
+	}
+	if (obj instanceof BigDecimal)
+	    return new RubyBigDecimal(runtime, (BigDecimal)obj);
+	if (obj instanceof BigInteger)
+	    return new RubyBignum(runtime, (BigInteger)obj);
 	if (obj instanceof JSObject)
 	    return new RubyJSObjectWrapper(s, runtime, (JSObject)obj);
 	return JavaUtil.convertJavaToUsableRubyObject(runtime, obj);
