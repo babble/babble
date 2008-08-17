@@ -208,12 +208,14 @@ public class JSObjectBase implements JSObject {
         }
         
 	// SPECIAL
-	if ( s.equals( "constructor" ) || s.equals( "__constructor__" ) )
-	    return _constructor;
-	
-	if ( s.equals( "__proto__" ) )
-	    return __proto__;
-
+        if ( depth == 0 ){
+            if ( s.equals( "constructor" ) || s.equals( "__constructor__" ) )
+                return _constructor;
+            
+            if ( s.equals( "__proto__" ) )
+                return __proto__;
+        }
+        
 	// END SPECIAL
 
 
