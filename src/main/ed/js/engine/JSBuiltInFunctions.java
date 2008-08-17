@@ -80,8 +80,9 @@ public class JSBuiltInFunctions {
      * @return the new scope
      */
     public static Scope create( String name ){
-        Scope s = new Scope( name , _base );
+        Scope s = new Scope( name , null );
         try {
+	    s.putAll( _base );
             _setup( s );
         }
         catch ( RuntimeException re ){
