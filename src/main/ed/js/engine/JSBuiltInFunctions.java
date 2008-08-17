@@ -80,7 +80,14 @@ public class JSBuiltInFunctions {
      * @return the new scope
      */
     public static Scope create( String name ){
-        Scope s = new Scope( name , null );
+	return create( name , null );
+    }
+    
+    /** Returns a new scope with a given name in which the builtin functions are defined.
+     * @return the new scope
+     */
+    public static Scope create( String name , File root ){
+        Scope s = new Scope( name , null , root );
         try {
 	    s.putAll( _base );
             _setup( s );

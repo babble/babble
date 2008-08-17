@@ -64,6 +64,11 @@ public final class Scope implements JSObject {
     public Scope( String name , Scope parent ){
         this( name , parent , null , Language.JS );
     }
+
+    public Scope( String name , Scope parent , File root ){
+        this( name , parent , null , Language.JS , root );
+    }
+
     
     public Scope( String name , Scope parent , Scope alternate , Language lang ){
         this( name , parent , alternate , lang , null );
