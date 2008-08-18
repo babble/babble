@@ -170,13 +170,26 @@ public class JSON {
             a.append("\"");
         }
 
+        static boolean _loopable( Object o ){
+            if ( o == null )
+                return false;
+            
+            if ( o instanceof Number || o instanceof String )
+                return false;
+
+            return true;
+        }
+
         static void go( Appendable a , Object something , boolean trusted , int indent , String nl , IdentitySet seen )
             throws java.io.IOException {
 
-            if ( seen.contains( something ) )
-                throw new RuntimeException( "loop depetected.  can't serialize a loop" );
-            
-            seen.add( something );
+            if ( _loopable( something ) ){
+                
+                if ( seen.contains( something ) )
+                    throw new RuntimeException( "loop depetected.  can't serialize a loop : " + something );
+                
+                seen.add( something );
+            }
             
             if ( nl.length() > 0 ){
                 if ( a instanceof StringBuilder ){
