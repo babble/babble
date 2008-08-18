@@ -17,7 +17,7 @@
 */
 
 xml = <actors>
-  <actor>
+  <actor attr="rand">
     <name>Jeff</name>
     <born>1930</born>
     <film>Old Yeller</film>
