@@ -99,4 +99,10 @@ tests=[                                                                         
        
        { name: "filter-make_list-jsout-extra01", content: "{% autoescape off %}{{ a|make_list }}{% endautoescape %}", model: { "a": djang10.mark_safe("&&&") }, results: "&,&,&" },
        { name: "filter-make_list-jsout-extra02", content: "{{ a|make_list }}", model: { "a": djang10.mark_safe("&&&") }, results: "&amp;,&amp;,&amp;" },
+       
+       
+       { name: "expression-mangling01", content: "{{ var.if().1[0].1 }}", model: { "var": {"if": function() { return [1, [[null, "moo"]]]} } }, results: "moo" },
+       { name: "expression-mangling02", content: "{{ var.if.when.for.continue }}", model: { "var": { "if": {"when": {"for": {"continue": "baa"}}}}}, results: "baa" }, 
+
+       { name: "now01", content: '{% now "D M j Y G:i:s \\\\G\\\\M\\\\TO (T) Z" %}', model: {}, results: (new Date()).toString() + " -14400" }, 
 ];

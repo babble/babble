@@ -26,6 +26,7 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -238,8 +239,7 @@ public class Util {
                 return Integer.toString(getCalendar(date).getActualMaximum(Calendar.DAY_OF_MONTH));
             }
         });
-        // FIXME: time zone of the actual machine
-        // map.put('T', new DateFormatter(null));
+        map.put('T', new DateFormatter("z"));
 
         map.put('w', new DateFormatter(null) {
             @Override
@@ -261,6 +261,12 @@ public class Util {
         map.put('Y', new DateFormatter("yyyy"));
         map.put('z', new DateFormatter("D"));
 
+        map.put('Z', new DateFormatter(null) {
+            public String format(Date arg0) {
+                //FIXME: read env variable for the time zone
+                return "" + ((Calendar.getInstance().get(Calendar.ZONE_OFFSET) + Calendar.getInstance().get(Calendar.DST_OFFSET))/1000);
+            }
+        });
         // FIXME: time zone in secs
         /*
          * map.put('Z', new DateFormatter(null) { @Override public String

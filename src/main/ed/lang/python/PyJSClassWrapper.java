@@ -50,10 +50,10 @@ public class PyJSClassWrapper extends PyJSFunctionWrapper {
         return toPython( n );
     }
 
-    public PyObject __findattr__( String name ){
+    public PyObject __findattr_ex__( String name ){
         if ( _func.getPrototype().containsKey( name ) )
             return toPython( _func.getPrototype().get( name ) );
-        return super.__findattr__( name );
+        return super.__findattr_ex__( name );
     }
 
     public void __setattr__( String name, PyObject value ){
