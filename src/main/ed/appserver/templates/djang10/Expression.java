@@ -41,10 +41,15 @@ import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
 import ed.js.func.JSFunctionCalls1;
 import ed.lang.python.JSPyObjectWrapper;
+import ed.log.Level;
 import ed.log.Logger;
 
 public class Expression extends JSObjectBase {
     private static final Logger log = Logger.getLogger("djang10.Expression");
+    static {
+        Level logLevel = Djang10Source.DEBUG? Level.DEBUG : Level.INFO;
+        log.setLevel(logLevel);
+    }
     
     public final static Object UNDEFINED_VALUE = new Object() {
         public String toString() {
