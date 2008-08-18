@@ -152,12 +152,12 @@ public class RubyObjectWrapperTest extends ed.TestCase {
     }
 
     @Test(groups = {"convert", "js2r"})
-    public void testCreateNil() {
+    public void testToRubyNil() {
 	assertEquals(r.getNil(), toRuby(s, r, null));
     }
 
     @Test(groups = {"convert", "js2r"})
-    public void testCreateOid() {
+    public void testToRubyOid() {
 	ObjectId oid = new ObjectId("0123456789abcdef01");
 	IRubyObject ro = toRuby(s, r, oid);
 	assertTrue(ro instanceof RubyObjectId);
@@ -165,7 +165,7 @@ public class RubyObjectWrapperTest extends ed.TestCase {
     }
 
     @Test(groups = {"convert", "js2r"})
-    public void testCreateNumber() {
+    public void testToRubyNumber() {
 	createNumberTest(42, new Byte((byte)42));
 	createNumberTest(42, new Short((byte)42));
 	createNumberTest(42, new Integer((byte)42));
@@ -197,7 +197,7 @@ public class RubyObjectWrapperTest extends ed.TestCase {
     }
 
     @Test(groups = {"convert", "js2r"})
-    public void testCreateFunction() {
+    public void testToRubyFunction() {
 	JSFunction jf = new JSFunctionCalls1() {
 		public Object call(Scope scope, Object arg, Object extras[]) {
 		    return new Integer(((Number)arg).intValue() + 7);
@@ -206,18 +206,42 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 	IRubyObject ro = toRuby(s, r, jf, "add_seven"); // null container: add to top-level object
 	assertTrue(ro instanceof RubyJSFunctionWrapper);
 
+	assertEquals("true", r.evalScriptlet("respond_to?(:add_seven).to_s").toString());
+
 	IRubyObject result = r.evalScriptlet("add_seven(35)");
 	assertTrue(result instanceof RubyNumeric);
 	assertEquals(42L, RubyNumeric.num2long(result));
     }
 
     @Test(groups = {"convert", "js2r"})
-    public void testCreateJSObject() {
+    public void testToRubyFunctionNameInObject() {
+	JSObjectBase jo = new JSObjectBase();
+	jo.set(new JSString("my_func"), new JSFunctionCalls1() {
+		public Object call(Scope scope, Object arg, Object extras[]) {
+		    return new Integer(((Number)arg).intValue() + 7);
+		}
+	    });
+	IRubyObject ro = toRuby(s, r, jo);
+	r.getGlobalVariables().set("$obj_with_func", ro);
+
+	try {
+	    IRubyObject result = r.evalScriptlet("$obj_with_func.my_func(35)");
+	    assertTrue(result instanceof RubyNumeric);
+	    assertEquals(42L, RubyNumeric.num2long(result));
+	}
+	catch (Exception e) {
+	    e.printStackTrace();
+	    assertTrue(false);
+	}
+    }
+
+    @Test(groups = {"convert", "js2r"})
+    public void testToRubyJSObject() {
 	// TODO
     }
 
     @Test(groups = {"convert", "js2r"})
-    public void testCreateJSArray() {
+    public void testToRubyJSArray() {
 	JSArray a = new JSArray(new Long(1), new Float(2.3), new JSString("test string"));
 	IRubyObject ro = toRuby(s, r, a);
 	assertTrue(ro instanceof RubyArray);
@@ -229,7 +253,7 @@ public class RubyObjectWrapperTest extends ed.TestCase {
     }
 
     @Test(groups = {"convert", "js2r"})
-    public void testCreateJSMap() {
+    public void testToRubyJSMap() {
 	// Create JSMap {"a" => 1, 42 => "test string"}
 	JSMap map = new JSMap();
 	map.set(new JSString("a"), new Integer(1));
