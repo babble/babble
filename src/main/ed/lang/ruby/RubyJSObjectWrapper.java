@@ -78,11 +78,8 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 
 		    // Read ivar or call function
 		    Object obj = _jsobj.get(key);
-		    if (obj == null) {
-			if (DEBUG)
-			    System.err.println("returning instance var value");
+		    if (obj == null)
 			return _runtime.getNil();
-		    }
 		    if (obj instanceof JSFunction) {
 			if (DEBUG)
 			    System.err.println("calling function " + key);
