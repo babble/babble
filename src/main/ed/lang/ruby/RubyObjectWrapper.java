@@ -67,7 +67,7 @@ public class RubyObjectWrapper extends RubyObject {
 	    int size = ja.size();
 	    RubyArray ra = RubyArray.newArray(runtime, size);
 	    for (int i = 0; i < size; ++i)
-		ra.store(i, toRuby(s, runtime, ja.getInt(i)));
+		ra.store(i, toRuby(s, runtime, ja.getInt(i), "__" + i));
 	    return ra;
 	}
 	if (obj instanceof JSMap) {
@@ -75,7 +75,7 @@ public class RubyObjectWrapper extends RubyObject {
 	    RubyHash rh = new RubyHash(runtime);
 	    ThreadContext context = runtime.getCurrentContext();
 	    for (Object key : jm.keys())
-		rh.op_aset(context, toRuby(s, runtime, key), toRuby(s, runtime, jm.get(key)));
+		rh.op_aset(context, toRuby(s, runtime, key), toRuby(s, runtime, jm.get(key), key.toString()));
 	    return rh;
 	}
 	if (obj instanceof BigDecimal)
