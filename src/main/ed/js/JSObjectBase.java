@@ -867,26 +867,56 @@ public class JSObjectBase implements JSObject {
     /** The hash code value of this object.
      * @return The hash code value of this object.
      */
-    public int hashCode(){
+    public final int hashCode(){
+        return hashCode( null );
+    }
+
+    protected int hashCode( IdentitySet seen ){
+
         int hash = 81623;
 
         if ( _constructor != null )
             hash += _constructor.hashCode();
+        
+        if ( _map == null )
+            return hash;
 
-        if ( _map != null ){
-            for ( Map.Entry<String,Object> e : _map.entrySet() ){
-		final String key = e.getKey();
+        if ( seen == null ){
+            seen = new IdentitySet();
+            seen.add( this );
+        }
+        
+        for ( Map.Entry<String,Object> e : _map.entrySet() ){
+            final String key = e.getKey();
 
-		if ( JSON.IGNORE_NAMES.contains( key ) )
-		    continue;
-		
-                hash += ( 3 * key.hashCode() );
-                if ( e.getValue() != null )
-                    hash += ( 7 * e.getValue().hashCode() );
-            }
+            if ( JSON.IGNORE_NAMES.contains( key ) )
+                continue;
+            
+            hash += ( 3 * key.hashCode() );
+
+            final Object value = e.getValue();
+            hash += _hash( seen , value );
+            
         }
 
         return hash;
+    }
+
+    protected int _hash( IdentitySet seen , Object value ){
+        if ( value == null )
+            return 0;
+        
+        if ( seen != null ){
+            if ( seen.contains( value ) )
+                return 0;
+            seen.add( value );
+        }
+        
+        if ( value instanceof JSObjectBase )
+            return ( 7 * ((JSObjectBase)value).hashCode( seen ) );
+
+        return 7 * value.hashCode();
+        
     }
 
     // -----

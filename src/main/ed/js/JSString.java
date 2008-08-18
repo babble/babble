@@ -654,7 +654,7 @@ public class JSString extends JSObjectBase implements Comparable {
     /** The hash code value of this array.
      * @return The hash code value of this array.
      */
-    public int hashCode(){
+    public int hashCode( IdentitySet seen ){
         return _s.hashCode();
     }
 

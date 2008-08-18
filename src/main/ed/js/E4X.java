@@ -1569,7 +1569,7 @@ public class E4X {
         public boolean contains( Object o ) { return  children.contains( o ); }
         public boolean containsAll( Collection o ) { return  children.containsAll( o ); }
         public boolean equals( Object o) { return children.equals(o); }
-        public int hashCode() { return children.hashCode(); }
+        public int hashCode( IdentitySet seen ) { return children.hashCode(); }
         public int indexOf( Object o ) { return children.indexOf(o); }
         public boolean isEmpty() { return children.isEmpty(); }
         public int lastIndexOf( Object o) { return children.lastIndexOf( o ); }

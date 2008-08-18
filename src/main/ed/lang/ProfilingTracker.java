@@ -134,9 +134,14 @@ public class ProfilingTracker {
     }
     
     String serialize( Object o ){
-        String s = JSON.serialize( o );
-        s = s.replaceAll( "[\r\n\\s]+" , " " ).replace( '\\' , ' ' );
-        return s;
+        try {
+            String s = JSON.serialize( o );
+            s = s.replaceAll( "[\r\n\\s]+" , " " ).replace( '\\' , ' ' );
+            return s;
+        }
+        catch ( Exception e ){
+            return "NOJSON";
+        }
     }
 
     public String toString( String spacer , String eol ){
