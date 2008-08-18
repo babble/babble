@@ -44,4 +44,5 @@ print(xml.blah[1].@foo);
 delete xml.blah;
 
 delete xml.@name;
+delete xml.name.@attr;
 print(xml);

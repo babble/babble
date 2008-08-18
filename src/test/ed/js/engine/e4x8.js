@@ -22,3 +22,10 @@ print(x2);
 
 x2 += "hi";
 print( typeof x2 );
+
+// for
+xml=<x><a>b</a><a>3</a><a>gah</a><b>foo</b></x>
+for( var v in xml.a ) {
+    print( v+": "+xml.a[v] );
+}
+
