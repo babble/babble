@@ -787,7 +787,7 @@ public class JSDate extends JSObjectBase implements Comparable {
     /** This date's hash code.
      * @return The hash code for this date.
      */
-    public int hashCode(){
+    public int hashCode( IdentitySet seen ){
         return (int)_time;
     }
 
