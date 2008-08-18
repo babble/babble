@@ -230,10 +230,10 @@ public class AppRequest {
 
     public void print( String s ){
         Object o = _scope.get( "print" );
-        if ( ! ( o instanceof JxpServlet.MyWriter ) )
+        if ( ! ( o instanceof ServletWriter ) )
             System.out.print( s );
         else
-            ((JxpServlet.MyWriter)o).print( s );
+            ((ServletWriter)o).print( s );
     }
 
     public void turnOnProfiling(){

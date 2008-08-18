@@ -65,3 +65,6 @@ myprint(xml2.office.item[2].enjoyment.toString() );
 myprint(xml2.office.item[2].cost.toString() );
 myprint(xml2.desert.item[0].spf.@uva == xml2.desert.item[0].spf.@uvb);
 myprint(xml2.desert.item[0].spf.@uva );
+
+print( xml.dv[1].child("name") );
+print( xml.dv[1].child("20") );

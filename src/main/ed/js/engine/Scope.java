@@ -38,7 +38,6 @@ public final class Scope implements JSObject {
     private static long ID = 1;
 
     private static ThreadLocal<Scope> _threadLocal = new ThreadLocal<Scope>();
-    private static ThreadLocal<Scope> _lastCreated = new ThreadLocal<Scope>();
 
     public static Scope newGlobal(){
         return JSBuiltInFunctions.create();
@@ -107,7 +106,6 @@ public final class Scope implements JSObject {
         if ( _parent == null )
             _globalThis = _createGlobalThis();
         
-        _lastCreated.set( this );
     }
 
     public Scope child(){
@@ -630,6 +628,7 @@ public final class Scope implements JSObject {
         if ( _global ){
             if ( _globalThis == null )
                 _globalThis = _createGlobalThis();
+            
         }
         else {
             _globalThis = null;
@@ -951,7 +950,6 @@ public final class Scope implements JSObject {
     
     public static void clearThreadLocal(){
         _threadLocal.set( null );
-        _lastCreated.set( null );
     }
     
     public static Scope getThreadLocal(){
@@ -981,22 +979,16 @@ public final class Scope implements JSObject {
         return (JSFunction)getThreadLocal( name , def , warn );
     }
 
-    public static Scope getLastCreated(){
-        return _lastCreated.get();
-    }
-
     public static Scope getAScope(){
-        return getAScope( true , false );
+        return getAScope( true );
     }
 
-    public static Scope getAScope( boolean createIfNeeded , boolean lastCreated ){
+    public static Scope getAScope( boolean createIfNeeded ){
         Scope s = getThreadLocal();
         if ( s != null )
             return s;
         
         if ( ! createIfNeeded ){
-            if ( lastCreated )
-                return _lastCreated.get();
             return null;
         }
 

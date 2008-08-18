@@ -20,6 +20,7 @@ package ed.js;
 
 import java.util.regex.*;
 
+import ed.util.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 
@@ -237,7 +238,7 @@ public class JSRegex extends JSObjectBase {
     /** The hash code value of this regular expression.
      * @return The hash code value of this regular expression.
      */
-    public int hashCode(){
+    public int hashCode( IdentitySet seen ){
         return _p.hashCode() + _f.hashCode();
     }
 

@@ -344,7 +344,7 @@ public abstract class JSFunction extends JSFunctionBase {
     /** The hash code value of this function.
      * @return The hash code value of this function.
      */
-    public int hashCode(){
+    public int hashCode( IdentitySet seen ){
         return System.identityHashCode( this );
     }
 
