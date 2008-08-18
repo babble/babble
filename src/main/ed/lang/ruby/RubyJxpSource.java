@@ -74,6 +74,7 @@ public class RubyJxpSource extends JxpSource {
         final Node code = _getCode(); // Parsed Ruby code
         return new ed.js.func.JSFunctionCalls0() {
             public Object call(Scope s , Object unused[]) {
+		_setOutput(s);
 		_setGlobals(s);
 
 		// See the second part of JRuby's Ruby.executeScript(String, String)
@@ -111,11 +112,14 @@ public class RubyJxpSource extends JxpSource {
         return _code;
     }
 
+    /** Set Ruby's $stdout so that print/puts statements output to the right place. */
+    private void _setOutput(Scope s) {
+	HttpResponse response = (HttpResponse)s.get("response");
+	_runtime.getGlobalVariables().set("$stdout", new RubyIO(_runtime, new RubyJxpOutputStream(response.getWriter())));
+    }
+
     private void _setGlobals(Scope s) {
 	GlobalVariables g = _runtime.getGlobalVariables();
-
-	// Set stdout so that print/puts statements output to the right place
-	g.set("$stdout", new RubyIO(_runtime, _getOutputStream(s)));
 
 	// Turn all JSObject scope variables into Ruby global variables
 	Set<String> alreadySeen = new HashSet<String>();
@@ -132,12 +136,6 @@ public class RubyJxpSource extends JxpSource {
 	    }
 	    s = s.getParent();
 	}
-    }
-
-    // Return an output stream that sends output to the HTTP response's output stream.
-    private OutputStream _getOutputStream(Scope s) {
-	HttpResponse response = (HttpResponse)s.get("response");
-	return new RubyJxpOutputStream(response.getWriter());
     }
 
     private final File _file;
