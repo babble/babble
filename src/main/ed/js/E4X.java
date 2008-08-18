@@ -193,7 +193,7 @@ public class E4X {
             if( n != null &&
                 children == null &&
                 n.getNodeType() != Node.TEXT_NODE &&
-                n.getNodeType() != Node.ATTRIBUTE_NODE )
+                n.getNodeType() != Node.ATTRIBUTE_NODE ) 
                 this.children = new XMLList();
             else if( children != null ) {
                 this.children = children;
@@ -315,8 +315,10 @@ public class E4X {
             if ( n == null )
                 return null;
 
-            if ( n instanceof Number )
-                return child( ((Number)n).intValue() );
+            Pattern num = Pattern.compile("\\d+");
+            Matcher m = num.matcher( n.toString() );
+            if( m.matches() || n instanceof Number )
+                return child( n );
 
             if ( n instanceof String || n instanceof JSString ){
                 String s = n.toString();
@@ -327,6 +329,7 @@ public class E4X {
                 if(s.equals("tojson")) return null;
 
                 Object o = _nodeGet( this, s );
+                //                ((JSObject)_prototype).set("__proto__", (new JSString.JSStringCons()).getPrototype());
                 return (o == null && E4X.isXMLName(s)) ? new ENode( this, s ) : o;
             }
 
@@ -784,20 +787,24 @@ public class E4X {
         /**
          * Returns if this node contains simple content.  An XML node is considered to have simple content if it represents a text or attribute node or an XML element with no child elements.
          */
+        private boolean hasSimpleContent() {
+            short type = this.node.getNodeType();
+            if( type == Node.PROCESSING_INSTRUCTION_NODE ||
+                type == Node.COMMENT_NODE )
+                return false;
+            
+            for( ENode n : this.children ) {
+                if( n.node.getNodeType() == Node.ELEMENT_NODE )
+                    return false;
+            }
+            return true;
+        }
+
         public class hasSimpleContent extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
                 Object obj = s.getThis();
                 ENode en = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                short type = en.node.getNodeType();
-                if( type == Node.PROCESSING_INSTRUCTION_NODE ||
-                    type == Node.COMMENT_NODE )
-                    return false;
-
-                for( ENode n : en.children ) {
-                    if( n.node.getNodeType() == Node.ELEMENT_NODE )
-                        return false;
-                }
-                return true;
+                return en.hasSimpleContent();
             }
         }
 
@@ -1477,6 +1484,15 @@ public class E4X {
             }
 
             ENode cnode;
+        }
+
+        public Collection<String> keySet( boolean includePrototype ) {
+            XMLList list = ( this instanceof XMLList ) ? (XMLList)this : this.children;
+            Collection<String> c = new ArrayList<String>();
+            for( int i=0; i<list.size(); i++ ) {
+                c.add( String.valueOf( i ) );
+            }
+            return c;
         }
 
         private Document _document;
