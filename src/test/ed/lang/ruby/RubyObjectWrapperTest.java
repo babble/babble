@@ -39,6 +39,11 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 
     Scope s = new Scope("test", null);
     org.jruby.Ruby r = org.jruby.Ruby.newInstance();
+    JSFunction addSevenFunc = new JSFunctionCalls1() {
+	    public Object call(Scope scope, Object arg, Object extras[]) {
+		return new Integer(((Number)arg).intValue() + 7);
+	    }
+	};
 
     @Test(groups = {"convert", "r2js"})
     public void testToJSNull() {
@@ -198,12 +203,7 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 
     @Test(groups = {"convert", "js2r"})
     public void testToRubyFunction() {
-	JSFunction jf = new JSFunctionCalls1() {
-		public Object call(Scope scope, Object arg, Object extras[]) {
-		    return new Integer(((Number)arg).intValue() + 7);
-		}
-	    };
-	IRubyObject ro = toRuby(s, r, jf, "add_seven"); // null container: add to top-level object
+	IRubyObject ro = toRuby(s, r, addSevenFunc, "add_seven"); // null container: add to top-level object
 	assertTrue(ro instanceof RubyJSFunctionWrapper);
 
 	assertEquals("true", r.evalScriptlet("respond_to?(:add_seven).to_s").toString());
@@ -216,16 +216,12 @@ public class RubyObjectWrapperTest extends ed.TestCase {
     @Test(groups = {"convert", "js2r"})
     public void testToRubyFunctionNameInObject() {
 	JSObjectBase jo = new JSObjectBase();
-	jo.set(new JSString("my_func"), new JSFunctionCalls1() {
-		public Object call(Scope scope, Object arg, Object extras[]) {
-		    return new Integer(((Number)arg).intValue() + 7);
-		}
-	    });
+	jo.set(new JSString("add_seven"), addSevenFunc);
 	IRubyObject ro = toRuby(s, r, jo);
 	r.getGlobalVariables().set("$obj_with_func", ro);
 
 	try {
-	    IRubyObject result = r.evalScriptlet("$obj_with_func.my_func(35)");
+	    IRubyObject result = r.evalScriptlet("$obj_with_func.add_seven(35)");
 	    assertTrue(result instanceof RubyNumeric);
 	    assertEquals(42L, RubyNumeric.num2long(result));
 	}
@@ -233,6 +229,13 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 	    e.printStackTrace();
 	    assertTrue(false);
 	}
+    }
+
+    @Test(groups = {"convert", "js2r"})
+    public void testToRubyFunctionInArray() {
+	JSArray a = new JSArray(new Long(1), new Float(2.3), addSevenFunc);
+	RubyArray ra = (RubyArray)toRuby(s, r, a);
+	assertTrue(ra.entry(2) instanceof RubyJSFunctionWrapper);
     }
 
     @Test(groups = {"convert", "js2r"})
