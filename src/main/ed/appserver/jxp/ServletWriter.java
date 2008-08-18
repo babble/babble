@@ -66,6 +66,22 @@ public class ServletWriter extends JSFunctionCalls1 {
             } );
     }
 
+    public Writer asJavaWriter(){
+        return new Writer(){
+            public void close(){
+                return;
+            }
+            
+            public void flush(){
+                return;
+            }
+            
+            public void write(char[] cbuf, int off, int len){
+                ServletWriter.this.print( new String( cbuf , off , len ) );
+            }
+        };
+    }
+    
     public Object get( Object n ){
         if ( "cdnPrefix".equals( n ) )
             return _fixer.getCDNPrefix();
