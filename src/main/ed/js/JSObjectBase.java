@@ -906,7 +906,7 @@ public class JSObjectBase implements JSObject {
         if ( value == null )
             return 0;
         
-        if ( seen.contains( value ) )
+        if ( seen != null && seen.contains( value ) )
             return 0;
             
         seen.add( value );
