@@ -111,9 +111,7 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 
     @Test(groups = {"convert", "r2js"})
     public void testToJSArray() {
-	RubyArray ra = RubyArray.newArray(r, 3);
-	for (int i = 0; i < 3; ++i)
-	    ra.store(i, new RubyFixnum(r, i + 4));
+	RubyArray ra = (RubyArray)r.evalScriptlet("[4, 5, 6]");
 	Object o = toJS(r, ra);
 	assertTrue(o instanceof JSArray);
 	JSArray ja = (JSArray)o;
@@ -123,14 +121,7 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 
     @Test(groups = {"convert", "r2js"})
     public void testToJSArrayDeep() {
-	// Create ruby array [4, "test string", [3]]
-	RubyArray ra = RubyArray.newArray(r, 3);
-	ra.store(0, new RubyFixnum(r, 4));
-	ra.store(1, RubyString.newUnicodeString(r, "test string"));
-	RubyArray subarray = RubyArray.newArray(r, 1);
-	subarray.store(0, new RubyFixnum(r, 3));
-	ra.store(2, subarray);
-
+	RubyArray ra = (RubyArray)r.evalScriptlet("[4, \"test string\", [3]]");
 	Object o = toJS(r, ra);
 	assertTrue(o instanceof JSArray);
 	JSArray ja = (JSArray)o;
@@ -143,10 +134,7 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 
     @Test(groups = {"convert", "r2js"})
     public void testToJSMap() {
-	// Create ruby hash {"a" => 1, :b => "test string"}
-	RubyHash rh = new RubyHash(r);
-	rh.op_aset(r.getCurrentContext(), RubyString.newUnicodeString(r, "a"), new RubyFixnum(r, 1));
-	rh.op_aset(r.getCurrentContext(), RubySymbol.newSymbol(r, "b"), RubyString.newUnicodeString(r, "test string"));
+	RubyHash rh = (RubyHash)r.evalScriptlet("{\"a\" => 1, :b => \"test string\"}");
 
 	Object o = toJS(r, rh);
 	assertTrue(o instanceof JSMap);
