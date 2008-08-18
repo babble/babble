@@ -20,13 +20,12 @@ import java.io.*;
 import java.util.Set;
 import java.util.HashSet;
 
-import org.jruby.Ruby;
-import org.jruby.RubyInstanceConfig;
-import org.jruby.RubyIO;
+import org.jruby.*;
 import org.jruby.ast.Node;
 import org.jruby.internal.runtime.GlobalVariables;
 import org.jruby.javasupport.JavaEmbedUtils;
 import org.jruby.runtime.ThreadContext;
+import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.util.KCode;
 
 import ed.appserver.JSFileLibrary;
@@ -49,7 +48,7 @@ public class RubyJxpSource extends JxpSource {
     public RubyJxpSource(File f , JSFileLibrary lib) {
         _file = f;
         _lib = lib;
-	_runtime = Ruby.newInstance(config);
+	_runtime = org.jruby.Ruby.newInstance(config);
     }
 
     protected String getContent() throws IOException {
@@ -77,7 +76,7 @@ public class RubyJxpSource extends JxpSource {
         return new ed.js.func.JSFunctionCalls0() {
             public Object call(Scope s , Object unused[]) {
 		_setOutput(s);
-		_setGlobals(s);
+		_exposeScope(s);
 
 		// See the second part of JRuby's Ruby.executeScript(String, String)
 		ThreadContext context = _runtime.getCurrentContext();
@@ -120,20 +119,27 @@ public class RubyJxpSource extends JxpSource {
 	_runtime.getGlobalVariables().set("$stdout", new RubyIO(_runtime, new RubyJxpOutputStream(response.getWriter())));
     }
 
-    private void _setGlobals(Scope s) {
-	GlobalVariables g = _runtime.getGlobalVariables();
+    private void _createScopeContainer(Scope s) {
+	if (s != null) {
+	    RubyObject top = (RubyObject)_runtime.getTopSelf();
+	    top.instance_variable_set(RubySymbol.newSymbol(_runtime, "@xgen"), new RubyJSObjectWrapper(s, _runtime, s));
+	    top.getSingletonClass().attr_reader(_runtime.getCurrentContext(), new IRubyObject[] {RubySymbol.newSymbol(_runtime, "xgen")});
+	}
+    }
 
-	// Turn all JSObject scope variables into Ruby global variables
+    private void _exposeScope(Scope s) {
+	// Turn all JSObject scope variables into Ruby top-level variables
 	Set<String> alreadySeen = new HashSet<String>();
+	RubyObject top = (RubyObject)_runtime.getTopSelf();
 	while (s != null) {
 	    for (String key : s.keySet()) {
 		if (alreadySeen.contains(key)) // Use most "local" version of var
 		    continue;
 		Object val = s.get(key);
 		if (DEBUG)
-		    System.err.println("about to set $" + key + "; class = " + (val == null ? "<null>" : val.getClass().getName()));
-		String name = "$" + key;
-		g.set(name, RubyObjectWrapper.toRuby(s, _runtime, val, name));
+		    System.err.println("about to expose " + key + "; class = " + (val == null ? "<null>" : val.getClass().getName()));
+		top.instance_variable_set(RubySymbol.newSymbol(_runtime, "@" + key), RubyObjectWrapper.toRuby(s, _runtime, val, key));
+		top.getSingletonClass().attr_reader(_runtime.getCurrentContext(), new IRubyObject[] {RubySymbol.newSymbol(_runtime, key)});
 		alreadySeen.add(key);
 	    }
 	    s = s.getParent();
@@ -142,7 +148,7 @@ public class RubyJxpSource extends JxpSource {
 
     private final File _file;
     private final JSFileLibrary _lib;
-    private final Ruby _runtime;
+    private final org.jruby.Ruby _runtime;
 
     private Node _code;
     private long _lastCompile;
