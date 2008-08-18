@@ -127,7 +127,7 @@ public class RubyJxpSource extends JxpSource {
 		if (DEBUG)
 		    System.err.println("about to set $" + key + "; class = " + (val == null ? "<null>" : val.getClass().getName()));
 		String name = "$" + key;
-		g.set(name, RubyObjectWrapper.create(s, _runtime, val, name));
+		g.set(name, RubyObjectWrapper.toRuby(s, _runtime, val, name));
 		alreadySeen.add(key);
 	    }
 	    s = s.getParent();

@@ -42,16 +42,16 @@ public class RubyObjectWrapper extends RubyObject {
     protected final org.jruby.Ruby _runtime;
     protected final Object _obj;
 
-    public static IRubyObject create(Scope s, org.jruby.Ruby runtime, Object obj) {
-	return create(s, runtime, obj, null, null);
+    public static IRubyObject toRuby(Scope s, org.jruby.Ruby runtime, Object obj) {
+	return toRuby(s, runtime, obj, null, null);
     }
 
-    public static IRubyObject create(Scope s, org.jruby.Ruby runtime, Object obj, String name) {
-	return create(s, runtime, obj, name, null);
+    public static IRubyObject toRuby(Scope s, org.jruby.Ruby runtime, Object obj, String name) {
+	return toRuby(s, runtime, obj, name, null);
     }
 
     /** Given a Java object (JSObject, Number, etc.), return a Ruby object. */
-    public static IRubyObject create(Scope s, org.jruby.Ruby runtime, Object obj, String name, RubyObjectWrapper container) {
+    public static IRubyObject toRuby(Scope s, org.jruby.Ruby runtime, Object obj, String name, RubyObjectWrapper container) {
 	if (obj == null)
 	    return runtime.getNil();
 	if (obj instanceof JSString)
@@ -67,7 +67,7 @@ public class RubyObjectWrapper extends RubyObject {
 	    int size = ja.size();
 	    RubyArray ra = RubyArray.newArray(runtime, size);
 	    for (int i = 0; i < size; ++i)
-		ra.store(i, create(s, runtime, ja.getInt(i)));
+		ra.store(i, toRuby(s, runtime, ja.getInt(i)));
 	    return ra;
 	}
 	if (obj instanceof JSMap) {
@@ -75,7 +75,7 @@ public class RubyObjectWrapper extends RubyObject {
 	    RubyHash rh = new RubyHash(runtime);
 	    ThreadContext context = runtime.getCurrentContext();
 	    for (Object key : jm.keys())
-		rh.op_aset(context, create(s, runtime, key), create(s, runtime, jm.get(key)));
+		rh.op_aset(context, toRuby(s, runtime, key), toRuby(s, runtime, jm.get(key)));
 	    return rh;
 	}
 	if (obj instanceof BigDecimal)
