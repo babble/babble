@@ -906,10 +906,11 @@ public class JSObjectBase implements JSObject {
         if ( value == null )
             return 0;
         
-        if ( seen != null && seen.contains( value ) )
-            return 0;
-            
-        seen.add( value );
+        if ( seen != null ){
+            if ( seen.contains( value ) )
+                return 0;
+            seen.add( value );
+        }
         
         if ( value instanceof JSObjectBase )
             return ( 7 * ((JSObjectBase)value).hashCode( seen ) );
