@@ -211,7 +211,7 @@ public class NativeBridge {
             params = n;
         }
         
-        if ( params.length > myClasses.length && params[params.length-1].getClass().isArray() ){
+        if ( params.length > myClasses.length && params[params.length-1] != null && params[params.length-1].getClass().isArray() ){
             Object foo[] = (Object[])(params[params.length-1]);
             if ( foo.length == 0 ){
                 Object n[] = new Object[params.length-1];
