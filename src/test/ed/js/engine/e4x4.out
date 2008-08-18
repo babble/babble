@@ -18,5 +18,5 @@
 </blargh>
 zap
 <blargh>
-  <name attr="foo">me</name>
+  <name>me</name>
 </blargh>

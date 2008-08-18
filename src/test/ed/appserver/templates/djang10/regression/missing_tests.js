@@ -104,4 +104,5 @@ tests=[                                                                         
        { name: "expression-mangling01", content: "{{ var.if().1[0].1 }}", model: { "var": {"if": function() { return [1, [[null, "moo"]]]} } }, results: "moo" },
        { name: "expression-mangling02", content: "{{ var.if.when.for.continue }}", model: { "var": { "if": {"when": {"for": {"continue": "baa"}}}}}, results: "baa" }, 
 
+       { name: "now01", content: '{% now "D M j Y G:i:s \\\\G\\\\M\\\\TO (T) Z" %}', model: {}, results: (new Date()).toString() + " -14400" }, 
 ];

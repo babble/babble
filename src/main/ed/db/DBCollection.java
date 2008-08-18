@@ -338,8 +338,18 @@ public abstract class DBCollection extends JSObjectLame {
                     boolean upsert = false;
                     boolean apply = true;
 
-                    if ( o instanceof JSObject && ((JSObject)o).containsKey( "$inc" ) )
-                        apply = false;
+		    /* this is for $inc and $set: we don't add an object id then. see struct Mod in p/db/query.cpp */
+                    if ( o instanceof JSObject ) { 
+			apply = false;
+			for( String key : ((JSObject)o).keySet() ){
+			    if ( ! key.startsWith( "$" ) ){
+				apply = true;
+				break;
+			    }
+			}
+		    }
+		    //                    if ( o instanceof JSObject && ((JSObject)o).containsKey( "$inc" ) )
+		    //                        apply = false;
 
                     if ( foo != null && foo.length > 0 && foo[0] instanceof JSObject ){
                         JSObject params = (JSObject)foo[0];
