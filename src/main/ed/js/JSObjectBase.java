@@ -188,11 +188,11 @@ public class JSObjectBase implements JSObject {
         if ( scopeFailover )
             s = s.substring( SCOPE_FAILOVER_PREFIX.length() );
         
-        return _simpleGet( s.hashCode() , s , 0 , null , scopeFailover );
+        return _simpleGet( s.hashCode() , s , 0 , null , scopeFailover , BAD_KEY_NAMES.contains( s ) );
     }
 
     /** @unexpose */
-    Object _simpleGet( final int hash , final String s , int depth , IdentitySet<JSObject> seen , final boolean scopeFailover ){
+    Object _simpleGet( final int hash , final String s , int depth , IdentitySet<JSObject> seen , final boolean scopeFailover , final boolean badKey ){
         if ( depth > 100 ) // safety
             return null;
         
@@ -221,7 +221,7 @@ public class JSObjectBase implements JSObject {
 
         Object res = null;
 
-        if ( depth == 0 && ! BAD_KEY_NAMES.contains( s ) ){
+        if ( depth == 0 && ! badKey ){
             JSFunction f = getGetter( s );
             if ( f != null )
                 return _call( f );
@@ -232,7 +232,7 @@ public class JSObjectBase implements JSObject {
             if ( res != null || _map.containsKey( hash , s ) ) return res;
         }
 
-        res = _getFromParent( hash , s , depth , seen , scopeFailover );
+        res = _getFromParent( hash , s , depth , seen , scopeFailover , badKey );
         if ( res != null ) return res;
 
         if ( _objectLowFunctions != null
@@ -244,9 +244,9 @@ public class JSObjectBase implements JSObject {
         if ( depth == 0 &&
              ! "__notFoundHandler".equals( s ) &&
              ! scopeFailover &&
-             ! BAD_KEY_NAMES.contains( s )
+             ! badKey
              ){
-
+            
             JSFunction f = _getNotFoundHandler();
             if ( f != null ){
                 Scope scope = f.getScope();
@@ -289,7 +289,7 @@ public class JSObjectBase implements JSObject {
     // inheritnace jit START
     // ----
 
-    private Object _getFromParent( final int hash , final String s , int depth , IdentitySet<JSObject> seen  , boolean scopeFailover){
+    private Object _getFromParent( final int hash , final String s , final int depth , final IdentitySet<JSObject> seen  , final boolean scopeFailover , final boolean badKey ){
         _getFromParentCalls++;
 
         if ( s.equals( "__proto__" ) || s.equals( "prototype" ) )
@@ -315,14 +315,14 @@ public class JSObjectBase implements JSObject {
             }
         }
 
-        Object res = _getFromParentHelper( hash , s , depth , seen , scopeFailover );
+        final Object res = _getFromParentHelper( hash , s , depth , seen , scopeFailover , badKey );
         if ( jit )
             _jitCache.put( s , res );
 
         return res;
     }
 
-    private Object _getFromParentHelper( final int hash , String s , int depth , IdentitySet<JSObject> seen , boolean scopeFailover ){
+    private Object _getFromParentHelper( final int hash , final String s , final int depth , final IdentitySet<JSObject> seen , final boolean scopeFailover , final boolean badKey){
 
         _updatePlacesToLook();
 
@@ -335,7 +335,7 @@ public class JSObjectBase implements JSObject {
 
             if ( o instanceof JSObjectBase ){
                 JSObjectBase job = (JSObjectBase)o;
-                Object res = job._simpleGet( hash , s , depth + 1 , seen , scopeFailover );
+                Object res = job._simpleGet( hash , s , depth + 1 , seen , scopeFailover , badKey );
                 if ( res != null )
                     return res;
 
