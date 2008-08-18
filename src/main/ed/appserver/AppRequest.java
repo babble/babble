@@ -50,6 +50,7 @@ public class AppRequest {
     }
 
     void setResponse( HttpResponse response ){
+        _response = response;
 	getScope().put( "response" , response , true );
     }
 
@@ -72,6 +73,9 @@ public class AppRequest {
             _scope.put( "session" , _session , true );
             _scope.lock( "session" );
 	    _request.set( "session" , _session );
+            
+            _scope.put( "__apprequest__" , this , true );
+            _scope.lock( "__apprequest__" );
 
             _context.setTLPreferredScope( this , _scope );
         }
@@ -292,10 +296,19 @@ public class AppRequest {
         return "AppRequest: " + _host + _uri;
     }
 
+    public HttpRequest getRequest(){
+        return _request;
+    }
+
+    public HttpResponse getResponse(){
+        return _response;
+    }
+
     final String _uri;
     final String _host;
     final HttpRequest _request;
     final AppContext _context;
+    private HttpResponse _response;
 
     final URLFixer _fixer;
     final JSArray _head = new HeadArray();
