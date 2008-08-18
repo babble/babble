@@ -1477,6 +1477,10 @@ public class E4X {
                 return cnode.set( n, v );
             }
 
+            public Object removeField( Object f ) {
+                return cnode.removeField(f);
+            }
+
             ENode cnode;
         }
 
@@ -1837,7 +1841,6 @@ public class E4X {
     }
 
     public static XMLList addNodes(ENode a, ENode b) {
-        //        System.out.println("a: "+a+" b: "+b);
         if( a instanceof XMLList && b instanceof XMLList) {
             ((XMLList)a).addAll(b);
             return (XMLList)a;
