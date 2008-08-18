@@ -187,24 +187,40 @@ ForNode.prototype = {
         if(!djang10.Expression.is_true(values))
             values = [];
 
+        var next_fn;
+        var count;
+        
         if ( values.getClass().getName() == "ed.db.DBCursor" ){
-            // TODO: use iteration method instead of toArray
-            values = values.toArray();
+            if(this.is_reversed) {
+                throw "Can't reverse a DBCursor, use array mode, if you need to do this";
+            }
+            next_fn = function() {
+                return values.next();
+            };
+            count = values.count();
+        }
+        else {
+            next_fn = function() {
+                return  values[next_fn.i++];
+            };
+            next_fn.i=0;
+
+            count = values.length;
         }
 
         if( this.is_reversed )
             values.reverse();
         
         var loop_dict = context["forloop"] = {parentloop: parentloop};
-        for(var i=0; i<values.length; i++) {
-            var item = values[i];
+        for(var i=0; i<count; i++) {
+            var item = next_fn();
             
             loop_dict['counter0'] = i;
             loop_dict['counter'] = i+1;
-            loop_dict['revcounter'] = values.length - i;
-            loop_dict['revcounter0'] = values.length - i - 1;
+            loop_dict['revcounter'] = count - i;
+            loop_dict['revcounter0'] = count - i - 1;
             loop_dict['first'] = (i==0);
-            loop_dict['last'] = (i== (values.length -1));
+            loop_dict['last'] = (i== (count - 1));
             
             if(this.loopvars.length == 1)
                 context[this.loopvars[0]] = item;
