@@ -27,6 +27,10 @@ import ed.lang.*;
 
 public class Logger extends JSFunctionCalls2 {
 
+    public static Logger getLogger( Class c ){
+        return getLogger( c.getName() );
+    }
+
     public static Logger getLogger( String fullName ){
         Logger l = _fullNameToLogger.get( fullName );
         if ( l != null )
@@ -222,6 +226,10 @@ public class Logger extends JSFunctionCalls2 {
         }
 
         return Level.DEBUG;
+    }
+
+    public void log( Level level , String msg ){
+        log( level , msg , null );
     }
 
     public void log( Level level , String msg , Throwable throwable ){

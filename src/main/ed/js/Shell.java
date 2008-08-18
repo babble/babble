@@ -120,6 +120,7 @@ public class Shell {
         System.setProperty( "NO-SECURITY" , "true" );
 
         Scope s = Scope.newGlobal().child( new File("." ) );
+	s.setGlobal( true );
         s.makeThreadLocal();
 
         addNiceShellStuff( s );

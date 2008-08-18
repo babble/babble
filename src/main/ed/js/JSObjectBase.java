@@ -141,8 +141,10 @@ public class JSObjectBase implements JSObject {
     }
 
     private void _checkMap(){
-        if ( _map == null )
-            _map = new HashMap<String,Object>();
+        if ( _map == null ){
+            //_map = new HashMap<String,Object>();
+            _map = new FastStringMap();
+        }
 
         if ( _keys == null )
             _keys = new ArrayList<String>();
@@ -181,11 +183,16 @@ public class JSObjectBase implements JSObject {
 
     /** @unexpose */
     public Object _simpleGet( String s ){
-        return _simpleGet( s , 0 , null );
+
+        final boolean scopeFailover = s.startsWith( SCOPE_FAILOVER_PREFIX );
+        if ( scopeFailover )
+            s = s.substring( SCOPE_FAILOVER_PREFIX.length() );
+        
+        return _simpleGet( s.hashCode() , s , 0 , null , scopeFailover );
     }
 
     /** @unexpose */
-    Object _simpleGet( String s , int depth , IdentitySet<JSObject> seen ){
+    Object _simpleGet( final int hash , final String s , int depth , IdentitySet<JSObject> seen , final boolean scopeFailover ){
         if ( depth > 100 ) // safety
             return null;
         
@@ -201,17 +208,16 @@ public class JSObjectBase implements JSObject {
         }
         
 	// SPECIAL
-	if ( s.equals( "constructor" ) || s.equals( "__constructor__" ) )
-	    return _constructor;
-	
-	if ( s.equals( "__proto__" ) )
-	    return __proto__;
-
+        if ( depth == 0 ){
+            if ( s.equals( "constructor" ) || s.equals( "__constructor__" ) )
+                return _constructor;
+            
+            if ( s.equals( "__proto__" ) )
+                return __proto__;
+        }
+        
 	// END SPECIAL
 
-        final boolean scopeFailover = s.startsWith( SCOPE_FAILOVER_PREFIX );
-        if ( scopeFailover )
-            s = s.substring( SCOPE_FAILOVER_PREFIX.length() );
 
         Object res = null;
 
@@ -222,11 +228,11 @@ public class JSObjectBase implements JSObject {
         }
 
         if ( _map != null ){
-            res = _mapGet( s );
-            if ( res != null || _map.containsKey( s ) ) return res;
+            res = _mapGet( hash , s );
+            if ( res != null || _map.containsKey( hash , s ) ) return res;
         }
 
-        res = _getFromParent( s , depth , seen );
+        res = _getFromParent( hash , s , depth , seen , scopeFailover );
         if ( res != null ) return res;
 
         if ( _objectLowFunctions != null
@@ -283,7 +289,7 @@ public class JSObjectBase implements JSObject {
     // inheritnace jit START
     // ----
 
-    private Object _getFromParent( String s , int depth , IdentitySet<JSObject> seen ){
+    private Object _getFromParent( final int hash , final String s , int depth , IdentitySet<JSObject> seen  , boolean scopeFailover){
         _getFromParentCalls++;
 
         if ( s.equals( "__proto__" ) || s.equals( "prototype" ) )
@@ -309,14 +315,14 @@ public class JSObjectBase implements JSObject {
             }
         }
 
-        Object res = _getFromParentHelper( s , depth , seen );
+        Object res = _getFromParentHelper( hash , s , depth , seen , scopeFailover );
         if ( jit )
             _jitCache.put( s , res );
 
         return res;
     }
 
-    private Object _getFromParentHelper( String s , int depth , IdentitySet<JSObject> seen ){
+    private Object _getFromParentHelper( final int hash , String s , int depth , IdentitySet<JSObject> seen , boolean scopeFailover ){
 
         _updatePlacesToLook();
 
@@ -329,7 +335,7 @@ public class JSObjectBase implements JSObject {
 
             if ( o instanceof JSObjectBase ){
                 JSObjectBase job = (JSObjectBase)o;
-                Object res = job._simpleGet( s , depth + 1 , seen );
+                Object res = job._simpleGet( hash , s , depth + 1 , seen , scopeFailover );
                 if ( res != null )
                     return res;
 
@@ -482,9 +488,14 @@ public class JSObjectBase implements JSObject {
         return containsKey( s , true );
     }
 
-    public boolean containsKey( String s , boolean includePrototype){
+    public boolean containsKey( final String s , final boolean includePrototype){
+        return containsKey( s.hashCode() , s , includePrototype );
+    }
+
+    public boolean containsKey( final int hash , final String s , final boolean includePrototype){
         prefunc();
-        if ( _map != null && _map.containsKey( s ) )
+        
+        if ( _map != null && _map.containsKey( hash , s ) )
             return true;
 
         if ( includePrototype == false || _constructor == null ) return false;
@@ -497,7 +508,7 @@ public class JSObjectBase implements JSObject {
             if ( seen.contains( start ) )
                 break;
 
-            if( start.containsKey( s , false ) )
+            if( start.containsKey( hash , s , false ) )
                 return true;
 
             seen.add( start );
@@ -912,9 +923,13 @@ public class JSObjectBase implements JSObject {
     }
 
     private Object _mapGet( final String s ){
+        return _mapGet( s.hashCode() , s );
+    }
+
+    private Object _mapGet( final int hash , final String s ){
         if ( _map == null )
             return null;
-        final Object o = _map.get( s );
+        final Object o = _map.get( hash , s );
         if ( o == UNDEF )
             return null;
         return o;
@@ -989,7 +1004,8 @@ public class JSObjectBase implements JSObject {
         _lastHash = hashCode();
     }
 
-    protected Map<String,Object> _map = null;
+    //protected Map<String,Object> _map = null;
+    protected FastStringMap _map = null;
     protected Map<String,Pair<JSFunction,JSFunction>> _setterAndGetters = null;
     private Collection<String> _keys = null;
     private Set<String> _dontEnum;

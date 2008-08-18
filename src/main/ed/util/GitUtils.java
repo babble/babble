@@ -150,6 +150,17 @@ public class GitUtils {
         return false;
     }
 
+    public static boolean onBranch( File dir ){
+        SysExec.Result r = SysExec.exec( "git branch" , null , dir , null );
+        if ( r.exitValue() != 0 )
+            return false;
+        
+        if ( r.getOut().indexOf( "master" ) < 0 )
+            throw new RuntimeException( "something is wrong" );
+        
+        return r.getOut().indexOf( "(no branch)" ) < 0;
+    }
+
     /** Tries a "git pull" on the given directory.
      * @param dir The directory on which to pull
      * @return if the pull was successful

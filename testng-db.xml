@@ -4,7 +4,7 @@
   
     <test name="db js tests">
 	<parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
-	<parameter name="dir-name"  value="src/test/ed/db/"/>
+	<parameter name="dir-name"  value="ed/src/test/ed/db/"/>
 	<parameter name="file-ending"  value=".js"/>
 	<parameter name="ex-regex"  value=".*load.*"/>
 	<classes>

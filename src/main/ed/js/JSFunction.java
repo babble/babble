@@ -23,6 +23,7 @@ import java.util.concurrent.*;
 import ed.lang.*;
 import ed.util.*;
 import ed.appserver.*;
+import ed.js.func.*;
 import ed.js.engine.Scope;
 
 /** @expose */
@@ -324,6 +325,18 @@ public abstract class JSFunction extends JSFunctionBase {
         }
     }
 
+    public JSFunction synchronizedVersion(){
+        final JSFunction t = this;
+        final String myLock = "some-lock-" + Math.random();
+        return new JSFunctionCalls0(){
+            public Object call( Scope s , Object args[] ){
+                synchronized ( myLock ){
+                    return t.call( s , args );
+                }
+            }
+        };
+    }
+
     public Language getSourceLanguage(){
         return _sourceLanguage;
     }
@@ -390,7 +403,7 @@ public abstract class JSFunction extends JSFunctionBase {
                 return func._cache( s , cacheTime , args );
             }
         };
-
+    
 
     private static JSObjectBase _staticFunctions = new JSObjectBase();
     static {

@@ -108,6 +108,7 @@ public class Drivers {
                      name.equals( "toObject" ) ||
                      name.equals( "asArray" ) ||
                      name.equals( "toArray" ) ||
+                     name.equals( "toString" ) ||
                      name.equals( "keySet" ) )
                     return null;
 
