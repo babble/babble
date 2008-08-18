@@ -250,8 +250,11 @@ public class JSObjectBase implements JSObject {
             JSFunction f = _getNotFoundHandler();
             if ( f != null ){
                 Scope scope = f.getScope();
-                if ( scope == null )
-                    scope = Scope.getAScope( false , true );
+                if ( scope == null ){
+                    scope = Scope.getAScope( false );
+                    if ( scope == null )
+                        throw new RuntimeException( "not found handler doesn't have a scope and no thread local scope" );
+                }
 
                 scope = scope.child();
                 scope.setThis( this );
@@ -268,7 +271,7 @@ public class JSObjectBase implements JSObject {
         }
 
         if ( scopeFailover ){
-            Scope scope = Scope.getAScope( false , true );
+            Scope scope = Scope.getAScope( false );
             if ( scope != null )
                 return scope.get( s );
         }
