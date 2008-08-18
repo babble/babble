@@ -101,9 +101,9 @@ public class RubyConvert extends ed.MyAsserts {
     
     void _add( Node node , State state ){
         
-        if ( node == null || state == null )
+        if ( node == null || state == null || node instanceof NilImplicitNode )
             return;
-        
+
         // --- blocking ----
 
         if ( node instanceof RootNode ){
@@ -1356,7 +1356,7 @@ public class RubyConvert extends ed.MyAsserts {
     void _addClassPiece( Node n , State state ){
 
         if ( n instanceof Colon2Node || // meta class info
-             n instanceof ConstNode  // inheritance
+             n instanceof ConstNode     // inheritance
              )
             return;
 
@@ -1418,11 +1418,12 @@ public class RubyConvert extends ed.MyAsserts {
              n instanceof LocalAsgnNode ||
              n instanceof AttrAssignNode ||
              n instanceof OpAsgnOrNode ||
-             n instanceof ClassNode ){
+             n instanceof ClassNode ||
+	     n instanceof NilImplicitNode ){
             _add( n , state );
             return;
         }
-        
+
         _print( 0 , n );
         throw new RuntimeException( "don't know about class piece : " + n.getClass() + " " + n.getPosition() );
         
