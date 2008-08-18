@@ -51,7 +51,6 @@ public class DjangoRegressionTests {
 
         //requires architecture impl
         "basic-syntax27",   //need support for translating _( )
-        "for-tag-unpack09", //need to support list indices
         "ifequal-numeric07", //need to preprocess: throw error on 2.
 
         //django doesn't escape strings
