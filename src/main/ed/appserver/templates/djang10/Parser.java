@@ -206,18 +206,21 @@ public class Parser extends JSObjectBase{
         nodeList.add(node);
     }
     
+    private boolean isUsingLiteralEscapes() {
+        return get("__use_literal_escape") == Boolean.TRUE;
+    }
     
     public Expression compile_expression(String str) {
         return compile_expression(str, activeToken);
     }
     public Expression compile_expression(String str, Token token) {
-        return new Expression(str, token);
+        return new Expression(str, token, isUsingLiteralEscapes());
     }
     public FilterExpression compile_filter(String str) {
         return compile_filter(str, activeToken);
     }
     public FilterExpression compile_filter(String str, Token token) {
-        return new FilterExpression(this, str, token);
+        return new FilterExpression(this, str, token, isUsingLiteralEscapes());
     }
 
     public void add_library(Library library) {

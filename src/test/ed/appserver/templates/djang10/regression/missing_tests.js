@@ -105,4 +105,8 @@ tests=[                                                                         
        { name: "expression-mangling02", content: "{{ var.if.when.for.continue }}", model: { "var": { "if": {"when": {"for": {"continue": "baa"}}}}}, results: "baa" }, 
 
        { name: "now01", content: '{% now "D M j Y G:i:s \\\\G\\\\M\\\\TO (T) Z" %}', model: {}, results: (new Date()).toString() + " -14400" }, 
+       
+       { name: "literal-escape01", content: '{% literal_escape on %}{{ "moo\\nbaa" }}{% endliteral_escape %}', model: {}, results: "moo\nbaa" },
+       { name: "literal-escape02", content: '{% literal_escape off %}{{ "moo\\nbaa" }}{% endliteral_escape %}', model: {}, results: "moo\\nbaa" },
+       { name: "literal-escape03", content: '{{ "moo\\nbaa" }}', model: {}, results: "moo\\nbaa" },
 ];

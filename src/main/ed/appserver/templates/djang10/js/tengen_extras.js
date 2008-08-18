@@ -61,6 +61,24 @@ GlobalsControlNode.prototype = {
     }
 };
 
+var LiteralEscapeNode =
+    tengen_extras.LiteralEscapeNode =
+    function(setting, nodelist) {
+    
+    this.setting = setting;
+    this.nodelist = nodelist;
+};
+LiteralEscapeNode.prototype = {
+    __proto__: djang10.Node.prototype,
+    
+    toString: function() {
+        return "<LiteralEscapeNode: " + this.setting + ">";
+    },
+    __render: function(context, printer) {
+        this.nodelist.__render(context, printer);
+    }
+}
+
 var do_setNode =
     tengen_extras.do_setNode =
     function(parser, token) {
@@ -99,5 +117,32 @@ var globals_ =
     return new GlobalsControlNode(arg == "on", nodelist);
 };
 register.tag("globals", globals_);
+
+var literal_escape =
+    tengen_extras.literal_escape =
+    function(parser, token) {
+    
+    var args = token.contents.split(/\s+/);
+    if(args.length != 2)
+        throw djang10.NewTemplateException("'literal_escape' tag requires exactly one argument.");
+
+    var arg = args[1];
+    if(! ["on", "off"].contains(arg))
+        throw djang10.NewTemplateException("'"+args[0]+"' argument should be 'on' or 'off'");
+    
+
+    var old_setting = parser["__use_literal_escape"];
+    parser["__use_literal_escape"] = (arg == "on");
+
+    
+    var nodelist = parser.parse(["end"+args[0]]);
+    parser.delete_first_token();
+    
+    
+    parser["__use_literal_escape"] = old_setting;
+    
+    return new LiteralEscapeNode(arg == "on", nodelist);
+};
+register.tag("literal_escape", literal_escape);
 
 return tengen_extras;

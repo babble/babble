@@ -142,7 +142,7 @@ public class Expression extends JSObjectBase {
     private Node parsedExpression;
     private Boolean isLiteral;
 
-    public Expression(String expression, ed.appserver.templates.djang10.Parser.Token token) {
+    public Expression(String expression, ed.appserver.templates.djang10.Parser.Token token, boolean useLiteralEscapes) {
         super(CONSTRUCTOR);
         isLiteral = null;
         this.expression = expression;
@@ -151,7 +151,7 @@ public class Expression extends JSObjectBase {
         ed.ext.org.mozilla.javascript.Parser parser = new ed.ext.org.mozilla.javascript.Parser(ce, ce.getErrorReporter());
         Node scriptNode;
         
-        String processedExpr = preprocess(expression);
+        String processedExpr = preprocess(expression, useLiteralEscapes);
         try {
             scriptNode = parser.parse(processedExpr, "foo", 0);
             scriptNode = postprocess(scriptNode);
@@ -238,13 +238,13 @@ public class Expression extends JSObjectBase {
         return bits;
     }
     
-    public static String preprocess(String exp) {
+    public static String preprocess(String exp, boolean useLiteralEscapes) {
         StringBuilder buffer = new StringBuilder();
         String quotes = "\"'";
 
         Pattern numAlphaIdentifiers = Pattern.compile("(?<!\\w)[0-9_]\\w*[A-Za-z_$]\\w*(?!\\w)"); //matches all identifiers that start with a number
         Pattern numericProp = Pattern.compile("((?:[A-Za-z]\\w*|\\]|\\))\\s*\\.\\s*)([0-9]+)(?![0-9])");    //matches variable.8
-        
+                
         for(String bit : splitLiterals(exp)) {
             boolean isQuoted = (quotes.indexOf(bit.charAt(0)) > -1) && (bit.charAt(0) == bit.charAt(bit.length() - 1));
             
@@ -254,8 +254,14 @@ public class Expression extends JSObjectBase {
                     bit = bit.replaceAll("(?<!\\w)"+reservedWord+"(?!\\w)", "_$0");
                 bit = numericProp.matcher(bit).replaceAll("$1_$2");
             }
-            else if(bit.charAt(1) == '_'){
-                bit = bit.charAt(0) + '_' + bit.substring(1);
+            else {
+                //kill escapes
+                if(!useLiteralEscapes)
+                    bit = bit.replaceAll("\\\\[^"+quotes+"]", "\\\\$0");
+                
+                if(bit.charAt(1) == '_'){
+                    bit = bit.charAt(0) + '_' + bit.substring(1);
+                }
             }
             
             buffer.append(bit);

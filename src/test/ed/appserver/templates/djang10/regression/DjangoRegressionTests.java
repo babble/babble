@@ -53,12 +53,6 @@ public class DjangoRegressionTests {
         "basic-syntax27",   //need support for translating _( )
         "ifequal-numeric07", //need to preprocess: throw error on 2.
 
-        //django doesn't escape strings
-        "ifequal-split09",
-        "ifequal-split10",
-        "filter-syntax15",
-        "filter-syntax16",
-
         //need to add custom tags to test
         "inheritance17",
         "inheritance18",
