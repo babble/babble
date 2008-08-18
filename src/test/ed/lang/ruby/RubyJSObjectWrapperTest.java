@@ -32,13 +32,12 @@ public class RubyJSObjectWrapperTest extends ed.TestCase {
     Scope s = new Scope("test", null);
     org.jruby.Ruby r = org.jruby.Ruby.newInstance();
 
-    @Test(groups = {"basic", "r2js"})
+    @Test(groups = {"basic"})
     public void testAccessors() {
 	JSObjectBase jobj = new JSObjectBase();
 	jobj.set("count", new Integer(1));
 
 	IRubyObject ro = toRuby(s, r, jobj);
-	System.err.println("ro = " + ro.getClass().getName()); // DEBUG
 	assertTrue(ro instanceof RubyJSObjectWrapper);
 
 	r.getGlobalVariables().set("$jobj", ro);
