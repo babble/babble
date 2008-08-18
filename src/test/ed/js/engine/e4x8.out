@@ -1,11 +1,18 @@
 <a>b</a>
 <a>b</a>
+---
 <a>b</a>
 <c>d</c>
 <a>b</a>
+---
 <a>b</a>
 <c>d</c>
 <a>b</a>
 <yo/>
 xml
+string
+<x>
+  <a>bhi</a>
+  <b>c</b>
+</x>
 string

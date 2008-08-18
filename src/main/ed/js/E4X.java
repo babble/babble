@@ -364,6 +364,11 @@ public class E4X {
                 topParent.parent.children.add(topParent);
             }
 
+            // if v is an XML list, add each element
+            if( v instanceof XMLList ) {
+                this.children = (XMLList)v;
+                return v;
+            }
             // if v is already XML and it's not an XML attribute, just add v to this enode's children
             if( v instanceof ENode ) {
                 if( k.toString().equals("*") ) {
@@ -1323,6 +1328,8 @@ public class E4X {
             List list = new LinkedList<ENode>();
             for ( int i=0; this.children != null && i<this.children.size(); i++ ){
                 ENode c = this.children.get(i);
+                if( c.node == null )
+                    throw new RuntimeException("c.node is null: "+c.getClass());
                 if( c.node.getNodeType() == Node.ATTRIBUTE_NODE ||
                     ( c.node.getNodeType() == Node.COMMENT_NODE && E4X.ignoreComments ) ||
                     ( c.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE && E4X.ignoreProcessingInstructions ) )
@@ -1830,7 +1837,8 @@ public class E4X {
     }
 
     public static XMLList addNodes(ENode a, ENode b) {
-        if( a instanceof XMLList && b instanceof XMLList ) {
+        //        System.out.println("a: "+a+" b: "+b);
+        if( a instanceof XMLList && b instanceof XMLList) {
             ((XMLList)a).addAll(b);
             return (XMLList)a;
         }
