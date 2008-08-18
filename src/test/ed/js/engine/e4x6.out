@@ -1,6 +1,6 @@
 Jeff York
 <actors>
-  <actor>
+  <actor attr="rand">
     <name>me</name>
     <name>
       Jeff
