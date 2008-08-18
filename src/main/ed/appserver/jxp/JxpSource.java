@@ -54,6 +54,9 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
         if ( f.getName().endsWith( ".py" ) )
             return new ed.lang.python.PythonJxpSource( f , lib );
 
+        if ( f.getName().endsWith( ".php" ) )
+            return new ScriptJxpSource( f );
+
         JxpSource s = new JxpFileSource( f );
         s._lib = lib;
         return s;
