@@ -89,6 +89,19 @@ function go() {
     assert( mfoo.system.indexes.find({ns:'foo.bar'}).count() == 1 );
     assert( sfoo.system.indexes.find({ns:'foo.bar'}).count() == 1 );
 
+    print("$inc check...");
+    mbar.update( { str:"modded" }, { $inc: { x : 10 } } );
+    mbar.update( { z:1 }, { $inc: { x : 10 }, $set: { y : 10 } }, { upsert: true } );
+    mbar.update( { z:1 }, { $inc: { x : 10 }, $set: { y : 10 } }, { upsert: true } );
+    mbar.update( { z:1 }, { $inc: { x : 10 }, $set: { y : 10 } }, { upsert: true } );
+
+    sleep(10000);
+    chk( { x:14 } );
+    assert( mbar.findOne({z:1}).y == 10 );
+    assert( mbar.findOne({z:1}).x == 30 );
+    assert( sbar.findOne({z:1}).y == 10 );
+    assert( sbar.findOne({z:1}).x == 30 );
+
     assert( mfoo.bar.validate().valid );
     assert( sfoo.bar.validate().valid );
     print("all is well");
