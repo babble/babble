@@ -102,13 +102,13 @@ public class PyJSObjectWrapper extends PyDictionary {
         return jswrapper___nonzero__();
     }
 
-    public PyObject __findattr__(String name) {
+    public PyObject __findattr_ex__(String name) {
 
         if ( D ) System.out.println( "__findattr__ on [" + name + "]" );
 
         // FIXME: more graceful fail-through etc
         try{
-            PyObject p = super.__findattr__( name );
+            PyObject p = super.__findattr_ex__( name );
             if( p != null )
                 return p;
         }
