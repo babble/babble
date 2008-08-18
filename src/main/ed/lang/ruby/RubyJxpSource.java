@@ -131,6 +131,7 @@ public class RubyJxpSource extends JxpSource {
 	// Turn all JSObject scope variables into Ruby top-level variables
 	Set<String> alreadySeen = new HashSet<String>();
 	RubyObject top = (RubyObject)_runtime.getTopSelf();
+	RubyClass eigenclass = top.getSingletonClass();
 	while (s != null) {
 	    for (String key : s.keySet()) {
 		if (alreadySeen.contains(key)) // Use most "local" version of var
@@ -139,7 +140,7 @@ public class RubyJxpSource extends JxpSource {
 		if (DEBUG)
 		    System.err.println("about to expose " + key + "; class = " + (val == null ? "<null>" : val.getClass().getName()));
 		top.instance_variable_set(RubySymbol.newSymbol(_runtime, "@" + key), RubyObjectWrapper.toRuby(s, _runtime, val, key));
-		top.getSingletonClass().attr_reader(_runtime.getCurrentContext(), new IRubyObject[] {RubySymbol.newSymbol(_runtime, key)});
+		eigenclass.attr_reader(_runtime.getCurrentContext(), new IRubyObject[] {RubySymbol.newSymbol(_runtime, key)});
 		alreadySeen.add(key);
 	    }
 	    s = s.getParent();
