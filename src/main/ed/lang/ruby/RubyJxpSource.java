@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.HashSet;
 
 import org.jruby.Ruby;
+import org.jruby.RubyInstanceConfig;
 import org.jruby.RubyIO;
 import org.jruby.ast.Node;
 import org.jruby.internal.runtime.GlobalVariables;
@@ -40,6 +41,7 @@ import ed.util.Dependency;
 public class RubyJxpSource extends JxpSource {
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB");
+    static final RubyInstanceConfig config = new RubyInstanceConfig();
 
     /** Determines what major version of Ruby to compile: 1.8 (false) or YARV/1.9 (true). **/
     public static final boolean YARV_COMPILE = false;
@@ -47,7 +49,7 @@ public class RubyJxpSource extends JxpSource {
     public RubyJxpSource(File f , JSFileLibrary lib) {
         _file = f;
         _lib = lib;
-	_runtime = Ruby.newInstance();
+	_runtime = Ruby.newInstance(config);
     }
 
     protected String getContent() throws IOException {
