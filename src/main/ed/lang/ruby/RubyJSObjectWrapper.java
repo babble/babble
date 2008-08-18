@@ -71,7 +71,7 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 		    // Write
 		    if (assign) {
 			if (DEBUG)
-			    System.err.println("assigning new value " + key);
+			    System.err.println("assigning new value to instance var named " + key);
 			_jsobj.set(key, RubyObjectWrapper.toJS(_runtime, args[1]));
 			return RubyObjectWrapper.toRuby(_scope, _runtime, JavaUtil.convertRubyToJava(args[1]));
 		    }
@@ -89,7 +89,7 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 			return RubyObjectWrapper.toRuby(_scope, _runtime, ((JSFunction)obj).call(_scope, jargs));
 		    }
 		    if (DEBUG)
-			System.err.println("returning instance var value");
+			System.err.println("returning value of instance var named " + key);
 		    return RubyObjectWrapper.toRuby(_scope, _runtime, obj);
                 }
                 @Override public Arity getArity() { return Arity.ONE_REQUIRED; }
