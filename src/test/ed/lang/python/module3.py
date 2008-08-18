@@ -32,3 +32,13 @@ def pythonExtend(cls):
 pyStr = str   # deliberately expose
 pyCallable = callable
 pyObject = object
+
+def pythonKeys(jsFoo):
+    keys = jsFoo.keys()
+    keys.sort()
+    assert keys == ['a', 'b', 'c#', 'f']
+
+    values = jsFoo.values()
+    values.sort()
+    assert values == [1, 2, 3, 'j']
+
