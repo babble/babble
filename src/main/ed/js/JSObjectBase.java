@@ -137,7 +137,7 @@ public class JSObjectBase implements JSObject {
         _map.put( name , v );
         if ( v instanceof JSObjectBase )
             ((JSObjectBase)v)._name = name;
-            return v;
+        return v;
     }
 
     private void _checkMap(){
@@ -188,11 +188,11 @@ public class JSObjectBase implements JSObject {
         if ( scopeFailover )
             s = s.substring( SCOPE_FAILOVER_PREFIX.length() );
         
-        return _simpleGet( s.hashCode() , s , 0 , null , scopeFailover );
+        return _simpleGet( s.hashCode() , s , 0 , null , scopeFailover , BAD_KEY_NAMES.contains( s ) );
     }
 
     /** @unexpose */
-    Object _simpleGet( final int hash , final String s , int depth , IdentitySet<JSObject> seen , final boolean scopeFailover ){
+    Object _simpleGet( final int hash , final String s , int depth , IdentitySet<JSObject> seen , final boolean scopeFailover , final boolean badKey ){
         if ( depth > 100 ) // safety
             return null;
         
@@ -221,7 +221,7 @@ public class JSObjectBase implements JSObject {
 
         Object res = null;
 
-        if ( depth == 0 && ! BAD_KEY_NAMES.contains( s ) ){
+        if ( depth == 0 && ! badKey ){
             JSFunction f = getGetter( s );
             if ( f != null )
                 return _call( f );
@@ -232,7 +232,7 @@ public class JSObjectBase implements JSObject {
             if ( res != null || _map.containsKey( hash , s ) ) return res;
         }
 
-        res = _getFromParent( hash , s , depth , seen , scopeFailover );
+        res = _getFromParent( hash , s , depth , seen , scopeFailover , badKey );
         if ( res != null ) return res;
 
         if ( _objectLowFunctions != null
@@ -244,14 +244,17 @@ public class JSObjectBase implements JSObject {
         if ( depth == 0 &&
              ! "__notFoundHandler".equals( s ) &&
              ! scopeFailover &&
-             ! BAD_KEY_NAMES.contains( s )
+             ! badKey
              ){
-
+            
             JSFunction f = _getNotFoundHandler();
             if ( f != null ){
                 Scope scope = f.getScope();
-                if ( scope == null )
-                    scope = Scope.getAScope( false , true );
+                if ( scope == null ){
+                    scope = Scope.getAScope( false );
+                    if ( scope == null )
+                        throw new RuntimeException( "not found handler doesn't have a scope and no thread local scope" );
+                }
 
                 scope = scope.child();
                 scope.setThis( this );
@@ -268,7 +271,7 @@ public class JSObjectBase implements JSObject {
         }
 
         if ( scopeFailover ){
-            Scope scope = Scope.getAScope( false , true );
+            Scope scope = Scope.getAScope( false );
             if ( scope != null )
                 return scope.get( s );
         }
@@ -289,7 +292,7 @@ public class JSObjectBase implements JSObject {
     // inheritnace jit START
     // ----
 
-    private Object _getFromParent( final int hash , final String s , int depth , IdentitySet<JSObject> seen  , boolean scopeFailover){
+    private Object _getFromParent( final int hash , final String s , final int depth , final IdentitySet<JSObject> seen  , final boolean scopeFailover , final boolean badKey ){
         _getFromParentCalls++;
 
         if ( s.equals( "__proto__" ) || s.equals( "prototype" ) )
@@ -315,14 +318,14 @@ public class JSObjectBase implements JSObject {
             }
         }
 
-        Object res = _getFromParentHelper( hash , s , depth , seen , scopeFailover );
+        final Object res = _getFromParentHelper( hash , s , depth , seen , scopeFailover , badKey );
         if ( jit )
             _jitCache.put( s , res );
 
         return res;
     }
 
-    private Object _getFromParentHelper( final int hash , String s , int depth , IdentitySet<JSObject> seen , boolean scopeFailover ){
+    private Object _getFromParentHelper( final int hash , final String s , final int depth , final IdentitySet<JSObject> seen , final boolean scopeFailover , final boolean badKey){
 
         _updatePlacesToLook();
 
@@ -335,7 +338,7 @@ public class JSObjectBase implements JSObject {
 
             if ( o instanceof JSObjectBase ){
                 JSObjectBase job = (JSObjectBase)o;
-                Object res = job._simpleGet( hash , s , depth + 1 , seen , scopeFailover );
+                Object res = job._simpleGet( hash , s , depth + 1 , seen , scopeFailover , badKey );
                 if ( res != null )
                     return res;
 
@@ -383,12 +386,7 @@ public class JSObjectBase implements JSObject {
             return false;
 
         List<JSObjectBase> lst = _dependencies;
-        for ( int i=0; i<lst.size(); i++ ){
-            if ( lst.get(i)._lastModified >= _dependencyBuildTime )
-                return false;
-        }
-
-        return true;
+        return sum(lst) == _dependencySum;
     }
 
     private List<JSObjectBase> _dependencies(){
@@ -403,10 +401,18 @@ public class JSObjectBase implements JSObject {
 
         if ( lst == null )
             _badDepencies = true;
+        
         _dependencies = lst;
-        _dependencyBuildTime = System.currentTimeMillis();
-
+        _dependencySum = sum( lst );
+        
         return lst;
+    }
+
+    private static int sum( List<JSObjectBase> lst ){
+        int sum = 0;
+        for ( int i=0; i<lst.size(); i++)
+            sum += lst.get(i)._version;
+        return sum;
     }
 
     /** @unexpose */
@@ -897,7 +903,7 @@ public class JSObjectBase implements JSObject {
         _name = n;
     }
 
-    private Pair<JSFunction,JSFunction> _getSetterAndGetter( String name , boolean add ){
+    private Pair<JSFunction,JSFunction> _getSetterAndGetter( final String name , final boolean add ){
 
         if ( _setterAndGetters == null && ! add )
             return null;
@@ -941,7 +947,7 @@ public class JSObjectBase implements JSObject {
     }
 
     private void _dirtyMyself(){
-        _lastModified = System.currentTimeMillis();
+        _version++;
         _placesToLookUpdated = false;
         _dependencies = null;
         if ( _jitCache != null )
@@ -1023,17 +1029,18 @@ public class JSObjectBase implements JSObject {
 
     // jit stuff
 
-    private long _lastModified = System.currentTimeMillis();
+    private int _version = 0;
 
     private List<JSObjectBase> _dependencies = null;
     private boolean _badDepencies = false;
-    private long _dependencyBuildTime = 0;
+    private int _dependencySum = 0;
 
     private boolean _placesToLookUpdated = false;
     private JSObject _placesToLook[] = new JSObject[4];
 
     private int _getFromParentCalls = 0;
     private Map<String,Object> _jitCache;
+
 
     /** An empty, unchangeable HashSet. */
     static final Set<String> EMPTY_SET = Collections.unmodifiableSet( new HashSet<String>() );
