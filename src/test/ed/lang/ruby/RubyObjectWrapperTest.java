@@ -30,6 +30,7 @@ import org.testng.annotations.Test;
 import ed.db.ObjectId;
 import ed.js.*;
 import ed.js.engine.Scope;
+import ed.js.func.JSFunctionCalls1;
 import ed.lang.ruby.RubyObjectId;
 import ed.lang.ruby.RubyObjectWrapper;
 import static ed.lang.ruby.RubyObjectWrapper.*;
@@ -164,13 +165,13 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 
     @Test(groups = {"convert", "js2r"})
     public void testCreateNil() {
-	assertEquals(r.getNil(), create(s, r, null));
+	assertEquals(r.getNil(), toRuby(s, r, null));
     }
 
     @Test(groups = {"convert", "js2r"})
     public void testCreateOid() {
 	ObjectId oid = new ObjectId("0123456789abcdef01");
-	IRubyObject ro = create(s, r, oid);
+	IRubyObject ro = toRuby(s, r, oid);
 	assertTrue(ro instanceof RubyObjectId);
 	assertEquals(oid, ((RubyObjectId)ro)._id);
     }
@@ -185,31 +186,41 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 	createNumberTest(42.0, new Double((byte)42));
 
 	BigInteger bi = new BigInteger("42");
-	IRubyObject ro = create(s, r, bi);
+	IRubyObject ro = toRuby(s, r, bi);
 	assertTrue(ro instanceof RubyBignum);
 	assertEquals(bi, ((RubyBignum)ro).getValue());
 
 	BigDecimal bd = new BigDecimal("42");
-	ro = create(s, r, bd);
+	ro = toRuby(s, r, bd);
 	assertTrue(ro instanceof RubyBigDecimal);
 	assertEquals(bd, ((RubyBigDecimal)ro).getValue());
     }
 
     void createNumberTest(long val, Object jobj) {
-	IRubyObject ro = create(s, r, jobj);
+	IRubyObject ro = toRuby(s, r, jobj);
 	assertTrue(ro instanceof RubyNumeric);
 	assertEquals(val, RubyNumeric.num2long(ro));
     }
 
     void createNumberTest(double val, Object jobj) {
-	IRubyObject ro = create(s, r, jobj);
+	IRubyObject ro = toRuby(s, r, jobj);
 	assertTrue(ro instanceof RubyNumeric);
 	assertEquals(val, RubyNumeric.num2dbl(ro));
     }
 
     @Test(groups = {"convert", "js2r"})
     public void testCreateFunction() {
-	// TODO
+	JSFunction jf = new JSFunctionCalls1() {
+		public Object call(Scope scope, Object arg, Object extras[]) {
+		    return new Integer(((Number)arg).intValue() + 7);
+		}
+	    };
+	IRubyObject ro = toRuby(s, r, jf, "add_seven"); // null container: add to top-level object
+	assertTrue(ro instanceof RubyJSFunctionWrapper);
+
+	IRubyObject result = r.evalScriptlet("add_seven(35)");
+	assertTrue(result instanceof RubyNumeric);
+	assertEquals(42L, RubyNumeric.num2long(result));
     }
 
     @Test(groups = {"convert", "js2r"})
@@ -220,7 +231,7 @@ public class RubyObjectWrapperTest extends ed.TestCase {
     @Test(groups = {"convert", "js2r"})
     public void testCreateJSArray() {
 	JSArray a = new JSArray(new Long(1), new Float(2.3), new JSString("test string"));
-	IRubyObject ro = create(s, r, a);
+	IRubyObject ro = toRuby(s, r, a);
 	assertTrue(ro instanceof RubyArray);
 	RubyArray ra = (RubyArray)ro;
 	assertEquals(3, ra.size());
@@ -236,7 +247,7 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 	map.set(new JSString("a"), new Integer(1));
 	map.set(new Long(42), new JSString("test string"));
 
-	IRubyObject ro = create(s, r, map);
+	IRubyObject ro = toRuby(s, r, map);
 	assertTrue(ro instanceof RubyHash);
 	RubyHash rh = (RubyHash)ro;
 	assertEquals(2, rh.keys().size());
