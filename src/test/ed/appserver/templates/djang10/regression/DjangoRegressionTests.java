@@ -35,7 +35,6 @@ import ed.db.JSHook;
 import ed.js.Encoding;
 import ed.js.JSArray;
 import ed.js.JSDate;
-import ed.js.JSException;
 import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.JSString;
@@ -52,7 +51,6 @@ public class DjangoRegressionTests {
 
         //requires architecture impl
         "basic-syntax27",   //need support for translating _( )
-        "^list-index.*",    //need to preprocess the string
         "for-tag-unpack09", //need to support list indices
         "ifequal-numeric07", //need to preprocess: throw error on 2.
 
@@ -78,6 +76,9 @@ public class DjangoRegressionTests {
 
         //python & js have different string representations of types
         "filter-make_list0[1-4]", 
+        
+        //all keys are strings in js
+        "list-index07"
     };    
        
     public DjangoRegressionTests(){ }

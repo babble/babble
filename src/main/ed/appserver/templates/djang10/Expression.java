@@ -18,13 +18,12 @@ package ed.appserver.templates.djang10;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import ed.appserver.JSFileLibrary;
 import ed.ext.org.mozilla.javascript.CompilerEnvirons;
@@ -42,8 +41,11 @@ import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
 import ed.js.func.JSFunctionCalls1;
 import ed.lang.python.JSPyObjectWrapper;
+import ed.log.Logger;
 
 public class Expression extends JSObjectBase {
+    private static final Logger log = Logger.getLogger("djang10.Expression");
+    
     public final static Object UNDEFINED_VALUE = new Object() {
         public String toString() {
             return "UNDEFINED_VALUE";
@@ -65,10 +67,7 @@ public class Expression extends JSObjectBase {
         Token.FALSE
     ));
     
-    private static final String ESCAPE_PREFIX = "_";
-    private static final List<String> TERMS_TO_ESCAPE;
-    static {
-        List<String> terms = Arrays.asList(
+    private static final String[] JAVASCRIPT_RESERVED_WORDS = {
             //JavaScript Reserved Words
             "break",
             "case",
@@ -131,20 +130,7 @@ public class Expression extends JSObjectBase {
             "transient",
             "try",
             "volatile"            
-        );
-        Collections.sort(terms, new Comparator<String>() {
-            public int compare(String o1, String o2) {
-                int result = o1.length() - o2.length();
-                
-                if(result == 0)
-                    result = o1.compareTo(o2);
-                
-                return result;
-            };
-        });
-        
-        TERMS_TO_ESCAPE = Collections.unmodifiableList(terms);
-    }
+    };
     
     private String expression;
     private ed.appserver.templates.djang10.Parser.Token token;
@@ -198,26 +184,90 @@ public class Expression extends JSObjectBase {
         
     }
 
-    private static String preprocess(String exp) {
-        //escape reserved words
-        for(String term : TERMS_TO_ESCAPE)
-            exp = exp.replace(term, ESCAPE_PREFIX + term);
+    
+    private static List<String> splitLiterals(String str) {
+        List<String> bits = new ArrayList<String>();
         
-        return exp;
-    }
-    private static Node postprocess(Node node) {
-        //undo reserved word escapes
-        if(node.getType() == Token.NAME || node.getType() == Token.STRING) {
-            String str = node.getString();
+        String quotes = "\"'";
+        boolean inQuote = false, lastWasEscape = false;
+        char quoteChar = '"';
+        StringBuilder buffer = new StringBuilder();
+        
+        for(int i=0; i<str.length(); i++) {
+            char c = str.charAt(i);
             
-            for(String term : TERMS_TO_ESCAPE) {
-                String escaped_term = ESCAPE_PREFIX + term;
+            if(inQuote) {
+                buffer.append(c);
                 
-                str = str.replace(escaped_term, term); 
+                if(!lastWasEscape) {
+                    if(c == quoteChar) {
+                        inQuote = false;
+                        bits.add(buffer.toString());
+                        buffer.setLength(0);
+                    }
+                    else if(c == '\\') {
+                        lastWasEscape = true;
+                    }
+                }
+                else {
+                    lastWasEscape = false;
+                }
+            }
+            else if(quotes.indexOf(c) > -1) {
+                inQuote = true;
+                if(buffer.length() != 0) {
+                    bits.add(buffer.toString());
+                    buffer.setLength(0);
+                }
+                
+                buffer.append(c);
+            }
+            else {
+                buffer.append(c);
+            }
+        }
+
+        if(buffer.length() != 0)
+            bits.add(buffer.toString());
+
+        return bits;
+    }
+    
+    public static String preprocess(String exp) {
+        StringBuilder buffer = new StringBuilder();
+        String quotes = "\"'";
+
+        Pattern numAlphaIdentifiers = Pattern.compile("(?<!\\w)[0-9_]\\w*[A-Za-z_$]\\w*(?!\\w)"); //matches all identifiers that start with a number
+        Pattern numericProp = Pattern.compile("((?:[A-Za-z]\\w*|\\]|\\))\\s*\\.\\s*)([0-9]+)(?![0-9])");    //matches variable.8
+        
+        for(String bit : splitLiterals(exp)) {
+            boolean isQuoted = (quotes.indexOf(bit.charAt(0)) > -1) && (bit.charAt(0) == bit.charAt(bit.length() - 1));
+            
+            if(!isQuoted) {
+                bit = numAlphaIdentifiers.matcher(bit).replaceAll("_$0");
+                for(String reservedWord : JAVASCRIPT_RESERVED_WORDS)
+                    bit = bit.replaceAll("(?<!\\w)"+reservedWord+"(?!\\w)", "_$0");
+                bit = numericProp.matcher(bit).replaceAll("$1_$2");
+            }
+            else if(bit.charAt(1) == '_'){
+                bit = bit.charAt(0) + '_' + bit.substring(1);
             }
             
-            if(!str.equals(node.getString())) {
-                Node newNode = Node.newString(node.getType(), str);
+            buffer.append(bit);
+        }
+        
+        if(!buffer.toString().equals(exp))
+            log.debug("Transformed: " + exp + " to: " + buffer);
+            
+        
+        return buffer.toString();
+    }
+    private static Node postprocess(Node node) {
+        if(node.getType() == Token.NAME || node.getType() == Token.STRING) {
+            String str = node.getString();
+
+            if(str.startsWith("_")) {
+                Node newNode = Node.newString(node.getType(), str.substring(1));
                 
                 for(Node child = node.getFirstChild(); child != null; child = child.getNext())
                     newNode.addChildToBack(child);
