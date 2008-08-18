@@ -109,6 +109,8 @@ public class NativeBridge {
         if ( _disallowedNativeNames.contains( name ) )
             throw new JSException( "[" + name + "] is not allowed" );
 
+        if ( debug ) System.out.println( "callNative " + obj.getClass() + " [" + name + "]" );
+
         List<Method> methods = getMethods( obj.getClass() , name );
         if ( methods != null && methods.size() > 0 ){
             methods:
@@ -194,7 +196,7 @@ public class NativeBridge {
             params = EMPTY_OBJET_ARRAY;
         
         if ( myClasses.length > 0 && myClasses[0] == Scope.class ){
-
+            if ( debug ) System.out.println( "Adding scope to front" );
             Object n[] = new Object[params.length+1];
             n[0] = scope;
             for ( int i=0; i<params.length; i++ )
@@ -208,9 +210,35 @@ public class NativeBridge {
                 n[i] = params[i];
             params = n;
         }
+        
+        if ( params.length > myClasses.length && params[params.length-1].getClass().isArray() ){
+            Object foo[] = (Object[])(params[params.length-1]);
+            if ( foo.length == 0 ){
+                Object n[] = new Object[params.length-1];
+                for ( int i=0; i<n.length; i++ )
+                    n[i] = params[i];
+                params = n;                
+            }
+        }
 
         if ( myClasses.length != params.length ){
-            if ( debug ) System.out.println( "param length don't match " + myClasses.length + " != " + params.length );
+            if ( debug ){
+                System.out.println( "param length don't match " + myClasses.length + " != " + params.length );
+                
+                System.out.print( "\t" );
+                for ( int i=0; i<myClasses.length; i++ )
+                    System.out.print( myClasses[i].getName() + "\t" );
+                System.out.println();
+                
+                System.out.print( "\t" );
+                for ( int i=0; i<params.length; i++ ){
+                    if ( params[i] == null )
+                        System.out.print( "null\t" );
+                    else
+                        System.out.print( params[i].getClass().getName() + "\t" );
+                }
+                System.out.println();
+            }
             return null;
         }
         
