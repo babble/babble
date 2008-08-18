@@ -1451,17 +1451,11 @@ public class E4X {
 
         public abstract class ENodeFunction extends JSFunctionCalls0 {
             public String toString() {
-                if( cnode == null ) {
-                    cnode = (ENode)E4X._nodeGet(ENode.this, this.getClass().getSimpleName());
-                }
-                return cnode == null ? "" : cnode.toString();
+                return getNode() == null ? "" : cnode.toString();
             }
 
             public Object get( Object n ) {
-                if ( cnode == null ) {
-                    cnode = (ENode)E4X._nodeGet(ENode.this, this.getClass().getSimpleName());
-                }
-                return cnode.get( n );
+                return getNode().get( n );
             }
 
             public Object set( Object n, Object v ) {
@@ -1469,16 +1463,17 @@ public class E4X {
                 if( n.equals("prototype") && v instanceof JSObjectBase)
                     return null;
 
-                if( cnode == null ) {
-                    cnode = (ENode)E4X._nodeGet(ENode.this, this.getClass().getSimpleName());
-                    if( cnode == null )
-                        return null;
-                }
-                return cnode.set( n, v );
+                return getNode() == null ? null : cnode.set( n, v );
             }
 
             public Object removeField( Object f ) {
-                return cnode.removeField(f);
+                return getNode().removeField(f);
+            }
+
+            public ENode getNode() {
+                if( cnode != null) return cnode;
+                cnode = (ENode)E4X._nodeGet(ENode.this, this.getClass().getSimpleName());
+                return cnode;
             }
 
             ENode cnode;
