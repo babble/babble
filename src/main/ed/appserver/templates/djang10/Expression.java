@@ -257,7 +257,7 @@ public class Expression extends JSObjectBase {
             else {
                 //kill escapes
                 if(!useLiteralEscapes)
-                    bit = bit.replaceAll("\\\\[^"+quotes+"]", "\\\\$0");
+                    bit = bit.replaceAll("\\\\(?!["+quotes+"])", "\\\\\\\\");
                 
                 if(bit.charAt(1) == '_'){
                     bit = bit.charAt(0) + '_' + bit.substring(1);
