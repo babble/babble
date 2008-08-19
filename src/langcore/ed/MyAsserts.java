@@ -72,7 +72,7 @@ public class MyAsserts {
     }
 
     public static void assertEquals( double a , double b , double diff ){
-	assertEquals( a , b , "" + a + " != " + b );
+	assertEquals( a , b , diff, "" + a + " != " + b );
     }
 
     public static void assertEquals( double a , double b , double diff , String msg ){
