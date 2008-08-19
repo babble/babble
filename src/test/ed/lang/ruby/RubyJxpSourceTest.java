@@ -39,7 +39,7 @@ class TestRubyJxpSource extends RubyJxpSource {
 	super(runtime);
     }
     protected String getContent() { return _content; }
-    protected Node _getCode() throws IOException { return _parseContent("fake_file_path"); } // skip file checking 'cause there ain't no file
+    protected Node _getCode() throws IOException { return _parseContent("fake_file_path"); }
     protected void _setOutput(Scope s) {
 	_writer = new JxpWriter.Basic();
 	_runtime.getGlobalVariables().set("$stdout", new RubyIO(_runtime, new RubyJxpOutputStream(_writer)));
