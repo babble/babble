@@ -450,15 +450,11 @@ public class Convert implements StackTraceFixer {
             break;
 
         case Token.REF_NS_MEMBER :
-            _append( "((JSObject)", n );
-            _add( n.getFirstChild() , state );
-            _append( ").get( \"", n );
-            _append( n.getFirstChild().getNext().getString() , n );
-            _append( "::\" + ", n );
+            _add( n.getFirstChild().getNext() , state );
+            _append( " + \"::\" + ", n );
             _add( n.getFirstChild().getNext().getNext() , state );
-            _append( " )", n );
-
             break;
+
         case Token.ESCXMLTEXT :
         case Token.ESCXMLATTR :
             _add( n.getFirstChild(), state );
