@@ -75,6 +75,8 @@ public class Shell {
     /** Connect to a database. */
     public static class ConnectDB extends JSFunctionCalls2 {
         public Object call( Scope s , Object name , Object ip , Object crap[] ){
+            if ( name == null )
+                throw new NullPointerException( "connect requires a name" );
             return DBProvider.get( name.toString() , ip == null ? null : ip.toString() );
         }
 

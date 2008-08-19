@@ -30,7 +30,7 @@ public abstract class Language {
         return false;
     }
 
-    public ObjectConvertor getConvertor(){
+    public ObjectConvertor getConvertor( ScriptEngine engine ){
         throw new UnsupportedOperationException();
     }
 
@@ -43,7 +43,7 @@ public abstract class Language {
     }
 
     final String _name;
-
+    
     public static final Language JS = new Language( "js" ){};
     public static final Language RUBY = new Language( "ruby" ){};
     public static final Language PYTHON = new Language( "python" ){};
@@ -52,14 +52,16 @@ public abstract class Language {
             public boolean isScriptable(){
                 return true;
             }
+
             public ScriptEngine getScriptEngine(){
                 return ed.lang.php.PHP.getScriptEngine();
             }
+
+            public ObjectConvertor getConvertor( ScriptEngine engine ){
+                throw new RuntimeException( "not sure yet" );
+            }
         };
     
-
-
-
     public static Language find( String file ){
         return find( file , false );
     }

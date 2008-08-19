@@ -21,30 +21,52 @@ package ed.lang.php;
 import java.lang.reflect.*;
 import javax.script.*;
 
+import ed.lang.*;
+import ed.js.engine.*;
+
 import com.caucho.quercus.*;
+import com.caucho.quercus.env.*;
 import com.caucho.quercus.script.*;
 
 public class PHP {
     
     static QuercusScriptEngineFactory _phpFactory = new QuercusScriptEngineFactory();
-
+    
     public static ScriptEngine getScriptEngine(){
         QuercusScriptEngine engine = (QuercusScriptEngine)(_phpFactory.getScriptEngine());
-        Quercus quercus = null;
+        
+        add( engine , Scope.class , PHPJSObjectClassDef.class );
 
+        return engine;
+    }
+
+    static PHPConvertor getConvertor( Env env ){
+        Value convertor = env.getConstant( "_10genconvertor");
+        if ( ! ( convertor instanceof PHPConvertor) ){
+            convertor = new PHPConvertor( env );
+            env.addConstant( "_10genconvertor" , convertor , false );
+        }
+        return (PHPConvertor)convertor;
+    }
+
+    static void add( QuercusScriptEngine engine , Class c , Class def ){
+        try {
+            getQuercus( engine ).getModuleContext().addClass( c.getName() , c , null , def );
+        }
+        catch ( Exception e ){
+            throw new RuntimeException( "couldn't add " + c , e );
+        }
+    }
+
+    static Quercus getQuercus( QuercusScriptEngine engine ){
         try {
             Method m = engine.getClass().getDeclaredMethod( "getQuercus" );
             m.setAccessible( true );
-            quercus = (Quercus)(m.invoke( engine ));
+            return (Quercus)(m.invoke( engine ));
         }
         catch ( Exception e ){
             throw new RuntimeException( "can't do quercus hack" , e );
         }
-        
-        //quercus.getModuleContext().addClass( java.lang.String name, java.lang.Class type, java.lang.String extension, java.lang.Class javaClassDefClass) ;
-        //quercus.getModuleContext().addClass( null , null , null , null );
-        
 
-        return engine;
     }
 }

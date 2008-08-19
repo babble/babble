@@ -21,6 +21,6 @@ package ed.lang;
 public interface ObjectConvertor {
 
     public Object toJS( Object o );
-    public Object fromJS( Object o );
+    public Object toOther( Object o );
 
 }
