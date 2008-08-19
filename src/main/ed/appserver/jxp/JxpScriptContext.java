@@ -29,13 +29,14 @@ import ed.net.httpserver.*;
 
 public class JxpScriptContext implements ScriptContext {
     
+    public JxpScriptContext( Scope s ){
+        _scope = s;
+        _writer = new OutputStreamWriter( System.out );
+    }
+
     public JxpScriptContext( HttpRequest request , HttpResponse response , AppRequest ar ){
-        _request = request;
-        _response = response;
-        _ar = ar;
         _scope = ar.getScope();
-        _servletWriter = new ServletWriter( response.getWriter() , ar.getURLFixer() );
-        _writer = _servletWriter.asJavaWriter();
+        _writer = ( new ServletWriter( response.getWriter() , ar.getURLFixer() ) ).asJavaWriter();
     }
 
     public Object getAttribute(String name){
@@ -51,7 +52,7 @@ public class JxpScriptContext implements ScriptContext {
     }
     
     public Bindings getBindings(int scope){
-        throw new RuntimeException( "what?" );
+        return _scope;
     }
     
     public Writer getErrorWriter(){
@@ -95,11 +96,7 @@ public class JxpScriptContext implements ScriptContext {
     }
     
 
-    final HttpRequest _request;
-    final HttpResponse _response;
-    final AppRequest _ar;
     final Scope _scope;
-    final ServletWriter _servletWriter;
     final Writer _writer;
 
     static final List<Integer> SCOPES;
