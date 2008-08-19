@@ -43,7 +43,7 @@ public class Python {
     }
 
 
-    static Object toJS( Object p ){
+    public static Object toJS( Object p ){
 
         if ( p == null || p instanceof PyNone )
             return null;
@@ -89,11 +89,11 @@ public class Python {
         throw new RuntimeException( "can't convert [" + p.getClass().getName() + "] from py to js" );       
     }
     
-    static PyObject toPython( Object o ){
+    public static PyObject toPython( Object o ){
         return toPython( o , null );
     }
 
-    static PyObject toPython( Object o , Object useThis ){
+    public static PyObject toPython( Object o , Object useThis ){
         
         if ( o == null )
             return Py.None;

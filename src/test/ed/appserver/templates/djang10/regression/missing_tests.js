@@ -94,8 +94,10 @@ tests=[                                                                         
        //same as the regular django tests but takes into account that js & python have different type representionations
        { name: "filter-make_list-jsout01", content: "{% autoescape off %}{{ a|make_list }}{% endautoescape %}", model: { "a": djang10.mark_safe("&") }, results: "&" },
        { name: "filter-make_list-jsout02", content: "{{ a|make_list }}", model: { "a": djang10.mark_safe("&") }, results: "&amp;" },
-       { name: "filter-make_list-jsout03", content: "{% autoescape off %}{{ a|make_list|stringformat:\"s\"|safe }}{% endautoescape %}", model: { "a": djang10.mark_safe("&") }, results: "&" },
-       { name: "filter-make_list-jsout04", content: "{{ a|make_list|stringformat:\"s\"|safe }}", model: { "a": djang10.mark_safe("&") }, results: "&" },
+       
+       //HACK ALERT: these 2 unit tests, test for python's style of string representations, while everything else tests for js style
+       { name: "filter-make_list-jsout03", content: "{% autoescape off %}{{ a|make_list|stringformat:\"s\"|safe }}{% endautoescape %}", model: { "a": djang10.mark_safe("&") }, results: "['&']" },
+       { name: "filter-make_list-jsout04", content: "{{ a|make_list|stringformat:\"s\"|safe }}", model: { "a": djang10.mark_safe("&") }, results: "['&']" },    
        
        { name: "filter-make_list-jsout-extra01", content: "{% autoescape off %}{{ a|make_list }}{% endautoescape %}", model: { "a": djang10.mark_safe("&&&") }, results: "&,&,&" },
        { name: "filter-make_list-jsout-extra02", content: "{{ a|make_list }}", model: { "a": djang10.mark_safe("&&&") }, results: "&amp;,&amp;,&amp;" },
@@ -104,7 +106,7 @@ tests=[                                                                         
        { name: "expression-mangling01", content: "{{ var.if().1[0].1 }}", model: { "var": {"if": function() { return [1, [[null, "moo"]]]} } }, results: "moo" },
        { name: "expression-mangling02", content: "{{ var.if.when.for.continue }}", model: { "var": { "if": {"when": {"for": {"continue": "baa"}}}}}, results: "baa" }, 
 
-       { name: "now01", content: '{% now "D M j Y H:i:s \\\\G\\\\M\\\\TO (T) Z" %}', model: {}, results: (new Date()).toString() + " -14400" }, 
+       { name: "now-escape01", content: '{% now "D M j Y H:i:s \\G\\M\\TO (T) Z" %}', model: {}, results: (new Date()).toString() + " -14400" }, 
        
        { name: "literal-escape01", content: '{% literal_escape on %}{{ "moo\\nbaa" }}{% endliteral_escape %}', model: {}, results: "moo\nbaa" },
        { name: "literal-escape02", content: '{% literal_escape off %}{{ "moo\\nbaa" }}{% endliteral_escape %}', model: {}, results: "moo\\nbaa" },

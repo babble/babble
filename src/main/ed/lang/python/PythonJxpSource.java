@@ -23,6 +23,7 @@ import java.util.*;
 
 import org.python.core.*;
 import org.python.expose.*;
+import org.python.Version;
 
 import ed.js.*;
 import ed.log.*;
@@ -33,6 +34,10 @@ import ed.appserver.*;
 import ed.appserver.jxp.*;
 
 public class PythonJxpSource extends JxpSource {
+
+    static {
+        System.setProperty( "python.cachedir", "/tmp/jxp/jython-cache/" + Version.PY_VERSION );
+    }
 
     public PythonJxpSource( File f , JSFileLibrary lib ){
         _file = f;
