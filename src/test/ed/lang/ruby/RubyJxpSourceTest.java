@@ -94,6 +94,6 @@ public class RubyJxpSourceTest {
 	jobj.set("add_seven", addSevenFunc);
 
 	s.set("data", jobj);
-	runRuby("puts data.count", "1");
+	runRuby("puts data.count; puts data.add_seven(35)", "1\n42");
     }
 }
