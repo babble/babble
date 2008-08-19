@@ -63,11 +63,15 @@ public class RubyJSObjectWrapperTest extends ed.TestCase {
     public void testMethodMissingNoSuchMethod() {
 	addTopLevelVar("data");
 	try {
-	    IRubyObject answer = r.evalScriptlet("data.xyzzy");
-	    assertTrue(answer instanceof RubyFixnum);
+	    r.evalScriptlet("data.xyzzy");
+	    fail("should have thrown a NoMethodError");
+	}
+	catch (org.jruby.exceptions.RaiseException re) {
+	    String msg = re.getException().toString();
+	    assertTrue(msg.startsWith("undefined method `xyzzy'"));
 	}
 	catch (Exception e) {
-	    fail(e.toString());
+	    fail("Expected NoMethodError, got " + e.getClass().getName() + ": " + e.toString());
 	}
     }
 

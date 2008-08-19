@@ -66,7 +66,7 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 
 		    // If this object does now know about key, call superclass method_missing
 		    if (!(_jsobj instanceof Scope) && !_jsobj.containsKey(key))
-			return RubyObjectWrapper.toRuby(_scope, _runtime, callSuper(context, args, block));
+			return RubyObjectWrapper.toRuby(_scope, _runtime, RubyKernel.method_missing(context, self, args, block));
 
 		    // Write
 		    if (assign) {
