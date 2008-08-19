@@ -119,6 +119,11 @@ public class RubyJxpSource extends JxpSource {
 	_runtime.getGlobalVariables().set("$stdout", new RubyIO(_runtime, new RubyJxpOutputStream(response.getWriter())));
     }
 
+    /**
+     * Turns alost all scope variables into Ruby top-level variables. The
+     * exception: the "print" function, which is already handled by the Ruby
+     * kernel (aided by our definition of $stdout).
+     */
     private void _exposeScope(Scope s) {
 	// Turn all JSObject scope variables into Ruby top-level variables
 	Set<String> alreadySeen = new HashSet<String>();
@@ -129,6 +134,8 @@ public class RubyJxpSource extends JxpSource {
 		if (alreadySeen.contains(key)) // Use most "local" version of var
 		    continue;
 		Object val = s.get(key);
+		if ("print".equals(key) && val instanceof JSFunction)
+		    continue;
 		if (DEBUG)
 		    System.err.println("about to expose " + key + "; class = " + (val == null ? "<null>" : val.getClass().getName()));
 		top.instance_variable_set(RubySymbol.newSymbol(_runtime, "@" + key), RubyObjectWrapper.toRuby(s, _runtime, val, key));
