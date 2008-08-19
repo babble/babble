@@ -429,34 +429,36 @@ public class Convert implements StackTraceFixer {
             break;
 
         case Token.GET_REF:
-            if ( n.getFirstChild().getType() == Token.REF_SPECIAL ){
-		_append( "((JSObject)" , n );
-		_add( n.getFirstChild().getFirstChild() , state );
-		_append( ").get( \"" , n );
-		_append( n.getFirstChild().getProp( Node.NAME_PROP ).toString() , n );
-		_append( "\" )" , n );
-	    }
-	    else if ( n.getFirstChild().getType() == Token.REF_MEMBER ){
-                Node rm = n.getFirstChild();
-
-		_append( "((JSObject)" , n );
-		_add( rm.getFirstChild() , state );
-		_append( ").get( " , n );
-
-                final int memberTypeFlags = rm.getIntProp(Node.MEMBER_TYPE_PROP, 0);
-                String theName = ( ( memberTypeFlags & Node.ATTRIBUTE_FLAG ) != 0 ? "@" : "" ) + rm.getFirstChild().getNext().getString();
-                if ( ( memberTypeFlags & Node.DESCENDANTS_FLAG ) != 0 )
-                    theName = ".." + theName;
-                _append( "\"" + theName  + "\" " , n );
-
-		_append( " )" , n );
-	    }
-	    else {
-		Debug.printTree( n , 0 );
-		throw new RuntimeException( "don't know what to do with " + Token.name( n.getFirstChild().getType() ) );
-	    }
+            _append( "((JSObject)" , n );
+            _add( n.getFirstChild().getFirstChild() , state );
+            _append( ").get( " , n );
+            _add( n.getFirstChild() , state );
+            _append( " ) ", n );
             break;
 
+        case Token.REF_SPECIAL :
+            _append( "\"" + n.getProp( Node.NAME_PROP ).toString() + "\"" , n );
+            break;
+
+        case Token.REF_MEMBER :
+            final int memberTypeFlags = n.getIntProp(Node.MEMBER_TYPE_PROP, 0);
+            String theName = ( ( memberTypeFlags & Node.ATTRIBUTE_FLAG ) != 0 ? "@" : "" ) + n.getFirstChild().getNext().getString();
+            if ( ( memberTypeFlags & Node.DESCENDANTS_FLAG ) != 0 )
+                theName = ".." + theName;
+            _append( "\"" + theName  + "\"" , n );
+
+            break;
+
+        case Token.REF_NS_MEMBER :
+            _append( "((JSObject)", n );
+            _add( n.getFirstChild() , state );
+            _append( ").get( \"", n );
+            _append( n.getFirstChild().getNext().getString() , n );
+            _append( "::\" + ", n );
+            _add( n.getFirstChild().getNext().getNext() , state );
+            _append( " )", n );
+
+            break;
         case Token.ESCXMLTEXT :
         case Token.ESCXMLATTR :
             _add( n.getFirstChild(), state );
@@ -751,18 +753,10 @@ public class Convert implements StackTraceFixer {
             break;
 
         case Token.DEL_REF:
-            Node rm = n.getFirstChild();
-
             _append( "((JSObject)" , n );
-            _add( rm.getFirstChild() , state );
+            _add( n.getFirstChild().getFirstChild() , state );
             _append( ").removeField( " , n );
-            
-            final int memberTypeFlags = rm.getIntProp(Node.MEMBER_TYPE_PROP, 0);
-            String theName = ( ( memberTypeFlags & Node.ATTRIBUTE_FLAG ) != 0 ? "@" : "" ) + rm.getFirstChild().getNext().getString();
-            if ( ( memberTypeFlags & Node.DESCENDANTS_FLAG ) != 0 )
-                theName = ".." + theName;
-            _append( "\"" + theName  + "\" " , n );
-            
+            _add( n.getFirstChild() , state );            
             _append( " )" , n );
             break;
 

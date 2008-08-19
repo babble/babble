@@ -216,6 +216,11 @@ public class E4X {
             addNativeFunctions();
         }
 
+        // finds and sets the qname and namespace for a node.
+        void getNamespace() {
+            System.out.println("namespace: "+this.node.getNamespaceURI());
+        }
+
         void addNativeFunctions() {
             nativeFuncs.put("addNamespace", new addNamespace());
             nativeFuncs.put("appendChild", new appendChild());
@@ -259,10 +264,21 @@ public class E4X {
         }
 
         void buildENodeDom(ENode parent) {
+            // get attributes and xmlns
             NamedNodeMap attr = parent.node.getAttributes();
+            Pattern xmlns = Pattern.compile("xmlns:(\\w+)");
             for( int i=0; attr != null && i< attr.getLength(); i++) {
+                Matcher m = xmlns.matcher( attr.item(i).getNodeName() );
+                if( m.matches() ) {
+                    parent.name = new QName(new Namespace(attr.item(i).getNodeValue()), m.group(1));
+                }
                 parent.children.add( new ENode(attr.item(i), parent ) );
             }
+            // if the qualified name isn't defined, take the parent's
+            if( parent.name == null && parent.parent != null ) {
+                parent.name = parent.parent.name;
+            }
+            // get processing instructions
             if( parent.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE ) {
                 Properties piProp = new Properties();
                 try {
@@ -280,6 +296,7 @@ public class E4X {
                     e.printStackTrace();
                 }
             }
+            // finally, traverse the children
             NodeList kids = parent.node.getChildNodes();
             for( int i=0; i<kids.getLength(); i++) {
                 if( ( kids.item(i).getNodeType() == Node.COMMENT_NODE && E4X.ignoreComments ) ||
@@ -909,6 +926,8 @@ public class E4X {
         }
 
         private QName name() {
+            if( this.name == null ) 
+                this.name = new QName(E4X.defaultNamespace);
             return this.name;
         }
 
@@ -1695,7 +1714,7 @@ public class E4X {
         return true;
     }
 
-    static class QName {
+    static class QName extends JSObjectBase {
         public String localName;
         public String uri;
         public String prefix;
@@ -1737,21 +1756,12 @@ public class E4X {
                 this.uri = null;
             }
             else {
-                namespace = new Namespace(namespace);
                 this.uri = namespace.uri;
             }
         }
 
         public String toString() {
-            String s = "";
-            if( !this.uri.equals("") ) {
-                if( this.uri == null ) {
-                    s = "*::";
-                }
-                else {
-                    s = this.uri + "*::";
-                }
-            }
+            String s = this.uri == null ? "*::" : ( this.uri.equals("") ? "" : this.uri + "::" );
             return s + this.localName;
         }
 
@@ -1766,6 +1776,17 @@ public class E4X {
             if( ns == null )
                 return new Namespace( this.uri );
             return ns;
+        }
+
+        public String get( Object n ) {
+            if( n.toString().equals( "uri" ) ) {
+                return this.uri;
+            }
+            else if ( n.toString().equals( "prefix" ) ) {
+                return this.prefix;
+            }
+            else 
+                return null;
         }
     }
 
@@ -1846,8 +1867,7 @@ public class E4X {
     }
 
     public static Namespace setAndGetDefaultNamespace(Object o) {
-        if( o instanceof Namespace )
-            defaultNamespace = (Namespace)o;
+        defaultNamespace = new Namespace(o);
         return defaultNamespace;
     }
 
