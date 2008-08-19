@@ -43,19 +43,19 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 	    }
 	};
 
-    @Test(groups = {"convert", "r2js"})
+    @Test(groups = {"ruby", "convert", "r2js"})
     public void testToJSNull() {
 	assertNull(toJS(r, null));
     }
 
-    @Test(groups = {"convert", "r2js"})
+    @Test(groups = {"ruby", "convert", "r2js"})
     public void testToJSOid() {
 	ObjectId oid = new ObjectId("0123456789abcdef01");
 	RubyObjectId rid = new RubyObjectId(r, oid);
 	assertEquals(oid, toJS(r, rid));
     }
 
-    @Test(groups = {"convert", "r2js"})
+    @Test(groups = {"ruby", "convert", "r2js"})
     public void testToJSNumber() {
 	jsNumberTest(42L, new Byte((byte)42));
 	jsNumberTest(42L, new Short((short)42));
@@ -65,7 +65,7 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 	jsNumberTest(42.0, new Double(42.0));
     }
 
-    @Test(groups = {"convert", "r2js"})
+    @Test(groups = {"ruby", "convert", "r2js"})
     public void testToJSBignum() {
 	IRubyObject ro = new RubyBignum(r, new BigInteger("42"));
 	Object o = toJS(r, ro);
@@ -73,7 +73,7 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 	assertEquals(42L, ((Number)o).longValue());
     }
 
-    @Test(groups = {"convert", "r2js"})
+    @Test(groups = {"ruby", "convert", "r2js"})
     public void testToJSBigDecimal() {
 	IRubyObject ro = new RubyBigDecimal(r, new BigDecimal((double)42.4));
 	Object o = toJS(r, ro);
@@ -95,24 +95,24 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 	assertEquals(val, ((Number)o).doubleValue());
     }
 
-    @Test(groups = {"convert", "r2js"})
+    @Test(groups = {"ruby", "convert", "r2js"})
     public void testToJSString() {
 	Object o = toJS(r, RubyString.newUnicodeString(r, "test string"));
 	assertTrue(o instanceof JSString);
 	assertEquals("test string", o.toString());
     }
 
-    @Test(groups = {"convert", "r2js"})
+    @Test(groups = {"ruby", "convert", "r2js"})
     public void testToJSFunction() {
 	// TODO
     }
 
-    @Test(groups = {"convert", "r2js"})
+    @Test(groups = {"ruby", "convert", "r2js"})
     public void testToJSObject() {
 	// TODO
     }
 
-    @Test(groups = {"convert", "r2js"})
+    @Test(groups = {"ruby", "convert", "r2js"})
     public void testToJSArray() {
 	RubyArray ra = (RubyArray)r.evalScriptlet("[4, 5, 6]");
 	Object o = toJS(r, ra);
@@ -122,7 +122,7 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 	    assertEquals(i + 4, ((Number)ja.getInt(i)).intValue());
     }
 
-    @Test(groups = {"convert", "r2js"})
+    @Test(groups = {"ruby", "convert", "r2js"})
     public void testToJSArrayDeep() {
 	RubyArray ra = (RubyArray)r.evalScriptlet("[4, \"test string\", [3]]");
 	Object o = toJS(r, ra);
@@ -135,7 +135,7 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 	assertEquals(3, ((Number)((JSArray)o).getInt(0)).intValue());
     }
 
-    @Test(groups = {"convert", "r2js"})
+    @Test(groups = {"ruby", "convert", "r2js"})
     public void testToJSMap() {
 	RubyHash rh = (RubyHash)r.evalScriptlet("{\"a\" => 1, :b => \"test string\"}");
 
@@ -154,12 +154,12 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 	assertEquals("test string", val.toString());
     }
 
-    @Test(groups = {"convert", "js2r"})
+    @Test(groups = {"ruby", "convert", "js2r"})
     public void testToRubyNil() {
 	assertEquals(r.getNil(), toRuby(s, r, null));
     }
 
-    @Test(groups = {"convert", "js2r"})
+    @Test(groups = {"ruby", "convert", "js2r"})
     public void testToRubyOid() {
 	ObjectId oid = new ObjectId("0123456789abcdef01");
 	IRubyObject ro = toRuby(s, r, oid);
@@ -167,7 +167,7 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 	assertEquals(oid, ((RubyObjectId)ro)._id);
     }
 
-    @Test(groups = {"convert", "js2r"})
+    @Test(groups = {"ruby", "convert", "js2r"})
     public void testToRubyNumber() {
 	createNumberTest(42, new Byte((byte)42));
 	createNumberTest(42, new Short((byte)42));
@@ -199,7 +199,7 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 	assertEquals(val, RubyNumeric.num2dbl(ro));
     }
 
-    @Test(groups = {"convert", "js2r"})
+    @Test(groups = {"ruby", "convert", "js2r"})
     public void testToRubyFunction() {
 	IRubyObject ro = toRuby(s, r, addSevenFunc, "add_seven"); // null container: add to top-level object
 	assertTrue(ro instanceof RubyJSFunctionWrapper);
@@ -211,7 +211,7 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 	assertEquals(42L, RubyNumeric.num2long(result));
     }
 
-    @Test(groups = {"convert", "js2r"})
+    @Test(groups = {"ruby", "convert", "js2r"})
     public void testToRubyFunctionNameInObject() {
 	JSObjectBase jo = new JSObjectBase();
 	jo.set(new JSString("add_seven"), addSevenFunc);
@@ -229,19 +229,19 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 	}
     }
 
-    @Test(groups = {"convert", "js2r"})
+    @Test(groups = {"ruby", "convert", "js2r"})
     public void testToRubyFunctionInArray() {
 	JSArray a = new JSArray(new Long(1), new Float(2.3), addSevenFunc);
 	RubyArray ra = (RubyArray)toRuby(s, r, a);
 	assertTrue(ra.entry(2) instanceof RubyJSFunctionWrapper);
     }
 
-    @Test(groups = {"convert", "js2r"})
+    @Test(groups = {"ruby", "convert", "js2r"})
     public void testToRubyJSObject() {
 	// TODO
     }
 
-    @Test(groups = {"convert", "js2r"})
+    @Test(groups = {"ruby", "convert", "js2r"})
     public void testToRubyJSArray() {
 	JSArray a = new JSArray(new Long(1), new Float(2.3), new JSString("test string"));
 	IRubyObject ro = toRuby(s, r, a);
@@ -253,7 +253,7 @@ public class RubyObjectWrapperTest extends ed.TestCase {
 	assertEquals("test string", ra.entry(2).toString());
     }
 
-    @Test(groups = {"convert", "js2r"})
+    @Test(groups = {"ruby", "convert", "js2r"})
     public void testToRubyJSMap() {
 	// Create JSMap {"a" => 1, 42 => "test string"}
 	JSMap map = new JSMap();

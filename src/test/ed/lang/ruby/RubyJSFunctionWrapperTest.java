@@ -36,7 +36,7 @@ public class RubyJSFunctionWrapperTest extends ed.TestCase {
 	    }
 	};
 
-    @Test(groups = {"basic"})
+    @Test(groups = {"ruby"})
     public void testCallFromRuby() {
 	IRubyObject methodOwner = r.getTopSelf();
 	IRubyObject ro = new RubyJSFunctionWrapper(s, r, addSevenFunc, "add_seven", methodOwner.getSingletonClass());

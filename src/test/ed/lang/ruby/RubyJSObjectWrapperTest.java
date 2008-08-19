@@ -18,11 +18,12 @@ package ed.lang.ruby;
 
 import org.testng.annotations.Test;
 
-import org.jruby.RubyNumeric;
+import org.jruby.*;
 import org.jruby.runtime.builtin.IRubyObject;
 
 import ed.lang.ruby.RubyObjectWrapper;
 import ed.lang.ruby.RubyJSObjectWrapper;
+import ed.js.JSObject;
 import ed.js.JSObjectBase;
 import ed.js.engine.Scope;
 import static ed.lang.ruby.RubyObjectWrapper.*;
@@ -32,17 +33,42 @@ public class RubyJSObjectWrapperTest extends ed.TestCase {
     Scope s = new Scope("test", null);
     org.jruby.Ruby r = org.jruby.Ruby.newInstance();
 
-    @Test(groups = {"basic"})
-    public void testAccessors() {
+    JSObject addTopLevelVar(String name) {
 	JSObjectBase jobj = new JSObjectBase();
 	jobj.set("count", new Integer(1));
 
-	IRubyObject ro = toRuby(s, r, jobj);
-	assertTrue(ro instanceof RubyJSObjectWrapper);
+	RubyObject top = (RubyObject)r.getTopSelf();
+	RubyClass eigenclass = top.getSingletonClass();
+	top.instance_variable_set(RubySymbol.newSymbol(r, "@" + name), RubyObjectWrapper.toRuby(s, r, jobj, name));
+	eigenclass.attr_reader(r.getCurrentContext(), new IRubyObject[] {RubySymbol.newSymbol(r, name)});
 
-	r.getGlobalVariables().set("$jobj", ro);
-	assertEquals(1L, RubyNumeric.num2long(r.evalScriptlet("$jobj.count")));
-	assertEquals(3L, RubyNumeric.num2long(r.evalScriptlet("$jobj.count += 2; $jobj.count")));
+	return jobj;
+    }
+
+    @Test(groups = {"ruby", "convert"})
+    public void testAccessors() {
+	addTopLevelVar("data");
+	assertEquals(1L, RubyNumeric.num2long(r.evalScriptlet("data.count")));
+	assertEquals(3L, RubyNumeric.num2long(r.evalScriptlet("data.count += 2; data.count")));
+    }
+
+    @Test(groups = {"ruby", "convert"})
+    public void testMethodMissing() {
+	addTopLevelVar("data");
+	IRubyObject answer = r.evalScriptlet("data.hash");
+	assertTrue(answer instanceof RubyFixnum);
+    }
+
+    @Test(groups = {"ruby", "convert"})
+    public void testMethodMissingNoSuchMethod() {
+	addTopLevelVar("data");
+	try {
+	    IRubyObject answer = r.evalScriptlet("data.xyzzy");
+	    assertTrue(answer instanceof RubyFixnum);
+	}
+	catch (Exception e) {
+	    fail(e.toString());
+	}
     }
 
     public static void main(String args[]) {
