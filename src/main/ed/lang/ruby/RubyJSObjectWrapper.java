@@ -16,6 +16,8 @@
 
 package ed.lang.ruby;
 
+import java.util.Collection;
+
 import org.jruby.*;
 import org.jruby.internal.runtime.methods.JavaMethod;
 import org.jruby.javasupport.JavaUtil;
@@ -44,6 +46,8 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 	    System.err.println("  creating RubyJSObjectWrapper");
 	_jsobj = (JSObject)_obj;
 	_addMethodMissing();
+	_overrideInstanceVariables();
+	_overridePublicMethods();
     }
 
     // Add a method_missing method to the eigenclass that handles method calls
@@ -94,6 +98,47 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
                 }
                 @Override public Arity getArity() { return Arity.ONE_REQUIRED; }
             });
+	eigenclass.callMethod(_runtime.getCurrentContext(), "method_added", _runtime.fastNewSymbol(name));
+    }
+
+    private void _overrideInstanceVariables() {
+	final RubyClass eigenclass = getSingletonClass();
+	final String name = "instance_variables".intern();
+	eigenclass.addMethod(name, new JavaMethod(eigenclass, PUBLIC) {
+                public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+		    Collection<String> keys = _jsobj.keySet();
+		    int size = keys.size();
+		    RubyArray ra = RubyArray.newArray(_runtime, size);
+		    int i = 0;
+		    for (String key : keys)
+			if (!(_jsobj.get(key) instanceof JSFunction))
+			    ra.store(i++, _runtime.fastNewSymbol(("@" + key).intern()));
+		    return ra;
+		}
+	    });
+	eigenclass.callMethod(_runtime.getCurrentContext(), "method_added", _runtime.fastNewSymbol(name));
+    }
+
+    private void _overridePublicMethods() {
+	final RubyClass eigenclass = getSingletonClass();
+	final String name = "public_methods".intern();
+	eigenclass.addMethod(name, new JavaMethod(eigenclass, PUBLIC) {
+                public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+		    RubyArray superMethods = (RubyArray)((RubyObject)self).public_methods(context, new IRubyObject[0]);
+		    Collection<String> keys = _jsobj.keySet();
+		    int size = keys.size();
+		    RubyArray ra = RubyArray.newArray(_runtime, size + superMethods.size());
+		    int i = 0;
+		    for (String key : keys) {
+			ra.store(i++, _runtime.fastNewSymbol((key).intern()));
+			if (!(_jsobj.get(key) instanceof JSFunction))
+			    ra.store(i++, _runtime.fastNewSymbol((key + "=").intern()));
+		    }
+		    for (Object o : superMethods)
+			ra.store(i++, _runtime.fastNewSymbol(o.toString().intern()));
+		    return ra;
+		}
+	    });
 	eigenclass.callMethod(_runtime.getCurrentContext(), "method_added", _runtime.fastNewSymbol(name));
     }
 }
