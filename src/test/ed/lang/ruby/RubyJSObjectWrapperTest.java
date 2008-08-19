@@ -16,7 +16,8 @@
 
 package ed.lang.ruby;
 
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
+import static org.testng.Assert.*;
 
 import org.jruby.*;
 import org.jruby.runtime.builtin.IRubyObject;
@@ -28,40 +29,39 @@ import ed.js.JSObjectBase;
 import ed.js.engine.Scope;
 import static ed.lang.ruby.RubyObjectWrapper.*;
 
-public class RubyJSObjectWrapperTest extends ed.TestCase {
+public class RubyJSObjectWrapperTest {
 
-    Scope s = new Scope("test", null);
-    org.jruby.Ruby r = org.jruby.Ruby.newInstance();
+    Scope s;
+    org.jruby.Ruby r;
 
-    JSObject addTopLevelVar(String name) {
+    @BeforeTest(groups = {"ruby", "ruby.jsobj"})
+    public void setUp() {
+	s = new Scope("test", null);
+	r = org.jruby.Ruby.newInstance();
+
 	JSObjectBase jobj = new JSObjectBase();
 	jobj.set("count", new Integer(1));
 
 	RubyObject top = (RubyObject)r.getTopSelf();
 	RubyClass eigenclass = top.getSingletonClass();
-	top.instance_variable_set(RubySymbol.newSymbol(r, "@" + name), RubyObjectWrapper.toRuby(s, r, jobj, name));
-	eigenclass.attr_reader(r.getCurrentContext(), new IRubyObject[] {RubySymbol.newSymbol(r, name)});
-
-	return jobj;
+	top.instance_variable_set(RubySymbol.newSymbol(r, "@data"), RubyObjectWrapper.toRuby(s, r, jobj, "data"));
+	eigenclass.attr_reader(r.getCurrentContext(), new IRubyObject[] {RubySymbol.newSymbol(r, "data")});
     }
 
-    @Test(groups = {"ruby"})
+    @Test(groups = {"ruby", "ruby.jsobj"})
     public void testAccessors() {
-	addTopLevelVar("data");
-	assertEquals(1L, RubyNumeric.num2long(r.evalScriptlet("data.count")));
-	assertEquals(3L, RubyNumeric.num2long(r.evalScriptlet("data.count += 2; data.count")));
+	assertEquals(RubyNumeric.num2long(r.evalScriptlet("data.count")), 1L);
+	assertEquals(RubyNumeric.num2long(r.evalScriptlet("data.count += 2; data.count")), 3L);
     }
 
-    @Test(groups = {"ruby"})
+    @Test(groups = {"ruby", "ruby.jsobj"})
     public void testMethodMissing() {
-	addTopLevelVar("data");
 	IRubyObject answer = r.evalScriptlet("data.hash");
 	assertTrue(answer instanceof RubyFixnum);
     }
 
-    @Test(groups = {"ruby"})
+    @Test(groups = {"ruby", "ruby.jsobj"})
     public void testMethodMissingNoSuchMethod() {
-	addTopLevelVar("data");
 	try {
 	    r.evalScriptlet("data.xyzzy");
 	    fail("should have thrown a NoMethodError");
@@ -73,9 +73,5 @@ public class RubyJSObjectWrapperTest extends ed.TestCase {
 	catch (Exception e) {
 	    fail("Expected NoMethodError, got " + e.getClass().getName() + ": " + e.toString());
 	}
-    }
-
-    public static void main(String args[]) {
-        new RubyJSObjectWrapperTest().runConsole();
     }
 }
