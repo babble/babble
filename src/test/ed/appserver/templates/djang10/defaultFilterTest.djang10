@@ -29,7 +29,9 @@
 
 {{ array|length }} 
 
+{% literal_escape on %}
 {{ "\n\\'\"\t\f"|escapejs }}
+{% endliteral_escape %}
 
 {{ [1,2,3]|join:"-" }}
 
