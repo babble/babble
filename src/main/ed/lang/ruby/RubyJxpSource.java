@@ -119,14 +119,6 @@ public class RubyJxpSource extends JxpSource {
 	_runtime.getGlobalVariables().set("$stdout", new RubyIO(_runtime, new RubyJxpOutputStream(response.getWriter())));
     }
 
-    private void _createScopeContainer(Scope s) {
-	if (s != null) {
-	    RubyObject top = (RubyObject)_runtime.getTopSelf();
-	    top.instance_variable_set(RubySymbol.newSymbol(_runtime, "@xgen"), new RubyJSObjectWrapper(s, _runtime, s));
-	    top.getSingletonClass().attr_reader(_runtime.getCurrentContext(), new IRubyObject[] {RubySymbol.newSymbol(_runtime, "xgen")});
-	}
-    }
-
     private void _exposeScope(Scope s) {
 	// Turn all JSObject scope variables into Ruby top-level variables
 	Set<String> alreadySeen = new HashSet<String>();
