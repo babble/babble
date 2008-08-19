@@ -20,6 +20,7 @@ package ed.js;
 
 import java.io.*;
 import java.util.*;
+import javax.script.*;
 
 import jline.*;
 
@@ -30,6 +31,7 @@ import ed.lang.python.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 import ed.appserver.*;
+import ed.appserver.jxp.*;
 import ed.appserver.templates.*;
 import ed.appserver.templates.djang10.Djang10Source;
 
@@ -168,6 +170,20 @@ public class Shell {
                 PythonJxpSource py = new PythonJxpSource( new File( a ) , ((JSFileLibrary)(s.get( "local" ) ) ) );
                 try {
                     py.getFunction().call( s );
+                }
+                catch ( Exception e ){
+                    StackTraceHolder.getInstance().fix( e );
+                    e.printStackTrace();
+                    return;
+                }
+            }
+            else if ( Language.find( a ) != null && Language.find( a ).isScriptable() ){
+                
+                ScriptEngine engine = Language.find( a ).getScriptEngine();
+                JxpScriptContext context = new JxpScriptContext( s );
+
+                try {
+                    engine.eval( new InputStreamReader( new FileInputStream( new File( a ) ) ) , context );
                 }
                 catch ( Exception e ){
                     StackTraceHolder.getInstance().fix( e );

@@ -22,8 +22,6 @@ import java.io.*;
 import java.util.*;
 import javax.script.*;
 
-import com.caucho.quercus.script.*;
-
 import ed.io.*;
 import ed.js.*;
 import ed.js.engine.*;
@@ -35,20 +33,16 @@ import ed.appserver.templates.*;
 
 public class ScriptJxpSource extends JxpSource {
 
-    static QuercusScriptEngineFactory _phpFactory = new QuercusScriptEngineFactory();
-
-    static ScriptEngine getScriptEngine( File f ){
-        if ( f.toString().endsWith( ".php" ) )
-            return _phpFactory.getScriptEngine();
-        throw new RuntimeException( "don't know how to dael with : " + f );
-    }
-    
     ScriptJxpSource( File file ){
-        this( getScriptEngine( file ) , file );
+        this( Language.find( file.getName() , true ) , file );
     }
 
-    ScriptJxpSource( ScriptEngine engine , File file ){
-        _engine = engine;
+    ScriptJxpSource( Language lang , File file ){
+        _language = lang;
+        if ( ! _language.isScriptable() )
+            throw new RuntimeException( lang + " is not scriptable!" );
+        
+        _engine = lang.getScriptEngine();
         _file = file;
     }
     
@@ -58,6 +52,21 @@ public class ScriptJxpSource extends JxpSource {
                 try {
                     AppRequest ar = (AppRequest)(s.get( "__apprequest__" ));
                     JxpScriptContext context = new JxpScriptContext( ar.getRequest() , ar.getResponse() , ar );
+                    
+                    HashMap foo = new HashMap(){
+                            public String eliot(){
+                                return "awesome";
+                            }
+                        };
+                    foo.put( "silly" , "17" );
+                    foo.put( "myfunc" , new ed.js.func.JSFunctionCalls0(){
+                            public Object call( Scope s , Object extra[] ){
+                                return "hehe";
+                            }
+                        }
+                        );
+                    context.setAttribute( "blah" , foo , 0 );
+
                     return _engine.eval( new InputStreamReader( getInputStream() ) , context );
                 }
                 catch ( Exception e ){
@@ -88,7 +97,8 @@ public class ScriptJxpSource extends JxpSource {
     public File getFile(){
         return _file;
     }
-
+    
+    final Language _language;
     final ScriptEngine _engine;
     final File _file;
 }
