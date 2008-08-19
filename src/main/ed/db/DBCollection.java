@@ -8,6 +8,7 @@ import java.lang.reflect.*;
 import ed.js.*;
 import ed.js.func.*;
 import ed.js.engine.*;
+import ed.util.*;
 
 /** DB Collection
  * 
@@ -280,7 +281,7 @@ public abstract class DBCollection extends JSObjectLame {
                 }
             }
 
-            _findSubObject( s , jo );
+            _findSubObject( s , jo , null );
         }
 
         ObjectId id = (ObjectId)jo.get( "_id" );
@@ -323,8 +324,8 @@ public abstract class DBCollection extends JSObjectLame {
         _entries.put( "save" , _save );
 
 
-        _update = new JSFunctionCalls2() {
-                public Object call( Scope s , Object q , Object o , Object foo[] ){
+        _update = new JSFunctionCalls4(){
+                public Object call( Scope s , Object q , Object o , Object options , Object seen , Object foo[] ){
                     if ( checkReadOnly( true ) ) return o;
 
                     _anyUpdateSave = true;
@@ -333,7 +334,7 @@ public abstract class DBCollection extends JSObjectLame {
                     _checkObject( o , false );
 
                     if ( s != null )
-                        _findSubObject( s , (JSObject)o );
+                        _findSubObject( s , (JSObject)o , (IdentitySet)seen );
 
                     boolean upsert = false;
                     boolean apply = true;
@@ -351,8 +352,8 @@ public abstract class DBCollection extends JSObjectLame {
 		    //                    if ( o instanceof JSObject && ((JSObject)o).containsKey( "$inc" ) )
 		    //                        apply = false;
 
-                    if ( foo != null && foo.length > 0 && foo[0] instanceof JSObject ){
-                        JSObject params = (JSObject)foo[0];
+                    if ( options instanceof JSObject ){
+                        JSObject params = (JSObject)options;
 
                         upsert = JSInternalFunctions.JS_evalToBool( params.get( "upsert" ) );
                         if ( params.get( "ids" ) != null )
@@ -493,7 +494,14 @@ public abstract class DBCollection extends JSObjectLame {
         throw new IllegalArgumentException( " has to be a JSObject not : " + o.getClass() );
     }
 
-    private void _findSubObject( Scope s , JSObject jo ){
+    private void _findSubObject( Scope s , JSObject jo , IdentitySet seenSubs ){
+        if ( seenSubs == null )
+            seenSubs = new IdentitySet();
+
+        if ( seenSubs.contains( jo ) )
+            return;
+        seenSubs.add( jo );
+        
 
         if ( DEBUG ) System.out.println( "_findSubObject on : " + jo.get( "_id" ) );
 
@@ -565,7 +573,7 @@ public abstract class DBCollection extends JSObjectLame {
                 if ( e instanceof JSObjectBase && ! ((JSObjectBase)e).isDirty() )
                     continue;
 
-                otherUpdate.call( s , lookup , e , _upsertOptions );
+                otherUpdate.call( s , lookup , e , _upsertOptions , seenSubs );
 
             }
         }
