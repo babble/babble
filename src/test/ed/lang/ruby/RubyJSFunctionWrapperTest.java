@@ -27,13 +27,14 @@ import ed.js.func.JSFunctionCalls1;
 import ed.lang.ruby.RubyJSFunctionWrapper;
 import ed.js.engine.Scope;
 
+@Test(groups = {"ruby"})
 public class RubyJSFunctionWrapperTest {
 
     Scope s;
     org.jruby.Ruby r;
     JSFunction addSevenFunc;
 
-    @BeforeTest(groups = {"ruby"})
+    @BeforeTest
     public void setUp() {
 	s = new Scope("test", null);
 	r = org.jruby.Ruby.newInstance();
@@ -44,7 +45,6 @@ public class RubyJSFunctionWrapperTest {
 	    };
     }
 
-    @Test(groups = {"ruby"})
     public void testCallFromRuby() {
 	IRubyObject methodOwner = r.getTopSelf();
 	IRubyObject ro = new RubyJSFunctionWrapper(s, r, addSevenFunc, "add_seven", methodOwner.getSingletonClass());
