@@ -224,7 +224,14 @@ var slugify =
 slugify.is_safe = true;
 slugify = defaultfilters.slugify = stringfilter(slugify);
 
-//TODO: stringformat
+var stringformat =
+    defaultfilters.stringformat =
+    function(value, arg) {
+
+    arg = "%" + force_string(arg);
+    return djang10.formatString(value, arg);
+};
+stringformat.is_safe = true;
 
 var title =
     defaultfilters.title =
@@ -1197,6 +1204,7 @@ register.filter("urlizetrunc", urlizetrunc);
 register.filter("time", time);
 register.filter("slugify", slugify);
 register.filter("iriencode", iriencode);
+register.filter("stringformat", stringformat);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};

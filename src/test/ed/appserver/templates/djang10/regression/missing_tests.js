@@ -94,8 +94,10 @@ tests=[                                                                         
        //same as the regular django tests but takes into account that js & python have different type representionations
        { name: "filter-make_list-jsout01", content: "{% autoescape off %}{{ a|make_list }}{% endautoescape %}", model: { "a": djang10.mark_safe("&") }, results: "&" },
        { name: "filter-make_list-jsout02", content: "{{ a|make_list }}", model: { "a": djang10.mark_safe("&") }, results: "&amp;" },
-       { name: "filter-make_list-jsout03", content: "{% autoescape off %}{{ a|make_list|stringformat:\"s\"|safe }}{% endautoescape %}", model: { "a": djang10.mark_safe("&") }, results: "&" },
-       { name: "filter-make_list-jsout04", content: "{{ a|make_list|stringformat:\"s\"|safe }}", model: { "a": djang10.mark_safe("&") }, results: "&" },
+       
+       //HACK ALERT: these 2 unit tests, test for python's style of string representations, while everything else tests for js style
+       { name: "filter-make_list-jsout03", content: "{% autoescape off %}{{ a|make_list|stringformat:\"s\"|safe }}{% endautoescape %}", model: { "a": djang10.mark_safe("&") }, results: "['&']" },
+       { name: "filter-make_list-jsout04", content: "{{ a|make_list|stringformat:\"s\"|safe }}", model: { "a": djang10.mark_safe("&") }, results: "['&']" },    
        
        { name: "filter-make_list-jsout-extra01", content: "{% autoescape off %}{{ a|make_list }}{% endautoescape %}", model: { "a": djang10.mark_safe("&&&") }, results: "&,&,&" },
        { name: "filter-make_list-jsout-extra02", content: "{{ a|make_list }}", model: { "a": djang10.mark_safe("&&&") }, results: "&amp;,&amp;,&amp;" },

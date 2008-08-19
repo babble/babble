@@ -63,10 +63,6 @@ public class DjangoRegressionTests {
         "inheritance25",
 
        
-        //unimplemented filters
-        "filter-make_list-jsout0[3,4]", 
-        "filter-stringformat.*",
-
         //python & js have different string representations of types
         "filter-make_list0[1-4]", 
         

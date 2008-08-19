@@ -30,6 +30,9 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.regex.Pattern;
 
+import org.python.core.PyObject;
+import org.python.core.PyString;
+
 import ed.appserver.JSFileLibrary;
 import ed.appserver.jxp.JxpSource;
 import ed.appserver.templates.djang10.Parser.Token;
@@ -48,6 +51,7 @@ import ed.js.func.JSFunctionCalls1;
 import ed.js.func.JSFunctionCalls2;
 import ed.js.func.JSFunctionCalls3;
 import ed.js.func.JSFunctionCalls4;
+import ed.lang.python.Python;
 import ed.log.Logger;
 import ed.util.Pair;
 
@@ -80,6 +84,7 @@ public class JSHelper extends JSObjectBase {
         
         this.set("formatDate", formatDate);
         this.set("formatTime", formatTime);
+        this.set("formatString", formatString);
 
         this.set("Context", Context.CONSTRUCTOR);
         this.set("Library", Library.CONSTRUCTOR);
@@ -179,6 +184,18 @@ public class JSHelper extends JSObjectBase {
             throw new IllegalStateException("Can't find JSHelper not installed");
         return (JSHelper)temp;
     }
+    
+    public JSFunction formatString = new JSFunctionCalls2() {
+        public Object call(Scope scope, Object obj, Object formatObj, Object[] extra) {
+            PyObject wrappedObj = Python.toPython(obj);
+            String format = formatObj.toString();
+            PyString wrappedFormat = new PyString(format);
+            
+            PyString result = (PyString)wrappedFormat.__mod__(wrappedObj);
+            
+            return new JSString(result.toString());
+        };
+    };
     
     public JSFunction formatDate = new JSFunctionCalls2() {
         public Object call(Scope scope, Object p0, Object p1, Object[] extra) {
