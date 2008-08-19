@@ -29,7 +29,9 @@ import com.caucho.quercus.env.*;
 import com.caucho.quercus.script.*;
 
 public class PHP {
-    
+
+    static boolean DEBUG = false;
+
     static QuercusScriptEngineFactory _phpFactory = new QuercusScriptEngineFactory();
     
     public static ScriptEngine getScriptEngine(){

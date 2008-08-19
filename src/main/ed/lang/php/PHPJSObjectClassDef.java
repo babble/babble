@@ -35,26 +35,34 @@ public class PHPJSObjectClassDef extends JavaClassDef {
 
     public PHPJSObjectClassDef(ModuleContext moduleContext, String name, Class type){
         super( moduleContext , name , type );
+        if ( PHP.DEBUG ) System.err.println( "class def for : " + name + " : " + type.getName() );
     }
     
     public Value wrap(Env env, Object obj){
         if ( ! _isInit )
             init();
         
-        return new Adapter(env, (Scope) obj, this);
+        return new Adapter(env, (JSObject)obj, this);
     }       
     
-    static class Adapter extends JavaMapAdapter {
-        Adapter( Env env , Scope obj , PHPJSObjectClassDef def ){
+    static class Adapter extends JavaAdapter {
+        Adapter( Env env , JSObject obj , PHPJSObjectClassDef def ){
             super( env , obj , def );
             _object = obj;
+            if ( PHP.DEBUG ) System.out.println( "wrapping : " + obj );
         }
         
         public Value callMethod(Env env, int hash, char []name, int nameLen, Value []args){
             String realName = new String( name , 0 , nameLen );
             Object foo = _object.get( realName );
-            if ( ! ( foo instanceof JSFunction ) )
-                return super.callMethod(env, hash, name , nameLen , args );
+            if ( ! ( foo instanceof JSFunction ) ){
+                Value ret = super.callMethod(env, hash, name , nameLen , args );
+                if ( ret instanceof JavaValue && ret.toJavaObject() instanceof JSObject ){
+                    ret = wrapJava( ret.toJavaObject() );
+                }
+                System.out.println( ret.getClass() );
+                return ret;
+            }
             
             JSFunction func = (JSFunction)foo;
             Scope s = func.getScope();
@@ -63,13 +71,73 @@ public class PHPJSObjectClassDef extends JavaClassDef {
             s = s.child();
             
             PHPConvertor convertor = PHP.getConvertor( env );
-
+            
             s.setThis( _object );
             Object ret = func.call( s , convertor.toJS( args ) );
-            return (Value)convertor.toOther( ret );
+            return wrapJava( ret );
         }
         
+        public Value get(Value key){
+            if ( PHP.DEBUG ) System.out.println( "GET:" + key );
+            Object value = _object.get( key.toJavaObject() );
+            if ( value != null )
+                return wrapJava( value );
+            return UnsetValue.UNSET;            
+        }
+
+        public Value remove(Value key){
+            Object value = _object.removeField( key.toJavaObject() );
+            if ( value != null )
+                return wrapJava( value );
+            return UnsetValue.UNSET;
+        }
+
+        public int getSize(){
+            return _object.keySet().size();
+        }
+
+        public Value wrapJava( Object obj ){
+            PHP.getConvertor( getEnv() ).checkConfigged( obj );
+            if ( obj instanceof JSObject )
+                return (Value)(PHP.getConvertor( getEnv() ).toOther( obj ) );
+            return super.wrapJava( obj );
+        }
+
+        // -----------------
+        // STUFF NEEEDED FOR JavaAdapter
+        // -----------------
         
+        public Set<Map.Entry<Object, Object>> objectEntrySet(){
+            throw new UnimplementedException();
+        }
+
+        public Set<Map.Entry<Value,Value>> entrySet(){
+            throw new UnimplementedException();
+        }
+
+        public Value createTailKey(){
+            throw new UnimplementedException();
+        }
+
+        public Value putImpl(Value key, Value value){
+            throw new UnimplementedException();
+        }
+
+        public void clear(){
+            throw new UnimplementedException();
+        }
+        
+        public Value copy(Env env, IdentityHashMap<Value,Value> map){
+            throw new UnimplementedException();
+        }
+
+        public Value copy(){
+            throw new UnimplementedException();
+        }
+
         final JSObject _object;
     }
+
+
+    
 }

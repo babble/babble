@@ -18,9 +18,11 @@
 
 package ed.lang.php;
 
+import java.lang.reflect.*;
 import java.util.*;
 import javax.script.*;
 
+import ed.util.*;
 import ed.lang.*;
 import ed.js.*;
 import ed.js.engine.*;
@@ -31,12 +33,14 @@ import com.caucho.quercus.expr.*;
 import com.caucho.quercus.script.*;
 import com.caucho.quercus.module.*;
 import com.caucho.quercus.function.*;
+import com.caucho.quercus.program.*;
 
 public class PHPConvertor extends Value implements ObjectConvertor {
 
     PHPConvertor( Env env ){
         _env = env;
-        _marshalFactory = env.getModuleContext().getMarshalFactory();
+        _moduleContext = env.getModuleContext();
+        _marshalFactory = _moduleContext.getMarshalFactory();
     }
     
     public Object[] toJS( Value[] values ){
@@ -51,7 +55,7 @@ public class PHPConvertor extends Value implements ObjectConvertor {
             return null;
 
         if ( o instanceof Value )
-            o = _getMarshal( o ).marshal( _env , (Value)o , o.getClass() );
+            o = ((Value)o).toJavaObject();
         
         if ( o instanceof Expr )
             o = _getMarshal( o ).marshal( _env , (Expr)o , o.getClass() );
@@ -72,7 +76,56 @@ public class PHPConvertor extends Value implements ObjectConvertor {
         if ( o instanceof JSString )
             o = o.toString();
         
+        checkConfigged( o );
+        
+        if ( o instanceof JSObject )
+            return _getClassDef( o.getClass() ).wrap( _env , o );
+
         return _getMarshal( o ).unmarshal( _env , o );
+    }
+
+    void checkConfigged( Object o ){
+        checkConfigged( o , true );
+    }
+    
+    void checkConfigged( Object o , boolean tryAgain ){
+        if ( ! ( o instanceof JSObject ) )
+            return;
+
+        Class c = o.getClass();
+        if ( _configged.contains( c ) )
+            return;
+        
+        JavaClassDef def = null;
+        
+        try {
+            if ( PHP.DEBUG ) System.out.println( "Adding for : " + c.getName() );
+            def = _moduleContext.addClass( c.getName() , c , null , PHPJSObjectClassDef.class );
+        }
+        catch ( Exception e ){
+            throw new RuntimeException( "internal error : " + c.getClass() , e );
+        }
+        
+        if ( def instanceof PHPJSObjectClassDef ){
+            _configged.add( c );
+            return;
+        }
+            
+        if ( ! tryAgain )
+            throw new RuntimeException( "someone got in ahead of me and i can't recover" );
+                        
+        
+        try {
+            Field f = _moduleContext.getClass().getDeclaredField( "_javaClassWrappers" );
+            f.setAccessible( true );
+            Map m = (Map)(f.get( _moduleContext ));
+            m.remove( c.getName() );
+            m.remove( c.getName().toLowerCase() );
+            checkConfigged( o , false );
+        }
+        catch( Exception e ){
+            throw new RuntimeException( "someone got in ahead of me and i can't recover" , e  );
+        }
     }
     
     private Marshal _getMarshal( Object o ){
@@ -85,7 +138,20 @@ public class PHPConvertor extends Value implements ObjectConvertor {
         return m;
     }
 
+    PHPJSObjectClassDef _getClassDef( Class c ){
+        PHPJSObjectClassDef def = _defCache.get( c );
+        if ( def == null ){
+            def = new PHPJSObjectClassDef( _moduleContext , c.getName() , c );
+            _defCache.put( c , def );
+        }
+        return def;
+    }
+
     final Env _env;
+    final ModuleContext _moduleContext;
     final MarshalFactory _marshalFactory;
+    
     final Map<Class,Marshal> _cache = new HashMap<Class,Marshal>();
+    final IdentitySet<Class> _configged = new IdentitySet<Class>();
+    final Map<Class,PHPJSObjectClassDef> _defCache = new HashMap<Class,PHPJSObjectClassDef>();
 }
