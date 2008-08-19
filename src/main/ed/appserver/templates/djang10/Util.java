@@ -115,13 +115,13 @@ public class Util {
         for (int i = 0; i < format.length(); i++) {
             char c = format.charAt(i);
 
-            if (c == '\\' && !escapeNext) {
-                escapeNext = true;
-                continue;
-            }
             if (escapeNext) {
                 buffer.append(c);
                 escapeNext = false;
+                continue;
+            }
+            if (c == '\\') {
+                escapeNext = true;
                 continue;
             }
 
