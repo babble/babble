@@ -17,7 +17,7 @@
     <taskdef name="testng" classpathref="classpath"
               classname="org.testng.TestNGAntTask" />
 
-    <target name="all" depends="run-basic, corejs, run-db"/>
+    <target name="all" depends="run-basic, corejs, run-db, ruby"/>
     
   <target  name="run-basic" depends="init">      
 
