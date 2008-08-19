@@ -51,6 +51,13 @@ public class RubyJxpSource extends JxpSource {
 	_runtime = org.jruby.Ruby.newInstance(config);
     }
 
+    /** For testing. */
+    protected RubyJxpSource(org.jruby.Ruby runtime) {
+	_file = null;
+	_lib = null;
+	_runtime = runtime;
+    }
+
     protected String getContent() throws IOException {
 	return StreamUtil.readFully(_file);
     }
@@ -95,26 +102,29 @@ public class RubyJxpSource extends JxpSource {
         };
     }
 
-    private Node _getCode() throws IOException {
+    protected Node _getCode() throws IOException {
 	final long lastModified = _file.lastModified();
         if (_code == null || _lastCompile < lastModified) {
-	    // See the first part of JRuby's Ruby.executeScript(String, String)
-	    String script = getContent();
-	    byte[] bytes;
-	    try {
-		bytes = script.getBytes(KCode.NONE.getKCode());
-	    } catch (UnsupportedEncodingException e) {
-		bytes = script.getBytes();
-	    }
-
-	    _code = _runtime.parseInline(new ByteArrayInputStream(bytes), _file.getPath(), null);
-            _lastCompile = lastModified;
-        }
+	    _code = _parseContent(_file.getPath());
+	    _lastCompile = lastModified;
+	}
         return _code;
     }
 
+    protected Node _parseContent(String filePath) throws IOException {
+	// See the first part of JRuby's Ruby.executeScript(String, String)
+	String script = getContent();
+	byte[] bytes;
+	try {
+	    bytes = script.getBytes(KCode.NONE.getKCode());
+	} catch (UnsupportedEncodingException e) {
+	    bytes = script.getBytes();
+	}
+	return _runtime.parseInline(new ByteArrayInputStream(bytes), filePath, null);
+    }
+
     /** Set Ruby's $stdout so that print/puts statements output to the right place. */
-    private void _setOutput(Scope s) {
+    protected void _setOutput(Scope s) {
 	HttpResponse response = (HttpResponse)s.get("response");
 	_runtime.getGlobalVariables().set("$stdout", new RubyIO(_runtime, new RubyJxpOutputStream(response.getWriter())));
     }
@@ -124,7 +134,7 @@ public class RubyJxpSource extends JxpSource {
      * exception: the "print" function, which is already handled by the Ruby
      * kernel (aided by our definition of $stdout).
      */
-    private void _exposeScope(Scope s) {
+    protected void _exposeScope(Scope s) {
 	// Turn all JSObject scope variables into Ruby top-level variables
 	Set<String> alreadySeen = new HashSet<String>();
 	RubyObject top = (RubyObject)_runtime.getTopSelf();
@@ -146,10 +156,10 @@ public class RubyJxpSource extends JxpSource {
 	}
     }
 
-    private final File _file;
-    private final JSFileLibrary _lib;
-    private final org.jruby.Ruby _runtime;
+    protected final File _file;
+    protected final JSFileLibrary _lib;
+    protected final org.jruby.Ruby _runtime;
 
-    private Node _code;
-    private long _lastCompile;
+    protected Node _code;
+    protected long _lastCompile;
 }
