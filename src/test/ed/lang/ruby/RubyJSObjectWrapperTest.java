@@ -45,21 +45,21 @@ public class RubyJSObjectWrapperTest extends ed.TestCase {
 	return jobj;
     }
 
-    @Test(groups = {"ruby", "convert"})
+    @Test(groups = {"ruby"})
     public void testAccessors() {
 	addTopLevelVar("data");
 	assertEquals(1L, RubyNumeric.num2long(r.evalScriptlet("data.count")));
 	assertEquals(3L, RubyNumeric.num2long(r.evalScriptlet("data.count += 2; data.count")));
     }
 
-    @Test(groups = {"ruby", "convert"})
+    @Test(groups = {"ruby"})
     public void testMethodMissing() {
 	addTopLevelVar("data");
 	IRubyObject answer = r.evalScriptlet("data.hash");
 	assertTrue(answer instanceof RubyFixnum);
     }
 
-    @Test(groups = {"ruby", "convert"})
+    @Test(groups = {"ruby"})
     public void testMethodMissingNoSuchMethod() {
 	addTopLevelVar("data");
 	try {

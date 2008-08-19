@@ -3,6 +3,8 @@
 
   <property name="targetdir" value="target"/>
   <property name="testdir" value="${targetdir}/test"/>
+  <!-- Override on command line with -Druby.groups=foo -->
+  <property name="ruby.groups" value="ruby"/>
   
   <path id="classpath">
     <fileset dir="include">
@@ -38,6 +40,14 @@
         <xmlfileset dir="." includes="testng-corejs.xml"/>
       </testng>
     </target>
+
+  <target name="ruby" depends="init">      
+    <testng classpathref="classpath" outputdir="${testdir}"
+	    listeners="ed.TestNGListener" haltonfailure="true" groups="${ruby.groups}">
+      <classfileset dir="build" includes="ed/lang/ruby/*Test.class"/>
+      <jvmarg value="-Xmx1000m" />
+    </testng>
+  </target>
 
   <target name="init">
     <mkdir dir="${testdir}" />
