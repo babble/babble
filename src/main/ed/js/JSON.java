@@ -174,7 +174,7 @@ public class JSON {
             if ( o == null )
                 return false;
             
-            if ( o instanceof Number || o instanceof String )
+            if ( o instanceof Number || o instanceof String || o instanceof Boolean )
                 return false;
 
             return true;
