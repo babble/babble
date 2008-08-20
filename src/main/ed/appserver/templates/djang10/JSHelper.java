@@ -366,28 +366,49 @@ public class JSHelper extends JSObjectBase {
 
         JSCompiledScript moduleFile = null;
 
+        log.debug("Trying to load module: " + name);
+        
         ListIterator<JSFileLibrary> iter = moduleRoots.listIterator(moduleRoots.size());
-
         while(iter.hasPrevious()) {
             JSFileLibrary fileLib = iter.previous();
-
+            
+            log.debug("Checking: " + fileLib);
             Object file = fileLib.get(name);
 
             if (file instanceof JSCompiledScript) {
+                log.debug("found");
                 moduleFile = (JSCompiledScript) file;
                 break;
             }
+            else if(file != null) {
+                log.warn(fileLib + "/" + file + " is not a file, but a: " + file.getClass());
+            }
+            else {
+                log.debug("not found");
+            }
         }
         
+        log.debug("Checking: /local/templatetags");
         //try resolving against /local/templatetags
         if(!(moduleFile instanceof JSCompiledScript)) {
             JSFileLibrary local = (JSFileLibrary)scope.get("local");
             Object templateTagDirObj = local.get("templatetags");
             if(templateTagDirObj instanceof JSFileLibrary) {
                 Object file = ((JSFileLibrary)templateTagDirObj).get(name);
-                if(file instanceof JSCompiledScript)
+                if(file instanceof JSCompiledScript) {
+                    log.debug("Found");
                     moduleFile = (JSCompiledScript)file;
-            }            
+                }
+                else if(file != null) {
+                    log.warn(templateTagDirObj + "/" + file + " is not a file, but a: " + file.getClass());
+                }
+                else {
+                    log.debug("not found");
+                }
+            }
+            else {
+                log.debug("/local/templatetags is not a fileLib");
+            }
         }
         if(moduleFile == null)
             throw new TemplateException("Failed to find module: " + name);
