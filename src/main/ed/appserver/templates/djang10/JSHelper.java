@@ -323,6 +323,10 @@ public class JSHelper extends JSObjectBase {
     
     public final JSFunction evalLibrary = new JSFunctionCalls1() {
         public Object call(Scope scope, Object moduleFileObj, Object[] extra) {
+            Logger log = JSHelper.this.log.getChild("evalLibrary");
+            
+            log.debug("processing: " + moduleFileObj);
+
             JSCompiledScript moduleFile = (JSCompiledScript)moduleFileObj;
             Scope child = scope.child();
             child.setGlobal(true);
@@ -337,6 +341,8 @@ public class JSHelper extends JSObjectBase {
                 throw new TemplateException("Misconfigured library doesn't contain a correct register variable. file: " + moduleFile.get(JxpSource.JXP_SOURCE_PROP));
             Library lib = (Library)temp;
 
+            log.debug("successfully loaded library, extracting tags");
+            
             //wrap all the tag handlers
             JSObject tagHandlers = lib.getTags();
             for(String tagName : tagHandlers.keySet()) {
@@ -344,6 +350,7 @@ public class JSHelper extends JSObjectBase {
                 tagHandlers.set(tagName, tagHandler);
             }
 
+            log.debug("done");
             return lib;
         };
     };
