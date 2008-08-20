@@ -290,6 +290,9 @@ public class JSHelper extends JSObjectBase {
     public final JSFunction addTemplateRoot = new JSFunctionCalls1() {
         public Object call(Scope scope, Object newRoot, Object[] extra) {
             JSArray template_dirs = (JSArray)JSHelper.this.get("TEMPLATE_DIRS");
+            
+            log.debug("Adding TemplateRoot: " + newRoot);
+            
             template_dirs.add(newRoot);
 
             return null;

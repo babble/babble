@@ -155,7 +155,7 @@ public class Expression extends JSObjectBase {
         } catch (Exception t) {
             String msg;
             
-            if(log.getEffectiveLevel().compareTo(Level.DEBUG) > 0)
+            if(log.getEffectiveLevel().compareTo(Level.DEBUG) <= 0)
                 msg = "Failed to parse original expression: " + expression + ". Processed expr: " + processedExpr;
             else
                 msg = "Failed to parse expression: " + expression;

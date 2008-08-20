@@ -49,10 +49,15 @@ public class NodeWrapper {
             JSObject thisObj = (JSObject)scope.getThis();
             Context context = (Context)contextObj;
             
-            if(log.getEffectiveLevel().compareTo(Level.DEBUG) > 0) {
+            if(log.getEffectiveLevel().compareTo(Level.DEBUG) <= 0) {
                 String selfRepr = "Unkown";
+                String location = "Unknown:??";
                 try { selfRepr = thisObj.toString(); } catch(Exception ignored) {}
-                log.debug("Rendering: " + selfRepr);
+                try { 
+                    Token token = (Token)thisObj.get("__token");
+                    location = token.getOrigin() + ":" +token.getStartLine();
+                }catch(Exception e) {}
+                log.debug("Rendering: " + selfRepr + "(" + location + ")");
             }
             
             scope = scope.child();
@@ -92,12 +97,17 @@ public class NodeWrapper {
         public Object call(Scope scope, Object contextObj, Object printer, Object[] extra) {
             JSObject thisObj = (JSObject)scope.getThis();
             Context context = (Context)contextObj;
-            
-            if(log.getEffectiveLevel().compareTo(Level.DEBUG) > 0) {
+
+            if(log.getEffectiveLevel().compareTo(Level.DEBUG) <= 0) {
                 String selfRepr = "Unkown";
+                String location = "Unknown:??";
                 try { selfRepr = thisObj.toString(); } catch(Exception t) {}
+                try { 
+                    Token token = (Token)thisObj.get("__token");
+                    location = token.getOrigin() + ":" +token.getStartLine();
+                }catch(Exception e) {}
                 
-                log.debug("__Rendering: " + selfRepr);
+                log.debug("__Rendering: " + selfRepr + "(" + location + ")");
             }
             
             scope = scope.child();
@@ -136,7 +146,14 @@ public class NodeWrapper {
         private final Logger logger = Logger.getRoot().getChild("djang10").getChild("NodeWrapper");
         
         public Object call(Scope scope, Object p0, Object[] extra) {
-            logger.error("calling print while rendering has undefined behavior which will change in the future.");
+            JSObject thisObj = (JSObject)scope.getThis();
+            String location = "Unknown:??";
+            try { 
+                Token token = (Token)thisObj.get("__token");
+                location = token.getOrigin() + ":" +token.getStartLine();
+            }catch(Exception e) {}
+            
+            logger.error("calling print while rendering has undefined behavior which will change in the future. (" + location + ")");
             
             buffer.append(p0);
             return null;
