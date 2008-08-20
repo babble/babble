@@ -53,20 +53,36 @@ public class PHPConvertor extends Value implements ObjectConvertor {
     public Object toJS( Object o ){
         if ( o == null || o instanceof NullValue )
             return null;
-
+        
         if ( o instanceof Value )
             o = ((Value)o).toJavaObject();
         
         if ( o instanceof Expr )
             o = _getMarshal( o ).marshal( _env , (Expr)o , o.getClass() );
+        
+        if ( o instanceof JSObject )
+            return o;
 
-        if ( o instanceof String || o instanceof StringBuilderValue )
+        if ( o instanceof String || o instanceof StringValue || o instanceof StringBuilderValue )
             return new JSString( o.toString() );
         
         if ( o instanceof Number || o instanceof Boolean )
             return o;
+        
+        if ( o instanceof NumberValue || o instanceof BooleanValue ) 
+            return ((Value)o).toJavaObject();
 
-        throw new RuntimeException( "don't know what to do with : " + o.getClass() );
+        if ( o instanceof ArrayValue )
+            return new PHPWrapper( this , (Value) o );
+        
+        if ( o instanceof ed.db.ObjectId )
+            return o;
+
+        throw new RuntimeException( "don't know what to do with : " + o.getClass().getName() + " : " + o );
+    }
+
+    public Value toPHP( Object o ){
+        return (Value)toOther( o );
     }
     
     public Object toOther( Object o ){
