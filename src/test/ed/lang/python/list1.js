@@ -43,3 +43,12 @@ var jsA = [1, 3, 5];
 
 assert( pyManipList(jsA) );
 
+newL = pyL.filter(function(x){ return x % 2;});
+assert( newL[0] == 1 );
+assert( newL[1] == 9 );
+assert( newL.length == 2 );
+
+var flip = true;
+newL = pyL.filter(function(){ flip = !flip; return flip; });
+assert( newL[0] == pyL[1] );
+assert( newL.length == pyL.length/2 );
