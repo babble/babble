@@ -371,17 +371,34 @@ public abstract class JSFunction extends JSFunctionBase {
             }
         };
 
-    static JSFunction _apply = new ed.js.func.JSFunctionCalls2(){
-            public Object call( Scope s , Object obj , Object args , Object [] foo ){
+    static JSFunction _apply = new ed.js.func.JSFunctionCalls3(){
+            public Object call( Scope s , Object obj , Object args , Object explodeArgs , Object [] foo ){
                 JSFunction func = (JSFunction)s.getThis();
-
+                
                 if ( args == null )
                     args = new JSArray();
 
                 if( ! (args instanceof JSArray) )
                     throw new RuntimeException("second argument to Function.prototype.apply must be an array not a " + args.getClass() );
-
+                
                 JSArray jary = (JSArray)args;
+
+                if ( explodeArgs instanceof JSObject ){
+                    if ( func._arguments == null )
+                        throw new RuntimeException( "can't explode b/c no argument unnamed" );
+                    
+                    JSObject explode = (JSObject)explodeArgs;
+
+                    for ( int i=0; i<func._arguments.size(); i++ ){
+                        String name = func._arguments.get(i).toString();
+                        if ( explode.containsKey( name ) ){
+                            if ( jary.get( i ) != null  )
+                                throw new RuntimeException( "can't have a named an array value for [" + name + "]" );
+                            jary.set( i , explode.get( name ) );
+                        }
+                    }
+                }
+
                 s.setThis( obj );
                 try {
                     return func.call( s , jary.toArray() );
