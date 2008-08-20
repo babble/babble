@@ -1,5 +1,4 @@
 # You can (and probably should) override these values in webtest-local.bash
-export WTPATH=/usr/local/webtest
 export WTSITE=http://local.alleyinsider.com:8080
 
 GITROOT=~/10gen

@@ -33,16 +33,43 @@ print( message.suds::Body.name() )
 
 print( message.suds::Body.vader::GetLastTradePrice.symbol );
 
-//default xml namespace = new Namespace( "bar2" );
 level1 = new Namespace("bar2");
 level2 = new Namespace("bar");
 xml = <x xmlns:foo="bar"><foo2:y xmlns:foo2="bar2"><foo:z>sha nanana get a job</foo:z></foo2:y></x>;
 
 print( xml.level1::y.level2::z )
 
+// if there is a default namespace when the XML element is created
+// this happens on a per-node basis
+nsfun = <one><for><the>money</the></for></one>;
+print( nsfun.name() );
+
+default xml namespace = new Namespace( "go.cats.go" );
+nsfun = <two><for><the>show</the></for></two>;
+print( nsfun );
+print( nsfun.name() );
+
+default xml namespace = "get.ready";
+
+nsfun["for"] += <three><to>get ready</to></three>;
+//nsfun["for"] += <four><five>six</five></four>;
+
+print( nsfun.three.to.name() )
+
 //setLocalName
+nsfun.setLocalName( "joe" );
+print( nsfun );
+xml.setLocalName( "shmoe" );
+print( xml );
+
 //setName
+//print( xml.level1::y );
+//xml.level1::y.setName( "diplomat" );
+//print( xml.diplomat );
+
 //setNamespace
+//dogs = <dogs><dog><type>lab</type></dog><dog><type>retriever</type></dog></dogs>;
+//dogs.setNamespace( "black.dog" );
 
 //inScopeNamespaces
 
@@ -52,3 +79,6 @@ print( xml.level1::y.level2::z )
 //namespace
 //namespaceDeclarations
 //removeNamespace
+
+// reset the namespace for other tests
+default xml namespace = "";

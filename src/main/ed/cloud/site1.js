@@ -33,6 +33,22 @@ Cloud.Environment = function( name , branch , db , pool ){
 Cloud.Environment.prototype.__defineGetter__( "iid" , function(){ return this.id; } );
 Cloud.Environment.prototype.__defineSetter__( "iid" , function( id ){ this.id = id; } );
 
+Cloud.Environment.prototype.__defineGetter__( "aliases" , function(){ return this._aliases; } );
+Cloud.Environment.prototype.__defineSetter__( "aliases" , 
+                                              function( aliases ){ 
+                                                  if ( ! aliases )
+                                                      return this._aliases = null;
+
+                                                  if ( isArray( aliases ) )
+                                                      return this._aliases = aliases;
+                                                  
+                                                  if ( isString( aliases ) )
+                                                      return ( this._aliases = aliases.split( /[, ]+/ ) );
+                                                  
+                                                  throw "what?";
+                                              } )
+;
+
 Cloud.Environment.prototype.toString = function(){
     return this.name;
 }
@@ -71,7 +87,7 @@ Cloud.Site.prototype.environmentNames = function(){
 
 Cloud.Site.prototype.removeEnvironment = function( identifier ){
     
-    var e = findEnvironment( identifier );
+    var e = this.findEnvironment( identifier );
     if ( ! e )
         return false;
 
@@ -106,11 +122,12 @@ Cloud.Site.prototype.findEnvironmentByName = function( name ){
 
         if ( z.name == name )
             ret = z;
-
+        
         if ( z.aliases && z.aliases.contains( name ) )
             ali = z;
-    } );
 
+    } );
+    
     return ret || ali;
 };
 
@@ -132,13 +149,14 @@ Cloud.Site.prototype.findEnvironmentById = function( id ){
     return ret;
 };
 
-Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool ){
+Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool , aliases ){
     if ( isObject( name ) && branch == null ){
         var o = name;
         name = o.name;
         branch = o.branch;
         db = o.db;
         pool = o.pool;
+        aliases = o.aliases;
     }
         
     if ( ! name )
@@ -183,10 +201,18 @@ Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool ){
             changed = true;
         }
 
+        if ( e.aliases != aliases ){
+            var old = e.aliases;
+            e.aliases = aliases;
+            if ( old.hashCode() != e.aliases.hashCode() )
+                changed = true;
+        }
+
         return changed;
     }
     
     e = new Cloud.Environment( name , branch , db , pool );
+    e.aliases = aliases;
     this.environments.add( e );
     return true;
 };
@@ -195,6 +221,27 @@ Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool ){
 
 Cloud.Site.prototype.dbNames = function(){
     return this.dbs.map( function(z){ return z.name } );
+}
+
+Cloud.Site.prototype.removeDB = function( identifier ){
+    var db = this.findDB( identifier );
+    if ( ! db )
+        return false;
+
+    this.environments.forEach( 
+        function(z){
+            if ( z.db == db.name )
+                throw "you can't delete db[" + db.name + "] because being used by [" + z.name + "]";
+        }
+    );
+    
+    this.dbs = this.dbs.filter(
+        function(z){
+            return z != db;
+        }
+    );
+
+    return true;
 }
 
 /**
@@ -262,6 +309,14 @@ Cloud.Site.prototype.findDBById = function( id ){
 };
 
 Cloud.Site.prototype.upsertDB = function( name , server ){
+
+    if ( isObject( name ) && server == null && name.name ){
+        var o = name;
+        name = o.name;
+        server = o.server;
+    }
+    
+
     if ( ! name )
         throw "need to specify db name";
         
