@@ -323,6 +323,10 @@ public class JSHelper extends JSObjectBase {
     
     public final JSFunction evalLibrary = new JSFunctionCalls1() {
         public Object call(Scope scope, Object moduleFileObj, Object[] extra) {
+            Logger log = JSHelper.this.log.getChild("evalLibrary");
+            
+            log.debug("processing: " + moduleFileObj);
+
             JSCompiledScript moduleFile = (JSCompiledScript)moduleFileObj;
             Scope child = scope.child();
             child.setGlobal(true);
@@ -337,6 +341,8 @@ public class JSHelper extends JSObjectBase {
                 throw new TemplateException("Misconfigured library doesn't contain a correct register variable. file: " + moduleFile.get(JxpSource.JXP_SOURCE_PROP));
             Library lib = (Library)temp;
 
+            log.debug("successfully loaded library, extracting tags");
+            
             //wrap all the tag handlers
             JSObject tagHandlers = lib.getTags();
             for(String tagName : tagHandlers.keySet()) {
@@ -344,6 +350,7 @@ public class JSHelper extends JSObjectBase {
                 tagHandlers.set(tagName, tagHandler);
             }
 
+            log.debug("done");
             return lib;
         };
     };
@@ -361,24 +368,35 @@ public class JSHelper extends JSObjectBase {
     }
 
     public JSCompiledScript loadModule(Scope scope, String name) {
+        Logger log = this.log.getChild("loadModule");
         if (name == null)
             return null;
 
         JSCompiledScript moduleFile = null;
 
+        log.debug("Trying to load module: " + name);
+        
         ListIterator<JSFileLibrary> iter = moduleRoots.listIterator(moduleRoots.size());
-
         while(iter.hasPrevious()) {
             JSFileLibrary fileLib = iter.previous();
-
+            
+            log.debug("Checking: " + fileLib);
             Object file = fileLib.get(name);
 
             if (file instanceof JSCompiledScript) {
+                log.debug("found");
                 moduleFile = (JSCompiledScript) file;
                 break;
             }
+            else if(file != null) {
+                log.warn(fileLib + "/" + file + " is not a file, but a: " + file.getClass());
+            }
+            else {
+                log.debug("not found");
+            }
         }
         
+        log.debug("Checking: /local/templatetags");
         //try resolving against /local/templatetags
         if(!(moduleFile instanceof JSCompiledScript)) {
             if ( scope.get( "local" ) instanceof JSFileLibrary ){
@@ -386,9 +404,20 @@ public class JSHelper extends JSObjectBase {
                 Object templateTagDirObj = local.get("templatetags");
                 if(templateTagDirObj instanceof JSFileLibrary) {
                     Object file = ((JSFileLibrary)templateTagDirObj).get(name);
-                    if(file instanceof JSCompiledScript)
+                    if(file instanceof JSCompiledScript) {
+                        log.debug("Found");
                         moduleFile = (JSCompiledScript)file;
-                }            
+                    }
+                    else if(file != null) {
+                        log.warn(templateTagDirObj + "/" + file + " is not a file, but a: " + file.getClass());
+                    }
+                    else {
+                        log.debug("not found");
+                    }
+                }
+                else {
+                    log.debug("/local/templatetags is not a fileLib");
+                }
             }
         }
         if(moduleFile == null)

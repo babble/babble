@@ -152,11 +152,19 @@ Cloud.Site.prototype.findEnvironmentById = function( id ){
 Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool , aliases ){
     if ( isObject( name ) && branch == null ){
         var o = name;
-        name = o.name;
-        branch = o.branch;
-        db = o.db;
-        pool = o.pool;
-        aliases = o.aliases;
+        var tempID = o.iid || o.id;
+
+        var e = {};
+        if ( tempID )
+            e = this.findEnvironmentById( tempID ) || {};
+
+        name = o.name || e.name;
+        branch = o.branch || e.branch;
+        db = o.db || e.db;
+        pool = o.pool || e.pool;
+        aliases = o.aliases || e.aliases;
+
+            
     }
         
     if ( ! name )

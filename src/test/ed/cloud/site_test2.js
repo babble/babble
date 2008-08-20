@@ -65,3 +65,5 @@ assert.raises(
 
 assert( s.upsertDB( { name : "z" , server : "prod1" } ) );
 assert( ! s.upsertDB( { name : "z" , server : "prod1" } ) );
+
+assert( ! s.upsertEnvironment( { id : s.environments[0].id } ) );

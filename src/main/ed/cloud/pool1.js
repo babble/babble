@@ -16,6 +16,8 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// --- POOL ----
+
 Cloud.Pool = function(){
     this.name = null;
     this.envType = null;
@@ -25,6 +27,14 @@ Cloud.Pool = function(){
 Cloud.Pool.findByName = function( name ){
     return db.pools.findOne( { name : name } );
 }
+
+db.pools.setConstructor( Cloud.Pool );
+
+if ( me.real ){
+    db.pools.ensureIndex( { name : 1 } );
+}
+
+// --- DB ----
 
 Cloud.DB = function(){
     this.name = null;
@@ -36,14 +46,20 @@ Cloud.DB.findByName = function( name ){
     return db.dbs.findOne( { name : name } );    
 };
 
+Cloud.DB.getAllDBNames = function(){
+    return db.dbs.find().sort( { name : 1 } ).toArray().map( 
+        function(z){ 
+            return z.name 
+        } 
+    ); 
+}
+
 Cloud.findDBByName = function( name ){
     return Cloud.DB.findByName( name );
 };
 
-db.pools.setConstructor( Cloud.Pool );
 db.dbs.setConstructor( Cloud.DB );
 
 if ( me.real ){
-    db.pools.ensureIndex( { name : 1 } );
     db.dbs.ensureIndex( { machine : 1 } );
 }

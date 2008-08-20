@@ -474,7 +474,7 @@ public abstract class DBCollection extends JSObjectLame {
         if ( t.getClass() != JSObjectBase.class )
             return null;
 
-        return o;
+        return t;
     }
 
     private final void _checkObject( Object o , boolean canBeNull ){

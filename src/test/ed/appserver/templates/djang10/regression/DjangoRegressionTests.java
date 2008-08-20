@@ -113,6 +113,9 @@ public class DjangoRegressionTests {
         try {
             Encoding.install(globalScope);
             jsHelper = Djang10Source.install(globalScope);
+            
+            JxpSource preambleSource = JxpSource.getSource(new File(basePath, "preamble.js"));
+            preambleSource.getFunction().call(globalScope);
         }
         finally {
             if(oldScope != null) oldScope.makeThreadLocal();
@@ -126,7 +129,7 @@ public class DjangoRegressionTests {
         final List<ExportedTestCase> testCases = new ArrayList<ExportedTestCase>();
         int count = 0, skipped = 0;
         
-
+        
         for(String testFilename : new String[] {"tests.js", "filter_tests.js", "missing_tests.js"}) {
             String path = basePath + testFilename;
             JSTestScript testScript = new JSTestScript(globalScope, path);
