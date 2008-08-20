@@ -156,7 +156,7 @@ public class GitUtils {
             return false;
         
         if ( r.getOut().indexOf( "master" ) < 0 )
-            throw new RuntimeException( "something is wrong" );
+            throw new RuntimeException( "something is wrong output [" + r.getOut() + "]" );
         
         return r.getOut().indexOf( "(no branch)" ) < 0;
     }
