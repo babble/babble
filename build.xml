@@ -62,6 +62,7 @@
     <copy todir="build">
       <fileset dir="src/main" includes="**/*.properties"/>
       <fileset dir="src/main" includes="**/*.js"/>
+      <fileset dir="src/main/ed/lang/ruby" includes="xgen_internals.rb"/>
     </copy>
 
     <javac srcdir="src/test"

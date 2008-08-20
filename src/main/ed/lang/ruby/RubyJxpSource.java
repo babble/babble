@@ -23,7 +23,7 @@ import java.util.HashSet;
 import org.jruby.*;
 import org.jruby.ast.Node;
 import org.jruby.internal.runtime.GlobalVariables;
-import org.jruby.javasupport.JavaEmbedUtils;
+import org.jruby.javasupport.JavaUtil;
 import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.util.KCode;
@@ -31,7 +31,6 @@ import org.jruby.util.KCode;
 import ed.appserver.JSFileLibrary;
 import ed.appserver.jxp.JxpSource;
 import ed.io.StreamUtil;
-import ed.js.JSObject;
 import ed.js.JSFunction;
 import ed.js.engine.Scope;
 import ed.net.httpserver.HttpResponse;
@@ -41,6 +40,10 @@ public class RubyJxpSource extends JxpSource {
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB");
     static final RubyInstanceConfig config = new RubyInstanceConfig();
+
+    static {
+	config.requiredLibraries().add("xgen_internals");
+    }
 
     /** Determines what major version of Ruby to compile: 1.8 (false) or YARV/1.9 (true). **/
     public static final boolean YARV_COMPILE = false;
@@ -148,7 +151,8 @@ public class RubyJxpSource extends JxpSource {
 		    continue;
 		if (DEBUG)
 		    System.err.println("about to expose " + key + "; class = " + (val == null ? "<null>" : val.getClass().getName()));
-		top.instance_variable_set(RubySymbol.newSymbol(_runtime, "@" + key), RubyObjectWrapper.toRuby(s, _runtime, val, key));
+		IRubyObject ro = JavaUtil.convertJavaToUsableRubyObject(_runtime, val);
+		top.instance_variable_set(RubySymbol.newSymbol(_runtime, "@" + key), ro);
 		eigenclass.attr_reader(_runtime.getCurrentContext(), new IRubyObject[] {RubySymbol.newSymbol(_runtime, key)});
 		alreadySeen.add(key);
 	    }
