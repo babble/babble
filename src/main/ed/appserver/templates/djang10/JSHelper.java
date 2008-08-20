@@ -380,7 +380,7 @@ public class JSHelper extends JSObjectBase {
         while(iter.hasPrevious()) {
             JSFileLibrary fileLib = iter.previous();
             
-            log.debug("Checking: " + fileLib);
+            log.debug("Checking: " + fileLib + " for [" + name + "]" );
             Object file = fileLib.get(name);
 
             if (file instanceof JSCompiledScript) {
