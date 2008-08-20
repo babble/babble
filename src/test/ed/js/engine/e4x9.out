@@ -3,3 +3,24 @@ http://blahblah.org
 http://blahblah.org::Body
 DIS
 sha nanana get a job
+one
+<two xmlns="go.cats.go">
+  <for>
+    <the>show</the>
+  </for>
+</two>
+go.cats.go::two
+get.ready::to
+<joe xmlns="go.cats.go">
+  <for>
+    <the>show</the>
+  </for>
+  <three xmlns="get.ready">
+    <to>get ready</to>
+  </three>
+</joe>
+<shmoe xmlns:foo="bar">
+  <foo2:y xmlns:foo2="bar2">
+    <foo:z>sha nanana get a job</foo:z>
+  </foo2:y>
+</shmoe>
