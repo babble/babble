@@ -20,8 +20,8 @@ class Object
 
   alias_method :old_method_missing, :method_missing
 
-  def method_missing(name, *args, &block)
-    name = name.to_s
+  def method_missing(sym, *args, &block)
+    name = sym.to_s
     if name[-1,1] == "="        # reader
       if self.respond_to?(:set)
         key = name[0..-2]
@@ -38,7 +38,7 @@ class Object
           return val
         end
       else
-        return old_method_missing(name, args, block)
+        return old_method_missing(sym, args, block)
       end
     end
   end
