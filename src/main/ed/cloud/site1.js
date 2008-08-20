@@ -17,11 +17,14 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-Cloud.Environment = function( name ){
-    this.branch = null;
-    this.name = name || this.branch;
-    this.db = null;
-    this.pool = null;
+// -----  Basic Structure Stuff -----------
+
+Cloud.Environment = function( name , branch , db , pool ){
+    this.name = name;
+    this.branch = branch;
+    this.db = db;
+    this.pool = pool;
+
     this.id = ObjectId();
     this.aliases = [];
 };
@@ -34,9 +37,9 @@ Cloud.Environment.prototype.toString = function(){
     return this.name;
 }
 
-Cloud.SiteDB = function(){
-    this.name = null;
-    this.server = null;
+Cloud.SiteDB = function( name , server ){
+    this.name = name;
+    this.server = server;
     this.id = ObjectId();
 };
 
@@ -56,12 +59,14 @@ Cloud.Site = function( name ){
     this.dbs._dbCons = Cloud.SiteDB;
 };
 
+Cloud.Site.prototype.toString = function(){
+    return "Site: " + this.name;
+};
+
+// -----   Environment Stuff -----------
+
 Cloud.Site.prototype.environmentNames = function(){
     return this.environments.map( function(z){ return z.name } );
-}
-
-Cloud.Site.prototype.dbNames = function(){
-    return this.dbs.map( function(z){ return z.name } );
 }
 
 Cloud.Site.prototype.removeEnvironment = function( identifier ){
@@ -127,8 +132,73 @@ Cloud.Site.prototype.findEnvironmentById = function( id ){
     return ret;
 };
 
+Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool ){
+    if ( isObject( name ) && branch == null ){
+        var o = name;
+        name = o.name;
+        branch = o.branch;
+        db = o.db;
+        pool = o.pool;
+    }
+        
+    if ( ! name )
+        throw "envinroment must have a name";
+
+    if ( ! branch )
+        throw "envinroment must have a branch";
+    
+    if ( ! db ){
+        if ( this.findDBByName( name ) )
+            db = name;
+
+        if ( ! db )
+            throw "envinroment must have a db and can't find a db called [" + name + "]";
+    }
+    
+    if ( ! this.findDBByName( db ) )
+        throw "no db with name [" + db + "]";
+
+    if ( ! pool )
+        throw "no pool and can't allocate yet";
+
+    if ( ! Cloud.Pool.findByName( pool ) )
+        throw "no pool with name [" + pool + "]";
+
+    var e = this.findEnvironmentByName( name );
+    if ( e ){
+        var changed = false;
+
+        if ( e.branch != branch ){
+            e.branch = branch;
+            changed = true;
+        }
+
+        if ( e.db != db ){
+            e.db = db;
+            changed = true;
+        }
+
+        if ( e.pool != pool ){
+            e.pool = pool;
+            changed = true;
+        }
+
+        return changed;
+    }
+    
+    e = new Cloud.Environment( name , branch , db , pool );
+    this.environments.add( e );
+    return true;
+};
+
+// -----   DB Stuff -----------
+
+Cloud.Site.prototype.dbNames = function(){
+    return this.dbs.map( function(z){ return z.name } );
+}
+
 /**
-this returns the 10gen server name (prod1)
+* @return this returns the 10gen server name (prod1)
 */
 Cloud.Site.prototype.getDatabaseServerForEnvironmentName = function( name ){
     name = name || "www";
@@ -191,6 +261,33 @@ Cloud.Site.prototype.findDBById = function( id ){
     return ret;
 };
 
+Cloud.Site.prototype.upsertDB = function( name , server ){
+    if ( ! name )
+        throw "need to specify db name";
+        
+    if ( ! server )
+        throw "no server specified and can't auto allocate yet";
+    
+    if ( ! Cloud.findDBByName( server ) )
+        throw "can't find db [" + server + "]";
+    
+    if ( this.findDBByName( name ) ){
+        var db = this.findDBByName( name );
+        if ( db.server == server )
+            return false;
+        
+        db.server = server;
+        return true;
+    }
+    
+    var db = new Cloud.SiteDB( name , server );
+    this.dbs.add( db );
+    
+    return true;
+};
+
+// -----  Util Stuff -----------
+
 Cloud.Site.prototype.getGitBranchNames = function( force ){
 
     if ( ! this.giturl || this.giturl.startsWith( "ssh://git.10gen.com/data/gitroot/" ) ){
@@ -247,9 +344,7 @@ Cloud.Site.prototype.getGitBranchNames = function( force ){
     return javaStatic( "ed.util.GitUtils" , "getAllBranchAndTagNames" , root );
 };
 
-Cloud.Site.prototype.toString = function(){
-    return "Site: " + this.name;
-};
+// ---- Static Stuff -------
 
 Cloud.Site.forName = function( name , create ){
     var s = db.sites.findOne( { name : name } );
