@@ -67,3 +67,6 @@ assert( s.upsertDB( { name : "z" , server : "prod1" } ) );
 assert( ! s.upsertDB( { name : "z" , server : "prod1" } ) );
 
 assert( ! s.upsertEnvironment( { id : s.environments[0].id } ) );
+
+assert( tojson( s.updateEnvironment( "dev" , false , true ) ).contains( "~update" ) );
+assert( tojson( s.updateEnvironment( "dev" , true , true ) ).contains( "~reset" ) );

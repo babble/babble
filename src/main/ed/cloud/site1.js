@@ -418,6 +418,53 @@ Cloud.Site.prototype.getGitBranchNames = function( force ){
     return javaStatic( "ed.util.GitUtils" , "getAllBranchAndTagNames" , root );
 };
 
+Cloud.Site.prototype.updateEnvironment = function( envName , fullReset , dryRun ){
+    var command = fullReset ? "reset" : "update";
+
+    var env = this.findEnvironment( envName );
+    if ( ! env )
+        throw "can't find environment [" + envName + "]";
+
+    var p = db.pools.findOne( { name : env.pool } );
+    if ( ! p )
+        throw "couldn't find pool [" + env.pool + "]";
+    
+    var threads = [];
+
+    var hostName = env.name + "." + this.name + ".10gen.com";
+
+    var res = { ok : true };
+    for ( var i=0; i<p.machines.length; i++ ){
+        var machine = p.machines[i];
+	threads.push(
+	    fork( 
+		function(){
+		    try {
+			res[machine] = Cloud.Site.resetSiteOnHost( machine , hostName , command , dryRun );
+		    }
+		    catch ( e ){
+			res.ok = false;
+			res[machine] = e;
+		    }
+		}
+            )
+        );
+    }
+
+    for ( var i=0; i<threads.length; i++ ) threads[i].start();
+    for ( var i=0; i<threads.length; i++ ) threads[i].join();
+
+    return res;
+}
+
+Cloud.Site.resetSiteOnHost = function( machine , hostName , command , dryRun ){
+    command = command || "reset";
+    var cmd = "ssh " + machine + " \"curl -D - -s -H 'Host: " + hostName + "'\" local.10gen.com:8080/~" + command;
+    var res = dryRun ? {} : sysexec( cmd );
+    res.cmd = cmd;
+    return res;
+}
+
 // ---- Static Stuff -------
 
 Cloud.Site.forName = function( name , create ){
