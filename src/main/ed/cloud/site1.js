@@ -309,6 +309,14 @@ Cloud.Site.prototype.findDBById = function( id ){
 };
 
 Cloud.Site.prototype.upsertDB = function( name , server ){
+
+    if ( isObject( name ) && server == null && name.name ){
+        var o = name;
+        name = o.name;
+        server = o.server;
+    }
+    
+
     if ( ! name )
         throw "need to specify db name";
         
