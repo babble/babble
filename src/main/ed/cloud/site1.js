@@ -37,7 +37,7 @@ Cloud.Environment.prototype.__defineGetter__( "aliases" , function(){ return thi
 Cloud.Environment.prototype.__defineSetter__( "aliases" , 
                                               function( aliases ){ 
                                                   if ( ! aliases )
-                                                      return this._aliases = null;
+                                                      return this._aliases = [];
 
                                                   if ( isArray( aliases ) )
                                                       return this._aliases = aliases;
@@ -170,10 +170,18 @@ Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool , a
     if ( ! name )
         throw "envinroment must have a name";
 
-    if ( ! branch )
-        throw "envinroment must have a branch";
+    var e = this.findEnvironmentByName( name );
     
+    if ( ! branch ){
+        if ( e ) branch = e.branch;
+        if ( ! branch )
+            throw "envinroment must have a branch";
+    }
+    
+        
     if ( ! db ){
+        if ( e ) db = e.db;
+
         if ( this.findDBByName( name ) )
             db = name;
 
@@ -184,13 +192,16 @@ Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool , a
     if ( ! this.findDBByName( db ) )
         throw "no db with name [" + db + "]";
 
-    if ( ! pool )
-        throw "no pool and can't allocate yet";
-
-    if ( ! Cloud.Pool.findByName( pool ) )
+    if ( ! pool ){
+        if ( e ) pool = e.pool;
+        if ( ! pool )
+            pool = Cloud.Balancer.getAvailablePool();
+    }
+    
+    if ( ! Cloud.Pool.findByName( pool ) ){
         throw "no pool with name [" + pool + "]";
+    }
 
-    var e = this.findEnvironmentByName( name );
     if ( e ){
         var changed = false;
 
@@ -212,7 +223,7 @@ Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool , a
         if ( e.aliases != aliases ){
             var old = e.aliases;
             e.aliases = aliases;
-            if ( old.hashCode() != e.aliases.hashCode() )
+            if ( old == null || old.hashCode() != e.aliases.hashCode() )
                 changed = true;
         }
 
@@ -329,7 +340,7 @@ Cloud.Site.prototype.upsertDB = function( name , server ){
         throw "need to specify db name";
         
     if ( ! server )
-        throw "no server specified and can't auto allocate yet";
+        server = Cloud.Balancer.getAvailableDB();
     
     if ( ! Cloud.findDBByName( server ) )
         throw "can't find db [" + server + "]";

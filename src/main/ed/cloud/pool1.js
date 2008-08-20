@@ -28,6 +28,14 @@ Cloud.Pool.findByName = function( name ){
     return db.pools.findOne( { name : name } );
 }
 
+Cloud.Pool.getAllNames = function(){
+    return db.pools.find().sort( { name : 1 } ).toArray().map( 
+        function(z){ 
+            return z.name 
+        } 
+    ); 
+}
+
 db.pools.setConstructor( Cloud.Pool );
 
 if ( me.real ){
@@ -46,13 +54,17 @@ Cloud.DB.findByName = function( name ){
     return db.dbs.findOne( { name : name } );    
 };
 
-Cloud.DB.getAllDBNames = function(){
+
+
+Cloud.DB.getAllNames = function(){
     return db.dbs.find().sort( { name : 1 } ).toArray().map( 
         function(z){ 
             return z.name 
         } 
     ); 
 }
+
+Cloud.DB.getAllDBNames = Cloud.DB.getAllNames;
 
 Cloud.findDBByName = function( name ){
     return Cloud.DB.findByName( name );
