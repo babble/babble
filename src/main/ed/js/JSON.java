@@ -186,7 +186,7 @@ public class JSON {
             if ( _loopable( something ) ){
                 
                 if ( seen.contains( something ) )
-                    throw new RuntimeException( "loop depetected.  can't serialize a loop : " + something );
+                    throw new RuntimeException( "loop depetected.  can't serialize a loop : " + something + " : " + something.getClass() );
                 
                 seen.add( something );
             }
