@@ -106,7 +106,7 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper {
                         for ( Object o : a._pSeq ){
                             Object res = f.call( s , toJS( o ) );
                             if( JS_evalToBool( res ) )
-                                arr.add( o );
+                                arr.add( toJS( o ) );
                         }
 
                         return arr;
