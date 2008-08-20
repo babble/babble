@@ -17,26 +17,38 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-Cloud.Environment = function(){
+Cloud.Environment = function( name ){
     this.branch = null;
-    this.name = this.branch;
+    this.name = name || this.branch;
     this.db = null;
     this.pool = null;
-    this.giturl = null;
-    this.iid = ObjectId();
+    this.id = ObjectId();
     this.aliases = [];
 };
+
+// iid is the old name - should deprecate 
+Cloud.Environment.prototype.__defineGetter__( "iid" , function(){ return this.id; } );
+Cloud.Environment.prototype.__defineSetter__( "iid" , function( id ){ this.id = id; } );
+
+Cloud.Environment.prototype.toString = function(){
+    return this.name;
+}
 
 Cloud.SiteDB = function(){
     this.name = null;
     this.server = null;
-    this.did = ObjectId();
+    this.id = ObjectId();
 };
+
+// did is the old name - should deprecate 
+Cloud.SiteDB.prototype.__defineGetter__( "did" , function(){ return this.id; } );
+Cloud.SiteDB.prototype.__defineSetter__( "did" , function( id ){ this.id = id; } );
 
 Cloud.Site = function( name ){
     this.name = name;
     this.created = new Date();
-    
+    this.giturl = null;
+
     this.environments = [];
     this.environments._dbCons = Cloud.Environment;
 
@@ -50,6 +62,33 @@ Cloud.Site.prototype.environmentNames = function(){
 
 Cloud.Site.prototype.dbNames = function(){
     return this.dbs.map( function(z){ return z.name } );
+}
+
+Cloud.Site.prototype.removeEnvironment = function( identifier ){
+    
+    var e = findEnvironment( identifier );
+    if ( ! e )
+        return false;
+
+    this.environments = this.environments.filter( 
+        function(z){
+            return z != e;    
+        }
+    );
+    
+    return true;
+}
+
+Cloud.Site.prototype.findEnvironment = function( identifier ){
+    if ( identifier && isObject( identifier ) && identifier.id && identifier.name )
+        return identifier;
+    
+    for ( var i=0; i<arguments.length; i++ ){
+        var e = this.findEnvironmentByName( arguments[i] ) || this.findEnvironmentById( arguments[i] );
+        if ( e )
+            return e;
+    }
+    return null;
 }
 
 Cloud.Site.prototype.findEnvironmentByName = function( name ){
@@ -70,16 +109,19 @@ Cloud.Site.prototype.findEnvironmentByName = function( name ){
     return ret || ali;
 };
 
-Cloud.Site.prototype.findEnvironmentById = function( iid ){
-    if ( ! iid )
+Cloud.Site.prototype.findEnvironmentById = function( id ){
+    if ( ! id )
         return null;
     
-    if ( isString( iid ) )
-        iid = ObjectId( iid );
+    if ( isString( id ) ){
+        if ( ! ObjectId.isValid( id ) )
+            return null;
+        id = ObjectId( id );
+    }
     
     var ret = null;
     this.environments.forEach( function(z){
-        if ( z.iid == iid )
+        if ( z.id == id )
             ret = z;
     } );
     return ret;
@@ -107,6 +149,18 @@ Cloud.Site.prototype.getDatabaseServerForEnvironmentName = function( name ){
     return db.server;
 }
 
+Cloud.Site.prototype.findDB = function( identifier ){
+    if ( identifier && isObject( identifier ) && identifier.id && identifier.name )
+        return identifier;
+
+    for ( var i=0; i<arguments.length; i++ ){
+        var db = this.findDBByName( arguments[i] ) || this.findDBById( arguments[i] );
+        if ( db )
+            return db;
+    }
+    return null;
+}
+
 Cloud.Site.prototype.findDBByName = function( name ){
     if ( ! name )
         return null;
@@ -119,16 +173,19 @@ Cloud.Site.prototype.findDBByName = function( name ){
     return ret;
 };
 
-Cloud.Site.prototype.findDBById = function( did ){
-    if ( ! did )
+Cloud.Site.prototype.findDBById = function( id ){
+    if ( ! id )
         return null;
     
-    if ( isString( did ) )
-        did = ObjectId( did );
+    if ( isString( id ) ){
+        if ( ! ObjectId.isValid( id ) )
+            return null;
+        id = ObjectId( id );
+    }
     
     var ret = null;
     this.dbs.forEach( function(z){
-        if ( z.did == did )
+        if ( z.id == id )
             ret = z;
     } );
     return ret;
