@@ -88,7 +88,7 @@ public class DjangoRegressionTests {
         //Load native objects
         Logger log = Logger.getRoot();
         globalScope.set("log", log);
-        
+        log.makeThreadLocal();        
         
         //override the Date object
         final long now_ms = System.currentTimeMillis();
@@ -121,9 +121,6 @@ public class DjangoRegressionTests {
             if(oldScope != null) oldScope.makeThreadLocal();
             else Scope.clearThreadLocal();
         }
-
-        log.makeThreadLocal();
-        log.getChild("djang10").getChild("loaders").setLevel(Level.DEBUG);
         
         //Load the test scripts & pull out variables
         final List<ExportedTestCase> testCases = new ArrayList<ExportedTestCase>();
