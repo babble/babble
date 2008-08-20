@@ -29,9 +29,7 @@ var load_template_source =
 
     template_name = template_name.trim();
     if(template_name[0] == "/") {
-        if(djang10.DEBUG)
-            log("filesystem loader can't load absolute paths: " + template_name);
-        
+        log.debug("can't load absolute paths: " + template_name);
         return null;
     }
 
@@ -40,28 +38,26 @@ var load_template_source =
     for(var i=template_roots.length-1; i >=0; i--) {
         var template_root = template_roots[i];
 
-        if(djang10.DEBUG)
-            log("checking template root: " + template_root);
-        
+        log.debug("checking template root: " + template_root);
 
         if(template_root instanceof String)
             template_root = resolve_abs_path(template_root);
 
         if(!(template_root instanceof "ed.appserver.JSFileLibrary")) {
-            if(djang10.DEBUG) 
-                log("template root: " + template_root + " is not a FileLibrary, got: " + template_root)
+            log.debug("template root: " + template_root + " is not a FileLibrary, got: " + template_root)
             continue;
         }
 
         var template = template_root[template_name];
-        if (template instanceof "ed.appserver.templates.djang10.Djang10CompiledScript")
+        if (template instanceof "ed.appserver.templates.djang10.Djang10CompiledScript") {
+            log.debug("Found: " + template_root + "/" + template_name);
             return template;
+        }
         
-        if(djang10.DEBUG)
-            log("template root["+template_root+"] doesn't contain the template["+template_name+"]");
+        log.debug("template root["+template_root+"] doesn't contain the template["+template_name+"]");
     }
     
-    log("filesystem loader failed to find the template: " + template_name);
+    log.debug("failed to find the template: " + template_name);
     
     return null;
 };
@@ -82,7 +78,7 @@ var resolve_abs_path =
     if(!(root instanceof "ed.appserver.JSFileLibrary"))
         return null;
 
-    return (parts[2])? root.getFromPath(parts[2]) : root;
+    return root.getFromPath(parts[2]);
 };
 
 return filesystem;

@@ -23,12 +23,7 @@ public class Djang10TemplateReloadTest {
     
     //time to wait between file modifications to allow the fs to update the timestamps
     private static final long SLEEP_MS = 5000;
-    
-    public Djang10TemplateReloadTest() {
-        if(Djang10Source.DEBUG)
-            System.out.println("Loading reload tests");
-    }
-    
+        
     @Test
     public void test() throws IOException, InterruptedException {
         File testDir = new File(TEST_DIR);
@@ -127,9 +122,6 @@ public class Djang10TemplateReloadTest {
     }
     
     private Scope initScope() {
-        if(Djang10Source.DEBUG)
-            System.out.println("Loading Djang10Template Tests");
-
         //Initialize Scope ==================================
         Scope oldScope = Scope.getThreadLocal();
         Scope globalScope = Scope.newGlobal().child();
@@ -138,7 +130,8 @@ public class Djang10TemplateReloadTest {
         
         try {
             //Load native objects
-            globalScope.set("log", Logger.getLogger("django test"));            
+            Logger log = Logger.getRoot();
+            globalScope.set("log", log);            
             Encoding.install(globalScope);
             JSHelper helper = Djang10Source.install(globalScope);
             globalScope.set("local", new JSFileLibrary(new File(TEST_DIR), "local", globalScope));
@@ -157,6 +150,8 @@ public class Djang10TemplateReloadTest {
             
             //configure Djang10 =====================================
             helper.addTemplateRoot.call(globalScope, new JSString("/local"));
+            
+            log.makeThreadLocal();
 
         }
         finally {

@@ -29,18 +29,18 @@ var load_template_source =
 
     template_name = template_name.trim().replace(/\/+/g, "/");
     if(template_name[0] != "/") {
-        if(djang10.DEBUG)
-            log("site relative only supports paths that start w. a leading slash: " + template_name );
+        log.debug("site relative only supports paths that start w. a leading slash: " + template_name );
         
         return null;
     }
 
     var template = local.getFromPath(template_name);
-    if (template instanceof "ed.appserver.templates.djang10.Djang10CompiledScript")
+    if (template instanceof "ed.appserver.templates.djang10.Djang10CompiledScript") {
+        log.debug("found /local/"+template_name);
         return template;
+    }
 
-    if(djang10.DEBUG)
-        log("Failed to find the template: " + template_name + " got: " + template);
+    log.debug("Failed to find the template: " + template_name + " got: " + template);
     
     return null;
 };

@@ -45,11 +45,7 @@ import ed.log.Level;
 import ed.log.Logger;
 
 public class Expression extends JSObjectBase {
-    private static final Logger log = Logger.getLogger("djang10.Expression");
-    static {
-        Level logLevel = Djang10Source.DEBUG? Level.DEBUG : Level.INFO;
-        log.setLevel(logLevel);
-    }
+    private final Logger log;
     
     public final static Object UNDEFINED_VALUE = new Object() {
         public String toString() {
@@ -144,6 +140,7 @@ public class Expression extends JSObjectBase {
 
     public Expression(String expression, ed.appserver.templates.djang10.Parser.Token token, boolean useLiteralEscapes) {
         super(CONSTRUCTOR);
+        this.log = Logger.getRoot().getChild("djang10").getChild("expression");
         isLiteral = null;
         this.expression = expression;
 
@@ -158,10 +155,10 @@ public class Expression extends JSObjectBase {
         } catch (Exception t) {
             String msg;
             
-            if(Djang10Source.DEBUG)
+            if(log.getEffectiveLevel().compareTo(Level.DEBUG) <= 0)
                 msg = "Failed to parse original expression: " + expression + ". Processed expr: " + processedExpr;
             else
-                msg = "Failed to expression: " + expression;
+                msg = "Failed to parse expression: " + expression;
             
             throw new TemplateSyntaxError(msg, token);
         }
@@ -238,7 +235,7 @@ public class Expression extends JSObjectBase {
         return bits;
     }
     
-    public static String preprocess(String exp, boolean useLiteralEscapes) {
+    public String preprocess(String exp, boolean useLiteralEscapes) {
         StringBuilder buffer = new StringBuilder();
         String quotes = "\"'";
 
@@ -273,7 +270,7 @@ public class Expression extends JSObjectBase {
         
         return buffer.toString();
     }
-    private static Node postprocess(Node node) {
+    private Node postprocess(Node node) {
         if(node.getType() == Token.NAME || node.getType() == Token.STRING) {
             String str = node.getString();
 
@@ -329,8 +326,8 @@ public class Expression extends JSObjectBase {
         try {
             obj = resolve(scope, ctx, parsedExpression.getFirstChild(), true);
         } finally {
-            if(Djang10Source.DEBUG && obj == UNDEFINED_VALUE)
-                System.out.println("Failed to resolve: " + this);
+            if(obj == UNDEFINED_VALUE)
+                log.debug("Failed to resolve: " + this);
         }
         obj = JSNumericFunctions.fixType(obj);
         

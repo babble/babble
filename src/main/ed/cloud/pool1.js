@@ -22,6 +22,9 @@ Cloud.Pool = function(){
     this.machines = [];
 };
 
+Cloud.Pool.findByName = function( name ){
+    return db.pools.findOne( { name : name } );
+}
 
 Cloud.DB = function(){
     this.name = null;
@@ -29,9 +32,13 @@ Cloud.DB = function(){
     this.machine = null;
 };
 
+Cloud.DB.findByName = function( name ){
+    return db.dbs.findOne( { name : name } );    
+};
+
 Cloud.findDBByName = function( name ){
-    return db.dbs.findOne( { name : name } );
-}
+    return Cloud.DB.findByName( name );
+};
 
 db.pools.setConstructor( Cloud.Pool );
 db.dbs.setConstructor( Cloud.DB );

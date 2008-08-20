@@ -33,11 +33,13 @@ import ed.js.JSObject;
 import ed.js.engine.JSCompiledScript;
 import ed.js.engine.Scope;
 import ed.lang.StackTraceHolder;
+import ed.log.Level;
+import ed.log.Logger;
 import ed.util.Dependency;
 import ed.util.Pair;
 
 public class Djang10Source extends JxpSource {
-    public static final boolean DEBUG =  Boolean.getBoolean("DEBUG.DJANG10");
+    private final Logger log = Logger.getRoot().getChild("djang10").getChild("Djang10Source");
     
     private final Djang10Content content;
     private Djang10CompiledScript compiledScript;
@@ -63,8 +65,7 @@ public class Djang10Source extends JxpSource {
     }
     public synchronized JSFunction _getFunction() throws IOException {
         if(_needsParsing() || compiledScript == null) {
-            if(DEBUG)
-                System.out.println("Parsing " + content.getDebugName());
+            log.debug("Parsing " + content.getDebugName());
             
             compiledScript = null;
             _lastParse = lastUpdated();
@@ -91,8 +92,7 @@ public class Djang10Source extends JxpSource {
             compiledScript = new Djang10CompiledScript(nodes, libraries);
             compiledScript.set(JxpSource.JXP_SOURCE_PROP, this);
             
-            if(DEBUG)
-                System.out.println("Done Parsing " + content.getDebugName());
+            log.debug("Done Parsing " + content.getDebugName());
         }
 
         return compiledScript;

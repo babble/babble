@@ -41,6 +41,7 @@ import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
 import ed.js.func.JSFunctionCalls2;
+import ed.log.Level;
 import ed.log.Logger;
 
 public class DjangoRegressionTests {
@@ -74,9 +75,6 @@ public class DjangoRegressionTests {
     
     @Factory
     public Object[] getAllTests()  throws IOException {
-        if(Djang10Source.DEBUG)
-            System.out.println("Loading django regression tests");
-
         //Locate the test script
         String basePath = (JSHook.whereIsEd == null)? "" : JSHook.whereIsEd + "/";
         basePath += "src/test/ed/appserver/templates/djang10/regression/";
@@ -88,7 +86,8 @@ public class DjangoRegressionTests {
         globalScope.makeThreadLocal();
 
         //Load native objects
-        globalScope.set("log", Logger.getLogger("django test"));
+        Logger log = Logger.getRoot();
+        globalScope.set("log", log);
         
         
         //override the Date object
@@ -120,11 +119,14 @@ public class DjangoRegressionTests {
             else Scope.clearThreadLocal();
         }
 
+        log.makeThreadLocal();
+        log.getChild("djang10").getChild("loaders").setLevel(Level.DEBUG);
+        
         //Load the test scripts & pull out variables
         final List<ExportedTestCase> testCases = new ArrayList<ExportedTestCase>();
         int count = 0, skipped = 0;
         
-        //FIXME: enable the filter tests
+
         for(String testFilename : new String[] {"tests.js", "filter_tests.js", "missing_tests.js"}) {
             String path = basePath + testFilename;
             JSTestScript testScript = new JSTestScript(globalScope, path);
@@ -161,12 +163,7 @@ public class DjangoRegressionTests {
         JSArray loaders = (JSArray) jsHelper.get("TEMPLATE_LOADERS");
         loaders.clear();
         loaders.add(custom_loader);
-        
-        if(Djang10Source.DEBUG) {
-            String msg = String.format("Found %d tests, skipping %d of them", count, skipped);
-            System.out.println( msg );
-        }
-        
+       
         return testCases.toArray();
     }
     
@@ -266,9 +263,6 @@ public class DjangoRegressionTests {
         public void testWrapper() {
             Scope oldScope = Scope.getThreadLocal();
             scope.makeThreadLocal();
-            
-            if(Djang10Source.DEBUG)
-                System.out.println("Testing: " + name);
             
             try {
                 realTest();
