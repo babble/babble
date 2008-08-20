@@ -38,7 +38,13 @@ assert.raises(
 );
 
 
-s.upsertDB( "www" , "prod1" );
+assert( s.upsertDB( "www" , "prod1" ) );
+assert.eq( 2 , s.dbs.length );
+assert( s.removeDB( "www" ) );
+assert.eq( 1 , s.dbs.length );
+assert( s.upsertDB( "www" , "prod1" ) );
+assert.eq( 2 , s.dbs.length );
+
 assert( s.upsertEnvironment( { name : "v1" , branch : "stable" , db : "www" , pool : "prod1" , aliases : "www" } ) );
 assert.eq( "v1" , s.findEnvironment( "www" ).name );
 assert( ! s.upsertEnvironment.apply( s , null , { name : "v1" , branch : "stable" , db : "www" , pool : "prod1" , aliases : "www" } ) );
@@ -49,3 +55,10 @@ assert.eq( "v1" , s.findEnvironment( "www" ).name );
 assert.eq( "v1" , s.findEnvironment( "play" ).name );
 
 assert.eq( 2 , s.environments.length );
+
+assert.raises(
+    function(){
+        s.removeDB( "www" );
+    }
+);
+

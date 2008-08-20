@@ -87,7 +87,7 @@ Cloud.Site.prototype.environmentNames = function(){
 
 Cloud.Site.prototype.removeEnvironment = function( identifier ){
     
-    var e = findEnvironment( identifier );
+    var e = this.findEnvironment( identifier );
     if ( ! e )
         return false;
 
@@ -221,6 +221,27 @@ Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool , a
 
 Cloud.Site.prototype.dbNames = function(){
     return this.dbs.map( function(z){ return z.name } );
+}
+
+Cloud.Site.prototype.removeDB = function( identifier ){
+    var db = this.findDB( identifier );
+    if ( ! db )
+        return false;
+
+    this.environments.forEach( 
+        function(z){
+            if ( z.db == db.name )
+                throw "you can't delete db[" + db.name + "] because being used by [" + z.name + "]";
+        }
+    );
+    
+    this.dbs = this.dbs.filter(
+        function(z){
+            return z != db;
+        }
+    );
+
+    return true;
 }
 
 /**
