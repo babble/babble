@@ -87,8 +87,8 @@ BlockNode.prototype = {
         if(context["__block_data"])
             block_data_to_render = context["__block_data"][this.name];
         
-        if(djang10.DEBUG && block_data_to_render != null) {
-            log("Overriden by: <" + block_data_to_render.nodelist + ">");
+        if(block_data_to_render != null) {
+            log.debug("Overriden by: <" + block_data_to_render.nodelist + ">");
         }
         
         var my_data = new BlockNodeData(this.name, this.nodelist, null);

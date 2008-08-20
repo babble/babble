@@ -37,11 +37,13 @@ import ed.js.JSArray;
 import ed.js.JSDate;
 import ed.js.JSFunction;
 import ed.js.JSLocalFile;
+import ed.js.JSObject;
 import ed.js.JSObjectBase;
 import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
 import ed.js.func.JSFunctionCalls1;
+import ed.log.Level;
 import ed.log.Logger;
 
 
@@ -50,9 +52,6 @@ public class Djang10TemplateTest {
     
     @Factory
     public Object[] getAllTests(){
-        if(Djang10Source.DEBUG)
-            System.out.println("Loading Djang10Template Tests");
-
         //Initialize Scope ==================================
         Scope oldScope = Scope.getThreadLocal();
         Scope globalScope = Scope.newGlobal().child();
@@ -61,7 +60,11 @@ public class Djang10TemplateTest {
         
         try {
             //Load native objects
-            globalScope.set("log", Logger.getLogger("django test"));            
+            Logger logger = Logger.getRoot();
+            globalScope.set("log", logger);
+
+            Logger.getLogger("djang10.loaders").setLevel(Level.ERROR);
+            
             Encoding.install(globalScope);
             JSHelper helper = Djang10Source.install(globalScope);
             globalScope.set("local", new JSFileLibrary(new File("src/test/ed/appserver/templates/djang10"), "local", globalScope));
@@ -149,7 +152,9 @@ public class Djang10TemplateTest {
             }
             context.set("regroup_list", regroup_list); 
             
-            
+            logger.getChild("djang10").getChild("loaders").setLevel(Level.DEBUG);
+            logger.makeThreadLocal();
+
             //load the tests =========================
             final File dir = new File("src/test/ed/appserver/templates/djang10");
             final List<FileTest> tests = new ArrayList<FileTest>();
@@ -216,10 +221,6 @@ public class Djang10TemplateTest {
         
         @Test
         public void test() throws Throwable {           
-            if(Djang10Source.DEBUG) {
-                System.out.println("Testing: " + file.getName());
-            }
-            
             try {
                 Djang10Source source = new Djang10Source(file);
                 Djang10CompiledScript compiled = (Djang10CompiledScript)source.getFunction();
