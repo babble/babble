@@ -36,3 +36,9 @@ assert.raises(
         assert( s.upsertEnvironment( "dev" , "master" , null , "teasdasd" ) );
     }
 );
+
+
+s.upsertDB( "www" , "prod1" );
+assert( s.upsertEnvironment.apply( s , null , { name : "v1" , branch : "stable" , db : "www" , pool : "prod1" , aliases : "www" } ) );
+assert.eq( "v1" , s.findEnvironment( "www" ).name );
+assert( ! s.upsertEnvironment.apply( s , null , { name : "v1" , branch : "stable" , db : "www" , pool : "prod1" , aliases : "www" } ) );

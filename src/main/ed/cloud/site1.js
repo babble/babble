@@ -33,6 +33,19 @@ Cloud.Environment = function( name , branch , db , pool ){
 Cloud.Environment.prototype.__defineGetter__( "iid" , function(){ return this.id; } );
 Cloud.Environment.prototype.__defineSetter__( "iid" , function( id ){ this.id = id; } );
 
+Cloud.Environment.prototype.__defineGetter__( "aliases" , function(){ return this._aliases; } );
+Cloud.Environment.prototype.__defineSetter__( "aliases" , 
+                                              function( aliases ){ 
+                                                  if ( ! aliases )
+                                                      return this._aliases = null;
+                                                  if ( isArray( aliases ) )
+                                                      return this._aliases = aliases;
+                                                  if ( isString( aliases ) )
+                                                      return this._aliases = aliases.split( "[, ]+" );
+                                                  throw "what?";
+                                              } )
+;
+
 Cloud.Environment.prototype.toString = function(){
     return this.name;
 }
@@ -132,7 +145,7 @@ Cloud.Site.prototype.findEnvironmentById = function( id ){
     return ret;
 };
 
-Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool ){
+Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool , aliases ){
     if ( isObject( name ) && branch == null ){
         var o = name;
         name = o.name;
@@ -183,10 +196,18 @@ Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool ){
             changed = true;
         }
 
+        if ( e.aliases != aliases ){
+            var old = e.aliases;
+            e.aliases = aliases;
+            if ( old.hashCode() != e.aliases.hashCode() )
+                changed = true;
+        }
+
         return changed;
     }
     
     e = new Cloud.Environment( name , branch , db , pool );
+    e.aliases = aliases;
     this.environments.add( e );
     return true;
 };
