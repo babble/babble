@@ -9,7 +9,6 @@ var site = arguments[0];
 if(! site.startsWith('http://')) site = 'http://' + site;
 if(! site.endsWith('/')) site = site + '/';
 
-
-var resp = download(site+'admin/_ugly_hack_getDB');
-print( "export WTCONNECT='"+resp.body+"'" );
-
+var req = new XMLHttpRequest("GET", site+'admin/_ugly_hack_getDB');
+var res = req.send();
+print( "export WTCONNECT='"+res.responseText+"'" );
