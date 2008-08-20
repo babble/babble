@@ -361,6 +361,7 @@ public class JSHelper extends JSObjectBase {
     }
 
     public JSCompiledScript loadModule(Scope scope, String name) {
+        Logger log = this.log.getChild("loadModule");
         if (name == null)
             return null;
 
