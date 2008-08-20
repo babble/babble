@@ -40,7 +40,8 @@ http_pid=$?
 ./runLight.bash ed.js.Shell -exit $SITESROOT/$SITE/test/setup.js
 
 cd $SITESROOT/$SITE/test
-webtest.sh
+export WTPATH=$GITROOT/ed/include/webtest
+$WTPATH/bin/webtest.sh
 
 # clean up from the _config.js shuffling
 cp $SITESROOT/$SITE/test/_config.js.backup $SITESROOT/$SITE/_config.js
