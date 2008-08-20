@@ -251,7 +251,7 @@ public class NativeBridge {
             Class myClass = myClasses[i];
             final Class origMyClass = myClass;
             
-            if ( myClass == String.class )
+            if ( myClass == String.class || myClass == CharSequence.class )
                 params[i] = params[i].toString();
             
             if ( myClass.isPrimitive() ){
