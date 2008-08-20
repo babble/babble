@@ -381,13 +381,15 @@ public class JSHelper extends JSObjectBase {
         
         //try resolving against /local/templatetags
         if(!(moduleFile instanceof JSCompiledScript)) {
-            JSFileLibrary local = (JSFileLibrary)scope.get("local");
-            Object templateTagDirObj = local.get("templatetags");
-            if(templateTagDirObj instanceof JSFileLibrary) {
-                Object file = ((JSFileLibrary)templateTagDirObj).get(name);
-                if(file instanceof JSCompiledScript)
-                    moduleFile = (JSCompiledScript)file;
-            }            
+            if ( scope.get( "local" ) instanceof JSFileLibrary ){
+                JSFileLibrary local = (JSFileLibrary)scope.get("local");
+                Object templateTagDirObj = local.get("templatetags");
+                if(templateTagDirObj instanceof JSFileLibrary) {
+                    Object file = ((JSFileLibrary)templateTagDirObj).get(name);
+                    if(file instanceof JSCompiledScript)
+                        moduleFile = (JSCompiledScript)file;
+                }            
+            }
         }
         if(moduleFile == null)
             throw new TemplateException("Failed to find module: " + name);
