@@ -260,12 +260,9 @@ public class JSON {
                 }
             }
 
-            if ( something instanceof ed.js.E4X.ENode ) {
-                a.append( something.toString() );
-                return;
-            }
-
-            if( something instanceof ed.js.E4X.Namespace ) {
+            if( something instanceof ed.js.E4X.ENode || 
+                something instanceof ed.js.E4X.Namespace || 
+                something instanceof ed.js.E4X.QName ) {
                 a.append( something.toString() );
                 return;
             }

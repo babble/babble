@@ -1,4 +1,3 @@
-
 /**
 *    Copyright (C) 2008 10gen Inc.
 *  
@@ -15,32 +14,17 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// tests for "deep" changes, like addition and loops
-// addition
-xml = <a>b</a>+<a>b</a>;
-print( xml );
-print( "---" );
+local.src.test.ed.lang.python.list2py();
 
-xml = <a>b</a>+<c>d</c>+<a>b</a>;
-print( xml );
-print( "---" );
+var newL = pyL2.filter(function(x){
+    return x.a == 1;
+});
 
-print( xml + <yo></yo>);
-print( typeof xml );
-print( typeof (xml + "hi") );
+var pyD = newL[0];
 
-// appending
-x2 = <x><a>b</a></x>;
-x2.a += <b>c</b>;
-x2.a += "hi";
+assert( pyD.a == 1 );
+assert( pyD['a'] == 1 );
+assert( pyD.b == 2 );
+assert( pyD['b'] == 2 );
 
-print(x2);
 
-x2 += "hi";
-print( typeof x2 );
-
-// for
-xml=<x><a>b</a><a>3</a><a>gah</a><b>foo</b></x>
-for( var v in xml.a ) {
-    print( v+": "+xml.a[v] );
-}
