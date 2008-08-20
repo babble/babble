@@ -52,6 +52,7 @@ print( nsfun.name() );
 default xml namespace = "get.ready";
 
 nsfun["for"] += <three><to>get ready</to></three>;
+//nsfun["for"] += <four><five>six</five></four>;
 
 print( nsfun.three.to.name() )
 
@@ -62,10 +63,13 @@ xml.setLocalName( "shmoe" );
 print( xml );
 
 //setName
+//print( xml.level1::y );
 //xml.level1::y.setName( "diplomat" );
 //print( xml.diplomat );
 
 //setNamespace
+//dogs = <dogs><dog><type>lab</type></dog><dog><type>retriever</type></dog></dogs>;
+//dogs.setNamespace( "black.dog" );
 
 //inScopeNamespaces
 
@@ -75,3 +79,6 @@ print( xml );
 //namespace
 //namespaceDeclarations
 //removeNamespace
+
+// reset the namespace for other tests
+default xml namespace = "";
