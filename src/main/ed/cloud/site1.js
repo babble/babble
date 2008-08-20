@@ -38,10 +38,13 @@ Cloud.Environment.prototype.__defineSetter__( "aliases" ,
                                               function( aliases ){ 
                                                   if ( ! aliases )
                                                       return this._aliases = null;
+
                                                   if ( isArray( aliases ) )
                                                       return this._aliases = aliases;
+                                                  
                                                   if ( isString( aliases ) )
-                                                      return this._aliases = aliases.split( "[, ]+" );
+                                                      return ( this._aliases = aliases.split( /[, ]+/ ) );
+                                                  
                                                   throw "what?";
                                               } )
 ;
@@ -119,11 +122,12 @@ Cloud.Site.prototype.findEnvironmentByName = function( name ){
 
         if ( z.name == name )
             ret = z;
-
+        
         if ( z.aliases && z.aliases.contains( name ) )
             ali = z;
-    } );
 
+    } );
+    
     return ret || ali;
 };
 
@@ -152,6 +156,7 @@ Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool , a
         branch = o.branch;
         db = o.db;
         pool = o.pool;
+        aliases = o.aliases;
     }
         
     if ( ! name )

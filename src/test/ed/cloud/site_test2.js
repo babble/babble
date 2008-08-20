@@ -39,6 +39,13 @@ assert.raises(
 
 
 s.upsertDB( "www" , "prod1" );
-assert( s.upsertEnvironment.apply( s , null , { name : "v1" , branch : "stable" , db : "www" , pool : "prod1" , aliases : "www" } ) );
+assert( s.upsertEnvironment( { name : "v1" , branch : "stable" , db : "www" , pool : "prod1" , aliases : "www" } ) );
 assert.eq( "v1" , s.findEnvironment( "www" ).name );
 assert( ! s.upsertEnvironment.apply( s , null , { name : "v1" , branch : "stable" , db : "www" , pool : "prod1" , aliases : "www" } ) );
+assert( s.upsertEnvironment.apply( s , null , { name : "v1" , branch : "stable" , db : "www" , pool : "prod1" , aliases : "www,play" } ) );
+assert.eq( 2 , s.environments.length );
+assert.eq( "v1" , s.findEnvironment( "v1" ).name );
+assert.eq( "v1" , s.findEnvironment( "www" ).name );
+assert.eq( "v1" , s.findEnvironment( "play" ).name );
+
+assert.eq( 2 , s.environments.length );
