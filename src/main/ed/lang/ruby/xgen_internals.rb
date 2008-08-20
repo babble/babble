@@ -27,7 +27,7 @@ class Object
         key = name[0..-2]
         return self.set(key.to_xgen, args[0].to_xgen)
       else
-        return old_method_missing(name, args, block)
+        return old_method_missing(sym, args, block)
       end
     else
       if self.respond_to?(:get)
