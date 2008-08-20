@@ -21,9 +21,7 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
-import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
-import java.rmi.UnexpectedException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -38,7 +36,6 @@ import ed.appserver.jxp.JxpSource;
 import ed.appserver.templates.djang10.Parser.Token;
 import ed.js.JSArray;
 import ed.js.JSDate;
-import ed.js.JSException;
 import ed.js.JSFunction;
 import ed.js.JSON;
 import ed.js.JSObject;
@@ -50,20 +47,23 @@ import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
 import ed.js.func.JSFunctionCalls2;
 import ed.js.func.JSFunctionCalls3;
-import ed.js.func.JSFunctionCalls4;
 import ed.lang.python.Python;
+import ed.log.Level;
 import ed.log.Logger;
 import ed.util.Pair;
 
 public class JSHelper extends JSObjectBase {
-    private static final Logger log = Logger.getLogger("djang10.JSHelper");
+    private final Logger log;
     
     public static final String NS = "djang10";
 
     private final ArrayList<JSFileLibrary> moduleRoots;
     private final ArrayList<Pair<JxpSource,Library>> defaultLibraries;
 
-    public JSHelper() {
+    public JSHelper(Logger djang10Logger) {
+        this.log = djang10Logger;
+
+        
         moduleRoots = new ArrayList<JSFileLibrary>();
         defaultLibraries = new ArrayList<Pair<JxpSource,Library>>();
 
@@ -71,6 +71,8 @@ public class JSHelper extends JSObjectBase {
         this.set("ALLOW_GLOBAL_FALLBACK", Boolean.TRUE);
         this.set("TEMPLATE_DIRS", new JSArray());
         this.set("TEMPLATE_LOADERS", new JSArray());
+        
+        JSFunction get_template = new get_templateFunc(djang10Logger);
         this.set("get_template", get_template);
         //backwards compat
         this.set("loadTemplate", get_template);
@@ -137,8 +139,6 @@ public class JSHelper extends JSObjectBase {
         
         this.set("split_str", split_str);
         
-        this.set("DEBUG", Djang10Source.DEBUG);
-        
         this.set("str_encode", new JSFunctionCalls3() {
             public Object call(Scope scope, Object strObj, Object charsetNameObj, Object errorsObj, Object[] extra) {
                 String str = ((JSString)strObj).toString();
@@ -173,7 +173,11 @@ public class JSHelper extends JSObjectBase {
     }
 
     public static JSHelper install(Scope scope) {
-        JSHelper helper = new JSHelper();
+        //XXX: during appcontext init, the site loger hasn't been setup yet, so have to pull it out of the scope
+        Logger djang10Logger = ((Logger)scope.get("log")).getChild("djang10");
+        djang10Logger.setLevel(Level.INFO);
+        
+        JSHelper helper = new JSHelper(djang10Logger);
         scope.set(NS, helper);
         return helper;
     }
@@ -228,11 +232,17 @@ public class JSHelper extends JSObjectBase {
         }
     };
     
-    public final JSFunction get_template = new JSFunctionCalls2() {
-        public Object call(Scope scope, Object pathObj, Object dirsObj, Object[] extra) {
+    public class get_templateFunc extends JSFunctionCalls2 {
+        private final Logger log;
+        public get_templateFunc(Logger djang10Logger) {
+            this.log = djang10Logger.getChild("loaders").getChild("get_template");
+        }
+        public Object call(Scope scope, Object pathObj, Object dirsObj, Object[] extra) {            
             if (pathObj == null || pathObj == Expression.UNDEFINED_VALUE)
                 throw new NullPointerException("Can't load a null or undefined template");
 
+            log.debug("loading: " + pathObj);
+            
             JSArray loaders = (JSArray)JSHelper.this.get("TEMPLATE_LOADERS");
             
             for(Object loaderObj : loaders) {
@@ -265,13 +275,12 @@ public class JSHelper extends JSObjectBase {
 
             
             String msg = "get_template: Failed to load: " + pathObj +". ";
-            msg += "TEMPLATE_DIRS: [";
+            msg += "TEMPLATE_DIRS: ";
             try {
                 msg += JSON.serialize(JSHelper.this.get("TEMPLATE_DIRS"));
             } catch(Exception e) {
                 msg += e.getMessage();
             }
-            msg += "].";
             log.error(msg);
             
             return null;

@@ -16,8 +16,6 @@
 
 package ed.appserver.templates.djang10;
 
-import java.util.Stack;
-
 import ed.appserver.templates.djang10.Parser.Token;
 import ed.js.JSException;
 import ed.js.JSFunction;
@@ -25,11 +23,11 @@ import ed.js.JSObject;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
 import ed.js.func.JSFunctionCalls2;
+import ed.log.Level;
 import ed.log.Logger;
 
 //hacks to allow backwards compatibility with print & DEBUGING of render calls
 public class NodeWrapper {
-    private static final Logger log = Logger.getLogger("NodeWrapper");
     
     public static JSObject wrap(JSObject node, Token token) {
         node.set("render", new RenderWrapperFunc((JSFunction)node.get("render")));
@@ -40,6 +38,7 @@ public class NodeWrapper {
     }
     
     private static final class RenderWrapperFunc extends JSFunctionCalls1 {
+        private final Logger log = Logger.getRoot().getChild("djang10").getChild("NodeWrapper");
         private final JSFunction renderFunc;
         
         public RenderWrapperFunc(JSFunction renderFunc) {
@@ -50,11 +49,10 @@ public class NodeWrapper {
             JSObject thisObj = (JSObject)scope.getThis();
             Context context = (Context)contextObj;
             
-            if(Djang10Source.DEBUG) {
+            if(log.getEffectiveLevel().compareTo(Level.DEBUG) > 0) {
                 String selfRepr = "Unkown";
                 try { selfRepr = thisObj.toString(); } catch(Exception ignored) {}
-                
-                System.out.println("Rendering: " + selfRepr);
+                log.debug("Rendering: " + selfRepr);
             }
             
             scope = scope.child();
@@ -84,6 +82,7 @@ public class NodeWrapper {
         }
     };
     private static final class __RenderWrapperFunc extends JSFunctionCalls2 {
+        private final Logger log = Logger.getRoot().getChild("djang10").getChild("NodeWrapper");
         private final JSFunction __renderFunc;
         
         public __RenderWrapperFunc(JSFunction func) {
@@ -94,11 +93,11 @@ public class NodeWrapper {
             JSObject thisObj = (JSObject)scope.getThis();
             Context context = (Context)contextObj;
             
-            if(Djang10Source.DEBUG) {
+            if(log.getEffectiveLevel().compareTo(Level.DEBUG) > 0) {
                 String selfRepr = "Unkown";
                 try { selfRepr = thisObj.toString(); } catch(Exception t) {}
                 
-                System.out.println("Rendering: " + selfRepr);
+                log.debug("__Rendering: " + selfRepr);
             }
             
             scope = scope.child();
@@ -134,16 +133,10 @@ public class NodeWrapper {
     
     public static class PrintWrapperFunc extends JSFunctionCalls1 {
         public final StringBuilder buffer = new StringBuilder();
+        private final Logger logger = Logger.getRoot().getChild("djang10").getChild("NodeWrapper");
         
         public Object call(Scope scope, Object p0, Object[] extra) {
-            String error = "calling print while rendering has undefined behavior which will change in the future.";
-            try {
-                Object logger = scope.get("log");
-                if(logger instanceof Logger)
-                    ((Logger)logger).error(error);
-            } catch(Exception t) {
-                System.out.println(error);
-            }
+            logger.error("calling print while rendering has undefined behavior which will change in the future.");
             
             buffer.append(p0);
             return null;
