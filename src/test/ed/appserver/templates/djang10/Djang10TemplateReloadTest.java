@@ -152,7 +152,7 @@ public class Djang10TemplateReloadTest {
             }, true);
             
             //configure Djang10 =====================================
-            helper.addTemplateRoot.call(globalScope, new JSString("/local"));
+            helper.addTemplateRoot(globalScope, new JSString("/local"));
 
         }
         finally {

@@ -80,8 +80,8 @@ public class Djang10TemplateTest {
             }, true);
             
             //configure Djang10 =====================================
-            helper.addTemplateRoot.call(globalScope, new JSString("/local"));
-            helper.addModuleRoot.call(globalScope, new JSString("/local/support"));
+            helper.addTemplateRoot(globalScope, new JSString("/local"));
+            helper.addTemplateTagsRoot("/local/support");
     
             
             

@@ -33,7 +33,6 @@ import ed.js.JSObject;
 import ed.js.engine.JSCompiledScript;
 import ed.js.engine.Scope;
 import ed.lang.StackTraceHolder;
-import ed.log.Level;
 import ed.log.Logger;
 import ed.util.Dependency;
 import ed.util.Pair;
@@ -128,8 +127,8 @@ public class Djang10Source extends JxpSource {
         JSFileLibrary js = JSFileLibrary.loadLibraryFromEd("ed/appserver/templates/djang10/js", "djang10", scope);
         
         for(String jsFile : new String[] {"defaulttags", "loader_tags", "defaultfilters", "tengen_extras"}) {
-            JSFunction jsFileFn = (JSFunction)js.get(jsFile);
-            Library lib = (Library) jsHelper.evalLibrary.call(scope, jsFileFn);
+            JSCompiledScript jsFileFn = (JSCompiledScript)js.get(jsFile);
+            Library lib = jsHelper.evalLibrary(scope, jsFileFn);
 
             jsHelper.addDefaultLibrary((JxpSource)jsFileFn.get(JxpSource.JXP_SOURCE_PROP), lib);
         }
