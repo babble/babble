@@ -112,6 +112,23 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper {
                         return arr;
                     }
                 } );
+
+            _prototype.set( "map" , new JSFunctionCalls1() {
+                    public Object call( Scope s , Object fo , Object foo[] ){
+                        if( ! ( fo instanceof JSFunction ) )
+                            throw new RuntimeException( "first argument to map must be a function" );
+                        JSFunction f = (JSFunction)fo;
+                        JSPySequenceListWrapper a = (JSPySequenceListWrapper)(s.getThis());
+                        JSArray arr = new JSArray();
+
+                        for ( Object o : a._pSeq ){
+                            Object res  = f.call( s , toJS( o ) );
+                            arr.add( res );
+                        }
+
+                        return arr;
+                    }
+                } );
         }
     }
 
