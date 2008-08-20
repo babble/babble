@@ -428,6 +428,22 @@ public class JSBuiltInFunctions {
     }
 
     public static class CrID extends JSFunctionCalls1 {
+        
+        public CrID(){
+            set( "isValid" , new JSFunctionCalls1(){
+                    public Object call( Scope scope , Object idString , Object extra[] ){
+                        if ( idString == null )
+                            return false;
+
+                        if ( idString instanceof ed.db.ObjectId )
+                            return true;
+
+                        return ed.db.ObjectId.isValid( idString.toString() );
+                    }            
+                }
+                );
+            
+        }
 
         public Object call( Scope scope , Object idString , Object extra[] ){
             if ( idString == null )
