@@ -1,4 +1,4 @@
-// ConsoleAppender.java
+// PrintStreamAppender.java
 
 /**
 *    Copyright (C) 2008 10gen Inc.
@@ -18,10 +18,20 @@
 
 package ed.log;
 
-public class ConsoleAppender extends PrintStreamAppender {
+import java.io.*;
 
-    public ConsoleAppender(){
-        super( System.out );
+public class PrintStreamAppender implements Appender {
+
+    public PrintStreamAppender( PrintStream out ){
+        _out = out;
     }
+
+    public void append( String loggerName , ed.js.JSDate date , Level level , String msg , Throwable throwable , Thread thread ){
+        _out.println( "[" + date + "] " + thread.getName() + " || " + loggerName + " " + level + " >> " + msg );
+        if ( throwable != null )
+            throwable.printStackTrace( _out );
+    }
+
+    final PrintStream _out;
 
 }
