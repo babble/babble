@@ -168,23 +168,36 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     }
 
     public PyObject callPython( Object [] params , JSObject kwargs ){
-        Collection<String> keys = kwargs.keySet();
+        Collection<String> keys = null;
+        String [] pykeys = null;
+
         int length = 0;
         if( params != null ){
             length += params.length;
         }
-        length += keys.size();
+
+        if( kwargs != null ){
+            keys = kwargs.keySet();
+            length += keys.size();
+            pykeys = new String[ keys.size() ];
+        }
+
         PyObject [] pParams = new PyObject[ length ];
-        String [] pykeys = new String[ keys.size() ];
         int i;
         for( i = 0; i < params.length; ++i ){
             pParams[ i ] = toPython( params[ i ] );
         }
+
         int j = 0;
-        for( String key : keys ){
-            pykeys[ j ] = key;
-            pParams[ i + j ] = toPython( kwargs.get( key ) );
-            ++j;
+        if( kwargs != null ){
+            for( String key : keys ){
+                pykeys[ j ] = key;
+                pParams[ i + j ] = toPython( kwargs.get( key ) );
+                ++j;
+            }
+        }
+        else{
+            pykeys = new String[0];
         }
         
         return _p.__call__( pParams , pykeys );

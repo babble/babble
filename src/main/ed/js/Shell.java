@@ -20,6 +20,7 @@ package ed.js;
 
 import java.io.*;
 import java.util.*;
+
 import javax.script.*;
 
 import jline.*;
@@ -113,7 +114,14 @@ public class Shell {
                 }
             } , true);
 
-        Djang10Source.install(s);
+        Map<String, JSFileLibrary> rootFileMap = new HashMap<String, JSFileLibrary>();
+        for(String rootKey : new String[] {"local", "core", "external"}) {
+            Object temp = s.get(rootKey);
+            if(temp instanceof JSFileLibrary)
+                rootFileMap.put(rootKey, (JSFileLibrary)temp);
+        }
+        
+        Djang10Source.install(s, rootFileMap, ed.log.Logger.getLogger( "shell" ));
     }
 
     /** @unexpose */
