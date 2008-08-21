@@ -64,6 +64,14 @@ public class Logger extends JSFunctionCalls2 {
 	return _tl.get();
     }
 
+    // -----
+    
+    public static void setThreadLocalAppender( Appender a ){
+        _tlAppender.set( a );
+    }
+    
+    private static final ThreadLocal<Appender> _tlAppender = new ThreadLocal<Appender>();
+
     // -------------------
 
     public Logger( Logger parent , String name ){
@@ -82,6 +90,7 @@ public class Logger extends JSFunctionCalls2 {
     public void makeThreadLocal(){
 	_tl.set( this );
     }
+
 
     // --------------------
 
@@ -247,6 +256,18 @@ public class Logger extends JSFunctionCalls2 {
             System.err.println( "couldn't fix stack trace" );
             t.printStackTrace();
         }
+        
+        Appender tl = _tlAppender.get();
+        if ( tl != null ){
+            try {
+                tl.append( _fullName , date , level , msg , throwable , thread );
+            }
+            catch ( Throwable t ){
+                System.err.println( "error running tl appender" );
+                t.printStackTrace();
+            }
+        }
+            
 
         Logger l = this;
         while ( l != null ){
@@ -264,7 +285,7 @@ public class Logger extends JSFunctionCalls2 {
                         catch ( Throwable tt ){
                             tt.printStackTrace();
                         }
-                    
+                        
                         t.printStackTrace(); // Logger
                     }
                 }
