@@ -167,8 +167,8 @@ public class AppServer implements HttpHandler {
 
         response.setAppRequest( ar );
         
-        ar.turnOnProfiling();
-
+        ar.turnOnDevFeatures();
+            
         final ed.db.DBBase db = ctxt.getDB();
         try {
             ar.makeThreadLocal();
@@ -180,6 +180,7 @@ public class AppServer implements HttpHandler {
         finally {
             db.requestDone();
             ar.unmakeThreadLocal();
+            Logger.setThreadLocalAppender( null );            
 
             final long t = System.currentTimeMillis() - start;
             if ( t > 1500 )
@@ -317,10 +318,17 @@ public class AppServer implements HttpHandler {
         }
         
         final JxpWriter out = response.getWriter();
-
+        
         if ( ar._profiler != null && showProfilingInfo( request , user ) ){
             out.print( "<!--\n" );
             out.print( ar._profiler.toString() );
+            out.print( "\n-->\n" );
+        }
+
+        if ( ar._appenderWriter != null ){
+            out.print( "<!--\n" );
+            ar._appenderWriter.flush();
+            out.print( ar._appenderStream.toString() );
             out.print( "\n-->\n" );
         }
         

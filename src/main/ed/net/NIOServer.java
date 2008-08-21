@@ -28,6 +28,8 @@ public abstract class NIOServer extends Thread {
 
     final static boolean D = Boolean.getBoolean( "DEBUG.NIO" );
     final static long SELECT_TIMEOUT = 10;
+    final static int DEAD_CYCLES = 10000;
+    final static int DEAD_CYCLES_WARN = DEAD_CYCLES - 50;
     
     public NIOServer( int port )
         throws IOException {
@@ -103,10 +105,10 @@ public abstract class NIOServer extends Thread {
                 if ( selectTime == 0 ){
                     deadSelectorCount++;
                     
-                    if ( deadSelectorCount > 950 ){
+                    if ( deadSelectorCount > DEAD_CYCLES_WARN ){
                         System.err.println( "got 0 keys after waiting :" + selectTime + " " + deadSelectorCount + " in a row." );
                         
-                        if ( deadSelectorCount > 1000 ){
+                        if ( deadSelectorCount > DEAD_CYCLES ){
                             System.err.println( "****  KILLING SELECTOR AND STARTING OVER - should be taking good channels " );
                             try {
                                 _initSelector();

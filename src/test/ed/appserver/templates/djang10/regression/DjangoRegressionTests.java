@@ -21,6 +21,8 @@ import static org.testng.AssertJUnit.assertEquals;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import org.testng.ITest;
@@ -112,7 +114,7 @@ public class DjangoRegressionTests {
         JSHelper jsHelper;
         try {
             Encoding.install(globalScope);
-            jsHelper = Djang10Source.install(globalScope);
+            jsHelper = Djang10Source.install(globalScope, Collections.EMPTY_MAP, log);
             
             JxpSource preambleSource = JxpSource.getSource(new File(basePath, "preamble.js"));
             preambleSource.getFunction().call(globalScope);

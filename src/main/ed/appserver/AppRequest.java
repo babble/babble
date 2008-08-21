@@ -47,6 +47,8 @@ public class AppRequest {
         _uri = uri == null ? "/" : uri;
 
         _fixer = new URLFixer( _request , this );
+	if ( _context._admin )
+	    _fixer.setCDNPrefix( "" );
     }
 
     void setResponse( HttpResponse response ){
@@ -85,6 +87,11 @@ public class AppRequest {
     
     boolean isScopeInited(){
         return _scope != null;
+    }
+    
+    public boolean hasDevFeatureEnabled( String name ){
+        getScope();
+        return JSInternalFunctions.JS_evalToBool( _session.get( "dev_" + name ) );
     }
 
     public boolean canBeLong(){
@@ -240,6 +247,24 @@ public class AppRequest {
             ((ServletWriter)o).print( s );
     }
 
+    void turnOnDevFeatures(){
+        if ( hasDevFeatureEnabled( "profiling" ) )
+            turnOnProfiling();
+        
+        if ( hasDevFeatureEnabled( "logs" ) )
+            turnOnAppender();
+    }
+
+    public void turnOnAppender(){
+        if ( _appenderWriter != null )
+            return;
+
+        _appenderStream = new ByteArrayOutputStream( 1024 );
+        _appenderWriter = new PrintStream( _appenderStream );
+        Logger.setThreadLocalAppender( new PrintStreamAppender( _appenderWriter ) );
+    }
+        
+
     public void turnOnProfiling(){
         if ( _profiler != null )
             return;
@@ -318,8 +343,13 @@ public class AppRequest {
     private boolean _done = false;
 
     String _wantedURI = null;
-    ProfilingTracker _profiler;
     JSFunction _wantedFunction = null;
+
+    ProfilingTracker _profiler;
+    OutputStream _appenderStream;
+    PrintStream _appenderWriter;
+
+
 
     static ThreadLocal<AppRequest> _tl = new ThreadLocal<AppRequest>();
     static private final String FUNCTION_CALL_STRING = ( "getOverrideURI-FunctionCall-special" + Math.random() ).intern();
