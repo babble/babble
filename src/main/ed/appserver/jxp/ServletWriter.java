@@ -19,6 +19,7 @@
 package ed.appserver.jxp;
 
 import java.io.*;
+import java.util.*;
 import java.util.regex.*;
 
 import ed.js.*;
@@ -168,15 +169,22 @@ public class ServletWriter extends JSFunctionCalls1 {
             if ( tag.equalsIgnoreCase( "img" ) ||
                  tag.equalsIgnoreCase( "script" ) )
                 srcName = "src";
-            else if ( tag.equalsIgnoreCase( "link" ) )
+            else if ( tag.equalsIgnoreCase( "link" ) ){
                 srcName = "href";
+                Matcher m = _attributeMatcher( "type" , s );
+                if ( m.find() ){
+                    String type = m.group(1);
+                    if ( type.contains( "rss" ) || type.contains( "atom" ) )
+                        srcName = null;
+                }
+            }
                 
             if ( srcName != null ){
                     
                 s = s.substring( 2 + tag.length() );
                     
                 // TODO: cache pattern or something
-                Matcher m = Pattern.compile( srcName + " *= *['\"](.+?)['\"]" , Pattern.CASE_INSENSITIVE ).matcher( s );
+                Matcher m = _attributeMatcher( srcName , s );
                 if ( ! m.find() )
                     return false;
                     
@@ -253,8 +261,18 @@ public class ServletWriter extends JSFunctionCalls1 {
         }
         return -1;
     }
-        
+     
+    static Matcher _attributeMatcher( String name , String tag ){
+        Pattern p = _attPatternCache.get( name );
+        if ( p == null ){
+            p = Pattern.compile( name + " *= *['\"](.+?)['\"]" , Pattern.CASE_INSENSITIVE );
+            _attPatternCache.put( name , p );
+        }
+        return p.matcher( tag );
+    }
+   
     static final Pattern _tagPattern = Pattern.compile( "<(/?\\w+)[ >]" , Pattern.CASE_INSENSITIVE );
+    static final Map<String,Pattern> _attPatternCache = Collections.synchronizedMap( new HashMap<String,Pattern>() );
     final Matcher _matcher = _tagPattern.matcher("");
     final StringBuilder _extra = new StringBuilder();
 

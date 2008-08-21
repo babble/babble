@@ -126,6 +126,25 @@ public class JxpServletTest extends ed.TestCase {
         assertClose( "abc <img src='/foo.com/1.jpg?lm=" + fooone.lastModified() + "' > 123" , w.getContent() );
     }
 
+
+    @Test(groups = {"basic"})
+    public void testLink(){
+
+        JxpWriter w = new JxpWriter.Basic();
+        ServletWriter p = new ServletWriter( w , STATIC , SUFFIX , CONTEXT   );
+        String s = "a <link href='/1.jpg' >";
+        p.print( s );
+        assertClose( "a <link href='" + STATIC + "/1.jpg?lm=" + one.lastModified() + "' >" , w.getContent() );
+
+        w = new JxpWriter.Basic();
+        p = new ServletWriter( w , STATIC , SUFFIX , CONTEXT   );
+        s = "a <link href='/1.jpg' type=\"application/rss+xml\" >";
+        p.print( s );
+        assertClose( s , w.getContent() );
+        
+    }
+
+    
     public static void main( String args[] ){
         (new JxpServletTest()).runConsole();
     }
