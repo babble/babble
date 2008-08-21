@@ -132,9 +132,7 @@ public class PHPConvertor extends Value implements ObjectConvertor {
                         
         
         try {
-            Field f = _moduleContext.getClass().getDeclaredField( "_javaClassWrappers" );
-            f.setAccessible( true );
-            Map m = (Map)(f.get( _moduleContext ));
+            Map m = (Map)(PHP.getField( _moduleContext , "_javaClassWrappers" ));
             m.remove( c.getName() );
             m.remove( c.getName().toLowerCase() );
             checkConfigged( o , false );

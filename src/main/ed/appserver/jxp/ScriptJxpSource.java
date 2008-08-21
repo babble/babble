@@ -51,22 +51,8 @@ public class ScriptJxpSource extends JxpSource {
             public Object call( Scope s , Object extra[] ){
                 try {
                     AppRequest ar = (AppRequest)(s.get( "__apprequest__" ));
-                    JxpScriptContext context = new JxpScriptContext( ar.getRequest() , ar.getResponse() , ar );
+                    JxpScriptContext context = new JxpScriptContext( _language.getObjectConvertor() , ar.getRequest() , ar.getResponse() , ar );
                     
-                    HashMap foo = new HashMap(){
-                            public String eliot(){
-                                return "awesome";
-                            }
-                        };
-                    foo.put( "silly" , "17" );
-                    foo.put( "myfunc" , new ed.js.func.JSFunctionCalls0(){
-                            public Object call( Scope s , Object extra[] ){
-                                return "hehe";
-                            }
-                        }
-                        );
-                    context.setAttribute( "blah" , foo , 0 );
-
                     return _engine.eval( new InputStreamReader( getInputStream() ) , context );
                 }
                 catch ( Exception e ){

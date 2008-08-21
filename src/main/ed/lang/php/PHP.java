@@ -23,6 +23,7 @@ import javax.script.*;
 
 import ed.lang.*;
 import ed.js.engine.*;
+import ed.appserver.jxp.*;
 
 import com.caucho.quercus.*;
 import com.caucho.quercus.env.*;
@@ -45,7 +46,17 @@ public class PHP {
     static PHPConvertor getConvertor( Env env ){
         Value convertor = env.getConstant( "_10genconvertor");
         if ( ! ( convertor instanceof PHPConvertor) ){
-            convertor = new PHPConvertor( env );
+
+            JxpScriptContext context = (JxpScriptContext)getField( env , "_scriptContext" );
+            if ( context != null && context.getObjectConvertor() != null )
+                context = (JxpScriptContext)context.getObjectConvertor();
+            else {
+                convertor = new PHPConvertor( env );
+                if ( context != null )
+                    context.setObjectConvertor( (ObjectConvertor)convertor );
+            }
+
+
             env.addConstant( "_10genconvertor" , convertor , false );
         }
         return (PHPConvertor)convertor;
@@ -70,5 +81,18 @@ public class PHP {
             throw new RuntimeException( "can't do quercus hack" , e );
         }
 
+    }
+
+    static Object getField( Object o , String name ){
+        if ( o == null )
+            throw new NullPointerException( "o can't be null" );
+        try {
+            Field f = o.getClass().getDeclaredField( name );
+            f.setAccessible( true );
+            return f.get( o );
+        }
+        catch ( Exception e ){
+            throw new RuntimeException( "your hack failed.  trying to get [" + name + "] from [" + o.getClass().getName() + "]" , e );
+        }
     }
 }

@@ -181,8 +181,10 @@ public class Shell {
             }
             else if ( Language.find( a ) != null && Language.find( a ).isScriptable() ){
                 
-                ScriptEngine engine = Language.find( a ).getScriptEngine();
-                JxpScriptContext context = new JxpScriptContext( s );
+                Language lang = Language.find( a );
+
+                ScriptEngine engine = lang.getScriptEngine();
+                JxpScriptContext context = new JxpScriptContext( lang.getObjectConvertor() , s );
 
                 try {
                     engine.eval( new InputStreamReader( new FileInputStream( new File( a ) ) ) , context );

@@ -30,7 +30,7 @@ public abstract class Language {
         return false;
     }
 
-    public ObjectConvertor getConvertor( ScriptEngine engine ){
+    public ObjectConvertor getObjectConvertor(){
         throw new UnsupportedOperationException();
     }
 
@@ -57,8 +57,8 @@ public abstract class Language {
                 return ed.lang.php.PHP.getScriptEngine();
             }
 
-            public ObjectConvertor getConvertor( ScriptEngine engine ){
-                throw new RuntimeException( "not sure yet" );
+            public ObjectConvertor getObjectConvertor(){
+                return null;
             }
         };
     

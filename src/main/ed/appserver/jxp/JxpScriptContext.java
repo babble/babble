@@ -26,15 +26,18 @@ import ed.js.*;
 import ed.js.engine.*;
 import ed.appserver.*;
 import ed.net.httpserver.*;
+import ed.lang.*;
 
 public class JxpScriptContext implements ScriptContext {
     
-    public JxpScriptContext( Scope s ){
+    public JxpScriptContext( ObjectConvertor convertor , Scope s ){
+        _convertor = convertor;
         _scope = s;
         _writer = new OutputStreamWriter( System.out );
     }
 
-    public JxpScriptContext( HttpRequest request , HttpResponse response , AppRequest ar ){
+    public JxpScriptContext( ObjectConvertor convertor , HttpRequest request , HttpResponse response , AppRequest ar ){
+        _convertor = convertor;
         _scope = ar.getScope();
         _writer = ( new ServletWriter( response.getWriter() , ar.getURLFixer() ) ).asJavaWriter();
     }
@@ -46,7 +49,10 @@ public class JxpScriptContext implements ScriptContext {
     public Object getAttribute(String name, int scope){
         if ( name.equals( "_10gen" ) || name.equals( "_xgen" ) )
             return _scope;
-        return _scope.get( name );
+        Object o = _scope.get( name );
+        if ( _convertor != null )
+            o = _convertor.toOther( o );
+        return o;
     }
     
     public int getAttributesScope(String name){
@@ -78,6 +84,8 @@ public class JxpScriptContext implements ScriptContext {
     }
     
     public void setAttribute(String name, Object value, int scope){
+        if ( _convertor != null )
+            value = _convertor.toJS( value );
         _scope.put( name , value , false );
     }
 
@@ -97,9 +105,18 @@ public class JxpScriptContext implements ScriptContext {
         throw new RuntimeException( "you can't change the writer" ); 
     }
     
+    public ObjectConvertor getObjectConvertor(){
+        return _convertor;
+    }
+
+    public void setObjectConvertor( ObjectConvertor convertor ){
+        _convertor = convertor;
+    }
+
 
     final Scope _scope;
     final Writer _writer;
+    ObjectConvertor _convertor;
 
     static final List<Integer> SCOPES;
     static {

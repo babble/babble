@@ -49,6 +49,7 @@ public class PHPJSObjectClassDef extends JavaClassDef {
         Adapter( Env env , JSObject obj , PHPJSObjectClassDef def ){
             super( env , obj , def );
             _object = obj;
+            _convertor = PHP.getConvertor( env );
             if ( PHP.DEBUG ) System.out.println( "wrapping : " + obj );
         }
         
@@ -60,7 +61,6 @@ public class PHPJSObjectClassDef extends JavaClassDef {
                 if ( ret instanceof JavaValue && ret.toJavaObject() instanceof JSObject ){
                     ret = wrapJava( ret.toJavaObject() );
                 }
-                System.out.println( ret.getClass() );
                 return ret;
             }
             
@@ -70,10 +70,8 @@ public class PHPJSObjectClassDef extends JavaClassDef {
                 s = Scope.getAScope();
             s = s.child();
             
-            PHPConvertor convertor = PHP.getConvertor( env );
-            
             s.setThis( _object );
-            Object ret = func.call( s , convertor.toJS( args ) );
+            Object ret = func.call( s , _convertor.toJS( args ) );
             return wrapJava( ret );
         }
         
@@ -120,7 +118,7 @@ public class PHPJSObjectClassDef extends JavaClassDef {
         }
 
         public Value putImpl(Value key, Value value){
-            throw new UnimplementedException();
+            return wrapJava( _object.set( _convertor.toJS( key ) , _convertor.toJS( value ) ) );
         }
 
         public void clear(){
@@ -136,6 +134,7 @@ public class PHPJSObjectClassDef extends JavaClassDef {
         }
 
         final JSObject _object;
+        final PHPConvertor _convertor;
     }
 
 
