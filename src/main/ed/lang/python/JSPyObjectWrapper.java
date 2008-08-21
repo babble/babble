@@ -31,11 +31,64 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
 
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.JSPYOBJECTWRAPPER" );
 
+
+    static JSFunction _apply = new ed.js.func.JSFunctionCalls3(){
+            public Object call( Scope s , Object obj , Object args , Object explodeArgs , Object [] foo ){
+                JSPyObjectWrapper func = (JSPyObjectWrapper)s.getThis();
+
+                if ( args == null )
+                    args = new JSArray();
+
+                if( ! (args instanceof JSArray) )
+                    throw new RuntimeException("second argument to JSPyObjectWrapper.prototype.apply must be an array, not a " + args.getClass() );
+
+                JSArray jary = (JSArray)args;
+
+                if ( ! (explodeArgs instanceof JSObject ) ){
+                    throw new RuntimeException("third argument to JSPyObjectWrapper.prototype.apply must be an Object, not a " + args.getClass() );
+                }
+
+                JSObject jo = (JSObject)explodeArgs;
+
+                s.setThis( obj );
+                try {
+                    return toJS( func.callPython( jary.toArray() , jo ) );
+                }
+                finally {
+                    s.clearThisNormal( null );
+                }
+            }
+        };
+
+
+    public static class JSPyObjectWrapperCons extends JSFunctionCalls1 {
+        public JSObject _throwException(){
+            throw new RuntimeException("you shouldn't be able to instantiate an object wrapper from JS");
+        }
+
+        public JSObject newOne(){
+            return _throwException();
+        }
+
+        public Object call( Scope scope , Object a , Object[] extra ){
+            return _throwException();
+        }
+
+        protected void init(){
+            JSFunction._init( this );
+            _prototype.set( "apply" , _apply );
+        }
+    }
+
+    private final static JSFunction _cons = new JSPyObjectWrapperCons();
+
     private JSPyObjectWrapper( ){
+        setConstructor( _cons );
         _p = null;
     }
 
     public JSPyObjectWrapper( PyObject o ){
+        setConstructor( _cons );
         _p = o;
         if ( _p == null )
             throw new NullPointerException( "don't think you should create a JSPyObjectWrapper for null" );
@@ -111,15 +164,30 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     }
     
     public Object call( Scope s , Object [] params ){
-        return toJS( callPython( params ) );
+        return toJS( callPython( params , null ) );
     }
 
-    public PyObject callPython( Object [] params ){
-        PyObject [] pParams = new PyObject[ params == null ? 0 : params.length];
-        for(int i = 0; i < pParams.length; ++i){
-            pParams[i] = toPython(params[i]);
+    public PyObject callPython( Object [] params , JSObject kwargs ){
+        Collection<String> keys = kwargs.keySet();
+        int length = 0;
+        if( params != null ){
+            length += params.length;
         }
-        return _p.__call__( pParams , new String[0] );
+        length += keys.size();
+        PyObject [] pParams = new PyObject[ length ];
+        String [] pykeys = new String[ keys.size() ];
+        int i;
+        for( i = 0; i < params.length; ++i ){
+            pParams[ i ] = toPython( params[ i ] );
+        }
+        int j = 0;
+        for( String key : keys ){
+            pykeys[ j ] = key;
+            pParams[ i + j ] = toPython( kwargs.get( key ) );
+            ++j;
+        }
+        
+        return _p.__call__( pParams , pykeys );
     }
 
     public Collection<String> keySet( boolean includePrototype ){
@@ -163,7 +231,7 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
         
         return keys;
     }
-    
+
     public JSFunction getConstructor(){
         throw new RuntimeException( "not implemented" );
     }
@@ -177,7 +245,7 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     public String toString(){
         return _p.toString();
     }
-    
+
     protected PyObject _p;
 }
     

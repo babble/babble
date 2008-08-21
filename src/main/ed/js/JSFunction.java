@@ -438,7 +438,7 @@ public abstract class JSFunction extends JSFunctionBase {
         _cache.lock();
     }
     
-    static void _init( JSFunction fcons ){
+    public static void _init( JSFunction fcons ){
 
         if ( _staticFunctions == null )
             return;
