@@ -43,7 +43,7 @@ public class JSPyClassWrapper extends JSPyObjectWrapper {
         }
 
         JSPyObjectWrapper shell = (JSPyObjectWrapper)t;
-        PyObject p = callPython(params);
+        PyObject p = callPython(params, null);
         shell.setContained(p);
         return this;
     }

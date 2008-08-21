@@ -83,7 +83,9 @@ var do_setNode =
     tengen_extras.do_setNode =
     function(parser, token) {
 
-    log.error("The Set tag has been deprecated please use the standard with tag.  This tag will modify the context object!");
+    var location = token.getOrigin() + ":" + token.getStartLine();
+    
+    log.error("The Set tag has been deprecated please use the standard with tag.  This tag will modify the context object! (" + location + ")");
     
     var pattern = /^\s*\S+\s+(\S*)\s*=\s*(.+?)\s*\;?$/;
     var matches = pattern.exec(token.contents);

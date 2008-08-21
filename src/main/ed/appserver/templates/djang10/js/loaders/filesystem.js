@@ -29,7 +29,7 @@ var load_template_source =
 
     template_name = template_name.trim();
     if(template_name[0] == "/") {
-        log.debug("can't load absolute paths: " + template_name);
+        log.debug("can't load absolute paths [" + template_name + "]");
         return null;
     }
 
@@ -38,47 +38,34 @@ var load_template_source =
     for(var i=template_roots.length-1; i >=0; i--) {
         var template_root = template_roots[i];
 
-        log.debug("checking template root: " + template_root);
+        log.debug("checking template root [" + template_root + "]");
 
-        if(template_root instanceof String)
-            template_root = resolve_abs_path(template_root);
+        if(template_root instanceof String) {
+            try {
+                template_root = djang10.resolve_absolute_path(template_root);
+            } catch(e) {
+                log.debug("failed to resolve the template root [" + template_root + "]. " + e);
+                continue;
+            }
+        }
 
         if(!(template_root instanceof "ed.appserver.JSFileLibrary")) {
             log.debug("template root: " + template_root + " is not a FileLibrary, got: " + template_root)
             continue;
         }
 
-        var template = template_root[template_name];
+        var template = template_root.getFromPath(template_name);
         if (template instanceof "ed.appserver.templates.djang10.Djang10CompiledScript") {
-            log.debug("Found: " + template_root + "/" + template_name);
+            log.debug("Found [" + template_root + "/" + template_name + "]");
             return template;
         }
         
         log.debug("template root["+template_root+"] doesn't contain the template["+template_name+"]");
     }
     
-    log.debug("failed to find the template: " + template_name);
+    log.debug("failed to find the template [" + template_name + "]");
     
     return null;
-};
-
-//FIXME: merge w. asbolute
-var path_re = new RegExp("^/(.+?)(?:/(.*))?$");
-
-var resolve_abs_path =
-    function(path) {
-
-    path = path.trim().replace(/\/+/g,"/");
-    if(path[0] != "/")
-        return null;
-
-    var parts = path_re.exec(path);
-    
-    var root = scope[parts[1]];
-    if(!(root instanceof "ed.appserver.JSFileLibrary"))
-        return null;
-
-    return root.getFromPath(parts[2]);
 };
 
 return filesystem;

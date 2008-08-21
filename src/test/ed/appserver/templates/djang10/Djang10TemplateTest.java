@@ -21,7 +21,9 @@ import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.testng.ITest;
 import org.testng.annotations.AfterClass;
@@ -63,9 +65,13 @@ public class Djang10TemplateTest {
             globalScope.set("log", logger);
             logger.makeThreadLocal();
             
+            Map<String, JSFileLibrary> rootFiles = new HashMap<String, JSFileLibrary>();
+            rootFiles.put("local", new JSFileLibrary(new File("src/test/ed/appserver/templates/djang10"), "local", globalScope));
+            for(Map.Entry<String, JSFileLibrary> rootFileLib : rootFiles.entrySet())
+                globalScope.set(rootFileLib.getKey(), rootFileLib.getValue());
+            
             Encoding.install(globalScope);
-            JSHelper helper = Djang10Source.install(globalScope);
-            globalScope.set("local", new JSFileLibrary(new File("src/test/ed/appserver/templates/djang10"), "local", globalScope));
+            JSHelper helper = Djang10Source.install(globalScope, rootFiles, logger);
     
             globalScope.set("SYSOUT", new JSFunctionCalls1() {
                 public Object call(Scope scope, Object p0, Object[] extra) {
