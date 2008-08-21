@@ -229,7 +229,7 @@ public final class Scope implements JSObject , Bindings {
             for ( int i=_with.size()-1; i>=0; i-- ){
                 JSObject temp = _with.get( i );
                 if ( temp.containsKey( name ) ){
-                    return temp.set( name , o );
+                    return temp.set( name , _fixNull( o ) );
                 }
             }
         }
@@ -334,11 +334,8 @@ public final class Scope implements JSObject , Bindings {
         }
         
         Object foo =  _killed || _objects  == null ? null : _objects.get( nameHash , name );
-        if ( foo != null ){
-            if ( foo == NULL )
-                return null;
-            return foo;
-        }
+        if ( foo != null )
+            return _fixNull( foo );
         
         // WITH
         if ( _with != null ){
@@ -348,7 +345,7 @@ public final class Scope implements JSObject , Bindings {
                 if ( temp.containsKey( name ) ){
                     if ( with != null && with.length > 0 )
                         with[0] = temp;
-                    return temp.get( name );
+                    return _fixNull( temp.get( name ) );
                 }
             }
         }
