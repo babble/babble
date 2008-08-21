@@ -47,6 +47,8 @@ public class AppRequest {
         _uri = uri == null ? "/" : uri;
 
         _fixer = new URLFixer( _request , this );
+	if ( _context._admin )
+	    _fixer.setCDNPrefix( "" );
     }
 
     void setResponse( HttpResponse response ){
