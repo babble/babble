@@ -1,4 +1,4 @@
-// FileUtil.java
+// balancer3.js
 
 /**
 *    Copyright (C) 2008 10gen Inc.
@@ -16,37 +16,13 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ed.io;
+Cloud.Balancer = {};
 
-import java.io.*;
-
-public class FileUtil {
-    
-    public static String toString( File f ){
-	return clean( f.toString() );
-    }
-    
-    public static String clean( String s ){
-	if ( s.contains( "\\" ) ){
-	    StringBuilder buf = new StringBuilder();
-	    for ( int i=0; i<s.length(); i++ ){
-		char c = s.charAt(i);
-		if ( c == '\\' )
-		    c = '/';
-		buf.append( c );
-	    }
-	    s = buf.toString();
-	}
-	return s;
-    }
-
-    public static void deleteDirectory( File f ){
-
-        if ( f.isDirectory() ){
-            for ( File c : f.listFiles() )
-                deleteDirectory( c );
-        }
-        
-        f.delete();
-    }
+Cloud.Balancer.getAvailableDB = function(){
+    return "test1";
 }
+
+Cloud.Balancer.getAvailablePool = function(){
+    return "test1";
+}
+

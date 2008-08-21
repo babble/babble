@@ -15,59 +15,6 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-HackTemplate = function(content) {
-    this.content = content;
-};
-TemplateSyntaxError = function() {};
-
-SomeException = function() { }
-SomeException.prototype = {
-    silent_variable_failure : true
-};
-SomeOtherException = function() {}
-
-
-SomeClass = function() {
-    this.otherclass = new OtherClass();
-};
-SomeClass.prototype = {
-    method: function() {
-        return "SomeClass.method";
-    },
-    method2: function(o) {
-        return this.o;
-    },
-    method3: function() {
-        throw new SomeException();
-    },
-    method4: function() {
-        throw new SomeOtherException();
-    }
-};
-
-OtherClass = function() {};
-OtherClass.prototype = {
-    method: function() {
-        return "OtherClass.method";
-    }
-};
-
-UnsafeClass = function() {};
-UnsafeClass.prototype.toString = function() {
-    return "you & me";
-};
-
-SafeClass = function() {};
-SafeClass.prototype.toString = function() {
-    return djang10.mark_safe("you &gt; me");
-};
-
-var from_now = function(sec_offset) {
-    var now = new Date();
-    now.setSeconds(now.getSeconds() + sec_offset);
-    return now;
-};
-
 var aDate = new OldDate(1981, 12-1, 20, 15, 11, 37);
 OtherClass2 = function(x) {
     this.prop = x;

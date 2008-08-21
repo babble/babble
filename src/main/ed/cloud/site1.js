@@ -37,7 +37,7 @@ Cloud.Environment.prototype.__defineGetter__( "aliases" , function(){ return thi
 Cloud.Environment.prototype.__defineSetter__( "aliases" , 
                                               function( aliases ){ 
                                                   if ( ! aliases )
-                                                      return this._aliases = null;
+                                                      return this._aliases = [];
 
                                                   if ( isArray( aliases ) )
                                                       return this._aliases = aliases;
@@ -152,20 +152,36 @@ Cloud.Site.prototype.findEnvironmentById = function( id ){
 Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool , aliases ){
     if ( isObject( name ) && branch == null ){
         var o = name;
-        name = o.name;
-        branch = o.branch;
-        db = o.db;
-        pool = o.pool;
-        aliases = o.aliases;
+        var tempID = o.iid || o.id;
+
+        var e = {};
+        if ( tempID )
+            e = this.findEnvironmentById( tempID ) || {};
+
+        name = o.name || e.name;
+        branch = o.branch || e.branch;
+        db = o.db || e.db;
+        pool = o.pool || e.pool;
+        aliases = o.aliases || e.aliases;
+
+            
     }
         
     if ( ! name )
         throw "envinroment must have a name";
 
-    if ( ! branch )
-        throw "envinroment must have a branch";
+    var e = this.findEnvironmentByName( name );
     
+    if ( ! branch ){
+        if ( e ) branch = e.branch;
+        if ( ! branch )
+            throw "envinroment must have a branch";
+    }
+    
+        
     if ( ! db ){
+        if ( e ) db = e.db;
+
         if ( this.findDBByName( name ) )
             db = name;
 
@@ -176,13 +192,16 @@ Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool , a
     if ( ! this.findDBByName( db ) )
         throw "no db with name [" + db + "]";
 
-    if ( ! pool )
-        throw "no pool and can't allocate yet";
-
-    if ( ! Cloud.Pool.findByName( pool ) )
+    if ( ! pool ){
+        if ( e ) pool = e.pool;
+        if ( ! pool )
+            pool = Cloud.Balancer.getAvailablePool();
+    }
+    
+    if ( ! Cloud.Pool.findByName( pool ) ){
         throw "no pool with name [" + pool + "]";
+    }
 
-    var e = this.findEnvironmentByName( name );
     if ( e ){
         var changed = false;
 
@@ -204,7 +223,7 @@ Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool , a
         if ( e.aliases != aliases ){
             var old = e.aliases;
             e.aliases = aliases;
-            if ( old.hashCode() != e.aliases.hashCode() )
+            if ( old == null || old.hashCode() != e.aliases.hashCode() )
                 changed = true;
         }
 
@@ -321,7 +340,7 @@ Cloud.Site.prototype.upsertDB = function( name , server ){
         throw "need to specify db name";
         
     if ( ! server )
-        throw "no server specified and can't auto allocate yet";
+        server = Cloud.Balancer.getAvailableDB();
     
     if ( ! Cloud.findDBByName( server ) )
         throw "can't find db [" + server + "]";
@@ -398,6 +417,53 @@ Cloud.Site.prototype.getGitBranchNames = function( force ){
     
     return javaStatic( "ed.util.GitUtils" , "getAllBranchAndTagNames" , root );
 };
+
+Cloud.Site.prototype.updateEnvironment = function( envName , fullReset , dryRun ){
+    var command = fullReset ? "reset" : "update";
+
+    var env = this.findEnvironment( envName );
+    if ( ! env )
+        throw "can't find environment [" + envName + "]";
+
+    var p = db.pools.findOne( { name : env.pool } );
+    if ( ! p )
+        throw "couldn't find pool [" + env.pool + "]";
+    
+    var threads = [];
+
+    var hostName = env.name + "." + this.name + ".10gen.com";
+
+    var res = { ok : true };
+    for ( var i=0; i<p.machines.length; i++ ){
+        var machine = p.machines[i];
+	threads.push(
+	    fork( 
+		function(){
+		    try {
+			res[machine] = Cloud.Site.resetSiteOnHost( machine , hostName , command , dryRun );
+		    }
+		    catch ( e ){
+			res.ok = false;
+			res[machine] = e;
+		    }
+		}
+            )
+        );
+    }
+
+    for ( var i=0; i<threads.length; i++ ) threads[i].start();
+    for ( var i=0; i<threads.length; i++ ) threads[i].join();
+
+    return res;
+}
+
+Cloud.Site.resetSiteOnHost = function( machine , hostName , command , dryRun ){
+    command = command || "reset";
+    var cmd = "ssh " + machine + " \"curl -D - -s -H 'Host: " + hostName + "'\" local.10gen.com:8080/~" + command;
+    var res = dryRun ? {} : sysexec( cmd );
+    res.cmd = cmd;
+    return res;
+}
 
 // ---- Static Stuff -------
 

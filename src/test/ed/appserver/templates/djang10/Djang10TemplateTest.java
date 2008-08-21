@@ -37,7 +37,6 @@ import ed.js.JSArray;
 import ed.js.JSDate;
 import ed.js.JSFunction;
 import ed.js.JSLocalFile;
-import ed.js.JSObject;
 import ed.js.JSObjectBase;
 import ed.js.JSString;
 import ed.js.engine.Scope;
@@ -62,8 +61,7 @@ public class Djang10TemplateTest {
             //Load native objects
             Logger logger = Logger.getRoot();
             globalScope.set("log", logger);
-
-            Logger.getLogger("djang10.loaders").setLevel(Level.ERROR);
+            logger.makeThreadLocal();
             
             Encoding.install(globalScope);
             JSHelper helper = Djang10Source.install(globalScope);
@@ -82,8 +80,8 @@ public class Djang10TemplateTest {
             }, true);
             
             //configure Djang10 =====================================
-            helper.addTemplateRoot.call(globalScope, new JSString("/local"));
-            helper.addModuleRoot.call(globalScope, new JSString("/local/support"));
+            helper.addTemplateRoot(globalScope, new JSString("/local"));
+            helper.addTemplateTagsRoot("/local/support");
     
             
             
@@ -151,9 +149,6 @@ public class Djang10TemplateTest {
                 }
             }
             context.set("regroup_list", regroup_list); 
-            
-            logger.getChild("djang10").getChild("loaders").setLevel(Level.DEBUG);
-            logger.makeThreadLocal();
 
             //load the tests =========================
             final File dir = new File("src/test/ed/appserver/templates/djang10");

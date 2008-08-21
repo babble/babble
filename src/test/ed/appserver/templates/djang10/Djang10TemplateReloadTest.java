@@ -8,14 +8,15 @@ import java.io.PrintWriter;
 
 import org.testng.annotations.Test;
 
+import ed.js.Encoding;
 import ed.appserver.JSFileLibrary;
 import ed.appserver.templates.djang10.Printer.RedirectedPrinter;
-import ed.js.Encoding;
 import ed.js.JSLocalFile;
 import ed.js.JSObjectBase;
 import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
+import ed.log.Level;
 import ed.log.Logger;
 
 public class Djang10TemplateReloadTest {
@@ -131,7 +132,9 @@ public class Djang10TemplateReloadTest {
         try {
             //Load native objects
             Logger log = Logger.getRoot();
-            globalScope.set("log", log);            
+            globalScope.set("log", log);
+            log.makeThreadLocal();
+            
             Encoding.install(globalScope);
             JSHelper helper = Djang10Source.install(globalScope);
             globalScope.set("local", new JSFileLibrary(new File(TEST_DIR), "local", globalScope));
@@ -149,9 +152,7 @@ public class Djang10TemplateReloadTest {
             }, true);
             
             //configure Djang10 =====================================
-            helper.addTemplateRoot.call(globalScope, new JSString("/local"));
-            
-            log.makeThreadLocal();
+            helper.addTemplateRoot(globalScope, new JSString("/local"));
 
         }
         finally {
