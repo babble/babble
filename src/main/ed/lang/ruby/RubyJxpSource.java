@@ -39,10 +39,12 @@ import ed.util.Dependency;
 public class RubyJxpSource extends JxpSource {
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB");
+    static final boolean SKIP_XGEN_REQUIRED_LIBS = Boolean.getBoolean("DEBUG.RB.SKIPLIBS");
     static final RubyInstanceConfig config = new RubyInstanceConfig();
 
     static {
-	config.requiredLibraries().add("xgen_internals");
+	if (!SKIP_XGEN_REQUIRED_LIBS)
+	    config.requiredLibraries().add("xgen_internals");
     }
 
     /** Determines what major version of Ruby to compile: 1.8 (false) or YARV/1.9 (true). **/
@@ -85,6 +87,7 @@ public class RubyJxpSource extends JxpSource {
         final Node code = _getCode(); // Parsed Ruby code
         return new ed.js.func.JSFunctionCalls0() {
             public Object call(Scope s , Object unused[]) {
+		_addSiteRootToPath(s);
 		_setOutput(s);
 		_exposeScope(s);
 
@@ -124,6 +127,16 @@ public class RubyJxpSource extends JxpSource {
 	    bytes = script.getBytes();
 	}
 	return _runtime.parseInline(new ByteArrayInputStream(bytes), filePath, null);
+    }
+
+    protected void _addSiteRootToPath(Scope s) {
+	RubyString siteRoot = _runtime.newString(s.get("__instance__").toString().replace('\\', '/'));
+	RubyArray loadPath = (RubyArray)_runtime.getLoadService().getLoadPath();
+	if (loadPath.include_p(_runtime.getCurrentContext(), siteRoot).isFalse()) {
+	    if (DEBUG)
+		System.err.println("adding site root " + siteRoot + " to Ruby load path");
+	    loadPath.append(siteRoot);
+	}
     }
 
     /** Set Ruby's $stdout so that print/puts statements output to the right place. */
