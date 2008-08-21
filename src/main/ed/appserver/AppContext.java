@@ -207,7 +207,15 @@ public class AppContext {
 
         _scope.put( "globalHead" , _globalHead , true  );
 
-        Djang10Source.install(_scope);
+        Map<String, JSFileLibrary> rootFileMap = new HashMap<String, JSFileLibrary>();
+        for(String rootKey : new String[] {"local", "core", "external"}) {
+            Object temp = _scope.get(rootKey);
+            if(temp instanceof JSFileLibrary)
+                rootFileMap.put(rootKey, (JSFileLibrary)temp);
+        }
+        
+        Djang10Source.install(_scope, rootFileMap, _logger);
+        
 	_scope.lock( "user" ); // protection against global user object
 
     }

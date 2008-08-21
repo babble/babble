@@ -5,6 +5,8 @@ import static org.testng.AssertJUnit.assertEquals;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.testng.annotations.Test;
 
@@ -135,9 +137,13 @@ public class Djang10TemplateReloadTest {
             globalScope.set("log", log);
             log.makeThreadLocal();
             
+            Map<String, JSFileLibrary> rootFiles = new HashMap<String, JSFileLibrary>();
+            rootFiles.put("local", new JSFileLibrary(new File(TEST_DIR), "local", globalScope));
+            for(Map.Entry<String, JSFileLibrary> rootFileLib : rootFiles.entrySet())
+                globalScope.set(rootFileLib.getKey(), rootFileLib.getValue());
+            
             Encoding.install(globalScope);
-            JSHelper helper = Djang10Source.install(globalScope);
-            globalScope.set("local", new JSFileLibrary(new File(TEST_DIR), "local", globalScope));
+            JSHelper helper = Djang10Source.install(globalScope, rootFiles, log);
     
             globalScope.set("SYSOUT", new JSFunctionCalls1() {
                 public Object call(Scope scope, Object p0, Object[] extra) {
