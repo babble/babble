@@ -27,3 +27,13 @@ assert.eq( args[2] , 3 );
 
 assert.eq( kwargs.a , 'a' );
 assert.eq( kwargs.b , 'b' );
+
+
+var result = pyBar.apply(null, [], {b: 'b', c: 'cookie', a: 23});
+assert.eq( result[0] , 'cookie' );
+assert.eq( result[1] , 'b' );
+assert.eq( result[2] , 23 );
+
+assert.raises( function(){
+    pyBar.apply(null, [1], {b: 'b', c: 'cookie', a: 23});
+} );

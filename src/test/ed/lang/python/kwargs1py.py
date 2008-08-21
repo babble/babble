@@ -17,3 +17,6 @@
 def pyFoo(*args, **kwargs):
     return [args, kwargs]
 
+def pyBar(a, b, c):
+    return [c, b, a]
+
