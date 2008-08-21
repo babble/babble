@@ -540,7 +540,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         }
     };
 
-    static String _srcExtensions[] = new String[] { ".js" , ".jxp" , ".html" , ".ruby" , ".rb" , ".rhtml" , ".erb" , ".djang10", ".txt" , ".py" };
+    static String _srcExtensions[] = new String[] { ".js" , ".jxp" , ".html" , ".ruby" , ".rb" , ".rhtml" , ".erb" , ".djang10", ".txt" , ".py" , ".php" };
     static final Set<String> _srcExtensionSet;
     static {
         Set<String> s = new TreeSet<String>();
