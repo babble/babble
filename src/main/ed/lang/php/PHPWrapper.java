@@ -52,6 +52,17 @@ public class PHPWrapper extends JSObjectLame {
         return keys;
     }
 
+    public boolean containsKey( String s ){
+	if ( _arrayValue == null )
+	    return false;
+
+	for ( Object foo : _arrayValue.keySet() )
+	    if ( foo.toString().equals( s ) )
+		return true;
+
+	return false;
+    }
+
     final PHPConvertor _convertor;
     final Value _value;
     final ArrayValue _arrayValue;
