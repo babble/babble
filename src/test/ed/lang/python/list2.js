@@ -27,4 +27,10 @@ assert( pyD['a'] == 1 );
 assert( pyD.b == 2 );
 assert( pyD['b'] == 2 );
 
+var newL2 = pyL2.map(function(x){
+    return x.a;
+});
 
+assert.eq( newL2.length , 2 );
+assert.eq( newL2[0] , 1 );
+assert.eq( newL2[1] , null );
