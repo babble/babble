@@ -18,7 +18,13 @@ class Object
     self
   end
 
-  alias_method :old_method_missing, :method_missing
+  # During development, you might want to set the DEBUG.RB.SKIPLIBS flag and
+  # require this file (or some other file) manually instead. If you do that,
+  # we don't want to keep re-aliasing the original method_missing method. Thus
+  # this check.
+  if !Object.respond_to?(:xgen_old_method_missing) # only override once
+    alias_method :xgen_old_method_missing, :method_missing
+  end
 
   def method_missing(sym, *args, &block)
     name = sym.to_s
@@ -33,7 +39,7 @@ class Object
       if self.respond_to?(:get)
         val = self.get(name.to_xgen)
         if val.respond_to?(:call) # function
-          return val.call($scope, *args)
+          return val.call($scope, args.collect{|a| a.to_xgen})
         else                    # writer
           return val
         end
@@ -65,4 +71,18 @@ class String
   def to_xgen
     Java::EdJs::JSString.new(self)
   end
+  def to_oid
+    Java::EdDb::ObjectId.new(self)
+  end
+end
+
+class Symbol
+  def to_xgen
+    Java::EdJs::JSString.new(self.to_s)
+  end
+end
+
+# A convenience method that escapes text for HTML.
+def h(o)
+  o.to_s.gsub(/&/, '&amp;').gsub(/</, '&lt;').gsub(/>/, '&gt;').gsub(/'/, '&apos;').gsub(/"/, '&quot;')
 end
