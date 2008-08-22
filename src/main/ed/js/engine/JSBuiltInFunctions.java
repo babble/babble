@@ -580,6 +580,14 @@ public class JSBuiltInFunctions {
             _base.setGlobal( true );
         }
     }
+    
+    public static class eval extends JSFunctionCalls1 {
+        public Object call( Scope scope , Object thing , Object [] args){
+            throw new RuntimeException( "eval() will not work.  you can use scope.eval().  please see http://www.10gen.com/wiki/eval" );
+            //return scope.eval( thing.toString() );
+        }
+    }
+
 
     /**
      * everything that gets put into the scope that is a JSObjetBase gets locked
@@ -591,6 +599,7 @@ public class JSBuiltInFunctions {
         s.put( "SYSOUT" , new print() , true );
         s.put( "sleep" , new sleep() , true );
         s.put( "fork" , new fork() , true );
+        s.put( "eval" , new eval() , true );
 
         CrID crid = new CrID();
         s.put( "CrID" , crid , true );
