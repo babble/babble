@@ -583,8 +583,7 @@ public class JSBuiltInFunctions {
     
     public static class eval extends JSFunctionCalls1 {
         public Object call( Scope scope , Object thing , Object [] args){
-            throw new RuntimeException( "eval() will not work.  you can use scope.eval().  please see http://www.10gen.com/wiki/eval" );
-            //return scope.eval( thing.toString() );
+            return scope.eval( thing.toString() );
         }
     }
 
