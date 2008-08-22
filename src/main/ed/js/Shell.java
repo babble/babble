@@ -190,6 +190,7 @@ public class Shell {
                     e.printStackTrace();
                     return;
                 }
+	    }
             else if ( Language.find( a ) != null && Language.find( a ).isScriptable() ){
                 
                 Language lang = Language.find( a );
