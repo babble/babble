@@ -85,6 +85,14 @@ class Symbol
   end
 end
 
+class Java::EdJs::JSObjectBase
+  def to_hash
+    h = {}
+    keySet.to_a.each { |k| h[k] = get(k) }
+    h
+  end
+end
+
 # A convenience method that escapes text for HTML.
 def h(o)
   o.to_s.gsub(/&/, '&amp;').gsub(/</, '&lt;').gsub(/>/, '&gt;').gsub(/'/, '&apos;').gsub(/"/, '&quot;')
