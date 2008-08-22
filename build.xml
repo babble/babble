@@ -9,17 +9,17 @@
     
   <path id="classpath">
     <fileset dir="include">
-      <include name="**/*.jar"/>
+      <include name="*.jar"/>
     </fileset>
     <pathelement path="conf" />
     <pathelement path="build" />
 
     <fileset dir="include/jython/current">
-      <include name="**/*.jar"/>
+      <include name="*.jar"/>
     </fileset>
 
     <fileset dir="include/jython/current/javalib">
-      <include name="**/*.jar"/>
+      <include name="*.jar"/>
     </fileset>
 
   </path>
