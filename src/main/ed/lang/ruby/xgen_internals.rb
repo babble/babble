@@ -12,43 +12,46 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-class Object
+module Kernel
 
-  def to_xgen
-    self
-  end
-
-  # During development, you might want to set the DEBUG.RB.SKIPLIBS flag and
-  # require this file (or some other file) manually instead. If you do that,
-  # we don't want to keep re-aliasing the original method_missing method. Thus
-  # this check.
-  if !Object.respond_to?(:xgen_old_method_missing) # only override once
+  unless Kernel.private_methods.include?('xgen_old_method_missing')
     alias_method :xgen_old_method_missing, :method_missing
   end
 
   def method_missing(sym, *args, &block)
     name = sym.to_s
-    if name[-1,1] == "="        # reader
+    if name[-1,1] == "="        # writer
       if self.respond_to?(:set)
         key = name[0..-2]
         return self.set(key.to_xgen, args[0].to_xgen)
       else
-        return old_method_missing(sym, *args, &block)
+        return xgen_old_method_missing(sym, *args, &block)
+      end
+    elsif self.respond_to?(:call) # self is a function; call it
+      return self.call($scope, *(args.collect{|a| a.to_xgen}))
+    elsif self.respond_to?(:get)
+      val = self.get(name.to_xgen)
+      if val.respond_to?(:call) # function call
+        return val.call($scope, *(args.collect{|a| a.to_xgen}))
+      else                    # reader
+        return val
       end
     else
-      if self.respond_to?(:get)
-        val = self.get(name.to_xgen)
-        if val.respond_to?(:call) # function
-          return val.call($scope, args.collect{|a| a.to_xgen})
-        else                    # writer
-          return val
-        end
+      ivar_name = "@#{sym}"
+      if self.instance_variable_defined?(ivar_name) && self.instance_variable_get(ivar_name).respond_to?(:call)
+        return self.instance_variable_get(ivar_name).call($scope, *(args.collect{|a| a.to_xgen}))
       else
-        return old_method_missing(sym, *args, &block)
+        return xgen_old_method_missing(sym, *args, &block)
       end
     end
   end
 
+end
+
+class Object
+  def to_xgen
+    self
+  end
 end
 
 class Hash

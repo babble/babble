@@ -146,11 +146,14 @@ public class RubyJxpSource extends JxpSource {
     }
 
     /**
-     * Turns alost all scope variables into Ruby top-level variables. The
-     * exception: the "print" function, which is already handled by the Ruby
-     * kernel (aided by our definition of $stdout).
+     * Creates the $scope global object and turns almost all scope variables
+     * into Ruby top-level variables. The exception: the "print" function,
+     * which is already handled by the Ruby Kernel class (aided by our
+     * definition of $stdout).
      */
     protected void _exposeScope(Scope s) {
+	_runtime.getGlobalVariables().set("$scope", JavaUtil.convertJavaToUsableRubyObject(_runtime, s));
+
 	// Turn all JSObject scope variables into Ruby top-level variables
 	Set<String> alreadySeen = new HashSet<String>();
 	RubyObject top = (RubyObject)_runtime.getTopSelf();
@@ -166,7 +169,8 @@ public class RubyJxpSource extends JxpSource {
 		    System.err.println("about to expose " + key + "; class = " + (val == null ? "<null>" : val.getClass().getName()));
 		IRubyObject ro = JavaUtil.convertJavaToUsableRubyObject(_runtime, val);
 		top.instance_variable_set(RubySymbol.newSymbol(_runtime, "@" + key), ro);
-		eigenclass.attr_reader(_runtime.getCurrentContext(), new IRubyObject[] {RubySymbol.newSymbol(_runtime, key)});
+		if (!(val instanceof JSFunction))
+		    eigenclass.attr_reader(_runtime.getCurrentContext(), new IRubyObject[] {RubySymbol.newSymbol(_runtime, key)});
 		alreadySeen.add(key);
 	    }
 	    s = s.getParent();
