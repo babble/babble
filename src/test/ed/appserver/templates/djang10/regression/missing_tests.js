@@ -61,4 +61,7 @@ tests=[                                                                         
        
        { name: "with-filter01", content: '{% with none.existent.crap( "moo" ) | default:"baa" as var %}{{ var }}{% endwith %}', model: {}, results: "baa" },
        
+       { name: "filter-pprint01", content: '{{ "moo"|pprint }}', model: {}, results: '"moo"' },
+       { name: "filter-pprint02", content: '{{ var|pprint }}', model: {"var":"moo"}, results: '&quot;moo&quot;' },
+       { name: "filter-pprint03", content: '{% autoescape off %}{{ var|pprint }}{% endautoescape %}', model: {"var":"moo"}, results: '"moo"' },
 ];
