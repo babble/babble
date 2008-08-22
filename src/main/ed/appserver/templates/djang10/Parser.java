@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -167,19 +168,21 @@ public class Parser extends JSObjectBase{
         }
         
         if (untilTagsList.size() > 0) {
-            throw new TemplateException("Unclosed tags, expected: ["  + untilTagsList.toString() + "]");
+            throw new TemplateSyntaxError("Unclosed tag ["+parentToken.getContents()+"], expected: ["  + untilTagsList.toString() + "]", parentToken);
         }
 
         return nodelist;
     }
 
     public void skip_past(JSString endtag) {
+        Token curActiveToken = this.activeToken;
+        
         while(!tokens.isEmpty()) {
             Token token = next_token();
             if(token.type == TagDelimiter.Type.Tag && endtag.equals(token.getContents()))
                 return;
         }
-        throw new TemplateException("Unclosed tags, exptected: " + endtag);
+        throw new TemplateSyntaxError("Unclosed tag ["+this.activeToken.getContents()+"], expected: " + endtag, curActiveToken);
     }
     public Token next_token() {
         return tokens.remove();
