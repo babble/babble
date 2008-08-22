@@ -816,7 +816,7 @@ public class Convert implements StackTraceFixer {
 	    break;
 
         case Token.DEFAULTNAMESPACE :
-            _append( "E4X.setAndGetDefaultNamespace( ", n );
+            _append( "((E4X.Cons)scope.get( \"XML\")).setAndGetDefaultNamespace( ", n );
             _add( n.getFirstChild(), state );
             _append(")", n );
             break;

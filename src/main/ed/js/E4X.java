@@ -31,7 +31,7 @@ import ed.util.*;
 
 public class E4X {
 
-    public static JSFunction _cons = new XML();
+    public static JSFunction _cons = new Cons();
     public static JSFunction _ns = new NamespaceCons();
 
     public static class NamespaceCons extends JSFunctionCalls1 {
@@ -54,10 +54,10 @@ public class E4X {
         }
     }
 
-    public static class XML extends JSFunctionCalls1 {
+    public static class Cons extends JSFunctionCalls1 {
 
         public JSObject newOne(){
-            return new ENode();
+            return new ENode( this, defaultNamespace );
         }
 
         public Object call( Scope scope , Object str , Object [] args){
@@ -67,113 +67,122 @@ public class E4X {
             if ( blah instanceof ENode)
                 e = (ENode)blah;
             else
-                e = new ENode();
+                e = new ENode( this, defaultNamespace );
             e.init( str.toString() );
             return e;
         }
 
-        public Object get( Object o ) {
-            if( o.toString().equals( "ignoreComments" ) )
-                return E4X.ignoreComments;
-            if( o.toString().equals( "ignoreWhitespace" ) )
-                return E4X.ignoreWhitespace;
-            if( o.toString().equals( "ignoreProcessingInstructions" ) )
-                return E4X.ignoreProcessingInstructions;
-            if( o.toString().equals( "prettyPrinting" ) )
-                return E4X.prettyPrinting;
-            if( o.toString().equals( "prettyIndent" ) )
-                return E4X.prettyIndent;
+        public JSObject settings() {
+            JSObjectBase sets = new JSObjectBase();
+            sets.set("ignoreComments", ignoreComments);
+            sets.set("ignoreProcessingInstructions", ignoreProcessingInstructions);
+            sets.set("ignoreWhitespace", ignoreWhitespace);
+            sets.set("prettyPrinting", prettyPrinting);
+            sets.set("prettyIndent", prettyIndent);
+            return sets;
+        }
+
+        public void setSettings() {
+            setSettings(null);
+        }
+
+        public void setSettings( JSObject settings ) {
+            if( settings == null ) {
+                ignoreComments = true;
+                ignoreProcessingInstructions = true;
+                ignoreWhitespace = true;
+                prettyPrinting = true;
+                prettyIndent = 2;
+                return;
+            }
+
+            Object setting = settings.get("ignoreComments");
+            if(setting != null && setting instanceof Boolean)
+                ignoreComments = ((Boolean)setting).booleanValue();
+            setting = settings.get("ignoreProcessingInstructions");
+            if(setting != null && setting instanceof Boolean)
+                ignoreProcessingInstructions = ((Boolean)setting).booleanValue();
+            setting = settings.get("ignoreWhitespace");
+            if(setting != null && setting instanceof Boolean)
+                ignoreWhitespace = ((Boolean)setting).booleanValue();
+            setting = settings.get("prettyPrinting");
+            if(setting != null && setting instanceof Boolean)
+                prettyPrinting = ((Boolean)setting).booleanValue();
+            setting = settings.get("prettyIndent");
+            if(setting != null && setting instanceof Integer)
+                prettyIndent = ((Integer)setting).intValue();
+        }
+
+        public JSObject defaultSettings() {
+            JSObjectBase sets = new JSObjectBase();
+            sets.set("ignoreComments", true);
+            sets.set("ignoreProcessingInstructions", true);
+            sets.set("ignoreWhitespace", true);
+            sets.set("prettyPrinting", true);
+            sets.set("prettyIndent", 2);
+            return sets;
+        }
+
+        public boolean ignoreComments = true;
+        public boolean ignoreProcessingInstructions = true;
+        public boolean ignoreWhitespace = true;
+        public boolean prettyPrinting = true;
+        public int prettyIndent = 2;
+
+        public Namespace defaultNamespace = new Namespace();
+        
+        public Object get( Object n ) {
+            String s = n.toString();
+            if( s.equals( "ignoreComments" ) )
+                return ignoreComments;
+            if( s.equals( "ignoreProcessingInstructions " ) )
+                return ignoreProcessingInstructions;
+            if( s.equals( "ignoreWhitespace" ) )
+                return ignoreWhitespace;
+            if( s.equals( "prettyPrinting" ) )
+                return prettyPrinting;
+            if( s.equals( "prettyIndent" ) )
+                return prettyIndent;
             return null;
         }
 
-        public Object set( Object o, Object v ) {
-            if( o.toString().equals( "ignoreComments" ) )
-                E4X.ignoreComments = Boolean.parseBoolean( v.toString() );
-            if( o.toString().equals( "ignoreWhitespace" ) )
-                E4X.ignoreWhitespace = Boolean.parseBoolean( v.toString() );
-            if( o.toString().equals( "ignoreProcessingInstructions" ) )
-                E4X.ignoreProcessingInstructions = Boolean.parseBoolean( v.toString() );
-            if( o.toString().equals( "prettyPrinting" ) )
-                E4X.prettyPrinting = Boolean.parseBoolean( v.toString() );
-            if( o.toString().equals( "prettyIndent" ) )
-                E4X.prettyIndent = Integer.parseInt( v.toString() );
+        public Object set( Object k, Object v ) {
+            String s = k.toString();
+            String val = v.toString();
+            if( s.equals( "ignoreComments" ) )
+                ignoreComments = Boolean.parseBoolean(val);
+            if( s.equals( "ignoreProcessingInstructions" ) ) 
+                ignoreProcessingInstructions = Boolean.parseBoolean(val);
+            if( s.equals( "ignoreWhitespace" ) )
+                ignoreWhitespace = Boolean.parseBoolean(val);
+            if( s.equals( "prettyPrinting" ) )
+                prettyPrinting = Boolean.parseBoolean(val);
+            if( s.equals( "prettyIndent" ) )
+                prettyIndent = Integer.parseInt(val);
             return v;
         }
 
-        public static JSObject settings() {
-            return E4X.settings();
+        public Namespace getDefaultNamespace() {
+            return defaultNamespace;
         }
 
-        public static void setSettings( JSObject obj ) {
-            E4X.setSettings( obj );
+        public Namespace setAndGetDefaultNamespace(Object o) {
+            defaultNamespace = new Namespace(o);
+            return defaultNamespace;
         }
-
-        public static JSObject defaultSettings() {
-            return E4X.defaultSettings();
-        }
-
     }
 
-
-    public static JSObject settings() {
-        JSObjectBase sets = new JSObjectBase();
-        sets.set("ignoreComments", ignoreComments);
-        sets.set("ignoreProcessingInstructions", ignoreProcessingInstructions);
-        sets.set("ignoreWhitespace", ignoreWhitespace);
-        sets.set("prettyPrinting", prettyPrinting);
-        sets.set("prettyIndent", prettyIndent);
-        return sets;
-    }
-
-    public static void setSettings() {
-        setSettings(null);
-    }
-
-    public static void setSettings( JSObject settings ) {
-        if( settings == null ) {
-            ignoreComments = true;
-            ignoreProcessingInstructions = true;
-            ignoreWhitespace = true;
-            prettyPrinting = true;
-            prettyIndent = 2;
-            return;
-        }
-
-        Object setting = settings.get("ignoreComments");
-        if(setting != null && setting instanceof Boolean)
-            ignoreComments = ((Boolean)setting).booleanValue();
-        setting = settings.get("ignoreProcessingInstructions");
-        if(setting != null && setting instanceof Boolean)
-            ignoreProcessingInstructions = ((Boolean)setting).booleanValue();
-        setting = settings.get("ignoreWhitespace");
-        if(setting != null && setting instanceof Boolean)
-            ignoreWhitespace = ((Boolean)setting).booleanValue();
-        setting = settings.get("prettyPrinting");
-        if(setting != null && setting instanceof Boolean)
-            prettyPrinting = ((Boolean)setting).booleanValue();
-        setting = settings.get("prettyIndent");
-        if(setting != null && setting instanceof Integer)
-            prettyIndent = ((Integer)setting).intValue();
-    }
-
-    public static JSObject defaultSettings() {
-        JSObjectBase sets = new JSObjectBase();
-        sets.set("ignoreComments", true);
-        sets.set("ignoreProcessingInstructions", true);
-        sets.set("ignoreWhitespace", true);
-        sets.set("prettyPrinting", true);
-        sets.set("prettyIndent", 2);
-        return sets;
-    }
-
-    public static boolean ignoreComments = true;
-    public static boolean ignoreProcessingInstructions = true;
-    public static boolean ignoreWhitespace = true;
-    public static boolean prettyPrinting = true;
-    public static int prettyIndent = 2;
 
     static class ENode extends JSObjectBase {
+        private E4X.Cons XML;
+
         private ENode(){
+            nodeSetup( null );
+        }
+
+        private ENode( E4X.Cons c, Namespace ns ) {
+            XML = c;
+            defaultNamespace = ns;
             nodeSetup( null );
         }
 
@@ -204,11 +213,12 @@ public class E4X {
 
         // creates an empty node with a given parent and tag name
         private ENode( ENode parent, Object o ) {
+            if( parent instanceof XMLList && ((XMLList)parent).get(0) != null ) {
+                parent = ((XMLList)parent).get(0);
+            }
             if(parent != null && parent.node != null)
                 node = parent.node.getOwnerDocument().createElement(o.toString());
-            else if( parent instanceof XMLList && ((XMLList)parent).get(0).node != null ) {
-                node = ((XMLList)parent).get(0).node.getOwnerDocument().createElement(o.toString());
-            }
+
             this.children = new XMLList();
             this._dummy = true;
             nodeSetup(parent);
@@ -216,6 +226,9 @@ public class E4X {
 
         void nodeSetup(ENode parent) {
             this.parent = parent;
+            if( this.parent != null ) {
+                this.XML = this.parent.XML;
+            }
             getNamespace();
             addNativeFunctions();
         }
@@ -223,11 +236,14 @@ public class E4X {
         // finds and sets the qname and namespace for a node.
         void getNamespace() {
             this.inScopeNamespaces = new ArrayList<Namespace>();
-            this.inScopeNamespaces.add( new Namespace( defaultNamespace ) );
-
             // get parent's namespaces
             if( this.parent != null ) {
+                this.defaultNamespace = parent.defaultNamespace;
                 this.inScopeNamespaces.addAll( this.parent.inScopeNamespaces );
+            }
+            // add default namespace, if it isn't boring
+            if( this.defaultNamespace != null && !this.defaultNamespace.uri.equals( "" ) ) {
+                this.inScopeNamespaces.add( this.defaultNamespace );
             }
 
             if( this.node == null ) 
@@ -301,6 +317,9 @@ public class E4X {
             // get attributes and xmlns
             NamedNodeMap attr = parent.node.getAttributes();
             for( int i=0; attr != null && i< attr.getLength(); i++) {
+                if( attr.item(i).getNodeName().startsWith("xmlns:") || 
+                    attr.item(i).getNodeName().equals("xmlns") )
+                    continue;
                 parent.children.add( new ENode(attr.item(i), parent ) );
             }
             // get processing instructions
@@ -324,8 +343,8 @@ public class E4X {
             // finally, traverse the children
             NodeList kids = parent.node.getChildNodes();
             for( int i=0; i<kids.getLength(); i++) {
-                if( ( kids.item(i).getNodeType() == Node.COMMENT_NODE && E4X.ignoreComments ) ||
-                    ( kids.item(i).getNodeType() == Node.PROCESSING_INSTRUCTION_NODE && E4X.ignoreProcessingInstructions ) )
+                if( ( kids.item(i).getNodeType() == Node.COMMENT_NODE && parent.XML.ignoreComments ) ||
+                    ( kids.item(i).getNodeType() == Node.PROCESSING_INSTRUCTION_NODE && parent.XML.ignoreProcessingInstructions ) )
                     continue;
                 ENode n = new ENode(kids.item(i), parent);
                 buildENodeDom(n);
@@ -336,7 +355,7 @@ public class E4X {
         void init( String s ){
             try {
                 // get rid of newlines and spaces if ignoreWhitespace is set (default)
-                if( E4X.ignoreWhitespace ) {
+                if( XML.ignoreWhitespace ) {
                     Pattern p = Pattern.compile("\\>\\s+\\<");
                     Matcher m = p.matcher(s);
                     s = m.replaceAll("><");
@@ -350,11 +369,6 @@ public class E4X {
             getNamespace();
             children = new XMLList();
             buildENodeDom(this);
-            if( !defaultNamespace.uri.equals( "" )) {
-                Attr xmlns = this.node.getOwnerDocument().createAttribute("xmlns");
-                xmlns.setValue( defaultNamespace.uri );
-                this.children.add( new ENode( xmlns, this ) );
-            }
         }
 
         Hashtable<String, ENodeFunction> nativeFuncs = new Hashtable<String, ENodeFunction>();
@@ -642,9 +656,10 @@ public class E4X {
 
                 if( i < nodeList.size() )
                     return nodeList.get(i);
-                else {
+                else if ( nodeList.size() >= 1 ) 
                     return new ENode( this, this instanceof XMLList ? nodeList.get(0).name.localName : this.name.localName );
-                }
+                else
+                    return new ENode();
             }
             else {
                 Object obj = this.get(propertyName);
@@ -983,7 +998,7 @@ public class E4X {
         }
 
         private QName name() {
-            if( this.name != null && ( this.name.uri == null || this.name.uri.equals( "" )) && !this.inScopeNamespaces.get(0).uri.equals( "" ) )
+            if( this.name != null && ( this.name.uri == null || this.name.uri.equals( "" )) && !this.defaultNamespace.uri.equals( "" ) )
                 return new QName( defaultNamespace, this.name.localName );
             return this.name;
         }
@@ -1110,7 +1125,7 @@ public class E4X {
 
             XMLList list = new XMLList();
             for( ENode n : this.children ) {
-                if ( n.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE && ( all || name.equals(n.node.getLocalName()) ) ) {
+                if ( n.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE && ( all || name.equals(n.name.localName) ) ) {
                     list.add( n );
                 }
             }
@@ -1325,12 +1340,12 @@ public class E4X {
                     return xml.toString();
                 }
 
-                append( singleNode, xml, 0);
+                append( singleNode, xml, 0, new ArrayList<Namespace>() );
             }
             // XMLList
             else {
                 for( int i=0; i<this.children.size(); i++ ) {
-                    append( this.children.get( i ), xml, 0);
+                    append( this.children.get( i ), xml, 0, new ArrayList<Namespace>() );
                 }
             }
 
@@ -1341,22 +1356,22 @@ public class E4X {
             return xml.toString();
         }
 
-        public StringBuilder append( ENode n , StringBuilder buf , int level ){
+        public StringBuilder append( ENode n , StringBuilder buf , int level , ArrayList<Namespace> ancestors ){
             switch (n.node.getNodeType() ) {
             case Node.ATTRIBUTE_NODE:
-                return _level(buf, level).append( E4X.prettyPrinting ? n.node.getNodeValue().trim() : n.node.getNodeValue() );
+                return _level( n, buf, level).append( n.XML.prettyPrinting ? n.node.getNodeValue().trim() : n.node.getNodeValue() );
             case Node.TEXT_NODE:
-                return _level(buf, level).append( E4X.prettyPrinting ? n.node.getNodeValue().trim() : n.node.getNodeValue() ).append("\n");
+                return _level( n, buf, level).append( n.XML.prettyPrinting ? n.node.getNodeValue().trim() : n.node.getNodeValue() ).append("\n");
             case Node.COMMENT_NODE:
-                return _level(buf, level).append( "<!--"+n.node.getNodeValue()+"-->" ).append("\n");
+                return _level( n, buf, level).append( "<!--"+n.node.getNodeValue()+"-->" ).append("\n");
             case Node.PROCESSING_INSTRUCTION_NODE:
-                return _level(buf, level).append( "<?"+n.node.getNodeName() + attributesToString( n )+"?>").append("\n");
+                return _level( n, buf, level).append( "<?"+n.node.getNodeName() + attributesToString( n , new ArrayList<Namespace>() )+"?>").append("\n");
             }
 
-            _level( buf , level ).append( "<" );
+            _level( n, buf , level ).append( "<" );
             String prefix = n.getNamespacePrefix( n.name.uri );
             prefix = prefix != null && !prefix.equals( "" ) ? prefix + ":" : "";
-            buf.append( prefix + n.name.localName ).append(attributesToString( n ));
+            buf.append( prefix + n.name.localName ).append(attributesToString( n , ancestors ));
 
             List<ENode> kids = n.printableChildren();
             if ( kids == null || kids.size() == 0 ) {
@@ -1369,35 +1384,50 @@ public class E4X {
                 buf.append( "\n" );
             }
             else {
-                return buf.append( E4X.prettyPrinting ? kids.get(0).node.getNodeValue().trim() : kids.get(0).node.getNodeValue() ).append( "</" ).append( n.node.getNodeName() ).append( ">\n" );
+                return buf.append( n.XML.prettyPrinting ? kids.get(0).node.getNodeValue().trim() : kids.get(0).node.getNodeValue() ).append( "</" ).append( n.node.getNodeName() ).append( ">\n" );
             }
 
             for ( int i=0; i<kids.size(); i++ ){
                 ENode c = kids.get(i);
-                if( ( E4X.ignoreComments && c.node.getNodeType() == Node.ATTRIBUTE_NODE ) ||
-                    ( E4X.ignoreComments && c.node.getNodeType() == Node.COMMENT_NODE ) ||
-                    ( E4X.ignoreProcessingInstructions && c.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE ) )
+                if( ( n.XML.ignoreComments && c.node.getNodeType() == Node.ATTRIBUTE_NODE ) ||
+                    ( n.XML.ignoreComments && c.node.getNodeType() == Node.COMMENT_NODE ) ||
+                    ( n.XML.ignoreProcessingInstructions && c.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE ) )
                     continue;
                 else {
-                    append( c , buf , level + 1 );
+                    // add to ancestors
+                    append( c , buf , level + 1 , ancestors );
+                    // delete from ancestors
                 }
             }
 
-            _level( buf , level ).append( "</" );
+            _level( n, buf , level ).append( "</" );
             return buf.append( prefix + n.name.localName ).append( ">\n" );
         }
 
-        private StringBuilder _level( StringBuilder buf , int level ){
+        private StringBuilder _level( ENode n, StringBuilder buf , int level ){
             for ( int i=0; i<level; i++ ) {
-                for( int j=0; j<E4X.prettyIndent; j++) {
+                for( int j=0; j< n.XML.prettyIndent; j++) {
                     buf.append( " " );
                 }
             }
             return buf;
         }
 
-        private String attributesToString( ENode n ) {
+        private String attributesToString( ENode n , ArrayList<Namespace> ancestors ) {
             StringBuilder buf = new StringBuilder();
+            // get ns
+            for( Namespace ns : n.inScopeNamespaces ) {
+                if( ancestors.contains( ns ) )
+                    continue;
+
+                if( ns.prefix == null || ns.prefix.equals( "" ) )
+                    buf.append( " xmlns=\"" + ns.uri + "\"" );
+                else 
+                    buf.append( " xmlns:" + ns.prefix + "=\"" + ns.uri + "\"" );
+            }
+            ancestors.addAll( n.inScopeNamespaces );
+
+            // get attrs
             ArrayList<ENode> attr = n.getAttributes();
             String[] attrArr = new String[attr.size()];
             for( int i = 0; i< attr.size(); i++ ) {
@@ -1417,8 +1447,8 @@ public class E4X {
                 if( c.node == null )
                     throw new RuntimeException("c.node is null: "+c.getClass());
                 if( c.node.getNodeType() == Node.ATTRIBUTE_NODE ||
-                    ( c.node.getNodeType() == Node.COMMENT_NODE && E4X.ignoreComments ) ||
-                    ( c.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE && E4X.ignoreProcessingInstructions ) )
+                    ( c.node.getNodeType() == Node.COMMENT_NODE && XML.ignoreComments ) ||
+                    ( c.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE && XML.ignoreProcessingInstructions ) )
                     continue;
                 list.add(c);
             }
@@ -1574,6 +1604,13 @@ public class E4X {
         private boolean _dummy;
         private ArrayList<Namespace> inScopeNamespaces = new ArrayList<Namespace>();
         private QName name;
+
+        public boolean ignoreComments = true;
+        public boolean ignoreProcessingInstructions = true;
+        public boolean ignoreWhitespace = true;
+        public boolean prettyPrinting = true;
+        public int prettyIndent = 2;
+        public Namespace defaultNamespace;
     }
 
     static class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
@@ -1617,7 +1654,7 @@ public class E4X {
                 return children.get(0).toString();
             }
             for( ENode n : children ) {
-                append( n, xml, 0);
+                append( n, xml, 0, new ArrayList<Namespace>() );
             }
             if( xml.length() > 0 && xml.charAt(xml.length() - 1) == '\n' ) {
                 xml.deleteCharAt(xml.length()-1);
@@ -1902,19 +1939,6 @@ public class E4X {
         public String toString() {
             return this.uri;
         }
-    }
-
-    private static Namespace defaultNamespace = new Namespace();
-
-    public static Namespace getDefaultNamespace() {
-        if(defaultNamespace == null)
-            defaultNamespace = new Namespace();
-        return defaultNamespace;
-    }
-
-    public static Namespace setAndGetDefaultNamespace(Object o) {
-        defaultNamespace = new Namespace(o);
-        return defaultNamespace;
     }
 
     public static XMLList addNodes(ENode a, ENode b) {
