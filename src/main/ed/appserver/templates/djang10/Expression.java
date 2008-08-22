@@ -134,13 +134,14 @@ public class Expression extends JSObjectBase {
     };
     
     private String expression;
-    private ed.appserver.templates.djang10.Parser.Token token;
+    private final ed.appserver.templates.djang10.Parser.Token token;
     private Node parsedExpression;
     private Boolean isLiteral;
 
     public Expression(String expression, ed.appserver.templates.djang10.Parser.Token token, boolean useLiteralEscapes) {
         super(CONSTRUCTOR);
         this.log = Logger.getRoot().getChild("djang10").getChild("expression");
+        this.token = token;
         isLiteral = null;
         this.expression = expression;
 
@@ -156,20 +157,20 @@ public class Expression extends JSObjectBase {
             String msg;
             
             if(log.getEffectiveLevel().compareTo(Level.DEBUG) <= 0)
-                msg = "Failed to parse original expression: " + expression + ". Processed expr: " + processedExpr;
+                msg = "Failed to parse original expression [" + expression + "] Processed expr: [" + processedExpr + "]";
             else
-                msg = "Failed to parse expression: " + expression;
+                msg = "Failed to parse expression: [" + expression + "]";
             
             throw new TemplateSyntaxError(msg, token);
         }
         
         if (scriptNode.getFirstChild() != scriptNode.getLastChild())
-            throw new TemplateSyntaxError("Only one expression is allowed, got: "+expression, token);
+            throw new TemplateSyntaxError("Only one expression is allowed. ["+expression + "]", token);
 
         parsedExpression = scriptNode.getFirstChild();
 
         if (parsedExpression.getType() != ed.ext.org.mozilla.javascript.Token.EXPR_RESULT)
-            throw new TemplateSyntaxError("Not an expression: " + expression, token);
+            throw new TemplateSyntaxError("Not an expression [" + expression + "]", token);
         
         //Verify the expression
         Queue<Node> workQueue = new LinkedList<Node>();
@@ -178,7 +179,7 @@ public class Expression extends JSObjectBase {
         while(!workQueue.isEmpty()) {
             Node jsToken = workQueue.remove();
             if(!SUPPORTED_TOKENS.contains(jsToken.getType()))
-                throw new TemplateSyntaxError("Failed to parse expression: " + expression +". Unsupported token: " + jsToken, this.token);
+                throw new TemplateSyntaxError("Failed to parse expression [" + expression +"] Unsupported token: " + jsToken, this.token);
             
             for(jsToken = jsToken.getFirstChild(); jsToken !=null; jsToken = jsToken.getNext())
                 workQueue.add(jsToken);
@@ -265,7 +266,7 @@ public class Expression extends JSObjectBase {
         }
         
         if(!buffer.toString().equals(exp))
-            log.debug("Transformed: " + exp + " to: " + buffer);
+            log.debug("Transformed [" + exp + "] to: [" + buffer + "]. " + "(" + token.getOrigin() + ":" + token.getStartLine() + ")");
             
         
         return buffer.toString();
@@ -314,7 +315,7 @@ public class Expression extends JSObjectBase {
     }
     public Object get_literal_value() {
         if(!is_literal())
-            throw new IllegalStateException("Expression is not a literal: " + expression);
+            throw new IllegalStateException("Expression is not a literal [" + expression + "]");
         
         return resolve(null, null);
     }
@@ -327,7 +328,7 @@ public class Expression extends JSObjectBase {
             obj = resolve(scope, ctx, parsedExpression.getFirstChild(), true);
         } finally {
             if(obj == UNDEFINED_VALUE)
-                log.debug("Failed to resolve: " + this);
+                log.debug("Failed to resolve [" + this +  "]. (" + token.getOrigin() + ":" + token.getStartLine() + ")");
         }
         obj = JSNumericFunctions.fixType(obj);
         
@@ -346,7 +347,7 @@ public class Expression extends JSObjectBase {
             if(temp == null || temp == UNDEFINED_VALUE)
                 return UNDEFINED_VALUE;
             if(!(temp instanceof JSObject))
-                throw new TemplateException("Can't handle native objects of type:" + temp.getClass().getName());
+                throw new TemplateException("Can't handle native objects of type [" + temp.getClass().getName() + "]");
             JSObject obj = (JSObject)temp;
             
             //get the property
@@ -394,7 +395,7 @@ public class Expression extends JSObjectBase {
                 if(temp == null || temp == UNDEFINED_VALUE)
                     return UNDEFINED_VALUE;
                 if(!(temp instanceof JSFunction))
-                    throw new TemplateException("Can only call functions, expression: " + expression);
+                    throw new TemplateException("Can only call functions.  [" + expression + "]");
                 callMethodObj = (JSFunction)temp;
                 
                 //get this
@@ -402,7 +403,7 @@ public class Expression extends JSObjectBase {
             } else {
                 temp = resolve(scope, ctx, callArgs, false);
                 if(!(temp instanceof JSFunction))
-                    throw new TemplateException("Can only call functions, expression: " + expression);
+                    throw new TemplateException("Can only call functions. [" + expression + "]");
                 callMethodObj = (JSFunction)temp;
             }
 
