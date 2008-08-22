@@ -59,14 +59,14 @@ public class JSON {
 
         s.put( "tojson" , new JSFunctionCalls1(){
                 public Object call( Scope s , Object o , Object foo[] ){
-                    return serialize( o , true );
+                    return new JSString(serialize( o , true ));
                 }
             } , true
             );
 
         s.put( "tojson_u" , new JSFunctionCalls1(){
                 public Object call( Scope s , Object o , Object foo[] ){
-                    return serialize( o , false );
+                    return new JSString(serialize( o , false ));
                 }
             } , true
             );
