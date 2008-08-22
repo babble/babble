@@ -33,11 +33,12 @@ import ed.js.JSObject;
 import ed.js.engine.JSCompiledScript;
 import ed.js.engine.Scope;
 import ed.lang.StackTraceHolder;
+import ed.log.Logger;
 import ed.util.Dependency;
 import ed.util.Pair;
 
 public class Djang10Source extends JxpSource {
-    public static final boolean DEBUG =  Boolean.getBoolean("DEBUG.DJANG10");
+    private final Logger log = Logger.getRoot().getChild("djang10").getChild("Djang10Source");
     
     private final Djang10Content content;
     private Djang10CompiledScript compiledScript;
@@ -63,8 +64,7 @@ public class Djang10Source extends JxpSource {
     }
     public synchronized JSFunction _getFunction() throws IOException {
         if(_needsParsing() || compiledScript == null) {
-            if(DEBUG)
-                System.out.println("Parsing " + content.getDebugName());
+            log.debug("Parsing " + content.getDebugName());
             
             compiledScript = null;
             _lastParse = lastUpdated();
@@ -91,8 +91,7 @@ public class Djang10Source extends JxpSource {
             compiledScript = new Djang10CompiledScript(nodes, libraries);
             compiledScript.set(JxpSource.JXP_SOURCE_PROP, this);
             
-            if(DEBUG)
-                System.out.println("Done Parsing " + content.getDebugName());
+            log.debug("Done Parsing " + content.getDebugName());
         }
 
         return compiledScript;
@@ -128,8 +127,8 @@ public class Djang10Source extends JxpSource {
         JSFileLibrary js = JSFileLibrary.loadLibraryFromEd("ed/appserver/templates/djang10/js", "djang10", scope);
         
         for(String jsFile : new String[] {"defaulttags", "loader_tags", "defaultfilters", "tengen_extras"}) {
-            JSFunction jsFileFn = (JSFunction)js.get(jsFile);
-            Library lib = (Library) jsHelper.evalLibrary.call(scope, jsFileFn);
+            JSCompiledScript jsFileFn = (JSCompiledScript)js.get(jsFile);
+            Library lib = jsHelper.evalLibrary(scope, jsFileFn);
 
             jsHelper.addDefaultLibrary((JxpSource)jsFileFn.get(JxpSource.JXP_SOURCE_PROP), lib);
         }

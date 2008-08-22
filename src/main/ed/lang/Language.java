@@ -18,11 +18,55 @@
 
 package ed.lang;
 
-public enum Language {
+import javax.script.*;
 
-    JS , RUBY , PHP;
+public abstract class Language {
+    
+    Language( String name ){
+        _name = name;
+    }
+    
+    public boolean isScriptable(){
+        return false;
+    }
+
+    public ObjectConvertor getObjectConvertor(){
+        throw new UnsupportedOperationException();
+    }
+
+    public ScriptEngine getScriptEngine(){
+        throw new UnsupportedOperationException();
+    }
+
+    public String toString(){
+        return _name;
+    }
+
+    final String _name;
+    
+    public static final Language JS = new Language( "js" ){};
+    public static final Language RUBY = new Language( "ruby" ){};
+    public static final Language PYTHON = new Language( "python" ){};
+    
+    public static final Language PHP = new Language( "php" ){
+            public boolean isScriptable(){
+                return true;
+            }
+
+            public ScriptEngine getScriptEngine(){
+                return ed.lang.php.PHP.getScriptEngine();
+            }
+
+            public ObjectConvertor getObjectConvertor(){
+                return null;
+            }
+        };
     
     public static Language find( String file ){
+        return find( file , false );
+    }
+
+    public static Language find( String file , boolean errorOnNoMatch ){
         
         final int idx = file.lastIndexOf( "." );
 
@@ -44,7 +88,13 @@ public enum Language {
 
         if ( extension.equals( "php" ) )
             return PHP;
+
+        if ( extension.equals( "py" ) )
+            return PYTHON;
         
+        if ( errorOnNoMatch )
+            throw new RuntimeException( "no language for [" + extension + "]" );
+
         return JS;
     }
         

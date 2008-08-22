@@ -22,6 +22,8 @@ import java.io.*;
 import java.util.*;
 
 import org.python.core.*;
+import org.python.expose.*;
+import org.python.Version;
 
 import ed.js.*;
 import ed.log.*;
@@ -32,6 +34,10 @@ import ed.appserver.*;
 import ed.appserver.jxp.*;
 
 public class PythonJxpSource extends JxpSource {
+
+    static {
+        System.setProperty( "python.cachedir", "/tmp/jxp/jython-cache/" + Version.PY_VERSION );
+    }
 
     public PythonJxpSource( File f , JSFileLibrary lib ){
         _file = f;
@@ -58,6 +64,22 @@ public class PythonJxpSource extends JxpSource {
         return _file;
     }
 
+    static class MyStdoutFile extends PyFile {
+        MyStdoutFile(AppRequest request){
+            _request = request;
+        }
+        public void flush(){}
+
+        public void write( String s ){
+            if( _request == null )
+                // Log
+                _log.info( s );
+            else
+                _request.print( s );
+        }
+        AppRequest _request;
+    }
+
     public synchronized JSFunction getFunction()
         throws IOException {
         
@@ -73,9 +95,9 @@ public class PythonJxpSource extends JxpSource {
                 final AppRequest ar = AppRequest.getThreadLocal();
                 
                 PySystemState ss = Py.getSystemState();
-                if ( ! ( ss instanceof MySystemState ) || ((MySystemState)ss)._request != ar ){
-                    ss = new MySystemState( ar );
-                    Py.setSystemState( ss );
+                PyObject out = ss.stdout;
+                if ( ! ( out instanceof MyStdoutFile ) || ((MyStdoutFile)out)._request != ar ){
+                    ss.stdout = new MyStdoutFile( ar );
                 }
                 
                 String myPath = _lib.getRoot().toString();
@@ -135,29 +157,5 @@ public class PythonJxpSource extends JxpSource {
     
     // static b/c it has to use ThreadLocal anyway
     
-    static class MySystemState extends PySystemState {
-
-        MySystemState( AppRequest request ){
-            _request = request;
-            stdout = new MyStdoutFile();
-        }
-        
-        class MyStdoutFile extends PyFile {
-            public void flush(){}
-            
-            public void write( String s ){
-                if( _request == null )
-                    // Log
-                    _log.info( s );
-                else
-                    _request.print( s );
-            }
-        }
-        
-        final AppRequest _request;
-    }
-
     final static Logger _log = Logger.getLogger( "python" );
-
-
-}
+        }

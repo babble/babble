@@ -32,6 +32,7 @@ hs_err_*
 docs
 target
 
-include/jython/*/cachedir
-
 TAGS
+
+#test local files
+src/test/ed/webtests/webtest-local.bash

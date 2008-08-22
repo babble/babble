@@ -47,3 +47,7 @@ assert( myClass.pyMeth.call( c1 , "-14=2298" ) == "2312-14=2298" );
 pyStr.keySet();
 pyCallable.keySet();
 pyObject.keySet();
+
+jsFoo = {a: 1, b: 2, f: 3, "c#": "j"};
+
+pythonKeys(jsFoo);

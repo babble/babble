@@ -21,6 +21,25 @@ package ed.io;
 import java.io.*;
 
 public class FileUtil {
+    
+    public static String toString( File f ){
+	return clean( f.toString() );
+    }
+    
+    public static String clean( String s ){
+	if ( s.contains( "\\" ) ){
+	    StringBuilder buf = new StringBuilder();
+	    for ( int i=0; i<s.length(); i++ ){
+		char c = s.charAt(i);
+		if ( c == '\\' )
+		    c = '/';
+		buf.append( c );
+	    }
+	    s = buf.toString();
+	}
+	return s;
+    }
+
     public static void deleteDirectory( File f ){
 
         if ( f.isDirectory() ){

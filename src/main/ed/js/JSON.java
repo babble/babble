@@ -22,6 +22,7 @@ import java.util.*;
 
 import ed.ext.org.mozilla.javascript.*;
 
+import ed.util.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 import ed.log.Logger;
@@ -130,7 +131,7 @@ public class JSON {
      */
     public static void serialize( Appendable a , Object o , boolean trusted , String nl )
         throws java.io.IOException {
-        Serializer.go( a , o , trusted , 0 , nl );
+        Serializer.go( a , o , trusted , 0 , nl , new IdentitySet() );
     }
 
     static class Serializer {
@@ -169,9 +170,27 @@ public class JSON {
             a.append("\"");
         }
 
-        static void go( Appendable a , Object something , boolean trusted , int indent , String nl  )
+        static boolean _loopable( Object o ){
+            if ( o == null )
+                return false;
+            
+            if ( o instanceof Number || o instanceof String || o instanceof Boolean )
+                return false;
+
+            return true;
+        }
+
+        static void go( Appendable a , Object something , boolean trusted , int indent , String nl , IdentitySet seen )
             throws java.io.IOException {
 
+            if ( _loopable( something ) ){
+                
+                if ( seen.contains( something ) )
+                    throw new RuntimeException( "loop depetected.  can't serialize a loop : " + something + " : " + something.getClass() );
+                
+                seen.add( something );
+            }
+            
             if ( nl.length() > 0 ){
                 if ( a instanceof StringBuilder ){
                     StringBuilder sb = (StringBuilder)a;
@@ -241,12 +260,9 @@ public class JSON {
                 }
             }
 
-            if ( something instanceof ed.js.E4X.ENode ) {
-                a.append( something.toString() );
-                return;
-            }
-
-            if( something instanceof ed.js.E4X.Namespace ) {
+            if( something instanceof ed.js.E4X.ENode || 
+                something instanceof ed.js.E4X.Namespace || 
+                something instanceof ed.js.E4X.QName ) {
                 a.append( something.toString() );
                 return;
             }
@@ -262,7 +278,7 @@ public class JSON {
                 for ( int i=0; i<arr._array.size(); i++ ){
                     if ( i > 0 )
                         a.append( " , " );
-                    go( a , arr._array.get( i ) , trusted, indent , nl );
+                    go( a , arr._array.get( i ) , trusted, indent , nl , seen );
                 }
                 a.append( " ]" );
                 return;
@@ -308,7 +324,7 @@ public class JSON {
                 a.append( _i( indent + 1 ) );
                 string( a , s );
                 a.append( " : " );
-                go( a , val , trusted , indent + 1 , nl );
+                go( a , val , trusted , indent + 1 , nl , seen );
             }
 
             a.append( _i( indent + 1 ) );

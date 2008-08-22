@@ -429,32 +429,30 @@ public class Convert implements StackTraceFixer {
             break;
 
         case Token.GET_REF:
-            if ( n.getFirstChild().getType() == Token.REF_SPECIAL ){
-		_append( "((JSObject)" , n );
-		_add( n.getFirstChild().getFirstChild() , state );
-		_append( ").get( \"" , n );
-		_append( n.getFirstChild().getProp( Node.NAME_PROP ).toString() , n );
-		_append( "\" )" , n );
-	    }
-	    else if ( n.getFirstChild().getType() == Token.REF_MEMBER ){
-                Node rm = n.getFirstChild();
+            _append( "((JSObject)" , n );
+            _add( n.getFirstChild().getFirstChild() , state );
+            _append( ").get( " , n );
+            _add( n.getFirstChild() , state );
+            _append( " ) ", n );
+            break;
 
-		_append( "((JSObject)" , n );
-		_add( rm.getFirstChild() , state );
-		_append( ").get( " , n );
+        case Token.REF_SPECIAL :
+            _append( "\"" + n.getProp( Node.NAME_PROP ).toString() + "\"" , n );
+            break;
 
-                final int memberTypeFlags = rm.getIntProp(Node.MEMBER_TYPE_PROP, 0);
-                String theName = ( ( memberTypeFlags & Node.ATTRIBUTE_FLAG ) != 0 ? "@" : "" ) + rm.getFirstChild().getNext().getString();
-                if ( ( memberTypeFlags & Node.DESCENDANTS_FLAG ) != 0 )
-                    theName = ".." + theName;
-                _append( "\"" + theName  + "\" " , n );
+        case Token.REF_MEMBER :
+            final int memberTypeFlags = n.getIntProp(Node.MEMBER_TYPE_PROP, 0);
+            String theName = ( ( memberTypeFlags & Node.ATTRIBUTE_FLAG ) != 0 ? "@" : "" ) + n.getFirstChild().getNext().getString();
+            if ( ( memberTypeFlags & Node.DESCENDANTS_FLAG ) != 0 )
+                theName = ".." + theName;
+            _append( "\"" + theName  + "\"" , n );
 
-		_append( " )" , n );
-	    }
-	    else {
-		Debug.printTree( n , 0 );
-		throw new RuntimeException( "don't know what to do with " + Token.name( n.getFirstChild().getType() ) );
-	    }
+            break;
+
+        case Token.REF_NS_MEMBER :
+            _add( n.getFirstChild().getNext() , state );
+            _append( " + \"::\" + ", n );
+            _add( n.getFirstChild().getNext().getNext() , state );
             break;
 
         case Token.ESCXMLTEXT :
@@ -751,18 +749,10 @@ public class Convert implements StackTraceFixer {
             break;
 
         case Token.DEL_REF:
-            Node rm = n.getFirstChild();
-
             _append( "((JSObject)" , n );
-            _add( rm.getFirstChild() , state );
+            _add( n.getFirstChild().getFirstChild() , state );
             _append( ").removeField( " , n );
-            
-            final int memberTypeFlags = rm.getIntProp(Node.MEMBER_TYPE_PROP, 0);
-            String theName = ( ( memberTypeFlags & Node.ATTRIBUTE_FLAG ) != 0 ? "@" : "" ) + rm.getFirstChild().getNext().getString();
-            if ( ( memberTypeFlags & Node.DESCENDANTS_FLAG ) != 0 )
-                theName = ".." + theName;
-            _append( "\"" + theName  + "\" " , n );
-            
+            _add( n.getFirstChild() , state );            
             _append( " )" , n );
             break;
 
@@ -1652,7 +1642,9 @@ public class Convert implements StackTraceFixer {
             buf.append("\t\t // not creating new scope for execution as we're being run in the context of an eval\n");
         }
         else {
-            buf.append( "\t\t scope = new Scope( \"compiled script for:" + _name.replaceAll( "/tmp/jxp/s?/?0\\.\\d+/" , "" ) + "\" , scope , null , getFileLanguage() ); \n" );
+	    String cleanName = _name.replaceAll( "/tmp/jxp/s?/?0\\.\\d+/" , "" );
+	    cleanName = FileUtil.clean( cleanName );
+            buf.append( "\t\t scope = new Scope( \"compiled script for:" + cleanName + "\" , scope , null , getFileLanguage() ); \n" );
             buf.append( "\t\t scope.putAll( getTLScope() );\n" );
         }
 

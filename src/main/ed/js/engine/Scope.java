@@ -21,6 +21,7 @@ package ed.js.engine;
 import java.io.*;
 import java.lang.reflect.*;
 import java.util.*;
+import javax.script.*;
 
 import ed.io.*;
 import ed.js.*;
@@ -28,7 +29,7 @@ import ed.js.func.*;
 import ed.lang.*;
 import ed.util.*;
 
-public final class Scope implements JSObject {
+public final class Scope implements JSObject , Bindings {
 
     static {
         JS._debugSIStart( "Scope" );
@@ -38,7 +39,6 @@ public final class Scope implements JSObject {
     private static long ID = 1;
 
     private static ThreadLocal<Scope> _threadLocal = new ThreadLocal<Scope>();
-    private static ThreadLocal<Scope> _lastCreated = new ThreadLocal<Scope>();
 
     public static Scope newGlobal(){
         return JSBuiltInFunctions.create();
@@ -107,7 +107,6 @@ public final class Scope implements JSObject {
         if ( _parent == null )
             _globalThis = _createGlobalThis();
         
-        _lastCreated.set( this );
     }
 
     public Scope child(){
@@ -129,6 +128,10 @@ public final class Scope implements JSObject {
         return get( n.toString() );
     }
     
+    public Object remove( Object n ){
+        return removeField( n );
+    }
+
     public Object removeField( Object n ){
         return removeField( n.toString() );
     }
@@ -140,18 +143,48 @@ public final class Scope implements JSObject {
         throw new RuntimeException( "no" );
     }
 
-    public Collection<String> keySet(){
+    public Set<String> keySet(){
         return keySet( false );
     }
 
-    public Collection<String> keySet( boolean includePrototype ){
+    public Set<String> keySet( boolean includePrototype ){
         if ( _objects == null )
             return new HashSet<String>();
         return _objects.keySet( true );
     }
 
+    public Set<Map.Entry<String,Object>> entrySet(){
+        throw new RuntimeException( "not sure this makes sense" );
+    }
+
+    public Collection<Object> values(){
+        throw new RuntimeException( "not sure this makes sense" );
+    }
+
+    public void clear(){
+        throw new RuntimeException( "can't clear a scope" );
+    }
+
+    public boolean containsKey( Object o ){
+        return containsKey( o.toString() );
+    }
+
     public boolean containsKey( String s ){
         throw new RuntimeException( "not sure this makes sense" );
+    }
+
+    public boolean containsValue( Object o ){
+        throw new RuntimeException( "not sure this makes sense" );
+    }
+
+    public boolean isEmpty(){
+        return _objects != null && ! _objects.isEmpty();
+    }
+
+    public int size(){
+        if ( _objects == null )
+            return 0;
+        return _objects.size();
     }
 
     public Object removeField( String name ){
@@ -173,6 +206,10 @@ public final class Scope implements JSObject {
         _mapSet( name.hashCode() , name , o );
     }
     
+    public Object put( String name , Object o ){
+        return put( name , o , true );
+    }
+
     public Object put( String name , Object o , boolean local ){
         _throw();
         o = JSInternalFunctions.fixType( o , false );
@@ -630,6 +667,7 @@ public final class Scope implements JSObject {
         if ( _global ){
             if ( _globalThis == null )
                 _globalThis = _createGlobalThis();
+            
         }
         else {
             _globalThis = null;
@@ -838,6 +876,10 @@ public final class Scope implements JSObject {
         return null;
     }
     
+    public void putAll(Map<? extends String,? extends Object> toMerge){
+        throw new RuntimeException( "not implemented" );
+    }
+
     public void putAll( Scope s ){
         if ( s == null )
             return;
@@ -929,7 +971,6 @@ public final class Scope implements JSObject {
     boolean _global = false;
     boolean _killed = false;
     
-    //Map<String,Object> _objects;
     FastStringMap _objects;
     Set<String> _lockedObject;
     Set<String> _warnedObject;
@@ -951,7 +992,6 @@ public final class Scope implements JSObject {
     
     public static void clearThreadLocal(){
         _threadLocal.set( null );
-        _lastCreated.set( null );
     }
     
     public static Scope getThreadLocal(){
@@ -981,22 +1021,16 @@ public final class Scope implements JSObject {
         return (JSFunction)getThreadLocal( name , def , warn );
     }
 
-    public static Scope getLastCreated(){
-        return _lastCreated.get();
-    }
-
     public static Scope getAScope(){
-        return getAScope( true , false );
+        return getAScope( true );
     }
 
-    public static Scope getAScope( boolean createIfNeeded , boolean lastCreated ){
+    public static Scope getAScope( boolean createIfNeeded ){
         Scope s = getThreadLocal();
         if ( s != null )
             return s;
         
         if ( ! createIfNeeded ){
-            if ( lastCreated )
-                return _lastCreated.get();
             return null;
         }
 

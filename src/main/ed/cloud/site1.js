@@ -17,26 +17,57 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-Cloud.Environment = function(){
-    this.branch = null;
-    this.name = this.branch;
-    this.db = null;
-    this.pool = null;
-    this.giturl = null;
-    this.iid = ObjectId();
+// -----  Basic Structure Stuff -----------
+
+Cloud.Environment = function( name , branch , db , pool ){
+    this.name = name;
+    this.branch = branch;
+    this.db = db;
+    this.pool = pool;
+
+    this.id = ObjectId();
     this.aliases = [];
 };
 
-Cloud.SiteDB = function(){
-    this.name = null;
-    this.server = null;
-    this.did = ObjectId();
+// iid is the old name - should deprecate 
+Cloud.Environment.prototype.__defineGetter__( "iid" , function(){ return this.id; } );
+Cloud.Environment.prototype.__defineSetter__( "iid" , function( id ){ this.id = id; } );
+
+Cloud.Environment.prototype.__defineGetter__( "aliases" , function(){ return this._aliases; } );
+Cloud.Environment.prototype.__defineSetter__( "aliases" , 
+                                              function( aliases ){ 
+                                                  if ( ! aliases )
+                                                      return this._aliases = [];
+
+                                                  if ( isArray( aliases ) )
+                                                      return this._aliases = aliases;
+                                                  
+                                                  if ( isString( aliases ) )
+                                                      return ( this._aliases = aliases.split( /[, ]+/ ) );
+                                                  
+                                                  throw "what?";
+                                              } )
+;
+
+Cloud.Environment.prototype.toString = function(){
+    return this.name;
+}
+
+Cloud.SiteDB = function( name , server ){
+    this.name = name;
+    this.server = server;
+    this.id = ObjectId();
 };
+
+// did is the old name - should deprecate 
+Cloud.SiteDB.prototype.__defineGetter__( "did" , function(){ return this.id; } );
+Cloud.SiteDB.prototype.__defineSetter__( "did" , function( id ){ this.id = id; } );
 
 Cloud.Site = function( name ){
     this.name = name;
     this.created = new Date();
-    
+    this.giturl = null;
+
     this.environments = [];
     this.environments._dbCons = Cloud.Environment;
 
@@ -44,12 +75,41 @@ Cloud.Site = function( name ){
     this.dbs._dbCons = Cloud.SiteDB;
 };
 
+Cloud.Site.prototype.toString = function(){
+    return "Site: " + this.name;
+};
+
+// -----   Environment Stuff -----------
+
 Cloud.Site.prototype.environmentNames = function(){
     return this.environments.map( function(z){ return z.name } );
 }
 
-Cloud.Site.prototype.dbNames = function(){
-    return this.dbs.map( function(z){ return z.name } );
+Cloud.Site.prototype.removeEnvironment = function( identifier ){
+    
+    var e = this.findEnvironment( identifier );
+    if ( ! e )
+        return false;
+
+    this.environments = this.environments.filter( 
+        function(z){
+            return z != e;    
+        }
+    );
+    
+    return true;
+}
+
+Cloud.Site.prototype.findEnvironment = function( identifier ){
+    if ( identifier && isObject( identifier ) && identifier.id && identifier.name )
+        return identifier;
+    
+    for ( var i=0; i<arguments.length; i++ ){
+        var e = this.findEnvironmentByName( arguments[i] ) || this.findEnvironmentById( arguments[i] );
+        if ( e )
+            return e;
+    }
+    return null;
 }
 
 Cloud.Site.prototype.findEnvironmentByName = function( name ){
@@ -62,31 +122,149 @@ Cloud.Site.prototype.findEnvironmentByName = function( name ){
 
         if ( z.name == name )
             ret = z;
-
+        
         if ( z.aliases && z.aliases.contains( name ) )
             ali = z;
-    } );
 
+    } );
+    
     return ret || ali;
 };
 
-Cloud.Site.prototype.findEnvironmentById = function( iid ){
-    if ( ! iid )
+Cloud.Site.prototype.findEnvironmentById = function( id ){
+    if ( ! id )
         return null;
     
-    if ( isString( iid ) )
-        iid = ObjectId( iid );
+    if ( isString( id ) ){
+        if ( ! ObjectId.isValid( id ) )
+            return null;
+        id = ObjectId( id );
+    }
     
     var ret = null;
     this.environments.forEach( function(z){
-        if ( z.iid == iid )
+        if ( z.id == id )
             ret = z;
     } );
     return ret;
 };
 
+Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool , aliases ){
+    if ( isObject( name ) && branch == null ){
+        var o = name;
+        var tempID = o.iid || o.id;
+
+        var e = {};
+        if ( tempID )
+            e = this.findEnvironmentById( tempID ) || {};
+
+        name = o.name || e.name;
+        branch = o.branch || e.branch;
+        db = o.db || e.db;
+        pool = o.pool || e.pool;
+        aliases = o.aliases || e.aliases;
+
+            
+    }
+        
+    if ( ! name )
+        throw "envinroment must have a name";
+
+    var e = this.findEnvironmentByName( name );
+    
+    if ( ! branch ){
+        if ( e ) branch = e.branch;
+        if ( ! branch )
+            throw "envinroment must have a branch";
+    }
+    
+        
+    if ( ! db ){
+        if ( e ) db = e.db;
+
+        if ( this.findDBByName( name ) )
+            db = name;
+
+        if ( ! db )
+            throw "envinroment must have a db and can't find a db called [" + name + "]";
+    }
+    
+    if ( ! this.findDBByName( db ) )
+        throw "no db with name [" + db + "]";
+
+    if ( ! pool ){
+        if ( e ) pool = e.pool;
+        if ( ! pool )
+            pool = Cloud.Balancer.getAvailablePool();
+    }
+    
+    if ( ! Cloud.Pool.findByName( pool ) ){
+        throw "no pool with name [" + pool + "]";
+    }
+
+    if ( e ){
+        var changed = false;
+
+        if ( e.branch != branch ){
+            e.branch = branch;
+            changed = true;
+        }
+
+        if ( e.db != db ){
+            e.db = db;
+            changed = true;
+        }
+
+        if ( e.pool != pool ){
+            e.pool = pool;
+            changed = true;
+        }
+
+        if ( e.aliases != aliases ){
+            var old = e.aliases;
+            e.aliases = aliases;
+            if ( old == null || old.hashCode() != e.aliases.hashCode() )
+                changed = true;
+        }
+
+        return changed;
+    }
+    
+    e = new Cloud.Environment( name , branch , db , pool );
+    e.aliases = aliases;
+    this.environments.add( e );
+    return true;
+};
+
+// -----   DB Stuff -----------
+
+Cloud.Site.prototype.dbNames = function(){
+    return this.dbs.map( function(z){ return z.name } );
+}
+
+Cloud.Site.prototype.removeDB = function( identifier ){
+    var db = this.findDB( identifier );
+    if ( ! db )
+        return false;
+
+    this.environments.forEach( 
+        function(z){
+            if ( z.db == db.name )
+                throw "you can't delete db[" + db.name + "] because being used by [" + z.name + "]";
+        }
+    );
+    
+    this.dbs = this.dbs.filter(
+        function(z){
+            return z != db;
+        }
+    );
+
+    return true;
+}
+
 /**
-this returns the 10gen server name (prod1)
+* @return this returns the 10gen server name (prod1)
 */
 Cloud.Site.prototype.getDatabaseServerForEnvironmentName = function( name ){
     name = name || "www";
@@ -107,6 +285,18 @@ Cloud.Site.prototype.getDatabaseServerForEnvironmentName = function( name ){
     return db.server;
 }
 
+Cloud.Site.prototype.findDB = function( identifier ){
+    if ( identifier && isObject( identifier ) && identifier.id && identifier.name )
+        return identifier;
+
+    for ( var i=0; i<arguments.length; i++ ){
+        var db = this.findDBByName( arguments[i] ) || this.findDBById( arguments[i] );
+        if ( db )
+            return db;
+    }
+    return null;
+}
+
 Cloud.Site.prototype.findDBByName = function( name ){
     if ( ! name )
         return null;
@@ -119,20 +309,58 @@ Cloud.Site.prototype.findDBByName = function( name ){
     return ret;
 };
 
-Cloud.Site.prototype.findDBById = function( did ){
-    if ( ! did )
+Cloud.Site.prototype.findDBById = function( id ){
+    if ( ! id )
         return null;
     
-    if ( isString( did ) )
-        did = ObjectId( did );
+    if ( isString( id ) ){
+        if ( ! ObjectId.isValid( id ) )
+            return null;
+        id = ObjectId( id );
+    }
     
     var ret = null;
     this.dbs.forEach( function(z){
-        if ( z.did == did )
+        if ( z.id == id )
             ret = z;
     } );
     return ret;
 };
+
+Cloud.Site.prototype.upsertDB = function( name , server ){
+
+    if ( isObject( name ) && server == null && name.name ){
+        var o = name;
+        name = o.name;
+        server = o.server;
+    }
+    
+
+    if ( ! name )
+        throw "need to specify db name";
+        
+    if ( ! server )
+        server = Cloud.Balancer.getAvailableDB();
+    
+    if ( ! Cloud.findDBByName( server ) )
+        throw "can't find db [" + server + "]";
+    
+    if ( this.findDBByName( name ) ){
+        var db = this.findDBByName( name );
+        if ( db.server == server )
+            return false;
+        
+        db.server = server;
+        return true;
+    }
+    
+    var db = new Cloud.SiteDB( name , server );
+    this.dbs.add( db );
+    
+    return true;
+};
+
+// -----  Util Stuff -----------
 
 Cloud.Site.prototype.getGitBranchNames = function( force ){
 
@@ -190,9 +418,54 @@ Cloud.Site.prototype.getGitBranchNames = function( force ){
     return javaStatic( "ed.util.GitUtils" , "getAllBranchAndTagNames" , root );
 };
 
-Cloud.Site.prototype.toString = function(){
-    return "Site: " + this.name;
-};
+Cloud.Site.prototype.updateEnvironment = function( envName , fullReset , dryRun ){
+    var command = fullReset ? "reset" : "update";
+
+    var env = this.findEnvironment( envName );
+    if ( ! env )
+        throw "can't find environment [" + envName + "]";
+
+    var p = db.pools.findOne( { name : env.pool } );
+    if ( ! p )
+        throw "couldn't find pool [" + env.pool + "]";
+    
+    var threads = [];
+
+    var hostName = env.name + "." + this.name + ".10gen.com";
+
+    var res = { ok : true };
+    for ( var i=0; i<p.machines.length; i++ ){
+        var machine = p.machines[i];
+	threads.push(
+	    fork( 
+		function(){
+		    try {
+			res[machine] = Cloud.Site.resetSiteOnHost( machine , hostName , command , dryRun );
+		    }
+		    catch ( e ){
+			res.ok = false;
+			res[machine] = e;
+		    }
+		}
+            )
+        );
+    }
+
+    for ( var i=0; i<threads.length; i++ ) threads[i].start();
+    for ( var i=0; i<threads.length; i++ ) threads[i].join();
+
+    return res;
+}
+
+Cloud.Site.resetSiteOnHost = function( machine , hostName , command , dryRun ){
+    command = command || "reset";
+    var cmd = "ssh " + machine + " \"curl -D - -s -H 'Host: " + hostName + "'\" local.10gen.com:8080/~" + command;
+    var res = dryRun ? {} : sysexec( cmd );
+    res.cmd = cmd;
+    return res;
+}
+
+// ---- Static Stuff -------
 
 Cloud.Site.forName = function( name , create ){
     var s = db.sites.findOne( { name : name } );

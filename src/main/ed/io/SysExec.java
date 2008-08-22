@@ -165,7 +165,7 @@ public class SysExec extends ed.js.func.JSFunctionCalls5 {
 
         File root = scope.getRoot();
         if ( root == null )
-            throw new JSException( "no root" );
+            root = new File( "./" );
             
         String env[] = new String[]{};
 	    

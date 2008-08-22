@@ -29,28 +29,6 @@ import static ed.lang.python.Python.*;
 @ExposedType(name = "jswrapper")
 public class PyJSObjectWrapper extends PyDictionary {
 
-    @ExposedMethod
-    public final PyList jswrapper_keys(){
-        PyList l = new PyList();
-        for( String s : _js.keySet() ){
-            l.append( Py.newString( s ) );
-        }
-        return l;
-    }
-
-    public int __len__(){
-        return _js.keySet().size();
-    }
-
-    @ExposedMethod
-    public final boolean jswrapper___nonzero__(){
-        return _js.keySet().size() > 0;
-    }
-
-    public boolean __nonzero__(){
-        return jswrapper___nonzero__();
-    }
-
     static {
         try {
             ExposedTypeProcessor etp = new ExposedTypeProcessor(PyJSObjectWrapper.class.getClassLoader()
@@ -77,13 +55,60 @@ public class PyJSObjectWrapper extends PyDictionary {
             throw new NullPointerException( "don't think you should create a PyJSObjectWrapper for null" );
     }
     
-    public PyObject __findattr__(String name) {
+    public PyList keys(){
+        return jswrapper_keys();
+    }
+
+    public PyList values(){
+        return jswrapper_values();
+    }
+
+    @ExposedMethod
+    public final PyList jswrapper_keys(){
+        PyList l = new PyList();
+        for( String s : _js.keySet() ){
+            l.append( Py.newString( s ) );
+        }
+        return l;
+    }
+
+    @ExposedMethod
+    public PyList jswrapper_values(){
+        PyList list = new PyList();
+        for( String key : _js.keySet() ){
+            list.append( toPython( _js.get( key ) ) );
+        }
+        return list;
+    }
+
+    public int __len__(){
+        return _js.keySet().size();
+    }
+
+    public PyObject __dir__(){
+        PyList list = new PyList();
+        for( String s : _js.keySet() ){
+            list.append( Py.newString( s ) );
+        }
+        return list;
+    }
+    
+    @ExposedMethod
+    public final boolean jswrapper___nonzero__(){
+        return _js.keySet().size() > 0;
+    }
+
+    public boolean __nonzero__(){
+        return jswrapper___nonzero__();
+    }
+
+    public PyObject __findattr_ex__(String name) {
 
         if ( D ) System.out.println( "__findattr__ on [" + name + "]" );
 
         // FIXME: more graceful fail-through etc
         try{
-            PyObject p = super.__findattr__( name );
+            PyObject p = super.__findattr_ex__( name );
             if( p != null )
                 return p;
         }
@@ -115,14 +140,6 @@ public class PyJSObjectWrapper extends PyDictionary {
         return _fixReturn( o );
     }
 
-    public PyObject __dir__(){
-        PyList list = new PyList();
-        for( String s : _js.keySet() ){
-            list.append( Py.newString( s ) );
-        }
-        return list;
-    }
-    
     private PyObject _fixReturn( Object o ){
         if ( o == null && ! _returnPyNone )
             return null;

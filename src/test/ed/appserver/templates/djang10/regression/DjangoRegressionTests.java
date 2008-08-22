@@ -35,13 +35,13 @@ import ed.db.JSHook;
 import ed.js.Encoding;
 import ed.js.JSArray;
 import ed.js.JSDate;
-import ed.js.JSException;
 import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
 import ed.js.func.JSFunctionCalls2;
+import ed.log.Level;
 import ed.log.Logger;
 
 public class DjangoRegressionTests {
@@ -52,15 +52,7 @@ public class DjangoRegressionTests {
 
         //requires architecture impl
         "basic-syntax27",   //need support for translating _( )
-        "^list-index.*",    //need to preprocess the string
-        "for-tag-unpack09", //need to support list indices
         "ifequal-numeric07", //need to preprocess: throw error on 2.
-
-        //django doesn't escape strings
-        "ifequal-split09",
-        "ifequal-split10",
-        "filter-syntax15",
-        "filter-syntax16",
 
         //need to add custom tags to test
         "inheritance17",
@@ -72,21 +64,17 @@ public class DjangoRegressionTests {
         "inheritance25",
 
        
-        //unimplemented filters
-        "filter-make_list-jsout0[3,4]", 
-        "filter-stringformat.*",
-
         //python & js have different string representations of types
         "filter-make_list0[1-4]", 
+        
+        //all keys are strings in js
+        "list-index07"
     };    
        
     public DjangoRegressionTests(){ }
     
     @Factory
     public Object[] getAllTests()  throws IOException {
-        if(Djang10Source.DEBUG)
-            System.out.println("Loading django regression tests");
-
         //Locate the test script
         String basePath = (JSHook.whereIsEd == null)? "" : JSHook.whereIsEd + "/";
         basePath += "src/test/ed/appserver/templates/djang10/regression/";
@@ -98,8 +86,9 @@ public class DjangoRegressionTests {
         globalScope.makeThreadLocal();
 
         //Load native objects
-        globalScope.set("log", Logger.getLogger("django test"));
-        
+        Logger log = Logger.getRoot();
+        globalScope.set("log", log);
+        log.makeThreadLocal();        
         
         //override the Date object
         final long now_ms = System.currentTimeMillis();
@@ -124,17 +113,20 @@ public class DjangoRegressionTests {
         try {
             Encoding.install(globalScope);
             jsHelper = Djang10Source.install(globalScope);
+            
+            JxpSource preambleSource = JxpSource.getSource(new File(basePath, "preamble.js"));
+            preambleSource.getFunction().call(globalScope);
         }
         finally {
             if(oldScope != null) oldScope.makeThreadLocal();
             else Scope.clearThreadLocal();
         }
-
+        
         //Load the test scripts & pull out variables
         final List<ExportedTestCase> testCases = new ArrayList<ExportedTestCase>();
         int count = 0, skipped = 0;
         
-        //FIXME: enable the filter tests
+        
         for(String testFilename : new String[] {"tests.js", "filter_tests.js", "missing_tests.js"}) {
             String path = basePath + testFilename;
             JSTestScript testScript = new JSTestScript(globalScope, path);
@@ -171,12 +163,7 @@ public class DjangoRegressionTests {
         JSArray loaders = (JSArray) jsHelper.get("TEMPLATE_LOADERS");
         loaders.clear();
         loaders.add(custom_loader);
-        
-        if(Djang10Source.DEBUG) {
-            String msg = String.format("Found %d tests, skipping %d of them", count, skipped);
-            System.out.println( msg );
-        }
-        
+       
         return testCases.toArray();
     }
     
@@ -276,9 +263,6 @@ public class DjangoRegressionTests {
         public void testWrapper() {
             Scope oldScope = Scope.getThreadLocal();
             scope.makeThreadLocal();
-            
-            if(Djang10Source.DEBUG)
-                System.out.println("Testing: " + name);
             
             try {
                 realTest();

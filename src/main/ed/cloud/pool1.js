@@ -16,12 +16,33 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// --- POOL ----
+
 Cloud.Pool = function(){
     this.name = null;
     this.envType = null;
     this.machines = [];
 };
 
+Cloud.Pool.findByName = function( name ){
+    return db.pools.findOne( { name : name } );
+}
+
+Cloud.Pool.getAllNames = function(){
+    return db.pools.find().sort( { name : 1 } ).toArray().map( 
+        function(z){ 
+            return z.name 
+        } 
+    ); 
+}
+
+db.pools.setConstructor( Cloud.Pool );
+
+if ( me.real ){
+    db.pools.ensureIndex( { name : 1 } );
+}
+
+// --- DB ----
 
 Cloud.DB = function(){
     this.name = null;
@@ -29,14 +50,28 @@ Cloud.DB = function(){
     this.machine = null;
 };
 
-Cloud.findDBByName = function( name ){
-    return db.dbs.findOne( { name : name } );
+Cloud.DB.findByName = function( name ){
+    return db.dbs.findOne( { name : name } );    
+};
+
+
+
+Cloud.DB.getAllNames = function(){
+    return db.dbs.find().sort( { name : 1 } ).toArray().map( 
+        function(z){ 
+            return z.name 
+        } 
+    ); 
 }
 
-db.pools.setConstructor( Cloud.Pool );
+Cloud.DB.getAllDBNames = Cloud.DB.getAllNames;
+
+Cloud.findDBByName = function( name ){
+    return Cloud.DB.findByName( name );
+};
+
 db.dbs.setConstructor( Cloud.DB );
 
 if ( me.real ){
-    db.pools.ensureIndex( { name : 1 } );
     db.dbs.ensureIndex( { machine : 1 } );
 }

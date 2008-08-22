@@ -34,7 +34,7 @@ var DB = function(){};
 
    <p>Example: </p>
    
-   <code>createCollection("movies", { size: 10 * 1024 * 1024, capped:true } );</code>
+   <code>db.createCollection("movies", { size: 10 * 1024 * 1024, capped:true } );</code>
  
  * @param {String} name Name of new collection to create 
  * @param {Object} options Object with options for call.  Options are listed above.

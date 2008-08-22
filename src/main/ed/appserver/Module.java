@@ -23,6 +23,7 @@ import java.util.*;
 
 import ed.js.*;
 import ed.js.engine.*;
+import ed.io.*;
 import ed.log.*;
 import ed.util.*;
 import ed.cloud.*;
@@ -101,7 +102,8 @@ public class Module {
         if ( ! USE_GIT )
             return null;
         
-        final String str = _root.toString();
+        final String str = FileUtil.toString( _root );
+
         if ( str.contains( "/core-modules/" ) || 
              str.contains( "/site-modules/" ) ){
             
@@ -114,6 +116,9 @@ public class Module {
 
         if ( str.endsWith( "/corejs" ) )
             return _makeGitUrl( "corejs" );
+
+	if ( str.endsWith( "/external" ) )
+            return _makeGitUrl( "external" );
         
         return null;
     }

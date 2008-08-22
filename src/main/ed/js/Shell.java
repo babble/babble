@@ -20,6 +20,7 @@ package ed.js;
 
 import java.io.*;
 import java.util.*;
+import javax.script.*;
 
 import jline.*;
 
@@ -31,6 +32,7 @@ import ed.lang.ruby.RubyJxpSource;
 import ed.js.func.*;
 import ed.js.engine.*;
 import ed.appserver.*;
+import ed.appserver.jxp.*;
 import ed.appserver.templates.*;
 import ed.appserver.templates.djang10.Djang10Source;
 
@@ -74,6 +76,8 @@ public class Shell {
     /** Connect to a database. */
     public static class ConnectDB extends JSFunctionCalls2 {
         public Object call( Scope s , Object name , Object ip , Object crap[] ){
+            if ( name == null )
+                throw new NullPointerException( "connect requires a name" );
             return DBProvider.get( name.toString() , ip == null ? null : ip.toString() );
         }
 
@@ -180,6 +184,21 @@ public class Shell {
                 RubyJxpSource rbx = new RubyJxpSource( new File( a ) , ((JSFileLibrary)(s.get( "local" ) ) ) );
                 try {
                     rbx.getFunction().call( s );
+                }
+                catch ( Exception e ){
+                    StackTraceHolder.getInstance().fix( e );
+                    e.printStackTrace();
+                    return;
+                }
+            else if ( Language.find( a ) != null && Language.find( a ).isScriptable() ){
+                
+                Language lang = Language.find( a );
+
+                ScriptEngine engine = lang.getScriptEngine();
+                JxpScriptContext context = new JxpScriptContext( lang.getObjectConvertor() , s );
+
+                try {
+                    engine.eval( new InputStreamReader( new FileInputStream( new File( a ) ) ) , context );
                 }
                 catch ( Exception e ){
                     StackTraceHolder.getInstance().fix( e );

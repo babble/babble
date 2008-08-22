@@ -32,12 +32,12 @@ public class FilterExpression extends JSObjectBase {
     private Expression expression;
     private List<FilterSpec> filterSpecs;
 
-    public FilterExpression(Parser parser, String filterExpression, Token token) {
+    public FilterExpression(Parser parser, String filterExpression, Token token, boolean useLiteralEscapes) {
         setConstructor(CONSTRUCTOR);
 
         String[] parts = Util.smart_split(filterExpression.trim(), "\\|");
 
-        this.expression = new Expression(parts[0], token);
+        this.expression = new Expression(parts[0], token, useLiteralEscapes);
         this.filterSpecs = new ArrayList<FilterSpec>();
         
 
@@ -51,7 +51,7 @@ public class FilterExpression extends JSObjectBase {
 
             JSFunction filter = parser.find_filter(filterNamePart);
 
-            Expression filterParam = (filterParamPart == null) ? null : new Expression(filterParamPart, token);
+            Expression filterParam = (filterParamPart == null) ? null : new Expression(filterParamPart, token, useLiteralEscapes);
             filterSpecs.add(new FilterSpec(filterNamePart, filter, filterParam));
         }
 

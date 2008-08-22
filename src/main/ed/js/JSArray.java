@@ -20,6 +20,7 @@ package ed.js;
 
 import java.util.*;
 
+import ed.util.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 import static ed.js.JSInternalFunctions.*;
@@ -648,6 +649,8 @@ public class JSArray extends JSObjectBase implements Iterable , List {
      * @return The inserted object, <tt>v</tt>.
      */
     public Object setInt( int pos , Object v ){
+        if ( _locked )
+            throw new JSException( "locked" );
         while ( _array.size() <= pos )
             _array.add( null );
         _array.set( pos , v );
@@ -792,9 +795,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
      * @return The element previously at the specified position.
      */
     public Object set( int index , Object o ){
-        if ( _locked )
-            throw new RuntimeException( "array locked" );
-        return _array.set( index , o );
+        return setInt( index , o );
     }
 
     /** Returns the element at the specified position in this array.
@@ -1045,11 +1046,11 @@ public class JSArray extends JSObjectBase implements Iterable , List {
     /** The hash code value of this array.
      * @return The hash code value of this array.
      */
-    public int hashCode(){
-        int hash = super.hashCode();
-        if ( _array != null ){
-            hash += _array.hashCode();
-        }
+    protected int hashCode( IdentitySet seen ){
+        int hash = super.hashCode( seen );
+        if ( _array != null )
+            for ( Object foo : _array )
+                hash += _hash( seen , foo );
         return hash;
     }
 
