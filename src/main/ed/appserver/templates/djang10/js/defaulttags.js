@@ -918,14 +918,16 @@ register.tag("widthratio", widthratio);
 var do_with =
     defaulttags.do_with =
     function(parser, token) {
-
-    var bits = token.split_contents();
-    if(bits.length != 4 || bits[2] != "as")
+    
+    var m = /(\w+)\s+(.+)\s+as\s+([\w_\$]+)$/.exec(token.contents);
+    
+    if(m == null)
         throw djang10.NewTemplateSyntaxException(bits[0] + " expected format is 'value as name'", token);
     
-    var var_ = parser.compile_filter(bits[1]);
-    var name = bits[3];
-    var nodelist = parser.parse([ "end" + bits[0] ]);
+    var command = m[1];
+    var var_ = parser.compile_filter(m[2]);
+    var name = m[3];
+    var nodelist = parser.parse([ "end" + command ]);
     parser.delete_first_token();
     
     return new WithNode(var_, name, nodelist);
