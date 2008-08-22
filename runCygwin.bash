@@ -9,11 +9,11 @@ for j in `ls include/*.jar`; do
     export CLASSPATH="$CLASSPATH;$j"
 done
 
-for j in `ls include/jython/current/*.jar`; do
+for j in `ls include/jython/*.jar`; do
     export CLASSPATH="$CLASSPATH;$j"
 done
 
-for j in `ls include/jython/current/javalib/*.jar`; do
+for j in `ls include/jython/javalib/*.jar`; do
     export CLASSPATH="$CLASSPATH;$j"
 done
 
