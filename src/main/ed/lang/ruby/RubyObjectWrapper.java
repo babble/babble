@@ -55,7 +55,7 @@ public class RubyObjectWrapper extends RubyObject {
 	if (obj == null)
 	    return runtime.getNil();
 	if (obj instanceof JSString || obj instanceof ObjectId)
-	    return RubyString.newString(_runtime, obj.toString());
+	    return RubyString.newString(runtime, obj.toString());
 	if (obj instanceof JSFunction) {
 	    IRubyObject methodOwner = container == null ? runtime.getTopSelf() : container;
 	    return new RubyJSFunctionWrapper(s, runtime, (JSFunction)obj, name, methodOwner.getSingletonClass());
