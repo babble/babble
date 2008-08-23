@@ -141,19 +141,19 @@ public class RubyObjectWrapperTest {
     }
 
     @Test(groups = {"convert", "r2js"})
-    public void testToJSMap() {
+    public void testFromRubyHashToJS() {
 	RubyHash rh = (RubyHash)r.evalScriptlet("{\"a\" => 1, :b => \"test string\"}");
 
 	Object o = toJS(r, rh);
-	assertTrue(o instanceof JSMap);
-	JSMap map = (JSMap)(o);
+	assertTrue(o instanceof JSObject);
+	JSObject jo = (JSObject)(o);
 
-	Object val = map.get("a");
+	Object val = jo.get("a");
 	assertNotNull(val);
 	assertTrue(val instanceof Number);
 	assertEquals(((Number)val).intValue(), 1);
 
-	val = map.get("b");
+	val = jo.get("b");
 	assertNotNull(val);
 	assertTrue(val instanceof JSString);
 	assertEquals(val.toString(), "test string");

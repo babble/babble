@@ -107,13 +107,13 @@ public class RubyObjectWrapper extends RubyObject {
 	}
 	if (r instanceof RubyHash) {
 	    RubyHash rh = (RubyHash)r;
-	    final JSObjectBase map = new JSObjectBase();
+	    final JSObjectBase jobj = new JSObjectBase();
 	    rh.visitAll(new RubyHash.Visitor() {
 		    public void visit(final IRubyObject key, final IRubyObject value) {
-			map.set(key.toString(), toJS(runtime, value));
+			jobj.set(key.toString(), toJS(runtime, value));
 		    }
 		});
-	    return map;
+	    return jobj;
 	}
 	return JavaUtil.convertRubyToJava(r); // punt
     }

@@ -131,12 +131,15 @@ public class RubyJxpSource extends JxpSource {
     }
 
     protected void _addSiteRootToPath(Scope s) {
-	RubyString siteRoot = RubyString.newString(_runtime, s.get("__instance__").toString().replace('\\', '/'));
-	RubyArray loadPath = (RubyArray)_runtime.getLoadService().getLoadPath();
-	if (loadPath.include_p(_runtime.getCurrentContext(), siteRoot).isFalse()) {
-	    if (DEBUG)
-		System.err.println("adding site root " + siteRoot + " to Ruby load path");
-	    loadPath.append(siteRoot);
+	Object appContext = s.get("__instance__");
+	if (appContext != null) {
+	    RubyString siteRoot = RubyString.newString(_runtime, appContext.toString().replace('\\', '/'));
+	    RubyArray loadPath = (RubyArray)_runtime.getLoadService().getLoadPath();
+	    if (loadPath.include_p(_runtime.getCurrentContext(), siteRoot).isFalse()) {
+		if (DEBUG)
+		    System.err.println("adding site root " + siteRoot + " to Ruby load path");
+		loadPath.append(siteRoot);
+	    }
 	}
     }
 

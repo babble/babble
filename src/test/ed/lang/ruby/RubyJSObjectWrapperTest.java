@@ -67,17 +67,8 @@ public class RubyJSObjectWrapperTest {
     }
 
     public void testMethodMissingNoSuchMethod() {
-	try {
-	    r.evalScriptlet("data.xyzzy");
-	    fail("should have thrown a NoMethodError");
-	}
-	catch (org.jruby.exceptions.RaiseException re) {
-	    String msg = re.getException().toString();
-	    assertTrue(msg.startsWith("undefined method `xyzzy'"));
-	}
-	catch (Exception e) {
-	    fail("Expected NoMethodError, got " + e.getClass().getName() + ": " + e.toString());
-	}
+	IRubyObject answer = r.evalScriptlet("data.xyzzy");
+	assertEquals(answer, r.getNil());
     }
 
     public void testInstanceVariables() {
