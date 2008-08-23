@@ -17,6 +17,7 @@
 package ed.lang.ruby;
 
 import java.util.Collection;
+import java.util.Collections;
 
 import org.jruby.*;
 import org.jruby.internal.runtime.methods.JavaMethod;
@@ -99,7 +100,13 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 	final String name = "instance_variables".intern();
 	eigenclass.addMethod(name, new JavaMethod(eigenclass, PUBLIC) {
                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
-		    Collection<String> keys = _jsobj.keySet();
+		    Collection<String> keys = null;
+		    try {
+			keys = _jsobj.keySet();
+		    }
+		    catch (Exception e) {
+			keys = Collections.EMPTY_SET;
+		    }
 		    int size = keys.size();
 		    RubyArray ra = RubyArray.newArray(_runtime, size);
 		    int i = 0;
@@ -118,7 +125,13 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 	eigenclass.addMethod(name, new JavaMethod(eigenclass, PUBLIC) {
                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
 		    RubyArray superMethods = (RubyArray)((RubyObject)self).public_methods(context, new IRubyObject[0]);
-		    Collection<String> keys = _jsobj.keySet();
+		    Collection<String> keys = null;
+		    try {
+			keys = _jsobj.keySet();
+		    }
+		    catch (Exception e) {
+			keys = Collections.EMPTY_SET;
+		    }
 		    int size = keys.size();
 		    RubyArray ra = RubyArray.newArray(_runtime, size + superMethods.size());
 		    int i = 0;
