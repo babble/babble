@@ -313,6 +313,7 @@ public class AppContext {
     }
 
     static String[] guessNameAndEnv( String root ){
+	root = ed.io.FileUtil.clean( root );
         root = root.replaceAll( "\\.+/" , "" );
         String pcs[] = root.split("/+");
         
