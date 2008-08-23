@@ -18,7 +18,6 @@ package ed.lang.ruby;
 
 import org.jruby.*;
 import org.jruby.internal.runtime.methods.JavaMethod;
-import org.jruby.javasupport.JavaUtil;
 import org.jruby.runtime.*;
 import org.jruby.runtime.builtin.IRubyObject;
 import static org.jruby.runtime.Visibility.PUBLIC;
@@ -59,7 +58,7 @@ public class RubyJSFunctionWrapper extends RubyObjectWrapper {
 
 		    Object[] jargs = new Object[args.length];
 		    for (int i = 0; i < args.length; ++i)
-			jargs[i] = JavaUtil.convertRubyToJava(args[i]);
+			jargs[i] = toJS(_runtime, args[i]);
 
 		    Object result = _func.call(_scope, jargs);
 		    if (RubyObjectWrapper.DEBUG)

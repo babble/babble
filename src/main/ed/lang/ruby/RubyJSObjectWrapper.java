@@ -59,7 +59,7 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 	eigenclass.addMethod(name, new JavaMethod(eigenclass, PUBLIC) {
                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
 		    // args[0] is method name symbol, args[1..-1] are arguments
-		    String key = JavaUtil.convertRubyToJava(args[0]).toString();
+		    String key = args[0].toString();
 		    if (RubyObjectWrapper.DEBUG)
 			System.err.println("method_missing called; symbol = " + key);
 
@@ -73,8 +73,7 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 			key = key.substring(0, key.length() - 1);
 			if (DEBUG)
 			    System.err.println("assigning new value to instance var named " + key);
-			_jsobj.set(key, RubyObjectWrapper.toJS(_runtime, args[1]));
-			return RubyObjectWrapper.toRuby(_scope, _runtime, JavaUtil.convertRubyToJava(args[1]));
+			return RubyObjectWrapper.toRuby(_scope, _runtime, _jsobj.set(key, toJS(_runtime, args[1])));
 		    }
 
 		    Object obj = _jsobj.get(key);

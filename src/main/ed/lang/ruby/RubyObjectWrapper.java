@@ -89,14 +89,16 @@ public class RubyObjectWrapper extends RubyObject {
     public static Object toJS(final org.jruby.Ruby runtime, IRubyObject r) {
 	if (r == null)
 	    return null;
+	if (r instanceof RubyString)
+	    return new JSString(JavaUtil.convertRubyToJava(r).toString());
+	if (r instanceof RubyObjectWrapper)
+	    return ((RubyObjectWrapper)r)._obj;
 	if (r instanceof RubyBignum)
 	    return JavaUtil.convertRubyToJava(r, BigInteger.class);
 	if (r instanceof RubyBigDecimal)
 	    return ((RubyBigDecimal)r).getValue();
 	if (r instanceof RubyNumeric)
 	    return JavaUtil.convertRubyToJava(r);
-	if (r instanceof RubyString)
-	    return new JSString(JavaUtil.convertRubyToJava(r).toString());
 	if (r instanceof RubyArray) {
 	    RubyArray ra = (RubyArray)r;
 	    int len = ra.getLength();
