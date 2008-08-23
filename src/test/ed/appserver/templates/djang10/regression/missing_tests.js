@@ -58,4 +58,10 @@ tests=[                                                                         
        { name: "literal-escape01", content: '{% literal_escape on %}{{ "moo\\nbaa" }}{% endliteral_escape %}', model: {}, results: "moo\nbaa" },
        { name: "literal-escape02", content: '{% literal_escape off %}{{ "moo\\nbaa" }}{% endliteral_escape %}', model: {}, results: "moo\\nbaa" },
        { name: "literal-escape03", content: '{{ "moo\\nbaa" }}', model: {}, results: "moo\\nbaa" },
+       
+       { name: "with-filter01", content: '{% with none.existent.crap( "moo" ) | default:"baa" as var %}{{ var }}{% endwith %}', model: {}, results: "baa" },
+       
+       { name: "filter-pprint01", content: '{{ "moo"|pprint }}', model: {}, results: '"moo"' },
+       { name: "filter-pprint02", content: '{{ var|pprint }}', model: {"var":"moo"}, results: '&quot;moo&quot;' },
+       { name: "filter-pprint03", content: '{% autoescape off %}{{ var|pprint }}{% endautoescape %}', model: {"var":"moo"}, results: '"moo"' },
 ];

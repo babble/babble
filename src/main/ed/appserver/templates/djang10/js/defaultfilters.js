@@ -1149,7 +1149,13 @@ var phone2numeric =
 };
 phone2numeric.is_safe = true;
 
-//TODO: pprint
+var pprint =
+    defaultfilters.pprint =
+    function(value) {
+
+    return tojson(value);
+};
+pprint.is_safe = true;
 
 register.filter("lower", lower);
 register.filter("upper", upper);
@@ -1205,6 +1211,7 @@ register.filter("time", time);
 register.filter("slugify", slugify);
 register.filter("iriencode", iriencode);
 register.filter("stringformat", stringformat);
+register.filter("pprint", pprint);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};
