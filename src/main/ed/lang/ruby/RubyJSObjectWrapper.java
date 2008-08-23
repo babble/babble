@@ -64,6 +64,11 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 			System.err.println("method_missing called; symbol = " + key);
 
 		    // Write
+		    if (key.equals("[]=")) {
+			if (DEBUG)
+			    System.err.println("assigning new value to instance var named " + args[1]);
+			return RubyObjectWrapper.toRuby(_scope, _runtime, _jsobj.set(args[1].toString(), toJS(_runtime, args[2])));
+		    }
 		    if (key.endsWith("=")) {
 			key = key.substring(0, key.length() - 1);
 			if (DEBUG)
@@ -84,7 +89,45 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 			return RubyObjectWrapper.toRuby(_scope, _runtime, ((JSFunction)obj).call(_scope, jargs));
 		    }
 
-		    // Read ivar
+
+		    // Check for certain built-in JSObject methods and call them
+		    if (obj == null) {
+			if ("[]".equals(key))
+			    key = "get";
+			else if ("[]=".equals(key))
+			    key = "set";
+
+			if ("get".equals(key) && args.length > 1) {
+			    if (DEBUG) System.err.println("calling internal get()");
+			    return RubyObjectWrapper.toRuby(_scope, _runtime, _jsobj.get(args[1].toString()));
+			}
+			if ("set".equals(key) && args.length > 2) {
+			    if (DEBUG) System.err.println("calling internal set()");
+			    return RubyObjectWrapper.toRuby(_scope, _runtime, _jsobj.set(args[1].toString(), toJS(_runtime, args[2])));
+			}
+			if ("keySet".equals(key)) {
+			    if (DEBUG) System.err.println("calling internal keySet()");
+			    Collection<String> keys = null;
+			    try {
+				keys = _jsobj.keySet();
+			    }
+			    catch (Exception e) {
+				keys = Collections.EMPTY_SET;
+			    }
+			    return RubyObjectWrapper.toRuby(_scope, _runtime, keys);
+			}
+			if ("containsKey".equals(key) && args.length > 1) {
+			    if (DEBUG) System.err.println("calling internal containsKey()");
+			    boolean found = false;
+			    try {
+				found = _jsobj.containsKey(args[1].toString());
+			    }
+			    catch (Exception e) { }
+			    return found ? _runtime.getTrue() : _runtime.getFalse();
+			}
+		    }
+
+		    // Finally, it's a simple ivar retrieved by get(). Return it.
 		    if (DEBUG)
 			System.err.println("returning value of instance var named " + key);
 		    return (obj == null) ? _runtime.getNil() : RubyObjectWrapper.toRuby(_scope, _runtime, obj);
