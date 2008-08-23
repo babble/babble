@@ -112,7 +112,7 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 				keys = _jsobj.keySet();
 			    }
 			    catch (Exception e) {
-				keys = Collections.EMPTY_SET;
+				keys = Collections.emptySet();
 			    }
 			    return RubyObjectWrapper.toRuby(_scope, _runtime, keys);
 			}
@@ -148,7 +148,7 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 			keys = _jsobj.keySet();
 		    }
 		    catch (Exception e) {
-			keys = Collections.EMPTY_SET;
+			keys = Collections.emptySet();
 		    }
 		    int size = keys.size();
 		    RubyArray ra = RubyArray.newArray(_runtime, size);
@@ -173,7 +173,7 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 			keys = _jsobj.keySet();
 		    }
 		    catch (Exception e) {
-			keys = Collections.EMPTY_SET;
+			keys = Collections.emptySet();
 		    }
 		    int size = keys.size();
 		    RubyArray ra = RubyArray.newArray(_runtime, size + superMethods.size());
