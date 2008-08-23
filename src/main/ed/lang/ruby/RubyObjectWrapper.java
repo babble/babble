@@ -86,7 +86,7 @@ public class RubyObjectWrapper extends RubyObject {
     }
 
     /** Given a Ruby object, returns a JavaScript object. */
-    public static Object toJS(org.jruby.Ruby runtime, IRubyObject r) {
+    public static Object toJS(final org.jruby.Ruby runtime, IRubyObject r) {
 	if (r == null)
 	    return null;
 	if (r instanceof RubyBignum)
@@ -107,13 +107,12 @@ public class RubyObjectWrapper extends RubyObject {
 	}
 	if (r instanceof RubyHash) {
 	    RubyHash rh = (RubyHash)r;
-	    JSMap map = new JSMap();
-	    RubyArray keys = rh.keys();
-	    int len = keys.getLength();
-	    for (int i = 0; i < len; ++i) {
-		IRubyObject key = keys.entry(i);
-		map.set(JavaUtil.convertRubyToJava(key).toString(), toJS(runtime, rh.op_aref(runtime.getCurrentContext(), key)));
-	    }
+	    final JSObjectBase map = new JSObjectBase();
+	    rh.visitAll(new RubyHash.Visitor() {
+		    public void visit(final IRubyObject key, final IRubyObject value) {
+			map.set(key.toString(), toJS(runtime, value));
+		    }
+		});
 	    return map;
 	}
 	return JavaUtil.convertRubyToJava(r); // punt
