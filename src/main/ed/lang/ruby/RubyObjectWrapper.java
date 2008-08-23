@@ -89,8 +89,6 @@ public class RubyObjectWrapper extends RubyObject {
     public static Object toJS(org.jruby.Ruby runtime, IRubyObject r) {
 	if (r == null)
 	    return null;
-	if ("MongoObjectId".equals(((RubyObject)r).type().name()))
-	    return new ObjectId(r.toString());
 	if (r instanceof RubyBignum)
 	    return JavaUtil.convertRubyToJava(r, BigInteger.class);
 	if (r instanceof RubyBigDecimal)
