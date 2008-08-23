@@ -36,7 +36,7 @@ import ed.js.engine.Scope;
  */
 public class RubyObjectWrapper extends RubyObject {
 
-    static final boolean DEBUG = Boolean.getBoolean("DEBUG.RBWRAPPER");
+    static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB.WRAP");
   
     protected final Scope _scope;
     protected final org.jruby.Ruby _runtime;
@@ -54,10 +54,8 @@ public class RubyObjectWrapper extends RubyObject {
     public static IRubyObject toRuby(Scope s, org.jruby.Ruby runtime, Object obj, String name, RubyObjectWrapper container) {
 	if (obj == null)
 	    return runtime.getNil();
-	if (obj instanceof JSString)
-	    return RubyString.newUnicodeString(runtime, obj.toString());
-	if (obj instanceof ObjectId)
-	    return new RubyObjectId(runtime, (ObjectId)obj);
+	if (obj instanceof JSString || obj instanceof ObjectId)
+	    return RubyString.newString(_runtime, obj.toString());
 	if (obj instanceof JSFunction) {
 	    IRubyObject methodOwner = container == null ? runtime.getTopSelf() : container;
 	    return new RubyJSFunctionWrapper(s, runtime, (JSFunction)obj, name, methodOwner.getSingletonClass());
@@ -91,8 +89,8 @@ public class RubyObjectWrapper extends RubyObject {
     public static Object toJS(org.jruby.Ruby runtime, IRubyObject r) {
 	if (r == null)
 	    return null;
-	if (r instanceof RubyObjectId)
-	    return ((RubyObjectId)r)._id;
+	if ("MongoObjectId".equals(((RubyObject)r).type().name()))
+	    return new ObjectId(r.toString());
 	if (r instanceof RubyBignum)
 	    return JavaUtil.convertRubyToJava(r, BigInteger.class);
 	if (r instanceof RubyBigDecimal)
@@ -143,8 +141,8 @@ public class RubyObjectWrapper extends RubyObject {
 	final String internedName = "to_s".intern();
 	eigenclass.addMethod(internedName, new JavaMethod(eigenclass, PUBLIC) {
                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
-                    if (args.length != 1) Arity.raiseArgumentError(_runtime, args.length, 0, 0);
-                    return JavaUtil.convertJavaToUsableRubyObject(_runtime, _obj.toString());
+                    if (args.length != 0) Arity.raiseArgumentError(_runtime, args.length, 0, 0);
+		    return RubyString.newString(_runtime, _obj.toString());
                 }
                 @Override public Arity getArity() { return Arity.noArguments(); }
             });

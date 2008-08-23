@@ -62,40 +62,33 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 		    if (RubyObjectWrapper.DEBUG)
 			System.err.println("method_missing called; symbol = " + key);
 
-		    boolean assign = false;
-		    if (key.endsWith("=")) {
-			assign = true;
-			key = key.substring(0, key.length() - 1);
-		    }
-
-		    // If this object does now know about key, call superclass method_missing
-		    if (!(_jsobj instanceof Scope) && !_jsobj.containsKey(key))
-			return RubyObjectWrapper.toRuby(_scope, _runtime, RubyKernel.method_missing(context, self, args, block));
-
 		    // Write
-		    if (assign) {
+		    if (key.endsWith("=")) {
+			key = key.substring(0, key.length() - 1);
 			if (DEBUG)
 			    System.err.println("assigning new value to instance var named " + key);
 			_jsobj.set(key, RubyObjectWrapper.toJS(_runtime, args[1]));
 			return RubyObjectWrapper.toRuby(_scope, _runtime, JavaUtil.convertRubyToJava(args[1]));
 		    }
 
-		    // Read ivar or call function
 		    Object obj = _jsobj.get(key);
-		    if (obj == null)
-			return _runtime.getNil();
+
+		    // Call function
 		    if (obj instanceof JSFunction) {
 			if (DEBUG)
 			    System.err.println("calling function " + key);
 			Object[] jargs = new Object[args.length - 1];
 			for (int i = 1; i < args.length; ++i)
-			    jargs[i-1] = JavaUtil.convertRubyToJava(args[i]);
+			    jargs[i-1] = toJS(_runtime, args[i]);
 			return RubyObjectWrapper.toRuby(_scope, _runtime, ((JSFunction)obj).call(_scope, jargs));
 		    }
+
+		    // Read ivar
 		    if (DEBUG)
 			System.err.println("returning value of instance var named " + key);
-		    return RubyObjectWrapper.toRuby(_scope, _runtime, obj);
+		    return (obj == null) ? _runtime.getNil() : RubyObjectWrapper.toRuby(_scope, _runtime, obj);
                 }
+
                 @Override public Arity getArity() { return Arity.ONE_REQUIRED; }
             });
 	eigenclass.callMethod(_runtime.getCurrentContext(), "method_added", _runtime.fastNewSymbol(name));

@@ -30,7 +30,6 @@ import ed.db.ObjectId;
 import ed.js.*;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
-import ed.lang.ruby.RubyObjectId;
 import ed.lang.ruby.RubyObjectWrapper;
 import static ed.lang.ruby.RubyObjectWrapper.*;
 
@@ -59,13 +58,6 @@ public class RubyObjectWrapperTest {
     @Test(groups = {"convert", "r2js"})
     public void testToJSNull() {
 	assertNull(toJS(r, null));
-    }
-
-    @Test(groups = {"convert", "r2js"})
-    public void testToJSOid() {
-	ObjectId oid = new ObjectId("0123456789abcdef01");
-	RubyObjectId rid = new RubyObjectId(r, oid);
-	assertEquals(toJS(r, rid), oid);
     }
 
     @Test(groups = {"convert", "r2js"})
@@ -176,8 +168,8 @@ public class RubyObjectWrapperTest {
     public void testToRubyOid() {
 	ObjectId oid = new ObjectId("0123456789abcdef01");
 	IRubyObject ro = toRuby(s, r, oid);
-	assertTrue(ro instanceof RubyObjectId);
-	assertEquals(((RubyObjectId)ro)._id, oid);
+	assertTrue(ro instanceof RubyString);
+	assertEquals(ro.toString(), oid.toString());
     }
 
     @Test(groups = {"convert", "js2r"})

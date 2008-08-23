@@ -40,13 +40,13 @@ public class RubyJSFunctionWrapper extends RubyObjectWrapper {
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("  creating RubyJSFunctionWrapper named " + name);
 	_func = (JSFunction)_obj;
-	_addMethod(name, eigenclass);
+	addMethod(name, eigenclass);
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("  done creating RubyJSFunctionWrapper named " + name);
     }
 
     /** Adds this method to <var>eigenclass</var>. */
-    private void _addMethod(String name, RubyClass eigenclass) {
+    public void addMethod(String name, RubyClass eigenclass) {
 	final String internedName = name.intern();
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("adding method named " + internedName + " to eigenclass " + eigenclass.getName());
@@ -59,7 +59,7 @@ public class RubyJSFunctionWrapper extends RubyObjectWrapper {
 
 		    Object[] jargs = new Object[args.length];
 		    for (int i = 0; i < args.length; ++i)
-			jargs[0] = JavaUtil.convertRubyToJava(args[0]);
+			jargs[i] = JavaUtil.convertRubyToJava(args[i]);
 
 		    Object result = _func.call(_scope, jargs);
 		    if (RubyObjectWrapper.DEBUG)
