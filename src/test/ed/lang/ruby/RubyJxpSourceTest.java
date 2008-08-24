@@ -60,7 +60,7 @@ public class RubyJxpSourceTest {
     org.jruby.Ruby r;
     TestRubyJxpSource source;
 
-    @BeforeClass
+    @BeforeClass(groups={"ruby", "ruby.jxpsource"})
     public void classSetUp() {
 	addSevenFunc = new JSFunctionCalls1() {
 		public Object call(Scope scope, Object arg, Object extras[]) {
@@ -69,16 +69,25 @@ public class RubyJxpSourceTest {
 	    };
     }
 
-    @BeforeTest
+    @BeforeTest(groups={"ruby", "ruby.jxpsource"})
     public void globalSetUp() {
 	s = new Scope("test", null);
 	r = org.jruby.Ruby.newInstance();
 	source = new TestRubyJxpSource(r);
     }
 
-    @BeforeMethod
+    @BeforeMethod(groups={"ruby", "ruby.jxpsource"})
     public void setUp() {
-	runJS("data = {}; data.count = 1; add_seven = function(i) { return i + 7; }; data.add_seven = add_seven;");
+	runJS("add_seven = function(i) { return i + 7; };" +
+	      "two_args = function(a, b) { return a + b; };" +
+	      "data = {};" +
+	      "data.count = 1;" +
+	      "data.subobj = {};" +
+	      "data.subobj.subvar = 99;" +
+	      "data.subobj.add_seven = add_seven;" +
+	      "data.add_seven = add_seven;" +
+	      "array = [100, \"test string\", null, add_seven];" +
+	      "// db = connect(\"test\");");
     }
 
     protected Object runJS(String jsCode) {
@@ -149,5 +158,28 @@ public class RubyJxpSourceTest {
     public void testModifyUsingHash() {
 	runRuby("data['count'] = 42");
 	assertEquals(s.eval("data.count").toString(), "42");
+    }
+
+    @Test
+    public void testCreateNew() {
+	runRuby("data['vint'] = 3; data.vfloat = 4.2; data.varray = [1, 2, 'three']; data.vhash = {'a' => 1, 'b' => 2}");
+	assertEquals(s.eval("data.vint").toString(), "3");
+	assertEquals(s.eval("data.vfloat").toString(), "4.2");
+	assertEquals(s.eval("data.varray").toString(), "1,2,three");
+	assertEquals(s.eval("data.vhash['a']").toString(), "1");
+	assertEquals(s.eval("data.vhash['b']").toString(), "2");
+	assertEquals(s.eval("data.vhash.a").toString(), "1");
+	assertEquals(s.eval("data.vhash.b").toString(), "2");
+    }
+
+    @Test
+    public void testBuiltIn() {
+	assertRubyEquals("puts data.keySet.sort", "[add_seven, count, subobj]");
+    }
+
+    @Test
+    public void testSubObject() {
+	assertRubyEquals("puts data.subobj.subvar", "99");
+	assertRubyEquals("puts data.subobj.add_seven(35)", "42");
     }
 }
