@@ -22,6 +22,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 
 import ed.appserver.JSFileLibrary;
@@ -120,8 +121,8 @@ public class Djang10Source extends JxpSource {
         return content.getName();
     }
     
-    public static JSHelper install(Scope scope) {
-        JSHelper jsHelper = JSHelper.install(scope);
+    public static JSHelper install(Scope scope, Map<String, JSFileLibrary> fileLibRoots, Logger siteLogger) {
+        JSHelper jsHelper = JSHelper.install(scope, fileLibRoots, siteLogger);
         
         //FIXME: this whole injection is ugly, fix it!
         JSFileLibrary js = JSFileLibrary.loadLibraryFromEd("ed/appserver/templates/djang10/js", "djang10", scope);

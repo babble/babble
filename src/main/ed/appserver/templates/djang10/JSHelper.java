@@ -23,9 +23,11 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CodingErrorAction;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.python.core.PyObject;
@@ -58,9 +60,11 @@ public class JSHelper extends JSObjectBase {
     private final ArrayList<TemplateTagRoot> moduleRoots;
     private final ArrayList<Pair<JxpSource,Library>> defaultLibraries;
     
-    public JSHelper(Logger djang10Logger) {
+    private final Map<String, JSFileLibrary> fileRoots;
+    
+    public JSHelper(Logger djang10Logger, Map<String, JSFileLibrary> fileRoots) {
         this.log = djang10Logger;
-        
+        this.fileRoots = Collections.unmodifiableMap(fileRoots);
         moduleRoots = new ArrayList<TemplateTagRoot>();
         defaultLibraries = new ArrayList<Pair<JxpSource,Library>>();
 
@@ -102,12 +106,14 @@ public class JSHelper extends JSObjectBase {
     
     
     //Scope management ===================================================
-    public static JSHelper install(Scope scope) {
+    public static JSHelper install(Scope scope, Map<String, JSFileLibrary> fileLibRoots, Logger siteLogger) {
         //XXX: during appcontext init, the site loger hasn't been setup yet, so have to pull it out of the scope
-        Logger djang10Logger = ((Logger)scope.get("log")).getChild("djang10");
+        Logger djang10Logger = siteLogger.getChild("djang10");
         djang10Logger.setLevel(Level.INFO);
         
-        JSHelper helper = new JSHelper(djang10Logger);
+        
+        
+        JSHelper helper = new JSHelper(djang10Logger, fileLibRoots);
         scope.set(NS, helper);
         
         return helper;
@@ -184,6 +190,24 @@ public class JSHelper extends JSObjectBase {
         return new JSString( asciiCharset.decode(bytes).toString() );
     }
     
+    public Object resolve_absolute_path(String path) {
+        log.debug("resolving [" + path + "]");
+
+        path = path.trim().replaceAll("/+", "/");
+        if (!path.startsWith("/"))
+            throw new TemplateException("Only Absolute paths are allowed, path: [" + path + "]");
+
+        String[] parts = path.split("/", 3);
+
+        JSFileLibrary root = fileRoots.get(parts[1]);
+        if(root == null)
+            throw new IllegalArgumentException("The path [" + path + "] is invalid, because [" + parts[1] + "] is not a valid file root.");
+
+        if (parts.length == 3 && parts[2].length() > 0)
+            return root.getFromPath(parts[2]);
+        
+        return root;
+    }
     
     //Template loading ==========================================================================
     @Deprecated
@@ -196,7 +220,7 @@ public class JSHelper extends JSObjectBase {
         if(path == null)
             throw new NullPointerException("Can't load a null or undefined template");
         
-        log.debug("loading: " + path);
+        log.debug("loading [" + path + "]");
         
         JSArray loaders = (JSArray)get("TEMPLATE_LOADERS");
         
@@ -204,14 +228,18 @@ public class JSHelper extends JSObjectBase {
             JSFunction loader;
             if(loaderObj instanceof JSString || loaderObj instanceof String) {
                 String loaderStr = loaderObj.toString();
-                int firstDot = loaderStr.indexOf('.');
                 int lastDot = loaderStr.lastIndexOf('.');
-                String rootPart = loaderStr.substring(0, firstDot);
-                String filePart = loaderStr.substring(firstDot+1, lastDot);
+                
+                if(lastDot < 0)
+                    throw new IllegalArgumentException("The loader ["+loaderStr+"] is invalid format, use the format path.to.file.loaderMethodName");
+                
+                String filePart = '/' + loaderStr.substring(0, lastDot).replace('.', '/');
                 String methodPart = loaderStr.substring(lastDot+1);
                 
-                JSFileLibrary root = (JSFileLibrary)scope.get(rootPart);
-                JSCompiledScript file = (JSCompiledScript)root.getFromPath(filePart.replace('.', '/'));
+                Object temp = resolve_absolute_path(filePart);
+                if(!(temp instanceof JSCompiledScript))
+                    throw new TemplateException("Failed to locate the loader ["+loaderStr+"], the path [" + filePart + "] resolves to [" + temp +"] which isn't a script");
+                JSCompiledScript file = (JSCompiledScript)temp;
                 
                 Scope childScope = scope.child();
                 file.call(childScope);
@@ -229,7 +257,7 @@ public class JSHelper extends JSObjectBase {
         }
 
         
-        String msg = "get_template: Failed to load: " + path +". ";
+        String msg = "get_template: Failed to load [" + path +"]. ";
         msg += "TEMPLATE_DIRS: ";
         try {
             msg += JSON.serialize(JSHelper.this.get("TEMPLATE_DIRS"));
@@ -247,7 +275,7 @@ public class JSHelper extends JSObjectBase {
         
         JSArray template_dirs = (JSArray)get("TEMPLATE_DIRS");    
         
-        log.debug("Adding TemplateRoot: " + newRoot);
+        log.debug("Adding TemplateRoot [" + newRoot + "]");
         template_dirs.add(newRoot);
     }
 
@@ -271,19 +299,19 @@ public class JSHelper extends JSObjectBase {
     }
     
     public JSCompiledScript loadLibrary(Scope scope, String name) {
-        log.debug("loading library [" + name + "]");
+        log.debug("loading template tag library [" + name + "]");
         
         ListIterator<TemplateTagRoot> iter = moduleRoots.listIterator(moduleRoots.size());
         while(iter.hasPrevious()) {
             TemplateTagRoot templateTagRoot = iter.previous();
-            log.debug("checking template root: " + templateTagRoot);
+            log.debug("checking templatetag root [" + templateTagRoot + "]");
             
             JSFileLibrary fileLib;
             
             try {
                 fileLib = templateTagRoot.resolve(scope);
             } catch(RuntimeException e) {
-                log.warn("failed to resolve template root: " + templateTagRoot + ". error: " + e.getMessage());
+                log.warn("failed to resolve templatetag root [" + templateTagRoot + "]. error [" + e.getMessage() + "]");
                 continue;
             }
             
@@ -300,7 +328,7 @@ public class JSHelper extends JSObjectBase {
             }
         }
 
-        throw new TemplateException("Failed to find module: " + name);
+        throw new TemplateException("Failed to find module [" + name + "]");
     }
     
     public Library evalLibrary(Scope scope, JSCompiledScript moduleFile) {
@@ -312,11 +340,11 @@ public class JSHelper extends JSObjectBase {
         try {
             moduleFile.call(child);
         } catch(Exception t) {
-            throw new TemplateException("Failed to load library from file: " + moduleFile.get(JxpSource.JXP_SOURCE_PROP), t);
+            throw new TemplateException("Failed to load library from file [" + moduleFile.get(JxpSource.JXP_SOURCE_PROP) + "]", t);
         }
         Object temp = child.get("register");
         if(!(temp instanceof Library))
-            throw new TemplateException("Misconfigured library doesn't contain a correct register variable. file: " + moduleFile.get(JxpSource.JXP_SOURCE_PROP));
+            throw new TemplateException("Misconfigured library doesn't contain a correct register variable. file [" + moduleFile.get(JxpSource.JXP_SOURCE_PROP) + "]");
         Library lib = (Library)temp;
 
         //wrap all the tag handlers
@@ -383,37 +411,18 @@ public class JSHelper extends JSObjectBase {
         private final String path;
         
         public TemplateTagStringRoot(String path) {
+            if(path == null)
+                throw new NullPointerException("Can't add a null templatetag root");
+
             this.path = path;
         }
-        public JSFileLibrary resolve(Scope scope) {
-            log.debug("resolving [" + path + "]");
-            
-            if(this.path == null)
-                throw new NullPointerException("Can't add a null templatetag root");
-            
-            String path = this.path.trim().replaceAll("/+", "/");
-            if (!path.startsWith("/"))
-                throw new TemplateException("Only Absolute paths are allowed, path: [" + path + "]");
+        public JSFileLibrary resolve(Scope scope) {            
+            Object temp = resolve_absolute_path(this.path);
 
-            String[] parts = path.split("/", 3);
+            if(!(temp instanceof JSFileLibrary))
+                throw new IllegalArgumentException("The path [" + path + "] is invalid, because its not a file library, but a: [" + ((temp == null)?"null":temp.getClass()) + "]");
 
-            JSFileLibrary fileLib;
-            {
-                Object temp = scope.get(parts[1]);
-                if(!(temp instanceof JSFileLibrary))
-                    throw new IllegalArgumentException("The path [" + path + "] is invalid, because [" + parts[1] + "] is not a file library. Its : ["  + ((temp == null)?"null":temp.getClass()) + "]");
-                fileLib = (JSFileLibrary)temp;
-            }
-
-
-            if (parts.length == 3 && parts[2].length() > 0) {
-                Object temp = fileLib.getFromPath(parts[2]);
-                if(!(temp instanceof JSFileLibrary))
-                    throw new IllegalArgumentException("The path [" + path + "] is invalid, because its not a file library, but a: [" + ((temp == null)?"null":temp.getClass()) + "]");
-                fileLib = (JSFileLibrary)temp;
-            }
-            
-            return fileLib;
+            return (JSFileLibrary)temp;
         }
         public String toString() {
             return "[" + path + "]";

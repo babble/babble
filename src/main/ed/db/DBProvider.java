@@ -110,9 +110,14 @@ public class DBProvider {
             // we're going to assume its not a host or an ip, but a db name.
             Cloud c = Cloud.getInstanceIfOnGrid();
             if ( c != null ){
-                String temp = c.getDBHost( ip );
-                if ( temp != null )
-                    ip = temp;
+                try {
+                    String temp = c.getDBHost( ip );
+                    if ( temp != null )
+                        ip = temp;
+                }
+                catch ( Exception e ){
+                    // don't care
+                }
             }
         }
 

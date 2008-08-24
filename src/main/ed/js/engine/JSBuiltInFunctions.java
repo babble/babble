@@ -580,6 +580,19 @@ public class JSBuiltInFunctions {
             _base.setGlobal( true );
         }
     }
+    
+    public static class eval extends JSFunctionCalls1 {
+        public Object call( Scope scope , Object thing , Object [] args){
+            Scope s = scope;
+            
+            Object t = scope.getThis();
+            if ( t instanceof Scope )
+                s = (Scope)t;
+            
+            return s.eval( thing.toString() );
+        }
+    }
+
 
     /**
      * everything that gets put into the scope that is a JSObjetBase gets locked
@@ -591,6 +604,7 @@ public class JSBuiltInFunctions {
         s.put( "SYSOUT" , new print() , true );
         s.put( "sleep" , new sleep() , true );
         s.put( "fork" , new fork() , true );
+        s.put( "eval" , new eval() , true );
 
         CrID crid = new CrID();
         s.put( "CrID" , crid , true );
@@ -779,7 +793,7 @@ public class JSBuiltInFunctions {
         s.put( "Date" , new JSDate.Cons() , true );
         s.put( "JSDate" , s.get( "Date" ) , true ); // b/c Eliot always types this
         s.put( "String" , new JSString.JSStringCons() , true );
-	s.put( "XML" , new E4X.XML() , true );
+	s.put( "XML" , new E4X.Cons() , true );
 	s.put( "Namespace" , new E4X.NamespaceCons() , true );
 
         s.put( "RegExp" , new JSRegex.Cons() , true );
