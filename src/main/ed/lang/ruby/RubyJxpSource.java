@@ -17,8 +17,7 @@
 package ed.lang.ruby;
 
 import java.io.*;
-import java.util.Set;
-import java.util.HashSet;
+import java.util.*;
 
 import org.jruby.*;
 import org.jruby.ast.Node;
@@ -40,11 +39,18 @@ public class RubyJxpSource extends JxpSource {
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB");
     static final boolean SKIP_REQUIRED_LIBS = Boolean.getBoolean("DEBUG.RB.SKIP.REQ.LIBS");
+    /** Scope top-level functions to avoid loading. */
+    static final Collection<String> DO_NOT_LOAD_FUNCS;
     static final RubyInstanceConfig config = new RubyInstanceConfig();
 
     static {
 	if (!SKIP_REQUIRED_LIBS)
 	    config.requiredLibraries().add("xgen_internals");
+	DO_NOT_LOAD_FUNCS = new ArrayList();
+	DO_NOT_LOAD_FUNCS.add("print");
+	DO_NOT_LOAD_FUNCS.add("sleep");
+	DO_NOT_LOAD_FUNCS.add("fork");
+	DO_NOT_LOAD_FUNCS.add("eval");
     }
 
     /** Determines what major version of Ruby to compile: 1.8 (false) or YARV/1.9 (true). **/
@@ -150,9 +156,9 @@ public class RubyJxpSource extends JxpSource {
 
     /**
      * Creates the $scope global object and turns almost all scope variables
-     * into Ruby top-level variables. The exception: the "print" function,
-     * which is already handled by the Ruby Kernel class (aided by our
-     * definition of $stdout).
+     * into Ruby top-level variables. The exception: the functions named in
+     * DO_NOT_LOAD_FUNCS, which are already handled by the Ruby Kernel class
+     * (aided, for example, by our definition of $stdout).
      */
     protected void _exposeScope(Scope s) {
 	_runtime.getGlobalVariables().set("$scope", JavaUtil.convertJavaToUsableRubyObject(_runtime, s));
@@ -166,7 +172,7 @@ public class RubyJxpSource extends JxpSource {
 		if (alreadySeen.contains(key)) // Use most "local" version of var
 		    continue;
 		Object val = s.get(key);
-		if ("print".equals(key) && (val instanceof JSFunction))
+		if ((val instanceof JSFunction) && DO_NOT_LOAD_FUNCS.contains(key))
 		    continue;
 		IRubyObject w = RubyObjectWrapper.toRuby(s, _runtime, val, key);
 		if (DEBUG)

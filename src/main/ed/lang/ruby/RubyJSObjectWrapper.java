@@ -88,7 +88,6 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 			return RubyObjectWrapper.toRuby(_scope, _runtime, ((JSFunction)obj).call(_scope, jargs));
 		    }
 
-
 		    // Check for certain built-in JSObject methods and call them
 		    if (obj == null) {
 			if ("[]".equals(key))
