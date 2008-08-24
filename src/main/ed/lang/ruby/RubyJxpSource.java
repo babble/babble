@@ -39,11 +39,11 @@ import ed.util.Dependency;
 public class RubyJxpSource extends JxpSource {
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB");
-    static final boolean SKIP_XGEN_REQUIRED_LIBS = Boolean.getBoolean("DEBUG.RB.SKIPLIBS");
+    static final boolean SKIP_REQUIRED_LIBS = Boolean.getBoolean("DEBUG.RB.SKIP.REQ.LIBS");
     static final RubyInstanceConfig config = new RubyInstanceConfig();
 
     static {
-	if (!SKIP_XGEN_REQUIRED_LIBS)
+	if (!SKIP_REQUIRED_LIBS)
 	    config.requiredLibraries().add("xgen_internals");
     }
 
@@ -130,12 +130,15 @@ public class RubyJxpSource extends JxpSource {
     }
 
     protected void _addSiteRootToPath(Scope s) {
-	RubyString siteRoot = _runtime.newString(s.get("__instance__").toString().replace('\\', '/'));
-	RubyArray loadPath = (RubyArray)_runtime.getLoadService().getLoadPath();
-	if (loadPath.include_p(_runtime.getCurrentContext(), siteRoot).isFalse()) {
-	    if (DEBUG)
-		System.err.println("adding site root " + siteRoot + " to Ruby load path");
-	    loadPath.append(siteRoot);
+	Object appContext = s.get("__instance__");
+	if (appContext != null) {
+	    RubyString siteRoot = RubyString.newString(_runtime, appContext.toString().replace('\\', '/'));
+	    RubyArray loadPath = (RubyArray)_runtime.getLoadService().getLoadPath();
+	    if (loadPath.include_p(_runtime.getCurrentContext(), siteRoot).isFalse()) {
+		if (DEBUG)
+		    System.err.println("adding site root " + siteRoot + " to Ruby load path");
+		loadPath.append(siteRoot);
+	    }
 	}
     }
 
@@ -163,13 +166,15 @@ public class RubyJxpSource extends JxpSource {
 		if (alreadySeen.contains(key)) // Use most "local" version of var
 		    continue;
 		Object val = s.get(key);
-		if ("print".equals(key) && val instanceof JSFunction)
+		if ("print".equals(key) && (val instanceof JSFunction))
 		    continue;
+		IRubyObject w = RubyObjectWrapper.toRuby(s, _runtime, val, key);
 		if (DEBUG)
 		    System.err.println("about to expose " + key + "; class = " + (val == null ? "<null>" : val.getClass().getName()));
-		IRubyObject ro = JavaUtil.convertJavaToUsableRubyObject(_runtime, val);
-		top.instance_variable_set(RubySymbol.newSymbol(_runtime, "@" + key), ro);
-		if (!(val instanceof JSFunction))
+		top.instance_variable_set(RubySymbol.newSymbol(_runtime, "@" + key), w);
+		if (w instanceof RubyJSFunctionWrapper)
+		    ((RubyJSFunctionWrapper)w).addMethod(key, eigenclass);
+		else
 		    eigenclass.attr_reader(_runtime.getCurrentContext(), new IRubyObject[] {RubySymbol.newSymbol(_runtime, key)});
 		alreadySeen.add(key);
 	    }
