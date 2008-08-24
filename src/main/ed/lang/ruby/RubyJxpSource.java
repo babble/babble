@@ -148,10 +148,15 @@ public class RubyJxpSource extends JxpSource {
 	}
     }
 
-    /** Set Ruby's $stdout so that print/puts statements output to the right place. */
+    /**
+     * Set Ruby's $stdout so that print/puts statements output to the right
+     * place. If we have no HttpResponse (for example, we're being run outside
+     * the app server), then nothing happens.
+     */
     protected void _setOutput(Scope s) {
 	HttpResponse response = (HttpResponse)s.get("response");
-	_runtime.getGlobalVariables().set("$stdout", new RubyIO(_runtime, new RubyJxpOutputStream(response.getWriter())));
+	if (response != null)
+	    _runtime.getGlobalVariables().set("$stdout", new RubyIO(_runtime, new RubyJxpOutputStream(response.getWriter())));
     }
 
     /**
