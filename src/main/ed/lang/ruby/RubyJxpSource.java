@@ -22,10 +22,12 @@ import java.util.*;
 import org.jruby.*;
 import org.jruby.ast.Node;
 import org.jruby.internal.runtime.GlobalVariables;
+import org.jruby.internal.runtime.methods.JavaMethod;
 import org.jruby.javasupport.JavaUtil;
-import org.jruby.runtime.ThreadContext;
+import org.jruby.runtime.*;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.util.KCode;
+import static org.jruby.runtime.Visibility.PUBLIC;
 
 import ed.appserver.JSFileLibrary;
 import ed.appserver.jxp.JxpSource;
@@ -34,6 +36,8 @@ import ed.js.JSFunction;
 import ed.js.engine.Scope;
 import ed.net.httpserver.HttpResponse;
 import ed.util.Dependency;
+import static ed.lang.ruby.RubyObjectWrapper.toJS;
+import static ed.lang.ruby.RubyObjectWrapper.toRuby;
 
 public class RubyJxpSource extends JxpSource {
 
@@ -46,7 +50,7 @@ public class RubyJxpSource extends JxpSource {
     static {
 	if (!SKIP_REQUIRED_LIBS)
 	    config.requiredLibraries().add("xgen_internals");
-	DO_NOT_LOAD_FUNCS = new ArrayList();
+	DO_NOT_LOAD_FUNCS = new ArrayList<String>();
 	DO_NOT_LOAD_FUNCS.add("print");
 	DO_NOT_LOAD_FUNCS.add("sleep");
 	DO_NOT_LOAD_FUNCS.add("fork");
@@ -160,37 +164,54 @@ public class RubyJxpSource extends JxpSource {
     }
 
     /**
-     * Creates the $scope global object and turns almost all scope variables
-     * into Ruby top-level variables. The exception: the functions named in
-     * DO_NOT_LOAD_FUNCS, which are already handled by the Ruby Kernel class
-     * (aided, for example, by our definition of $stdout).
+     * Creates the $scope global object and a method_missing method for the
+     * top-level object.
      */
-    protected void _exposeScope(Scope s) {
-	_runtime.getGlobalVariables().set("$scope", JavaUtil.convertJavaToUsableRubyObject(_runtime, s));
+    protected void _exposeScope(final Scope scope) {
+	_runtime.getGlobalVariables().set("$scope", toRuby(scope, _runtime, scope));
 
-	// Turn all JSObject scope variables into Ruby top-level variables
-	Set<String> alreadySeen = new HashSet<String>();
-	RubyObject top = (RubyObject)_runtime.getTopSelf();
-	RubyClass eigenclass = top.getSingletonClass();
-	while (s != null) {
-	    for (String key : s.keySet()) {
-		if (alreadySeen.contains(key)) // Use most "local" version of var
-		    continue;
-		Object val = s.get(key);
-		if ((val instanceof JSFunction) && DO_NOT_LOAD_FUNCS.contains(key))
-		    continue;
-		IRubyObject w = RubyObjectWrapper.toRuby(s, _runtime, val, key);
-		if (DEBUG)
-		    System.err.println("about to expose " + key + "; class = " + (val == null ? "<null>" : val.getClass().getName()));
-		top.instance_variable_set(RubySymbol.newSymbol(_runtime, "@" + key), w);
-		if (w instanceof RubyJSFunctionWrapper)
-		    ((RubyJSFunctionWrapper)w).addMethod(key, eigenclass);
-		else
-		    eigenclass.attr_reader(_runtime.getCurrentContext(), new IRubyObject[] {RubySymbol.newSymbol(_runtime, key)});
-		alreadySeen.add(key);
-	    }
-	    s = s.getParent();
-	}
+	// Add method missing to top object
+	RubyClass eigenclass = ((RubyObject)_runtime.getTopSelf()).getSingletonClass();
+	eigenclass.addMethod("method_missing", new JavaMethod(eigenclass, PUBLIC) {
+                public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+		    // args[0] is method name symbol, args[1..-1] are arguments
+		    String key = args[0].toString();
+		    if (RubyObjectWrapper.DEBUG)
+			System.err.println("method_missing called on top-level object; symbol = " + key);
+
+		    // Write
+		    if (key.endsWith("=")) {
+			key = key.substring(0, key.length() - 1);
+			if (RubyObjectWrapper.DEBUG)
+			    System.err.println("assigning new value to instance var named " + key);
+			return toRuby(scope, _runtime, scope.set(key, toJS(_runtime, args[1])));
+		    }
+
+		    Object obj = scope.get(key);
+
+		    // Call function
+		    if (obj instanceof JSFunction) {
+			if (DO_NOT_LOAD_FUNCS.contains(key))
+			    return toRuby(scope, _runtime, ((RubyObject)self).callSuper(context, args, block));
+
+			if (RubyObjectWrapper.DEBUG)
+			    System.err.println("calling function " + key);
+			Object[] jargs = new Object[args.length - 1];
+			for (int i = 1; i < args.length; ++i)
+			    jargs[i-1] = toJS(_runtime, args[i]);
+			return toRuby(scope, _runtime, ((JSFunction)obj).call(scope, jargs));
+		    }
+		    // Check for certain built-in JSObject methods and call them
+		    if (obj == null) {
+			return toRuby(scope, _runtime, ((RubyObject)self).callSuper(context, args, block));
+		    }
+
+		    // Finally, it's a simple ivar retrieved by get(). Return it.
+		    if (RubyObjectWrapper.DEBUG)
+			System.err.println("returning value of scope instance var named " + key);
+		    return (obj == null) ? _runtime.getNil() : toRuby(scope, _runtime, obj);
+		}
+	    });
     }
 
     protected final File _file;

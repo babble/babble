@@ -65,13 +65,13 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 
 		    // Write
 		    if (key.equals("[]=")) {
-			if (DEBUG)
+			if (RubyObjectWrapper.DEBUG)
 			    System.err.println("assigning new value to instance var named " + args[1]);
 			return RubyObjectWrapper.toRuby(_scope, _runtime, _jsobj.set(args[1].toString(), toJS(_runtime, args[2])));
 		    }
 		    if (key.endsWith("=")) {
 			key = key.substring(0, key.length() - 1);
-			if (DEBUG)
+			if (RubyObjectWrapper.DEBUG)
 			    System.err.println("assigning new value to instance var named " + key);
 			return RubyObjectWrapper.toRuby(_scope, _runtime, _jsobj.set(key, toJS(_runtime, args[1])));
 		    }
@@ -80,7 +80,7 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 
 		    // Call function
 		    if (obj instanceof JSFunction) {
-			if (DEBUG)
+			if (RubyObjectWrapper.DEBUG)
 			    System.err.println("calling function " + key);
 			Object[] jargs = new Object[args.length - 1];
 			for (int i = 1; i < args.length; ++i)
@@ -96,15 +96,15 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 			    key = "set";
 
 			if ("get".equals(key) && args.length > 1) {
-			    if (DEBUG) System.err.println("calling internal get()");
+			    if (RubyObjectWrapper.DEBUG) System.err.println("calling internal get()");
 			    return RubyObjectWrapper.toRuby(_scope, _runtime, _jsobj.get(args[1].toString()));
 			}
 			if ("set".equals(key) && args.length > 2) {
-			    if (DEBUG) System.err.println("calling internal set()");
+			    if (RubyObjectWrapper.DEBUG) System.err.println("calling internal set()");
 			    return RubyObjectWrapper.toRuby(_scope, _runtime, _jsobj.set(args[1].toString(), toJS(_runtime, args[2])));
 			}
 			if ("keySet".equals(key)) {
-			    if (DEBUG) System.err.println("calling internal keySet()");
+			    if (RubyObjectWrapper.DEBUG) System.err.println("calling internal keySet()");
 			    Collection<String> keys = null;
 			    try {
 				keys = _jsobj.keySet();
@@ -115,7 +115,7 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 			    return RubyObjectWrapper.toRuby(_scope, _runtime, keys);
 			}
 			if ("containsKey".equals(key) && args.length > 1) {
-			    if (DEBUG) System.err.println("calling internal containsKey()");
+			    if (RubyObjectWrapper.DEBUG) System.err.println("calling internal containsKey()");
 			    boolean found = false;
 			    try {
 				found = _jsobj.containsKey(args[1].toString());
@@ -126,7 +126,7 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 		    }
 
 		    // Finally, it's a simple ivar retrieved by get(). Return it.
-		    if (DEBUG)
+		    if (RubyObjectWrapper.DEBUG)
 			System.err.println("returning value of instance var named " + key);
 		    return (obj == null) ? _runtime.getNil() : RubyObjectWrapper.toRuby(_scope, _runtime, obj);
                 }
