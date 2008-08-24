@@ -44,6 +44,12 @@ class TestRubyJxpSource extends RubyJxpSource {
 	_writer = new JxpWriter.Basic();
 	_runtime.getGlobalVariables().set("$stdout", new RubyIO(_runtime, new RubyJxpOutputStream(_writer)));
     }
+    protected String getOutput() { return _writer.getContent(); }
+    protected String trimmedOutput() {
+	String str = getOutput();
+	if (str != null) str = str.trim();
+	return str;
+    }
 }
 
 @Test(groups = {"ruby", "ruby.jxpsource"})
@@ -54,7 +60,7 @@ public class RubyJxpSourceTest {
     org.jruby.Ruby r;
     TestRubyJxpSource source;
 
-    @BeforeClass(groups = {"convert", "r2js", "js2r"})
+    @BeforeClass
     public void classSetUp() {
 	addSevenFunc = new JSFunctionCalls1() {
 		public Object call(Scope scope, Object arg, Object extras[]) {
@@ -63,14 +69,23 @@ public class RubyJxpSourceTest {
 	    };
     }
 
-    @BeforeTest(groups = {"convert", "r2js", "js2r"})
-    public void setUp() {
+    @BeforeTest
+    public void globalSetUp() {
 	s = new Scope("test", null);
 	r = org.jruby.Ruby.newInstance();
 	source = new TestRubyJxpSource(r);
     }
 
-    protected void runRuby(String rubyCode, String expected) {
+    @BeforeMethod
+    public void setUp() {
+	runJS("data = {}; data.count = 1; add_seven = function(i) { return i + 7; }; data.add_seven = add_seven;");
+    }
+
+    protected Object runJS(String jsCode) {
+	return s.eval(jsCode);
+    }
+
+    protected void runRuby(String rubyCode) {
 	source._content = rubyCode;
 	JSFunction f = null;
 	try {
@@ -81,19 +96,58 @@ public class RubyJxpSourceTest {
 	    e.printStackTrace();
 	    fail(e.toString());
 	}
-	assertEquals(source._writer.getContent().trim(), expected.trim());
     }
 
+    protected void assertRubyEquals(String rubyCode, String expected) {
+	runRuby(rubyCode);
+	assertEquals(source.trimmedOutput(), expected.trim());
+    }
+
+    @Test
     public void testContent() {
-	runRuby("puts 1 + 1", "2");
+	assertRubyEquals("puts 1 + 1", "2");
     }
 
+    @Test
     public void testScopeToVar() {
-	JSObjectBase jobj = new JSObjectBase();
-	jobj.set("count", new Integer(1));
-	jobj.set("add_seven", addSevenFunc);
+	assertRubyEquals("puts data.count;", "1");
+    }
 
-	s.set("data", jobj);
-	runRuby("puts data.count; puts data.add_seven(35)", "1\n42");
+    @Test
+    public void testCallFuncInVar() {
+	assertRubyEquals("puts data.add_seven(35)", "42");
+    }
+
+    @Test
+    public void testCallTopLevelFunc() {
+	assertRubyEquals("puts add_seven(35)", "42");
+    }
+
+    @Test
+    public void testGet() {
+	assertRubyEquals("puts data.get('count')", "1");
+    }
+
+    @Test
+    public void testGetUsingHash() {
+	assertRubyEquals("puts data['count']", "1");
+    }
+
+    @Test
+    public void testRubyModifiesJS() {
+	runRuby("data.count = 42");
+	assertEquals(s.eval("data.count").toString(), "42");
+    }
+
+    @Test
+    public void testModifyUsingSet() {
+	runRuby("data.set('count', 42)");
+	assertEquals(s.eval("data.count").toString(), "42");
+    }
+
+    @Test
+    public void testModifyUsingHash() {
+	runRuby("data['count'] = 42");
+	assertEquals(s.eval("data.count").toString(), "42");
     }
 }
