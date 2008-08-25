@@ -80,8 +80,8 @@ public class RubyDBTest extends SourceRunner {
 	assertEquals(x.get("track"), 2.0);
     }
 
-    // FIXME this should work, but for some reason using a string works from a
-    // page but not from withing a unit test.
+    // TODO using a string as the first arg does not yet work. I have a
+    // feature request in that would support this.
 //     @Test(groups={"ruby.db.findone"})
 //     public void testFindOneByIdUsingString() {
 // 	String idString = ((JSObject)s.get("song_id")).get("_id").toString();
