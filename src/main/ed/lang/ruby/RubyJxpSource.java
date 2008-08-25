@@ -184,7 +184,7 @@ public class RubyJxpSource extends JxpSource {
 			key = key.substring(0, key.length() - 1);
 			if (RubyObjectWrapper.DEBUG)
 			    System.err.println("assigning new value to top-level scope var named " + key);
-			return toRuby(scope, _runtime, scope.set(key, toJS(_runtime, args[1])));
+			return toRuby(scope, _runtime, scope.set(key, toJS(scope, _runtime, args[1])));
 		    }
 
 		    Object obj = scope.get(key);
@@ -198,7 +198,7 @@ public class RubyJxpSource extends JxpSource {
 			    System.err.println("calling function " + key);
 			Object[] jargs = new Object[args.length - 1];
 			for (int i = 1; i < args.length; ++i)
-			    jargs[i-1] = toJS(_runtime, args[i]);
+			    jargs[i-1] = toJS(scope, _runtime, args[i]);
 			return toRuby(scope, _runtime, ((JSFunction)obj).call(scope, jargs));
 		    }
 		    // Check for certain built-in JSObject methods and call them

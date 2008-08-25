@@ -86,7 +86,7 @@ public class RubyObjectWrapper extends RubyObject {
     }
 
     /** Given a Ruby object, returns a JavaScript object. */
-    public static Object toJS(final org.jruby.Ruby runtime, IRubyObject r) {
+    public static Object toJS(final Scope scope, final org.jruby.Ruby runtime, IRubyObject r) {
 	if (r == null)
 	    return null;
 	if (r instanceof RubyString)
@@ -104,7 +104,7 @@ public class RubyObjectWrapper extends RubyObject {
 	    int len = ra.getLength();
 	    JSArray ja = new JSArray(len);
 	    for (int i = 0; i < len; ++i)
-		ja.setInt(i, RubyObjectWrapper.toJS(runtime, ra.entry(i)));
+		ja.setInt(i, toJS(scope, runtime, ra.entry(i)));
 	    return ja;
 	}
 	if (r instanceof RubyHash) {
@@ -112,11 +112,16 @@ public class RubyObjectWrapper extends RubyObject {
 	    final JSObjectBase jobj = new JSObjectBase();
 	    rh.visitAll(new RubyHash.Visitor() {
 		    public void visit(final IRubyObject key, final IRubyObject value) {
-			jobj.set(key.toString(), toJS(runtime, value));
+			jobj.set(key.toString(), toJS(scope, runtime, value));
 		    }
 		});
 	    return jobj;
 	}
+	if (r instanceof Block)
+	    return new JSFunctionWrapper(scope, runtime, (Block)r);
+	if (r instanceof RubyProc)
+	    return new JSFunctionWrapper(scope, runtime, ((RubyProc)r).getBlock());
+
 	return JavaUtil.convertRubyToJava(r); // punt
     }
 

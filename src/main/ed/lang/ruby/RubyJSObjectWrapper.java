@@ -69,13 +69,13 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 		    if (key.equals("[]=")) {
 			if (RubyObjectWrapper.DEBUG)
 			    System.err.println("assigning new value to instance var named " + args[1]);
-			return RubyObjectWrapper.toRuby(_scope, _runtime, _jsobj.set(args[1].toString(), toJS(_runtime, args[2])));
+			return RubyObjectWrapper.toRuby(_scope, _runtime, _jsobj.set(args[1].toString(), toJS(_scope, _runtime, args[2])));
 		    }
 		    if (key.endsWith("=")) {
 			key = key.substring(0, key.length() - 1);
 			if (RubyObjectWrapper.DEBUG)
 			    System.err.println("assigning new value to instance var named " + key);
-			return RubyObjectWrapper.toRuby(_scope, _runtime, _jsobj.set(key, toJS(_runtime, args[1])));
+			return RubyObjectWrapper.toRuby(_scope, _runtime, _jsobj.set(key, toJS(_scope, _runtime, args[1])));
 		    }
 
 		    Object obj = _jsobj.get(key);
@@ -86,7 +86,7 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 			    System.err.println("calling function " + key);
 			Object[] jargs = new Object[args.length - 1];
 			for (int i = 1; i < args.length; ++i)
-			    jargs[i-1] = toJS(_runtime, args[i]);
+			    jargs[i-1] = toJS(_scope, _runtime, args[i]);
 			return RubyObjectWrapper.toRuby(_scope, _runtime, ((JSFunction)obj).call(_scope, jargs));
 		    }
 
@@ -103,7 +103,7 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 			}
 			if ("set".equals(key) && args.length > 2) {
 			    if (RubyObjectWrapper.DEBUG) System.err.println("calling internal set()");
-			    return RubyObjectWrapper.toRuby(_scope, _runtime, _jsobj.set(args[1].toString(), toJS(_runtime, args[2])));
+			    return RubyObjectWrapper.toRuby(_scope, _runtime, _jsobj.set(args[1].toString(), toJS(_scope, _runtime, args[2])));
 			}
 			if ("keySet".equals(key)) {
 			    if (RubyObjectWrapper.DEBUG) System.err.println("calling internal keySet()");

@@ -58,7 +58,7 @@ public class RubyJSFunctionWrapper extends RubyObjectWrapper {
 
 		    Object[] jargs = new Object[args.length];
 		    for (int i = 0; i < args.length; ++i)
-			jargs[i] = toJS(_runtime, args[i]);
+			jargs[i] = toJS(_scope, _runtime, args[i]);
 
 		    Object result = _func.call(_scope, jargs);
 		    if (RubyObjectWrapper.DEBUG)

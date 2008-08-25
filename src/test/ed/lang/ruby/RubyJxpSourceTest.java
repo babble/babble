@@ -16,6 +16,8 @@
 
 package ed.lang.ruby;
 
+import org.jruby.runtime.builtin.IRubyObject;
+
 import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
@@ -136,5 +138,16 @@ public class RubyJxpSourceTest extends SourceRunner {
 	runRuby("$scope['new_thing'] = 57");
 	assertNotNull(s.get("new_thing"), "'new_thing' not defined in scope");
 	assertEquals(s.get("new_thing").toString(), "57");
+    }
+
+    @Test
+    public void testBlockToJSFunction() {
+	Object o = RubyObjectWrapper.toJS(s, r, (IRubyObject)runRuby("Proc.new {|i| i + 7}"));
+	assertTrue(o instanceof JSFunctionWrapper);
+	JSFunctionWrapper fw = (JSFunctionWrapper)o;
+	Object answer = fw.call(s, new Integer(35), new Object[0]);
+	assertNotNull(answer);
+	assertTrue(answer instanceof Number);
+	assertEquals(((Number)answer).intValue(), 42);
     }
 }

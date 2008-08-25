@@ -57,12 +57,12 @@ public class RubyObjectWrapperTest {
 
     @Test(groups = {"r2js"})
     public void testToJSNull() {
-	assertNull(toJS(r, null));
+	assertNull(toJS(s, r, null));
     }
 
     @Test(groups = {"r2js"})
     public void testRubyNilToJSNull() {
-	assertNull(toJS(r, r.getNil()));
+	assertNull(toJS(s, r, r.getNil()));
     }
 
     @Test(groups = {"r2js"})
@@ -78,61 +78,67 @@ public class RubyObjectWrapperTest {
     @Test(groups = {"r2js"})
     public void testRubyBignumToJSBignum() {
 	IRubyObject ro = new RubyBignum(r, new BigInteger("42"));
-	Object o = toJS(r, ro);
-	assertTrue(toJS(r, ro) instanceof Number);
+	Object o = toJS(s, r, ro);
+	assertTrue(toJS(s, r, ro) instanceof Number);
 	assertEquals(((Number)o).longValue(), 42L);
     }
 
     @Test(groups = {"r2js"})
     public void testRubyBigDecimalToJSBigDecimal() {
 	IRubyObject ro = new RubyBigDecimal(r, new BigDecimal((double)42.4));
-	Object o = toJS(r, ro);
-	assertTrue(toJS(r, ro) instanceof Number);
+	Object o = toJS(s, r, ro);
+	assertTrue(toJS(s, r, ro) instanceof Number);
 	assertEquals(((Number)o).doubleValue(), 42.4);
     }
 
     void jsNumberTest(long val, Object jobj) {
 	IRubyObject ro = JavaUtil.convertJavaToUsableRubyObject(r, jobj);
-	Object o = toJS(r, ro);
+	Object o = toJS(s, r, ro);
 	assertTrue(o instanceof Number);
 	assertEquals(((Number)o).longValue(), val);
     }
 
     void jsNumberTest(double val, Object jobj) {
 	IRubyObject ro = JavaUtil.convertJavaToUsableRubyObject(r, jobj);
-	Object o = toJS(r, ro);
+	Object o = toJS(s, r, ro);
 	assertTrue(o instanceof Number);
 	assertEquals(((Number)o).doubleValue(), val);
     }
 
     @Test(groups = {"r2js"})
     public void testRubyStringToJSString() {
-	Object o = toJS(r, RubyString.newString(r, "test string"));
+	Object o = toJS(s, r, RubyString.newString(r, "test string"));
 	assertTrue(o instanceof JSString);
 	assertEquals(o.toString(), "test string");
     }
 
-    @Test(groups = {"r2js"})
-    public void testRubyBlockToJSFunction() {
-	// TODO
-    }
+    // Conversion from Ruby block to JSFunction is simple; it's the call that
+    // needs to be tested. For that, see RubyJxpSourceTest.
+//     @Test(groups = {"r2js"})
+//     public void testRubyBlockToJSFunction() {
+//     }
 
     @Test(groups = {"r2js"})
     public void testRubyObjectWrapperToJSObject() {
 	Object o = new Object();
 	RubyObjectWrapper w = new RubyObjectWrapper(s, r, o);
-	assertSame(toJS(r, w), o);
+	assertSame(toJS(s, r, w), o);
     }
 
     @Test(groups = {"r2js"})
     public void testRubyObjectToJSObject() {
-	// TODO
+	JSObject jso = new JSObjectBase();
+	IRubyObject ro = toRuby(s, r, jso);
+	assertTrue(ro instanceof RubyJSObjectWrapper);
+
+	Object o = toJS(s, r, ro);
+	assertSame(o, jso);
     }
 
     @Test(groups = {"r2js"})
     public void testRubyArrayToJSArray() {
 	RubyArray ra = (RubyArray)r.evalScriptlet("[4, 5, 6]");
-	Object o = toJS(r, ra);
+	Object o = toJS(s, r, ra);
 	assertTrue(o instanceof JSArray);
 	JSArray ja = (JSArray)o;
 	for (int i = 0; i < 3; ++i)
@@ -142,7 +148,7 @@ public class RubyObjectWrapperTest {
     @Test(groups = {"r2js"})
     public void testRubyArrayToJSArrayDeep() {
 	RubyArray ra = (RubyArray)r.evalScriptlet("[4, \"test string\", [3]]");
-	Object o = toJS(r, ra);
+	Object o = toJS(s, r, ra);
 	assertTrue(o instanceof JSArray);
 	JSArray ja = (JSArray)o;
 	assertEquals(((Number)ja.getInt(0)).intValue(), 4);
@@ -156,7 +162,7 @@ public class RubyObjectWrapperTest {
     public void testRubyHashToJS() {
 	RubyHash rh = (RubyHash)r.evalScriptlet("{\"a\" => 1, :b => \"test string\"}");
 
-	Object o = toJS(r, rh);
+	Object o = toJS(s, r, rh);
 	assertTrue(o instanceof JSObject);
 	JSObject jo = (JSObject)(o);
 
@@ -255,7 +261,10 @@ public class RubyObjectWrapperTest {
 
     @Test(groups = {"js2r"})
     public void testToJSObjectRuby() {
-	// TODO
+	JSObject jso = new JSObjectBase();
+	IRubyObject ro = toRuby(s, r, jso);
+	assertTrue(ro instanceof RubyJSObjectWrapper);
+	assertSame(((RubyJSObjectWrapper)ro).getJSObject(), jso);
     }
 
     @Test(groups = {"js2r"})
