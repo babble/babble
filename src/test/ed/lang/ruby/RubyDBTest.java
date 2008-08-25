@@ -27,13 +27,13 @@ public class RubyDBTest extends SourceRunner {
     
     public static final String DB_NAME = "test";
 
-    @BeforeTest(groups={"ruby.db"})
+    @BeforeTest(groups={"ruby.db", "ruby.db.findone", "ruby.db.find"})
     public void globalSetUp() {
 	super.globalSetUp();
 	s.put("connect", new Shell.ConnectDB(), true);
     }
 
-    @BeforeMethod(groups={"ruby.db"})
+    @BeforeMethod(groups={"ruby.db", "ruby.db.findone", "ruby.db.find"})
     public void setUp() {
 	runJS("db = connect('" + DB_NAME + "');" +
 	      "db.rubytest.remove({});" +
@@ -45,7 +45,7 @@ public class RubyDBTest extends SourceRunner {
 	      "db.rubytest.save({artist: 'XTC', album: 'Oranges & Lemons', song: 'King For A Day', track: 3});");
     }
 
-    @AfterMethod(groups={"ruby.db"})
+    @AfterMethod(groups={"ruby.db", "ruby.db.findone", "ruby.db.find"})
     public void tearDown() {
 	runJS("db.rubytest.remove({});");
     }
@@ -103,4 +103,13 @@ public class RubyDBTest extends SourceRunner {
 	assertEquals(x.get("album").toString(), "Aliens Ate My Buick");
 	assertEquals(x.get("song").toString(), "Budapest by Blimp");
     }
+
+    // FIXME
+//     @Test(groups={"ruby.db.find"})
+//     public void testForEach() {
+// 	runRuby("coll = db.rubytest;" +
+// 		"cursor = coll.find();" +
+// 		"cursor.forEach { |row| puts tojson(row) }");
+// 	System.err.println(rubyOutput); // DEBUG
+//     }
 }

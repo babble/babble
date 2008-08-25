@@ -21,6 +21,8 @@ import org.jruby.runtime.builtin.IRubyObject;
 import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
+import ed.js.JSFunction;
+
 @Test(groups = {"ruby", "ruby.jxpsource"})
 public class RubyJxpSourceTest extends SourceRunner {
 
@@ -141,7 +143,7 @@ public class RubyJxpSourceTest extends SourceRunner {
     }
 
     @Test
-    public void testBlockToJSFunction() {
+    public void testCallBlockAsJSFunction() {
 	Object o = RubyObjectWrapper.toJS(s, r, (IRubyObject)runRuby("Proc.new {|i| i + 7}"));
 	assertTrue(o instanceof JSFunctionWrapper);
 	JSFunctionWrapper fw = (JSFunctionWrapper)o;
@@ -149,5 +151,14 @@ public class RubyJxpSourceTest extends SourceRunner {
 	assertNotNull(answer);
 	assertTrue(answer instanceof Number);
 	assertEquals(((Number)answer).intValue(), 42);
+    }
+
+    @Test
+    public void testCallBlockFromJS() {
+	runRuby("$scope.set('rfunc', Proc.new {|i| i + 7})");
+	Object o = s.get("rfunc");
+	assertTrue(o instanceof JSFunction, "oops: rfunc is not a JSFunction; it is a " + o.getClass().getName());
+	runJS("print(rfunc(35));");
+	assertEquals(jsOutput, "42");
     }
 }

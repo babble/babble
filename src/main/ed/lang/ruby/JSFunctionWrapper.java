@@ -19,10 +19,11 @@ package ed.lang.ruby;
 import java.util.List;
 import java.util.ArrayList;
 
+import org.jruby.RubyProc;
 import org.jruby.runtime.*;
 import org.jruby.runtime.builtin.IRubyObject;
 
-import ed.js.JSFunctionBase;
+import ed.js.JSFunction;
 import ed.js.engine.Scope;
 import static ed.lang.ruby.RubyObjectWrapper.toJS;
 import static ed.lang.ruby.RubyObjectWrapper.toRuby;
@@ -31,7 +32,7 @@ import static ed.lang.ruby.RubyObjectWrapper.toRuby;
  * RubyJSObjectWrapper acts as a bridge between Ruby blocks and JSFunctions.
  * Ruby blocks can be called as if they are JSFunctions.
  */
-public class JSFunctionWrapper extends JSFunctionBase {
+public class JSFunctionWrapper extends JSFunction {
 
     private static final IRubyObject[] TYPE_ARRAY = new IRubyObject[0];
 
@@ -54,6 +55,16 @@ public class JSFunctionWrapper extends JSFunctionBase {
     }
 
     public Block getBlock() { return _block; }
+
+    public RubyProc getProcObject() {
+	RubyProc p = _block.getProcObject();
+	if (p != null)
+	    return p;
+
+	p = RubyProc.newProc(_runtime, _block, _block.type);
+	_block.setProcObject(p);
+	return p;
+    }
 
     public Object call(Scope scope, Object [] extra) { return callBlock(); }
 

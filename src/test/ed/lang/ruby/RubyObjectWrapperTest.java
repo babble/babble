@@ -57,7 +57,7 @@ public class RubyObjectWrapperTest {
 
     @Test(groups = {"r2js"})
     public void testToJSNull() {
-	assertNull(toJS(s, r, null));
+	assertNull(toJS(s, r, (IRubyObject)null));
     }
 
     @Test(groups = {"r2js"})
@@ -300,5 +300,11 @@ public class RubyObjectWrapperTest {
 	assertTrue(!r.getNil().equals(o));
 	assertTrue(o instanceof RubyString);
 	assertEquals(((RubyString)o).toString(), "test string");
+    }
+
+    @Test(groups = {"js2r"})
+    public void testJSFunctionWrapperToRuby() {
+	// TODO test return of existing proc
+	// TODO test return of new proc
     }
 }

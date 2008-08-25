@@ -196,9 +196,13 @@ public class RubyJxpSource extends JxpSource {
 
 			if (RubyObjectWrapper.DEBUG)
 			    System.err.println("calling function " + key);
-			Object[] jargs = new Object[args.length - 1];
+
+			Object[] jargs = new Object[args.length - 1 + (block.isGiven() ? 1 : 0)];
 			for (int i = 1; i < args.length; ++i)
 			    jargs[i-1] = toJS(scope, _runtime, args[i]);
+			if (block != null && block.isGiven())
+			    jargs[args.length-1] = toJS(scope, _runtime, block);
+
 			return toRuby(scope, _runtime, ((JSFunction)obj).call(scope, jargs));
 		    }
 		    // Check for certain built-in JSObject methods and call them

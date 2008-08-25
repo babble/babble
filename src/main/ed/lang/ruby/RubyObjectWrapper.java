@@ -56,6 +56,8 @@ public class RubyObjectWrapper extends RubyObject {
 	    return runtime.getNil();
 	if (obj instanceof JSString || obj instanceof ObjectId)
 	    return RubyString.newString(runtime, obj.toString());
+	if (obj instanceof JSFunctionWrapper)
+	    return ((JSFunctionWrapper)obj).getProcObject();
 	if (obj instanceof JSFunction) {
 	    IRubyObject methodOwner = container == null ? runtime.getTopSelf() : container;
 	    return new RubyJSFunctionWrapper(s, runtime, (JSFunction)obj, name, methodOwner.getSingletonClass());
@@ -83,6 +85,11 @@ public class RubyObjectWrapper extends RubyObject {
 	if (obj instanceof JSObject)
 	    return new RubyJSObjectWrapper(s, runtime, (JSObject)obj);
 	return JavaUtil.convertJavaToUsableRubyObject(runtime, obj);
+    }
+
+    /** Given a Ruby block, returns a JavaScript object. */
+    public static Object toJS(Scope scope, org.jruby.Ruby runtime, Block block) {
+	return new JSFunctionWrapper(scope, runtime, block);
     }
 
     /** Given a Ruby object, returns a JavaScript object. */
@@ -117,8 +124,6 @@ public class RubyObjectWrapper extends RubyObject {
 		});
 	    return jobj;
 	}
-	if (r instanceof Block)
-	    return new JSFunctionWrapper(scope, runtime, (Block)r);
 	if (r instanceof RubyProc)
 	    return new JSFunctionWrapper(scope, runtime, ((RubyProc)r).getBlock());
 

@@ -56,9 +56,11 @@ public class RubyJSFunctionWrapper extends RubyObjectWrapper {
 		    int n = _func.getNumParameters();
                     if (args.length != n) Arity.raiseArgumentError(_runtime, args.length, n, n);
 
-		    Object[] jargs = new Object[args.length];
+		    Object[] jargs = new Object[args.length + (block.isGiven() ? 1 : 0)];
 		    for (int i = 0; i < args.length; ++i)
 			jargs[i] = toJS(_scope, _runtime, args[i]);
+		    if (block != null && block.isGiven())
+			jargs[args.length] = toJS(_scope, _runtime, block);
 
 		    Object result = _func.call(_scope, jargs);
 		    if (RubyObjectWrapper.DEBUG)
