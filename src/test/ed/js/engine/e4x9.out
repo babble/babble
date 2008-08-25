@@ -26,3 +26,5 @@ get.ready::to
 </shmoe>
 bar2::y
 get.ready::diplomat
+bar2 foo
+hello

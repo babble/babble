@@ -1060,17 +1060,31 @@ public class E4X {
         }
 
 
+        private ArrayList<Namespace> getAncestors() {
+            ArrayList<Namespace> ancestors = new ArrayList<Namespace>();
+            ancestors.add( XML.defaultNamespace );
+            ENode temp = this.parent;
+            while( temp != null ) {
+                for( Namespace ns : temp.inScopeNamespaces ) {
+                    if( ! ns.containsPrefix( ancestors ) ) {
+                        ancestors.add( ns );
+                    }
+                }
+                temp = temp.parent;
+            }
+            return ancestors;
+        }
+
         private JSArray namespaceDeclarations() {
             JSArray a = new JSArray();
             if( isSimpleTypeNode( this.node.getNodeType() ) )
                 return a;
 
-            ArrayList<Namespace> declaredNS = (ArrayList<Namespace>)this.parent.inScopeNamespaces.clone();
-            for( int i=0; i < this.inScopeNamespaces.size(); i++) {
-                declaredNS.remove( this.inScopeNamespaces.get(i) );
-            }
-            for( int i=0; i < declaredNS.size(); i++) {
-                a.add( declaredNS.get(i) );
+            ArrayList<Namespace> ancestors = this.getAncestors();
+
+            for( Namespace ns : this.inScopeNamespaces ) {
+                if( ! ns.containedIn( ancestors ) )
+                    a.add( ns );
             }
             return a;
         }
@@ -2074,6 +2088,12 @@ public class E4X {
 
         private boolean containedIn( ArrayList<Namespace> list ) {
             for( Namespace ns : list ) {
+                if( ( ns.prefix == null && this.prefix != null ) ||
+                    ( ns.prefix != null && this.prefix == null ) ||
+                    ( ns.uri == null && this.uri != null ) ||
+                    ( ns.uri != null && this.uri == null ) )
+                    continue;
+
                 if( ns.prefix == null && this.prefix == null ) {
                     if( ns.uri == null && this.uri == null || ns.uri.equals( this.uri ) ) {
                         return true;
@@ -2081,6 +2101,18 @@ public class E4X {
                     return false;
                 }
                 if( ns.prefix.equals( this.prefix ) && ns.uri.equals( this.uri ) )
+                    return true;
+            }
+            return false;
+        }
+
+        private boolean containsPrefix( ArrayList<Namespace> list ) {
+            for( Namespace ns : list ) {
+                if( ( ns.prefix == null && this.prefix != null ) ||
+                    ( ns.prefix != null && this.prefix == null ) )
+                    continue;
+                if( ( ns.prefix == null && this.prefix == null ) ||
+                    ns.prefix.equals( this.prefix ) )
                     return true;
             }
             return false;

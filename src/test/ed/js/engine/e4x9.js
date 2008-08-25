@@ -68,6 +68,12 @@ print( xml.level1::y.name() );
 xml.level1::y.setName( "diplomat" );
 print( xml.diplomat.name() );
 
+//namespaceDeclarations
+xml=<x xmlns:bar="bar2" xmlns:myfoo="foo"><y xmlns:blah="hello">z</y></x>
+ns_array = xml.namespaceDeclarations();
+print(ns_array[0]+" "+ns_array[1]);
+print( xml.y.namespaceDeclarations() );
+
 //setNamespace
 //dogs = <dogs><dog><type>lab</type></dog><dog><type>retriever</type></dog></dogs>;
 //dogs.setNamespace( "black.dog" );
@@ -78,7 +84,6 @@ print( xml.diplomat.name() );
 
 //localName
 //namespace
-//namespaceDeclarations
 //removeNamespace
 
 // reset the namespace for other tests
