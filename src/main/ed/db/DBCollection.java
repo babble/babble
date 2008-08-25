@@ -183,7 +183,7 @@ public abstract class DBCollection extends JSObjectLame {
                 name += "_";
             name += s + "_";
             Object val = keys.get( s );
-            if ( ! ( val instanceof ObjectId ) )
+            if ( val instanceof Number )
                 name += JSInternalFunctions.JS_toString( val ).replace( ' ' , '_' );
         }
         return name;
