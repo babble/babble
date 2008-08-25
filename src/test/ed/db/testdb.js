@@ -188,24 +188,24 @@ function testgetmore() {
     //print("testgetmore");
     db.gm.drop();
     gm=t.gm;
-    for(i=0;i<50000;i++){
+    for(i=0;i<20000;i++){
 	gm.save({a:i, b:"adsffffffffffffffffffffffffffffffffffffffffffffffff\nfffffffffffffffffffffffffffffffffffffffffffffffffffff\nfffffffffffffffffffffffffffffffff"})
 	    }
-    assert(gm.find().length()==50000);
+    assert(gm.find().count()==20000);
 
     x = 0;
     c=gm.find();
     for(i=0;i<5000;i++) { x += c.next().a; }
 
-    assert(gm.find().length()==50000); // full iteration with a cursor already live
+    assert(gm.find().length()==20000); // full iteration with a cursor already live
     assert( gm.find()[10000].a == 10000 );
-    assert( gm.find()[29000].a == 29000 );
+    assert( gm.find()[19000].a == 19000 );
     assert( gm.find()[9000].a == 9000 );
     d=gm.find();
-    assert( d[20000].a==20000 );
+    assert( d[12000].a==12000 );
     assert( d[10000].a==10000 );
-    assert( d[40000].a==40000 );
-    assert(gm.find().length()==50000); // full iteration with a cursor already live
+    assert( d[17000].a==17000 );
+    assert(gm.find().length()==20000); // full iteration with a cursor already live
 
     //print( connect("intr").cursors.findOne().dump );
      connect("intr").cursors.findOne().dump;
