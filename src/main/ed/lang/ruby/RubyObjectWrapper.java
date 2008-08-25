@@ -26,6 +26,7 @@ import org.jruby.runtime.*;
 import org.jruby.runtime.builtin.IRubyObject;
 import static org.jruby.runtime.Visibility.PUBLIC;
 
+import ed.db.DBCursor;
 import ed.db.ObjectId;
 import ed.js.*;
 import ed.js.engine.Scope;
@@ -78,6 +79,8 @@ public class RubyObjectWrapper extends RubyObject {
 		rh.op_aset(context, toRuby(s, runtime, key), toRuby(s, runtime, jm.get(key), key.toString()));
 	    return rh;
 	}
+	if (obj instanceof DBCursor)
+	    return new RubyDBCursorWrapper(s, runtime, (DBCursor)obj);
 	if (obj instanceof BigDecimal)
 	    return new RubyBigDecimal(runtime, (BigDecimal)obj);
 	if (obj instanceof BigInteger)
@@ -88,7 +91,7 @@ public class RubyObjectWrapper extends RubyObject {
     }
 
     /** Given a Ruby block, returns a JavaScript object. */
-    public static Object toJS(Scope scope, org.jruby.Ruby runtime, Block block) {
+    public static JSFunctionWrapper toJS(Scope scope, org.jruby.Ruby runtime, Block block) {
 	return new JSFunctionWrapper(scope, runtime, block);
     }
 

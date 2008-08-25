@@ -107,6 +107,16 @@ public class RubyDBTest extends SourceRunner {
     @Test(groups={"ruby.db.find"})
     public void testForEach() {
 	runRuby("db.rubytest.find().forEach { |row| puts tojson(row) }");
+	lookForAllRows();
+    }
+
+    @Test(groups={"ruby.db.find"})
+    public void testEach() {
+	runRuby("db.rubytest.find().each { |row| puts tojson(row) }");
+	lookForAllRows();
+    }
+
+    protected void lookForAllRows() {
 	// Can't just look at the whole string because (A) we don't know the
 	// order of the results and (B) the output gets wrapped.
 	assertTrue(rubyOutput.contains("Swing"));
@@ -116,14 +126,4 @@ public class RubyDBTest extends SourceRunner {
 	assertTrue(rubyOutput.contains("Simpleton"));
 	assertTrue(rubyOutput.contains("King"));
     }
-
-    // FIXME reinstate when we wrap DBCursor to implement Enumerable
-//     @Test(groups={"ruby.db.find"})
-//     public void testEach() {
-// 	// each for DBCursor is defined in xgen_internals.rb
-// 	System.err.println("going to call each"); // DEBUG
-// 	runRuby("db.rubytest.find().each { |row| puts tojson(row) }");
-// 	System.err.println(rubyOutput); // DEBUG
-// 	System.err.println("that was it!"); // DEBUG
-//     }
 }

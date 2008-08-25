@@ -39,7 +39,7 @@ import ed.js.engine.Scope;
  */
 public class RubyJSObjectWrapper extends RubyObjectWrapper {
 
-    private final JSObject _jsobj;
+    protected final JSObject _jsobj;
 
     RubyJSObjectWrapper(Scope s, org.jruby.Ruby runtime, JSObject obj) {
 	super(s, runtime, obj);
