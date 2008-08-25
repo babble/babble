@@ -61,6 +61,24 @@ public class WeakBag<T> {
         }
     }
 
+    public long approxSize( IdentitySet seen ){
+        if ( seen == null )
+            seen = new IdentitySet();
+
+        long size = 32;
+
+        for ( Iterator<MyRef> i = _set.iterator(); i.hasNext(); ){
+            MyRef ref = i.next();
+            Object it = ref.get();
+            if ( it == null )
+                continue;
+            
+            size += ed.js.JSObjectSize.size( it , seen );
+        }
+
+        return size;
+    }
+
     class MyRef extends WeakReference<T> {
         MyRef( T t ){
             super( t );
