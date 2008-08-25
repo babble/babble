@@ -67,8 +67,9 @@ public class RubyDBTest extends SourceRunner {
 
     @Test(groups={"ruby.db.findone"})
     public void testFindOneById() {
-	JSObject x = ((RubyJSObjectWrapper)runRuby("x = db.rubytest.findOne(song_id)")).getJSObject();
+	runRuby("$scope.set('x', db.rubytest.findOne(song_id))");
 	// TODO use s.get("x") when Ruby can create new top-level vars without using $scope.set
+	JSObject x = (JSObject)s.get("x");
 	assertNotNull(x);
 
 	assertEquals(x.get("_id").toString(), ((JSObject)s.get("song_id")).get("_id").toString());
@@ -81,8 +82,9 @@ public class RubyDBTest extends SourceRunner {
 
     @Test(groups={"ruby.db.findone"})
     public void testFindOneByIdUsingHash() {
-	JSObject x = ((RubyJSObjectWrapper)runRuby("x = db.rubytest.findOne({:_id => song_id._id})")).getJSObject();
+	runRuby("$scope.set('x', db.rubytest.findOne({:_id => song_id._id}))");
 	// TODO use s.get("x") when Ruby can create new top-level vars without using $scope.set
+	JSObject x = (JSObject)s.get("x");
 	assertNotNull(x);
 
 	assertEquals(x.get("_id").toString(), ((JSObject)s.get("song_id")).get("_id").toString());
