@@ -34,11 +34,6 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
     
     public static final String JXP_SOURCE_PROP = "_jxpSource";
 
-    static final File _tmpDir = new File( "/tmp/jxp/templates/" );
-    static {
-        _tmpDir.mkdirs();
-    }
-
     public static JxpSource getSource( File f ){
         return getSource( f , null );
         

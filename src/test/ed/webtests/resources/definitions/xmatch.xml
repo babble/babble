@@ -1,0 +1,8 @@
+<macrodef name="xMatch" description="Use XPath to match nodes with text.">
+  <attribute name="from" default="true()"/>
+  <attribute name="text"/>
+  <attribute name="type" default="*"/>
+  <sequential>
+    <verifyXPath xpath="//*[@{from}]//@{type}[contains(text(),'@{text}')]"/>
+  </sequential>
+</macrodef>
