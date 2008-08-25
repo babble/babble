@@ -1066,18 +1066,35 @@ public class Convert implements StackTraceFixer {
             String name = n.getFirstChild().getString();
             String tempName = name + "TEMP";
 
-            _append( "\n for ( String " , n );
-            _append( tempName , n );
-            _append( " : JSInternalFunctions.JS_collForFor( " , n );
-            _add( n.getFirstChild().getNext() , state );
-            _append( " ) ){\n " , n );
+            if( n.getFirstChild().getFirstChild() != null &&
+                n.getFirstChild().getFirstChild().getType() == Token.ENUM_INIT_VALUES ) {
+                _append( "\n for ( Object " , n );
+                _append( tempName , n );
+                _append( " : JSInternalFunctions.JS_collForForEach( ", n );
+                _add( n.getFirstChild().getNext() , state );
+                _append( " ) ){\n " , n );
 
-            if ( state.useLocalVariable( name ) && state.hasSymbol( name ) )
-                _append( name + " = new JSString( " + tempName + ") ; " , n );
-            else
-                _append( "scope.put( \"" + name + "\" , new JSString( " + tempName + " ) , true );\n" , n );
-            _add( n.getFirstChild().getNext().getNext() , state );
-            _append( "\n}\n" , n );
+                if ( state.useLocalVariable( name ) && state.hasSymbol( name ) )
+                    _append( name + " = " + tempName + "; " , n );
+                else
+                    _append( "scope.put( \"" + name + "\" , " + tempName + " , true );\n" , n );
+                _add( n.getFirstChild().getNext().getNext() , state );
+                _append( "\n}\n" , n );
+            }
+            else {
+                _append( "\n for ( String " , n );
+                _append( tempName , n );
+                _append( " : JSInternalFunctions.JS_collForFor( " , n );
+                _add( n.getFirstChild().getNext() , state );
+                _append( " ) ){\n " , n );
+
+                if ( state.useLocalVariable( name ) && state.hasSymbol( name ) )
+                    _append( name + " = new JSString( " + tempName + ") ; " , n );
+                else
+                    _append( "scope.put( \"" + name + "\" , new JSString( " + tempName + " ) , true );\n" , n );
+                _add( n.getFirstChild().getNext().getNext() , state );
+                _append( "\n}\n" , n );
+            }
         }
         else {
             throw new RuntimeException( "wtf?" );
