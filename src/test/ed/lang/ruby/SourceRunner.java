@@ -92,6 +92,12 @@ public class SourceRunner {
 
     protected void assertRubyEquals(String rubyCode, String expected) {
 	runRuby(rubyCode);
-	assertEquals(rubyOutput.trim(), expected.trim());
+	assertEquals(rubyOutput, expected);
+    }
+
+    protected void assertRubyEqualsJS(String rubyCode, String jsCode) {
+	runJS(jsCode);
+	runRuby(rubyCode);
+	assertEquals(rubyOutput, jsOutput);
     }
 }

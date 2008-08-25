@@ -53,8 +53,7 @@ public class RubyDBTest extends SourceRunner {
 
     @Test
     public void testSongIdExists() {
-	runJS("print(song_id);");
-	runRuby("puts song_id");
+	assertRubyEqualsJS("puts song_id", "print(song_id);");
 	assertNotNull(rubyOutput);
 	assertTrue(rubyOutput.length() > 0);
 	assertEquals(rubyOutput, jsOutput);

@@ -66,7 +66,7 @@ public class RubyJxpSourceTest extends SourceRunner {
     }
 
     @Test
-    public void testGetUsingHash() {
+    public void testGetUsingHashSyntax() {
 	assertRubyEquals("puts data['count']", "1");
     }
 
@@ -118,4 +118,23 @@ public class RubyJxpSourceTest extends SourceRunner {
 // 	assertNotNull(s.get("x"), "top-level 'x' should not be null; it should be in scope");
 // 	assertEquals(s.get("x").toString(), "42");
 //     }
+
+    @Test
+    public void testReadScope() {
+	assertRubyEquals("puts $scope.get('array')[1]", "test string");
+    }
+
+    @Test
+    public void testWriteScope() {
+	runRuby("$scope.set('new_thing', 57)");
+	assertNotNull(s.get("new_thing"), "'new_thing' not defined in scope");
+	assertEquals(s.get("new_thing").toString(), "57");
+    }
+
+    @Test
+    public void testWriteScopeUsingHashSyntax() {
+	runRuby("$scope['new_thing'] = 57");
+	assertNotNull(s.get("new_thing"), "'new_thing' not defined in scope");
+	assertEquals(s.get("new_thing").toString(), "57");
+    }
 }
