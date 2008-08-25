@@ -42,7 +42,6 @@ public class RubyDBTest extends SourceRunner {
 	      "db.rubytest.save({artist: 'Thomas Dolby', album: 'The Golden Age of Wireless', song: 'Europa and the Pirate Twins'});" +
 	      "db.rubytest.save({artist: 'XTC', album: 'Oranges & Lemons', song: 'Garden Of Earthly Delights', track: 1});" +
 	      "song_id = db.rubytest.save({artist: 'XTC', album: 'Oranges & Lemons', song: 'The Mayor Of Simpleton', track: 2});" +
-	      "song_id = song_id._id;" +
 	      "db.rubytest.save({artist: 'XTC', album: 'Oranges & Lemons', song: 'King For A Day', track: 3});");
     }
 
@@ -53,7 +52,7 @@ public class RubyDBTest extends SourceRunner {
 
     @Test
     public void testSongIdExists() {
-	assertRubyEqualsJS("puts song_id", "print(song_id);");
+	assertRubyEqualsJS("puts song_id._id", "print(song_id._id);");
 	assertNotNull(rubyOutput);
 	assertTrue(rubyOutput.length() > 0);
 	assertEquals(rubyOutput, jsOutput);
@@ -66,22 +65,35 @@ public class RubyDBTest extends SourceRunner {
 	assertTrue(rubyOutput.contains("\"artist\""), "string \"artist\" missing: " + rubyOutput);
     }
 
-    // FIXME
-//     @Test
-//     public void testFindOneById() {
-// 	JSObject x = ((RubyJSObjectWrapper)runRuby("x = db.rubytest.findOne(song_id);")).getJSObject();
-// 	// TODO use s.get("x") when that is fixed
-// 	assertNotNull(x);
+    @Test(groups={"ruby.db.findone"})
+    public void testFindOneById() {
+	JSObject x = ((RubyJSObjectWrapper)runRuby("x = db.rubytest.findOne(song_id)")).getJSObject();
+	// TODO use s.get("x") when Ruby can create new top-level vars without using $scope.set
+	assertNotNull(x);
 
-// 	assertEquals(x.get("_id").toString(), s.get("song_id").toString());
-// 	assertEquals(x.get("artist").toString(), "XTC");
-// 	assertEquals(x.get("album").toString(), "Oranges & Lemons");
-// 	assertEquals(x.get("song").toString(), "The Mayor Of Simpleton");
-// 	assertNotNull(x.get("track"));
-// 	assertEquals(x.get("track").toString(), "2");
-//     }
+	assertEquals(x.get("_id").toString(), ((JSObject)s.get("song_id")).get("_id").toString());
+	assertEquals(x.get("artist").toString(), "XTC");
+	assertEquals(x.get("album").toString(), "Oranges & Lemons");
+	assertEquals(x.get("song").toString(), "The Mayor Of Simpleton");
+	assertNotNull(x.get("track"));
+	assertEquals(x.get("track"), 2.0);
+    }
 
-    @Test
+    @Test(groups={"ruby.db.findone"})
+    public void testFindOneByIdUsingHash() {
+	JSObject x = ((RubyJSObjectWrapper)runRuby("x = db.rubytest.findOne({:_id => song_id._id})")).getJSObject();
+	// TODO use s.get("x") when Ruby can create new top-level vars without using $scope.set
+	assertNotNull(x);
+
+	assertEquals(x.get("_id").toString(), ((JSObject)s.get("song_id")).get("_id").toString());
+	assertEquals(x.get("artist").toString(), "XTC");
+	assertEquals(x.get("album").toString(), "Oranges & Lemons");
+	assertEquals(x.get("song").toString(), "The Mayor Of Simpleton");
+	assertNotNull(x.get("track"));
+	assertEquals(x.get("track"), 2.0);
+    }
+
+    @Test(groups={"ruby.db.findone"})
     public void testFindOneBySong() {
 	JSObject x = ((RubyJSObjectWrapper)runRuby("x = db.rubytest.findOne({:song => 'Budapest by Blimp'})")).getJSObject();
 	// TODO use s.get("x") when that is fixed
