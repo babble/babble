@@ -1436,7 +1436,7 @@ public class E4X {
                 if ( singleNode.node.getNodeType() == Node.ELEMENT_NODE &&
                      singleNode.children != null &&
                      singleNode.childrenAreTextNodes() ) {
-                    for( ENode n : singleNode.children )
+                    for( ENode n : kids )
                         xml.append( n.node.getNodeValue() );
                     return xml.toString();
                 }
@@ -1661,7 +1661,8 @@ public class E4X {
         }
 
         private boolean childrenAreTextNodes() {
-            for( ENode n : this.children ) {
+            List<ENode> kids = this.printableChildren();
+            for( ENode n : kids ) {
                 if( n.node.getNodeType() != Node.TEXT_NODE )
                     return false;
             }
@@ -1793,6 +1794,15 @@ public class E4X {
             Collection<String> c = new ArrayList<String>();
             for( int i=0; i<list.size(); i++ ) {
                 c.add( String.valueOf( i ) );
+            }
+            return c;
+        }
+
+        public Collection<ENode> valueSet() {
+            XMLList list = ( this instanceof XMLList ) ? (XMLList)this : this.children;
+            Collection<ENode> c = new ArrayList<ENode>();
+            for( ENode n : list ) {
+                c.add( n );
             }
             return c;
         }

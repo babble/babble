@@ -971,6 +971,9 @@ public class Parser
                              init.getFirstChild().getType() == Token.NAME ){
                             init = init.getFirstChild();
                         }
+                        if( isForEach ) {
+                            init.addChildToBack( new Node( Token.ENUM_INIT_VALUES ) );
+                        }
                         pn.addChildToBack( init );
                         pn.addChildToBack( cond );
                         pn.addChildToBack( body );
