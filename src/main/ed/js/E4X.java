@@ -238,12 +238,14 @@ public class E4X {
             // get parent's namespaces
             if( this.parent != null ) {
                 this.defaultNamespace = parent.defaultNamespace;
-                this.inScopeNamespaces.addAll( this.parent.inScopeNamespaces );
+                for( Namespace ns : this.parent.inScopeNamespaces ) {
+                    this.addInScopeNamespace( ns );
+                }
             }
             // add default namespace, if it isn't boring
-            if( this.defaultNamespace != null && !this.defaultNamespace.uri.equals( "" ) ) {
-                this.inScopeNamespaces.add( this.defaultNamespace );
-            }
+            //            if( this.defaultNamespace != null && !this.defaultNamespace.isEmpty() ) {
+            //                this.addInScopeNamespace( this.defaultNamespace );
+            //            }
 
             if( this.node == null ) 
                 return;
@@ -918,34 +920,30 @@ public class E4X {
             }
         }
 
-        private JSObject _getUniqueNamespaces() {
-            JSObject inScopeNS = new JSObjectBase();
-            ENode y = this.copy();
-            while( y != null ) {
-                for( Namespace ns : y.inScopeNamespaces ) {
-                    if( inScopeNS.get( ns.prefix ) != null )
-                        inScopeNS.set( ns.prefix.toString(), ns );
+        private ArrayList<Namespace> inScopeNamespaces() {
+            ArrayList<Namespace> isn = new ArrayList<Namespace>();
+            isn.add( this.defaultNamespace );
+            ENode temp = this;
+            while( temp != null ) {
+                for( Namespace ns : temp.inScopeNamespaces ) {
+                    if( ! ns.containsPrefix( isn ) )
+                        isn.add( ns );
                 }
-                y = y.parent;
+                temp = temp.parent;
             }
-            return inScopeNS;
-        }
-
-        private JSArray inScopeNamespaces() {
-            JSObject inScopeNS = _getUniqueNamespaces();
-            JSArray a = new JSArray();
-            Iterator k = (inScopeNS.keySet()).iterator();
-            while(k.hasNext()) {
-                a.add( inScopeNS.get(k).toString() );
-            }
-            return a;
+            return isn;
         }
 
         public class inScopeNamespaces extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
                 Object obj = s.getThis();
                 ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                return enode.inScopeNamespaces();
+                ArrayList<Namespace> isn = enode.inScopeNamespaces();
+                JSArray a = new JSArray();
+                for( Namespace ns : isn ) {
+                    a.add( ns );
+                }
+                return a;
             }
         }
 
@@ -1060,17 +1058,31 @@ public class E4X {
         }
 
 
-        private JSArray namespaceDeclarations() {
-            JSArray a = new JSArray();
-            if( isSimpleTypeNode( this.node.getNodeType() ) )
+        private ArrayList<Namespace> getAncestors() {
+            ArrayList<Namespace> ancestors = new ArrayList<Namespace>();
+            //            ancestors.add( XML.defaultNamespace );
+            ENode temp = this.parent;
+            while( temp != null ) {
+                for( Namespace ns : temp.inScopeNamespaces ) {
+                    if( ! ns.containsPrefix( ancestors ) ) {
+                        ancestors.add( ns );
+                    }
+                }
+                temp = temp.parent;
+            }
+            return ancestors;
+        }
+
+        private ArrayList<Namespace> namespaceDeclarations() {
+            ArrayList<Namespace> a = new ArrayList<Namespace>();
+            if( this instanceof XMLList || isSimpleTypeNode( this.node.getNodeType() ) )
                 return a;
 
-            ArrayList<Namespace> declaredNS = (ArrayList<Namespace>)this.parent.inScopeNamespaces.clone();
-            for( int i=0; i < this.inScopeNamespaces.size(); i++) {
-                declaredNS.remove( this.inScopeNamespaces.get(i) );
-            }
-            for( int i=0; i < declaredNS.size(); i++) {
-                a.add( declaredNS.get(i) );
+            ArrayList<Namespace> ancestors = this.getAncestors();
+
+            for( Namespace ns : this.inScopeNamespaces ) {
+                if( ! ns.containedIn( ancestors ) )
+                    a.add( ns );
             }
             return a;
         }
@@ -1079,7 +1091,12 @@ public class E4X {
             public Object call(Scope s, Object foo[]) {
                 Object obj = s.getThis();
                 ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                return enode.namespaceDeclarations();
+                ArrayList<Namespace> a = enode.namespaceDeclarations();
+                JSArray decs = new JSArray();
+                for( Namespace ns : a ) {
+                    decs.add( ns );
+                }
+                return decs;
             }
         }
 
@@ -1202,9 +1219,45 @@ public class E4X {
             }
         }
 
+        private ENode removeNamespace(Object namespace) {
+            if( this instanceof XMLList || this.isSimpleTypeNode( this.node.getNodeType() ) ) 
+                return this;
+
+            Namespace ns = new Namespace( namespace );
+            if( ns.equals( this.namespace() ) )
+                return this;
+
+            if( ns.prefix == null ) {
+                for( int i=0; i < this.inScopeNamespaces.size(); i++ ) {
+                    if( this.inScopeNamespaces.get(i).uri.equals( ns.uri ) ) {
+                        this.inScopeNamespaces.remove( i );
+                        break;
+                    }
+                }
+            }
+            else {
+                for( int i=0; i < this.inScopeNamespaces.size(); i++ ) {
+                    if( this.inScopeNamespaces.get(i).uri.equals( ns.uri ) &&
+                        this.inScopeNamespaces.get(i).prefix.equals( ns.prefix ) ) {
+                        this.inScopeNamespaces.remove( i );
+                        break;
+                    }
+                }
+            }
+            for( ENode enode : this.children ) {
+                enode.removeNamespace( namespace );
+            }
+            return this;
+        }
+
         public class removeNamespace extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                throw new RuntimeException("not yet implemented");
+                Object obj = s.getThis();
+                ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
+                if( foo.length == 0 ) 
+                    return enode;
+                String prop = foo[0].toString();
+                return enode.removeNamespace( prop );
             }
         }
 
@@ -1383,7 +1436,7 @@ public class E4X {
                 if ( singleNode.node.getNodeType() == Node.ELEMENT_NODE &&
                      singleNode.children != null &&
                      singleNode.childrenAreTextNodes() ) {
-                    for( ENode n : singleNode.children )
+                    for( ENode n : kids )
                         xml.append( n.node.getNodeValue() );
                     return xml.toString();
                 }
@@ -1539,6 +1592,7 @@ public class E4X {
                     // add to ancestors
                     append( c , buf , level + 1 , ancestors );
                     // delete from ancestors
+                    ancestors.remove( c.defaultNamespace );
                 }
             }
 
@@ -1557,16 +1611,26 @@ public class E4X {
 
         private String attributesToString( ENode n , ArrayList<Namespace> ancestors ) {
             StringBuilder buf = new StringBuilder();
-            for( Namespace ns : n.inScopeNamespaces ) {
-                if( ancestors.contains( ns ) ) 
-                    continue;
-
-                if( ns.prefix == null || ns.prefix.equals( "" ) )
-                    buf.append( " xmlns=\"" + ns.uri + "\"" );
+            boolean defDefaultNS = false;
+            ArrayList<Namespace> defaultNSs = new ArrayList<Namespace>();
+            for( Namespace ns : n.namespaceDeclarations() ) {
+                if( ns.prefix == null || ns.prefix.equals( "" ) ) {
+                    defaultNSs.add( ns );
+                    defDefaultNS = true;
+                }
                 else 
                     buf.append( " xmlns:" + ns.prefix + "=\"" + ns.uri + "\"" );
             }
-            ancestors.addAll( n.inScopeNamespaces );
+            for( int i=0; i < defaultNSs.size(); i++ ) {
+                buf.append( " xmlns:"+defaultNSs.get(i).getPrefix()+"=\"" + defaultNSs.get(i).uri + "\"" );
+            }
+            if( defaultNSs.size() > 0 )
+                buf.append( " xmlns=\"" + defaultNSs.get( defaultNSs.size()-1 ).uri + "\"" );
+
+            if( !defDefaultNS && !n.defaultNamespace.isEmpty() && !n.defaultNamespace.containedIn( ancestors )) { 
+                buf.append( " xmlns=\"" + n.defaultNamespace.uri + "\"" );
+                ancestors.add( n.defaultNamespace );
+            }
 
             // get attrs
             ArrayList<ENode> attr = n.getAttributes();
@@ -1597,7 +1661,8 @@ public class E4X {
         }
 
         private boolean childrenAreTextNodes() {
-            for( ENode n : this.children ) {
+            List<ENode> kids = this.printableChildren();
+            for( ENode n : kids ) {
                 if( n.node.getNodeType() != Node.TEXT_NODE )
                     return false;
             }
@@ -1652,11 +1717,6 @@ public class E4X {
             }
 
             this.inScopeNamespaces.add( n );
-            if( n.prefix == null || n.prefix.equals( "" ) ) {
-                n = new Namespace( n );
-                n.createPrefix();
-                addInScopeNamespace( n );
-            }
         }
 
         public ArrayList getAttributes() {
@@ -1734,6 +1794,15 @@ public class E4X {
             Collection<String> c = new ArrayList<String>();
             for( int i=0; i<list.size(); i++ ) {
                 c.add( String.valueOf( i ) );
+            }
+            return c;
+        }
+
+        public Collection<ENode> valueSet() {
+            XMLList list = ( this instanceof XMLList ) ? (XMLList)this : this.children;
+            Collection<ENode> c = new ArrayList<ENode>();
+            for( ENode n : list ) {
+                c.add( n );
             }
             return c;
         }
@@ -2068,12 +2137,24 @@ public class E4X {
             }
         }
 
+        public boolean equals( Namespace n ) {
+            if( n.prefix.equals( this.prefix ) && n.uri.equals( this.uri ) )
+                return true;
+            return false;
+        }
+
         public String toString() {
             return this.uri;
         }
 
         private boolean containedIn( ArrayList<Namespace> list ) {
             for( Namespace ns : list ) {
+                if( ( ns.prefix == null && this.prefix != null ) ||
+                    ( ns.prefix != null && this.prefix == null ) ||
+                    ( ns.uri == null && this.uri != null ) ||
+                    ( ns.uri != null && this.uri == null ) )
+                    continue;
+
                 if( ns.prefix == null && this.prefix == null ) {
                     if( ns.uri == null && this.uri == null || ns.uri.equals( this.uri ) ) {
                         return true;
@@ -2086,8 +2167,23 @@ public class E4X {
             return false;
         }
 
+        private boolean containsPrefix( ArrayList<Namespace> list ) {
+            for( Namespace ns : list ) {
+                if( ( ns.prefix == null && this.prefix != null ) ||
+                    ( ns.prefix != null && this.prefix == null ) )
+                    continue;
+                if( ( ns.prefix == null && this.prefix == null ) ||
+                    ns.prefix.equals( this.prefix ) )
+                    return true;
+            }
+            return false;
+        }
 
-        public void createPrefix() {
+        public boolean isEmpty() {
+            return this.uri == null || this.uri.equals( "" );
+        }
+
+        public String getPrefix() {
             String prefix = this.uri;
             while( prefix.endsWith("/") || prefix.endsWith(".xml") ) {
                 if ( prefix.endsWith( "/" ) )
@@ -2097,7 +2193,7 @@ public class E4X {
             }
             prefix = prefix.substring( prefix.lastIndexOf("/") + 1 );
             prefix = prefix.substring( prefix.lastIndexOf(".") + 1 );
-            this.prefix = prefix;
+            return prefix;
         }
     }
 

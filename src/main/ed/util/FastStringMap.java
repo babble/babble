@@ -4,6 +4,8 @@ package ed.util;
 
 import java.util.*;
 
+import ed.js.*;
+
 public final class FastStringMap implements Map<String,Object> {
 
     public FastStringMap(){
@@ -276,6 +278,29 @@ public final class FastStringMap implements Map<String,Object> {
         
         throw new RuntimeException( "grow failed" );
         
+    }
+
+    public long approxSize( IdentitySet seen ){
+        if ( seen == null )
+            seen = new IdentitySet();
+        else if ( seen.contains( this ) )
+            return 0;
+        
+        seen.contains( this );
+
+        long size = 48 + ( 8 * _data.length );
+        for ( int i=0; i<_data.length; i++ ){
+
+            MyEntry e = _data[i];
+            if ( e == null )
+                continue;
+            
+            size += 32;
+            size += JSObjectSize.size( e._key , seen );
+            size += JSObjectSize.size( e._value , seen );
+        }
+
+        return size;
     }
 
     public int size(){

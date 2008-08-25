@@ -31,7 +31,7 @@ public class CompileUtil {
     
     static boolean CD = false;
     
-    static final String TMP_DIR = "/tmp/jxp/";// + Math.random() + "/";
+    static final String TMP_DIR = WorkingFiles.TMP_DIR;
     private static final URLClassLoader _loader;
     static {
         
@@ -48,7 +48,7 @@ public class CompileUtil {
         _loader = cl;
     }
 
-    public static synchronized Class<?> compile( final String p , final String c , final String source , final Convert convert )
+    public static synchronized Class<?> compile( final String pack , final String c , final String source , final Convert convert )
         throws IOException , ClassNotFoundException {
         
         final boolean D = convert.D;
@@ -57,7 +57,7 @@ public class CompileUtil {
         if ( D ) System.out.println( source );
         if ( CD ) System.err.println( "compile 0 " );        
 
-        File dir = new File( TMP_DIR + p.replace( '.' , '/' ) + "/" );
+        File dir = new File( TMP_DIR + pack.replace( '.' , '/' ) + "/" );
         dir.mkdirs();
 
         if ( CD ) System.err.println( "compile 1 " );
@@ -109,7 +109,7 @@ public class CompileUtil {
 
         if ( CD ) System.err.println( "compile 4 " );
             
-        return _loader.loadClass( p + "." + c );
+        return _loader.loadClass( pack + "." + c );
     }
 
     static long getDependencyLastTime(){

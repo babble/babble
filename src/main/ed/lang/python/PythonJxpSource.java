@@ -36,7 +36,7 @@ import ed.appserver.jxp.*;
 public class PythonJxpSource extends JxpSource {
 
     static {
-        System.setProperty( "python.cachedir", "/tmp/jxp/jython-cache/" + Version.PY_VERSION );
+        System.setProperty( "python.cachedir", ed.io.WorkingFiles.TMP_DIR + "/jython-cache/" + Version.PY_VERSION );
     }
 
     public PythonJxpSource( File f , JSFileLibrary lib ){

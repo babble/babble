@@ -1066,18 +1066,35 @@ public class Convert implements StackTraceFixer {
             String name = n.getFirstChild().getString();
             String tempName = name + "TEMP";
 
-            _append( "\n for ( String " , n );
-            _append( tempName , n );
-            _append( " : JSInternalFunctions.JS_collForFor( " , n );
-            _add( n.getFirstChild().getNext() , state );
-            _append( " ) ){\n " , n );
+            if( n.getFirstChild().getFirstChild() != null &&
+                n.getFirstChild().getFirstChild().getType() == Token.ENUM_INIT_VALUES ) {
+                _append( "\n for ( Object " , n );
+                _append( tempName , n );
+                _append( " : JSInternalFunctions.JS_collForForEach( ", n );
+                _add( n.getFirstChild().getNext() , state );
+                _append( " ) ){\n " , n );
 
-            if ( state.useLocalVariable( name ) && state.hasSymbol( name ) )
-                _append( name + " = new JSString( " + tempName + ") ; " , n );
-            else
-                _append( "scope.put( \"" + name + "\" , new JSString( " + tempName + " ) , true );\n" , n );
-            _add( n.getFirstChild().getNext().getNext() , state );
-            _append( "\n}\n" , n );
+                if ( state.useLocalVariable( name ) && state.hasSymbol( name ) )
+                    _append( name + " = " + tempName + "; " , n );
+                else
+                    _append( "scope.put( \"" + name + "\" , " + tempName + " , true );\n" , n );
+                _add( n.getFirstChild().getNext().getNext() , state );
+                _append( "\n}\n" , n );
+            }
+            else {
+                _append( "\n for ( String " , n );
+                _append( tempName , n );
+                _append( " : JSInternalFunctions.JS_collForFor( " , n );
+                _add( n.getFirstChild().getNext() , state );
+                _append( " ) ){\n " , n );
+
+                if ( state.useLocalVariable( name ) && state.hasSymbol( name ) )
+                    _append( name + " = new JSString( " + tempName + ") ; " , n );
+                else
+                    _append( "scope.put( \"" + name + "\" , new JSString( " + tempName + " ) , true );\n" , n );
+                _add( n.getFirstChild().getNext().getNext() , state );
+                _append( "\n}\n" , n );
+            }
         }
         else {
             throw new RuntimeException( "wtf?" );
@@ -1642,8 +1659,7 @@ public class Convert implements StackTraceFixer {
             buf.append("\t\t // not creating new scope for execution as we're being run in the context of an eval\n");
         }
         else {
-	    String cleanName = _name.replaceAll( "/tmp/jxp/s?/?0\\.\\d+/" , "" );
-	    cleanName = FileUtil.clean( cleanName );
+	    String cleanName = FileUtil.clean( _name );
             buf.append( "\t\t scope = new Scope( \"compiled script for:" + cleanName + "\" , scope , null , getFileLanguage() ); \n" );
             buf.append( "\t\t scope.putAll( getTLScope() );\n" );
         }
