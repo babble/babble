@@ -105,11 +105,11 @@ public class RubyDBTest extends SourceRunner {
     }
 
     // FIXME
-//     @Test(groups={"ruby.db.find"})
-//     public void testForEach() {
-// 	runRuby("coll = db.rubytest;" +
-// 		"cursor = coll.find();" +
-// 		"cursor.forEach { |row| puts tojson(row) }");
-// 	System.err.println(rubyOutput); // DEBUG
-//     }
+    @Test(groups={"ruby.db.find"})
+    public void testForEach() {
+	runRuby("coll = db.rubytest;" +
+		"cursor = coll.find();" +
+		"cursor.forEach { |row| puts tojson(row) }");
+	System.err.println(rubyOutput); // DEBUG
+    }
 }

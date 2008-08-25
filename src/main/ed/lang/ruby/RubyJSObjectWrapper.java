@@ -91,7 +91,10 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 			if (block != null && block.isGiven())
 			    jargs[args.length-1] = toJS(_scope, _runtime, block);
 
-			return toRuby(_scope, _runtime, ((JSFunction)obj).call(_scope, jargs));
+			_scope.setThis(_jsobj);
+			Object result = ((JSFunction)obj).call(_scope, jargs);
+			_scope.clearThisNormal(null);
+			return toRuby(_scope, _runtime, result);
 		    }
 
 		    // Check for certain built-in JSObject methods and call them
