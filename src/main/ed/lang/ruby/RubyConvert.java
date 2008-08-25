@@ -1680,9 +1680,7 @@ public class RubyConvert extends ed.MyAsserts {
     public String getJSSource(){
         String js = _js.toString();
         if ( OUTPUT_FILE ) {
-            File blah = new File( "/tmp/jxp/ruby/" );
-            blah.mkdirs();
-            blah = new File( blah , _name.replaceAll( "^.*/" , "/" ) );
+            File blah = ed.io.WorkingFiles.getTMPFile( "ruby" , _name.replaceAll( "^.*/" , "/" ) );
             try {
                 FileOutputStream fout = new FileOutputStream( blah );
                 fout.write( js.getBytes() );
