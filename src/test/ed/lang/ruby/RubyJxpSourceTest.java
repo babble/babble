@@ -22,6 +22,7 @@ import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
 import ed.js.JSFunction;
+import ed.js.JSObject;
 
 @Test(groups = {"ruby", "ruby.jxpsource"})
 public class RubyJxpSourceTest extends SourceRunner {
@@ -95,13 +96,13 @@ public class RubyJxpSourceTest extends SourceRunner {
     @Test
     public void testCreateNew() {
 	runRuby("data['vint'] = 3; data.vfloat = 4.2; data.varray = [1, 2, 'three']; data.vhash = {'a' => 1, 'b' => 2}");
-	assertEquals(s.eval("data.vint").toString(), "3");
-	assertEquals(s.eval("data.vfloat").toString(), "4.2");
-	assertEquals(s.eval("data.varray").toString(), "1,2,three");
-	assertEquals(s.eval("data.vhash['a']").toString(), "1");
-	assertEquals(s.eval("data.vhash['b']").toString(), "2");
-	assertEquals(s.eval("data.vhash.a").toString(), "1");
-	assertEquals(s.eval("data.vhash.b").toString(), "2");
+	JSObject data = (JSObject)s.get("data");
+	assertEquals(data.get("vint").toString(), "3");
+	assertEquals(data.get("vfloat").toString(), "4.2");
+	assertEquals(data.get("varray").toString(), "1,2,three");
+	JSObject vhash = (JSObject)data.get("vhash");
+	assertEquals(vhash.get("a").toString(), "1");
+	assertEquals(vhash.get("b").toString(), "2");
     }
 
     @Test
