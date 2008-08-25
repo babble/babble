@@ -953,6 +953,24 @@ public final class Scope implements JSObject , Bindings {
         }
     }
 
+    public long approxSize(){
+        return approxSize( new IdentitySet() );
+    }
+
+    public long approxSize( IdentitySet seen ){
+        if ( seen.contains( this ) )
+            return 0;
+        
+        seen.add( this );
+
+        long size = 128;
+        
+        if ( _objects != null )
+            size += _objects.approxSize( seen );
+        
+        return size;
+    }
+
     final String _name;
     final Scope _parent;
     final Scope _maybeWritableGlobal;

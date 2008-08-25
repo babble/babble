@@ -21,6 +21,8 @@ package ed.js;
 import java.util.*;
 
 import ed.db.*;
+import ed.util.*;
+import ed.js.engine.*;
 
 /** @expose
  */
@@ -34,10 +36,14 @@ public class JSObjectSize {
      * @return The object's size, in bytes
      */
     public static long size( Object o ){
+        return size( o , null );
+    }
 
+    
+    public static long size( Object o , IdentitySet seen ){
         if ( o == null )
             return 0;
-
+        
         if ( o instanceof Boolean ||
              o instanceof Short ||
              o instanceof Character )
@@ -49,11 +55,11 @@ public class JSObjectSize {
              || o instanceof JSDate
              || o instanceof ObjectId )
             return OBJ_OVERHEAD + 16;
-
+        
         if ( o instanceof String ||
              o instanceof JSString )
             return OBJ_OVERHEAD + (long)( o.toString().length() * 1.5 );
-
+        
         if ( o instanceof JSFunction ){
             // TODO
             return 128;
@@ -75,8 +81,30 @@ public class JSObjectSize {
             return o.toString().length() * 4;
         }
 
+        if ( o instanceof JSFileChunk ){
+            JSFileChunk chunk = (JSFileChunk)o;
+            Object data = chunk.get( "data" );
+            if ( data == null )
+                return 32;
+            
+            return OBJ_OVERHEAD + ((JSBinaryData)data).length();
+        }
+        
+        // -------- this is the end of the "primitive" types ------
+
+        if ( seen == null )
+            seen = new IdentitySet();
+        else if ( seen.contains( o ) )
+            return 0;
+        
+        seen.add( o );
+        
+        if ( o instanceof Scope ){
+            return ((Scope)o).approxSize( seen );
+        }
+
         if ( o.getClass() == JSObjectBase.class ){
-            return ((JSObjectBase)o).approxSize();
+            return ((JSObjectBase)o).approxSize( seen );
         }
 
         if ( o instanceof Collection ){
@@ -87,14 +115,6 @@ public class JSObjectSize {
             return temp;
         }
 
-        if ( o instanceof JSFileChunk ){
-            JSFileChunk chunk = (JSFileChunk)o;
-            Object data = chunk.get( "data" );
-            if ( data == null )
-                return 32;
-            
-            return OBJ_OVERHEAD + ((JSBinaryData)data).length();
-        }
 
         String blah = o.getClass().toString();
         if ( ! _seenClasses.contains( blah ) ){
