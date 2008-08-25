@@ -26,6 +26,9 @@ assert.eq( scope.approxSize() , before );
 z = 7;
 assert.eq( scope.approxSize() , before );  // a variable added to a higher scope shouldn't count
 
+before = scope.approxSize();
+s = scope;
+assert.eq( scope.approxSize() , before ); 
 
-
-
+s = scope.child();
+assert( scope.approxSize() > before , "not bigger" );
