@@ -920,34 +920,30 @@ public class E4X {
             }
         }
 
-        private JSObject _getUniqueNamespaces() {
-            JSObject inScopeNS = new JSObjectBase();
-            ENode y = this.copy();
-            while( y != null ) {
-                for( Namespace ns : y.inScopeNamespaces ) {
-                    if( inScopeNS.get( ns.prefix ) != null )
-                        inScopeNS.set( ns.prefix.toString(), ns );
+        private ArrayList<Namespace> inScopeNamespaces() {
+            ArrayList<Namespace> isn = new ArrayList<Namespace>();
+            isn.add( this.defaultNamespace );
+            ENode temp = this;
+            while( temp != null ) {
+                for( Namespace ns : temp.inScopeNamespaces ) {
+                    if( ! ns.containsPrefix( isn ) )
+                        isn.add( ns );
                 }
-                y = y.parent;
+                temp = temp.parent;
             }
-            return inScopeNS;
-        }
-
-        private JSArray inScopeNamespaces() {
-            JSObject inScopeNS = _getUniqueNamespaces();
-            JSArray a = new JSArray();
-            Iterator k = (inScopeNS.keySet()).iterator();
-            while(k.hasNext()) {
-                a.add( inScopeNS.get(k).toString() );
-            }
-            return a;
+            return isn;
         }
 
         public class inScopeNamespaces extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
                 Object obj = s.getThis();
                 ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                return enode.inScopeNamespaces();
+                ArrayList<Namespace> isn = enode.inScopeNamespaces();
+                JSArray a = new JSArray();
+                for( Namespace ns : isn ) {
+                    a.add( ns );
+                }
+                return a;
             }
         }
 
@@ -1580,14 +1576,21 @@ public class E4X {
         private String attributesToString( ENode n , ArrayList<Namespace> ancestors ) {
             StringBuilder buf = new StringBuilder();
             boolean defDefaultNS = false;
+            ArrayList<Namespace> defaultNSs = new ArrayList<Namespace>();
             for( Namespace ns : n.namespaceDeclarations() ) {
                 if( ns.prefix == null || ns.prefix.equals( "" ) ) {
-                    buf.append( " xmlns=\"" + ns.uri + "\"" );
+                    defaultNSs.add( ns );
                     defDefaultNS = true;
                 }
                 else 
                     buf.append( " xmlns:" + ns.prefix + "=\"" + ns.uri + "\"" );
             }
+            for( int i=0; i < defaultNSs.size(); i++ ) {
+                buf.append( " xmlns:"+defaultNSs.get(i).getPrefix()+"=\"" + defaultNSs.get(i).uri + "\"" );
+            }
+            if( defaultNSs.size() > 0 )
+                buf.append( " xmlns=\"" + defaultNSs.get( defaultNSs.size()-1 ).uri + "\"" );
+
             if( !defDefaultNS && !n.defaultNamespace.isEmpty() && !n.defaultNamespace.containedIn( ancestors )) { 
                 buf.append( " xmlns=\"" + n.defaultNamespace.uri + "\"" );
                 ancestors.add( n.defaultNamespace );
@@ -1677,11 +1680,6 @@ public class E4X {
             }
 
             this.inScopeNamespaces.add( n );
-            if( this.defaultNamespace != n && ( n.prefix == null || n.prefix.equals( "" ) ) ) {
-                n = new Namespace( n );
-                n.createPrefix();
-                addInScopeNamespace( n );
-            }
         }
 
         public ArrayList getAttributes() {
@@ -2133,7 +2131,7 @@ public class E4X {
             return this.uri == null || this.uri.equals( "" );
         }
 
-        public void createPrefix() {
+        public String getPrefix() {
             String prefix = this.uri;
             while( prefix.endsWith("/") || prefix.endsWith(".xml") ) {
                 if ( prefix.endsWith( "/" ) )
@@ -2143,7 +2141,7 @@ public class E4X {
             }
             prefix = prefix.substring( prefix.lastIndexOf("/") + 1 );
             prefix = prefix.substring( prefix.lastIndexOf(".") + 1 );
-            this.prefix = prefix;
+            return prefix;
         }
     }
 

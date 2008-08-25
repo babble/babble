@@ -91,7 +91,7 @@ print( dogs.namespace() );
 print( dogs.dog[0].namespace() );
 
 //inScopeNamespaces
-
+print( dogs.inScopeNamespaces().join(" ") );
 
 
 //removeNamespace
