@@ -25,6 +25,7 @@ import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
 import ed.js.JSFunction;
+import ed.js.PrintBuffer;
 import ed.js.engine.Scope;
 import ed.lang.ruby.RubyJxpSource;
 import ed.lang.ruby.RubyJxpOutputStream;
@@ -44,11 +45,6 @@ class TestRubyJxpSource extends RubyJxpSource {
 	_runtime.getGlobalVariables().set("$stdout", new RubyIO(_runtime, new RubyJxpOutputStream(_writer)));
     }
     protected String getOutput() { return _writer.getContent(); }
-    protected String trimmedOutput() {
-	String str = getOutput();
-	if (str != null) str = str.trim();
-	return str;
-    }
 }
 
 /**
@@ -58,34 +54,44 @@ public class SourceRunner {
 
     Scope s;
     org.jruby.Ruby r;
+    String jsOutput;
+    String rubyOutput;
     TestRubyJxpSource source;
 
     @BeforeTest(groups={"ruby", "ruby.jxpsource"})
     public void globalSetUp() {
 	s = new Scope("test", null);
+	ed.js.JSON.init(s);	// add tojson, tojson_u, fromjson
 	r = org.jruby.Ruby.newInstance();
 	source = new TestRubyJxpSource(r);
     }
 
+    /** Return result of running jsCode. Output is stored in jsOutput. */
     protected Object runJS(String jsCode) {
-	return s.eval(jsCode);
+	PrintBuffer buf = new PrintBuffer();
+	s.put("print", buf);
+	Object o = s.eval(jsCode);
+	jsOutput = buf.toString().trim();
+	return o;
     }
 
-    protected void runRuby(String rubyCode) {
+    /** Output is stored in rubyOutput. */
+    protected Object runRuby(String rubyCode) {
 	source._content = rubyCode;
-	JSFunction f = null;
+	Object o = null;
 	try {
-	    f = source.getFunction();
-	    f.call(s, new Object[0]);
+	    o = source.getFunction().call(s, new Object[0]);
+	    rubyOutput = source.getOutput().trim();
 	}
 	catch (Exception e) {
 	    e.printStackTrace();
 	    fail(e.toString());
 	}
+	return o;
     }
 
     protected void assertRubyEquals(String rubyCode, String expected) {
 	runRuby(rubyCode);
-	assertEquals(source.trimmedOutput(), expected.trim());
+	assertEquals(rubyOutput.trim(), expected.trim());
     }
 }

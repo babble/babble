@@ -32,8 +32,7 @@ public class RubyJxpSourceTest extends SourceRunner {
 	      "data.subobj.subvar = 99;" +
 	      "data.subobj.add_seven = add_seven;" +
 	      "data.add_seven = add_seven;" +
-	      "array = [100, \"test string\", null, add_seven];" +
-	      "// db = connect(\"test\");");
+	      "array = [100, \"test string\", null, add_seven];");
     }
 
     @Test
