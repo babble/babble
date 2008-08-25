@@ -4,7 +4,7 @@
   <property name="targetdir" value="target"/>
   <property name="testdir" value="${targetdir}/test"/>
   <!-- Override on command line with -Druby.groups=foo -->
-  <property name="ruby.groups" value="ruby"/>
+  <property name="ruby.groups" value="ruby, ruby.db"/>
   
   <path id="classpath">
     <fileset dir="include">
