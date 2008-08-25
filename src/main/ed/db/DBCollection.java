@@ -402,6 +402,12 @@ public abstract class DBCollection extends JSObjectLame {
                     if ( o == null )
                         o = new JSObjectBase();
                     
+                    if ( o instanceof String || o instanceof JSString ){
+                        String str = o.toString();
+                        if ( ObjectId.isValid( str ) )
+                            o = new ObjectId( str );
+                    }
+
                     if ( o instanceof ObjectId )
                         return find( (ObjectId)o );
                     
