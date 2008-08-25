@@ -93,8 +93,12 @@ print( dogs.dog[0].namespace() );
 //inScopeNamespaces
 print( dogs.inScopeNamespaces().join(" ") );
 
-
 //removeNamespace
+xml=<x xmlns:bar="bar2" xmlns:myfoo="foo"><y xmlns:blah="hello">z</y></x>
+mybar = new Namespace( "bar2" );
+xml.removeNamespace( "foo" );
+xml.removeNamespace( mybar );
+print( xml )
 
 // reset the namespace for other tests
 default xml namespace = "";

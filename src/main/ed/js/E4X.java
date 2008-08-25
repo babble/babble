@@ -1219,9 +1219,45 @@ public class E4X {
             }
         }
 
+        private ENode removeNamespace(Object namespace) {
+            if( this instanceof XMLList || this.isSimpleTypeNode( this.node.getNodeType() ) ) 
+                return this;
+
+            Namespace ns = new Namespace( namespace );
+            if( ns.equals( this.namespace() ) )
+                return this;
+
+            if( ns.prefix == null ) {
+                for( int i=0; i < this.inScopeNamespaces.size(); i++ ) {
+                    if( this.inScopeNamespaces.get(i).uri.equals( ns.uri ) ) {
+                        this.inScopeNamespaces.remove( i );
+                        break;
+                    }
+                }
+            }
+            else {
+                for( int i=0; i < this.inScopeNamespaces.size(); i++ ) {
+                    if( this.inScopeNamespaces.get(i).uri.equals( ns.uri ) &&
+                        this.inScopeNamespaces.get(i).prefix.equals( ns.prefix ) ) {
+                        this.inScopeNamespaces.remove( i );
+                        break;
+                    }
+                }
+            }
+            for( ENode enode : this.children ) {
+                enode.removeNamespace( namespace );
+            }
+            return this;
+        }
+
         public class removeNamespace extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                throw new RuntimeException("not yet implemented");
+                Object obj = s.getThis();
+                ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
+                if( foo.length == 0 ) 
+                    return enode;
+                String prop = foo[0].toString();
+                return enode.removeNamespace( prop );
             }
         }
 
@@ -2089,6 +2125,12 @@ public class E4X {
                     this.prefix = prefix;
                 }
             }
+        }
+
+        public boolean equals( Namespace n ) {
+            if( n.prefix.equals( this.prefix ) && n.uri.equals( this.uri ) )
+                return true;
+            return false;
         }
 
         public String toString() {
