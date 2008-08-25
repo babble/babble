@@ -19,6 +19,7 @@ package ed.lang.ruby;
 import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
+import ed.js.JSObject;
 import ed.js.Shell;
 
 @Test(groups = {"ruby.db"})
@@ -57,6 +58,7 @@ public class RubyDBTest extends SourceRunner {
 	assertNotNull(rubyOutput);
 	assertTrue(rubyOutput.length() > 0);
 	assertEquals(rubyOutput, jsOutput);
+	assertNotNull(s.get("song_id"));
     }
 
     @Test
@@ -65,21 +67,27 @@ public class RubyDBTest extends SourceRunner {
 	assertTrue(rubyOutput.contains("\"artist\""), "string \"artist\" missing: " + rubyOutput);
     }
 
-    @Test
-    public void testFindOneById() {
-	runRuby("x = db.rubytest.findOne(song_id); puts tojson(x)");
-	System.err.println(rubyOutput);
-// 	assertRubyEquals("puts x.artist", "XTC");
-// 	assertRubyEquals("puts x.album", "Oranges & Lemons");
-// 	assertRubyEquals("puts x.song", "The Mayor Of Simpleton");
-// 	assertRubyEquals("puts x.track", "2");
-    }
-
+    // FIXME
 //     @Test
-//     public void testFindOneBySong() {
-// 	runRuby("x = db.rubytest.findOne({:song => 'Budapest by Blimp'})");
-// 	assertRubyEquals("puts x.artist", "Thomas Dolby");
-// 	assertRubyEquals("puts x.album", "Aliens Ate My Buick");
-// 	assertRubyEquals("puts x.song", "Budapest by Blimp");
+//     public void testFindOneById() {
+// 	JSObject x = ((RubyJSObjectWrapper)runRuby("x = db.rubytest.findOne(song_id);")).getJSObject();
+// 	// TODO use s.get("x") when that is fixed
+// 	assertNotNull(x);
+
+// 	assertEquals(x.get("_id").toString(), s.get("song_id").toString());
+// 	assertEquals(x.get("artist").toString(), "XTC");
+// 	assertEquals(x.get("album").toString(), "Oranges & Lemons");
+// 	assertEquals(x.get("song").toString(), "The Mayor Of Simpleton");
+// 	assertNotNull(x.get("track"));
+// 	assertEquals(x.get("track").toString(), "2");
 //     }
+
+    @Test
+    public void testFindOneBySong() {
+	JSObject x = ((RubyJSObjectWrapper)runRuby("x = db.rubytest.findOne({:song => 'Budapest by Blimp'})")).getJSObject();
+	// TODO use s.get("x") when that is fixed
+	assertEquals(x.get("artist").toString(), "Thomas Dolby");
+	assertEquals(x.get("album").toString(), "Aliens Ate My Buick");
+	assertEquals(x.get("song").toString(), "Budapest by Blimp");
+    }
 }

@@ -134,6 +134,8 @@ public class RubyObjectWrapper extends RubyObject {
 	    System.err.println("creating RubyObjectWrapper around " + (obj == null ? "null" : ("instance of " + obj.getClass().getName())));
     }
 
+    public Object getObject() { return _obj; }
+
     private void _addToStringMethod() {
 	RubyClass eigenclass = getSingletonClass();
 	final ThreadContext context = _runtime.getCurrentContext();

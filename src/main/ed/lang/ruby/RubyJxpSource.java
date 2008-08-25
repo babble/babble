@@ -183,7 +183,7 @@ public class RubyJxpSource extends JxpSource {
 		    if (key.endsWith("=")) {
 			key = key.substring(0, key.length() - 1);
 			if (RubyObjectWrapper.DEBUG)
-			    System.err.println("assigning new value to instance var named " + key);
+			    System.err.println("assigning new value to top-level scope var named " + key);
 			return toRuby(scope, _runtime, scope.set(key, toJS(_runtime, args[1])));
 		    }
 

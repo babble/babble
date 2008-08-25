@@ -51,6 +51,8 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 	_overridePublicMethods();
     }
 
+    public JSObject getJSObject() { return _jsobj; }
+
     // Add a method_missing method to the eigenclass that handles method calls
     // and accessors.
     private void _addMethodMissing() {

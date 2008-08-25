@@ -58,7 +58,7 @@ public class SourceRunner {
     String rubyOutput;
     TestRubyJxpSource source;
 
-    @BeforeTest(groups={"ruby", "ruby.jxpsource"})
+    @BeforeTest(groups={"ruby", "ruby.jxpsource", "ruby.db"})
     public void globalSetUp() {
 	s = new Scope("test", null);
 	ed.js.JSON.init(s);	// add tojson, tojson_u, fromjson

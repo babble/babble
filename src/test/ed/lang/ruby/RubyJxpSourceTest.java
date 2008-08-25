@@ -22,6 +22,11 @@ import static org.testng.Assert.*;
 @Test(groups = {"ruby", "ruby.jxpsource"})
 public class RubyJxpSourceTest extends SourceRunner {
 
+    @BeforeTest(groups={"ruby", "ruby.jxpsource"})
+    public void globalSetUp() {
+	super.globalSetUp();
+    }
+
     @BeforeMethod(groups={"ruby", "ruby.jxpsource"})
     public void setUp() {
 	runJS("add_seven = function(i) { return i + 7; };" +
@@ -105,4 +110,12 @@ public class RubyJxpSourceTest extends SourceRunner {
 	assertRubyEquals("puts data.subobj.subvar", "99");
 	assertRubyEquals("puts data.subobj.add_seven(35)", "42");
     }
+
+    // FIXME
+//     @Test
+//     public void testRubyTopLevelVarIntoScope() {
+// 	runRuby("data.count = 33; x = 42");
+// 	assertNotNull(s.get("x"), "top-level 'x' should not be null; it should be in scope");
+// 	assertEquals(s.get("x").toString(), "42");
+//     }
 }
