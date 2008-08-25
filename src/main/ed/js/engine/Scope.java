@@ -106,6 +106,8 @@ public final class Scope implements JSObject , Bindings {
 
         if ( _parent == null )
             _globalThis = _createGlobalThis();
+        else 
+            _parent.registerChild( this );
         
     }
 
@@ -953,6 +955,38 @@ public final class Scope implements JSObject , Bindings {
         }
     }
 
+    public long approxSize(){
+        return approxSize( new IdentitySet() );
+    }
+
+    public long approxSize( IdentitySet seen ){
+        if ( seen.contains( this ) )
+            return 0;
+        
+        seen.add( this );
+
+        long size = 128;
+        
+        if ( _objects != null )
+            size += _objects.approxSize( seen );
+        
+        if ( _children != null ){
+            synchronized ( _children ){
+                size += _children.approxSize( seen );
+            }
+        }
+            
+        return size;
+    }
+    
+    void registerChild( Scope s ){
+        if ( _children == null )
+            _children = new WeakBag<Scope>();
+        synchronized ( _children ){
+            _children.add( s );
+        }
+    }
+
     final String _name;
     final Scope _parent;
     final Scope _maybeWritableGlobal;
@@ -982,6 +1016,8 @@ public final class Scope implements JSObject , Bindings {
 
     RuntimeException _toThrow;
     Error _toThrowError;
+
+    private WeakBag<Scope> _children;
     
     public void makeThreadLocal(){
         _threadLocal.set( this );
