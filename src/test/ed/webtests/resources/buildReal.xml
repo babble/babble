@@ -1,0 +1,4 @@
+<project default="wt.full">
+  <import file="definitions.xml" description="Import custom definitions (if any)"/>
+  <import file="${webtest.home}/webtest.xml"/>
+</project>
