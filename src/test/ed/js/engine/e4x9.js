@@ -32,6 +32,7 @@ print( message.name().uri );
 print( message.suds::Body.name() )
 
 print( message.suds::Body.vader::GetLastTradePrice.symbol );
+print( message.suds::Body.vader::GetLastTradePrice.symbol.localName() );
 
 level1 = new Namespace("bar2");
 level2 = new Namespace("bar");
@@ -71,19 +72,28 @@ print( xml.diplomat.name() );
 //namespaceDeclarations
 xml=<x xmlns:bar="bar2" xmlns:myfoo="foo"><y xmlns:blah="hello">z</y></x>
 ns_array = xml.namespaceDeclarations();
-print(ns_array[0]+" "+ns_array[1]);
+print( ns_array.join(" ") );
 print( xml.y.namespaceDeclarations() );
 
+//localName
+print( xml.localName() );
+
+//namespace
+print( xml.namespace() );
+default xml namespace = new Namespace( "go.daddy.o" );
+xml = <a><b>c</b></a>;
+print( xml.namespace()+" "+xml.b.namespace() );
+
 //setNamespace
-//dogs = <dogs><dog><type>lab</type></dog><dog><type>retriever</type></dog></dogs>;
-//dogs.setNamespace( "black.dog" );
-//print( dogs );
+dogs = <dogs><dog><type>lab</type></dog><dog><type>retriever</type></dog></dogs>;
+dogs.setNamespace( "black.dog" );
+print( dogs.namespace() );
+print( dogs.dog[0].namespace() );
 
 //inScopeNamespaces
 
 
-//localName
-//namespace
+
 //removeNamespace
 
 // reset the namespace for other tests

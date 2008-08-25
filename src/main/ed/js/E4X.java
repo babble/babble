@@ -238,12 +238,14 @@ public class E4X {
             // get parent's namespaces
             if( this.parent != null ) {
                 this.defaultNamespace = parent.defaultNamespace;
-                this.inScopeNamespaces.addAll( this.parent.inScopeNamespaces );
+                for( Namespace ns : this.parent.inScopeNamespaces ) {
+                    this.addInScopeNamespace( ns );
+                }
             }
             // add default namespace, if it isn't boring
-            if( this.defaultNamespace != null && !this.defaultNamespace.uri.equals( "" ) ) {
-                this.inScopeNamespaces.add( this.defaultNamespace );
-            }
+            //            if( this.defaultNamespace != null && !this.defaultNamespace.isEmpty() ) {
+            //                this.addInScopeNamespace( this.defaultNamespace );
+            //            }
 
             if( this.node == null ) 
                 return;
@@ -1062,7 +1064,7 @@ public class E4X {
 
         private ArrayList<Namespace> getAncestors() {
             ArrayList<Namespace> ancestors = new ArrayList<Namespace>();
-            ancestors.add( XML.defaultNamespace );
+            //            ancestors.add( XML.defaultNamespace );
             ENode temp = this.parent;
             while( temp != null ) {
                 for( Namespace ns : temp.inScopeNamespaces ) {
@@ -1075,9 +1077,9 @@ public class E4X {
             return ancestors;
         }
 
-        private JSArray namespaceDeclarations() {
-            JSArray a = new JSArray();
-            if( isSimpleTypeNode( this.node.getNodeType() ) )
+        private ArrayList<Namespace> namespaceDeclarations() {
+            ArrayList<Namespace> a = new ArrayList<Namespace>();
+            if( this instanceof XMLList || isSimpleTypeNode( this.node.getNodeType() ) )
                 return a;
 
             ArrayList<Namespace> ancestors = this.getAncestors();
@@ -1093,7 +1095,12 @@ public class E4X {
             public Object call(Scope s, Object foo[]) {
                 Object obj = s.getThis();
                 ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                return enode.namespaceDeclarations();
+                ArrayList<Namespace> a = enode.namespaceDeclarations();
+                JSArray decs = new JSArray();
+                for( Namespace ns : a ) {
+                    decs.add( ns );
+                }
+                return decs;
             }
         }
 
@@ -1553,6 +1560,7 @@ public class E4X {
                     // add to ancestors
                     append( c , buf , level + 1 , ancestors );
                     // delete from ancestors
+                    ancestors.remove( c.defaultNamespace );
                 }
             }
 
@@ -1571,16 +1579,19 @@ public class E4X {
 
         private String attributesToString( ENode n , ArrayList<Namespace> ancestors ) {
             StringBuilder buf = new StringBuilder();
-            for( Namespace ns : n.inScopeNamespaces ) {
-                if( ancestors.contains( ns ) ) 
-                    continue;
-
-                if( ns.prefix == null || ns.prefix.equals( "" ) )
+            boolean defDefaultNS = false;
+            for( Namespace ns : n.namespaceDeclarations() ) {
+                if( ns.prefix == null || ns.prefix.equals( "" ) ) {
                     buf.append( " xmlns=\"" + ns.uri + "\"" );
+                    defDefaultNS = true;
+                }
                 else 
                     buf.append( " xmlns:" + ns.prefix + "=\"" + ns.uri + "\"" );
             }
-            ancestors.addAll( n.inScopeNamespaces );
+            if( !defDefaultNS && !n.defaultNamespace.isEmpty() && !n.defaultNamespace.containedIn( ancestors )) { 
+                buf.append( " xmlns=\"" + n.defaultNamespace.uri + "\"" );
+                ancestors.add( n.defaultNamespace );
+            }
 
             // get attrs
             ArrayList<ENode> attr = n.getAttributes();
@@ -1666,7 +1677,7 @@ public class E4X {
             }
 
             this.inScopeNamespaces.add( n );
-            if( n.prefix == null || n.prefix.equals( "" ) ) {
+            if( this.defaultNamespace != n && ( n.prefix == null || n.prefix.equals( "" ) ) ) {
                 n = new Namespace( n );
                 n.createPrefix();
                 addInScopeNamespace( n );
@@ -2118,6 +2129,9 @@ public class E4X {
             return false;
         }
 
+        public boolean isEmpty() {
+            return this.uri == null || this.uri.equals( "" );
+        }
 
         public void createPrefix() {
             String prefix = this.uri;
