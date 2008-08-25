@@ -16,24 +16,14 @@
 
 package ed.lang.ruby;
 
-// import java.util.Collection;
-// import java.util.Collections;
-
 import org.jruby.Ruby;
 import org.jruby.RubyClass;
 import org.jruby.anno.JRubyMethod;
 import org.jruby.runtime.Block;
 import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.builtin.IRubyObject;
-// import org.jruby.internal.runtime.methods.JavaMethod;
-// import org.jruby.javasupport.JavaUtil;
-// import org.jruby.runtime.*;
-// import org.jruby.runtime.builtin.IRubyObject;
-// import org.jruby.util.IdUtil;
-// import static org.jruby.runtime.Visibility.PUBLIC;
 
 import ed.db.DBCursor;
-// import ed.js.JSObject;
 import ed.js.JSFunction;
 import ed.js.engine.Scope;
 
