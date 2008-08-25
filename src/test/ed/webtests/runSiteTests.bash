@@ -15,8 +15,7 @@ if [ -d "$1" ]
 fi
 
 # SITE is just the name of the site, like 'alleyinsider'. FULLSITE is the full
-# path to the site's directory. TESTDIR is the webtest directory. DEF_DIR is
-# the directory where webtest definitions are located.
+# path to the site's directory. TESTDIR is the webtest directory.
 SITE=`basename $1`
 pushd $1
 FULLSITE=`pwd`
@@ -24,7 +23,6 @@ popd
 pushd `dirname $0`
 TESTDIR=`pwd`
 popd
-DEF_DIR=$TESTDIR/resources/definitions
 
 # Do configuration steps.
 source `dirname $0`/webtest-config.bash
@@ -65,14 +63,11 @@ fi
 # Copy test resources into test directory.
 cp $TESTDIR/resources/build.xml $FULLSITE/test/build.xml
 cp $TESTDIR/resources/buildReal.xml $FULLSITE/test/buildReal.xml
-if [ -d $FULLSITE/test/definitions ]
+if [ ! -d $FULLSITE/test/definitions ]
     then
-        for file in `ls -1 $DEF_DIR`; do
-            cp $DEF_DIR/$file $FULLSITE/test/definitions
-        done
-    else
-        cp -r $TESTDIR/resources/definitions $FULLSITE/test/definitions
+        mkdir $FULLSITE/test/definitions
 fi
+ln -s $TESTDIR/resources/definitions $FULLSITE/test/definitions/_10gen_default_defs
 
 # Run webtest.
 cd $FULLSITE/test
@@ -84,9 +79,7 @@ $WTPATH/bin/webtest.sh
 # making changes to files that get copied over automatically.
 rm $FULLSITE/test/build.xml
 rm $FULLSITE/test/buildReal.xml
-for file in `ls -1 $DEF_DIR`; do
-    rm $FULLSITE/test/definitions/$file
-done
+rm $FULLSITE/test/definitions/_10gen_default_defs
 rmdir $FULLSITE/test/definitions
 rm $FULLSITE/test/definitions.xml
 rm -r $FULLSITE/test/dtd
