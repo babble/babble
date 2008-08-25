@@ -14,6 +14,8 @@ for( var pass = 0; pass < 2; pass++ ) {
     assert( t.find().sort({x:1})[0].x == 1 );
     assert( t.find().sort({x:-1})[0].x == 5 );
     assert( t.find().sort({x:-1})[1].x == 3 );
+    assert.eq( t.find().sort({x:-1}).skip(0)[0].x , 5 );
+    assert.eq( t.find().sort({x:-1}).skip(1)[0].x , 3 );
     t.ensureIndex({x:1});
 
 }
