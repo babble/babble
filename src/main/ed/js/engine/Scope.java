@@ -970,16 +970,21 @@ public final class Scope implements JSObject , Bindings {
         if ( _objects != null )
             size += _objects.approxSize( seen );
         
-        if ( _children != null )
-            size += _children.approxSize( seen );
-
+        if ( _children != null ){
+            synchronized ( _children ){
+                size += _children.approxSize( seen );
+            }
+        }
+            
         return size;
     }
-
+    
     void registerChild( Scope s ){
         if ( _children == null )
             _children = new WeakBag<Scope>();
-        _children.add( s );
+        synchronized ( _children ){
+            _children.add( s );
+        }
     }
 
     final String _name;
