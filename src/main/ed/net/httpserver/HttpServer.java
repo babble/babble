@@ -37,10 +37,13 @@ public class HttpServer extends NIOServer {
 
     static final int WORKER_THREAD_QUEUE_MAX = 200;
     static final int ADMIN_THREAD_QUEUE_MAX = 10;
-
+    
     static final boolean D = Boolean.getBoolean( "DEBUG.HTTP" );
     static final Logger LOGGER = Logger.getLogger( "httpserver" );
     
+    static final RollingNamedPipe _requestPipe = new RollingNamedPipe( "http-request" );
+    static { _requestPipe.setMessageDivider( "\n" ); } 
+
     public HttpServer( int port )
         throws IOException {
         super( port );
@@ -57,6 +60,8 @@ public class HttpServer extends NIOServer {
         _reqPerSecTracker.hit();
         _reqPerSmallTracker.hit();
         _reqPerMinTracker.hit();
+
+        _requestPipe.write( request.getFullURL() );
 
         HttpHandler.Info info = new HttpHandler.Info();
         for ( int i=0; i<_handlers.size(); i++ ){
