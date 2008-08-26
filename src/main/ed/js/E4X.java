@@ -1512,25 +1512,6 @@ public class E4X {
         }
         
         public StringBuilder append( StringBuilder buf, ArrayList<Namespace> ancestors, int level ) {
-            if( XML.prettyPrinting )
-                _level( this, buf, level );
-            if( this.node.getNodeType() == Node.TEXT_NODE ) {
-                if( XML.prettyPrinting ) {
-                    return buf.append( escapeElementValue( this.node.getNodeValue().trim() ) );
-                }
-                else {
-                    return buf.append( escapeElementValue( this.node.getNodeValue() ) );
-                }
-            }
-            if( this.node.getNodeType() == Node.ATTRIBUTE_NODE ) {
-                return buf.append( escapeAttributeValue( this.node.getNodeValue() ) );
-            }
-            if( this.node.getNodeType() == Node.COMMENT_NODE ) {
-                return buf.append( "<!--"+this.node.getNodeValue()+"-->" );
-            }
-            if( this.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE ) {
-                return buf.append( "<?"+this.node.getNodeName() + attributesToString( this , new ArrayList<Namespace>() )+"?>");
-            }
 
             ArrayList<Namespace> nsDeclarations = new ArrayList<Namespace>();
             for( Namespace ns : this.inScopeNamespaces ) {
@@ -1658,16 +1639,30 @@ public class E4X {
             StringBuilder buf = new StringBuilder();
             boolean defDefaultNS = false;
             ArrayList<Namespace> defaultNSs = new ArrayList<Namespace>();
+            ArrayList<String> prefixes = new ArrayList<String>();
             for( Namespace ns : n.namespaceDeclarations() ) {
                 if( ns.prefix == null || ns.prefix.equals( "" ) ) {
                     defaultNSs.add( ns );
                     defDefaultNS = true;
                 }
-                else 
+                else {
                     buf.append( " xmlns:" + ns.prefix + "=\"" + ns.uri + "\"" );
+                    prefixes.add( ns.prefix );
+                }
             }
-            for( int i=0; i < defaultNSs.size(); i++ ) {
-                buf.append( " xmlns:"+defaultNSs.get(i).getPrefix()+"=\"" + defaultNSs.get(i).uri + "\"" );
+            for( Namespace ns : defaultNSs ) {
+                String genPrefix = ns.getPrefix();
+                int matchCount = 0;
+                for( String match : prefixes ) {
+                    if( match.equals( genPrefix ) ) {
+                        matchCount++;
+                    }
+                }
+
+                if( matchCount > 0 )
+                    genPrefix += "-" + matchCount;
+
+                buf.append( " xmlns:" + genPrefix + "=\"" + ns.uri + "\"" );
             }
             if( defaultNSs.size() > 0 )
                 buf.append( " xmlns=\"" + defaultNSs.get( defaultNSs.size()-1 ).uri + "\"" );
@@ -1756,8 +1751,6 @@ public class E4X {
             ArrayList<Namespace> match = this.getNamespaces( n.prefix );
             if( match.size() > 0 ) {
                 this.inScopeNamespaces.remove( match.get(0) );
-                //                n.prefix += "-" + match.size();
-                //                this.inScopeNamespaces.add( n );
             }
 
             this.inScopeNamespaces.add( n );
