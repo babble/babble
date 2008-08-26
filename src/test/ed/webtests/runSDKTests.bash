@@ -41,17 +41,17 @@ for site in $SITES_LIST; do
             echo "skipping: $site, no test directory"
             continue
     fi
-    
+
     # Bring up the app server.
     ./runserver.sh ./sites/$site&
-    
+
     # Populate the db with setup data.
     if [ -f ./sites/${site}test/setup.js ]
         then
             echo "populating the database using setup.js"
             ./appserver/runLight.bash ed.js.Shell -exit ./sites/${site}test/setup.js
     fi
-    
+
     # Copy test resources into test directory.
     cp $TESTDIR/resources/build.xml ./sites/${site}test/build.xml
     cp $TESTDIR/resources/buildReal.xml ./sites/${site}test/buildReal.xml
@@ -60,12 +60,13 @@ for site in $SITES_LIST; do
             mkdir ./sites/${site}test/definitions
     fi
     ln -s $TESTDIR/resources/definitions ./sites/${site}test/definitions/_10gen_default_defs
-    
-    # Run webtest.
+
+    # Run webtest. Exit on a test failure.
     pushd ./sites/${site}test
-    $WTPATH/bin/webtest.sh
+    $WTPATH/bin/webtest.sh -Dwt.headless=true
+    STATUS=$?
     popd
-    
+
     # Removed copied resources and auto-generated cruft.
     # This step probably isn't necessary but will hopefully prevent people from
     # making changes to files that get copied over automatically.
@@ -75,10 +76,20 @@ for site in $SITES_LIST; do
     rmdir ./sites/${site}test/definitions
     rm ./sites/${site}test/definitions.xml
     rm -r ./sites/${site}test/dtd
-    
+
+    # This is a bit magical. We need to pass the PID from runserver.sh. We
+    # do it through this tmp file.
     http_pid=`cat /tmp/10genAppServerPID`
     # Bring down the appserver
     kill $http_pid
+
+    # If the webtests failed then bring down the db and exit w/ an error
+    if [ $STATUS != "0" ]
+        then
+            # Bring down the db
+            ./dbctrl.sh stop
+            exit $STATUS
+    fi
 done
 
 # Bring down the db
