@@ -161,7 +161,7 @@ public class Expression extends JSObjectBase {
             else
                 msg = "Failed to parse expression: [" + expression + "]";
             
-            throw new TemplateSyntaxError(msg, token);
+            throw new TemplateSyntaxError(msg, token, t);
         }
         
         if (scriptNode.getFirstChild() != scriptNode.getLastChild())
