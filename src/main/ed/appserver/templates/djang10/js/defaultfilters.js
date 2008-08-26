@@ -576,7 +576,7 @@ var cut =
     function(value, arg) {
 
     var safe = djang10.is_safe(value);
-    value = value.replace(arg, "");
+    value = value.replace(new RegExp(arg, "g"), "");
 
     if(safe && (arg != ";"))
         return djang10.mark_safe(value);

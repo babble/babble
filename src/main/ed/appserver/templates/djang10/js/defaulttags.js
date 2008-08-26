@@ -53,7 +53,7 @@ CommentNode.prototype = {
     __proto__: djang10.Node.prototype,
     
     toString: function() {
-        return "<Comment Node>"
+        return "<Comment Node>";
     },
     __render: function(context, printer) {
         //noop
@@ -107,7 +107,7 @@ FilterNode.prototype = {
     __proto__: djang10.Node.prototype,
     
     toString: function() {
-        return "<Filter Node: " + filter_expr + ">";
+        return "<Filter Node: " + this.filter_expr + ">";
     },
     
     __render: function(context, printer) {
@@ -503,7 +503,7 @@ TemplateTagNode.mapping = {
     'openbrace': "{",
     'closebrace': "}",
     'opencomment': "{#",
-    'closecomment': "#}",  
+    'closecomment': "#}"
 };
 TemplateTagNode.prototype = {
     __proto__: djang10.Node.prototype,
@@ -569,6 +569,8 @@ WithNode.prototype = {
 }
 
 //Registration
+//{% autoescape\s+(on)|(off) %} 
+//Only literal on or off is supported ...no expressions, variables or quotes
 var autoescape =
     defaulttags.autoescape =
     function(parser, token) {
@@ -588,15 +590,32 @@ var autoescape =
 };
 register.tag("autoescape", autoescape);
 
+//{% comment %}
 var comment =
     defaulttags.comment =
     function(parser, token) {
-        
+    
     parser.skip_past("endcomment");
     return new CommentNode();
 };
 register.tag("comment", comment);
 
+
+//TODO: Needs split contents by expression (spaces & commas)
+/*
+ * old style definition: params are unquoted strings w/o spaces, delimited y commas
+ * {% cycle a,b,c %} => {% cycle "a" "b" "c" %}
+ * {% cycle literal1,literal2,literal3 as cycle1 %}  => {% cycle "a" "b" "c" as cycle1 %}
+ * 
+ * new style definition: params delimited by spaces and either quoted strings or variables
+ * {% cycle cycle1 %} 
+ * {% cycle var1 "str1" foo.bar %}
+ * 
+ * {% cycle cycleName %}
+ * 
+ * expressions with spaces or commas are not supported!!!!:
+ *  Need much more sophisticated parsing...
+ */
 var cycle =
     defaulttags.cycle =
     function(parser, token) {
@@ -607,13 +626,14 @@ var cycle =
         throw djang10.NewTemplateSyntaxException("'cycle' tag requires at least two arguments", token);
 
 
-    
+    //backward compatibility: {% cycle a,b %} or {% cycle a,b as foo %}
     if(args[1].indexOf(',') > -1) {
         var parts = args[1].split(",").map(quote)
         
         args.splice.apply(args, [1,1].concat(parts));
     }
-  
+
+    //{% cycle name %} case
     if(args.length == 2) {
         var name = args[1];
 
@@ -622,6 +642,7 @@ var cycle =
         return parser["_namedCycleNodes"][name];
     }
 
+    //named cycle definition: {% cycle arg as name %} or {% cycle arg arg2 as name %} case 
     if (args.length > 4 && args[args.length - 2] == "as") {
         var name = args[args.length - 1];
 
@@ -635,6 +656,7 @@ var cycle =
         parser["_namedCycleNodes"][name] = node;
         return node;
     }
+    //anonymous cycle: {% cycle arg arg2 %}
     else {
         var cycle_exprs = args.slice(1).map(function(item) { return  parser.compile_expression(item); });
         var node = new CycleNode(cycle_exprs);
@@ -643,7 +665,12 @@ var cycle =
 }
 register.tag("cycle", cycle);
 
+//TODO: debug tag
 
+/*
+ * {% filter filterName:ANY_EXPRESSION %}filtered content{% endfilter %}
+ * {% filter filterName:ANY_EXPRESSION | filterName2:  ANY_EXPRESSION %}filtered content{% endfilter %}
+ */
 var do_filter =
     defaulttags.do_filter =
     function(parser, token) {
@@ -656,6 +683,11 @@ var do_filter =
 };
 register.tag("filter", do_filter);
 
+
+/*
+ * {% for var in ANY_FILTER_EXPRESSION %}
+ * {% for var in ANY_FILTER_EXPRESSION reversed %}
+ */
 var do_for =
     defaulttags.do_for =
     function(parser, token) {
@@ -677,7 +709,7 @@ var do_for =
     if(loopvars.some(function(bit) { return !bit || bit.contains(" "); } ))
         throw djang10.NewTemplateSyntaxException("'for' tag received and invalid argument:" + token.contents, token)
     
-    var sequenceStr = bits.slice(in_index+1, is_reversed? -1:null).join(" ");
+    var sequenceStr = bits.slice(in_index+1, is_reversed? -1 : bits.length).join(" ");
     var sequence = parser.compile_filter(sequenceStr);
  
     var nodelist_loop = parser.parse(["endfor"]);
@@ -688,6 +720,10 @@ var do_for =
 };
 register.tag("for", do_for);
 
+//TODO: needs split by expression (spaces)
+/*
+ * {% ifequal NO_SPACE_EXPRESSION NO_SPACE_EXPRESSION %} 
+ */
 var do_ifequal =
     defaulttags.do_ifequal =
     function(parser, token, negate) {
@@ -729,7 +765,13 @@ var ifnotequal =
 register.tag("ifnotequal", ifnotequal);
   
 
-
+//TODO: spaces in expressions are not supported
+/*
+ * {% firstof a %}
+ * {% firstof "a" %}
+ * {% firstof a b c "d" %}
+ * {% firstof NO_SPACE_EXPRESSION NO_SPACE_EXPRESSION NO_SPACE_EXPRESSION)
+ */
 var firstof =
     defaulttags.firstof =
     function(parser, token) {
@@ -743,6 +785,13 @@ var firstof =
 };
 register.tag("firstof", firstof);
 
+//XXX: bitwise or operator will conflict with this
+//XXX: can't use variables named or, and & not
+/*
+ * {% if NO_SPACE_FILTER_EXPRESSION %}
+ * {% if NO_SPACE_FILTER_EXPRESSION or not NO_SPACE_FILTER_EXPRESSION or ... %}
+ * {% if NO_SPACE_FILTER_EXPRESSION and not NO_SPACE_FILTER_EXPRESSION and ... %} 
+ */
 var do_if =
     defaulttags.do_if =
     function(parser, token) {
@@ -788,8 +837,8 @@ var do_if =
 
     var nodelist_true = parser.parse(["else", "endif"]);
     var nodelist_false;
-    var token = parser.next_token();
-    if(token.contents == "else") {
+    var token2 = parser.next_token();
+    if(token2.contents == "else") {
         nodelist_false = parser.parse(["endif"]);
         parser.delete_first_token();
     }
@@ -801,6 +850,10 @@ var do_if =
 };
 register.tag("if", do_if);
 
+/*
+ * {% ifchanged NO_SPACE_EXPRESSION NO_SPACE_EXPRESSION %}
+ * {% ifchanged %}
+ */
 var ifchanged =
     defaulttags.ifchanged =
     function(parser, token) {
@@ -818,6 +871,10 @@ var ifchanged =
 };
 register.tag("ifchanged", ifchanged);
 
+/*
+ * {% load NO_SPACE_LITERAL_PATH %}
+ * {% load NO_SPACE_LITERAL_PATH NO_SPACE_LITERAL_PATH  %}
+ */
 var load =
     defaulttags.load =
     function(parser, token) {
@@ -835,19 +892,26 @@ var load =
 register.tag("load", load);
 
 
+/*
+ * {% now ANY_FILTER_EXPRESSION %}
+ */
 var now =
     defaulttags.now =
     function(parser, token) {
 
-    var bits = token.split_contents();
-    if(bits.length != 2)
+    var m = /\S+\s+(.+)$/.exec(token.contents);
+    
+    if(m == null)
         throw djang10.NewTemplateSyntaxException("'now' statement takes one argument", token);
-    var expr = parser.compile_expression(bits[1]);
+    var expr = parser.compile_filter(m[1]);
     
     return new NowNode(expr);
 };
 register.tag("now", now);
 
+/*
+ * {% regroup FILTER_EXPRESSION by LITERAL_NAME as LITERAL_NAME %}
+ */
 var regroup =
     defaulttags.regroup =
     function(parser, token) {
@@ -866,16 +930,29 @@ var regroup =
 };
 register.tag("regroup", regroup);
 
+/*
+ * {% spaceless %}
+ */
 var spaceless =
     defaulttags.spaceless =
     function(parser, token) {
-
+    
     var nodelist = parser.parse(["endspaceless"]);
     parser.delete_first_token();
     return new SpacelessNode(nodelist);
 };
 register.tag("spaceless", spaceless);
 
+/*
+ * {% templatetag openblock %}
+ * {% templatetag closeblock %}
+ * {% templatetag openvariable %}
+ * {% templatetag closevariable %}
+ * {% templatetag openbrace %}
+ * {% templatetag closebrace %}
+ * {% templatetag opencomment %}
+ * {% templatetag closecomment %}
+ */
 var templatetag =
     defaulttags.templatetag =
     function(parser, token) {
@@ -893,11 +970,18 @@ var templatetag =
 };
 register.tag("templatetag", templatetag);
 
+//TODO: url tag
+
+
+//TODO: spaces in expression filter is not supported
+/*
+ * {% widthratio NO_SPACE_FILTER_EXPR NO_SPACE_FILTER_EXPR LITERAL_INT %}
+ */
 var widthratio =
     defaulttags.widthratio =
     function(parser, token) {
 
-    var bits = token.contents.split(/\s+/);
+    var bits = token.split_contents();
     if(bits.length != 4)
         throw djang10.NewTemplateSyntaxException("widthratio takes three arguments", token);
     var this_value_expr = bits[1];
@@ -915,14 +999,17 @@ var widthratio =
 };
 register.tag("widthratio", widthratio);
 
+/*
+ * {% with ANY_FILTER_EXPR as LITERAL_NAME %}
+ */
 var do_with =
     defaulttags.do_with =
     function(parser, token) {
     
-    var m = /(\w+)\s+(.+)\s+as\s+([\w_\$]+)$/.exec(token.contents);
+    var m = /(\S+)\s+(.+)\s+as\s+([\w_\$]+)$/.exec(token.contents);
     
     if(m == null)
-        throw djang10.NewTemplateSyntaxException(bits[0] + " expected format is 'value as name'", token);
+        throw djang10.NewTemplateSyntaxException("with expected format is 'value as name'", token);
     
     var command = m[1];
     var var_ = parser.compile_filter(m[2]);
