@@ -19,3 +19,13 @@ string
 0: b
 1: 3
 2: gah
+ns: bar
+<x xmlns:foo="bar">
+  <a>b</a>
+  <a>3</a>
+  <a>gah</a>
+  <b>foo</b>
+</x>
+<x xmlns:foo="bar" xmlns:foo-1="foo.foo.foo" xmlns="foo.foo.foo">
+  <y>z</y>
+</x>

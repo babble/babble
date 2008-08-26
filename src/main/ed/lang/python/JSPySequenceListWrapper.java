@@ -36,7 +36,8 @@ import static ed.lang.python.Python.*;
  * they get set in JS and then retrieved in JS, the same thing comes out, but
  * Python also gets a version.
  */
-public class JSPySequenceListWrapper extends JSPyObjectWrapper {
+public class JSPySequenceListWrapper extends JSPyObjectWrapper
+    implements java.util.List {
 
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.JSPYSEQUENCELISTWRAPPER" );
 
@@ -170,5 +171,118 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper {
 
     private PySequenceList _pSeq; // just to fool the static typing
     
+
+    // java.util.List API
+    public boolean contains( Object o ){
+        return _pSeq.contains( toPython( o ) );
+    }
+
+    public boolean containsAll( Collection c ){
+        // FIXME
+        return true;
+    }
+
+    public boolean equals( Object o ){
+        // FIXME?
+        return _pSeq.equals( o );
+    }
+
+    /*    public int hashCode(){
+        return _pSeq.hashCode();
+        }*/
+
+    public Iterator iterator(){
+        // FIXME
+        return null;
+    }
+
+    public boolean remove( Object o ){
+        return _pSeq.remove( toPython( o ) );
+    }
+
+    public boolean removeAll( Collection c ){
+        // FIXME
+        return false;
+    }
+
+    public Object set( int index , Object element ){
+        // FIXME
+        return null;
+    }
+
+    public int size(){
+        return _pSeq.size();
+    }
+
+    public Object[] toArray(){
+        // FIXME
+        return null;
+    }
+
+    public Object[] toArray( Object[] a ){
+        return null;
+    }
+
+    public void add( int index, Object element ){
+        _pSeq.add( index, toPython( element ) );
+    }
+
+    public boolean add( Object o ){
+        return _pSeq.add( toPython( o ) );
+    }
+
+    public boolean addAll( Collection c ){
+        // FIXME
+        return false;
+    }
+
+    public boolean addAll( int index , Collection c ){
+        // FIXME
+        return false;
+    }
+
+    public void clear(){
+        // FIXME
+    }
+
+    public Object get( int index ){
+        return toJS( _pSeq.get( index ) );
+    }
+
+    public int indexOf( Object o ){
+        return _pSeq.indexOf( toPython( o ) );
+    }
+
+    public boolean isEmpty(){
+        return _pSeq.isEmpty();
+    }
+
+    public int lastIndexOf( Object o ){
+        return _pSeq.lastIndexOf( toPython( o ) );
+    }
+
+    public ListIterator listIterator(){
+        // FIXME
+        return null;
+    }
+
+    public ListIterator listIterator( int index ){
+        // FIXME
+        return null;
+    }
+
+    public Object remove( int index ){
+        return toJS( _pSeq.remove( index ) );
+    }
+
+    public boolean retainAll( Collection c ){
+        // FIXME
+        return true;
+    }
+
+    public List subList( int fromIndex , int toIndex ){
+        // FIXME
+        return null;
+    }
 }
     
