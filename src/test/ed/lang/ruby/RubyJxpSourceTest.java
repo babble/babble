@@ -172,4 +172,21 @@ public class RubyJxpSourceTest extends SourceRunner {
 	runJS("print(rfunc(35));");
 	assertEquals(jsOutput, "42");
     }
+
+    // FIXME when RubyArray gets wrapped
+//     @Test
+//     public void testArrayModsAreExported() {
+// 	runRuby("array[0] = 99");
+// 	runJS("print(array[0]);");
+// 	assertEquals(jsOutput, "99");
+//     }
+
+    // FIXME when RubyArray gets wrapped
+//     @Test
+//     public void testInnerArrayModsAreExported() {
+// 	runJS("data.array = [1, 2, 3];");
+// 	runRuby("data.array[0] = 99");
+// 	runJS("print(data.array[0]);");
+// 	assertEquals(jsOutput, "99");
+//     }
 }
