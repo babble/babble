@@ -12,16 +12,6 @@ import ed.log.*;
  */
 public class RollingNamedPipe {
 
-    static class SWJNI {
-        static boolean isJNILoaded(){
-            return false;
-        }
-
-        static boolean makeNamedPipe( String name ){
-            return false;
-        }
-    }
-    
     private final static String _namedDir = "logs/pipes/";
     static {
         File f = new File( _namedDir );
