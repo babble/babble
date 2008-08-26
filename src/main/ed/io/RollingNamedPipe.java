@@ -37,10 +37,21 @@ public class RollingNamedPipe {
             fake = false;
         }
         else {
-            SysExec.Result res = SysExec.exec( "mkfifo " + path.toString() );
-            fake = res.exitValue() != 0;
+            
+            SysExec.Result res = null;
+            Exception error = null;
+            
+            try {
+                res = SysExec.exec( "mkfifo " + path.toString() );
+                fake = res.exitValue() != 0;
+            }
+            catch ( Exception ioe ){
+                fake = true;
+                error = ioe;
+            }
+            
             if ( fake && require )
-                throw new RuntimeException( "can't make named pipe : " + _path );
+                throw new RuntimeException( "can't make named pipe : " + _path , error);
         }
         
         if ( fake )
