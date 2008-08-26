@@ -16,9 +16,9 @@ fi
 
 # SITE is just the name of the site, like 'alleyinsider'. FULLSITE is the full
 # path to the site's directory. TESTDIR is the webtest directory.
-SITE=`basename $1`
 pushd $1
 FULLSITE=`pwd`
+SITE=`basename $FULLSITE`
 popd
 cd `dirname $0`
 TESTDIR=`pwd`
