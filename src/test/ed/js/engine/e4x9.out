@@ -38,3 +38,4 @@ go.daddy.o black.dog
 <x xmlns="go.daddy.o">
   <y xmlns:blah="hello">z</y>
 </x>
+bar

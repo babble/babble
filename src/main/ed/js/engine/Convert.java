@@ -450,6 +450,9 @@ public class Convert implements StackTraceFixer {
             break;
 
         case Token.REF_NS_MEMBER :
+            if( ( n.getIntProp(Node.MEMBER_TYPE_PROP,0) & Node.ATTRIBUTE_FLAG ) != 0 ) {
+                _append( "\"@\" + " , n );
+            }
             _add( n.getFirstChild().getNext() , state );
             _append( " + \"::\" + ", n );
             _add( n.getFirstChild().getNext().getNext() , state );
