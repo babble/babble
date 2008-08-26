@@ -174,7 +174,7 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
 
     // java.util.List API
     public boolean contains( Object o ){
-        return _pSeq.contains( toPy( o ) );
+        return _pSeq.contains( toPython( o ) );
     }
 
     public boolean containsAll( Collection c ){
@@ -187,9 +187,9 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
         return _pSeq.equals( o );
     }
 
-    public boolean int hashCode(){
+    /*    public int hashCode(){
         return _pSeq.hashCode();
-    }
+        }*/
 
     public Iterator iterator(){
         // FIXME
@@ -197,12 +197,17 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
     }
 
     public boolean remove( Object o ){
-        return _pSeq.remove( toPy( o ) );
+        return _pSeq.remove( toPython( o ) );
     }
 
     public boolean removeAll( Collection c ){
         // FIXME
         return false;
+    }
+
+    public Object set( int index , Object element ){
+        // FIXME
+        return null;
     }
 
     public int size(){
@@ -219,11 +224,25 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
     }
 
     public void add( int index, Object element ){
-        return _pSeq.add( index, toPy( element ) );
+        _pSeq.add( index, toPython( element ) );
     }
 
     public boolean add( Object o ){
-        return _pSeq.add( toPy( o ) );
+        return _pSeq.add( toPython( o ) );
+    }
+
+    public boolean addAll( Collection c ){
+        // FIXME
+        return false;
+    }
+
+    public boolean addAll( int index , Collection c ){
+        // FIXME
+        return false;
+    }
+
+    public void clear(){
+        // FIXME
     }
 
     public Object get( int index ){
@@ -231,7 +250,7 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
     }
 
     public int indexOf( Object o ){
-        return _pSeq.indexOf( toPy( o ) );
+        return _pSeq.indexOf( toPython( o ) );
     }
 
     public boolean isEmpty(){
@@ -239,7 +258,7 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
     }
 
     public int lastIndexOf( Object o ){
-        return _pSeq.lastIndexOf( toPy( o ) );
+        return _pSeq.lastIndexOf( toPython( o ) );
     }
 
     public ListIterator listIterator(){
@@ -254,6 +273,11 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
 
     public Object remove( int index ){
         return toJS( _pSeq.remove( index ) );
+    }
+
+    public boolean retainAll( Collection c ){
+        // FIXME
+        return true;
     }
 
     public List subList( int fromIndex , int toIndex ){
