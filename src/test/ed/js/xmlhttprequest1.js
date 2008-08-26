@@ -17,9 +17,13 @@
 
 x = new XMLHttpRequest( "GET" , "http://www.10gen.com/~~/headers" );
 assert( x.send() );
-assert( x.responseText );
+assert( x.responseText , x.responseText );
 assert( x.responseText.match( /Host/ ) );
+assert( x.header.match( /Date:/ ) );
+assert.eq( "OK" , x.statusText );
 assert( x.readyState == 4)
+
+
 
 x = new XMLHttpRequest( "GET" , "http://www.10gen.com/~~/headers" );
 var last = 0;
