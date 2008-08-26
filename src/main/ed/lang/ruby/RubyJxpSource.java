@@ -167,9 +167,36 @@ public class RubyJxpSource extends JxpSource {
      * Creates the $scope global object and a method_missing method for the
      * top-level object.
      */
-    protected void _exposeScope(final Scope scope) {
+    protected void _exposeScope(Scope scope) {
 	_runtime.getGlobalVariables().set("$scope", toRuby(scope, _runtime, scope));
+	_addTopLevelMethodsToObjectClass(scope);
+	_addMethodMissingToTopSelf(scope);
+    }
 
+    protected void _addTopLevelMethodsToObjectClass(final Scope scope) {
+	RubyClass objectKlass = _runtime.getObject();
+	Set<String> alreadySeenFuncs = new HashSet<String>();
+	Scope s = scope;
+	while (s != null) {
+	    for (String key : s.keySet()) {
+		if (alreadySeenFuncs.contains(key) || DO_NOT_LOAD_FUNCS.contains(key))
+		    continue;
+		final Object obj = s.get(key);
+		if (!(obj instanceof JSFunction))
+		    continue;
+		alreadySeenFuncs.add(key);
+		objectKlass.addMethod(key, new JavaMethod(objectKlass, PUBLIC) {
+			public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+			    Object[] jargs = RubyObjectWrapper.toJSFunctionArgs(scope, _runtime, args, 0, block);
+			    return toRuby(scope, _runtime, ((JSFunction)obj).call(scope, jargs));
+			}
+		    });
+	    }
+	    s = s.getParent();
+	}
+    }
+
+    protected void _addMethodMissingToTopSelf(final Scope scope) {
 	// Add method missing to top object
 	RubyClass eigenclass = ((RubyObject)_runtime.getTopSelf()).getSingletonClass();
 	eigenclass.addMethod("method_missing", new JavaMethod(eigenclass, PUBLIC) {
@@ -189,21 +216,14 @@ public class RubyJxpSource extends JxpSource {
 
 		    Object obj = scope.get(key);
 
-		    // Call function
+		    // All top-level functions have been added to the Object class.
 		    if (obj instanceof JSFunction) {
-			if (DO_NOT_LOAD_FUNCS.contains(key))
-			    return toRuby(scope, _runtime, ((RubyObject)self).callSuper(context, args, block));
-
-			if (RubyObjectWrapper.DEBUG)
-			    System.err.println("calling function " + key);
-
-			Object[] jargs = RubyObjectWrapper.toJSFunctionArgs(scope, _runtime, args, 1, block);
-			return toRuby(scope, _runtime, ((JSFunction)obj).call(scope, jargs));
+			System.err.println("RubyJxpSource.method_missing: should not be handling functions; ignored (returning nil)");
+			return _runtime.getNil();
 		    }
-		    // Check for certain built-in JSObject methods and call them
-		    if (obj == null) {
+
+		    if (obj == null) //  we don't know about this symbol; call super.method_missing
 			return toRuby(scope, _runtime, ((RubyObject)self).callSuper(context, args, block));
-		    }
 
 		    // Finally, it's a simple ivar retrieved by get(). Return it.
 		    if (RubyObjectWrapper.DEBUG)

@@ -66,6 +66,16 @@ public class RubyJxpSourceTest extends SourceRunner {
     }
 
     @Test
+    public void testCallTopLevelFuncInsideFunc() {
+	assertRubyEquals("def foo; puts add_seven(35); end; foo()", "42");
+    }
+
+    @Test
+    public void testCallTopLevelFuncInsideMethod() {
+	assertRubyEquals("class Foo; def foo; puts add_seven(35); end; end; Foo.new.foo()", "42");
+    }
+
+    @Test
     public void testGet() {
 	assertRubyEquals("puts data.get('count')", "1");
     }
@@ -116,7 +126,7 @@ public class RubyJxpSourceTest extends SourceRunner {
 	assertRubyEquals("puts data.subobj.add_seven(35)", "42");
     }
 
-    // FIXME
+    // FIXME if indeed x should be put into scope
 //     @Test
 //     public void testRubyTopLevelVarIntoScope() {
 // 	runRuby("data.count = 33; x = 42");
