@@ -98,8 +98,12 @@ public class RubyJxpSource extends JxpSource {
         return new ed.js.func.JSFunctionCalls0() {
             public Object call(Scope s , Object unused[]) {
 		_addSiteRootToPath(s);
+
+		if (_runtime.getGlobalVariables() instanceof ScopeGlobalVariables)
+		    _runtime.setGlobalVariables(((ScopeGlobalVariables)_runtime.getGlobalVariables()).getOldGlobalVariables());
 		_setOutput(s);
-		_exposeScope(s);
+		_runtime.setGlobalVariables(new ScopeGlobalVariables(s, _runtime));
+		_exposeScopeFunctions(s);
 
 		// See the second part of JRuby's Ruby.executeScript(String, String)
 		ThreadContext context = _runtime.getCurrentContext();
@@ -167,24 +171,24 @@ public class RubyJxpSource extends JxpSource {
      * Creates the $scope global object and a method_missing method for the
      * top-level object.
      */
-    protected void _exposeScope(Scope scope) {
+    protected void _exposeScopeFunctions(Scope scope) {
 	_runtime.getGlobalVariables().set("$scope", toRuby(scope, _runtime, scope));
 	_addTopLevelMethodsToObjectClass(scope);
-	_addMethodMissingToTopSelf(scope);
+// 	_addMethodMissingToTopSelf(scope);
     }
 
     protected void _addTopLevelMethodsToObjectClass(final Scope scope) {
 	RubyClass objectKlass = _runtime.getObject();
-	Set<String> alreadySeenFuncs = new HashSet<String>();
+	Set<String> alreadySeen = new HashSet<String>();
 	Scope s = scope;
 	while (s != null) {
 	    for (String key : s.keySet()) {
-		if (alreadySeenFuncs.contains(key) || DO_NOT_LOAD_FUNCS.contains(key))
+		if (alreadySeen.contains(key) || DO_NOT_LOAD_FUNCS.contains(key))
 		    continue;
 		final Object obj = s.get(key);
 		if (!(obj instanceof JSFunction))
 		    continue;
-		alreadySeenFuncs.add(key);
+		alreadySeen.add(key);
 		objectKlass.addMethod(key, new JavaMethod(objectKlass, PUBLIC) {
 			public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
 			    Object[] jargs = RubyObjectWrapper.toJSFunctionArgs(scope, _runtime, args, 0, block);
@@ -196,42 +200,42 @@ public class RubyJxpSource extends JxpSource {
 	}
     }
 
-    protected void _addMethodMissingToTopSelf(final Scope scope) {
-	// Add method missing to top object
-	RubyClass eigenclass = ((RubyObject)_runtime.getTopSelf()).getSingletonClass();
-	eigenclass.addMethod("method_missing", new JavaMethod(eigenclass, PUBLIC) {
-                public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
-		    // args[0] is method name symbol, args[1..-1] are arguments
-		    String key = args[0].toString();
-		    if (RubyObjectWrapper.DEBUG)
-			System.err.println("method_missing called on top-level object; symbol = " + key);
+//     protected void _addMethodMissingToTopSelf(final Scope scope) {
+// 	// Add method missing to top object
+// 	RubyClass eigenclass = ((RubyObject)_runtime.getTopSelf()).getSingletonClass();
+// 	eigenclass.addMethod("method_missing", new JavaMethod(eigenclass, PUBLIC) {
+//                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+// 		    // args[0] is method name symbol, args[1..-1] are arguments
+// 		    String key = args[0].toString();
+// 		    if (RubyObjectWrapper.DEBUG)
+// 			System.err.println("method_missing called on top-level object; symbol = " + key);
 
-		    // Write
-		    if (key.endsWith("=")) {
-			key = key.substring(0, key.length() - 1);
-			if (RubyObjectWrapper.DEBUG)
-			    System.err.println("assigning new value to top-level scope var named " + key);
-			return toRuby(scope, _runtime, scope.set(key, toJS(scope, _runtime, args[1])));
-		    }
+// 		    // Write
+// 		    if (key.endsWith("=")) {
+// 			key = key.substring(0, key.length() - 1);
+// 			if (RubyObjectWrapper.DEBUG)
+// 			    System.err.println("assigning new value to top-level scope var named " + key);
+// 			return toRuby(scope, _runtime, scope.set(key, toJS(scope, _runtime, args[1])));
+// 		    }
 
-		    Object obj = scope.get(key);
+// 		    Object obj = scope.get(key);
 
-		    // All top-level functions have been added to the Object class.
-		    if (obj instanceof JSFunction) {
-			System.err.println("RubyJxpSource.method_missing: should not be handling functions; ignored (returning nil)");
-			return _runtime.getNil();
-		    }
+// 		    // All top-level functions have been added to the Object class.
+// 		    if (obj instanceof JSFunction) {
+// 			System.err.println("RubyJxpSource.method_missing: should not be handling functions; ignored (returning nil)");
+// 			return _runtime.getNil();
+// 		    }
 
-		    if (obj == null) //  we don't know about this symbol; call super.method_missing
-			return toRuby(scope, _runtime, ((RubyObject)self).callSuper(context, args, block));
+// 		    if (obj == null) //  we don't know about this symbol; call super.method_missing
+// 			return toRuby(scope, _runtime, ((RubyObject)self).callSuper(context, args, block));
 
-		    // Finally, it's a simple ivar retrieved by get(). Return it.
-		    if (RubyObjectWrapper.DEBUG)
-			System.err.println("returning value of scope instance var named " + key);
-		    return (obj == null) ? _runtime.getNil() : toRuby(scope, _runtime, obj);
-		}
-	    });
-    }
+// 		    // Finally, it's a simple ivar retrieved by get(). Return it.
+// 		    if (RubyObjectWrapper.DEBUG)
+// 			System.err.println("returning value of scope instance var named " + key);
+// 		    return (obj == null) ? _runtime.getNil() : toRuby(scope, _runtime, obj);
+// 		}
+// 	    });
+//     }
 
     protected final File _file;
     protected final JSFileLibrary _lib;

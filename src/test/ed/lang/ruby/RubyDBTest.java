@@ -52,7 +52,7 @@ public class RubyDBTest extends SourceRunner {
 
     @Test
     public void testSongIdExists() {
-	assertRubyEqualsJS("puts song_id._id", "print(song_id._id);");
+	assertRubyEqualsJS("puts $song_id._id", "print(song_id._id);");
 	assertNotNull(rubyOutput);
 	assertTrue(rubyOutput.length() > 0);
 	assertEquals(rubyOutput, jsOutput);
@@ -61,13 +61,13 @@ public class RubyDBTest extends SourceRunner {
 
     @Test
     public void testFindAnyOne() {
-	runRuby("x = db.rubytest.findOne(); puts tojson(x)");
+	runRuby("x = $db.rubytest.findOne(); puts tojson(x)");
 	assertTrue(rubyOutput.contains("\"artist\""), "string \"artist\" missing: " + rubyOutput);
     }
 
     @Test(groups={"ruby.db.findone"})
     public void testFindOneById() {
-	runRuby("$scope.set('x', db.rubytest.findOne(song_id))");
+	runRuby("$scope.set('x', $db.rubytest.findOne($song_id))");
 	// TODO use s.get("x") when Ruby can create new top-level vars without using $scope.set
 	JSObject x = (JSObject)s.get("x");
 	assertNotNull(x);
@@ -85,7 +85,7 @@ public class RubyDBTest extends SourceRunner {
 //     @Test(groups={"ruby.db.findone"})
 //     public void testFindOneByIdUsingString() {
 // 	String idString = ((JSObject)s.get("song_id")).get("_id").toString();
-// 	runRuby("$scope.set('x', db.rubytest.findOne('" + idString + "'))");
+// 	runRuby("$scope.set('x', $db.rubytest.findOne('" + idString + "'))");
 // 	// TODO use s.get("x") when Ruby can create new top-level vars without using $scope.set
 // 	JSObject x = (JSObject)s.get("x");
 // 	assertEquals(x.get("_id").toString(), idString);
@@ -98,7 +98,7 @@ public class RubyDBTest extends SourceRunner {
 
     @Test(groups={"ruby.db.findone"})
     public void testFindOneByIdUsingHash() {
-	runRuby("$scope.set('x', db.rubytest.findOne({:_id => song_id._id}))");
+	runRuby("$scope.set('x', $db.rubytest.findOne({:_id => $song_id._id}))");
 	JSObject x = (JSObject)s.get("x");
 	assertEquals(x.get("_id").toString(), ((JSObject)s.get("song_id")).get("_id").toString());
 	assertEquals(x.get("artist").toString(), "XTC");
@@ -110,7 +110,7 @@ public class RubyDBTest extends SourceRunner {
 
     @Test(groups={"ruby.db.findone"})
     public void testFindOneBySong() {
-	JSObject x = ((RubyJSObjectWrapper)runRuby("x = db.rubytest.findOne({:song => 'Budapest by Blimp'})")).getJSObject();
+	JSObject x = ((RubyJSObjectWrapper)runRuby("x = $db.rubytest.findOne({:song => 'Budapest by Blimp'})")).getJSObject();
 	// TODO use s.get("x") when that is fixed
 	assertEquals(x.get("artist").toString(), "Thomas Dolby");
 	assertEquals(x.get("album").toString(), "Aliens Ate My Buick");
@@ -119,13 +119,13 @@ public class RubyDBTest extends SourceRunner {
 
     @Test(groups={"ruby.db.find"})
     public void testForEach() {
-	runRuby("db.rubytest.find().forEach { |row| puts tojson(row) }");
+	runRuby("$db.rubytest.find().forEach { |row| puts tojson(row) }");
 	lookForAllRows();
     }
 
     @Test(groups={"ruby.db.find"})
     public void testEach() {
-	runRuby("db.rubytest.find().each { |row| puts tojson(row) }");
+	runRuby("$db.rubytest.find().each { |row| puts tojson(row) }");
 	lookForAllRows();
     }
 

@@ -52,12 +52,12 @@ public class RubyJxpSourceTest extends SourceRunner {
 
     @Test
     public void testScopeToVar() {
-	assertRubyEquals("puts data.count;", "1");
+	assertRubyEquals("puts $data.count;", "1");
     }
 
     @Test
     public void testCallFuncInVar() {
-	assertRubyEquals("puts data.add_seven(35)", "42");
+	assertRubyEquals("puts $data.add_seven(35)", "42");
     }
 
     @Test
@@ -77,35 +77,35 @@ public class RubyJxpSourceTest extends SourceRunner {
 
     @Test
     public void testGet() {
-	assertRubyEquals("puts data.get('count')", "1");
+	assertRubyEquals("puts $data.get('count')", "1");
     }
 
     @Test
     public void testGetUsingHashSyntax() {
-	assertRubyEquals("puts data['count']", "1");
+	assertRubyEquals("puts $data['count']", "1");
     }
 
     @Test
     public void testRubyModifiesJS() {
-	runRuby("data.count = 42");
+	runRuby("$data.count = 42");
 	assertEquals(s.eval("data.count").toString(), "42");
     }
 
     @Test
     public void testModifyUsingSet() {
-	runRuby("data.set('count', 42)");
+	runRuby("$data.set('count', 42)");
 	assertEquals(s.eval("data.count").toString(), "42");
     }
 
     @Test
     public void testModifyUsingHash() {
-	runRuby("data['count'] = 42");
+	runRuby("$data['count'] = 42");
 	assertEquals(s.eval("data.count").toString(), "42");
     }
 
     @Test
     public void testCreateNew() {
-	runRuby("data['vint'] = 3; data.vfloat = 4.2; data.varray = [1, 2, 'three']; data.vhash = {'a' => 1, 'b' => 2}");
+	runRuby("$data['vint'] = 3; $data.vfloat = 4.2; $data.varray = [1, 2, 'three']; $data.vhash = {'a' => 1, 'b' => 2}");
 	JSObject data = (JSObject)s.get("data");
 	assertEquals(data.get("vint").toString(), "3");
 	assertEquals(data.get("vfloat").toString(), "4.2");
@@ -117,19 +117,19 @@ public class RubyJxpSourceTest extends SourceRunner {
 
     @Test
     public void testBuiltIn() {
-	assertRubyEquals("puts data.keySet.sort", "[add_seven, count, subobj]");
+	assertRubyEquals("puts $data.keySet.sort", "[add_seven, count, subobj]");
     }
 
     @Test
     public void testSubObject() {
-	assertRubyEquals("puts data.subobj.subvar", "99");
-	assertRubyEquals("puts data.subobj.add_seven(35)", "42");
+	assertRubyEquals("puts $data.subobj.subvar", "99");
+	assertRubyEquals("puts $data.subobj.add_seven(35)", "42");
     }
 
     // FIXME if indeed x should be put into scope
 //     @Test
 //     public void testRubyTopLevelVarIntoScope() {
-// 	runRuby("data.count = 33; x = 42");
+// 	runRuby("$data.count = 33; x = 42");
 // 	assertNotNull(s.get("x"), "top-level 'x' should not be null; it should be in scope");
 // 	assertEquals(s.get("x").toString(), "42");
 //     }
@@ -176,7 +176,7 @@ public class RubyJxpSourceTest extends SourceRunner {
     // FIXME when RubyArray gets wrapped
 //     @Test
 //     public void testArrayModsAreExported() {
-// 	runRuby("array[0] = 99");
+// 	runRuby("$array[0] = 99");
 // 	runJS("print(array[0]);");
 // 	assertEquals(jsOutput, "99");
 //     }
@@ -185,8 +185,13 @@ public class RubyJxpSourceTest extends SourceRunner {
 //     @Test
 //     public void testInnerArrayModsAreExported() {
 // 	runJS("data.array = [1, 2, 3];");
-// 	runRuby("data.array[0] = 99");
+// 	runRuby("$data.array[0] = 99");
 // 	runJS("print(data.array[0]);");
 // 	assertEquals(jsOutput, "99");
 //     }
+
+    public void testGlobals() {
+	runRuby("$foo = $data.count");
+	assertEquals(s.get("foo").toString(), "1");
+    }
 }
