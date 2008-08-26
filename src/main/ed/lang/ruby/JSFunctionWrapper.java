@@ -42,12 +42,16 @@ public class JSFunctionWrapper extends JSFunction {
 
     public JSFunctionWrapper(Scope scope, org.jruby.Ruby runtime, Block block) {
 	super(0);
+	if (RubyObjectWrapper.DEBUG)
+	    System.err.println("wrapping a block in a JSFunctionWrapper");
 	_scope = scope;
 	_runtime = runtime;
 	_block = block;
     }
 
     public Object callBlock(Object ... args) {
+	if (RubyObjectWrapper.DEBUG)
+	    System.err.println("calling Ruby block");
 	List<IRubyObject> rargs = new ArrayList<IRubyObject>();
 	for (Object obj : args)
 	    rargs.add(toRuby(_scope, _runtime, obj));

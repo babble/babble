@@ -40,8 +40,6 @@ public class RubyJSFunctionWrapper extends RubyObjectWrapper {
 	    System.err.println("  creating RubyJSFunctionWrapper named " + name);
 	_func = (JSFunction)_obj;
 	addMethod(name, eigenclass);
-	if (RubyObjectWrapper.DEBUG)
-	    System.err.println("  done creating RubyJSFunctionWrapper named " + name);
     }
 
     /** Adds this method to <var>eigenclass</var>. */

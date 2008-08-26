@@ -36,7 +36,6 @@ public class RubyDBCursorWrapper extends RubyJSObjectWrapper {
 	super(s, runtime, obj);
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("  creating RubyDBCursorWrapper");
-
 	RubyClass eigenclass = getSingletonClass();
 	eigenclass.includeModule(runtime.getEnumerable());
 	eigenclass.defineAnnotatedMethods(RubyDBCursorWrapper.class);
