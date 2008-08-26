@@ -244,13 +244,15 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
     }
 
     public boolean removeAll( Collection c ){
-        // FIXME
+        for( Object o : c ){
+            _pSeq.remove( toPython( o ) );
+        }
         return false;
     }
 
     public Object set( int index , Object element ){
-        // FIXME
-        return null;
+        _pSeq.__setitem__( index, toPython( element ) );
+        return element;
     }
 
     public int size(){
