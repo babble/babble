@@ -34,23 +34,30 @@ public class E4X {
     public static JSFunction _cons = new Cons();
     public static JSFunction _ns = new NamespaceCons();
 
-    public static class NamespaceCons extends JSFunctionCalls1 {
+    public static class NamespaceCons extends JSFunctionCalls0 {
 
         public JSObject newOne(){
             return new Namespace();
         }
 
-        public Object call( Scope scope , Object str , Object [] args){
+        public Object call( Scope scope , Object [] args){
             Object blah = scope.getThis();
 
-            Namespace n;
-            if ( blah instanceof Namespace)
-                n = (Namespace)blah;
+            Namespace e;
+            if ( blah instanceof Namespace) {
+                e = (Namespace)blah;
+             }
             else {
-                n = new Namespace( str.toString() );
+                e = new Namespace();
             }
-            n.init( str.toString() );
-            return n;
+
+            if( args.length == 1 ) {
+                e.init( args[0].toString() );
+            }
+            if( args.length == 2 ) {
+                e.init( args[0].toString(), args[1].toString() );
+            }
+           return e;
         }
     }
 
@@ -261,10 +268,7 @@ public class E4X {
                     this.addInScopeNamespace( ns );
                 }
             }
-            // add default namespace, if it isn't boring
-            //            if( this.defaultNamespace != null && !this.defaultNamespace.isEmpty() ) {
-            //                this.addInScopeNamespace( this.defaultNamespace );
-            //            }
+
             if( this.node == null ) {
                 return;
             }
@@ -621,9 +625,19 @@ public class E4X {
             return true;
         }
 
+        private ENode addNamespace( Object ns ) {
+            this.addInScopeNamespace( new Namespace( ns ) );
+            return this;
+        }
+
         public class addNamespace extends ENodeFunction {
             public Object call( Scope s, Object foo[] ) {
-                throw new RuntimeException("not yet implemented");
+                Object obj = s.getThis();
+                ENode parent = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
+                if( foo.length == 0 )
+                    return parent;
+
+                return parent.addNamespace( foo[0] );
             }
         }
 
@@ -1515,25 +1529,6 @@ public class E4X {
         }
         
         public StringBuilder append( StringBuilder buf, ArrayList<Namespace> ancestors, int level ) {
-            if( XML.prettyPrinting )
-                _level( this, buf, level );
-            if( this.node.getNodeType() == Node.TEXT_NODE ) {
-                if( XML.prettyPrinting ) {
-                    return buf.append( escapeElementValue( this.node.getNodeValue().trim() ) );
-                }
-                else {
-                    return buf.append( escapeElementValue( this.node.getNodeValue() ) );
-                }
-            }
-            if( this.node.getNodeType() == Node.ATTRIBUTE_NODE ) {
-                return buf.append( escapeAttributeValue( this.node.getNodeValue() ) );
-            }
-            if( this.node.getNodeType() == Node.COMMENT_NODE ) {
-                return buf.append( "<!--"+this.node.getNodeValue()+"-->" );
-            }
-            if( this.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE ) {
-                return buf.append( "<?"+this.node.getNodeName() + attributesToString( this , new ArrayList<Namespace>() )+"?>");
-            }
 
             ArrayList<Namespace> nsDeclarations = new ArrayList<Namespace>();
             for( Namespace ns : this.inScopeNamespaces ) {
@@ -1590,18 +1585,30 @@ public class E4X {
         */
 
         public StringBuilder append( ENode n , StringBuilder buf , int level , ArrayList<Namespace> ancestors ){
-            switch (n.node.getNodeType() ) {
-            case Node.ATTRIBUTE_NODE:
-                return _level( n, buf, level).append( n.XML.prettyPrinting ? n.node.getNodeValue().trim() : n.node.getNodeValue() );
-            case Node.TEXT_NODE:
-                return _level( n, buf, level).append( n.XML.prettyPrinting ? n.node.getNodeValue().trim() : n.node.getNodeValue() ).append("\n");
-            case Node.COMMENT_NODE:
-                return _level( n, buf, level).append( "<!--"+n.node.getNodeValue()+"-->" ).append("\n");
-            case Node.PROCESSING_INSTRUCTION_NODE:
-                return _level( n, buf, level).append( "<?"+n.node.getNodeName() + attributesToString( n , new ArrayList<Namespace>() )+"?>").append("\n");
+            if( n.XML.prettyPrinting )
+                _level( n, buf, level );
+
+            if( n.node.getNodeType() == Node.TEXT_NODE ) {
+                if( n.XML.prettyPrinting ) {
+                    return buf.append( escapeElementValue( n.node.getNodeValue().trim() ) ).append( "\n" );
+                }
+                else {
+                    return buf.append( escapeElementValue( n.node.getNodeValue() ) ).append( "\n" );
+                }
+            }
+            if( n.node.getNodeType() == Node.ATTRIBUTE_NODE ) {
+                return buf.append( escapeAttributeValue( n.node.getNodeValue() ) );
+            }
+            if( n.node.getNodeType() == Node.COMMENT_NODE ) {
+                return buf.append( "<!--"+n.node.getNodeValue()+"-->" ).append( "\n" );
+            }
+            if( n.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE ) {
+                return buf.append( "<?"+n.node.getNodeName() + attributesToString( n , new ArrayList<Namespace>() )+"?>").append( "\n" );
             }
 
-            _level( n, buf , level ).append( "<" );
+            buf.append( "<" );
+            //Namespace ns = n.name.getNamespace( n.inScopeNamespaces );
+            //System.out.println("name: "+n.name()+" ns: "+ns.prefix+":"+ns.uri);
             String prefix = n.getNamespacePrefix( n.name.uri );
             prefix = prefix != null && !prefix.equals( "" ) ? prefix + ":" : "";
             buf.append( prefix + n.name.localName ).append(attributesToString( n , ancestors ));
@@ -1651,16 +1658,30 @@ public class E4X {
             StringBuilder buf = new StringBuilder();
             boolean defDefaultNS = false;
             ArrayList<Namespace> defaultNSs = new ArrayList<Namespace>();
+            ArrayList<String> prefixes = new ArrayList<String>();
             for( Namespace ns : n.namespaceDeclarations() ) {
                 if( ns.prefix == null || ns.prefix.equals( "" ) ) {
                     defaultNSs.add( ns );
                     defDefaultNS = true;
                 }
-                else 
+                else {
                     buf.append( " xmlns:" + ns.prefix + "=\"" + ns.uri + "\"" );
+                    prefixes.add( ns.prefix );
+                }
             }
-            for( int i=0; i < defaultNSs.size(); i++ ) {
-                buf.append( " xmlns:"+defaultNSs.get(i).getPrefix()+"=\"" + defaultNSs.get(i).uri + "\"" );
+            for( Namespace ns : defaultNSs ) {
+                String genPrefix = ns.getPrefix();
+                int matchCount = 0;
+                for( String match : prefixes ) {
+                    if( match.equals( genPrefix ) ) {
+                        matchCount++;
+                    }
+                }
+
+                if( matchCount > 0 )
+                    genPrefix += "-" + matchCount;
+
+                buf.append( " xmlns:" + genPrefix + "=\"" + ns.uri + "\"" );
             }
             if( defaultNSs.size() > 0 )
                 buf.append( " xmlns=\"" + defaultNSs.get( defaultNSs.size()-1 ).uri + "\"" );
@@ -1734,23 +1755,20 @@ public class E4X {
         }
 
         private void addInScopeNamespace( Namespace n ) {
-            if ( this.node == null )
+            if ( this.node == null || this.isSimpleTypeNode() )
                 return;
-            short type = this.node.getNodeType();
-            if( type == Node.COMMENT_NODE ||
-                type == Node.PROCESSING_INSTRUCTION_NODE ||
-                type == Node.TEXT_NODE ||
-                type == Node.ATTRIBUTE_NODE )
-                return;
-
             if( ( n.prefix == null || n.prefix.equals( "" ) ) && ( n.uri == null || n.uri.equals( "" ) ) )
                 return;
 
             ArrayList<Namespace> match = this.getNamespaces( n.prefix );
             if( match.size() > 0 ) {
-                this.inScopeNamespaces.remove( match.get(0) );
-                //                n.prefix += "-" + match.size();
-                //                this.inScopeNamespaces.add( n );
+                Namespace ns = match.get(0);
+                if( !ns.prefix.equals( "" ) ) {
+                    ns.prefix = "";
+                }
+                else {
+                    this.inScopeNamespaces.remove( ns );
+                }
             }
 
             this.inScopeNamespaces.add( n );
@@ -1855,11 +1873,6 @@ public class E4X {
         private ArrayList<Namespace> inScopeNamespaces = new ArrayList<Namespace>();
         private QName name;
 
-        public boolean ignoreComments = true;
-        public boolean ignoreProcessingInstructions = true;
-        public boolean ignoreWhitespace = true;
-        public boolean prettyPrinting = true;
-        public int prettyIndent = 2;
         public Namespace defaultNamespace;
     }
 
@@ -1983,9 +1996,7 @@ public class E4X {
                 if ( attr ){
                     ArrayList<ENode> nnm = n.getAttributes();
                     for( ENode enode : nnm ) {
-                        if( all || 
-                            ( qualified && ( enode.name.uri.equals( uri ) && enode.localName().equals( s ) ) ) ||
-                            ( !qualified && enode.localName().equals( s ) ) ) {
+                        if( all || ( enode.name.uri.equals( uri ) && enode.localName().equals( s ) ) ) {
                             res.add( enode );
                         }
                     }
@@ -1997,11 +2008,11 @@ public class E4X {
 
                 for ( int i=0; i<kids.size(); i++ ){
                     ENode c = kids.get(i);
-                    if ( ! attr && c.node.getNodeType() != Node.ATTRIBUTE_NODE && 
-                         ( all ||
-                           ( qualified && c.name.uri.equals( uri ) && c.name.localName.equals( s ) ) ||
-                           ( ! qualified && c.name.localName != null && c.name.localName.equals( s ) )
-                           ) ) {
+                    if ( ! attr && 
+                         c.node.getNodeType() != Node.ATTRIBUTE_NODE && 
+                         ( all || 
+                           ( ( ( qualified && c.name.uri.equals( uri ) ) || !qualified ) && 
+                             c.localName().equals( s ) ) ) ) {
                         res.add( c );
                     }
 
@@ -2099,10 +2110,19 @@ public class E4X {
             return s + this.localName;
         }
 
-        public Namespace getNamespace( ) {
+        public Namespace getNamespace() {
+            return getNamespace( null );
+        }
+
+        public Namespace getNamespace( ArrayList<Namespace> isn ) {
             if( this.uri == null )
                 return null;
 
+            for( Namespace ns : isn ) {
+                if( ns.uri.equals( this.uri ) ) {
+                    return ns;
+                }
+            }
             return new Namespace( this.uri );
         }
 
@@ -2121,6 +2141,11 @@ public class E4X {
     static class Namespace extends JSObjectBase {
 
         void init( String s ) {
+            this.uri = s;
+        }
+
+        void init( String p, String s ) {
+            this.prefix = p;
             this.uri = s;
         }
 
@@ -2168,7 +2193,7 @@ public class E4X {
                         return;
                     }
                 }
-                else if( prefix == null ||  !E4X.isXMLName( prefix ) ) {
+                else if( prefix == null || !E4X.isXMLName( prefix ) ) {
                     this.prefix = null;
                 }
                 else {
@@ -2177,8 +2202,15 @@ public class E4X {
             }
         }
 
-        public boolean equals( Namespace n ) {
-            if( n.prefix.equals( this.prefix ) && n.uri.equals( this.uri ) )
+        public boolean equals( Namespace ns ) {
+            if( ( ns.prefix == null && this.prefix != null ) ||
+                ( ns.prefix != null && this.prefix == null ) ||
+                ( ns.uri == null && this.uri != null ) ||
+                ( ns.uri != null && this.uri == null ) )
+                return false;
+
+            if( ( ns.prefix == null || ns.prefix.equals( this.prefix ) ) &&
+                ( ns.uri == null || ns.uri.equals( this.uri ) ) )
                 return true;
             return false;
         }
