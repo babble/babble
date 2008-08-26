@@ -22,7 +22,9 @@ cd $1
 SDKDIR=`pwd`
 
 # Configure webtest
-export WTSITE=http://localhost:8080
+export db_port="5586"
+export http_port="2008"
+export WTSITE=http://localhost:$http_port
 export WTPATH=$SDKDIR/appserver/include/webtest
 
 # Bring up the test database.
