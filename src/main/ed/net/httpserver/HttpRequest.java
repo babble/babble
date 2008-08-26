@@ -102,6 +102,13 @@ public class HttpRequest extends JSObjectLame {
         }
     }
 
+    public String getFullURL(){
+        String host = getHeader( "Host" );
+        if ( host == null )
+            return _url;
+        return "http://" + host + _url;
+    }
+
     /**
      * Get the URI of the request (the path without hostname or query
      * arguments).
