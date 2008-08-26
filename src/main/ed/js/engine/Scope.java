@@ -321,8 +321,8 @@ public final class Scope implements JSObject , Bindings {
                 debug();
         }
 	
-	if ( r != null && _warnedObject != null && _warnedObject.contains( name ) )
-	    ed.log.Logger.getRoot().getChild( "scope" ).warn( "using [" + name + "] in scope" );
+//	if ( r != null && _warnedObject != null && _warnedObject.contains( name ) )
+//	    ed.log.Logger.getRoot().getChild( "scope" ).warn( "using [" + name + "] in scope" );
 
         return r;
     }
