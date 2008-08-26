@@ -348,6 +348,14 @@ public abstract class JSFunction extends JSFunctionBase {
         return System.identityHashCode( this );
     }
 
+    public boolean isCallable(){
+        return _callable;
+    }
+
+    public void setCallable( boolean callable ){
+        _callable = callable;
+    }
+
     private final Scope _scope;
     private ThreadLocal<Scope> _tlScope;
     private boolean _forceUsePassedInScope = false;
@@ -359,6 +367,7 @@ public abstract class JSFunction extends JSFunctionBase {
 
     protected JSArray _arguments;
     protected String _name = "NO NAME SET";
+    protected boolean _callable = true;
 
     private LRUCache<Long,Pair<Object,String>> _callCache;
     private Semaphore _callCacheSem = new Semaphore( 1 );
