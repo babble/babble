@@ -23,8 +23,8 @@ import org.jruby.RubyProc;
 import org.jruby.runtime.*;
 import org.jruby.runtime.builtin.IRubyObject;
 
-import ed.js.JSFunction;
 import ed.js.engine.Scope;
+import ed.js.func.JSFunctionCalls0;
 import static ed.lang.ruby.RubyObjectWrapper.toJS;
 import static ed.lang.ruby.RubyObjectWrapper.toRuby;
 
@@ -32,7 +32,7 @@ import static ed.lang.ruby.RubyObjectWrapper.toRuby;
  * RubyJSObjectWrapper acts as a bridge between Ruby blocks and JSFunctions.
  * Ruby blocks can be called as if they are JSFunctions.
  */
-public class JSFunctionWrapper extends JSFunction {
+public class JSFunctionWrapper extends JSFunctionCalls0 {
 
     private static final IRubyObject[] TYPE_ARRAY = new IRubyObject[0];
 
@@ -41,7 +41,6 @@ public class JSFunctionWrapper extends JSFunction {
     private Block _block;
 
     public JSFunctionWrapper(Scope scope, org.jruby.Ruby runtime, Block block) {
-	super(0);
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("wrapping a block in a JSFunctionWrapper");
 	_scope = scope;
@@ -70,61 +69,5 @@ public class JSFunctionWrapper extends JSFunction {
 	return p;
     }
 
-    public Object call(Scope scope, Object[] extra) { return callBlock(); }
-
-    public Object call(Scope scope, Object p0, Object[] extra) { return callBlock(p0); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object[] extra) { return callBlock(p0, p1); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object[] extra) { return callBlock(p0, p1, p2); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object p3, Object[] extra) { return callBlock(p0, p1, p2, p3); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object p3, Object p4, Object[] extra) { return callBlock(p0, p1, p2, p3, p4); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object p3, Object p4, Object p5, Object[] extra) { return callBlock(p0, p1, p2, p3, p4, p5); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object p3, Object p4, Object p5, Object p6, Object[] extra) { return callBlock(p0, p1, p2, p3, p4, p5, p6); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object p3, Object p4, Object p5, Object p6, Object p7, Object[] extra) { return callBlock(p0, p1, p2, p3, p4, p5, p6, p7); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object p3, Object p4, Object p5, Object p6, Object p7, Object p8, Object[] extra) { return callBlock(p0, p1, p2, p3, p4, p5, p6, p7, p8); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object p3, Object p4, Object p5, Object p6, Object p7, Object p8, Object p9, Object[] extra) { return callBlock(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object p3, Object p4, Object p5, Object p6, Object p7, Object p8, Object p9, Object p10, Object[] extra) { return callBlock(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object p3, Object p4, Object p5, Object p6, Object p7, Object p8, Object p9, Object p10, Object p11, Object[] extra) { return callBlock(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object p3, Object p4, Object p5, Object p6, Object p7, Object p8, Object p9, Object p10, Object p11, Object p12, Object[] extra) { return callBlock(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object p3, Object p4, Object p5, Object p6, Object p7, Object p8, Object p9, Object p10, Object p11, Object p12, Object p13, Object[] extra) { return callBlock(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object p3, Object p4, Object p5, Object p6, Object p7, Object p8, Object p9, Object p10, Object p11, Object p12, Object p13, Object p14, Object[] extra) { return callBlock(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object p3, Object p4, Object p5, Object p6, Object p7, Object p8, Object p9, Object p10, Object p11, Object p12, Object p13, Object p14, Object p15, Object[] extra) { return callBlock(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object p3, Object p4, Object p5, Object p6, Object p7, Object p8, Object p9, Object p10, Object p11, Object p12, Object p13, Object p14, Object p15, Object p16, Object[] extra) { return callBlock(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object p3, Object p4, Object p5, Object p6, Object p7, Object p8, Object p9, Object p10, Object p11, Object p12, Object p13, Object p14, Object p15, Object p16, Object p17, Object[] extra) { return callBlock(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object p3, Object p4, Object p5, Object p6, Object p7, Object p8, Object p9, Object p10, Object p11, Object p12, Object p13, Object p14, Object p15, Object p16, Object p17, Object p18, Object[] extra) { return callBlock(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object p3, Object p4, Object p5, Object p6, Object p7, Object p8, Object p9, Object p10, Object p11, Object p12, Object p13, Object p14, Object p15, Object p16, Object p17, Object p18, Object p19, Object[] extra) { return callBlock(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object p3, Object p4, Object p5, Object p6, Object p7, Object p8, Object p9, Object p10, Object p11, Object p12, Object p13, Object p14, Object p15, Object p16, Object p17, Object p18, Object p19, Object p20, Object[] extra) { return callBlock(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object p3, Object p4, Object p5, Object p6, Object p7, Object p8, Object p9, Object p10, Object p11, Object p12, Object p13, Object p14, Object p15, Object p16, Object p17, Object p18, Object p19, Object p20, Object p21, Object[] extra) { return callBlock(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object p3, Object p4, Object p5, Object p6, Object p7, Object p8, Object p9, Object p10, Object p11, Object p12, Object p13, Object p14, Object p15, Object p16, Object p17, Object p18, Object p19, Object p20, Object p21, Object p22, Object[] extra) { return callBlock(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object p3, Object p4, Object p5, Object p6, Object p7, Object p8, Object p9, Object p10, Object p11, Object p12, Object p13, Object p14, Object p15, Object p16, Object p17, Object p18, Object p19, Object p20, Object p21, Object p22, Object p23, Object[] extra) { return callBlock(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object p3, Object p4, Object p5, Object p6, Object p7, Object p8, Object p9, Object p10, Object p11, Object p12, Object p13, Object p14, Object p15, Object p16, Object p17, Object p18, Object p19, Object p20, Object p21, Object p22, Object p23, Object p24, Object[] extra) { return callBlock(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object p3, Object p4, Object p5, Object p6, Object p7, Object p8, Object p9, Object p10, Object p11, Object p12, Object p13, Object p14, Object p15, Object p16, Object p17, Object p18, Object p19, Object p20, Object p21, Object p22, Object p23, Object p24, Object p25, Object[] extra) { return callBlock(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object p3, Object p4, Object p5, Object p6, Object p7, Object p8, Object p9, Object p10, Object p11, Object p12, Object p13, Object p14, Object p15, Object p16, Object p17, Object p18, Object p19, Object p20, Object p21, Object p22, Object p23, Object p24, Object p25, Object p26, Object[] extra) { return callBlock(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26); }
-
-    public Object call(Scope scope, Object p0, Object p1, Object p2, Object p3, Object p4, Object p5, Object p6, Object p7, Object p8, Object p9, Object p10, Object p11, Object p12, Object p13, Object p14, Object p15, Object p16, Object p17, Object p18, Object p19, Object p20, Object p21, Object p22, Object p23, Object p24, Object p25, Object p26, Object p27, Object ... extra) { return callBlock(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26, p27); }
+    public Object call(Scope scope, Object[] extra) { return callBlock(extra); }
 }

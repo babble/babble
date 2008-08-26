@@ -93,7 +93,7 @@ public class RubyJxpSource extends JxpSource {
         return _file;
     }
 
-    public synchronized JSFunction getFunction() throws IOException {
+    public JSFunction getFunction() throws IOException {
         final Node code = _getCode(); // Parsed Ruby code
         return new ed.js.func.JSFunctionCalls0() {
             public Object call(Scope s , Object unused[]) {
@@ -118,7 +118,7 @@ public class RubyJxpSource extends JxpSource {
         };
     }
 
-    protected Node _getCode() throws IOException {
+    protected synchronized Node _getCode() throws IOException {
 	final long lastModified = _file.lastModified();
         if (_code == null || _lastCompile < lastModified) {
 	    _code = _parseContent(_file.getPath());

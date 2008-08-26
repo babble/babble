@@ -173,16 +173,16 @@ public class RubyObjectWrapper extends RubyObject {
     public Object[] toJSFunctionArgs(IRubyObject[] args, int offset, Block block) { return toJSFunctionArgs(_scope, _runtime, args, offset, block); }
 
     private void _addToStringMethod() {
-	RubyClass eigenclass = getSingletonClass();
-	final ThreadContext context = _runtime.getCurrentContext();
-	final String internedName = "to_s".intern();
-	eigenclass.addMethod(internedName, new JavaMethod(eigenclass, PUBLIC) {
-                public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
-                    if (args.length != 0) Arity.raiseArgumentError(_runtime, args.length, 0, 0);
-		    return RubyString.newString(_runtime, _obj.toString());
-                }
-                @Override public Arity getArity() { return Arity.noArguments(); }
-            });
-	eigenclass.callMethod(context, "method_added", _runtime.fastNewSymbol(internedName));
+// 	RubyClass eigenclass = getSingletonClass();
+// 	final ThreadContext context = _runtime.getCurrentContext();
+// 	final String internedName = "to_s".intern();
+// 	eigenclass.addMethod(internedName, new JavaMethod(eigenclass, PUBLIC) {
+//                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+//                     if (args.length != 0) Arity.raiseArgumentError(_runtime, args.length, 0, 0);
+// 		    return RubyString.newString(_runtime, _obj.toString());
+//                 }
+//                 @Override public Arity getArity() { return Arity.noArguments(); }
+//             });
+// 	eigenclass.callMethod(context, "method_added", _runtime.fastNewSymbol(internedName));
     }
 }

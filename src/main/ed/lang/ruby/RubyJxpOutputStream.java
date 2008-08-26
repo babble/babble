@@ -29,8 +29,8 @@ public class RubyJxpOutputStream extends OutputStream {
 	_writer = writer;
     }
 
-    public void write(int b) throws IOException {
-	_writer.print(b);
+    public void write(int i) throws IOException {
+	_writer.print((byte)(i & 0xff));
     }
 
     public void write(byte[] b) throws IOException {
