@@ -35,7 +35,7 @@ public class RubyJSFunctionWrapper extends RubyObjectWrapper {
     private final JSFunction _func;
 
     RubyJSFunctionWrapper(Scope s, org.jruby.Ruby runtime, JSFunction obj, String name, RubyClass eigenclass) {
-	super(s, runtime, obj, false);
+	super(s, runtime, obj);
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("  creating RubyJSFunctionWrapper named " + name);
 	_func = (JSFunction)_obj;
@@ -43,11 +43,11 @@ public class RubyJSFunctionWrapper extends RubyObjectWrapper {
     }
 
     /** Adds this method to <var>eigenclass</var>. */
-    public void addMethod(String name, RubyClass eigenclass) {
+    public void addMethod(String name, RubyClass klazz) {
 	final String internedName = name.intern();
 	if (RubyObjectWrapper.DEBUG)
-	    System.err.println("adding method named " + internedName + " to eigenclass " + eigenclass.getName());
-	eigenclass.addMethod(internedName, new JavaMethod(eigenclass, PUBLIC) {
+	    System.err.println("adding method named " + internedName + " to klazz " + klazz.getName());
+	klazz.addMethod(internedName, new JavaMethod(klazz, PUBLIC) {
                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
 		    if (RubyObjectWrapper.DEBUG)
 			System.err.println("calling method " + clazz.getName() + "." + name + " with " + args.length + " args");
@@ -61,6 +61,6 @@ public class RubyJSFunctionWrapper extends RubyObjectWrapper {
                 }
                 @Override public Arity getArity() { return Arity.createArity(_func.getNumParameters()); }
             });
-	eigenclass.callMethod(_runtime.getCurrentContext(), "method_added", _runtime.fastNewSymbol(internedName));
+	klazz.callMethod(_runtime.getCurrentContext(), "method_added", _runtime.fastNewSymbol(internedName));
     }
 }

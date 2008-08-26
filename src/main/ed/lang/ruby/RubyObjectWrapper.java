@@ -144,15 +144,10 @@ public class RubyObjectWrapper extends RubyObject {
     }
 
     RubyObjectWrapper(Scope s, org.jruby.Ruby runtime, Object obj) {
-	this(s, runtime, obj, true);
-    }
-
-    RubyObjectWrapper(Scope s, org.jruby.Ruby runtime, Object obj, boolean createToStringMethod) {
 	super(runtime, runtime.getObject());
 	_scope = s;
 	_runtime = runtime;
 	_obj = obj;
-	if (createToStringMethod) _addToStringMethod();
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("creating RubyObjectWrapper around " + (obj == null ? "null" : ("instance of " + obj.getClass().getName())));
     }
@@ -171,18 +166,4 @@ public class RubyObjectWrapper extends RubyObject {
     public Object[] toJSFunctionArgs(IRubyObject[] args, int offset)              { return toJSFunctionArgs(_scope, _runtime, args, offset, null); }
     public Object[] toJSFunctionArgs(IRubyObject[] args, Block block)             { return toJSFunctionArgs(_scope, _runtime, args, 0,      block); }
     public Object[] toJSFunctionArgs(IRubyObject[] args, int offset, Block block) { return toJSFunctionArgs(_scope, _runtime, args, offset, block); }
-
-    private void _addToStringMethod() {
-// 	RubyClass eigenclass = getSingletonClass();
-// 	final ThreadContext context = _runtime.getCurrentContext();
-// 	final String internedName = "to_s".intern();
-// 	eigenclass.addMethod(internedName, new JavaMethod(eigenclass, PUBLIC) {
-//                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
-//                     if (args.length != 0) Arity.raiseArgumentError(_runtime, args.length, 0, 0);
-// 		    return RubyString.newString(_runtime, _obj.toString());
-//                 }
-//                 @Override public Arity getArity() { return Arity.noArguments(); }
-//             });
-// 	eigenclass.callMethod(context, "method_added", _runtime.fastNewSymbol(internedName));
-    }
 }
