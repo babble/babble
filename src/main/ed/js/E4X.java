@@ -261,10 +261,7 @@ public class E4X {
                     this.addInScopeNamespace( ns );
                 }
             }
-            // add default namespace, if it isn't boring
-            //            if( this.defaultNamespace != null && !this.defaultNamespace.isEmpty() ) {
-            //                this.addInScopeNamespace( this.defaultNamespace );
-            //            }
+
             if( this.node == null ) {
                 return;
             }
@@ -1590,18 +1587,28 @@ public class E4X {
         */
 
         public StringBuilder append( ENode n , StringBuilder buf , int level , ArrayList<Namespace> ancestors ){
-            switch (n.node.getNodeType() ) {
-            case Node.ATTRIBUTE_NODE:
-                return _level( n, buf, level).append( n.XML.prettyPrinting ? n.node.getNodeValue().trim() : n.node.getNodeValue() );
-            case Node.TEXT_NODE:
-                return _level( n, buf, level).append( n.XML.prettyPrinting ? n.node.getNodeValue().trim() : n.node.getNodeValue() ).append("\n");
-            case Node.COMMENT_NODE:
-                return _level( n, buf, level).append( "<!--"+n.node.getNodeValue()+"-->" ).append("\n");
-            case Node.PROCESSING_INSTRUCTION_NODE:
-                return _level( n, buf, level).append( "<?"+n.node.getNodeName() + attributesToString( n , new ArrayList<Namespace>() )+"?>").append("\n");
+            if( n.XML.prettyPrinting )
+                _level( n, buf, level );
+
+            if( n.node.getNodeType() == Node.TEXT_NODE ) {
+                if( n.XML.prettyPrinting ) {
+                    return buf.append( escapeElementValue( n.node.getNodeValue().trim() ) ).append( "\n" );
+                }
+                else {
+                    return buf.append( escapeElementValue( n.node.getNodeValue() ) ).append( "\n" );
+                }
+            }
+            if( n.node.getNodeType() == Node.ATTRIBUTE_NODE ) {
+                return buf.append( escapeAttributeValue( n.node.getNodeValue() ) );
+            }
+            if( n.node.getNodeType() == Node.COMMENT_NODE ) {
+                return buf.append( "<!--"+n.node.getNodeValue()+"-->" ).append( "\n" );
+            }
+            if( n.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE ) {
+                return buf.append( "<?"+n.node.getNodeName() + attributesToString( n , new ArrayList<Namespace>() )+"?>").append( "\n" );
             }
 
-            _level( n, buf , level ).append( "<" );
+            buf.append( "<" );
             String prefix = n.getNamespacePrefix( n.name.uri );
             prefix = prefix != null && !prefix.equals( "" ) ? prefix + ":" : "";
             buf.append( prefix + n.name.localName ).append(attributesToString( n , ancestors ));
@@ -1855,11 +1862,6 @@ public class E4X {
         private ArrayList<Namespace> inScopeNamespaces = new ArrayList<Namespace>();
         private QName name;
 
-        public boolean ignoreComments = true;
-        public boolean ignoreProcessingInstructions = true;
-        public boolean ignoreWhitespace = true;
-        public boolean prettyPrinting = true;
-        public int prettyIndent = 2;
         public Namespace defaultNamespace;
     }
 
@@ -1983,9 +1985,7 @@ public class E4X {
                 if ( attr ){
                     ArrayList<ENode> nnm = n.getAttributes();
                     for( ENode enode : nnm ) {
-                        if( all || 
-                            ( qualified && ( enode.name.uri.equals( uri ) && enode.localName().equals( s ) ) ) ||
-                            ( !qualified && enode.localName().equals( s ) ) ) {
+                        if( all || ( enode.name.uri.equals( uri ) && enode.localName().equals( s ) ) ) {
                             res.add( enode );
                         }
                     }
@@ -1997,11 +1997,11 @@ public class E4X {
 
                 for ( int i=0; i<kids.size(); i++ ){
                     ENode c = kids.get(i);
-                    if ( ! attr && c.node.getNodeType() != Node.ATTRIBUTE_NODE && 
-                         ( all ||
-                           ( qualified && c.name.uri.equals( uri ) && c.name.localName.equals( s ) ) ||
-                           ( ! qualified && c.name.localName != null && c.name.localName.equals( s ) )
-                           ) ) {
+                    if ( ! attr && 
+                         c.node.getNodeType() != Node.ATTRIBUTE_NODE && 
+                         ( all || 
+                           ( ( ( qualified && c.name.uri.equals( uri ) ) || !qualified ) && 
+                             c.localName().equals( s ) ) ) ) {
                         res.add( c );
                     }
 
