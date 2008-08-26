@@ -54,3 +54,9 @@ print( xml.child("singer") );
 //children
 print( xml.actor.film[1].children() );
 print( xml.actor.children() );
+
+// for each
+xml = <x><y><a>aaa</a></y><y foo="bar">b</y><y><deep><deep><down>c</down></deep></deep></y></x>;
+for each ( var x in xml ) {
+    print( x );
+}

@@ -28,3 +28,14 @@ Zorro
 <film>
   <awesome>Zorro</awesome>
 </film>
+<y>
+  <a>aaa</a>
+</y>
+b
+<y>
+  <deep>
+    <deep>
+      <down>c</down>
+    </deep>
+  </deep>
+</y>
