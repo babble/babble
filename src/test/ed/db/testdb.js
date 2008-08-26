@@ -335,5 +335,10 @@ function runquick() {
     testdups();
 }
 
+assert( db.eval(function(){return 3;}) == 3 );
+
 runall();
+
+assert( db.eval(function(){return 3;}) == 3 );
+
 
