@@ -192,6 +192,6 @@ public class RubyJxpSourceTest extends SourceRunner {
 
     public void testGlobals() {
 	runRuby("$foo = $data.count");
-	assertEquals(s.get("foo").toString(), "1");
+	assertEquals(s.get("foo").toString(), "1"); // proves $data exists and $foo is created
     }
 }
