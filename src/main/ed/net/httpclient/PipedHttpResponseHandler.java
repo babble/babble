@@ -1,3 +1,4 @@
+// PipedHttpResponseHandler.java
 
 /**
 *    Copyright (C) 2008 10gen Inc.
@@ -15,28 +16,30 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-x = new XMLHttpRequest( "GET" , "http://www.10gen.com/~~/headers" );
-assert( x.send() );
-assert( x.responseText , x.responseText );
-assert( x.responseText.match( /Host/ ) );
-assert( x.header.match( /Date:/ ) );
-assert.eq( "OK" , x.statusText );
-assert( x.readyState == 4)
+package ed.net.httpclient;
 
+import java.io.*;
 
+import ed.io.*;
+import ed.util.*;
 
-x = new XMLHttpRequest( "GET" , "http://www.10gen.com/~~/headers" );
-var last = 0;
-x.onreadystatechange = function(){
-    last = this.readyState;
+/**
+*/
+public class PipedHttpResponseHandler extends HttpResponseHandlerBase {
+    public PipedHttpResponseHandler( OutputStream out ){
+	this( out , -1 );
+    }
+    
+    public PipedHttpResponseHandler( OutputStream out , int maxSize ){
+	_out = out;
+	_maxSize = maxSize;
+    }
+
+    public int read( InputStream in )
+	throws IOException {
+	return StreamUtil.pipe( in , _out , _maxSize );
+    }
+
+    OutputStream _out;
+    int _maxSize = -1;
 }
-assert( x.send() );
-assert( x.readyState < 4 );
-
-for ( var i=0; i<1000; i++ ){
-    if ( last == 4 )
-        break;
-    sleep( 5 );
-}
-
-assert( last == 4 );

@@ -1,4 +1,4 @@
-// FileUtil.java
+// WorkingFiles.java
 
 /**
 *    Copyright (C) 2008 10gen Inc.
@@ -20,35 +20,32 @@ package ed.io;
 
 import java.io.*;
 
-public class FileUtil {
+public class WorkingFiles {
     
-    public static String toString( File f ){
-	return clean( f.toString() );
-    }
-    
-    public static String clean( String s ){
-	if ( s.contains( "\\" ) || s.contains( ":" ) ){
-	    StringBuilder buf = new StringBuilder();
-	    for ( int i=0; i<s.length(); i++ ){
-		char c = s.charAt(i);
-		if ( c == '\\' )
-		    c = '/';
-                else if ( c== ':' )
-                    c = '_';
-		buf.append( c );
-	    }
-	    s = buf.toString();
-	}
-	return s;
+    public static final String TMP_DIR = "/tmp/jxp/";
+    public static final File TMP_FILE = new File( TMP_DIR );
+    static {
+        TMP_FILE.mkdirs();
     }
 
-    public static void deleteDirectory( File f ){
+    public static File getTypeDir( String type ){
+        File f = new File( TMP_FILE , type );
+        f.mkdirs();
+        return f;
+    }
 
-        if ( f.isDirectory() ){
-            for ( File c : f.listFiles() )
-                deleteDirectory( c );
-        }
+    public static File getTMPFile( String type , String name ){
+        name = FileUtil.clean( name );
+
+        while ( name.startsWith( "/" ) )
+            name = name.substring(1);
         
-        f.delete();
+        File f = new File( getTypeDir( type ) , name );
+        
+        if ( name.contains( "/" ) )
+            f.getParentFile().mkdirs();
+
+        return f;
     }
+    
 }

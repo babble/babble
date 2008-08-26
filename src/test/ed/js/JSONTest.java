@@ -57,6 +57,31 @@ public class JSONTest extends ed.TestCase {
 
         // Logger is a special case, since it's a JS function
         assert(scope.eval(JSON.serialize(log)) instanceof JSString);
+    }
+
+    @Test(groups = {"basic"})
+    public void testJSONCycles(){
+        JSObject o = new JSObjectBase();
+        o.set("o", o);
+
+        boolean exception = false;
+        try {
+            JSON.serialize(o);
+        }
+        catch(Exception e){
+            exception = true;
+        }
+
+        assert(exception);
+
+        JSObject leaf = new JSObjectBase();
+
+        JSObject p = new JSObjectBase();
+        p.set("o1", leaf);
+        p.set("o2", leaf);
+
+        // assert that this doesn't throw an exception ;)
+        JSON.serialize(p);
 
     }
 

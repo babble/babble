@@ -26,9 +26,8 @@ import ed.lang.*;
 
 public class TemplateEngine {
     
-    static final File tmp = new File( "/tmp/jxp/templates/" );
     static final boolean OUTPUT = true;
-
+    
     public static TemplateConverter.Result oneConvert( Template t , DependencyTracker tracker ){
         TemplateConverter tc = _builtIns.get( t.getExtension() );
         if ( tc == null )
@@ -39,8 +38,7 @@ public class TemplateEngine {
         
             if ( OUTPUT ){
                 try {
-                    File f = new File( tmp , r.getNewTemplate().getName() );
-                    f.getParentFile().mkdirs();
+                    File f = ed.io.WorkingFiles.getTMPFile( "templates" , r.getNewTemplate().getName() );
                     FileOutputStream fout = new FileOutputStream( f );
                     fout.write( r.getNewTemplate().getContent().getBytes() );
                     fout.close();
