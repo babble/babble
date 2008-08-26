@@ -63,7 +63,6 @@ public class SourceRunner {
 	s = new Scope("test", null);
 	ed.js.JSON.init(s);	// add tojson, tojson_u, fromjson
 	r = org.jruby.Ruby.newInstance();
-	System.err.println("new source"); // DEBUG
 	source = new TestRubyJxpSource(r);
     }
 
