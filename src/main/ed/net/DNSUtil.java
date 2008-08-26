@@ -139,6 +139,11 @@ public class DNSUtil {
         }
     }
 
+    public static InetAddress getByName( String host )
+        throws UnknownHostException {
+        return InetAddress.getByName( host );
+    }
+
     public static void main( String args[] )
         throws Exception {
         

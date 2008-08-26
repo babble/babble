@@ -16,16 +16,15 @@ fi
 
 # SITE is just the name of the site, like 'alleyinsider'. FULLSITE is the full
 # path to the site's directory. TESTDIR is the webtest directory.
-SITE=`basename $1`
 pushd $1
 FULLSITE=`pwd`
+SITE=`basename $FULLSITE`
 popd
-pushd `dirname $0`
+cd `dirname $0`
 TESTDIR=`pwd`
-popd
 
 # Do configuration steps.
-source `dirname $0`/webtest-config.bash
+source $TESTDIR/webtest-config.bash
 
 # Do local configuration if we have a webtest-local.bash.
 if [ -f $TESTDIR/webtest-local.bash ]
@@ -39,7 +38,7 @@ mkdir -p /tmp/$SITE/logs /tmp/$SITE/db
 rm /tmp/$SITE/db/*
 cd $GITROOT/p/db
 nohup ./db --port $db_port --dbpath /tmp/alleyinsider/db/ run > /tmp/alleyinsider/logs/db&
-db_pid=$?
+db_pid=$!
 
 # Use the _config.js in the test directory if there is one.
 cp $FULLSITE/_config.js $FULLSITE/test/_config.js.backup
@@ -52,7 +51,7 @@ fi
 # Bring up the app server.
 cd $GITROOT/ed
 ./runAnt.bash ed.appserver.AppServer --port $http_port $FULLSITE&
-http_pid=$?
+http_pid=$!
 
 # Populate the db with setup data.
 if [ -f $FULLSITE/test/setup.js ]

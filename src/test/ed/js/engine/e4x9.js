@@ -100,5 +100,10 @@ xml.removeNamespace( "foo" );
 xml.removeNamespace( mybar );
 print( xml )
 
+// namespace attributes
+xml=<x foo:pwn="bar" xmlns:foo="lalala"><y>z</y></x>
+n=new Namespace("lalala")
+print( xml.@n::pwn );
+
 // reset the namespace for other tests
 default xml namespace = "";
