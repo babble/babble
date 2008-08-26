@@ -133,6 +133,16 @@ public class RubyObjectWrapper extends RubyObject {
 	return JavaUtil.convertRubyToJava(r); // punt
     }
 
+    public static Object[] toJSFunctionArgs(Scope s, org.jruby.Ruby r, IRubyObject[] args, int offset, Block block) {
+	boolean haveBlock = block != null && block.isGiven();
+	Object[] jargs = new Object[args.length - offset + (haveBlock ? 1 : 0)];
+	for (int i = offset; i < args.length; ++i)
+	    jargs[i-offset] = RubyObjectWrapper.toJS(s, r, args[i]);
+	if (haveBlock)
+	    jargs[args.length-offset] = RubyObjectWrapper.toJS(s, r, block);
+	return jargs;
+    }
+
     RubyObjectWrapper(Scope s, org.jruby.Ruby runtime, Object obj) {
 	this(s, runtime, obj, true);
     }
@@ -148,6 +158,11 @@ public class RubyObjectWrapper extends RubyObject {
     }
 
     public Object getObject() { return _obj; }
+
+    public Object[] toJSFunctionArgs(IRubyObject[] args)                          { return toJSFunctionArgs(_scope, _runtime, args, 0,      null); }
+    public Object[] toJSFunctionArgs(IRubyObject[] args, int offset)              { return toJSFunctionArgs(_scope, _runtime, args, offset, null); }
+    public Object[] toJSFunctionArgs(IRubyObject[] args, Block block)             { return toJSFunctionArgs(_scope, _runtime, args, 0,      block); }
+    public Object[] toJSFunctionArgs(IRubyObject[] args, int offset, Block block) { return toJSFunctionArgs(_scope, _runtime, args, offset, block); }
 
     private void _addToStringMethod() {
 	RubyClass eigenclass = getSingletonClass();
