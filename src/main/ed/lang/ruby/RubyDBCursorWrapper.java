@@ -44,7 +44,7 @@ public class RubyDBCursorWrapper extends RubyJSObjectWrapper {
 
     @JRubyMethod(name = "each", frame = true)
     public IRubyObject each(ThreadContext context, Block block) {
-	JSFunction blockFunc = toJS(_scope, _runtime, block);
+	JSFunction blockFunc = toJS(block);
 	JSFunction forEachFunc = (JSFunction)_jsobj.get("forEach");
 	_scope.setThis(_jsobj);
 	forEachFunc.call(_scope, blockFunc, null);

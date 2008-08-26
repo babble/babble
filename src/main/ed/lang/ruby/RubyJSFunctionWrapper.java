@@ -59,7 +59,7 @@ public class RubyJSFunctionWrapper extends RubyObjectWrapper {
 		    Object result = _func.call(_scope, toJSFunctionArgs(args, block));
 		    if (RubyObjectWrapper.DEBUG)
 			System.err.println("func " + name + " returned " + result + ", which is " + (result == null ? "null" : ("of class " + result.getClass().getName())));
-		    return toRuby(_scope, _runtime, result);
+		    return toRuby(result);
                 }
                 @Override public Arity getArity() { return Arity.createArity(_func.getNumParameters()); }
             });
