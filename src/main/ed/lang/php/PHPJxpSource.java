@@ -64,12 +64,10 @@ public class PHPJxpSource extends JxpSource {
                     QuercusPage page = new InterpretedPage(_program);
 
                     ReaderWriterStream stream = new ReaderWriterStream( null , context.getWriter() );
-                    stream.setFlushOnNewline( true );
-
+		    
                     WriteStream out = new WriteStream(stream);
                     out.setNewlineString("\n");
                     out.setEncoding("utf-8");
-                    out.setImplicitFlush( true );
                     
                     Env env = new Env( _quercus, page, out , null, null);
                     env.setPwd( new com.caucho.vfs.FilePath( s.getRoot().getAbsolutePath() ) );
