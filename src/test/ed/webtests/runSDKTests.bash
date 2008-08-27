@@ -28,7 +28,9 @@ export WTSITE=http://localhost:$http_port
 export WTPATH=$SDKDIR/appserver/include/webtest
 
 # Bring up the test database.
-./dbctrl.sh start&
+mkdir -p /tmp/10genSDK/db
+rm /tmp/10genSDK/db/*
+./dbctrl.sh start /tmp/10genSDK/db&
 
 # Test each site in the sites directory
 cd ./sites
