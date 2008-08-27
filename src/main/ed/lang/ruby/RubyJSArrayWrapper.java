@@ -201,7 +201,6 @@ public class RubyJSArrayWrapper extends RubyArray {
 	return o;
     }
 
-
     /** Writes contents of JSArray into RubyArray. */
     private void js2ruby() {
 	int len = _jsarray.size();
