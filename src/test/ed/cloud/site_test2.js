@@ -1,6 +1,6 @@
 
 
-s = new Cloud.Site( "laksjdalsdj" );
+s = new Cloud.Site( "mysite717" );
 
 assert.eq( 0 , s.dbs.length );
 assert( s.upsertDB( "dev" , "test1" ) );
@@ -70,3 +70,10 @@ assert( ! s.upsertEnvironment( { id : s.environments[0].id } ) );
 
 assert( tojson( s.updateEnvironment( "dev" , false , true ) ).contains( "~update" ) );
 assert( tojson( s.updateEnvironment( "dev" , true , true ) ).contains( "~reset" ) );
+
+s.getDBForEnvironment( "dev" ).envParition = false;
+assert.eq( "test1/mysite717" , s.getDBUrlForEnvironment( "dev" ) );
+
+s.getDBForEnvironment( "dev" ).envParition = true;
+assert.eq( "test1/mysite717:dev" , s.getDBUrlForEnvironment( "dev" ) );
+

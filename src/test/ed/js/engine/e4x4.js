@@ -46,3 +46,8 @@ delete xml.blah;
 delete xml.@name;
 delete xml.name.@attr;
 print(xml);
+
+// string funcs
+print( xml.name.toUpperCase() );
+xml.name.appendChild( "you" );
+print( xml.name.substring( 1 , 3 ).toUpperCase() );
