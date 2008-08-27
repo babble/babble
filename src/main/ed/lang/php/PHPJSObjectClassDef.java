@@ -71,12 +71,17 @@ public class PHPJSObjectClassDef extends JavaClassDef {
             s = s.child();
             
             s.setThis( _object );
-	    s.set( "print" , new JSFunctionCalls1(){
+            
+            JSFunction myPrint = new JSFunctionCalls1(){
 		    public Object call( Scope s , Object o , Object[] extra ){
 			env.print( o );
 			return null;
 		    }
-		} );
+                };
+
+	    s.set( "print" , myPrint );
+            func.getScope( true ).set( "print" , myPrint );
+
             Object ret = func.call( s , _convertor.toJS( args ) );
             return wrapJava( ret );
         }
@@ -134,7 +139,7 @@ public class PHPJSObjectClassDef extends JavaClassDef {
         public Value copy(Env env, IdentityHashMap<Value,Value> map){
             throw new UnimplementedException();
         }
-
+        
         public Value copy(){
             throw new UnimplementedException();
         }
