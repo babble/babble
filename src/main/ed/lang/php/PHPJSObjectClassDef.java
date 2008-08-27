@@ -71,7 +71,7 @@ public class PHPJSObjectClassDef extends JavaClassDef {
             s = s.child();
             
             s.setThis( _object );
-	    func.getScope( true ).set( "print" , new JSFunctionCalls1(){
+	    s.set( "print" , new JSFunctionCalls1(){
 		    public Object call( Scope s , Object o , Object[] extra ){
 			env.print( o );
 			return null;
@@ -80,7 +80,7 @@ public class PHPJSObjectClassDef extends JavaClassDef {
             Object ret = func.call( s , _convertor.toJS( args ) );
             return wrapJava( ret );
         }
-	
+        
         public Value get(Value key){
             if ( PHP.DEBUG ) System.out.println( "GET:" + key );
             Object value = _object.get( key.toJavaObject() );
