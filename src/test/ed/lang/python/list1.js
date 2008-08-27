@@ -33,6 +33,7 @@ pyL.push(9);
 var i = 0;
 for( key in pyL ){
     assert( key == i , 'iterating is broken -- #'+i+' key is '+ key );
+    assert.eq( pyL[ key ] , pyL[ i ] );
     ++i;
 }
 assert( i == pyL.length , 'wrong number of keys; ' + i + ' found, should be ' + pyL.length );

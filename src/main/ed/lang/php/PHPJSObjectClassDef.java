@@ -53,7 +53,7 @@ public class PHPJSObjectClassDef extends JavaClassDef {
             if ( PHP.DEBUG ) System.out.println( "wrapping : " + obj );
         }
         
-        public Value callMethod(Env env, int hash, char []name, int nameLen, Value []args){
+        public Value callMethod(final Env env, int hash, char []name, int nameLen, Value []args){
             String realName = new String( name , 0 , nameLen );
             Object foo = _object.get( realName );
             if ( ! ( foo instanceof JSFunction ) ){
@@ -71,10 +71,16 @@ public class PHPJSObjectClassDef extends JavaClassDef {
             s = s.child();
             
             s.setThis( _object );
+	    func.getScope( true ).set( "print" , new JSFunctionCalls1(){
+		    public Object call( Scope s , Object o , Object[] extra ){
+			env.print( o );
+			return null;
+		    }
+		} );
             Object ret = func.call( s , _convertor.toJS( args ) );
             return wrapJava( ret );
         }
-        
+	
         public Value get(Value key){
             if ( PHP.DEBUG ) System.out.println( "GET:" + key );
             Object value = _object.get( key.toJavaObject() );

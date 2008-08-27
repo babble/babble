@@ -48,8 +48,9 @@ public class PHP {
         if ( ! ( convertor instanceof PHPConvertor) ){
 
             JxpScriptContext context = (JxpScriptContext)getField( env , "_scriptContext" );
-            if ( context != null && context.getObjectConvertor() != null )
-                context = (JxpScriptContext)context.getObjectConvertor();
+            if ( context != null && context.getObjectConvertor() != null ){
+                convertor = (Value)context.getObjectConvertor();
+            }
             else {
                 convertor = new PHPConvertor( env );
                 if ( context != null )
