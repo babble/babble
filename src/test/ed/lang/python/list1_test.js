@@ -14,7 +14,7 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-local.src.test.ed.lang.python.listPython();
+local.src.test.ed.lang.python.list1_helper();
 
 var pyL = getList();
 

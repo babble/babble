@@ -14,7 +14,6 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-o = {a: 1, b: 4};
+jsFoo = 14;
 
-local.src.test.ed.lang.python.expand4py();
-
+local.src.test.ed.lang.python.import1_helper1();

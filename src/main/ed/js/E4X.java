@@ -477,7 +477,7 @@ public class E4X {
             if( v instanceof XMLList ) {
                 int index = this.children.size();
                 for( ENode target : (XMLList)v ) {
-                    if ( this.children.contains( target ) ) {
+                    if ( ((List)this.children).contains( target ) ) {
                         index = this.children.indexOf( target ) + 1;
                     }
                     else {
@@ -583,7 +583,7 @@ public class E4X {
                 n = new ENode(this.node.getOwnerDocument().createElement(k.toString()), this);
                 Node content = this.node.getOwnerDocument().createTextNode(v.toString());
                 n.children.add( new ENode( content, n ) );
-                if( !this.children.contains( n ) )
+                if( !((List)this.children).contains( n ) )
                     if( index >= 0 )
                         this.children.add( index, n );
                     else
@@ -639,12 +639,7 @@ public class E4X {
 
         public class addNamespace extends ENodeFunction {
             public Object call( Scope s, Object foo[] ) {
-                Object obj = s.getThis();
-                ENode parent = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                if( foo.length == 0 )
-                    return parent;
-
-                return parent.addNamespace( foo[0] );
+                return getENode( s ).addNamespace( getOneArg( foo ) );
             }
         }
 
@@ -664,13 +659,8 @@ public class E4X {
 
         public class appendChild extends ENodeFunction {
             public Object call( Scope s, Object foo[] ) {
-                Object obj = s.getThis();
-                ENode parent = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-
-                if( foo.length == 0 )
-                    return parent;
-
-                ENode child = toXML( foo[0] );
+                ENode parent = getENode( s );
+                ENode child = toXML( getOneArg( foo ) );
                 return child == null ? parent : parent.appendChild(child);
             }
         }
@@ -682,21 +672,12 @@ public class E4X {
 
         public class attribute extends ENodeFunction {
             public Object call( Scope s, Object foo[] ) {
-                if(foo.length == 0)
-                    return null;
-
-                Object obj = s.getThis();
-                ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                return enode.attribute(foo[0].toString());
+                return getENode( s ).attribute( getOneArg( foo ).toString() );
             }
         }
         public class attributes extends ENodeFunction {
             public Object call( Scope s, Object foo[] ) {
-                Object obj = s.getThis();
-                if(obj instanceof ENode)
-                    return ((ENode)obj).get("@*");
-                else
-                    return ((ENodeFunction)obj).cnode.get("@*");
+                return getENode( s ).get( "@*" );
             }
         }
 
@@ -723,13 +704,7 @@ public class E4X {
 
         public class child extends ENodeFunction {
             public Object call( Scope s,  Object foo[]) {
-                if( foo.length == 0 )
-                    return null;
-                Object obj = s.getThis();
-                if( obj instanceof ENode )
-                    return ((ENode)obj).child( foo[0].toString() );
-                else
-                    return ((ENodeFunction)obj).cnode.child( foo[0].toString() );
+                return getENode( s ).child( getOneArg( foo ).toString() );
             }
         }
 
@@ -747,9 +722,7 @@ public class E4X {
 
         public class childIndex extends ENodeFunction {
             public Object call (Scope s, Object foo[] ) {
-                Object obj = s.getThis();
-                ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                return enode.childIndex();
+                return getENode( s ).childIndex();
             }
         }
 
@@ -764,17 +737,8 @@ public class E4X {
 
         public class children extends ENodeFunction {
             public Object call( Scope s, Object foo[] ) {
-                Object obj = s.getThis();
-                ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                return enode.children();
+                return getENode( s ).children();
             }
-        }
-
-
-        public ENode clone() {
-            ENode newNode = new ENode(this.node, this.parent);
-            newNode.children.addAll(this.children);
-            return newNode;
         }
 
         public XMLList comments() {
@@ -789,33 +753,33 @@ public class E4X {
 
         public class comments extends ENodeFunction {
             public Object call( Scope s, Object foo[] ) {
-                Object obj = s.getThis();
-                ENode t = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                return t.comments();
+                return getENode( s ).comments();
             }
+        }
+
+        public boolean contains( ENode o ) {
+            return this.node.isEqualNode(o.node);
         }
 
         // this is to spec, but doesn't seem right... it's "equals", not "contains"
         public class contains extends ENodeFunction {
             public Object call( Scope s, Object foo[] ) {
-                if( foo.length == 0 || !(foo[0] instanceof ENode) )
-                    return false;
-                ENode o = (ENode)foo[0];
-                Object obj = s.getThis();
-                ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                return enode.node.isEqualNode(o.node);
+                return getENode( s ).contains( (ENode)getOneArg( foo ) );
             }
         }
 
-        private ENode copy() {
-            return (ENode)this.clone();
+        public ENode copy() {
+            ENode newNode = new ENode(this.node, this.parent);
+            for( ENode child : this.children ) {
+                ENode temp = child.copy();
+                newNode.children.add( temp );
+            }
+            return newNode;
         }
 
         public class copy extends ENodeFunction {
             public Object call( Scope s, Object foo[] ) {
-                Object obj = s.getThis();
-                ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                return enode.copy();
+                return getENode( s ).copy();
             }
         };
 
@@ -836,33 +800,31 @@ public class E4X {
 
         public class descendants extends ENodeFunction {
             public Object call( Scope s, Object foo[] ) {
-                Object obj = s.getThis();
-                ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
                 String name = ( foo.length == 0) ? "*" : foo[0].toString();
-                return enode.descendants(name);
+                return getENode( s ).descendants( name );
             }
+        }
+
+        public XMLList elements( String name ) {
+            if( this.children == null || this.children.size() == 0)
+                return null;
+            
+            if(name == null || name == "") {
+                name = "*";
+            }
+
+            XMLList list = new XMLList();
+            for( ENode n : this.children ) {
+                if( n.node != null && n.node.getNodeType() == Node.ELEMENT_NODE && (name.equals( "*" ) || n.node.getNodeName().equals(name)) )
+                    list.add( n );
+            }
+            return list;
         }
 
         public class elements extends ENodeFunction {
             public Object call( Scope s, Object foo[] ) {
-                Object obj = s.getThis();
-                ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
                 String name = (foo.length == 0) ? "*" : foo[0].toString();
-
-                if( enode.children == null || enode.children.size() == 0)
-                    return null;
-
-                if(name == null || name == "") {
-                    name = "*";
-                }
-
-                ENode list = new ENode();
-                for( ENode n : enode.children ) {
-                    if( n.node != null && n.node.getNodeType() == Node.ELEMENT_NODE && (name.equals( "*" ) || n.node.getNodeName().equals(name)) )
-                    list.children.add( n );
-                }
-
-                return list;
+                return getENode( s ).elements( name );
             }
         }
 
@@ -907,21 +869,17 @@ public class E4X {
             return null;
         }
 
+        public boolean hasOwnProperty( String prop ) {
+            for( ENode n : this.children ) {
+                if( n.node != null && n.node.getNodeName().equals(prop) )
+                    return true;
+            }
+            return false;
+        }
+
         public class hasOwnProperty extends ENodeFunction {
             public Object call(Scope s, Object foo[] ) {
-                Object obj = s.getThis();
-                ENode en = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-
-                if(foo.length == 0 || en.children == null || en.children.size() == 0)
-                    return false;
-
-                String prop = foo[0].toString();
-
-                for( ENode n : en.children ) {
-                    if( n.node != null && n.node.getNodeName().equals(prop) )
-                        return true;
-                }
-                return false;
+                return getENode( s ).hasOwnProperty( getOneArg( foo ).toString() );
             }
         }
 
@@ -940,18 +898,20 @@ public class E4X {
         /**
          * Returns if this node contains complex content.  That is, if this node has child nodes that are element-type nodes.
          */
+        private boolean hasComplexContent() {
+            if( this.isSimpleTypeNode() )
+                return false;
+
+            for( ENode n : this.children ) {
+                if( n.node.getNodeType() == Node.ELEMENT_NODE )
+                    return false;
+            }
+            return true;
+        }
+
         public class hasComplexContent extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                Object obj = s.getThis();
-                ENode en = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                if( en.isSimpleTypeNode() )
-                    return false;
-
-                for( ENode n : en.children ) {
-                    if( n.node.getNodeType() == Node.ELEMENT_NODE )
-                        return false;
-                }
-                return true;
+                return getENode( s ).hasComplexContent();
             }
         }
 
@@ -976,9 +936,7 @@ public class E4X {
 
         public class hasSimpleContent extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                Object obj = s.getThis();
-                ENode en = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                return en.hasSimpleContent();
+                return getENode( s ).hasSimpleContent();
             }
         }
 
@@ -998,9 +956,7 @@ public class E4X {
 
         public class inScopeNamespaces extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                Object obj = s.getThis();
-                ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                ArrayList<Namespace> isn = enode.inScopeNamespaces();
+                ArrayList<Namespace> isn = getENode( s ).inScopeNamespaces();
                 JSArray a = new JSArray();
                 for( Namespace ns : isn ) {
                     a.add( ns );
@@ -1019,25 +975,15 @@ public class E4X {
 
         public class insertChildAfter extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                Object obj = s.getThis();
-                ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                if(foo.length == 0 )
-                    return enode.insertChildAfter((Object)null, (ENode)null);
-                if(foo.length == 1 )
-                    return enode.insertChildAfter((Object)foo[0], (ENode)null);
-                return enode.insertChildAfter((Object)foo[0], (ENode)foo[1]);
+                foo = getTwoArgs( foo );
+                return getENode( s ).insertChildAfter(foo[0], (ENode)foo[1]);
             }
         }
 
         public class insertChildBefore extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                Object obj = s.getThis();
-                ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                if(foo.length == 0 )
-                    return enode.insertChildBefore((Object)null, (ENode)null);
-                if(foo.length == 1 )
-                    return enode.insertChildBefore((Object)foo[0], (ENode)null);
-                return enode.insertChildBefore((Object)foo[0], (ENode)foo[1]);
+                foo = getTwoArgs( foo );
+                return getENode( s ).insertChildBefore(foo[0], (ENode)foo[1]);
             }
         }
 
@@ -1060,8 +1006,7 @@ public class E4X {
 
         public class length extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                Object obj = s.getThis();
-                ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
+                ENode enode = getENode( s );
                 return enode instanceof XMLList ? ((XMLList)enode).size() : ( enode.node != null ? 1 : enode.children.size() );
             }
         }
@@ -1072,9 +1017,7 @@ public class E4X {
 
         public class localName extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                Object obj = s.getThis();
-                ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                return enode.localName();
+                return getENode( s ).localName();
             }
         }
 
@@ -1086,9 +1029,7 @@ public class E4X {
 
         public class name extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                Object obj = s.getThis();
-                ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                return enode.name();
+                return getENode( s ).name();
             }
         }
 
@@ -1112,10 +1053,8 @@ public class E4X {
 
         public class namespace extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                Object obj = s.getThis();
-                ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
                 String prefix = (foo.length > 0) ? foo[0].toString() : null;
-                return enode.namespace( prefix );
+                return getENode( s ).namespace( prefix );
             }
         }
 
@@ -1150,9 +1089,7 @@ public class E4X {
 
         public class namespaceDeclarations extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                Object obj = s.getThis();
-                ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                ArrayList<Namespace> a = enode.namespaceDeclarations();
+                ArrayList<Namespace> a = getENode( s ).namespaceDeclarations();
                 JSArray decs = new JSArray();
                 for( Namespace ns : a ) {
                     decs.add( ns );
@@ -1161,24 +1098,26 @@ public class E4X {
             }
         }
 
+        private String nodeKind() {
+            switch ( this.node.getNodeType() ) {
+            case Node.ELEMENT_NODE :
+                return "element";
+            case Node.COMMENT_NODE :
+                return "comment";
+            case Node.ATTRIBUTE_NODE :
+                return "attribute";
+            case Node.TEXT_NODE :
+                return "text";
+            case Node.PROCESSING_INSTRUCTION_NODE :
+                return "processing-instruction";
+            default :
+                return "unknown";
+            }
+        }
+
         public class nodeKind extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                Object obj = s.getThis();
-                ENode n = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                switch ( n.node.getNodeType() ) {
-                case Node.ELEMENT_NODE :
-                    return "element";
-                case Node.COMMENT_NODE :
-                    return "comment";
-                case Node.ATTRIBUTE_NODE :
-                    return "attribute";
-                case Node.TEXT_NODE :
-                    return "text";
-                case Node.PROCESSING_INSTRUCTION_NODE :
-                    return "processing-instruction";
-                default :
-                    return "unknown";
-                }
+                return getENode( s ).nodeKind();
             }
         }
 
@@ -1211,17 +1150,13 @@ public class E4X {
         /** Merges adjacent text nodes and eliminates empty text nodes */
         public class normalize extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                Object obj = s.getThis();
-                ENode n = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                return n.normalize();
+                return getENode( s ).normalize();
             }
         }
 
         public class parent extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                Object obj = s.getThis();
-                ENode n = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                return n.parent;
+                return getENode( s ).parent;
             }
         }
 
@@ -1239,11 +1174,8 @@ public class E4X {
 
         public class processingInstructions extends ENodeFunction {
             public Object call(Scope s, Object foo[] ) {
-                Object obj = s.getThis();
-                ENode en = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-
                 String name = (foo.length == 0 ) ? "*" : foo[0].toString();
-                return en.processingInstructions(name);
+                return getENode( s ).processingInstructions( name );
             }
         }
 
@@ -1251,9 +1183,7 @@ public class E4X {
          */
         public class prependChild extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                Object obj = s.getThis();
-                ENode en = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                return en._insertChild( (Object)null, (ENode)foo[0], 0 );
+                return getENode( s )._insertChild( (Object)null, (ENode)getOneArg( foo ), 0 );
             }
         }
 
@@ -1273,10 +1203,7 @@ public class E4X {
 
         public class propertyIsEnumerable extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                Object obj = s.getThis();
-                ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                String prop = foo[0].toString();
-                return enode.propertyIsEnumerable( prop );
+                return getENode( s ).propertyIsEnumerable( getOneArg( foo ).toString() );
             }
         }
 
@@ -1313,12 +1240,7 @@ public class E4X {
 
         public class removeNamespace extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                Object obj = s.getThis();
-                ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                if( foo.length == 0 ) 
-                    return enode;
-                String prop = foo[0].toString();
-                return enode.removeNamespace( prop );
+                return getENode( s ).removeNamespace( getOneArg( foo ).toString() );
             }
         }
 
@@ -1345,10 +1267,7 @@ public class E4X {
         /** not right */
         public class setChildren extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                Object obj = s.getThis();
-                ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                Object value = foo[0];
-                return enode.setChildren(value);
+                return getENode( s ).setChildren( getOneArg( foo ) );
             }
         }
 
@@ -1362,12 +1281,7 @@ public class E4X {
 
         public class setLocalName extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                Object obj = s.getThis();
-                ENode n = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                Object name = (foo.length > 0) ? foo[0] : null;
-                if(name == null)
-                    return null;
-                n.setLocalName( name );
+                getENode( s ).setLocalName( getOneArg( foo ) );
                 return null;
             }
         }
@@ -1411,10 +1325,7 @@ public class E4X {
 
         public class setName extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                Object obj = s.getThis();
-                ENode n = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                if (foo.length > 0 )
-                    n.setName(foo[0].toString());
+                getENode( s ).setName( getOneArg( foo ).toString());
                 return null;
             }
         }
@@ -1444,12 +1355,7 @@ public class E4X {
 
         public class setNamespace extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                if( foo.length == 0 )
-                    return null;
-
-                Object obj = s.getThis();
-                ENode n = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                n.setNamespace( foo[0] );
+                getENode( s ).setNamespace( getOneArg( foo ) );
                 return null;
             }
         }
@@ -1471,9 +1377,7 @@ public class E4X {
 
         public class text extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                Object obj = s.getThis();
-                ENode en = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-                return en.text();
+                return getENode( s ).text();
             }
         }
 
@@ -1498,7 +1402,7 @@ public class E4X {
                     return xml.toString();
                 }
 
-                append( singleNode, xml, 0, new ArrayList<Namespace>() );
+                singleNode.append( xml, 0, new ArrayList<Namespace>() );
             }
 
             if( xml.length() > 0 && xml.charAt(xml.length() - 1) == '\n' ) {
@@ -1506,27 +1410,8 @@ public class E4X {
             }
             return xml.toString();
         }
-        /*
-        public String toString() {
-            // if this is an empty top level element, return nothing
-            if( this.node.getNodeType() == Node.ELEMENT_NODE && ( this.children == null || this.children.size() == 0 ) )
-                return "";
-            
-            if( this.node.getNodeType() == Node.ATTRIBUTE_NODE || this.node.getNodeType() == Node.TEXT_NODE )
-                return this.node.getNodeValue();
-            
-            if ( this.node.getNodeType() == Node.ELEMENT_NODE &&
-                 this.children != null &&
-                 this.childrenAreTextNodes() ) {
-                StringBuilder xml = new StringBuilder();
-                for( ENode n : this.children )
-                    xml.append( n.node.getNodeValue() );
-                return xml.toString();
-            }
 
-            return this.append( new StringBuilder(), new ArrayList<Namespace>(), 0 ).toString();
-        }
-        
+        /*
         public StringBuilder append( StringBuilder buf, ArrayList<Namespace> ancestors, int level ) {
 
             ArrayList<Namespace> nsDeclarations = new ArrayList<Namespace>();
@@ -1583,34 +1468,34 @@ public class E4X {
         }
         */
 
-        public StringBuilder append( ENode n , StringBuilder buf , int level , ArrayList<Namespace> ancestors ){
-            if( n.XML.prettyPrinting )
-                _level( n, buf, level );
+        public StringBuilder append( StringBuilder buf , int level , ArrayList<Namespace> ancestors ){
+            if( XML.prettyPrinting )
+                _level( buf, level );
 
-            switch ( n.node.getNodeType() ) {
+            switch ( this.node.getNodeType() ) {
             case Node.TEXT_NODE :
-                if( n.XML.prettyPrinting ) {
-                    return buf.append( escapeElementValue( n.node.getNodeValue().trim() ) ).append( "\n" );
+                if( XML.prettyPrinting ) {
+                    return buf.append( escapeElementValue( this.node.getNodeValue().trim() ) ).append( "\n" );
                 }
                 else {
-                    return buf.append( escapeElementValue( n.node.getNodeValue() ) ).append( "\n" );
+                    return buf.append( escapeElementValue( this.node.getNodeValue() ) ).append( "\n" );
                 }
             case Node.ATTRIBUTE_NODE :
-                return buf.append( escapeAttributeValue( n.node.getNodeValue() ) );
+                return buf.append( escapeAttributeValue( this.node.getNodeValue() ) );
             case Node.COMMENT_NODE :
-                return buf.append( "<!--"+n.node.getNodeValue()+"-->" ).append( "\n" );
+                return buf.append( "<!--"+this.node.getNodeValue()+"-->" ).append( "\n" );
             case Node.PROCESSING_INSTRUCTION_NODE :
-                return buf.append( "<?"+n.node.getNodeName() + attributesToString( n , new ArrayList<Namespace>() )+"?>").append( "\n" );
+                return buf.append( "<?" + this.node.getNodeName() + this.attributesToString( new ArrayList<Namespace>() ) + "?>").append( "\n" );
             }
 
             buf.append( "<" );
             String prefix = "";
-            if( n.name.prefix != null && !n.name.prefix.equals( "" ) ) {
-                prefix = n.name.prefix + ":";
+            if( this.name.prefix != null && !this.name.prefix.equals( "" ) ) {
+                prefix = this.name.prefix + ":";
             }
-            buf.append( prefix + n.name.localName ).append(attributesToString( n , ancestors ));
+            buf.append( prefix + this.name.localName ).append( this.attributesToString( ancestors ));
 
-            List<ENode> kids = n.printableChildren();
+            List<ENode> kids = this.printableChildren();
             if ( kids == null || kids.size() == 0 ) {
                 return buf.append( "/>\n" );
             }
@@ -1621,42 +1506,42 @@ public class E4X {
                 buf.append( "\n" );
             }
             else {
-                return buf.append( n.XML.prettyPrinting ? kids.get(0).node.getNodeValue().trim() : kids.get(0).node.getNodeValue() ).append( "</" ).append( n.node.getNodeName() ).append( ">\n" );
+                return buf.append( this.XML.prettyPrinting ? kids.get(0).node.getNodeValue().trim() : kids.get(0).node.getNodeValue() ).append( "</" ).append( this.node.getNodeName() ).append( ">\n" );
             }
 
             for ( int i=0; i<kids.size(); i++ ){
                 ENode c = kids.get(i);
-                if( ( n.XML.ignoreComments && c.node.getNodeType() == Node.ATTRIBUTE_NODE ) ||
-                    ( n.XML.ignoreComments && c.node.getNodeType() == Node.COMMENT_NODE ) ||
-                    ( n.XML.ignoreProcessingInstructions && c.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE ) )
+                if( ( XML.ignoreComments && c.node.getNodeType() == Node.ATTRIBUTE_NODE ) ||
+                    ( XML.ignoreComments && c.node.getNodeType() == Node.COMMENT_NODE ) ||
+                    ( XML.ignoreProcessingInstructions && c.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE ) )
                     continue;
                 else {
                     // add to ancestors
-                    append( c , buf , level + 1 , ancestors );
+                    c.append( buf , level + 1 , ancestors );
                     // delete from ancestors
                     ancestors.remove( c.defaultNamespace );
                 }
             }
 
-            _level( n, buf , level ).append( "</" );
-            return buf.append( prefix + n.name.localName ).append( ">\n" );
+            _level( buf , level ).append( "</" );
+            return buf.append( prefix + this.name.localName ).append( ">\n" );
         }
 
-        private StringBuilder _level( ENode n, StringBuilder buf , int level ){
+        private StringBuilder _level( StringBuilder buf , int level ){
             for ( int i=0; i<level; i++ ) {
-                for( int j=0; j< n.XML.prettyIndent; j++) {
+                for( int j=0; j< XML.prettyIndent; j++) {
                     buf.append( " " );
                 }
             }
             return buf;
         }
 
-        private String attributesToString( ENode n , ArrayList<Namespace> ancestors ) {
+        private String attributesToString( ArrayList<Namespace> ancestors ) {
             StringBuilder buf = new StringBuilder();
             boolean defDefaultNS = false;
             ArrayList<Namespace> defaultNSs = new ArrayList<Namespace>();
             ArrayList<String> prefixes = new ArrayList<String>();
-            for( Namespace ns : n.namespaceDeclarations() ) {
+            for( Namespace ns : this.namespaceDeclarations() ) {
                 if( ns.prefix == null || ns.prefix.equals( "" ) ) {
                     defaultNSs.add( ns );
                     defDefaultNS = true;
@@ -1683,13 +1568,13 @@ public class E4X {
             if( defaultNSs.size() > 0 )
                 buf.append( " xmlns=\"" + defaultNSs.get( defaultNSs.size()-1 ).uri + "\"" );
 
-            if( !defDefaultNS && !n.defaultNamespace.isEmpty() && !n.defaultNamespace.containedIn( ancestors )) { 
-                buf.append( " xmlns=\"" + n.defaultNamespace.uri + "\"" );
-                ancestors.add( n.defaultNamespace );
+            if( !defDefaultNS && !this.defaultNamespace.isEmpty() && !this.defaultNamespace.containedIn( ancestors )) { 
+                buf.append( " xmlns=\"" + this.defaultNamespace.uri + "\"" );
+                ancestors.add( this.defaultNamespace );
             }
 
             // get attrs
-            ArrayList<ENode> attr = n.getAttributes();
+            ArrayList<ENode> attr = this.getAttributes();
             String[] attrArr = new String[attr.size()];
             for( int i = 0; i< attr.size(); i++ ) {
                 attrArr[i] = " " + attr.get(i).node.getNodeName() + "=\"" + attr.get(i).node.getNodeValue() + "\"";
@@ -1727,27 +1612,20 @@ public class E4X {
 
         public class toString extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                Object obj = s.getThis();
-                ENode n = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-
-                return n.toString();
+                return getENode( s ).toString();
             }
         }
 
         /** too painful to do right now */
         public class toXMLString extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                Object obj = s.getThis();
-                ENode n = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-
-                throw new RuntimeException("not yet implemented");
+                return getENode( s ).append( new StringBuilder(), 0, new ArrayList<Namespace>() );
             }
         }
 
         public class valueOf extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                Object obj = s.getThis();
-                return ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
+                return getENode( s );
             }
         }
 
@@ -1860,6 +1738,27 @@ public class E4X {
             return c;
         }
 
+        private static ENode getENode( Scope s ) {
+            Object obj = s.getThis();
+            return ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
+        }
+
+        private static Object getOneArg( Object foo[] ) {
+            if( foo.length == 0 ) 
+                throw new RuntimeException( "This method requires one argument." );
+            return foo[0];
+        }
+
+        private static Object[] getTwoArgs( Object foo[] ) {
+            Object[] o = new Object[2];
+            if( foo.length < 2 ) 
+                throw new RuntimeException( "This method requires two arguments." );
+
+            o[0] = foo[0];
+            o[1] = foo[1];
+            return o;
+        }
+
         private Document _document;
 
         private XMLList children;
@@ -1915,7 +1814,7 @@ public class E4X {
             }
             for( ENode n : children ) {
                 //xml.append( n.toString() );
-                append( n, xml, 0, new ArrayList<Namespace>() );
+                n.append( xml, 0, new ArrayList<Namespace>() );
             }
             if( xml.length() > 0 && xml.charAt(xml.length() - 1) == '\n' ) {
                 xml.deleteCharAt(xml.length()-1);
