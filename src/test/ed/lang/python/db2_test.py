@@ -14,3 +14,19 @@ _10gen.assert( x.bar );
 _10gen.assert.eq( "z" , x.bar.a );
 _10gen.assert.eq( "y" , x.bar.b );
 
+class Thingy(object):
+    def __init__(self, a=None, b=5):
+        self.a = a
+        self.b = b
+
+    def m1(self):
+        return self.a*2+self.b
+
+o = Thingy(2, 1)
+_10gen.assert.eq( o.m1(), 5 )
+
+t.drop()
+t.setConstructor(Thingy)
+t.save(o)
+x = t.findOne()
+_10gen.assert.eq( x.m1(), o.m1() )
