@@ -37,7 +37,7 @@ fi
 mkdir -p /tmp/$SITE/logs /tmp/$SITE/db
 rm /tmp/$SITE/db/*
 cd $GITROOT/p/db
-nohup ./db --port $db_port --dbpath /tmp/alleyinsider/db/ run > /tmp/alleyinsider/logs/db&
+nohup ./db --port $db_port --dbpath /tmp/$SITE/db/ run > /tmp/$SITE/logs/db&
 db_pid=$!
 
 # Use the _config.js in the test directory if there is one.
