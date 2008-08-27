@@ -59,7 +59,7 @@ public class JSFunctionWrapper extends JSFunctionCalls0 {
 
     public Block getBlock() { return _block; }
 
-    public RubyProc getProcObject() {
+    public RubyProc getProc() {
 	RubyProc p = _block.getProcObject();
 	if (p != null)
 	    return p;

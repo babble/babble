@@ -58,26 +58,21 @@ public class RubyObjectWrapper extends RubyObject {
 	if (obj instanceof JSString || obj instanceof ObjectId)
 	    return RubyString.newString(runtime, obj.toString());
 	if (obj instanceof JSFunctionWrapper)
-	    return ((JSFunctionWrapper)obj).getProcObject();
+	    return ((JSFunctionWrapper)obj).getProc();
 	if (obj instanceof JSFunction) {
 	    IRubyObject methodOwner = container == null ? runtime.getTopSelf() : container;
 	    return new RubyJSFunctionWrapper(s, runtime, (JSFunction)obj, name, methodOwner.getSingletonClass());
 	}
-	if (obj instanceof JSArray) {
-	    JSArray ja = (JSArray)obj;
-	    int size = ja.size();
-	    RubyArray ra = RubyArray.newArray(runtime, size);
-	    for (int i = 0; i < size; ++i)
-		ra.store(i, toRuby(s, runtime, ja.getInt(i), "__" + i));
-	    return ra;
-	}
+	if (obj instanceof JSArray)
+	    return new RubyJSArrayWrapper(s, runtime, (JSArray)obj);
 	if (obj instanceof JSMap) {
-	    JSMap jm = (JSMap)obj;
-	    RubyHash rh = new RubyHash(runtime);
-	    ThreadContext context = runtime.getCurrentContext();
-	    for (Object key : jm.keys())
-		rh.op_aset(context, toRuby(s, runtime, key), toRuby(s, runtime, jm.get(key), key.toString()));
-	    return rh;
+           JSMap jm = (JSMap)obj;
+           RubyHash rh = new RubyHash(runtime);
+           ThreadContext context = runtime.getCurrentContext();
+	   for (Object key : jm.keys())
+               rh.op_aset(context, toRuby(s, runtime, key), toRuby(s, runtime, jm.get(key), key.toString()));
+           return rh;
+// 	    return new RubyJSHashWrapper((JSMap)obj);
 	}
 	if (obj instanceof DBCursor)
 	    return new RubyDBCursorWrapper(s, runtime, (DBCursor)obj);
@@ -109,6 +104,8 @@ public class RubyObjectWrapper extends RubyObject {
 	    return ((RubyBigDecimal)r).getValue();
 	if (r instanceof RubyNumeric)
 	    return JavaUtil.convertRubyToJava(r);
+	if (r instanceof RubyJSArrayWrapper)
+	    return ((RubyJSArrayWrapper)r).getJSArray();
 	if (r instanceof RubyArray) {
 	    RubyArray ra = (RubyArray)r;
 	    int len = ra.getLength();
@@ -117,6 +114,8 @@ public class RubyObjectWrapper extends RubyObject {
 		ja.setInt(i, toJS(scope, runtime, ra.entry(i)));
 	    return ja;
 	}
+// 	if (r instanceof RubyJSMapWrapper)
+// 	    return ((RubyJSMapWrapper)r).getJSMap();
 	if (r instanceof RubyHash) {
 	    RubyHash rh = (RubyHash)r;
 	    final JSObjectBase jobj = new JSObjectBase();
@@ -126,6 +125,7 @@ public class RubyObjectWrapper extends RubyObject {
 		    }
 		});
 	    return jobj;
+// 	    return ((RubyJSMapWrapper)r).getJSMap();
 	}
 	if (r instanceof RubyProc)
 	    return new JSFunctionWrapper(scope, runtime, ((RubyProc)r).getBlock());
