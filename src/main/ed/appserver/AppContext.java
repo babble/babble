@@ -586,10 +586,12 @@ public class AppContext {
 
         if ( ! ( f.isDirectory() && f.exists() ) )
             return f;
-
-        File temp = new File( f , "index.jxp" );
-        if ( temp.exists() )
-            return temp;
+        
+        for ( int i=0; i<JSFileLibrary._srcExtensions.length; i++ ){
+            File temp = new File( f , "index" + JSFileLibrary._srcExtensions[i] );
+            if ( temp.exists() )
+                return temp;
+        }
 
         return f;
     }
