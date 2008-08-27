@@ -95,7 +95,7 @@ public class RubyObjectWrapper extends RubyObject {
 	if (r == null)
 	    return null;
 	if (r instanceof RubyString)
-	    return new JSString(JavaUtil.convertRubyToJava(r).toString());
+	    return new JSString(((RubyString)r).toString());
 	if (r instanceof RubyObjectWrapper)
 	    return ((RubyObjectWrapper)r)._obj;
 	if (r instanceof RubyBignum)
