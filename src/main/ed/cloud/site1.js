@@ -266,7 +266,7 @@ Cloud.Site.prototype.removeDB = function( identifier ){
 /**
 * @return this returns the 10gen server name (prod1)
 */
-Cloud.Site.prototype.getDatabaseServerForEnvironmentName = function( name ){
+Cloud.Site.prototype.getDBForEnvironment = function( name ){
     name = name || "www";
 
     var env = this.findEnvironmentByName( name );
@@ -278,11 +278,20 @@ Cloud.Site.prototype.getDatabaseServerForEnvironmentName = function( name ){
     var db = this.findDBByName( env.db );
     if ( ! db )
         throw "something is wrong, can't find db [" + env.db + "] choices [" + this.dbNames() + "]";
-
+    
     if ( ! db.server )
 	throw "we found db [" + env.db + "] but its misconfigured";
+    
+    return db;
+}
 
-    return db.server;
+Cloud.Site.prototype.getDBUrlForEnvironment = function( envName ){
+    var db = this.getDBForEnvironment( envName );
+    
+    var url = db.server + "/" + this.name;
+    if ( db.envParition )
+        url += ":" + db.name;
+    return url;
 }
 
 Cloud.Site.prototype.findDB = function( identifier ){

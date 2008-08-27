@@ -23,6 +23,7 @@ import java.net.*;
 import java.util.*;
 import java.util.regex.*;
 
+import ed.db.DBAddress;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.log.*;
@@ -161,7 +162,7 @@ public class Cloud extends JSObjectBase {
         return machine.toString();
     }
 
-    public String getDBHostForSite( String siteName , String environment ){
+    public DBAddress getDBAddressForSite( String siteName , String environment ){
         if ( _bad )
             return null;
 
@@ -169,11 +170,16 @@ public class Cloud extends JSObjectBase {
         if ( site == null )
             return null;
         
-        String dbname = evalFunc( site , "getDatabaseServerForEnvironmentName" , environment ).toString();
-	if ( dbname == null )
-	    throw new RuntimeException( "why is dbname null for : " + siteName + ":" + environment );
-        
-        return getDBHost( dbname );
+        Object url = evalFunc( site , "getDBUrlForEnvironment" , environment );
+        if ( url == null )
+            return null;
+
+        try {
+            return new DBAddress( url.toString() );
+        }
+        catch ( UnknownHostException e ){
+            throw new RuntimeException( "bad db url [" + url + "]" );
+        }
     }
 
     public JSObject findSite( String name , boolean create ){

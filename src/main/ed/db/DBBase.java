@@ -94,11 +94,11 @@ public abstract class DBBase extends JSObjectLame {
                         throw new JSException( "not allowed to access db from [" + other + "]" );
                     return getCollectionFromFull( other );
                 }
-                return DBProvider.get( s.substring(1) );
+                return DBProvider.getSisterDB( this , s.substring(1) );
             }
             return getCollection( s );
         }
-
+        
         return null;
     }
 

@@ -3,16 +3,18 @@
 package ed.db;
 
 import java.io.*;
+import java.net.*;
 import java.nio.*;
 
 import ed.js.*;
 
 public class DBTCP extends DBMessageLayer {
 
-    DBTCP( String root , String ip, int port){
-        super( root );
-        _portPool = DBPortPool.get( ip, port);
-	_host = ip;
+    DBTCP( DBAddress addr ){
+        super( addr._name );
+        System.out.println( "DBTCP connection: " + addr );
+        _portPool = DBPortPool.get( addr.getSocketAddress() );
+        _addr = addr;
     }
 
     public void requestStart(){
@@ -58,9 +60,8 @@ public class DBTCP extends DBMessageLayer {
     }
     
     public String getConnectPoint(){
-	return _host;
+        return _addr.toString();
     }
-
 
     class MyPort {
         
@@ -113,7 +114,7 @@ public class DBTCP extends DBMessageLayer {
         boolean _inRequest;
     }
     
-    private final String _host;
+    private final DBAddress _addr;
     private final DBPortPool _portPool;
 
     private final ThreadLocal<MyPort> _threadPort = new ThreadLocal<MyPort>(){
