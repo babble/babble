@@ -179,7 +179,6 @@ public class E4X {
         }
     }
 
-
     static class ENode extends JSObjectBase {
         private E4X.Cons XML;
 
@@ -421,15 +420,23 @@ public class E4X {
 
             if ( n instanceof String || n instanceof JSString ){
                 String s = n.toString();
+                if( s.equals("tojson") ) return null;
 
+                // first check if this is a combo node/function
                 if( nativeFuncs.containsKey( s ) )
                     return nativeFuncs.get( s );
 
-                if(s.equals("tojson")) return null;
+                // if this is a simple node, we could be trying to get a string function
+                if( this.hasSimpleContent() ) {
+                    Object o = (new JSString( this.toString()) ).get( n );
+                    if( o != null ) {
+                        return o;
+                    }
+                }
 
+                // otherwise, do the normal get
                 Object o = _nodeGet( this, s );
-                //                ((JSObject)_prototype).set("__proto__", (new JSString.JSStringCons()).getPrototype());
-                return (o == null && E4X.isXMLName(s)) ? new ENode( this, s ) : o;
+                return ( o == null && E4X.isXMLName(s) ) ? new ENode( this, s ) : o;
             }
 
             if ( n instanceof Query ) {
@@ -949,9 +956,12 @@ public class E4X {
         }
 
         /**
-         * Returns if this node contains simple content.  An XML node is considered to have simple content if it represents a text or attribute node or an XML element with no child elements.
+         * Returns if this node contains simple content.  An XML node is considered to have 
+         * simple content if it represents a text or attribute node or an XML element with no child elements.
          */
         private boolean hasSimpleContent() {
+            if( this.node == null ) 
+                return false;
             short type = this.node.getNodeType();
             if( type == Node.PROCESSING_INSTRUCTION_NODE ||
                 type == Node.COMMENT_NODE )
@@ -1814,6 +1824,17 @@ public class E4X {
             else
                 return null;
         }
+
+        static class ETextNode extends ed.js.JSString {
+            public ETextNode( String s ){
+                super( s );
+            }
+            
+            public ETextNode( char [] c ){
+                super( c );
+            }
+        }
+
 
         public abstract class ENodeFunction extends JSFunctionCalls0 {
             public String toString() {
