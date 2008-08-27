@@ -21,8 +21,7 @@ import org.jruby.runtime.builtin.IRubyObject;
 import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
-import ed.js.JSFunction;
-import ed.js.JSObject;
+import ed.js.*;
 
 @Test(groups = {"ruby", "ruby.jxpsource"})
 public class RubyJxpSourceTest extends SourceRunner {
@@ -45,65 +44,63 @@ public class RubyJxpSourceTest extends SourceRunner {
 	      "array = [100, \"test string\", null, add_seven];");
     }
 
-    @Test
     public void testContent() {
 	assertRubyEquals("puts 1 + 1", "2");
     }
 
-    @Test
+    public void testGlobalsAreDefined() {
+	runRuby("puts \"#{$data == nil ? 'oops: global $data is not defined' : 'ok'}\"");
+	assertEquals(rubyOutput, "ok");
+    }
+
+    public void testNewGlobalsGetCreated() {
+	runRuby("$foo = $data.count");
+	assertEquals(s.get("foo").toString(), "1"); // proves $data exists and $foo is created
+    }
+
     public void testScopeToVar() {
 	assertRubyEquals("puts $data.count;", "1");
     }
 
-    @Test
     public void testCallFuncInVar() {
 	assertRubyEquals("puts $data.add_seven(35)", "42");
     }
 
-    @Test
     public void testCallTopLevelFunc() {
 	assertRubyEquals("puts add_seven(35)", "42");
     }
 
-    @Test
     public void testCallTopLevelFuncInsideFunc() {
 	assertRubyEquals("def foo; puts add_seven(35); end; foo()", "42");
     }
 
-    @Test
     public void testCallTopLevelFuncInsideMethod() {
 	assertRubyEquals("class Foo; def foo; puts add_seven(35); end; end; Foo.new.foo()", "42");
     }
 
-    @Test
     public void testGet() {
 	assertRubyEquals("puts $data.get('count')", "1");
     }
 
-    @Test
     public void testGetUsingHashSyntax() {
 	assertRubyEquals("puts $data['count']", "1");
     }
 
-    @Test
     public void testRubyModifiesJS() {
 	runRuby("$data.count = 42");
 	assertEquals(s.eval("data.count").toString(), "42");
     }
 
-    @Test
     public void testModifyUsingSet() {
 	runRuby("$data.set('count', 42)");
 	assertEquals(s.eval("data.count").toString(), "42");
     }
 
-    @Test
     public void testModifyUsingHash() {
 	runRuby("$data['count'] = 42");
 	assertEquals(s.eval("data.count").toString(), "42");
     }
 
-    @Test
     public void testCreateNew() {
 	runRuby("$data['vint'] = 3; $data.vfloat = 4.2; $data.varray = [1, 2, 'three']; $data.vhash = {'a' => 1, 'b' => 2}");
 	JSObject data = (JSObject)s.get("data");
@@ -115,45 +112,39 @@ public class RubyJxpSourceTest extends SourceRunner {
 	assertEquals(vhash.get("b").toString(), "2");
     }
 
-    @Test
     public void testBuiltIn() {
 	assertRubyEquals("puts $data.keySet.sort", "[add_seven, count, subobj]");
     }
 
-    @Test
     public void testSubObject() {
 	assertRubyEquals("puts $data.subobj.subvar", "99");
 	assertRubyEquals("puts $data.subobj.add_seven(35)", "42");
     }
 
     // FIXME if indeed x should be put into scope
-//     @Test
+// 
 //     public void testRubyTopLevelVarIntoScope() {
 // 	runRuby("$data.count = 33; x = 42");
 // 	assertNotNull(s.get("x"), "top-level 'x' should not be null; it should be in scope");
 // 	assertEquals(s.get("x").toString(), "42");
 //     }
 
-    @Test
     public void testReadScope() {
 	assertRubyEquals("puts $scope.get('array')[1]", "test string");
     }
 
-    @Test
     public void testWriteScope() {
 	runRuby("$scope.set('new_thing', 57)");
 	assertNotNull(s.get("new_thing"), "'new_thing' not defined in scope");
 	assertEquals(s.get("new_thing").toString(), "57");
     }
 
-    @Test
     public void testWriteScopeUsingHashSyntax() {
 	runRuby("$scope['new_thing'] = 57");
 	assertNotNull(s.get("new_thing"), "'new_thing' not defined in scope");
 	assertEquals(s.get("new_thing").toString(), "57");
     }
 
-    @Test
     public void testCallBlockAsJSFunction() {
 	Object o = RubyObjectWrapper.toJS(s, r, (IRubyObject)runRuby("Proc.new {|i| i + 7}"));
 	assertTrue(o instanceof JSFunctionWrapper);
@@ -164,7 +155,6 @@ public class RubyJxpSourceTest extends SourceRunner {
 	assertEquals(((Number)answer).intValue(), 42);
     }
 
-    @Test
     public void testCallBlockFromJS() {
 	runRuby("$scope.set('rfunc', Proc.new {|i| i + 7})");
 	Object o = s.get("rfunc");
@@ -173,25 +163,55 @@ public class RubyJxpSourceTest extends SourceRunner {
 	assertEquals(jsOutput, "42");
     }
 
-    // FIXME when RubyArray gets wrapped
-//     @Test
-//     public void testArrayModsAreExported() {
-// 	runRuby("$array[0] = 99");
-// 	runJS("print(array[0]);");
-// 	assertEquals(jsOutput, "99");
-//     }
-
-    // FIXME when RubyArray gets wrapped
-//     @Test
-//     public void testInnerArrayModsAreExported() {
-// 	runJS("data.array = [1, 2, 3];");
-// 	runRuby("$data.array[0] = 99");
-// 	runJS("print(data.array[0]);");
-// 	assertEquals(jsOutput, "99");
-//     }
-
-    public void testGlobals() {
-	runRuby("$foo = $data.count");
-	assertEquals(s.get("foo").toString(), "1"); // proves $data exists and $foo is created
+    public void testArrayModsAreExported() {
+	runRuby("$array[0] = 99");
+	runJS("print(array[0]);");
+	assertEquals(jsOutput, "99");
     }
+
+    public void testInnerArrayModsAreExported() {
+	runJS("data.array = [1, 2, 3];");
+	runRuby("$data.array[0] = 99");
+	runJS("print(data.array[0]);");
+	assertEquals(jsOutput, "99");
+    }
+
+    // FIXME when hashes are wrapped
+// 
+//     public void testHashModsAreExported() {
+// 	JSMap map = new JSMap();
+// 	map.set(new JSString("a"), new Integer(1));
+// 	map.set(new Long(42), new JSString("test string"));
+// 	s.set("hash", map);
+
+// 	// sanity test
+// 	runRuby("puts \"#{$hash == nil ? 'oops: global $hash is not defined' : 'ok'}\"");
+// 	assertEquals(rubyOutput, "ok");
+// 	runRuby("puts \"#{$hash['a'].to_s == '1' ? 'ok' : 'oops: $hash[\"a\"] is not defined properly'}\"");
+// 	assertEquals(rubyOutput, "ok");
+
+// 	runRuby("$hash['a'] = 99");
+// 	runJS("print(hash['a']);");
+// 	assertEquals(jsOutput, "99");
+//     }
+
+    // FIXME when hashes are wrapped
+//     public void testInnerHashModsAreExported() {
+// 	JSMap map = new JSMap();
+// 	map.set(new JSString("a"), new Integer(1));
+// 	map.set(new Long(42), new JSString("test string"));
+// 	((JSObject)s.get("data")).set("hash", map);
+
+// 	// sanity test
+// 	runRuby("puts \"#{$data.hash == nil ? 'oops: global $data.hash is not defined' : 'ok'}\"");
+// 	assertEquals(rubyOutput, "ok");
+// 	runRuby("s = $data.hash['a'].to_s; if s == '1'; puts 'ok'; else; puts \"oops: $data.hash['a'] is not defined properly; it is #{s}\"; end");
+// 	assertEquals(rubyOutput, "ok");
+
+// 	Object o = ((JSObject)s.get("data")).get("hash");
+// 	assertTrue(o instanceof JSMap, "oops: JS hash is " + o.getClass().getName() + ", not a JSMap");
+// 	runRuby("$data.hash['a'] = 99");
+// 	runJS("print(data.hash['a']);");
+// 	assertEquals(jsOutput, "99");
+//     }
 }
