@@ -65,15 +65,6 @@ public class RubyObjectWrapper extends RubyObject {
 	}
 	if (obj instanceof JSArray)
 	    return new RubyJSArrayWrapper(s, runtime, (JSArray)obj);
-	if (obj instanceof JSMap) {
-           JSMap jm = (JSMap)obj;
-           RubyHash rh = new RubyHash(runtime);
-           ThreadContext context = runtime.getCurrentContext();
-	   for (Object key : jm.keys())
-               rh.op_aset(context, toRuby(s, runtime, key), toRuby(s, runtime, jm.get(key), key.toString()));
-           return rh;
-// 	    return new RubyJSHashWrapper((JSMap)obj);
-	}
 	if (obj instanceof DBCursor)
 	    return new RubyDBCursorWrapper(s, runtime, (DBCursor)obj);
 	if (obj instanceof BigDecimal)
@@ -114,8 +105,6 @@ public class RubyObjectWrapper extends RubyObject {
 		ja.setInt(i, toJS(scope, runtime, ra.entry(i)));
 	    return ja;
 	}
-// 	if (r instanceof RubyJSMapWrapper)
-// 	    return ((RubyJSMapWrapper)r).getJSMap();
 	if (r instanceof RubyHash) {
 	    RubyHash rh = (RubyHash)r;
 	    final JSObjectBase jobj = new JSObjectBase();
@@ -125,7 +114,6 @@ public class RubyObjectWrapper extends RubyObject {
 		    }
 		});
 	    return jobj;
-// 	    return ((RubyJSMapWrapper)r).getJSMap();
 	}
 	if (r instanceof RubyProc)
 	    return new JSFunctionWrapper(scope, runtime, ((RubyProc)r).getBlock());

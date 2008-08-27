@@ -287,19 +287,8 @@ public class RubyObjectWrapperTest {
 	map.set(new Long(42), new JSString("test string"));
 
 	IRubyObject ro = toRuby(s, r, map);
-	assertTrue(ro instanceof RubyHash);
-	RubyHash rh = (RubyHash)ro;
-	assertEquals(rh.keys().size(), 2);
-
-	IRubyObject o = rh.op_aref(r.getCurrentContext(), RubyString.newString(r, "a"));
-	assertTrue(!r.getNil().equals(o));
-	assertTrue(o instanceof RubyNumeric);
-	assertEquals(((RubyNumeric)o).getLongValue(), 1L);
-
-	o = rh.op_aref(r.getCurrentContext(), JavaUtil.convertJavaToUsableRubyObject(r, new Long(42)));
-	assertTrue(!r.getNil().equals(o));
-	assertTrue(o instanceof RubyString);
-	assertEquals(((RubyString)o).toString(), "test string");
+	RubyJSObjectWrapper w = (RubyJSObjectWrapper)ro;
+	assertSame(w.getJSObject(), map);
     }
 
     @Test(groups = {"js2r"})

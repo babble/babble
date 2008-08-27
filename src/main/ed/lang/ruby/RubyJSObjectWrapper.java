@@ -27,8 +27,7 @@ import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.util.IdUtil;
 import static org.jruby.runtime.Visibility.PUBLIC;
 
-import ed.js.JSObject;
-import ed.js.JSFunction;
+import ed.js.*;
 import ed.js.engine.Scope;
 
 /**
@@ -106,24 +105,14 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 			    if (RubyObjectWrapper.DEBUG) System.err.println("calling internal set()");
 			    return toRuby(_jsobj.set(args[1].toString(), toJS(args[2])));
 			}
-			if ("keySet".equals(key)) {
-			    if (RubyObjectWrapper.DEBUG) System.err.println("calling internal keySet()");
-			    Collection<String> keys = null;
-			    try {
-				keys = _jsobj.keySet();
-			    }
-			    catch (Exception e) {
-				keys = Collections.emptySet();
-			    }
+			if ("keySet".equals(key) || "keys".equals(key)) {
+			    if (RubyObjectWrapper.DEBUG) System.err.println("calling internal keySet() or keys()");
+			    Collection<? extends Object> keys = jsKeySet();
 			    return toRuby(keys);
 			}
 			if ("containsKey".equals(key) && args.length > 1) {
 			    if (RubyObjectWrapper.DEBUG) System.err.println("calling internal containsKey()");
-			    boolean found = false;
-			    try {
-				found = _jsobj.containsKey(args[1].toString());
-			    }
-			    catch (Exception e) { }
+			    boolean found = jsKeySet().contains(toJS(args[1]));
 			    return found ? _runtime.getTrue() : _runtime.getFalse();
 			}
 		    }
@@ -144,17 +133,11 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 	final String name = "instance_variables".intern();
 	eigenclass.addMethod(name, new JavaMethod(eigenclass, PUBLIC) {
                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
-		    Collection<String> keys = null;
-		    try {
-			keys = _jsobj.keySet();
-		    }
-		    catch (Exception e) {
-			keys = Collections.emptySet();
-		    }
+		    Collection<? extends Object> keys = jsKeySet();
 		    int size = keys.size();
 		    RubyArray ra = RubyArray.newArray(_runtime, size);
 		    int i = 0;
-		    for (String key : keys)
+		    for (Object key : keys)
 			if (!(_jsobj.get(key) instanceof JSFunction))
 			    ra.store(i++, _runtime.fastNewSymbol(("@" + key).intern()));
 		    return ra;
@@ -169,20 +152,14 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 	eigenclass.addMethod(name, new JavaMethod(eigenclass, PUBLIC) {
                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
 		    RubyArray superMethods = (RubyArray)((RubyObject)self).public_methods(context, new IRubyObject[0]);
-		    Collection<String> keys = null;
-		    try {
-			keys = _jsobj.keySet();
-		    }
-		    catch (Exception e) {
-			keys = Collections.emptySet();
-		    }
+		    Collection<? extends Object> keys = jsKeySet();
 		    int size = keys.size();
 		    RubyArray ra = RubyArray.newArray(_runtime, size + superMethods.size());
 		    int i = 0;
-		    for (String key : keys) {
-			ra.store(i++, _runtime.fastNewSymbol((key).intern()));
+		    for (Object key : keys) {
+			ra.store(i++, _runtime.fastNewSymbol(key.toString().intern()));
 			if (!(_jsobj.get(key) instanceof JSFunction))
-			    ra.store(i++, _runtime.fastNewSymbol((key + "=").intern()));
+			    ra.store(i++, _runtime.fastNewSymbol((key.toString() + "=").intern()));
 		    }
 		    for (Object o : superMethods)
 			ra.store(i++, _runtime.fastNewSymbol(o.toString().intern()));
@@ -190,5 +167,17 @@ public class RubyJSObjectWrapper extends RubyObjectWrapper {
 		}
 	    });
 	eigenclass.callMethod(_runtime.getCurrentContext(), "method_added", _runtime.fastNewSymbol(name));
+    }
+
+    private Collection<? extends Object> jsKeySet() {
+	try {
+	    if (_jsobj instanceof JSMap)
+		return ((JSMap)_jsobj).keys();
+	    else
+		return _jsobj.keySet();
+	}
+	catch (Exception e) {
+	    return Collections.emptySet();
+	}
     }
 }
