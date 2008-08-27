@@ -227,8 +227,10 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
                         dict = ((PyInstance)_p).__dict__;
                     }
 
-                    if( dict == null )
-                        throw new RuntimeException("can't figure out how to get keyset for " + _p.getClass());
+                    if( dict == null ){
+                        if(D) System.out.println("can't figure out how to get keyset for " + _p.getClass());
+                        return keys;
+                    }
 
                 }
 
