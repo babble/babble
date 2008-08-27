@@ -183,9 +183,11 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
         }
 
         PyObject [] pParams = new PyObject[ length ];
-        int i;
-        for( i = 0; i < params.length; ++i ){
-            pParams[ i ] = toPython( params[ i ] );
+        int i = 0;
+        if( params != null ){
+            for( ; i < params.length; ++i ){
+                pParams[ i ] = toPython( params[ i ] );
+            }
         }
 
         int j = 0;
@@ -246,7 +248,10 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     }
 
     public JSFunction getConstructor(){
-        throw new RuntimeException( "not implemented" );
+        Object o = toJS( _p.getType() );
+        if( ! ( o instanceof JSFunction) )
+            throw new RuntimeException("I'm so confused");
+        return (JSFunction)o;
     }
 
     public JSObject getSuper(){
