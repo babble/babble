@@ -67,7 +67,7 @@ public class ByteDecoder extends Bytes {
         final int start = _buf.position();
         final int len = _buf.getInt();
         
-        JSObjectBase created = null;
+        JSObject created = null;
 
         if ( _ns != null ){
             if ( _ns.endsWith( "._files" ) ){
@@ -79,9 +79,13 @@ public class ByteDecoder extends Bytes {
         }
 
         if ( created == null ){
-            created = new JSObjectBase();
-            if ( _constructor != null ){
-                created.setConstructor( _constructor , true );
+            if ( _constructor == null ){
+                created = new JSObjectBase();
+            }
+            else {
+                created = _constructor.newOne();
+                if ( created instanceof JSObjectBase )
+                    ((JSObjectBase)created).setConstructor( _constructor , true );
             }
         }
         
