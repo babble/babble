@@ -59,6 +59,10 @@ public class DBTCP extends DBMessageLayer {
         }
     }
     
+    public DBAddress getAddress(){
+        return _addr;
+    }
+
     public String getConnectPoint(){
         return _addr.toString();
     }

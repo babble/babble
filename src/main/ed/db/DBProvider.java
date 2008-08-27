@@ -41,7 +41,17 @@ public class DBProvider {
         if ( ctxt != null )
             return get( ctxt , name );
         
-        throw new RuntimeException( "not implemented yet" );
+        try {
+            DBAddress addr = base.getAddress();
+            if ( addr == null )
+                return get( name );
+        
+            return get( new DBAddress( addr , name ) );    
+        }
+        catch ( UnknownHostException un ){
+            throw new RuntimeException( "can't get db connection" , un );
+        }
+        
     }
     
     public static DBApiLayer get( String urlFormat )

@@ -34,6 +34,7 @@ public abstract class DBBase extends JSObjectLame {
     protected abstract DBCollection doGetCollection( String name );
     public abstract Collection<String> getCollectionNames();
 
+    public abstract DBAddress getAddress();
     public abstract String getConnectPoint();
 
     public final DBCollection getCollection( String name ){

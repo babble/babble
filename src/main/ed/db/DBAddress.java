@@ -44,6 +44,11 @@ public class DBAddress {
         _addr = _getAddress( _host );
     }
 
+    public DBAddress( DBAddress other , String name )
+        throws UnknownHostException {
+        this( other._host , other._port , name );
+    }
+
     public DBAddress( String host , String name )
         throws UnknownHostException {
         this( host , DBPort.PORT , name );
