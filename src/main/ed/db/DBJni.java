@@ -16,6 +16,10 @@ public class DBJni extends DBMessageLayer {
 	return null;
     }
 
+    public DBAddress getAddress(){
+        return null;
+    }
+
     protected void say( int op , ByteBuffer dataOut ){
 
         DBMessage m = new DBMessage( op , dataOut );

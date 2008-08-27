@@ -65,6 +65,14 @@ for site in $SITES_LIST; do
     fi
     ln -s $TESTDIR/resources/definitions ./sites/${site}test/definitions/_10gen_default_defs
 
+    # Use the _config.js in the test directory if there is one.
+    cp ./sites/${site}_config.js ./sites/${site}test/_config.js.backup
+    if [ -f ./sites/${site}test/_config.js ]
+        then
+            echo "Using test version of _config.js: ./sites/${site}test/_config.js"
+            cp ./sites/${site}test/_config.js ./sites/${site}_config.js
+    fi
+
     # Run webtest. Exit on a test failure.
     pushd ./sites/${site}test
     $WTPATH/bin/webtest.sh -Dwt.headless=true

@@ -184,19 +184,29 @@ public class AppContextHolder {
             List<String> names = new ArrayList<String>( _contextCache.keySet() );
             for ( String s : names ){
                 AppContext temp = _contextCache.get( s );
-                if ( temp == oldOne ){
+                if ( _same( temp , oldOne ) ){
                     _contextCache.put( s , newOne );
                 }
             }
 
             _contextCache.put( newOne._root , newOne );
-
-            if ( _defaultContext == oldOne )
+            
+            if ( _same( _defaultContext , oldOne ) )
                 _defaultContext = newOne;
             
-            if ( _coreContext == oldOne )
+            if ( _same( _coreContext , oldOne ) )
                 _coreContext = newOne;
         }
+    }
+    
+    private boolean _same( AppContext a , AppContext b ){
+        if ( a == b )
+            return true;
+
+        if ( a._rootFile.equals( b._rootFile ) )
+            return true;
+
+        return false;
     }
 
     private AppContext _getContextFromMap( String host ){

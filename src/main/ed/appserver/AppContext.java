@@ -159,7 +159,7 @@ public class AppContext {
         // --- db
 
         if ( ! _isGrid ){
-            _scope.put( "db" , DBProvider.get( _name , this ) , true );
+            _scope.put( "db" , DBProvider.get( this ) , true );
             _scope.put( "setDB" , new JSFunctionCalls1(){
 
                     public Object call( Scope s , Object name , Object extra[] ){
@@ -170,12 +170,12 @@ public class AppContext {
                         if ( ! db.allowedToAccess( name.toString() ) )
                             throw new JSException( "you are not allowed to access db [" + name + "]" );
                         
-                        s.put( "db" , DBProvider.get( name.toString() , AppContext.this ) , false );
+                        s.put( "db" , DBProvider.get( AppContext.this , name.toString() ) , false );
 			_lastSetTo = name.toString();
                         
                         if ( _adminContext != null ){
                             // yes, i do want a new copy so Constructors don't get copied for both
-                            _adminContext._scope.put( "db" , DBProvider.get( name.toString() , AppContext.this ) , false );
+                            _adminContext._scope.put( "db" , DBProvider.get( AppContext.this , name.toString() ) , false );
                         }
                         
                         return true;
@@ -847,6 +847,21 @@ public class AppContext {
         _scope.put( "local" , _localObject , true );
         _scope.put( "jxp" , _localObject , true );
 	_scope.warn( "jxp" );
+    }
+
+    public static AppContext findThreadLocal(){
+        AppRequest req = AppRequest.getThreadLocal();
+        if ( req != null )
+            return req._context;
+
+        Scope s = Scope.getThreadLocal();
+        if ( s != null ){
+            Object foo = s.get( "__instance__" );
+            if ( foo instanceof AppContext )
+                return (AppContext)foo;
+        }
+
+        return null;
     }
 
     final String _name;
