@@ -62,12 +62,15 @@ public class PHPJxpSource extends JxpSource {
                     JxpScriptContext context = new JxpScriptContext( null , ar.getRequest() , ar.getResponse() , ar );
                     
                     QuercusPage page = new InterpretedPage(_program);
-
-                    ReaderWriterStream stream = new ReaderWriterStream( null , context.getWriter() );
-		    
-                    WriteStream out = new WriteStream(stream);
-                    out.setNewlineString("\n");
-                    out.setEncoding("utf-8");
+                    
+                    WriteStream out = (WriteStream)ar.getScope().get( "__phpwriter__" );
+                    if ( out == null ){
+                        ReaderWriterStream stream = new ReaderWriterStream( null , context.getWriter() );
+                        out = new WriteStream(stream);
+                        out.setNewlineString("\n");
+                        out.setEncoding("utf-8");
+                        ar.getScope().putExplicit( "__phpwriter__" , out );
+                    }
                     
                     Env env = new Env( _quercus, page, out , null, null);
                     env.setPwd( new com.caucho.vfs.FilePath( s.getRoot().getAbsolutePath() ) );
