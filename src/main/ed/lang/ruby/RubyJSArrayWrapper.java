@@ -41,12 +41,12 @@ public class RubyJSArrayWrapper extends RubyArray {
 
     RubyJSArrayWrapper(Scope s, org.jruby.Ruby runtime, JSArray obj) {
 	super(runtime, 0, null);
+	if (RubyObjectWrapper.DEBUG)
+	    System.err.println("  creating RubyJSArrayWrapper");
 	_scope = s;
 	_runtime = runtime;
 	_jsarray = obj;
 	js2ruby();
-	if (RubyObjectWrapper.DEBUG)
-	    System.err.println("  creating RubyJSArrayWrapper");
     }
 
     public JSArray getJSArray() { return _jsarray; }
