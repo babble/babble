@@ -16,7 +16,7 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ed.net.httpserver;
+package ed.net;
 
 import java.util.*;
 import java.text.*;
@@ -74,6 +74,18 @@ public class Cookie {
 
     public void setSecure( boolean secure ){
         _secure = secure;
+    }
+
+    public String getName(){
+        return _name;
+    }
+
+    public String getValue(){
+        return _value;
+    }
+
+    public String getPath(){
+        return _path;
     }
 
     final String _name;
