@@ -52,27 +52,26 @@ public class RubyJSObjectWrapperTest {
 
 	RubyObject top = (RubyObject)r.getTopSelf();
 	RubyClass eigenclass = top.getSingletonClass();
-	top.instance_variable_set(RubySymbol.newSymbol(r, "@data"), RubyObjectWrapper.toRuby(s, r, jobj, "data"));
-	eigenclass.attr_reader(r.getCurrentContext(), new IRubyObject[] {RubySymbol.newSymbol(r, "data")});
+	r.getGlobalVariables().set("$data", RubyObjectWrapper.toRuby(s, r, jobj));
     }
 
     public void testAccessors() {
-	assertEquals(RubyNumeric.num2long(r.evalScriptlet("data.count")), 1L);
-	assertEquals(RubyNumeric.num2long(r.evalScriptlet("data.count += 2; data.count")), 3L);
+	assertEquals(RubyNumeric.num2long(r.evalScriptlet("$data.count")), 1L);
+	assertEquals(RubyNumeric.num2long(r.evalScriptlet("$data.count += 2; $data.count")), 3L);
     }
 
     public void testMethodMissing() {
-	IRubyObject answer = r.evalScriptlet("data.hash");
+	IRubyObject answer = r.evalScriptlet("$data.hash");
 	assertTrue(answer instanceof RubyFixnum);
     }
 
     public void testMethodMissingNoSuchMethod() {
-	IRubyObject answer = r.evalScriptlet("data.xyzzy");
+	IRubyObject answer = r.evalScriptlet("$data.xyzzy");
 	assertEquals(answer, r.getNil());
     }
 
     public void testInstanceVariables() {
-	IRubyObject ro = r.evalScriptlet("data.instance_variables");
+	IRubyObject ro = r.evalScriptlet("$data.instance_variables");
 	assertNotNull(ro);
 	assertTrue(ro instanceof RubyArray);
 	RubyArray ra = (RubyArray)ro;
@@ -80,7 +79,7 @@ public class RubyJSObjectWrapperTest {
     }
 
     public void testPublicMethods() {
-	IRubyObject ro = r.evalScriptlet("data.public_methods");
+	IRubyObject ro = r.evalScriptlet("$data.public_methods");
 	assertNotNull(ro);
 	assertTrue(ro instanceof RubyArray);
 	RubyArray ra = (RubyArray)ro;
