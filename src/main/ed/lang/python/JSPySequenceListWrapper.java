@@ -145,12 +145,33 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
             if( s.equals( "length" ) ) return _p.__len__();
         }
 
-        int i = JSPySequenceListWrapper.checkInt( n );
-        if( i != -1 ){
-            return getInt( i );
+        try {
+            int i = JSPySequenceListWrapper.checkInt( n );
+            if( i != -1 ){
+                return getInt( i );
+            }
         }
-
+        catch(Exception e){
+            // JS semantics: fail silently
+        }
         return super.get( n );
+    }
+
+    public Object set( Object k , Object v ){
+        try {
+            int i = JSPySequenceListWrapper.checkInt( k );
+            if( i >= _pSeq.size() ){
+                for(int j = _pSeq.size(); j <= i; ++j){
+                    _pSeq.add(Py.None);
+                }
+            }
+            if( i != -1 )
+                return _pSeq.set( i , toPython( v ) );
+        }
+        catch(Exception e){
+            // shrug?
+        }
+        return super.set( k , v );
     }
 
     public static int checkInt( Object o ){
@@ -231,8 +252,8 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
     }
 
     /*    public int hashCode(){
-        return _pSeq.hashCode();
-        }*/
+          return _pSeq.hashCode();
+          }*/
 
     public Iterator iterator(){
         // FIXME
