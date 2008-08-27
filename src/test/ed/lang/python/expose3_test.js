@@ -14,7 +14,7 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-local.src.test.ed.lang.python.module2();
+local.src.test.ed.lang.python.expose3_helper();
 
 assert(somePythonFoo(4) == 5);
 assert(somePythonBar("kitties") == "kitties is great");

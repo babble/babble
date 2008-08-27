@@ -14,11 +14,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-pyX = getglobal('x')
-pyY = getglobal('y')
+cursor = db.coll.find()
 
-def pythonAddAttr(obj, k, v):
-    setattr(obj, k, v)
-
-def pythonAddFoo(obj):
-    obj.foo = "yippee"
+local.src.test.ed.lang.python.dbcursor1_template({
+        'result': {
+            'search_results' : cursor.toArray()
+            }
+        })

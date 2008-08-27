@@ -14,8 +14,10 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-o = {a: 1, b: 4};
-a = [ 17 , 18]
+local.src.test.ed.lang.python.callable1_helper();
 
-local.src.test.ed.lang.python.operators1py();
+assert( pyFoo.isCallable() );
+assert( ! pyBar.isCallable() );
 
+assert( pyCallable.isCallable() );
+assert( pyCallable2.isCallable() );
