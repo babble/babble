@@ -206,7 +206,6 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     }
 
     public Collection<String> keySet( boolean includePrototype ){
-        
         List<String> keys = new ArrayList<String>();
     
         if ( _p instanceof PyDictionary ){
@@ -223,8 +222,14 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
                 PyObject dict = _p.getDict();
                 
                 if( dict == null ){
-                    // try dir()??
-                    return keys;
+
+                    if( _p instanceof PyInstance ){
+                        dict = ((PyInstance)_p).__dict__;
+                    }
+
+                    if( dict == null )
+                        throw new RuntimeException("can't figure out how to get keyset for " + _p.getClass());
+
                 }
 
                 if( dict instanceof PyStringMap ){
@@ -240,7 +245,7 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
                             keys.add( o.toString() );
                     }
                     else
-                        throw new RuntimeException("can't figure out how to get keyset for " + dict.getClass() );
+                        throw new RuntimeException("can't figure out how to iterate " + dict.getClass() );
                 }
             }
         
