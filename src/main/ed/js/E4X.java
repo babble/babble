@@ -1825,17 +1825,6 @@ public class E4X {
                 return null;
         }
 
-        static class ETextNode extends ed.js.JSString {
-            public ETextNode( String s ){
-                super( s );
-            }
-            
-            public ETextNode( char [] c ){
-                super( c );
-            }
-        }
-
-
         public abstract class ENodeFunction extends JSFunctionCalls0 {
             public String toString() {
                 return getNode() == null ? "" : cnode.toString();
