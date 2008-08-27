@@ -632,7 +632,7 @@ public class E4X {
             return true;
         }
 
-        private ENode addNamespace( Object ns ) {
+        public ENode addNamespace( Object ns ) {
             this.addInScopeNamespace( new Namespace( ns ) );
             return this;
         }
@@ -643,7 +643,7 @@ public class E4X {
             }
         }
 
-        private ENode appendChild(Node child, ENode parent) {
+        public ENode appendChild(Node child, ENode parent) {
             if(parent.children == null)
                 parent.children = new XMLList();
 
@@ -665,7 +665,7 @@ public class E4X {
             }
         }
 
-        private String attribute( String prop ) {
+        public String attribute( String prop ) {
             Object o = this.get("@"+prop);
             return (o == null) ? "" : o.toString();
         }
@@ -682,7 +682,7 @@ public class E4X {
         }
 
 
-        private ENode child(Object propertyName) {
+        public ENode child(Object propertyName) {
             XMLList nodeList = ( this instanceof XMLList ) ? (XMLList)this : this.children;
             Pattern num = Pattern.compile("\\d+(\\.\\d+)?");
             Matcher m = num.matcher(propertyName.toString());
@@ -708,7 +708,7 @@ public class E4X {
             }
         }
 
-        private int childIndex() {
+        public int childIndex() {
             if( parent == null || parent.node.getNodeType() == Node.ATTRIBUTE_NODE || this.node.getNodeType() == Node.ATTRIBUTE_NODE )
                 return -1;
 
@@ -726,7 +726,7 @@ public class E4X {
             }
         }
 
-        private XMLList children() {
+        public XMLList children() {
             XMLList child = new XMLList();
             for( ENode n : this.children ) {
                 if( n.node.getNodeType() != Node.ATTRIBUTE_NODE )
@@ -784,7 +784,7 @@ public class E4X {
         };
 
 
-        private ENode descendants( String name ) {
+        public ENode descendants( String name ) {
             List kids = new LinkedList<ENode>();
 
             ENode childs = (ENode)this.get(name);
@@ -898,7 +898,7 @@ public class E4X {
         /**
          * Returns if this node contains complex content.  That is, if this node has child nodes that are element-type nodes.
          */
-        private boolean hasComplexContent() {
+        public boolean hasComplexContent() {
             if( this.isSimpleTypeNode() )
                 return false;
 
@@ -919,7 +919,7 @@ public class E4X {
          * Returns if this node contains simple content.  An XML node is considered to have 
          * simple content if it represents a text or attribute node or an XML element with no child elements.
          */
-        private boolean hasSimpleContent() {
+        public boolean hasSimpleContent() {
             if( this.node == null ) 
                 return false;
             short type = this.node.getNodeType();
@@ -940,7 +940,7 @@ public class E4X {
             }
         }
 
-        private ArrayList<Namespace> inScopeNamespaces() {
+        public ArrayList<Namespace> inScopeNamespaces() {
             ArrayList<Namespace> isn = new ArrayList<Namespace>();
             isn.add( this.defaultNamespace );
             ENode temp = this;
@@ -965,11 +965,11 @@ public class E4X {
             }
         }
 
-        private ENode insertChildAfter(Object child1, ENode child2) {
+        public ENode insertChildAfter(Object child1, ENode child2) {
             return _insertChild(child1, child2, 1);
         }
 
-        private ENode insertChildBefore(Object child1, ENode child2) {
+        public ENode insertChildBefore(Object child1, ENode child2) {
             return _insertChild(child1, child2, 0);
         }
 
@@ -1011,7 +1011,7 @@ public class E4X {
             }
         }
 
-        private String localName() {
+        public String localName() {
             return this.name.localName;
         }
 
@@ -1021,7 +1021,7 @@ public class E4X {
             }
         }
 
-        private QName name() {
+        public QName name() {
             if( this.name != null && ( this.name.uri == null || this.name.uri.equals( "" )) && !this.defaultNamespace.uri.equals( "" ) )
                 return new QName( defaultNamespace, this.name.localName );
             return this.name;
@@ -1033,11 +1033,11 @@ public class E4X {
             }
         }
 
-        private Namespace namespace() {
+        public Namespace namespace() {
             return namespace( null );
         }
 
-        private Namespace namespace( String prefix ) {
+        public Namespace namespace( String prefix ) {
             if( prefix == null ) {
                 return new Namespace( this.name.localName, this.name.uri );
             }
@@ -1073,7 +1073,7 @@ public class E4X {
             return ancestors;
         }
 
-        private ArrayList<Namespace> namespaceDeclarations() {
+        public ArrayList<Namespace> namespaceDeclarations() {
             ArrayList<Namespace> a = new ArrayList<Namespace>();
             if( this instanceof XMLList || this.isSimpleTypeNode( ) )
                 return a;
@@ -1098,7 +1098,7 @@ public class E4X {
             }
         }
 
-        private String nodeKind() {
+        public String nodeKind() {
             switch ( this.node.getNodeType() ) {
             case Node.ELEMENT_NODE :
                 return "element";
@@ -1121,7 +1121,7 @@ public class E4X {
             }
         }
 
-        private ENode normalize() {
+        public ENode normalize() {
             int i=0;
             while( i< this.children.size()) {
                 if( this.children.get(i).node.getNodeType() == Node.ELEMENT_NODE ) {
@@ -1191,7 +1191,7 @@ public class E4X {
          * So, the spec says that this should only return toString(prop) == "0".  However, the Rhino implementation returns true
          * whenever prop is a valid index, so I'm going with that.
          */
-        private boolean propertyIsEnumerable( String prop ) {
+        public boolean propertyIsEnumerable( String prop ) {
             Pattern num = Pattern.compile("\\d+");
             Matcher m = num.matcher(prop);
             if( m.matches() ) {
@@ -1207,7 +1207,7 @@ public class E4X {
             }
         }
 
-        private ENode removeNamespace(Object namespace) {
+        public ENode removeNamespace(Object namespace) {
             if( this instanceof XMLList || this.isSimpleTypeNode() ) 
                 return this;
 
@@ -1259,7 +1259,7 @@ public class E4X {
             }
         }
 
-        private Object setChildren( Object value ) {
+        public Object setChildren( Object value ) {
             this.set("*", value);
             return this;
         }
@@ -1271,7 +1271,7 @@ public class E4X {
             }
         }
 
-        private void setLocalName( Object name ) {
+        public void setLocalName( Object name ) {
             if( this.node == null ||
                 this.node.getNodeType() == Node.TEXT_NODE ||
                 this.node.getNodeType() == Node.COMMENT_NODE )
@@ -1297,7 +1297,7 @@ public class E4X {
          * </dl>
          * @param name Either a string or QName representing the new name
          */
-        private void setName( Object name ) {
+        public void setName( Object name ) {
             if( this.node == null ||
                 this.node.getNodeType() == Node.TEXT_NODE ||
                 this.node.getNodeType() == Node.COMMENT_NODE )
@@ -1330,7 +1330,7 @@ public class E4X {
             }
         }
 
-        private void setNamespace( Object ns) {
+        public void setNamespace( Object ns) {
             if( this.node == null ||
                 this.node.getNodeType() == Node.TEXT_NODE ||
                 this.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE ||
@@ -1360,7 +1360,7 @@ public class E4X {
             }
         }
 
-        private XMLList text() {
+        public XMLList text() {
             XMLList list = new XMLList();
             if( this instanceof XMLList ) {
                 for ( ENode n : (XMLList)this ) {
