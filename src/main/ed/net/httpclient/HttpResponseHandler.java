@@ -22,7 +22,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-import ed.net.httpserver.*;
+import ed.net.*;
 
 /**
  *

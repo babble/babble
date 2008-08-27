@@ -145,7 +145,50 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
             if( s.equals( "length" ) ) return _p.__len__();
         }
 
+        int i = JSPySequenceListWrapper.checkInt( n );
+        if( i != -1 ){
+            return getInt( i );
+        }
+
         return super.get( n );
+    }
+
+    public static int checkInt( Object o ){
+        if ( o == null )
+            return -1;
+
+        if ( o instanceof Number )
+            return ((Number)o).intValue();
+
+        if ( o instanceof JSString )
+            o = o.toString();
+
+        if ( ! ( o instanceof String ) )
+            return -1;
+
+        String str = o.toString();
+	if ( str.length() == 0 )
+	    return -1;
+	
+        for ( int i=0; i<str.length(); i++ )
+            if ( ! Character.isDigit( str.charAt( i ) ) )
+                return -1;
+
+        try {
+            return Integer.parseInt( str );
+        }
+        catch(Exception e){
+            return -1;
+        }
+    }
+    
+    public Object getInt( int i ){
+        Object o = super.getInt( i );
+        if( o == null ){ // FIXME: containsKey()
+            o = toJS( _pSeq.get( i ) );
+        }
+
+        return o;
     }
     
     public Object removeField( Object n ){
@@ -201,13 +244,15 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
     }
 
     public boolean removeAll( Collection c ){
-        // FIXME
+        for( Object o : c ){
+            _pSeq.remove( toPython( o ) );
+        }
         return false;
     }
 
     public Object set( int index , Object element ){
-        // FIXME
-        return null;
+        _pSeq.__setitem__( index, toPython( element ) );
+        return element;
     }
 
     public int size(){
@@ -246,7 +291,7 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
     }
 
     public Object get( int index ){
-        return toJS( _pSeq.get( index ) );
+        return getInt( index );
     }
 
     public int indexOf( Object o ){
