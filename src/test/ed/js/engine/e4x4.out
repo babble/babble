@@ -22,3 +22,16 @@ zap
 </blargh>
 ME
 EY
+<blargh>
+  <a>b</a>
+</blargh>
+<blargh>
+  <foo>bar</foo>
+  <hi>bye</hi>
+</blargh>
+<blargh>
+  <blargh>
+    <foo>bar</foo>
+    <hi>bye</hi>
+  </blargh>
+</blargh>

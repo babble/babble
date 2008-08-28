@@ -51,3 +51,11 @@ print(xml);
 print( xml.name.toUpperCase() );
 xml.name.appendChild( "you" );
 print( xml.name.substring( 1 , 3 ).toUpperCase() );
+
+// setChildren
+xml.setChildren( <a>b</a> );
+print( xml );
+xml.setChildren( <foo>bar</foo> + <hi>bye</hi> );
+print( xml );
+xml.setChildren( xml );
+print( xml );
