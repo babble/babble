@@ -47,9 +47,14 @@ public class PHPJSObjectClassDef extends JavaClassDef {
     
     static class Adapter extends JavaAdapter {
         Adapter( Env env , JSObject obj , PHPJSObjectClassDef def ){
+            this( env , obj , def , PHP.getConvertor( env ) );
+        }
+
+        Adapter( Env env , JSObject obj , PHPJSObjectClassDef def , PHPConvertor convertor ){
             super( env , obj , def );
             _object = obj;
-            _convertor = PHP.getConvertor( env );
+            _convertor = convertor;
+            _def = def;
             if ( PHP.DEBUG ) System.out.println( "wrapping : " + obj );
         }
         
@@ -137,15 +142,16 @@ public class PHPJSObjectClassDef extends JavaClassDef {
         }
         
         public Value copy(Env env, IdentityHashMap<Value,Value> map){
-            throw new UnimplementedException();
+            return new Adapter( env , _object , _def , _convertor ); 
         }
         
         public Value copy(){
-            throw new UnimplementedException();
+            return new Adapter( getEnv() , _object , _def , _convertor ); 
         }
 
         final JSObject _object;
         final PHPConvertor _convertor;
+        final PHPJSObjectClassDef _def;
     }
 
 

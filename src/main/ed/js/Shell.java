@@ -79,7 +79,18 @@ public class Shell {
         public Object call( Scope s , Object name , Object ip , Object crap[] ){
             if ( name == null )
                 throw new NullPointerException( "connect requires a name" );
-            return DBProvider.get( name.toString() , ip == null ? null : ip.toString() );
+
+            
+            String url = name.toString();
+            if ( ip != null )
+                url = ip.toString() + "/" + name;
+            
+            try {
+                return DBProvider.get( url );
+            }
+            catch ( java.net.UnknownHostException un ){
+                throw new RuntimeException( "bad db url [" + url + "]" );
+            }
         }
 
     }

@@ -14,9 +14,7 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-local.src.test.ed.lang.python.tuple1py();
+o = {a: 1, b: 4};
 
-assert( pythonTuple.length == 3 );
-assert.raises( function(){ pythonTuple[0] = 5; });
-assert.raises( function(){ pythonTuple.push(8); });
+local.src.test.ed.lang.python.expand4_helper();
 

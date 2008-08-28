@@ -126,7 +126,7 @@ public class Config extends Properties {
 
     public String getTryEnvFirst( String name , String def ){
         String s = System.getenv( name );
-        if ( s != null )
+        if ( s != null && s.trim().length() > 0 )
             return s;
         
         return getProperty( name , def );

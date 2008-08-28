@@ -27,7 +27,7 @@ public class LogReplayer {
             return;
         }
         
-        String host = cl.getOptionValue( "h" , DBProvider.getDefaultHost() );
+        String host = cl.getOptionValue( "h" , DBAddress.defaultHost() );
         int port = Integer.parseInt( cl.getOptionValue( "p" , String.valueOf( DBPort.PORT ) ) );
 
         System.out.println( "host:" + host );

@@ -600,19 +600,23 @@ public abstract class DBCollection extends JSObjectLame {
         if ( foo != null )
             return foo;
 
-        if ( _methods == null ){
-            Set<String> temp = new HashSet<String>();
-            for ( Method m : this.getClass().getMethods() )
-                temp.add( m.getName() );
-            _methods = temp;
-        }
-
         String s = n.toString();
-
-        if ( _methods.contains( s ) )
+        
+        if ( _getJavaMethods().contains( s ) )
             return null;
 
         return getCollection( s );
+    }
+
+    public Collection<String> keySet( boolean includePrototype ){
+        Set<String> set = new HashSet<String>();
+        
+        set.addAll( _entries.keySet() );
+        set.addAll( _base._collectionPrototype.keySet() );
+        set.addAll( _getJavaMethods() );
+
+        // TODO: ? add sub collection names
+        return set;
     }
 
     /** Find a collection that is prefixed with this collection's name.
@@ -694,6 +698,16 @@ public abstract class DBCollection extends JSObjectLame {
         return "{DBCollection:" + _name + "}";
     }
 
+    private Set<String> _getJavaMethods(){
+        if ( _javaMethods == null ){
+            Set<String> temp = new HashSet<String>();
+            for ( Method m : this.getClass().getMethods() )
+                temp.add( m.getName() );
+            _javaMethods = temp;
+        }
+        return _javaMethods;
+    }
+
     /** @unexpose */
     final DBBase _base;
 
@@ -707,7 +721,7 @@ public abstract class DBCollection extends JSObjectLame {
     final JSFunction _find;
 
     /** @unexpose */
-    static Set<String> _methods;
+    static Set<String> _javaMethods;
 
     /** @unexpose */
     protected Map _entries = new TreeMap();

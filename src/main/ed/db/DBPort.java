@@ -17,31 +17,19 @@ public class DBPort {
     static final long CONN_RETRY_TIME_MS = 15000;
     
 
-    DBPort()
+    DBPort( InetSocketAddress addr )
         throws IOException {
-        this( "127.0.0.1" , PORT );
+        this( addr , null );
     }
     
-    DBPort( String host )
+    DBPort( InetSocketAddress addr  , DBPortPool pool )
         throws IOException {
-        this( host , PORT );
-    }
-    
-    DBPort( String host , int port )
-        throws IOException {
-        this( host , port , null );
-    }
-    
-    DBPort( String host , int port , DBPortPool pool )
-        throws IOException {
-        _host = host;
-        _port = port;
+        _addr = addr;
         _pool = pool;
 
         _array[0].order( Bytes.ORDER );
-        _addr = new InetSocketAddress( _host , _port );
 
-        _hashCode = _host.hashCode() + _port;
+        _hashCode = _addr.hashCode();
 
         _open();
     }
@@ -148,7 +136,7 @@ public class DBPort {
     }
     
     public String host(){
-        return _host + ":" + _port;
+        return _addr.toString();
     }
     
     public String toString(){
@@ -159,8 +147,6 @@ public class DBPort {
         System.err.println( "DBPort " + host() + " " + msg );
     }
     
-    final String _host;
-    final int _port;
     final int _hashCode;
     final InetSocketAddress _addr;
     final DBPortPool _pool;

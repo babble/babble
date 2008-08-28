@@ -14,10 +14,10 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-local.src.test.ed.lang.python.callable1py();
+local.src.test.ed.lang.python.tuple1_helper();
 
-assert( pyFoo.isCallable() );
-assert( ! pyBar.isCallable() );
+assert( pythonTuple.length == 3 );
+assert( pythonTuple[0] == 5 );
+assert( pythonTuple[1] == 8 );
+assert( pythonTuple[2] == 13 );
 
-assert( pyCallable.isCallable() );
-assert( pyCallable2.isCallable() );

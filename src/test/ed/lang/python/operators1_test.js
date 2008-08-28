@@ -14,11 +14,8 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-db = connect("pytest");
+o = {a: 1, b: 4};
+a = [ 17 , 18]
 
-db.coll.save( { funny: 1 } );
-
-local.src.test.ed.lang.python.dbcursor1py();
-
-db.coll.remove( { } );
+local.src.test.ed.lang.python.operators1_helper();
 
