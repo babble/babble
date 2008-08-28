@@ -14,22 +14,26 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var someData = {x: 142, y: 'hi'};
+local.src.test.ed.lang.python.kwargs1_helper();
 
-getglobal = function(x){
-    return someData[x];
-};
+var result = pyFoo.apply(null, [1, 2, 3], {a: 'a', b: 'b'});
+
+var args = result[0];
+var kwargs = result[1];
+assert.eq( args.length , 3 );
+assert.eq( args[0] , 1 );
+assert.eq( args[1] , 2 );
+assert.eq( args[2] , 3 );
+
+assert.eq( kwargs.a , 'a' );
+assert.eq( kwargs.b , 'b' );
 
 
-local.src.test.ed.lang.python.module();
+var result = pyBar.apply(null, [], {b: 'b', c: 'cookie', a: 23});
+assert.eq( result[0] , 'cookie' );
+assert.eq( result[1] , 'b' );
+assert.eq( result[2] , 23 );
 
-assert( pyX == someData.x );
-assert( pyY == someData.y );
-
-pythonAddAttr(someData, 'z', 11);
-
-assert( someData.z == 11 );
-
-pythonAddFoo(someData);
-
-assert( someData.foo == "yippee" );
+assert.raises( function(){
+    pyBar.apply(null, [1], {b: 'b', c: 'cookie', a: 23});
+} );

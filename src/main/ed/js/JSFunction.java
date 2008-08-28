@@ -349,11 +349,7 @@ public abstract class JSFunction extends JSFunctionBase {
     }
 
     public boolean isCallable(){
-        return _callable;
-    }
-
-    public void setCallable( boolean callable ){
-        _callable = callable;
+        return true;
     }
 
     private final Scope _scope;
@@ -367,7 +363,6 @@ public abstract class JSFunction extends JSFunctionBase {
 
     protected JSArray _arguments;
     protected String _name = "NO NAME SET";
-    protected boolean _callable = true;
 
     private LRUCache<Long,Pair<Object,String>> _callCache;
     private Semaphore _callCacheSem = new Semaphore( 1 );

@@ -47,9 +47,14 @@ public class PHPJSObjectClassDef extends JavaClassDef {
     
     static class Adapter extends JavaAdapter {
         Adapter( Env env , JSObject obj , PHPJSObjectClassDef def ){
+            this( env , obj , def , PHP.getConvertor( env ) );
+        }
+
+        Adapter( Env env , JSObject obj , PHPJSObjectClassDef def , PHPConvertor convertor ){
             super( env , obj , def );
             _object = obj;
-            _convertor = PHP.getConvertor( env );
+            _convertor = convertor;
+            _def = def;
             if ( PHP.DEBUG ) System.out.println( "wrapping : " + obj );
         }
         
@@ -71,16 +76,21 @@ public class PHPJSObjectClassDef extends JavaClassDef {
             s = s.child();
             
             s.setThis( _object );
-	    func.getScope( true ).set( "print" , new JSFunctionCalls1(){
+            
+            JSFunction myPrint = new JSFunctionCalls1(){
 		    public Object call( Scope s , Object o , Object[] extra ){
 			env.print( o );
 			return null;
 		    }
-		} );
+                };
+
+	    s.set( "print" , myPrint );
+            func.getScope( true ).set( "print" , myPrint );
+
             Object ret = func.call( s , _convertor.toJS( args ) );
             return wrapJava( ret );
         }
-	
+        
         public Value get(Value key){
             if ( PHP.DEBUG ) System.out.println( "GET:" + key );
             Object value = _object.get( key.toJavaObject() );
@@ -132,15 +142,16 @@ public class PHPJSObjectClassDef extends JavaClassDef {
         }
         
         public Value copy(Env env, IdentityHashMap<Value,Value> map){
-            throw new UnimplementedException();
+            return new Adapter( env , _object , _def , _convertor ); 
         }
-
+        
         public Value copy(){
-            throw new UnimplementedException();
+            return new Adapter( getEnv() , _object , _def , _convertor ); 
         }
 
         final JSObject _object;
         final PHPConvertor _convertor;
+        final PHPJSObjectClassDef _def;
     }
 
 

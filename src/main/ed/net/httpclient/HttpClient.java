@@ -27,7 +27,7 @@ import bak.pcj.map.*;
 
 import ed.io.*;
 import ed.log.*;
-import ed.net.httpserver.*;
+import ed.net.*;
 import ed.util.*;
 
 /**
@@ -279,7 +279,7 @@ public class HttpClient {
                 c.setDomain( value );
             else if ( name.equalsIgnoreCase("expires") ){
                 try {
-                    c.setExpiryDate( ed.net.httpserver.Cookie.COOKIE_DATE_FORMAT.parse( value ) );
+                    c.setExpiryDate( Cookie.COOKIE_DATE_FORMAT.parse( value ) );
                 }
                 catch ( Exception e ){
                     if ( DEBUG ) LOGGER.log( DEBUG_LEVEL , "couldn't parse date : " + value );

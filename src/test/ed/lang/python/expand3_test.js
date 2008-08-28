@@ -14,10 +14,9 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-local.src.test.ed.lang.python.callNative();
+jsMap = {a: 1, b: 4};
 
-var echoOut = callSysexec('echo hi there');
+jsArray = [4, 8, 2];
 
-print(tojson(echoOut));
+local.src.test.ed.lang.python.expand3_helper();
 
-assert(echoOut.out == "hi there\n");

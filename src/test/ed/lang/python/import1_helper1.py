@@ -19,4 +19,4 @@ assert jsFoo == 14
 import _10gen as js
 assert js.jsFoo == 14
 
-import import1py2
+import import1_helper2

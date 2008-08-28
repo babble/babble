@@ -28,8 +28,8 @@ import javax.net.ssl.*;
 import ed.io.*;
 import ed.js.func.*;
 import ed.js.engine.*;
+import ed.net.*;
 import ed.net.httpclient.*;
-import ed.net.httpserver.*;
 
 /** @expose */
 public class XMLHttpRequest extends JSObjectBase {

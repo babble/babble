@@ -31,6 +31,7 @@ import ed.js.func.*;
 import ed.js.engine.*;
 import ed.log.*;
 import ed.util.*;
+import ed.net.*;
 import ed.appserver.*;
 
 /**
@@ -375,8 +376,8 @@ public class HttpResponse extends JSObjectBase {
         // cookies
         for ( Cookie c : _cookies ){
             a.append( "Set-Cookie: " );
-            a.append( c._name ).append( "=" ).append( c._value ).append( ";" );
-	    a.append( " " ).append( "Path=" ).append( c._path ).append( ";" );
+            a.append( c.getName() ).append( "=" ).append( c.getValue() ).append( ";" );
+	    a.append( " " ).append( "Path=" ).append( c.getPath() ).append( ";" );
             String expires = c.getExpires();
             if ( expires != null )
                 a.append( "Expires=" ).append( expires ).append( "; " );

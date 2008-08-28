@@ -14,10 +14,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-cursor = db.coll.find()
+# Used by both expose1_test and expose2_test
 
-local.src.test.ed.lang.python.dbcursor1dj({
-        'result': {
-            'search_results' : cursor.toArray()
-            }
-        })
+pyX = getglobal('x')
+pyY = getglobal('y')
+
+def pythonAddAttr(obj, k, v):
+    setattr(obj, k, v)
+
+def pythonAddFoo(obj):
+    obj.foo = "yippee"
