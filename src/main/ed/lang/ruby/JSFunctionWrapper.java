@@ -29,7 +29,7 @@ import static ed.lang.ruby.RubyObjectWrapper.toJS;
 import static ed.lang.ruby.RubyObjectWrapper.toRuby;
 
 /**
- * RubyJSObjectWrapper acts as a bridge between Ruby blocks and JSFunctions.
+ * JSFunctionWrapper acts as a bridge between Ruby blocks and JSFunctions.
  * Ruby blocks can be called as if they are JSFunctions.
  */
 public class JSFunctionWrapper extends JSFunctionCalls0 {
