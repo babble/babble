@@ -225,14 +225,7 @@ public class E4X {
 
             this.node = n.node.cloneNode( false );
             this.inScopeNamespaces = (ArrayList<Namespace>)n.inScopeNamespaces.clone();
-            // move to xmllist?
-            if( n instanceof XMLList ) {
-                for( ENode child : (XMLList)n ) {
-                    ENode temp = child.copy();
-                    ((XMLList)this).add( temp );
-                }
-            }
-            else if( n.children != null ) {
+            if( n.children != null ) {
                 this.children = new XMLList();
                 for( ENode child : n.children ) {
                     ENode temp = child.copy();
@@ -319,7 +312,7 @@ public class E4X {
                     this.addInScopeNamespace( ns );
                 }
             }
-            if( !seenDefaultNamespace && !XML.defaultNamespace.uri.equals( "" ) ) {
+            if( !seenDefaultNamespace ) {
                 this.addInScopeNamespace( XML.defaultNamespace );
                 this.defaultNamespace = XML.defaultNamespace;
             }
@@ -789,7 +782,40 @@ public class E4X {
         }
 
         public boolean contains( ENode o ) {
-            return this.node.isEqualNode(o.node);
+            if( this instanceof XMLList && o instanceof XMLList ) {
+                XMLList x = (XMLList)this;
+                XMLList x2 = (XMLList)o;
+                if( x.size() != x2.size() )
+                    return false;
+                for( int i=0; i < x.size(); i++ ) {
+                    if( !x.get(i).contains( x2.get(i) ) ) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            else if( !(this instanceof XMLList) && !(o instanceof XMLList) ) {
+                if( !this.name.equals( o.name ) ||
+                    !this.node.isEqualNode( o.node ) ) 
+                    //                    !this.inScopeNamespaces.equals( o.inScopeNamespaces ) )
+                    return false;
+
+                if( ( this.children == null && o.children != null ) ||
+                    ( this.children != null && o.children == null ) )
+                    return false;
+
+                if( this.children != null ) {
+                    if( this.children.size() != o.children.size() )
+                        return false;
+                    for( int i=0; i<this.children.size(); i++ ) {
+                        if( !this.children.get( i ).contains( o.children.get( i ) ) ) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+            return false;
         }
 
         // this is to spec, but doesn't seem right... it's "equals", not "contains"
@@ -984,12 +1010,7 @@ public class E4X {
 
         public class inScopeNamespaces extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
-                ArrayList<Namespace> isn = getENode( s ).inScopeNamespaces();
-                JSArray a = new JSArray();
-                for( Namespace ns : isn ) {
-                    a.add( ns );
-                }
-                return a;
+                return new JSArray( getENode( s ).inScopeNamespaces().toArray() );
             }
         }
 
@@ -1245,8 +1266,6 @@ public class E4X {
                 return this;
 
             Namespace ns = new Namespace( namespace );
-            if( ns.equals( this.namespace() ) )
-                return this;
 
             if( ns.prefix == null || ns.prefix.equals( "" ) ) {
                 for( int i=0; i < this.inScopeNamespaces.size(); i++ ) {
@@ -1681,8 +1700,6 @@ public class E4X {
         private void addInScopeNamespace( Namespace n ) {
             if ( this.node == null || this.isSimpleTypeNode() )
                 return;
-            if( ( n.prefix == null || n.prefix.equals( "" ) ) && ( n.uri == null || n.uri.equals( "" ) ) )
-                return;
 
             ArrayList<Namespace> match = this.getNamespaces( n.prefix );
             for( Namespace ns : this.inScopeNamespaces ) {
@@ -1914,7 +1931,6 @@ public class E4X {
     }
 
     static Object _nodeGet( XMLList start , String s ){
-        //        System.out.println("start: "+start+" s: "+s);
         final boolean search = s.startsWith( ".." );
         if ( search )
             s = s.substring(2);
@@ -1960,8 +1976,6 @@ public class E4X {
 
                 for ( int i=0; i<kids.size(); i++ ){
                     ENode c = kids.get(i);
-                    //                    System.out.println("name? "+c.name);
-                    //                    System.out.println("all? "+all+" this: "+c+" name: "+c.name+" type: "+c.node.getNodeName()+" s: "+s);
                     if ( !attr && c.node.getNodeType() != Node.ATTRIBUTE_NODE && 
                          ( all || 
                            ( ( c.node.getNodeType() == Node.TEXT_NODE && c.text().equals( s ) ) || c.node.getNodeType() != Node.TEXT_NODE ) &&
@@ -2065,6 +2079,14 @@ public class E4X {
         public String toString() {
             String s = this.uri == null ? "*::" : ( this.uri.equals("") ? "" : this.uri + "::" );
             return s + this.localName;
+        }
+
+        public boolean equals( QName o ) {
+            if( ( ( this.localName == null && o.localName == null) || (this.localName != null && this.localName.equals( o.localName ) ) ) &&
+                ( ( this.uri == null && o.uri == null ) || ( this.uri != null && this.uri.equals( o.uri ) ) ) &&
+                ( ( this.prefix == null && o.prefix == null ) || ( this.prefix != null && this.prefix.equals( o.prefix ) ) ) )
+                return true;
+            return false;
         }
 
         public Namespace getNamespace() {
