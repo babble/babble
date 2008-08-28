@@ -56,3 +56,22 @@ xml.removeNamespace( ns );
 xml=<x xmlns:foo="bar"><y>z</y></x>;
 xml.setNamespace("foo.foo.foo");
 print( xml );
+xml.setNamespace("b.b.b.foo");
+print( xml );
+
+// copying
+abc = <a x="y"><b foo="bar">c<!-- comment --></b></a>;
+abcCopy = abc.copy();
+print( abc == abcCopy );
+
+abcList = <a>b</a>+<a>c</a>+<a foo="bar">d</a>;
+abcCopy = abcList.copy();
+print( abcList == abcCopy );
+print( abc == abcList );
+
+// namespace stuff
+xml = <x><y>z</y></x>;
+xml.setNamespace( ns );
+print( xml.inScopeNamespaces().join(",") );
+print( xml.removeNamespace( ns ) );
+print( xml.inScopeNamespaces().length + " " + xml.y.inScopeNamespaces().length );

@@ -29,3 +29,14 @@ ns: bar
 <x xmlns:foo="bar" xmlns:foo-1="foo.foo.foo" xmlns="foo.foo.foo">
   <y>z</y>
 </x>
+<x xmlns:foo="bar" xmlns:foo-1="foo.foo.foo" xmlns:foo-2="b.b.b.foo" xmlns="b.b.b.foo">
+  <y>z</y>
+</x>
+true
+true
+false
+,bar
+<foo:x>
+  <y>z</y>
+</foo:x>
+1 1
