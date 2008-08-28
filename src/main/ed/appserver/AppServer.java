@@ -733,7 +733,7 @@ public class AppServer implements HttpHandler {
 
 
         String webRoot = "/data/sites/admin/";
-        String serverRoot = "/data/sites";
+        String sitesRoot = "/data/sites";
 
         int portNum = DEFAULT_PORT;
 
@@ -757,6 +757,9 @@ public class AppServer implements HttpHandler {
             else if ("--serverroot".equals(args[i])) {
             	JSHook.whereIsEd = args[++i];
             }
+	    else if ( "--sitesRoot".equals( args[i] ) ){
+		sitesRoot = args[++i];
+	    }
             else {
                 if (i != aLength - 1) {
                     System.out.println("error - unknown param " + args[i]);
@@ -767,17 +770,17 @@ public class AppServer implements HttpHandler {
                 }
             }
         }
-
+	
         System.out.println("==================================");
         System.out.println("  10gen AppServer vX");
         System.out.println("     listen port = " + portNum);
         System.out.println("     server root = " + JSHook.whereIsEd);
         System.out.println("         webRoot = " + webRoot);
-        System.out.println("      serverRoot = " + serverRoot);
+        System.out.println("       sitesRoot = " + sitesRoot);
         System.out.println("     listen port = " + portNum);
         System.out.println("==================================");
 
-        AppServer as = new AppServer( webRoot , serverRoot);
+        AppServer as = new AppServer( webRoot , sitesRoot );
 
         HttpServer.addGlobalHandler( as );
 
