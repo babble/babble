@@ -183,7 +183,7 @@ public class ServletWriter extends JSFunctionCalls1 {
         if ( allowTagHandlers && _tagHandlers != null ){
             JSFunction func = _tagHandlers.get( tag );
             if ( func != null ){
-                Object res = func.call( func.getScope() , s );
+                Object res = func.call( func.getScope() , new JSString( s ) );
                 if ( res != null ){
                     print( res.toString() , false );
                     return true;
