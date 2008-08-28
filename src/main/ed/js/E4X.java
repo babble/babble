@@ -234,7 +234,14 @@ public class E4X {
             }
         }
 
-        // creates an empty node with a given parent and tag name
+        /** Creates an empty node with a given parent and tag name.
+         * This is to create "fake" nodes that are not attached to a parent.
+         * @example 
+         * xml = &lt;x/&gt;
+         * xml.foo.bar;        // legal, so a "fake" node must be created 
+         *                     // for foo so that bar doesn't throw an exception
+         * xml.foo.bar = "hi"; // now the set method attaches the "fake" nodes to the parent
+         */
         private ENode( ENode parent, Object o ) {
             if( parent instanceof XMLList && ((XMLList)parent).get(0) != null ) {
                 parent = ((XMLList)parent).get(0);
@@ -246,6 +253,9 @@ public class E4X {
             nodeSetup(parent);
         }
 
+        /** Sets this node's parent, points it to the XML constructor, gets
+         * the namespace, attributes, and initializes functions for it.
+         */
         void nodeSetup( ENode parent ) {
             this.parent = parent;
             if( this.parent != null ) {
@@ -274,7 +284,8 @@ public class E4X {
             }
         }
 
-        // finds and sets the qname and namespace for a node.
+        /** finds and sets the qname and namespace for a node.
+         */
         void getNamespace() {
             this.inScopeNamespaces = new ArrayList<Namespace>();
 
@@ -329,6 +340,13 @@ public class E4X {
             }
         }
 
+        /** Initializes the functions that can be called on a node. 
+         * XML nodes can have the same names as the functions one can call on a node.
+         * Thus, if one calls xml.get( "copy" ), the get function doesn't know whether
+         * to return the copy function or a node called "copy".  Thus, it returns both
+         * in the form of a combination function and XML node object.  These are 
+         * initialized below.
+         */
         void addNativeFunctions() {
             nativeFuncs.put("addNamespace", new addNamespace());
             nativeFuncs.put("appendChild", new appendChild());
@@ -371,6 +389,8 @@ public class E4X {
             nativeFuncs.put("valueOf", new valueOf());
         }
 
+        /** Transforms the Java DOM into the E4X DOM.
+         */
         void buildENodeDom(ENode parent) {
             NodeList kids = parent.node.getChildNodes();
             for( int i=0; i<kids.getLength(); i++) {
@@ -383,6 +403,8 @@ public class E4X {
             }
         }
 
+        /** Turns a string into a DOM.
+         */
         void init( String s ){
             // get rid of newlines and spaces if ignoreWhitespace is set (default)
             // otherwise each block of whitespace will become a text node... blech
@@ -403,6 +425,8 @@ public class E4X {
 
         Hashtable<String, ENodeFunction> nativeFuncs = new Hashtable<String, ENodeFunction>();
 
+        /** @getter
+         */
         public Object get( Object n ) {
             if ( n == null )
                 return null;
@@ -448,6 +472,8 @@ public class E4X {
             throw new RuntimeException( "can't handle : " + n.getClass() );
         }
 
+        /** @setter
+         */
         public Object set( Object k, Object v ) {
             if( v == null ) 
                 v = "null";
@@ -636,6 +662,11 @@ public class E4X {
             return true;
         }
 
+        /** 
+         * Adds a namespace declaration to the scope namespace.
+         * If this scope namespace already contains a namespace <pre>x</pre> with the
+         * same prefix, the prefix of <pre>x</pre> is set to <pre>null</pre>.
+         */
         public ENode addNamespace( Object ns ) {
             this.addInScopeNamespace( new Namespace( ns ) );
             return this;
@@ -647,7 +678,7 @@ public class E4X {
             }
         }
 
-        public ENode appendChild(Node child, ENode parent) {
+        private ENode appendChild(Node child, ENode parent) {
             if(parent.children == null)
                 parent.children = new XMLList();
 
@@ -657,7 +688,10 @@ public class E4X {
             return this;
         }
 
-        private ENode appendChild(ENode child) {
+        /**
+         * Appends a given child to this element's properties.
+         */
+        public ENode appendChild(ENode child) {
             return appendChild(child.node, this);
         }
 
@@ -669,9 +703,12 @@ public class E4X {
             }
         }
 
-        public String attribute( String prop ) {
-            Object o = this.get("@"+prop);
-            return (o == null) ? "" : o.toString();
+        /**
+         * Returns a list of zero or one attributes whose name matches 
+         * the given property name.
+         */
+        public XMLList attribute( String prop ) {
+            return new XMLList( (ENode)this.get("@"+prop) );
         }
 
         public class attribute extends ENodeFunction {
@@ -679,13 +716,23 @@ public class E4X {
                 return getENode( s ).attribute( getOneArg( foo ).toString() );
             }
         }
+
+        /**
+         * Returns this node's attributes.
+         */
+        public XMLList attributes() {
+            return new XMLList( (ENode)this.get( "@*" ) );
+        }
+
         public class attributes extends ENodeFunction {
             public Object call( Scope s, Object foo[] ) {
-                return getENode( s ).get( "@*" );
+                return getENode( s ).attributes();
             }
         }
 
-
+        /**
+         * Returns children matching a given name or index.
+         */
         public ENode child( Object propertyName ) {
             XMLList nodeList = ( this instanceof XMLList ) ? (XMLList)this : this.children;
             Pattern num = Pattern.compile("\\d+(\\.\\d+)?");
@@ -712,8 +759,13 @@ public class E4X {
             }
         }
 
+        /**
+         * Returns a number representing the position of this element within its parent.
+         */
         public int childIndex() {
-            if( parent == null || parent.node.getNodeType() == Node.ATTRIBUTE_NODE || this.node.getNodeType() == Node.ATTRIBUTE_NODE )
+            if( parent == null || 
+                parent.node.getNodeType() == Node.ATTRIBUTE_NODE || 
+                this.node.getNodeType() == Node.ATTRIBUTE_NODE )
                 return -1;
 
             XMLList sibs = parent.children();
@@ -730,6 +782,9 @@ public class E4X {
             }
         }
 
+        /**
+         * Returns this node's children.
+         */
         public XMLList children() {
             XMLList child = new XMLList();
             for( ENode n : this.children ) {
@@ -745,6 +800,10 @@ public class E4X {
             }
         }
 
+        /**
+         * Returns a list of comments, assuming XML.ignoreComments
+         * was set to false when the list was created.
+         */
         public XMLList comments() {
             XMLList comments = new XMLList();
 
@@ -761,6 +820,9 @@ public class E4X {
             }
         }
 
+        /** FIXME
+         * Compares this with another XML object.
+         */
         public boolean contains( ENode o ) {
             if( this instanceof XMLList && o instanceof XMLList ) {
                 XMLList x = (XMLList)this;
@@ -798,13 +860,15 @@ public class E4X {
             return false;
         }
 
-        // this is to spec, but doesn't seem right... it's "equals", not "contains"
         public class contains extends ENodeFunction {
             public Object call( Scope s, Object foo[] ) {
                 return getENode( s ).contains( (ENode)getOneArg( foo ) );
             }
         }
 
+        /**
+         * Creates a deep copy of this node.
+         */
         public ENode copy() {
             if( this instanceof XMLList ) {
                 return new XMLList( this );
@@ -816,9 +880,12 @@ public class E4X {
             public Object call( Scope s, Object foo[] ) {
                 return getENode( s ).copy();
             }
-        };
+        }
 
-
+        /** 
+         * Returns all descendants with a given name, or all decendants
+         * if a name is not provided.
+         */
         public ENode descendants( String name ) {
             List kids = new LinkedList<ENode>();
 
@@ -831,6 +898,10 @@ public class E4X {
                 }
             }
             return new XMLList(kids);
+        }
+
+        public ENode descendants() {
+            return this.descendants( "*" );
         }
 
         public class descendants extends ENodeFunction {
@@ -1798,7 +1869,7 @@ public class E4X {
                     this.add( temp );
                 }
             }
-            else if( node.node != null ) {
+            else if( node != null && node.node != null ) {
                 children.add( node );
             }
         }
