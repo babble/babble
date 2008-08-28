@@ -32,10 +32,9 @@ import ed.js.*;
 import ed.js.engine.Scope;
 
 /**
- * RubyJSObjectWrapper acts as a bridge between Ruby objects and Java
- * objects.
+ * RubyObjectWrapper acts as a bridge between Ruby objects and Java objects.
  */
-public class RubyObjectWrapper extends RubyObject {
+public abstract class RubyObjectWrapper extends RubyObject {
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB.WRAP");
   

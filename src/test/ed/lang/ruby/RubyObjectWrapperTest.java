@@ -119,13 +119,6 @@ public class RubyObjectWrapperTest {
 //     }
 
     @Test(groups = {"r2js"})
-    public void testRubyObjectWrapperToJSObject() {
-	Object o = new Object();
-	RubyObjectWrapper w = new RubyObjectWrapper(s, r, o);
-	assertSame(toJS(s, r, w), o);
-    }
-
-    @Test(groups = {"r2js"})
     public void testRubyObjectToJSObject() {
 	JSObject jso = new JSObjectBase();
 	IRubyObject ro = toRuby(s, r, jso);
