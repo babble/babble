@@ -79,6 +79,8 @@ public class AppRequest {
             _scope.put( "__apprequest__" , this , true );
             _scope.lock( "__apprequest__" );
 
+            _scope.put( "print" , getServletWriter() , true );
+
             _context.setTLPreferredScope( this , _scope );
         }
         
@@ -329,6 +331,12 @@ public class AppRequest {
         return _response;
     }
 
+    public ServletWriter getServletWriter(){
+        if ( _writer == null )
+            _writer = new ServletWriter( _response.getWriter() , _fixer );
+        return _writer;
+    }
+
     final String _uri;
     final String _host;
     final HttpRequest _request;
@@ -341,6 +349,8 @@ public class AppRequest {
     private Scope _scope;
     private Session _session;
     private boolean _done = false;
+
+    private ServletWriter _writer;
 
     String _wantedURI = null;
     JSFunction _wantedFunction = null;

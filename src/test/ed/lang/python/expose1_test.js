@@ -14,10 +14,14 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-local.src.test.ed.lang.python.tuple1py();
+var called = {};
 
-assert( pythonTuple.length == 3 );
-assert( pythonTuple[0] == 5 );
-assert( pythonTuple[1] == 8 );
-assert( pythonTuple[2] == 13 );
+getglobal = function(x){
+    called[x] = true;
+};
 
+
+local.src.test.ed.lang.python.expose1_helper();
+
+assert( called.x );
+assert( called.y );

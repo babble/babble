@@ -20,7 +20,7 @@ myClass = function(){
 
 myClass.prototype.foo = "2312";
 
-local.src.test.ed.lang.python.module3();
+local.src.test.ed.lang.python.expose4_helper();
 
 assert( pythonGetInstanceAttr( myClass, "foo" ) == myClass.prototype.foo );
 

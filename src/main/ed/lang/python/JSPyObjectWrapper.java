@@ -120,7 +120,14 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
                 System.err.println("I'm not set up yet! Ignoring set to " + n);
             return v;
         }
-        _p.__setitem__( toPython( n ) , toPython( v ) );
+        try {
+            _p.__setitem__( toPython( n ) , toPython( v ) );
+        }
+        catch(PyException e){
+            // meh -- try setattr
+            String s = n.toString();
+            __builtin__.setattr( _p, s.intern() , toPython( v ) );
+        }
         return v;
     }
 
@@ -227,8 +234,10 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
                         dict = ((PyInstance)_p).__dict__;
                     }
 
-                    if( dict == null )
-                        throw new RuntimeException("can't figure out how to get keyset for " + _p.getClass());
+                    if( dict == null ){
+                        if(D) System.out.println("can't figure out how to get keyset for " + _p.getClass());
+                        return keys;
+                    }
 
                 }
 

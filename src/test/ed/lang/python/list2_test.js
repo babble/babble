@@ -14,26 +14,23 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-local.src.test.ed.lang.python.kwargs1py();
+local.src.test.ed.lang.python.list2_helper();
 
-var result = pyFoo.apply(null, [1, 2, 3], {a: 'a', b: 'b'});
+var newL = pyL2.filter(function(x){
+    return x.a == 1;
+});
 
-var args = result[0];
-var kwargs = result[1];
-assert.eq( args.length , 3 );
-assert.eq( args[0] , 1 );
-assert.eq( args[1] , 2 );
-assert.eq( args[2] , 3 );
+var pyD = newL[0];
 
-assert.eq( kwargs.a , 'a' );
-assert.eq( kwargs.b , 'b' );
+assert( pyD.a == 1 );
+assert( pyD['a'] == 1 );
+assert( pyD.b == 2 );
+assert( pyD['b'] == 2 );
 
+var newL2 = pyL2.map(function(x){
+    return x.a;
+});
 
-var result = pyBar.apply(null, [], {b: 'b', c: 'cookie', a: 23});
-assert.eq( result[0] , 'cookie' );
-assert.eq( result[1] , 'b' );
-assert.eq( result[2] , 23 );
-
-assert.raises( function(){
-    pyBar.apply(null, [1], {b: 'b', c: 'cookie', a: 23});
-} );
+assert.eq( newL2.length , 2 );
+assert.eq( newL2[0] , 1 );
+assert.eq( newL2[1] , null );

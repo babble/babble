@@ -14,4 +14,5 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+# Used by both tuple1_test and tuple2_test
 pythonTuple = (5, 8, 13)

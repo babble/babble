@@ -517,6 +517,22 @@ public class AppContext {
         return temp.exists() ? temp : f;
     }
 
+    File tryOtherExtensions( File f ){
+        if ( f.exists() )
+            return f;
+        
+        if ( f.getName().indexOf( "." ) >= 0 )
+            return f;
+
+        for ( int i=0; i<JSFileLibrary._srcExtensions.length; i++ ){
+            File temp = new File( f.toString() + JSFileLibrary._srcExtensions[i] );
+            if ( temp.exists() )
+                return temp;
+        }
+
+        return f;
+    }
+
     /**
      *    Maps a servlet-like URI to a jxp file.
      *
@@ -570,10 +586,12 @@ public class AppContext {
 
         if ( ! ( f.isDirectory() && f.exists() ) )
             return f;
-
-        File temp = new File( f , "index.jxp" );
-        if ( temp.exists() )
-            return temp;
+        
+        for ( int i=0; i<JSFileLibrary._srcExtensions.length; i++ ){
+            File temp = new File( f , "index" + JSFileLibrary._srcExtensions[i] );
+            if ( temp.exists() )
+                return temp;
+        }
 
         return f;
     }
@@ -636,6 +654,10 @@ public class AppContext {
             return temp;
         }
 
+        if ((temp = tryOtherExtensions(f)) != f) {
+            return temp;
+        }
+        
         if ((temp = tryServlet(f)) != f) {
             return temp;
         }
@@ -643,6 +665,7 @@ public class AppContext {
         if ((temp = tryIndex(f)) != f) {
             return temp;
         }
+
 
         return f;
     }

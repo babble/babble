@@ -39,7 +39,7 @@ public class JxpScriptContext implements ScriptContext {
     public JxpScriptContext( ObjectConvertor convertor , HttpRequest request , HttpResponse response , AppRequest ar ){
         _convertor = convertor;
         _scope = ar.getScope();
-        _writer = ( new ServletWriter( response.getWriter() , ar.getURLFixer() ) ).asJavaWriter();
+        _writer = ar.getServletWriter().asJavaWriter();
     }
 
     public Object getAttribute(String name){
