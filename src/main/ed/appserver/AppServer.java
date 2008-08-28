@@ -140,6 +140,7 @@ public class AppServer implements HttpHandler {
 
         final AppContext ctxt = ar.getContext();
 
+	ar.setResponse( response );
         ar.getScope().makeThreadLocal();
         ctxt._logger.makeThreadLocal();
 
@@ -148,7 +149,7 @@ public class AppServer implements HttpHandler {
 
         {
             final int inSize  = request.totalSize();
-
+            
             usage.hit( "bytes_in" , inSize );
             usage.hit( "requests" , 1 );
 
@@ -156,8 +157,6 @@ public class AppServer implements HttpHandler {
             stats.netIn.hit( inSize );
         }
 
-
-	ar.setResponse( response );
 	ctxt.setTLPreferredScope( ar , ar.getScope() );
 
         response.setHeader( "X-ctx" , ctxt._root );
