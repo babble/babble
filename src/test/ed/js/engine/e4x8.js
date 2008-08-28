@@ -70,8 +70,17 @@ print( abcList == abcCopy );
 print( abc == abcList );
 
 // namespace stuff
+// ANOTHER spidermonkey bug... the following perform to spec and work fine with firebug
+//print( xml.inScopeNamespaces().join(",") );
+//print( xml.removeNamespace( ns ) );
+//print( xml.inScopeNamespaces().length + " " + xml.y.inScopeNamespaces().length );
+
 xml = <x><y>z</y></x>;
 xml.setNamespace( ns );
 print( xml.inScopeNamespaces().join(",") );
 print( xml.removeNamespace( ns ) );
 print( xml.inScopeNamespaces().length + " " + xml.y.inScopeNamespaces().length );
+xml.setNamespace("hi");
+print( xml );
+print( xml.name() );
+print( xml.inScopeNamespaces().join(",") );

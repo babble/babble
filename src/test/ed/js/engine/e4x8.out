@@ -40,3 +40,8 @@ false
   <y>z</y>
 </foo:x>
 1 1
+<x xmlns:hi="hi" xmlns="hi">
+  <y>z</y>
+</x>
+hi::x
+,hi
