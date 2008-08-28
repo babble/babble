@@ -151,7 +151,7 @@ public class AppContextHolder {
 
         if ( D ) System.out.println( "\t mapping directory [" + originalHost + "] to " + siteRoot );
 
-        if ( hasGit( siteRoot ) ){
+        if ( isCodeDir( siteRoot ) ){
             ac = new AppContext( siteRoot );
         }
         else {
@@ -299,7 +299,7 @@ public class AppContextHolder {
         return _defaultContext;
     }
 
-    private boolean hasGit( File test ){
+    private boolean isCodeDir( final File test ){
         File f = new File( test , ".git" );
         if ( f.exists() )
             return true;
@@ -307,6 +307,24 @@ public class AppContextHolder {
         f = new File( test , "dot-git" );
         if ( f.exists() )
             return true;
+	
+	if ( ! test.exists() )
+	    return false;
+	
+	File lst[] = test.listFiles();
+	for ( int j=0; j<lst.length; j++ ){
+	    f = lst[j];
+
+	    if ( f.isDirectory() )
+		continue;
+	    
+	    final String name = f.getName();
+
+	    for ( int i=0; i<JSFileLibrary._srcExtensions.length; i++ )
+		if ( name.endsWith( JSFileLibrary._srcExtensions[i] ) )
+		    return true;
+
+	}
 
         return false;
 
