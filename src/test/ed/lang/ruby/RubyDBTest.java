@@ -16,11 +16,16 @@
 
 package ed.lang.ruby;
 
+import org.jruby.*;
+import org.jruby.runtime.builtin.IRubyObject;
+
 import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
+import ed.db.DBCollection;
 import ed.js.JSObject;
 import ed.js.Shell;
+import static ed.lang.ruby.RubyObjectWrapper.toJS;
 
 @Test(groups = {"ruby.db"})
 public class RubyDBTest extends SourceRunner {
@@ -50,7 +55,6 @@ public class RubyDBTest extends SourceRunner {
 	runJS("db.rubytest.remove({});");
     }
 
-    @Test
     public void testSongIdExists() {
 	assertRubyEqualsJS("puts $song_id._id", "print(song_id._id);");
 	assertNotNull(rubyOutput);
@@ -59,7 +63,19 @@ public class RubyDBTest extends SourceRunner {
 	assertNotNull(s.get("song_id"));
     }
 
-    @Test
+    public void testCollectionWrapper() {
+	Object ro = runRuby("$db.rubytest");
+	assertNotNull(ro);
+	assertTrue(ro instanceof RubyJSObjectWrapper, "ro is not a RubyJSObjectWrapper; it's " + ro.getClass().getName());
+	assertTrue(((RubyObject)ro).respond_to_p(RubySymbol.newSymbol(r, ":findOne")).isTrue());
+	assertTrue(((RubyObject)ro).respond_to_p(RubySymbol.newSymbol(r, ":find")).isTrue());
+
+	Object o = toJS(s, r, (IRubyObject)ro);
+	assertTrue(o instanceof DBCollection, "o is not a DBCollection; it's " + o.getClass().getName());
+	assertSame(toJS(s, r, (IRubyObject)ro), ((RubyJSObjectWrapper)ro).getJSObject());
+    }
+	
+    @Test(groups={"ruby.db.findone"})
     public void testFindAnyOne() {
 	runRuby("x = $db.rubytest.findOne(); puts tojson(x)");
 	assertTrue(rubyOutput.contains("\"artist\""), "string \"artist\" missing: " + rubyOutput);
@@ -67,8 +83,7 @@ public class RubyDBTest extends SourceRunner {
 
     @Test(groups={"ruby.db.findone"})
     public void testFindOneById() {
-	runRuby("$scope.set('x', $db.rubytest.findOne($song_id))");
-	// TODO use s.get("x") when Ruby can create new top-level vars without using $scope.set
+	runRuby("$x = $db.rubytest.findOne($song_id)");
 	JSObject x = (JSObject)s.get("x");
 	assertNotNull(x);
 
@@ -80,25 +95,22 @@ public class RubyDBTest extends SourceRunner {
 	assertEquals(x.get("track"), 2.0);
     }
 
-    // TODO using a string as the first arg does not yet work. I have a
-    // feature request in that would support this.
-//     @Test(groups={"ruby.db.findone"})
-//     public void testFindOneByIdUsingString() {
-// 	String idString = ((JSObject)s.get("song_id")).get("_id").toString();
-// 	runRuby("$scope.set('x', $db.rubytest.findOne('" + idString + "'))");
-// 	// TODO use s.get("x") when Ruby can create new top-level vars without using $scope.set
-// 	JSObject x = (JSObject)s.get("x");
-// 	assertEquals(x.get("_id").toString(), idString);
-// 	assertEquals(x.get("artist").toString(), "XTC");
-// 	assertEquals(x.get("album").toString(), "Oranges & Lemons");
-// 	assertEquals(x.get("song").toString(), "The Mayor Of Simpleton");
-// 	assertNotNull(x.get("track"));
-// 	assertEquals(x.get("track"), 2.0);
-//     }
+    @Test(groups={"ruby.db.findone"})
+    public void testFindOneByIdUsingString() {
+	String idString = ((JSObject)s.get("song_id")).get("_id").toString();
+	runRuby("$x =$db.rubytest.findOne('" + idString + "')");
+	JSObject x = (JSObject)s.get("x");
+	assertEquals(x.get("_id").toString(), idString);
+	assertEquals(x.get("artist").toString(), "XTC");
+	assertEquals(x.get("album").toString(), "Oranges & Lemons");
+	assertEquals(x.get("song").toString(), "The Mayor Of Simpleton");
+	assertNotNull(x.get("track"));
+	assertEquals(x.get("track"), 2.0);
+    }
 
     @Test(groups={"ruby.db.findone"})
     public void testFindOneByIdUsingHash() {
-	runRuby("$scope.set('x', $db.rubytest.findOne({:_id => $song_id._id}))");
+	runRuby("$x = $db.rubytest.findOne({:_id => $song_id._id})");
 	JSObject x = (JSObject)s.get("x");
 	assertEquals(x.get("_id").toString(), ((JSObject)s.get("song_id")).get("_id").toString());
 	assertEquals(x.get("artist").toString(), "XTC");
@@ -110,11 +122,19 @@ public class RubyDBTest extends SourceRunner {
 
     @Test(groups={"ruby.db.findone"})
     public void testFindOneBySong() {
-	JSObject x = ((RubyJSObjectWrapper)runRuby("x = $db.rubytest.findOne({:song => 'Budapest by Blimp'})")).getJSObject();
-	// TODO use s.get("x") when that is fixed
+	runRuby("$x = $db.rubytest.findOne({:song => 'Budapest by Blimp'})");
+	JSObject x = (JSObject)s.get("x");
 	assertEquals(x.get("artist").toString(), "Thomas Dolby");
 	assertEquals(x.get("album").toString(), "Aliens Ate My Buick");
 	assertEquals(x.get("song").toString(), "Budapest by Blimp");
+    }
+
+    @Test(groups={"ruby.db.find"})
+    public void testCursorWrapper() {
+	runRuby("puts \"#{$db.rubytest.respond_to? :find}\"");
+	assertEquals(rubyOutput, "true");
+	Object o = runRuby("$db.rubytest.find()");
+	assertTrue(o instanceof RubyDBCursorWrapper, "Oops: o should be RubyDBCursorWrapper; it is " + o.getClass().getName());
     }
 
     @Test(groups={"ruby.db.find"})

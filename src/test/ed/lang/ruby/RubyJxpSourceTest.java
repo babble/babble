@@ -113,21 +113,13 @@ public class RubyJxpSourceTest extends SourceRunner {
     }
 
     public void testBuiltIn() {
-	assertRubyEquals("puts $data.keySet.sort", "[add_seven, count, subobj]");
+	assertRubyEquals("puts $data.keySet.sort", "add_seven\ncount\nsubobj");
     }
 
     public void testSubObject() {
 	assertRubyEquals("puts $data.subobj.subvar", "99");
 	assertRubyEquals("puts $data.subobj.add_seven(35)", "42");
     }
-
-    // FIXME if indeed x should be put into scope
-// 
-//     public void testRubyTopLevelVarIntoScope() {
-// 	runRuby("$data.count = 33; x = 42");
-// 	assertNotNull(s.get("x"), "top-level 'x' should not be null; it should be in scope");
-// 	assertEquals(s.get("x").toString(), "42");
-//     }
 
     public void testReadScope() {
 	assertRubyEquals("puts $scope.get('array')[1]", "test string");
@@ -176,42 +168,39 @@ public class RubyJxpSourceTest extends SourceRunner {
 	assertEquals(jsOutput, "99");
     }
 
-    // FIXME when hashes are wrapped
-// 
-//     public void testHashModsAreExported() {
-// 	JSMap map = new JSMap();
-// 	map.set(new JSString("a"), new Integer(1));
-// 	map.set(new Long(42), new JSString("test string"));
-// 	s.set("hash", map);
+    public void testHashModsAreExported() {
+	JSMap map = new JSMap();
+	map.set(new JSString("a"), new Integer(1));
+	map.set(new Long(42), new JSString("test string"));
+	s.set("hash", map);
 
-// 	// sanity test
-// 	runRuby("puts \"#{$hash == nil ? 'oops: global $hash is not defined' : 'ok'}\"");
-// 	assertEquals(rubyOutput, "ok");
-// 	runRuby("puts \"#{$hash['a'].to_s == '1' ? 'ok' : 'oops: $hash[\"a\"] is not defined properly'}\"");
-// 	assertEquals(rubyOutput, "ok");
+	// sanity test
+	runRuby("puts \"#{$hash == nil ? 'oops: global $hash is not defined' : 'ok'}\"");
+	assertEquals(rubyOutput, "ok");
+	runRuby("puts \"#{$hash['a'].to_s == '1' ? 'ok' : 'oops: $hash[\"a\"] is not defined properly'}\"");
+	assertEquals(rubyOutput, "ok");
 
-// 	runRuby("$hash['a'] = 99");
-// 	runJS("print(hash['a']);");
-// 	assertEquals(jsOutput, "99");
-//     }
+	runRuby("$hash['a'] = 99");
+	runJS("print(hash['a']);");
+	assertEquals(jsOutput, "99");
+    }
 
-    // FIXME when hashes are wrapped
-//     public void testInnerHashModsAreExported() {
-// 	JSMap map = new JSMap();
-// 	map.set(new JSString("a"), new Integer(1));
-// 	map.set(new Long(42), new JSString("test string"));
-// 	((JSObject)s.get("data")).set("hash", map);
+    public void testInnerHashModsAreExported() {
+	JSMap map = new JSMap();
+	map.set(new JSString("a"), new Integer(1));
+	map.set(new Long(42), new JSString("test string"));
+	((JSObject)s.get("data")).set("hash", map);
 
-// 	// sanity test
-// 	runRuby("puts \"#{$data.hash == nil ? 'oops: global $data.hash is not defined' : 'ok'}\"");
-// 	assertEquals(rubyOutput, "ok");
-// 	runRuby("s = $data.hash['a'].to_s; if s == '1'; puts 'ok'; else; puts \"oops: $data.hash['a'] is not defined properly; it is #{s}\"; end");
-// 	assertEquals(rubyOutput, "ok");
+	// sanity test
+	runRuby("puts \"#{$data.hash == nil ? 'oops: global $data.hash is not defined' : 'ok'}\"");
+	assertEquals(rubyOutput, "ok");
+	runRuby("s = $data.hash['a'].to_s; if s == '1'; puts 'ok'; else; puts \"oops: $data.hash['a'] is not defined properly; it is #{s}\"; end");
+	assertEquals(rubyOutput, "ok");
 
-// 	Object o = ((JSObject)s.get("data")).get("hash");
-// 	assertTrue(o instanceof JSMap, "oops: JS hash is " + o.getClass().getName() + ", not a JSMap");
-// 	runRuby("$data.hash['a'] = 99");
-// 	runJS("print(data.hash['a']);");
-// 	assertEquals(jsOutput, "99");
-//     }
+	Object o = ((JSObject)s.get("data")).get("hash");
+	assertTrue(o instanceof JSMap, "oops: JS hash is " + o.getClass().getName() + ", not a JSMap");
+	runRuby("$data.hash['a'] = 99");
+	runJS("print(data.hash['a']);");
+	assertEquals(jsOutput, "99");
+    }
 }

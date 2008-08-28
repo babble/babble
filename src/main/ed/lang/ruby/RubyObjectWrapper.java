@@ -94,6 +94,8 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	    return ((RubyBigDecimal)r).getValue();
 	if (r instanceof RubyNumeric)
 	    return JavaUtil.convertRubyToJava(r);
+	if (r instanceof RubyJSObjectWrapper)
+	    return ((RubyJSObjectWrapper)r).getJSObject();
 	if (r instanceof RubyJSArrayWrapper)
 	    return ((RubyJSArrayWrapper)r).getJSArray();
 	if (r instanceof RubyArray) {

@@ -228,24 +228,6 @@ public class RubyObjectWrapperTest {
     }
 
     @Test(groups = {"js2r"})
-    public void testJSFunctionNameInObjectToRuby() {
-	JSObjectBase jo = new JSObjectBase();
-	jo.set(new JSString("add_seven"), addSevenFunc);
-	IRubyObject ro = toRuby(s, r, jo);
-	r.getGlobalVariables().set("$obj_with_func", ro);
-
-	try {
-	    IRubyObject result = r.evalScriptlet("$obj_with_func.add_seven(35)");
-	    assertTrue(result instanceof RubyNumeric);
-	    assertEquals(RubyNumeric.num2long(result), 42L);
-	}
-	catch (Exception e) {
-	    e.printStackTrace();
-	    fail(e.toString());
-	}
-    }
-
-    @Test(groups = {"js2r"})
     public void testJSFunctionInArrayToRuby() {
 	JSArray a = new JSArray(new Long(1), new Float(2.3), addSevenFunc);
 	RubyArray ra = (RubyArray)toRuby(s, r, a);

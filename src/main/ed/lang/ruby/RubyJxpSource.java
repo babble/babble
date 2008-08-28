@@ -174,7 +174,6 @@ public class RubyJxpSource extends JxpSource {
     protected void _exposeScopeFunctions(Scope scope) {
 	_runtime.getGlobalVariables().set("$scope", toRuby(scope, _runtime, scope));
 	_addTopLevelMethodsToObjectClass(scope);
-// 	_addMethodMissingToTopSelf(scope);
     }
 
     protected void _addTopLevelMethodsToObjectClass(final Scope scope) {
@@ -199,43 +198,6 @@ public class RubyJxpSource extends JxpSource {
 	    s = s.getParent();
 	}
     }
-
-//     protected void _addMethodMissingToTopSelf(final Scope scope) {
-// 	// Add method missing to top object
-// 	RubyClass eigenclass = ((RubyObject)_runtime.getTopSelf()).getSingletonClass();
-// 	eigenclass.addMethod("method_missing", new JavaMethod(eigenclass, PUBLIC) {
-//                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
-// 		    // args[0] is method name symbol, args[1..-1] are arguments
-// 		    String key = args[0].toString();
-// 		    if (RubyObjectWrapper.DEBUG)
-// 			System.err.println("method_missing called on top-level object; symbol = " + key);
-
-// 		    // Write
-// 		    if (key.endsWith("=")) {
-// 			key = key.substring(0, key.length() - 1);
-// 			if (RubyObjectWrapper.DEBUG)
-// 			    System.err.println("assigning new value to top-level scope var named " + key);
-// 			return toRuby(scope, _runtime, scope.set(key, toJS(scope, _runtime, args[1])));
-// 		    }
-
-// 		    Object obj = scope.get(key);
-
-// 		    // All top-level functions have been added to the Object class.
-// 		    if (obj instanceof JSFunction) {
-// 			System.err.println("RubyJxpSource.method_missing: should not be handling functions; ignored (returning nil)");
-// 			return _runtime.getNil();
-// 		    }
-
-// 		    if (obj == null) //  we don't know about this symbol; call super.method_missing
-// 			return toRuby(scope, _runtime, ((RubyObject)self).callSuper(context, args, block));
-
-// 		    // Finally, it's a simple ivar retrieved by get(). Return it.
-// 		    if (RubyObjectWrapper.DEBUG)
-// 			System.err.println("returning value of scope instance var named " + key);
-// 		    return (obj == null) ? _runtime.getNil() : toRuby(scope, _runtime, obj);
-// 		}
-// 	    });
-//     }
 
     protected final File _file;
     protected final JSFileLibrary _lib;
