@@ -51,7 +51,7 @@ public class JxpServlet {
         
         Object cdnFromScope = scope.get( "CDN" );
              
-        ServletWriter writer = new ServletWriter( response.getWriter() , ar.getURLFixer() );
+        ServletWriter writer = ar.getServletWriter();
         scope.put( "print" , writer  , true );
         
         try {
