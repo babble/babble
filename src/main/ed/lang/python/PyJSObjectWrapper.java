@@ -18,6 +18,8 @@
 
 package ed.lang.python;
 
+import java.util.*;
+
 import org.python.core.*;
 import org.python.expose.*;
 import org.python.expose.generate.*;
@@ -54,7 +56,36 @@ public class PyJSObjectWrapper extends PyDictionary {
         if ( _js == null )
             throw new NullPointerException( "don't think you should create a PyJSObjectWrapper for null" );
     }
+
+    public PyObject iterkeys(){
+        return jswrapper_iterkeys();
+    }
+
+    @ExposedMethod
+    public PyObject jswrapper_iterkeys(){
+        return jswrapper_keys();
+    }
     
+    public PyObject iteritems(){
+        return jswrapper_iteritems();
+    }
+
+    @ExposedMethod
+    public PyObject jswrapper_iteritems(){
+        final Iterator<String> keys = _js.keySet().iterator();
+        return new PyIterator(){
+            public PyObject __iternext__(){
+
+                if ( ! keys.hasNext() )
+                    return null;
+                
+                String key = keys.next();
+
+                return new PyTuple( Py.newString( key ) , toPython( _js.get( key ) ) );
+            }
+        };
+    }
+
     public PyList keys(){
         return jswrapper_keys();
     }
