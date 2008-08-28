@@ -987,7 +987,7 @@ public class JSObjectBase implements JSObject {
     /** Returns the size of this object (approximately) in bytes.
      * @return The approximate size of this object.
      */
-    public long approxSize(){
+    public long approxSize( IdentitySet seen ){
         long size = JSObjectSize.OBJ_OVERHEAD + 128;
 
         if ( _name != null )
@@ -999,13 +999,8 @@ public class JSObjectBase implements JSObject {
                 size += ( s.length() * 2 );
         }
 
-        if ( _map != null ){
-            size += 32 + ( _map.size() * 8 );
-            for ( Map.Entry<String,Object> e : _map.entrySet() ){
-                size += e.getKey().length() * 2;
-                size += JSObjectSize.size( e.getValue() );
-            }
-        }
+        if ( _map != null )
+            size += _map.approxSize( seen );
 
         return size;
     }

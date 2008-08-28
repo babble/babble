@@ -38,7 +38,7 @@ public class ServletWriter extends JSFunctionCalls1 {
     public ServletWriter( JxpWriter writer , String cdnPrefix , String cdnSuffix , AppContext context ){
         this( writer , new URLFixer( cdnPrefix , cdnSuffix , context ) );
     }
-
+    
     public ServletWriter( JxpWriter writer , URLFixer fixer ){
         _writer = writer;
         _fixer = fixer;
@@ -107,8 +107,24 @@ public class ServletWriter extends JSFunctionCalls1 {
             
         return null;
     }
-        
+
+    /**
+     * tag handlers are called for every tag of that name that gets printed during your request
+     * it is case insensitive
+     * if the handler returns null, normall processing ensues
+     * if it returns something non-null, it prints that instead
+     */
+    public void addTagHandler( String name , JSFunction handler ){
+        if ( _tagHandlers == null )
+            _tagHandlers = new StringMap<JSFunction>();
+        _tagHandlers.put( name , handler );
+    }
+
     public void print( String s ){
+        print( s , true );
+    }
+
+    public void print( String s , boolean allowTagHandlers ){
             
         if ( ( _writtenLength += s.length() ) > MAX_WRITTEN_LENGTH )
             throw new RuntimeException( "trying to write a dynamic page more than " + MAX_WRITTEN_LENGTH + " chars long" );
@@ -141,7 +157,7 @@ public class ServletWriter extends JSFunctionCalls1 {
                 
             String wholeTag = s.substring( 0 , end + 1 );
                 
-            if ( ! printTag( _matcher.group(1) , wholeTag ) )
+            if ( ! printTag( _matcher.group(1) , wholeTag , allowTagHandlers ) )
                 _writer.print( wholeTag );
                 
             s = s.substring( end + 1 );
@@ -152,7 +168,7 @@ public class ServletWriter extends JSFunctionCalls1 {
     /**
      * @return true if i printed tag so you should not
      */
-    boolean printTag( String tag , String s ){
+    boolean printTag( String tag , String s , boolean allowTagHandlers ){
 
         if ( tag == null )
             throw new NullPointerException( "tag can't be null" );
@@ -162,6 +178,17 @@ public class ServletWriter extends JSFunctionCalls1 {
         if ( tag.equalsIgnoreCase( "/head" ) && ! _writer.hasSpot() ){
             _writer.saveSpot();
             return false;
+        }
+
+        if ( allowTagHandlers && _tagHandlers != null ){
+            JSFunction func = _tagHandlers.get( tag );
+            if ( func != null ){
+                Object res = func.call( func.getScope() , s );
+                if ( res != null ){
+                    print( res.toString() , false );
+                    return true;
+                }
+            }
         }
 
         { // CDN stuff
@@ -183,7 +210,6 @@ public class ServletWriter extends JSFunctionCalls1 {
                     
                 s = s.substring( 2 + tag.length() );
                     
-                // TODO: cache pattern or something
                 Matcher m = _attributeMatcher( srcName , s );
                 if ( ! m.find() )
                     return false;
@@ -281,6 +307,8 @@ public class ServletWriter extends JSFunctionCalls1 {
 
     JSObject _formInput = null;
     String _formInputPrefix = null;
-        
+    
     int _writtenLength = 0;
+
+    Map<String,JSFunction> _tagHandlers;
 }

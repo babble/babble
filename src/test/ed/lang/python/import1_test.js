@@ -14,10 +14,6 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-local.src.test.ed.lang.python.callNative();
+jsFoo = 14;
 
-var echoOut = callSysexec('echo hi there');
-
-print(tojson(echoOut));
-
-assert(echoOut.out == "hi there\n");
+local.src.test.ed.lang.python.import1_helper1();

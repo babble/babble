@@ -18,6 +18,10 @@ public class TestDB extends DBBase {
 	return null;
     }
 
+    public DBAddress getAddress(){
+        return null;
+    }
+
 
     public DBCollection getCollectionFromFull( String fullNameSpace ){
         throw new RuntimeException( "not implemented" );

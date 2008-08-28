@@ -348,6 +348,10 @@ public abstract class JSFunction extends JSFunctionBase {
         return System.identityHashCode( this );
     }
 
+    public boolean isCallable(){
+        return true;
+    }
+
     private final Scope _scope;
     private ThreadLocal<Scope> _tlScope;
     private boolean _forceUsePassedInScope = false;

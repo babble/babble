@@ -14,10 +14,9 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-local.src.test.ed.lang.python.tuple1py();
+jsMap = {a: 1, b: 4};
 
-assert( pythonTuple.length == 3 );
-assert( pythonTuple[0] == 5 );
-assert( pythonTuple[1] == 8 );
-assert( pythonTuple[2] == 13 );
+jsArray = [4, 8, 2];
+
+local.src.test.ed.lang.python.expand3_helper();
 

@@ -16,7 +16,7 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ed.net.httpserver;
+package ed.net;
 
 import java.util.*;
 import java.text.*;
@@ -33,8 +33,17 @@ public class Cookie {
     public Cookie( String name , String value ){
         this( name , value , 0 );
     }
-    
+
     public Cookie( String name , String value , int maxAge ){
+        this( null , name , value , maxAge );
+    }
+
+    public Cookie( String domain , String name , String value ){
+        this( domain , name , value , 0 );
+    }
+
+    public Cookie( String domain , String name , String value , int maxAge ){
+        _domain = domain;
         _name = name;
         _value = value;
         _maxAge = maxAge;
@@ -49,13 +58,43 @@ public class Cookie {
             return COOKIE_DATE_FORMAT.format( new java.util.Date( System.currentTimeMillis() + ( 1000L * (long)_maxAge ) ) );
         }
     }
+    
+    public void setExpiryDate( Date when ){
+        long diff = when.getTime() - System.currentTimeMillis();
+        _maxAge = (int)(diff / 1000);
+    }
+
+    public void setPath( String path ){
+        _path = path;
+    }
+
+    public void setDomain( String domain ){
+        _domain = domain;
+    }
+
+    public void setSecure( boolean secure ){
+        _secure = secure;
+    }
+
+    public String getName(){
+        return _name;
+    }
+
+    public String getValue(){
+        return _value;
+    }
+
+    public String getPath(){
+        return _path;
+    }
 
     final String _name;
     final String _value;
-    final int _maxAge;
 
+    int _maxAge;
     String _path = "/";
-
+    String _domain = null;
+    boolean _secure = false;
 
     public final static DateFormat COOKIE_DATE_FORMAT =
 	new SimpleDateFormat( "EEE, dd-MMM-yyyy HH:mm:ss z" , Locale.US);
@@ -63,5 +102,22 @@ public class Cookie {
 	COOKIE_DATE_FORMAT.setTimeZone( TimeZone.getTimeZone( "GMT" ) );
     }
     static final String REMOVE_COOKIE_EXPIRES = COOKIE_DATE_FORMAT.format( new Date( 10000 ) );
-    
+
+    public static String formatToSend( Collection<Cookie> cookies ){
+        return formatToSend( cookies.iterator() );
+    }
+
+    public static String formatToSend( Iterator<Cookie> cookies ){
+        StringBuilder buf = new StringBuilder();
+
+        while ( cookies.hasNext() ){
+
+            if ( buf.length() > 0 )
+                buf.append( "; " );
+
+            Cookie c = cookies.next();
+            buf.append( c._name ).append( "=" ).append( c._value );
+        }
+        return buf.toString();
+    }
 }

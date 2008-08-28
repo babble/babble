@@ -475,6 +475,21 @@ public class JSInternalFunctions extends JSNumericFunctions {
         throw new RuntimeException( "can't for with a : " + o.getClass() );
     }
 
+    /** Returns the value set that can be iterated over for a given object.
+     * @param o Object from which to get values
+     * @return The values
+     * @throws RuntimeException If <tt>o</tt> exists but doesn't have values
+     */
+    public static final Collection JS_collForForEach( Object o ){
+        if ( o == null )
+            return new LinkedList();
+
+        if ( o instanceof E4X.ENode )
+            return ((E4X.ENode)o).valueSet();
+
+        throw new RuntimeException( "can't for each with a : " + o.getClass() );
+    }
+
     /** Returns the last argument passed.
      * @param o Some number of objects
      * @return The last object passed in

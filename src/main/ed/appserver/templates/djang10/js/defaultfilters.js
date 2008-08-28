@@ -576,7 +576,7 @@ var cut =
     function(value, arg) {
 
     var safe = djang10.is_safe(value);
-    value = value.replace(arg, "");
+    value = value.replace(new RegExp(arg, "g"), "");
 
     if(safe && (arg != ";"))
         return djang10.mark_safe(value);
@@ -1149,7 +1149,13 @@ var phone2numeric =
 };
 phone2numeric.is_safe = true;
 
-//TODO: pprint
+var pprint =
+    defaultfilters.pprint =
+    function(value) {
+
+    return tojson(value);
+};
+pprint.is_safe = true;
 
 register.filter("lower", lower);
 register.filter("upper", upper);
@@ -1205,6 +1211,7 @@ register.filter("time", time);
 register.filter("slugify", slugify);
 register.filter("iriencode", iriencode);
 register.filter("stringformat", stringformat);
+register.filter("pprint", pprint);
 
 //helpers
 var escape_pattern = function(pattern) {    return pattern.replace(/([^A-Za-z0-9])/g, "\\$1");};

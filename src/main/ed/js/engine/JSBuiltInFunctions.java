@@ -583,7 +583,13 @@ public class JSBuiltInFunctions {
     
     public static class eval extends JSFunctionCalls1 {
         public Object call( Scope scope , Object thing , Object [] args){
-            return scope.eval( thing.toString() );
+            Scope s = scope;
+            
+            Object t = scope.getThis();
+            if ( t instanceof Scope )
+                s = (Scope)t;
+            
+            return s.eval( thing.toString() );
         }
     }
 
@@ -787,7 +793,7 @@ public class JSBuiltInFunctions {
         s.put( "Date" , new JSDate.Cons() , true );
         s.put( "JSDate" , s.get( "Date" ) , true ); // b/c Eliot always types this
         s.put( "String" , new JSString.JSStringCons() , true );
-	s.put( "XML" , new E4X.XML() , true );
+	s.put( "XML" , new E4X.Cons() , true );
 	s.put( "Namespace" , new E4X.NamespaceCons() , true );
 
         s.put( "RegExp" , new JSRegex.Cons() , true );

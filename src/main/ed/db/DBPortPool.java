@@ -5,63 +5,39 @@ package ed.db;
 import ed.util.*;
 
 import java.io.*;
+import java.net.*;
 import java.util.*;
 
 class DBPortPool extends SimplePool<DBPort> {
 
-    static DBPortPool get(String ip, int port){
+    static DBPortPool get( InetSocketAddress addr ){
         
-        String poolID = ip + ":" + port;
+        DBPortPool p = _pools.get( addr );
         
-        DBPortPool p = _pools.get(poolID);
-        
-        if (p != null) {
+        if (p != null) 
             return p;
-        }
         
         synchronized (_pools) {
-            p = _pools.get(poolID);
+            p = _pools.get( addr );
             if (p != null) {
                 return p;
             }
             
-            p = new DBPortPool(ip, port);
-            _pools.put(poolID, p);
+            p = new DBPortPool( addr );
+            _pools.put( addr , p);
         }
 
         return p;
     }
 
-    static DBPortPool get( String ip){
-        DBPortPool p = _pools.get( ip );
-        if ( p != null )
-            return p;
-
-        synchronized ( _pools ){
-            p = _pools.get( ip );
-            if ( p != null )
-                return p;
-            
-            p = new DBPortPool( ip );
-            _pools.put( ip , p );
-        }
-
-        return p;
-    }
-    
-    private static final Map<String,DBPortPool> _pools = Collections.synchronizedMap( new HashMap<String,DBPortPool>() );
+    private static final Map<InetSocketAddress,DBPortPool> _pools = Collections.synchronizedMap( new HashMap<InetSocketAddress,DBPortPool>() );
 
     // ----
     
 
-    DBPortPool( String ip ){
-        this( ip , DBPort.PORT);
-    }
-
-    DBPortPool( String ip, int port){
-        super( "DBPortPool:" + ip + ":" + port, 10 , Bytes.CONNECTIONS_PER_HOST );
-        _ip = ip;
-        _port = port;
+    DBPortPool( InetSocketAddress addr ){
+        super( addr.toString() , 10 , Bytes.CONNECTIONS_PER_HOST );
+        _addr = addr;
     }
 
     void gotError(){
@@ -71,16 +47,15 @@ class DBPortPool extends SimplePool<DBPort> {
     
     protected DBPort createNew(){
         try {
-            DBPort p = new DBPort( _ip, _port , this );
+            DBPort p = new DBPort( _addr , this );
             _everWorked = true;
             return p;
         }
         catch ( IOException ioe ){
-            throw new RuntimeException( "can't create port to:" + _ip + ":" + _port, ioe );
+            throw new RuntimeException( "can't create port to:" + _addr , ioe );
         }
     }
     
-    final String _ip;
-    final int _port;
+    final InetSocketAddress _addr;
     boolean _everWorked = false;
 }

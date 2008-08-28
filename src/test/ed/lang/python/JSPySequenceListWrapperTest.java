@@ -1,3 +1,5 @@
+// JSPySequenceListWrapperTest.java
+
 /**
 *    Copyright (C) 2008 10gen Inc.
 *  
@@ -14,11 +16,27 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-db = connect("pytest");
+package ed.js;
 
-db.coll.save( { funny: 1 } );
+import org.testng.annotations.Test;
 
-local.src.test.ed.lang.python.dbcursor1py();
+import ed.js.*;
+import ed.js.engine.*;
+import org.python.core.*;
+import ed.lang.python.*;
 
-db.coll.remove( { } );
+public class JSPySequenceListWrapperTest extends ed.TestCase {
 
+    @Test(groups = {"basic"})
+    public void test1(){
+        PySequenceList p = new PyList();
+        JSPySequenceListWrapper wrapper = new JSPySequenceListWrapper( p );
+        JSObject o = new JSObjectBase();
+        assert wrapper.add( o );
+        assert wrapper.get( 0 ) == o;
+    }
+
+    public static void main( String args[] ){
+        (new JSONTest()).runConsole();
+    }
+}

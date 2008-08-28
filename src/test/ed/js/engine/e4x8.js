@@ -44,3 +44,15 @@ xml=<x><a>b</a><a>3</a><a>gah</a><b>foo</b></x>
 for( var v in xml.a ) {
     print( v+": "+xml.a[v] );
 }
+
+// add ns
+ns = new Namespace("foo", "bar");
+print( "ns: "+ns );
+print( xml.addNamespace( ns ) );
+xml.removeNamespace( ns );
+//print( xml.addNamespace( "foo" ) );
+
+// multiple pseudo namespaces
+xml=<x xmlns:foo="bar"><y>z</y></x>;
+xml.setNamespace("foo.foo.foo");
+print( xml );

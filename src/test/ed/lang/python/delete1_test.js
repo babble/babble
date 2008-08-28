@@ -14,23 +14,32 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-local.src.test.ed.lang.python.list2py();
+local.src.test.ed.lang.python.delete1_helper();
 
-var newL = pyL2.filter(function(x){
-    return x.a == 1;
-});
+var x = { a: 1, b: 2, c: 4, d: 8 };
 
-var pyD = newL[0];
+assert( Object.keys(x).length == 4 );
 
-assert( pyD.a == 1 );
-assert( pyD['a'] == 1 );
-assert( pyD.b == 2 );
-assert( pyD['b'] == 2 );
+pythonDelete( x , 'a' );
+assert( Object.keys(x).length == 3 );
 
-var newL2 = pyL2.map(function(x){
-    return x.a;
-});
+assert( Object.keys(pythonObj1).length == 4 );
 
-assert.eq( newL2.length , 2 );
-assert.eq( newL2[0] , 1 );
-assert.eq( newL2[1] , null );
+delete pythonObj1.a;
+assert( Object.keys(pythonObj1).length == 3 );
+
+delete pythonObj1.b;
+assert( Object.keys(pythonObj1).length == 2 );
+
+assert( Object.keys(pythonObj2).length == 3 );
+delete pythonObj2['foo'];
+assert( Object.keys(pythonObj2).length == 2 );
+
+var y = { $foo: 21 };
+
+assert( Object.keys(y).length == 1 );
+
+pythonDelete( y , '$foo' );
+
+assert( Object.keys(y).length == 0 );
+

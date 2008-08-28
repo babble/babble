@@ -32,6 +32,7 @@ print( message.name().uri );
 print( message.suds::Body.name() )
 
 print( message.suds::Body.vader::GetLastTradePrice.symbol );
+print( message.suds::Body.vader::GetLastTradePrice.symbol.localName() );
 
 level1 = new Namespace("bar2");
 level2 = new Namespace("bar");
@@ -54,6 +55,7 @@ default xml namespace = "get.ready";
 nsfun["for"] += <three><to>get ready</to></three>;
 //nsfun["for"] += <four><five>six</five></four>;
 
+//name
 print( nsfun.three.to.name() )
 
 //setLocalName
@@ -63,22 +65,45 @@ xml.setLocalName( "shmoe" );
 print( xml );
 
 //setName
-//print( xml.level1::y );
-//xml.level1::y.setName( "diplomat" );
-//print( xml.diplomat );
+print( xml.level1::y.name() );
+xml.level1::y.setName( "diplomat" );
+print( xml.diplomat.name() );
 
-//setNamespace
-//dogs = <dogs><dog><type>lab</type></dog><dog><type>retriever</type></dog></dogs>;
-//dogs.setNamespace( "black.dog" );
-
-//inScopeNamespaces
-
+//namespaceDeclarations
+xml=<x xmlns:bar="bar2" xmlns:myfoo="foo"><y xmlns:blah="hello">z</y></x>
+ns_array = xml.namespaceDeclarations();
+print( ns_array.join(" ") );
+print( xml.y.namespaceDeclarations() );
 
 //localName
-//name
+print( xml.localName() );
+
 //namespace
-//namespaceDeclarations
+print( xml.namespace() );
+default xml namespace = new Namespace( "go.daddy.o" );
+xml = <a><b>c</b></a>;
+print( xml.namespace()+" "+xml.b.namespace() );
+
+//setNamespace
+dogs = <dogs><dog><type>lab</type></dog><dog><type>retriever</type></dog></dogs>;
+dogs.setNamespace( "black.dog" );
+print( dogs.namespace() );
+print( dogs.dog[0].namespace() );
+
+//inScopeNamespaces
+print( dogs.inScopeNamespaces().join(" ") );
+
 //removeNamespace
+xml=<x xmlns:bar="bar2" xmlns:myfoo="foo"><y xmlns:blah="hello">z</y></x>
+mybar = new Namespace( "bar2" );
+xml.removeNamespace( "foo" );
+xml.removeNamespace( mybar );
+print( xml )
+
+// namespace attributes
+xml=<x foo:pwn="bar" xmlns:foo="lalala"><y>z</y></x>
+n=new Namespace("lalala")
+print( xml.@n::pwn );
 
 // reset the namespace for other tests
 default xml namespace = "";

@@ -98,7 +98,7 @@ public abstract class DBApiLayer extends DBBase {
         if ( _root.equals( root ) )
             return doGetCollection( table );
 
-        return DBProvider.get( root ).doGetCollection( table );
+        return DBProvider.getSisterDB( this , root ).doGetCollection( table );
     }
 
     public Collection<String> getCollectionNames(){

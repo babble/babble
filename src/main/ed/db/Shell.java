@@ -161,14 +161,11 @@ public class Shell {
         throws IOException {
 
         if ( args.length < 1 ){
-            System.err.println( "usage: ed.db.Shell [db name] <host name>" );
+            System.err.println( "usage: ed.db.Shell [db url format]" );
             System.exit(-1);
         }
         
-        String dbName = args[0];
-        String hostName = args.length > 1 ? args[1] : null;
-        
-        Shell s = new Shell( System.out , DBProvider.get( dbName , hostName ) );
+        Shell s = new Shell( System.out , DBProvider.get( args[0] ) );
         s.repl();
     }
 

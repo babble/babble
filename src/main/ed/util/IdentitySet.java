@@ -29,6 +29,10 @@ public class IdentitySet<T> {
     public boolean contains( T t ){
         return _map.containsKey( t );
     }
-    
+
+    public void remove( T t ){
+        _map.remove( t );
+    }
+
     final IdentityHashMap<T,String> _map = new IdentityHashMap<T,String>();
 }

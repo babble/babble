@@ -34,11 +34,6 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
     
     public static final String JXP_SOURCE_PROP = "_jxpSource";
 
-    static final File _tmpDir = new File( "/tmp/jxp/templates/" );
-    static {
-        _tmpDir.mkdirs();
-    }
-
     public static JxpSource getSource( File f ){
         return getSource( f , null );
         
@@ -55,7 +50,7 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
             return new ed.lang.python.PythonJxpSource( f , lib );
 
         if ( f.getName().endsWith( ".php" ) )
-            return new ScriptJxpSource( f );
+            return new ed.lang.php.PHPJxpSource( f );
 
         JxpSource s = new JxpFileSource( f );
         s._lib = lib;

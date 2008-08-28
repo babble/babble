@@ -159,7 +159,7 @@ public class AppContext {
         // --- db
 
         if ( ! _isGrid ){
-            _scope.put( "db" , DBProvider.get( _name , this ) , true );
+            _scope.put( "db" , DBProvider.get( this ) , true );
             _scope.put( "setDB" , new JSFunctionCalls1(){
 
                     public Object call( Scope s , Object name , Object extra[] ){
@@ -170,12 +170,12 @@ public class AppContext {
                         if ( ! db.allowedToAccess( name.toString() ) )
                             throw new JSException( "you are not allowed to access db [" + name + "]" );
                         
-                        s.put( "db" , DBProvider.get( name.toString() , AppContext.this ) , false );
+                        s.put( "db" , DBProvider.get( AppContext.this , name.toString() ) , false );
 			_lastSetTo = name.toString();
                         
                         if ( _adminContext != null ){
                             // yes, i do want a new copy so Constructors don't get copied for both
-                            _adminContext._scope.put( "db" , DBProvider.get( name.toString() , AppContext.this ) , false );
+                            _adminContext._scope.put( "db" , DBProvider.get( AppContext.this , name.toString() ) , false );
                         }
                         
                         return true;
@@ -313,6 +313,7 @@ public class AppContext {
     }
 
     static String[] guessNameAndEnv( String root ){
+	root = ed.io.FileUtil.clean( root );
         root = root.replaceAll( "\\.+/" , "" );
         String pcs[] = root.split("/+");
         
@@ -516,6 +517,22 @@ public class AppContext {
         return temp.exists() ? temp : f;
     }
 
+    File tryOtherExtensions( File f ){
+        if ( f.exists() )
+            return f;
+        
+        if ( f.getName().indexOf( "." ) >= 0 )
+            return f;
+
+        for ( int i=0; i<JSFileLibrary._srcExtensions.length; i++ ){
+            File temp = new File( f.toString() + JSFileLibrary._srcExtensions[i] );
+            if ( temp.exists() )
+                return temp;
+        }
+
+        return f;
+    }
+
     /**
      *    Maps a servlet-like URI to a jxp file.
      *
@@ -569,10 +586,12 @@ public class AppContext {
 
         if ( ! ( f.isDirectory() && f.exists() ) )
             return f;
-
-        File temp = new File( f , "index.jxp" );
-        if ( temp.exists() )
-            return temp;
+        
+        for ( int i=0; i<JSFileLibrary._srcExtensions.length; i++ ){
+            File temp = new File( f , "index" + JSFileLibrary._srcExtensions[i] );
+            if ( temp.exists() )
+                return temp;
+        }
 
         return f;
     }
@@ -635,6 +654,10 @@ public class AppContext {
             return temp;
         }
 
+        if ((temp = tryOtherExtensions(f)) != f) {
+            return temp;
+        }
+        
         if ((temp = tryServlet(f)) != f) {
             return temp;
         }
@@ -642,6 +665,7 @@ public class AppContext {
         if ((temp = tryIndex(f)) != f) {
             return temp;
         }
+
 
         return f;
     }
@@ -846,6 +870,21 @@ public class AppContext {
         _scope.put( "local" , _localObject , true );
         _scope.put( "jxp" , _localObject , true );
 	_scope.warn( "jxp" );
+    }
+
+    public static AppContext findThreadLocal(){
+        AppRequest req = AppRequest.getThreadLocal();
+        if ( req != null )
+            return req._context;
+
+        Scope s = Scope.getThreadLocal();
+        if ( s != null ){
+            Object foo = s.get( "__instance__" );
+            if ( foo instanceof AppContext )
+                return (AppContext)foo;
+        }
+
+        return null;
     }
 
     final String _name;

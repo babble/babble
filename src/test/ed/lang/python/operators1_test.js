@@ -15,6 +15,7 @@
 */
 
 o = {a: 1, b: 4};
+a = [ 17 , 18]
 
-local.src.test.ed.lang.python.expand4py();
+local.src.test.ed.lang.python.operators1_helper();
 

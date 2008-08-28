@@ -2,6 +2,7 @@
 
 package ed.db;
 
+import java.util.*;
 import java.nio.*;
 import java.nio.charset.*;
 
@@ -93,7 +94,7 @@ public class ByteEncoder extends Bytes {
         final int start = _buf.position();
         
         byte myType = OBJECT;
-        if ( o instanceof JSArray )
+        if ( o instanceof JSArray || o instanceof List )
             myType = ARRAY;
 
         if ( _handleSpecialObjects( name , o ) )
@@ -135,7 +136,7 @@ public class ByteEncoder extends Bytes {
 
             Object val = o.get( s );
             
-            if ( val instanceof JSFunction ){
+            if ( val instanceof JSFunction && ((JSFunction)val).isCallable() ){
 
                 if ( s.startsWith( "$" ) && 
                      ! val.toString().startsWith( JSFunction.TO_STRING_PREFIX ) ){

@@ -14,8 +14,9 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-o = {a: 1, b: 4};
-a = [ 17 , 18]
+local.src.test.ed.lang.python.tuple1_helper();
 
-local.src.test.ed.lang.python.operators1py();
+assert( pythonTuple.length == 3 );
+assert.raises( function(){ pythonTuple[0] = 5; });
+assert.raises( function(){ pythonTuple.push(8); });
 

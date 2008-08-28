@@ -1,3 +1,5 @@
+// PipedHttpResponseHandler.java
+
 /**
 *    Copyright (C) 2008 10gen Inc.
 *  
@@ -14,22 +16,30 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var someData = {x: 142, y: 'hi'};
+package ed.net.httpclient;
 
-getglobal = function(x){
-    return someData[x];
-};
+import java.io.*;
 
+import ed.io.*;
+import ed.util.*;
 
-local.src.test.ed.lang.python.module();
+/**
+*/
+public class PipedHttpResponseHandler extends HttpResponseHandlerBase {
+    public PipedHttpResponseHandler( OutputStream out ){
+	this( out , -1 );
+    }
+    
+    public PipedHttpResponseHandler( OutputStream out , int maxSize ){
+	_out = out;
+	_maxSize = maxSize;
+    }
 
-assert( pyX == someData.x );
-assert( pyY == someData.y );
+    public int read( InputStream in )
+	throws IOException {
+	return StreamUtil.pipe( in , _out , _maxSize );
+    }
 
-pythonAddAttr(someData, 'z', 11);
-
-assert( someData.z == 11 );
-
-pythonAddFoo(someData);
-
-assert( someData.foo == "yippee" );
+    OutputStream _out;
+    int _maxSize = -1;
+}

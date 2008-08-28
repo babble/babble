@@ -34,6 +34,7 @@ public abstract class DBBase extends JSObjectLame {
     protected abstract DBCollection doGetCollection( String name );
     public abstract Collection<String> getCollectionNames();
 
+    public abstract DBAddress getAddress();
     public abstract String getConnectPoint();
 
     public final DBCollection getCollection( String name ){
@@ -94,11 +95,11 @@ public abstract class DBBase extends JSObjectLame {
                         throw new JSException( "not allowed to access db from [" + other + "]" );
                     return getCollectionFromFull( other );
                 }
-                return DBProvider.get( s.substring(1) );
+                return DBProvider.getSisterDB( this , s.substring(1) );
             }
             return getCollection( s );
         }
-
+        
         return null;
     }
 

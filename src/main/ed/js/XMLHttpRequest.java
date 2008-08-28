@@ -25,8 +25,11 @@ import java.nio.channels.*;
 import java.util.*;
 import javax.net.ssl.*;
 
+import ed.io.*;
 import ed.js.func.*;
 import ed.js.engine.*;
+import ed.net.*;
+import ed.net.httpclient.*;
 
 /** @expose */
 public class XMLHttpRequest extends JSObjectBase {
@@ -212,132 +215,22 @@ public class XMLHttpRequest extends JSObjectBase {
     private XMLHttpRequest _doSend( String post )
         throws IOException {
 
-        // TODO: more real http client
-
-	Socket sock = null;
-
-        int timeout = 0;
-        if ( get( "timeout" ) != null ){
-            timeout = ((Number)get( "timeout" )).intValue();
-            if ( timeout < 50 )
-                timeout *= 1000;
-        }
-
         try {
             setStatus( OPENED );
-
-            sock = new Socket();
-            sock.setSoTimeout( timeout );
-
-            if ( DEBUG )
-                System.out.println( "connecting to [" + getHost() + ":" + getPort() + "]" );
-
-            sock.connect( new InetSocketAddress( getHost() , getPort() ) , timeout );
-
-            if ( isSecure() ){
-                if ( DEBUG ) System.out.println( "\t making secure" );
-                sock = ((SSLSocketFactory)SSLSocketFactory.getDefault()).createSocket( sock , getHost() , getPort() , true );
-            }
-
-            if ( DEBUG ) System.out.println( "\t" + sock );
-
-            byte postData[] = null;
-
-            if ( post != null )
-                postData = post.getBytes();
-
-            if ( postData != null )
-                setRequestHeader( "Content-Length" , String.valueOf( postData.length ) );
-
-            sock.getOutputStream().write( getRequestHeader().getBytes() );
-            if ( postData != null )
-                sock.getOutputStream().write( postData );
-
-            ByteBuffer buf = ByteBuffer.wrap( new byte[1024 * 1024 * 3 ] );
-            {
-                byte temp[] = new byte[2048];
-                InputStream in = sock.getInputStream();
-                while ( true ){
-                    int len = in.read( temp );
-                    if ( len < 0 )
-                        break;
-
-                    buf.put( temp , 0 , len );
-                }
-
-            }
-
-            buf.flip();
-
-            int headerEnd = startsWithHeader( buf );
-            if ( headerEnd < 0 ){
-                if ( DEBUG ){
-                    byte b[] = new byte[buf.limit()];
-                    buf.get( b );
-                    System.out.println( new String( b ) );
-                }
-                throw new JSException( "no header :(" );
-            }
-
-            if ( DEBUG ) System.out.println( buf );
-
-            byte headerBytes[] = new byte[headerEnd];
-            buf.get( headerBytes );
-            String header = new String( headerBytes );
-            set( "header" , header.trim() );
-
-            String headerLines[] = header.split( "[\r\n]+" );
-            if ( headerLines.length > 0 ) {
-                String firstline = headerLines[0];
-                int start = firstline.indexOf( " " ) + 1;
-                int end = firstline.indexOf( " " , start );
-
-                set( "status" , Integer.parseInt( firstline.substring( start , end ) ) );
-                set( "statusText" , firstline.substring( end + 1 ).trim() );
-            }
-
-            JSObject headers = new JSObjectBase();
-            set( "headers" , headers );
-
-            for ( int i=1; i<headerLines.length; i++ ){
-                int idx = headerLines[i].indexOf( ":" );
-                if ( idx < 0 )
-                    continue;
-
-                String n = headerLines[i].substring( 0 , idx ).trim();
-                String v = headerLines[i].substring( idx + 1 ).trim();
-
-                if ( DEBUG ) System.out.println( "\t got header [" + n + "] -> [" + v + "]" );
-                headers.set( n , v );
-
-            }
-
-            setStatus( HEADERS_RECEIVED );
-            setStatus( LOADING );
-
-            byte bodyBytes[] = new byte[buf.limit()-headerEnd];
-            buf.get( bodyBytes );
-            String body = new String( bodyBytes );
-            set( "responseText" , new JSString( body ) );
-
-            if ( DEBUG ) System.out.println( buf );
-
+            Handler handler = new Handler( post );
+            HttpClient.download( _checkURL() , handler );
         }
         catch ( IOException ioe ){
             set( "error" , ioe );
             return null;
         }
         finally {
-	    try {
-		sock.close();
-	    }
-	    catch ( Exception e ){}
             setStatus( DONE );
         }
-
+        
         return this;
     }
-
+    
     /** Gets the length of the header.
      * @param Buffer containing this request string.
      * @return The number of characters in first line of the request.
@@ -462,7 +355,7 @@ public class XMLHttpRequest extends JSObjectBase {
         return JSON.parse( r.toString() );
     }
 
-    private void _checkURL(){
+    private URL _checkURL(){
         if ( _urlString == null || _urlString.trim().length() == 0 )
             throw new JSException( "no url" );
 
@@ -474,17 +367,120 @@ public class XMLHttpRequest extends JSObjectBase {
                 throw new JSException( "bad url [" + _urlString + "]" );
             }
         }
+        return _url;
     }
 
-    /** @unexpose */
+    class Handler implements HttpResponseHandler {
+        
+        Handler( String postData ){
+            this( postData == null ? null : postData.getBytes() );
+        }
+
+        Handler( byte[] postData ){
+            _postData = postData;
+        }
+        
+        public int read( InputStream is )
+            throws IOException {
+
+            set( "header" , new JSString( _header.toString() ) );
+
+            setStatus( LOADING );
+            ByteArrayOutputStream bout = new ByteArrayOutputStream( _contentLength > 0 ? _contentLength : 128 );
+            StreamUtil.pipe( is , bout );
+            byte[] data = bout.toByteArray();
+            set( "responseText" , new String( data , _contentEncoding ) );
+            return data.length;
+        }
+        
+        public void gotHeader( String name , String value ){
+
+            boolean firstLine = name.equals( "FIRST_LINE" );
+            
+
+            if ( ! firstLine )
+                _header.append( name ).append( ": " );
+            _header.append( value ).append( "\n" );
+            
+            if ( firstLine ){
+                String statusText = value;
+                int idx = statusText.indexOf( " " );
+                if ( idx > 0 ){
+                    statusText = statusText.substring( idx + 1 ).trim();
+                    idx = statusText.indexOf( " " );
+                    if ( idx > 0 ){
+                        statusText = statusText.substring( idx + 1 ).trim();
+                    }
+                }
+                 
+                set( "statusText" , new JSString( statusText ) );
+            }
+
+            JSObject headers = (JSObject)get( "headers" );
+            if ( headers == null ){
+                headers = new JSObjectBase();
+                set( "headers" , headers );
+            }
+            headers.set( name , new JSString( value ) );
+        }
+    
+        public void removeHeader( String name ){}
+        
+        public void gotResponseCode( int responseCode ){
+            set( "status" , responseCode );
+            setStatus( HEADERS_RECEIVED );
+        }
+        
+        public void gotContentLength( int contentLength ){
+            _contentLength = contentLength;
+            set( "contentLength" , contentLength );
+        }
+
+        public void gotContentEncoding( String contentEncoding ){
+            _contentEncoding = contentEncoding;
+            set( "contentEncoding" , contentEncoding );
+        }
+        
+        public void gotCookie( Cookie c ){}
+
+        public void setFinalUrl( URL url ){
+            set( "finalURL" , url.toString() );
+        }
+        
+        public boolean followRedirect( URL url ){
+            return true;
+        }
+        
+        public Map<String,String> getHeadersToSend(){
+            return null;
+        }
+
+        public Map<String,Cookie> getCookiesToSend(){
+            return null;
+        }
+        
+        public byte[] getPostDataToSend(){
+            return _postData;
+        }
+
+        public long getDesiredTimeout(){
+            Object foo = get( "timeout" );
+            if ( ! ( foo instanceof Number ) )
+                return -1;
+            return ((Number)foo).longValue();
+        }
+        
+        final byte[] _postData;
+        int _contentLength = 0;
+        String _contentEncoding = "UTF8";
+        StringBuilder _header = new StringBuilder();
+    }
+    
+
     String _method;
-    /** @unexpose */
     String _urlString;
-    /** @unexpose */
     boolean _async;
 
-    /** @unexpose */
     URL _url;
-    /** @unexpose */
     Scope _onreadystatechangeScope;
 }

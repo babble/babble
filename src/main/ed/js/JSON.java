@@ -59,14 +59,14 @@ public class JSON {
 
         s.put( "tojson" , new JSFunctionCalls1(){
                 public Object call( Scope s , Object o , Object foo[] ){
-                    return serialize( o , true );
+                    return new JSString(serialize( o , true ));
                 }
             } , true
             );
 
         s.put( "tojson_u" , new JSFunctionCalls1(){
                 public Object call( Scope s , Object o , Object foo[] ){
-                    return serialize( o , false );
+                    return new JSString(serialize( o , false ));
                 }
             } , true
             );
@@ -174,7 +174,7 @@ public class JSON {
             if ( o == null )
                 return false;
             
-            if ( o instanceof Number || o instanceof String || o instanceof Boolean )
+            if ( o instanceof Number || o instanceof String || o instanceof Boolean || o instanceof JSString )
                 return false;
 
             return true;
@@ -201,134 +201,141 @@ public class JSON {
                 }
             }
 
-            if ( something == null ){
-                a.append( "null" );
-                return;
-            }
-
-            if ( something instanceof Number ||
-                 something instanceof Boolean ||
-                 something instanceof JSRegex ){
-                a.append( something.toString() );
-                return;
-            }
-
-	    if ( something instanceof JSDate ){
-                if ( trusted ) {
-                    a.append( "new Date( " + ((JSDate)something)._time + " ) " );
+            try {
+                if ( something == null ){
+                    a.append( "null" );
                     return;
                 }
-                else {
-                    a.append( new Long(((JSDate)something)._time).toString() );
+
+                if ( something instanceof Number ||
+                     something instanceof Boolean ||
+                     something instanceof JSRegex ){
+                    a.append( something.toString() );
                     return;
                 }
-	    }
 
-            if ( something instanceof JSString ||
-                 something instanceof String ){
-                string( a , something.toString() );
-                return;
-            }
-
-            if ( something instanceof Logger ){
-                string( a , something.toString() );
-                return;
-            }
-
-            if ( something instanceof JSFunction ){
-                if ( trusted ) {
-                    String s = something.toString();
-                    if( s.trim().startsWith("function ()" ) )
-                        // JS implementation; presumed safe to work
-                        a.append( s );
-                    else
-                        // Java implementation -- not valid JSON
-                        string ( a, s );
-                    return;
+                if ( something instanceof JSDate ){
+                    if ( trusted ) {
+                        a.append( "new Date( " + ((JSDate)something)._time + " ) " );
+                        return;
+                    }
+                    else {
+                        a.append( new Long(((JSDate)something)._time).toString() );
+                        return;
+                    }
                 }
-                throw new java.io.IOException("can't serialize functions in untrusted mode");
-            }
 
-            if ( something instanceof ed.db.ObjectId ){
-                if ( trusted ) {
-                    a.append( "ObjectId( \"" + something + "\" )" );
-                    return;
-                }
-                else {
+                if ( something instanceof JSString ||
+                     something instanceof String ){
                     string( a , something.toString() );
                     return;
                 }
-            }
 
-            if( something instanceof ed.js.E4X.ENode || 
-                something instanceof ed.js.E4X.Namespace || 
-                something instanceof ed.js.E4X.QName ) {
-                a.append( something.toString() );
-                return;
-            }
-
-            if ( ! ( something instanceof JSObject ) ){
-                string( a , something.toString() );
-                return;
-            }
-
-            if ( something instanceof JSArray ){
-                JSArray arr = (JSArray)something;
-                a.append( "[ " );
-                for ( int i=0; i<arr._array.size(); i++ ){
-                    if ( i > 0 )
-                        a.append( " , " );
-                    go( a , arr._array.get( i ) , trusted, indent , nl , seen );
-                }
-                a.append( " ]" );
-                return;
-            }
-
-            if ( something instanceof Scope ){
-                a.append( something.toString() );
-                return;
-            }
-
-            JSObject o = (JSObject)something;
-
-            {
-                Object foo = o.get( "tojson" );
-                if ( foo != null && foo instanceof JSFunction ){
-                    a.append( ((JSFunction)foo).call( Scope.getAScope() ).toString() );
+                if ( something instanceof Logger ){
+                    string( a , something.toString() );
                     return;
                 }
-            }
 
-            a.append( _i( indent ) );
-            a.append( "{" );
-
-            boolean first = true;
-
-            for ( String s : o.keySet( false ) ){
-
-                if ( IGNORE_NAMES.contains( s ) )
-                    continue;
-
-                Object val = o.get( s );
-                if ( val instanceof JSObjectBase ){
-                    ((JSObjectBase)val).prefunc();
-                    if ( o.get( s ) == null )
-                        continue;
+                if ( something instanceof JSFunction ){
+                    if ( trusted ) {
+                        String s = something.toString();
+                        if( s.trim().startsWith("function ()" ) )
+                            // JS implementation; presumed safe to work
+                            a.append( s );
+                        else
+                            // Java implementation -- not valid JSON
+                            string ( a, s );
+                        return;
+                    }
+                    throw new java.io.IOException("can't serialize functions in untrusted mode");
                 }
 
-                if ( first )
-                    first = false;
-                else
-                    a.append( " ,"  );
+                if ( something instanceof ed.db.ObjectId ){
+                    if ( trusted ) {
+                        a.append( "ObjectId( \"" + something + "\" )" );
+                        return;
+                    }
+                    else {
+                        string( a , something.toString() );
+                        return;
+                    }
+                }
+
+                if( something instanceof ed.js.E4X.ENode ||
+                    something instanceof ed.js.E4X.Namespace ||
+                    something instanceof ed.js.E4X.QName ) {
+                    a.append( something.toString() );
+                    return;
+                }
+
+                if ( ! ( something instanceof JSObject ) ){
+                    string( a , something.toString() );
+                    return;
+                }
+
+                if ( something instanceof JSArray ){
+                    JSArray arr = (JSArray)something;
+                    a.append( "[ " );
+                    for ( int i=0; i<arr._array.size(); i++ ){
+                        if ( i > 0 )
+                            a.append( " , " );
+                        go( a , arr._array.get( i ) , trusted, indent , nl , seen );
+                    }
+                    a.append( " ]" );
+                    return;
+                }
+
+                if ( something instanceof Scope ){
+                    a.append( something.toString() );
+                    return;
+                }
+
+                JSObject o = (JSObject)something;
+
+                {
+                    Object foo = o.get( "tojson" );
+                    if ( foo != null && foo instanceof JSFunction ){
+                        a.append( ((JSFunction)foo).call( Scope.getAScope() ).toString() );
+                        return;
+                    }
+                }
+
+                a.append( _i( indent ) );
+                a.append( "{" );
+
+                boolean first = true;
+
+                for ( String s : o.keySet( false ) ){
+
+                    if ( IGNORE_NAMES.contains( s ) )
+                        continue;
+
+                    Object val = o.get( s );
+                    if ( val instanceof JSObjectBase ){
+                        ((JSObjectBase)val).prefunc();
+                        if ( o.get( s ) == null )
+                            continue;
+                    }
+
+                    if ( first )
+                        first = false;
+                    else
+                        a.append( " ,"  );
+
+                    a.append( _i( indent + 1 ) );
+                    string( a , s );
+                    a.append( " : " );
+                    go( a , val , trusted , indent + 1 , nl , seen );
+                }
 
                 a.append( _i( indent + 1 ) );
-                string( a , s );
-                a.append( " : " );
-                go( a , val , trusted , indent + 1 , nl , seen );
+                a.append( " }\n"  );
             }
+            finally {
+                if( _loopable( something ) )
+                    seen.remove( something );
 
-            a.append( _i( indent + 1 ) );
-            a.append( " }\n"  );
+            }
         }
 
     }

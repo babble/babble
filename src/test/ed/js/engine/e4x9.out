@@ -2,6 +2,7 @@ http://blahblah.org
 http://blahblah.org
 http://blahblah.org::Body
 DIS
+symbol
 sha nanana get a job
 one
 <two xmlns="go.cats.go">
@@ -24,3 +25,17 @@ get.ready::to
     <foo:z>sha nanana get a job</foo:z>
   </foo2:y>
 </shmoe>
+bar2::y
+get.ready::diplomat
+bar2 foo
+hello
+x
+get.ready
+go.daddy.o go.daddy.o
+black.dog
+go.daddy.o
+go.daddy.o black.dog
+<x xmlns="go.daddy.o">
+  <y xmlns:blah="hello">z</y>
+</x>
+bar

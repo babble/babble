@@ -14,9 +14,10 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-jsMap = {a: 1, b: 4};
+local.src.test.ed.lang.python.callable1_helper();
 
-jsArray = [4, 8, 2];
+assert( pyFoo.isCallable() );
+assert( ! pyBar.isCallable() );
 
-local.src.test.ed.lang.python.expandPy();
-
+assert( pyCallable.isCallable() );
+assert( pyCallable2.isCallable() );

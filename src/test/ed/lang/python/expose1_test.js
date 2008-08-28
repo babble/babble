@@ -21,7 +21,7 @@ getglobal = function(x){
 };
 
 
-local.src.test.ed.lang.python.module();
+local.src.test.ed.lang.python.expose1_helper();
 
 assert( called.x );
 assert( called.y );

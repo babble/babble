@@ -120,7 +120,14 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
                 System.err.println("I'm not set up yet! Ignoring set to " + n);
             return v;
         }
-        _p.__setitem__( toPython( n ) , toPython( v ) );
+        try {
+            _p.__setitem__( toPython( n ) , toPython( v ) );
+        }
+        catch(PyException e){
+            // meh -- try setattr
+            String s = n.toString();
+            __builtin__.setattr( _p, s.intern() , toPython( v ) );
+        }
         return v;
     }
 
@@ -183,9 +190,11 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
         }
 
         PyObject [] pParams = new PyObject[ length ];
-        int i;
-        for( i = 0; i < params.length; ++i ){
-            pParams[ i ] = toPython( params[ i ] );
+        int i = 0;
+        if( params != null ){
+            for( ; i < params.length; ++i ){
+                pParams[ i ] = toPython( params[ i ] );
+            }
         }
 
         int j = 0;
@@ -204,7 +213,6 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     }
 
     public Collection<String> keySet( boolean includePrototype ){
-        
         List<String> keys = new ArrayList<String>();
     
         if ( _p instanceof PyDictionary ){
@@ -221,8 +229,16 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
                 PyObject dict = _p.getDict();
                 
                 if( dict == null ){
-                    // try dir()??
-                    return keys;
+
+                    if( _p instanceof PyInstance ){
+                        dict = ((PyInstance)_p).__dict__;
+                    }
+
+                    if( dict == null ){
+                        if(D) System.out.println("can't figure out how to get keyset for " + _p.getClass());
+                        return keys;
+                    }
+
                 }
 
                 if( dict instanceof PyStringMap ){
@@ -238,7 +254,7 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
                             keys.add( o.toString() );
                     }
                     else
-                        throw new RuntimeException("can't figure out how to get keyset for " + dict.getClass() );
+                        throw new RuntimeException("can't figure out how to iterate " + dict.getClass() );
                 }
             }
         
@@ -246,7 +262,10 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     }
 
     public JSFunction getConstructor(){
-        throw new RuntimeException( "not implemented" );
+        Object o = toJS( _p.getType() );
+        if( ! ( o instanceof JSFunction) )
+            throw new RuntimeException("I'm so confused");
+        return (JSFunction)o;
     }
 
     public JSObject getSuper(){

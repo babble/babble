@@ -1,0 +1,21 @@
+<!--
+   This is a first draft of a build.xml to invoke an appmodule's tests.
+   Set the environment variable WTPATH to point to where you installed webtest,
+   and possibly edit this file to point to where you expect localhost to be 
+   running?
+   Maybe we should check for db_ip and db_port? Maybe we should make site
+   hostname be an environment variable too?
+
+   Then, run ant with this build file. The wt.full task runs the tests,
+   generates reports, etc. Tests are defined in allTests.xml.
+-->
+<project default="main">
+  <property environment="env"/>
+  <property name="webtest.home" location="${env.WTPATH}" />
+  <property name="site" value="${env.WTSITE}"/>
+  <import file="${webtest.home}/webtest.xml"/>
+  <property name="wt.testInWork" value="allTests.xml"/>
+  <target name="main" depends="wt.generateDefinitions,wt.generateDtd">
+    <ant antfile="buildReal.xml" inheritRefs="true"/>
+  </target>
+</project>

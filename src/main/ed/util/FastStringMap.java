@@ -1,8 +1,26 @@
 // FastStringMap.java
 
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package ed.util;
 
 import java.util.*;
+
+import ed.js.*;
 
 public final class FastStringMap implements Map<String,Object> {
 
@@ -276,6 +294,29 @@ public final class FastStringMap implements Map<String,Object> {
         
         throw new RuntimeException( "grow failed" );
         
+    }
+
+    public long approxSize( IdentitySet seen ){
+        if ( seen == null )
+            seen = new IdentitySet();
+        else if ( seen.contains( this ) )
+            return 0;
+        
+        seen.contains( this );
+
+        long size = 48 + ( 8 * _data.length );
+        for ( int i=0; i<_data.length; i++ ){
+
+            MyEntry e = _data[i];
+            if ( e == null )
+                continue;
+            
+            size += 32;
+            size += JSObjectSize.size( e._key , seen );
+            size += JSObjectSize.size( e._value , seen );
+        }
+
+        return size;
     }
 
     public int size(){
