@@ -33,8 +33,6 @@
 {{ "\n\\'\"\t\f"|escapejs }}
 {% endliteral_escape %}
 
-{{ [1,2,3]|join:"-" }}
-
 {{ 30|add:"7" }}
 {{ "1234567890"|get_digit:"4" }}
 

@@ -18,7 +18,6 @@ package ed.appserver.templates.djang10;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -26,7 +25,6 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,35 +40,78 @@ public class Util {
         return count;
     }
 
-    private static final String splitPatternFormat = "(\"(?:[^\"\\\\]*(?:\\\\.[^\"\\\\]*)*)\"|\'(?:[^\'\\\\]*(?:\\\\.[^\'\\\\]*)*)\'|[^%s]+)";
-    
     public static String[] smart_split(String str) {
-        return smart_split(str, "\\s");
+        return smart_split(str, new String[]{" ", "\r", "\n", "\t"}, false);
     }
-    
-    public static String[] smart_split(String str, String splitChars) {
-        String patternStr = String.format(splitPatternFormat, splitChars);
-        Pattern pattern = Pattern.compile(patternStr);
-        
-        List<String> results = new ArrayList<String>();
-        List<Character> quotes = Arrays.asList( new Character[] { '"', '\'' } );
-        Matcher m = pattern.matcher(str);
 
-        while(m.find()) {
-            String bit = m.group(0);
-            if(bit.trim().length() == 0)
-                continue;
+    public static String[] smart_split(String str, String[] splitStrs, boolean allowEmpty) {
+        List<String> results = new ArrayList<String>();
+        
+        str = str.trim();
+        boolean inQuote = false, escapeNext = false;
+        char quoteChar = '"';
+        int parenNesting = 0, bracketNesting = 0;
+        
+        int start = 0;
+        for(int i=0; i<str.length(); i++) {
+            char c = str.charAt(i);
             
-            
-            if(quotes.contains(bit.charAt(0)) && bit.charAt(bit.length() - 1) == bit.charAt(0)) {
-                char quote = bit.charAt(0);
-                
-                bit = quote + bit.substring(1, bit.length() -1) + quote;
+            if(escapeNext) {
+                escapeNext = false;
             }
-            results.add(bit);
+            else if(inQuote) {
+                if(c == '\\')
+                    escapeNext = true;
+                else if(c == quoteChar)
+                    inQuote = false;
+            }
+            else {
+                switch(c){
+                case '"':
+                case '\'':
+                    inQuote = true;
+                    quoteChar = c;
+                    break;
+                case '(':
+                    parenNesting++;
+                    break;
+                case ')':
+                    parenNesting--;
+                    break;
+                case '[':
+                    bracketNesting++;
+                    break;
+                case ']':
+                    bracketNesting--;
+                    break;
+                default:
+                    if(parenNesting != 0 || bracketNesting != 0)
+                        continue;
+                    
+                    String splitter = null;
+                    for(String splitStr : splitStrs) {
+                        if(str.regionMatches(i, splitStr, 0, splitStr.length())) {
+                            splitter = splitStr;
+                            break;
+                        }
+                    }
+                    if(splitter == null)
+                        continue;
+                    
+                    if(allowEmpty || i - start > 0)
+                        results.add(str.substring(start, i));
+                    
+                    start = i + splitter.length();
+                    i = start - 1;                    
+                }
+            }
         }
+        if(start < str.length())
+            results.add(str.substring(start));
+            
         return results.toArray(new String[results.size()]);
     }
+    
     public static String[] split(Pattern regex, String str) {
         List<String> parts = new ArrayList<String>();
         Matcher m = regex.matcher(str);

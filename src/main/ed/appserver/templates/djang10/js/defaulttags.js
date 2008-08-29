@@ -802,18 +802,18 @@ var do_if =
         throw djang10.NewTemplateSyntaxException("'if' statement requires at least one argument", token);
     
     var bitstr = "" + bits.join(" ");
-    var boolpairs = bitstr.split(" and ");
+    var boolpairs = djang10.smart_split(bitstr, [" and "]);
 
     var boolvars = [];
     var link_type;
     if(boolpairs.length == 1) {
         link_type = IfNode.LinkTypes.or_;
-        boolpairs = bitstr.split(" or ");
+        boolpairs = djang10.smart_split(bitstr, [" or "])
     }
     else {
         link_type = IfNode.LinkTypes.and_;
-        if(bitstr.indexOf(" or ") > -1)
-        throw djang10.NewTemplateSyntaxException("'if' tags can't mix 'and' and 'or'", token);
+        if(djang10.smart_split(bitstr, [" or "]).length > 1)
+            throw djang10.NewTemplateSyntaxException("'if' tags can't mix 'and' and 'or'", token);
     }
     
     for(var i=0; i<boolpairs.length; i++) {
@@ -821,12 +821,10 @@ var do_if =
 
         
         if( boolpair.indexOf(" ") > -1) {
-            var boolpair_parts = boolpair.split(" ");
-            var not = boolpair_parts[0];
-            var boolvar = boolpair_parts[1];
+            var boolpair_parts =  /\s*not\s+(.+)$/.exec(boolpair);
             
-            if(not == 'not')
-                boolvars.push(new IfNode.BoolExpr(true, parser.compile_filter(boolvar)));
+            if(boolpair_parts != null)
+                boolvars.push(new IfNode.BoolExpr(true, parser.compile_filter(boolpair_parts[1])));
             else
                 boolvars.push(new IfNode.BoolExpr(false, parser.compile_filter(boolpair)));
         }
@@ -858,7 +856,7 @@ var ifchanged =
     defaulttags.ifchanged =
     function(parser, token) {
 
-    var bits = token.contents.split(/\s+/);
+    var bits = token.split_contents();
     var nodelist = parser.parse(["endifchanged"]);
     parser.delete_first_token();
     
