@@ -485,6 +485,7 @@ public class E4X {
                 ENode topParent = this;
                 this._dummy = false;
                 while( topParent.parent._dummy ) {
+                    topParent.parent.children.add( topParent );
                     topParent = topParent.parent;
                     topParent._dummy = false;
                 }

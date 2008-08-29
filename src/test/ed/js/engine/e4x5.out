@@ -23,4 +23,9 @@
 <x>
   y
   <foo bar="lalala"/>
+  <fooy>
+    <bar>
+      <blah>fooy!</blah>
+    </bar>
+  </fooy>
 </x>

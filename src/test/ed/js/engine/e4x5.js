@@ -35,4 +35,5 @@ print(french);
 
 xml = <x>y</x>;
 xml.foo.@bar = "lalala";
+xml.fooy.bar.blah[0] = "fooy!";
 print( xml );
