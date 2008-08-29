@@ -236,7 +236,7 @@ public class JSON {
                     return;
                 }
 
-                if( something.getClass().getEnclosingClass().getSimpleName().equals( "ENode" ) ||
+                if ( something.getClass().getEnclosingClass() != null && something.getClass().getEnclosingClass().getSimpleName().equals( "ENode" ) ||
                     something instanceof ed.js.E4X.ENode ||
                     something instanceof ed.js.E4X.Namespace ||
                     something instanceof ed.js.E4X.QName ) {
