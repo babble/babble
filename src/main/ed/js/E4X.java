@@ -1096,14 +1096,14 @@ public class E4X {
         public class insertChildAfter extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
                 foo = getTwoArgs( foo );
-                return getENode( s ).insertChildAfter(foo[0], (ENode)foo[1]);
+                return getENode( s ).insertChildAfter(foo[0], toXML( foo[1] ));
             }
         }
 
         public class insertChildBefore extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
                 foo = getTwoArgs( foo );
-                return getENode( s ).insertChildBefore(foo[0], (ENode)foo[1]);
+                return getENode( s ).insertChildBefore(foo[0], toXML( foo[1] ));
             }
         }
 
@@ -1953,7 +1953,7 @@ public class E4X {
         public void clear() {  children.clear(); }
         public boolean contains( Object o ) { return  children.contains( o ); }
         public boolean containsAll( Collection o ) { return  children.containsAll( o ); }
-        public boolean equals( Object o) { return children.equals(o); }
+        public boolean equals( Object o ) { return children.equals(o); }
         public int hashCode( IdentitySet seen ) { return children.hashCode(); }
         public int indexOf( Object o ) { return children.indexOf(o); }
         public boolean isEmpty() { return children.isEmpty(); }

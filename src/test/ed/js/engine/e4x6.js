@@ -30,11 +30,11 @@ xml.appendChild(<singer>Joni Mitchell</singer>);
 print( xml.actor.name.appendChild(" York") );
 
 //insertChildAfter
-//xml.actor.insertChildAfter(xml.singer, <artist>Renoir</artist>);
+xml.actor.insertChildAfter( xml.child("1"), <artist>Renoir</artist>);
 
 //insertChildBefore
-//xml.actor.born.insertChildBefore(xml.singer, "lose");
-//xml.actor.film[0].insertChildBefore(xml.singer, <some><really><nested>thing</nested></really></some>);
+xml.actor.born.insertChildBefore( xml.child("1"), "lose" );
+xml.actor.film[0].insertChildBefore( xml.child("1"), <some><really><nested>thing</nested></really></some> );
 
 //prependChild
 xml.actor.prependChild(<name>me</name>);
@@ -71,7 +71,7 @@ print( xml.copy[0] );
 delete xml.copy
 print( xml );
 
-// just make sure this doesn't throw an exception
+// just make sure the getter doesn't throw an exception
 xml.appendChild[0];
 xml.appendChild[0] = "fubar";
 print( xml );

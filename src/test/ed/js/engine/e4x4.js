@@ -59,3 +59,5 @@ xml.setChildren( <foo>bar</foo> + <hi>bye</hi> );
 print( xml );
 xml.setChildren( xml );
 print( xml );
+xml.setChildren( "foo" );
+print( xml );
