@@ -480,9 +480,6 @@ public class E4X {
             if(this.children == null ) 
                 this.children = new XMLList();
 
-            if( k.toString().startsWith("@") )
-                return setAttribute(k.toString(), v.toString());
-
             // attach any dummy ancestors to the tree
             if( this._dummy ) {
                 ENode topParent = this;
@@ -493,6 +490,10 @@ public class E4X {
                 }
                 topParent.parent.children.add(topParent);
             }
+
+            // set an attribute
+            if( k.toString().startsWith("@") )
+                return setAttribute(k.toString(), v.toString());
 
             // if v is an XML list, add each element
             if( v instanceof XMLList && !k.equals( "*" ) ) {
@@ -508,6 +509,7 @@ public class E4X {
                 }
                 return v;
             }
+
             // if v is already XML and it's not an XML attribute, just add v to this enode's children
             if( v instanceof ENode ) {
                 if( k.toString().equals("*") ) {
@@ -530,13 +532,14 @@ public class E4X {
 
             // find out if this k/v pair exists
             ENode n;
-            Object obj = get(k);
-            if( obj instanceof ENode )
+            Object obj = get( k );
+            if( obj instanceof ENode ) {
                 n = ( ENode )obj;
+            }
             else {
                 n = (( ENodeFunction )obj).cnode;
                 if( n == null ) {
-                    n = new ENode();
+                    n = new ENode( this.XML, this.defaultNamespace );
                 }
             }
 
@@ -554,8 +557,7 @@ public class E4X {
                 // this index is greater than the number of elements existing
                 if( index >= numChildren ) {
                     // if there is a list of future siblings, get the last one
-                    // if this isn't a fake node, we've gone one too far and we need to get its parent
-                    ENode rep = this instanceof XMLList ? ((XMLList)this).get( ((XMLList)this).size() - 1 ) : ( n._dummy ? this : this.parent );
+                    ENode rep = this instanceof XMLList ? ((XMLList)this).get( ((XMLList)this).size() - 1 ) : this;
 
                     // if k/v doesn't really exist, "get" returns a dummy node, an emtpy node with nodeName = key
                     if( n._dummy ) {
@@ -563,17 +565,24 @@ public class E4X {
                     }
                     // otherwise, we need to reset n so we don't replace an existing node
                     else {
-                        n = new ENode();
+                        n = new ENode( this.XML, this.defaultNamespace );
                         n.children = new XMLList();
                     }
 
                     ENode attachee = rep.parent;
+                    // if we have, say, xml.foo[0] = "bar" we have:
+                    //     - this: empty dummy node (<foo/>), attached to tree above
+                    //     - n: the node about to be attached (<foo>bar</foo>)
+                    // too many dummies!
+                    if( numChildren == 0 ) {
+                        attachee.children.remove( this );
+                    }
                     n.node = rep.node.getOwnerDocument().createElement( rep.localName() );
                     Node content = rep.node.getOwnerDocument().createTextNode(v.toString());
                     n.children.add( new ENode( content, n ) );
                     n.parent = attachee;
                     // get the last sibling's position & insert this new one there
-                    attachee.children.add( attachee.children.indexOf(rep)+1, n );
+                    attachee.children.add( attachee.children.indexOf( rep ) + 1, n );
                 }
                 // replace an existing element
                 else {
@@ -741,7 +750,8 @@ public class E4X {
          * Returns children matching a given name or index.
          */
         public ENode child( Object propertyName ) {
-            XMLList nodeList = ( this instanceof XMLList ) ? (XMLList)this : this.children;
+            boolean xmllist = this instanceof XMLList;
+            XMLList nodeList = xmllist ? (XMLList)this : this.children;
             Pattern num = Pattern.compile("\\d+(\\.\\d+)?");
             Matcher m = num.matcher(propertyName.toString());
             if( m.matches() ) {
@@ -749,7 +759,7 @@ public class E4X {
 
                 if( i < nodeList.size() ) 
                     return nodeList.get(i);
-                else if ( nodeList.size() >= 1 ) 
+                else if ( !xmllist || ( xmllist && nodeList.size() >= 1 ) )
                     return new ENode( this, this instanceof XMLList ? nodeList.get(0).name.localName : this.name.localName );
                 else
                     return new ENode();

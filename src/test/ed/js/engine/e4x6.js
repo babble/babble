@@ -73,6 +73,8 @@ print( xml );
 
 // just make sure this doesn't throw an exception
 xml.appendChild[0];
+xml.appendChild[0] = "fubar";
+print( xml );
 
 xml = <x><copy>foo</copy><copy>bar</copy></x>;
 delete xml.copy

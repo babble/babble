@@ -32,3 +32,7 @@ french.food = "fromage"
 french.places = <books><usr>livre</usr><bin>elles</bin></books>
 
 print(french);
+
+xml = <x>y</x>;
+xml.foo.@bar = "lalala";
+print( xml );
