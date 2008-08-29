@@ -28,4 +28,11 @@
       <blah>fooy!</blah>
     </bar>
   </fooy>
+  <bar>
+    <foo>
+      <bar>
+        <such>a pita</such>
+      </bar>
+    </foo>
+  </bar>
 </x>

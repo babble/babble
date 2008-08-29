@@ -472,6 +472,33 @@ public class E4X {
             throw new RuntimeException( "can't handle : " + n.getClass() );
         }
 
+        /*        public Object put( Object p, Object v ) {
+            if( this.isSimpleTypeNode() )
+                return v;
+
+            Object c;
+            if( !(v instanceof ENode) || 
+                ( v.node != null && (
+                                     v.node.getNodeType() == Node.ATTRIBUTE_NODE ||
+                                     v.node.getNodeType() == Node.TEXT_NODE ) ) ) {
+                c = v.toString();
+            }
+            else {
+                c = v.copy();
+            }
+
+            String n = p.toString();
+            if( n.startsWith( "@" ) )
+                return setAttribute( p, v );
+
+            boolean primitiveAssign = !( c instanceof ENode ) && !n.equals( "*" );
+            for( int k = this.length() - 1; k >= 0; k-- ) {
+                if( n.localName.equals( "*" ) || x.get( k ).node.getNodeType == Node.ELEMENT_NODE ) {
+
+                }
+            }
+            }*/
+
         /** @setter
          */
         public Object set( Object k, Object v ) {
@@ -511,22 +538,30 @@ public class E4X {
                 return v;
             }
 
+            Pattern num = Pattern.compile("-?\\d+");
+            Matcher m = num.matcher(k.toString());
+
             // if v is already XML and it's not an XML attribute, just add v to this enode's children
             if( v instanceof ENode ) {
+                // in the unusual situation where we have x.set("*", x), we have
+                // to copy x before resetting its children
+                ENode vcopy = ((ENode)v).copy();
                 if( k.toString().equals("*") ) {
-                    // in the unusual situation where we have x.set("*", x), we have
-                    // to copy x before resetting its children
-                    ENode vcopy = ((ENode)v).copy();
                     // replace children
                     if( v instanceof XMLList ) {
                         children = (XMLList)vcopy;
                         return this;
                     }
                     this.children = new XMLList();
-                    this.children.add( vcopy );
+                }
+                // if k is a number, go back one
+                if( m.matches() ) {
+                    int index = this.parent.children.indexOf( this );
+                    this.parent.children.remove( this );
+                    this.parent.children.add( index, vcopy );
                 }
                 else {
-                    this.children.add((ENode)v);
+                    this.children.add( vcopy );
                 }
                 return v;
             }
@@ -543,9 +578,6 @@ public class E4X {
                     n = new ENode( this.XML, this.defaultNamespace );
                 }
             }
-
-            Pattern num = Pattern.compile("-?\\d+");
-            Matcher m = num.matcher(k.toString());
 
             // k is a number
             if( m.matches() ) {
