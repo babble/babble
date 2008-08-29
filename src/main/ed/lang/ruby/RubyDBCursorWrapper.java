@@ -159,7 +159,7 @@ public class RubyDBCursorWrapper extends RubyArray {
         if (len < 0) len = 0;
 
         return new long[]{beg, len};
-    }    
+    }
 
     public IRubyObject values_at(IRubyObject[] args) {
         RubyArray result = RubyArray.newArray(getRuntime(), args.length);
@@ -408,7 +408,7 @@ public class RubyDBCursorWrapper extends RubyArray {
             if (tmp.isTaint()) taint = true;
         }
 
-        RubyString result = runtime.newString(buf); 
+        RubyString result = runtime.newString(buf);
 
         if (taint) result.setTaint(true);
 
@@ -437,7 +437,7 @@ public class RubyDBCursorWrapper extends RubyArray {
                 return getRuntime().getFalse();
 	    } else {
                 if (equalInternal(context, obj.callMethod(context, "to_ary"), this)) return getRuntime().getTrue();
-                return getRuntime().getFalse();                
+                return getRuntime().getFalse();
             }
         }
 
@@ -447,7 +447,7 @@ public class RubyDBCursorWrapper extends RubyArray {
 
         org.jruby.Ruby runtime = getRuntime();
         for (long i = 0; i < realLength; i++) {
-            if (!equalInternal(context, _at(i), ary.at(getRuntime().newFixnum(i)))) return runtime.getFalse();            
+            if (!equalInternal(context, _at(i), ary.at(getRuntime().newFixnum(i)))) return runtime.getFalse();
         }
         return runtime.getTrue();
     }
@@ -491,7 +491,7 @@ public class RubyDBCursorWrapper extends RubyArray {
         org.jruby.Ruby runtime = getRuntime();
 	int realLength = _cursor.length();
         for (int i = 0; i < realLength; i++) {
-            if (equalInternal(context, _at(i), obj)) return runtime.newFixnum(i);            
+            if (equalInternal(context, _at(i), obj)) return runtime.newFixnum(i);
         }
 
         return runtime.getNil();
@@ -528,14 +528,14 @@ public class RubyDBCursorWrapper extends RubyArray {
     public RubyArray collect(ThreadContext context, Block block) {
         org.jruby.Ruby runtime = getRuntime();
 	int realLength = _cursor.length();
-        
+
         if (!block.isGiven()) {
 	    RubyArray a = RubyArray.newArray(runtime);
 	    for (int i = 0; i < realLength; ++i)
 		a.append(_at(i));
 	    return a;
 	}
-        
+
         RubyArray collect = RubyArray.newArray(runtime);
         for (int i = 0; i < realLength; i++)
             collect.append(block.yield(context, _at(i)));
@@ -603,7 +603,7 @@ public class RubyDBCursorWrapper extends RubyArray {
             }
             return runtime.getNil();
         }
-        
+
         RubyArray result = RubyArray.newArray(runtime);
         for (int i = 0; i < len; i++) {
             RubyArray tmp = RubyArray.newArray(runtime);
