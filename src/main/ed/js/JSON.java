@@ -236,6 +236,14 @@ public class JSON {
                     return;
                 }
 
+                if( something.getClass().getEnclosingClass().getSimpleName().equals( "ENode" ) ||
+                    something instanceof ed.js.E4X.ENode ||
+                    something instanceof ed.js.E4X.Namespace ||
+                    something instanceof ed.js.E4X.QName ) {
+                    a.append( something.toString() );
+                    return;
+                }
+
                 if ( something instanceof JSFunction ){
                     if ( trusted ) {
                         String s = something.toString();
@@ -259,13 +267,6 @@ public class JSON {
                         string( a , something.toString() );
                         return;
                     }
-                }
-
-                if( something instanceof ed.js.E4X.ENode ||
-                    something instanceof ed.js.E4X.Namespace ||
-                    something instanceof ed.js.E4X.QName ) {
-                    a.append( something.toString() );
-                    return;
                 }
 
                 if ( ! ( something instanceof JSObject ) ){

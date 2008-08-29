@@ -39,3 +39,12 @@ b
     </deep>
   </deep>
 </y>
+<copy>foo</copy>
+<copy>bar</copy>
+<copy>foo</copy>
+<copy>bar</copy>
+foo
+foo
+
+
+

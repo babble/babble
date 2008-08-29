@@ -60,3 +60,18 @@ xml = <x><y><a>aaa</a></y><y foo="bar">b</y><y><deep><deep><down>c</down></deep>
 for each ( var x in xml ) {
     print( x );
 }
+
+// enode funcs
+xml = <x><copy>foo</copy><copy>bar</copy></x>;
+print( xml.copy );
+print( xml.copy[0] + xml.copy[1] );
+delete xml.copy[1];
+print( xml.copy );
+print( xml.copy[0] );
+delete xml.copy
+print( xml );
+
+xml = <x><copy>foo</copy><copy>bar</copy></x>;
+delete xml.copy
+print( xml )
+print( xml.copy )

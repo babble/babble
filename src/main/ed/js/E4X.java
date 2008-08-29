@@ -649,7 +649,11 @@ public class E4X {
          * Called for delete xml.prop
          */
         public Object removeField(Object o) {
-            ENode n = (ENode)get(o);
+            Object obj = get(o);
+            ENode n = obj instanceof ENodeFunction ? ((ENodeFunction)obj).getNode() : (ENode)obj;
+            if( n == null ) {
+                return false;
+            }
 
             if( ! (n instanceof XMLList) ) {
                 return n.parent.children.remove(n);
@@ -657,6 +661,9 @@ public class E4X {
 
             for( ENode e : (XMLList)n ) {
                 this.children.remove( e );
+            }
+            if( obj instanceof ENodeFunction ) {
+                ((ENodeFunction)obj).unset();
             }
 
             return true;
@@ -1792,7 +1799,21 @@ public class E4X {
             }
 
             public Object removeField( Object f ) {
-                return getNode().removeField(f);
+                Object removed = getNode().removeField( f );
+                Object obj = getNode().get( f );
+
+                if( cnode instanceof XMLList ) {
+                    ((XMLList)cnode).remove( obj );
+                }
+                else if( cnode.equals( obj ) ) {
+                    cnode = null;
+                }
+
+                return removed;
+            }
+
+            public void unset() {
+                cnode = null;
             }
 
             public ENode getNode() {
