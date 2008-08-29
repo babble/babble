@@ -271,4 +271,11 @@ public class RubyObjectWrapperTest {
 	// TODO test return of existing proc
 	// TODO test return of new proc
     }
+
+    public void testPublicMethodsWrapped() {
+	JSObject jso = new JSObjectBase();
+	IRubyObject ro = toRuby(s, r, jso);
+	assertTrue(ro.respondsTo("getConstructor")); // public method in JSObject
+	assertFalse(ro.respondsTo("xyzzy"));
+    }
 }

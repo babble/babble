@@ -18,11 +18,13 @@ package ed.lang.ruby;
   
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Set;
 
 import org.jruby.*;
 import org.jruby.internal.runtime.methods.JavaMethod;
 import org.jruby.javasupport.JavaUtil;
 import org.jruby.runtime.*;
+import org.jruby.runtime.callback.Callback;
 import org.jruby.runtime.builtin.IRubyObject;
 import static org.jruby.runtime.Visibility.PUBLIC;
 
@@ -30,6 +32,7 @@ import ed.db.DBCursor;
 import ed.db.ObjectId;
 import ed.js.*;
 import ed.js.engine.Scope;
+import ed.js.engine.NativeBridge;
 
 /**
  * RubyObjectWrapper acts as a bridge between Ruby objects and Java objects.
@@ -129,6 +132,24 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	if (haveBlock)
 	    jargs[args.length-offset] = RubyObjectWrapper.toJS(s, r, block);
 	return jargs;
+    }
+
+    public static void addJavaPublicMethodWrappers(final Scope scope, RubyClass klazz, final JSObject jsobj, Set<String> namesToIgnore) {
+	final org.jruby.Ruby runtime = klazz.getRuntime();
+	for (final String name : NativeBridge.getPublicMethodNames(jsobj.getClass())) {
+	    if (namesToIgnore.contains(name))
+		continue;
+	    final JSFunction func = NativeBridge.getNativeFunc(jsobj, name);
+	    klazz.defineMethod(name, new Callback() {
+		    public IRubyObject execute(IRubyObject recv, IRubyObject[] args, Block block) {
+			scope.setThis(jsobj);
+			IRubyObject result = toRuby(scope, runtime, func.call(scope, RubyObjectWrapper.toJSFunctionArgs(scope, runtime, args, 0, block)));
+			scope.clearThisNormal(jsobj);
+			return result;
+		    }
+		    public Arity getArity() { return Arity.OPTIONAL; }
+		});
+	}
     }
 
     RubyObjectWrapper(Scope s, org.jruby.Ruby runtime, Object obj) {

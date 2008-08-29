@@ -137,24 +137,6 @@ public class RubyJxpSourceTest extends SourceRunner {
 	assertEquals(s.get("new_thing").toString(), "57");
     }
 
-    public void testCallBlockAsJSFunction() {
-	Object o = RubyObjectWrapper.toJS(s, (IRubyObject)runRuby("Proc.new {|i| i + 7}"));
-	assertTrue(o instanceof JSFunctionWrapper);
-	JSFunctionWrapper fw = (JSFunctionWrapper)o;
-	Object answer = fw.call(s, new Integer(35), new Object[0]);
-	assertNotNull(answer);
-	assertTrue(answer instanceof Number);
-	assertEquals(((Number)answer).intValue(), 42);
-    }
-
-    public void testCallBlockFromJS() {
-	runRuby("$scope.set('rfunc', Proc.new {|i| i + 7})");
-	Object o = s.get("rfunc");
-	assertTrue(o instanceof JSFunction, "oops: rfunc is not a JSFunction; it is a " + o.getClass().getName());
-	runJS("print(rfunc(35));");
-	assertEquals(jsOutput, "42");
-    }
-
     public void testArrayModsAreExported() {
 	runRuby("$array[0] = 99");
 	runJS("print(array[0]);");

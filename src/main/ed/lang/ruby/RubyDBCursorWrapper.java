@@ -16,6 +16,9 @@
 
 package ed.lang.ruby;
 
+import java.util.Set;
+import java.util.HashSet;
+
 import org.jruby.*;
 import org.jruby.common.IRubyWarnings.ID;
 import org.jruby.runtime.*;
@@ -39,7 +42,15 @@ public class RubyDBCursorWrapper extends RubyArray {
 	    System.err.println("creating RubyDBCursorWrapper");
 	_scope = s;
 	_cursor = cursor;
-	getSingletonClass().alias_method(runtime.getCurrentContext(), RubyString.newString(runtime, "forEach"), RubyString.newString(runtime, "each"));
+	_createMethods();
+    }
+
+    private void _createMethods() {
+	RubyClass eigenclass = getSingletonClass();
+	eigenclass.alias_method(getRuntime().getCurrentContext(), RubyString.newString(getRuntime(), "forEach"), RubyString.newString(getRuntime(), "each"));
+	Set<String> alreadyDefined = new HashSet<String>();
+	alreadyDefined.add("forEach");
+	RubyObjectWrapper.addJavaPublicMethodWrappers(_scope, eigenclass, _cursor, alreadyDefined);
     }
 
     protected RubyArray notImplemented(String what) {

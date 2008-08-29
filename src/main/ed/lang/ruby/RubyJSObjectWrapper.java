@@ -56,6 +56,33 @@ public class RubyJSObjectWrapper extends RubyHash {
 	_createMethods();
     }
 
+    private void _createMethods() {
+	final org.jruby.Ruby runtime = getRuntime();
+	final ThreadContext context = runtime.getCurrentContext();
+
+	_eigenclass.alias_method(context, RubyString.newString(runtime, "keySet"), RubyString.newString(runtime, "keys"));
+	_eigenclass.alias_method(context, RubyString.newString(runtime, "get"), RubyString.newString(runtime, "[]"));
+	_eigenclass.alias_method(context, RubyString.newString(runtime, "set"), RubyString.newString(runtime, "[]="));
+	_addMethodMissing();
+
+	Set<String> alreadyDefined = new HashSet<String>();
+	alreadyDefined.add("keySet");
+	alreadyDefined.add("get");
+	alreadyDefined.add("set");
+
+	for (final Object key : jsKeySet()) {
+	    Object val = _jsobj.get(key);
+	    if (val == null)
+		continue;
+	    alreadyDefined.add(key.toString());
+	    if (val instanceof JSFunction)
+		_addFunctionMethod(key, (JSFunction)val);
+	    else
+		_addInstanceVariable(key);
+	}
+	RubyObjectWrapper.addJavaPublicMethodWrappers(_scope, _eigenclass, _jsobj, alreadyDefined);
+    }
+
     public JSObject getJSObject() { return _jsobj; }
 
     public void visitAll(Visitor visitor) {
@@ -358,24 +385,6 @@ public class RubyJSObjectWrapper extends RubyHash {
     }
 
     protected Object toJS(IRubyObject o) { return RubyObjectWrapper.toJS(_scope, o); }
-
-    protected void _createMethods() {
-	final org.jruby.Ruby runtime = getRuntime();
-	final ThreadContext context = runtime.getCurrentContext();
-
-	_eigenclass.alias_method(context, RubyString.newString(runtime, "keySet"), RubyString.newString(runtime, "keys"));
-	_eigenclass.alias_method(context, RubyString.newString(runtime, "get"), RubyString.newString(runtime, "[]"));
-	_eigenclass.alias_method(context, RubyString.newString(runtime, "set"), RubyString.newString(runtime, "[]="));
-	_addMethodMissing();
-
-	for (final Object key : jsKeySet()) {
-	    Object val = _jsobj.get(key);
-	    if (val instanceof JSFunction)
-		_addFunctionMethod(key, (JSFunction)val);
-	    else
-		_addInstanceVariable(key);
-	}
-    }
 
     protected void _addFunctionMethod(Object key, final JSFunction val) {
 	if (RubyObjectWrapper.DEBUG)

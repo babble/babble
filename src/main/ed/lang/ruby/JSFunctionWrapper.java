@@ -30,7 +30,9 @@ import static ed.lang.ruby.RubyObjectWrapper.toRuby;
 
 /**
  * JSFunctionWrapper acts as a bridge between Ruby blocks and JSFunctions.
- * Ruby blocks can be called as if they are JSFunctions.
+ * This is a JSFunction that contains and calls a Ruby block.
+ *
+ * @see RubyJSFunctionWrapper
  */
 public class JSFunctionWrapper extends JSFunctionCalls0 {
 
@@ -52,8 +54,9 @@ public class JSFunctionWrapper extends JSFunctionCalls0 {
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("calling Ruby block");
 	List<IRubyObject> rargs = new ArrayList<IRubyObject>();
-	for (Object obj : args)
-	    rargs.add(toRuby(_scope, _runtime, obj));
+	if (args != null)
+	    for (Object obj : args)
+		rargs.add(toRuby(_scope, _runtime, obj));
 	return toJS(_scope, _block.call(_runtime.getCurrentContext(), (IRubyObject[])rargs.toArray(TYPE_ARRAY)));
     }
 

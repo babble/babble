@@ -27,8 +27,11 @@ import ed.js.engine.Scope;
 
 /**
  * RubyJSFunctionWrapper acts as a bridge between Ruby code and JavaScript
- * functions. An instance of RubyJSFunctionWrapper is a method that is added
- * to the containing object's eigenclass.
+ * functions. An instance of RubyJSFunctionWrapper is a Ruby object that can
+ * call a JSFunction. If we are given a function name and a class, then a
+ * method with that name is added to the class.
+ *
+ * @see JSFunctionWrapper
  */
 public class RubyJSFunctionWrapper extends RubyObjectWrapper {
 
