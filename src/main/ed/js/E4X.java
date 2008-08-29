@@ -1383,7 +1383,7 @@ public class E4X {
         }
 
         public Object setChildren( Object value ) {
-            this.set("*", value);
+            this.set("*", toXML( value ) );
             return this;
         }
 
