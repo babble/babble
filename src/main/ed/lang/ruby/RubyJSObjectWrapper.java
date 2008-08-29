@@ -31,8 +31,6 @@ import static org.jruby.runtime.Visibility.PUBLIC;
 import ed.js.*;
 import ed.js.engine.Scope;
 
-// FIXME add/remove methods to proxy class when see JSFunctions
-
 /**
  * RubyJSObjectWrapper acts as a bridge between Ruby objects and JavaScript
  * objects. An instance of RubyJSObjectWrapper is a Ruby object that turns
