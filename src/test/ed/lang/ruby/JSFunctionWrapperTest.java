@@ -21,23 +21,12 @@ import static org.testng.Assert.*;
 
 import org.jruby.runtime.builtin.IRubyObject;
 
-import ed.lang.ruby.RubyJSFunctionWrapper;
+import ed.lang.ruby.JSFunctionWrapper;
 import ed.js.*;
-// import ed.js.func.JSFunctionCalls0;
 import ed.js.engine.Scope;
 
-// class FuncHolder extends JSFunctionCalls0 {
-
-//     JSFunction f;
-
-//     public Object call(Scope s, Object extra[]) {
-// 	return f.call(s, extra);
-//     }
-
-// }
-
 @Test(groups = {"ruby", "ruby.block"})
-public class RubyJSFunctionWrapperTest extends SourceRunner {
+public class JSFunctionWrapperTest extends SourceRunner {
 
     @BeforeTest(groups={"ruby", "ruby.block"})
     public void globalSetUp() {
@@ -52,7 +41,7 @@ public class RubyJSFunctionWrapperTest extends SourceRunner {
     public void testConversion() {
 	Object o = s.get("rfunc");
 	assertNotNull(o);
-	assertTrue(o instanceof JSFunctionWrapper, "oops: wrong type: expected RubyJSFunctionWrapper but see " + o.getClass().getName());
+	assertTrue(o instanceof JSFunctionWrapper, "oops: wrong type: expected JSFunctionWrapper but see " + o.getClass().getName());
     }
 
     public void testCallBlockAsJSFunction() {
