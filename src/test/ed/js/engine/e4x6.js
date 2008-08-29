@@ -71,7 +71,11 @@ print( xml.copy[0] );
 delete xml.copy
 print( xml );
 
+// just make sure this doesn't throw an exception
+xml.appendChild[0];
+
 xml = <x><copy>foo</copy><copy>bar</copy></x>;
 delete xml.copy
 print( xml )
 print( xml.copy )
+

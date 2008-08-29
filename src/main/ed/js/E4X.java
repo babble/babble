@@ -1496,7 +1496,7 @@ public class E4X {
 
         public String toString() {
             StringBuilder xml = new StringBuilder();
-            if( this.node != null || this.children.size() == 1 ) {
+            if( this.node != null || ( this.children != null && this.children.size() == 1 ) ) {
                 ENode singleNode = ( this.node != null ) ? this : this.children.get(0);
                 List<ENode> kids = singleNode.printableChildren();
 
@@ -1819,6 +1819,8 @@ public class E4X {
             public ENode getNode() {
                 if( cnode != null) return cnode;
                 cnode = (ENode)E4X._nodeGet(ENode.this, this.getClass().getSimpleName());
+                if( cnode == null )
+                    cnode = new ENode( ENode.this, this.getClass().getSimpleName() );
                 return cnode;
             }
 
