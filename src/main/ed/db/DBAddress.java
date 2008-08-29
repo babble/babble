@@ -108,7 +108,7 @@ public class DBAddress {
     }
 
     private static String _checkCloudHostName( final String host ){
-        if ( host.indexOf( "." ) < 0 && host.indexOf( "-" ) < 0 )
+        if ( host.contains( "." ) )
             return host;
 
         Cloud c = Cloud.getInstanceIfOnGrid();
