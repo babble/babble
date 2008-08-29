@@ -200,6 +200,21 @@ public abstract class JSFile extends JSObjectBase {
      * @throws IOException
      */
     public String asString(){
+        try {
+            return asString( "UTF8" );
+        } 
+        catch ( UnsupportedEncodingException ee ){
+            throw new RuntimeException( "impossible" , ee );
+        }
+    }
+
+    /** Returns this file's contents as a string.
+     * @param encoding character encoding to use
+     * @return This file's contents as a string.
+     * @throws IOException
+     */
+    public String asString( String encoding )
+        throws UnsupportedEncodingException{
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         WritableByteChannelConnector w = new WritableByteChannelConnector( bout );
         Sender s = sender();
@@ -209,7 +224,7 @@ public abstract class JSFile extends JSObjectBase {
         catch ( IOException ioe ){
             throw new RuntimeException( "should be impossible" , ioe );
         }
-        return new String( bout.toByteArray() );
+        return new String( bout.toByteArray() , encoding );
     }
 
     /** Returnshis file's filename.

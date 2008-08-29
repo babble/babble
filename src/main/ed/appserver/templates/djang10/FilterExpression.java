@@ -35,7 +35,7 @@ public class FilterExpression extends JSObjectBase {
     public FilterExpression(Parser parser, String filterExpression, Token token, boolean useLiteralEscapes) {
         setConstructor(CONSTRUCTOR);
 
-        String[] parts = Util.smart_split(filterExpression.trim(), "\\|");
+        String[] parts = Util.smart_split(filterExpression.trim(), new String[] {"|"}, true);
 
         this.expression = new Expression(parts[0], token, useLiteralEscapes);
         this.filterSpecs = new ArrayList<FilterSpec>();

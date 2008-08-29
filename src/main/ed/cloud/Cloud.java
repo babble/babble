@@ -178,7 +178,7 @@ public class Cloud extends JSObjectBase {
             return new DBAddress( url.toString() );
         }
         catch ( UnknownHostException e ){
-            throw new RuntimeException( "bad db url [" + url + "]" );
+            throw new RuntimeException( "bad db url [" + url + "] " + e );
         }
     }
 

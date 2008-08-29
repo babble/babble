@@ -164,6 +164,16 @@ public class JSHelper extends JSObjectBase {
         
         return result;
     }
+    
+    public JSArray smart_split(String str, JSArray seperators) {
+        String[] sepArray = new String[seperators.size()];
+        for(int i=0; i<sepArray.length; i++)
+            sepArray[i] = seperators.getAsString(i);
+
+        String[] resultsArray = Util.smart_split(str, sepArray, false);
+        
+        return new JSArray((Object[])resultsArray);
+    }
     public JSString str_encode(String str, String charsetName, String errors) {
         Charset asciiCharset = Charset.forName(charsetName);
         

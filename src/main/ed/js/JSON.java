@@ -131,7 +131,12 @@ public class JSON {
      */
     public static void serialize( Appendable a , Object o , boolean trusted , String nl )
         throws java.io.IOException {
-        Serializer.go( a , o , trusted , 0 , nl , new IdentitySet() );
+        serialize( a , o , trusted , false , nl );
+    }
+
+    public static void serialize( Appendable a , Object o , boolean trusted , boolean strict , String nl )
+        throws java.io.IOException {
+        Serializer.go( a , o , trusted , strict , 0 , nl , new IdentitySet() );
     }
 
     static class Serializer {
@@ -180,7 +185,7 @@ public class JSON {
             return true;
         }
 
-        static void go( Appendable a , Object something , boolean trusted , int indent , String nl , IdentitySet seen )
+        static void go( Appendable a , Object something , boolean trusted , boolean strict , int indent , String nl , IdentitySet seen )
             throws java.io.IOException {
 
             if ( _loopable( something ) ){
@@ -236,15 +241,19 @@ public class JSON {
                     return;
                 }
 
-                if( something.getClass().getEnclosingClass().getSimpleName().equals( "ENode" ) ||
+                if ( something.getClass().getEnclosingClass() != null && something.getClass().getEnclosingClass().getSimpleName().equals( "ENode" ) ||
                     something instanceof ed.js.E4X.ENode ||
                     something instanceof ed.js.E4X.Namespace ||
                     something instanceof ed.js.E4X.QName ) {
                     a.append( something.toString() );
                     return;
                 }
-
+                
                 if ( something instanceof JSFunction ){
+
+                    if ( strict )
+                        return;
+                    
                     if ( trusted ) {
                         String s = something.toString();
                         if( s.trim().startsWith("function ()" ) )
@@ -280,7 +289,7 @@ public class JSON {
                     for ( int i=0; i<arr._array.size(); i++ ){
                         if ( i > 0 )
                             a.append( " , " );
-                        go( a , arr._array.get( i ) , trusted, indent , nl , seen );
+                        go( a , arr._array.get( i ) , trusted, strict , indent , nl , seen );
                     }
                     a.append( " ]" );
                     return;
@@ -317,6 +326,9 @@ public class JSON {
                         if ( o.get( s ) == null )
                             continue;
                     }
+                    
+                    if ( strict && val instanceof JSFunction )
+                        continue;
 
                     if ( first )
                         first = false;
@@ -326,7 +338,7 @@ public class JSON {
                     a.append( _i( indent + 1 ) );
                     string( a , s );
                     a.append( " : " );
-                    go( a , val , trusted , indent + 1 , nl , seen );
+                    go( a , val , trusted , strict , indent + 1 , nl , seen );
                 }
 
                 a.append( _i( indent + 1 ) );
