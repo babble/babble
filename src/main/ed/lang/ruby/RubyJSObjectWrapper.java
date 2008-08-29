@@ -357,7 +357,7 @@ public class RubyJSObjectWrapper extends RubyHash {
 	return wrapper;
     }
 
-    protected Object toJS(IRubyObject o) { return RubyObjectWrapper.toJS(_scope, getRuntime(), o); }
+    protected Object toJS(IRubyObject o) { return RubyObjectWrapper.toJS(_scope, o); }
 
     protected void _createMethods() {
 	final org.jruby.Ruby runtime = getRuntime();

@@ -36,7 +36,6 @@ import static ed.lang.ruby.RubyObjectWrapper.toRuby;
 public class RubyJSArrayWrapper extends RubyArray {
 
     private Scope _scope;
-    private org.jruby.Ruby _runtime;
     private JSArray _jsarray;
 
     RubyJSArrayWrapper(Scope s, org.jruby.Ruby runtime, JSArray obj) {
@@ -44,7 +43,6 @@ public class RubyJSArrayWrapper extends RubyArray {
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("  creating RubyJSArrayWrapper");
 	_scope = s;
-	_runtime = runtime;
 	_jsarray = obj;
 	js2ruby();
     }
@@ -77,7 +75,7 @@ public class RubyJSArrayWrapper extends RubyArray {
 
     public RubyArray append(IRubyObject item) {
 	RubyArray o = super.append(item);
-	_jsarray.add(toJS(_scope, _runtime, item));
+	_jsarray.add(toJS(_scope, item));
 	return o;
     }
 
@@ -206,8 +204,8 @@ public class RubyJSArrayWrapper extends RubyArray {
 	int len = _jsarray.size();
 	IRubyObject[] a = new IRubyObject[len];
 	for (int i = 0; i < len; ++i)
-	    a[i] = toRuby(_scope, _runtime, _jsarray.get(i));
-	replace(new RubyArray(_runtime, len, a));
+	    a[i] = toRuby(_scope, getRuntime(), _jsarray.get(i));
+	replace(new RubyArray(getRuntime(), len, a));
     }
 
     /** Writes contents of RubyArrray into JSArray. */
@@ -215,6 +213,6 @@ public class RubyJSArrayWrapper extends RubyArray {
 	_jsarray.clear();
 	int len = size();
 	for (int i = 0; i < len; ++i)
-	    _jsarray.add(toJS(_scope, _runtime, entry(i)));
+	    _jsarray.add(toJS(_scope, entry(i)));
     }
 }

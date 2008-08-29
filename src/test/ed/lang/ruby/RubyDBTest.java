@@ -70,9 +70,9 @@ public class RubyDBTest extends SourceRunner {
 	assertTrue(((RubyObject)ro).respond_to_p(RubySymbol.newSymbol(r, ":findOne")).isTrue());
 	assertTrue(((RubyObject)ro).respond_to_p(RubySymbol.newSymbol(r, ":find")).isTrue());
 
-	Object o = toJS(s, r, (IRubyObject)ro);
+	Object o = toJS(s, (IRubyObject)ro);
 	assertTrue(o instanceof DBCollection, "o is not a DBCollection; it's " + o.getClass().getName());
-	assertSame(toJS(s, r, (IRubyObject)ro), ((RubyJSObjectWrapper)ro).getJSObject());
+	assertSame(toJS(s, (IRubyObject)ro), ((RubyJSObjectWrapper)ro).getJSObject());
     }
 	
     @Test(groups={"ruby.db.findone"})

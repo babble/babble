@@ -138,7 +138,7 @@ public class RubyJxpSourceTest extends SourceRunner {
     }
 
     public void testCallBlockAsJSFunction() {
-	Object o = RubyObjectWrapper.toJS(s, r, (IRubyObject)runRuby("Proc.new {|i| i + 7}"));
+	Object o = RubyObjectWrapper.toJS(s, (IRubyObject)runRuby("Proc.new {|i| i + 7}"));
 	assertTrue(o instanceof JSFunctionWrapper);
 	JSFunctionWrapper fw = (JSFunctionWrapper)o;
 	Object answer = fw.call(s, new Integer(35), new Object[0]);

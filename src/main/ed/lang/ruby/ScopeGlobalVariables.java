@@ -27,7 +27,7 @@ public class ScopeGlobalVariables extends GlobalVariables {
 	_oldies = _runtime.getGlobalVariables();
 	for (String name : _oldies.getNames()) {
 	    if (!"$=".equals(name))
-		_scope.put(nameToKey(name), toJS(_scope, _runtime, _oldies.get(name)));
+		_scope.put(nameToKey(name), toJS(_scope, _oldies.get(name)));
 	}
     }
 
@@ -49,7 +49,7 @@ public class ScopeGlobalVariables extends GlobalVariables {
 
     public IRubyObject set(String name, IRubyObject value) {
 	IRubyObject val = super.set(name, value);
-	_scope.put(nameToKey(name), toJS(_scope, _runtime, val));
+	_scope.put(nameToKey(name), toJS(_scope, val));
 	return val;
     }
 

@@ -53,7 +53,7 @@ public class RubyJSFunctionWrapper extends RubyObjectWrapper {
 		    if (RubyObjectWrapper.DEBUG)
 			System.err.println("calling method " + clazz.getName() + "." + name + " with " + args.length + " args");
 		    int n = _func.getNumParameters();
-                    if (args.length != n) Arity.raiseArgumentError(_runtime, args.length, n, n);
+                    if (args.length != n) Arity.raiseArgumentError(getRuntime(), args.length, n, n);
 
 		    Object result = _func.call(_scope, toJSFunctionArgs(args, block));
 		    if (RubyObjectWrapper.DEBUG)
@@ -62,6 +62,6 @@ public class RubyJSFunctionWrapper extends RubyObjectWrapper {
                 }
                 @Override public Arity getArity() { return Arity.createArity(_func.getNumParameters()); }
             });
-	klazz.callMethod(_runtime.getCurrentContext(), "method_added", _runtime.fastNewSymbol(internedName));
+	klazz.callMethod(getRuntime().getCurrentContext(), "method_added", getRuntime().fastNewSymbol(internedName));
     }
 }

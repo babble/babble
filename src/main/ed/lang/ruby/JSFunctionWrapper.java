@@ -54,7 +54,7 @@ public class JSFunctionWrapper extends JSFunctionCalls0 {
 	List<IRubyObject> rargs = new ArrayList<IRubyObject>();
 	for (Object obj : args)
 	    rargs.add(toRuby(_scope, _runtime, obj));
-	return toJS(_scope, _runtime, _block.call(_runtime.getCurrentContext(), (IRubyObject[])rargs.toArray(TYPE_ARRAY)));
+	return toJS(_scope, _block.call(_runtime.getCurrentContext(), (IRubyObject[])rargs.toArray(TYPE_ARRAY)));
     }
 
     public Block getBlock() { return _block; }

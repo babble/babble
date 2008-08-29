@@ -739,5 +739,5 @@ public class RubyDBCursorWrapper extends RubyArray {
 
     protected IRubyObject toRuby(Object o) { return RubyObjectWrapper.toRuby(_scope, getRuntime(), o); }
 
-    protected Object toJS(IRubyObject o) { return RubyObjectWrapper.toJS(_scope, getRuntime(), o); }
+    protected Object toJS(IRubyObject o) { return RubyObjectWrapper.toJS(_scope, o); }
 }

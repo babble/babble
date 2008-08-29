@@ -57,12 +57,12 @@ public class RubyObjectWrapperTest {
 
     @Test(groups = {"r2js"})
     public void testToJSNull() {
-	assertNull(toJS(s, r, (IRubyObject)null));
+	assertNull(toJS(s, (IRubyObject)null));
     }
 
     @Test(groups = {"r2js"})
     public void testRubyNilToJSNull() {
-	assertNull(toJS(s, r, r.getNil()));
+	assertNull(toJS(s, r.getNil()));
     }
 
     @Test(groups = {"r2js"})
@@ -78,36 +78,36 @@ public class RubyObjectWrapperTest {
     @Test(groups = {"r2js"})
     public void testRubyBignumToJSBignum() {
 	IRubyObject ro = new RubyBignum(r, new BigInteger("42"));
-	Object o = toJS(s, r, ro);
-	assertTrue(toJS(s, r, ro) instanceof Number);
+	Object o = toJS(s, ro);
+	assertTrue(toJS(s, ro) instanceof Number);
 	assertEquals(((Number)o).longValue(), 42L);
     }
 
     @Test(groups = {"r2js"})
     public void testRubyBigDecimalToJSBigDecimal() {
 	IRubyObject ro = new RubyBigDecimal(r, new BigDecimal((double)42.4));
-	Object o = toJS(s, r, ro);
-	assertTrue(toJS(s, r, ro) instanceof Number);
+	Object o = toJS(s, ro);
+	assertTrue(toJS(s, ro) instanceof Number);
 	assertEquals(((Number)o).doubleValue(), 42.4);
     }
 
     void jsNumberTest(long val, Object jobj) {
 	IRubyObject ro = JavaUtil.convertJavaToUsableRubyObject(r, jobj);
-	Object o = toJS(s, r, ro);
+	Object o = toJS(s, ro);
 	assertTrue(o instanceof Number);
 	assertEquals(((Number)o).longValue(), val);
     }
 
     void jsNumberTest(double val, Object jobj) {
 	IRubyObject ro = JavaUtil.convertJavaToUsableRubyObject(r, jobj);
-	Object o = toJS(s, r, ro);
+	Object o = toJS(s, ro);
 	assertTrue(o instanceof Number);
 	assertEquals(((Number)o).doubleValue(), val);
     }
 
     @Test(groups = {"r2js"})
     public void testRubyStringToJSString() {
-	Object o = toJS(s, r, RubyString.newString(r, "test string"));
+	Object o = toJS(s, RubyString.newString(r, "test string"));
 	assertTrue(o instanceof JSString);
 	assertEquals(o.toString(), "test string");
     }
@@ -124,14 +124,14 @@ public class RubyObjectWrapperTest {
 	IRubyObject ro = toRuby(s, r, jso);
 	assertTrue(ro instanceof RubyJSObjectWrapper);
 
-	Object o = toJS(s, r, ro);
+	Object o = toJS(s, ro);
 	assertSame(o, jso);
     }
 
     @Test(groups = {"r2js"})
     public void testRubyArrayToJSArray() {
 	RubyArray ra = (RubyArray)r.evalScriptlet("[4, 5, 6]");
-	Object o = toJS(s, r, ra);
+	Object o = toJS(s, ra);
 	assertTrue(o instanceof JSArray);
 	JSArray ja = (JSArray)o;
 	for (int i = 0; i < 3; ++i)
@@ -141,7 +141,7 @@ public class RubyObjectWrapperTest {
     @Test(groups = {"r2js"})
     public void testRubyArrayToJSArrayDeep() {
 	RubyArray ra = (RubyArray)r.evalScriptlet("[4, \"test string\", [3]]");
-	Object o = toJS(s, r, ra);
+	Object o = toJS(s, ra);
 	assertTrue(o instanceof JSArray);
 	JSArray ja = (JSArray)o;
 	assertEquals(((Number)ja.getInt(0)).intValue(), 4);
@@ -155,7 +155,7 @@ public class RubyObjectWrapperTest {
     public void testRubyHashToJS() {
 	RubyHash rh = (RubyHash)r.evalScriptlet("{\"a\" => 1, :b => \"test string\"}");
 
-	Object o = toJS(s, r, rh);
+	Object o = toJS(s, rh);
 	assertTrue(o instanceof JSObject);
 	JSObject jo = (JSObject)(o);
 

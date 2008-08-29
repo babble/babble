@@ -39,7 +39,6 @@ public abstract class RubyObjectWrapper extends RubyObject {
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB.WRAP");
   
     protected final Scope _scope;
-    protected final org.jruby.Ruby _runtime;
     protected final Object _obj;
 
     public static IRubyObject toRuby(Scope s, org.jruby.Ruby runtime, Object obj) {
@@ -81,7 +80,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
     }
 
     /** Given a Ruby object, returns a JavaScript object. */
-    public static Object toJS(final Scope scope, final org.jruby.Ruby runtime, IRubyObject r) {
+    public static Object toJS(final Scope scope, IRubyObject r) {
 	if (r == null)
 	    return null;
 	if (r instanceof RubyString)
@@ -103,7 +102,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	    int len = ra.getLength();
 	    JSArray ja = new JSArray(len);
 	    for (int i = 0; i < len; ++i)
-		ja.setInt(i, toJS(scope, runtime, ra.entry(i)));
+		ja.setInt(i, toJS(scope, ra.entry(i)));
 	    return ja;
 	}
 	if (r instanceof RubyHash) {
@@ -111,13 +110,13 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	    final JSObjectBase jobj = new JSObjectBase();
 	    rh.visitAll(new RubyHash.Visitor() {
 		    public void visit(final IRubyObject key, final IRubyObject value) {
-			jobj.set(key.toString(), toJS(scope, runtime, value));
+			jobj.set(key.toString(), toJS(scope, value));
 		    }
 		});
 	    return jobj;
 	}
 	if (r instanceof RubyProc)
-	    return new JSFunctionWrapper(scope, runtime, ((RubyProc)r).getBlock());
+	    return new JSFunctionWrapper(scope, r.getRuntime(), ((RubyProc)r).getBlock());
 
 	return JavaUtil.convertRubyToJava(r); // punt
     }
@@ -126,7 +125,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	boolean haveBlock = block != null && block.isGiven();
 	Object[] jargs = new Object[args.length - offset + (haveBlock ? 1 : 0)];
 	for (int i = offset; i < args.length; ++i)
-	    jargs[i-offset] = RubyObjectWrapper.toJS(s, r, args[i]);
+	    jargs[i-offset] = RubyObjectWrapper.toJS(s, args[i]);
 	if (haveBlock)
 	    jargs[args.length-offset] = RubyObjectWrapper.toJS(s, r, block);
 	return jargs;
@@ -135,7 +134,6 @@ public abstract class RubyObjectWrapper extends RubyObject {
     RubyObjectWrapper(Scope s, org.jruby.Ruby runtime, Object obj) {
 	super(runtime, runtime.getObject());
 	_scope = s;
-	_runtime = runtime;
 	_obj = obj;
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("creating RubyObjectWrapper around " + (obj == null ? "null" : ("instance of " + obj.getClass().getName())));
@@ -143,16 +141,16 @@ public abstract class RubyObjectWrapper extends RubyObject {
 
     public Object getObject() { return _obj; }
 
-    public IRubyObject toRuby(Object obj)                                           { return toRuby(_scope, _runtime, obj); }
-    public IRubyObject toRuby(Object obj, String name)                              { return toRuby(_scope, _runtime, obj, name); }
-    public IRubyObject toRuby(Object obj, String name, RubyObjectWrapper container) { return toRuby(_scope, _runtime, obj, name, container); }
+    public IRubyObject toRuby(Object obj)                                           { return toRuby(_scope, getRuntime(), obj); }
+    public IRubyObject toRuby(Object obj, String name)                              { return toRuby(_scope, getRuntime(), obj, name); }
+    public IRubyObject toRuby(Object obj, String name, RubyObjectWrapper container) { return toRuby(_scope, getRuntime(), obj, name, container); }
 
-    public JSFunctionWrapper toJS(Block block) { return toJS(_scope, _runtime, block); }
+    public JSFunctionWrapper toJS(Block block) { return toJS(_scope, getRuntime(), block); }
 
-    public Object toJS(IRubyObject r) { return toJS(_scope, _runtime, r); }
+    public Object toJS(IRubyObject r) { return toJS(_scope, r); }
 
-    public Object[] toJSFunctionArgs(IRubyObject[] args)                          { return toJSFunctionArgs(_scope, _runtime, args, 0,      null); }
-    public Object[] toJSFunctionArgs(IRubyObject[] args, int offset)              { return toJSFunctionArgs(_scope, _runtime, args, offset, null); }
-    public Object[] toJSFunctionArgs(IRubyObject[] args, Block block)             { return toJSFunctionArgs(_scope, _runtime, args, 0,      block); }
-    public Object[] toJSFunctionArgs(IRubyObject[] args, int offset, Block block) { return toJSFunctionArgs(_scope, _runtime, args, offset, block); }
+    public Object[] toJSFunctionArgs(IRubyObject[] args)                          { return toJSFunctionArgs(_scope, getRuntime(), args, 0,      null); }
+    public Object[] toJSFunctionArgs(IRubyObject[] args, int offset)              { return toJSFunctionArgs(_scope, getRuntime(), args, offset, null); }
+    public Object[] toJSFunctionArgs(IRubyObject[] args, Block block)             { return toJSFunctionArgs(_scope, getRuntime(), args, 0,      block); }
+    public Object[] toJSFunctionArgs(IRubyObject[] args, int offset, Block block) { return toJSFunctionArgs(_scope, getRuntime(), args, offset, block); }
 }
