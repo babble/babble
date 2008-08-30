@@ -20,3 +20,19 @@
     <bin>elles</bin>
   </books>
 </france>
+<x>
+  y
+  <foo bar="lalala"/>
+  <fooy>
+    <bar>
+      <blah>fooy!</blah>
+    </bar>
+  </fooy>
+  <bar>
+    <foo>
+      <bar>
+        <such>a pita</such>
+      </bar>
+    </foo>
+  </bar>
+</x>

@@ -70,7 +70,7 @@ print( xml.foo.bar.parent() );
 
 //nodeKind
 print( xml.college.nodeKind() );
-//print( xml.college[x].@a.nodeKind() );
+print( xml.college[x].@bar.nodeKind() );
 
 //propertyIsEnumerable
 xml.foo[1] = "bye";

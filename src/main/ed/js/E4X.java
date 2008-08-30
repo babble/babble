@@ -472,6 +472,33 @@ public class E4X {
             throw new RuntimeException( "can't handle : " + n.getClass() );
         }
 
+        /*        public Object put( Object p, Object v ) {
+            if( this.isSimpleTypeNode() )
+                return v;
+
+            Object c;
+            if( !(v instanceof ENode) || 
+                ( v.node != null && (
+                                     v.node.getNodeType() == Node.ATTRIBUTE_NODE ||
+                                     v.node.getNodeType() == Node.TEXT_NODE ) ) ) {
+                c = v.toString();
+            }
+            else {
+                c = v.copy();
+            }
+
+            String n = p.toString();
+            if( n.startsWith( "@" ) )
+                return setAttribute( p, v );
+
+            boolean primitiveAssign = !( c instanceof ENode ) && !n.equals( "*" );
+            for( int k = this.length() - 1; k >= 0; k-- ) {
+                if( n.localName.equals( "*" ) || x.get( k ).node.getNodeType == Node.ELEMENT_NODE ) {
+
+                }
+            }
+            }*/
+
         /** @setter
          */
         public Object set( Object k, Object v ) {
@@ -480,19 +507,21 @@ public class E4X {
             if(this.children == null ) 
                 this.children = new XMLList();
 
-            if( k.toString().startsWith("@") )
-                return setAttribute(k.toString(), v.toString());
-
             // attach any dummy ancestors to the tree
             if( this._dummy ) {
                 ENode topParent = this;
                 this._dummy = false;
                 while( topParent.parent._dummy ) {
+                    topParent.parent.children.add( topParent );
                     topParent = topParent.parent;
                     topParent._dummy = false;
                 }
                 topParent.parent.children.add(topParent);
             }
+
+            // set an attribute
+            if( k.toString().startsWith("@") )
+                return setAttribute(k.toString(), v.toString());
 
             // if v is an XML list, add each element
             if( v instanceof XMLList && !k.equals( "*" ) ) {
@@ -508,40 +537,47 @@ public class E4X {
                 }
                 return v;
             }
+
+            Pattern num = Pattern.compile("-?\\d+");
+            Matcher m = num.matcher(k.toString());
+
             // if v is already XML and it's not an XML attribute, just add v to this enode's children
             if( v instanceof ENode ) {
+                // in the unusual situation where we have x.set("*", x), we have
+                // to copy x before resetting its children
+                ENode vcopy = ((ENode)v).copy();
                 if( k.toString().equals("*") ) {
-                    // in the unusual situation where we have x.set("*", x), we have
-                    // to copy x before resetting its children
-                    ENode vcopy = ((ENode)v).copy();
                     // replace children
                     if( v instanceof XMLList ) {
                         children = (XMLList)vcopy;
                         return this;
                     }
                     this.children = new XMLList();
-                    this.children.add( vcopy );
+                }
+                // if k is a number, go back one
+                if( m.matches() ) {
+                    int index = this.parent.children.indexOf( this );
+                    this.parent.children.remove( this );
+                    this.parent.children.add( index, vcopy );
                 }
                 else {
-                    this.children.add((ENode)v);
+                    this.children.add( vcopy );
                 }
                 return v;
             }
 
             // find out if this k/v pair exists
             ENode n;
-            Object obj = get(k);
-            if( obj instanceof ENode )
+            Object obj = get( k );
+            if( obj instanceof ENode ) {
                 n = ( ENode )obj;
+            }
             else {
                 n = (( ENodeFunction )obj).cnode;
                 if( n == null ) {
-                    n = new ENode();
+                    n = new ENode( this.XML, this.defaultNamespace );
                 }
             }
-
-            Pattern num = Pattern.compile("-?\\d+");
-            Matcher m = num.matcher(k.toString());
 
             // k is a number
             if( m.matches() ) {
@@ -554,8 +590,7 @@ public class E4X {
                 // this index is greater than the number of elements existing
                 if( index >= numChildren ) {
                     // if there is a list of future siblings, get the last one
-                    // if this isn't a fake node, we've gone one too far and we need to get its parent
-                    ENode rep = this instanceof XMLList ? ((XMLList)this).get( ((XMLList)this).size() - 1 ) : ( n._dummy ? this : this.parent );
+                    ENode rep = this instanceof XMLList ? ((XMLList)this).get( ((XMLList)this).size() - 1 ) : this;
 
                     // if k/v doesn't really exist, "get" returns a dummy node, an emtpy node with nodeName = key
                     if( n._dummy ) {
@@ -563,17 +598,24 @@ public class E4X {
                     }
                     // otherwise, we need to reset n so we don't replace an existing node
                     else {
-                        n = new ENode();
+                        n = new ENode( this.XML, this.defaultNamespace );
                         n.children = new XMLList();
                     }
 
                     ENode attachee = rep.parent;
+                    // if we have, say, xml.foo[0] = "bar" we have:
+                    //     - this: empty dummy node (<foo/>), attached to tree above
+                    //     - n: the node about to be attached (<foo>bar</foo>)
+                    // too many dummies!
+                    if( numChildren == 0 ) {
+                        attachee.children.remove( this );
+                    }
                     n.node = rep.node.getOwnerDocument().createElement( rep.localName() );
                     Node content = rep.node.getOwnerDocument().createTextNode(v.toString());
                     n.children.add( new ENode( content, n ) );
                     n.parent = attachee;
                     // get the last sibling's position & insert this new one there
-                    attachee.children.add( attachee.children.indexOf(rep)+1, n );
+                    attachee.children.add( attachee.children.indexOf( rep ) + 1, n );
                 }
                 // replace an existing element
                 else {
@@ -741,7 +783,8 @@ public class E4X {
          * Returns children matching a given name or index.
          */
         public ENode child( Object propertyName ) {
-            XMLList nodeList = ( this instanceof XMLList ) ? (XMLList)this : this.children;
+            boolean xmllist = this instanceof XMLList;
+            XMLList nodeList = xmllist ? (XMLList)this : this.children;
             Pattern num = Pattern.compile("\\d+(\\.\\d+)?");
             Matcher m = num.matcher(propertyName.toString());
             if( m.matches() ) {
@@ -749,7 +792,7 @@ public class E4X {
 
                 if( i < nodeList.size() ) 
                     return nodeList.get(i);
-                else if ( nodeList.size() >= 1 ) 
+                else if ( !xmllist || ( xmllist && nodeList.size() >= 1 ) )
                     return new ENode( this, this instanceof XMLList ? nodeList.get(0).name.localName : this.name.localName );
                 else
                     return new ENode();
@@ -1085,14 +1128,14 @@ public class E4X {
         public class insertChildAfter extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
                 foo = getTwoArgs( foo );
-                return getENode( s ).insertChildAfter(foo[0], (ENode)foo[1]);
+                return getENode( s ).insertChildAfter(foo[0], toXML( foo[1] ));
             }
         }
 
         public class insertChildBefore extends ENodeFunction {
             public Object call(Scope s, Object foo[]) {
                 foo = getTwoArgs( foo );
-                return getENode( s ).insertChildBefore(foo[0], (ENode)foo[1]);
+                return getENode( s ).insertChildBefore(foo[0], toXML( foo[1] ));
             }
         }
 
@@ -1372,7 +1415,7 @@ public class E4X {
         }
 
         public Object setChildren( Object value ) {
-            this.set("*", value);
+            this.set("*", toXML( value ) );
             return this;
         }
 
@@ -1496,7 +1539,7 @@ public class E4X {
 
         public String toString() {
             StringBuilder xml = new StringBuilder();
-            if( this.node != null || this.children.size() == 1 ) {
+            if( this.node != null || ( this.children != null && this.children.size() == 1 ) ) {
                 ENode singleNode = ( this.node != null ) ? this : this.children.get(0);
                 List<ENode> kids = singleNode.printableChildren();
 
@@ -1819,6 +1862,8 @@ public class E4X {
             public ENode getNode() {
                 if( cnode != null) return cnode;
                 cnode = (ENode)E4X._nodeGet(ENode.this, this.getClass().getSimpleName());
+                if( cnode == null )
+                    cnode = new ENode( ENode.this, this.getClass().getSimpleName() );
                 return cnode;
             }
 
@@ -1940,7 +1985,7 @@ public class E4X {
         public void clear() {  children.clear(); }
         public boolean contains( Object o ) { return  children.contains( o ); }
         public boolean containsAll( Collection o ) { return  children.containsAll( o ); }
-        public boolean equals( Object o) { return children.equals(o); }
+        public boolean equals( Object o ) { return children.equals(o); }
         public int hashCode( IdentitySet seen ) { return children.hashCode(); }
         public int indexOf( Object o ) { return children.indexOf(o); }
         public boolean isEmpty() { return children.isEmpty(); }

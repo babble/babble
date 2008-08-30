@@ -104,7 +104,7 @@ public class GitUtils {
             if ( tag.equals( hash ) )
                 return t.getName();
 
-            SysExec.Result r = SysExec.exec( "git log " + t.getName() + " -n1" , null , git , null );
+            SysExec.Result r = _exec( "git log " + t.getName() + " -n1" , null , git , null );
 
             if ( r.getOut().startsWith( "commit " ) ){
                 int idx = r.getOut().indexOf( "\n" );
@@ -125,7 +125,7 @@ public class GitUtils {
      */
     public static boolean clone( String cloneurl , File dirToCloneInto , String name ){
         _log.info( "cloning " + cloneurl + " to " + dirToCloneInto );
-        SysExec.Result r = SysExec.exec( "git clone " + cloneurl + " " + ( name == null ? "" : name  ) , null , dirToCloneInto , null );
+        SysExec.Result r = _exec( "git clone " + cloneurl + " " + ( name == null ? "" : name  ) , null , dirToCloneInto , null );
 
         if ( r.exitValue() == 0 )
             return true;
@@ -141,7 +141,7 @@ public class GitUtils {
      */
     public static boolean checkout( File dir , String pathspec ){
         _log.info( "checkout " + dir + " to " + pathspec );
-        SysExec.Result r = SysExec.exec( "git checkout " + pathspec , null , dir , null );
+        SysExec.Result r = _exec( "git checkout " + pathspec , null , dir , null );
 
         if ( r.exitValue() == 0 )
             return true;
@@ -151,7 +151,7 @@ public class GitUtils {
     }
 
     public static boolean onBranch( File dir ){
-        SysExec.Result r = SysExec.exec( "git branch" , null , dir , null );
+        SysExec.Result r = _exec( "git branch" , null , dir , null );
         if ( r.exitValue() != 0 )
             return false;
         
@@ -176,7 +176,7 @@ public class GitUtils {
      */
     public static boolean pull( File dir , boolean careAboutError ){
         _log.info( "pull " + dir );
-        SysExec.Result r = SysExec.exec( "git pull" , null , dir , null );
+        SysExec.Result r = _exec( "git pull" , null , dir , null );
 
         if ( r.exitValue() == 0 )
             return true;
@@ -196,7 +196,7 @@ public class GitUtils {
     
     public static boolean fetch( File dir , String options ){
         _log.info( "fetch " + dir );
-        SysExec.Result r = SysExec.exec( "git fetch " + ( options == null ? "" : options ) , null , dir , null );
+        SysExec.Result r = _exec( "git fetch " + ( options == null ? "" : options ) , null , dir , null );
 
         if ( r.exitValue() == 0 )
             return true;
@@ -294,6 +294,10 @@ public class GitUtils {
         }
         
         return config;
+    }
+
+    private static SysExec.Result _exec( String cmd , String[] env , File procDir , String toSend ){
+        return SysExec.exec( cmd , env , procDir , toSend );
     }
 
     /** @unexpose */
