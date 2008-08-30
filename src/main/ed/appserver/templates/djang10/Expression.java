@@ -58,7 +58,7 @@ public class Expression extends JSObjectBase {
         Token.GETPROP,
         Token.CALL,
         Token.NAME,
-        //Token.ARRAYLIT,
+        Token.ARRAYLIT,
         Token.STRING,
         Token.POS,
         Token.NEG,
@@ -477,13 +477,13 @@ public class Expression extends JSObjectBase {
             return lookupValue;
 
             
-//        case Token.ARRAYLIT:
-//            JSArray arrayLit = new JSArray();
-//            
-//            for(Node arrElem = node.getFirstChild(); arrElem != null; arrElem = arrElem.getNext())
-//                arrayLit.add(resolve(scope, ctx, arrElem, true));
-//
-//            return arrayLit;
+        case Token.ARRAYLIT:
+            JSArray arrayLit = new JSArray();
+            
+            for(Node arrElem = node.getFirstChild(); arrElem != null; arrElem = arrElem.getNext())
+                arrayLit.add(resolve(scope, ctx, arrElem, true));
+
+            return arrayLit;
 
 
         case Token.STRING:
