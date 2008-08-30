@@ -699,6 +699,11 @@ public class JSObjectBase implements JSObject {
             set( s , other.get( s ) );
     }
 
+    protected void addAll( Map other ){
+	for ( Object key : other.keySet() )
+	    set( key , other.get( key ) );
+    }
+
     private Object _call( JSFunction func , Object ... params ){
         Scope sc = Scope.getAScope();
         sc.setThis( this );
