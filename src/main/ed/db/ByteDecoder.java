@@ -89,7 +89,7 @@ public class ByteDecoder extends Bytes {
             }
         }
         
-        while ( decodeNext( created ) > 1 );
+        while ( decodeNext( created , null , _constructor ) > 1 );
         
         if ( _buf.position() - start != len )
             throw new RuntimeException( "lengths don't match " + (_buf.position() - start) + " != " + len );
@@ -98,11 +98,11 @@ public class ByteDecoder extends Bytes {
     }
 
     protected int decodeNext( JSObject o ){
-        return decodeNext( o , null );
+        return decodeNext( o , null , null );
     }
 
     
-    protected int decodeNext( JSObject o , JSFunction embedCons ){
+    protected int decodeNext( JSObject o , JSFunction embedCons , JSFunction myCons ){
         final int start = _buf.position();
         final byte type = _buf.get();
 
@@ -196,10 +196,26 @@ public class ByteDecoder extends Bytes {
             
             if ( o.get( name ) != null ){
                 created = (JSObject)o.get( name );
-                nextEmebedCons = (JSFunction)created.get( "_dbCons" );
+                Object maybe = created.get( "_dbCons" );
+
+                if ( maybe instanceof JSFunction )
+                    nextEmebedCons = (JSFunction)maybe;
+                
+                if ( embedCons == null )
+                    embedCons = created.getConstructor();
+                
             }
             
-            while ( decodeNext( created , nextEmebedCons ) > 1 );
+            if ( myCons != null && nextEmebedCons == null ){
+                Object holder = myCons.get( "_dbCons" );
+                if ( holder instanceof JSObject ){
+                    Object maybe = ((JSObject)holder).get( name );
+                    if ( maybe instanceof JSFunction )
+                        nextEmebedCons = (JSFunction)maybe;
+                }
+            }
+            
+            while ( decodeNext( created , nextEmebedCons , embedCons ) > 1 );
             o.set( name , created );
             break;
 
