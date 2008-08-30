@@ -499,6 +499,11 @@ public class HttpRequest extends JSObjectLame {
         return getParameters( name , true );
     }
 
+    public JSObject getPostParameters(){
+	_finishParsing();
+	return _paramsAsObject( _postParameters );
+    }
+
     /**
      * Gets the first parameter matching the name from the POST.
      * @param name the name of the parameter to look up
@@ -525,10 +530,15 @@ public class HttpRequest extends JSObjectLame {
      * Gets all parameters matching the name from the URL.
      * @param name the name of the parameter to look up
      * @return an array of all the values for the matching parameters
-     * in the POST
+     * in the URL
      */
     public JSArray getURLParameters( String name ){
         return getParameters( name , false );
+    }
+
+    public JSObject getURLParameters(){
+	_finishParsing();
+	return _paramsAsObject( _urlParameters );
     }
 
     /**
@@ -784,10 +794,24 @@ public class HttpRequest extends JSObjectLame {
         return l;
     }
 
+    private JSObjectBase _paramsAsObject( Map<String,List<String>> params ){
+	JSObjectBase o = new JSObjectBase();
+	for ( String key : params.keySet() ){
+	    List<String> l = params.get( key );
+	    if ( l == null || l.size() == 0 )
+		continue;
+
+	    if ( l.size() == 1 )
+		o.set( key , new JSString( l.get(0) ) );
+	    else
+		o.set( key , new JSArray( l ) );
+	}
+	return o;
+    }
+
     /**
      * @unexpose
      */
-
     public Object getAttachment(){
         return _attachment;
     }
