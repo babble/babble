@@ -25,6 +25,7 @@ import java.text.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.nio.charset.*;
+import javax.servlet.http.*;
 
 import ed.js.*;
 import ed.js.func.*;
@@ -32,6 +33,7 @@ import ed.js.engine.*;
 import ed.log.*;
 import ed.util.*;
 import ed.net.*;
+import ed.net.Cookie;
 import ed.appserver.*;
 
 /**
@@ -39,7 +41,7 @@ import ed.appserver.*;
  * the variable 'response' which is of this type.
  * @expose
  */
-public class HttpResponse extends JSObjectBase {
+public class HttpResponse extends JSObjectBase /* implements HttpServletResponse */ {
 
     static final boolean USE_POOL = true;
     static final String DEFAULT_CHARSET = "utf-8";
@@ -478,7 +480,7 @@ public class HttpResponse extends JSObjectBase {
     /**
      * @unexpose
      */
-    public JxpWriter getWriter(){
+    public JxpWriter getJxpWriter(){
         if ( _writer == null ){
             if ( _cleaned )
                 throw new RuntimeException( "already cleaned" );

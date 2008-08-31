@@ -20,6 +20,7 @@ package ed.net;
 
 import java.util.*;
 import java.text.*;
+import javax.servlet.http.*;
 
 /**
    maxAge:
@@ -28,7 +29,7 @@ import java.text.*;
      > 0 : now + X seconds
      
  */
-public class Cookie {
+public class Cookie extends javax.servlet.http.Cookie {
 
     public Cookie( String name , String value ){
         this( name , value , 0 );
@@ -43,58 +44,25 @@ public class Cookie {
     }
 
     public Cookie( String domain , String name , String value , int maxAge ){
-        _domain = domain;
-        _name = name;
-        _value = value;
-        _maxAge = maxAge;
+        super( name , value );
+        setDomain( domain );
+        setMaxAge( maxAge );
     }
 
     public String getExpires(){
-        if ( _maxAge < 0 )
+        if ( getMaxAge() < 0 )
             return REMOVE_COOKIE_EXPIRES;
-        if ( _maxAge == 0 )
+        if ( getMaxAge() == 0 )
             return null;
         synchronized ( COOKIE_DATE_FORMAT ){
-            return COOKIE_DATE_FORMAT.format( new java.util.Date( System.currentTimeMillis() + ( 1000L * (long)_maxAge ) ) );
+            return COOKIE_DATE_FORMAT.format( new java.util.Date( System.currentTimeMillis() + ( 1000L * (long)getMaxAge() ) ) );
         }
     }
     
     public void setExpiryDate( Date when ){
         long diff = when.getTime() - System.currentTimeMillis();
-        _maxAge = (int)(diff / 1000);
+        setMaxAge( (int)(diff / 1000) );
     }
-
-    public void setPath( String path ){
-        _path = path;
-    }
-
-    public void setDomain( String domain ){
-        _domain = domain;
-    }
-
-    public void setSecure( boolean secure ){
-        _secure = secure;
-    }
-
-    public String getName(){
-        return _name;
-    }
-
-    public String getValue(){
-        return _value;
-    }
-
-    public String getPath(){
-        return _path;
-    }
-
-    final String _name;
-    final String _value;
-
-    int _maxAge;
-    String _path = "/";
-    String _domain = null;
-    boolean _secure = false;
 
     public final static DateFormat COOKIE_DATE_FORMAT =
 	new SimpleDateFormat( "EEE, dd-MMM-yyyy HH:mm:ss z" , Locale.US);
@@ -116,7 +84,7 @@ public class Cookie {
                 buf.append( "; " );
 
             Cookie c = cookies.next();
-            buf.append( c._name ).append( "=" ).append( c._value );
+            buf.append( c.getName() ).append( "=" ).append( c.getValue() );
         }
         return buf.toString();
     }

@@ -81,7 +81,7 @@ public class HttpServer extends NIOServer {
                     }
                     
                     response.setResponseCode( 500 );
-                    response.getWriter().print( "no more threads (appsrv h612)\n" );
+                    response.getJxpWriter().print( "no more threads (appsrv h612)\n" );
                     response.done();
                     return false;
                 }
@@ -91,7 +91,7 @@ public class HttpServer extends NIOServer {
             }
         }
         response.setResponseCode( 404 );
-        response.getWriter().print( "no HTTP handlers available for : " + request.getURL() );
+        response.getJxpWriter().print( "no HTTP handlers available for : " + request.getURL() );
         response.done();
         
         return false;
@@ -147,7 +147,7 @@ public class HttpServer extends NIOServer {
                     _lastResponse = new HttpResponse( _lastRequest );
 
                 _lastResponse.setResponseCode( 500 );
-                _lastResponse.getWriter().print( "error : " + re + "\n\n" );
+                _lastResponse.getJxpWriter().print( "error : " + re + "\n\n" );
                 _lastResponse.done();
             }
             
