@@ -153,7 +153,6 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
     }
 
     public void addCookie( Cookie cookie ){
-        System.err.println( "addCookie called" );
         _cookies.add( cookie );
     }
 
