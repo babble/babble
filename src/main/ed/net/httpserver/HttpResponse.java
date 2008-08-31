@@ -25,6 +25,7 @@ import java.text.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.nio.charset.*;
+import javax.servlet.*;
 import javax.servlet.http.*;
 
 import ed.js.*;
@@ -40,7 +41,7 @@ import ed.appserver.*;
  * the variable 'response' which is of this type.
  * @expose
  */
-public class HttpResponse extends JSObjectBase /*implements HttpServletResponse*/ {
+public class HttpResponse extends JSObjectBase implements HttpServletResponse {
 
     static final boolean USE_POOL = true;
     static final String DEFAULT_CHARSET = "utf-8";
@@ -69,7 +70,7 @@ public class HttpResponse extends JSObjectBase /*implements HttpServletResponse*
         _request = request;
         _handler = _request._handler;
 
-        setHeader( "Content-Type" , "text/html;charset=" + getContentEncoding() );
+        setContentType( "text/html;charset=" + getContentEncoding() );
 	setDateHeader( "Date" , System.currentTimeMillis() );
 
         set( "prototype" , _prototype );
@@ -152,6 +153,7 @@ public class HttpResponse extends JSObjectBase /*implements HttpServletResponse*
     }
 
     public void addCookie( Cookie cookie ){
+        System.err.println( "addCookie called" );
         _cookies.add( cookie );
     }
 
@@ -186,6 +188,47 @@ public class HttpResponse extends JSObjectBase /*implements HttpServletResponse*
 	}
     }
 
+    public Locale getLocale(){
+        throw new RuntimeException( "getLocal not implemented yet" );
+    }
+
+    public void setLocale( Locale l ){
+        throw new RuntimeException( "setLocale not implemented yet" );
+    }
+
+    public void reset(){
+        throw new RuntimeException( "reset not allowed" );
+    }
+
+    public void resetBuffer(){
+        throw new RuntimeException( "resetBuffer not allowed" );
+    }
+
+    public void flushBuffer()
+        throws IOException {
+        flush();
+    }
+
+    public int getBufferSize(){
+        return 0;
+    }
+
+    public void setBufferSize( int size ){
+        // we ignore this
+    }
+
+    public boolean isCommitted(){
+        return _cleaned || _done || _sentHeader;
+    }
+
+    public void setContentType( String ct ){
+        setHeader( "Content-Type" , ct );
+    }
+
+    public String getContentType(){
+        return getHeader( "Content-Type" );
+    }
+
     /**
      * Set a header in the response.
      * Overwrites previous headers with the same name
@@ -206,6 +249,14 @@ public class HttpResponse extends JSObjectBase /*implements HttpServletResponse*
     public void addIntHeader( String n , int v ){
         List<String> lst = _getHeaderList( n , true );
         lst.add( String.valueOf( v ) );
+    }
+
+    public void setContentLength( long length ){
+        setHeader( "Content-Length" , String.valueOf( length ) );
+    }
+
+    public void setContentLength( int length ){
+        setHeader( "Content-Length" , String.valueOf( length ) );
     }
 
     public void setIntHeader( String n , int v ){
@@ -466,7 +517,8 @@ public class HttpResponse extends JSObjectBase /*implements HttpServletResponse*
         for ( Cookie c : _cookies ){
             a.append( "Set-Cookie: " );
             a.append( c.getName() ).append( "=" ).append( c.getValue() ).append( ";" );
-	    a.append( " " ).append( "Path=" ).append( c.getPath() ).append( ";" );
+            if ( c.getPath() != null )
+                a.append( " " ).append( "Path=" ).append( c.getPath() ).append( ";" );
             String expires = CookieUtil.getExpires( c );
             if ( expires != null )
                 a.append( "Expires=" ).append( expires ).append( "; " );
@@ -577,6 +629,14 @@ public class HttpResponse extends JSObjectBase /*implements HttpServletResponse*
         return _writer;
     }
 
+    public PrintWriter getWriter(){
+        throw new RuntimeException( "can't get a PrintWriter" );
+    }
+
+    public ServletOutputStream getOutputStream(){
+        throw new RuntimeException( "can't get an OutputStream" );
+    }
+
     /**
      * @unexpose
      */
@@ -610,6 +670,14 @@ public class HttpResponse extends JSObjectBase /*implements HttpServletResponse*
         return DEFAULT_CHARSET;
     }
 
+    public void setCharacterEncoding( String encoding ){
+        throw new RuntimeException( "setCharacterEncoding not supported" );
+    }
+    
+    public String getCharacterEncoding(){
+        return getContentEncoding();
+    }
+
     /**
      * Sends a file to the browser.
      * @param f a file to send
@@ -618,7 +686,7 @@ public class HttpResponse extends JSObjectBase /*implements HttpServletResponse*
         if ( ! f.exists() )
             throw new IllegalArgumentException( "file doesn't exist" );
         _file = f;
-        setHeader( "Content-Length" , String.valueOf( f.length() ) );
+        setContentLength( f.length() );
 	_stringContent = null;
     }
 
@@ -658,14 +726,14 @@ public class HttpResponse extends JSObjectBase /*implements HttpServletResponse*
 
             setResponseCode( 206 );
             setHeader( "Content-Range" , "bytes " + range[0] + "-" + range[1] + "/" + length );
-            setHeader( "Content-Length" , String.valueOf(  1 + range[1] - range[0] ) );
+            setContentLength( 1 + range[1] - range[0] );
             System.out.println( "got range " + range[0] + " -> " + range[1] );
             
 
             return;
         }
-        setHeader( "Content-Length" , String.valueOf( f.getLength() ) );
-        setHeader( "Content-Type" , f.getContentType() );
+        setContentLength( f.getLength() );
+        setContentType( f.getContentType() );
 
     }
     
