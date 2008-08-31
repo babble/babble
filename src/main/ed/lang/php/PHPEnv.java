@@ -11,6 +11,7 @@ import com.caucho.vfs.ReaderStream;
 import com.caucho.vfs.WriteStream;
 import com.caucho.vfs.ReaderWriterStream;
 
+import ed.js.*;
 import ed.net.httpserver.*;
 
 class PHPEnv extends Env {
@@ -20,34 +21,33 @@ class PHPEnv extends Env {
 	_request = request;
 	_response = response;
     }
+
+    public HttpResponse getResponse(){
+        return _response;
+    }
     
     public Var getSpecialRef(String name){
-	
-	if ( name.equals( "_GET" ) ){
-	    if ( _get == null ){
-		_get = new Var();
-		_get.set( _convertor.toPHP( _request.getURLParameters() ) );
-	    }
-	    return _get;
-	}
 
-	if ( name.equals( "_POST" ) ){
-	    if ( _post == null ){
-		_post = new Var();
-		_post.set( _convertor.toPHP( _request.getPostParameters() ) );
-	    }
-	    return _post;
-	}
+	if ( name.equals( "_GET" ) )
+            return _toVar( _request.getURLParameters() );
+        
+	if ( name.equals( "_POST" ) )
+            return _toVar( _request.getPostParameters() );
 
-	System.out.println( "unhandled special [" + name + "]" );
+        if ( name.equals( "_COOKIE" ) )
+            return _toVar( _request.getCookies() );
+        
 	return super.getSpecialRef( name );
+    }
+
+    Var _toVar( JSObject obj ){
+        Var v = new Var();
+        v.set( _convertor.toPHP( obj ) );
+        return v;
     }
     
     final HttpRequest _request;
     final HttpResponse _response;
 
     PHPConvertor _convertor;
-
-    Var _get;
-    Var _post;
 }
