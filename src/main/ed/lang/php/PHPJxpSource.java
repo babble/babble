@@ -72,7 +72,7 @@ public class PHPJxpSource extends JxpSource {
                         ar.getScope().putExplicit( "__phpwriter__" , out );
                     }
                     
-                    PHPEnv env = new PHPEnv( _quercus, page, out , ar.getRequest() , ar.getResponse() );
+                    PHPEnv env = new PHPEnv( _quercus, page, out , ar );
                     env.setPwd( new com.caucho.vfs.FilePath( s.getRoot().getAbsolutePath() ) );
 
 		    PHPConvertor convertor = new PHPConvertor( env );

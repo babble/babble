@@ -12,14 +12,16 @@ import com.caucho.vfs.WriteStream;
 import com.caucho.vfs.ReaderWriterStream;
 
 import ed.js.*;
+import ed.appserver.*;
 import ed.net.httpserver.*;
 
 class PHPEnv extends Env {
     
-    PHPEnv( Quercus quercus , QuercusPage page , WriteStream out , HttpRequest request , HttpResponse response ){
-	super( quercus , page , out , null , null );
-	_request = request;
-	_response = response;
+    PHPEnv( Quercus quercus , QuercusPage page , WriteStream out , AppRequest ar ){
+	super( quercus , page , out , null , ar.getResponse() );
+	_request = ar.getRequest();
+	_response = ar.getResponse();
+        _appRequest = ar;
     }
 
     public HttpResponse getResponse(){
@@ -27,7 +29,7 @@ class PHPEnv extends Env {
     }
     
     public Var getSpecialRef(String name){
-
+        
 	if ( name.equals( "_GET" ) )
             return _toVar( _request.getURLParameters() );
         
@@ -36,6 +38,9 @@ class PHPEnv extends Env {
 
         if ( name.equals( "_COOKIE" ) )
             return _toVar( _request.getCookies() );
+
+        if ( name.equals( "_SESSION" ) )
+            return _toVar( _appRequest.getSession() );
         
 	return super.getSpecialRef( name );
     }
@@ -45,9 +50,11 @@ class PHPEnv extends Env {
         v.set( _convertor.toPHP( obj ) );
         return v;
     }
-    
+
+    final AppRequest _appRequest;    
     final HttpRequest _request;
     final HttpResponse _response;
 
+    
     PHPConvertor _convertor;
 }
