@@ -24,17 +24,17 @@ import javax.servlet.http.*;
 
 /**
    maxAge:
-     < 0 : remove
-     0 : session
+     < 0 : session
+     0 : remove
      > 0 : now + X seconds
      
  */
 public class CookieUtil {
 
     public static String getExpires( Cookie c ){
-        if ( c.getMaxAge() < 0 )
-            return REMOVE_COOKIE_EXPIRES;
         if ( c.getMaxAge() == 0 )
+            return REMOVE_COOKIE_EXPIRES;
+        if ( c.getMaxAge() < 0 )
             return null;
         synchronized ( COOKIE_DATE_FORMAT ){
             return COOKIE_DATE_FORMAT.format( new java.util.Date( System.currentTimeMillis() + ( 1000L * (long)c.getMaxAge() ) ) );

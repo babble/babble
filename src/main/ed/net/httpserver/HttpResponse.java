@@ -129,6 +129,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
      */
     public void addCookie( String name , String value , int maxAge ){
         Cookie c = new Cookie( name , value );
+        c.setPath( "/" );
         c.setMaxAge( maxAge );
         _cookies.add( c );
     }
@@ -140,16 +141,16 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
      * @param value cookie value
      */
     public void addCookie( String name , String value ){
-        _cookies.add( new Cookie( name , value ) );
+        addCookie( name , value , -1 );
     }
     
     /**
-     * Equivalent to "addCookie( name , null , -1 )". Tells the browser
+     * Equivalent to "addCookie( name , null , 0 )". Tells the browser
      * that the cookie with this name is already expired.
      * @param name cookie name
      */
     public void removeCookie( String name ){
-        addCookie( name , "none" , -1 );
+        addCookie( name , "none" , 0 );
     }
 
     public void addCookie( Cookie cookie ){
