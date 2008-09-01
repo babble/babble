@@ -337,6 +337,10 @@ public class AppRequest {
         return _writer;
     }
 
+    public Session getSession(){
+        return _session;
+    }
+    
     final String _uri;
     final String _host;
     final HttpRequest _request;

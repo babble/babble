@@ -154,6 +154,10 @@ public class Session extends JSObjectBase {
         }
     }
 
+    public String toString(){
+        return "Session";
+    }
+    
     private final static MD5 _myMd5 = new MD5();
 
     final String _key;
