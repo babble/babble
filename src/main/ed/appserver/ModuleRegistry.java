@@ -40,15 +40,14 @@ public class ModuleRegistry {
     }
 
     public ModuleConfig getConfig( String name ){
+        for ( ModuleRepository mr : _repositories )
+            if ( mr.hasModule( name ) ){
+                ModuleConfig config = mr.getConfig( name );
+                if ( config == null )
+                    throw new RuntimeException( "why did a [" + mr + "] say it had a config for [" + name + "] when it didn't" );
+                return config;
+            }
         
-	ModuleConfig mc = _find( name );
-	if ( mc != null )
-	    return mc;
-	
-	mc = _find( _cleanName( name ) );
-	if ( mc != null )
-	    return mc;
-
         if ( _parent != null )
             return _parent.getConfig( name );
         
@@ -66,25 +65,6 @@ public class ModuleRegistry {
         _locked = true;
     }
 
-    private String _cleanName( String name ){
-	final int idx = name.lastIndexOf( "/" );
-	if ( idx < 0 )
-	    return name;
-	return name.substring( idx + 1 );
-    }
-
-    private ModuleConfig _find( String name ){
-        for ( ModuleRepository mr : _repositories ){
-            if ( mr.hasModule( name ) ){
-                ModuleConfig config = mr.getConfig( name );
-                if ( config == null )
-                    throw new RuntimeException( "why did a [" + mr + "] say it had a config for [" + name + "] when it didn't" );
-                return config;
-            }
-	}
-	return null;
-    }
-	
     private boolean _locked = false;
 
     final List<ModuleRepository> _repositories = new LinkedList<ModuleRepository>();
