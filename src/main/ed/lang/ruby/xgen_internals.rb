@@ -34,7 +34,9 @@ module XGen
   class ModelBase
 
     # Call this method to initialize your class with the database collection
-    # and instance variable names.
+    # and instance variable names. If coll_name is not given, the collection
+    # name is assumed to be the class name turned into
+    # lower_case_with_underscores.
     def self.set_collection(coll_name, ivars=nil)
       @coll_name, @ivars = coll_name, ivars
       if coll_name.kind_of?(Array)
