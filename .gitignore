@@ -23,6 +23,7 @@ src/main/Foo.java
 src/main/Eliot.java
 .zeuspw
 
+10gen.properties
 logs
 test-output
 oplog.*
