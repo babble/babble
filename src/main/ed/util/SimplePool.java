@@ -23,6 +23,8 @@ import java.util.*;
 /** @expose */
 public abstract class SimplePool<T> {
 
+    static long _sleepTime = 15;
+
     /** 
      * See full constructor docs
      */
@@ -75,12 +77,22 @@ public abstract class SimplePool<T> {
         }
     }
 
-    /** Gets an object from the pool.
-     * will block if none are available
+    /** Gets an object from the pool - will block if none are available
      * @return An object from the pool
      */
     public T get(){
-        final T t = _get();
+	return get(-1);
+    }
+    
+    /** Gets an object from the pool - will block if none are available
+     * @param waitTime 
+     *        negative - forever
+     *        0        - return immediately no matter what
+     *        positive ms to wait
+     * @return An object from the pool
+     */
+    public T get( long waitTime ){
+        final T t = _get( waitTime );
         if ( t != null && _trackLeaks ){
             Throwable stack = new Throwable();
             stack.fillInStackTrace();
@@ -92,8 +104,9 @@ public abstract class SimplePool<T> {
     private int _hash( T t ){
         return System.identityHashCode( t );
     }
-
-    private T _get(){
+    
+    private T _get( long waitTime ){
+	long totalSlept = 0;
         while ( true ){
             synchronized ( _avail ){
                 if ( _avail.size() > 0 )
@@ -104,13 +117,21 @@ public abstract class SimplePool<T> {
                     _all.add( t );
                     return t;
                 }
-
+		
                 if ( _trackLeaks && _trackPrintCount++ % 200 == 0 ){
                     _wherePrint();
                     _trackPrintCount = 1;
                 }
             }
-            ThreadUtil.sleep( 15 );
+	    
+	    if ( waitTime == 0 )
+		return null;
+
+	    if ( waitTime > 0 && totalSlept >= waitTime )
+		return null;
+	    
+	    totalSlept += _sleepTime;
+            ThreadUtil.sleep( _sleepTime );
         }
     }
 
