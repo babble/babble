@@ -155,14 +155,10 @@ public abstract class SimplePool<T> {
         _where.clear(); // is this correct
     }
 
-    /** @unexpose */
-    final String _name;
-    /** @unexpose */
-    final int _maxToKeep;
-    /** @unexpose */
-    final int _maxTotal;
-    /** @unexpose */
-    final boolean _trackLeaks;
+    protected final String _name;
+    protected final int _maxToKeep;
+    protected final int _maxTotal;
+    protected final boolean _trackLeaks;
 
     private final List<T> _avail = new ArrayList<T>();
     private final WeakBag<T> _all = new WeakBag<T>();
