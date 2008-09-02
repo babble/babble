@@ -380,9 +380,8 @@ public class JavadocToDB {
         ClassDoc[] classes = root.classes();
 
         for (int i = 0; i < classes.length; i++) {
-            if( ( ( Generate.classes.size() > 0 && 
-                    !Generate.classes.contains( classes[i].name() ) ) || 
-                  Generate.classes.size() == 0 ) || 
+            if( ( Generate.classes.size() > 0 && 
+                  !Generate.classes.contains( classes[i].name() ) ) || 
                 dontProcess( classes[i] ) )
                 continue;
 
