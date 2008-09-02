@@ -69,6 +69,7 @@ public class Generate {
     /**
      *  Gets things ready for a "db blob to HTML" generation run.  Ensure
      *  the directory exists, and ensure that it's empty
+     * @param relative path to documentation directory
      */
     public static void setupHTMLGeneration(String path) throws Exception {
         Scope s = Scope.getThreadLocal();
@@ -77,6 +78,9 @@ public class Generate {
             throw new RuntimeException("your appserver isn't an appserver");
         }
 
+        if( !path.endsWith("/") ) {
+            path = path + "/";
+        }
         File check = new File(((AppContext)app).getRoot() + "/" + path + "DOC_DIR");
         File docdir = new File(((AppContext)app).getRoot()+"/" + path);
 
@@ -470,12 +474,6 @@ public class Generate {
 
         initialize();
 
-        Scope s = Scope.newGlobal().child( new File("." ) );
-        s.setGlobal( true );
-        s.makeThreadLocal();
-        s.put( "__instance__" , new AppContext( new File( "." ) ) , true );
-        s.put( "core" , CoreJS.get().getLibrary( null , null , s , false ) , true );
-        
         if( argTable.containsKey( "db" ) ) {
             String url = argTable.get( "db" );
             if ( argTable.containsKey( "db_ip" ) ) 
@@ -492,6 +490,13 @@ public class Generate {
             printUsage();
             return;
         }
+
+        Scope s = Scope.newGlobal().child( new File("." ) );
+        s.setGlobal( true );
+        s.makeThreadLocal();
+        s.put( "__instance__" , new AppContext( (new File( "." )).getCanonicalPath() ) , true );
+        s.put( "core" , CoreJS.get().getLibrary( null , null , s , false ) , true );
+        s.put( "db" , db , true );
 
         docdb = db.getCollection("doc");
         codedb = db.getCollection("doc.code");
