@@ -23,12 +23,11 @@ module XGen
   # Example:
   #
   #    class MP3Track < XGen::ModelBase
+  #      set_collection :mp3_track, %w(artist album song track)
   #      def to_s
   #        "artist: #{self.artist}, album: #{self.album}, song: #{self.song}, track: #{track}"
   #      end
   #    end
-  #
-  #    MP3Track.init($db.my_collection, %w(artist album song track))
   #
   #    track = MP3Track.find_by_song('She Blinded Me With Science')
   #    puts track.to_s
@@ -36,10 +35,16 @@ module XGen
 
     # Call this method to initialize your class with the database collection
     # and instance variable names.
-    def self.init(db, ivars)
-      @coll = db
-      ivars << '_id' unless ivars.include?('_id')
-      ivars.each { |ivar|
+    def self.set_collection(coll_name, ivars=nil)
+      @coll_name, @ivars = coll_name, ivars
+      if coll_name.kind_of?(Array)
+        @ivars = coll_name
+        @coll_name = self.name.gsub(/([A-Z])/, '_\1').downcase.sub(/^_/, '')
+      end
+      @coll = $db[@coll_name.to_s]
+
+      @ivars << '_id' unless @ivars.include?('_id')
+      @ivars.each { |ivar|
         eval <<EOS
 attr_accessor :#{ivar}
 def self.find_by_#{ivar}(v)
