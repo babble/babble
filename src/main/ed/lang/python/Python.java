@@ -22,6 +22,7 @@ import java.io.*;
 
 import org.python.core.*;
 
+import ed.db.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.js.func.*;
@@ -97,7 +98,10 @@ public class Python {
         
         if ( o == null )
             return Py.None;
-        
+
+        if ( o instanceof DBRef )
+            o = ((DBRef)o).doLoad();
+
         if ( o instanceof JSPyObjectWrapper )
             return ((JSPyObjectWrapper)o).getContained();
 
@@ -141,6 +145,8 @@ public class Python {
 
             return new PyJSFunctionWrapper( (JSFunction)o , useThis );
         }
+        
+
         if ( o instanceof JSObject )
             return new PyJSObjectWrapper( (JSObject)o );
         
