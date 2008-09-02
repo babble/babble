@@ -27,11 +27,15 @@ public class DBRef extends JSObjectBase {
     }
     
     public void prefunc(){
+        doLoad();
+    }
+
+    public Object doLoad(){
         if ( ! _inited )
-            return;
+            return _actual;
         
         if ( _loaded )
-            return;
+            return _actual;
 
 	if ( D ) System.out.println( "following dbref" );
         
@@ -53,18 +57,21 @@ public class DBRef extends JSObjectBase {
         if ( o == null ){
             System.out.println( "can't find ref.  ns:" + _ns + " id:" + _id );
             _parent.set( _fieldName , null );
-            return;
+            return null;
         }
         coll.apply( o );
         MyAsserts.assertEquals( _id , o.get( "_id" ) );
         MyAsserts.assertEquals( _ns.toString() , o.get( "_ns" ).toString() );
 
         _loaded = true; // this technically makes a race condition...
+        
+        Object ret = this;
 
         if ( ! o.getClass().equals( JSObjectBase.class ) ){
             _parent.set( _fieldName , o );
+            ret = o;
         }
-
+        
         if ( o instanceof JSObjectBase )
             setConstructor( ((JSObjectBase)o).getConstructor() );
         
@@ -72,6 +79,9 @@ public class DBRef extends JSObjectBase {
         
         _doneLoading = true;
         markClean();
+
+        _actual = ret;
+        return ret;
     }
     
     public boolean isDirty(){
@@ -88,6 +98,8 @@ public class DBRef extends JSObjectBase {
     boolean _inited = false;
     boolean _loaded = false;
     boolean _doneLoading = false;
+    
+    private Object _actual;
 
     private static RefCache getRefCache(){
         AppRequest r = AppRequest.getThreadLocal();

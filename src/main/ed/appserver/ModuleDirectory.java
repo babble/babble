@@ -27,7 +27,7 @@ import ed.js.engine.*;
 public class ModuleDirectory extends JSObjectLame implements JSLibrary {
     
     public ModuleDirectory( String root , String name , AppContext context , Scope scope ){
-        this( new File( Module._base , root ) , name , context , scope );
+        this( new File( Module._defaultBase , root ) , name , context , scope );
     }
 
     public ModuleDirectory( File root , String name , AppContext context , Scope scope ){
@@ -52,9 +52,7 @@ public class ModuleDirectory extends JSObjectLame implements JSLibrary {
         if ( m != null )
             return m;
         
-        final File moddir = new File( _root , name );
-        
-        m = new Module( moddir , _name + "." + name , true );
+        m = new Module( _root , name , _name + "." + name , true );
         _modules.put( name , m );
         return m;
     }

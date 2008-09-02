@@ -31,8 +31,7 @@ import ed.cloud.*;
 public class Module {
 
     static final Logger _log = Logger.getLogger( "modules" );    
-    public static final String _baseFile; 
-    public static final String GITROOT = "ssh://git.10gen.com/data/gitroot/";
+    public static final String _defaultBaseFile; 
     public static final boolean USE_GIT = ! Config.get().getBoolean( "NO-GIT" );
     
 
@@ -42,9 +41,9 @@ public class Module {
         if ( s != null && !s.endsWith("/")) {
             s += "/";
         }
-        _baseFile = s;
+        _defaultBaseFile = s;
     }
-    static File _base = new File( _baseFile );
+    static File _defaultBase = new File( _defaultBaseFile );
 
     public static synchronized Module getModule( String name ){
         Module m = _modules.get( name );
@@ -62,24 +61,24 @@ public class Module {
     }
 
     public Module( String root , String uriBase , boolean doInit ){
-        this( new File( _base , root ) , uriBase , doInit );
+        this( _defaultBase , root , uriBase , doInit );
     }
 
-    public Module( File root , String uriBase , boolean doInit ){
+    public Module( File base , String name , String uriBase , boolean doInit ){
         
-        _root = root;
+        _base = base;
+        _name = name;
+        _root = new File( base , name );
         _uriBase = uriBase;
         _doInit = doInit;
-        
-        _giturl = _findGitUrl();
-        _moduleName = _giturl == null ? null : _getModuleNameFromGitUrl( _giturl );
-        //System.out.println( "giturl [" + _giturl + "] moduleName [" + _moduleName + "]" );
 
+        _versioned = ! ( _root.exists() && GitUtils.isSourceDirectory( _root ) );
+        
+        _config = _versioned ? ModuleRegistry.getARegistry().getConfig( name ) : null;
+        _giturl = _config == null || ! USE_GIT ? null : _config.getGitUrl();
+        
         if ( ! _root.exists() && _giturl != null )
             _root.mkdirs();
-        
-        _versioned = ! GitUtils.isSourceDirectory( _root );
-        
         
         if ( _versioned ){
             String defaultVersion = getSymLink( "stable" );
@@ -93,55 +92,11 @@ public class Module {
         }
         
 	if ( ! _default.exists() )
-            throw new RuntimeException( "Module root for [" + uriBase + "] does not exist : " + _default + " giturl [" + _giturl + "]" );
+            throw new RuntimeException( "Module root for [" + uriBase + "] does not exist : " + _default + " giturl [" + _giturl + "] config:" + _config);
         
         _lock = ( "Module-LockKey-" + _root.getAbsolutePath() ).intern();
     }
     
-    String _findGitUrl(){
-        if ( ! USE_GIT )
-            return null;
-        
-        final String str = FileUtil.toString( _root );
-
-        if ( str.contains( "/core-modules/" ) || 
-             str.contains( "/site-modules/" ) ){
-            
-            int idx = str.indexOf( "/core-modules/" );
-            if ( idx < 0 )
-                idx = str.indexOf( "/site-modules/" );
-            
-            return _makeGitUrl( str.substring( idx ) );
-        }
-
-        if ( str.endsWith( "/corejs" ) )
-            return _makeGitUrl( "corejs" );
-
-	if ( str.endsWith( "/external" ) )
-            return _makeGitUrl( "external" );
-        
-        return null;
-    }
-
-    static String _makeGitUrl( String piece ){
-        String url = GITROOT;
-        if ( ! url.endsWith( "/" ) )
-            url += "/";
-        
-        while ( piece.startsWith( "/" ) )
-            piece = piece.substring(1);
-        
-        return url + piece;
-    }
-
-    static String _getModuleNameFromGitUrl( String s ){
-        s = s.substring( GITROOT.length() );
-        while ( s.startsWith( "/" ) )
-            s = s.substring(1);
-        
-        return s;
-    }
-
     public synchronized JSFileLibrary getLibrary( String version , AppContext context , Scope scope , boolean pull ){
         synchronized ( _lock ){
             File f = getRootFile( version );
@@ -156,18 +111,13 @@ public class Module {
      * @return
      */
     public static String getBase() {
-        return _baseFile;
+        return _defaultBaseFile;
     }
     
     private String getSymLink( String version ){
-        if ( _moduleName == null )
-            return null;
-        
-        Cloud c = Cloud.getInstanceIfOnGrid();
-        if ( c == null )
-            return null;
-
-        return c.getModuleSymLink( _moduleName , version );
+        if ( _config == null )
+            return version;
+        return _config.followSymLinks( version );
     }
 
     public File getRootFile( String version ){
@@ -189,7 +139,7 @@ public class Module {
             return f;
         
         if ( _giturl == null ){
-            throw new RuntimeException( "don't have a giturl for root:[" + _root + "] uri:[" + _uriBase + "] version:[" + version + "]" );
+            throw new RuntimeException( "don't have a giturl for root:[" + _root + "] uri:[" + _uriBase + "] version:[" + version + "] config [" + _config + "]" );
         }
 
         if ( ! GitUtils.clone( _giturl , _root , version ) ){
@@ -205,16 +155,18 @@ public class Module {
         return f;
     }
 
+    final File _base;
     final File _root;
+    final String _name;
+    
     final String _uriBase;
     final boolean _doInit;
-
+    
+    final ModuleConfig _config;
     final String _giturl;
-    final String _moduleName;
-
     final boolean _versioned;
 
     final File _default;
-
+    
     final String _lock;
 }
