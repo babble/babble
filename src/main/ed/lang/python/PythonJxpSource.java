@@ -100,16 +100,8 @@ public class PythonJxpSource extends JxpSource {
                     ss.stdout = new MyStdoutFile( ar );
                 }
                 
-                String myPath = _lib.getRoot().toString();
-                boolean found = false;
-                for ( Object o : ss.path ){
-                    if ( o.toString().equals( myPath ) ){
-                        found = true;
-                        break;
-                    }
-                }
-                if ( ! found )
-                    ss.path.append( Py.newString( myPath ) );
+                addPath( ss , _lib.getRoot().toString() );
+                addPath( ss , _lib.getTopParent().getRoot().toString() );
 
                 Scope pyglobals = s.child( "scope to hold python builtins" );
 
@@ -137,6 +129,15 @@ public class PythonJxpSource extends JxpSource {
         };
     }
 
+    static void addPath( PySystemState ss , String myPath ){
+
+        for ( Object o : ss.path )
+            if ( o.toString().equals( myPath ) )
+                return;
+        
+        ss.path.append( Py.newString( myPath ) );
+    }
+
     private PyCode _getCode()
         throws IOException {
         PyCode c = _code;
@@ -158,4 +159,4 @@ public class PythonJxpSource extends JxpSource {
     // static b/c it has to use ThreadLocal anyway
     
     final static Logger _log = Logger.getLogger( "python" );
-        }
+}
