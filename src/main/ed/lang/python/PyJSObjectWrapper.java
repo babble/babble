@@ -63,10 +63,12 @@ public class PyJSObjectWrapper extends PyDictionary {
 
     @ExposedMethod
     public PyObject jswrapper_iterkeys(){
+        // FIXME: return an actual iterator
         return jswrapper_keys();
     }
     
     public PyObject iteritems(){
+        // FIXME: an actual iterator
         return jswrapper_iteritems();
     }
 
@@ -92,6 +94,11 @@ public class PyJSObjectWrapper extends PyDictionary {
 
     public PyList values(){
         return jswrapper_values();
+    }
+
+    @ExposedMethod
+    public boolean jswrapper_has_key(PyObject key){
+        return jswrapper___contains__( key );
     }
 
     @ExposedMethod
