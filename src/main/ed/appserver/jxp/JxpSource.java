@@ -196,7 +196,7 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
 
         protected String getContent()
             throws IOException {
-            return StreamUtil.readFully( _f );
+            return StreamUtil.readFully( _f , "utf8" );
         }
 
         protected InputStream getInputStream()
