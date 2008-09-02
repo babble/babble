@@ -42,7 +42,6 @@ public class RubyJSObjectWrapper extends RubyHash {
     protected Scope _scope;
     protected final JSObject _jsobj;
     protected int _size;
-    protected Map<Object, IRubyObject> _wrappers;
     protected RubyClass _eigenclass;
 
     RubyJSObjectWrapper(Scope s, org.jruby.Ruby runtime, JSObject obj) {
@@ -52,7 +51,6 @@ public class RubyJSObjectWrapper extends RubyHash {
 	_scope = s;
 	_jsobj = obj;
 	_eigenclass = getSingletonClass();
-	_wrappers = new HashMap<Object, IRubyObject>();
 	_createMethods();
     }
 
@@ -248,9 +246,7 @@ public class RubyJSObjectWrapper extends RubyHash {
     }
 
     /**
-     * Deletes key/value from _jsobj and returns value. Also deletes wrappers
-     * for key and value from _wrappers, so you might want to grab them before
-     * calling this method.
+     * Deletes key/value from _jsobj and returns value.
      */
     protected Object internalDelete(Object jsKey) {
 	Object val = _jsobj.get(jsKey);
@@ -259,8 +255,6 @@ public class RubyJSObjectWrapper extends RubyHash {
 	    _removeFunctionMethod(jsKey);
 	else
 	    _removeInstanceVariable(jsKey);
-	_wrappers.remove(jsKey);
-	_wrappers.remove(val);
 	return val;
     }
 
@@ -318,7 +312,6 @@ public class RubyJSObjectWrapper extends RubyHash {
 	    else
 		_removeInstanceVariable(key);
 	}
-	_wrappers = new HashMap<Object, IRubyObject>();
 	return this;
     }
 
@@ -373,15 +366,7 @@ public class RubyJSObjectWrapper extends RubyHash {
     }
 
     protected IRubyObject toRuby(Object o) {
-	if (o instanceof String)
-	    return RubyString.newString(getRuntime(), (String)o);
-
-	IRubyObject wrapper = _wrappers.get(o);
-	if (wrapper == null) {
-	    wrapper = RubyObjectWrapper.toRuby(_scope, getRuntime(), o);
-	    _wrappers.put(o, wrapper);
-	}
-	return wrapper;
+	return RubyObjectWrapper.toRuby(_scope, getRuntime(), o);
     }
 
     protected Object toJS(IRubyObject o) { return RubyObjectWrapper.toJS(_scope, o); }

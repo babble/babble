@@ -18,7 +18,7 @@ package ed.lang.ruby;
   
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Set;
+import java.util.*;
 
 import org.jruby.*;
 import org.jruby.internal.runtime.methods.JavaMethod;
@@ -41,6 +41,8 @@ public abstract class RubyObjectWrapper extends RubyObject {
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB.WRAP");
   
+    static final Map<Object, IRubyObject> wrappers = new WeakHashMap<Object, IRubyObject>();
+
     protected final Scope _scope;
     protected final Object _obj;
 
@@ -56,25 +58,35 @@ public abstract class RubyObjectWrapper extends RubyObject {
     public static IRubyObject toRuby(Scope s, org.jruby.Ruby runtime, Object obj, String name, RubyObjectWrapper container) {
 	if (obj == null)
 	    return runtime.getNil();
-	if (obj instanceof JSString || obj instanceof ObjectId)
-	    return RubyString.newString(runtime, obj.toString());
+
+	IRubyObject wrapper;
+	if ((wrapper = wrappers.get(obj)) != null)
+	    return wrapper;
+
 	if (obj instanceof JSFunctionWrapper)
 	    return ((JSFunctionWrapper)obj).getProc();
-	if (obj instanceof JSFunction) {
+
+	if (obj instanceof JSString || obj instanceof ObjectId)
+	    wrapper = RubyString.newString(runtime, obj.toString());
+	else if (obj instanceof JSFunction) {
 	    IRubyObject methodOwner = container == null ? runtime.getTopSelf() : container;
-	    return new RubyJSFunctionWrapper(s, runtime, (JSFunction)obj, name, methodOwner.getSingletonClass());
+	    wrapper = new RubyJSFunctionWrapper(s, runtime, (JSFunction)obj, name, methodOwner.getSingletonClass());
 	}
-	if (obj instanceof JSArray)
-	    return new RubyJSArrayWrapper(s, runtime, (JSArray)obj);
-	if (obj instanceof DBCursor)
-	    return new RubyDBCursorWrapper(s, runtime, (DBCursor)obj);
-	if (obj instanceof BigDecimal)
-	    return new RubyBigDecimal(runtime, (BigDecimal)obj);
-	if (obj instanceof BigInteger)
-	    return new RubyBignum(runtime, (BigInteger)obj);
-	if (obj instanceof JSObject)
-	    return new RubyJSObjectWrapper(s, runtime, (JSObject)obj);
-	return JavaUtil.convertJavaToUsableRubyObject(runtime, obj);
+	else if (obj instanceof JSArray)
+	    wrapper = new RubyJSArrayWrapper(s, runtime, (JSArray)obj);
+	else if (obj instanceof DBCursor)
+	    wrapper = new RubyDBCursorWrapper(s, runtime, (DBCursor)obj);
+	else if (obj instanceof BigDecimal)
+	    wrapper = new RubyBigDecimal(runtime, (BigDecimal)obj);
+	else if (obj instanceof BigInteger)
+	    wrapper = new RubyBignum(runtime, (BigInteger)obj);
+	else if (obj instanceof JSObject)
+	    wrapper = new RubyJSObjectWrapper(s, runtime, (JSObject)obj);
+	else
+	    wrapper = JavaUtil.convertJavaToUsableRubyObject(runtime, obj);
+
+	wrappers.put(obj, wrapper);
+	return wrapper;
     }
 
     /** Given a Ruby block, returns a JavaScript object. */
