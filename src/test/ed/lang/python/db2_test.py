@@ -64,6 +64,23 @@ t.save(dbtest_obj)
 
 x = t.findOne()
 
-#print x.c[0].m1()
+_10gen.assert.eq(x.c[0].m1(), o.m1())
 
+t2 = db.pydb3
+t2.drop()
+t2.setConstructor(Thingy)
+
+o = Thingy(2, 1)
+o2 = Thingy(8, 12)
+t2.save(o)
+t2.save(o2)
+
+dbtest_obj.c = [o]
+dbtest_obj.junk = o2
+
+t.save(dbtest_obj)
+
+x = t.findOne()
+
+_10gen.assert.eq(x.junk.m1(), o2.m1())
 _10gen.assert.eq(x.c[0].m1(), o.m1())
