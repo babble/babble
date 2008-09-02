@@ -43,7 +43,7 @@ public class StreamUtil {
 
     public static String readFully( File f )
         throws IOException {
-        return readFully( f , null );
+        return readFully( f , "utf8" );
     }
     
     public static String readFully( File f , String encoding )
