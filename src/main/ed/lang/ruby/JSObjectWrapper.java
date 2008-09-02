@@ -94,7 +94,7 @@ public class JSObjectWrapper implements JSObject {
     public Collection<String> keySet() {
 	Set<String> names = new HashSet<String>();
 	for (Variable var : _robj.getInstanceVariables().getInstanceVariableList())
-	    names.add(var.getName());
+	    names.add(var.getName().substring(1));
 	return names;
     }
 
