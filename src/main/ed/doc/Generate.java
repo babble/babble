@@ -32,7 +32,7 @@ import ed.io.SysExec;
  */
 public class Generate {
 
-    private static boolean debug = false;
+    static final boolean D = Boolean.getBoolean( "DEBUG.JSFL" );
 
     private static ArrayList<String> processedFiles = new ArrayList<String>();
 
@@ -111,7 +111,6 @@ public class Generate {
         Object app = s.get("__instance__");
 
         File docdir = new File(((AppContext)app).getRoot()+"/" + path);
-
         if(!docdir.exists()) {
             throw new RuntimeException("Error - doc dir was never setup : " + docdir);
         }
@@ -141,7 +140,7 @@ public class Generate {
                 docdb.save(next);
             }
 
-            if(debug)
+            if( D )
                 System.out.println("Generate.postHTMLGeneration() : processing " + blobs[i].getName());
 
         }
@@ -237,7 +236,6 @@ public class Generate {
             return;
         }
 
-
         // if it hasn't been done already, process any .js files
         if(!processedFiles.contains(path)) {
             jsToDb(f.getCanonicalPath());
@@ -301,7 +299,7 @@ public class Generate {
      */
     public static void jsToDb(String path) throws IOException {
 
-        if(debug)
+        if( D )
             System.out.println("Generate.jsToDB() : processing " + path);
 
         File f = new File(path);
@@ -309,14 +307,12 @@ public class Generate {
 
         Scope s = Scope.getThreadLocal();
 
-        JSObject foo = (JSObject) s.get("core");
-
+        JSObject foo = (JSObject) s.get( "core" );
         if (foo == null) {
         	throw new RuntimeException("Can't find 'core' in my scope");
         }
 
         ModuleDirectory md = (ModuleDirectory) foo.get("modules");
-
         if (md == null) {
         	throw new RuntimeException("Can't find 'modules' directory in my core object");
         }
@@ -407,7 +403,7 @@ public class Generate {
      * @param path to file or folder to be documented
      */
     public static void javaToDb(String path) throws IOException {
-        if(debug)
+        if( D )
             System.out.println("Generate.javaToDB() : processing " + path);
         com.sun.tools.javadoc.Main.execute(new String[]{"-doclet", "JavadocToDB", "-docletpath", "./", path } );
     }
@@ -430,59 +426,106 @@ public class Generate {
         }
     }
 
+    public static ArrayList<String> classes = new ArrayList<String>(); 
 
-    public static void main(String[] args) throws IOException, Exception {
-        if(args.length == 0) {
-            printUsage();
+    public static void getClassesList( String filename ) {
+        if( filename == null ) 
             return;
+
+        try {
+            Scanner sc = new Scanner( new File( filename ) );
+            while( sc.hasNext() ) {
+                classes.add( sc.next() );
+            }
         }
-        String path = args[0];
+        catch( IOException e ) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Hashtable<String,String> processArgs( String[] args ) {
+        Hashtable<String,String> argTable = new Hashtable<String,String>();
+        for( int i=0; i<args.length-1; i+=2 ) {
+            if( args[i].equals("--classlist") || args[i].equals("-c") ) {
+                argTable.put( "classlist" , args[ i+1 ] );
+            }
+            if( args[i].equals("--db" ) ) {
+                argTable.put( "db" , args[ i+1 ] );
+            }
+            if( args[i].equals("--db_ip" ) ) {
+                argTable.put( "db_ip" , args[ i+1 ] );
+            }
+            if( args[i].equals("--output" ) ) {
+                argTable.put( "output" , args[ i+1 ] );
+            }
+        }
+        String path = args.length > 0 && args.length % 2 == 1 ? args[ args.length - 1 ] : ".";
+        argTable.put( "path" , path );
+        return argTable;
+    }
+
+    public static void main( String[] args ) throws IOException, Exception {
+        Hashtable<String,String> argTable = processArgs( args );
+        getClassesList( argTable.get( "classlist" ) );
 
         initialize();
 
-        if(!connected) {
-            Scope s = Scope.newGlobal().child( new File("." ) );
-            s.makeThreadLocal();
-
-            Object app = s.get("__instance__");
-            Object dbo = s.get("db");
-            if(! (dbo instanceof DBBase)) {
-                throw new RuntimeException("your database is not a database");
+        Scope s = Scope.newGlobal().child( new File("." ) );
+        s.setGlobal( true );
+        s.makeThreadLocal();
+        s.put( "__instance__" , new AppContext( new File( "." ) ) , true );
+        s.put( "core" , CoreJS.get().getLibrary( null , null , s , false ) , true );
+        
+        if( argTable.containsKey( "db" ) ) {
+            String url = argTable.get( "db" );
+            if ( argTable.containsKey( "db_ip" ) ) 
+                url = argTable.get( "db_ip" ) + "/" + url;
+        
+            try {
+                db = DBProvider.get( url );
             }
-
-            db = (DBBase)dbo;
-            docdb = db.getCollection("doc");
-            codedb = db.getCollection("doc.code");
-            srcdb = db.getCollection("doc.src");
-            connected = true;
+            catch ( java.net.UnknownHostException un ){
+                throw new RuntimeException( "bad db url [" + url + "]" );
+            }
         }
-        //        docdb.drop();
-        //        codedb.drop();
-
-        JSObjectBase emptyObj = new JSObjectBase();
-        Iterator it = srcdb.find(emptyObj);
-        while(it.hasNext()) {
-            srcToDb(((JSObject)it.next()).get("filename").toString());
+        else {
+            printUsage();
+            return;
         }
 
+        docdb = db.getCollection("doc");
+        codedb = db.getCollection("doc.code");
+        srcdb = db.getCollection("doc.src");
+        connected = true;
+
+        docdb.remove(  new JSObjectBase() );
+        codedb.remove( new JSObjectBase() );
+
+        if( D ) 
+            System.out.println( "adding doc for file(s in): " + argTable.get( "path" ) );
+        // srcs to db
+        srcToDb( argTable.get( "path" ) );
         javaSrcsToDb();
+        globalToDb();
 
         // now to html
-        globalToDb();
-        setupHTMLGeneration(path);
-        it = docdb.find(emptyObj);
+        String path = argTable.get( "output" );
+
+        setupHTMLGeneration( path );
+        Iterator it = docdb.find( new JSObjectBase() );
         while(it.hasNext()) {
             toHTML(JSON.serialize((((JSObject)it.next()).get("_index"))), path);
         }
         postHTMLGeneration(path);
+        
 
         JSObjectBase nameIdx = new JSObjectBase();
-        nameIdx.set("name", 1);
+        nameIdx.set( "name" , 1 );
         docdb.ensureIndex(nameIdx);
     }
 
     public static void printUsage() {
         System.out.println("Usage:");
-        System.out.println("\tjava Generate path/to/doc/dir");
+        System.out.println("\tjava Generate --db dbname [--db_ip dbip] [--classlist|-c path/to/classlist/file] [path/to/doc/dir]");
     }
 }
