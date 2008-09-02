@@ -32,14 +32,14 @@ import ed.appserver.*;
 
 public class HttpServer extends NIOServer {
 
-    static final int WORKER_THREADS = 30;
-    static final int ADMIN_WORKER_THREADS = 10;
-
-    static final int WORKER_THREAD_QUEUE_MAX = 200;
-    static final int ADMIN_THREAD_QUEUE_MAX = 10;
+    public static final int WORKER_THREADS = 30;
+    public static final int ADMIN_WORKER_THREADS = 10;
     
-    static final boolean D = Boolean.getBoolean( "DEBUG.HTTP" );
-    static final Logger LOGGER = Logger.getLogger( "httpserver" );
+    public static final int WORKER_THREAD_QUEUE_MAX = 200;
+    public static final int ADMIN_THREAD_QUEUE_MAX = 10;
+    
+    public static final boolean D = Boolean.getBoolean( "DEBUG.HTTP" );
+    public static final Logger LOGGER = Logger.getLogger( "httpserver" );
     
     static final RollingNamedPipe _requestPipe = new RollingNamedPipe( "http-request" );
     static { _requestPipe.setMessageDivider( "\n" ); } 
