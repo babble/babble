@@ -27,7 +27,7 @@ public class XgenInternalsTest extends RubyDBTest {
 	super.setUp();
 	runRuby("require 'xgen_internals.rb';" +
 		"class Track < XGen::ModelBase;" +
-		" def method_missing(sym, args); puts \"oh, no: mm #{sym}\"; end;" +
+		"  def method_missing(sym, args); puts \"oh, no: mm #{sym}\"; end;" +
 		"  set_collection :rubytest, %w(artist album song track);" +
 		"  def to_s;" +
 		"    \"artist: #{self.artist}, album: #{self.album}, song: #{self.song}, track: #{self.track}\";" +
@@ -52,5 +52,16 @@ public class XgenInternalsTest extends RubyDBTest {
     public void testFindBySong() {
 	runRuby("puts Track.find_by_song('Budapest by Blimp').to_s");
 	assertEquals(rubyOutput, "artist: Thomas Dolby, album: Aliens Ate My Buick, song: Budapest by Blimp, track:");
+    }
+
+    public void testSetCollectionUsingClassName() {
+	runRuby("class Rubytest < XGen::ModelBase;" +
+		"  set_collection %w(artist album song track);" +
+		"  def to_s;" +
+		"    \"artist: #{self.artist}, album: #{self.album}, song: #{self.song}, track: #{self.track}\";" +
+		"  end;" +
+		"end;" +
+		"puts Rubytest.find_by__id($song_id._id).to_s");
+	assertEquals(rubyOutput, "artist: XTC, album: Oranges & Lemons, song: The Mayor Of Simpleton, track: 2.0");
     }
 }
