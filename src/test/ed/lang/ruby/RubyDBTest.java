@@ -30,29 +30,27 @@ import static ed.lang.ruby.RubyObjectWrapper.toJS;
 @Test(groups = {"ruby.db"})
 public class RubyDBTest extends SourceRunner {
     
-    public static final String DB_NAME = "test";
-
-    @BeforeTest(groups={"ruby.db", "ruby.db.findone", "ruby.db.find"})
-    public void globalSetUp() {
-	super.globalSetUp();
-	s.put("connect", new Shell.ConnectDB(), true);
-    }
+    static final String DB_NAME = "test";
+    static final String JS_RECORD_CREATION_CODE = "db = connect('" + DB_NAME + "');" +
+	"db.rubytest.remove({});" +
+	"db.rubytest.save({artist: 'Thomas Dolby', album: 'Aliens Ate My Buick', song: 'The Ability to Swing'});" +
+	"db.rubytest.save({artist: 'Thomas Dolby', album: 'Aliens Ate My Buick', song: 'Budapest by Blimp'});" +
+	"db.rubytest.save({artist: 'Thomas Dolby', album: 'The Golden Age of Wireless', song: 'Europa and the Pirate Twins'});" +
+	"db.rubytest.save({artist: 'XTC', album: 'Oranges & Lemons', song: 'Garden Of Earthly Delights', track: 1});" +
+	"song_id = db.rubytest.save({artist: 'XTC', album: 'Oranges & Lemons', song: 'The Mayor Of Simpleton', track: 2});" +
+	"db.rubytest.save({artist: 'XTC', album: 'Oranges & Lemons', song: 'King For A Day', track: 3});";
+    static final String JS_RECORD_DELETION_CODE = "db.rubytest.remove({})";
 
     @BeforeMethod(groups={"ruby.db", "ruby.db.findone", "ruby.db.find"})
     public void setUp() {
-	runJS("db = connect('" + DB_NAME + "');" +
-	      "db.rubytest.remove({});" +
-	      "db.rubytest.save({artist: 'Thomas Dolby', album: 'Aliens Ate My Buick', song: 'The Ability to Swing'});" +
-	      "db.rubytest.save({artist: 'Thomas Dolby', album: 'Aliens Ate My Buick', song: 'Budapest by Blimp'});" +
-	      "db.rubytest.save({artist: 'Thomas Dolby', album: 'The Golden Age of Wireless', song: 'Europa and the Pirate Twins'});" +
-	      "db.rubytest.save({artist: 'XTC', album: 'Oranges & Lemons', song: 'Garden Of Earthly Delights', track: 1});" +
-	      "song_id = db.rubytest.save({artist: 'XTC', album: 'Oranges & Lemons', song: 'The Mayor Of Simpleton', track: 2});" +
-	      "db.rubytest.save({artist: 'XTC', album: 'Oranges & Lemons', song: 'King For A Day', track: 3});");
+	super.setUp();
+	s.put("connect", new Shell.ConnectDB(), true);
+	runJS(JS_RECORD_CREATION_CODE);
     }
 
     @AfterMethod(groups={"ruby.db", "ruby.db.findone", "ruby.db.find"})
     public void tearDown() {
-	runJS("db.rubytest.remove({});");
+	runJS(JS_RECORD_DELETION_CODE);
     }
 
     public void testSongIdExists() {

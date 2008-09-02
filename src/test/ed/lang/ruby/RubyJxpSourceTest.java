@@ -26,13 +26,9 @@ import ed.js.*;
 @Test(groups = {"ruby", "ruby.jxpsource"})
 public class RubyJxpSourceTest extends SourceRunner {
 
-    @BeforeTest(groups={"ruby", "ruby.jxpsource"})
-    public void globalSetUp() {
-	super.globalSetUp();
-    }
-
     @BeforeMethod(groups={"ruby", "ruby.jxpsource"})
     public void setUp() {
+	super.setUp();
 	runJS("add_seven = function(i) { return i + 7; };" +
 	      "two_args = function(a, b) { return a + b; };" +
 	      "data = {};" +

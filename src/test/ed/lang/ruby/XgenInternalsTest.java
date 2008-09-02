@@ -19,16 +19,38 @@ package ed.lang.ruby;
 import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
-@Test(groups = {"ruby", "ruby.required"})
-public class XgenInternalsTest extends SourceRunner {
+@Test(groups = {"ruby", "ruby.required", "ruby.db"})
+public class XgenInternalsTest extends RubyDBTest {
 
-    @BeforeTest(groups={"ruby", "ruby.required"})
-    public void globalSetUp() {
-	super.globalSetUp();
+    @BeforeMethod(groups={"ruby", "ruby.required", "ruby.db"})
+    public void setUp() {
+	super.setUp();
+	runRuby("require 'xgen_internals.rb';" +
+		"class Track < XGen::ModelBase;" +
+		" def method_missing(sym, args); puts \"oh, no: mm #{sym}\"; end;" +
+		"  set_collection :rubytest, %w(artist album song track);" +
+		"  def to_s;" +
+		"    \"artist: #{self.artist}, album: #{self.album}, song: #{self.song}, track: #{self.track}\";" +
+		"  end;" +
+		"end");
+    }
+
+    @AfterMethod(groups={"ruby.db", "ruby.required", "ruby.db"})
+    public void tearDown() {
+	super.tearDown();
     }
 
     public void testRequired() {
-	runRuby("require 'xgen_internals.rb'; $x = XGen::ModelBase.new({'a' => 1, 'b' => 2}); puts $x.class.name");
-	assertEquals(rubyOutput, "XGen::ModelBase");
+	runRuby("$x = XGen::ModelBase.new({'a' => 1, 'b' => 2}); puts $x.class.name");
+    }
+
+    public void testFindById() {
+	runRuby("puts Track.find_by__id($song_id._id).to_s");
+	assertEquals(rubyOutput, "artist: XTC, album: Oranges & Lemons, song: The Mayor Of Simpleton, track: 2.0");
+    }
+
+    public void testFindBySong() {
+	runRuby("puts Track.find_by_song('Budapest by Blimp').to_s");
+	assertEquals(rubyOutput, "artist: Thomas Dolby, album: Aliens Ate My Buick, song: Budapest by Blimp, track:");
     }
 }

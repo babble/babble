@@ -28,13 +28,9 @@ import ed.js.engine.Scope;
 @Test(groups = {"ruby", "ruby.block"})
 public class JSFunctionWrapperTest extends SourceRunner {
 
-    @BeforeTest(groups={"ruby", "ruby.block"})
-    public void globalSetUp() {
-	super.globalSetUp();
-    }
-
     @BeforeMethod(groups={"ruby", "ruby.block"})
     public void setUp() {
+	super.setUp();
 	runRuby("$rfunc = Proc.new {|i| i + 7}");
     }
 

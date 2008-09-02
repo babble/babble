@@ -26,13 +26,9 @@ import ed.js.engine.Scope;
 @Test(groups = {"ruby", "ruby.jsobj"})
 public class JSObjectWrapperTest extends SourceRunner {
 
-    @BeforeTest(groups={"ruby", "ruby.jsobj"})
-    public void globalSetUp() {
-	super.globalSetUp();
-    }
-
     @BeforeMethod(groups={"ruby", "ruby.jsobj"})
     public void setUp() {
+	super.setUp();
 	runRuby("class Super; attr_accessor :s; end; class Foo < Super; attr_accessor :foo; end; $x = Foo.new");
     }
 
