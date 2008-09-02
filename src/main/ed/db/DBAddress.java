@@ -42,6 +42,9 @@ public class DBAddress {
         _check( _host , "host" );
         _check( _name , "name" );
         _addr = _getAddress( _host );
+
+        if ( _name.contains( "." ) )
+            throw new RuntimeException( "db names can't have periods in them [" + _name + "]" );
     }
 
     public DBAddress( DBAddress other , String name )
