@@ -19,10 +19,8 @@ package ed.lang.ruby;
 import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
-import org.jruby.runtime.builtin.IRubyObject;
-
 import ed.lang.ruby.JSObjectWrapper;
-import ed.js.*;
+import ed.js.JSObject;
 import ed.js.engine.Scope;
 
 @Test(groups = {"ruby", "ruby.jsobj"})
