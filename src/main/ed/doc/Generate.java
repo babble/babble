@@ -327,6 +327,7 @@ public class Generate {
         	throw new RuntimeException("Can't find 'docgen' file lib in my module directory");
         }
 
+        //        String classlist = classes.toArray().join(",");
         SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -r -t=templates/json "+f.getCanonicalPath(),
         		null, jsfl.getRoot(), "");
 
@@ -451,7 +452,7 @@ public class Generate {
         Hashtable<String,String> argTable = new Hashtable<String,String>();
         for( int i=0; i<args.length-1; i+=2 ) {
             if( args[i].equals("--classlist") || args[i].equals("-c") ) {
-                argTable.put( "classlist" , args[ i+1 ] );
+                getClassesList( args[ i+1 ] );
             }
             if( args[i].equals("--db" ) ) {
                 argTable.put( "db" , args[ i+1 ] );
@@ -474,6 +475,7 @@ public class Generate {
 
         initialize();
 
+        // connect to db
         if( argTable.containsKey( "db" ) ) {
             String url = argTable.get( "db" );
             if ( argTable.containsKey( "db_ip" ) ) 
@@ -491,6 +493,7 @@ public class Generate {
             return;
         }
 
+        // create scope
         Scope s = Scope.newGlobal().child( new File("." ) );
         s.setGlobal( true );
         s.makeThreadLocal();
@@ -498,6 +501,7 @@ public class Generate {
         s.put( "core" , CoreJS.get().getLibrary( null , null , s , false ) , true );
         s.put( "db" , db , true );
 
+        // set up collections
         docdb = db.getCollection("doc");
         codedb = db.getCollection("doc.code");
         srcdb = db.getCollection("doc.src");
