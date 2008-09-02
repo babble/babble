@@ -46,3 +46,24 @@ t.setConstructor(Thingy)
 t.save(o)
 x = t.findOne()
 _10gen.assert.eq( x.m1(), o.m1() )
+
+
+# ----
+
+class DBConsTest(object):
+    _dbCons = {'c': Thingy}
+    def __init__(self):
+        self.c = []
+
+dbtest_obj = DBConsTest()
+dbtest_obj.c.append(Thingy(2, 1))
+
+t.drop()
+t.setConstructor(DBConsTest)
+t.save(dbtest_obj)
+
+x = t.findOne()
+
+#print x.c[0].m1()
+
+_10gen.assert.eq(x.c[0].m1(), o.m1())
