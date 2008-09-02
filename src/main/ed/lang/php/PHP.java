@@ -44,6 +44,10 @@ public class PHP {
     }
 
     static PHPConvertor getConvertor( Env env ){
+	
+	if ( env instanceof PHPEnv )
+	    return ((PHPEnv)env)._convertor;
+
         Value convertor = env.getConstant( "_10genconvertor");
         if ( ! ( convertor instanceof PHPConvertor) ){
 

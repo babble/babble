@@ -164,7 +164,7 @@ public class RubyJxpSource extends JxpSource {
     protected void _setOutput(Scope s) {
 	HttpResponse response = (HttpResponse)s.get("response");
 	if (response != null)
-	    _runtime.getGlobalVariables().set("$stdout", new RubyIO(_runtime, new RubyJxpOutputStream(response.getWriter())));
+	    _runtime.getGlobalVariables().set("$stdout", new RubyIO(_runtime, new RubyJxpOutputStream(response.getJxpWriter())));
     }
 
     /**

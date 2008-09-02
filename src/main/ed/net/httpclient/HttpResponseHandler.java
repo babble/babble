@@ -21,6 +21,7 @@ package ed.net.httpclient;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import javax.servlet.http.*;
 
 import ed.net.*;
 

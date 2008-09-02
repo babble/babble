@@ -333,10 +333,14 @@ public class AppRequest {
 
     public ServletWriter getServletWriter(){
         if ( _writer == null )
-            _writer = new ServletWriter( _response.getWriter() , _fixer );
+            _writer = new ServletWriter( _response.getJxpWriter() , _fixer );
         return _writer;
     }
 
+    public Session getSession(){
+        return _session;
+    }
+    
     final String _uri;
     final String _host;
     final HttpRequest _request;

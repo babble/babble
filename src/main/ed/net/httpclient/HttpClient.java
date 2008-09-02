@@ -21,6 +21,7 @@ package ed.net.httpclient;
 import java.net.*;
 import java.io.*;
 import java.util.*;
+import javax.servlet.http.*;
 
 import bak.pcj.*;
 import bak.pcj.map.*;
@@ -198,7 +199,7 @@ public class HttpClient {
 
 	    Map<String,Cookie> cookies = handler.getCookiesToSend();
 	    if ( cookies != null && cookies.size() > 0 )
-		conn.setRequestProperty( "Cookie" , Cookie.formatToSend( cookies.values() ) );
+		conn.setRequestProperty( "Cookie" , CookieUtil.formatToSend( cookies.values() ) );
 
 	}
 
@@ -269,7 +270,8 @@ public class HttpClient {
                 value = header.substring( eqIndex + 1 , semiIndex > 0 ? semiIndex : header.length() ).trim();
 
             if ( c == null ){
-                c = new Cookie( domain , name , value  );
+                c = new Cookie( name , value  );
+                c.setDomain( domain );
                 c.setSecure( true );
                 c.setPath("/");
             }
@@ -279,7 +281,7 @@ public class HttpClient {
                 c.setDomain( value );
             else if ( name.equalsIgnoreCase("expires") ){
                 try {
-                    c.setExpiryDate( Cookie.COOKIE_DATE_FORMAT.parse( value ) );
+                    c.setMaxAge( CookieUtil.getMaxAge( CookieUtil.COOKIE_DATE_FORMAT.parse( value ) ) );
                 }
                 catch ( Exception e ){
                     if ( DEBUG ) LOGGER.log( DEBUG_LEVEL , "couldn't parse date : " + value );

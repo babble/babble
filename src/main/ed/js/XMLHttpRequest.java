@@ -24,6 +24,7 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
 import javax.net.ssl.*;
+import javax.servlet.http.*;
 
 import ed.io.*;
 import ed.js.func.*;

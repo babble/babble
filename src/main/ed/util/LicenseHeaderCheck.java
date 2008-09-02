@@ -66,8 +66,14 @@ public class LicenseHeaderCheck {
 
     boolean skip( File f ){
         
-        if ( f.toString().contains( "/.git" ) )
+        final String fString = f.toString();
+
+        if ( fString.contains( "/.git" ) )
             return true;
+
+        for ( String test : _skip )
+            if ( fString.contains( test ) )
+                return true;
 
         final String name = f.getName();
         
@@ -165,11 +171,16 @@ public class LicenseHeaderCheck {
     static CodeType getCodeType( String extension ){
         return _extensions.get( extension.toLowerCase() );
     }
-    
+
+    public void addSkip( String skip ){
+        _skip.add( skip );
+    }
+
     final File _headerFile;
     final String _headerRaw;
     final String _headerLines[];
     final boolean _recursive;
+    final List<String> _skip = new ArrayList<String>();
 
     static class CodeType {
         CodeType( String start , String end , String eachLine ){
@@ -253,7 +264,8 @@ public class LicenseHeaderCheck {
         
         Options o = new Options();
         o.addOption( "r" , false , "recursive" );
-        
+        o.addOption( "skip" , true , "substrings not to match" );
+
         CommandLine cl = ( new BasicParser() ).parse( o , args );
         
         if ( cl.getArgList().size() < 2 ){
@@ -262,6 +274,11 @@ public class LicenseHeaderCheck {
         }
         
         LicenseHeaderCheck checker = new LicenseHeaderCheck( new File( cl.getArgList().get(0).toString() ) , cl.hasOption( "r" ) );
+        
+        if ( cl.getOptionValues( "skip" ) != null )
+            for ( String skip : cl.getOptionValues( "skip" ) )
+                checker.addSkip( skip );
+        
         for ( int i=1; i<cl.getArgList().size(); i++){
             checker.go( new File( cl.getArgList().get(i).toString() ) );
         }      

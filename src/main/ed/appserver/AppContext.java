@@ -51,7 +51,7 @@ public class AppContext {
     static final boolean DEBUG = AppServer.D;
     /** If these files exist in the directory or parent directories of a file being run, run these files first. Includes _init.js and /~~/core/init.js.  */
 
-    static final String INIT_FILES[] = new String[]{ "/~~/core/init.js" , "PREFIX_init.js" };
+    static final String INIT_FILES[] = new String[]{ "/~~/core/init.js" , "PREFIX_init" };
 
     /** Initializes a new context for a given site directory.
      * @param f the file to run
@@ -730,7 +730,7 @@ public class AppContext {
             return;
 
         for ( int i=0; i<files.length; i++ )
-            _runInitFile( getFile( files[i].replaceAll( "PREFIX" , _codePrefix ) ) );
+            _runInitFile( tryOtherExtensions( getFile( files[i].replaceAll( "PREFIX" , _codePrefix ) ) ) );
     }
 
     private void _runInitFile( File f )

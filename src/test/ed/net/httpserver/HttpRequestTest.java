@@ -136,6 +136,16 @@ public class HttpRequestTest extends TestCase {
 	assertEquals( 5 , r.getAttributes().get( "z" ) );
     }
 
+    @Test(groups = {"basic"})
+    public static void testObjInt(){
+
+        HttpRequest r = HttpRequest.getDummy( "/?f=data" );        
+	assertEquals( "data" , r.get( "f" ).toString() );
+	assertEquals( "data" , r.getURLParameter( "f" ) );
+	assertEquals( "data" , r.getURLParameters().get( "f" ) );
+
+    }
+
 
     public static void main( String args[] ){
         (new HttpRequestTest()).runConsole();

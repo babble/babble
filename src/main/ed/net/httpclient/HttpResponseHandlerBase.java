@@ -20,6 +20,7 @@ package ed.net.httpclient;
 
 import java.net.*;
 import java.util.*;
+import javax.servlet.http.*;
 
 import ed.util.*;
 import ed.net.*;

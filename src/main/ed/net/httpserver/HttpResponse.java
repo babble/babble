@@ -25,6 +25,8 @@ import java.text.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.nio.charset.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
 
 import ed.js.*;
 import ed.js.func.*;
@@ -39,7 +41,7 @@ import ed.appserver.*;
  * the variable 'response' which is of this type.
  * @expose
  */
-public class HttpResponse extends JSObjectBase {
+public class HttpResponse extends JSObjectBase implements HttpServletResponse {
 
     static final boolean USE_POOL = true;
     static final String DEFAULT_CHARSET = "utf-8";
@@ -68,8 +70,7 @@ public class HttpResponse extends JSObjectBase {
         _request = request;
         _handler = _request._handler;
 
-        _headers = new StringMap<String>();
-        _headers.put( "Content-Type" , "text/html;charset=" + getContentEncoding() );
+        setContentType( "text/html;charset=" + getContentEncoding() );
 	setDateHeader( "Date" , System.currentTimeMillis() );
 
         set( "prototype" , _prototype );
@@ -85,6 +86,25 @@ public class HttpResponse extends JSObjectBase {
         if ( _sentHeader )
             throw new RuntimeException( "already sent header " );
         _responseCode = rc;
+    }
+
+    public void setStatus( int rc ){
+        setResponseCode( rc );
+    }
+
+    /**
+     * @deprecated
+     */
+    public void setStatus( int rc , String name ){
+        setResponseCode( rc );
+    }
+
+    public void sendError( int rc ){
+        setResponseCode( rc );
+    }
+
+    public void sendError( int rc , String msg ){
+        setResponseCode( rc );
     }
 
     /**
@@ -108,7 +128,10 @@ public class HttpResponse extends JSObjectBase {
      *          < 0 remove
      */
     public void addCookie( String name , String value , int maxAge ){
-        _cookies.add( new Cookie( name , value , maxAge ) );
+        Cookie c = new Cookie( name , value );
+        c.setPath( "/" );
+        c.setMaxAge( maxAge );
+        _cookies.add( c );
     }
 
     /**
@@ -118,16 +141,20 @@ public class HttpResponse extends JSObjectBase {
      * @param value cookie value
      */
     public void addCookie( String name , String value ){
-        _cookies.add( new Cookie( name , value ) );
+        addCookie( name , value , -1 );
     }
     
     /**
-     * Equivalent to "addCookie( name , null , -1 )". Tells the browser
+     * Equivalent to "addCookie( name , null , 0 )". Tells the browser
      * that the cookie with this name is already expired.
      * @param name cookie name
      */
     public void removeCookie( String name ){
-        _cookies.add( new Cookie( name , "asd" , -1 ) );
+        addCookie( name , "none" , 0 );
+    }
+
+    public void addCookie( Cookie cookie ){
+        _cookies.add( cookie );
     }
 
     /**
@@ -155,6 +182,53 @@ public class HttpResponse extends JSObjectBase {
 	}
     }
 
+    public void addDateHeader( String n , long t ){
+	synchronized( HeaderTimeFormat ) {
+	    addHeader( n , HeaderTimeFormat.format( new Date(t) ) );
+	}
+    }
+
+    public Locale getLocale(){
+        throw new RuntimeException( "getLocal not implemented yet" );
+    }
+
+    public void setLocale( Locale l ){
+        throw new RuntimeException( "setLocale not implemented yet" );
+    }
+
+    public void reset(){
+        throw new RuntimeException( "reset not allowed" );
+    }
+
+    public void resetBuffer(){
+        throw new RuntimeException( "resetBuffer not allowed" );
+    }
+
+    public void flushBuffer()
+        throws IOException {
+        flush();
+    }
+
+    public int getBufferSize(){
+        return 0;
+    }
+
+    public void setBufferSize( int size ){
+        // we ignore this
+    }
+
+    public boolean isCommitted(){
+        return _cleaned || _done || _sentHeader;
+    }
+
+    public void setContentType( String ct ){
+        setHeader( "Content-Type" , ct );
+    }
+
+    public String getContentType(){
+        return getHeader( "Content-Type" );
+    }
+
     /**
      * Set a header in the response.
      * Overwrites previous headers with the same name
@@ -162,11 +236,54 @@ public class HttpResponse extends JSObjectBase {
      * @param v the value of the header to set, as a string
      */
     public void setHeader( String n , String v ){
-        _headers.put( n , v );
+        List<String> lst = _getHeaderList( n , true );
+        lst.clear();
+        lst.add( v );
+    }
+
+    public void addHeader( String n , String v ){
+        List<String> lst = _getHeaderList( n , true );
+        lst.add( v );
+    }
+    
+    public void addIntHeader( String n , int v ){
+        List<String> lst = _getHeaderList( n , true );
+        lst.add( String.valueOf( v ) );
+    }
+
+    public void setContentLength( long length ){
+        setHeader( "Content-Length" , String.valueOf( length ) );
+    }
+
+    public void setContentLength( int length ){
+        setHeader( "Content-Length" , String.valueOf( length ) );
+    }
+
+    public void setIntHeader( String n , int v ){
+        List<String> lst = _getHeaderList( n , true );
+        lst.clear();
+        lst.add( String.valueOf( v ) );
+    }
+
+    public boolean containsHeader( String n ){
+        List<String> lst = _getHeaderList( n , false );
+        return lst != null && lst.size() > 0;
     }
 
     public String getHeader( String n ){
-        return _headers.get( n );
+        List<String> lst = _getHeaderList( n , false );
+        if ( lst == null || lst.size() == 0 )
+            return null;
+        return lst.get( 0 );
+    }
+
+    private List<String> _getHeaderList( String n , boolean create ){
+        List<String> lst = _headers.get( n );
+        if ( lst != null || ! create )
+            return lst;
+        lst = new LinkedList<String>();
+        _headers.put( n , lst );
+        return lst;
     }
 
     /**
@@ -231,6 +348,22 @@ public class HttpResponse extends JSObjectBase {
         return f;
     }
 
+    public String encodeRedirectURL( String loc ){
+        return loc;
+    }
+
+    public String encodeRedirectUrl( String loc ){
+        return loc;
+    }
+
+    public String encodeUrl( String loc ){
+        return loc;
+    }
+
+    public String encodeURL( String loc ){
+        return loc;
+    }
+
     /**
      * Send a permanent (301) redirect to the given location.
      * Equivalent to calling setResponseCode( 301 ) followed by
@@ -251,6 +384,10 @@ public class HttpResponse extends JSObjectBase {
     public void sendRedirectTemporary(String loc){
         setResponseCode( 302 );
         setHeader("Location", loc);
+    }
+
+    public void sendRedirect( String loc ){
+        sendRedirectTemporary( loc );
     }
 
     private boolean flush()
@@ -365,11 +502,14 @@ public class HttpResponse extends JSObjectBase {
             List<String> headers = new ArrayList<String>( _headers.keySet() );
             Collections.sort( headers );
             for ( int i=headers.size()-1; i>=0; i-- ){
-                String h = headers.get( i );
-                a.append( h );
-                a.append( ": " );
-                a.append( _headers.get( h ) );
-                a.append( "\r\n" );
+                final String h = headers.get( i );
+                List<String> values = _headers.get( h );
+                for ( int j=0; j<values.size(); j++ ){
+                    a.append( h );
+                    a.append( ": " );
+                    a.append( values.get( j ) );
+                    a.append( "\r\n" );
+                }
             }
         }
 
@@ -377,8 +517,9 @@ public class HttpResponse extends JSObjectBase {
         for ( Cookie c : _cookies ){
             a.append( "Set-Cookie: " );
             a.append( c.getName() ).append( "=" ).append( c.getValue() ).append( ";" );
-	    a.append( " " ).append( "Path=" ).append( c.getPath() ).append( ";" );
-            String expires = c.getExpires();
+            if ( c.getPath() != null )
+                a.append( " " ).append( "Path=" ).append( c.getPath() ).append( ";" );
+            String expires = CookieUtil.getExpires( c );
             if ( expires != null )
                 a.append( "Expires=" ).append( expires ).append( "; " );
             a.append( "\r\n" );
@@ -478,7 +619,7 @@ public class HttpResponse extends JSObjectBase {
     /**
      * @unexpose
      */
-    public JxpWriter getWriter(){
+    public JxpWriter getJxpWriter(){
         if ( _writer == null ){
             if ( _cleaned )
                 throw new RuntimeException( "already cleaned" );
@@ -486,6 +627,14 @@ public class HttpResponse extends JSObjectBase {
             _writer = new MyJxpWriter();
         }
         return _writer;
+    }
+
+    public PrintWriter getWriter(){
+        throw new RuntimeException( "can't get a PrintWriter" );
+    }
+
+    public ServletOutputStream getOutputStream(){
+        throw new RuntimeException( "can't get an OutputStream" );
     }
 
     /**
@@ -521,6 +670,14 @@ public class HttpResponse extends JSObjectBase {
         return DEFAULT_CHARSET;
     }
 
+    public void setCharacterEncoding( String encoding ){
+        throw new RuntimeException( "setCharacterEncoding not supported" );
+    }
+    
+    public String getCharacterEncoding(){
+        return getContentEncoding();
+    }
+
     /**
      * Sends a file to the browser.
      * @param f a file to send
@@ -529,7 +686,7 @@ public class HttpResponse extends JSObjectBase {
         if ( ! f.exists() )
             throw new IllegalArgumentException( "file doesn't exist" );
         _file = f;
-        _headers.put( "Content-Length" , String.valueOf( f.length() ) );
+        setContentLength( f.length() );
 	_stringContent = null;
     }
 
@@ -544,8 +701,8 @@ public class HttpResponse extends JSObjectBase {
             return;
         }
         
-        if ( f.getFileName() != null && _headers.get( "Content-Disposition" ) == null ){
-            _headers.put( "Content-Disposition" , f.getContentDisposition() + "; filename=\"" + f.getFileName() + "\"" );
+        if ( f.getFileName() != null && getHeader( "Content-Disposition" ) == null ){
+            setHeader( "Content-Disposition" , f.getContentDisposition() + "; filename=\"" + f.getFileName() + "\"" );
         }
 
         long length = f.getLength();
@@ -569,14 +726,14 @@ public class HttpResponse extends JSObjectBase {
 
             setResponseCode( 206 );
             setHeader( "Content-Range" , "bytes " + range[0] + "-" + range[1] + "/" + length );
-            setHeader( "Content-Length" , String.valueOf(  1 + range[1] - range[0] ) );
+            setContentLength( 1 + range[1] - range[0] );
             System.out.println( "got range " + range[0] + " -> " + range[1] );
             
 
             return;
         }
-        _headers.put( "Content-Length" , String.valueOf( f.getLength() ) );
-        _headers.put( "Content-Type" , f.getContentType() );
+        setContentLength( f.getLength() );
+        setContentType( f.getContentType() );
 
     }
     
@@ -629,7 +786,7 @@ public class HttpResponse extends JSObjectBase {
     
     // header
     int _responseCode = 200;
-    Map<String,String> _headers;
+    Map<String,List<String>> _headers = new StringMap<List<String>>();
     List<Cookie> _cookies = new ArrayList<Cookie>();
     boolean _sentHeader = false;
 

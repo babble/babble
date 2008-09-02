@@ -7,8 +7,11 @@ import ed.util.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 class DBPortPool extends SimplePool<DBPort> {
+
+    public final long _maxWaitTime = 1000 * 60 * 2;
 
     static DBPortPool get( InetSocketAddress addr ){
         
@@ -34,10 +37,37 @@ class DBPortPool extends SimplePool<DBPort> {
 
     // ----
     
+    public static class NoMoreConnection extends RuntimeException {
+	NoMoreConnection(){
+	    super( "No more DB Connections" );
+	}
+    }
+
+    // ----
 
     DBPortPool( InetSocketAddress addr ){
         super( addr.toString() , 10 , Bytes.CONNECTIONS_PER_HOST );
         _addr = addr;
+	_waitingSem = new Semaphore( Math.min( ed.net.httpserver.HttpServer.WORKER_THREAD_QUEUE_MAX / 2 , Bytes.CONNECTIONS_PER_HOST * 5 ) );
+    }
+    
+    public DBPort get(){
+	DBPort port = null;
+	
+	if ( ! _waitingSem.tryAcquire() )
+	    throw new NoMoreConnection();
+
+	try {
+	    port = get( _maxWaitTime );
+	}
+	finally {
+	    _waitingSem.release();
+	}
+
+	if ( port == null )
+	    throw new NoMoreConnection();
+	
+	return port;
     }
 
     void gotError(){
@@ -55,7 +85,8 @@ class DBPortPool extends SimplePool<DBPort> {
             throw new RuntimeException( "can't create port to:" + _addr , ioe );
         }
     }
-    
+
+    final private Semaphore _waitingSem;
     final InetSocketAddress _addr;
     boolean _everWorked = false;
 }
