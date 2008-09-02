@@ -25,7 +25,7 @@ import org.jruby.internal.runtime.methods.JavaMethod;
 import org.jruby.javasupport.JavaUtil;
 import org.jruby.runtime.*;
 import org.jruby.runtime.callback.Callback;
-import org.jruby.runtime.builtin.IRubyObject;
+import org.jruby.runtime.builtin.*;
 import static org.jruby.runtime.Visibility.PUBLIC;
 
 import ed.db.DBCursor;
@@ -41,7 +41,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB.WRAP");
   
-    static final Map<Object, IRubyObject> wrappers = new WeakHashMap<Object, IRubyObject>();
+    static final Map<Object, IRubyObject> _wrappers = new WeakHashMap<Object, IRubyObject>();
 
     protected final Scope _scope;
     protected final Object _obj;
@@ -60,11 +60,13 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	    return runtime.getNil();
 
 	IRubyObject wrapper;
-	if ((wrapper = wrappers.get(obj)) != null)
+	if ((wrapper = _wrappers.get(obj)) != null)
 	    return wrapper;
 
 	if (obj instanceof JSFunctionWrapper)
 	    return ((JSFunctionWrapper)obj).getProc();
+	if (obj instanceof JSObjectWrapper)
+	    return ((JSObjectWrapper)obj).getRubyObject();
 
 	if (obj instanceof JSString || obj instanceof ObjectId)
 	    wrapper = RubyString.newString(runtime, obj.toString());
@@ -85,7 +87,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	else
 	    wrapper = JavaUtil.convertJavaToUsableRubyObject(runtime, obj);
 
-	wrappers.put(obj, wrapper);
+	_wrappers.put(obj, wrapper);
 	return wrapper;
     }
 
@@ -96,7 +98,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
 
     /** Given a Ruby object, returns a JavaScript object. */
     public static Object toJS(final Scope scope, IRubyObject r) {
-	if (r == null)
+	if (r == null || r.isNil())
 	    return null;
 	if (r instanceof RubyString)
 	    return new JSString(((RubyString)r).toString());
@@ -130,10 +132,19 @@ public abstract class RubyObjectWrapper extends RubyObject {
 		});
 	    return jobj;
 	}
-	if (r instanceof RubyProc)
-	    return new JSFunctionWrapper(scope, r.getRuntime(), ((RubyProc)r).getBlock());
+	if (r instanceof RubyProc) {
+	    Object o = new JSFunctionWrapper(scope, r.getRuntime(), ((RubyProc)r).getBlock());
+	    _wrappers.put(o, r);
+	    return o;
+	}
 
-	return JavaUtil.convertRubyToJava(r); // punt
+	if (r instanceof RubyObject) {
+	    Object o = new JSObjectWrapper(scope, (RubyObject)r);
+	    _wrappers.put(o, r);
+	    return o;
+	}
+	else
+	    return JavaUtil.convertRubyToJava(r); // punt
     }
 
     public static Object[] toJSFunctionArgs(Scope s, org.jruby.Ruby r, IRubyObject[] args, int offset, Block block) {
