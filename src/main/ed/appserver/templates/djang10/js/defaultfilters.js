@@ -718,7 +718,7 @@ var join =
     function(value, arg) {
 
     var data = value.map(force_string).join(arg);
-    var safe_args = value.reduce(function(lhs, rhs) { return lhs && djang10.is_safe(rhs);}, true);
+    var safe_args = value.every(djang10.is_safe);
 
     if(safe_args)
         data = djang10.mark_safe(data);

@@ -34,3 +34,9 @@ var newL2 = pyL2.map(function(x){
 assert.eq( newL2.length , 2 );
 assert.eq( newL2[0] , 1 );
 assert.eq( newL2[1] , null );
+
+var result = pyL2Numbers.reduce(function(x, y){
+    return x + y.a;
+}, 12);
+
+assert.eq( result, 15 );

@@ -375,7 +375,7 @@ public class JavadocToDB {
 
     public static boolean start(RootDoc root) {
         Scope s = Scope.getThreadLocal();
-        Object dbo = s.get("db");
+        Object dbo = s.get( "db" );
         if(! (dbo instanceof DBApiLayer)) throw new RuntimeException("your database isn't a database");
 
         DBApiLayer db = (DBApiLayer)dbo;
