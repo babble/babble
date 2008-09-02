@@ -62,8 +62,8 @@ t.drop()
 t.setConstructor(DBConsTest)
 t.save(dbtest_obj)
 
-#x = t.findOne()
+x = t.findOne()
 
 #print x.c[0].m1()
 
-#_10gen.assert.eq(x.c[0].m1(), o.m1())
+_10gen.assert.eq(x.c[0].m1(), o.m1())
