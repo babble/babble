@@ -280,7 +280,7 @@ public class AppContext {
      */
     public static String getVersionForLibrary( Scope s , String name , AppContext ctxt ){
 	final String version = _getVersionForLibrary( s , name , ctxt );
-	_libraryLogger.info( ctxt + "\t" + name + "\t" + version );
+	_libraryLogger.log( ctxt != null && ! ctxt._admin ? Level.DEBUG : Level.INFO , ctxt + "\t" + name + "\t" + version );
 	return version;
     }
     
@@ -288,7 +288,7 @@ public class AppContext {
 	final JSObject o1 = ctxt == null ? null : (JSObject)(s.get( "version_" + ctxt.getEnvironmentName()));
         final JSObject o2 = (JSObject)s.get( "version" );
 
-	_libraryLogger.info( ctxt + "\t versionConfig:" + ( o1 != null ) + " config:" + ( o2 != null ) );
+	_libraryLogger.debug( ctxt + "\t versionConfig:" + ( o1 != null ) + " config:" + ( o2 != null ) );
 
         String version = _getString( name , o1 , o2 );
         if ( version != null )
@@ -928,4 +928,7 @@ public class AppContext {
     private long _lastGitCheckTime = 0;
 
     private static Logger _libraryLogger = Logger.getLogger( "library.load" );
+    static {
+        _libraryLogger.setLevel( Level.INFO );
+    }
 }
