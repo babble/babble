@@ -14,29 +14,7 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-local.src.test.ed.lang.python.list2_helper();
+jsMap = {a: 1, b: 4};
 
-var newL = pyL2.filter(function(x){
-    return x.a == 1;
-});
+local.src.test.ed.lang.python.dictfuncs1_helper();
 
-var pyD = newL[0];
-
-assert( pyD.a == 1 );
-assert( pyD['a'] == 1 );
-assert( pyD.b == 2 );
-assert( pyD['b'] == 2 );
-
-var newL2 = pyL2.map(function(x){
-    return x.a;
-});
-
-assert.eq( newL2.length , 2 );
-assert.eq( newL2[0] , 1 );
-assert.eq( newL2[1] , null );
-
-var result = pyL2Numbers.reduce(function(x, y){
-    return x + y.a;
-}, 12);
-
-assert.eq( result, 15 );

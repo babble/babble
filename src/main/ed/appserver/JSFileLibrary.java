@@ -494,7 +494,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         return _uriBase;
     }
 
-    JSFileLibrary getTopParent(){
+    public JSFileLibrary getTopParent(){
         if ( _parent == null )
             return this;
         return _parent.getTopParent();

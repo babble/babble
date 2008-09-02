@@ -35,9 +35,9 @@ import org.python.core.PyString;
 
 import ed.appserver.JSFileLibrary;
 import ed.appserver.jxp.JxpSource;
-import ed.appserver.templates.djang10.Parser.Token;
 import ed.js.JSArray;
 import ed.js.JSDate;
+import ed.js.JSException;
 import ed.js.JSFunction;
 import ed.js.JSON;
 import ed.js.JSObject;
@@ -79,6 +79,11 @@ public class JSHelper extends JSObjectBase {
         this.set("TextNode", Node.TextNode.CONSTRUCTOR);
         this.set("VariableNode", Node.VariableNode.CONSTRUCTOR);
         this.set("Expression", Expression.CONSTRUCTOR);
+        
+        this.set("TemplateSyntaxError", TemplateSyntaxError.cons);
+        this.set("Djang10Exception", Djang10Exception.cons);
+        this.set("TemplateDoesNotExist", TemplateDoesNotExist.cons);
+        
         this.set("mark_safe", new JSFunctionCalls1() {
             public Object call(Scope scope, Object p0, Object[] extra) {
                 return mark_safe((JSObject)p0);
@@ -128,13 +133,8 @@ public class JSHelper extends JSObjectBase {
     
     
     //Exception Constructors ===================================================
-    public TemplateException NewTemplateException(String msg) {
-        return new TemplateException(msg);
-    }
-    public TemplateSyntaxError NewTemplateSyntaxException(String msg, Token token, Throwable cause) {
-        return (cause == null)? 
-                new TemplateSyntaxError(msg, token) 
-                : new TemplateSyntaxError(msg, token, cause);
+    public static RuntimeException unnestJSException(JSException e) {
+        return (e.getCause() instanceof RuntimeException)? (RuntimeException)e.getCause() : e;
     }
     
     //Text Formatting helpers ===================================================
@@ -247,8 +247,10 @@ public class JSHelper extends JSObjectBase {
                 String methodPart = loaderStr.substring(lastDot+1);
                 
                 Object temp = resolve_absolute_path(filePart);
-                if(!(temp instanceof JSCompiledScript))
-                    throw new TemplateException("Failed to locate the loader ["+loaderStr+"], the path [" + filePart + "] resolves to [" + temp +"] which isn't a script");
+                if(!(temp instanceof JSCompiledScript)) {
+                    log.error("Failed to locate the loader ["+loaderStr+"], the path [" + filePart + "] resolves to [" + temp +"] which isn't a script");
+                    continue;
+                }
                 JSCompiledScript file = (JSCompiledScript)temp;
                 
                 Scope childScope = scope.child();
@@ -261,7 +263,13 @@ public class JSHelper extends JSObjectBase {
 
             Scope childScope = scope.child();
             childScope.setGlobal(true);
-            Djang10CompiledScript template = (Djang10CompiledScript)loader.call(childScope, path, dirs);
+            Djang10CompiledScript template;
+            
+            try {
+                template = (Djang10CompiledScript)loader.call(childScope, path, dirs);
+            } catch(JSException e) {               
+                throw unnestJSException(e);
+            }
             if(template != null)
                 return template;
         }

@@ -25,6 +25,8 @@ import ed.io.StreamUtil;
 import ed.js.JSFunction;
 import ed.js.func.JSFunctionCalls1;
 import ed.util.ScriptTestInstanceBase;
+import ed.appserver.JSFileLibrary;
+import ed.lang.python.PythonJxpSource;
 
 /**
  * Dynamic test instance for testing the Javascript
@@ -38,9 +40,19 @@ public class JSTestInstance extends ScriptTestInstanceBase{
     ByteArrayOutputStream bout = new ByteArrayOutputStream();
 
     public JSFunction convert() throws Exception{
-        Convert c = new Convert(getTestScriptFile());
-        
-        return c.get();
+        // FIXME: This is a bit of a hack -- shouldn't we do this elsewhere?
+        File f = getTestScriptFile();
+        if(f.toString().endsWith(".js")){
+            Convert c = new Convert(getTestScriptFile());
+            return c.get();
+        }
+        else if(f.toString().endsWith(".py")){
+            PythonJxpSource py = new PythonJxpSource( getTestScriptFile() , new JSFileLibrary( new File( "." ) , "local" , (Scope)null ) );
+            return py.getFunction();
+        }
+        else {
+            throw new RuntimeException("couldn't run " + f);
+        }
     }
     
     public void preTest(Scope scope) throws Exception {

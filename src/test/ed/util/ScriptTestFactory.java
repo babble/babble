@@ -72,8 +72,9 @@ public class ScriptTestFactory {
             return list.toArray();
        }
 
-        if (fileEnding == null || fileEnding.length() == 0) { 
-            list.add(new FrameworkMisconfigTestInstance("file ending unspecified"));
+        if (fileEnding == null || 
+            (fileEnding.length() == 0 && inclusionRegex.length() == 0)) { 
+            list.add(new FrameworkMisconfigTestInstance("no inclusion criteria given"));
             return list.toArray();
         }
         
@@ -112,11 +113,6 @@ public class ScriptTestFactory {
             
                 if (inPattern != null) {
                     include = inPattern.matcher(f.toString()).matches();
-                    
-                    ScriptTestInstance testInstance = (ScriptTestInstance) Class.forName(testClassName).newInstance();
-                    testInstance.setTestScriptFile(f);
-                    list.add(testInstance);
-                    continue;
                 }
 
                 if (exPattern != null) {

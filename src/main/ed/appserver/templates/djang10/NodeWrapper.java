@@ -73,6 +73,14 @@ public class NodeWrapper {
             catch(TemplateRenderException e) {
                 throw e;
             }
+            catch(JSException e) {
+                RuntimeException re = JSHelper.unnestJSException(e);
+                
+                if(re instanceof TemplateRenderException)
+                    throw e;
+
+                throw new TemplateRenderException(context, re);
+            }
             catch(Exception e) {
                 throw new TemplateRenderException(context, e);
             }
@@ -122,11 +130,12 @@ public class NodeWrapper {
                 throw e;
             }
             catch(JSException e) {
-                if(e.getCause() instanceof TemplateRenderException)
-                    throw e;
+                RuntimeException re = JSHelper.unnestJSException(e);
                 
-                Exception t = (e.getCause() instanceof Exception)? (Exception)e.getCause() : e;
-                throw new TemplateRenderException(context, t);
+                if(re instanceof TemplateRenderException)
+                    throw e;
+
+                throw new TemplateRenderException(context, re);
             }
             catch(Exception e) {
                 throw new TemplateRenderException(context, e);

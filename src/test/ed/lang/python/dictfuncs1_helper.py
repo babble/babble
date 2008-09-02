@@ -14,6 +14,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-pyL2 = [{'a': 1, 'b': 2}, {'c': 2, 'd': 4}]
+assert jsMap.has_key('a')
+assert jsMap.has_key('b')
+assert not jsMap.has_key('c')
 
-pyL2Numbers = [{'a': 1, 'b': 4}, {'a': 2, 'b': 8}]
+assert 'a' in jsMap
+assert 'b' in jsMap
+assert 'c' not in jsMap
+
