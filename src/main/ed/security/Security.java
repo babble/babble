@@ -48,6 +48,7 @@ public class Security {
         Convert.DEFAULT_PACKAGE + "." + _baseClass + "sites_admin_" , 
         Convert.DEFAULT_PACKAGE + "." + _baseClass + "sites_www_" , 
         Convert.DEFAULT_PACKAGE + "." + _baseClass + "sites_grid_" , 
+        Convert.DEFAULT_PACKAGE + "." + _baseClass + "sites_modules_" , 
         Convert.DEFAULT_PACKAGE + ".lastline" ,
         Convert.DEFAULT_PACKAGE + ".src_main_ed_" ,
         Convert.DEFAULT_PACKAGE + "._home_yellow_code_for_hudson" ,

@@ -18,7 +18,7 @@
 HackTemplate = function(content) {
     this.content = content;
 };
-TemplateSyntaxError = function() {};
+TemplateSyntaxError = djang10.TemplateSyntaxError;
 
 SomeException = function() { }
 SomeException.prototype = {

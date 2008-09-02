@@ -16,15 +16,41 @@
 
 package ed.appserver.templates.djang10;
 
+import ed.js.JSFunction;
+import ed.js.JSObject;
+import ed.js.engine.Scope;
+import ed.js.func.JSFunctionCalls2;
+
 public class TemplateDoesNotExist extends Djang10Exception {
     private String path;
 
+    private TemplateDoesNotExist() {}
     public TemplateDoesNotExist(String path) {
-        super("Template doesn't exist: " + path);
-        this.path = path;
+        init(path, null);
     }
 
+    protected void init(String path, Throwable cause) {
+        super.init("Template doesn't exist: " + path, cause);
+        this.path = path;
+    }
+    public JSFunction getConstructor() {
+        return cons;
+    }
+    
     public String getPath() {
         return path;
+    }
+    
+    public static final Constructor cons = new Constructor();
+
+    private static class Constructor extends JSFunctionCalls2 {
+        public JSObject newOne() {
+            return new TemplateDoesNotExist();
+        }
+        public Object call(Scope scope, Object pathObj, Object causeObj, Object[] extra) {
+            TemplateDoesNotExist thisObj = (TemplateDoesNotExist)scope.getThis();
+            thisObj.init(pathObj.toString(), (Exception)causeObj);
+            return null;
+        }
     }
 }

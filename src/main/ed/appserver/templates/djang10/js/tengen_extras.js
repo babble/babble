@@ -91,7 +91,7 @@ var do_setNode =
     var matches = pattern.exec(token.contents);
     
     if(matches.length != 3)
-        throw "set expects te following format: {% set varName = expression|filter1|filter2 %}. " + token.contents;
+        throw new djang10.TemplateSyntaxError("set expects te following format: {% set varName = expression|filter1|filter2 %}. " + token.contents, token);
 
     var var_name = matches[1];
     var filter_expr = parser.compile_filter(matches[2]);
@@ -107,11 +107,11 @@ var globals_ =
     
     var args = token.contents.split(/\s+/);
     if(args.length != 2)
-        throw djang10.NewTemplateException("'globals' tag requires exactly one argument.");
+        throw new djang10.TemplateSyntaxError("'globals' tag requires exactly one argument.", token);
 
     var arg = args[1];
     if(! ["on", "off"].contains(arg))
-        throw djang10.NewTemplateException("'"+args[0]+"' argument should be 'on' or 'off'");
+        throw new djang10.TemplateSyntaxError("'"+args[0]+"' argument should be 'on' or 'off'", token);
     
     var nodelist = parser.parse(["end"+args[0]]);
     parser.delete_first_token();
@@ -126,11 +126,11 @@ var literal_escape =
     
     var args = token.contents.split(/\s+/);
     if(args.length != 2)
-        throw djang10.NewTemplateException("'literal_escape' tag requires exactly one argument.");
+        throw new djang10.TemplateSyntaxError("'literal_escape' tag requires exactly one argument.", token);
 
     var arg = args[1];
     if(! ["on", "off"].contains(arg))
-        throw djang10.NewTemplateException("'"+args[0]+"' argument should be 'on' or 'off'");
+        throw new djang10.TemplateSyntaxError("'"+args[0]+"' argument should be 'on' or 'off'", token);
     
 
     var old_setting = parser["__use_literal_escape"];

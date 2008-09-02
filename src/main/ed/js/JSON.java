@@ -424,10 +424,14 @@ public class JSON {
             return d;
         case Token.STRING:
             return new JSString( n.getString() );
-
+            
+        case Token.NULL:
+            return null;
         }
 
+        
+
         Debug.printTree( n , 0 );
-        throw new RuntimeException( "what: " + n.getType() );
+        throw new RuntimeException( "what: " + Token.name( n.getType() ) );
     }
 }
