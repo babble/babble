@@ -100,9 +100,11 @@ for site in $SITES_LIST; do
         then
             # Bring down the db
             ./dbctrl.sh stop
+            echo "TEST FAILURE FOR SITE: ${site}"
             exit $STATUS
     fi
 done
 
 # Bring down the db
 ./dbctrl.sh stop
+echo "ALL TESTS SUCCESSFUL"
