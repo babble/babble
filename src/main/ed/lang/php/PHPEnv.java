@@ -61,6 +61,10 @@ class PHPEnv extends Env {
 	return super.getSpecialRef( name );
     }
 
+    public SessionArrayValue getSession(){
+	return _stupidSession;
+    }
+
     Var _toVar( JSObject obj ){
         Var v = new Var();
         v.set( _convertor.toPHP( obj ) );
@@ -71,6 +75,13 @@ class PHPEnv extends Env {
     final HttpRequest _request;
     final HttpResponse _response;
 
-    
     PHPConvertor _convertor;
+
+    static class MyStupidSession extends SessionArrayValue {
+	MyStupidSession(){
+	    super( "asd" , 123 , 123 );
+	}
+    }
+
+    private static final MyStupidSession _stupidSession = new MyStupidSession();
 }
