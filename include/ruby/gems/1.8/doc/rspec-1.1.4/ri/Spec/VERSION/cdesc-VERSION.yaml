@@ -1,0 +1,59 @@
+--- !ruby/object:RI::ClassDescription 
+includes: []
+
+name: VERSION
+constants: 
+- !ruby/object:RI::Constant 
+  name: MAJOR
+  value: "1"
+  comment: 
+- !ruby/object:RI::Constant 
+  name: MINOR
+  value: "1"
+  comment: 
+- !ruby/object:RI::Constant 
+  name: TINY
+  value: "4"
+  comment: 
+- !ruby/object:RI::Constant 
+  name: RELEASE_CANDIDATE
+  value: nil
+  comment: 
+- !ruby/object:RI::Constant 
+  name: BUILD_TIME_UTC
+  value: "20080526202855"
+  comment: 
+- !ruby/object:RI::Constant 
+  name: STRING
+  value: '[MAJOR, MINOR, TINY].join(''.'')'
+  comment: 
+- !ruby/object:RI::Constant 
+  name: TAG
+  value: '"REL_#{[MAJOR, MINOR, TINY, RELEASE_CANDIDATE].compact.join(''_'')}".upcase.gsub(/\.|-/,
+    ''_'')'
+  comment: 
+- !ruby/object:RI::Constant 
+  name: FULL_VERSION
+  value: '"#{[MAJOR, MINOR, TINY, RELEASE_CANDIDATE].compact.join(''.'')} (build #{BUILD_TIME_UTC})"'
+  comment: 
+- !ruby/object:RI::Constant 
+  name: NAME
+  value: '"RSpec"'
+  comment: 
+- !ruby/object:RI::Constant 
+  name: URL
+  value: '"http://rspec.rubyforge.org/"'
+  comment: 
+- !ruby/object:RI::Constant 
+  name: DESCRIPTION
+  value: '"#{NAME}-#{FULL_VERSION} - BDD for Ruby\n#{URL}"'
+  comment: 
+comment: 
+attributes: []
+
+instance_methods: []
+
+full_name: Spec::VERSION
+superclass: 
+class_methods: []
+

@@ -1,0 +1,10 @@
+--- !ruby/object:RI::MethodDescription 
+params: (expected={})
+is_singleton: false
+block_params: 
+name: hash_including
+comment: 
+full_name: Spec::Mocks::ArgumentConstraintMatchers#hash_including
+visibility: public
+aliases: []
+

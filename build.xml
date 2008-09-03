@@ -57,6 +57,11 @@
       <fileset dir="src/main/ed/lang/ruby" includes="xgen_internals.rb"/>
     </copy>
 
+    <mkdir dir="build/ruby/lib/ruby"/>
+    <copy todir="build/ruby/lib/ruby">
+      <fileset dir="include/ruby"/>
+    </copy>
+
     <javac srcdir="src/test"
 	   destdir="build"
 	   optimize="off"
