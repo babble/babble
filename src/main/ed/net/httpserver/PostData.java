@@ -22,6 +22,7 @@ import java.io.*;
 import java.nio.*;
 import java.util.*;
 import java.util.regex.*;
+import javax.servlet.*;
 
 import ed.js.*;
 import ed.util.*;
@@ -75,6 +76,21 @@ public abstract class PostData {
 
     public abstract void writeTo( File f )
         throws IOException ;
+
+    public ServletInputStream getInputStream(){
+        // TODO: make this faster
+        final int max = _len;
+        return new ServletInputStream(){
+            public int read(){
+                if ( _pos >= max )
+                    return -1;
+                return get( _pos++ );
+                    
+            }
+            
+            int _pos;
+        };
+    }
 
     int indexOf( byte b[] , int start ){
         

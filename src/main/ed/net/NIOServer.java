@@ -291,6 +291,10 @@ public abstract class NIOServer extends Thread {
         public InetAddress getInetAddress(){
             return _channel.socket().getInetAddress();
         }
+        
+        public int getRemotePort(){
+            return _channel.socket().getPort();
+        }
 
         protected final SocketChannel _channel;
         private SelectionKey _key = null;

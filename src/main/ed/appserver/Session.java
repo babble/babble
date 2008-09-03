@@ -19,11 +19,14 @@
 package ed.appserver;
 
 import java.util.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
 
 import com.twmacinta.util.*;
 
 import ed.db.*;
 import ed.js.*;
+import ed.util.*;
 
 /** Keeps track of user sessions.  A Session is just a JavaScript
  * object, and can be treated as such.  It keeps track of whether it's
@@ -36,12 +39,14 @@ import ed.js.*;
  * @example session.pageviews = session.pageviews + 1;
  * @expose
  */
-public class Session extends JSObjectBase {
+public class Session extends JSObjectBase implements HttpSession {
 
     /** Database collection to track sessions: "_sessions" */
     static final String DB_COLLECTION_NAME = "_sessions";
     /** Session cookie name: "__TG_SESSION_ID__" */
-    static final String COOKIE_NAME = "__TG_SESSION_ID__";
+    public static final String COOKIE_NAME = "__TG_SESSION_ID__";
+    
+    static final int maxKeepAliveSeconds = 60 * 60 * 2;
 
     /**
      * Returns a session with a given name and database.
@@ -63,7 +68,6 @@ public class Session extends JSObjectBase {
         Iterator<JSObject> cursor = coll.find( ref , null , 0 , 1 );
         if ( cursor != null && cursor.hasNext() )
             session._copy( cursor.next() );
-
         return session;
     }
 
@@ -72,6 +76,8 @@ public class Session extends JSObjectBase {
      */
     Session(){
         this( _genKey() );
+        _isNew = true;
+        super.set( "_created" , new JSDate() );
     }
 
     /**
@@ -79,7 +85,9 @@ public class Session extends JSObjectBase {
      */
     Session( String key ){
         _key = key;
+        _isNew = false;
         super.set( "_key" , key ); // calling super b/c this dosn't count as dirtying
+        super.set( "_created" , new JSDate() );
     }
 
     /** Returns this session's name.
@@ -102,6 +110,39 @@ public class Session extends JSObjectBase {
             super.set( s , o.get( s ) );
         }
 
+    }
+
+    public Object getAttribute( String name ){
+        return get( name );
+    }
+
+    public Object getValue( String name ){
+        return get( name );
+    }
+
+    public void removeAttribute( String name){
+        removeField( name );
+    }
+
+    public void removeValue( String name){
+        removeField( name );
+    }
+
+    public Enumeration getAttributeNames(){
+        return new CollectionEnumeration( keySet() );
+    }
+
+    public String[] getValueNames(){
+        Collection<String> keys = keySet();
+        return keySet().toArray( new String[keys.size()] );
+    }
+
+    public void putValue( String name , Object value ){
+        set( name , value );
+    }
+
+    public void setAttribute( String name , Object value ){
+        set( name , value );
     }
 
     /**
@@ -154,12 +195,56 @@ public class Session extends JSObjectBase {
         }
     }
 
+    public boolean isNew(){
+        return _isNew;
+    }
+
     public String toString(){
         return "Session";
     }
-    
-    private final static MD5 _myMd5 = new MD5();
 
+    public void invalidate(){
+        throw new RuntimeException( "not done yet" );
+    }
+    
+    public HttpSessionContext getSessionContext(){
+        throw new RuntimeException( "no session context" );
+    }
+
+    public ServletContext getServletContext(){
+        throw new RuntimeException( "no servlet context" );
+    }
+
+    public int getMaxInactiveInterval(){
+        return maxKeepAliveSeconds;
+    }
+
+    public void setMaxInactiveInterval( int seconds ){
+        throw new RuntimeException( "can't set max inactive interval" );
+    }
+
+    public long	getLastAccessedTime(){
+        throw new RuntimeException( "getLastAccessedTime doesn't make sense" );
+    }
+
+    public String getId(){
+        return _key;
+    }
+
+    public JSDate getCreationDate(){
+        Object o = get( "_created" );
+        if ( o instanceof JSDate )
+            return ((JSDate)o);
+        return new JSDate();
+    }
+
+    public long getCreationTime(){
+        return getCreationDate().getTime();
+    }
+
+    private final static MD5 _myMd5 = new MD5();
+    
     final String _key;
+    private boolean _isNew;
     private boolean _dirty = false;
 }

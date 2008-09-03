@@ -54,7 +54,7 @@ cd $GITROOT/ed
 # Populate the db with setup data.
 if [ -f $FULLSITE/test/setup.js ]
     then
-        ./runLight.bash ed.js.Shell -exit $FULLSITE/test/setup.js
+        ./runLight.bash ed.js.Shell --exit $FULLSITE/test/setup.js
 fi
 
 # Copy test resources into test directory.
