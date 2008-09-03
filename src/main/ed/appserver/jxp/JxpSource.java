@@ -51,6 +51,9 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
         
         if ( f.getName().endsWith( ".rbx" ) )
             return new ed.lang.ruby.RubyJxpSource( f , lib );
+        
+        if ( f.getName().endsWith( ".erb" ) )
+            return new ed.lang.ruby.RubyErbSource( f , lib );
 
         if ( f.getName().endsWith( ".php" ) )
             return new ed.lang.php.PHPJxpSource( f );

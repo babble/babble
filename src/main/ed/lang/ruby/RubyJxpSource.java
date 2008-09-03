@@ -97,6 +97,7 @@ public class RubyJxpSource extends JxpSource {
         final Node code = _getCode(); // Parsed Ruby code
         return new ed.js.func.JSFunctionCalls0() {
             public Object call(Scope s , Object unused[]) {
+		s = new Scope("Ruby runtime", s);
 		_addSiteRootToPath(s);
 
 		if (_runtime.getGlobalVariables() instanceof ScopeGlobalVariables)

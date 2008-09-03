@@ -29,6 +29,7 @@ import ed.db.*;
 import ed.io.*;
 import ed.lang.*;
 import ed.lang.python.*;
+import ed.lang.ruby.RubyErbSource;
 import ed.lang.ruby.RubyJxpSource;
 import ed.js.func.*;
 import ed.js.engine.*;
@@ -201,6 +202,17 @@ public class Shell {
             }
             else if ( a.endsWith( ".rbx" ) ){
                 RubyJxpSource rbx = new RubyJxpSource( new File( a ) , ((JSFileLibrary)(s.get( "local" ) ) ) );
+                try {
+                    rbx.getFunction().call( s );
+                }
+                catch ( Exception e ){
+                    StackTraceHolder.getInstance().fix( e );
+                    e.printStackTrace();
+                    return;
+                }
+	    }
+            else if ( a.endsWith( ".erb" ) ){
+                RubyErbSource rbx = new RubyErbSource( new File( a ) , ((JSFileLibrary)(s.get( "local" ) ) ) );
                 try {
                     rbx.getFunction().call( s );
                 }
