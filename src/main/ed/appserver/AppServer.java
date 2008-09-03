@@ -124,9 +124,11 @@ public class AppServer implements HttpHandler {
 
         final long start = System.currentTimeMillis();
 
-        AppRequest ar = (AppRequest)request.getAttachment();
-        if ( ar == null )
+        AppRequest ar = request.getAppRequest();
+        if ( ar == null ){
             ar = createRequest( request );
+            request.setAppRequest( ar );
+        }
 
         if ( request.getURI().equals( "/~reset" ) ){
             handleReset( ar , request , response );

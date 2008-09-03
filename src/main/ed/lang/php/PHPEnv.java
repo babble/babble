@@ -36,10 +36,14 @@ import ed.net.httpserver.*;
 class PHPEnv extends Env {
     
     PHPEnv( Quercus quercus , QuercusPage page , WriteStream out , AppRequest ar ){
-	super( quercus , page , out , null , ar.getResponse() );
+	super( quercus , page , out , ar.getRequest() , ar.getResponse() );
 	_request = ar.getRequest();
 	_response = ar.getResponse();
         _appRequest = ar;
+    }
+
+    public HttpRequest getRequest(){
+        return _request;
     }
 
     public HttpResponse getResponse(){
@@ -55,7 +59,7 @@ class PHPEnv extends Env {
             return _toVar( _request.getPostParameters() );
 
         if ( name.equals( "_COOKIE" ) )
-            return _toVar( _request.getCookies() );
+            return _toVar( _request.getCookiesObject() );
 
         if ( name.equals( "_SESSION" ) )
             return _toVar( _appRequest.getSession() );
@@ -119,12 +123,13 @@ class PHPEnv extends Env {
                 return "10gen querces php";
             
             if ( name.equals( "SERVER_PROTOCOL" ) )
-                return "HTTP/1." + ( _request.isHttp11() ? "1" : "0" );
+                return _request.getProtocol();
 
             if ( name.equals( "PHP_SELF" ) )
-                return _request.getPath();
+                return _request.getFullPath();
             
-            throw new RuntimeException( "ServerObject can't handle [" + name + "]" );
+            System.err.println( "ServerObject can't handle [" + name + "]" );
+            return null;
         }
     }
 
