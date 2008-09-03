@@ -31,3 +31,22 @@ def setAttr(pyS):
     pyS.foo = 144
 
 _10gen.assert.raises( lambda: setAttr(pyS) )
+
+_10gen.assert.eq( " string" , _10gen.jsString[4:] )
+_10gen.assert.eq( 0 , _10gen.jsString.find( 's' ) )
+_10gen.assert.eq( "s" , _10gen.jsString[5] )
+_10gen.assert.raises( lambda: _10gen.jsString[102] )
+
+# Can't believe we allow this
+assert 'me st' in _10gen.jsString  # substring!
+
+assert 'jsAttr' in _10gen.jsString # attribute!
+
+# But this is still not allowed
+assert not 'goober' in _10gen.jsString
+
+def set_slice(): _10gen.jsString[1:4] = 'hi'
+_10gen.assert.raises( set_slice )
+
+def set_int(): _10gen.jsString[1] = 'b'
+_10gen.assert.raises(set_int)
