@@ -22,3 +22,12 @@ _10gen.assert.eq( _10gen.jsString.jsAttr , 42 )
 pyS = _10gen.jsStringProcess("a new string");
 
 _10gen.assert.eq( pyS.someAttr , 13 );
+
+pyS = ''
+
+_10gen.assert.raises( lambda: pyS.foo )
+
+def setAttr(pyS):
+    pyS.foo = 144
+
+_10gen.assert.raises( lambda: setAttr(pyS) )
