@@ -44,3 +44,9 @@ assert 'jsAttr' in _10gen.jsString # attribute!
 
 # But this is still not allowed
 assert not 'goober' in _10gen.jsString
+
+def set_slice(): _10gen.jsString[1:4] = 'hi'
+_10gen.assert.raises( set_slice )
+
+def set_int(): _10gen.jsString[1] = 'b'
+_10gen.assert.raises(set_int)

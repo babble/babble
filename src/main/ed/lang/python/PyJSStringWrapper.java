@@ -82,6 +82,8 @@ public class PyJSStringWrapper extends PyString {
     }
 
     public void __setitem__(PyObject key, PyObject value){
+        if( key instanceof PyInteger || key instanceof PyLong )
+            super.__setitem__( key , value ); // throws exception
         _p.__setitem__(key, value);
     }
 
@@ -95,6 +97,7 @@ public class PyJSStringWrapper extends PyString {
     }
 
     public void __delattr__( String key ){
+        // Python string attributes are still read-only
         _p.__delattr__(key);
     }
 
