@@ -275,7 +275,7 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     }
     
     public String toString(){
-        return _p.toString();
+        return _p.invoke( "__str__" ).toString();
     }
 
     protected PyObject _p;

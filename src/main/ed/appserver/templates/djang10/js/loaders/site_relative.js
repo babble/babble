@@ -29,7 +29,7 @@ var load_template_source =
 
     template_name = template_name.trim().replace(/\/+/g, "/");
     if(template_name[0] != "/") {
-        log.debug("site relative only supports paths that start w. a leading slash. [" + template_name + "]");
+        log.debug("skipping site relative loader because the path doesn't start with a slash. [" + template_name + "]");
         
         return null;
     }
@@ -38,7 +38,7 @@ var load_template_source =
     try {
         template = djang10.resolve_absolute_path("/local/" + template_name);
     } catch(e) {
-        log.debug("failed to load [/local"+template_name + "]. " + e);
+        log.error("failed to load [/local"+template_name + "]. ", e);
         return null;
     }
     if (template instanceof "ed.appserver.templates.djang10.Djang10CompiledScript") {

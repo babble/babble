@@ -29,7 +29,7 @@ var load_template_source =
 
     template_name = template_name.trim();
     if(template_name[0] == "/") {
-        log.debug("can't load absolute paths [" + template_name + "]");
+        log.debug("skipping filesystem loader because path is absolute [" + template_name + "]");
         return null;
     }
 
@@ -44,7 +44,7 @@ var load_template_source =
             try {
                 template_root = djang10.resolve_absolute_path(template_root);
             } catch(e) {
-                log.debug("failed to resolve the template root [" + template_root + "]. " + e);
+                log.warn("failed to resolve the template root [" + template_root + "]. ", e);
                 continue;
             }
         }
@@ -54,7 +54,12 @@ var load_template_source =
             continue;
         }
 
-        var template = template_root.getFromPath(template_name);
+        var template;
+        try {
+            template = template_root.getFromPath(template_name);
+        } catch(e) {
+            log.error("Failed to resolve template ["+template_name+"].", e);
+        }
         if (template instanceof "ed.appserver.templates.djang10.Djang10CompiledScript") {
             log.debug("Found [" + template_root + "/" + template_name + "]");
             return template;
