@@ -829,6 +829,22 @@ public class JSArray extends JSObjectBase implements Iterable , List {
         return _array.addAll( idx , c );
     }
 
+    public void addAll( Enumeration e ){
+        if ( _locked )
+            throw new RuntimeException( "array locked" );
+        
+        while ( e.hasMoreElements() )
+            add( e.nextElement() );
+    }
+
+    public void addAll( Iterator i ){
+        if ( _locked )
+            throw new RuntimeException( "array locked" );
+        
+        while ( i.hasNext() )
+            add( i.next() );
+    }
+
     /** Returns true if this array contains all of the elements of the specified collection.
      * @param c Collection to be tested.
      * @return true if this array contains all of the elements of the specified collection.
@@ -859,6 +875,10 @@ public class JSArray extends JSObjectBase implements Iterable , List {
      */
     public ListIterator listIterator( int index ){
         return _array.listIterator( index );
+    }
+
+    public Enumeration getEnumeration(){
+        return new CollectionEnumeration( this );
     }
 
     /** Returns the index of the last occurrence of the specified object in this array.
