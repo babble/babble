@@ -103,6 +103,8 @@ EOS
                self.new(@coll.findOne(*args[1..-1]))
              when :all
                ModelCursor.new(@coll.find(*args[1..-1]), self)
+             else
+               ModelCursor.new(@coll.find(*args), self)
              end
     end
 

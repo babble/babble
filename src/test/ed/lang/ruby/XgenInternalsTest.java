@@ -92,6 +92,12 @@ public class XgenInternalsTest extends RubyDBTest {
 	assertTrue(rubyOutput.contains("song: King For A Day"));
     }
 
+    public void testFindAllJustHash() {
+	runRuby("Track.find({:album => 'Aliens Ate My Buick'}).each { |t| puts t.to_s }");
+	assertTrue(rubyOutput.contains("song: The Ability to Swing"));
+	assertTrue(rubyOutput.contains("song: Budapest by Blimp"));
+    }
+
     public void testFindFirst() {
 	runRuby("puts Track.find(:first).to_s");
 	assertTrue(rubyOutput.contains("artist: ") && !rubyOutput.contains("artist: ,"), // non-empty artist
