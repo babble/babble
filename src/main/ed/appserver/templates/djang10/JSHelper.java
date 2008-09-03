@@ -211,7 +211,7 @@ public class JSHelper extends JSObjectBase {
 
         JSFileLibrary root = fileRoots.get(parts[1]);
         if(root == null)
-            throw new IllegalArgumentException("The path [" + path + "] is invalid, because [" + parts[1] + "] is not a valid file root.");
+            return null;
 
         if (parts.length == 3 && parts[2].length() > 0)
             return root.getFromPath(parts[2]);
