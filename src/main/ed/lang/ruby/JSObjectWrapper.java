@@ -67,7 +67,7 @@ public class JSObjectWrapper implements JSObject {
 
     public Object get(Object n) {
 	IRubyObject ro = _robj.instance_variable_get(_robj.getRuntime().getCurrentContext(), ivarName(n));
-	if ("_id".equals(n.toString())) {
+	if ("_id".equals(n.toString()) && !ro.isNil()) {
 	    return new ObjectId(ro.toString());
 	}
 	return toJS(_scope, ro);
