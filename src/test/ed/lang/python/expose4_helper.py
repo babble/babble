@@ -42,3 +42,14 @@ def pythonKeys(jsFoo):
     values.sort()
     assert values == [1, 2, 3, 'j']
 
+class SomeClass(object):
+    def __init__(self, x=2):
+        self.x = x
+
+    def __str__(self):
+        return "Stringable(%d)"%(self.x,)
+
+pyInstance1 = SomeClass(24)
+
+pyStr1 = str(pyInstance1)
+
