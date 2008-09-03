@@ -109,6 +109,10 @@ public class HttpRequest extends JSObjectLame {
         return "http://" + host + _url;
     }
 
+    public String getPath(){
+        return _uri;
+    }
+
     /**
      * Get the URI of the request (the path without hostname or query
      * arguments).
@@ -177,6 +181,10 @@ public class HttpRequest extends JSObjectLame {
     public String toString(){
         _finishParsing();
         return _command + " " + _uri + " HTTP/1." + ( _http11 ? "1" : "" ) + " : " + _headers + "  " + _urlParameters + " " + _postParameters;
+    }
+
+    public boolean isHttp11(){
+        return _http11;
     }
 
     /**

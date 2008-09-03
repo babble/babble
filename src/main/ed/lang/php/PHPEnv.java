@@ -27,6 +27,8 @@ import com.caucho.vfs.ReaderStream;
 import com.caucho.vfs.WriteStream;
 import com.caucho.vfs.ReaderWriterStream;
 
+import bak.pcj.map.*;
+
 import ed.js.*;
 import ed.appserver.*;
 import ed.net.httpserver.*;
@@ -58,6 +60,9 @@ class PHPEnv extends Env {
         if ( name.equals( "_SESSION" ) )
             return _toVar( _appRequest.getSession() );
         
+        if ( name.equals( "_SERVER" ) )
+            return _toVar( new ServerObject() );
+
 	return super.getSpecialRef( name );
     }
 
@@ -71,9 +76,62 @@ class PHPEnv extends Env {
         return v;
     }
 
+    class ServerObject extends JSObjectLame {
+        public Object get( Object thing ){
+            final String name = thing.toString();
+
+            if ( name.equals( "REQUEST_URI" ) )
+                return _request.getURI();
+
+            if ( name.equals( "REQUEST_METHOD" ) )
+                return _request.getMethod();
+
+            if ( name.equals( "REQUEST_TIME" ) )
+                return (int)(_startTime / 1000);
+
+            
+            if ( name.equals( "QUERY_STRING" ) )
+                return _request.getQueryString();
+
+
+            
+            if ( name.equals( "HTTP_HOST" ) )
+                return _request.getHeader( "Host" );
+            
+            if ( name.startsWith( "HTTP_" ) )
+                return _request.getHeader( name.substring(5).replace( '_' , '-' ) );
+
+            if ( name.equals( "HTTPS" ) )
+                return null;
+            
+            if ( name.equals( "REMOTE_ADDR" ) || name.equals( "REMOTE_HOST" ) )
+                return _request.getRemoteIP();
+
+
+            if ( name.equals( "SERVER_PORT" ) ){
+                int port = _request.getPort();
+                if ( port == 0 )
+                    return 80;
+                return port;
+            }
+            
+            if ( name.equals( "SERVER_NAME" ) || name.equals( "SERVER_SOFTWARE" ) )
+                return "10gen querces php";
+            
+            if ( name.equals( "SERVER_PROTOCOL" ) )
+                return "HTTP/1." + ( _request.isHttp11() ? "1" : "0" );
+
+            if ( name.equals( "PHP_SELF" ) )
+                return _request.getPath();
+            
+            throw new RuntimeException( "ServerObject can't handle [" + name + "]" );
+        }
+    }
+
     final AppRequest _appRequest;    
     final HttpRequest _request;
     final HttpResponse _response;
+    final long _startTime = System.currentTimeMillis();
 
     PHPConvertor _convertor;
 

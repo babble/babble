@@ -57,6 +57,9 @@ public class Python {
         if ( p instanceof String )
             return new JSString( p.toString() );
 
+        if ( p instanceof PyJSStringWrapper )
+            p = ((PyJSStringWrapper)p)._p;
+
         if ( p instanceof PyJSObjectWrapper )
             return ((PyJSObjectWrapper)p)._js;
 
@@ -117,9 +120,11 @@ public class Python {
         if ( o instanceof Number )
             return new PyFloat( ((Number)o).doubleValue() );
         
-        if ( o instanceof String ||
-             o instanceof JSString )
-            return new PyString( o.toString() );
+        if ( o instanceof String )
+            return new PyString( (String)o );
+
+        if ( o instanceof JSString )
+            return new PyJSStringWrapper( (JSString)o );
         
         if ( o instanceof ed.db.ObjectId )
             return new PyObjectId( (ed.db.ObjectId)o );
