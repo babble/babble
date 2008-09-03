@@ -81,10 +81,7 @@ public class Module {
             _root.mkdirs();
         
         if ( _versioned ){
-            String defaultVersion = getSymLink( "stable" );
-            if ( defaultVersion == null )
-                defaultVersion = "master";
-            
+            String defaultVersion = _config == null ? "master" : _config.getDefaultTag();
             _default = getRootFile( defaultVersion );
         }
         else {

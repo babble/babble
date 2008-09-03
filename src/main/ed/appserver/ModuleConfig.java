@@ -25,6 +25,9 @@ import ed.util.*;
 
 public class ModuleConfig {
 
+    private static final String _defaultTagString = Config.get().getProperty( "moduleDefaultTag" , "stable" );
+    private static final String[] _defaultTags = _defaultTagString.split( "," );
+
     public ModuleConfig( String name , JSObject config ){
         _name = name;
         if ( ! name.equalsIgnoreCase( config.get( "name" ).toString() ) )
@@ -57,6 +60,15 @@ public class ModuleConfig {
 
     public String getGitUrl(){
         return _giturl;
+    }
+
+    public String getDefaultTag(){
+        for ( int i=0; i<_defaultTags.length; i++ ){
+            String s = followSymLinks( _defaultTags[i] );
+            if ( ! s.equalsIgnoreCase( _defaultTags[i] ) )
+                return s;
+        }
+        return "master";
     }
 
     public String followSymLinks( String tag ){
