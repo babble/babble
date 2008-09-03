@@ -35,7 +35,7 @@ public class JSObjectWrapperTest extends SourceRunner {
     public void testConversion() {
 	Object o = s.get("x");
 	assertNotNull(o);
-	assertTrue(o instanceof JSObjectWrapper, "oops: wrong type: expected JSObjectWrapper but see " + o.getClass().getName());
+	assertTrue(o instanceof ed.lang.ruby.JSObjectWrapper, "oops: wrong type: expected ed.lang.ruby.JSObjectWrapper but see " + o.getClass().getName());
     }
 
     public void testModifyRubyObject() {
