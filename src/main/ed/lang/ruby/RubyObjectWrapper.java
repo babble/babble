@@ -139,7 +139,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	}
 
 	if (r instanceof RubyObject) {
-	    Object o = new JSObjectWrapper(scope, (RubyObject)r);
+	    Object o = new ed.lang.ruby.JSObjectWrapper(scope, (RubyObject)r);
 	    _wrappers.put(o, r);
 	    return o;
 	}
