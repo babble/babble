@@ -487,8 +487,8 @@ public class JSInternalFunctions extends JSNumericFunctions {
         if ( o instanceof E4X.ENode )
             return ((E4X.ENode)o).valueSet();
         
-        if ( o instanceof JSArray )
-            return (JSArray)o;
+        if ( o instanceof Collection )
+            return (Collection)o;
 
         if ( o instanceof JSObject ){
             JSObject j = (JSObject)o;
