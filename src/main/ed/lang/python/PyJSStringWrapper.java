@@ -86,6 +86,7 @@ public class PyJSStringWrapper extends PyString {
     }
 
     public void __setattr__( String key, PyObject value){
+        // Python string attributes are read-only, so I don't have to worry here
         _p.__setattr__(key, value);
     }
 

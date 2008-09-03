@@ -34,3 +34,5 @@ _10gen.assert.raises( lambda: setAttr(pyS) )
 
 _10gen.assert.eq( " string" , _10gen.jsString[4:] )
 _10gen.assert.eq( 0 , _10gen.jsString.find( 's' ) )
+_10gen.assert.eq( "s" , _10gen.jsString[5] )
+_10gen.assert.raises( lambda: _10gen.jsString[102] )
