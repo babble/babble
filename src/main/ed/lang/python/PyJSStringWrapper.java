@@ -70,10 +70,14 @@ public class PyJSStringWrapper extends PyString {
     public PyObject __dir__(){ return _p.__dir__(); }
 
     public PyObject __findattr_ex__(String name){ 
+        PyObject result = super.__findattr_ex__( name );
+        if( result != null ) return result;
         return _p.__findattr_ex__(name);
     }
 
     public PyObject __finditem__(PyObject key){
+        PyObject result = super.__finditem__( key );
+        if( result != null ) return result;
         return _p.__finditem__(key);
     }
 
