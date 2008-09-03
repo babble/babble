@@ -84,3 +84,30 @@ x = t.findOne()
 
 _10gen.assert.eq(x.junk.m1(), o2.m1())
 _10gen.assert.eq(x.c[0].m1(), o.m1())
+
+# ----
+
+class Stringable(object):
+    def __init__(self, x=2):
+        self.x = x
+
+    def __str__(self):
+        return "Stringable(%d)"%(self.x,)
+
+s = Stringable(4)
+t.drop()
+t.setConstructor(Stringable)
+t.save(s)
+
+class C(object):
+    pass
+
+t2.drop()
+t2.setConstructor(C)
+
+c = C()
+c.foo = s
+t2.save(c)
+
+x = t2.findOne()
+_10gen.assert.eq(str(c.foo), str(s))
