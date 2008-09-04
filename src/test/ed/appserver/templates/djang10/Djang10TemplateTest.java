@@ -169,6 +169,9 @@ public class Djang10TemplateTest {
                 }
             }
             
+            context.set("unicodeStr", "ŠĐĆŽćžšđ");
+            context.set("unicdeStr2", "1игорь1");
+            
             return tests.toArray();
 
         }
