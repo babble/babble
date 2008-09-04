@@ -53,6 +53,7 @@ public class DjangoRegressionTests {
         "^url.*",
 
         //requires architecture impl
+        "^i18n.*",
         "basic-syntax27",   //need support for translating _( )
         "ifequal-numeric07", //need to preprocess: throw error on 2.
 
@@ -82,9 +83,7 @@ public class DjangoRegressionTests {
         "widthratio10",     //floats allowed
         
         "basic-syntax12",   //dunno
-        "basic-syntax14",   //dunno
-        
-        
+        "basic-syntax14",   //dunno        
     };    
        
     public DjangoRegressionTests(){ }
