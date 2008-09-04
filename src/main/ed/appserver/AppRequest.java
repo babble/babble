@@ -238,7 +238,7 @@ public class AppRequest {
     }
 
     public Logger getLogger(){
-        return _context._logger;
+        return _context.getLogger();
     }
 
     public void print( String s ){

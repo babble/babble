@@ -144,7 +144,7 @@ public class AppServer implements HttpHandler {
 
 	ar.setResponse( response );
         ar.getScope().makeThreadLocal();
-        ctxt._logger.makeThreadLocal();
+        ctxt.getLogger().makeThreadLocal();
 
         final UsageTracker usage = ctxt._usage;
         final SimpleStats stats = _getStats( ctxt._name + ":" + ctxt._environment );
@@ -185,7 +185,7 @@ public class AppServer implements HttpHandler {
 
             final long t = System.currentTimeMillis() - start;
             if ( t > 1500 )
-                ar.getContext()._logger.getChild( "slow" ).info( request.getURL() + " " + t + "ms" );
+                ar.getContext().getLogger().getChild( "slow" ).info( request.getURL() + " " + t + "ms" );
 
             ar.done( response );
 
@@ -405,7 +405,7 @@ public class AppServer implements HttpHandler {
         if ( ctxt == null )
 	    Logger.getLogger( "appserver.nocontext" ).error( request.getURI() , t );
 	else
-	    ctxt._logger.error( request.getURL() , t );
+	    ctxt.getLogger().error( request.getURL() , t );
 
         response.setResponseCode( 500 );
 
@@ -554,7 +554,7 @@ public class AppServer implements HttpHandler {
             }
         }
         catch ( Exception e ){
-            ar.getContext()._logger.error( request.getURL() , e );
+            ar.getContext().getLogger().error( request.getURL() , e );
             response.setResponseCode( 500 );
             response.getJxpWriter().print( "<br><br><hr>" );
             response.getJxpWriter().print( e.toString() );
@@ -615,7 +615,7 @@ public class AppServer implements HttpHandler {
         out.print( "so, you want to reset?\n" );
 
         if ( _administrativeAllowed( request ) ){
-            ar.getContext()._logger.info("creating new context" );
+            ar.getContext().getLogger().info("creating new context" );
 
             AppContext newContext = ar.getContext().newCopy();
             newContext.updateCode();
@@ -623,7 +623,7 @@ public class AppServer implements HttpHandler {
             newContext.getFileSafe( "index.jxp" );
             _contextHolder.replace( ar.getContext() , newContext );
 
-            ar.getContext()._logger.info("done creating new context.  resetting" );
+            ar.getContext().getLogger().info("done creating new context.  resetting" );
             ar.getContext().reset();
 
             out.print( "you did it!\n" );
@@ -631,7 +631,7 @@ public class AppServer implements HttpHandler {
             out.print( "new hash:" + System.identityHashCode( newContext ) + "\n" );
         }
         else {
-            ar.getContext()._logger.error("Failed attempted context reset via /~reset from " + request.getRemoteIP());
+            ar.getContext().getLogger().error("Failed attempted context reset via /~reset from " + request.getRemoteIP());
             out.print( "you suck!" );
             response.setResponseCode(403);
         }
@@ -647,7 +647,7 @@ public class AppServer implements HttpHandler {
 
         if ( _administrativeAllowed( request ) ){
             out.print( "you did it!\n" );
-            ar.getContext()._logger.info("About to update context via /~update");
+            ar.getContext().getLogger().info("About to update context via /~update");
             try {
                 String branch = ar.getContext().updateCode();
                 if ( branch == null )
@@ -661,7 +661,7 @@ public class AppServer implements HttpHandler {
             out.print( "\n" );
         }
         else {
-            ar.getContext()._logger.error("Failed attempted context reset via /~update from " + request.getRemoteIP());
+            ar.getContext().getLogger().error("Failed attempted context reset via /~update from " + request.getRemoteIP());
             out.print( "you suck!" );
             response.setResponseCode(403);
         }

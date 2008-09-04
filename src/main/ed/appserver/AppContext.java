@@ -19,7 +19,9 @@
 package ed.appserver;
 
 import java.io.*;
+import java.net.*;
 import java.util.*;
+import javax.servlet.*;
 
 import ed.appserver.jxp.*;
 import ed.appserver.templates.djang10.*;
@@ -45,7 +47,7 @@ import ed.util.*;
  * @anonymous name : {log} desc : {Global logger.} param : {type : (string) name : (str) desc : (the string to log)}
  * @expose
  */
-public class AppContext {
+public class AppContext extends ServletContextBase {
 
     /** @unexpose */
     static final boolean DEBUG = AppServer.D;
@@ -87,6 +89,7 @@ public class AppContext {
     }
 
     private AppContext( String root , File rootFile , String name , String environment , AppContext nonAdminParent ){
+	super( name + ":" + environment );
         if ( root == null )
             throw new NullPointerException( "AppContext root can't be null" );
 
@@ -114,7 +117,6 @@ public class AppContext {
         _scope = new Scope( "AppContext:" + root + ( _admin ? ":admin" : "" ) , _isGrid ? ed.cloud.Cloud.getInstance().getScope() : Scope.newGlobal() , null , Language.JS , _rootFile );
         _scope.setGlobal( true );
 
-        _logger = Logger.getLogger( _name + ":" + _environment );
         _usage = new UsageTracker( _name );
 
         _baseScopeInit();
@@ -233,9 +235,20 @@ public class AppContext {
 	    
 	    if ( f == null || ! f.exists() )
 		return;
+	    
+	    Set<String> newThings = new HashSet<String>( _scope.keySet() );
 
 	    Convert c = new Convert( f );
 	    c.get().call( _scope );
+
+	    newThings.removeAll( _scope.keySet() );
+
+	    for ( String newKey : newThings ){
+		Object val = _scope.get( newKey );
+		if ( val instanceof String || val instanceof JSString )
+		    _initParams.put( newKey , val.toString() );
+	    }
+	    
         }
         catch ( Exception e ){
             throw new RuntimeException( "couldn't load config" , e );
@@ -450,6 +463,44 @@ public class AppContext {
 
         _files.put( uri , f );
         return f;
+    }
+
+    public String getRealPath( String path ){
+	try {
+	    return getFile( path ).getAbsolutePath();
+	}
+	catch ( FileNotFoundException fnf ){
+	    throw new RuntimeException( "file not found [" + path + "]" );
+	}
+    }
+
+    public URL getResource( String path ){
+	try {
+	    File f = getFile( path );
+	    if ( ! f.exists() )
+		return null;
+	    return f.toURL();
+	}
+	catch ( FileNotFoundException fnf ){
+	    // the spec says to return null if we can't find it
+	    // even though this is weird...
+	    return null;
+	}
+	catch ( IOException ioe ){
+	    throw new RuntimeException( "error opening [" + path + "]" , ioe );
+	}
+    }
+
+    public InputStream getResourceAsStream( String path ){
+	URL url = getResource( path );
+	if ( url == null )
+	    return null;
+	try {
+	    return url.openStream();
+	}
+	catch ( IOException ioe ){
+	    throw new RuntimeException( "can't getResourceAsStream [" + path + "]" , ioe );
+	}
     }
 
     /**
@@ -887,6 +938,30 @@ public class AppContext {
         return null;
     }
 
+    public String getInitParameter( String name){
+	return _initParams.get( name );
+    }
+    
+    public Enumeration getInitParameterNames(){
+	return new CollectionEnumeration( _initParams.keySet() );
+    }
+
+    public String getContextPath(){
+	return "";
+    }
+
+    public RequestDispatcher getNamedDispatcher(String name){
+	throw new RuntimeException( "getNamedDispatcher not implemented" );
+    }
+
+    public RequestDispatcher getRequestDispatcher(String name){
+	throw new RuntimeException( "getRequestDispatcher not implemented" );
+    }
+
+    public Set getResourcePaths(String path){
+	throw new RuntimeException( "getResourcePaths not implemented" );
+    }
+
     final String _name;
     final String _root;
     final File _rootFile;
@@ -904,12 +979,12 @@ public class AppContext {
     private JSFileLibrary _core;
     private JSFileLibrary _external;
 
-    final Logger _logger;
     final Scope _scope;
     final UsageTracker _usage;
 
     final JSArray _globalHead = new JSArray();
-
+    
+    private final Map<String,String> _initParams = new HashMap<String,String>();
     private final Map<String,File> _files = Collections.synchronizedMap( new HashMap<String,File>() );
     private final Set<File> _initFlies = new HashSet<File>();
 
