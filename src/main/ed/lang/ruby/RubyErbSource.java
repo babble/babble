@@ -31,6 +31,24 @@ import ed.js.engine.Scope;
  */
 public class RubyErbSource extends RubyJxpSource {
 
+    /**
+     * Wraps <var>content</var> with code that turns it into an ERB template
+     * and modifies the built-in JavaScript "print" function so that it
+     * directs output to the ERB output collector.
+     * <p>
+     * This is public static so it can be used separately during testing.
+     */
+    public static String wrap(String content) {
+	return
+	    "_erbout = nil\n" +
+	    "require 'erb'\n" +
+	    "$scope.print = Proc.new { |str| _erbout.concat(str) }\n" +
+	    "template = ERB.new <<-XGEN_ERB_TEMPLATE_EOF\n" +
+	    content.replace("\\", "\\\\").replace("#", "\\#") + '\n' +
+	    "XGEN_ERB_TEMPLATE_EOF\n" +
+	    "puts template.result(binding)\n";
+    }
+
     public RubyErbSource(File f , JSFileLibrary lib) {
 	super(f, lib);
     }
@@ -41,18 +59,9 @@ public class RubyErbSource extends RubyJxpSource {
     }
     
     /**
-     * Wraps the file content with code that turns it into an ERB template and
-     * modifies the built-in JavaScript "print" function so that it directs
-     * output to the ERB output collector.
+     * @see {#wrap}
      */
     protected String getContent() throws IOException {
-	return
-	    "_erbout = nil\n" +
-	    "require 'erb'\n" +
-	    "$scope.print = Proc.new { |str| _erbout.concat(str) }\n" +
-	    "template = ERB.new <<-XGEN_ERB_TEMPLATE_EOF\n" +
-	    super.getContent().replace("\\", "\\\\").replace("#", "\\#") + '\n' +
-	    "XGEN_ERB_TEMPLATE_EOF\n" +
-	    "puts template.result(binding)\n";
+	return wrap(super.getContent());
     }
 }
