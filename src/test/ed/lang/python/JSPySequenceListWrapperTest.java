@@ -28,7 +28,7 @@ import ed.lang.python.*;
 public class JSPySequenceListWrapperTest extends ed.TestCase {
     @Test(groups = {"basic"})
     public void test1(){
-        PySequenceList p = new PyList();
+        PySequenceList p = new PyList(PyType.fromClass(PyList.class));
         JSPySequenceListWrapper wrapper = new JSPySequenceListWrapper( p );
         JSObject o = new JSObjectBase();
         assert wrapper.add( o );
