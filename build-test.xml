@@ -46,6 +46,7 @@
 	    listeners="ed.TestNGListener" haltonfailure="true" groups="${ruby.groups}">
       <classfileset dir="build" includes="ed/lang/ruby/*Test.class"/>
       <jvmarg value="-Xmx1000m" />
+      <jvmarg value="-Djruby.home=build/ruby" />
     </testng>
   </target>
 
