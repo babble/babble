@@ -75,6 +75,11 @@ public class SourceRunner {
 	return o;
     }
 
+    protected void assertJSEquals(String jsCode, String expected) {
+	runJS(jsCode);
+	assertEquals(jsOutput, expected);
+    }
+
     /** Output is stored in rubyOutput. */
     protected Object runRuby(String rubyCode) {
 	source._content = rubyCode;
@@ -95,6 +100,10 @@ public class SourceRunner {
 	assertEquals(rubyOutput, expected);
     }
 
+    /**
+     * Runs JS first, then Ruby, then compares the outputs using the JS output
+     * as the expected value.
+     */
     protected void assertRubyEqualsJS(String rubyCode, String jsCode) {
 	runJS(jsCode);
 	runRuby(rubyCode);

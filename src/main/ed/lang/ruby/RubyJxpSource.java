@@ -96,31 +96,31 @@ public class RubyJxpSource extends JxpSource {
     public JSFunction getFunction() throws IOException {
         final Node code = _getCode(); // Parsed Ruby code
         return new ed.js.func.JSFunctionCalls0() {
-            public Object call(Scope s , Object unused[]) {
-		s = new Scope("Ruby runtime", s);
-		_addSiteRootToPath(s);
-
-		if (_runtime.getGlobalVariables() instanceof ScopeGlobalVariables)
-		    _runtime.setGlobalVariables(((ScopeGlobalVariables)_runtime.getGlobalVariables()).getOldGlobalVariables());
-		_setOutput(s);
-		_runtime.setGlobalVariables(new ScopeGlobalVariables(s, _runtime));
-		_exposeScopeFunctions(s);
-
-		// See the second part of JRuby's Ruby.executeScript(String, String)
-		ThreadContext context = _runtime.getCurrentContext();
-        
-		String oldFile = context.getFile();
-		int oldLine = context.getLine();
-		try {
-		    context.setFile(code.getPosition().getFile());
-		    context.setLine(code.getPosition().getStartLine());
-		    return _runtime.runNormally(code, YARV_COMPILE);
-		} finally {
-		    context.setFile(oldFile);
-		    context.setLine(oldLine);
-		}
-            }
+            public Object call(Scope s, Object unused[]) { return _doCall(code, s, unused); }
         };
+    }
+
+    protected Object _doCall(Node code, Scope s, Object unused[]) {
+	_addSiteRootToPath(s);
+
+	if (_runtime.getGlobalVariables() instanceof ScopeGlobalVariables)
+	    _runtime.setGlobalVariables(((ScopeGlobalVariables)_runtime.getGlobalVariables()).getOldGlobalVariables());
+	_setOutput(s);
+	_runtime.setGlobalVariables(new ScopeGlobalVariables(s, _runtime));
+	_exposeScopeFunctions(s);
+
+	// See the second part of JRuby's Ruby.executeScript(String, String)
+	ThreadContext context = _runtime.getCurrentContext();
+
+	String oldFile = context.getFile();
+	int oldLine = context.getLine();
+	try {
+	    context.setFileAndLine(code.getPosition().getFile(), code.getPosition().getStartLine());
+	    return _runtime.runNormally(code, YARV_COMPILE);
+	} finally {
+	    context.setFile(oldFile);
+	    context.setLine(oldLine);
+	}
     }
 
     protected synchronized Node _getCode() throws IOException {
