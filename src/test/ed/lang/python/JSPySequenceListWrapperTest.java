@@ -55,6 +55,8 @@ public class JSPySequenceListWrapperTest extends ed.TestCase {
     public void test1(){
         assert wrapper.get( 0 ) == o;
 
+        assert wrapper.size() == p.size();
+
         JSObject foo = new JSObjectBase();
         assert wrapper.add( foo );
 
@@ -70,6 +72,30 @@ public class JSPySequenceListWrapperTest extends ed.TestCase {
     @Test(groups = {"basic"}, expectedExceptions={IndexOutOfBoundsException.class})
     public void test2(){
         sublist.get( 3 );
+    }
+
+    @Test(groups = {"basic"})
+    public void test3(){
+        p.add( new PyInteger( 23 ) );
+        assert p.size() == wrapper.size();
+        Object[] foo = wrapper.toArray();
+
+        assert foo[foo.length-1].equals(23);
+
+        Object[] ary = new Object[ wrapper.size() ];
+        foo = wrapper.toArray( ary );
+        assert ary == foo;
+        assert foo[foo.length-1].equals(23);
+    }
+
+    @Test(groups = {"basic"}, expectedExceptions={ArrayStoreException.class})
+    public void test4(){
+        wrapper.toArray( new Integer[100] );
+    }
+
+    @Test(groups = {"basic"}, expectedExceptions={NullPointerException.class})
+    public void test5(){
+        wrapper.toArray( null );
     }
 
     public static void main( String args[] ){
