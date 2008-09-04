@@ -517,17 +517,6 @@ public class Generate {
         javaSrcsToDb();
         globalToDb();
 
-        // now to html
-        String path = argTable.get( "output" );
-
-        setupHTMLGeneration( path );
-        Iterator it = docdb.find( new JSObjectBase() );
-        while(it.hasNext()) {
-            toHTML(JSON.serialize((((JSObject)it.next()).get("_index"))), path);
-        }
-        postHTMLGeneration(path);
-        
-
         JSObjectBase nameIdx = new JSObjectBase();
         nameIdx.set( "name" , 1 );
         docdb.ensureIndex(nameIdx);
