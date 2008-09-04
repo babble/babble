@@ -84,6 +84,7 @@ public class DjangoRegressionTests {
         "basic-syntax12",   //dunno
         "basic-syntax14",   //dunno
         
+        "^i18n.*",
         
     };    
        
