@@ -39,10 +39,20 @@ if [ -f $TESTDIR/webtest-local.bash ]
         source $TESTDIR/webtest-local.bash
 fi
 
+# Set EDROOT and PROOT if they aren't already set
+if [ ! $EDROOT ]
+    then
+        EDROOT=$GITROOT/ed
+fi
+if [ ! $PROOT ]
+    then
+        PROOT=$GITROOT/p
+fi
+
 # Bring up the test database.
 mkdir -p /tmp/$SITE/logs /tmp/$SITE/db
 rm /tmp/$SITE/db/*
-cd $GITROOT/p/db
+cd $PROOT/db
 nohup ./db --port $db_port --dbpath /tmp/$SITE/db/ run > /tmp/$SITE/logs/db&
 db_pid=$!
 
@@ -55,7 +65,7 @@ if [ -f $FULLSITE/test/_config.js ]
 fi
 
 # Bring up the app server.
-cd $GITROOT/ed
+cd $EDROOT
 ./runAnt.bash ed.appserver.AppServer --port $http_port $FULLSITE&
 
 # Populate the db with setup data.
@@ -75,7 +85,7 @@ ln -s $TESTDIR/resources/definitions $FULLSITE/test/definitions/_10gen_default_d
 
 # Run webtest.
 cd $FULLSITE/test
-export WTPATH=$GITROOT/ed/include/webtest
+export WTPATH=$EDROOT/include/webtest
 $WTPATH/bin/webtest.sh $WTPARAMS
 STATUS=$?
 

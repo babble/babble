@@ -1,8 +1,8 @@
 <?xml version='1.0'?>
 <project name="appserver test" default="all" basedir=".">
 
-  <property name="targetdir" value="target"/>
-  <property name="testdir" value="${targetdir}/test"/>
+  <property name="targetdir" location="target"/>
+  <property name="testdir" location="${targetdir}/test"/>
   
   <path id="classpath">
     <fileset dir="include">
