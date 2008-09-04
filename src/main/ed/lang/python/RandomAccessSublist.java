@@ -33,6 +33,8 @@ public class RandomAccessSublist extends java.util.AbstractList {
     }
 
     public Object get( int index ){
+        if( index + _start >= _end )
+            throw new IndexOutOfBoundsException();
         return _l.get( index + _start );
     }
 
