@@ -23,6 +23,12 @@ popd
 cd `dirname $0`
 TESTDIR=`pwd`
 
+if [ ! -d "$FULLSITE/test" ]
+    then
+        echo "Site '$1' does not contain a test directory, aborting."
+        exit 1
+fi
+
 # Do configuration steps.
 source $TESTDIR/webtest-config.bash
 
