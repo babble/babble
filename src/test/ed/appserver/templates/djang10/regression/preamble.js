@@ -62,6 +62,11 @@ SafeClass.prototype.toString = function() {
     return djang10.mark_safe("you &gt; me");
 };
 
+UTF8Class = function(){};
+UTF8Class.prototype.toString = function() {
+    return "ŠĐĆŽćžšđ";
+};
+
 from_now = function(sec_offset) {
     var now = new Date();
     now.setSeconds(now.getSeconds() + sec_offset);

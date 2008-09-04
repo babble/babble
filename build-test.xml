@@ -23,6 +23,7 @@
 
     <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
       <xmlfileset dir="." includes="testng.xml"/>
+      <jvmarg value="-Xmx1000m" />
     </testng>
   </target>
 
@@ -38,6 +39,7 @@
 
       <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
         <xmlfileset dir="." includes="testng-corejs.xml"/>
+      <jvmarg value="-Xmx1000m" />
       </testng>
     </target>
 
