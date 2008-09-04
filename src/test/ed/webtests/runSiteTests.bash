@@ -57,11 +57,14 @@ nohup ./db --port $db_port --dbpath /tmp/$SITE/db/ run > /tmp/$SITE/logs/db&
 db_pid=$!
 
 # Use the _config.js in the test directory if there is one.
-cp $FULLSITE/_config.js $FULLSITE/test/_config.js.backup
-if [ -f $FULLSITE/test/_config.js ]
+if [ ! $NO_TEST_CONFIG ]
     then
-        echo "Using test version of _config.js: $FULLSITE/test/_config.js"
-        cp $FULLSITE/test/_config.js $FULLSITE/_config.js
+        cp $FULLSITE/_config.js $FULLSITE/test/_config.js.backup
+        if [ -f $FULLSITE/test/_config.js ]
+            then
+                echo "Using test version of _config.js: $FULLSITE/test/_config.js"
+                cp $FULLSITE/test/_config.js $FULLSITE/_config.js
+        fi
 fi
 
 # Bring up the app server.
@@ -101,12 +104,15 @@ rm -r $FULLSITE/test/dtd
 
 
 # Clean up from the _config.js shuffling.
-if [ -f $FULLSITE/test/_config.js.backup ]
+if [ ! $NO_TEST_CONFIG ]
     then
-        cp $FULLSITE/test/_config.js.backup $FULLSITE/_config.js
-        rm $FULLSITE/test/_config.js.backup
-    else
-        rm $FULLSITE/_config.js
+        if [ -f $FULLSITE/test/_config.js.backup ]
+            then
+                cp $FULLSITE/test/_config.js.backup $FULLSITE/_config.js
+                rm $FULLSITE/test/_config.js.backup
+            else
+                rm $FULLSITE/_config.js
+        fi
 fi
 
 # Bring down the db and appserver.
