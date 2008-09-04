@@ -1,10 +1,10 @@
 <?xml version='1.0'?>
 <project name="ED" default="compile" basedir=".">
 
-  <property name="targetdir" value="target"/>
-  <property name="testdir" value="${targetdir}/test"/>
+  <property name="targetdir" location="target"/>
+  <property name="testdir" location="${targetdir}/test"/>
 
-  <property name="codeRoot" value="/data/"/>
+  <property name="codeRoot" location="/data/"/>
 	
     
   <path id="classpath">
