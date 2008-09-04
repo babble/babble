@@ -326,7 +326,7 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
     }
 
     public void clear(){
-        // FIXME
+        _pSeq.clear();
     }
 
     public Object get( int index ){
@@ -365,7 +365,6 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
     }
 
     public List subList( int fromIndex , int toIndex ){
-        // FIXME
         return new RandomAccessSublist( this , fromIndex , toIndex );
     }
 }
