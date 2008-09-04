@@ -16,10 +16,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+
+
 from __future__ import with_statement
 import sys
 import re
 from django.utils import safestring
+
+from django.conf import settings
+settings.configure()
 
 #patch Template to save the damn source
 from django.template import Template 
