@@ -299,7 +299,7 @@ public class JavadocToDB {
         query.set("name", newClass.name());
         Iterator it = db.find(query);
         if(it == null) return;
-        System.out.println("it != null: "+newClass.name());
+        //        System.out.println("it != null: "+newClass.name());
 
         // drill down to get the relevant obj
         JSObject jsdocObj = (JSObjectBase)it.next();
