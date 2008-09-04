@@ -18,7 +18,7 @@
 
 package ed.lang.python;
 
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 
 import ed.js.*;
 import ed.js.engine.*;
@@ -26,16 +26,20 @@ import org.python.core.*;
 import ed.lang.python.*;
 
 public class JSPySequenceListWrapperTest extends ed.TestCase {
-    @Test(groups = {"basic"})
-    public void test1(){
-        PySequenceList p = new PyList(PyType.fromClass(PyList.class));
-        JSPySequenceListWrapper wrapper = new JSPySequenceListWrapper( p );
-        JSObject o = new JSObjectBase();
-        assert wrapper.add( o );
-        assert wrapper.get( 0 ) == o;
+    PySequenceList p;
+    JSPySequenceListWrapper wrapper;
+    JSObject o, p1;
+    java.util.List sublist;
 
-        JSObject p1 = new JSObjectBase();
+    @BeforeClass
+    public void setUp(){
+        p = new PyList(PyType.fromClass(PyList.class));
+        wrapper = new JSPySequenceListWrapper( p );
+        o = new JSObjectBase();
+        p1 = new JSObjectBase();
         p1.set( "attr" , new Integer( 34 ) );
+        wrapper.add( o );
+
         wrapper.add( p1 );
 
         wrapper.add( p1 );
@@ -44,17 +48,31 @@ public class JSPySequenceListWrapperTest extends ed.TestCase {
 
         wrapper.add( p1 );
 
+        sublist = wrapper.subList( 1, 4 );
+    }
+
+    @Test(groups = {"basic"})
+    public void test1(){
+        assert wrapper.get( 0 ) == o;
+
+        JSObject foo = new JSObjectBase();
+        assert wrapper.add( foo );
+
         // [o, p1, p1, o, p1]
         //  0  1   2   3  4
-        java.util.List foo = wrapper.subList( 1, 4 );
-        assert foo.get( 0 ) == p1;
-        assert foo.get( 1 ) == p1;
-        assert foo.get( 2 ) == o;
-        assert foo.size() == 3;
-        // foo.get( 3 ) should be an exception
+        assert sublist.get( 0 ) == p1;
+        assert sublist.get( 1 ) == p1;
+        assert sublist.get( 2 ) == o;
+        assert sublist.size() == 3;
+        // sublist.get( 3 ) should be an exception
+    }
+
+    @Test(groups = {"basic"}, expectedExceptions={IndexOutOfBoundsException.class})
+    public void test2(){
+        sublist.get( 3 );
     }
 
     public static void main( String args[] ){
-        (new JSONTest()).runConsole();
+        (new JSPySequenceListWrapperTest()).runConsole();
     }
 }
