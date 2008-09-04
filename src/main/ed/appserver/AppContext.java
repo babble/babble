@@ -22,6 +22,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import javax.servlet.*;
+import javax.servlet.http.*;
 
 import ed.appserver.jxp.*;
 import ed.appserver.templates.djang10.*;
@@ -657,31 +658,24 @@ public class AppContext extends ServletContextBase {
 
         if ( DEBUG ) System.err.println( "\t " + temp );
 
-        if (!temp.exists())
-            return null;
+        if ( ! temp.exists() )
+            return handleFileNotFound( f );
 
-        /*
-         *   if it's a directory (and we know we can't find the index file)
-         *  TODO : at some point, do something where we return an index for the dir?
-         */
+        //  if it's a directory (and we know we can't find the index file)
+        //  TODO : at some point, do something where we return an index for the dir?
         if ( temp.isDirectory() )
             return null;
 
-        /*
-         *   if we at init time, save it as an initializaiton file
-         */
+
+	// if we are at init time, save it as an initializaiton file
         loadedFile(temp);
 
 
-        /*
-         *   Ensure that this is w/in the right tree for the context
-         */
-        if ( _localObject != null && _localObject.isIn(temp) )
+	// Ensure that this is w/in the right tree for the context
+	if ( _localObject != null && _localObject.isIn(temp) )
             return _localObject.getSource(temp);
 
-        /*
-         *  if not, is it core?
-         */
+	// if not, is it core?
         if ( _core.isIn(temp) )
             return _core.getSource(temp);
 
@@ -923,6 +917,73 @@ public class AppContext extends ServletContextBase {
 	_scope.warn( "jxp" );
     }
 
+    JxpSource handleFileNotFound( File f ){
+	String name = f.getName();
+	if ( name.endsWith( ".class" ) ){
+	    name = name.substring( 0 , name.length() - 6 );
+	    JxpSource source = _httpServlets.get( name );
+	    if ( source != null )
+		return source;
+	    
+	    try {
+		Class c = Class.forName( name );
+		Object n = c.newInstance();
+		if ( ! ( n instanceof HttpServlet ) )
+		    throw new RuntimeException( "class [" + name + "] is not a HttpServlet" );
+		
+		HttpServlet servlet = (HttpServlet)n;
+		servlet.init( createServletConfig( name ) );
+		source = new ServletSource( servlet );
+		_httpServlets.put( name , source );
+		return source;
+	    }
+	    catch ( Exception e ){
+		throw new RuntimeException( "can't load [" + name + "]" , e );
+	    }
+	    
+	}
+	
+	return null;
+    }
+
+    ServletConfig createServletConfig( final String name ){
+	final Object rawServletConfigs = _scope.get( "servletConfigs" );
+	final Object servletConfigObject = rawServletConfigs instanceof JSObject ? ((JSObject)rawServletConfigs).get( name ) : null;
+	final JSObject servletConfig;
+	if ( servletConfigObject instanceof JSObject )
+	    servletConfig = (JSObject)servletConfigObject;
+	else
+	    servletConfig = null;
+	
+	return new ServletConfig(){
+	    public String getInitParameter( String name ){
+		if ( servletConfig == null )
+		    return null;
+		Object foo = servletConfig.get( name );
+		if ( foo == null )
+		    return null;
+		return foo.toString();
+	    }
+	    
+	    public Enumeration getInitParameterNames(){
+		Collection keys;
+		if ( servletConfig == null )
+		    keys = new LinkedList();
+		else
+		    keys = servletConfig.keySet();
+		return new CollectionEnumeration( keys );
+	    }
+
+	    public ServletContext getServletContext(){
+		return AppContext.this;
+	    }
+	    
+	    public String getServletName(){
+		return name;
+	    }
+	};
+    }
+
     public static AppContext findThreadLocal(){
         AppRequest req = AppRequest.getThreadLocal();
         if ( req != null )
@@ -987,6 +1048,7 @@ public class AppContext extends ServletContextBase {
     private final Map<String,String> _initParams = new HashMap<String,String>();
     private final Map<String,File> _files = Collections.synchronizedMap( new HashMap<String,File>() );
     private final Set<File> _initFlies = new HashSet<File>();
+    private final Map<String,JxpSource> _httpServlets = Collections.synchronizedMap( new HashMap<String,JxpSource>() );
 
     boolean _scopeInited = false;
     boolean _inScopeInit = false;

@@ -2,13 +2,17 @@
 
 package ed.net.httpserver;
 
+import java.io.*;
 import java.util.*;
 import javax.servlet.*;
+import javax.servlet.http.*;
 
 import ed.js.*;
+import ed.js.engine.*;
 import ed.log.*;
 import ed.util.*;
 import ed.appserver.*;
+import ed.appserver.jxp.*;
 
 /**
  * convenience class to make implementing a ServletContext easy
@@ -87,4 +91,54 @@ public abstract class ServletContextBase implements ServletContext {
     final String _baseName;
     final JSObject _attributes;
     final protected Logger _logger;
+
+    public class ServletSource extends JxpSource {
+
+	public ServletSource( HttpServlet servlet ){
+	    _servlet = servlet;
+	    _name = _servlet.getClass().getName();
+
+	    _func = new ed.js.func.JSFunctionCalls0(){
+		    public Object call( Scope s , Object extra[] ){
+			try {
+			    AppRequest ar = (AppRequest)(s.get( "__apprequest__" ));
+			    _servlet.service( ar.getRequest() , ar.getResponse() );
+			    return null;
+			}
+			catch ( Exception e ){
+			    throw new RuntimeException( "error handling HttpServlet : " + _servlet , e );
+			}
+		    }
+		};
+	}
+	
+	protected String getContent(){
+	    throw new RuntimeException( "can't getContent from a ServletSource" );
+	}
+	
+	protected InputStream getInputStream(){
+	    throw new RuntimeException( "can't getInputStream from a ServletSource" );
+	}
+	
+	public long lastUpdated(Set<Dependency> visitedDeps){
+	    return _created;
+	}
+	
+	public String getName(){
+	    return _name;
+	}
+
+	public File getFile(){
+	    return null;
+	}
+	
+	public JSFunction getFunction(){
+	    return _func;
+	}
+	
+	final HttpServlet _servlet;
+	final String _name;
+	final long _created = System.currentTimeMillis();
+	final JSFunction _func;
+    }
 }
