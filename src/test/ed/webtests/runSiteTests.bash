@@ -38,7 +38,6 @@ mkdir -p /tmp/$SITE/logs /tmp/$SITE/db
 rm /tmp/$SITE/db/*
 cd $GITROOT/p/db
 nohup ./db --port $db_port --dbpath /tmp/$SITE/db/ run > /tmp/$SITE/logs/db&
-db_pid=$!
 
 # Use the _config.js in the test directory if there is one.
 cp $FULLSITE/_config.js $FULLSITE/test/_config.js.backup
@@ -51,12 +50,11 @@ fi
 # Bring up the app server.
 cd $GITROOT/ed
 ./runAnt.bash ed.appserver.AppServer --port $http_port $FULLSITE&
-http_pid=$!
 
 # Populate the db with setup data.
 if [ -f $FULLSITE/test/setup.js ]
     then
-        ./runLight.bash ed.js.Shell -exit $FULLSITE/test/setup.js
+        ./runLight.bash ed.js.Shell --exit $FULLSITE/test/setup.js
 fi
 
 # Copy test resources into test directory.
@@ -89,5 +87,4 @@ cp $FULLSITE/test/_config.js.backup $FULLSITE/_config.js
 rm $FULLSITE/test/_config.js.backup
 
 # Bring down the db and appserver.
-kill -9 $db_pid
-kill -9 $http_pid
+kill 0

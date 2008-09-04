@@ -65,7 +65,7 @@ try {
 	connect( "127.0.0.1:" + slavePort + "/test" ), 
 	{ masterPort : masterPort,
 	  slavePort : slavePort,
-	  replTimeMS : 20000
+	  replTimeMS : 40000
     }
     );
     

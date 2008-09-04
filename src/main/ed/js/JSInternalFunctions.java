@@ -486,6 +486,18 @@ public class JSInternalFunctions extends JSNumericFunctions {
 
         if ( o instanceof E4X.ENode )
             return ((E4X.ENode)o).valueSet();
+        
+        if ( o instanceof Collection )
+            return (Collection)o;
+
+        if ( o instanceof JSObject ){
+            JSObject j = (JSObject)o;
+            Collection<String> keys = j.keySet();
+            List values = new ArrayList( keys.size() );
+            for ( String k : keys )
+                values.add( j.get( k ) );
+            return values;
+        }
 
         throw new RuntimeException( "can't for each with a : " + o.getClass() );
     }

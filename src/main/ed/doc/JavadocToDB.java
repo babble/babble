@@ -44,8 +44,6 @@ public class JavadocToDB {
         tempMethod.set("alias", m.name());
         tempMethod.set("isStatic", m.isStatic());
         tempMethod.set("isAbstract", m.isAbstract());
-        tempMethod.set("isPrivate", m.isPrivate());
-        tempMethod.set("isProtected", m.isProtected());
         tempMethod.set("isPublic", m.isPublic());
         tempMethod.set("isa", "FUNCTION");
         tempMethod.set("memberOf", m.containingClass().name());
@@ -88,12 +86,7 @@ public class JavadocToDB {
             tempMethod.set("returns", returns);
         }
 
-        JSArray examples = new JSArray();
-        Tag eg[] = m.tags("example");
-        for(int j=0; j<eg.length; j++) {
-            examples.add(eg[j].text());
-        }
-        tempMethod.set("example", examples);
+        tempMethod.set("example", getTagArray( m, "example" ) );
 
         ParamTag params[] = m.paramTags();
         Parameter p2[] = m.parameters();
@@ -140,81 +133,84 @@ public class JavadocToDB {
         return tempMethod;
     }
 
+    public static JSObjectBase getField( FieldDoc field ) {
+        JSObjectBase tempField = new JSObjectBase();
+        tempField.set("desc", field.commentText());
+        tempField.set("name", field.name());
+        tempField.set("alias", field.qualifiedName());
+        tempField.set("type", (field.type()).typeName());
+        tempField.set("isStatic", field.isStatic());
+        tempField.set("isPublic", field.isPublic());
+
+        getTags(field, tempField);
+
+        tempField.set("isa", "FUNCTION");
+        tempField.set("memberOf", field.containingClass().name());
+        return tempField;
+    }
+
+    public static boolean dontProcess( ProgramElementDoc elem ) {
+        if( elem.tags( "unexpose" ).length > 0 ||
+            elem.isPrivate() ||
+            elem.isProtected() ||
+            elem.isPackagePrivate() )
+            return true;
+
+        return false;
+    }
+
+    public static JSArray getJSArray( ProgramElementDoc[] elem ) {
+        JSArray js = new JSArray();
+        for(int j=0; j < elem.length; j++) {
+            if( dontProcess( elem[j] ) ) 
+                continue;
+
+            if( elem[j] instanceof ClassDoc )
+                js.add( getClasses( (ClassDoc)elem[j] ) );
+            else if( elem[j] instanceof ConstructorDoc )
+                js.add( getConstructor( (ConstructorDoc)elem[j] ) );
+            else if( elem[j] instanceof MethodDoc )
+                js.add( getMethod( (MethodDoc)elem[j] ) );
+            else if( elem[j] instanceof FieldDoc )
+                js.add( getField( (FieldDoc)elem[j] ) );
+        }
+        return js;
+    }
+
+    public static JSArray getTagArray( ProgramElementDoc elem, String tagname ) {
+        JSArray js = new JSArray();
+        Tag tags[] = elem.tags( tagname );
+        for(int j=0; j< tags.length; j++) {
+            js.add( tags[j].text() );
+        }
+        return js;
+    }
+
     public static JSObjectBase getClasses(ClassDoc c) {
         JSObjectBase temp = new JSObjectBase();
-
-        // get inner classes
-        ClassDoc inner[] = c.innerClasses();
-        JSArray jsInner = new JSArray();
-        for(int j=0; j<inner.length; j++) {
-            Tag[] tags = inner[j].tags("expose");
-            if(tags.length == 0) continue;
-
-            jsInner.add(getClasses(inner[j]));
-        }
-        temp.set("innerClasses", jsInner);
 
         // get interface names
         ClassDoc extend[] = c.interfaces();
         JSArray jsExtends = new JSArray();
         for(int j=0; j<extend.length; j++) {
-            jsExtends.add(extend[j].qualifiedName());
+            jsExtends.add( extend[j].qualifiedName() );
         }
         temp.set("augments", jsExtends);
 
-        // get constructors
-        ConstructorDoc cons[] = c.constructors();
-        JSArray jsCons = new JSArray();
-        for(int j=0; j<cons.length; j++) {
-            Tag[] mtags = cons[j].tags("unexpose");
-            if(mtags.length > 0) continue;
+        // get inner classes
+        temp.set( "innerClasses", getJSArray( c.innerClasses() ) );
 
-            jsCons.add(getConstructor(cons[j]));
-        }
-        temp.set("constructors", jsCons);
+        // get constructors
+        temp.set("constructors", getJSArray( c.constructors() ) );
 
         // get properties
-        FieldDoc fields[] = c.fields();
-        JSArray jsFields = new JSArray();
-        for(int j=0; j<fields.length; j++) {
-            Tag[] mtags = fields[j].tags("unexpose");
-            if(mtags.length > 0) continue;
-
-            JSObjectBase tempField = new JSObjectBase();
-            tempField.set("desc", fields[j].commentText());
-            tempField.set("name", fields[j].name());
-            tempField.set("alias", fields[j].qualifiedName());
-            tempField.set("type", (fields[j].type()).typeName());
-            tempField.set("isStatic", fields[j].isStatic());
-            tempField.set("isPrivate", fields[j].isPrivate());
-            tempField.set("isProtected", fields[j].isProtected());
-            tempField.set("isPublic", fields[j].isPublic());
-            getTags(fields[j], tempField);
-            tempField.set("isa", "FUNCTION");
-            tempField.set("memberOf", c.name());
-            jsFields.add(tempField);
-        }
-        temp.set("properties", jsFields);
+        temp.set("properties", getJSArray( c.fields() ) );
 
         // get methods
-        MethodDoc methods[] = c.methods();
-        JSArray jsMethods = new JSArray();
-        for (int j = 0; j < methods.length; j++) {
-            Tag[] mtags = methods[j].tags("unexpose");
-            if(mtags.length > 0) continue;
-
-            jsMethods.add(getMethod(methods[j]));
-        }
-        temp.set("methods", jsMethods);
-
+        temp.set("methods", getJSArray( c.methods() ) );
 
         // get examples
-        JSArray examples = new JSArray();
-        Tag eg[] = c.tags("example");
-        for(int j=0; j<eg.length; j++) {
-            examples.add(eg[j].text());
-        }
-        temp.set("example", examples);
+        temp.set( "example", getTagArray( c, "example" ) );
 
 
         temp.set("classDesc", c.commentText());
@@ -244,7 +240,7 @@ public class JavadocToDB {
 
         // get stupid anonymous inner classes
         Tag anon[] = c.tags("anonymous");
-        if(anon.length > 0) {
+        if( anon.length > 0 ) {
             JSArray jsAnon = new JSArray();
             for(int j=0; j<anon.length; j++) {
                 JSObjectBase a = new JSObjectBase();
@@ -375,7 +371,7 @@ public class JavadocToDB {
 
     public static boolean start(RootDoc root) {
         Scope s = Scope.getThreadLocal();
-        Object dbo = s.get("db");
+        Object dbo = s.get( "db" );
         if(! (dbo instanceof DBApiLayer)) throw new RuntimeException("your database isn't a database");
 
         DBApiLayer db = (DBApiLayer)dbo;
@@ -384,8 +380,10 @@ public class JavadocToDB {
         ClassDoc[] classes = root.classes();
 
         for (int i = 0; i < classes.length; i++) {
-            Tag[] tags = classes[i].tags("expose");
-            if(tags.length == 0) continue;
+            if( ( Generate.classes.size() > 0 && 
+                  !Generate.classes.contains( classes[i].name() ) ) || 
+                dontProcess( classes[i] ) )
+                continue;
 
             JSObjectBase obj = new JSObjectBase();
             JSObjectBase jsClasses = new JSObjectBase();

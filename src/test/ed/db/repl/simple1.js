@@ -12,7 +12,7 @@ __path__._repl(
 	assert( mt.findOne().a == 1 );
 	assert.eq( mt.count() , 1 );
 	
-	sleep( 20000 );
+	sleep( 40000 );
 	assert( st.findOne() , "nothing in slave table" );
 	assert( st.findOne().a == 1 , "what's in slave table is wrong" );
 	assert( st.count() == 1 , "why are there more than 1 thing in slave" );

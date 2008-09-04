@@ -303,8 +303,8 @@ public class HttpServer extends NIOServer {
         
         public void handleError( Task t , Exception e ){
             Logger l = LOGGER;
-            if ( t._request._attachment instanceof AppRequest )
-                l = ((AppRequest)t._request._attachment).getLogger();
+            if ( t._request.getAppRequest() != null )
+                l = t._request.getAppRequest().getLogger();
             
             l.error( "error handling a task" , e );
             try {

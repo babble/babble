@@ -1,3 +1,5 @@
+// CollectionEnumeration.java
+
 /**
 *    Copyright (C) 2008 10gen Inc.
 *  
@@ -14,29 +16,23 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-local.src.test.ed.lang.python.list2_helper();
+package ed.util;
 
-var newL = pyL2.filter(function(x){
-    return x.a == 1;
-});
+import java.util.*;
 
-var pyD = newL[0];
+public class CollectionEnumeration<E> implements Enumeration<E> {
 
-assert( pyD.a == 1 );
-assert( pyD['a'] == 1 );
-assert( pyD.b == 2 );
-assert( pyD['b'] == 2 );
+    public CollectionEnumeration( Collection<E> c ){
+        _it = c.iterator();
+    }
 
-var newL2 = pyL2.map(function(x){
-    return x.a;
-});
+    public boolean hasMoreElements(){
+        return _it.hasNext();
+    }
 
-assert.eq( newL2.length , 2 );
-assert.eq( newL2[0] , 1 );
-assert.eq( newL2[1] , null );
+    public E nextElement(){
+        return _it.next();
+    }
 
-var result = pyL2Numbers.reduce(function(x, y){
-    return x + y.a;
-}, 12);
-
-assert.eq( result, 15 );
+    private final Iterator<E> _it;
+}
