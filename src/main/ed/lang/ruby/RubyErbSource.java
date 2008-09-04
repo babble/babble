@@ -24,6 +24,11 @@ import org.jruby.Ruby;
 import ed.appserver.JSFileLibrary;
 import ed.js.engine.Scope;
 
+/**
+ * Handles .erb files by turning the file into an ERB template and modifying
+ * the JavaScript "print" function so that it directs output to the ERB output
+ * collector.
+ */
 public class RubyErbSource extends RubyJxpSource {
 
     public RubyErbSource(File f , JSFileLibrary lib) {
@@ -35,9 +40,16 @@ public class RubyErbSource extends RubyJxpSource {
 	super(runtime);
     }
     
+    /**
+     * Wraps the file content with code that turns it into an ERB template and
+     * modifies the built-in JavaScript "print" function so that it directs
+     * output to the ERB output collector.
+     */
     protected String getContent() throws IOException {
-	return "$scope.print = Proc.new { |str| _erbout.concat(str) }\n" +
+	return
+	    "_erbout = nil\n" +
 	    "require 'erb'\n" +
+	    "$scope.print = Proc.new { |str| _erbout.concat(str) }\n" +
 	    "template = ERB.new <<-XGEN_ERB_TEMPLATE_EOF\n" +
 	    super.getContent() + '\n' +
 	    "XGEN_ERB_TEMPLATE_EOF\n" +
