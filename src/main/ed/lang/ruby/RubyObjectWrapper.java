@@ -165,10 +165,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	    final JSFunction func = NativeBridge.getNativeFunc(jsobj, name);
 	    klazz.defineMethod(name, new Callback() {
 		    public IRubyObject execute(IRubyObject recv, IRubyObject[] args, Block block) {
-			scope.setThis(jsobj);
-			IRubyObject result = toRuby(scope, runtime, func.call(scope, RubyObjectWrapper.toJSFunctionArgs(scope, runtime, args, 0, block)));
-			scope.clearThisNormal(jsobj);
-			return result;
+			return toRuby(scope, runtime, func.callAndSetThis(scope, jsobj, RubyObjectWrapper.toJSFunctionArgs(scope, runtime, args, 0, block)));
 		    }
 		    public Arity getArity() { return Arity.OPTIONAL; }
 		});
