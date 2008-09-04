@@ -206,7 +206,7 @@ public class Shell {
                     return;
                 }
             }
-            else if ( a.endsWith( ".rbx" ) ){
+            else if ( a.endsWith( ".rb" ) ){
                 RubyJxpSource rbx = new RubyJxpSource( new File( a ) , ((JSFileLibrary)(s.get( "local" ) ) ) );
                 try {
                     rbx.getFunction().call( s );
@@ -217,7 +217,7 @@ public class Shell {
                     return;
                 }
 	    }
-            else if ( a.endsWith( ".erb" ) ){
+            else if ( a.endsWith( ".erb" ) || a.endsWith( ".rhtml" ) ){
                 RubyErbSource rbx = new RubyErbSource( new File( a ) , ((JSFileLibrary)(s.get( "local" ) ) ) );
                 try {
                     rbx.getFunction().call( s );

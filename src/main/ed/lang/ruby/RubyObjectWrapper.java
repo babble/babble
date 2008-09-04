@@ -46,16 +46,16 @@ public abstract class RubyObjectWrapper extends RubyObject {
     protected final Scope _scope;
     protected final Object _obj;
 
-    public static IRubyObject toRuby(Scope s, org.jruby.Ruby runtime, Object obj) {
+    public static IRubyObject toRuby(Scope s, Ruby runtime, Object obj) {
 	return toRuby(s, runtime, obj, null, null);
     }
 
-    public static IRubyObject toRuby(Scope s, org.jruby.Ruby runtime, Object obj, String name) {
+    public static IRubyObject toRuby(Scope s, Ruby runtime, Object obj, String name) {
 	return toRuby(s, runtime, obj, name, null);
     }
 
     /** Given a Java object (JSObject, Number, etc.), return a Ruby object. */
-    public static IRubyObject toRuby(Scope s, org.jruby.Ruby runtime, Object obj, String name, RubyObjectWrapper container) {
+    public static IRubyObject toRuby(Scope s, Ruby runtime, Object obj, String name, RubyObjectWrapper container) {
 	if (obj == null)
 	    return runtime.getNil();
 
@@ -92,7 +92,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
     }
 
     /** Given a Ruby block, returns a JavaScript object. */
-    public static JSFunctionWrapper toJS(Scope scope, org.jruby.Ruby runtime, Block block) {
+    public static JSFunctionWrapper toJS(Scope scope, Ruby runtime, Block block) {
 	return new JSFunctionWrapper(scope, runtime, block);
     }
 
@@ -147,7 +147,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	    return JavaUtil.convertRubyToJava(r); // punt
     }
 
-    public static Object[] toJSFunctionArgs(Scope s, org.jruby.Ruby r, IRubyObject[] args, int offset, Block block) {
+    public static Object[] toJSFunctionArgs(Scope s, Ruby r, IRubyObject[] args, int offset, Block block) {
 	boolean haveBlock = block != null && block.isGiven();
 	Object[] jargs = new Object[args.length - offset + (haveBlock ? 1 : 0)];
 	for (int i = offset; i < args.length; ++i)
@@ -158,7 +158,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
     }
 
     public static void addJavaPublicMethodWrappers(final Scope scope, RubyClass klazz, final JSObject jsobj, Set<String> namesToIgnore) {
-	final org.jruby.Ruby runtime = klazz.getRuntime();
+	final Ruby runtime = klazz.getRuntime();
 	for (final String name : NativeBridge.getPublicMethodNames(jsobj.getClass())) {
 	    if (namesToIgnore.contains(name))
 		continue;
@@ -172,7 +172,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	}
     }
 
-    RubyObjectWrapper(Scope s, org.jruby.Ruby runtime, Object obj) {
+    RubyObjectWrapper(Scope s, Ruby runtime, Object obj) {
 	super(runtime, runtime.getObject());
 	_scope = s;
 	_obj = obj;

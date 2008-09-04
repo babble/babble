@@ -82,8 +82,7 @@ public abstract class Language {
 
         if ( extension.equals( "rb" )
              || extension.equals( "erb" )
-             || extension.equals( "rhtml" )
-             || extension.equals( "rbx" ) )
+             || extension.equals( "rhtml" ) )
             return RUBY;
 
         if ( extension.equals( "php" ) )

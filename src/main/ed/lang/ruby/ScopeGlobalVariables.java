@@ -15,11 +15,11 @@ import static ed.lang.ruby.RubyObjectWrapper.toRuby;
 public class ScopeGlobalVariables extends GlobalVariables {
 
     private Scope _scope;
-    private org.jruby.Ruby _runtime;
+    private Ruby _runtime;
     private GlobalVariables _oldies;
     private IRubyObject _defaultSeparator;
 
-    public ScopeGlobalVariables(Scope scope, org.jruby.Ruby runtime) {
+    public ScopeGlobalVariables(Scope scope, Ruby runtime) {
 	super(runtime);
 	_scope = scope;
 	_runtime = runtime;

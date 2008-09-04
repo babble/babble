@@ -38,7 +38,7 @@ public class RubyJSArrayWrapper extends RubyArray {
     private Scope _scope;
     private JSArray _jsarray;
 
-    RubyJSArrayWrapper(Scope s, org.jruby.Ruby runtime, JSArray obj) {
+    RubyJSArrayWrapper(Scope s, Ruby runtime, JSArray obj) {
 	super(runtime, 0, null);
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("  creating RubyJSArrayWrapper");

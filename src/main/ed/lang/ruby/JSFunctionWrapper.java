@@ -19,6 +19,7 @@ package ed.lang.ruby;
 import java.util.List;
 import java.util.ArrayList;
 
+import org.jruby.Ruby;
 import org.jruby.RubyProc;
 import org.jruby.runtime.*;
 import org.jruby.runtime.builtin.IRubyObject;
@@ -39,10 +40,10 @@ public class JSFunctionWrapper extends JSFunctionCalls0 {
     private static final IRubyObject[] TYPE_ARRAY = new IRubyObject[0];
 
     private Scope _scope;
-    private org.jruby.Ruby _runtime;
+    private Ruby _runtime;
     private Block _block;
 
-    public JSFunctionWrapper(Scope scope, org.jruby.Ruby runtime, Block block) {
+    public JSFunctionWrapper(Scope scope, Ruby runtime, Block block) {
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("wrapping a block in a JSFunctionWrapper");
 	_scope = scope;

@@ -49,10 +49,10 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
         if ( f.getName().endsWith( ".py" ) )
             return new ed.lang.python.PythonJxpSource( f , lib );
         
-        if ( f.getName().endsWith( ".rbx" ) )
+        if ( f.getName().endsWith( ".rb" ) )
             return new ed.lang.ruby.RubyJxpSource( f , lib );
         
-        if ( f.getName().endsWith( ".erb" ) )
+        if ( f.getName().endsWith( ".erb" ) || f.getName().endsWith( ".rhtml" ) )
             return new ed.lang.ruby.RubyErbSource( f , lib );
 
         if ( f.getName().endsWith( ".php" ) )

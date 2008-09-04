@@ -37,7 +37,7 @@ public class RubyJSFunctionWrapper extends RubyObjectWrapper {
 
     private final JSFunction _func;
 
-    RubyJSFunctionWrapper(Scope s, org.jruby.Ruby runtime, JSFunction obj, String name, RubyClass eigenclass) {
+    RubyJSFunctionWrapper(Scope s, Ruby runtime, JSFunction obj, String name, RubyClass eigenclass) {
 	super(s, runtime, obj);
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("  creating RubyJSFunctionWrapper named " + name);

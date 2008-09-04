@@ -36,7 +36,7 @@ public class RubyDBCursorWrapper extends RubyArray {
     protected Scope _scope;
     protected DBCursor _cursor;
 
-    RubyDBCursorWrapper(Scope s, org.jruby.Ruby runtime, DBCursor cursor) {
+    RubyDBCursorWrapper(Scope s, Ruby runtime, DBCursor cursor) {
 	super(runtime, runtime.getArray());
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("creating RubyDBCursorWrapper");
@@ -347,7 +347,7 @@ public class RubyDBCursorWrapper extends RubyArray {
     }
 
     public IRubyObject each_index(ThreadContext context, Block block) {
-        org.jruby.Ruby runtime = getRuntime();
+        Ruby runtime = getRuntime();
 	int realLength = _cursor.length();
         for (int i = 0; i < realLength; i++)
             block.yield(context, runtime.newFixnum(i));
@@ -365,7 +365,7 @@ public class RubyDBCursorWrapper extends RubyArray {
     }
 
     private IRubyObject inspectJoin(ThreadContext context, RubyArray tmp, IRubyObject sep) {
-        org.jruby.Ruby runtime = getRuntime();
+        Ruby runtime = getRuntime();
 
         // If already inspecting, there is no need to register/unregister again.
         if (runtime.isInspecting(this)) {
@@ -381,7 +381,7 @@ public class RubyDBCursorWrapper extends RubyArray {
     }
 
     public RubyString join(ThreadContext context, IRubyObject sep) {
-        final org.jruby.Ruby runtime = getRuntime();
+        final Ruby runtime = getRuntime();
 
 	int realLength = _cursor.length();
         if (realLength == 0) return RubyString.newEmptyString(getRuntime());
@@ -456,7 +456,7 @@ public class RubyDBCursorWrapper extends RubyArray {
 	long realLength = _cursor.length();
         if (realLength != ary.size()) return getRuntime().getFalse();
 
-        org.jruby.Ruby runtime = getRuntime();
+        Ruby runtime = getRuntime();
         for (long i = 0; i < realLength; i++) {
             if (!equalInternal(context, _at(i), ary.at(getRuntime().newFixnum(i)))) return runtime.getFalse();
         }
@@ -472,7 +472,7 @@ public class RubyDBCursorWrapper extends RubyArray {
 	long realLength = _cursor.length();
         if (realLength != ary.size()) return getRuntime().getFalse();
 
-        org.jruby.Ruby runtime = getRuntime();
+        Ruby runtime = getRuntime();
         for (int i = 0; i < realLength; i++)
             if (!eqlInternal(context, _at(i), ary.at(getRuntime().newFixnum(i)))) return runtime.getFalse();
         return runtime.getTrue();
@@ -499,7 +499,7 @@ public class RubyDBCursorWrapper extends RubyArray {
     }
 
     public IRubyObject index(ThreadContext context, IRubyObject obj) {
-        org.jruby.Ruby runtime = getRuntime();
+        Ruby runtime = getRuntime();
 	int realLength = _cursor.length();
         for (int i = 0; i < realLength; i++) {
             if (equalInternal(context, _at(i), obj)) return runtime.newFixnum(i);
@@ -509,7 +509,7 @@ public class RubyDBCursorWrapper extends RubyArray {
     }
 
     public IRubyObject rindex(ThreadContext context, IRubyObject obj) {
-        org.jruby.Ruby runtime = getRuntime();
+        Ruby runtime = getRuntime();
 	int realLength = _cursor.length();
         int i = realLength;
 
@@ -537,7 +537,7 @@ public class RubyDBCursorWrapper extends RubyArray {
     }
 
     public RubyArray collect(ThreadContext context, Block block) {
-        org.jruby.Ruby runtime = getRuntime();
+        Ruby runtime = getRuntime();
 	int realLength = _cursor.length();
 
         if (!block.isGiven()) {
@@ -601,7 +601,7 @@ public class RubyDBCursorWrapper extends RubyArray {
         for (int i = 0; i < args.length; i++)
             args[i] = args[i].convertToArray();
 
-        org.jruby.Ruby runtime = getRuntime();
+        Ruby runtime = getRuntime();
         int len = _cursor.length();
         if (block.isGiven()) {
 	    long realLength = _cursor.length();
@@ -635,7 +635,7 @@ public class RubyDBCursorWrapper extends RubyArray {
 	long ary2RealLength = ary2.size();
         if (len > ary2RealLength) len = ary2RealLength;
 
-        org.jruby.Ruby runtime = getRuntime();
+        Ruby runtime = getRuntime();
         for (int i = 0; i < len; i++) {
             IRubyObject v = _at(i).callMethod(context, MethodIndex.OP_SPACESHIP, "<=>", ary2.aref(getRuntime().newFixnum(i)));
             if (!(v instanceof RubyFixnum) || ((RubyFixnum) v).getLongValue() != 0) return v;

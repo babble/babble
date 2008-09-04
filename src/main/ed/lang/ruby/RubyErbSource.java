@@ -26,9 +26,9 @@ import ed.appserver.JSFileLibrary;
 import ed.js.engine.Scope;
 
 /**
- * Handles .erb files by turning the file into an ERB template and modifying
- * the JavaScript "print" function so that it directs output to the ERB output
- * collector.
+ * Handles .erb and .rhtml files by turning the file into an ERB template and
+ * modifying the JavaScript "print" function so that it directs output to the
+ * ERB output collector.
  */
 public class RubyErbSource extends RubyJxpSource {
 
@@ -59,7 +59,7 @@ public class RubyErbSource extends RubyJxpSource {
     }
 
     /** For testing. */
-    protected RubyErbSource(org.jruby.Ruby runtime) {
+    protected RubyErbSource(Ruby runtime) {
 	super(runtime);
     }
     

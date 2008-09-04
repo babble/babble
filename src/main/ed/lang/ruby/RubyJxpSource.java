@@ -63,11 +63,11 @@ public class RubyJxpSource extends JxpSource {
     public RubyJxpSource(File f , JSFileLibrary lib) {
         _file = f;
         _lib = lib;
-	_runtime = org.jruby.Ruby.newInstance(config);
+	_runtime = Ruby.newInstance(config);
     }
 
     /** For testing. */
-    protected RubyJxpSource(org.jruby.Ruby runtime) {
+    protected RubyJxpSource(Ruby runtime) {
 	_file = null;
 	_lib = null;
 	_runtime = runtime;
@@ -202,7 +202,7 @@ public class RubyJxpSource extends JxpSource {
 
     protected final File _file;
     protected final JSFileLibrary _lib;
-    protected final org.jruby.Ruby _runtime;
+    protected final Ruby _runtime;
 
     protected Node _code;
     protected long _lastCompile;

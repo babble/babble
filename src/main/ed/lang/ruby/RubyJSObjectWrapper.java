@@ -44,7 +44,7 @@ public class RubyJSObjectWrapper extends RubyHash {
     protected int _size;
     protected RubyClass _eigenclass;
 
-    RubyJSObjectWrapper(Scope s, org.jruby.Ruby runtime, JSObject obj) {
+    RubyJSObjectWrapper(Scope s, Ruby runtime, JSObject obj) {
 	super(runtime);
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("creating RubyJSObjectWrapper around " + obj.getClass().getName());
@@ -55,7 +55,7 @@ public class RubyJSObjectWrapper extends RubyHash {
     }
 
     private void _createMethods() {
-	final org.jruby.Ruby runtime = getRuntime();
+	final Ruby runtime = getRuntime();
 	final ThreadContext context = runtime.getCurrentContext();
 
 	_eigenclass.alias_method(context, RubyString.newString(runtime, "keySet"), RubyString.newString(runtime, "keys"));
@@ -320,7 +320,7 @@ public class RubyJSObjectWrapper extends RubyHash {
 //     }
 
     public RubyHash merge_bang(final ThreadContext context, final IRubyObject other, final Block block) {
-        final org.jruby.Ruby runtime = getRuntime();
+        final Ruby runtime = getRuntime();
         final RubyHash otherHash = other.convertToHash();
         final RubyHash self = this;
         otherHash.visitAll(new Visitor() {
