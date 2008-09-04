@@ -650,9 +650,17 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
     }
 
     public ServletOutputStream getOutputStream(){
-        throw new RuntimeException( "can't get an OutputStream" );
+	if ( _outputStream == null ){
+	    final JxpWriter jxpWriter = getJxpWriter();
+	    _outputStream = new ServletOutputStream(){
+		    public void write( int b ){
+			jxpWriter.print( String.valueOf( (char)b ) );
+		    }
+		};
+	}
+	return _outputStream;
     }
-
+    
     /**
      * @unexpose
      */
@@ -821,6 +829,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
     boolean _cleaned = false;
     MyJxpWriter _writer = null;
     PrintWriter _printWriter;
+    ServletOutputStream _outputStream;
 
     JSFile.Sender _jsfile;
 

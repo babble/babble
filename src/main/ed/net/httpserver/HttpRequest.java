@@ -333,11 +333,11 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest {
     }
 
     public String getLocalAddr(){
-        throw new RuntimeException( "you don't need the local address in the cloud :) " );
+	return LOCALHOST.getHostAddress();
     }
 
     public String getLocalName(){
-        throw new RuntimeException( "you don't need the local address in the cloud :) " );
+	return LOCALHOST.getHostName();
     }
 
     public RequestDispatcher getRequestDispatcher( String path ){
@@ -1134,19 +1134,23 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest {
     // ---- User ---
     
     public String getAuthType(){
-        throw new RuntimeException( "User not supported" );
+	System.err.println( "User stuff not really supported" );
+	return null;
     }
 
     public String getRemoteUser(){
-        throw new RuntimeException( "User not supported" );
+	System.err.println( "User stuff not really supported" );
+	return null;
     }
     
     public java.security.Principal getUserPrincipal(){
-        throw new RuntimeException( "User not supported" );
+	System.err.println( "User stuff not really supported" );
+	return null;
     }
 
     public boolean isUserInRole( String role){
-        throw new RuntimeException( "User not supported" );
+	System.err.println( "User stuff not really supported" );
+	return false;
     }
 
     
@@ -1235,4 +1239,15 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest {
 
     private String _characterEncoding = "ISO-8859-1";
 
+    private static InetAddress LOCALHOST;
+    static {
+	try {
+	    LOCALHOST = InetAddress.getLocalHost();
+	}
+	catch ( Exception e ){
+	    e.printStackTrace();
+	    System.err.println( "exiting" );
+	    System.exit(-1);
+	}
+    }
 }
