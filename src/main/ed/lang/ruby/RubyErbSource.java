@@ -51,7 +51,7 @@ public class RubyErbSource extends RubyJxpSource {
 	    "require 'erb'\n" +
 	    "$scope.print = Proc.new { |str| _erbout.concat(str) }\n" +
 	    "template = ERB.new <<-XGEN_ERB_TEMPLATE_EOF\n" +
-	    super.getContent() + '\n' +
+	    super.getContent().replace("\\", "\\\\").replace("#", "\\#") + '\n' +
 	    "XGEN_ERB_TEMPLATE_EOF\n" +
 	    "puts template.result(binding)\n";
     }
