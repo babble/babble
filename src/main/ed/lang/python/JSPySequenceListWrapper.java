@@ -366,7 +366,7 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
 
     public List subList( int fromIndex , int toIndex ){
         // FIXME
-        return null;
+        return new RandomAccessSublist( this , fromIndex , toIndex );
     }
 }
-    
+

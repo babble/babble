@@ -21,6 +21,7 @@
       <class name="ed.js.JSONTest" />
       <class name="ed.appserver.templates.JxpConvertTest" />
       <class name="ed.appserver.templates.HtmlTemplateTest" />
+      <class name="ed.lang.python.JSPySequenceListWrapperTest" />
     </classes>
   </test>
 <!--
