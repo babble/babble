@@ -28,10 +28,10 @@ public class JavadocToDB {
     public static void getTags(Doc from, JSObjectBase dest) {
         Tag cTags[] = from.tags();
         for(int j=0; j<cTags.length; j++) {
-            if(!(cTags[j].name().substring(1).equals("return") ||
-               cTags[j].name().substring(1).equals("example") ||
-               cTags[j].name().substring(1).equals("param") ||
-                 cTags[j].name().substring(1).equals("anonymous"))) {
+            if(!(cTags[j].name().equals("@return") ||
+                 cTags[j].name().equals("@example") ||
+                 cTags[j].name().equals("@param") ||
+                 cTags[j].name().equals("@anonymous"))) {
                 dest.set(cTags[j].name().substring(1), cTags[j].text());
             }
         }

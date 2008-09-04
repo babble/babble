@@ -171,6 +171,10 @@ public class Shell {
 
         for ( String a : args ){
             if ( a.equals( "-exit" ) ){
+                System.out.println("-exit flag deprecated : please use --exit");
+                exit = true;
+                continue;
+            } else  if ( a.equals( "--exit" ) ){
                 exit = true;
                 continue;
             }
@@ -184,6 +188,7 @@ public class Shell {
                 catch ( Exception e ){
                     StackTraceHolder.getInstance().fix( e );
                     e.printStackTrace();
+                    System.exit(1);
                     return;
                 }
             }
@@ -195,6 +200,7 @@ public class Shell {
                 catch ( Exception e ){
                     StackTraceHolder.getInstance().fix( e );
                     e.printStackTrace();
+                    System.exit(1);
                     return;
                 }
             }
@@ -211,6 +217,7 @@ public class Shell {
                 catch ( Exception e ){
                     StackTraceHolder.getInstance().fix( e );
                     e.printStackTrace();
+                    System.exit(1);
                     return;
                 }
             }
@@ -228,6 +235,7 @@ public class Shell {
                 catch ( Exception e ){
                     StackTraceHolder.getInstance().fix( e );
                     e.printStackTrace();
+                    System.exit(1);
                     return;
                 }
             }

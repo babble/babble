@@ -18,12 +18,16 @@
 
 package ed.net.httpserver;
 
+import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.regex.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
 
 import ed.js.*;
 import ed.util.*;
+import ed.appserver.*;
 
 /**
  * Class to represent an HTTP request.  The 10gen app server exposes the variable 'request'
@@ -31,7 +35,7 @@ import ed.util.*;
  *
  * @expose
  */
-public class HttpRequest extends JSObjectLame {
+public class HttpRequest extends JSObjectLame implements HttpServletRequest {
     
     /**
      * Generate a "dummy" request, coming from a browser trying to access the
@@ -93,13 +97,22 @@ public class HttpRequest extends JSObjectLame {
 
         int endURI = _url.indexOf( "?" );
         if ( endURI < 0 ){
-            _uri = Encoding._unescape( _url );
+            _fullPath = Encoding._unescape( _url );
             _queryString = null;
         }
         else {
-            _uri = Encoding._unescape( _url.substring( 0 , endURI ) );
+            _fullPath = Encoding._unescape( _url.substring( 0 , endURI ) );
             _queryString = _url.substring( endURI + 1 );
         }
+    }
+
+    public StringBuffer getRequestURL(){
+        StringBuffer buf = new StringBuffer();
+        String host = getHeader( "Host" );
+        if ( host != null )
+            buf.append( "http://" ).append( host );
+        buf.append( _fullPath );
+        return buf;
     }
 
     public String getFullURL(){
@@ -109,12 +122,43 @@ public class HttpRequest extends JSObjectLame {
         return "http://" + host + _url;
     }
 
+    public String getFullPath(){
+        return _fullPath;
+    }
+
+    public String getServletPath(){
+        return getFullPath();
+    }
+
+    public String getRequestURI(){
+        return _fullPath;
+    }
+
+    public String getContextPath(){
+        int idx = _fullPath.lastIndexOf( "/" );
+        if ( idx < 0 )
+            return "";
+        return _fullPath.substring( 0 , idx );
+    }
+
+    public String getPathTranslated(){
+        return null;
+    }
+
+    public String getPathInfo(){
+        return null;
+    }
+
+    public String getRealPath( String loc ){
+        throw new RuntimeException( "getRealPath doesn't work" );
+    }
+
     /**
      * Get the URI of the request (the path without hostname or query
      * arguments).
      */
     public String getURI(){
-        return _uri;
+        return _fullPath;
     }
 
     /**
@@ -126,7 +170,7 @@ public class HttpRequest extends JSObjectLame {
     }
     
     public String getDirectory(){
-        return getDirectory( _uri );
+        return getDirectory( _fullPath );
     }
     
     public static String getDirectory( String uri ){
@@ -176,7 +220,21 @@ public class HttpRequest extends JSObjectLame {
      */
     public String toString(){
         _finishParsing();
-        return _command + " " + _uri + " HTTP/1." + ( _http11 ? "1" : "" ) + " : " + _headers + "  " + _urlParameters + " " + _postParameters;
+        return _command + " " + _fullPath + " HTTP/1." + ( _http11 ? "1" : "" ) + " : " + _headers + "  " + _urlParameters + " " + _postParameters;
+    }
+
+    public String getScheme(){
+        return "http";
+    }
+    
+    public String getProtocol(){
+        return "HTTP/1." + ( _http11 ? "1" : "0" );
+    }
+
+    
+
+    public boolean isHttp11(){
+        return _http11;
     }
 
     /**
@@ -250,7 +308,41 @@ public class HttpRequest extends JSObjectLame {
         
         return StringParseUtil.parseInt( host.substring( idx + 1 ) , 0 );
     }
+
+    public String getContentType(){
+        return getHeader( "Content-Type" );
+    }
+
+    public int getContentLength(){
+        return getIntHeader( "Content-Length" , -1 );
+    }
     
+    public int getServerPort(){
+        return getLocalPort();
+    }
+
+    public int getLocalPort(){
+        int p = getPort();
+        if ( p <= 0 )
+            return 80;
+        return p;
+    }
+
+    public String getServerName(){
+        return getHost();
+    }
+
+    public String getLocalAddr(){
+	return LOCALHOST.getHostAddress();
+    }
+
+    public String getLocalName(){
+	return LOCALHOST.getHostName();
+    }
+
+    public RequestDispatcher getRequestDispatcher( String path ){
+        throw new RuntimeException( "no getRequestDispatcher()" );
+    }
 
     /**
      * Gets a raw HTTP header specified by the parameter.
@@ -259,6 +351,20 @@ public class HttpRequest extends JSObjectLame {
      */
     public String getHeader( String h ){
         return _headers.get( h );
+    }
+
+    public Enumeration getHeaders( String h ){
+        String v = getHeader( h );
+        if ( v == null )
+            return null;
+        
+        LinkedList ll = new LinkedList();
+        ll.add( v );
+        return new CollectionEnumeration( ll );
+    }
+
+    public int getIntHeader( String h ){
+        return getIntHeader( h , -1 );
     }
 
     /**
@@ -275,16 +381,21 @@ public class HttpRequest extends JSObjectLame {
         return StringParseUtil.parseBoolean( getHeader( h ) , def );
     }
 
-    
-
+    public long getDateHeader( String name ){
+        String v = getHeader( name );
+        if ( v == null )
+            return -1;
+        
+        return JSDate.parseDate( v.trim() , -1 );
+    }
     /**
      * Get every HTTP header that was sent as an array of header names.
      * @return an array of HTTP header names
      */
-    public JSArray getHeaderNames(){
+    public Enumeration getHeaderNames(){
         JSArray a = new JSArray();
         a.addAll( _headers.keySet() );
-        return a;
+        return a.getEnumeration();
     }
 
     // cookies
@@ -335,9 +446,18 @@ public class HttpRequest extends JSObjectLame {
      * NOTE: you can't add cookies using this object.
      * @return all cookies as a JavaScript obejct
      */
-    public JSObject getCookies(){
+    public JSObject getCookiesObject(){
         getCookie( "" );
         return _cookies;
+    }
+
+    public Cookie[] getCookies(){
+        Collection<String> names = _cookies.keySet( false );
+        Cookie[] cookies = new Cookie[names.size()];
+        int i=0;
+        for ( String n : names )
+            cookies[i++] = new Cookie( n , _cookies.get( n ).toString() );
+        return cookies;
     }
     
     // param stuff
@@ -347,7 +467,7 @@ public class HttpRequest extends JSObjectLame {
      * This includes both GET and POST parameters.
      * @return an array of parameter names
      */
-    public JSArray getParameterNames(){
+    public JSArray getParameterNamesArray(){
         _finishParsing();
         
         JSArray a = new JSArray();
@@ -362,6 +482,10 @@ public class HttpRequest extends JSObjectLame {
         }
         
         return a;
+    }
+
+    public Enumeration getParameterNames(){
+        return getParameterNamesArray().getEnumeration();
     }
     
     /**
@@ -401,6 +525,7 @@ public class HttpRequest extends JSObjectLame {
      * @return array of all values associated with this parameter
      */
     public JSArray getParameters( String name ){
+        _finishParsing();
         List<String> lst = _getParameter( name );
         if ( lst == null )
             return null;
@@ -409,6 +534,35 @@ public class HttpRequest extends JSObjectLame {
         for ( String s : lst )
             a.add( new JSString( s ) );
 	return a;
+    }
+    
+    public String[] getParameterValues( String name ){
+        _finishParsing();
+        List<String> lst = _getParameter( name );
+        if ( lst == null )
+            return null;
+
+        String[] s = new String[lst.size()];
+        lst.toArray( s );
+        return s;
+    }
+
+    public Map<String,String> getParameterMap(){
+        _finishParsing();
+
+        Map<String,String> m = new HashMap<String,String>();
+        _addAll( m , _urlParameters );
+        _addAll( m , _postParameters );
+
+        return m;
+    }
+    private void _addAll( Map<String,String> to , Map<String,List<String>> from ){
+        for ( String name : from.keySet() ){
+            List<String> lst = from.get( name );
+            if ( lst == null || lst.size() == 0 )
+                continue;
+            to.put( name , lst.get(0) );
+        }
     }
 
     /**
@@ -809,20 +963,17 @@ public class HttpRequest extends JSObjectLame {
 	return o;
     }
 
-    /**
-     * @unexpose
-     */
-    public Object getAttachment(){
-        return _attachment;
+    public AppRequest getAppRequest(){
+        return _appRequest;
     }
 
     /**
      * @unexpose
      */
-    public void setAttachment( Object o ){
-        if ( _attachment != null )
-            throw new RuntimeException( "attachment already set" );
-        _attachment = o;
+    public void setAppRequest( AppRequest req ){
+        if ( _appRequest != null )
+            throw new RuntimeException( "req already set" );
+        _appRequest = req;
     }
 
     /**
@@ -870,6 +1021,19 @@ public class HttpRequest extends JSObjectLame {
         
         _remoteIP = ip;
         return _remoteIP;
+    }
+
+    public String getRemoteAddr(){
+        return getRemoteIP();
+    }
+
+    public String getRemoteHost(){
+        // TODO: make this a host name
+        return getRemoteIP();
+    }
+
+    public int getRemotePort(){
+        return _handler.getRemotePort();
     }
 
     /**
@@ -934,6 +1098,117 @@ public class HttpRequest extends JSObjectLame {
 
         return new long[]{ min , max };
     }
+
+    // ----  SESSION ----
+
+    public boolean isRequestedSessionIdFromCookie(){
+        return true;
+    }
+
+    public boolean isRequestedSessionIdFromUrl(){
+        return false;
+    }
+    public boolean isRequestedSessionIdFromURL(){
+        return false;
+    }
+    
+    public boolean isRequestedSessionIdValid(){
+        return true;
+    }
+
+    public String getRequestedSessionId(){
+        return getCookie( Session.COOKIE_NAME );
+    }
+
+    public Session getSession( boolean b ){
+        return getSession();
+    }
+
+    public Session getSession(){
+        if ( _appRequest == null )
+            return null;
+        
+        return _appRequest.getSession();
+    }
+
+    // ---- User ---
+    
+    public String getAuthType(){
+	System.err.println( "User stuff not really supported" );
+	return null;
+    }
+
+    public String getRemoteUser(){
+	System.err.println( "User stuff not really supported" );
+	return null;
+    }
+    
+    public java.security.Principal getUserPrincipal(){
+	System.err.println( "User stuff not really supported" );
+	return null;
+    }
+
+    public boolean isUserInRole( String role){
+	System.err.println( "User stuff not really supported" );
+	return false;
+    }
+
+    
+    public Locale getLocale(){
+        throw new RuntimeException( "Locale stuff doesn't work yet" );
+    }
+
+    public Enumeration getLocales(){
+        throw new RuntimeException( "Locale stuff doesn't work yet" );
+    }
+
+    public boolean isSecure(){
+        return false;
+    }
+    
+    // ----
+
+    public Object getAttribute( String name ){
+        throw new RuntimeException( "no attribuets yet" );
+    }
+    public Enumeration getAttributeNames(){
+        throw new RuntimeException( "no attribuets yet" );
+    }
+    public void removeAttribute( String name ){
+        throw new RuntimeException( "no attribuets yet" );
+    }    
+    public void setAttribute(String name,  Object o ){
+        throw new RuntimeException( "no attribuets yet" );
+    }
+
+    // ----
+
+    public BufferedReader getReader(){
+        throw new RuntimeException( "can't get a raw reader" );
+    }
+
+    public ServletInputStream getInputStream(){
+        if ( _postData != null )
+            return _postData.getInputStream();
+        
+        return new EmptyInputStream();
+    }
+
+    public void setCharacterEncoding( String env ){
+        throw new RuntimeException( "can't set character encoding" );
+    }
+
+    public String getCharacterEncoding(){
+        return _characterEncoding;
+    }
+
+    public static class EmptyInputStream extends ServletInputStream {
+        public int read(){
+            return -1;
+        }
+    }
+
+    // ----
     
     final HttpServer.HttpSocketHandler _handler;
     final String _firstLine;
@@ -953,15 +1228,26 @@ public class HttpRequest extends JSObjectLame {
     final String _rawHeader;
     final String _command;
     final String _url;
-    final String _uri;
+    final String _fullPath;
     final String _queryString;
     final boolean _http11;
 
-    Object _attachment;
+    private AppRequest _appRequest;
     
     private boolean _rangeChecked = false;
     private long[] _range;
 
     private String _characterEncoding = "ISO-8859-1";
 
+    private static InetAddress LOCALHOST;
+    static {
+	try {
+	    LOCALHOST = InetAddress.getLocalHost();
+	}
+	catch ( Exception e ){
+	    e.printStackTrace();
+	    System.err.println( "exiting" );
+	    System.exit(-1);
+	}
+    }
 }

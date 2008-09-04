@@ -99,10 +99,11 @@ public class URLFixer {
         }
         else {
             cdnTags = _cdnSuffix;
-            if ( cdnTags == null )
+            
+            if ( url.contains( "ctxt=" ) || cdnTags == null )
                 cdnTags = "";
             
-            if ( doVersioning && _context != null ){
+            if ( doVersioning && _context != null && ! url.contains( "lm=" ) ){
                 File f = _context.getFileSafe( uri );
 		if ( f == null )
 		    cdnTags = _urlAppendNameValue( cdnTags , "lm=cantfind" );

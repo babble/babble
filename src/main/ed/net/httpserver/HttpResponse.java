@@ -630,13 +630,37 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
     }
 
     public PrintWriter getWriter(){
-        throw new RuntimeException( "can't get a PrintWriter" );
+	if ( _printWriter == null ){
+	    final JxpWriter jxpWriter = getJxpWriter();
+	    _printWriter = new PrintWriter( new Writer(){
+
+		    public void close(){
+		    }
+
+		    public void flush(){
+		    }
+		    
+		    public void write(char[] cbuf, int off, int len){
+			jxpWriter.print( new String( cbuf , off , len ) );
+		    }
+			
+		} , true );
+	}
+	return _printWriter;
     }
 
     public ServletOutputStream getOutputStream(){
-        throw new RuntimeException( "can't get an OutputStream" );
+	if ( _outputStream == null ){
+	    final JxpWriter jxpWriter = getJxpWriter();
+	    _outputStream = new ServletOutputStream(){
+		    public void write( int b ){
+			jxpWriter.print( String.valueOf( (char)b ) );
+		    }
+		};
+	}
+	return _outputStream;
     }
-
+    
     /**
      * @unexpose
      */
@@ -804,7 +828,9 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
     boolean _done = false;
     boolean _cleaned = false;
     MyJxpWriter _writer = null;
-    
+    PrintWriter _printWriter;
+    ServletOutputStream _outputStream;
+
     JSFile.Sender _jsfile;
 
     private AppRequest _appRequest;
