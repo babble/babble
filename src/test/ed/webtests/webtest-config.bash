@@ -1,5 +1,7 @@
 # You can (and probably should) override these values in webtest-local.bash
 export WTSITE=http://localhost:8080
+# Uncomment to run headless
+# export WTPARAMS="-Dwt.headless=true"
 
 GITROOT=~/10gen
 
