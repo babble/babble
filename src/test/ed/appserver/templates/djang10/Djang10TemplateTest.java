@@ -169,6 +169,9 @@ public class Djang10TemplateTest {
                 }
             }
             
+            context.set("unicodeStr", "ŠĐĆŽćžšđ");
+            context.set("unicdeStr2", "1игорь1");
+            
             return tests.toArray();
 
         }
@@ -235,7 +238,7 @@ public class Djang10TemplateTest {
             File resultFile = new File( file.getAbsolutePath().replaceAll( ".djang10$" , ".out" ) );
             if ( ! resultFile.exists() )
                 resultFile = new File( file.getAbsolutePath() + ".out" );
-            String expected = _clean( StreamUtil.readFully( new FileInputStream( resultFile ) ) );
+            String expected = _clean( StreamUtil.readFully( resultFile ) );
             
             TestCase.assertClose( expected , got, "Error : " + file + " : " );
         }

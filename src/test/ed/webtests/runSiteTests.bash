@@ -23,6 +23,12 @@ popd
 cd `dirname $0`
 TESTDIR=`pwd`
 
+if [ ! -d "$FULLSITE/test" ]
+    then
+        echo "Site '$1' does not contain a test directory, aborting."
+        exit 1
+fi
+
 # Do configuration steps.
 source $TESTDIR/webtest-config.bash
 
@@ -38,6 +44,7 @@ mkdir -p /tmp/$SITE/logs /tmp/$SITE/db
 rm /tmp/$SITE/db/*
 cd $GITROOT/p/db
 nohup ./db --port $db_port --dbpath /tmp/$SITE/db/ run > /tmp/$SITE/logs/db&
+db_pid=$!
 
 # Use the _config.js in the test directory if there is one.
 cp $FULLSITE/_config.js $FULLSITE/test/_config.js.backup
@@ -69,7 +76,8 @@ ln -s $TESTDIR/resources/definitions $FULLSITE/test/definitions/_10gen_default_d
 # Run webtest.
 cd $FULLSITE/test
 export WTPATH=$GITROOT/ed/include/webtest
-$WTPATH/bin/webtest.sh
+$WTPATH/bin/webtest.sh $WTPARAMS
+STATUS=$?
 
 # Removed copied resources and auto-generated cruft.
 # This step probably isn't necessary but will hopefully prevent people from
@@ -83,8 +91,18 @@ rm -r $FULLSITE/test/dtd
 
 
 # Clean up from the _config.js shuffling.
-cp $FULLSITE/test/_config.js.backup $FULLSITE/_config.js
-rm $FULLSITE/test/_config.js.backup
+if [ -f $FULLSITE/test/_config.js.backup ]
+    then
+        cp $FULLSITE/test/_config.js.backup $FULLSITE/_config.js
+        rm $FULLSITE/test/_config.js.backup
+    else
+        rm $FULLSITE/_config.js
+fi
 
 # Bring down the db and appserver.
-kill 0
+kill $db_pid
+# Really hacky way to find the appserver pid
+http_pid=`ps -e -o pid,command | grep java | grep "ed.appserver.AppServer" | grep "port $http_port" | cut -d " " -f 1`
+kill $http_pid
+
+exit $STATUS
