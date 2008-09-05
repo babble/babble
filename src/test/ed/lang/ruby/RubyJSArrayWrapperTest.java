@@ -19,6 +19,8 @@ package ed.lang.ruby;
 import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
+import org.jruby.RubyClass;
+
 import ed.lang.ruby.RubyJSArrayWrapper;
 import ed.js.*;
 import ed.js.func.JSFunctionCalls1;
@@ -48,6 +50,12 @@ public class RubyJSArrayWrapperTest {
 	array = new JSArray(new Integer(1), new JSString("test string"));
 	w = new RubyJSArrayWrapper(s, r, array);
 	r.getGlobalVariables().set("$a", w);
+    }
+
+    public void testClass() {
+	RubyClass klazz = new RubyJSArrayWrapper(s, r, array).type();
+	assertEquals(klazz.name().toString(), "JSArray");
+	assertEquals(((RubyClass)klazz.superclass(r.getCurrentContext())).name().toString(), "Array");
     }
 
     public void testBasics() {

@@ -16,10 +16,8 @@
 
 package ed.lang.ruby;
 
-import org.jruby.Ruby;
-import org.jruby.RubyArray;
-import org.jruby.runtime.Block;
-import org.jruby.runtime.ThreadContext;
+import org.jruby.*;
+import org.jruby.runtime.*;
 import org.jruby.runtime.builtin.IRubyObject;
 
 import ed.js.JSArray;
@@ -35,11 +33,25 @@ import static ed.lang.ruby.RubyObjectWrapper.toRuby;
  */
 public class RubyJSArrayWrapper extends RubyArray {
 
+    static RubyClass jsArrayClass = null;
+
     private Scope _scope;
     private JSArray _jsarray;
 
+    public static synchronized RubyClass getJSArrayClass(Ruby runtime) {
+	if (jsArrayClass == null) {
+	    jsArrayClass = runtime.defineClass("JSArray", runtime.getArray(), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
+	    jsArrayClass.kindOf = new RubyModule.KindOf() {
+		    public boolean isKindOf(IRubyObject obj, RubyModule type) {
+			return obj instanceof RubyJSArrayWrapper;
+		    }
+		};
+	}
+	return jsArrayClass;
+    }
+
     RubyJSArrayWrapper(Scope s, Ruby runtime, JSArray obj) {
-	super(runtime, 0, null);
+	super(runtime, getJSArrayClass(runtime));
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("  creating RubyJSArrayWrapper");
 	_scope = s;
