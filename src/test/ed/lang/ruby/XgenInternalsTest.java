@@ -28,7 +28,7 @@ public class XgenInternalsTest extends RubyDBTest {
     public void setUp() {
 	super.setUp();
 	runRuby("require 'xgen_internals.rb';" +
-		"class Track < XGen::ModelBase;" +
+		"class Track < XGen::Mongo::Base;" +
 		"  set_collection :rubytest, %w(artist album song track);" +
 		"  def to_s;" +
 		"    \"artist: #{artist}, album: #{album}, song: #{song}, track: #{track ? track.to_i : nil}\";" +
@@ -42,7 +42,7 @@ public class XgenInternalsTest extends RubyDBTest {
     }
 
     public void testRequired() {
-	runRuby("$x = XGen::ModelBase.new({'a' => 1, 'b' => 2}); puts $x.class.name");
+	runRuby("$x = XGen::Mongo::Base.new({'a' => 1, 'b' => 2}); puts $x.class.name");
     }
 
     public void testFindById() {
@@ -56,7 +56,7 @@ public class XgenInternalsTest extends RubyDBTest {
     }
 
     public void testSetCollectionUsingClassName() {
-	runRuby("class Rubytest < XGen::ModelBase;" +
+	runRuby("class Rubytest < XGen::Mongo::Base;" +
 		"  set_collection %w(artist album song track);" +
 		"  def to_s;" +
 		"    \"artist: #{artist}, album: #{album}, song: #{song}, track: #{track ? track.to_i : nil}\";" +
