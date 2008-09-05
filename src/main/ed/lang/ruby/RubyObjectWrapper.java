@@ -23,6 +23,7 @@ import java.util.*;
 import org.jruby.*;
 import org.jruby.internal.runtime.methods.JavaMethod;
 import org.jruby.javasupport.JavaUtil;
+import org.jruby.parser.ReOptions;
 import org.jruby.runtime.*;
 import org.jruby.runtime.callback.Callback;
 import org.jruby.runtime.builtin.*;
@@ -67,6 +68,15 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	    return ((JSFunctionWrapper)obj).getProc();
 	if (obj instanceof JSObjectWrapper)
 	    return ((JSObjectWrapper)obj).getRubyObject();
+
+	if (obj instanceof JSRegex) {
+	    JSRegex regex = (JSRegex)obj;
+	    String flags = regex.getFlags();
+	    int intFlags = 0;
+	    if (flags.indexOf('m') >= 0) intFlags |= ReOptions.RE_OPTION_MULTILINE;
+	    if (flags.indexOf('i') >= 0) intFlags |= ReOptions.RE_OPTION_IGNORECASE;
+	    return RubyRegexp.newRegexp(runtime, regex.getPattern(), intFlags);
+	}
 
 	if (obj instanceof JSString || obj instanceof ObjectId)
 	    wrapper = RubyString.newString(runtime, obj.toString());
@@ -137,7 +147,17 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	    _wrappers.put(o, r);
 	    return o;
 	}
-
+	if (r instanceof RubyRegexp) {
+	    RubyRegexp regex = (RubyRegexp)r;
+	    // Ruby regex.to_s returns "(?i-mx:foobar)", where the first part
+	    // contains the flags. Everything after the minus is a flag that
+	    // is off.
+	    String options = regex.to_s().toString().substring(2);
+	    options = options.substring(0, options.indexOf(':'));
+	    if (options.indexOf('-') >= 0)
+		options = options.substring(0, options.indexOf('-'));
+	    return new JSRegex(regex.source().toString(), options);
+	}
 	if (r instanceof RubyObject) {
 	    Object o = new ed.lang.ruby.JSObjectWrapper(scope, (RubyObject)r);
 	    _wrappers.put(o, r);
