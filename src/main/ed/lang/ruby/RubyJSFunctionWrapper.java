@@ -33,7 +33,7 @@ import ed.js.engine.Scope;
  *
  * @see JSFunctionWrapper
  */
-public class RubyJSFunctionWrapper extends RubyObjectWrapper {
+public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 
     private final JSFunction _func;
 
@@ -41,7 +41,7 @@ public class RubyJSFunctionWrapper extends RubyObjectWrapper {
 	super(s, runtime, obj);
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("  creating RubyJSFunctionWrapper named " + name);
-	_func = (JSFunction)_obj;
+	_func = obj;
 	if (name != null)
 	    addMethod(name, eigenclass);
     }
@@ -50,7 +50,7 @@ public class RubyJSFunctionWrapper extends RubyObjectWrapper {
     public void addMethod(String name, RubyClass klazz) {
 	final String internedName = name.intern();
 	if (RubyObjectWrapper.DEBUG)
-	    System.err.println("adding method named " + internedName + " to klazz " + klazz.getName());
+	    System.err.println("adding method named " + internedName + " to eigenclass " + klazz.getName());
 	klazz.addMethod(internedName, new JavaMethod(klazz, PUBLIC) {
                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
 		    if (RubyObjectWrapper.DEBUG)
@@ -58,7 +58,7 @@ public class RubyJSFunctionWrapper extends RubyObjectWrapper {
 		    int n = _func.getNumParameters();
                     if (args.length != n) Arity.raiseArgumentError(getRuntime(), args.length, n, n);
 
-		    Object result = _func.call(_scope, toJSFunctionArgs(args, block));
+		    Object result = _func.call(_scope, RubyObjectWrapper.toJSFunctionArgs(_scope, getRuntime(), args, 0, block));
 		    if (RubyObjectWrapper.DEBUG)
 			System.err.println("func " + name + " returned " + result + ", which is " + (result == null ? "null" : ("of class " + result.getClass().getName())));
 		    return toRuby(result);

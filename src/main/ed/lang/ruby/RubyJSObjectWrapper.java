@@ -438,10 +438,18 @@ public class RubyJSObjectWrapper extends RubyHash {
 		    // JSObject does not respond to keySet but it still has
 		    // something named key.
 		    Object val = _jsobj.get(key);
-		    if (val == null)
+		    if (val == null) {
+			if (RubyObjectWrapper.DEBUG)
+			    System.err.println("method_missing: did not find value for key " + key + "; calling super.method_missing");
 			return RuntimeHelpers.invokeAs(context, _eigenclass.getSuperClass(), RubyJSObjectWrapper.this, "method_missing", args, CallType.SUPER, block);
-		    if (val instanceof JSFunction)
+		    }
+		    if (val instanceof JSFunction) {
+			if (RubyObjectWrapper.DEBUG)
+			    System.err.println("method_missing: found a function for key " + key + "; calling it");
 			return toRuby(((JSFunction)val).callAndSetThis(_scope, _jsobj, RubyObjectWrapper.toJSFunctionArgs(_scope, getRuntime(), args, 1, block)));
+		    }
+		    if (RubyObjectWrapper.DEBUG)
+			System.err.println("method_missing: turning " + key + " into op_aref call");
 		    return op_aref(context, args[0]);
 		}
 	    });

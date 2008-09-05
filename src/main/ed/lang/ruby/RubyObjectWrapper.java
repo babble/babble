@@ -189,9 +189,4 @@ public abstract class RubyObjectWrapper extends RubyObject {
     public JSFunctionWrapper toJS(Block block) { return toJS(_scope, getRuntime(), block); }
 
     public Object toJS(IRubyObject r) { return toJS(_scope, r); }
-
-    public Object[] toJSFunctionArgs(IRubyObject[] args)                          { return toJSFunctionArgs(_scope, getRuntime(), args, 0,      null); }
-    public Object[] toJSFunctionArgs(IRubyObject[] args, int offset)              { return toJSFunctionArgs(_scope, getRuntime(), args, offset, null); }
-    public Object[] toJSFunctionArgs(IRubyObject[] args, Block block)             { return toJSFunctionArgs(_scope, getRuntime(), args, 0,      block); }
-    public Object[] toJSFunctionArgs(IRubyObject[] args, int offset, Block block) { return toJSFunctionArgs(_scope, getRuntime(), args, offset, block); }
 }
