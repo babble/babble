@@ -30,6 +30,7 @@ import static org.jruby.runtime.Visibility.PUBLIC;
 
 import ed.js.*;
 import ed.js.engine.Scope;
+import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
 
 /**
  * RubyJSObjectWrapper acts as a bridge between Ruby objects and JavaScript
@@ -73,7 +74,7 @@ public class RubyJSObjectWrapper extends RubyHash {
 	    if (val == null)
 		continue;
 	    alreadyDefined.add(key.toString());
-	    if (val instanceof JSFunction)
+	    if (isCallableJSFunction(val))
 		_addFunctionMethod(key, (JSFunction)val);
 	    else
 		_addInstanceVariable(key);
@@ -157,11 +158,13 @@ public class RubyJSObjectWrapper extends RubyHash {
 	_jsobj.set(toJS(key), toJS(value));
 
 	if (oldVal != null) {	// update methods
-	    if (oldVal instanceof JSFunction && !(newVal instanceof JSFunction)) {
+	    boolean oldIsCallableFunc = isCallableJSFunction(oldVal);
+	    boolean newIsCallableFunc = isCallableJSFunction(newVal);
+	    if (oldIsCallableFunc && !newIsCallableFunc) {
 		_removeFunctionMethod(jsKey);
 		_addInstanceVariable(jsKey);
 	    }
-	    else if (!(oldVal instanceof JSFunction) && newVal instanceof JSFunction) {
+	    else if (!oldIsCallableFunc && newIsCallableFunc) {
 		_removeInstanceVariable(jsKey);
 		_addFunctionMethod(jsKey, (JSFunction)newVal);
 	    }
@@ -251,7 +254,7 @@ public class RubyJSObjectWrapper extends RubyHash {
     protected Object internalDelete(Object jsKey) {
 	Object val = _jsobj.get(jsKey);
 	_jsobj.removeField(jsKey);
-	if (val instanceof JSFunction)
+	if (isCallableJSFunction(val))
 	    _removeFunctionMethod(jsKey);
 	else
 	    _removeInstanceVariable(jsKey);
@@ -307,7 +310,7 @@ public class RubyJSObjectWrapper extends RubyHash {
 	for (Object key : keys) {
 	    Object val = _jsobj.get(key);
 	    _jsobj.removeField(key);
-	    if (val instanceof JSFunction)
+	    if (isCallableJSFunction(val))
 		_removeFunctionMethod(key);
 	    else
 		_removeInstanceVariable(key);
@@ -444,13 +447,20 @@ public class RubyJSObjectWrapper extends RubyHash {
 			return RuntimeHelpers.invokeAs(context, _eigenclass.getSuperClass(), RubyJSObjectWrapper.this, "method_missing", args, CallType.SUPER, block);
 		    }
 		    if (val instanceof JSFunction) {
-			if (RubyObjectWrapper.DEBUG)
-			    System.err.println("method_missing: found a function for key " + key + "; calling it");
-			return toRuby(((JSFunction)val).callAndSetThis(_scope, _jsobj, RubyObjectWrapper.toJSFunctionArgs(_scope, getRuntime(), args, 1, block)));
+			if (isCallableJSFunction(val)) {
+			    if (RubyObjectWrapper.DEBUG)
+				System.err.println("method_missing: found a callable function for key " + key + "; calling it");
+			    return toRuby(((JSFunction)val).callAndSetThis(_scope, _jsobj, RubyObjectWrapper.toJSFunctionArgs(_scope, getRuntime(), args, 1, block)));
+			}
+			else {
+			    if (RubyObjectWrapper.DEBUG)
+				System.err.println("method_missing: found a non-callable function object for key " + key + "; returning it");
+			    return toRuby(val);
+			}
 		    }
 		    if (RubyObjectWrapper.DEBUG)
-			System.err.println("method_missing: turning " + key + " into op_aref call");
-		    return op_aref(context, args[0]);
+			System.err.println("method_missing: turning " + key + "; returning it");
+		    return toRuby(val);
 		}
 	    });
     }

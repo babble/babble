@@ -38,6 +38,7 @@ import ed.net.httpserver.HttpResponse;
 import ed.util.Dependency;
 import static ed.lang.ruby.RubyObjectWrapper.toJS;
 import static ed.lang.ruby.RubyObjectWrapper.toRuby;
+import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
 
 public class RubyJxpSource extends JxpSource {
 
@@ -186,15 +187,15 @@ public class RubyJxpSource extends JxpSource {
 		if (alreadySeen.contains(key) || DO_NOT_LOAD_FUNCS.contains(key))
 		    continue;
 		final Object obj = s.get(key);
-		if (!(obj instanceof JSFunction))
-		    continue;
-		alreadySeen.add(key);
-		objectKlass.addMethod(key, new JavaMethod(objectKlass, PUBLIC) {
-			public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
-			    Object[] jargs = RubyObjectWrapper.toJSFunctionArgs(scope, _runtime, args, 0, block);
-			    return toRuby(scope, _runtime, ((JSFunction)obj).call(scope, jargs));
-			}
-		    });
+		if (isCallableJSFunction(obj)) {
+		    alreadySeen.add(key);
+		    objectKlass.addMethod(key, new JavaMethod(objectKlass, PUBLIC) {
+			    public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+				Object[] jargs = RubyObjectWrapper.toJSFunctionArgs(scope, _runtime, args, 0, block);
+				return toRuby(scope, _runtime, ((JSFunction)obj).call(scope, jargs));
+			    }
+			});
+		}
 	    }
 	    s = s.getParent();
 	}

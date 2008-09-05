@@ -172,6 +172,10 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	}
     }
 
+    public static boolean isCallableJSFunction(Object o) {
+	return (o instanceof JSFunction) && ((JSFunction)o).isCallable();
+    }
+
     RubyObjectWrapper(Scope s, Ruby runtime, Object obj) {
 	super(runtime, runtime.getObject());
 	_scope = s;
