@@ -39,23 +39,36 @@ if [ -f $TESTDIR/webtest-local.bash ]
         source $TESTDIR/webtest-local.bash
 fi
 
+# Set EDROOT and PROOT if they aren't already set
+if [ ! $EDROOT ]
+    then
+        EDROOT=$GITROOT/ed
+fi
+if [ ! $PROOT ]
+    then
+        PROOT=$GITROOT/p
+fi
+
 # Bring up the test database.
 mkdir -p /tmp/$SITE/logs /tmp/$SITE/db
 rm /tmp/$SITE/db/*
-cd $GITROOT/p/db
+cd $PROOT/db
 nohup ./db --port $db_port --dbpath /tmp/$SITE/db/ run > /tmp/$SITE/logs/db&
 db_pid=$!
 
 # Use the _config.js in the test directory if there is one.
-cp $FULLSITE/_config.js $FULLSITE/test/_config.js.backup
-if [ -f $FULLSITE/test/_config.js ]
+if [ ! $NO_TEST_CONFIG ]
     then
-        echo "Using test version of _config.js: $FULLSITE/test/_config.js"
-        cp $FULLSITE/test/_config.js $FULLSITE/_config.js
+        cp $FULLSITE/_config.js $FULLSITE/test/_config.js.backup
+        if [ -f $FULLSITE/test/_config.js ]
+            then
+                echo "Using test version of _config.js: $FULLSITE/test/_config.js"
+                cp $FULLSITE/test/_config.js $FULLSITE/_config.js
+        fi
 fi
 
 # Bring up the app server.
-cd $GITROOT/ed
+cd $EDROOT
 ./runAnt.bash ed.appserver.AppServer --port $http_port $FULLSITE&
 
 # Populate the db with setup data.
@@ -75,7 +88,7 @@ ln -s $TESTDIR/resources/definitions $FULLSITE/test/definitions/_10gen_default_d
 
 # Run webtest.
 cd $FULLSITE/test
-export WTPATH=$GITROOT/ed/include/webtest
+export WTPATH=$EDROOT/include/webtest
 $WTPATH/bin/webtest.sh $WTPARAMS
 STATUS=$?
 
@@ -91,12 +104,15 @@ rm -r $FULLSITE/test/dtd
 
 
 # Clean up from the _config.js shuffling.
-if [ -f $FULLSITE/test/_config.js.backup ]
+if [ ! $NO_TEST_CONFIG ]
     then
-        cp $FULLSITE/test/_config.js.backup $FULLSITE/_config.js
-        rm $FULLSITE/test/_config.js.backup
-    else
-        rm $FULLSITE/_config.js
+        if [ -f $FULLSITE/test/_config.js.backup ]
+            then
+                cp $FULLSITE/test/_config.js.backup $FULLSITE/_config.js
+                rm $FULLSITE/test/_config.js.backup
+            else
+                rm $FULLSITE/_config.js
+        fi
 fi
 
 # Bring down the db and appserver.

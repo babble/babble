@@ -327,8 +327,15 @@ public class Generate {
         	throw new RuntimeException("Can't find 'docgen' file lib in my module directory");
         }
 
-        //        String classlist = classes.toArray().join(",");
-        SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -r -t=templates/json "+f.getCanonicalPath(),
+        String classlist = "";
+        if( classes.size() > 0 ) {
+            for( String cls : classes ) {
+                classlist += cls + ",";
+            }
+            classlist = " -b=" + classlist.substring( 0, classlist.length() - 1 );
+        }
+
+        SysExec.Result r = SysExec.exec("java -jar jsrun.jar app/run.js -r"+classlist+" -t=templates/json "+f.getCanonicalPath(),
         		null, jsfl.getRoot(), "");
 
         String rout = r.getOut();
