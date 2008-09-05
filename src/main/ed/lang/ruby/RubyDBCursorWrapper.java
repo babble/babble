@@ -33,11 +33,25 @@ import ed.js.engine.Scope;
  */
 public class RubyDBCursorWrapper extends RubyArray {
 
+    static RubyClass dbCursorClass = null;
+
     protected Scope _scope;
     protected DBCursor _cursor;
 
+    public static synchronized RubyClass getDBCursorClass(Ruby runtime) {
+	if (dbCursorClass == null) {
+	    dbCursorClass = runtime.defineClass("DBCursor", runtime.getArray(), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
+	    dbCursorClass.kindOf = new RubyModule.KindOf() {
+		    public boolean isKindOf(IRubyObject obj, RubyModule type) {
+			return obj instanceof RubyDBCursorWrapper;
+		    }
+		};
+	}
+	return dbCursorClass;
+    }
+
     RubyDBCursorWrapper(Scope s, Ruby runtime, DBCursor cursor) {
-	super(runtime, runtime.getArray());
+	super(runtime, getDBCursorClass(runtime));
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("creating RubyDBCursorWrapper");
 	_scope = s;
