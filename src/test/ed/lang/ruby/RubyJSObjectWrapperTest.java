@@ -56,6 +56,12 @@ public class RubyJSObjectWrapperTest {
 	r.getGlobalVariables().set("$data", RubyObjectWrapper.toRuby(s, r, jsobj));
     }
 
+    public void testClass() {
+	RubyClass klazz = new RubyJSObjectWrapper(s, r, jsobj).type();
+	assertEquals(klazz.name().toString(), "JSObject");
+	assertEquals(((RubyClass)klazz.superclass(r.getCurrentContext())).name().toString(), "Hash");
+    }
+
     public void testAccessors() {
 	assertEquals(RubyNumeric.num2long(r.evalScriptlet("$data.count")), 1L);
 	assertEquals(RubyNumeric.num2long(r.evalScriptlet("$data.count += 2; $data.count")), 3L);

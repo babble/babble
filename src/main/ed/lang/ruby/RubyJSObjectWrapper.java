@@ -40,13 +40,31 @@ import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
  */
 public class RubyJSObjectWrapper extends RubyHash {
 
+    static RubyClass jsObjectClass = null;
+
     protected Scope _scope;
     protected final JSObject _jsobj;
     protected int _size;
     protected RubyClass _eigenclass;
 
+    public static synchronized RubyClass getJSObjectClass(Ruby runtime) {
+	if (jsObjectClass == null) {
+	    jsObjectClass = runtime.defineClass("JSObject", runtime.getHash(), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
+	    jsObjectClass.kindOf = new RubyModule.KindOf() {
+		    public boolean isKindOf(IRubyObject obj, RubyModule type) {
+			return obj instanceof RubyJSObjectWrapper;
+		    }
+		};
+	}
+	return jsObjectClass;
+    }
+
     RubyJSObjectWrapper(Scope s, Ruby runtime, JSObject obj) {
-	super(runtime);
+	this(s, runtime, obj, getJSObjectClass(runtime));
+    }
+
+    RubyJSObjectWrapper(Scope s, Ruby runtime, JSObject obj, RubyClass klass) {
+	super(runtime, klass);
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("creating RubyJSObjectWrapper around " + obj.getClass().getName());
 	_scope = s;

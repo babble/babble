@@ -35,10 +35,24 @@ import ed.js.engine.Scope;
  */
 public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 
+    static RubyClass jsFunctionClass = null;
+
     private final JSFunction _func;
 
+    public static synchronized RubyClass getJSFunctionClass(Ruby runtime) {
+	if (jsFunctionClass == null) {
+	    jsFunctionClass = runtime.defineClass("JSFunction", RubyJSObjectWrapper.getJSObjectClass(runtime), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
+	    jsFunctionClass.kindOf = new RubyModule.KindOf() {
+		    public boolean isKindOf(IRubyObject obj, RubyModule type) {
+			return obj instanceof RubyJSFunctionWrapper;
+		    }
+		};
+	}
+	return jsFunctionClass;
+    }
+
     RubyJSFunctionWrapper(Scope s, Ruby runtime, JSFunction obj, String name, RubyClass eigenclass) {
-	super(s, runtime, obj);
+	super(s, runtime, obj, getJSFunctionClass(runtime));
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("  creating RubyJSFunctionWrapper named " + name);
 	_func = obj;
