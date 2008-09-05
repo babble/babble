@@ -17,6 +17,11 @@ module XGen
   class ModelCursor
     include Enumerable
 
+    # Forward missing methods to the cursor itself.
+    def method_missing(sym, *args, &block)
+      return @cursor.send(sym, *args)
+    end
+
     def initialize(db_cursor, model_class)
       @cursor, @model_class = db_cursor, model_class
     end

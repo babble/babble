@@ -153,4 +153,8 @@ public class XgenInternalsTest extends RubyDBTest {
     public void testNewIvarCreationUsesSingleton() {
 	assertRubyEquals("t = Track.new; t.foo = 42; puts t.respond_to?(:foo).to_s; t2 = Track.new; puts t2.respond_to?(:foo).to_s", "true\nfalse");
     }
+
+    public void testCursorMethods() {
+	assertRubyEquals("puts Track.find(:all).limit(2).length.to_s", "2");
+    }
 }
