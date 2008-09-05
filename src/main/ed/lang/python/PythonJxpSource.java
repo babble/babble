@@ -119,7 +119,8 @@ public class PythonJxpSource extends JxpSource {
                 else {
                     PythonModuleTracker mods = (PythonModuleTracker)ss.modules;
                     AppContext ctxt = (AppContext)s.get( "__instance__" );
-                    mods.flushOld( ctxt.getRoot() );
+                    if ( ctxt != null )
+                        mods.flushOld( ctxt.getRoot() );
                 }
                 
 
