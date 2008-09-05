@@ -26,6 +26,7 @@ import com.twmacinta.util.*;
 
 import ed.log.*;
 import ed.js.*;
+import ed.js.e4x.*;
 import ed.js.func.*;
 import ed.io.*;
 import ed.net.*;
@@ -793,8 +794,8 @@ public class JSBuiltInFunctions {
         s.put( "Date" , new JSDate.Cons() , true );
         s.put( "JSDate" , s.get( "Date" ) , true ); // b/c Eliot always types this
         s.put( "String" , new JSString.JSStringCons() , true );
-	s.put( "XML" , new E4X.Cons() , true );
-	s.put( "Namespace" , new E4X.NamespaceCons() , true );
+	s.put( "XML" , new ENode.Cons() , true );
+	s.put( "Namespace" , new Namespace.NamespaceCons() , true );
 
         s.put( "RegExp" , new JSRegex.Cons() , true );
         s.put( "Regexp" , s.get( "RegExp" ) , true ); // for Ruby technically

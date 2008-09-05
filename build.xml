@@ -117,7 +117,7 @@
      
   <target name="test-no-db" depends="compile, test-basic, test-django, test-corejs"/>
  
- <target  name="test-basic" depends="init">
+ <target  name="test-basic" depends="init, compile">
    <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
      <jvmarg value="-Xmx256M" />
      <xmlfileset dir="." includes="testng.xml"/>
@@ -125,21 +125,21 @@
    </testng>
  </target>
 
-  <target  name="test-django" depends="init">
+  <target  name="test-django" depends="init, compile">
     <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
       <xmlfileset dir="." includes="testng-django.xml"/>
       <sysproperty key="DEBUG.DJANG10" value="${DEBUG.DJANG10}"/>
     </testng>
   </target>
 
-<target  name="test-core-modules" depends="init">
+<target  name="test-core-modules" depends="init, compile">
   <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
     <xmlfileset dir="." includes="testng-core-modules.xml"/>
     <sysproperty key="TESTNG:CODE_ROOT" value="${codeRoot}"/>
   </testng>
 </target>
 
- <target  name="test-db" depends="init">
+ <target  name="test-db" depends="init, compile">
    <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true">
      <jvmarg value="-Xmx500m" />
      <xmlfileset dir="." includes="testng-db.xml"/>
@@ -147,14 +147,14 @@
    </testng>
  </target>
  
- <target  name="test-corejs" depends="init">
+ <target  name="test-corejs" depends="init, compile">
    <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
      <xmlfileset dir="." includes="testng-corejs.xml"/>
     <sysproperty key="TESTNG:CODE_ROOT" value="${codeRoot}"/>
    </testng>
  </target>
  
- <target  name="test-db-load" depends="init">
+ <target  name="test-db-load" depends="init, compile">
    <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
      <xmlfileset dir="." includes="testng-db-load.xml"/>
     <sysproperty key="TESTNG:CODE_ROOT" value="${codeRoot}"/>

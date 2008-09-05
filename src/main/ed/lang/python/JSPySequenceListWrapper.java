@@ -19,6 +19,7 @@
 package ed.lang.python;
 
 import java.util.*;
+import java.lang.reflect.Array;
 
 import org.python.core.*;
 
@@ -299,12 +300,26 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
     }
 
     public Object[] toArray(){
-        // FIXME
-        return null;
+        Object[] ary = _pSeq.toArray();
+        Object[] out = new Object[ ary.length ];
+        int i = 0;
+        for( Object o : ary ){
+            out[ i++ ] = toJS( o );
+        }
+        return out;
     }
 
     public Object[] toArray( Object[] a ){
-        return null;
+        Object[] ary = toArray();
+        int i = 0;
+        Class c = a.getClass().getComponentType();
+        if( a.length < ary.length ){
+            a = (Object[])Array.newInstance( c, ary.length );
+        }
+        for( Object o : ary ){
+            a[ i++ ] = toJS( o );
+        }
+        return a;
     }
 
     public void add( int index, Object element ){
@@ -326,7 +341,8 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
     }
 
     public void clear(){
-        // FIXME
+        // Ignore the keys/values in the JS object here
+        _pSeq.clear();
     }
 
     public Object get( int index ){
@@ -365,7 +381,6 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
     }
 
     public List subList( int fromIndex , int toIndex ){
-        // FIXME
         return new RandomAccessSublist( this , fromIndex , toIndex );
     }
 }

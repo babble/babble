@@ -242,9 +242,9 @@ public class JSON {
                 }
 
                 if ( something.getClass().getEnclosingClass() != null && something.getClass().getEnclosingClass().getSimpleName().equals( "ENode" ) ||
-                    something instanceof ed.js.E4X.ENode ||
-                    something instanceof ed.js.E4X.Namespace ||
-                    something instanceof ed.js.E4X.QName ) {
+                    something instanceof ed.js.e4x.ENode ||
+                    something instanceof ed.js.e4x.Namespace ||
+                    something instanceof ed.js.e4x.QName ) {
                     a.append( something.toString() );
                     return;
                 }
