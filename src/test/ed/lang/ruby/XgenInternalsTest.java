@@ -29,7 +29,6 @@ public class XgenInternalsTest extends RubyDBTest {
 	super.setUp();
 	runRuby("require 'xgen_internals.rb';" +
 		"class Track < XGen::ModelBase;" +
-		"  def method_missing(sym, args); puts \"oh, no: mm #{sym}\"; end;" +
 		"  set_collection :rubytest, %w(artist album song track);" +
 		"  def to_s;" +
 		"    \"artist: #{artist}, album: #{album}, song: #{song}, track: #{track ? track.to_i : nil}\";" +
@@ -145,5 +144,13 @@ public class XgenInternalsTest extends RubyDBTest {
     public void testFindOrCreateBy_New() {
 	runRuby("puts Track.find_or_create_by_song({:song => 'New Song', :artist => 'New Artist', :album => 'New Album'}).to_s");
 	assertEquals(rubyOutput, "artist: New Artist, album: New Album, song: New Song, track:");
+    }
+
+    public void testNewIvarCreation() {
+	assertRubyEquals("t = Track.new(); t.foo = 42; puts \"#{t.foo}\"", "42");
+    }
+
+    public void testNewIvarCreationUsesSingleton() {
+	assertRubyEquals("t = Track.new; t.foo = 42; puts t.respond_to?(:foo).to_s; t2 = Track.new; puts t2.respond_to?(:foo).to_s", "true\nfalse");
     }
 }

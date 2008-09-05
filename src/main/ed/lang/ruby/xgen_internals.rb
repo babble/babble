@@ -118,10 +118,17 @@ EOS
       self.new(values_hash).save
     end
 
-    # Pass unknown methods to the collection.
+    # If an unknown method is an assignment, create the ivar and assign it.
+    # Else pass the unknown method call to the collection.
     def method_missing(sym, *args, &block)
-      o = self.class.coll.send(sym, args)
-      yield o if block_given?
+      if sym.to_s[-1,1] == '='       # assignment to an unknown ivar
+        name = sym.to_s[0..-2]
+        instance_variable_set("@#{name}", args[0])
+        instance_eval "def #{name}; @#{name}; end; def #{name}=(val); @name = val; end"
+      else
+        o = self.class.coll.send(sym, args)
+        yield o if block_given?
+      end
     end
 
     # Initialize a new object with either a hash of values or a row returned
