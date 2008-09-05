@@ -1,5 +1,10 @@
 # Print usage info if necessary.
-if [ -z "$1" || -z "$2"]
+if [ -z "$1" ]
+    then
+        echo "Usage: `basename $0` path-to-site URL-to-test"
+        exit 1
+fi
+if [ -z "$2" ]
     then
         echo "Usage: `basename $0` path-to-site URL-to-test"
         exit 1
