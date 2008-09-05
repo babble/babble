@@ -126,7 +126,7 @@ EOS
 
     # Initialize a new object with either a hash of values or a row returned
     # from the database.
-    def initialize(row)
+    def initialize(row={})
       case row
       when Hash
         row.each { |k, v|

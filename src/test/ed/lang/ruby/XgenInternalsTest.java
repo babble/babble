@@ -116,6 +116,11 @@ public class XgenInternalsTest extends RubyDBTest {
 	assertTrue(rubyOutput.contains("song: King For A Day"), rubyOutput);
     }
 
+    public void testNewNoArg() {
+	runRuby("puts Track.new.to_s");
+	assertEquals(rubyOutput, "artist: , album: , song: , track:");
+    }
+
     public void testNewByHash() {
 	runRuby("puts Track.new(:song => 'Micro-Kid', :album => 'Standing In The Light', :artist => 'Level 42', :track => 1).to_s");
 	assertEquals(rubyOutput, "artist: Level 42, album: Standing In The Light, song: Micro-Kid, track: 1");
