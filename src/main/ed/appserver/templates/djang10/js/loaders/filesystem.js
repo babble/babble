@@ -23,7 +23,7 @@ var filesystem =
 
 var log = log.djang10.loaders.filesystem;
 
-var load_template_source =
+load_template_source =
     filesystem.load_template_source =
     function(template_name, template_dirs) {
 

@@ -23,7 +23,7 @@ var site_relative =
 
 var log = log.djang10.loaders.site_relative;
 
-var load_template_source =
+load_template_source =
     site_relative.load_template_source =
     function(template_name, template_dirs){
 
