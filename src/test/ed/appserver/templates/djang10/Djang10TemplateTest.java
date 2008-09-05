@@ -169,9 +169,8 @@ public class Djang10TemplateTest {
                 }
             }
             
-            context.set("unicodeStr", "ŠĐĆŽćžšđ");
-            context.set("unicdeStr2", "1игорь1");
-            
+            context.set("unicodeStr", "\u0160\u0110\u0106\u017d\u0107\u017e\u0161\u0111");
+            context.set("unicodeStr2", "1\u0418\u0413\u041e\u0420\u042c1");
             return tests.toArray();
 
         }

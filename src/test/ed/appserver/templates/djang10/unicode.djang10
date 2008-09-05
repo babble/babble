@@ -1,4 +1,4 @@
 {{ unicodeStr }}
 {{ nonexistent|default:"ŠĐĆŽćžšđ" }}
-{{ unicdeStr2|upper|slice:"1:-1" }}
+{{ unicodeStr2|upper|slice:"1:-1" }}
 {{ "1игорь1"|upper|slice:"1:-1" }}

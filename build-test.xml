@@ -1,8 +1,8 @@
 <?xml version='1.0'?>
 <project name="appserver test" default="all" basedir=".">
 
-  <property name="targetdir" value="target"/>
-  <property name="testdir" value="${targetdir}/test"/>
+  <property name="targetdir" location="target"/>
+  <property name="testdir" location="${targetdir}/test"/>
   
   <path id="classpath">
     <fileset dir="include">
@@ -21,6 +21,7 @@
 
     <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
       <xmlfileset dir="." includes="testng.xml"/>
+      <jvmarg value="-Xmx1000m" />
     </testng>
   </target>
 
@@ -36,6 +37,7 @@
 
       <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
         <xmlfileset dir="." includes="testng-corejs.xml"/>
+      <jvmarg value="-Xmx1000m" />
       </testng>
     </target>
 
