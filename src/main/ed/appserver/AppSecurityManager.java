@@ -103,6 +103,7 @@ public final class AppSecurityManager extends SecurityManager {
         final String file = fp.getName();
         final String action = fp.getActions();
         final boolean read = action.equals( "read" );
+        final String ctxtRoot = ctxt.getRoot();
 
         if ( read )
             for ( int i=0; i<_okRead.length; i++ )
@@ -117,14 +118,19 @@ public final class AppSecurityManager extends SecurityManager {
             if ( file.contains( _publicDirs[i] ) )
                 return;
         
-        if ( file.startsWith( ctxt.getRoot() ) )
+        if ( file.startsWith( ctxtRoot ) )
             return;
         
-        if ( file.contains( ctxt.getRoot() ) ){
-            if ( file.startsWith( _javaRoot + ctxt.getRoot() ) )
+        if ( ctxtRoot.startsWith( file ) && 
+             ctxtRoot.length() - file.length() <= 1 && 
+             ctxtRoot.endsWith( "/" ) )
+            return;
+
+        if ( file.contains( ctxtRoot ) ){
+            if ( file.startsWith( _javaRoot + ctxtRoot ) )
                 return;
         }
-            
+        
 
         final StackTraceElement topUser = ed.security.Security.getTopUserStackElement();
         
@@ -146,14 +152,14 @@ public final class AppSecurityManager extends SecurityManager {
                 if ( wantSitePiece.contains( _publicClasses[i] ) )
                     return;
             
-            String goodSitePiece = Convert.cleanName( ctxt.getRoot() );
+            String goodSitePiece = Convert.cleanName( ctxtRoot );
             if ( wantSitePiece.startsWith( goodSitePiece ) )
                 return;
 
             System.err.println( "blah [" + wantSitePiece + "] [" + goodSitePiece + "]" );
         }
         
-        NotAllowed e = new NotAllowed( "not allowed to access [" + file + "] from [" + topUser + "] in site [" + ctxt.getRoot() + "]" + fp , fp );
+        NotAllowed e = new NotAllowed( "not allowed to access [" + file + "] from [" + topUser + "] in site [" + ctxtRoot + "]" + fp , fp );
         e.fillInStackTrace();
         _logger.error( "invalid access [" + fp + "]" , e );
         throw e;
