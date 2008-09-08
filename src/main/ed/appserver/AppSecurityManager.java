@@ -95,11 +95,14 @@ public final class AppSecurityManager extends SecurityManager {
         for ( int i=0; i<_okWrite.length; i++ )
             if ( file.startsWith( _okWrite[i] ) )
                 return;
-
+        
         for ( int i=0; i<_publicDirs.length; i++ )
             if ( file.contains( _publicDirs[i] ) )
                 return;
         
+        if ( file.startsWith( ctxt.getRoot() ) )
+            return;
+
         final StackTraceElement topUser = ed.security.Security.getTopUserStackElement();
         
         if ( topUser == null )
