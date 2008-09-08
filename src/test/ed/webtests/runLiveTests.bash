@@ -1,34 +1,37 @@
 # Print usage info if necessary.
 if [ -z "$1" ]
     then
-        echo "Usage: `basename $0` path-to-site URL-to-test"
+        echo "Usage: `basename $0` URL-to-site-git-repository URL-to-site"
         exit 1
 fi
 if [ -z "$2" ]
     then
-        echo "Usage: `basename $0` path-to-site URL-to-test"
+        echo "Usage: `basename $0` URL-to-site-git-repository URL-to-test"
         exit 1
 fi
 
-# Check to see if given site exists
-if [ -d "$1" ]
-    then
-        echo "Testing '$1'."
-    else
-        echo "Site '$1' does not exist. Be sure to use the full path to the site."
-        exit 1
-fi
-
-# FULLSITE is the full path to the site's directory. TESTDIR is the webtest directory.
-pushd $1
-FULLSITE=`pwd`
-popd
+# TESTDIR is the webtest directory.
 cd `dirname $0`
 TESTDIR=`pwd`
 
-if [ ! -d "$FULLSITE/test" ]
+# Clone git repo to a temporary directory.
+rm -rf /tmp/10gen-test-src
+git clone $1 /tmp/10gen-test-src
+
+# Get the tag running in production
+GIT_TAG=`curl -I http://www.10gen.com 2>/dev/null | grep X-git | awk '{sub(/\r$/,"");print $2}'`
+if [ -z $GIT_TAG ]
     then
-        echo "Site '$1' does not contain a test directory, aborting."
+        echo "Couldn't find git tag header for $2"
+        exit 1
+fi
+
+# Get the right version of the tests
+cd /tmp/10gen-test-src/
+git checkout $GIT_TAG
+if [ ! -d /tmp/10gen-test-src/test ]
+    then
+        echo "No test directory found on this tag, aborting"
         exit 1
 fi
 
@@ -52,16 +55,16 @@ if [ -z $EDROOT ]
 fi
 
 # Copy test resources into test directory.
-cp $TESTDIR/resources/build.xml $FULLSITE/test/build.xml
-cp $TESTDIR/resources/buildReal.xml $FULLSITE/test/buildReal.xml
-if [ ! -d $FULLSITE/test/definitions ]
+cp $TESTDIR/resources/build.xml /tmp/10gen-test-src/test/build.xml
+cp $TESTDIR/resources/buildReal.xml /tmp/10gen-test-src/test/buildReal.xml
+if [ ! -d /tmp/10gen-test-src/test/definitions ]
     then
-        mkdir $FULLSITE/test/definitions
+        mkdir /tmp/10gen-test-src/test/definitions
 fi
-ln -s $TESTDIR/resources/definitions $FULLSITE/test/definitions/_10gen_default_defs
+ln -s $TESTDIR/resources/definitions /tmp/10gen-test-src/test/definitions/_10gen_default_defs
 
 # Run webtest.
-cd $FULLSITE/test
+cd /tmp/10gen-test-src/test
 export WTPATH=$EDROOT/include/webtest
 $WTPATH/bin/webtest.sh $WTPARAMS
 STATUS=$?
@@ -69,11 +72,11 @@ STATUS=$?
 # Removed copied resources and auto-generated cruft.
 # This step probably isn't necessary but will hopefully prevent people from
 # making changes to files that get copied over automatically.
-rm $FULLSITE/test/build.xml
-rm $FULLSITE/test/buildReal.xml
-rm $FULLSITE/test/definitions/_10gen_default_defs
-rmdir $FULLSITE/test/definitions
-rm $FULLSITE/test/definitions.xml
-rm -r $FULLSITE/test/dtd
+rm /tmp/10gen-test-src/test/build.xml
+rm /tmp/10gen-test-src/test/buildReal.xml
+rm /tmp/10gen-test-src/test/definitions/_10gen_default_defs
+rmdir /tmp/10gen-test-src/test/definitions
+rm /tmp/10gen-test-src/test/definitions.xml
+rm -r /tmp/10gen-test-src/test/dtd
 
 exit $STATUS
