@@ -83,4 +83,25 @@ public class Security {
 
         return null;
     }
+
+    public static StackTraceElement getTopUserStackElement(){
+        StackTraceElement[] st = Thread.currentThread().getStackTrace();
+        
+        for ( int i=0; i<st.length; i++ ){
+            StackTraceElement e = st[i];
+
+            final String name = e.getClassName();
+
+            if ( name.startsWith( Convert.DEFAULT_PACKAGE + "." ) )
+                return e;
+            
+            if ( name.startsWith( "ed." ) || name.startsWith( "java." ) )
+                continue;
+            
+            return e;
+        }
+
+        return null;
+        
+    }
 }

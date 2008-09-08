@@ -56,7 +56,14 @@ public class ConvertTest extends TestCase {
             assertEquals( 2 , e.getStackTrace()[0].getLineNumber() );
         }
         
-   } 
+    }
+
+    @Test
+    public void testCleanName(){
+        assertEquals( "abc_123" , Convert.cleanName( "abc/123" ) );
+        assertEquals( "abc_123" , Convert.cleanName( "abc//123" ) );
+        assertEquals( "abc_123" , Convert.cleanName( "/abc//123" ) );
+    }
 
     Object _makeAnon( String code ){
         return Convert.makeAnon( code ).call( _scope );
