@@ -65,43 +65,77 @@ public class PythonModuleTracker extends PyStringMap {
 
         boolean shouldFlush = false;
 
+        Set<String> newer = new HashSet<String>();
+
         for( Object o : keys() ){
-            PyObject obj = super.__finditem__( o.toString() );
+            if( ! (o instanceof String) ){
+                throw new RuntimeException( "not a string in the keys " + o.getClass() );
+            }
+            String s = (String)o;
+            PyObject obj = super.__finditem__( s );
             if( ! ( obj instanceof PyModule ) ) continue;
             PyModule mod = (PyModule)obj;
             PyObject __file__ = mod.__dict__.__finditem__( "__file__" );
-            if( __file__ == null ){
+            if( __file__ == null || !( __file__ instanceof PyString ) ){
                 continue;
             }
 
-            File pyFile = new File( __file__.toString() );
-            String clsPath = __file__.toString().replace( ".py" , "$py.class" );
+            PyString filenameP = (PyString)__file__;
+            String filename = __file__.toString();
+            File pyFile = new File( filename );
+            String clsPath = filename.replace( ".py" , "$py.class" );
             File clsFile = new File( clsPath );
             if( clsFile.exists() && 
                 pyFile.lastModified() > clsFile.lastModified() ){
-                System.out.println("Jerks " + pyFile + " " + clsFile);
-                shouldFlush = true;
+                System.out.println("Newer " + pyFile + " " + clsFile);
+                newer.add( s );
             }
         }
 
-        if( ! shouldFlush ) return;
+        Set<String> flushed = new HashSet<String>();
+        Set<String> toAdd = new HashSet<String>();
 
-        for( Object o : keys() ){
-
-            PyObject obj = super.__finditem__( o.toString() );
+        toAdd.addAll( newer );
+        while( ! toAdd.isEmpty() ){
+            String o = toAdd.iterator().next();
+            //System.out.println("OK:" +toAdd + " " + o);
+            flushed.add( o );
+            toAdd.remove( o );
+            PyObject obj = super.__finditem__( o );
+            //System.out.println("Module " + obj);
             if( ! ( obj instanceof PyModule ) ) continue;
             PyModule mod = (PyModule)obj;
-            PyObject __file__ = mod.__dict__.__finditem__( "__file__" );
-            if( __file__ == null ){
-                continue;
-            }
 
-            if( __file__.toString().startsWith( rootpath ) ){
-                __delitem__( o.toString() );
+            //System.out.println("Flushing " + o);
+            __delitem__( o );
+            PyObject __file__ = obj.__findattr__( "__file__" );
+            String filename = __file__.toString();
+            Set<String> rdeps = _reverseDeps.get( filename );
+            _reverseDeps.remove( filename );
+            for( String s : rdeps ){
+                //System.out.println("module "+ s + " depends on " + filename);
+                toAdd.add( s );
             }
 
         }
 
+    }
+
+    // Stores relationships of "module Y is dependended on by file X1, X2, X3.."
+
+    Map<String, Set<String> > _reverseDeps = new HashMap<String, Set<String> >();
+
+    public void addDependency( PyObject from , PyObject to ){
+        // X depends on Y
+        String fromS = from.toString();
+        String toS = to.toString();
+        Set<String> rdeps = _reverseDeps.get( toS );
+        if( rdeps == null ){
+            rdeps = new HashSet<String>();
+            _reverseDeps.put( toS , rdeps );
+        }
+
+        rdeps.add( fromS );
     }
 
 }
