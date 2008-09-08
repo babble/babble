@@ -18,6 +18,8 @@
 
 package ed.js;
 
+import java.net.*;
+
 import bak.pcj.map.*;
 import bak.pcj.set.*;
 
@@ -59,16 +61,23 @@ public class Encoding {
             char c = str.charAt( i );
             int val = (int)c;
 
-            if ( Character.isLetterOrDigit( c ) )
+            if ( Character.isLetterOrDigit( c ) & i < 128 )
                 buf.append( c );
             else if ( c == ' ' )
                 buf.append( "%20" );
             else if ( skip.contains( c ) )
                 buf.append( c );
-            else if ( val < 255 )
-                buf.append( "%" )
-                    .append( _forDigit( ( val >> 4 ) & 0xF ) )
-                    .append( _forDigit( val & 0xF ) );
+            else {
+                int end = i + 1;
+                if ( Character.charCount( c ) == 2 ){
+                    end++;
+                    i++;
+                }
+                
+                // TODO: stop using URLEncoder
+                buf.append( URLEncoder.encode( str.substring( i , end ) ) );
+            } 
+
         }
 
         return buf.toString();
@@ -105,15 +114,36 @@ public class Encoding {
             }
             else {
                 final String foo = str.substring( i + 1 , i + 3 );
-                if ( ! _isHex( foo ) )
+                if ( ! _isHex( foo ) ){
                     buf.append( c );
+                }
                 else {
-                    final int val = Integer.parseInt( foo , 16 );
-                    buf.append( (char)val );
-                    i += 2;
+                    int end = i + 3;
+
+                    while ( end < max && 
+                            str.charAt( end ) == '%' &&
+                            _isHex( str.charAt( end + 1 ) ) && _isHex( str.charAt( end + 2 ) ) )
+                        end += 3;
+
+                    if ( end == i + 3 ){
+                        final int val = Integer.parseInt( foo , 16 );
+                        buf.append( (char)val );
+                        i += 2;
+                    }
+                    else {
+                        // TODO: don't user URLDecoder 
+                        String toDecode = str.substring( i , end );
+                        try {
+                            buf.append( URLDecoder.decode( toDecode , "utf8" ) );
+                        }
+                        catch ( java.io.UnsupportedEncodingException uee ){
+                            buf.append( URLDecoder.decode( toDecode ) );
+                        }
+                        i = end - 1;
+                    }
                 }
             }
-
+            
         }
 
         for ( ; i<len; i++ )
