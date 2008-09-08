@@ -5,8 +5,11 @@
   <property name="testdir" location="${targetdir}/test"/>
 
   <property name="codeRoot" location="/data/"/>
-	
-    
+
+  <!-- Override on command line with -Druby.groups=foo -->
+  <property name="ruby.groups" value="ruby, ruby.db"/>
+  <property name="jruby.home" location="build/ruby"/>
+
   <path id="classpath">
     <fileset dir="include">
       <include name="**/*.jar"/>
@@ -54,6 +57,12 @@
     <copy todir="build">
       <fileset dir="src/main" includes="**/*.properties"/>
       <fileset dir="src/main" includes="**/*.js"/>
+      <fileset dir="src/main/ed/lang/ruby" includes="xgen_internals.rb"/>
+    </copy>
+
+    <mkdir dir="build/ruby/lib/ruby"/>
+    <copy todir="build/ruby/lib/ruby">
+      <fileset dir="include/ruby"/>
     </copy>
 
     <javac srcdir="src/test"
@@ -84,7 +93,7 @@
 
  <target name="javadocs" depends="compile">
 
-   <javadoc packagenames="ed.*" 
+   <javadoc packagenames="ed.*"
             sourcepath="src/main/"
             defaultexcludes="yes"
             destdir="docs/"
@@ -101,22 +110,22 @@
  </target>
 
  <target name="rebuild" depends="clean, compile"/>
- 
+
  <!-- - - - - - - - - - - - - - - - - - - - - - -->
  <!--  test stuff                               -->
  <!-- - - - - - - - - - - - - - - - - - - - - - -->
- 
- <taskdef name="testng" 
+
+ <taskdef name="testng"
           classpathref="classpath"
-          classname="org.testng.TestNGAntTask" 
+          classname="org.testng.TestNGAntTask"
           >
  </taskdef>
 
-  
-  <target name="test" depends="compile, test-basic, test-django, test-corejs, test-db"/>
-     
+
+  <target name="test" depends="compile, test-basic, test-django, test-corejs, test-db, test-ruby"/>
+
   <target name="test-no-db" depends="compile, test-basic, test-django, test-corejs"/>
- 
+
  <target  name="test-basic" depends="init, compile">
    <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
      <jvmarg value="-Xmx256M" />
@@ -160,5 +169,12 @@
     <sysproperty key="TESTNG:CODE_ROOT" value="${codeRoot}"/>
    </testng>
  </target>
- 
+
+ <target name="test-ruby" depends="compile, init">
+   <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" groups="${ruby.groups}">
+     <classfileset dir="build" includes="ed/lang/ruby/*Test.class"/>
+     <jvmarg value="-Djruby.home=${jruby.home}" />
+   </testng>
+ </target>
+
 </project>

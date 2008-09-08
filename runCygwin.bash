@@ -21,5 +21,7 @@ done
 export CLASSPATH=$CLASSPATH:/opt/java/lib/tools.jar
 
 export headless="-Djava.awt.headless=true"
-java -ea -Djava.library.path=include $headless -ea -Xmx1000m -XX:MaxDirectMemorySize=600M "$@"
+export jruby_home="-Djruby.home=`dirname $0`/build/ruby"
+
+java -ea -Djava.library.path=include $headless $jruby_home -ea -Xmx1000m -XX:MaxDirectMemorySize=600M "$@"
 

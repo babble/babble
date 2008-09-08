@@ -1,0 +1,28 @@
+--- !ruby/object:RI::MethodDescription 
+params: |
+  include(Some::Helpers)
+  include(Some::Helpers, More::Helpers)
+  include(My::Helpers, :type => :key)
+is_singleton: false
+block_params: 
+name: include
+comment: 
+- !ruby/struct:SM::Flow::P 
+  body: Declares modules to be included in multiple example groups (<tt>describe</tt>
+    blocks). With no :type, the modules listed will be included in all example groups.
+    Use :type to restrict the inclusion to a subset of example groups. The value assigned
+    to :type should be a key that maps to a class that is either a subclass of Spec::Example::ExampleGroup
+    or extends Spec::Example::ExampleGroupMethods and includes Spec::Example::ExampleMethods
+- !ruby/struct:SM::Flow::VERB 
+  body: "  config.include(My::Pony, My::Horse, :type =&gt; :farm)\n"
+- !ruby/struct:SM::Flow::P 
+  body: 'Only example groups that have that type will get the modules included:'
+- !ruby/struct:SM::Flow::VERB 
+  body: "  describe &quot;Downtown&quot;, :type =&gt; :city do\n    # Will <b>not</b> \
+    get My::Pony and My::Horse included\n  end\n\n  describe &quot;Old Mac Donald&quot;, \
+    :type =&gt; :farm do\n    # <b>Will</b> get My::Pony and My::Horse included\n\
+    \  end\n"
+full_name: Spec::Example::Configuration#include
+visibility: public
+aliases: []
+

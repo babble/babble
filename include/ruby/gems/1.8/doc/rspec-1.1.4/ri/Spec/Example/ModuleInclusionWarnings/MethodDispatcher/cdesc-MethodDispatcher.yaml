@@ -1,0 +1,21 @@
+--- !ruby/object:RI::ClassDescription 
+includes: []
+
+name: MethodDispatcher
+constants: []
+
+comment: 
+- !ruby/struct:SM::Flow::P 
+  body: Thanks, Francis Hwang.
+attributes: []
+
+instance_methods: 
+- !ruby/object:RI::MethodSummary 
+  name: call
+- !ruby/object:RI::MethodSummary 
+  name: respond_to?
+full_name: Spec::Example::ModuleInclusionWarnings::MethodDispatcher
+superclass: Object
+class_methods: 
+- !ruby/object:RI::MethodSummary 
+  name: new
