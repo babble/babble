@@ -20,11 +20,12 @@ public final class AppSecurityManager extends SecurityManager {
     AppSecurityManager(){
         _os = Machine.getOSType();
         _logger = Logger.getLogger( "security" );
+        _javaRoot = (new File(".")).getAbsolutePath().replaceAll( "\\.$" , "" );
 
         List<String> okRead = new ArrayList<String>();
         List<String> okWrite = new ArrayList<String>();
-        
-        okRead.add( (new File(".")).getAbsolutePath().replaceAll( "\\.$" , "" ) );
+
+        okRead.add( _javaRoot );
         okRead.add( "include" );
         okRead.add( "build" );
         okRead.add( "conf" );
@@ -102,6 +103,12 @@ public final class AppSecurityManager extends SecurityManager {
         
         if ( file.startsWith( ctxt.getRoot() ) )
             return;
+        
+        if ( file.contains( ctxt.getRoot() ) ){
+            if ( file.startsWith( _javaRoot + ctxt.getRoot() ) )
+                return;
+        }
+            
 
         final StackTraceElement topUser = ed.security.Security.getTopUserStackElement();
         
@@ -130,7 +137,7 @@ public final class AppSecurityManager extends SecurityManager {
             System.err.println( "blah [" + wantSitePiece + "] [" + goodSitePiece + "]" );
         }
         
-        NotAllowed e = new NotAllowed( "not allowed to access [" + file + "] from [" + topUser + "] " + fp , fp );
+        NotAllowed e = new NotAllowed( "not allowed to access [" + file + "] from [" + topUser + "] in site [" + ctxt.getRoot() + "]" + fp , fp );
         e.fillInStackTrace();
         _logger.error( "invalid access [" + fp + "]" , e );
         throw e;
@@ -141,6 +148,7 @@ public final class AppSecurityManager extends SecurityManager {
     final Machine.OSType _os;
     final Logger _logger;
     final String _jsCompileRoot;
+    final String _javaRoot;
 
     final String[] _publicDirs = new String[]{ "/corejs/" , "/external/" , "/core-modules/" , "/site-modules/" , "src/main/ed/" }; // site-modules is special
     final String[] _publicClasses;
