@@ -144,7 +144,9 @@ public class PythonJxpSource extends JxpSource {
 
                 PyObject builtins = ss.builtins;
 
-                builtins.__setitem__( "__import__" , ((PythonModuleTracker)ss.modules).importFunction( builtins.__finditem__( "__import__") ) );
+                PyObject pyImport = builtins.__finditem__( "__import__" );
+                if( ! ( pyImport instanceof TrackImport ) )
+                    builtins.__setitem__( "__import__" , new TrackImport( pyImport , (PythonModuleTracker)ss.modules ) );
 
                 pyglobals.setGlobal( false );
 
@@ -193,4 +195,23 @@ public class PythonJxpSource extends JxpSource {
     
     // static b/c it has to use ThreadLocal anyway
     final static Logger _log = Logger.getLogger( "python" );
+}
+
+class TrackImport extends PyObject {
+    PyObject _import;
+    PythonModuleTracker _moduleDict;
+    TrackImport( PyObject importF , PythonModuleTracker sys_modules ){
+        _import = importF;
+        _moduleDict = sys_modules;
+    }
+
+    public PyObject __call__( PyObject args[] , String keywords[] ){
+        int argc = args.length;
+        PyObject globals = ( argc > 1 ) ? args[1] : null;
+        //System.out.println("Overrode import importing. " + args[0] + " " + globals.__finditem__( "__file__" ) );
+        PyObject m = _import.__call__( args, keywords );
+        return m;
+
+        //PythonJxpSource foo = PythonJxpSource.this;
+    }
 }

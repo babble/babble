@@ -27,7 +27,13 @@ public class PrintStreamAppender implements Appender {
     }
 
     public void append( String loggerName , ed.js.JSDate date , Level level , String msg , Throwable throwable , Thread thread ){
-        _out.println( "[" + date + "] " + thread.getName() + " || " + loggerName + " " + level + " >> " + msg );
+        String output = "[" + date + "] " + thread.getName() + " || " + loggerName + " " + level + " >> " + msg + "\n";
+        try {
+            _out.write( output.getBytes( "utf8" ) );
+        }
+        catch ( IOException encodingBad ){
+            _out.print( output );
+        }
         if ( throwable != null )
             throwable.printStackTrace( _out );
     }
