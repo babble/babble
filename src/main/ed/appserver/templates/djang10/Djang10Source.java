@@ -27,6 +27,7 @@ import java.util.Set;
 
 import ed.appserver.JSFileLibrary;
 import ed.appserver.jxp.JxpSource;
+import ed.appserver.templates.djang10.JSHelper.LoadedLibrary;
 import ed.io.StreamUtil;
 import ed.js.JSArray;
 import ed.js.JSFunction;
@@ -79,9 +80,9 @@ public class Djang10Source extends JxpSource {
 
             Parser parser = new Parser(content.getName(), contents);
             JSHelper jsHelper = JSHelper.get(Scope.getThreadLocal());
-            for(Pair<JxpSource,Library> lib : jsHelper.getDefaultLibraries()) {
-                parser.add_dependency(lib.first);
-                parser.add_library(lib.second);
+            for(LoadedLibrary lib : jsHelper.getDefaultLibraries()) {
+                parser.add_dependency(lib.getSource());
+                parser.add_library(lib.getLibrary());
             }
             
             nodes = parser.parse(Scope.getThreadLocal(), new JSArray());
@@ -120,35 +121,7 @@ public class Djang10Source extends JxpSource {
     public String getName() {
         return content.getName();
     }
-    
-    public static JSHelper install(Scope scope, Map<String, JSFileLibrary> fileLibRoots, Logger siteLogger) {
-        JSHelper jsHelper = JSHelper.install(scope, fileLibRoots, siteLogger);
-        
-        //FIXME: this whole injection is ugly, fix it!
-        JSFileLibrary js = JSFileLibrary.loadLibraryFromEd("ed/appserver/templates/djang10/js", "djang10", scope);
-        
-        for(String jsFile : new String[] {"defaulttags", "loader_tags", "defaultfilters", "tengen_extras"}) {
-            JSCompiledScript jsFileFn = (JSCompiledScript)js.get(jsFile);
-            Library lib = jsHelper.evalLibrary(scope, jsFileFn);
-
-            jsHelper.addDefaultLibrary((JxpSource)jsFileFn.get(JxpSource.JXP_SOURCE_PROP), lib);
-        }
-        
-        JSFileLibrary defaultLoaders = (JSFileLibrary)js.get("loaders");
-        JSArray loaders = (JSArray)jsHelper.get("TEMPLATE_LOADERS");
-        
-        for(String jsFile : new String[] { "filesystem", "absolute", "site_relative" }) {
-            JSCompiledScript loaderFile = (JSCompiledScript)defaultLoaders.get(jsFile);
-            Scope child = scope.child();
-            loaderFile.call(child);
-
-            JSFunction loaderFunc = (JSFunction)((JSObject)((JSObject)jsHelper.get("loaders")).get(jsFile)).get("load_template_source");
-            loaders.add(loaderFunc);
-        }
-        
-        return jsHelper;
-    }
-    
+   
     private static interface Djang10Content {
         public String getContent() throws IOException;
         public InputStream getInputStream() throws IOException;

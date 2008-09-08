@@ -134,7 +134,7 @@ public class Shell {
                 rootFileMap.put(rootKey, (JSFileLibrary)temp);
         }
         
-        Djang10Source.install(s, rootFileMap, ed.log.Logger.getLogger( "shell" ));
+        ed.appserver.templates.djang10.JSHelper.install(s, rootFileMap, ed.log.Logger.getLogger( "shell" ));
     }
 
     /** @unexpose */

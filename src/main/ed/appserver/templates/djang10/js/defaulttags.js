@@ -879,11 +879,10 @@ var load =
 
     var bits = token.split_contents();
     for(var i=1; i<bits.length; i++) {
-        var library_file = djang10.loadLibrary(bits[i]);
-        var library = djang10.evalLibrary(library_file);
+        var library = djang10.loadLibrary(bits[i]);
         
-        parser.add_library(library);
-        parser.add_dependency(library_file["_jxpSource"]);
+        parser.add_library(library.getLibrary());
+        parser.add_dependency(library.getSource());
     }
     return new LoadNode();
 };
