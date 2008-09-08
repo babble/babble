@@ -21,6 +21,7 @@ import java.util.*;
 
 import org.jruby.*;
 import org.jruby.ast.Node;
+import org.jruby.exceptions.RaiseException;
 import org.jruby.internal.runtime.GlobalVariables;
 import org.jruby.internal.runtime.methods.JavaMethod;
 import org.jruby.javasupport.JavaUtil;
@@ -41,6 +42,8 @@ import static ed.lang.ruby.RubyObjectWrapper.toRuby;
 import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
 
 public class RubyJxpSource extends JxpSource {
+
+    public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB");
     static final boolean SKIP_REQUIRED_LIBS = Boolean.getBoolean("DEBUG.RB.SKIP.REQ.LIBS");
@@ -109,6 +112,7 @@ public class RubyJxpSource extends JxpSource {
 	_setOutput(s);
 	_runtime.setGlobalVariables(new ScopeGlobalVariables(s, _runtime));
 	_exposeScopeFunctions(s);
+	_patchRequire(s);
 
 	// See the second part of JRuby's Ruby.executeScript(String, String)
 	ThreadContext context = _runtime.getCurrentContext();
@@ -199,6 +203,35 @@ public class RubyJxpSource extends JxpSource {
 	    }
 	    s = s.getParent();
 	}
+    }
+
+    protected void _patchRequire(final Scope scope) {
+	RubyModule kernel = _runtime.getKernel();
+	kernel.addMethod("require", new JavaMethod(kernel, PUBLIC) {
+		public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+		    String arg = args[0].toString();
+		    try {
+			if (_runtime.getLoadService().require(arg))
+			    return _runtime.getTrue();
+		    }
+		    catch (RaiseException re) {
+			try {
+			    JSFileLibrary local = (JSFileLibrary)scope.get("local");
+			    Object o = local.getFromPath(arg);
+			    if (o instanceof JSFunction && ((JSFunction)o).isCallable()) { // iscallablejsf
+				((JSFunction)o).call(scope, EMPTY_OBJECT_ARRAY);
+				return _runtime.getTrue();
+			    }
+			    else
+				return _runtime.getFalse();
+			}
+			catch (Exception e) {
+			    return _runtime.getFalse();
+			}
+		    }
+		    return _runtime.getFalse();
+		}
+	    });
     }
 
     protected final File _file;
