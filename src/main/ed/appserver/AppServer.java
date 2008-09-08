@@ -175,6 +175,7 @@ public class AppServer implements HttpHandler {
             ar.makeThreadLocal();
             _requestMonitor.watch( ar );
             db.requestStart();
+            AppSecurityManager.READY = true;
             
             _handle( request , response , ar );
         }
@@ -786,6 +787,7 @@ public class AppServer implements HttpHandler {
         HttpServer.addGlobalHandler( as );
 
         HttpServer hs = new HttpServer(portNum);
+        System.setSecurityManager( new AppSecurityManager() );
         hs.start();
         hs.join();
     }
