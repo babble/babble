@@ -104,26 +104,4 @@ public class PythonModuleTracker extends PyStringMap {
 
     }
 
-    public PyObject importFunction(PyObject origF){
-        return new TrackImport( origF );
-    }
-
-    class TrackImport extends PyObject {
-        PyObject _import;
-        TrackImport( PyObject importF ){
-            _import = importF;
-        }
-
-        public PyObject __call__( PyObject args[] , String keywords[] ){
-            int argc = args.length;
-            PyObject globals = ( argc > 1 ) ? args[1] : null;
-            //System.out.println("Overrode import importing. " + args[0] + " " + globals.__finditem__( "__file__" ) );
-            PyObject m = _import.__call__( args, keywords );
-            return m;
-
-            //PythonJxpSource foo = PythonJxpSource.this;
-        }
-    }
-
-
 }
