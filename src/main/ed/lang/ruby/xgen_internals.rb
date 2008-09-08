@@ -32,6 +32,10 @@ module XGen
         @cursor.forEach { |row| yield @model_class.new(row) }
       end
 
+      %w(sort limit skip).each { |name|
+        eval "def #{name}(*args); @cursor.#{name}(*args); return self; end"
+      }
+
     end
 
     # A superclass for database collection instances. It creates find_by_*
@@ -109,6 +113,8 @@ EOS
                when :first
                  self.new(@coll.findOne(*args[1..-1]))
                when :all
+# DEBUG
+puts "returning new cursor object"
                  Cursor.new(@coll.find(*args[1..-1]), self)
                else
                  Cursor.new(@coll.find(*args), self)
