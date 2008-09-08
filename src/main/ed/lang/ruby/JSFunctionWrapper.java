@@ -37,7 +37,7 @@ import static ed.lang.ruby.RubyObjectWrapper.toRuby;
  */
 public class JSFunctionWrapper extends JSFunctionCalls0 {
 
-    private static final IRubyObject[] TYPE_ARRAY = new IRubyObject[0];
+    static final IRubyObject[] EMPTY_IRUBY_OBJECT_ARRAY = new IRubyObject[0];
 
     private Scope _scope;
     private Ruby _runtime;
@@ -58,7 +58,7 @@ public class JSFunctionWrapper extends JSFunctionCalls0 {
 	if (args != null)
 	    for (Object obj : args)
 		rargs.add(toRuby(_scope, _runtime, obj));
-	return toJS(_scope, _block.call(_runtime.getCurrentContext(), (IRubyObject[])rargs.toArray(TYPE_ARRAY)));
+	return toJS(_scope, _block.call(_runtime.getCurrentContext(), (IRubyObject[])rargs.toArray(EMPTY_IRUBY_OBJECT_ARRAY)));
     }
 
     public Block getBlock() { return _block; }

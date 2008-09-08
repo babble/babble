@@ -142,6 +142,14 @@ public abstract class RubyObjectWrapper extends RubyObject {
 		});
 	    return jobj;
 	}
+	if (r instanceof RubyStruct) {
+	    RubyStruct rs = (RubyStruct)r;
+	    final JSObjectBase jobj = new JSObjectBase();
+	    IRubyObject[] ja = rs.members().toJavaArray();
+	    for (int i = 0; i < ja.length; ++i)
+		jobj.set(ja[i].toString(), toJS(scope, rs.get(i)));
+	    return jobj;
+	}
 	if (r instanceof RubyProc) {
 	    Object o = new JSFunctionWrapper(scope, r.getRuntime(), ((RubyProc)r).getBlock());
 	    _wrappers.put(o, r);
@@ -157,6 +165,9 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	    if (options.indexOf('-') >= 0)
 		options = options.substring(0, options.indexOf('-'));
 	    return new JSRegex(regex.source().toString(), options);
+	}
+	if (r instanceof RubyClass) {
+	    return new JSRubyClassWrapper(scope, (RubyClass)r);
 	}
 	if (r instanceof RubyObject) {
 	    Object o = new ed.lang.ruby.JSObjectWrapper(scope, (RubyObject)r);
