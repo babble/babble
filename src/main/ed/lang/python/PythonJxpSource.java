@@ -95,6 +95,36 @@ public class PythonJxpSource extends JxpSource {
                 final AppRequest ar = AppRequest.getThreadLocal();
                 
                 PySystemState ss = Py.getSystemState();
+
+                // Have to flush every module that depends on any module that
+                // has been updated
+                if( ! ( ss.modules instanceof PythonModuleTracker ) ){
+                    if( ss.modules instanceof PyStringMap)
+                        ss.modules = new PythonModuleTracker( (PyStringMap)ss.modules );
+                    else {
+                        // You can comment out this exception, it shouldn't
+                        // break anything beyond reloading python modules
+                        throw new RuntimeException("couldn't intercept modules " + ss.modules.getClass());
+                    }
+                }
+                // Current approach: when a file gets updated, flush all the
+                // site's modules.
+                // This sucks a little, but I think it'd be even harder to
+                // figure out which modules depend on which modules and flush
+                // only the right ones.
+                // FIXME: This won't work if I import a file from core.modules
+                // or local.modules and then edit that file.
+                // This'll be a problem for developers, but right now I wanna
+                // try and get a fix to the ShopWiki guys.
+                else {
+                    PythonModuleTracker mods = (PythonModuleTracker)ss.modules;
+                    AppContext ctxt = (AppContext)s.get( "__instance__" );
+                    if ( ctxt != null )
+                        mods.flushOld( ctxt.getRoot() );
+                }
+                
+
+
                 PyObject out = ss.stdout;
                 if ( ! ( out instanceof MyStdoutFile ) || ((MyStdoutFile)out)._request != ar ){
                     ss.stdout = new MyStdoutFile( ar );
