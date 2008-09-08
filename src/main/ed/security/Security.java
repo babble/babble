@@ -50,9 +50,9 @@ public class Security {
         Convert.DEFAULT_PACKAGE + "." + _baseClass + "sites_grid_" , 
         Convert.DEFAULT_PACKAGE + "." + _baseClass + "sites_modules_" , 
         Convert.DEFAULT_PACKAGE + ".lastline" ,
-        Convert.DEFAULT_PACKAGE + ".src_main_ed_" ,
-        Convert.DEFAULT_PACKAGE + "._home_yellow_code_for_hudson" ,
-        Convert.DEFAULT_PACKAGE + "." + new File( "src/test/ed" ).getAbsolutePath().replace( '/' , '_' )
+        Convert.DEFAULT_PACKAGE + "." + Convert.cleanName( "src/main/ed/" ) , 
+        Convert.DEFAULT_PACKAGE + "." + Convert.cleanName( "/home/yellow/code_for_hudson" ) ,
+        Convert.DEFAULT_PACKAGE + "." + Convert.cleanName( new File( "src/test/ed" ).getAbsolutePath().replace( '/' , '_'  ) )
     };
     
     public static boolean isCoreJS(){
