@@ -141,6 +141,11 @@ public class PythonJxpSource extends JxpSource {
                 pyglobals.setGlobal( true );
                 __builtin__.fillWithBuiltins( globals );
                 globals.invoke( "update", PySystemState.builtins );
+
+                PyObject builtins = ss.builtins;
+
+                builtins.__setitem__( "__import__" , ((PythonModuleTracker)ss.modules).importFunction( builtins.__finditem__( "__import__") ) );
+
                 pyglobals.setGlobal( false );
 
                 PyModule xgenMod = imp.addModule("_10gen");
@@ -187,6 +192,5 @@ public class PythonJxpSource extends JxpSource {
     private long _lastCompile;
     
     // static b/c it has to use ThreadLocal anyway
-    
     final static Logger _log = Logger.getLogger( "python" );
 }
