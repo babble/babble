@@ -32,6 +32,10 @@ module XGen
         @cursor.forEach { |row| yield @model_class.new(row) }
       end
 
+      %w(sort limit skip).each { |name|
+        eval "def #{name}(*args); @cursor.#{name}(*args); return self; end"
+      }
+
     end
 
     # A superclass for database collection instances. It creates find_by_*

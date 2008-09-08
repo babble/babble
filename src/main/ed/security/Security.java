@@ -23,6 +23,7 @@ import java.io.*;
 
 import ed.appserver.*;
 import ed.js.engine.*;
+import ed.util.Config;
 
 public class Security {
 
@@ -53,7 +54,7 @@ public class Security {
         Convert.DEFAULT_PACKAGE + "." + Convert.cleanName( "src/main/ed/" ) , 
         Convert.DEFAULT_PACKAGE + "." + Convert.cleanName( "/home/yellow/code_for_hudson" ) ,
         Convert.DEFAULT_PACKAGE + "." + Convert.cleanName( new File( "src/test/ed" ).getAbsolutePath().replace( '/' , '_'  ) ),
-        Convert.DEFAULT_PACKAGE + "." + Convert.cleanName("/data/ed/src/test")
+        Convert.DEFAULT_PACKAGE + "." + Convert.cleanName( Config.get().getProperty("ED_HOME", "/data/ed") + "/src/test/ed")
     };
     
     public static boolean isCoreJS(){
