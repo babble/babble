@@ -113,8 +113,6 @@ EOS
                when :first
                  self.new(@coll.findOne(*args[1..-1]))
                when :all
-# DEBUG
-puts "returning new cursor object"
                  Cursor.new(@coll.find(*args[1..-1]), self)
                else
                  Cursor.new(@coll.find(*args), self)
