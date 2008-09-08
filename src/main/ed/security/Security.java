@@ -52,7 +52,8 @@ public class Security {
         Convert.DEFAULT_PACKAGE + ".lastline" ,
         Convert.DEFAULT_PACKAGE + "." + Convert.cleanName( "src/main/ed/" ) , 
         Convert.DEFAULT_PACKAGE + "." + Convert.cleanName( "/home/yellow/code_for_hudson" ) ,
-        Convert.DEFAULT_PACKAGE + "." + Convert.cleanName( new File( "src/test/ed" ).getAbsolutePath().replace( '/' , '_'  ) )
+        Convert.DEFAULT_PACKAGE + "." + Convert.cleanName( new File( "src/test/ed" ).getAbsolutePath().replace( '/' , '_'  ) ),
+        Convert.DEFAULT_PACKAGE + "." + Convert.cleanName("/data/ed/src/test")
     };
     
     public static boolean isCoreJS(){
