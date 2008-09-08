@@ -157,4 +157,14 @@ public class XgenInternalsTest extends RubyDBTest {
     public void testCursorMethods() {
 	assertRubyEquals("puts Track.find(:all).limit(2).length.to_s", "2");
     }
+
+    public void testRemove() {
+	runRuby("Track.find(:first, {:song => 'King For A Day'}).remove; Track.find(:all).each { |t| puts t.to_s }");
+	assertTrue(rubyOutput.contains("song: The Ability to Swing"));
+	assertTrue(rubyOutput.contains("song: Budapest by Blimp"));
+	assertTrue(rubyOutput.contains("song: Europa and the Pirate Twins"));
+	assertTrue(rubyOutput.contains("song: Garden Of Earthly Delights"));
+	assertTrue(rubyOutput.contains("song: The Mayor Of Simpleton"));
+	assertFalse(rubyOutput.contains("song: King For A Day"));
+    }
 }

@@ -165,6 +165,11 @@ EOS
         self
       end
 
+      # Removes self from the database. Must have an _id.
+      def remove
+        self.class.coll.remove({:_id => self._id}) if self._id
+      end
+
     end
 
   end
