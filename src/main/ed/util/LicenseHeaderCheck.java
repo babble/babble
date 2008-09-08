@@ -207,8 +207,6 @@ public class LicenseHeaderCheck {
         _extensions.put( "jxp" , jxpStyle );
         _extensions.put( "html" , jxpStyle );
 
-        _extensions.put( "rb" , new CodeType( "=begin" , "=end" , "" ) );
-
         CodeType djang10 = new CodeType( "{% comment %}" , "{% endcomment %}" , "" );
         _extensions.put( "djang10" , djang10 );
         _extensions.put( "django" , djang10 );
