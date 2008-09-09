@@ -516,6 +516,9 @@ public abstract class DBCollection extends JSObjectLame {
         toSearch.add( jo );
 
         while ( toSearch.size() > 0 ){
+            
+            Map<JSObject,String> seenNow = new IdentityHashMap<JSObject,String>( seen );
+            
             JSObject n = toSearch.remove(0);
             for ( String name : n.keySet( false ) ){
                 Object foo = n.get( name );
@@ -547,10 +550,11 @@ public abstract class DBCollection extends JSObjectLame {
                 if ( e.get( "_ns" ) == null ){
                     if ( seen.containsKey( e ) )
                         throw new RuntimeException( "you have a loop. key : " + name + " from a " + n.getClass()  + " whis is a : " + e.getClass() );
-                    seen.put( e , "a" );
+                    seenNow.put( e , "a" );
                     toSearch.add( e );
                     continue;
                 }
+
 
                 // ok - now we knows its a reference
 
@@ -582,6 +586,8 @@ public abstract class DBCollection extends JSObjectLame {
                 otherUpdate.call( s , lookup , e , _upsertOptions , seenSubs );
 
             }
+            
+            seen.putAll( seenNow );
         }
     }
 

@@ -56,6 +56,7 @@ Cloud.Environment.prototype.toString = function(){
 Cloud.SiteDB = function( name , server ){
     this.name = name;
     this.server = server;
+    this.envParition = true;
     this.id = ObjectId();
 };
 
@@ -372,11 +373,24 @@ Cloud.Site.prototype.upsertDB = function( name , server , userToInsert ){
     
     var db = new Cloud.SiteDB( name , server );
     this.dbs.add( db );
+
     
-    if ( userToInsert ){
-	var conn = db.getConnection();
-	if ( ! db.users.findOne( { email : userToInsert.email } ) )
-	    conn.users.save( userToInsert );
+    if ( userToInsert || this.defaultUsers ){
+        
+        var conn = db.getConnection();
+        
+        if ( userToInsert ){
+	    if ( ! db.users.findOne( { email : userToInsert.email } ) ){
+	        conn.users.save( userToInsert );
+            }
+        }
+
+        if ( this.defaultUsers ){
+            for each ( u in defaultUsers ){
+                conn.users.save( u );
+            }
+        }
+
     }
 
     return true;

@@ -268,12 +268,23 @@ public class Cloud extends JSObjectBase {
 
         if ( _bad )
             return false;
-    
-        JSObject me = (JSObject)(_scope.get("me"));
-        if ( me == null )
-	    throw new RuntimeException( "why doesn't me exist" );
-
+        
+        JSObject me = getMe();
         return ! JSInternalFunctions.JS_evalToBool( me.get( "bad" ) );
+    }
+
+    JSObject getMe(){
+        JSObject o = (JSObject)_scope.get( "me" );
+        if ( o == null )
+            throw new RuntimeException( "why is me null" );
+        return o;
+    }
+
+    String getGridServer(){
+        Object o = evalFunc( getMe() , "gridServer" );
+        if ( o == null )
+            return null;
+        return o.toString();
     }
 
     public String getModuleSymLink( String moduleName , String version ){
