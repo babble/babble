@@ -32,6 +32,8 @@ mkdir -p /tmp/10genSDK/db
 rm /tmp/10genSDK/db/*
 ./dbctrl.sh start /tmp/10genSDK/db&
 
+sleep 5
+
 # Test each site in the sites directory
 cd ./sites
 SITES_LIST=`ls -d1 */`
@@ -48,6 +50,8 @@ for site in $SITES_LIST; do
 
     # Bring up the app server.
     ./runserver.sh ./sites/$site&
+
+	sleep 5
 
     # Populate the db with setup data.
     if [ -f ./sites/${site}test/setup.js ]
@@ -103,6 +107,8 @@ for site in $SITES_LIST; do
             echo "TEST FAILURE FOR SITE: ${site}"
             exit $STATUS
     fi
+
+	sleep 5
 done
 
 # Bring down the db

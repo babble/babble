@@ -22,6 +22,7 @@ import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
 import ed.js.*;
+import ed.js.engine.Scope;
 
 @Test(groups = {"ruby", "ruby.jxpsource"})
 public class RubyJxpSourceTest extends SourceRunner {
@@ -180,5 +181,13 @@ public class RubyJxpSourceTest extends SourceRunner {
 	runRuby("$data.hash['a'] = 99");
 	runJS("print(data.hash['a']);");
 	assertEquals(jsOutput, "99");
+    }
+
+    public void testIncludeParentScopes() {
+	s.put("adult", new Integer(555));
+	Scope child = new Scope("child", s);
+	child.put("kiddie", new Integer(666));
+	s = child;
+	assertRubyEquals("puts $adult; puts $kiddie", "555\n666");
     }
 }
