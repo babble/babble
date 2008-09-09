@@ -24,8 +24,8 @@ import org.jruby.RubyClass;
 import ed.js.engine.Scope;
 
 /**
- * Scopes need to be wrapped differently because their key sets are a set
- * consiting of of the key set of itself and all its parent scopes.
+ * Scopes need to be wrapped differently because we want their key sets
+ * to include the keys of all parent scopes.
  */
 public class RubyScopeWrapper extends RubyJSObjectWrapper {
 
