@@ -35,6 +35,19 @@ public class NativeBridge {
         _disallowedNativeNames.add( "getClassLoader" );
         _disallowedNativeNames.add( "loadClass" );
     }
+    private static final Map<Class, Set<String>> _publicMethodNames = new HashMap<Class, Set<String>>();
+
+    /** Returns all the public method names declared by <var>c</var>. */
+    public synchronized static final Set<String> getPublicMethodNames( Class c ) {
+	Set<String> names = _publicMethodNames.get( c );
+	if ( names == null ) {
+	    names = new HashSet<String>();
+	    for ( Method m : c.getMethods() )
+		names.add( m.getName() );
+	    _publicMethodNames.put( c , names );
+	}
+	return names;
+    }
 
     public static final JSFunction getNativeFunc( final Object o , final String name ){
         if ( o == null )

@@ -23,7 +23,7 @@ var absolute =
 
 var log = log.djang10.loaders.absolute;
 
-var load_template_source =
+load_template_source =
     absolute.load_template_source =
     function(template_name, template_dirs){
 

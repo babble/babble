@@ -175,6 +175,7 @@ public class AppServer implements HttpHandler {
             ar.makeThreadLocal();
             _requestMonitor.watch( ar );
             db.requestStart();
+            AppSecurityManager.READY = true;
             
             _handle( request , response , ar );
         }
@@ -735,8 +736,9 @@ public class AppServer implements HttpHandler {
 
         String webRoot = "/data/sites/admin/";
         String sitesRoot = "/data/sites";
-
+        
         int portNum = DEFAULT_PORT;
+        boolean secure = false;
 
         /*
          *     --port portnum   [root]
@@ -761,6 +763,9 @@ public class AppServer implements HttpHandler {
 	    else if ( "--sitesRoot".equals( args[i] ) ){
 		sitesRoot = args[++i];
 	    }
+            else if ( "--secure" .equals( args[i] ) ){
+                secure = true;
+            }
             else {
                 if (i != aLength - 1) {
                     System.out.println("error - unknown param " + args[i]);
@@ -780,12 +785,14 @@ public class AppServer implements HttpHandler {
         System.out.println("       sitesRoot = " + sitesRoot);
         System.out.println("     listen port = " + portNum);
         System.out.println("==================================");
-
+        
         AppServer as = new AppServer( webRoot , sitesRoot );
 
         HttpServer.addGlobalHandler( as );
 
         HttpServer hs = new HttpServer(portNum);
+        if ( secure )
+            System.setSecurityManager( new AppSecurityManager() );
         hs.start();
         hs.join();
     }

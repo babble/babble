@@ -137,7 +137,29 @@ public class Convert implements StackTraceFixer {
     }
 
     public static String cleanName( String name ){
-        return name.replaceAll( "[^\\w]+" , "_" );
+        StringBuilder buf = new StringBuilder( name.length() + 5 );
+        boolean prevNonAlpha = false;
+        
+        for ( int i=0; i<name.length(); i++ ){
+
+            final char c = name.charAt(i);
+
+            if ( Character.isLetter( c ) || Character.isDigit( c ) ){
+                buf.append( c );
+                prevNonAlpha = false;
+                continue;
+            }
+            
+            if ( buf.length() == 0 )
+                continue;
+
+            if ( prevNonAlpha )
+                continue;
+
+            buf.append( "_" );
+            prevNonAlpha = true;
+        }
+        return buf.toString();
     }
 
 

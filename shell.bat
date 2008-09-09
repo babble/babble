@@ -1,4 +1,4 @@
 @echo off
 
-java -classpath .\build;.\conf;.\include\* -ea -Djava.library.path=.\include ed.js.Shell %*
+java -classpath .\build;.\conf;.\include\* -ea -Djruby.home=.\build\ruby -Djava.library.path=.\include ed.js.Shell %*
 

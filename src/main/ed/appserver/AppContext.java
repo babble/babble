@@ -25,7 +25,6 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 
 import ed.appserver.jxp.*;
-import ed.appserver.templates.djang10.*;
 import ed.db.*;
 import ed.log.*;
 import ed.js.*;
@@ -217,7 +216,7 @@ public class AppContext extends ServletContextBase {
                 rootFileMap.put(rootKey, (JSFileLibrary)temp);
         }
         
-        Djang10Source.install(_scope, rootFileMap, _logger);
+        ed.appserver.templates.djang10.JSHelper.install(_scope, rootFileMap, _logger);
         
 	_scope.lock( "user" ); // protection against global user object
 

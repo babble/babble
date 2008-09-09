@@ -48,6 +48,10 @@ public class CompileUtil {
         _loader = cl;
     }
 
+    public static String getCompileSrcDir( final String pack ){
+        return TMP_DIR + pack.replace( '.' , '/' ) + "/";
+    }
+    
     public static synchronized Class<?> compile( final String pack , final String c , final String source , final Convert convert )
         throws IOException , ClassNotFoundException {
         
@@ -57,7 +61,7 @@ public class CompileUtil {
         if ( D ) System.out.println( source );
         if ( CD ) System.err.println( "compile 0 " );        
 
-        File dir = new File( TMP_DIR + pack.replace( '.' , '/' ) + "/" );
+        File dir = new File( getCompileSrcDir( pack ) );
         dir.mkdirs();
 
         if ( CD ) System.err.println( "compile 1 " );

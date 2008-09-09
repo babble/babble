@@ -124,8 +124,8 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
      * @param value cookie value
      * @param maxAge
      *          > 0 = seconds into the future
-     *            0 = browser session
-     *          < 0 remove
+     *            0 = remove
+     *          < 0 = session
      */
     public void addCookie( String name , String value , int maxAge ){
         Cookie c = new Cookie( name , value );

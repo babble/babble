@@ -33,14 +33,21 @@ public class CloudTest extends ed.TestCase {
         System.setProperty( "FORCE-GRID" , "true" );
     }
 
+    public CloudTest()
+        throws IOException {
+        c = Cloud.getInstance();
+        dir = new File( "src/test/ed/cloud/" );
+        
+        if ( ! ( dir.exists() && dir.isDirectory() ) )
+            throw new RuntimeException( "can't find cloud test dir" );
+
+        c.getScope().eval( new File( dir , "_setup.js" ) );
+    }
+    
     public void testJS()
         throws IOException {
         
-        Cloud c = Cloud.getInstance();
 
-        File dir = new File( "src/test/ed/cloud/" );
-        if ( ! ( dir.exists() && dir.isDirectory() ) )
-            throw new RuntimeException( "can't find cloud test dir" );
 
         
 	List<File> toLoad = new ArrayList<File>();
@@ -80,7 +87,11 @@ public class CloudTest extends ed.TestCase {
 
     }
 
-    public static void main( String args[] ){
+    final Cloud c;
+    final File dir;
+
+    public static void main( String args[] )
+        throws IOException {
         (new CloudTest()).runConsole();
     }
     

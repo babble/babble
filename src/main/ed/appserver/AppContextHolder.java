@@ -203,6 +203,15 @@ public class AppContextHolder {
         if ( a == b )
             return true;
 
+        if ( a == null || b == null )
+            return false;
+
+        if ( a._rootFile == null )
+            throw new NullPointerException( "how could a's _rootFile be null" );
+
+        if ( b._rootFile == null )
+            throw new NullPointerException( "how could b's _rootFile be null" );
+
         if ( a._rootFile.equals( b._rootFile ) )
             return true;
 

@@ -95,6 +95,36 @@ public class PythonJxpSource extends JxpSource {
                 final AppRequest ar = AppRequest.getThreadLocal();
                 
                 PySystemState ss = Py.getSystemState();
+
+                // Have to flush every module that depends on any module that
+                // has been updated
+                if( ! ( ss.modules instanceof PythonModuleTracker ) ){
+                    if( ss.modules instanceof PyStringMap)
+                        ss.modules = new PythonModuleTracker( (PyStringMap)ss.modules );
+                    else {
+                        // You can comment out this exception, it shouldn't
+                        // break anything beyond reloading python modules
+                        throw new RuntimeException("couldn't intercept modules " + ss.modules.getClass());
+                    }
+                }
+                // Current approach: when a file gets updated, flush all the
+                // site's modules.
+                // This sucks a little, but I think it'd be even harder to
+                // figure out which modules depend on which modules and flush
+                // only the right ones.
+                // FIXME: This won't work if I import a file from core.modules
+                // or local.modules and then edit that file.
+                // This'll be a problem for developers, but right now I wanna
+                // try and get a fix to the ShopWiki guys.
+                else {
+                    PythonModuleTracker mods = (PythonModuleTracker)ss.modules;
+                    AppContext ctxt = (AppContext)s.get( "__instance__" );
+                    if ( ctxt != null )
+                        mods.flushOld( ctxt.getRoot() );
+                }
+                
+
+
                 PyObject out = ss.stdout;
                 if ( ! ( out instanceof MyStdoutFile ) || ((MyStdoutFile)out)._request != ar ){
                     ss.stdout = new MyStdoutFile( ar );
@@ -111,6 +141,13 @@ public class PythonJxpSource extends JxpSource {
                 pyglobals.setGlobal( true );
                 __builtin__.fillWithBuiltins( globals );
                 globals.invoke( "update", PySystemState.builtins );
+
+                PyObject builtins = ss.builtins;
+
+                PyObject pyImport = builtins.__finditem__( "__import__" );
+                if( ! ( pyImport instanceof TrackImport ) )
+                    builtins.__setitem__( "__import__" , new TrackImport( pyImport , (PythonModuleTracker)ss.modules ) );
+
                 pyglobals.setGlobal( false );
 
                 PyModule xgenMod = imp.addModule("_10gen");
@@ -156,7 +193,34 @@ public class PythonJxpSource extends JxpSource {
     private PyCode _code;
     private long _lastCompile;
     
+    void addDependency( String to ){
+        super.addDependency( new FileDependency( new File( to ) ) );
+    }
+
+    class TrackImport extends PyObject {
+        PyObject _import;
+        PythonModuleTracker _moduleDict;
+        TrackImport( PyObject importF , PythonModuleTracker sys_modules ){
+            _import = importF;
+            _moduleDict = sys_modules;
+        }
+
+        public PyObject __call__( PyObject args[] , String keywords[] ){
+            int argc = args.length;
+            PyObject globals = ( argc > 1 ) ? args[1] : null;
+            //System.out.println("Overrode import importing. " + args[0] + " " + globals.__finditem__( "__file__" ) );
+            PyObject m = _import.__call__( args, keywords );
+            PyObject from = globals.__finditem__( "__file__" );
+            PyObject to = m.__findattr__( "__file__" );
+            if( to == null ) return m; // no __file__: builtin or something
+            addDependency( to.toString() );
+            _moduleDict.addDependency( args[0] , to );
+            return m;
+
+            //PythonJxpSource foo = PythonJxpSource.this;
+        }
+    }
+
     // static b/c it has to use ThreadLocal anyway
-    
     final static Logger _log = Logger.getLogger( "python" );
 }

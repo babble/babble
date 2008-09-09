@@ -25,13 +25,17 @@ import java.nio.charset.CodingErrorAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.regex.Pattern;
 
 import org.python.core.PyObject;
 import org.python.core.PyString;
+
+import sun.security.action.LoadLibraryAction;
 
 import ed.appserver.JSFileLibrary;
 import ed.appserver.jxp.JxpSource;
@@ -50,24 +54,29 @@ import ed.js.func.JSFunctionCalls1;
 import ed.lang.python.Python;
 import ed.log.Level;
 import ed.log.Logger;
-import ed.util.Pair;
 
 public class JSHelper extends JSObjectBase {
     private final Logger log;
     
     public static final String NS = "djang10";
 
-    private final ArrayList<TemplateTagRoot> moduleRoots;
-    private final ArrayList<Pair<JxpSource,Library>> defaultLibraries;
+    private final ArrayList<TemplateTagRoot> librarySearchPaths;
+    private final ArrayList<LoadedLibrary> defaultLibraries;
     
     private final Map<String, JSFileLibrary> fileRoots;
+    
+    WeakHashMap<JSCompiledScript, LoadedLibrary> libraryCache;
+    WeakHashMap<JSCompiledScript, JSFunction> loaderCache;
     
     public JSHelper(Logger djang10Logger, Map<String, JSFileLibrary> fileRoots) {
         this.log = djang10Logger;
         this.fileRoots = Collections.unmodifiableMap(fileRoots);
-        moduleRoots = new ArrayList<TemplateTagRoot>();
-        defaultLibraries = new ArrayList<Pair<JxpSource,Library>>();
+        librarySearchPaths = new ArrayList<TemplateTagRoot>();
+        defaultLibraries = new ArrayList<LoadedLibrary>();
 
+        libraryCache = new WeakHashMap<JSCompiledScript, LoadedLibrary>();
+        loaderCache = new WeakHashMap<JSCompiledScript, JSFunction>();
+        
         // add the basic helpers
         this.set("ALLOW_GLOBAL_FALLBACK", Boolean.TRUE);
         this.set("TEMPLATE_DIRS", new JSArray());
@@ -116,10 +125,24 @@ public class JSHelper extends JSObjectBase {
         Logger djang10Logger = siteLogger.getChild("djang10");
         djang10Logger.setLevel(Level.INFO);
         
-        
+        fileLibRoots = new HashMap<String, JSFileLibrary>(fileLibRoots);
+        JSFileLibrary jsLib = JSFileLibrary.loadLibraryFromEd("ed/appserver/templates/djang10/js", "djang10", scope);
+        fileLibRoots.put("djang10js", jsLib);
         
         JSHelper helper = new JSHelper(djang10Logger, fileLibRoots);
         scope.set(NS, helper);
+        
+        helper.addDefaultLibrary(scope, "djang10js.defaulttags");
+        helper.addDefaultLibrary(scope, "djang10js.defaultfilters");
+        helper.addDefaultLibrary(scope, "djang10js.loader_tags");
+        helper.addDefaultLibrary(scope, "djang10js.tengen_extras");
+        
+        JSArray loaders = (JSArray)helper.get("TEMPLATE_LOADERS");
+        
+        loaders.add("djang10js.loaders.filesystem.load_template_source");
+        loaders.add("djang10js.loaders.absolute.load_template_source");
+        loaders.add("djang10js.loaders.site_relative.load_template_source");
+        
         
         return helper;
     }
@@ -253,9 +276,13 @@ public class JSHelper extends JSObjectBase {
                 }
                 JSCompiledScript file = (JSCompiledScript)temp;
                 
-                Scope childScope = scope.child();
-                file.call(childScope);
-                loader = scope.getFunction(methodPart);
+                loader = loaderCache.get(file);
+                if(loader == null) {
+                    Scope childScope = scope.child();
+                    file.call(childScope);
+                    loader = childScope.getFunction(methodPart);
+                    loaderCache.put(file, loader);
+                }
             }
             else
                 loader = (JSFunction)loaderObj;
@@ -305,7 +332,7 @@ public class JSHelper extends JSObjectBase {
         if(path == null)
             throw new NullPointerException("Can't add a null templatetag root");
         
-        moduleRoots.add(new TemplateTagStringRoot(path));
+        librarySearchPaths.add(new TemplateTagStringRoot(path));
     }
     public void addTemplateTagsRoot(JSFileLibrary newRoot) {
         log.debug("Adding [" + newRoot + "] as a new templatetags root");
@@ -313,13 +340,13 @@ public class JSHelper extends JSObjectBase {
         if(newRoot == null)
             throw new NullPointerException("Can't add a null templatetag root");
         
-        moduleRoots.add(new TemplateTagFileLibRoot(newRoot));
+        librarySearchPaths.add(new TemplateTagFileLibRoot(newRoot));
     }
     
-    public JSCompiledScript loadLibrary(Scope scope, String name) {
+    public LoadedLibrary loadLibrary(Scope scope, String name) {
         log.debug("loading template tag library [" + name + "]");
         
-        ListIterator<TemplateTagRoot> iter = moduleRoots.listIterator(moduleRoots.size());
+        ListIterator<TemplateTagRoot> iter = librarySearchPaths.listIterator(librarySearchPaths.size());
         while(iter.hasPrevious()) {
             TemplateTagRoot templateTagRoot = iter.previous();
             log.debug("checking templatetag root [" + templateTagRoot + "]");
@@ -336,7 +363,7 @@ public class JSHelper extends JSObjectBase {
             Object file = fileLib.getFromPath(name);
             if (file instanceof JSCompiledScript) {
                 log.debug("loaded [" + fileLib + "/" + name + "]");
-                return (JSCompiledScript) file;
+                return loadLibrary(scope, (JSCompiledScript)file);
             }
             else if(file == null) {
                 log.debug("[" + fileLib + "/" + name + "] doesn't exist");
@@ -349,8 +376,12 @@ public class JSHelper extends JSObjectBase {
         throw new TemplateException("Failed to find module [" + name + "]");
     }
     
-    public Library evalLibrary(Scope scope, JSCompiledScript moduleFile) {
+    public LoadedLibrary loadLibrary(Scope scope, JSCompiledScript moduleFile) {
         log.debug("Processing [" + moduleFile + "]");
+        
+        LoadedLibrary library = libraryCache.get(moduleFile);
+        if(library != null)
+            return library;
         
         Scope child = scope.child();
         child.setGlobal(true);
@@ -371,16 +402,21 @@ public class JSHelper extends JSObjectBase {
             JSFunction tagHandler = (JSFunction)tagHandlers.get(tagName);
             tagHandlers.set(tagName, tagHandler);
         }
+        JxpSource source = (JxpSource)moduleFile.get(JxpSource.JXP_SOURCE_PROP);
         log.debug("done processing [" + moduleFile + "]");
-        return lib;
+
+        library = new LoadedLibrary(lib, source);
+        libraryCache.put(moduleFile, library);
+        return library;
     }
     
-    public void addDefaultLibrary(JxpSource source, Library library) {
-        log.debug("Adding default tag library from [" + source + "]");
-        
-        defaultLibraries.add(new Pair<JxpSource, Library>(source, library));
+    public void addDefaultLibrary(Scope scope, String name) {
+        log.debug("Adding default tag library from [" + name + "]");
+        name = '/'+name.replace('.', '/');
+        LoadedLibrary lib = loadLibrary(scope, (JSCompiledScript)resolve_absolute_path(name));
+        defaultLibraries.add(lib);
     }
-    public List<Pair<JxpSource,Library>> getDefaultLibraries() {
+    public List<LoadedLibrary> getDefaultLibraries() {
         return defaultLibraries;
     }
 
@@ -459,4 +495,21 @@ public class JSHelper extends JSObjectBase {
             return fileLib.toString();
         }
     }
+    
+    public class LoadedLibrary {
+        private final Library library;
+        private final JxpSource source;
+        public LoadedLibrary(Library library, JxpSource source) {
+            super();
+            this.library = library;
+            this.source = source;
+        }
+        public Library getLibrary() {
+            return library;
+        }
+        public JxpSource getSource() {
+            return source;
+        }
+    }
+
 }

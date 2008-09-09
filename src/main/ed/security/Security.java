@@ -23,6 +23,7 @@ import java.io.*;
 
 import ed.appserver.*;
 import ed.js.engine.*;
+import ed.util.Config;
 
 public class Security {
 
@@ -50,9 +51,10 @@ public class Security {
         Convert.DEFAULT_PACKAGE + "." + _baseClass + "sites_grid_" , 
         Convert.DEFAULT_PACKAGE + "." + _baseClass + "sites_modules_" , 
         Convert.DEFAULT_PACKAGE + ".lastline" ,
-        Convert.DEFAULT_PACKAGE + ".src_main_ed_" ,
-        Convert.DEFAULT_PACKAGE + "._home_yellow_code_for_hudson" ,
-        Convert.DEFAULT_PACKAGE + "." + new File( "src/test/ed" ).getAbsolutePath().replace( '/' , '_' )
+        Convert.DEFAULT_PACKAGE + "." + Convert.cleanName( "src/main/ed/" ) , 
+        Convert.DEFAULT_PACKAGE + "." + Convert.cleanName( "/home/yellow/code_for_hudson" ) ,
+        Convert.DEFAULT_PACKAGE + "." + Convert.cleanName( new File( "src/test/ed" ).getAbsolutePath().replace( '/' , '_'  ) ),
+        Convert.DEFAULT_PACKAGE + "." + Convert.cleanName( Config.get().getProperty("ED_HOME", "/data/ed") + "/src/test/ed")
     };
     
     public static boolean isCoreJS(){
@@ -82,5 +84,26 @@ public class Security {
         }
 
         return null;
+    }
+
+    public static StackTraceElement getTopUserStackElement(){
+        StackTraceElement[] st = Thread.currentThread().getStackTrace();
+        
+        for ( int i=0; i<st.length; i++ ){
+            StackTraceElement e = st[i];
+
+            final String name = e.getClassName();
+
+            if ( name.startsWith( Convert.DEFAULT_PACKAGE + "." ) )
+                return e;
+            
+            if ( name.startsWith( "ed." ) || name.startsWith( "java." ) )
+                continue;
+            
+            return e;
+        }
+
+        return null;
+        
     }
 }

@@ -16,5 +16,8 @@ done
 
 export CLASSPATH=$CLASSPATH:/opt/java/lib/tools.jar
 
- java -Djava.library.path=include -ea $headless -Xmx1000m  -XX:MaxDirectMemorySize=600M  ed.js.Shell "$@"
+export headless="-Djava.awt.headless=true"
+export jruby_home="-Djruby.home=`dirname $0`/build/ruby"
+
+java -Djava.library.path=include -ea $headless $jruby_home -Xmx1000m  -XX:MaxDirectMemorySize=600M  ed.js.Shell "$@"
 

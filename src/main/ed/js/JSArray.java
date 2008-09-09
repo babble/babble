@@ -218,8 +218,6 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                     }
                 } );
 
-            _prototype.set( ed.lang.ruby.Ruby.RUBY_SHIFT , _prototype.get( "push" ) );
-
             _prototype.set( "unshift" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object o , Object foo[] ){
                         JSArray a = (JSArray)(s.getThis());

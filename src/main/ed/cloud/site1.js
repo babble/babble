@@ -56,7 +56,12 @@ Cloud.Environment.prototype.toString = function(){
 Cloud.SiteDB = function( name , server ){
     this.name = name;
     this.server = server;
+    this.envParition = true;
     this.id = ObjectId();
+};
+
+Cloud.SiteDB.prototype.getConnection = function(){
+    return connect( this.server + "/" + this.name );
 };
 
 // did is the old name - should deprecate 
@@ -336,7 +341,10 @@ Cloud.Site.prototype.findDBById = function( id ){
     return ret;
 };
 
-Cloud.Site.prototype.upsertDB = function( name , server ){
+/**
+* @return true if a change was made.  (either created or server changed)
+*/
+Cloud.Site.prototype.upsertDB = function( name , server , userToInsert ){
 
     if ( isObject( name ) && server == null && name.name ){
         var o = name;
@@ -352,7 +360,7 @@ Cloud.Site.prototype.upsertDB = function( name , server ){
         server = Cloud.Balancer.getAvailableDB();
     
     if ( ! Cloud.findDBByName( server ) )
-        throw "can't find db [" + server + "]";
+        throw "can't find db server [" + server + "]";
     
     if ( this.findDBByName( name ) ){
         var db = this.findDBByName( name );
@@ -365,7 +373,26 @@ Cloud.Site.prototype.upsertDB = function( name , server ){
     
     var db = new Cloud.SiteDB( name , server );
     this.dbs.add( db );
+
     
+    if ( userToInsert || this.defaultUsers ){
+        
+        var conn = db.getConnection();
+        
+        if ( userToInsert ){
+	    if ( ! db.users.findOne( { email : userToInsert.email } ) ){
+	        conn.users.save( userToInsert );
+            }
+        }
+
+        if ( this.defaultUsers ){
+            for each ( u in defaultUsers ){
+                conn.users.save( u );
+            }
+        }
+
+    }
+
     return true;
 };
 
