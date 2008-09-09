@@ -22,8 +22,7 @@ import org.jruby.runtime.*;
 import org.jruby.runtime.builtin.IRubyObject;
 import static org.jruby.runtime.Visibility.PUBLIC;
 
-import ed.js.JSFunction;
-import ed.js.JSObjectBase;
+import ed.js.*;
 import ed.js.engine.Scope;
 
 /**
@@ -92,17 +91,14 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
     }
 
     protected void _createJSObjectSubclass(final Scope scope, final String name) {
-// FIXME doesn't work quite right and breaks Track.find_or_create_by_*
+// FIXME doesn't work quite right yet
 // 	if (RubyObjectWrapper.DEBUG)
 // 	    System.err.println("adding class named " + name);
 // 	_klazz = getRuntime().defineClass(name, RubyJSObjectWrapper.getJSObjectClass(getRuntime()), new ObjectAllocator() {
 // 		public IRubyObject allocate(Ruby runtime, RubyClass klass) {
 // 		    if (RubyObjectWrapper.DEBUG)
 // 			System.err.println("allocating an instance of " + klass.name() + " via a JSFunction named " + name);
-// 		    // FIXME fix this logic: newone, then ctor
-// 		    Object obj = _func.call(scope);
-// 		    if (obj instanceof JSObjectBase && _func.getConstructor() != null)
-// 			((JSObjectBase)obj).setConstructor(_func.getConstructor(), true);
+// 		    JSObject obj = _func.newOne();
 // 		    RubyObject r = (RubyObject)RubyObjectWrapper.toRuby(scope, runtime, obj);
 // 		    r.makeMetaClass(_klazz);
 // 		    return r;
@@ -119,10 +115,17 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 // 			System.err.println("calling method " + clazz.getName() + ".initialize with " + args.length + " args:");
 // 			for (IRubyObject iro : args) System.err.println("  " + iro.toString());
 // 		    }
-// 		    Object result = _func.call(_scope, RubyObjectWrapper.toJSFunctionArgs(scope, getRuntime(), args, 0, block));
-// 		    return RubyObjectWrapper.toRuby(scope, getRuntime(), result);
+// 		    // We re-create the object and return the new instance so
+// 		    // that we can pick up the ivars and methods that are
+// 		    // defined by the JavaScript constructor function call.
+// 		    JSObject obj = _func.newOne(); // re-create a new instance
+// 		    _func.callAndSetThis(_scope, obj, RubyObjectWrapper.toJSFunctionArgs(scope, getRuntime(), args, 0, block)); // initialize it by calling _func
+// 		    RubyObject r = (RubyObject)RubyObjectWrapper.toRuby(scope, context.getRuntime(), obj);
+// 		    r.makeMetaClass(_klazz);
+
+// 		    return r;
 //                 }
 //                 @Override public Arity getArity() { return Arity.OPTIONAL; }
 // 	    });
-    }
+//     }
 }
