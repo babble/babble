@@ -127,5 +127,5 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 //                 }
 //                 @Override public Arity getArity() { return Arity.OPTIONAL; }
 // 	    });
-//     }
+    }
 }
