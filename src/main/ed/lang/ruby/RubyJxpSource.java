@@ -182,8 +182,9 @@ public class RubyJxpSource extends JxpSource {
 	_addTopLevelMethodsToObjectClass(scope);
     }
 
+    // TODO add to object class, or add to kernel?
     protected void _addTopLevelMethodsToObjectClass(final Scope scope) {
-	RubyClass objectKlass = _runtime.getObject();
+	RubyClass klazz = _runtime.getObject();
 	Set<String> alreadySeen = new HashSet<String>();
 	Scope s = scope;
 	while (s != null) {
@@ -192,13 +193,11 @@ public class RubyJxpSource extends JxpSource {
 		    continue;
 		final Object obj = s.get(key);
 		if (isCallableJSFunction(obj)) {
+		    if (DEBUG)
+			System.err.println("adding top-level method " + key);
 		    alreadySeen.add(key);
-		    objectKlass.addMethod(key, new JavaMethod(objectKlass, PUBLIC) {
-			    public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
-				Object[] jargs = RubyObjectWrapper.toJSFunctionArgs(scope, _runtime, args, 0, block);
-				return toRuby(scope, _runtime, ((JSFunction)obj).call(scope, jargs));
-			    }
-			});
+		    // Creates method and attaches to klazz. Also creates a new Ruby class if appropriate.
+		    new RubyJSFunctionWrapper(scope, _runtime, (JSFunction)obj, key, klazz);
 		}
 	    }
 	    s = s.getParent();
