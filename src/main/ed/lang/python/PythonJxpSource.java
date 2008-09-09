@@ -216,7 +216,9 @@ public class PythonJxpSource extends JxpSource {
             PyObject m = _import.__call__( args, keywords );
 
             if( globals == null ){
-                System.out.println( "NO GLOBALS ???  " + m );
+                // Only happens (AFAICT) from within Java code.
+                // For example, Jython's codecs.java calls
+                // __builtin__.__import__("encodings");
                 return m;
             }
             // gets the module name -- __file__ is the file
