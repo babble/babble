@@ -158,37 +158,4 @@ public class E4X {
         }
     }
 
-    static abstract class Query {
-        public Query( String what , JSString match ){
-            _what = what;
-            _match = match;
-        }
-
-        abstract boolean match( ENode n );
-
-        final String _what;
-        final JSString _match;
-    }
-
-    public static class Query_EQ extends Query {
-
-        public Query_EQ( String what , JSString match ){
-            super( what , match );
-        }
-
-        boolean match( ENode n ){
-            ENode result = (ENode)n.get( _what );
-            if( result.isDummy() )
-                return false;
-            if( result.node.getNodeType() == Node.ATTRIBUTE_NODE )
-                return result.node.getNodeValue().equals( _match.toString() );
-            else
-                return JSInternalFunctions.JS_eq( E4X._nodeGet( n , _what ) , _match );
-        }
-
-        public String toString(){
-            return " [[ " + _what + " == " + _match + " ]] ";
-        }
-
-    }
 }

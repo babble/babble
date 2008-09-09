@@ -22,6 +22,7 @@ import java.util.*;
 import java.util.regex.*;
 import java.io.*;
 
+import javax.xml.parsers.*;
 import org.w3c.dom.*;
 import org.xml.sax.*;
 
@@ -50,8 +51,9 @@ public class ENode extends JSObjectBase {
                 e = new ENode( this, defaultNamespace );
 
             String str = "";
-            if( args.length > 0 )
+            if( args.length > 0 && args[0] != null ) {
                 e.init( args[0].toString() );
+            }
 
             return e;
         }
@@ -127,6 +129,9 @@ public class ENode extends JSObjectBase {
                 return prettyPrinting;
             if( s.equals( "prettyIndent" ) )
                 return prettyIndent;
+            if( s.equals( "prototype" ) ) {
+                return this.getPrototype();
+            }
             return null;
         }
 
@@ -224,8 +229,9 @@ public class ENode extends JSObjectBase {
         if( parent instanceof XMLList && ((XMLList)parent).get(0) != null ) {
             parent = ((XMLList)parent).get(0);
         }
-        if(parent != null && parent.node != null)
-            node = parent.node.getOwnerDocument().createElement(o.toString());
+        if(parent != null && parent.node != null) {
+            node = parent.node.getOwnerDocument().createElement( o.toString() );
+        }
         this.children = new XMLList();
         this._dummy = true;
         nodeSetup(parent);
@@ -398,8 +404,13 @@ public class ENode extends JSObjectBase {
         try {
             node = XMLUtil.parse( s ).getDocumentElement();
         }
-        catch ( Exception e ){
-            throw new RuntimeException( "can't parse : " + e );
+        catch ( Exception e ) {
+            try {
+                node = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument().createTextNode( s );
+            }
+            catch( javax.xml.parsers.ParserConfigurationException e2 ) {
+                throw new RuntimeException( "bad config: " + e2 + "\ncan't parse : " + e );
+            }
         }
         nodeSetup( null );
         buildENodeDom( this );
@@ -420,7 +431,8 @@ public class ENode extends JSObjectBase {
 
         if ( n instanceof String || n instanceof JSString ){
             String s = n.toString();
-            if( s.equals("tojson") ) return null;
+            if( s.equals( "tojson" ) ) 
+                return null;
 
             // first check if this is a combo node/function
             if( nativeFuncs.containsKey( s ) )
@@ -439,14 +451,18 @@ public class ENode extends JSObjectBase {
             return ( o == null && E4X.isXMLName(s) ) ? new ENode( this, s ) : o;
         }
 
-        if ( n instanceof E4X.Query ) {
-            E4X.Query q = (E4X.Query)n;
-            XMLList searchNode = ( this instanceof XMLList ) ? (XMLList)this : this.children;
+        if ( n instanceof Query ) {
+            Query q = ( Query )n;
             List<ENode> matching = new ArrayList<ENode>();
-            for ( ENode theNode : searchNode ){
-                if ( q.match( theNode ) ) {
-                    matching.add( theNode );
+            if( this instanceof XMLList ) {
+                for ( ENode theNode : (XMLList)this ){
+                    if ( q.match( theNode ) ) {
+                        matching.add( theNode );
+                    }
                 }
+            }
+            else if( q.match( this ) ) {
+                matching.add( this );
             }
             return E4X._handleListReturn( matching );
         }
@@ -1069,8 +1085,10 @@ public class ENode extends JSObjectBase {
                 type == Node.COMMENT_NODE )
                 return false;
         }
-
         XMLList list = this instanceof XMLList ? (XMLList)this : this.children;
+        if( list == null )
+            return false;
+
         for( ENode n : list ) {
             if( n.node.getNodeType() == Node.ELEMENT_NODE )
                 return false;
@@ -1554,6 +1572,9 @@ public class ENode extends JSObjectBase {
     }
 
     public StringBuilder append( StringBuilder buf , int level , ArrayList<Namespace> ancestors ){
+        if( this.node == null )
+            return buf;
+
         if( XML.prettyPrinting )
             _level( buf, level );
 
@@ -1810,6 +1831,50 @@ public class ENode extends JSObjectBase {
             return null;
     }
 
+    public Collection<String> keySet( boolean includePrototype ) {
+        XMLList list = ( this instanceof XMLList ) ? (XMLList)this : this.children;
+        Collection<String> c = new ArrayList<String>();
+        for( int i=0; i<list.size(); i++ ) {
+            c.add( String.valueOf( i ) );
+        }
+        return c;
+    }
+
+    public Collection<ENode> valueSet() {
+        XMLList list = ( this instanceof XMLList ) ? (XMLList)this : this.children;
+        Collection<ENode> c = new ArrayList<ENode>();
+        for( ENode n : list ) {
+            c.add( n );
+        }
+        return c;
+    }
+
+    public boolean isDummy() {
+        return _dummy;
+    }
+
+    private static ENode getENode( Scope s ) {
+        Object obj = s.getThis();
+        return ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
+    }
+
+    private static Object getOneArg( Object foo[] ) {
+        if( foo.length == 0 ) 
+            throw new RuntimeException( "This method requires one argument." );
+        return foo[0];
+    }
+
+    private static Object[] getTwoArgs( Object foo[] ) {
+        Object[] o = new Object[2];
+        if( foo.length < 2 ) 
+            throw new RuntimeException( "This method requires two arguments." );
+
+        o[0] = foo[0];
+        o[1] = foo[1];
+        return o;
+    }
+
+
     public abstract class ENodeFunction extends JSFunctionCalls0 {
         public String toString() {
             return getNode() == null ? "" : cnode.toString();
@@ -1856,48 +1921,6 @@ public class ENode extends JSObjectBase {
         ENode cnode;
     }
 
-    public Collection<String> keySet( boolean includePrototype ) {
-        XMLList list = ( this instanceof XMLList ) ? (XMLList)this : this.children;
-        Collection<String> c = new ArrayList<String>();
-        for( int i=0; i<list.size(); i++ ) {
-            c.add( String.valueOf( i ) );
-        }
-        return c;
-    }
-
-    public Collection<ENode> valueSet() {
-        XMLList list = ( this instanceof XMLList ) ? (XMLList)this : this.children;
-        Collection<ENode> c = new ArrayList<ENode>();
-        for( ENode n : list ) {
-            c.add( n );
-        }
-        return c;
-    }
-
-    public boolean isDummy() {
-        return _dummy;
-    }
-
-    private static ENode getENode( Scope s ) {
-        Object obj = s.getThis();
-        return ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-    }
-
-    private static Object getOneArg( Object foo[] ) {
-        if( foo.length == 0 ) 
-            throw new RuntimeException( "This method requires one argument." );
-        return foo[0];
-    }
-
-    private static Object[] getTwoArgs( Object foo[] ) {
-        Object[] o = new Object[2];
-        if( foo.length < 2 ) 
-            throw new RuntimeException( "This method requires two arguments." );
-
-        o[0] = foo[0];
-        o[1] = foo[1];
-        return o;
-    }
 
     private XMLList children;
     private ENode parent;
@@ -1908,4 +1931,5 @@ public class ENode extends JSObjectBase {
     private QName name;
 
     public Namespace defaultNamespace;
+
 }

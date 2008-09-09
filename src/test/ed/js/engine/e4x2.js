@@ -39,6 +39,11 @@ var sales = <sales vendor="John">
 
 myprint( sales.item.length() );
 myprint( sales.item.(@type == "carrot") == null );
+print( sales.item.( @price < 5 ).quantity );
+print( sales.item.( @price >= 5 ).@type );
+var onSale = 4;
+print( sales.item.( @price <= onSale ).@quantity );
+
 myprint( sales.item.(@type == "carrot").@quantity );
 myprint( sales.@vendor );
 myprint( sales.name );
