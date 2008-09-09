@@ -215,6 +215,10 @@ public class PythonJxpSource extends JxpSource {
 
             PyObject m = _import.__call__( args, keywords );
 
+            if( globals == null ){
+                System.out.println( "NO GLOBALS ???  " + m );
+                return m;
+            }
             // gets the module name -- __file__ is the file
             PyObject importer = globals.__finditem__( "__name__" );
 
