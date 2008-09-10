@@ -64,6 +64,234 @@ public class ENode extends JSObjectBase {
                         return getENode( s ).text();
                     }
                 });
+            _prototype.set( "addNamespace" , new ENodeFunction() {
+                    public Object call( Scope s, Object foo[] ) {
+                        return getENode( s ).addNamespace( getOneArg( foo ) );
+                    }
+                });
+            _prototype.set( "appendChild", new ENodeFunction() {
+                    public Object call( Scope s, Object foo[] ) {
+                        ENode parent = getENode( s );
+                        ENode child = parent.toXML( getOneArg( foo ) );
+                        return child == null ? parent : parent.appendChild(child);
+                    }
+                });
+            _prototype.set( "attribute", new ENodeFunction() {
+                    public Object call( Scope s, Object foo[] ) {
+                        return getENode( s ).attribute( getOneArg( foo ).toString() );
+                    }
+                });
+            _prototype.set( "attributes", new ENodeFunction() {
+                    public Object call( Scope s, Object foo[] ) {
+                        return getENode( s ).attributes();
+                    }
+                });
+            _prototype.set( "child", new ENodeFunction() {
+                    public Object call( Scope s,  Object foo[]) {
+                        return getENode( s ).child( getOneArg( foo ).toString() );
+                    }
+                });
+            _prototype.set( "childIndex", new ENodeFunction() {
+                    public Object call (Scope s, Object foo[] ) {
+                        return getENode( s ).childIndex();
+                    }
+                });
+
+            _prototype.set( "children", new ENodeFunction() {
+                    public Object call( Scope s, Object foo[] ) {
+                        return getENode( s ).children();
+                    }
+                });
+
+            _prototype.set( "comments", new ENodeFunction() {
+                    public Object call( Scope s, Object foo[] ) {
+                        return getENode( s ).comments();
+                    }
+                });
+
+            _prototype.set( "contains", new ENodeFunction() {
+                    public Object call( Scope s, Object foo[] ) {
+                        return getENode( s ).contains( (ENode)getOneArg( foo ) );
+                    }
+                });
+            _prototype.set( "copy", new ENodeFunction() {
+                    public Object call( Scope s, Object foo[] ) {
+                        return getENode( s ).copy();
+                    }
+                });
+            _prototype.set( "descendants", new ENodeFunction() {
+                    public Object call( Scope s, Object foo[] ) {
+                        String name = ( foo.length == 0) ? "*" : foo[0].toString();
+                        return getENode( s ).descendants( name );
+                    }
+                });
+            _prototype.set( "elements", new ENodeFunction() {
+                    public Object call( Scope s, Object foo[] ) {
+                        String name = (foo.length == 0) ? "*" : foo[0].toString();
+                        return getENode( s ).elements( name );
+                    }
+                });
+            _prototype.set( "hasOwnProperty", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[] ) {
+                        return getENode( s ).hasOwnProperty( getOneArg( foo ).toString() );
+                    }
+                });
+
+            _prototype.set( "hasComplexContent", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        return getENode( s ).hasComplexContent();
+                    }
+                });
+            _prototype.set( "hasSimpleContent", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        return getENode( s ).hasSimpleContent();
+                    }
+                });
+            _prototype.set( "inScopeNamespaces", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        return new JSArray( getENode( s ).inScopeNamespaces().toArray() );
+                    }
+                });
+            _prototype.set( "insertChildAfter", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        foo = getTwoArgs( foo );
+                        return getENode( s ).insertChildAfter(foo[0], getENode( s ).toXML( foo[1] ));
+                    }
+                });
+
+            _prototype.set( "insertChildBefore", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        foo = getTwoArgs( foo );
+                        return getENode( s ).insertChildBefore(foo[0], getENode( s ).toXML( foo[1] ));
+                    }
+                });
+            _prototype.set( "length", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        ENode enode = getENode( s );
+                        return enode instanceof XMLList ? ((XMLList)enode).size() : ( enode.node != null ? 1 : enode.children.size() );
+                    }
+                });
+            _prototype.set( "localName", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        return getENode( s ).localName();
+                    }
+                });
+            _prototype.set( "name", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        return getENode( s ).name();
+                    }
+                });
+            _prototype.set( "namespace", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        String prefix = (foo.length > 0) ? foo[0].toString() : null;
+                        return getENode( s ).namespace( prefix );
+                    }
+                });
+            _prototype.set( "namespaceDeclarations", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        ArrayList<Namespace> a = getENode( s ).namespaceDeclarations();
+                        JSArray decs = new JSArray();
+                        for( Namespace ns : a ) {
+                            decs.add( ns );
+                        }
+                        return decs;
+                    }
+                });
+            _prototype.set( "nodeKind", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        return getENode( s ).nodeKind();
+                    }
+                });
+            _prototype.set( "normalize", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        return getENode( s ).normalize();
+                    }
+                });
+            _prototype.set( "parent", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        return getENode( s ).parent();
+                    }
+                });
+            _prototype.set( "prependChild", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        return getENode( s )._insertChild( (Object)null, (ENode)getOneArg( foo ), 0 );
+                    }
+                });
+            _prototype.set( "processingInstructions", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[] ) {
+                        String name = (foo.length == 0 ) ? "*" : foo[0].toString();
+                        return getENode( s ).processingInstructions( name );
+                    }
+                });
+            _prototype.set( "propertyIsEnumerable", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        if( foo.length == 0 )
+                            return getENode( s ).propertyIsEnumerable();
+                        return getENode( s ).propertyIsEnumerable( getOneArg( foo ) );
+                    }
+                });
+            _prototype.set( "removeNamespace", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        return getENode( s ).removeNamespace( getOneArg( foo ) );
+                    }
+                });
+            _prototype.set( "replace", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        Object obj = s.getThis();
+                        ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
+
+                        String name = foo[0].toString();
+                        Object value = foo[1];
+                        ENode exists = (ENode)enode.get(name);
+                        if( exists == null )
+                            return this;
+
+                        return enode.set(name, value);
+                    }
+                });
+            _prototype.set( "setChildren", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        return getENode( s ).setChildren( getOneArg( foo ) );
+                    }
+                });
+            _prototype.set( "setLocalName", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        getENode( s ).setLocalName( getOneArg( foo ) );
+                        return null;
+                    }
+                });
+            _prototype.set( "setName", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        getENode( s ).setName( getOneArg( foo ).toString());
+                        return null;
+                    }
+                });
+            _prototype.set( "setNamespace", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        getENode( s ).setNamespace( getOneArg( foo ) );
+                        return null;
+                    }
+                });
+            _prototype.set( "text", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        return getENode( s ).text();
+                    }
+                });
+            _prototype.set( "toString", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        return getENode( s ).toString();
+                    }
+                });
+            _prototype.set( "toXMLString", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        return getENode( s ).toXMLString();
+                    }
+                });
+            _prototype.set( "valueOf", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        return getENode( s );
+                    }
+                });
             _prototype.dontEnumExisting();
         }
 
@@ -250,7 +478,6 @@ public class ENode extends JSObjectBase {
         }
         getNamespace();
         addAttributes();
-        addNativeFunctions();
     }
 
     /** Get attributes */
@@ -331,55 +558,6 @@ public class ENode extends JSObjectBase {
         }
     }
 
-    /** Initializes the functions that can be called on a node. 
-     * XML nodes can have the same names as the functions one can call on a node.
-     * Thus, if one calls xml.get( "copy" ), the get function doesn't know whether
-     * to return the copy function or a node called "copy".  Thus, it returns both
-     * in the form of a combination function and XML node object.  These are 
-     * initialized below.
-     */
-    void addNativeFunctions() {
-        nativeFuncs.put("addNamespace", new addNamespace());
-        nativeFuncs.put("appendChild", new appendChild());
-        nativeFuncs.put("attribute", new attribute());
-        nativeFuncs.put("attributes", new attributes());
-        nativeFuncs.put("child", new child());
-        nativeFuncs.put("childIndex", new childIndex());
-        nativeFuncs.put("children", new children());
-        nativeFuncs.put("comments", new comments());
-        nativeFuncs.put("contains", new contains());
-        nativeFuncs.put("copy", new copy());
-        nativeFuncs.put("descendants", new descendants());
-        nativeFuncs.put("elements", new elements());
-        nativeFuncs.put("hasOwnProperty", new hasOwnProperty());
-        nativeFuncs.put("hasComplexContent", new hasComplexContent());
-        nativeFuncs.put("hasSimpleContent", new hasSimpleContent());
-        nativeFuncs.put("inScopeNamespaces", new inScopeNamespaces());
-        nativeFuncs.put("insertChildAfter", new insertChildAfter());
-        nativeFuncs.put("insertChildBefore", new insertChildBefore());
-        nativeFuncs.put("length", new length());
-        nativeFuncs.put("localName", new localName());
-        nativeFuncs.put("name", new name());
-        nativeFuncs.put("namespace", new namespace());
-        nativeFuncs.put("namespaceDeclarations", new namespaceDeclarations());
-        nativeFuncs.put("nodeKind", new nodeKind());
-        nativeFuncs.put("normalize", new normalize());
-        nativeFuncs.put("parent", new parent());
-        nativeFuncs.put("processingInstructions", new processingInstructions());
-        nativeFuncs.put("prependChild", new prependChild());
-        nativeFuncs.put("propertyIsEnumerable", new propertyIsEnumerable());
-        nativeFuncs.put("removeNamespace", new removeNamespace());
-        nativeFuncs.put("replace", new replace());
-        nativeFuncs.put("setChildren", new setChildren());
-        nativeFuncs.put("setLocalName", new setLocalName());
-        nativeFuncs.put("setName", new setName());
-        nativeFuncs.put("setNamespace", new setNamespace());
-        nativeFuncs.put("text", new text());
-        nativeFuncs.put("toString", new toString());
-        nativeFuncs.put("toXMLString", new toXMLString());
-        nativeFuncs.put("valueOf", new valueOf());
-    }
-
     /** Transforms the Java DOM into the E4X DOM.
      */
     void buildENodeDom(ENode parent) {
@@ -414,8 +592,6 @@ public class ENode extends JSObjectBase {
         buildENodeDom( this );
     }
 
-    Hashtable<String, ENodeFunction> nativeFuncs = new Hashtable<String, ENodeFunction>();
-
     /** @getter
      */
     public Object get( Object n ) {
@@ -432,10 +608,11 @@ public class ENode extends JSObjectBase {
             if( s.equals( "tojson" ) ) 
                 return null;
 
-            // otherwise, do the normal get
-            if( nativeFuncs.containsKey( s ) ) {
-                nativeFuncs.get(s).setup( E4X._nodeGet( this, s ) , this );
-                return nativeFuncs.get( s );
+            // the order of these is important so that, for example, JSString.length doesn't
+            // get called in preference to ENode.length.
+            if( ENode._cons.getPrototype().get( s ) != null ) {
+                ((ENodeFunction)ENode._cons.getPrototype().get( s )).setup( E4X._nodeGet( this, s ) , this , s );
+                return ENode._cons.getPrototype().get( s );
             }
 
             // if this is a simple node, we could be trying to get a string function
@@ -691,11 +868,6 @@ public class ENode extends JSObjectBase {
         return this;
     }
 
-    public class addNamespace extends ENodeFunction {
-        public Object call( Scope s, Object foo[] ) {
-            return getENode( s ).addNamespace( getOneArg( foo ) );
-        }
-    }
 
     private ENode appendChild(Node child, ENode parent) {
         if(parent.children == null)
@@ -714,14 +886,6 @@ public class ENode extends JSObjectBase {
         return appendChild(child.node, this);
     }
 
-    public class appendChild extends ENodeFunction {
-        public Object call( Scope s, Object foo[] ) {
-            ENode parent = getENode( s );
-            ENode child = toXML( getOneArg( foo ) );
-            return child == null ? parent : parent.appendChild(child);
-        }
-    }
-
     /**
      * Returns a list of zero or one attributes whose name matches 
      * the given property name.
@@ -730,23 +894,11 @@ public class ENode extends JSObjectBase {
         return new XMLList( (ENode)this.get("@"+prop) );
     }
 
-    public class attribute extends ENodeFunction {
-        public Object call( Scope s, Object foo[] ) {
-            return getENode( s ).attribute( getOneArg( foo ).toString() );
-        }
-    }
-
     /**
      * Returns this node's attributes.
      */
     public XMLList attributes() {
         return new XMLList( (ENode)this.get( "@*" ) );
-    }
-
-    public class attributes extends ENodeFunction {
-        public Object call( Scope s, Object foo[] ) {
-            return getENode( s ).attributes();
-        }
     }
 
     /**
@@ -773,12 +925,6 @@ public class ENode extends JSObjectBase {
         }
     }
 
-    public class child extends ENodeFunction {
-        public Object call( Scope s,  Object foo[]) {
-            return getENode( s ).child( getOneArg( foo ).toString() );
-        }
-    }
-
     /**
      * Returns a number representing the position of this element within its parent.
      */
@@ -794,12 +940,6 @@ public class ENode extends JSObjectBase {
                 return i;
         }
         return -1;
-    }
-
-    public class childIndex extends ENodeFunction {
-        public Object call (Scope s, Object foo[] ) {
-            return getENode( s ).childIndex();
-        }
     }
 
     /**
@@ -818,12 +958,6 @@ public class ENode extends JSObjectBase {
         return child;
     }
 
-    public class children extends ENodeFunction {
-        public Object call( Scope s, Object foo[] ) {
-            return getENode( s ).children();
-        }
-    }
-
     /**
      * Returns a list of comments, assuming XML.ignoreComments
      * was set to false when the list was created.
@@ -836,12 +970,6 @@ public class ENode extends JSObjectBase {
                 comments.add( child );
         }
         return comments;
-    }
-
-    public class comments extends ENodeFunction {
-        public Object call( Scope s, Object foo[] ) {
-            return getENode( s ).comments();
-        }
     }
 
     /** FIXME
@@ -884,12 +1012,6 @@ public class ENode extends JSObjectBase {
         return false;
     }
 
-    public class contains extends ENodeFunction {
-        public Object call( Scope s, Object foo[] ) {
-            return getENode( s ).contains( (ENode)getOneArg( foo ) );
-        }
-    }
-
     /**
      * Creates a deep copy of this node.
      */
@@ -898,12 +1020,6 @@ public class ENode extends JSObjectBase {
             return new XMLList( this );
         }
         return new ENode( this );
-    }
-
-    public class copy extends ENodeFunction {
-        public Object call( Scope s, Object foo[] ) {
-            return getENode( s ).copy();
-        }
     }
 
     /** 
@@ -928,12 +1044,6 @@ public class ENode extends JSObjectBase {
         return this.descendants( "*" );
     }
 
-    public class descendants extends ENodeFunction {
-        public Object call( Scope s, Object foo[] ) {
-            String name = ( foo.length == 0) ? "*" : foo[0].toString();
-            return getENode( s ).descendants( name );
-        }
-    }
 
     public XMLList elements( String name ) {
         if( this.children == null || this.children.size() == 0)
@@ -951,12 +1061,6 @@ public class ENode extends JSObjectBase {
         return list;
     }
 
-    public class elements extends ENodeFunction {
-        public Object call( Scope s, Object foo[] ) {
-            String name = (foo.length == 0) ? "*" : foo[0].toString();
-            return getENode( s ).elements( name );
-        }
-    }
 
     private ArrayList<Namespace> getNamespaces( Object o ) {
         o = o == null ? "" : o;
@@ -1007,12 +1111,6 @@ public class ENode extends JSObjectBase {
         return false;
     }
 
-    public class hasOwnProperty extends ENodeFunction {
-        public Object call(Scope s, Object foo[] ) {
-            return getENode( s ).hasOwnProperty( getOneArg( foo ).toString() );
-        }
-    }
-
     private boolean isSimpleTypeNode( ) {
         if( this.node == null )
             return true;
@@ -1040,12 +1138,6 @@ public class ENode extends JSObjectBase {
         return false;
     }
 
-    public class hasComplexContent extends ENodeFunction {
-        public Object call(Scope s, Object foo[]) {
-            return getENode( s ).hasComplexContent();
-        }
-    }
-
     /**
      * Returns if this node contains simple content.  An XML node is considered to have 
      * simple content if it represents a text or attribute node or an XML element with no child elements.
@@ -1068,12 +1160,6 @@ public class ENode extends JSObjectBase {
         return true;
     }
 
-    public class hasSimpleContent extends ENodeFunction {
-        public Object call(Scope s, Object foo[]) {
-            return getENode( s ).hasSimpleContent();
-        }
-    }
-
     public ArrayList<Namespace> inScopeNamespaces() {
         ArrayList<Namespace> isn = new ArrayList<Namespace>();
         ENode temp = this;
@@ -1087,11 +1173,6 @@ public class ENode extends JSObjectBase {
         return isn;
     }
 
-    public class inScopeNamespaces extends ENodeFunction {
-        public Object call(Scope s, Object foo[]) {
-            return new JSArray( getENode( s ).inScopeNamespaces().toArray() );
-        }
-    }
 
     public ENode insertChildAfter(Object child1, ENode child2) {
         return _insertChild(child1, child2, 1);
@@ -1099,20 +1180,6 @@ public class ENode extends JSObjectBase {
 
     public ENode insertChildBefore(Object child1, ENode child2) {
         return _insertChild(child1, child2, 0);
-    }
-
-    public class insertChildAfter extends ENodeFunction {
-        public Object call(Scope s, Object foo[]) {
-            foo = getTwoArgs( foo );
-            return getENode( s ).insertChildAfter(foo[0], toXML( foo[1] ));
-        }
-    }
-
-    public class insertChildBefore extends ENodeFunction {
-        public Object call(Scope s, Object foo[]) {
-            foo = getTwoArgs( foo );
-            return getENode( s ).insertChildBefore(foo[0], toXML( foo[1] ));
-        }
     }
 
     private ENode _insertChild( Object child1, ENode child2, int j ) {
@@ -1132,13 +1199,6 @@ public class ENode extends JSObjectBase {
         return null;
     }
 
-    public class length extends ENodeFunction {
-        public Object call(Scope s, Object foo[]) {
-            ENode enode = getENode( s );
-            return enode instanceof XMLList ? ((XMLList)enode).size() : ( enode.node != null ? 1 : enode.children.size() );
-        }
-    }
-
     public String localName() {
         // comments and text nodes don't have local names
         if( this.name == null ) 
@@ -1146,20 +1206,8 @@ public class ENode extends JSObjectBase {
         return this.name.localName;
     }
 
-    public class localName extends ENodeFunction {
-        public Object call(Scope s, Object foo[]) {
-            return getENode( s ).localName();
-        }
-    }
-
     public QName name() {
         return this.name;
-    }
-
-    public class name extends ENodeFunction {
-        public Object call(Scope s, Object foo[]) {
-            return getENode( s ).name();
-        }
     }
 
     public Namespace namespace() {
@@ -1179,14 +1227,6 @@ public class ENode extends JSObjectBase {
         }
         return null;
     }
-
-    public class namespace extends ENodeFunction {
-        public Object call(Scope s, Object foo[]) {
-            String prefix = (foo.length > 0) ? foo[0].toString() : null;
-            return getENode( s ).namespace( prefix );
-        }
-    }
-
 
     private ArrayList<Namespace> getAncestors() {
         ArrayList<Namespace> ancestors = new ArrayList<Namespace>();
@@ -1220,17 +1260,6 @@ public class ENode extends JSObjectBase {
         return a;
     }
 
-    public class namespaceDeclarations extends ENodeFunction {
-        public Object call(Scope s, Object foo[]) {
-            ArrayList<Namespace> a = getENode( s ).namespaceDeclarations();
-            JSArray decs = new JSArray();
-            for( Namespace ns : a ) {
-                decs.add( ns );
-            }
-            return decs;
-        }
-    }
-
     public String nodeKind() {
         switch ( this.node.getNodeType() ) {
         case Node.ELEMENT_NODE :
@@ -1248,12 +1277,7 @@ public class ENode extends JSObjectBase {
         }
     }
 
-    public class nodeKind extends ENodeFunction {
-        public Object call(Scope s, Object foo[]) {
-            return getENode( s ).nodeKind();
-        }
-    }
-
+    /** Merges adjacent text nodes and eliminates empty text nodes */
     public ENode normalize() {
         int i=0;
         while( i< this.children.size()) {
@@ -1280,21 +1304,8 @@ public class ENode extends JSObjectBase {
         return this;
     }
 
-    /** Merges adjacent text nodes and eliminates empty text nodes */
-    public class normalize extends ENodeFunction {
-        public Object call(Scope s, Object foo[]) {
-            return getENode( s ).normalize();
-        }
-    }
-
     public ENode parent() {
         return this.parent;
-    }
-
-    public class parent extends ENodeFunction {
-        public Object call(Scope s, Object foo[]) {
-            return getENode( s ).parent();
-        }
     }
 
     public XMLList processingInstructions( String name ) {
@@ -1309,20 +1320,8 @@ public class ENode extends JSObjectBase {
         return list;
     }
 
-    public class processingInstructions extends ENodeFunction {
-        public Object call(Scope s, Object foo[] ) {
-            String name = (foo.length == 0 ) ? "*" : foo[0].toString();
-            return getENode( s ).processingInstructions( name );
-        }
-    }
-
     /** Inserts the given child into this object prior to the existing XML properties.
      */
-    public class prependChild extends ENodeFunction {
-        public Object call(Scope s, Object foo[]) {
-            return getENode( s )._insertChild( (Object)null, (ENode)getOneArg( foo ), 0 );
-        }
-    }
 
     /**
      * So, the spec says that this should only return toString(prop) == "0".  However, the Rhino implementation returns true
@@ -1344,14 +1343,6 @@ public class ENode extends JSObjectBase {
 
     public boolean propertyIsEnumerable() {
         return propertyIsEnumerable( null );
-    }
-
-    public class propertyIsEnumerable extends ENodeFunction {
-        public Object call(Scope s, Object foo[]) {
-            if( foo.length == 0 )
-                return getENode( s ).propertyIsEnumerable();
-            return getENode( s ).propertyIsEnumerable( getOneArg( foo ) );
-        }
     }
 
     public ENode removeNamespace(Object namespace) {
@@ -1383,36 +1374,9 @@ public class ENode extends JSObjectBase {
         return this;
     }
 
-    public class removeNamespace extends ENodeFunction {
-        public Object call(Scope s, Object foo[]) {
-            return getENode( s ).removeNamespace( getOneArg( foo ) );
-        }
-    }
-
-    public class replace extends ENodeFunction {
-        public Object call(Scope s, Object foo[]) {
-            Object obj = s.getThis();
-            ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-
-            String name = foo[0].toString();
-            Object value = foo[1];
-            ENode exists = (ENode)enode.get(name);
-            if( exists == null )
-                return this;
-
-            return enode.set(name, value);
-        }
-    }
-
     public Object setChildren( Object value ) {
         this.set("*", toXML( value ) );
         return this;
-    }
-
-    public class setChildren extends ENodeFunction {
-        public Object call(Scope s, Object foo[]) {
-            return getENode( s ).setChildren( getOneArg( foo ) );
-        }
     }
 
     public void setLocalName( Object name ) {
@@ -1421,13 +1385,6 @@ public class ENode extends JSObjectBase {
             this.node.getNodeType() == Node.COMMENT_NODE )
             return;
         this.name.localName = ( name instanceof QName ) ? ((QName)name).localName : name.toString();
-    }
-
-    public class setLocalName extends ENodeFunction {
-        public Object call(Scope s, Object foo[]) {
-            getENode( s ).setLocalName( getOneArg( foo ) );
-            return null;
-        }
     }
 
     /** Set the name (uri:localName) of this.  
@@ -1467,13 +1424,6 @@ public class ENode extends JSObjectBase {
             this.addInScopeNamespace( ns );
     }
 
-    public class setName extends ENodeFunction {
-        public Object call(Scope s, Object foo[]) {
-            getENode( s ).setName( getOneArg( foo ).toString());
-            return null;
-        }
-    }
-
     public void setNamespace( Object ns) {
         if( this.node == null ||
             this.node.getNodeType() == Node.TEXT_NODE ||
@@ -1499,13 +1449,6 @@ public class ENode extends JSObjectBase {
         }
     }
 
-    public class setNamespace extends ENodeFunction {
-        public Object call(Scope s, Object foo[]) {
-            getENode( s ).setNamespace( getOneArg( foo ) );
-            return null;
-        }
-    }
-
     public XMLList text() {
         XMLList list = new XMLList();
         if( this instanceof XMLList ) {
@@ -1519,12 +1462,6 @@ public class ENode extends JSObjectBase {
             list.add( this );
         }            
         return list;
-    }
-
-    public class text extends ENodeFunction {
-        public Object call(Scope s, Object foo[]) {
-            return getENode( s ).text();
-        }
     }
 
     public String toString() {
@@ -1730,28 +1667,12 @@ public class ENode extends JSObjectBase {
         return true;
     }
 
-    public class toString extends ENodeFunction {
-        public Object call(Scope s, Object foo[]) {
-            return getENode( s ).toString();
-        }
-    }
 
     public String toXMLString() {
         return this.append( new StringBuilder(), 0, new ArrayList<Namespace>() ).toString();
     }
 
     /** too painful to do right now */
-    public class toXMLString extends ENodeFunction {
-        public Object call(Scope s, Object foo[]) {
-            return getENode( s ).toXMLString();
-        }
-    }
-
-    public class valueOf extends ENodeFunction {
-        public Object call(Scope s, Object foo[]) {
-            return getENode( s );
-        }
-    }
 
     private void addInScopeNamespace( Namespace n ) {
         if ( this.node == null || this.isSimpleTypeNode() )
@@ -1806,11 +1727,11 @@ public class ENode extends JSObjectBase {
         if( input instanceof Boolean ||
             input instanceof Number ||
             input instanceof JSString )
-            return toXML(input.toString());
+            return toXML(input.toString() );
         else if( input instanceof String )
             return new ENode(this.node.getOwnerDocument().createTextNode((String)input), this , null);
         else if( input instanceof Node )
-            return new ENode((Node)input, this , null);
+            return new ENode((Node)input, this, null);
         else if( input instanceof ENode )
             return (ENode)input;
         else
@@ -1896,12 +1817,12 @@ public class ENode extends JSObjectBase {
             cnode = null;
         }
 
-        public void setup( Object something, ENode thiz ) {
+        public void setup( Object something, ENode thiz, String tagname ) {
             if( something != null ) {
                 cnode = (ENode)something;
             }
             else {
-                cnode = new ENode( thiz, this.getClass().getSimpleName() );
+                cnode = new ENode( thiz, tagname );
             }
         } 
 
