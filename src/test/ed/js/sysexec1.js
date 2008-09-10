@@ -19,4 +19,8 @@ assert( sysexec( "/bin/ls -la" ).out );
 assert( sysexec( "/bin/ls -la" ).err != null );
 assert( sysexec( "/bin/ls -la" ).out.match( /\.\./ ) );
 
+// This test originally wanted to be run from inside ed.
+// I just want to make sure the directory has some effect on the command.
+sysexec( "mkdir src" );
+
 assert( sysexec( "/bin/ls" ).out != sysexec( "/bin/ls" , null , null  , "src" ).out );
