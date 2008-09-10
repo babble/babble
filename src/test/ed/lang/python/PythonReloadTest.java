@@ -54,9 +54,7 @@ public class PythonReloadTest extends ed.TestCase {
         
         try {
             globalScope.eval("local.file1();");
-            assertEquals(globalScope.get("ranFile1"), 1);
-            assertEquals(globalScope.get("ranFile2"), 1);
-            assertEquals(globalScope.get("ranFile3"), 1);
+            assertRan3(globalScope);
 
             clearScope(globalScope);
             Thread.sleep(SLEEP_MS);
@@ -67,9 +65,7 @@ public class PythonReloadTest extends ed.TestCase {
 
             globalScope.eval("local.file1();");
 
-            assertEquals(globalScope.get("ranFile1"), 1);
-            assertEquals(globalScope.get("ranFile2"), 1);
-            assertEquals(globalScope.get("ranFile3"), 0);
+            assertRan2(globalScope);
 
             Thread.sleep(SLEEP_MS);
             System.out.println("New test");
@@ -77,23 +73,51 @@ public class PythonReloadTest extends ed.TestCase {
             writeTest2File2();
             globalScope.eval("local.file1();");
 
-            assertEquals(globalScope.get("ranFile1"), 1);
-            assertEquals(globalScope.get("ranFile2"), 1);
-            assertEquals(globalScope.get("ranFile3"), 0);
+            assertRan2(globalScope);
 
             clearScope(globalScope);
 
             globalScope.eval("local.file1();");
-            assertEquals(globalScope.get("ranFile1"), 1);
-            assertEquals(globalScope.get("ranFile2"), 0);
-            assertEquals(globalScope.get("ranFile3"), 0);
+            assertRan1(globalScope);
 
             Thread.sleep(SLEEP_MS);
             writeTest2File2();
             clearScope(globalScope);
             globalScope.eval("local.file1();");
-            assertEquals(globalScope.get("ranFile1"), 1);
-            assertEquals(globalScope.get("ranFile2"), 1);
+            assertRan2(globalScope);
+
+            Thread.sleep(SLEEP_MS);
+            writeTest3File2();
+            writeTest3File3();
+
+            clearScope(globalScope);
+            globalScope.eval("local.file1();");
+
+            assertRan3(globalScope);
+
+            clearScope(globalScope);
+            globalScope.eval("local.file1();");
+            assertRan1(globalScope);
+
+            Thread.sleep(SLEEP_MS);
+            writeTest3File2();
+            writeTest3File3();
+
+            clearScope(globalScope);
+            globalScope.eval("local.file1();");
+            assertRan3(globalScope);
+
+
+            clearScope(globalScope);
+            globalScope.eval("local.file1();");
+            assertRan1(globalScope);
+
+            Thread.sleep(SLEEP_MS);
+            writeTest3File3();
+            clearScope(globalScope);
+            globalScope.eval("local.file1();");
+
+            assertRan3(globalScope);
         }
         finally {
             if(oldScope != null)
@@ -201,10 +225,40 @@ public class PythonReloadTest extends ed.TestCase {
         File f = new File(testDir, "file2.py");
         PrintWriter writer = new PrintWriter(f);
         writer.println("import _10gen");
-        writer.println("_10gen.log(\"hi there\")");
         writer.println("_10gen.ranFile2 = 1");
         writer.println("import file2");
         writer.close();
+    }
+
+    private void writeTest3File2() throws IOException{
+        fillFile(2, true);
+    }
+
+    private void writeTest3File3() throws IOException{
+        File f = new File(testDir, "file3.py");
+        PrintWriter writer = new PrintWriter(f);
+        writer.println("import _10gen");
+        writer.println("_10gen.ranFile3 = 1");
+        writer.println("import file2");
+        writer.close();
+    }
+
+    private void assertRan1(Scope s){
+        assertEquals(s.get("ranFile1"), 1);
+        assertEquals(s.get("ranFile2"), 0);
+        assertEquals(s.get("ranFile3"), 0);
+    }
+
+    private void assertRan2(Scope s){
+        assertEquals(s.get("ranFile1"), 1);
+        assertEquals(s.get("ranFile2"), 1);
+        assertEquals(s.get("ranFile3"), 0);
+    }
+
+    private void assertRan3(Scope s){
+        assertEquals(s.get("ranFile1"), 1);
+        assertEquals(s.get("ranFile2"), 1);
+        assertEquals(s.get("ranFile3"), 1);
     }
 
     public static void main(String [] args){
