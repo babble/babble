@@ -406,12 +406,7 @@ public class ENode extends JSObjectBase {
             node = XMLUtil.parse( s ).getDocumentElement();
         }
         catch ( Exception e ) {
-            try {
-                node = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument().createTextNode( s );
-            }
-            catch( javax.xml.parsers.ParserConfigurationException e2 ) {
-                throw new RuntimeException( "bad config: " + e2 + "\ncan't parse : " + e );
-            }
+            throw new RuntimeException( "can't parse : " + e );
         }
         nodeSetup( null );
         buildENodeDom( this );
