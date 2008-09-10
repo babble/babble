@@ -222,7 +222,7 @@ public class PythonJxpSource extends JxpSource {
             // gets the module name -- __file__ is the file
             PyObject importer = globals.__finditem__( "__name__" );
 
-            PyObject to = m.__findattr__( "__file__" );
+            PyObject to = m.__findattr__( "__name__" );
             // no __file__: builtin or something -- don't bother adding
             // dependency
             if( to == null ) return m;
@@ -233,7 +233,7 @@ public class PythonJxpSource extends JxpSource {
 
             // Add a module dependency -- module being imported was imported by
             // the importing module
-            _moduleDict.addDependency( args[0] , importer );
+            _moduleDict.addDependency( to , importer );
             return m;
 
             //PythonJxpSource foo = PythonJxpSource.this;
