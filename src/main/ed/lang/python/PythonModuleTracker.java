@@ -61,7 +61,7 @@ public class PythonModuleTracker extends PyStringMap {
         // point in time, the module doesn't have a __file__
     }
 
-    public void flushOld( String rootpath ){
+    public void flushOld(){
 
         boolean shouldFlush = false;
 

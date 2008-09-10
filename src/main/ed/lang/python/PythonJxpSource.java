@@ -87,7 +87,7 @@ public class PythonJxpSource extends JxpSource {
         
         return new ed.js.func.JSFunctionCalls0(){
             public Object call( Scope s , Object extra[] ){
-                
+
                 PyObject args[] = new PyObject[ extra == null ? 0 : extra.length ];
                 for ( int i=0; i<args.length; i++ )
                     args[i] = Python.toPython( extra[i] );
@@ -118,9 +118,7 @@ public class PythonJxpSource extends JxpSource {
                 // try and get a fix to the ShopWiki guys.
                 else {
                     PythonModuleTracker mods = (PythonModuleTracker)ss.modules;
-                    AppContext ctxt = (AppContext)s.get( "__instance__" );
-                    if ( ctxt != null )
-                        mods.flushOld( ctxt.getRoot() );
+                    mods.flushOld();
                 }
                 
 
