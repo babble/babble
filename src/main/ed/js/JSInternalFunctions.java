@@ -366,7 +366,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
      * @param b Second object
      * @return If <tt>a</tt> is greater than or equal to <tt>b</tt>
      */
-    public Boolean JS_ge( Object a , Object b ){
+    public static Boolean JS_ge( Object a , Object b ){
         return _compare( a , b ) >= 0;
     }
 
@@ -375,7 +375,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
      * @param b Second object
      * @return If <tt>a</tt> is less than or equal to <tt>b</tt>
      */
-    public Boolean JS_le( Object a , Object b ){
+    public static Boolean JS_le( Object a , Object b ){
         return _compare( a , b ) <= 0;
     }
 
@@ -384,7 +384,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
      * @param b Second object
      * @return If <tt>a</tt> is less than <tt>b</tt>
      */
-    public Boolean JS_lt( Object a , Object b ){
+    public static Boolean JS_lt( Object a , Object b ){
         return _compare( a , b ) < 0;
     }
 
@@ -393,12 +393,12 @@ public class JSInternalFunctions extends JSNumericFunctions {
      * @param b Second object
      * @return If <tt>a</tt> is greater than <tt>b</tt>
      */
-    public Boolean JS_gt( Object a , Object b ){
+    public static Boolean JS_gt( Object a , Object b ){
         return _compare( a , b ) > 0;
     }
     
     /** @unexpose */
-    final int _compare( Object a , Object b ){
+    final static int _compare( Object a , Object b ){
         if ( a == null ){
             if ( b == null )
                 return 0;
@@ -435,7 +435,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
         return a.toString().compareTo( b.toString() );
     }
 
-    final int _compare( final Number a , final Number b ){
+    final static int _compare( final Number a , final Number b ){
         final double diff = a.doubleValue() - b.doubleValue();
         if ( diff == 0 )
             return 0;

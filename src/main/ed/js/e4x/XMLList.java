@@ -25,11 +25,15 @@ import java.io.*;
 import org.w3c.dom.*;
 import org.xml.sax.*;
 
+import ed.js.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 import ed.util.*;
 
 public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
+
+    public static JSFunction _cons = new ENode.Cons();
+
     public List<ENode> children;
     public XMLList() {
         children = new LinkedList<ENode>();
