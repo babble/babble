@@ -22,6 +22,7 @@
       <class name="ed.appserver.templates.JxpConvertTest" />
       <class name="ed.appserver.templates.HtmlTemplateTest" />
       <class name="ed.lang.python.JSPySequenceListWrapperTest" />
+      <class name="ed.lang.python.PythonReloadTest" />
     </classes>
   </test>
 
