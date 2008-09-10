@@ -58,6 +58,10 @@ public class ENode extends JSObjectBase {
             return e;
         }
 
+        protected void init() {
+            _prototype.dontEnumExisting();
+        }
+
         public JSObject settings() {
             JSObjectBase sets = new JSObjectBase();
             sets.set("ignoreComments", ignoreComments);
@@ -164,29 +168,20 @@ public class ENode extends JSObjectBase {
     private Cons XML;
 
     public ENode(){
+        super( _getCons() );
         XML = (Cons)ENode._cons;
         nodeSetup( null );
     }
 
     private ENode( Cons c, Namespace ns ) {
+        super( _getCons() );
         XML = c;
         defaultNamespace = ns;
         nodeSetup( null );
     }
 
-    private ENode( Node n ) {
-        this( n, null );
-    }
-
-    private ENode( XMLList n ) {
-        this( null, null, n );
-    }
-
-    private ENode( Node n, ENode parent ) {
-        this( n, parent, null );
-    }
-
     private ENode( Node n, ENode parent, XMLList children ) {
+        super( _getCons() );
         if( n != null &&
             children == null &&
             n.getNodeType() != Node.TEXT_NODE &&
@@ -201,6 +196,7 @@ public class ENode extends JSObjectBase {
 
     // creates a copy of an existing ENode
     private ENode( ENode n ) {
+        super( _getCons() );
         this.XML = n.XML;
         this.name = n.name;
         this.parent = n.parent;
@@ -227,6 +223,7 @@ public class ENode extends JSObjectBase {
      * xml.foo.bar = "hi"; // now the set method attaches the "fake" nodes to the parent
      */
     private ENode( ENode parent, Object o ) {
+        super( _getCons() );
         if( parent instanceof XMLList && ((XMLList)parent).get(0) != null ) {
             parent = ((XMLList)parent).get(0);
         }
@@ -265,12 +262,12 @@ public class ENode extends JSObjectBase {
             String nodeName = attr.item( i ).getNodeName();
             if( nodeName.equals( "xmlns" ) || nodeName.startsWith( "xmlns:") )
                 continue;
-            this.children.add( new ENode(attr.item(i), this ) );
+            this.children.add( new ENode(attr.item(i), this , null ) );
         }
     }
 
-    public JSFunction getConstructor() {
-        return XML;
+    public static JSFunction _getCons() {
+        return Scope.getThreadLocalFunction( "XML" , _cons );
     }
 
     /** finds and sets the qname and namespace for a node.
@@ -386,7 +383,7 @@ public class ENode extends JSObjectBase {
             if( ( kids.item(i).getNodeType() == Node.COMMENT_NODE && parent.XML.ignoreComments ) ||
                 ( kids.item(i).getNodeType() == Node.PROCESSING_INSTRUCTION_NODE && parent.XML.ignoreProcessingInstructions ) )
                 continue;
-            ENode n = new ENode(kids.item(i), parent);
+            ENode n = new ENode(kids.item(i), parent , null);
             buildENodeDom(n);
             parent.children.add(n);
         }
@@ -430,9 +427,11 @@ public class ENode extends JSObjectBase {
             if( s.equals( "tojson" ) ) 
                 return null;
 
-            // first check if this is a combo node/function
-            if( nativeFuncs.containsKey( s ) )
+            // otherwise, do the normal get
+            if( nativeFuncs.containsKey( s ) ) {
+                nativeFuncs.get(s).setup( E4X._nodeGet( this, s ) , this );
                 return nativeFuncs.get( s );
+            }
 
             // if this is a simple node, we could be trying to get a string function
             if( this.hasSimpleContent() ) {
@@ -442,7 +441,6 @@ public class ENode extends JSObjectBase {
                 }
             }
 
-            // otherwise, do the normal get
             Object o = E4X._nodeGet( this, s );
             return ( o == null && E4X.isXMLName(s) ) ? new ENode( this, s ) : o;
         }
@@ -465,33 +463,6 @@ public class ENode extends JSObjectBase {
 
         throw new RuntimeException( "can't handle : " + n.getClass() );
     }
-
-    /*        public Object put( Object p, Object v ) {
-              if( this.isSimpleTypeNode() )
-              return v;
-
-              Object c;
-              if( !(v instanceof ENode) || 
-              ( v.node != null && (
-              v.node.getNodeType() == Node.ATTRIBUTE_NODE ||
-              v.node.getNodeType() == Node.TEXT_NODE ) ) ) {
-              c = v.toString();
-              }
-              else {
-              c = v.copy();
-              }
-
-              String n = p.toString();
-              if( n.startsWith( "@" ) )
-              return setAttribute( p, v );
-
-              boolean primitiveAssign = !( c instanceof ENode ) && !n.equals( "*" );
-              for( int k = this.length() - 1; k >= 0; k-- ) {
-              if( n.localName.equals( "*" ) || x.get( k ).node.getNodeType == Node.ELEMENT_NODE ) {
-
-              }
-              }
-              }*/
 
     /** @setter
      */
@@ -606,7 +577,7 @@ public class ENode extends JSObjectBase {
                 }
                 n.node = rep.node.getOwnerDocument().createElement( rep.localName() );
                 Node content = rep.node.getOwnerDocument().createTextNode(v.toString());
-                n.children.add( new ENode( content, n ) );
+                n.children.add( new ENode( content, n , null) );
                 n.parent = attachee;
                 // get the last sibling's position & insert this new one there
                 attachee.children.add( attachee.children.indexOf( rep ) + 1, n );
@@ -645,9 +616,9 @@ public class ENode extends JSObjectBase {
                 }
             }
 
-            n = new ENode(this.node.getOwnerDocument().createElement(k.toString()), this);
+            n = new ENode(this.node.getOwnerDocument().createElement(k.toString()), this , null);
             Node content = this.node.getOwnerDocument().createTextNode(v.toString());
-            n.children.add( new ENode( content, n ) );
+            n.children.add( new ENode( content, n , null ) );
             if( !((List)this.children).contains( n ) )
                 if( index >= 0 )
                     this.children.add( index, n );
@@ -668,7 +639,7 @@ public class ENode extends JSObjectBase {
         if( obj == null ) {
             Attr newNode = node.getOwnerDocument().createAttribute(k);
             newNode.setValue( v );
-            this.children.add( new ENode(newNode, this) );
+            this.children.add( new ENode(newNode, this , null) );
         }
         // change an existing attribute
         else {
@@ -725,7 +696,7 @@ public class ENode extends JSObjectBase {
         if(parent.children == null)
             parent.children = new XMLList();
 
-        ENode echild = new ENode(child, parent);
+        ENode echild = new ENode(child, parent, null);
         buildENodeDom(echild);
         parent.children.add(echild);
         return this;
@@ -1832,9 +1803,9 @@ public class ENode extends JSObjectBase {
             input instanceof JSString )
             return toXML(input.toString());
         else if( input instanceof String )
-            return new ENode(this.node.getOwnerDocument().createTextNode((String)input), this);
+            return new ENode(this.node.getOwnerDocument().createTextNode((String)input), this , null);
         else if( input instanceof Node )
-            return new ENode((Node)input, this);
+            return new ENode((Node)input, this , null);
         else if( input instanceof ENode )
             return (ENode)input;
         else
@@ -1919,6 +1890,15 @@ public class ENode extends JSObjectBase {
         public void unset() {
             cnode = null;
         }
+
+        public void setup( Object something, ENode thiz ) {
+            if( something != null ) {
+                cnode = (ENode)something;
+            }
+            else {
+                cnode = new ENode( thiz, this.getClass().getSimpleName() );
+            }
+        } 
 
         public ENode getNode() {
             if( cnode != null) return cnode;
