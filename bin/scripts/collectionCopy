@@ -46,7 +46,7 @@ colls.forEach(
         
         if ( wipeOld ){
             print( "wiping old" );
-            dstCollection.remove( {} );
+            dstCollection.drop();
         }
 
         num = 0;
