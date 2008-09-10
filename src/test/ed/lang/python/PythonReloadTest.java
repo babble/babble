@@ -58,9 +58,7 @@ public class PythonReloadTest extends ed.TestCase {
             assertEquals(globalScope.get("ranFile2"), 1);
             assertEquals(globalScope.get("ranFile3"), 1);
 
-            globalScope.set("ranFile1", 0);
-            globalScope.set("ranFile2", 0);
-            globalScope.set("ranFile3", 0);
+            clearScope(globalScope);
             Thread.sleep(SLEEP_MS);
             writeTest1File2();
 
@@ -73,6 +71,29 @@ public class PythonReloadTest extends ed.TestCase {
             assertEquals(globalScope.get("ranFile2"), 1);
             assertEquals(globalScope.get("ranFile3"), 0);
 
+            Thread.sleep(SLEEP_MS);
+            System.out.println("New test");
+            clearScope(globalScope);
+            writeTest2File2();
+            globalScope.eval("local.file1();");
+
+            assertEquals(globalScope.get("ranFile1"), 1);
+            assertEquals(globalScope.get("ranFile2"), 1);
+            assertEquals(globalScope.get("ranFile3"), 0);
+
+            clearScope(globalScope);
+
+            globalScope.eval("local.file1();");
+            assertEquals(globalScope.get("ranFile1"), 1);
+            assertEquals(globalScope.get("ranFile2"), 0);
+            assertEquals(globalScope.get("ranFile3"), 0);
+
+            Thread.sleep(SLEEP_MS);
+            writeTest2File2();
+            clearScope(globalScope);
+            globalScope.eval("local.file1();");
+            assertEquals(globalScope.get("ranFile1"), 1);
+            assertEquals(globalScope.get("ranFile2"), 1);
         }
         finally {
             if(oldScope != null)
@@ -82,7 +103,7 @@ public class PythonReloadTest extends ed.TestCase {
             
             try {
                 
-                rdelete(testDir);
+                //rdelete(testDir);
             } catch (Exception e) {
             }
         }
@@ -141,6 +162,12 @@ public class PythonReloadTest extends ed.TestCase {
         return globalScope;
     }
 
+    private void clearScope(Scope s){
+        s.set("ranFile1", 0);
+        s.set("ranFile2", 0);
+        s.set("ranFile3", 0);
+    }
+
     // file1 -> file2 -> file3
     private void writeTest1File1() throws IOException{
         fillFile(1, true);
@@ -167,6 +194,16 @@ public class PythonReloadTest extends ed.TestCase {
         if(importNext)
             writer.println("import file"+(n+1));
         setTime(writer, "endFile1");
+        writer.close();
+    }
+
+    private void writeTest2File2() throws IOException{
+        File f = new File(testDir, "file2.py");
+        PrintWriter writer = new PrintWriter(f);
+        writer.println("import _10gen");
+        writer.println("_10gen.log(\"hi there\")");
+        writer.println("_10gen.ranFile2 = 1");
+        writer.println("import file2");
         writer.close();
     }
 
