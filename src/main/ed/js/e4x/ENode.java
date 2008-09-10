@@ -1316,9 +1316,13 @@ public class ENode extends JSObjectBase {
         }
     }
 
+    public ENode parent() {
+        return this.parent;
+    }
+
     public class parent extends ENodeFunction {
         public Object call(Scope s, Object foo[]) {
-            return getENode( s ).parent;
+            return getENode( s ).parent();
         }
     }
 
