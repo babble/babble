@@ -117,7 +117,7 @@ public class AppContext extends ServletContextBase {
         _scope = new Scope( "AppContext:" + root + ( _admin ? ":admin" : "" ) , _isGrid ? ed.cloud.Cloud.getInstance().getScope() : Scope.newGlobal() , null , Language.JS , _rootFile );
         _scope.setGlobal( true );
 
-        _usage = new UsageTracker( _name );
+        _usage = new UsageTracker( this );
 
         _baseScopeInit();
 

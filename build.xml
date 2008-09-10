@@ -173,6 +173,7 @@
  <target name="test-ruby" depends="compile, init">
    <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" groups="${ruby.groups}">
      <classfileset dir="build" includes="ed/lang/ruby/*Test.class"/>
+     <jvmarg value="-Xmx1000m" />
      <jvmarg value="-Djruby.home=${jruby.home}" />
    </testng>
  </target>

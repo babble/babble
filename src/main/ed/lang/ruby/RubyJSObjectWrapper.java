@@ -392,11 +392,13 @@ public class RubyJSObjectWrapper extends RubyHash {
 
     protected Object toJS(IRubyObject o) { return RubyObjectWrapper.toJS(_scope, o); }
 
-    protected void _addFunctionMethod(Object key, final JSFunction val) {
+    protected void _addFunctionMethod(final Object key, final JSFunction val) {
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("adding function method " + key);
 	_eigenclass.defineMethod(key.toString(), new Callback() {
 		public IRubyObject execute(IRubyObject recv, IRubyObject[] args, Block block) {
+		    if (RubyObjectWrapper.DEBUG)
+			System.err.println("calling function " + key);
 		    return toRuby(((JSFunction)val).callAndSetThis(_scope, _jsobj, RubyObjectWrapper.toJSFunctionArgs(_scope, getRuntime(), args, 0, block)));
 		}
 		public Arity getArity() { return Arity.OPTIONAL; }
@@ -446,6 +448,8 @@ public class RubyJSObjectWrapper extends RubyHash {
     protected void _addMethodMissing() {
 	_eigenclass.addMethod("method_missing", new JavaMethod(_eigenclass, PUBLIC) {
                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+		    if (RubyObjectWrapper.DEBUG)
+			System.err.println("RubyJSObjectWrapper.method_missing " + name);
 		    // args[0] is method name symbol, args[1..-1] are arguments
 		    String key = args[0].toString();
 		    if (key.endsWith("=")) {

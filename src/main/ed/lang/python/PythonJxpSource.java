@@ -157,7 +157,7 @@ public class PythonJxpSource extends JxpSource {
 
                 //Py.initClassExceptions( globals );
                 globals.__setitem__( "__file__", Py.newString( _file.toString() ) );
-                PyModule module = new PyModule( "main" , globals );
+                PyModule module = new PyModule( "__main__" , globals );
 
                 PyObject locals = module.__dict__;
 
@@ -207,14 +207,35 @@ public class PythonJxpSource extends JxpSource {
 
         public PyObject __call__( PyObject args[] , String keywords[] ){
             int argc = args.length;
+            // Second argument is the dict of globals. Mostly this is helpful
+            // for getting context -- file or module *doing* the import.
             PyObject globals = ( argc > 1 ) ? args[1] : null;
-            //System.out.println("Overrode import importing. " + args[0] + " " + globals.__finditem__( "__file__" ) );
+
+            //System.out.println("Overrode import importing. import " + args[0] + " in file " + globals.__finditem__( "__file__" ) );
+
             PyObject m = _import.__call__( args, keywords );
-            PyObject from = globals.__finditem__( "__file__" );
+
+            if( globals == null ){
+                // Only happens (AFAICT) from within Java code.
+                // For example, Jython's codecs.java calls
+                // __builtin__.__import__("encodings");
+                return m;
+            }
+            // gets the module name -- __file__ is the file
+            PyObject importer = globals.__finditem__( "__name__" );
+
             PyObject to = m.__findattr__( "__file__" );
-            if( to == null ) return m; // no __file__: builtin or something
+            // no __file__: builtin or something -- don't bother adding
+            // dependency
+            if( to == null ) return m;
+
+            // Add a plain old JXP dependency on the file that was imported
+            // Not sure if this is helpful or not
             addDependency( to.toString() );
-            _moduleDict.addDependency( args[0] , to );
+
+            // Add a module dependency -- module being imported was imported by
+            // the importing module
+            _moduleDict.addDependency( args[0] , importer );
             return m;
 
             //PythonJxpSource foo = PythonJxpSource.this;
