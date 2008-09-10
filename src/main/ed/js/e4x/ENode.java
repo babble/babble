@@ -1352,19 +1352,29 @@ public class ENode extends JSObjectBase {
      * So, the spec says that this should only return toString(prop) == "0".  However, the Rhino implementation returns true
      * whenever prop is a valid index, so I'm going with that.
      */
-    public boolean propertyIsEnumerable( String prop ) {
+    public boolean propertyIsEnumerable( Object prop ) {
+        if( prop == null ) {
+            return false;
+        }
+
         Pattern num = Pattern.compile("\\d+");
-        Matcher m = num.matcher(prop);
+        Matcher m = num.matcher(prop.toString());
         if( m.matches() ) {
-            ENode n = this.child(prop);
+            ENode n = this.child(prop.toString());
             return !n.isDummy();
         }
         return false;
     }
 
+    public boolean propertyIsEnumerable() {
+        return propertyIsEnumerable( null );
+    }
+
     public class propertyIsEnumerable extends ENodeFunction {
         public Object call(Scope s, Object foo[]) {
-            return getENode( s ).propertyIsEnumerable( getOneArg( foo ).toString() );
+            if( foo.length == 0 )
+                return getENode( s ).propertyIsEnumerable();
+            return getENode( s ).propertyIsEnumerable( getOneArg( foo ) );
         }
     }
 
