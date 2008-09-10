@@ -59,6 +59,11 @@ public class ENode extends JSObjectBase {
         }
 
         protected void init() {
+            _prototype.set( "text", new ENodeFunction() {
+                    public Object call(Scope s, Object foo[]) {
+                        return getENode( s ).text();
+                    }
+                });
             _prototype.dontEnumExisting();
         }
 
@@ -1856,13 +1861,13 @@ public class ENode extends JSObjectBase {
     }
 
 
-    public abstract class ENodeFunction extends JSFunctionCalls0 {
+    public static abstract class ENodeFunction extends JSFunctionCalls0 {
         public String toString() {
-            return getNode() == null ? "" : cnode.toString();
+            return cnode == null ? "" : cnode.toString();
         }
 
         public Object get( Object n ) {
-            return getNode().get( n );
+            return cnode.get( n );
         }
 
         public Object set( Object n, Object v ) {
@@ -1870,12 +1875,12 @@ public class ENode extends JSObjectBase {
             if( n.equals("prototype") && v instanceof JSObjectBase)
                 return null;
 
-            return getNode() == null ? null : cnode.set( n, v );
+            return cnode == null ? null : cnode.set( n, v );
         }
 
         public Object removeField( Object f ) {
-            Object removed = getNode().removeField( f );
-            Object obj = getNode().get( f );
+            Object removed = cnode.removeField( f );
+            Object obj = cnode.get( f );
 
             if( cnode instanceof XMLList ) {
                 ((XMLList)cnode).remove( obj );
@@ -1901,10 +1906,6 @@ public class ENode extends JSObjectBase {
         } 
 
         public ENode getNode() {
-            if( cnode != null) return cnode;
-            cnode = (ENode)E4X._nodeGet(ENode.this, this.getClass().getSimpleName());
-            if( cnode == null )
-                cnode = new ENode( ENode.this, this.getClass().getSimpleName() );
             return cnode;
         }
 
