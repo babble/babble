@@ -24,7 +24,7 @@ import ed.log.Level;
 import ed.log.Logger;
 
 public class PythonReloadTest extends ed.TestCase {
-    private static final String TEST_DIR = "/tmp/";
+    private static final String TEST_DIR = "/tmp/pyreload";
     private static final File testDir = new File(TEST_DIR);
     
     //time to wait between file modifications to allow the fs to update the timestamps
@@ -125,8 +125,7 @@ public class PythonReloadTest extends ed.TestCase {
                 Scope.clearThreadLocal();
             
             try {
-                
-                //rdelete(testDir);
+                rdelete(testDir);
             } catch (Exception e) {
             }
         }
