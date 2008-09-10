@@ -124,9 +124,11 @@ public class AppServer implements HttpHandler {
 
         final long start = System.currentTimeMillis();
 
-        AppRequest ar = (AppRequest)request.getAttachment();
-        if ( ar == null )
+        AppRequest ar = request.getAppRequest();
+        if ( ar == null ){
             ar = createRequest( request );
+            request.setAppRequest( ar );
+        }
 
         if ( request.getURI().equals( "/~reset" ) ){
             handleReset( ar , request , response );
@@ -142,7 +144,7 @@ public class AppServer implements HttpHandler {
 
 	ar.setResponse( response );
         ar.getScope().makeThreadLocal();
-        ctxt._logger.makeThreadLocal();
+        ctxt.getLogger().makeThreadLocal();
 
         final UsageTracker usage = ctxt._usage;
         final SimpleStats stats = _getStats( ctxt._name + ":" + ctxt._environment );
@@ -173,6 +175,7 @@ public class AppServer implements HttpHandler {
             ar.makeThreadLocal();
             _requestMonitor.watch( ar );
             db.requestStart();
+            AppSecurityManager.READY = true;
             
             _handle( request , response , ar );
         }
@@ -183,7 +186,7 @@ public class AppServer implements HttpHandler {
 
             final long t = System.currentTimeMillis() - start;
             if ( t > 1500 )
-                ar.getContext()._logger.getChild( "slow" ).info( request.getURL() + " " + t + "ms" );
+                ar.getContext().getLogger().getChild( "slow" ).info( request.getURL() + " " + t + "ms" );
 
             ar.done( response );
 
@@ -213,7 +216,7 @@ public class AppServer implements HttpHandler {
                 if ( foo != null ){
                     if ( response.getResponseCode() == 200 ){
                         response.setResponseCode( 401 );
-                        response.getWriter().print( "not allowed" );
+                        response.getJxpWriter().print( "not allowed" );
                     }
                     return;
                 }
@@ -244,7 +247,7 @@ public class AppServer implements HttpHandler {
 
                 if ( f.isDirectory() ){
                     response.setResponseCode( 301 );
-                    response.getWriter().print( "listing not allowed\n" );
+                    response.getJxpWriter().print( "listing not allowed\n" );
                     return;
                 }
 
@@ -263,7 +266,7 @@ public class AppServer implements HttpHandler {
 
                 if ( response.getHeader( "Content-Type" ).startsWith( "text/css" ) ){
                     CSSFixer fixer = new CSSFixer( ar.getURLFixer() );
-                    fixer.fix( new FileInputStream( f ) , response.getWriter() );
+                    fixer.fix( new FileInputStream( f ) , response.getJxpWriter() );
                 }
                 else {
                     response.sendFile( f );
@@ -316,7 +319,7 @@ public class AppServer implements HttpHandler {
                 user = null; 
         }
         
-        final JxpWriter out = response.getWriter();
+        final JxpWriter out = response.getJxpWriter();
         
         if ( ar._profiler != null && showProfilingInfo( request , user ) ){
             out.print( "<!--\n" );
@@ -352,12 +355,12 @@ public class AppServer implements HttpHandler {
      */
     void handle404( HttpRequest request , HttpResponse response , String extra ){
 	response.setResponseCode( 404 );
-	response.getWriter().print( "not found<br>" );
+	response.getJxpWriter().print( "not found<br>" );
 
 	if ( extra != null )
-	    response.getWriter().print( extra + "<BR>" );
+	    response.getJxpWriter().print( extra + "<BR>" );
 
-	response.getWriter().print( request.getRawHeader().replaceAll( "[\r\n]+" , "<br>" ) );
+	response.getJxpWriter().print( request.getRawHeader().replaceAll( "[\r\n]+" , "<br>" ) );
 
     }
 
@@ -377,7 +380,7 @@ public class AppServer implements HttpHandler {
 
         try {
             response.setResponseCode( 500 );
-            JxpWriter writer = response.getWriter();
+            JxpWriter writer = response.getJxpWriter();
             writer.print( "There was an error handling your request (appsrv 123)<br>" );
             writer.print( "ERR 71<br>" );
         }
@@ -403,11 +406,11 @@ public class AppServer implements HttpHandler {
         if ( ctxt == null )
 	    Logger.getLogger( "appserver.nocontext" ).error( request.getURI() , t );
 	else
-	    ctxt._logger.error( request.getURL() , t );
+	    ctxt.getLogger().error( request.getURL() , t );
 
         response.setResponseCode( 500 );
 
-        JxpWriter writer = response.getWriter();
+        JxpWriter writer = response.getJxpWriter();
 
         if ( t instanceof JSCompileException ){
             JSCompileException jce = (JSCompileException)t;
@@ -500,7 +503,7 @@ public class AppServer implements HttpHandler {
 
             if ( ! Security.isAllowedSite( ar.getContext().getName() ) ){
                 response.setResponseCode( 501 );
-                response.getWriter().print( "you are not allowed to run cgi programs" );
+                response.getJxpWriter().print( "you are not allowed to run cgi programs" );
                 return;
             }
 
@@ -541,21 +544,21 @@ public class AppServer implements HttpHandler {
                     }
                     continue;
                 }
-                response.getWriter().print( line );
-                response.getWriter().print( "\n" );
+                response.getJxpWriter().print( line );
+                response.getJxpWriter().print( "\n" );
             }
 
             in = new BufferedReader( new InputStreamReader( p.getErrorStream() ) );
             while ( ( line = in.readLine() ) != null ){
-                response.getWriter().print( line );
-                response.getWriter().print( "\n" );
+                response.getJxpWriter().print( line );
+                response.getJxpWriter().print( "\n" );
             }
         }
         catch ( Exception e ){
-            ar.getContext()._logger.error( request.getURL() , e );
+            ar.getContext().getLogger().error( request.getURL() , e );
             response.setResponseCode( 500 );
-            response.getWriter().print( "<br><br><hr>" );
-            response.getWriter().print( e.toString() );
+            response.getJxpWriter().print( "<br><br><hr>" );
+            response.getJxpWriter().print( e.toString() );
         }
     }
 
@@ -585,7 +588,7 @@ public class AppServer implements HttpHandler {
     void handleStats( HttpRequest request , HttpResponse response ){
         response.setHeader( "Content-Type" , "text/plain" );
 
-        JxpWriter out = response.getWriter();
+        JxpWriter out = response.getJxpWriter();
 
         List<String> lst = new ArrayList<String>();
         lst.addAll( _stats.keySet() );
@@ -608,12 +611,12 @@ public class AppServer implements HttpHandler {
     void handleReset( AppRequest ar , HttpRequest request , HttpResponse response ){
         response.setHeader( "Content-Type" , "text/plain" );
 
-        JxpWriter out = response.getWriter();
+        JxpWriter out = response.getJxpWriter();
 
         out.print( "so, you want to reset?\n" );
 
         if ( _administrativeAllowed( request ) ){
-            ar.getContext()._logger.info("creating new context" );
+            ar.getContext().getLogger().info("creating new context" );
 
             AppContext newContext = ar.getContext().newCopy();
             newContext.updateCode();
@@ -621,7 +624,7 @@ public class AppServer implements HttpHandler {
             newContext.getFileSafe( "index.jxp" );
             _contextHolder.replace( ar.getContext() , newContext );
 
-            ar.getContext()._logger.info("done creating new context.  resetting" );
+            ar.getContext().getLogger().info("done creating new context.  resetting" );
             ar.getContext().reset();
 
             out.print( "you did it!\n" );
@@ -629,7 +632,7 @@ public class AppServer implements HttpHandler {
             out.print( "new hash:" + System.identityHashCode( newContext ) + "\n" );
         }
         else {
-            ar.getContext()._logger.error("Failed attempted context reset via /~reset from " + request.getRemoteIP());
+            ar.getContext().getLogger().error("Failed attempted context reset via /~reset from " + request.getRemoteIP());
             out.print( "you suck!" );
             response.setResponseCode(403);
         }
@@ -639,13 +642,13 @@ public class AppServer implements HttpHandler {
     void handleUpdate( AppRequest ar , HttpRequest request , HttpResponse response ){
         response.setHeader( "Content-Type" , "text/plain" );
 
-        JxpWriter out = response.getWriter();
+        JxpWriter out = response.getJxpWriter();
 
         out.print( "you are going to update\n" );
 
         if ( _administrativeAllowed( request ) ){
             out.print( "you did it!\n" );
-            ar.getContext()._logger.info("About to update context via /~update");
+            ar.getContext().getLogger().info("About to update context via /~update");
             try {
                 String branch = ar.getContext().updateCode();
                 if ( branch == null )
@@ -659,7 +662,7 @@ public class AppServer implements HttpHandler {
             out.print( "\n" );
         }
         else {
-            ar.getContext()._logger.error("Failed attempted context reset via /~update from " + request.getRemoteIP());
+            ar.getContext().getLogger().error("Failed attempted context reset via /~update from " + request.getRemoteIP());
             out.print( "you suck!" );
             response.setResponseCode(403);
         }
@@ -733,8 +736,9 @@ public class AppServer implements HttpHandler {
 
         String webRoot = "/data/sites/admin/";
         String sitesRoot = "/data/sites";
-
+        
         int portNum = DEFAULT_PORT;
+        boolean secure = false;
 
         /*
          *     --port portnum   [root]
@@ -759,6 +763,9 @@ public class AppServer implements HttpHandler {
 	    else if ( "--sitesRoot".equals( args[i] ) ){
 		sitesRoot = args[++i];
 	    }
+            else if ( "--secure" .equals( args[i] ) ){
+                secure = true;
+            }
             else {
                 if (i != aLength - 1) {
                     System.out.println("error - unknown param " + args[i]);
@@ -778,12 +785,14 @@ public class AppServer implements HttpHandler {
         System.out.println("       sitesRoot = " + sitesRoot);
         System.out.println("     listen port = " + portNum);
         System.out.println("==================================");
-
+        
         AppServer as = new AppServer( webRoot , sitesRoot );
 
         HttpServer.addGlobalHandler( as );
 
         HttpServer hs = new HttpServer(portNum);
+        if ( secure )
+            System.setSecurityManager( new AppSecurityManager() );
         hs.start();
         hs.join();
     }

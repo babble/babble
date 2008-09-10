@@ -326,10 +326,13 @@ public class Expression extends JSObjectBase {
         Object obj = UNDEFINED_VALUE;
         try {
             obj = resolve(scope, ctx, parsedExpression.getFirstChild(), true);
-        } finally {
             if(obj == UNDEFINED_VALUE)
-                log.debug("Failed to resolve [" + this +  "]. (" + token.getOrigin() + ":" + token.getStartLine() + ")");
-        }
+                log.debug("SHOULD NEVER HAPPEN!!! [" + this +  "]. (" + token.getOrigin() + ":" + token.getStartLine() + ")");
+
+        } catch(VariableLookupError e) {
+            log.debug("Failed to resolve ["+this+"]: "+e.getMessage()+" ("+ token.getOrigin() + ":" + token.getStartLine() + ")");
+        }        
+
         obj = JSNumericFunctions.fixType(obj);
         
         if(is_literal() && (obj instanceof JSObject))
@@ -344,20 +347,21 @@ public class Expression extends JSObjectBase {
         case Token.GETPROP:
             //get the object
             temp = resolve(scope, ctx, node.getFirstChild(), true);
-            if(temp == null || temp == UNDEFINED_VALUE)
-                return UNDEFINED_VALUE;
+            if(temp == null)
+                throw new VariableLookupError("Can't get property from a null object");
+
             if(!(temp instanceof JSObject))
                 throw new TemplateException("Can't handle native objects of type [" + temp.getClass().getName() + "]");
             JSObject obj = (JSObject)temp;
             
             //get the property
             Object prop = resolve(scope, ctx, node.getLastChild(), true);
-            if(prop == null || prop == UNDEFINED_VALUE)
-                return UNDEFINED_VALUE;
+            if(prop == null)
+                throw new VariableLookupError("Can't get null property");
             
             Object val = obj.get(prop);
-            if(val == null)
-                val = obj.containsKey(prop.toString()) ? null : UNDEFINED_VALUE;
+            if(val == null && !obj.containsKey(prop.toString()))
+                throw new VariableLookupError("Object doesn't contain the property ["+prop.toString()+"]");
             
             if (autoCall 
                     && (val instanceof JSFunction)
@@ -372,11 +376,11 @@ public class Expression extends JSObjectBase {
                 }
                 catch(JSException e) {
                     if(isTrue(e.get("silent_variable_failure")))
-                        return UNDEFINED_VALUE;
+                        throw new VariableLookupError("Failed to autocall the property [" + prop.toString() + "]", e);
                     
                     temp = e.getObject();
                     if(temp instanceof JSObject && isTrue( ((JSObject)temp).get("silent_variable_failure") ))
-                        return UNDEFINED_VALUE;
+                        throw new VariableLookupError("Failed to autocall the property [" + prop.toString() + "]", e);
                     
                     throw e;
                 }
@@ -392,8 +396,8 @@ public class Expression extends JSObjectBase {
             if (callArgs.getType() == Token.GETELEM || callArgs.getType() == Token.GETPROP) {
                 //get the method
                 temp = resolve(scope, ctx, callArgs, false);
-                if(temp == null || temp == UNDEFINED_VALUE)
-                    return UNDEFINED_VALUE;
+                if(temp == null)
+                    throw new VariableLookupError("Can't call null method");
                 if(!(temp instanceof JSFunction))
                     throw new TemplateException("Can only call functions.  [" + expression + "]");
                 callMethodObj = (JSFunction)temp;
@@ -402,6 +406,8 @@ public class Expression extends JSObjectBase {
                 callThisObj = (JSObject)resolve(scope, ctx, callArgs.getFirstChild(), true);;
             } else {
                 temp = resolve(scope, ctx, callArgs, false);
+                if(temp == null)
+                    throw new VariableLookupError("Can't call null function");
                 if(!(temp instanceof JSFunction))
                     throw new TemplateException("Can only call functions. [" + expression + "]");
                 callMethodObj = (JSFunction)temp;
@@ -424,11 +430,11 @@ public class Expression extends JSObjectBase {
             }
             catch(JSException e) {
                 if(isTrue(e.get("silent_variable_failure")))
-                    return UNDEFINED_VALUE;
+                    throw new VariableLookupError("Failed to call method", e);
                 
                 temp = e.getObject();
                 if(temp instanceof JSObject && isTrue( ((JSObject)temp).get("silent_variable_failure") ))
-                    return UNDEFINED_VALUE;
+                    throw new VariableLookupError("Failed to call method", e);
                 
                 throw e;
             }
@@ -455,6 +461,9 @@ public class Expression extends JSObjectBase {
                     lookupValue = scope.keySet().contains(node.getString()) ? null : UNDEFINED_VALUE;
                 }
             }
+            if(lookupValue == UNDEFINED_VALUE)
+                throw new VariableLookupError("Failed to lookup ["+node.getString() + "]");
+
             
             if (autoCall 
                 && (lookupValue instanceof JSFunction)
@@ -570,4 +579,15 @@ public class Expression extends JSObjectBase {
             set("toString", new toStringFunc());
         }
     };
+    
+    private static class VariableLookupError extends Djang10Exception {
+        public VariableLookupError(String msg, Throwable t) {
+            super(msg, t);
+        }
+
+        public VariableLookupError(String msg) {
+            super(msg);
+        }
+        
+    }
 }

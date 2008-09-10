@@ -216,7 +216,7 @@ var do_block =
 
     var bits = token.contents.split(/\s+/);
     if(bits.length != 2)
-        throw  "'" +bits[0] + "' tag takes only one argument";
+        throw new djang10.TemplateSyntaxError("'" +bits[0] + "' tag takes only one argument", token);
     
     var block_name = bits[1];
     var loaded_blocks = parser["__loaded_blocks"];
@@ -224,7 +224,7 @@ var do_block =
         loaded_blocks = parser["__loaded_blocks"] = {};
     
     if(loaded_blocks[block_name] != null)
-        throw "'"+bits[0]+"' tag with name '"+block_name+"' appears more than once";
+        throw new djang10.TemplateSyntaxError("'"+bits[0]+"' tag with name '"+block_name+"' appears more than once", token);
     
     
     var nodelist = parser.parse(["endblock", "endblock " + block_name]);
@@ -244,7 +244,7 @@ var do_extends =
 
     var bits = token.split_contents();
     if(bits.length != 2)
-        throw "'"+bits[0]+"' takes one argument";
+        throw new djang10.TemplateSyntaxError("'"+bits[0]+"' takes one argument", token);
    
     var parent_name_expr = parser.compile_filter(bits[1]);
     if(parent_name_expr.is_literal()) {
@@ -263,7 +263,7 @@ var do_extends =
     
     var nodelist = parser.parse();
     if(nodelist.get_nodes_by_type(ExtendsNode).length > 0)
-        throw "'"+bits[0]+"' cannot appear more than once in the same template";
+        throw new djang10.TemplateSyntaxError("'"+bits[0]+"' cannot appear more than once in the same template", token);
     
     return new ExtendsNode(nodelist, parent_name_expr);
 };
@@ -290,7 +290,7 @@ var ssi =
 
     var bits = token.contents.split(/\s+/);
     if(bits.length != 2 && bits.length != 3)
-        throw djang10.NewTemplateException("'ssi' tag takes one argument: the path to the file to be included");
+        throw new djang10.TemplateSyntaxError("'ssi' tag takes one argument: the path to the file to be included", token);
 
     var path = bits[1];
     var parsed = false;
@@ -298,14 +298,14 @@ var ssi =
         if(bits[2] == "parsed")
             parsed = true;
         else
-            throw djang10.NewTemplateException("Second (optional) argument to "+bits[0]+" tag  must be 'parsed'");
+            throw new djang10.TemplateSyntaxError("Second (optional) argument to "+bits[0]+" tag  must be 'parsed'", token);
     }
     if (parsed) {
         return new IncludeNode(parser.compile_expression('"' + path + '"'));
     }
     else {
         if(path.indexOf("/local/") != 0)
-            throw djang10.NewTemplateException("Unparsed includes can only be in the /local");
+            throw new djang10.TemplateSyntaxError("Unparsed includes can only be in the /local", token);
         
         path = path.substring("/local/".length);
         return new UnparsedIncludeNode(path);

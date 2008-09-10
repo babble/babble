@@ -31,8 +31,8 @@ public class UsageTracker {
     /** Creates a newly allocated UsageTracker for a site.
      * @param base Site name for which to create this usage tracker
      */
-    public UsageTracker( String base ){
-        _base = base;
+    public UsageTracker( AppContext context ){
+        _context = context;
         _trackers.put( this , 0L );
     }
 
@@ -63,15 +63,19 @@ public class UsageTracker {
      */
     public boolean flush(){
         synchronized ( _flushLock ){
+            DBBase theDB = _context.getDB();
+            if ( theDB == null )
+                return false;
+
             Map<String,Long> counts = _counts;
 
             synchronized ( _lock ){
                 _counts = new TreeMap<String,Long>();
             }
-
+            
             try {
                 JSDate now = (new JSDate()).roundMinutes( 5 );
-                DBCollection db = DBProvider.get( _base ).getCollection( "_system" );
+                DBCollection db = theDB.getCollection( "_system" );
                 db = db.getCollection( "usage" );
                 for ( String s : counts.keySet() ){
                     long val = counts.get( s );
@@ -96,7 +100,7 @@ public class UsageTracker {
                 return true;
             }
             catch ( Throwable t ){
-                ed.log.Logger.getLogger( "UsageTracker" ).error( "couldn't flush [" + _base + "] : " + t );
+                ed.log.Logger.getLogger( "UsageTracker" ).error( "couldn't flush [" + _context.getName() + "] : " + t );
                 for ( String s : counts.keySet() )
                     hit( s , counts.get( s ) );
                 return false;
@@ -105,11 +109,8 @@ public class UsageTracker {
         }
     }
 
-    /** @unexpose */
-    final String _base;
-    /** @unexpose */
+    final AppContext _context;
     final String _lock = "LOCK" + Math.random();
-    /** @unexpose */
     final String _flushLock = "FLOCK" + Math.random();
     private Map<String,Long> _counts = new TreeMap<String,Long>();
     private boolean _ensuredIndexes = false;

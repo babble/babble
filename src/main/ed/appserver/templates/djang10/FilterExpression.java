@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ed.appserver.templates.djang10.Parser.Token;
+import ed.js.JSException;
 import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.JSObjectBase;
@@ -35,7 +36,7 @@ public class FilterExpression extends JSObjectBase {
     public FilterExpression(Parser parser, String filterExpression, Token token, boolean useLiteralEscapes) {
         setConstructor(CONSTRUCTOR);
 
-        String[] parts = Util.smart_split(filterExpression.trim(), "\\|");
+        String[] parts = Util.smart_split(filterExpression.trim(), new String[] {"|"}, true);
 
         this.expression = new Expression(parts[0], token, useLiteralEscapes);
         this.filterSpecs = new ArrayList<FilterSpec>();
@@ -140,10 +141,15 @@ public class FilterExpression extends JSObjectBase {
             Object paramValue = (param == null)? null : param.resolve(scope, context);
             Object new_obj;
             
-            if(filter.get("needs_autoescape") == Boolean.TRUE)
-                new_obj = filter.call(scope.child(), value, context.get("autoescape") != Boolean.FALSE, paramValue);
-            else
-                new_obj = filter.call(scope.child(), value, paramValue);
+            try {
+                if(filter.get("needs_autoescape") == Boolean.TRUE)
+                    new_obj = filter.call(scope.child(), value, context.get("autoescape") != Boolean.FALSE, paramValue);
+                else
+                    new_obj = filter.call(scope.child(), value, paramValue);
+            }
+            catch(JSException e) {
+                throw JSHelper.unnestJSException(e);
+            }
             
             if( (filter.get("is_safe") == Boolean.TRUE) && (JSHelper.is_safe(value) == Boolean.TRUE) && (new_obj instanceof JSObject) )
                 new_obj = JSHelper.mark_safe((JSObject)new_obj);

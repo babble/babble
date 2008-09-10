@@ -22,6 +22,8 @@ import java.util.*;
 
 public class StackTraceHolder {
 
+    public static interface NoFix{}
+
     public static final boolean RAW_EXCPETIONS = ed.util.Config.get().getBoolean( "RAWE" );
     public static final boolean DEBUG = Boolean.getBoolean( "DEBUG.ST" );
 
@@ -120,6 +122,10 @@ public class StackTraceHolder {
         fix(t, true);
     }
     public void fix(Throwable t, boolean recurse) {
+
+        if ( t instanceof NoFix )
+            return;
+        
         while(t != null) {
             _fix(t);
             

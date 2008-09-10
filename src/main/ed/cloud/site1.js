@@ -285,13 +285,25 @@ Cloud.Site.prototype.getDBForEnvironment = function( name ){
     return db;
 }
 
+
 Cloud.Site.prototype.getDBUrlForEnvironment = function( envName ){
-    var db = this.getDBForEnvironment( envName );
-    
+    return this.getDBUrl( this.getDBForEnvironment( envName ) );
+}
+
+Cloud.Site.prototype.getDBUrl = function( dbName ){
+    var db = this.findDB( dbName );
+    if ( ! db )
+        throw "can't find db [" + dbName + "]";
+
     var url = db.server + "/" + this.name;
     if ( db.envParition )
         url += ":" + db.name;
     return url;
+
+}
+
+Cloud.Site.getDBConnection = function( dbName ){
+    return connect( this.getDBUrl( dbName ) );
 }
 
 Cloud.Site.prototype.findDB = function( identifier ){
@@ -336,7 +348,10 @@ Cloud.Site.prototype.findDBById = function( id ){
     return ret;
 };
 
-Cloud.Site.prototype.upsertDB = function( name , server ){
+/**
+* @return true if a change was made.  (either created or server changed)
+*/
+Cloud.Site.prototype.upsertDB = function( name , server , userToInsert ){
 
     if ( isObject( name ) && server == null && name.name ){
         var o = name;
@@ -352,7 +367,7 @@ Cloud.Site.prototype.upsertDB = function( name , server ){
         server = Cloud.Balancer.getAvailableDB();
     
     if ( ! Cloud.findDBByName( server ) )
-        throw "can't find db [" + server + "]";
+        throw "can't find db server [" + server + "]";
     
     if ( this.findDBByName( name ) ){
         var db = this.findDBByName( name );
@@ -362,10 +377,32 @@ Cloud.Site.prototype.upsertDB = function( name , server ){
         db.server = server;
         return true;
     }
+
+    log( "creating new db [" + name + "] for [" + this.name + "]" );
     
     var db = new Cloud.SiteDB( name , server );
+    //db.envParition = true;
+    
     this.dbs.add( db );
     
+    if ( userToInsert || this.defaultUsers ){
+        var conn = this.getDBConnection( db );
+        
+        if ( this.defaultUsers ){
+            for each ( u in this.defaultUsers ){
+                log( "storing user [" + u.email + "] in [" + conn + "]" );
+                conn.users.save( u );
+            }
+        }
+
+        if ( userToInsert ){
+	    if ( ! db.users.findOne( { email : userToInsert.email } ) ){
+	        conn.users.save( userToInsert );
+            }
+        }
+
+    }
+
     return true;
 };
 

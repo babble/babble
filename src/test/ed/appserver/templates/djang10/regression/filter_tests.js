@@ -14,8 +14,8 @@
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 tests=[
+    { name: "autoescape-stringfilter01", content: "{{ unsafe|capfirst }}", model: { "unsafe": new UnsafeClass() }, results: "You &amp; me" },
     { name: "autoescape-stringfilter02", content: "{% autoescape off %}{{ unsafe|capfirst }}{% endautoescape %}", model: { "unsafe": new UnsafeClass() }, results: "You & me" },
     { name: "autoescape-stringfilter03", content: "{{ safe|capfirst }}", model: { "safe": new SafeClass() }, results: "You &gt; me" },
     { name: "autoescape-stringfilter04", content: "{% autoescape off %}{{ safe|capfirst }}{% endautoescape %}", model: { "safe": new SafeClass() }, results: "You &gt; me" },
@@ -130,7 +130,7 @@ tests=[
     { name: "filter-urlize02", content: "{{ a|urlize }} {{ b|urlize }}", model: { "a": "http://example.com/?x=&y=", "b": djang10.mark_safe("http://example.com?x=&amp;y=") }, results: "<a href=\"http://example.com/?x=&amp;y=\" rel=\"nofollow\">http://example.com/?x=&amp;y=</a> <a href=\"http://example.com?x=&amp;y=\" rel=\"nofollow\">http://example.com?x=&amp;y=</a>" },
     { name: "filter-urlize03", content: "{% autoescape off %}{{ a|urlize }}{% endautoescape %}", model: { "a": djang10.mark_safe("a &amp; b") }, results: "a &amp; b" },
     { name: "filter-urlize04", content: "{{ a|urlize }}", model: { "a": djang10.mark_safe("a &amp; b") }, results: "a &amp; b" },
-    { name: "filter-urlize05", content: "{% autoescape off %}{{ a|urlize }}{% endautoescape %}", model: { "a": "<script>alert('foo')</script>" }, results: "<script>alert('foo')</script>" },
+    { name: "filter-urlize05", content: "{% autoescape off %}{{ a|urlize }}{% endautoescape %}", model: { "a": "<script>alert('foo')</script>" }, results: "<script>alert(\'foo\')</script>" },
     { name: "filter-urlize06", content: "{{ a|urlize }}", model: { "a": "<script>alert('foo')</script>" }, results: "&lt;script&gt;alert(&#39;foo&#39;)&lt;/script&gt;" },
     { name: "filter-urlize07", content: "{{ a|urlize }}", model: { "a": "Email me at me@example.com" }, results: "Email me at <a href=\"mailto:me@example.com\">me@example.com</a>" },
     { name: "filter-urlize08", content: "{{ a|urlize }}", model: { "a": "Email me at <me@example.com>" }, results: "Email me at &lt;<a href=\"mailto:me@example.com\">me@example.com</a>&gt;" },

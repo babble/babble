@@ -23,15 +23,21 @@ var absolute =
 
 var log = log.djang10.loaders.absolute;
 
-var load_template_source =
+load_template_source =
     absolute.load_template_source =
     function(template_name, template_dirs){
+
+    template_name = template_name.trim();
+    if(!template_name.startsWith("/")) {
+        log.debug("Skipping aboslute loader because path is no absolute [" + template_name + "]");
+        return null;
+    }
 
     var template;
     try {
         template = djang10.resolve_absolute_path(template_name);
     } catch(e) {
-        log.debug("Failed to resolve [" + template_name + "]. " + e);
+        log.error("Failed to resolve [" + template_name + "].", e);
         return null;
     }
 

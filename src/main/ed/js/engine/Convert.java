@@ -137,7 +137,29 @@ public class Convert implements StackTraceFixer {
     }
 
     public static String cleanName( String name ){
-        return name.replaceAll( "[^\\w]+" , "_" );
+        StringBuilder buf = new StringBuilder( name.length() + 5 );
+        boolean prevNonAlpha = false;
+        
+        for ( int i=0; i<name.length(); i++ ){
+
+            final char c = name.charAt(i);
+
+            if ( Character.isLetter( c ) || Character.isDigit( c ) ){
+                buf.append( c );
+                prevNonAlpha = false;
+                continue;
+            }
+            
+            if ( buf.length() == 0 )
+                continue;
+
+            if ( prevNonAlpha )
+                continue;
+
+            buf.append( "_" );
+            prevNonAlpha = true;
+        }
+        return buf.toString();
     }
 
 
@@ -819,7 +841,7 @@ public class Convert implements StackTraceFixer {
 	    break;
 
         case Token.DEFAULTNAMESPACE :
-            _append( "((E4X.Cons)scope.get( \"XML\")).setAndGetDefaultNamespace( ", n );
+            _append( "((ed.js.e4x.ENode.Cons)scope.get( \"XML\")).setAndGetDefaultNamespace( ", n );
             _add( n.getFirstChild(), state );
             _append(")", n );
             break;
@@ -832,7 +854,7 @@ public class Convert implements StackTraceFixer {
     }
 
     private void _addDotQuery( Node n , State state ){
-	_append( "(new E4X.Query_" + Token.name( n.getType() )+ "(" , n );
+	_append( "(new ed.js.e4x.E4X.Query_" + Token.name( n.getType() )+ "(" , n );
 
 	{
 	    Node t = n.getFirstChild();

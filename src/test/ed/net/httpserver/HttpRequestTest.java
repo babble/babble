@@ -39,7 +39,7 @@ public class HttpRequestTest extends TestCase {
         assertEquals( "3" , r.getParameters( "b" ).get(1).toString() );
         assertNull( r.getParameters( "b" ).get(2) );
 
-        assertEquals( 2 , r.getParameterNames().size() );
+        assertEquals( 2 , r.getParameterNamesArray().size() );
     }
 
     @Test(groups = {"basic"})    
@@ -52,7 +52,7 @@ public class HttpRequestTest extends TestCase {
         assertEquals( "Y" , r.getParameter( "c" ) );
         assertEquals( "Z" , r.getURLParameter( "c" ) );
 
-        assertEquals( 3 , r.getParameterNames().size() );
+        assertEquals( 3 , r.getParameterNamesArray().size() );
         assertEquals( 1 , r.getPostParameterNames().size() );
         assertEquals( 3 , r.getURLParameterNames().size() );
     }
@@ -134,6 +134,16 @@ public class HttpRequestTest extends TestCase {
 
 	assertEquals( 2 , r.getAttributes().keySet().size() );
 	assertEquals( 5 , r.getAttributes().get( "z" ) );
+    }
+
+    @Test(groups = {"basic"})
+    public static void testObjInt(){
+
+        HttpRequest r = HttpRequest.getDummy( "/?f=data" );        
+	assertEquals( "data" , r.get( "f" ).toString() );
+	assertEquals( "data" , r.getURLParameter( "f" ) );
+	assertEquals( "data" , r.getURLParameters().get( "f" ) );
+
     }
 
 

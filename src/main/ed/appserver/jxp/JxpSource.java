@@ -48,6 +48,12 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
         
         if ( f.getName().endsWith( ".py" ) )
             return new ed.lang.python.PythonJxpSource( f , lib );
+        
+        if ( f.getName().endsWith( ".rb" ) )
+            return new ed.lang.ruby.RubyJxpSource( f , lib );
+        
+        if ( f.getName().endsWith( ".erb" ) || f.getName().endsWith( ".rhtml" ) )
+            return new ed.lang.ruby.RubyErbSource( f , lib );
 
         if ( f.getName().endsWith( ".php" ) )
             return new ed.lang.php.PHPJxpSource( f );
@@ -196,7 +202,7 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
 
         protected String getContent()
             throws IOException {
-            return StreamUtil.readFully( _f );
+            return StreamUtil.readFully( _f , "utf8" );
         }
 
         protected InputStream getInputStream()

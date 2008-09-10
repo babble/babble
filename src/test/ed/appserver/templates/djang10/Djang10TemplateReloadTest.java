@@ -143,7 +143,7 @@ public class Djang10TemplateReloadTest {
                 globalScope.set(rootFileLib.getKey(), rootFileLib.getValue());
             
             Encoding.install(globalScope);
-            JSHelper helper = Djang10Source.install(globalScope, rootFiles, log);
+            JSHelper helper = JSHelper.install(globalScope, rootFiles, log);
     
             globalScope.set("SYSOUT", new JSFunctionCalls1() {
                 public Object call(Scope scope, Object p0, Object[] extra) {

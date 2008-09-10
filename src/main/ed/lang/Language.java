@@ -81,6 +81,7 @@ public abstract class Language {
             return JS;
 
         if ( extension.equals( "rb" )
+             || extension.equals( "erb" )
              || extension.equals( "rhtml" ) )
             return RUBY;
 

@@ -71,7 +71,7 @@ public class Djang10TemplateTest {
                 globalScope.set(rootFileLib.getKey(), rootFileLib.getValue());
             
             Encoding.install(globalScope);
-            JSHelper helper = Djang10Source.install(globalScope, rootFiles, logger);
+            JSHelper helper = JSHelper.install(globalScope, rootFiles, logger);
     
             globalScope.set("SYSOUT", new JSFunctionCalls1() {
                 public Object call(Scope scope, Object p0, Object[] extra) {
@@ -169,6 +169,8 @@ public class Djang10TemplateTest {
                 }
             }
             
+            context.set("unicodeStr", "\u0160\u0110\u0106\u017d\u0107\u017e\u0161\u0111");
+            context.set("unicodeStr2", "1\u0418\u0413\u041e\u0420\u042c1");
             return tests.toArray();
 
         }
@@ -235,7 +237,7 @@ public class Djang10TemplateTest {
             File resultFile = new File( file.getAbsolutePath().replaceAll( ".djang10$" , ".out" ) );
             if ( ! resultFile.exists() )
                 resultFile = new File( file.getAbsolutePath() + ".out" );
-            String expected = _clean( StreamUtil.readFully( new FileInputStream( resultFile ) ) );
+            String expected = _clean( StreamUtil.readFully( resultFile ) );
             
             TestCase.assertClose( expected , got, "Error : " + file + " : " );
         }

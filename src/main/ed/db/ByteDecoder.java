@@ -78,18 +78,10 @@ public class ByteDecoder extends Bytes {
             }
         }
 
-        if ( created == null ){
-            if ( _constructor == null ){
-                created = new JSObjectBase();
-            }
-            else {
-                created = _constructor.newOne();
-                if ( created instanceof JSObjectBase )
-                    ((JSObjectBase)created).setConstructor( _constructor , true );
-            }
-        }
+        if ( created == null )
+            created = _create( _constructor );
         
-        while ( decodeNext( created ) > 1 );
+        while ( decodeNext( created , null , _constructor ) > 1 );
         
         if ( _buf.position() - start != len )
             throw new RuntimeException( "lengths don't match " + (_buf.position() - start) + " != " + len );
@@ -97,12 +89,22 @@ public class ByteDecoder extends Bytes {
         return created;
     }
 
+    private JSObject _create( JSFunction cons ){
+        if ( cons == null )
+            return new JSObjectBase();
+
+        JSObject o = cons.newOne();
+        if ( o instanceof JSObjectBase )
+            ((JSObjectBase)o).setConstructor( cons , true );
+        return o;
+    }
+
     protected int decodeNext( JSObject o ){
-        return decodeNext( o , null );
+        return decodeNext( o , null , null );
     }
 
     
-    protected int decodeNext( JSObject o , JSFunction embedCons ){
+    protected int decodeNext( JSObject o , JSFunction embedCons , JSFunction myCons ){
         final int start = _buf.position();
         final byte type = _buf.get();
 
@@ -186,20 +188,33 @@ public class ByteDecoder extends Bytes {
         case OBJECT:
             int embeddedSize = _buf.getInt();
 
-            if ( created == null ){
-                created = new JSObjectBase();
-                if ( embedCons != null )
-                    ((JSObjectBase)created).setConstructor( embedCons , true );
-            }
+            if ( created == null )
+                created = _create( embedCons );
             
             JSFunction nextEmebedCons = null;
             
             if ( o.get( name ) != null ){
                 created = (JSObject)o.get( name );
-                nextEmebedCons = (JSFunction)created.get( "_dbCons" );
+                Object maybe = created.get( "_dbCons" );
+
+                if ( maybe instanceof JSFunction )
+                    nextEmebedCons = (JSFunction)maybe;
+                
+                if ( embedCons == null )
+                    embedCons = created.getConstructor();
+                
             }
             
-            while ( decodeNext( created , nextEmebedCons ) > 1 );
+            if ( myCons != null && nextEmebedCons == null ){
+                Object holder = myCons.get( "_dbCons" );
+                if ( holder instanceof JSObject ){
+                    Object maybe = ((JSObject)holder).get( name );
+                    if ( maybe instanceof JSFunction )
+                        nextEmebedCons = (JSFunction)maybe;
+                }
+            }
+            
+            while ( decodeNext( created , nextEmebedCons , embedCons ) > 1 );
             o.set( name , created );
             break;
 

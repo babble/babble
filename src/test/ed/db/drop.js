@@ -10,7 +10,7 @@ t.drop();
 
 function manip() { 
     for( var p = 0; p < 100; p++ ) { 
-	print("p:" + p);
+//	print("p:" + p);
 	for( var i = 0; i < 70; i++ ) { 
 	    t.save( {  a : 3, b : 4, z : bigstr, mod : i % 2 } );
 	    if( i % 25 == 0 ) { 
@@ -22,7 +22,7 @@ function manip() {
 	if( p % 3 == 0 ) 
 	    t.ensureIndex( { a : 1 } );
 	if( p % 7 == 0 ) {
-	    print("DROP len was " + t.find().length());
+    //	    print("DROP len was " + t.find().length());
 	    t.drop();
 	}
 	else if( p % 11 == 0 )
@@ -37,4 +37,13 @@ for( var i = 0; i < 6; i++ )
 
 manip();
 
-assert( t.validate().valid );
+print("finish drop.js"); // other threads may still be going...
+
+var z = t.validate();
+if( !z || !z.valid ) { 
+    if( z.errmsg != "ns not found" ) { // may have just dropped...
+	print("drop.js: did not validate");
+	print("validate result: " + tojson(z));
+	assert(false);
+    }
+}

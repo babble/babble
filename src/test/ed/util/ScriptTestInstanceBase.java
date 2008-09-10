@@ -65,8 +65,6 @@ public abstract class ScriptTestInstanceBase extends MyAsserts implements Script
         scope.setGlobal( true );
         scope.makeThreadLocal();
 
-        JSFunction f = convert();
-
         preTest(scope);
         
         Shell.addNiceShellStuff(scope);
@@ -78,10 +76,10 @@ public abstract class ScriptTestInstanceBase extends MyAsserts implements Script
                 }
             } , true );
         
-        JSFileLibrary lib = new ed.appserver.JSFileLibrary( _file.getParentFile() , "asd" , scope );
-        JSFileLibrary.addPath( f , lib );
-        
         try {
+            JSFunction f = convert();
+            JSFileLibrary lib = new ed.appserver.JSFileLibrary( _file.getParentFile() , "asd" , scope );
+            JSFileLibrary.addPath( f , lib );
             f.call(scope);
             validateOutput(scope);
         }

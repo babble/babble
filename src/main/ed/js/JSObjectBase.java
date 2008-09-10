@@ -699,6 +699,11 @@ public class JSObjectBase implements JSObject {
             set( s , other.get( s ) );
     }
 
+    protected void addAll( Map other ){
+	for ( Object key : other.keySet() )
+	    set( key , other.get( key ) );
+    }
+
     private Object _call( JSFunction func , Object ... params ){
         Scope sc = Scope.getAScope();
         sc.setThis( this );
@@ -1295,7 +1300,7 @@ public class JSObjectBase implements JSObject {
 			return o.getGetter( name.toString() );
                     }
                 } );
-
+            
             set( "__lookupSetter__" , new JSFunctionCalls2(){
                     public Object call( Scope s , Object name , Object func , Object args[] ){
                         if ( ! ( s.getThis() instanceof JSObjectBase ) )
@@ -1319,6 +1324,21 @@ public class JSObjectBase implements JSObject {
 		    }
 		});
 
+            set( "toJSON" , new JSFunctionCalls0(){
+                    public Object call( Scope s , Object args[] ){
+                        StringBuilder buf = new StringBuilder();
+                        try {
+                            JSON.serialize( buf , s.getThis() , false , true , "\n" );
+                        }
+                        catch ( IOException ioe ){
+                            ioe.printStackTrace();
+                            throw new RuntimeException( "impossible" , ioe );
+                        }
+                        return new JSString( buf.toString() );
+                    }
+                }
+                );
+            
         }
 
         public Collection<String> keySet( boolean includePrototype ){

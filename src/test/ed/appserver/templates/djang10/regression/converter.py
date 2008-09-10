@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 '''
     Copyright (C) 2008 10gen Inc.
   
@@ -14,10 +16,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+
+
 from __future__ import with_statement
 import sys
 import re
 from django.utils import safestring
+
+from django.conf import settings
+settings.configure()
 
 #patch Template to save the damn source
 from django.template import Template 
@@ -68,6 +75,7 @@ exported_classes = (
     tests.SomeOtherException,
     tests.SomeClass,
     tests.OtherClass,
+    tests.UTF8Class,
     
     filters.SafeClass,
     filters.UnsafeClass,
@@ -75,15 +83,6 @@ exported_classes = (
     TemplateSyntaxError,
     HackTemplate,   # requires args
 )
-
-unsupported_tests = (
-    r'^url05$',
-    r'^i18n',
-    r'^filter-syntax18$',
-    
-    r'autoescape-stringfilter01',
-)
-
 
 preamble = """
 /**
@@ -101,59 +100,6 @@ preamble = """
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-HackTemplate = function(content) {
-    this.content = content;
-};
-TemplateSyntaxError = function() {};
-
-SomeException = function() { }
-SomeException.prototype = {
-    silent_variable_failure : true
-};
-SomeOtherException = function() {}
-
-
-SomeClass = function() {
-    this.otherclass = new OtherClass();
-};
-SomeClass.prototype = {
-    method: function() {
-        return "SomeClass.method";
-    },
-    method2: function(o) {
-        return this.o;
-    },
-    method3: function() {
-        throw new SomeException();
-    },
-    method4: function() {
-        throw new SomeOtherException();
-    }
-};
-
-OtherClass = function() {};
-OtherClass.prototype = {
-    method: function() {
-        return "OtherClass.method";
-    }
-};
-
-UnsafeClass = function() {};
-UnsafeClass.prototype.toString = function() {
-    return "you & me";
-};
-
-SafeClass = function() {};
-SafeClass.prototype.toString = function() {
-    return djang10.mark_safe("you &gt; me");
-};
-
-var from_now = function(sec_offset) {
-    var now = new Date();
-    now.setSeconds(now.getSeconds() + sec_offset);
-    return now;
-};
 """
 
 
@@ -167,10 +113,7 @@ def convert(py_tests):
     
     skip_count = 0
     for name, vals in py_tests:
-        if [pattern for pattern in unsupported_tests if re.search(pattern, name)]:
-            skip_count += 1
-            continue
-        
+       
         if isinstance(vals[2], tuple):
             normal_string_result = vals[2][0]
             invalid_string_result = vals[2][1]
@@ -183,8 +126,7 @@ def convert(py_tests):
             
             #ignoring LANGUAGE_CORE for now
         buffer += serialize_test(name, vals) + ",\n" 
-    
-    print("Skipping %d tests, out of %d" % (skip_count, len(py_tests)))
+
     return buffer + "\n];"
 
 
@@ -193,12 +135,12 @@ def serialize_test(name, a_test):
     if name == 'now01':
         results =  '%s + " " + %s + " " + %s' % ("((new Date()).getDate())", "((new Date()).getMonth() + 1)", "((new Date()).getYear())") 
     else:
-        results = serialize(a_test[2])
+        results = serialize(a_test[2], True)
     #rename var to var1
     content = a_test[0]
     return '    { name: %s, content: %s, model: %s, results: %s }' % ( serialize(name), serialize(content), serialize(a_test[1]), results)
 
-def serialize(m):
+def serialize(m, is_result=False):
     if m is None:
         return "null"
 
@@ -217,12 +159,18 @@ def serialize(m):
         
         return "from_now(%d)" % secs;
 
-    elif isinstance(m, unicode):
-        return serialize(str(m))
+    elif isinstance(m, basestring):
+        if(is_result):
+            encoding = "unicode_escape" if isinstance(m, unicode) else "string_escape"
+            m = m.encode(encoding).replace('"', '\\"')
+        else:
+            m = escape_str(m)
+        
+        m = '"%s"' % m
+        if(isinstance(m, unicode)):
+            m = m.encode('utf-8')
+        return m
 
-    elif isinstance(m, str):
-        return '"%s"' % escape_str(m)
-    
     elif isinstance(m , (int, long) ):
         return "%d" % m
     
@@ -254,7 +202,7 @@ def escape_str(str):
     return ESCAPE.sub(replace, str)
 
 ''' String escaping'''
-ESCAPE = re.compile(r'[\x00-\x1f\\"\b\f\n\r\t]')
+ESCAPE = re.compile(r'[\\"\b\f\n\r\t]')
 ESCAPE_DCT = {
     '\\': '\\\\',
     '"': '\\"',
@@ -264,11 +212,6 @@ ESCAPE_DCT = {
     '\r': '\\r',
     '\t': '\\t',
 }
-for i in range(0x20):
-    ESCAPE_DCT.setdefault(chr(i), '\\u%04x' % (i,))
-
-
-
 ''' Main '''
 #do tag tests
 print("converting tag tests")

@@ -34,10 +34,6 @@ public class RubyTemplateConverter extends HtmlLikeConverter {
         return t.getName().replaceAll( "\\.(\\w+)+$" , "_$1.rb" );
     }
 
-    protected void convertStart(){
-	Ruby.install( Scope.getThreadLocal() );
-    }
-
     protected void gotCode( Generator g , CodeMarker cm , String code ){
 
         if ( code.startsWith( "-" ) )

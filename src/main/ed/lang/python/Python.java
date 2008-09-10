@@ -22,6 +22,7 @@ import java.io.*;
 
 import org.python.core.*;
 
+import ed.db.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.js.func.*;
@@ -55,6 +56,9 @@ public class Python {
 
         if ( p instanceof String )
             return new JSString( p.toString() );
+
+        if ( p instanceof PyJSStringWrapper )
+            p = ((PyJSStringWrapper)p)._p;
 
         if ( p instanceof PyJSObjectWrapper )
             return ((PyJSObjectWrapper)p)._js;
@@ -97,7 +101,10 @@ public class Python {
         
         if ( o == null )
             return Py.None;
-        
+
+        if ( o instanceof DBRef )
+            o = ((DBRef)o).doLoad();
+
         if ( o instanceof JSPyObjectWrapper )
             return ((JSPyObjectWrapper)o).getContained();
 
@@ -113,9 +120,11 @@ public class Python {
         if ( o instanceof Number )
             return new PyFloat( ((Number)o).doubleValue() );
         
-        if ( o instanceof String ||
-             o instanceof JSString )
-            return new PyString( o.toString() );
+        if ( o instanceof String )
+            return new PyString( (String)o );
+
+        if ( o instanceof JSString )
+            return new PyJSStringWrapper( (JSString)o );
         
         if ( o instanceof ed.db.ObjectId )
             return new PyObjectId( (ed.db.ObjectId)o );
@@ -141,6 +150,8 @@ public class Python {
 
             return new PyJSFunctionWrapper( (JSFunction)o , useThis );
         }
+        
+
         if ( o instanceof JSObject )
             return new PyJSObjectWrapper( (JSObject)o );
         

@@ -485,6 +485,10 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         
         return f.call( s , args );
     }
+
+    public boolean isCallable(){
+        return _mySource != null;
+    }
     
     public String toString(){
         return "{ JSFileLibrary.  _base : " + _base + "}";
@@ -494,7 +498,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         return _uriBase;
     }
 
-    JSFileLibrary getTopParent(){
+    public JSFileLibrary getTopParent(){
         if ( _parent == null )
             return this;
         return _parent.getTopParent();

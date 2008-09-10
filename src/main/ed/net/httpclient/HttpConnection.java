@@ -42,9 +42,12 @@ class HttpConnection{
     
     static boolean DEBUG = Boolean.getBoolean( "DEBUG.HTTP" );
     static int HTTP_CONNECTION_NUMBER = 1;
+
     static final Logger LOGGER = Logger.getLogger("ed.net.httpclient.HttpConnection" );
+    static final Logger KA_LOGGER = Logger.getLogger( "ed.net.httpclient.HttpConnection.KeepAlive" );
     static {
         LOGGER.setLevel( DEBUG ? Level.DEBUG : Level.INFO );
+        KA_LOGGER.setLevel( DEBUG ? Level.DEBUG : Level.INFO );
     }
 
     static public HttpConnection get( URL url )
@@ -583,6 +586,7 @@ class HttpConnection{
 
 
     static class KeepAliveCache {
+        
         KeepAliveCache(){
 	    _cleaner = new KeepAliveCacheCleaner();
 	    _cleaner.start();
@@ -637,10 +641,10 @@ class HttpConnection{
 			//hc.close();
 			_closer._toClose.offer( hc );
 			j.remove();
-			Logger.getLogger( this.getClass() ).debug( "removing a " + key );
+			KA_LOGGER.debug( "removing a " + key );
 		    }
 		    else {
-			Logger.getLogger( this.getClass() ).debug( "keeping a " + key );
+			KA_LOGGER.debug( "keeping a " + key );
 		    }
 		}
 	    }
@@ -666,12 +670,12 @@ class HttpConnection{
 				hc.close();
 			    }
 			    catch ( Exception e ){
-				Logger.getLogger("ed.net.httpclient.HttpConnection.KeepAliveCacheCloser").log( Level.DEBUG , "error closing" , e );
+				KA_LOGGER.debug( "error closing" , e );
 			    }
 			}
 		    }
 		    catch ( Exception e ){
-			Logger.getLogger("ed.net.httpclient.HttpConnection.KeepAliveCacheCloser").error("error running" , e );
+			KA_LOGGER.error("error running" , e );
 		    }
 		}
 	    }
@@ -692,7 +696,7 @@ class HttpConnection{
 			clean();
 		    }
 		    catch ( Exception e ){
-			Logger.getLogger( this.getClass() ).error("error cleaning" , e );
+			KA_LOGGER.error("error cleaning" , e );
 		    }
 		}
 	    }

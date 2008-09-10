@@ -128,7 +128,7 @@ public class Parser extends JSObjectBase{
                 }
                 else if (token.type == TagDelimiter.Type.Var) {
                     if (token.getContents().length() == 0)
-                        throw new TemplateException(token.getStartLine(), "Empty Variable Tag (" + token.getOrigin() + ":" + token.getStartLine() + ")");
+                        throw new TemplateSyntaxError("Empty Variable Tag", token);
     
                     FilterExpression variableExpression = compile_filter(token.getContents().toString());
                     JSObject varNode = new Node.VariableNode(variableExpression);
@@ -144,6 +144,7 @@ public class Parser extends JSObjectBase{
                     String command = token.getContents().toString().split("\\s")[0];
                     JSFunction handler = find_taghandler(command);
                     JSObject node = (JSObject)handler.call(scope, this, token);
+                    
                     node = NodeWrapper.wrap(node, token);
                     extend_nodelist(nodelist, node, token);
     
@@ -154,11 +155,12 @@ public class Parser extends JSObjectBase{
             throw e;
         }
         catch(JSException e) {
-            if(e.getCause() instanceof TemplateSyntaxError)
-                throw e;
+            RuntimeException re = JSHelper.unnestJSException(e);
+                        
+            if(re instanceof TemplateSyntaxError)
+                throw (TemplateSyntaxError)re;
             
-            Throwable t = (e.getCause() instanceof Exception)? e.getCause() : e;
-            throw new TemplateSyntaxError("Failed to parse the token: " + activeToken, activeToken, t);
+            throw new TemplateSyntaxError("Failed to parse the token: " + activeToken, activeToken, re);
         }
         catch(Exception e) {
             throw new TemplateSyntaxError("Failed to parse the token: " + activeToken, activeToken, e);
@@ -201,7 +203,7 @@ public class Parser extends JSObjectBase{
     public void extend_nodelist(NodeList nodeList, JSObject node, Token token) {
         boolean must_be_first = node.get("must_be_first") == Boolean.TRUE;
         if(must_be_first && nodeList.get("contains_nontext") == Boolean.TRUE)
-            throw new TemplateException(node + "must be the first nontext node in the template");
+            throw new TemplateSyntaxError(node + "must be the first nontext node in the template", token);
 
         if(!(node instanceof Node.TextNode))
             nodeList.set("contains_nontext", true);

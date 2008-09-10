@@ -17,12 +17,12 @@
 package ed.appserver.templates.djang10.regression;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.fail;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
 import org.testng.ITest;
@@ -33,6 +33,7 @@ import ed.appserver.jxp.JxpSource;
 import ed.appserver.templates.djang10.Djang10Source;
 import ed.appserver.templates.djang10.JSHelper;
 import ed.appserver.templates.djang10.Printer;
+import ed.appserver.templates.djang10.TemplateSyntaxError;
 import ed.db.JSHook;
 import ed.js.Encoding;
 import ed.js.JSArray;
@@ -43,7 +44,6 @@ import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
 import ed.js.func.JSFunctionCalls2;
-import ed.log.Level;
 import ed.log.Logger;
 
 public class DjangoRegressionTests {
@@ -53,6 +53,7 @@ public class DjangoRegressionTests {
         "^url.*",
 
         //requires architecture impl
+        "^i18n.*",
         "basic-syntax27",   //need support for translating _( )
         "ifequal-numeric07", //need to preprocess: throw error on 2.
 
@@ -70,7 +71,19 @@ public class DjangoRegressionTests {
         "filter-make_list0[1-4]", 
         
         //all keys are strings in js
-        "list-index07"
+        "list-index07",
+        
+        
+        //allowed
+        "filter-syntax03",  //spaces are allowed around filter seperators
+        "filter-syntax04",  //spaces are allowed around filter seperators
+        "exception01",      //throwing a render exception is more appropriate
+        "exception02",      //throwing a render exception is more appropriate
+        "autoescape-filtertag01", //why shouldn't you be able to apply safe & escape filters?
+        "widthratio10",     //floats allowed
+        
+        "basic-syntax12",   //dunno
+        "basic-syntax14",   //dunno        
     };    
        
     public DjangoRegressionTests(){ }
@@ -114,7 +127,7 @@ public class DjangoRegressionTests {
         JSHelper jsHelper;
         try {
             Encoding.install(globalScope);
-            jsHelper = Djang10Source.install(globalScope, Collections.EMPTY_MAP, log);
+            jsHelper = JSHelper.install(globalScope, Collections.EMPTY_MAP, log);
             
             JxpSource preambleSource = JxpSource.getSource(new File(basePath, "preamble.js"));
             preambleSource.getFunction().call(globalScope);
@@ -137,10 +150,10 @@ public class DjangoRegressionTests {
                 Scope testScope = globalScope.child();
                 testScope.setGlobal(true);
                 
-                ExportedTestCase testCase = new ExportedTestCase(testScope, (JSObject)jsTest, 
+                ExportedTestCase testCase = new ExportedTestCase(testScope, testScript, (JSObject)jsTest, 
                         testScript.templateSyntaxErrorCons, testScript.someExceptionCons, testScript.someOtherExceptionCons);
 
-                if(isSupported(testCase)) testCases.add(testCase);
+                if(isSupported(testScript, testCase)) testCases.add(testCase);
                 else skipped++;
                 
                 count++;
@@ -202,10 +215,11 @@ public class DjangoRegressionTests {
         }
     }
     
-    private static boolean isSupported(ExportedTestCase testCase) {
+    private static boolean isSupported(JSTestScript script, ExportedTestCase testCase) {
         //FIXME: tests that throw exceptions are not supported yet
-        if(testCase.result instanceof ExceptionResult)
+        if(testCase.result instanceof ExceptionResult && ((ExceptionResult)testCase.result).exceptionType != script.templateSyntaxErrorCons)
             return false;
+            
 
         for(String unsupportedTest: UNSUPPORTED_TESTS)
             if(testCase.name.matches(unsupportedTest))
@@ -218,6 +232,7 @@ public class DjangoRegressionTests {
     // ====================================
     
     public class ExportedTestCase implements ITest {
+        private final JSTestScript script;
         private final Scope scope;
         private final String name;
         private final String content;
@@ -227,8 +242,9 @@ public class DjangoRegressionTests {
         private final Printer.RedirectedPrinter printer;
         
         
-        public ExportedTestCase(Scope scope, JSObject test, JSFunction templateSyntaxErrorCons, JSFunction someExceptionCons, JSFunction someOtherExceptionCons) {
+        public ExportedTestCase(Scope scope, JSTestScript script, JSObject test, JSFunction templateSyntaxErrorCons, JSFunction someExceptionCons, JSFunction someOtherExceptionCons) {
             this.scope = scope;
+            this.script = script;
             this.name = ((JSString)test.get("name")).toString();
             this.content = ((JSString)test.get("content")).toString();
             this.model = (JSObject)test.get("model");
@@ -281,7 +297,22 @@ public class DjangoRegressionTests {
             Djang10Source template = new Djang10Source(this.content);
             
             if(result instanceof ExceptionResult) {
-                throw new UnsupportedOperationException();
+                ExceptionResult exceptionResult= (ExceptionResult)result;
+                
+                try {
+                    JSFunction templateFn = template.getFunction();
+                    templateFn.call(scope, model);
+                    fail("Expected exception but got none");
+                }
+                catch(RuntimeException e) {
+                    if(exceptionResult.exceptionType == script.templateSyntaxErrorCons) {
+                        if(!(e instanceof TemplateSyntaxError))
+                            fail("Expected wrong expection: " + e);
+                        //succeed
+                    }                    
+                    else 
+                        throw new UnsupportedOperationException();
+                }
             }
             else {
 

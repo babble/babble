@@ -24,6 +24,7 @@ import ed.ext.org.mozilla.javascript.*;
 
 import ed.js.engine.*;
 import ed.js.func.*;
+import ed.js.e4x.*;
 
 /** @expose */
 public class JSInternalFunctions extends JSNumericFunctions {
@@ -170,7 +171,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
         if ( obj instanceof ed.db.ObjectId )
             return TYPE_OBJECTID;
 
-        if ( obj instanceof E4X.ENode )
+        if ( obj instanceof ENode )
             return TYPE_XML;
 
         if ( obj instanceof JSObject )
@@ -322,7 +323,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
         if ( _charEQ( a , b ) || _charEQ( b , a ) )
             return true;
 
-        if( a instanceof E4X.ENode || b instanceof E4X.ENode )
+        if( a instanceof ENode || b instanceof ENode )
             return a.toString().equals( b.toString() );
 
         return false;
@@ -484,8 +485,20 @@ public class JSInternalFunctions extends JSNumericFunctions {
         if ( o == null )
             return new LinkedList();
 
-        if ( o instanceof E4X.ENode )
-            return ((E4X.ENode)o).valueSet();
+        if ( o instanceof ENode )
+            return ((ENode)o).valueSet();
+        
+        if ( o instanceof Collection )
+            return (Collection)o;
+
+        if ( o instanceof JSObject ){
+            JSObject j = (JSObject)o;
+            Collection<String> keys = j.keySet();
+            List values = new ArrayList( keys.size() );
+            for ( String k : keys )
+                values.add( j.get( k ) );
+            return values;
+        }
 
         throw new RuntimeException( "can't for each with a : " + o.getClass() );
     }

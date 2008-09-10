@@ -18,6 +18,8 @@
 
 package ed.js;
 
+import ed.js.e4x.*;
+
 /** @expose
  */
 public class JSNumericFunctions extends JSObjectBase {
@@ -220,8 +222,8 @@ public class JSNumericFunctions extends JSObjectBase {
             return Double.NaN;
         }
 
-        if( a instanceof E4X.ENode && b instanceof E4X.ENode ) {
-            E4X.XMLList list = E4X.addNodes((E4X.ENode)a, (E4X.ENode)b);
+        if( a instanceof ENode && b instanceof ENode ) {
+            XMLList list = E4X.addNodes((ENode)a, (ENode)b);
             return list;
         }
 

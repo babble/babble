@@ -23,6 +23,12 @@ popd
 cd `dirname $0`
 TESTDIR=`pwd`
 
+if [ ! -d "$FULLSITE/test" ]
+    then
+        echo "Site '$1' does not contain a test directory, aborting."
+        exit 1
+fi
+
 # Do configuration steps.
 source $TESTDIR/webtest-config.bash
 
@@ -33,30 +39,49 @@ if [ -f $TESTDIR/webtest-local.bash ]
         source $TESTDIR/webtest-local.bash
 fi
 
+# Set EDROOT and PROOT if they aren't already set
+if [ -z $EDROOT ]
+    then
+        EDROOT=$GITROOT/ed
+fi
+if [ -z $PROOT ]
+    then
+        PROOT=$GITROOT/p
+fi
+
 # Bring up the test database.
 mkdir -p /tmp/$SITE/logs /tmp/$SITE/db
 rm /tmp/$SITE/db/*
-cd $GITROOT/p/db
+cd $PROOT/db
 nohup ./db --port $db_port --dbpath /tmp/$SITE/db/ run > /tmp/$SITE/logs/db&
 db_pid=$!
 
 # Use the _config.js in the test directory if there is one.
-cp $FULLSITE/_config.js $FULLSITE/test/_config.js.backup
-if [ -f $FULLSITE/test/_config.js ]
+if [ -z $NO_TEST_CONFIG ]
     then
-        echo "Using test version of _config.js: $FULLSITE/test/_config.js"
-        cp $FULLSITE/test/_config.js $FULLSITE/_config.js
+        cp $FULLSITE/_config.js $FULLSITE/test/_config.js.backup
+        if [ -f $FULLSITE/test/_config.js ]
+            then
+                echo "Using test version of _config.js: $FULLSITE/test/_config.js"
+                cp $FULLSITE/test/_config.js $FULLSITE/_config.js
+        fi
 fi
 
 # Bring up the app server.
-cd $GITROOT/ed
+cd $EDROOT
 ./runAnt.bash ed.appserver.AppServer --port $http_port $FULLSITE&
-http_pid=$!
 
 # Populate the db with setup data.
 if [ -f $FULLSITE/test/setup.js ]
     then
-        ./runLight.bash ed.js.Shell -exit $FULLSITE/test/setup.js
+        if [ -x $FULLSITE/test/setup.js ]
+            then
+                # if the setup script needs $GITROOT, make it an executable script
+                $FULLSITE/test/setup.js $GITROOT
+            else
+                # otherwise it'll just be run in the shell
+                ./runLight.bash ed.js.Shell --exit $FULLSITE/test/setup.js
+        fi
 fi
 
 # Copy test resources into test directory.
@@ -70,8 +95,9 @@ ln -s $TESTDIR/resources/definitions $FULLSITE/test/definitions/_10gen_default_d
 
 # Run webtest.
 cd $FULLSITE/test
-export WTPATH=$GITROOT/ed/include/webtest
-$WTPATH/bin/webtest.sh
+export WTPATH=$EDROOT/include/webtest
+$WTPATH/bin/webtest.sh $WTPARAMS
+STATUS=$?
 
 # Removed copied resources and auto-generated cruft.
 # This step probably isn't necessary but will hopefully prevent people from
@@ -85,9 +111,21 @@ rm -r $FULLSITE/test/dtd
 
 
 # Clean up from the _config.js shuffling.
-cp $FULLSITE/test/_config.js.backup $FULLSITE/_config.js
-rm $FULLSITE/test/_config.js.backup
+if [ -z $NO_TEST_CONFIG ]
+    then
+        if [ -f $FULLSITE/test/_config.js.backup ]
+            then
+                cp $FULLSITE/test/_config.js.backup $FULLSITE/_config.js
+                rm $FULLSITE/test/_config.js.backup
+            else
+                rm $FULLSITE/_config.js
+        fi
+fi
 
 # Bring down the db and appserver.
-kill -9 $db_pid
-kill -9 $http_pid
+kill $db_pid
+# Really hacky way to find the appserver pid
+http_pid=`ps -e -o pid,command | grep java | grep "ed.appserver.AppServer" | grep "port $http_port" | cut -d " " -f 1`
+kill $http_pid
+
+exit $STATUS

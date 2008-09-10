@@ -52,7 +52,15 @@ public class MyAsserts {
             throw new MyAssert( "" + a + " != " + b );
     }
 
+    public static void assertEquals( String a , Object b ){
+	_assertEquals( a , b == null ? null : b.toString() );
+    }
+
     public static void assertEquals( Object a , Object b ){
+	_assertEquals( a , b );
+    }
+    
+    public static void _assertEquals( Object a , Object b ){
         if ( a == null ){
             if ( b == null )
                 return;
@@ -66,7 +74,6 @@ public class MyAsserts {
     }
 
     public static void assertClose( String a , String b ){
-
         assertClose(a, b, "");
     }
 

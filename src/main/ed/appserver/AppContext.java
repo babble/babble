@@ -19,10 +19,12 @@
 package ed.appserver;
 
 import java.io.*;
+import java.net.*;
 import java.util.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
 
 import ed.appserver.jxp.*;
-import ed.appserver.templates.djang10.*;
 import ed.db.*;
 import ed.log.*;
 import ed.js.*;
@@ -45,13 +47,13 @@ import ed.util.*;
  * @anonymous name : {log} desc : {Global logger.} param : {type : (string) name : (str) desc : (the string to log)}
  * @expose
  */
-public class AppContext {
+public class AppContext extends ServletContextBase {
 
     /** @unexpose */
     static final boolean DEBUG = AppServer.D;
     /** If these files exist in the directory or parent directories of a file being run, run these files first. Includes _init.js and /~~/core/init.js.  */
 
-    static final String INIT_FILES[] = new String[]{ "/~~/core/init.js" , "PREFIX_init.js" };
+    static final String INIT_FILES[] = new String[]{ "/~~/core/init.js" , "PREFIX_init" };
 
     /** Initializes a new context for a given site directory.
      * @param f the file to run
@@ -87,6 +89,7 @@ public class AppContext {
     }
 
     private AppContext( String root , File rootFile , String name , String environment , AppContext nonAdminParent ){
+	super( name + ":" + environment );
         if ( root == null )
             throw new NullPointerException( "AppContext root can't be null" );
 
@@ -114,8 +117,7 @@ public class AppContext {
         _scope = new Scope( "AppContext:" + root + ( _admin ? ":admin" : "" ) , _isGrid ? ed.cloud.Cloud.getInstance().getScope() : Scope.newGlobal() , null , Language.JS , _rootFile );
         _scope.setGlobal( true );
 
-        _logger = Logger.getLogger( _name + ":" + _environment );
-        _usage = new UsageTracker( _name );
+        _usage = new UsageTracker( this );
 
         _baseScopeInit();
 
@@ -214,7 +216,7 @@ public class AppContext {
                 rootFileMap.put(rootKey, (JSFileLibrary)temp);
         }
         
-        Djang10Source.install(_scope, rootFileMap, _logger);
+        ed.appserver.templates.djang10.JSHelper.install(_scope, rootFileMap, _logger);
         
 	_scope.lock( "user" ); // protection against global user object
 
@@ -233,9 +235,20 @@ public class AppContext {
 	    
 	    if ( f == null || ! f.exists() )
 		return;
+	    
+	    Set<String> newThings = new HashSet<String>( _scope.keySet() );
 
 	    Convert c = new Convert( f );
 	    c.get().call( _scope );
+
+	    newThings.removeAll( _scope.keySet() );
+
+	    for ( String newKey : newThings ){
+		Object val = _scope.get( newKey );
+		if ( val instanceof String || val instanceof JSString )
+		    _initParams.put( newKey , val.toString() );
+	    }
+	    
         }
         catch ( Exception e ){
             throw new RuntimeException( "couldn't load config" , e );
@@ -280,7 +293,7 @@ public class AppContext {
      */
     public static String getVersionForLibrary( Scope s , String name , AppContext ctxt ){
 	final String version = _getVersionForLibrary( s , name , ctxt );
-	_libraryLogger.info( ctxt + "\t" + name + "\t" + version );
+	_libraryLogger.log( ctxt != null && ! ctxt._admin ? Level.DEBUG : Level.INFO , ctxt + "\t" + name + "\t" + version );
 	return version;
     }
     
@@ -288,7 +301,7 @@ public class AppContext {
 	final JSObject o1 = ctxt == null ? null : (JSObject)(s.get( "version_" + ctxt.getEnvironmentName()));
         final JSObject o2 = (JSObject)s.get( "version" );
 
-	_libraryLogger.info( ctxt + "\t versionConfig:" + ( o1 != null ) + " config:" + ( o2 != null ) );
+	_libraryLogger.debug( ctxt + "\t versionConfig:" + ( o1 != null ) + " config:" + ( o2 != null ) );
 
         String version = _getString( name , o1 , o2 );
         if ( version != null )
@@ -452,6 +465,44 @@ public class AppContext {
         return f;
     }
 
+    public String getRealPath( String path ){
+	try {
+	    return getFile( path ).getAbsolutePath();
+	}
+	catch ( FileNotFoundException fnf ){
+	    throw new RuntimeException( "file not found [" + path + "]" );
+	}
+    }
+
+    public URL getResource( String path ){
+	try {
+	    File f = getFile( path );
+	    if ( ! f.exists() )
+		return null;
+	    return f.toURL();
+	}
+	catch ( FileNotFoundException fnf ){
+	    // the spec says to return null if we can't find it
+	    // even though this is weird...
+	    return null;
+	}
+	catch ( IOException ioe ){
+	    throw new RuntimeException( "error opening [" + path + "]" , ioe );
+	}
+    }
+
+    public InputStream getResourceAsStream( String path ){
+	URL url = getResource( path );
+	if ( url == null )
+	    return null;
+	try {
+	    return url.openStream();
+	}
+	catch ( IOException ioe ){
+	    throw new RuntimeException( "can't getResourceAsStream [" + path + "]" , ioe );
+	}
+    }
+
     /**
      * This causes the AppContext to be started over.
      * All context level variable will be lost.
@@ -606,31 +657,24 @@ public class AppContext {
 
         if ( DEBUG ) System.err.println( "\t " + temp );
 
-        if (!temp.exists())
-            return null;
+        if ( ! temp.exists() )
+            return handleFileNotFound( f );
 
-        /*
-         *   if it's a directory (and we know we can't find the index file)
-         *  TODO : at some point, do something where we return an index for the dir?
-         */
+        //  if it's a directory (and we know we can't find the index file)
+        //  TODO : at some point, do something where we return an index for the dir?
         if ( temp.isDirectory() )
             return null;
 
-        /*
-         *   if we at init time, save it as an initializaiton file
-         */
+
+	// if we are at init time, save it as an initializaiton file
         loadedFile(temp);
 
 
-        /*
-         *   Ensure that this is w/in the right tree for the context
-         */
-        if ( _localObject != null && _localObject.isIn(temp) )
+	// Ensure that this is w/in the right tree for the context
+	if ( _localObject != null && _localObject.isIn(temp) )
             return _localObject.getSource(temp);
 
-        /*
-         *  if not, is it core?
-         */
+	// if not, is it core?
         if ( _core.isIn(temp) )
             return _core.getSource(temp);
 
@@ -730,7 +774,7 @@ public class AppContext {
             return;
 
         for ( int i=0; i<files.length; i++ )
-            _runInitFile( getFile( files[i].replaceAll( "PREFIX" , _codePrefix ) ) );
+            _runInitFile( tryOtherExtensions( getFile( files[i].replaceAll( "PREFIX" , _codePrefix ) ) ) );
     }
 
     private void _runInitFile( File f )
@@ -872,6 +916,73 @@ public class AppContext {
 	_scope.warn( "jxp" );
     }
 
+    JxpSource handleFileNotFound( File f ){
+	String name = f.getName();
+	if ( name.endsWith( ".class" ) ){
+	    name = name.substring( 0 , name.length() - 6 );
+	    JxpSource source = _httpServlets.get( name );
+	    if ( source != null )
+		return source;
+	    
+	    try {
+		Class c = Class.forName( name );
+		Object n = c.newInstance();
+		if ( ! ( n instanceof HttpServlet ) )
+		    throw new RuntimeException( "class [" + name + "] is not a HttpServlet" );
+		
+		HttpServlet servlet = (HttpServlet)n;
+		servlet.init( createServletConfig( name ) );
+		source = new ServletSource( servlet );
+		_httpServlets.put( name , source );
+		return source;
+	    }
+	    catch ( Exception e ){
+		throw new RuntimeException( "can't load [" + name + "]" , e );
+	    }
+	    
+	}
+	
+	return null;
+    }
+
+    ServletConfig createServletConfig( final String name ){
+	final Object rawServletConfigs = _scope.get( "servletConfigs" );
+	final Object servletConfigObject = rawServletConfigs instanceof JSObject ? ((JSObject)rawServletConfigs).get( name ) : null;
+	final JSObject servletConfig;
+	if ( servletConfigObject instanceof JSObject )
+	    servletConfig = (JSObject)servletConfigObject;
+	else
+	    servletConfig = null;
+	
+	return new ServletConfig(){
+	    public String getInitParameter( String name ){
+		if ( servletConfig == null )
+		    return null;
+		Object foo = servletConfig.get( name );
+		if ( foo == null )
+		    return null;
+		return foo.toString();
+	    }
+	    
+	    public Enumeration getInitParameterNames(){
+		Collection keys;
+		if ( servletConfig == null )
+		    keys = new LinkedList();
+		else
+		    keys = servletConfig.keySet();
+		return new CollectionEnumeration( keys );
+	    }
+
+	    public ServletContext getServletContext(){
+		return AppContext.this;
+	    }
+	    
+	    public String getServletName(){
+		return name;
+	    }
+	};
+    }
+
     public static AppContext findThreadLocal(){
         AppRequest req = AppRequest.getThreadLocal();
         if ( req != null )
@@ -885,6 +996,30 @@ public class AppContext {
         }
 
         return null;
+    }
+
+    public String getInitParameter( String name){
+	return _initParams.get( name );
+    }
+    
+    public Enumeration getInitParameterNames(){
+	return new CollectionEnumeration( _initParams.keySet() );
+    }
+
+    public String getContextPath(){
+	return "";
+    }
+
+    public RequestDispatcher getNamedDispatcher(String name){
+	throw new RuntimeException( "getNamedDispatcher not implemented" );
+    }
+
+    public RequestDispatcher getRequestDispatcher(String name){
+	throw new RuntimeException( "getRequestDispatcher not implemented" );
+    }
+
+    public Set getResourcePaths(String path){
+	throw new RuntimeException( "getResourcePaths not implemented" );
     }
 
     final String _name;
@@ -904,14 +1039,15 @@ public class AppContext {
     private JSFileLibrary _core;
     private JSFileLibrary _external;
 
-    final Logger _logger;
     final Scope _scope;
     final UsageTracker _usage;
 
     final JSArray _globalHead = new JSArray();
-
+    
+    private final Map<String,String> _initParams = new HashMap<String,String>();
     private final Map<String,File> _files = Collections.synchronizedMap( new HashMap<String,File>() );
     private final Set<File> _initFlies = new HashSet<File>();
+    private final Map<String,JxpSource> _httpServlets = Collections.synchronizedMap( new HashMap<String,JxpSource>() );
 
     boolean _scopeInited = false;
     boolean _inScopeInit = false;
@@ -928,4 +1064,7 @@ public class AppContext {
     private long _lastGitCheckTime = 0;
 
     private static Logger _libraryLogger = Logger.getLogger( "library.load" );
+    static {
+        _libraryLogger.setLevel( Level.INFO );
+    }
 }

@@ -44,7 +44,7 @@ public abstract class HttpMonitor implements HttpHandler {
     
     public void handle( HttpRequest request , HttpResponse response ){
         response.setHeader( "Content-Type" , "text/plain" );
-        JxpWriter out = response.getWriter();
+        JxpWriter out = response.getJxpWriter();
         handle( out , request , response );
     }
 

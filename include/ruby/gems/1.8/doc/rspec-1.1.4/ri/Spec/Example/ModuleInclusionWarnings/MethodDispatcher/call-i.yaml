@@ -1,0 +1,10 @@
+--- !ruby/object:RI::MethodDescription 
+params: (sym, *args, &blk)
+is_singleton: false
+block_params: 
+name: call
+comment: 
+full_name: Spec::Example::ModuleInclusionWarnings::MethodDispatcher#call
+visibility: public
+aliases: []
+

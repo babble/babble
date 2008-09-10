@@ -1,8 +1,12 @@
 <?xml version='1.0'?>
 <project name="appserver test" default="all" basedir=".">
 
-  <property name="targetdir" value="target"/>
-  <property name="testdir" value="${targetdir}/test"/>
+  <property name="targetdir" location="target"/>
+  <property name="testdir" location="${targetdir}/test"/>
+
+  <!-- Override on command line with -Druby.groups=foo -->
+  <property name="ruby.groups" value="ruby, ruby.db"/>
+  <property name="jruby.home" location="build/ruby"/>
   
   <path id="classpath">
     <fileset dir="include">
@@ -15,12 +19,13 @@
     <taskdef name="testng" classpathref="classpath"
               classname="org.testng.TestNGAntTask" />
 
-    <target name="all" depends="run-basic, corejs, run-db"/>
+    <target name="all" depends="run-basic, corejs, run-db, ruby"/>
     
   <target  name="run-basic" depends="init">      
 
     <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
       <xmlfileset dir="." includes="testng.xml"/>
+      <jvmarg value="-Xmx1000m" />
     </testng>
   </target>
 
@@ -36,8 +41,18 @@
 
       <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
         <xmlfileset dir="." includes="testng-corejs.xml"/>
+      <jvmarg value="-Xmx1000m" />
       </testng>
     </target>
+
+  <target name="ruby" depends="init">      
+    <testng classpathref="classpath" outputdir="${testdir}"
+	    listeners="ed.TestNGListener" haltonfailure="true" groups="${ruby.groups}">
+      <classfileset dir="build" includes="ed/lang/ruby/*Test.class"/>
+      <jvmarg value="-Xmx1000m" />
+      <jvmarg value="-Djruby.home=${jruby.home}" />
+    </testng>
+  </target>
 
   <target name="init">
     <mkdir dir="${testdir}" />

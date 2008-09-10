@@ -14,7 +14,6 @@
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 tests=[
     { name: "autoescape-filtertag01", content: "{{ first }}{% filter safe %}{{ first }} x<y{% endfilter %}", model: { "first": "<a>" }, results: TemplateSyntaxError },
     { name: "autoescape-tag01", content: "{% autoescape off %}hello{% endautoescape %}", model: {  }, results: "hello" },
@@ -115,6 +114,7 @@ tests=[
     { name: "filter-syntax15", content: "{{ var|default_if_none:\"foo\\bar\" }}", model: { "var": null }, results: "foo\\bar" },
     { name: "filter-syntax16", content: "{{ var|default_if_none:\"foo\\now\" }}", model: { "var": null }, results: "foo\\now" },
     { name: "filter-syntax17", content: "{{ var|join:\"\" }}", model: { "var": [ "a", "b", "c" ] }, results: "abc" },
+    { name: "filter-syntax18", content: "{{ var }}", model: { "var": new UTF8Class() }, results: "\u0160\u0110\u0106\u017d\u0107\u017e\u0161\u0111" },
     { name: "filter-syntax19", content: "{{ var|truncatewords:1 }}", model: { "var": "hello world" }, results: "hello ..." },
     { name: "filter01", content: "{% filter upper %}{% endfilter %}", model: {  }, results: "" },
     { name: "filter02", content: "{% filter upper %}django{% endfilter %}", model: {  }, results: "DJANGO" },
@@ -149,6 +149,24 @@ tests=[
     { name: "for-tag-vars06", content: "{% for val in values %}{% if forloop.last %}l{% else %}x{% endif %}{% endfor %}", model: { "values": [ 6, 6, 6 ] }, results: "xxl" },
     { name: "for-tag01", content: "{% for val in values %}{{ val }}{% endfor %}", model: { "values": [ 1, 2, 3 ] }, results: "123" },
     { name: "for-tag02", content: "{% for val in values reversed %}{{ val }}{% endfor %}", model: { "values": [ 1, 2, 3 ] }, results: "321" },
+    { name: "i18n01", content: "{% load i18n %}{% trans 'xxxyyyxxx' %}", model: {  }, results: "xxxyyyxxx" },
+    { name: "i18n02", content: "{% load i18n %}{% trans \"xxxyyyxxx\" %}", model: {  }, results: "xxxyyyxxx" },
+    { name: "i18n03", content: "{% load i18n %}{% blocktrans %}{{ anton }}{% endblocktrans %}", model: { "anton": "Å" }, results: "\xc5" },
+    { name: "i18n04", content: "{% load i18n %}{% blocktrans with anton|lower as berta %}{{ berta }}{% endblocktrans %}", model: { "anton": "Å" }, results: "\xe5" },
+    { name: "i18n05", content: "{% load i18n %}{% blocktrans %}xxx{{ anton }}xxx{% endblocktrans %}", model: { "anton": "yyy" }, results: "xxxyyyxxx" },
+    { name: "i18n06", content: "{% load i18n %}{% trans \"Page not found\" %}", model: { "LANGUAGE_CODE": "de" }, results: "Seite nicht gefunden" },
+    { name: "i18n07", content: "{% load i18n %}{% blocktrans count number as counter %}singular{% plural %}{{ counter }} plural{% endblocktrans %}", model: { "number": 1 }, results: "singular" },
+    { name: "i18n08", content: "{% load i18n %}{% blocktrans count number as counter %}singular{% plural %}{{ counter }} plural{% endblocktrans %}", model: { "number": 2 }, results: "2 plural" },
+    { name: "i18n09", content: "{% load i18n %}{% trans \"Page not found\" noop %}", model: { "LANGUAGE_CODE": "de" }, results: "Page not found" },
+    { name: "i18n10", content: "{{ bool|yesno:_(\"yes,no,maybe\") }}", model: { "bool": 1, "LANGUAGE_CODE": "de" }, results: "Ja" },
+    { name: "i18n11", content: "{{ bool|yesno:\"ja,nein\" }}", model: { "bool": 1 }, results: "ja" },
+    { name: "i18n12", content: "{% load i18n %}{% get_available_languages as langs %}{% for lang in langs %}{% ifequal lang.0 \"de\" %}{{ lang.0 }}{% endifequal %}{% endfor %}", model: {  }, results: "de" },
+    { name: "i18n13", content: "{{ _(\"Password\") }}", model: { "LANGUAGE_CODE": "de" }, results: "Passwort" },
+    { name: "i18n14", content: "{% cycle \"foo\" _(\"Password\") _('Password') as c %} {% cycle c %} {% cycle c %}", model: { "LANGUAGE_CODE": "de" }, results: "foo Passwort Passwort" },
+    { name: "i18n15", content: "{{ absent|default:_(\"Password\") }}", model: { "absent": "", "LANGUAGE_CODE": "de" }, results: "Passwort" },
+    { name: "i18n16", content: "{{ _(\"<\") }}", model: { "LANGUAGE_CODE": "de" }, results: "<" },
+    { name: "i18n17", content: "{% load i18n %}{% blocktrans with anton|escape as berta %}{{ berta }}{% endblocktrans %}", model: { "anton": "α & β" }, results: "\u03b1 &amp; \u03b2" },
+    { name: "i18n18", content: "{% load i18n %}{% blocktrans with anton|force_escape as berta %}{{ berta }}{% endblocktrans %}", model: { "anton": "α & β" }, results: "\u03b1 &amp; \u03b2" },
     { name: "if-tag-and01", content: "{% if foo and bar %}yes{% else %}no{% endif %}", model: { "foo": 1, "bar": 1 }, results: "yes" },
     { name: "if-tag-and02", content: "{% if foo and bar %}yes{% else %}no{% endif %}", model: { "foo": 1, "bar": 0 }, results: "no" },
     { name: "if-tag-and03", content: "{% if foo and bar %}yes{% else %}no{% endif %}", model: { "foo": 0, "bar": 1 }, results: "no" },
@@ -333,6 +351,7 @@ tests=[
     { name: "url02", content: "{% url regressiontests.templates.views.client_action client.id, action=\"update\" %}", model: { "client": { "id": 1 } }, results: "/url_tag/client/1/update/" },
     { name: "url03", content: "{% url regressiontests.templates.views.index %}", model: {  }, results: "/url_tag/" },
     { name: "url04", content: "{% url named.client client.id %}", model: { "client": { "id": 1 } }, results: "/url_tag/named-client/1/" },
+    { name: "url05", content: "{% url метка_оператора v %}", model: { "v": "Ω" }, results: "/url_tag/%D0%AE%D0%BD%D0%B8%D0%BA%D0%BE%D0%B4/%CE%A9/" },
     { name: "widthratio01", content: "{% widthratio a b 0 %}", model: { "a": 50, "b": 100 }, results: "0" },
     { name: "widthratio02", content: "{% widthratio a b 100 %}", model: { "a": 0, "b": 0 }, results: "" },
     { name: "widthratio03", content: "{% widthratio a b 100 %}", model: { "a": 0, "b": 100 }, results: "0" },

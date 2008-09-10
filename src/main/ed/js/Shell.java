@@ -29,6 +29,8 @@ import ed.db.*;
 import ed.io.*;
 import ed.lang.*;
 import ed.lang.python.*;
+import ed.lang.ruby.RubyErbSource;
+import ed.lang.ruby.RubyJxpSource;
 import ed.js.func.*;
 import ed.js.engine.*;
 import ed.appserver.*;
@@ -132,7 +134,7 @@ public class Shell {
                 rootFileMap.put(rootKey, (JSFileLibrary)temp);
         }
         
-        Djang10Source.install(s, rootFileMap, ed.log.Logger.getLogger( "shell" ));
+        ed.appserver.templates.djang10.JSHelper.install(s, rootFileMap, ed.log.Logger.getLogger( "shell" ));
     }
 
     /** @unexpose */
@@ -171,6 +173,10 @@ public class Shell {
 
         for ( String a : args ){
             if ( a.equals( "-exit" ) ){
+                System.out.println("-exit flag deprecated : please use --exit");
+                exit = true;
+                continue;
+            } else  if ( a.equals( "--exit" ) ){
                 exit = true;
                 continue;
             }
@@ -184,6 +190,7 @@ public class Shell {
                 catch ( Exception e ){
                     StackTraceHolder.getInstance().fix( e );
                     e.printStackTrace();
+                    System.exit(1);
                     return;
                 }
             }
@@ -195,9 +202,32 @@ public class Shell {
                 catch ( Exception e ){
                     StackTraceHolder.getInstance().fix( e );
                     e.printStackTrace();
+                    System.exit(1);
                     return;
                 }
             }
+            else if ( a.endsWith( ".rb" ) ){
+                RubyJxpSource rbx = new RubyJxpSource( new File( a ) , ((JSFileLibrary)(s.get( "local" ) ) ) );
+                try {
+                    rbx.getFunction().call( s );
+                }
+                catch ( Exception e ){
+                    StackTraceHolder.getInstance().fix( e );
+                    e.printStackTrace();
+                    return;
+                }
+	    }
+            else if ( a.endsWith( ".erb" ) || a.endsWith( ".rhtml" ) ){
+                RubyErbSource rbx = new RubyErbSource( new File( a ) , ((JSFileLibrary)(s.get( "local" ) ) ) );
+                try {
+                    rbx.getFunction().call( s );
+                }
+                catch ( Exception e ){
+                    StackTraceHolder.getInstance().fix( e );
+                    e.printStackTrace();
+                    return;
+                }
+	    }
             else if ( Language.find( a ) != null && Language.find( a ).isScriptable() ){
                 
                 Language lang = Language.find( a );
@@ -211,6 +241,7 @@ public class Shell {
                 catch ( Exception e ){
                     StackTraceHolder.getInstance().fix( e );
                     e.printStackTrace();
+                    System.exit(1);
                     return;
                 }
             }
@@ -228,6 +259,7 @@ public class Shell {
                 catch ( Exception e ){
                     StackTraceHolder.getInstance().fix( e );
                     e.printStackTrace();
+                    System.exit(1);
                     return;
                 }
             }

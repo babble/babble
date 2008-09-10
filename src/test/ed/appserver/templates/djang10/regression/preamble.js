@@ -18,7 +18,7 @@
 HackTemplate = function(content) {
     this.content = content;
 };
-TemplateSyntaxError = function() {};
+TemplateSyntaxError = djang10.TemplateSyntaxError;
 
 SomeException = function() { }
 SomeException.prototype = {
@@ -60,6 +60,11 @@ UnsafeClass.prototype.toString = function() {
 SafeClass = function() {};
 SafeClass.prototype.toString = function() {
     return djang10.mark_safe("you &gt; me");
+};
+
+UTF8Class = function(){};
+UTF8Class.prototype.toString = function() {
+    return "ŠĐĆŽćžšđ";
 };
 
 from_now = function(sec_offset) {

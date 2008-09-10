@@ -25,19 +25,23 @@ import java.nio.charset.CodingErrorAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.regex.Pattern;
 
 import org.python.core.PyObject;
 import org.python.core.PyString;
 
+import sun.security.action.LoadLibraryAction;
+
 import ed.appserver.JSFileLibrary;
 import ed.appserver.jxp.JxpSource;
-import ed.appserver.templates.djang10.Parser.Token;
 import ed.js.JSArray;
 import ed.js.JSDate;
+import ed.js.JSException;
 import ed.js.JSFunction;
 import ed.js.JSON;
 import ed.js.JSObject;
@@ -50,24 +54,29 @@ import ed.js.func.JSFunctionCalls1;
 import ed.lang.python.Python;
 import ed.log.Level;
 import ed.log.Logger;
-import ed.util.Pair;
 
 public class JSHelper extends JSObjectBase {
     private final Logger log;
     
     public static final String NS = "djang10";
 
-    private final ArrayList<TemplateTagRoot> moduleRoots;
-    private final ArrayList<Pair<JxpSource,Library>> defaultLibraries;
+    private final ArrayList<TemplateTagRoot> librarySearchPaths;
+    private final ArrayList<LoadedLibrary> defaultLibraries;
     
     private final Map<String, JSFileLibrary> fileRoots;
+    
+    WeakHashMap<JSCompiledScript, LoadedLibrary> libraryCache;
+    WeakHashMap<JSCompiledScript, JSFunction> loaderCache;
     
     public JSHelper(Logger djang10Logger, Map<String, JSFileLibrary> fileRoots) {
         this.log = djang10Logger;
         this.fileRoots = Collections.unmodifiableMap(fileRoots);
-        moduleRoots = new ArrayList<TemplateTagRoot>();
-        defaultLibraries = new ArrayList<Pair<JxpSource,Library>>();
+        librarySearchPaths = new ArrayList<TemplateTagRoot>();
+        defaultLibraries = new ArrayList<LoadedLibrary>();
 
+        libraryCache = new WeakHashMap<JSCompiledScript, LoadedLibrary>();
+        loaderCache = new WeakHashMap<JSCompiledScript, JSFunction>();
+        
         // add the basic helpers
         this.set("ALLOW_GLOBAL_FALLBACK", Boolean.TRUE);
         this.set("TEMPLATE_DIRS", new JSArray());
@@ -79,6 +88,11 @@ public class JSHelper extends JSObjectBase {
         this.set("TextNode", Node.TextNode.CONSTRUCTOR);
         this.set("VariableNode", Node.VariableNode.CONSTRUCTOR);
         this.set("Expression", Expression.CONSTRUCTOR);
+        
+        this.set("TemplateSyntaxError", TemplateSyntaxError.cons);
+        this.set("Djang10Exception", Djang10Exception.cons);
+        this.set("TemplateDoesNotExist", TemplateDoesNotExist.cons);
+        
         this.set("mark_safe", new JSFunctionCalls1() {
             public Object call(Scope scope, Object p0, Object[] extra) {
                 return mark_safe((JSObject)p0);
@@ -111,10 +125,24 @@ public class JSHelper extends JSObjectBase {
         Logger djang10Logger = siteLogger.getChild("djang10");
         djang10Logger.setLevel(Level.INFO);
         
-        
+        fileLibRoots = new HashMap<String, JSFileLibrary>(fileLibRoots);
+        JSFileLibrary jsLib = JSFileLibrary.loadLibraryFromEd("ed/appserver/templates/djang10/js", "djang10", scope);
+        fileLibRoots.put("djang10js", jsLib);
         
         JSHelper helper = new JSHelper(djang10Logger, fileLibRoots);
         scope.set(NS, helper);
+        
+        helper.addDefaultLibrary(scope, "djang10js.defaulttags");
+        helper.addDefaultLibrary(scope, "djang10js.defaultfilters");
+        helper.addDefaultLibrary(scope, "djang10js.loader_tags");
+        helper.addDefaultLibrary(scope, "djang10js.tengen_extras");
+        
+        JSArray loaders = (JSArray)helper.get("TEMPLATE_LOADERS");
+        
+        loaders.add("djang10js.loaders.filesystem.load_template_source");
+        loaders.add("djang10js.loaders.absolute.load_template_source");
+        loaders.add("djang10js.loaders.site_relative.load_template_source");
+        
         
         return helper;
     }
@@ -128,13 +156,8 @@ public class JSHelper extends JSObjectBase {
     
     
     //Exception Constructors ===================================================
-    public TemplateException NewTemplateException(String msg) {
-        return new TemplateException(msg);
-    }
-    public TemplateSyntaxError NewTemplateSyntaxException(String msg, Token token, Throwable cause) {
-        return (cause == null)? 
-                new TemplateSyntaxError(msg, token) 
-                : new TemplateSyntaxError(msg, token, cause);
+    public static RuntimeException unnestJSException(JSException e) {
+        return (e.getCause() instanceof RuntimeException)? (RuntimeException)e.getCause() : e;
     }
     
     //Text Formatting helpers ===================================================
@@ -163,6 +186,16 @@ public class JSHelper extends JSObjectBase {
             result.add(new JSString(bit));
         
         return result;
+    }
+    
+    public JSArray smart_split(String str, JSArray seperators) {
+        String[] sepArray = new String[seperators.size()];
+        for(int i=0; i<sepArray.length; i++)
+            sepArray[i] = seperators.getAsString(i);
+
+        String[] resultsArray = Util.smart_split(str, sepArray, false);
+        
+        return new JSArray((Object[])resultsArray);
     }
     public JSString str_encode(String str, String charsetName, String errors) {
         Charset asciiCharset = Charset.forName(charsetName);
@@ -201,7 +234,7 @@ public class JSHelper extends JSObjectBase {
 
         JSFileLibrary root = fileRoots.get(parts[1]);
         if(root == null)
-            throw new IllegalArgumentException("The path [" + path + "] is invalid, because [" + parts[1] + "] is not a valid file root.");
+            return null;
 
         if (parts.length == 3 && parts[2].length() > 0)
             return root.getFromPath(parts[2]);
@@ -237,13 +270,19 @@ public class JSHelper extends JSObjectBase {
                 String methodPart = loaderStr.substring(lastDot+1);
                 
                 Object temp = resolve_absolute_path(filePart);
-                if(!(temp instanceof JSCompiledScript))
-                    throw new TemplateException("Failed to locate the loader ["+loaderStr+"], the path [" + filePart + "] resolves to [" + temp +"] which isn't a script");
+                if(!(temp instanceof JSCompiledScript)) {
+                    log.error("Failed to locate the loader ["+loaderStr+"], the path [" + filePart + "] resolves to [" + temp +"] which isn't a script");
+                    continue;
+                }
                 JSCompiledScript file = (JSCompiledScript)temp;
                 
-                Scope childScope = scope.child();
-                file.call(childScope);
-                loader = scope.getFunction(methodPart);
+                loader = loaderCache.get(file);
+                if(loader == null) {
+                    Scope childScope = scope.child();
+                    file.call(childScope);
+                    loader = childScope.getFunction(methodPart);
+                    loaderCache.put(file, loader);
+                }
             }
             else
                 loader = (JSFunction)loaderObj;
@@ -251,7 +290,13 @@ public class JSHelper extends JSObjectBase {
 
             Scope childScope = scope.child();
             childScope.setGlobal(true);
-            Djang10CompiledScript template = (Djang10CompiledScript)loader.call(childScope, path, dirs);
+            Djang10CompiledScript template;
+            
+            try {
+                template = (Djang10CompiledScript)loader.call(childScope, path, dirs);
+            } catch(JSException e) {               
+                throw unnestJSException(e);
+            }
             if(template != null)
                 return template;
         }
@@ -287,7 +332,7 @@ public class JSHelper extends JSObjectBase {
         if(path == null)
             throw new NullPointerException("Can't add a null templatetag root");
         
-        moduleRoots.add(new TemplateTagStringRoot(path));
+        librarySearchPaths.add(new TemplateTagStringRoot(path));
     }
     public void addTemplateTagsRoot(JSFileLibrary newRoot) {
         log.debug("Adding [" + newRoot + "] as a new templatetags root");
@@ -295,13 +340,13 @@ public class JSHelper extends JSObjectBase {
         if(newRoot == null)
             throw new NullPointerException("Can't add a null templatetag root");
         
-        moduleRoots.add(new TemplateTagFileLibRoot(newRoot));
+        librarySearchPaths.add(new TemplateTagFileLibRoot(newRoot));
     }
     
-    public JSCompiledScript loadLibrary(Scope scope, String name) {
+    public LoadedLibrary loadLibrary(Scope scope, String name) {
         log.debug("loading template tag library [" + name + "]");
         
-        ListIterator<TemplateTagRoot> iter = moduleRoots.listIterator(moduleRoots.size());
+        ListIterator<TemplateTagRoot> iter = librarySearchPaths.listIterator(librarySearchPaths.size());
         while(iter.hasPrevious()) {
             TemplateTagRoot templateTagRoot = iter.previous();
             log.debug("checking templatetag root [" + templateTagRoot + "]");
@@ -318,7 +363,7 @@ public class JSHelper extends JSObjectBase {
             Object file = fileLib.getFromPath(name);
             if (file instanceof JSCompiledScript) {
                 log.debug("loaded [" + fileLib + "/" + name + "]");
-                return (JSCompiledScript) file;
+                return loadLibrary(scope, (JSCompiledScript)file);
             }
             else if(file == null) {
                 log.debug("[" + fileLib + "/" + name + "] doesn't exist");
@@ -331,8 +376,12 @@ public class JSHelper extends JSObjectBase {
         throw new TemplateException("Failed to find module [" + name + "]");
     }
     
-    public Library evalLibrary(Scope scope, JSCompiledScript moduleFile) {
+    public LoadedLibrary loadLibrary(Scope scope, JSCompiledScript moduleFile) {
         log.debug("Processing [" + moduleFile + "]");
+        
+        LoadedLibrary library = libraryCache.get(moduleFile);
+        if(library != null)
+            return library;
         
         Scope child = scope.child();
         child.setGlobal(true);
@@ -353,16 +402,21 @@ public class JSHelper extends JSObjectBase {
             JSFunction tagHandler = (JSFunction)tagHandlers.get(tagName);
             tagHandlers.set(tagName, tagHandler);
         }
+        JxpSource source = (JxpSource)moduleFile.get(JxpSource.JXP_SOURCE_PROP);
         log.debug("done processing [" + moduleFile + "]");
-        return lib;
+
+        library = new LoadedLibrary(lib, source);
+        libraryCache.put(moduleFile, library);
+        return library;
     }
     
-    public void addDefaultLibrary(JxpSource source, Library library) {
-        log.debug("Adding default tag library from [" + source + "]");
-        
-        defaultLibraries.add(new Pair<JxpSource, Library>(source, library));
+    public void addDefaultLibrary(Scope scope, String name) {
+        log.debug("Adding default tag library from [" + name + "]");
+        name = '/'+name.replace('.', '/');
+        LoadedLibrary lib = loadLibrary(scope, (JSCompiledScript)resolve_absolute_path(name));
+        defaultLibraries.add(lib);
     }
-    public List<Pair<JxpSource,Library>> getDefaultLibraries() {
+    public List<LoadedLibrary> getDefaultLibraries() {
         return defaultLibraries;
     }
 
@@ -441,4 +495,21 @@ public class JSHelper extends JSObjectBase {
             return fileLib.toString();
         }
     }
+    
+    public class LoadedLibrary {
+        private final Library library;
+        private final JxpSource source;
+        public LoadedLibrary(Library library, JxpSource source) {
+            super();
+            this.library = library;
+            this.source = source;
+        }
+        public Library getLibrary() {
+            return library;
+        }
+        public JxpSource getSource() {
+            return source;
+        }
+    }
+
 }

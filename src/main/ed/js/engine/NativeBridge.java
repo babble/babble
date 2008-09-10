@@ -35,6 +35,19 @@ public class NativeBridge {
         _disallowedNativeNames.add( "getClassLoader" );
         _disallowedNativeNames.add( "loadClass" );
     }
+    private static final Map<Class, Set<String>> _publicMethodNames = new HashMap<Class, Set<String>>();
+
+    /** Returns all the public method names declared by <var>c</var>. */
+    public synchronized static final Set<String> getPublicMethodNames( Class c ) {
+	Set<String> names = _publicMethodNames.get( c );
+	if ( names == null ) {
+	    names = new HashSet<String>();
+	    for ( Method m : c.getMethods() )
+		names.add( m.getName() );
+	    _publicMethodNames.put( c , names );
+	}
+	return names;
+    }
 
     public static final JSFunction getNativeFunc( final Object o , final String name ){
         if ( o == null )
@@ -99,6 +112,50 @@ public class NativeBridge {
         return l;
     }
 
+    public static Object toJSObject( final Object o ){
+        if ( o == null )
+            return null;
+        
+        if ( o instanceof JSObject )
+            return o;
+
+        if ( o instanceof String )
+            return new JSString( o.toString() );
+        
+        if ( o instanceof java.util.Date ) 
+            return new JSDate( (java.util.Date)o );
+        
+        if ( o instanceof java.util.Collection ){
+            JSArray a = new JSArray();
+            for ( Object foo : (Collection)o )
+                a.add( foo );
+            return a;
+        }
+        
+        if ( o.getClass().isArray() ){
+            if ( o.getClass().getName().toString().length() > 3 ){ // primitive
+                JSArray a = new JSArray();
+                for ( Object foo : (Object[])o )
+                    a.add( foo );
+                return a;
+            }
+        }
+        
+        if ( o instanceof Enumeration ){
+            JSArray a = new JSArray();
+            a.addAll( (Enumeration)o );
+            return a;
+        }
+
+        if ( o instanceof Iterator ){
+            JSArray a = new JSArray();
+            a.addAll( (Iterator)o );
+            return a;
+        }
+
+        return o;
+    }
+    
 
     public static Object callNative( Scope s , Object obj , String name , Object params[] ){
         return callNative( s , obj , name , params , false );
@@ -127,32 +184,7 @@ public class NativeBridge {
                 
                 m.setAccessible( true );
                 try {
-                    
-                    Object ret = m.invoke( obj , nParams );
-                    
-                    if ( ret != null ){
-                        if ( ret instanceof String )
-                            ret = new JSString( ret.toString() );
-                        else if ( ret instanceof java.util.Date ) 
-                            ret = new JSDate( (java.util.Date)ret );
-                        else if ( ret instanceof java.util.Collection ){
-                            if ( ! ( ret instanceof JSArray  ) ){
-                                JSArray a = new JSArray();
-                                for ( Object o : (Collection)ret )
-                                    a.add( o );
-                                ret = a;
-                            }
-                        }
-                        else if ( ret.getClass().isArray() ){
-                            if ( ret.getClass().getName().toString().length() > 3 ){ // primitive
-                                JSArray a = new JSArray();
-                                for ( Object o : ((Object[])ret) )
-                                    a.add( o );
-                                return a;
-                            }
-                        }
-                    }
-                    return ret;
+                    return toJSObject( m.invoke( obj , nParams ) );
                 }
                 catch ( InvocationTargetException e ){
                     StackTraceHolder.getInstance().fix( e.getCause() );

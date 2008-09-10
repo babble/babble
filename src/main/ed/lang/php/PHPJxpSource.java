@@ -72,14 +72,23 @@ public class PHPJxpSource extends JxpSource {
                         ar.getScope().putExplicit( "__phpwriter__" , out );
                     }
                     
-                    Env env = new Env( _quercus, page, out , null, null);
-                    env.setPwd( new com.caucho.vfs.FilePath( s.getRoot().getAbsolutePath() ) );
-                    context.setObjectConvertor( new PHPConvertor( env ) );
-                    
+                    PHPEnv env = new PHPEnv( _quercus, page, out , ar );
+                    env.setPwd( _getPath( _file.getParentFile() ) );
+
+		    PHPConvertor convertor = new PHPConvertor( env );
+                    context.setObjectConvertor( convertor );
+		    env._convertor = convertor;
+		    
                     env.setScriptContext(context);
                     env.start();
 
-                    Value resultV = _program.execute(env);
+                    Value resultV = null;
+                    try {
+                        resultV = _program.execute(env);
+                    }
+                    catch ( QuercusExitException ee ){
+                        // i think this is ok
+                    }
                     
                     Object result = null;
                     if (resultV != null)
@@ -101,9 +110,13 @@ public class PHPJxpSource extends JxpSource {
         if ( _file.lastModified() <= _lastParseTime && _program != null )
             return _program;
         
-        _program = QuercusParser.parse( _quercus , null , ReaderStream.open( new InputStreamReader( getInputStream() ) ) );
+        _program = QuercusParser.parse( _quercus , _getPath( _file ) , ReaderStream.open( new InputStreamReader( getInputStream() , "utf8" ) ) );
         _lastParseTime = _file.lastModified();
         return _program;
+    }
+
+    com.caucho.vfs.Path _getPath( File f ){
+        return new com.caucho.vfs.FilePath( f.getAbsolutePath() );
     }
 
     public String getName(){

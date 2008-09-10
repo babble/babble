@@ -51,3 +51,6 @@ pyObject.keySet();
 jsFoo = {a: 1, b: 2, f: 3, "c#": "j"};
 
 pythonKeys(jsFoo);
+
+assert.eq( pyStr1 , pyInstance1.toString() );
+

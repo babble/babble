@@ -29,6 +29,7 @@ null
   <bar>hi</bar>
 </foo>
 element
+attribute
 <schools id="0">
   <?xml-stylesheet href="my.css" type="text/css"?>
   <elementary grades="k6"/>
