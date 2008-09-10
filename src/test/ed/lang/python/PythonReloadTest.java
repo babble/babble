@@ -61,7 +61,6 @@ public class PythonReloadTest extends ed.TestCase {
             writeTest1File2();
 
             PyObject m = Py.getSystemState().__findattr__("modules");
-            System.out.println("Modules are: " + m.getClass() + " " + m);
 
             globalScope.eval("local.file1();");
 
