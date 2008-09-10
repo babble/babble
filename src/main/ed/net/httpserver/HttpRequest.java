@@ -127,7 +127,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest {
     }
 
     public String getServletPath(){
-        return getFullPath();
+        return "";
     }
 
     public String getRequestURI(){
@@ -146,7 +146,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest {
     }
 
     public String getPathInfo(){
-        return null;
+        return getFullPath();
     }
 
     public String getRealPath( String loc ){
