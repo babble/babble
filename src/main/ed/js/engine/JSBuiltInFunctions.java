@@ -796,6 +796,7 @@ public class JSBuiltInFunctions {
         s.put( "String" , new JSString.JSStringCons() , true );
 	s.put( "XML" , new ENode.Cons() , true );
 	s.put( "Namespace" , new Namespace.NamespaceCons() , true );
+	s.put( "QName" , new QName.Cons() , true );
 
         s.put( "RegExp" , new JSRegex.Cons() , true );
         s.put( "Regexp" , s.get( "RegExp" ) , true ); // for Ruby technically
