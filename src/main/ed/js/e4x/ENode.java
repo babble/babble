@@ -164,6 +164,7 @@ public class ENode extends JSObjectBase {
     private Cons XML;
 
     public ENode(){
+        XML = (Cons)ENode._cons;
         nodeSetup( null );
     }
 
