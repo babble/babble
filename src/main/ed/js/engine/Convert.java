@@ -1268,15 +1268,20 @@ public class Convert implements StackTraceFixer {
         state._fi = fi;
 
         boolean hasArguments = fi.usesArguemnts();
-
+        
         _append( "new JSFunctionCalls" + fn.getParamCount() + "( scope , null ){ \n" , n );
 
         _append( "protected void init(){ super.init(); _sourceLanguage = getFileLanguage(); \n " , n );
+
         _append( "_arguments = new JSArray();\n" , n );
         for ( int i=0; i<fn.getParamCount(); i++ ){
             final String foo = fn.getParamOrVarName( i );
             _append( "_arguments.add( \"" + foo + "\" );\n" , n );
         }
+        
+        _append( "_globals = new JSArray();\n" , n );
+        for ( String g : fi._globals )
+            _append( "_globals.add( \"" + g + "\" );\n" , n );
         _append( "}\n" , n );
 
         String callLine = "public Object call( final Scope passedIn ";
@@ -1863,6 +1868,7 @@ public class Convert implements StackTraceFixer {
     final Map<Node,ScriptOrFnNode> _nodeToSOR = new HashMap<Node,ScriptOrFnNode>();
     final List<Pair<String,String>> _regex = new ArrayList<Pair<String,String>>();
     final List<String> _strings = new ArrayList<String>();
+
     int _preMainLines = -1;
     private final StringBuilder _mainJavaCode = new StringBuilder();
 
