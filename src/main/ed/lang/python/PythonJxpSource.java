@@ -24,6 +24,7 @@ import java.util.*;
 import org.python.core.*;
 import org.python.expose.*;
 import org.python.Version;
+import org.python.expose.generate.*;
 
 import ed.js.*;
 import ed.log.*;
@@ -112,7 +113,7 @@ public class PythonJxpSource extends JxpSource {
                     mods.flushOld();
                 }
                 
-
+                ensureMetaPathHook( ss , s );
 
                 PyObject out = ss.stdout;
                 if ( ! ( out instanceof MyStdoutFile ) || ((MyStdoutFile)out)._request != ar ){
@@ -151,6 +152,18 @@ public class PythonJxpSource extends JxpSource {
                 PyObject locals = module.__dict__;
 
                 return Py.runCode( code, locals, globals );
+            }
+
+            private void ensureMetaPathHook( PySystemState ss , Scope scope ){
+                boolean foundMetaPath = false;
+                for( Object m : ss.meta_path ){
+                    if( ! ( m instanceof PyObject ) ) continue; // ??
+                    PyObject p = (PyObject)m;
+                    if( p instanceof ModuleFinder )
+                        return;
+                }
+
+                ss.meta_path.append( new ModuleFinder( scope ) );
             }
         };
     }
@@ -210,10 +223,12 @@ public class PythonJxpSource extends JxpSource {
                 // __builtin__.__import__("encodings");
                 return m;
             }
-            // gets the module name -- __file__ is the file
-            PyObject importer = globals.__finditem__( "__name__" );
 
-            PyObject to = m.__findattr__( "__name__" );
+
+            // gets the module name -- __file__ is the file
+            PyObject importer = globals.__finditem__( "__name__".intern() );
+
+            PyObject to = m.__findattr__( "__name__".intern() );
             // no __file__: builtin or something -- don't bother adding
             // dependency
             if( to == null ) return m;
@@ -228,6 +243,61 @@ public class PythonJxpSource extends JxpSource {
             return m;
 
             //PythonJxpSource foo = PythonJxpSource.this;
+        }
+    }
+
+    @ExposedType(name="_10gen_module_finder")
+    public class ModuleFinder extends PyObject {
+        Scope _scope;
+        ModuleFinder( Scope s ){
+            _scope = s;
+        }
+
+        @ExposedMethod(names={"find_module"})
+        public PyObject find_module( PyObject args[] , String keywords[] ){
+            int argc = args.length;
+            assert argc >= 1;
+            assert args[0] instanceof PyString;
+            String modName = args[0].toString();
+            System.out.println("trying to load " + argc);
+            for(int i = 0; i < argc; ++i){
+                System.out.println("arg " + i + " " + args[i]);
+            }
+            if( modName.equals("core.modules") ){
+                Object core = _scope.get("core");
+                assert core instanceof JSObject;
+                return new ModuleLoader( ((JSObject)core).get("modules") );
+            }
+
+            if( modName.equals("core") ){
+                return new ModuleLoader( _scope.get("core") );
+            }
+            return Py.None;
+        }
+    }
+
+    @ExposedType(name="_10gen_module_loader")
+    public class ModuleLoader extends PyObject {
+        JSLibrary _root;
+        ModuleLoader( Object start ){
+            assert start instanceof JSLibrary;
+            _root = (JSLibrary)start;
+        }
+
+        @ExposedMethod(names={"load_module"})
+        public PyModule load_module( String name ){
+            System.out.println("Loading " + name);
+            PyModule mod = imp.addModule( name );
+            PyObject __path__ = mod.__findattr__( "__path__".intern() );
+            if( __path__ != null ) return mod; // previously imported
+
+            mod.__setattr__( "__file__".intern() , new PyString( "<10gen_virtual>" ) );
+            mod.__setattr__( "__loader__".intern() , this );
+            PyList pathL = new PyList( PyString.TYPE );
+            pathL.append( new PyString( _root.getRoot().toString() ) );
+            mod.__setattr__( "__path__".intern() , pathL );
+
+            return mod;
         }
     }
 
