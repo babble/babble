@@ -611,15 +611,9 @@ public class ENode extends JSObjectBase {
             // the order of these is important so that, for example, JSString.length doesn't
             // get called in preference to ENode.length.
             Object objFromProto = ENode._cons.getPrototype().get( s );
-            if( objFromProto != null ) {
-                if( !(objFromProto instanceof ENodeFunction) ) {
-                    ((Cons)ENode._cons).init();
-                }
-                ENodeFunction f = (ENodeFunction)ENode._cons.getPrototype().get( s );
-                if( f != null ) {
-                    f.setup( E4X._nodeGet( this, s ) , this , s );
-                    return f;
-                }
+            if( objFromProto != null && objFromProto instanceof ENodeFunction ) {
+                ((ENodeFunction)objFromProto).setup( E4X._nodeGet( this, s ) , this , s );
+                return (ENodeFunction)objFromProto;
             }
 
             // if this is a simple node, we could be trying to get a string function
