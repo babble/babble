@@ -28,9 +28,9 @@ export WTSITE=http://localhost:$http_port
 export WTPATH=$SDKDIR/appserver/include/webtest
 
 # Bring up the test database.
-mkdir -p /tmp/10genSDK/db
-rm /tmp/10genSDK/db/*
-./dbctrl.sh start /tmp/10genSDK/db&
+mkdir -p /tmp/10genSDKtests/db
+rm /tmp/10genSDKtests/db/*
+./dbctrl.sh start /tmp/10genSDKtests/db&
 
 sleep 5
 
@@ -93,9 +93,8 @@ for site in $SITES_LIST; do
     rm ./sites/${site}test/definitions.xml
     rm -r ./sites/${site}test/dtd
 
-    # This is a bit magical. We need to pass the PID from runserver.sh. We
-    # do it through this tmp file.
-    http_pid=`cat /tmp/10genAppServerPID`
+    # Figure out the pid of the appserver we just brought up.
+    http_pid=`ps -e -o pid,command | grep java | grep "ed.appserver.AppServer" | grep "port $http_port" | cut -d " " -f 1`
     # Bring down the appserver
     kill $http_pid
 
