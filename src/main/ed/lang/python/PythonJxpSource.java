@@ -107,15 +107,6 @@ public class PythonJxpSource extends JxpSource {
                         throw new RuntimeException("couldn't intercept modules " + ss.modules.getClass());
                     }
                 }
-                // Current approach: when a file gets updated, flush all the
-                // site's modules.
-                // This sucks a little, but I think it'd be even harder to
-                // figure out which modules depend on which modules and flush
-                // only the right ones.
-                // FIXME: This won't work if I import a file from core.modules
-                // or local.modules and then edit that file.
-                // This'll be a problem for developers, but right now I wanna
-                // try and get a fix to the ShopWiki guys.
                 else {
                     PythonModuleTracker mods = (PythonModuleTracker)ss.modules;
                     mods.flushOld();
