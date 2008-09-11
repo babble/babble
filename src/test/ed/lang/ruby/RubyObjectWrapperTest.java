@@ -49,7 +49,7 @@ public class RubyObjectWrapperTest {
 	    };
     }
 
-    @BeforeTest(groups = {"r2js", "js2r"})
+    @BeforeMethod(groups = {"r2js", "js2r"})
     public void setUp() {
 	s = new Scope("test", null);
 	r = org.jruby.Ruby.newInstance();

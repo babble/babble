@@ -87,7 +87,7 @@ public class PythonJxpSource extends JxpSource {
         
         return new ed.js.func.JSFunctionCalls0(){
             public Object call( Scope s , Object extra[] ){
-                
+
                 PyObject args[] = new PyObject[ extra == null ? 0 : extra.length ];
                 for ( int i=0; i<args.length; i++ )
                     args[i] = Python.toPython( extra[i] );
@@ -107,20 +107,9 @@ public class PythonJxpSource extends JxpSource {
                         throw new RuntimeException("couldn't intercept modules " + ss.modules.getClass());
                     }
                 }
-                // Current approach: when a file gets updated, flush all the
-                // site's modules.
-                // This sucks a little, but I think it'd be even harder to
-                // figure out which modules depend on which modules and flush
-                // only the right ones.
-                // FIXME: This won't work if I import a file from core.modules
-                // or local.modules and then edit that file.
-                // This'll be a problem for developers, but right now I wanna
-                // try and get a fix to the ShopWiki guys.
                 else {
                     PythonModuleTracker mods = (PythonModuleTracker)ss.modules;
-                    AppContext ctxt = (AppContext)s.get( "__instance__" );
-                    if ( ctxt != null )
-                        mods.flushOld( ctxt.getRoot() );
+                    mods.flushOld();
                 }
                 
 
@@ -224,7 +213,7 @@ public class PythonJxpSource extends JxpSource {
             // gets the module name -- __file__ is the file
             PyObject importer = globals.__finditem__( "__name__" );
 
-            PyObject to = m.__findattr__( "__file__" );
+            PyObject to = m.__findattr__( "__name__" );
             // no __file__: builtin or something -- don't bother adding
             // dependency
             if( to == null ) return m;
@@ -235,7 +224,7 @@ public class PythonJxpSource extends JxpSource {
 
             // Add a module dependency -- module being imported was imported by
             // the importing module
-            _moduleDict.addDependency( args[0] , importer );
+            _moduleDict.addDependency( to , importer );
             return m;
 
             //PythonJxpSource foo = PythonJxpSource.this;

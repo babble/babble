@@ -32,9 +32,9 @@ import ed.util.*;
 
 public class Namespace extends JSObjectBase {
 
-    public static JSFunction _ns = new NamespaceCons();
+    public static JSFunction _ns = new Cons();
 
-    public static class NamespaceCons extends JSFunctionCalls0 {
+    public static class Cons extends JSFunctionCalls0 {
 
         public JSObject newOne(){
             return new Namespace();
