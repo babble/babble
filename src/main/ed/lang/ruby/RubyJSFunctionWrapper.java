@@ -16,6 +16,8 @@
 
 package ed.lang.ruby;
 
+import java.util.*;
+
 import org.jruby.*;
 import org.jruby.internal.runtime.methods.JavaMethod;
 import org.jruby.runtime.*;
@@ -35,12 +37,13 @@ import ed.js.engine.Scope;
  */
 public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 
-    static RubyClass jsFunctionClass = null;
+    static Map<Ruby, RubyClass> klassDefs = new WeakHashMap<Ruby, RubyClass>();
 
     private final JSFunction _func;
     private RubyClass _klazz;
 
     public static synchronized RubyClass getJSFunctionClass(Ruby runtime) {
+	RubyClass jsFunctionClass = klassDefs.get(runtime);
 	if (jsFunctionClass == null) {
 	    jsFunctionClass = runtime.defineClass("JSFunction", RubyJSObjectWrapper.getJSObjectClass(runtime), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
 	    jsFunctionClass.kindOf = new RubyModule.KindOf() {
@@ -48,6 +51,7 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 			return obj instanceof RubyJSFunctionWrapper;
 		    }
 		};
+	    klassDefs.put(runtime, jsFunctionClass);
 	}
 	return jsFunctionClass;
     }
@@ -91,41 +95,37 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
     }
 
     protected void _createJSObjectSubclass(final Scope scope, final String name) {
-// FIXME doesn't work quite right yet
-// 	if (RubyObjectWrapper.DEBUG)
-// 	    System.err.println("adding class named " + name);
-// 	_klazz = getRuntime().defineClass(name, RubyJSObjectWrapper.getJSObjectClass(getRuntime()), new ObjectAllocator() {
-// 		public IRubyObject allocate(Ruby runtime, RubyClass klass) {
-// 		    if (RubyObjectWrapper.DEBUG)
-// 			System.err.println("allocating an instance of " + klass.name() + " via a JSFunction named " + name);
-// 		    JSObject obj = _func.newOne();
-// 		    RubyObject r = (RubyObject)RubyObjectWrapper.toRuby(scope, runtime, obj);
-// 		    r.makeMetaClass(_klazz);
-// 		    return r;
-// 		}
-// 	    });
-// 	_klazz.kindOf = new RubyModule.KindOf() {
-// 		    public boolean isKindOf(IRubyObject obj, RubyModule type) {
-// 			return obj instanceof RubyJSObjectWrapper;
-// 		    }
-// 	    };
-// 	_klazz.addMethod("initialize", new JavaMethod(_klazz, PUBLIC) {
-//                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
-// 		    if (RubyObjectWrapper.DEBUG) {
-// 			System.err.println("calling method " + clazz.getName() + ".initialize with " + args.length + " args:");
-// 			for (IRubyObject iro : args) System.err.println("  " + iro.toString());
-// 		    }
-// 		    // We re-create the object and return the new instance so
-// 		    // that we can pick up the ivars and methods that are
-// 		    // defined by the JavaScript constructor function call.
-// 		    JSObject obj = _func.newOne(); // re-create a new instance
-// 		    _func.callAndSetThis(_scope, obj, RubyObjectWrapper.toJSFunctionArgs(scope, getRuntime(), args, 0, block)); // initialize it by calling _func
-// 		    RubyObject r = (RubyObject)RubyObjectWrapper.toRuby(scope, context.getRuntime(), obj);
-// 		    r.makeMetaClass(_klazz);
-
-// 		    return r;
-//                 }
-//                 @Override public Arity getArity() { return Arity.OPTIONAL; }
-// 	    });
+	if (RubyObjectWrapper.DEBUG)
+	    System.err.println("adding class named " + name);
+	_klazz = getRuntime().defineClass(name, RubyJSObjectWrapper.getJSObjectClass(getRuntime()), new ObjectAllocator() {
+		public IRubyObject allocate(Ruby runtime, RubyClass klass) {
+		    if (RubyObjectWrapper.DEBUG)
+			System.err.println("allocating an instance of " + klass.name() + " via a JSFunction named " + name);
+		    JSObject jsobj = _func.newOne();
+		    RubyObject r = (RubyObject)new RubyJSObjectWrapper(_scope, getRuntime(), jsobj, _klazz);
+		    // Eigenclass has been created and used in RubyJSObjectWrapper ctor, so make that the metaclass here
+		    r.makeMetaClass(r.getSingletonClass());
+		    if (RubyObjectWrapper.DEBUG)
+			System.err.println("  wrapped new object inside a " + r.getClass().getName());
+		    return r;
+		}
+	    });
+	_klazz.kindOf = new RubyModule.KindOf() {
+		    public boolean isKindOf(IRubyObject obj, RubyModule type) {
+			return obj instanceof RubyJSObjectWrapper;
+		    }
+	    };
+	_klazz.addMethod("initialize", new JavaMethod(_klazz, PUBLIC) {
+                public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+		    if (RubyObjectWrapper.DEBUG) {
+			System.err.println("calling method " + clazz.getName() + ".initialize with " + args.length + " args:");
+			for (IRubyObject iro : args) System.err.println("  " + iro.toString());
+		    }
+		    JSObject jsobj = ((RubyJSObjectWrapper)self).getJSObject();
+		    _func.callAndSetThis(_scope, jsobj, RubyObjectWrapper.toJSFunctionArgs(scope, getRuntime(), args, 0, block)); // initialize it by calling _func
+		    return self;
+                }
+                @Override public Arity getArity() { return Arity.OPTIONAL; }
+	    });
     }
 }

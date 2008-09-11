@@ -61,8 +61,11 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	    return runtime.getNil();
 
 	IRubyObject wrapper;
-	if ((wrapper = _wrappers.get(obj)) != null)
+	if ((wrapper = _wrappers.get(obj)) != null) {
+	    if (wrapper instanceof RubyJSObjectWrapper)
+		((RubyJSObjectWrapper)wrapper).rebuild();
 	    return wrapper;
+	}
 
 	if (obj instanceof JSFunctionWrapper)
 	    return ((JSFunctionWrapper)obj).getProc();

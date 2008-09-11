@@ -35,7 +35,7 @@ public class RubyJSArrayWrapperTest {
     JSFunction addSevenFunc;
     RubyJSArrayWrapper w;
 
-    @BeforeTest
+    @BeforeMethod
     public void setUp() {
 	s = new Scope("test", null);
 	r = org.jruby.Ruby.newInstance();

@@ -40,6 +40,10 @@ public class RubyErbSource extends RubyJxpSource {
      * This is public static so it can be used separately during testing.
      */
     public static String wrap(String content) {
+	return wrap(content, "dummy_erb_file_name");
+    }
+
+    public static String wrap(String content, String fileName) {
 	return
 	    "_erbout = nil\n" +
 	    "require 'erb'\n" +
@@ -51,6 +55,7 @@ public class RubyErbSource extends RubyJxpSource {
 	    "template = ERB.new <<-XGEN_ERB_TEMPLATE_EOF\n" +
 	    content.replace("\\", "\\\\").replace("#", "\\#") + '\n' +
 	    "XGEN_ERB_TEMPLATE_EOF\n" +
+	    "template.filename = '" + fileName.replace("'", "\\'") + "'\n" +
 	    "puts template.result(binding)\n";
     }
 
@@ -67,7 +72,7 @@ public class RubyErbSource extends RubyJxpSource {
      * @see {#wrap}
      */
     protected String getContent() throws IOException {
-	return wrap(super.getContent());
+	return wrap(super.getContent(), getName());
     }
 
     protected Object _doCall(Node code, Scope s, Object unused[]) {

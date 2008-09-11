@@ -105,10 +105,16 @@ public class FunctionInfo implements Iterable<String> {
             if ( cur.getType() == Token.NAME ||
                  cur.getType() == Token.GETVAR ){
                 
-                if ( cur.getString().equals( "arguments" ) || cur.getString().equals( "processArgs" ) )
+                String name = cur.getString();
+
+                if ( name.equals( "arguments" ) || name.equals( "processArgs" ) )
                     _usesArguemnts = true;
-                if ( cur.getString().equals( "scope" ) )
+                if ( name.equals( "scope" ) )
                     _usesScope = true;
+
+                if ( ! _vars.containsKey( name ) )
+                    _globals.add( name );
+                
             }
             else if ( cur.getType() == Token.INC ||
                       cur.getType() == Token.DEC ){
@@ -273,7 +279,8 @@ public class FunctionInfo implements Iterable<String> {
 
     final FunctionNode _fn;
     final VarSet _vars;
-
+    final Set<String> _globals = new HashSet<String>();
+    
     private boolean _played = false;
 
     final boolean _hasLambda;

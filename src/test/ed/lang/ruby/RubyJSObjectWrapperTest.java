@@ -37,7 +37,7 @@ public class RubyJSObjectWrapperTest {
     JSObject jsobj;
     JSFunction addSevenFunc;
 
-    @BeforeTest
+    @BeforeMethod
     public void setUp() {
 	s = new Scope("test", null);
 	r = org.jruby.Ruby.newInstance();
