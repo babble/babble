@@ -26,13 +26,13 @@ import ed.lang.ruby.RubyDBCursorWrapper;
 import ed.db.DBCursor;
 import ed.js.engine.Scope;
 
-@Test(groups = {"ruby", "ruby.jsfunc"})
+@Test(groups = {"ruby"})
 public class RubyDBCursorWrapperTest {
 
     Scope s;
     org.jruby.Ruby r;
 
-    @BeforeTest
+    @BeforeMethod
     public void setUp() {
 	s = new Scope("test", null);
 	r = org.jruby.Ruby.newInstance();
