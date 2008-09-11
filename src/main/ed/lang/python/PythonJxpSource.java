@@ -249,8 +249,29 @@ public class PythonJxpSource extends JxpSource {
     @ExposedType(name="_10gen_module_finder")
     public class ModuleFinder extends PyObject {
         Scope _scope;
+        JSLibrary _coreModules;
+        JSLibrary _core;
+        JSLibrary _local;
+        JSLibrary _localModules;
         ModuleFinder( Scope s ){
             _scope = s;
+            Object core = s.get( "core" );
+            if( core instanceof JSLibrary )
+                _core = (JSLibrary)core;
+            if( core instanceof JSObject ){
+                Object coreModules = ((JSObject)core).get( "modules" );
+                if( coreModules instanceof JSLibrary )
+                    _coreModules = (JSLibrary)coreModules;
+            }
+
+            Object local = s.get( "local" );
+            if( local instanceof JSLibrary )
+                _local = (JSLibrary)local;
+            if( local instanceof JSObject ){
+                Object localModules = ((JSObject)local).get( "modules" );
+                if( localModules instanceof JSLibrary )
+                    _localModules = (JSLibrary)localModules;
+            }
         }
 
         @ExposedMethod(names={"find_module"})
@@ -264,24 +285,46 @@ public class PythonJxpSource extends JxpSource {
                 System.out.println("arg " + i + " " + args[i]);
             }
             if( modName.equals("core.modules") ){
-                Object core = _scope.get("core");
-                assert core instanceof JSObject;
-                return new ModuleLoader( ((JSObject)core).get("modules") );
+                return new LibraryModuleLoader( _coreModules );
+            }
+
+            if( modName.startsWith("core.modules.") ){
+                // look for core.modules.foo.bar...baz
+                // and try core.modules.foo.baz
+                // Should confirm that this is from within core.modules.foo.bar... using __path__
+                int period = modName.indexOf('.') + 1; // core.
+                period = modName.indexOf( '.' , period ) + 1; // modules.
+                int next = modName.indexOf( '.' , period ); // foo
+                if( next != -1 && modName.indexOf( '.' , next + 1 ) != -1 ){
+                    String foo = modName.substring( period , next );
+                    File fooF = new File( _coreModules.getRoot() , foo );
+                    String baz = modName.substring( modName.lastIndexOf( '.' ) + 1 );
+                    File bazF = new File( fooF , baz );
+                    File bazPyF = new File( fooF , baz + ".py" );
+                    if( bazF.exists() || bazPyF.exists() ){
+                        return new RewriteModuleLoader( modName.substring( 0 , next ) + "." + baz );
+                    }
+                }
             }
 
             if( modName.equals("core") ){
-                return new ModuleLoader( _scope.get("core") );
+                return new LibraryModuleLoader( _core );
             }
+
             return Py.None;
         }
     }
 
-    @ExposedType(name="_10gen_module_loader")
-    public class ModuleLoader extends PyObject {
+    @ExposedType(name="_10gen_module_library_loader")
+    public class LibraryModuleLoader extends PyObject {
         JSLibrary _root;
-        ModuleLoader( Object start ){
+        LibraryModuleLoader( Object start ){
             assert start instanceof JSLibrary;
             _root = (JSLibrary)start;
+        }
+
+        public JSLibrary getRoot(){
+            return _root;
         }
 
         @ExposedMethod(names={"load_module"})
@@ -298,6 +341,26 @@ public class PythonJxpSource extends JxpSource {
             mod.__setattr__( "__path__".intern() , pathL );
 
             return mod;
+        }
+    }
+
+    /**
+     * Module loader that loads a module different than specified.
+     * We use this because a core-module imports a file that exists at the top
+     * of the core-module. This way, core-modules can pretend they're on
+     * sys.path, but without actually being sys.path. (Don't want life to be
+     * too easy for people on our platform.)
+     */
+    @ExposedType(name="_10gen_module_rewrite_loader")
+    public class RewriteModuleLoader extends PyObject {
+        String _realName;
+        RewriteModuleLoader( String real ){
+            _realName = real;
+        }
+
+        @ExposedMethod(names={"load_module"})
+        public PyObject load_module( String name ){
+            return __builtin__.__import__(_realName);
         }
     }
 
