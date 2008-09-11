@@ -16,8 +16,7 @@
 
 package ed.lang.ruby;
 
-import java.util.Set;
-import java.util.HashSet;
+import java.util.*;
 
 import org.jruby.*;
 import org.jruby.common.IRubyWarnings.ID;
@@ -33,12 +32,13 @@ import ed.js.engine.Scope;
  */
 public class RubyDBCursorWrapper extends RubyArray {
 
-    static RubyClass dbCursorClass = null;
+    static Map<Ruby, RubyClass> klassDefs = new WeakHashMap<Ruby, RubyClass>();
 
     protected Scope _scope;
     protected DBCursor _cursor;
 
     public static synchronized RubyClass getDBCursorClass(Ruby runtime) {
+	RubyClass dbCursorClass = klassDefs.get(runtime);
 	if (dbCursorClass == null) {
 	    dbCursorClass = runtime.defineClass("DBCursor", runtime.getArray(), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
 	    dbCursorClass.kindOf = new RubyModule.KindOf() {
@@ -46,6 +46,7 @@ public class RubyDBCursorWrapper extends RubyArray {
 			return obj instanceof RubyDBCursorWrapper;
 		    }
 		};
+	    klassDefs.put(runtime, dbCursorClass);
 	}
 	return dbCursorClass;
     }

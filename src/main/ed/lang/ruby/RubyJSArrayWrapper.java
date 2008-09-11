@@ -16,6 +16,8 @@
 
 package ed.lang.ruby;
 
+import java.util.*;
+
 import org.jruby.*;
 import org.jruby.runtime.*;
 import org.jruby.runtime.builtin.IRubyObject;
@@ -33,12 +35,13 @@ import static ed.lang.ruby.RubyObjectWrapper.toRuby;
  */
 public class RubyJSArrayWrapper extends RubyArray {
 
-    static RubyClass jsArrayClass = null;
+    static Map<Ruby, RubyClass> klassDefs = new WeakHashMap<Ruby, RubyClass>();
 
     private Scope _scope;
     private JSArray _jsarray;
 
     public static synchronized RubyClass getJSArrayClass(Ruby runtime) {
+	RubyClass jsArrayClass = klassDefs.get(runtime);
 	if (jsArrayClass == null) {
 	    jsArrayClass = runtime.defineClass("JSArray", runtime.getArray(), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
 	    jsArrayClass.kindOf = new RubyModule.KindOf() {
@@ -46,6 +49,7 @@ public class RubyJSArrayWrapper extends RubyArray {
 			return obj instanceof RubyJSArrayWrapper;
 		    }
 		};
+	    klassDefs.put(runtime, jsArrayClass);
 	}
 	return jsArrayClass;
     }

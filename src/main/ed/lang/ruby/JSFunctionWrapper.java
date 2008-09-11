@@ -51,14 +51,14 @@ public class JSFunctionWrapper extends JSFunctionCalls0 {
 	_block = block;
     }
 
-    public Object callBlock(Object ... args) {
+    public Object callBlock(Scope scope, Object ... args) {
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("calling Ruby block");
 	List<IRubyObject> rargs = new ArrayList<IRubyObject>();
 	if (args != null)
 	    for (Object obj : args)
 		rargs.add(toRuby(_scope, _runtime, obj));
-	return toJS(_scope, _block.call(_runtime.getCurrentContext(), (IRubyObject[])rargs.toArray(EMPTY_IRUBY_OBJECT_ARRAY)));
+	return toJS(scope, _block.call(_runtime.getCurrentContext(), (IRubyObject[])rargs.toArray(EMPTY_IRUBY_OBJECT_ARRAY)));
     }
 
     public Block getBlock() { return _block; }
@@ -73,5 +73,5 @@ public class JSFunctionWrapper extends JSFunctionCalls0 {
 	return p;
     }
 
-    public Object call(Scope scope, Object[] extra) { return callBlock(extra); }
+    public Object call(Scope scope, Object[] extra) { return callBlock(scope, extra); }
 }
