@@ -115,14 +115,12 @@ EOS
                when Array       # array of ids
                  args.collect { |arg| find(arg.to_s) }
                when :first
-                 begin
-                   row = coll.findOne(*args[1..-1])
-                   (row.nil? || row['_id'] == nil) ? nil : self.new(row)
-                 rescue => ex
-                   nil
-                 end
+                 args.shift
+                 row = coll.findOne(*args)
+                 (row.nil? || row['_id'] == nil) ? nil : self.new(row)
                when :all
-                 Cursor.new(coll.find(*args[1..-1]), self)
+                 args.shift
+                 Cursor.new(coll.find(*args), self)
                else
                  Cursor.new(coll.find(*args), self)
                end
