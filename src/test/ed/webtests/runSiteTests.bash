@@ -125,7 +125,7 @@ fi
 # Bring down the db and appserver.
 kill $db_pid
 # Really hacky way to find the appserver pid
-http_pid=`ps -e -o pid,command | grep java | grep "ed.appserver.AppServer" | grep "port $http_port" | cut -d " " -f 1`
+http_pid=`ps -e -o pid,command | grep java | grep "ed.appserver.AppServer" | grep "port $http_port" | awk '{ print $1 }'`
 kill $http_pid
 
 exit $STATUS
