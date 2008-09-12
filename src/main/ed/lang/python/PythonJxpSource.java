@@ -280,10 +280,6 @@ public class PythonJxpSource extends JxpSource {
             assert argc >= 1;
             assert args[0] instanceof PyString;
             String modName = args[0].toString();
-            System.out.println("trying to load " + argc);
-            for(int i = 0; i < argc; ++i){
-                System.out.println("arg " + i + " " + args[i]);
-            }
             if( modName.equals("core.modules") ){
                 return new LibraryModuleLoader( _coreModules );
             }
@@ -329,7 +325,6 @@ public class PythonJxpSource extends JxpSource {
 
         @ExposedMethod(names={"load_module"})
         public PyModule load_module( String name ){
-            System.out.println("Loading " + name);
             PyModule mod = imp.addModule( name );
             PyObject __path__ = mod.__findattr__( "__path__".intern() );
             if( __path__ != null ) return mod; // previously imported
@@ -360,7 +355,15 @@ public class PythonJxpSource extends JxpSource {
 
         @ExposedMethod(names={"load_module"})
         public PyObject load_module( String name ){
-            return __builtin__.__import__(_realName);
+            PyObject m = __builtin__.__import__(_realName);
+            String components = _realName.substring( _realName.indexOf('.') + 1 );
+            while( components.indexOf('.') != -1 ){
+                String component = components.substring( 0 , components.indexOf('.') );
+                m = m.__findattr__( component.intern() );
+                components = components.substring( components.indexOf('.') + 1 );
+            }
+            m = m.__findattr__( components.intern() );
+            return m;
         }
     }
 
