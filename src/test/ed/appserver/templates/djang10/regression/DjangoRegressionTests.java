@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Hashtable;
 import java.util.List;
 
 import org.testng.ITest;
@@ -33,11 +34,11 @@ import ed.appserver.jxp.JxpSource;
 import ed.appserver.templates.djang10.Djang10Source;
 import ed.appserver.templates.djang10.JSHelper;
 import ed.appserver.templates.djang10.Printer;
-import ed.appserver.templates.djang10.TemplateSyntaxError;
 import ed.db.JSHook;
 import ed.js.Encoding;
 import ed.js.JSArray;
 import ed.js.JSDate;
+import ed.js.JSException;
 import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.JSString;
@@ -83,7 +84,10 @@ public class DjangoRegressionTests {
         "widthratio10",     //floats allowed
         
         "basic-syntax12",   //dunno
-        "basic-syntax14",   //dunno        
+        "basic-syntax14",   //dunno
+        
+        //fix exceptions
+        "filter-syntax14",
     };    
        
     public DjangoRegressionTests(){ }
@@ -150,8 +154,7 @@ public class DjangoRegressionTests {
                 Scope testScope = globalScope.child();
                 testScope.setGlobal(true);
                 
-                ExportedTestCase testCase = new ExportedTestCase(testScope, testScript, (JSObject)jsTest, 
-                        testScript.templateSyntaxErrorCons, testScript.someExceptionCons, testScript.someOtherExceptionCons);
+                ExportedTestCase testCase = new ExportedTestCase(testScope, testScript, (JSObject)jsTest);
 
                 if(isSupported(testScript, testCase)) testCases.add(testCase);
                 else skipped++;
@@ -183,10 +186,13 @@ public class DjangoRegressionTests {
     }
     
     private static class JSTestScript {
-        //final JSFunction hackTemplateCons = (JSObject)scope.get("HackTemplate");
-        public final JSFunction templateSyntaxErrorCons;
-        public final JSFunction someExceptionCons;
-        public final JSFunction someOtherExceptionCons;
+        public enum JSExceptionName {
+            TemplateSyntaxError,
+            SomeException,
+            SomeOtherException
+        }
+        public final File file; 
+        public final Hashtable<JSExceptionName,JSFunction> exceptionCons;
         public final JSArray tests;
         
         public JSTestScript(Scope globalScope, String path) throws IOException {
@@ -198,14 +204,17 @@ public class DjangoRegressionTests {
                 loadingScope.makeThreadLocal();
                 
                 //invoke the script
-                JxpSource testSource = JxpSource.getSource(new File(path));
+                this.file = new File(path);
+                JxpSource testSource = JxpSource.getSource(this.file);
                 JSFunction compiledTests = testSource.getFunction();
                 compiledTests.call(loadingScope);
             
                 //pull out exported classes
-                templateSyntaxErrorCons = (JSFunction)loadingScope.get("TemplateSyntaxError");
-                someExceptionCons = (JSFunction)loadingScope.get("SomeException");
-                someOtherExceptionCons = (JSFunction)loadingScope.get("SomeOtherException");
+                exceptionCons = new Hashtable<JSExceptionName, JSFunction>();
+                for(JSExceptionName name : JSExceptionName.values()) {
+                    JSFunction cons = (JSFunction)loadingScope.get(name.name());
+                    exceptionCons.put(name, cons);
+                }
                 tests = (JSArray)loadingScope.get("tests");
             }
             finally {
@@ -216,11 +225,6 @@ public class DjangoRegressionTests {
     }
     
     private static boolean isSupported(JSTestScript script, ExportedTestCase testCase) {
-        //FIXME: tests that throw exceptions are not supported yet
-        if(testCase.result instanceof ExceptionResult && ((ExceptionResult)testCase.result).exceptionType != script.templateSyntaxErrorCons)
-            return false;
-            
-
         for(String unsupportedTest: UNSUPPORTED_TESTS)
             if(testCase.name.matches(unsupportedTest))
                 return false;
@@ -242,7 +246,7 @@ public class DjangoRegressionTests {
         private final Printer.RedirectedPrinter printer;
         
         
-        public ExportedTestCase(Scope scope, JSTestScript script, JSObject test, JSFunction templateSyntaxErrorCons, JSFunction someExceptionCons, JSFunction someOtherExceptionCons) {
+        public ExportedTestCase(Scope scope, JSTestScript script, JSObject test) {
             this.scope = scope;
             this.script = script;
             this.name = ((JSString)test.get("name")).toString();
@@ -266,11 +270,11 @@ public class DjangoRegressionTests {
                 }
                 this.result = new NormalResult(normal, invalid, invalid_setting);
             }
+            else if(script.exceptionCons.values().contains(temp)) {
+                this.result = new ExceptionResult(temp);
+            } 
             else {
-                if(temp == templateSyntaxErrorCons || temp == someExceptionCons || temp == someOtherExceptionCons)
-                    this.result = new ExceptionResult(temp);
-                else
-                    throw new IllegalStateException("unkown type: " + temp);
+                throw new IllegalStateException("unkown result type in test ["+this.name+"], in file ["+script.file.getName()+"]");
             }
             
             
@@ -305,13 +309,15 @@ public class DjangoRegressionTests {
                     fail("Expected exception but got none");
                 }
                 catch(RuntimeException e) {
-                    if(exceptionResult.exceptionType == script.templateSyntaxErrorCons) {
-                        if(!(e instanceof TemplateSyntaxError))
-                            fail("Expected wrong expection: " + e);
-                        //succeed
-                    }                    
-                    else 
-                        throw new UnsupportedOperationException();
+                    JSObject jsE;
+                    if(e instanceof JSException)
+                        jsE = (JSObject) ((e.getCause() instanceof JSObject)? e.getCause() : ((JSException)e).getObject());
+                    else if(e instanceof JSObject)
+                        jsE = (JSObject)e;
+                    else
+                        throw new IllegalStateException("Don't know what to do with the expected exception " + e);
+                    
+                    assertEquals(exceptionResult.exceptionType, jsE.getConstructor());
                 }
             }
             else {
