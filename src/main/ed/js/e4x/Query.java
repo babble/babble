@@ -85,7 +85,8 @@ public class Query {
     }
 
     boolean match( ENode n ){
-        ENode result = (ENode)n.get( _what );
+        ENode result = E4X.getENode( n.get( _what ) );
+
         if( result == null || result.isDummy() ) {
             return false;
         }

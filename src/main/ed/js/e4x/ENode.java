@@ -424,7 +424,6 @@ public class ENode extends JSObjectBase {
         super( _getCons() );
         this.XML = n.XML;
         this.name = n.name;
-        this.parent = n.parent;
 
         if( n.node != null ) {
             this.node = n.node.cloneNode( false );
@@ -681,34 +680,6 @@ public class ENode extends JSObjectBase {
         Pattern num = Pattern.compile("-?\\d+");
         Matcher m = num.matcher(k.toString());
 
-        // if v is already XML and it's not an XML attribute, just add v to this enode's children
-        if( v instanceof ENode ) {
-            /*if ( this.parent == null ) {
-              this.setAtIndex( Integer.parseInt(k.toString()), v2 );
-              }*/
-            // in the unusual situation where we have x.set("*", x), we have
-            // to copy x before resetting its children
-            ENode vcopy = ((ENode)v).copy();
-            if( k.toString().equals("*") ) {
-                // replace children
-                if( v instanceof XMLList ) {
-                    children = (XMLList)vcopy;
-                    return this;
-                }
-                this.children = new XMLList();
-            }
-            // if k is a number, go back one
-            if( m.matches() ) {
-                int index = this.parent.children.indexOf( this );
-                this.parent.children.remove( this );
-                this.parent.children.add( index, vcopy );
-            }
-            else {
-                this.children.add( vcopy );
-            }
-            return v;
-        }
-
         // find out if this k/v pair exists
         ENode n;
         Object obj = get( k );
@@ -720,6 +691,43 @@ public class ENode extends JSObjectBase {
             if( n == null ) {
                 n = new ENode( this.XML, this.defaultNamespace );
             }
+        }
+
+        // if v is already XML and it's not an XML attribute, just add v to this enode's children
+        if( v instanceof ENode ) {
+            // in the unusual situation where we have x.set("*", x), we have
+            // to copy x before resetting its children
+            ENode vcopy = ((ENode)v).copy();
+            if( k.toString().equals("*") ) {
+                // replace children
+                if( v instanceof XMLList ) {
+                    children = (XMLList)vcopy;
+                    return this;
+                }
+                this.children = new XMLList();
+            }
+
+            // if k is a number, go back one
+            if( m.matches() ) {
+                if ( this.parent == null ) {
+                    this.setAtIndex( Integer.parseInt(k.toString()), vcopy );
+                }
+                else {
+                    int index = this.parent.children.indexOf( this );
+                    this.parent.children.remove( this );
+                    this.parent.children.add( index, vcopy );
+                }
+            }
+            // non-* strings
+            else {
+                if( n instanceof XMLList ) {
+                    for( ENode r : (XMLList)n ) {
+                        this.children.remove( r );
+                    }
+                }
+                this.children.add( vcopy );
+            }
+            return v;
         }
 
         // k is a number
@@ -1122,8 +1130,10 @@ public class ENode extends JSObjectBase {
     }
 
     public boolean hasOwnProperty( String prop ) {
-        Object foo = ENode._getCons().getPrototype().get( prop );
-        return (foo != null);
+        Object foo = get( prop );
+        if( foo instanceof ENodeFunction || !((ENode)foo).isDummy() ) 
+            return true;
+        return false;
     }
 
     private boolean isSimpleTypeNode( ) {
