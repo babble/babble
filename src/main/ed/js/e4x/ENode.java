@@ -1130,8 +1130,10 @@ public class ENode extends JSObjectBase {
     }
 
     public boolean hasOwnProperty( String prop ) {
-        Object foo = ENode._getCons().getPrototype().get( prop );
-        return (foo != null);
+        Object foo = get( prop );
+        if( foo instanceof ENodeFunction || !((ENode)foo).isDummy() ) 
+            return true;
+        return false;
     }
 
     private boolean isSimpleTypeNode( ) {
