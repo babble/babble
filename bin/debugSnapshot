@@ -1,0 +1,15 @@
+#!/bin/csh
+
+set d = `date "+debug%y%m%d-%H%M"`
+echo $d
+
+mkdir $d
+killall -3 java
+sleep 5
+cp ~/ed/logs/run.log $d/
+cp /tmp/gclog $d/
+curl -s -m 20 http://127.0.0.1:8080/~stats > $d/stats
+curl -s -m 20 http://127.0.0.1:8080/~threads > $d/threads.html
+curl -s -m 20 "http://127.0.0.1:8080/~threads?f=AppServer" > $d/threadsAppServer.html
+
+

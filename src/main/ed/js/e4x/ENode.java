@@ -237,16 +237,8 @@ public class ENode extends JSObjectBase {
                 });
             _prototype.set( "replace", new ENodeFunction() {
                     public Object call(Scope s, Object foo[]) {
-                        Object obj = s.getThis();
-                        ENode enode = ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
-
-                        String name = foo[0].toString();
-                        Object value = foo[1];
-                        ENode exists = (ENode)enode.get(name);
-                        if( exists == null )
-                            return this;
-
-                        return enode.set(name, value);
+                        foo = getTwoArgs( foo );
+                        return getENode( s ).replace( foo[0].toString() , foo[1] );
                     }
                 });
             _prototype.set( "setChildren", new ENodeFunction() {
@@ -691,6 +683,9 @@ public class ENode extends JSObjectBase {
 
         // if v is already XML and it's not an XML attribute, just add v to this enode's children
         if( v instanceof ENode ) {
+            /*if ( this.parent == null ) {
+              this.setAtIndex( Integer.parseInt(k.toString()), v2 );
+              }*/
             // in the unusual situation where we have x.set("*", x), we have
             // to copy x before resetting its children
             ENode vcopy = ((ENode)v).copy();
@@ -780,33 +775,55 @@ public class ENode extends JSObjectBase {
         }
         // k must be a string
         else {
-            int index = this.children.size();
-
-            if( n.node != null && n.node.getNodeType() != Node.ATTRIBUTE_NODE) {
-                index = this.children.indexOf( n );
-                this.children.remove( n );
-            }
-            // if there are a list of children, delete them all and replace with the new k/v
-            else if ( n instanceof XMLList ) {
-                XMLList list = (XMLList)n;
-                for( int i=0; n != null && i < list.size(); i++) {
-                    if( list.get(i).node.getNodeType() == Node.ATTRIBUTE_NODE ) 
-                        continue;
-                    // find the index of this node in the tree
-                    index = this.children.indexOf( list.get(i) );
-                    // remove it from the tree
-                    this.children.remove( list.get(i) ) ;
-                }
-            }
-
+            int index = getInsertionIndex( n );
+            
             n = new ENode(this.node.getOwnerDocument().createElement(k.toString()), this , null);
             Node content = this.node.getOwnerDocument().createTextNode(v.toString());
             n.children.add( new ENode( content, n , null ) );
-            if( !((List)this.children).contains( n ) )
-                if( index >= 0 )
+            if( !((List)this.children).contains( n ) ) {
+                if( index >= 0 ) {
                     this.children.add( index, n );
-                else
+                }
+                else {
                     this.children.add( n );
+                }
+            }
+        }
+        return v;
+    }
+
+    private int getInsertionIndex( ENode n ) {
+        if( this.children == null )
+            this.children = new XMLList();
+
+        int index = this.children.size();
+
+        if( n.node != null && n.node.getNodeType() != Node.ATTRIBUTE_NODE) {
+            index = this.children.indexOf( n );
+            this.children.remove( n );
+        }
+        // if there are a list of children, delete them all and replace with the new k/v
+        else if ( n instanceof XMLList ) {
+            XMLList list = (XMLList)n;
+            for( int i=0; n != null && i < list.size(); i++) {
+                if( list.get(i).node.getNodeType() == Node.ATTRIBUTE_NODE ) 
+                    continue;
+                // find the index of this node in the tree
+                index = this.children.indexOf( list.get(i) );
+                // remove it from the tree
+                this.children.remove( list.get(i) ) ;
+            }
+        }
+        return index;
+    }
+
+    private Object setAtIndex( int index , Object v ) {
+        if( index < 0 || index > this.children.size() ) {
+            this.children.add( (ENode)v );
+        }
+        else {
+            this.children.remove( index );
+            this.children.add( index, (ENode)v );
         }
         return v;
     }
@@ -1105,11 +1122,8 @@ public class ENode extends JSObjectBase {
     }
 
     public boolean hasOwnProperty( String prop ) {
-        for( ENode n : this.children ) {
-            if( n.node != null && n.localName().equals(prop) )
-                return true;
-        }
-        return false;
+        Object foo = ENode._getCons().getPrototype().get( prop );
+        return (foo != null);
     }
 
     private boolean isSimpleTypeNode( ) {
@@ -1372,6 +1386,11 @@ public class ENode extends JSObjectBase {
         for( ENode enode : this.children ) {
             enode.removeNamespace( namespace );
         }
+        return this;
+    }
+
+    public ENode replace( String prop, Object value ) {
+        set( prop, value );
         return this;
     }
 
@@ -1763,7 +1782,13 @@ public class ENode extends JSObjectBase {
 
     private static ENode getENode( Scope s ) {
         Object obj = s.getThis();
-        return ( obj instanceof ENode ) ? (ENode)obj : ((ENodeFunction)obj).cnode;
+        if ( obj instanceof ENode ) 
+            return (ENode)obj;
+        else if ( obj instanceof ENodeFunction ) 
+            return ((ENodeFunction)obj).cnode;
+
+        // should only do this for XML.prototype
+        return new ENode();
     }
 
     private static Object getOneArg( Object foo[] ) {

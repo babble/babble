@@ -246,6 +246,17 @@ public class PythonJxpSource extends JxpSource {
         }
     }
 
+    /**
+     * sys.meta_path hook to deal with core/core-modules and local/local-modules
+     * imports.
+     *
+     * Python meta_path hooks are one of many ways a program can
+     * customize how/where modules are loaded. They have two parts,
+     * finders and loaders. This is the finder class, whose API
+     * consists of one method, find_module.
+     *
+     * For more details on the meta_path hooks, check PEP 302.
+     */
     @ExposedType(name="_10gen_module_finder")
     public class ModuleFinder extends PyObject {
         Scope _scope;
@@ -274,6 +285,26 @@ public class PythonJxpSource extends JxpSource {
             }
         }
 
+        /**
+         * The sole interface to a finder. We create virtual modules
+         * for "core" and "core.modules", and any relative import
+         * within a core module has to be handled specially.
+         * Specifically, an import for baz from within
+         * core.modules.foo.bar comes out as an import for
+         * core.modules.foo.bar.baz (with __path__ =
+         * ['/data/core-modules/foo/bar']) and if we can't find it, we
+         * try core.modules.foo.baz (simulating core.modules.foo being
+         * on the module search path).
+         *
+         * Alternately, we could just add core.modules.foo to sys.path
+         * when it gets imported, but Geir says we should make it like
+         * JS, which means ugly and painful.
+         *
+         * find_module returns a "loader", as specified by PEP 302.
+         *
+         * @param fullname {PyString} name of the module to find
+         * @param path {PyList} optional; the __path__ of the module
+         */
         @ExposedMethod(names={"find_module"})
         public PyObject find_module( PyObject args[] , String keywords[] ){
             int argc = args.length;
@@ -311,6 +342,15 @@ public class PythonJxpSource extends JxpSource {
         }
     }
 
+    /**
+     * A module loader for core, core.modules, etc.
+     *
+     * Basically this wraps a JSLibrary in such a way that when the
+     * module is loaded, sub-modules can be found by the default
+     * Python search.  (Specifically we set the __path__ to the root
+     * of the library.) This obviates the need for putting __init__.py
+     * files throughout corejs and core-modules.
+     */
     @ExposedType(name="_10gen_module_library_loader")
     public class LibraryModuleLoader extends PyObject {
         JSLibrary _root;
@@ -323,6 +363,13 @@ public class PythonJxpSource extends JxpSource {
             return _root;
         }
 
+
+        /**
+         * The load_module method specified in PEP 302.
+         *
+         * @param fullname {PyString} the full name of the module
+         * @return PyModule
+         */
         @ExposedMethod(names={"load_module"})
         public PyModule load_module( String name ){
             PyModule mod = imp.addModule( name );
@@ -341,7 +388,7 @@ public class PythonJxpSource extends JxpSource {
 
     /**
      * Module loader that loads a module different than specified.
-     * We use this because a core-module imports a file that exists at the top
+     * We use this when a core-module imports a file that exists at the top
      * of the core-module. This way, core-modules can pretend they're on
      * sys.path, but without actually being sys.path. (Don't want life to be
      * too easy for people on our platform.)
@@ -353,6 +400,12 @@ public class PythonJxpSource extends JxpSource {
             _realName = real;
         }
 
+        /**
+         * The load_module method specified in PEP 302.
+         *
+         * @param fullname {PyString} the full name of the module
+         * @return PyModule
+         */
         @ExposedMethod(names={"load_module"})
         public PyObject load_module( String name ){
             PyObject m = __builtin__.__import__(_realName);
