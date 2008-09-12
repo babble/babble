@@ -467,9 +467,6 @@ public class Generate {
             if( args[i].equals("--db_ip" ) ) {
                 argTable.put( "db_ip" , args[ i+1 ] );
             }
-            if( args[i].equals("--output" ) ) {
-                argTable.put( "output" , args[ i+1 ] );
-            }
         }
         String path = args.length > 0 && args.length % 2 == 1 ? args[ args.length - 1 ] : ".";
         argTable.put( "path" , path );

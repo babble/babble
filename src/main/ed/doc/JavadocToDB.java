@@ -382,7 +382,7 @@ public class JavadocToDB {
         for (int i = 0; i < classes.length; i++) {
             if( ( Generate.classes.size() > 0 && 
                   !Generate.classes.contains( classes[i].name() ) ) || 
-                dontProcess( classes[i] ) )
+                classes[i].tags( "expose" ).length == 0 )
                 continue;
 
             JSObjectBase obj = new JSObjectBase();
