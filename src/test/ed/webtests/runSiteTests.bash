@@ -96,6 +96,7 @@ ln -s $TESTDIR/resources/definitions $FULLSITE/test/definitions/_10gen_default_d
 # Run webtest.
 cd $FULLSITE/test
 export WTPATH=$EDROOT/include/webtest
+export LOCAL_TEST_10GEN="true"
 $WTPATH/bin/webtest.sh $WTPARAMS
 STATUS=$?
 
@@ -125,7 +126,7 @@ fi
 # Bring down the db and appserver.
 kill $db_pid
 # Really hacky way to find the appserver pid
-http_pid=`ps -e -o pid,command | grep java | grep "ed.appserver.AppServer" | grep "port $http_port" | cut -d " " -f 1`
+http_pid=`ps -e -o pid,command | grep java | grep "ed.appserver.AppServer" | grep "port $http_port" | awk '{ print $1 }'`
 kill $http_pid
 
 exit $STATUS

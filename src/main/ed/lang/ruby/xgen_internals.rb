@@ -73,18 +73,21 @@ module XGen
 
         @ivars << '_id' unless @ivars.include?('_id')
       @ivars.each { |ivar|
+          attr_method = ivar == '_id' ? 'attr_reader' : 'attr_accessor'
           eval <<EOS
-attr_accessor :#{ivar}
+#{attr_method} :#{ivar}
 def self.find_by_#{ivar}(v, *args)
   self.find(:first, {:#{ivar} => v}, *args)
 end
 def self.find_all_by_#{ivar}(v, *args)
   self.find(:all, {:#{ivar} => v}, *args)
 end
-def self.find_or_create_by_#{ivar}(h)
-  o = self.find(:first, {:#{ivar} => h[:#{ivar}]})
-  return o if o && o._id != nil
-  self.new(h).save
+if "#{ivar}" != '_id'
+  def self.find_or_create_by_#{ivar}(h)
+    o = self.find(:first, {:#{ivar} => h[:#{ivar}]})
+    return o if o && o._id != nil
+    self.new(h).save
+  end
 end
 EOS
           }
