@@ -455,8 +455,8 @@ public class Generate {
         }
     }
 
-    public static Hashtable<String,String> processArgs( String[] args ) {
-        Hashtable<String,String> argTable = new Hashtable<String,String>();
+    public static Hashtable<String,Object> processArgs( String[] args ) {
+        Hashtable<String,Object> argTable = new Hashtable<String,Object>();
         for( int i=0; i<args.length-1; i+=2 ) {
             if( args[i].equals("--classlist") || args[i].equals("-c") ) {
                 getClassesList( args[ i+1 ] );
@@ -469,19 +469,29 @@ public class Generate {
             }
         }
         String path = args.length > 0 && args.length % 2 == 1 ? args[ args.length - 1 ] : ".";
-        argTable.put( "path" , path );
+        try {
+            Scanner sc = new Scanner( new File( path ) );
+            ArrayList<String> paths = new ArrayList<String>();
+            while( sc.hasNext() ) {
+                paths.add( sc.next() );
+            }
+            argTable.put( "path" , paths );
+        }
+        catch( FileNotFoundException e ) {
+            e.printStackTrace();
+        }
         return argTable;
     }
 
     public static void main( String[] args ) throws IOException, Exception {
-        Hashtable<String,String> argTable = processArgs( args );
-        getClassesList( argTable.get( "classlist" ) );
+        Hashtable<String,Object> argTable = processArgs( args );
+        getClassesList( (String)argTable.get( "classlist" ) );
 
         initialize();
 
         // connect to db
         if( argTable.containsKey( "db" ) ) {
-            String url = argTable.get( "db" );
+            String url = (String)argTable.get( "db" );
             if ( argTable.containsKey( "db_ip" ) ) 
                 url = argTable.get( "db_ip" ) + "/" + url;
         
@@ -517,7 +527,10 @@ public class Generate {
         if( D ) 
             System.out.println( "adding doc for file(s in): " + argTable.get( "path" ) );
         // srcs to db
-        srcToDb( argTable.get( "path" ) );
+        ArrayList filelist = (ArrayList)argTable.get( "path" );
+        for( Object name : filelist ) {
+            srcToDb( (String)name );
+        }
         javaSrcsToDb();
         globalToDb();
 
