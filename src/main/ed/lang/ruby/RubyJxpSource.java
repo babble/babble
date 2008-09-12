@@ -77,6 +77,8 @@ public class RubyJxpSource extends JxpSource {
 	_runtime = runtime;
     }
 
+    public Ruby getRuntime() { return _runtime; }
+
     protected String getContent() throws IOException {
 	return StreamUtil.readFully(_file);
     }
