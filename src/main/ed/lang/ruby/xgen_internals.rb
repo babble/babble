@@ -115,13 +115,20 @@ EOS
                when Array       # array of ids
                  args.collect { |arg| find(arg.to_s) }
                when :first
-                 row = coll.findOne(*args[1..-1])
-                 (row.nil? || row['_id'] == nil) ? nil : self.new(row)
+                 begin
+                   row = coll.findOne(*args[1..-1])
+                   (row.nil? || row['_id'] == nil) ? nil : self.new(row)
+                 rescue => ex
+                   puts ex.to_s # DEBUG
+                   nil
+                 end
                when :all
                  Cursor.new(coll.find(*args[1..-1]), self)
                else
                  Cursor.new(coll.find(*args), self)
                end
+      rescue => ex
+        nil
       end
 
       # Find a single database object. See find().
