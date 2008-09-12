@@ -421,9 +421,16 @@ public class RubyJSObjectWrapper extends RubyHash {
 	_jsFuncs.add(key.toString());
 	_eigenclass.defineMethod(key.toString(), new Callback() {
 		public IRubyObject execute(IRubyObject recv, IRubyObject[] args, Block block) {
+		    Ruby runtime = recv.getRuntime();
 		    if (RubyObjectWrapper.DEBUG)
 			System.err.println("calling function " + key);
-		    return toRuby(((JSFunction)val).callAndSetThis(_scope, _jsobj, RubyObjectWrapper.toJSFunctionArgs(_scope, getRuntime(), args, 0, block)));
+		    try {
+			return toRuby(((JSFunction)val).callAndSetThis(_scope, _jsobj, RubyObjectWrapper.toJSFunctionArgs(_scope, runtime, args, 0, block)));
+		    }
+		    catch (Exception e) {
+			recv.callMethod(runtime.getCurrentContext(), "raise", new IRubyObject[] {RubyString.newString(runtime, e.toString())}, Block.NULL_BLOCK);
+			return runtime.getNil(); // will not reach
+		    }
 		}
 		public Arity getArity() { return Arity.OPTIONAL; }
 	    });
@@ -500,7 +507,12 @@ public class RubyJSObjectWrapper extends RubyHash {
 			if (isCallableJSFunction(val)) {
 			    if (RubyObjectWrapper.DEBUG)
 				System.err.println("method_missing: found a callable function for key " + key + "; calling it");
-			    return toRuby(((JSFunction)val).callAndSetThis(_scope, _jsobj, RubyObjectWrapper.toJSFunctionArgs(_scope, getRuntime(), args, 1, block)));
+			    try {
+				return toRuby(((JSFunction)val).callAndSetThis(_scope, _jsobj, RubyObjectWrapper.toJSFunctionArgs(_scope, getRuntime(), args, 1, block)));
+			    }
+			    catch (Exception e) {
+				self.callMethod(context, "raise", new IRubyObject[] {RubyString.newString(context.getRuntime(), e.toString())}, Block.NULL_BLOCK);
+			    }
 			}
 			else {
 			    if (RubyObjectWrapper.DEBUG)

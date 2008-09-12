@@ -107,19 +107,25 @@ EOS
       # * Find :all records; returns a Cursor that can iterate over raw
       #   records
       def self.find(*args)
-        return Cursor.new(coll.find(), self) unless args.length > 0
+        return Cursor.new(coll.find(), self) unless args.length > 0 # no args, find all
         return case args[0]
-               when String        # id
-                 self.new(coll.findOne(args[0]))
-               when Array         # array of ids
-                 args.collect { |arg| self.new(coll.findOne(arg.to_s)) }
+               when String      # id
+                 row = coll.findOne(args[0])
+                 (row.nil? || row['_id'] == nil) ? nil : self.new(row)
+               when Array       # array of ids
+                 args.collect { |arg| find(arg.to_s) }
                when :first
-                 self.new(coll.findOne(*args[1..-1]))
+                 args.shift
+                 row = coll.findOne(*args)
+                 (row.nil? || row['_id'] == nil) ? nil : self.new(row)
                when :all
-                 Cursor.new(coll.find(*args[1..-1]), self)
+                 args.shift
+                 Cursor.new(coll.find(*args), self)
                else
                  Cursor.new(coll.find(*args), self)
                end
+      rescue => ex
+        nil
       end
 
       # Find a single database object. See find().
