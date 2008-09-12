@@ -211,13 +211,11 @@ public class RubyJxpSource extends JxpSource {
 		    Ruby runtime = self.getRuntime();
 		    String arg = args[0].toString();
 		    try {
-			if (runtime.getLoadService().require(arg))
-			    return runtime.getTrue();
+			return runtime.getLoadService().require(arg) ? runtime.getTrue() : runtime.getFalse();
 		    }
 		    catch (RaiseException re) {
-			loadLibraryFile(scope, runtime, arg);
+			return loadLibraryFile(scope, runtime, arg, re);
 		    }
-		    return runtime.getFalse();
 		}
 	    });
 	kernel.addMethod("load", new JavaMethod(kernel, PUBLIC) {
@@ -231,27 +229,33 @@ public class RubyJxpSource extends JxpSource {
 			return runtime.getTrue();
 		    }
 		    catch (RaiseException re) {
-			loadLibraryFile(scope, runtime, file.toString());
+			return loadLibraryFile(scope, runtime, file.toString(), re);
 		    }
-		    return runtime.getFalse();
 		}
 	    });
     }
 
-    protected IRubyObject loadLibraryFile(Scope scope, Ruby runtime, String file) {
+    protected IRubyObject loadLibraryFile(Scope scope, Ruby runtime, String file, RaiseException re) throws RaiseException {
+	if (DEBUG)
+	    System.err.println("going to compile and run library file " + file);
 	try {
 	    JSFileLibrary local = (JSFileLibrary)scope.get("local");
-	    Object o = local.getFromPath(file.toString());
-	    if (o instanceof JSFunction && ((JSFunction)o).isCallable()) {
+	    Object o = local.getFromPath(file);
+	    if (isCallableJSFunction(o)) {
 		((JSFunction)o).call(scope, EMPTY_OBJECT_ARRAY);
 		return runtime.getTrue();
 	    }
-	    else
-		return runtime.getFalse();
+	    else if (DEBUG)
+		System.err.println("file library object is not a callable function");
 	}
 	catch (Exception e) {
-	    return runtime.getFalse();
+	    if (DEBUG)
+		System.err.println("problem loading file " + file + "; exception seen is " + e);
+	    /* fall through to throw re */
 	}
+	if (DEBUG)
+	    System.err.println("problem loading file " + file + "; throwing original Ruby error " + re);
+	throw re;
     }
 
     protected final File _file;
