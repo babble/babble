@@ -70,7 +70,6 @@ module XGen
           @ivars = coll_name
           @coll_name = self.name.gsub(/([A-Z])/, '_\1').downcase.sub(/^_/, '')
         end
-        @coll = $db[@coll_name.to_s]
 
         @ivars << '_id' unless @ivars.include?('_id')
       @ivars.each { |ivar|
@@ -91,8 +90,9 @@ EOS
           }
       end
 
+      # The collection object.
       def self.coll
-        @coll
+        @coll ||= $db[@coll_name.to_s]
       end
 
       # Find one or more database objects.
@@ -104,18 +104,18 @@ EOS
       # * Find :all records; returns a Cursor that can iterate over raw
       #   records
       def self.find(*args)
-        return Cursor.new(@coll.find(), self) unless args.length > 0
+        return Cursor.new(coll.find(), self) unless args.length > 0
         return case args[0]
                when String        # id
-                 self.new(@coll.findOne(args[0]))
+                 self.new(coll.findOne(args[0]))
                when Array         # array of ids
-                 args.collect { |arg| self.new(@coll.findOne(arg.to_s)) }
+                 args.collect { |arg| self.new(coll.findOne(arg.to_s)) }
                when :first
-                 self.new(@coll.findOne(*args[1..-1]))
+                 self.new(coll.findOne(*args[1..-1]))
                when :all
-                 Cursor.new(@coll.find(*args[1..-1]), self)
+                 Cursor.new(coll.find(*args[1..-1]), self)
                else
-                 Cursor.new(@coll.find(*args), self)
+                 Cursor.new(coll.find(*args), self)
                end
       end
 

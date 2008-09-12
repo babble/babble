@@ -95,7 +95,6 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
     }
 
     protected void _createJSObjectSubclass(final Scope scope, final String name) {
-// FIXME doesn't work quite right yet
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("adding class named " + name);
 	_klazz = getRuntime().defineClass(name, RubyJSObjectWrapper.getJSObjectClass(getRuntime()), new ObjectAllocator() {
