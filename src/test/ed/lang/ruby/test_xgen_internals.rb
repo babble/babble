@@ -192,6 +192,25 @@ EOS
     assert_equal 2, Track.find(:all).limit(2).length
   end
 
+  def test_return_nil_if_no_match
+    assert_nil Track.find(:first, {:song => 'Does Not Compute'})
+  end
+
+# FIXME need to work on exception capture
+#   def test_return_nil_if_bogus_id
+#     assert_nil Track.find("bogus_id")
+#   end
+
+# FIXME need to work on exception capture
+#   def test_return_nil_if_first_bogus_id
+#     assert_nil Track.find(:first, "bogus_id")
+#   end
+
+# FIXME need to work on exception capture
+#   def test_return_nil_if_first_bogus_id_in_hash
+#     assert_nil Track.find(:first, {:_id => "bogus_id"})
+#   end
+
   def test_remove
     Track.find(:first, {:song => 'King For A Day'}).remove
     str = Track.find(:all).inject('') { |str, t| str + t.to_s }
