@@ -112,7 +112,7 @@ public class RubyJxpSource extends JxpSource {
 	_setOutput(s);
 	_runtime.setGlobalVariables(new ScopeGlobalVariables(s, _runtime));
 	_exposeScopeFunctions(s);
-	_patchRequire(s);
+	_patchRequireAndLoad(s);
 
 	// See the second part of JRuby's Ruby.executeScript(String, String)
 	ThreadContext context = _runtime.getCurrentContext();
@@ -204,33 +204,58 @@ public class RubyJxpSource extends JxpSource {
 	}
     }
 
-    protected void _patchRequire(final Scope scope) {
+    protected void _patchRequireAndLoad(final Scope scope) {
 	RubyModule kernel = _runtime.getKernel();
 	kernel.addMethod("require", new JavaMethod(kernel, PUBLIC) {
 		public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+		    Ruby runtime = self.getRuntime();
 		    String arg = args[0].toString();
 		    try {
-			if (_runtime.getLoadService().require(arg))
-			    return _runtime.getTrue();
+			return runtime.getLoadService().require(arg) ? runtime.getTrue() : runtime.getFalse();
 		    }
 		    catch (RaiseException re) {
-			try {
-			    JSFileLibrary local = (JSFileLibrary)scope.get("local");
-			    Object o = local.getFromPath(arg);
-			    if (o instanceof JSFunction && ((JSFunction)o).isCallable()) { // iscallablejsf
-				((JSFunction)o).call(scope, EMPTY_OBJECT_ARRAY);
-				return _runtime.getTrue();
-			    }
-			    else
-				return _runtime.getFalse();
-			}
-			catch (Exception e) {
-			    return _runtime.getFalse();
-			}
+			return loadLibraryFile(scope, runtime, arg, re);
 		    }
-		    return _runtime.getFalse();
 		}
 	    });
+	kernel.addMethod("load", new JavaMethod(kernel, PUBLIC) {
+		public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+		    Ruby runtime = self.getRuntime();
+		    RubyString file = args[0].convertToString();
+		    boolean wrap = args.length == 2 ? args[1].isTrue() : false;
+
+		    try {
+			runtime.getLoadService().load(file.getByteList().toString(), wrap);
+			return runtime.getTrue();
+		    }
+		    catch (RaiseException re) {
+			return loadLibraryFile(scope, runtime, file.toString(), re);
+		    }
+		}
+	    });
+    }
+
+    protected IRubyObject loadLibraryFile(Scope scope, Ruby runtime, String file, RaiseException re) throws RaiseException {
+	if (DEBUG)
+	    System.err.println("going to compile and run library file " + file);
+	try {
+	    JSFileLibrary local = (JSFileLibrary)scope.get("local");
+	    Object o = local.getFromPath(file);
+	    if (isCallableJSFunction(o)) {
+		((JSFunction)o).call(scope, EMPTY_OBJECT_ARRAY);
+		return runtime.getTrue();
+	    }
+	    else if (DEBUG)
+		System.err.println("file library object is not a callable function");
+	}
+	catch (Exception e) {
+	    if (DEBUG)
+		System.err.println("problem loading file " + file + "; exception seen is " + e);
+	    /* fall through to throw re */
+	}
+	if (DEBUG)
+	    System.err.println("problem loading file " + file + "; throwing original Ruby error " + re);
+	throw re;
     }
 
     protected final File _file;
