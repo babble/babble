@@ -119,7 +119,6 @@ EOS
                    row = coll.findOne(*args[1..-1])
                    (row.nil? || row['_id'] == nil) ? nil : self.new(row)
                  rescue => ex
-                   puts ex.to_s # DEBUG
                    nil
                  end
                when :all
