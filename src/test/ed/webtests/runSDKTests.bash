@@ -94,7 +94,7 @@ for site in $SITES_LIST; do
     rm -r ./sites/${site}test/dtd
 
     # Figure out the pid of the appserver we just brought up.
-    http_pid=`ps -e -o pid,command | grep java | grep "ed.appserver.AppServer" | grep "port $http_port" | cut -d " " -f 1`
+    http_pid=`ps -e -o pid,command | grep java | grep "ed.appserver.AppServer" | grep "port $http_port" | awk '{ print $1 }'`
     # Bring down the appserver
     kill $http_pid
 
