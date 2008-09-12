@@ -158,4 +158,16 @@ public class E4X {
         }
     }
 
+    /**
+     * Given an ENode or ENodeFunction, this returns the ENode.
+     * This is useful for handling getter output.
+     */
+    public static ENode getENode( Object o ) {
+        if( o instanceof ENode.ENodeFunction ) {
+            return ((ENode.ENodeFunction)o).getNode();
+        }
+        else {
+            return (ENode)o;
+        }
+    }
 }
