@@ -24,9 +24,19 @@ import ed.db.ObjectId;
 @Test(groups = {"ruby", "ruby.required", "ruby.db"})
 public class XgenInternalsTest extends RubyDBTest {
 
+    static final String JS_RECORD_CREATION_CODE = "db.rubytest.remove({});" +
+	"db.rubytest.save({artist: 'Thomas Dolby', album: 'Aliens Ate My Buick', song: 'The Ability to Swing'});" +
+	"db.rubytest.save({artist: 'Thomas Dolby', album: 'Aliens Ate My Buick', song: 'Budapest by Blimp'});" +
+	"db.rubytest.save({artist: 'Thomas Dolby', album: 'The Golden Age of Wireless', song: 'Europa and the Pirate Twins'});" +
+	"db.rubytest.save({artist: 'XTC', album: 'Oranges & Lemons', song: 'Garden Of Earthly Delights', track: 1});" +
+	"song_id = db.rubytest.save({artist: 'XTC', album: 'Oranges & Lemons', song: 'The Mayor Of Simpleton', track: 2});" +
+	"db.rubytest.save({artist: 'XTC', album: 'Oranges & Lemons', song: 'King For A Day', track: 3});";
+    static final String JS_RECORD_DELETION_CODE = "db.rubytest.remove({})";
+
     @BeforeMethod(groups={"ruby", "ruby.required", "ruby.db"})
     public void setUp() {
 	super.setUp();
+	runJS(JS_RECORD_CREATION_CODE);
 	runRuby("require 'xgen_internals.rb';" +
 		"class Track < XGen::Mongo::Base;" +
 		"  set_collection :rubytest, %w(artist album song track);" +
@@ -38,7 +48,7 @@ public class XgenInternalsTest extends RubyDBTest {
 
     @AfterMethod(groups={"ruby.db", "ruby.required", "ruby.db"})
     public void tearDown() {
-	super.tearDown();
+	runJS(JS_RECORD_DELETION_CODE);
     }
 
     public void testRequired() {
