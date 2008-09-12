@@ -216,7 +216,7 @@ public class RubyJxpSource extends JxpSource {
 			return runtime.getLoadService().require(arg) ? runtime.getTrue() : runtime.getFalse();
 		    }
 		    catch (RaiseException re) {
-			return loadLibraryFile(scope, runtime, arg, re);
+			return loadLibraryFile(scope, runtime, self, arg, re);
 		    }
 		}
 	    });
@@ -231,20 +231,25 @@ public class RubyJxpSource extends JxpSource {
 			return runtime.getTrue();
 		    }
 		    catch (RaiseException re) {
-			return loadLibraryFile(scope, runtime, file.toString(), re);
+			return loadLibraryFile(scope, runtime, self, file.toString(), re);
 		    }
 		}
 	    });
     }
 
-    protected IRubyObject loadLibraryFile(Scope scope, Ruby runtime, String file, RaiseException re) throws RaiseException {
+    protected IRubyObject loadLibraryFile(Scope scope, Ruby runtime, IRubyObject recv, String file, RaiseException re) {
 	if (DEBUG)
 	    System.err.println("going to compile and run library file " + file);
 	try {
 	    JSFileLibrary local = (JSFileLibrary)scope.get("local");
 	    Object o = local.getFromPath(file);
 	    if (isCallableJSFunction(o)) {
-		((JSFunction)o).call(scope, EMPTY_OBJECT_ARRAY);
+		try {
+		    ((JSFunction)o).call(scope, EMPTY_OBJECT_ARRAY);
+		}
+		catch (Exception e) {
+		    recv.callMethod(runtime.getCurrentContext(), "raise", new IRubyObject[] {RubyString.newString(runtime, e.toString())}, Block.NULL_BLOCK);
+		}
 		return runtime.getTrue();
 	    }
 	    else if (DEBUG)

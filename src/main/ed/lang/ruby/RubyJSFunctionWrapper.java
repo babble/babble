@@ -79,15 +79,22 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 	final String internedName = name.intern();
 	klazz.addMethod(internedName, new JavaMethod(klazz, PUBLIC) {
                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+		    Ruby runtime = context.getRuntime();
 		    if (RubyObjectWrapper.DEBUG)
 			System.err.println("calling method " + clazz.getName() + "." + name + " with " + args.length + " args");
 		    int n = _func.getNumParameters();
-                    if (args.length != n) Arity.raiseArgumentError(getRuntime(), args.length, n, n);
+                    if (args.length != n) Arity.raiseArgumentError(runtime, args.length, n, n);
 
-		    Object result = _func.call(_scope, RubyObjectWrapper.toJSFunctionArgs(_scope, getRuntime(), args, 0, block));
-		    if (RubyObjectWrapper.DEBUG)
-			System.err.println("func " + name + " returned " + result + ", which is " + (result == null ? "null" : ("of class " + result.getClass().getName())));
-		    return toRuby(result);
+		    try {
+			Object result = _func.call(_scope, RubyObjectWrapper.toJSFunctionArgs(_scope, runtime, args, 0, block));
+			if (RubyObjectWrapper.DEBUG)
+			    System.err.println("func " + name + " returned " + result + ", which is " + (result == null ? "null" : ("of class " + result.getClass().getName())));
+			return toRuby(result);
+		    }
+		    catch (Exception e) {
+			self.callMethod(context, "raise", new IRubyObject[] {RubyString.newString(context.getRuntime(), e.toString())}, Block.NULL_BLOCK);
+			return runtime.getNil(); // will never reach
+		    }
                 }
                 @Override public Arity getArity() { return Arity.createArity(_func.getNumParameters()); }
             });
@@ -102,7 +109,7 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 		    if (RubyObjectWrapper.DEBUG)
 			System.err.println("allocating an instance of " + klass.name() + " via a JSFunction named " + name);
 		    JSObject jsobj = _func.newOne();
-		    RubyObject r = (RubyObject)new RubyJSObjectWrapper(_scope, getRuntime(), jsobj, _klazz);
+		    RubyObject r = (RubyObject)new RubyJSObjectWrapper(_scope, runtime, jsobj, _klazz);
 		    // Eigenclass has been created and used in RubyJSObjectWrapper ctor, so make that the metaclass here
 		    r.makeMetaClass(r.getSingletonClass());
 		    if (RubyObjectWrapper.DEBUG)
@@ -122,7 +129,12 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 			for (IRubyObject iro : args) System.err.println("  " + iro.toString());
 		    }
 		    JSObject jsobj = ((RubyJSObjectWrapper)self).getJSObject();
-		    _func.callAndSetThis(_scope, jsobj, RubyObjectWrapper.toJSFunctionArgs(scope, getRuntime(), args, 0, block)); // initialize it by calling _func
+		    try {
+			_func.callAndSetThis(_scope, jsobj, RubyObjectWrapper.toJSFunctionArgs(scope, context.getRuntime(), args, 0, block)); // initialize it by calling _func
+		    }
+		    catch (Exception e) {
+			self.callMethod(context, "raise", new IRubyObject[] {RubyString.newString(context.getRuntime(), e.toString())}, Block.NULL_BLOCK);
+		    }
 		    return self;
                 }
                 @Override public Arity getArity() { return Arity.OPTIONAL; }
