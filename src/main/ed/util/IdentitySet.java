@@ -34,5 +34,13 @@ public class IdentitySet<T> {
         _map.remove( t );
     }
 
+    public void clear(){
+	_map.clear();
+    }
+
+    public int size(){
+	return _map.size();
+    }
+
     final IdentityHashMap<T,String> _map = new IdentityHashMap<T,String>();
 }
