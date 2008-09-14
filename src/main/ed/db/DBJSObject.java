@@ -12,6 +12,8 @@ import static ed.MyAsserts.*;
 
 public class DBJSObject implements JSObject {
 
+    static boolean DEBUG = Boolean.getBoolean( "DEBUG.DBJSO" );
+
     DBJSObject( ByteBuffer buf ){
         this( buf , 0 );
         assertEquals( _end , _buf.limit() );
@@ -134,7 +136,7 @@ public class DBJSObject implements JSObject {
             _type = _buf.get( _start );
             _name = eoo() ? "" : _readCStr( _start + 1 );
             
-	    if ( JSHook.DEBUG ) System.out.println( "name [" + _name + "] type [" + _type + "]" );
+	    if ( DEBUG ) System.out.println( "name [" + _name + "] type [" + _type + "]" );
 	    
             int size = 1 + _name.length() + 1; // 1 for the start byte, end for end of string
             _dataStart = _start + size;
