@@ -80,6 +80,8 @@ public class JSHook {
     }
     
     public static boolean scopeSetObject( long id , String field , JSObject o ){
+	if ( field.equals( "args" ) )
+	    _nextArgs.set( o );
         _scopes.get( id ).set( field , o );
         return true;
     }
@@ -88,21 +90,9 @@ public class JSHook {
         JSObject obj = null;
         if ( buf != null ){
             buf.order( Bytes.ORDER );
-	    /*
-            ByteDecoder bd = _setObjectPool.get();
-            bd.reset( buf );
-            
-            try {
-                obj = bd.readObject();
-            }
-            finally {
-                _setObjectPool.done( bd );
-            }
-	    */
             obj = new DBJSObject( buf );
         }
-        _scopes.get( id ).set( field , obj );
-        return true;
+	return scopeSetObject( id , field , obj );
     }
 
     public static boolean scopeSetThis( long id , ByteBuffer buf ){
@@ -319,7 +309,24 @@ public class JSHook {
         }
         
         try {
-            Object ret = f.call( s , null );
+	    Object[] args = null;
+	    {
+		JSObject argsObject = _nextArgs.get();
+		_nextArgs.set( null );
+		if ( argsObject != null ){
+		    int num=0;
+		    while ( argsObject.containsKey( String.valueOf( num ) ) )
+			num++;
+		    
+		    args = new Object[ num ];
+		    for ( int i=0; i<num; i++ ){
+			Object a = argsObject.get( String.valueOf( i ) ); 
+			args[i] = a;
+		    }
+		}
+	    }
+	    
+            Object ret = f.call( s , args );
             
             if ( ret instanceof JSFunction ){
                 if ( DEBUG ) System.err.println( "\t return was function? " + ret );
@@ -337,5 +344,5 @@ public class JSHook {
     }
 
     static final Map<String,DBJni> _clients = Collections.synchronizedMap( new HashMap<String,DBJni>() );
-    
+    static final ThreadLocal<JSObject> _nextArgs = new ThreadLocal<JSObject>();
 }
