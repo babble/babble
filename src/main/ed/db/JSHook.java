@@ -105,6 +105,20 @@ public class JSHook {
         return true;
     }
 
+    public static boolean scopeSetThis( long id , ByteBuffer buf ){
+        if ( buf == null )
+	    return false;
+	
+	buf.order( Bytes.ORDER );
+	
+	Scope s = _scopes.get( id );
+
+	JSObject obj = new DBJSObject( buf );
+	s.setThis( obj );
+
+	return true;
+    }
+
     public static boolean scopeInit( long id , ByteBuffer buf ){
         if ( buf == null )
 	    return false;

@@ -13,6 +13,15 @@ import ed.util.*;
 public class ByteEncoder extends Bytes {
 
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.BE" );
+
+    // things that won't get sent in the scope
+    static final Set<String> BAD_GLOBALS = new HashSet<String>(); 
+    static {
+	BAD_GLOBALS.add( "db" );
+	BAD_GLOBALS.add( "local" );
+	BAD_GLOBALS.add( "core" );
+    }
+    
     
     public static boolean dbOnlyField( Object o ){
         if ( o == null )
@@ -268,6 +277,8 @@ public class ByteEncoder extends Bytes {
 		throw new RuntimeException( "some weird recursive thing" );
 
 	    for ( Object var : func.getGlobals() ){
+		if ( BAD_GLOBALS.contains( var.toString() ) )
+		    continue;
 		Object val = s.get( var );
 		_dontRef.add( val );
 		scopeToPass.set( var , val );
