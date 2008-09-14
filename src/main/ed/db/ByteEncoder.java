@@ -7,6 +7,7 @@ import java.nio.*;
 import java.nio.charset.*;
 
 import ed.js.*;
+import ed.js.engine.*;
 import ed.util.*;
 
 public class ByteEncoder extends Bytes {
@@ -63,6 +64,7 @@ public class ByteEncoder extends Bytes {
         _buf.position( 0 );
         _buf.limit( _buf.capacity() );
         _flipped = false;
+	_dontRef.clear();
     }
 
     protected void flip(){
@@ -190,7 +192,7 @@ public class ByteEncoder extends Bytes {
             return true;
         }
 
-        if ( name != null && o instanceof DBRef ){
+        if ( ! _dontRef.contains( o ) && name != null && o instanceof DBRef ){
             DBRef r = (DBRef)o;
             putDBRef( name , r._ns , r._id );
             return true;
@@ -201,7 +203,8 @@ public class ByteEncoder extends Bytes {
             return false;
         }
 
-        if ( name != null && 
+        if ( ! _dontRef.contains( o ) && 
+	     name != null && 
              ( o.get( "_id" ) != null && 
                o.get( "_ns" ) != null ) ){ 
             putDBRef( name , o.get( "_ns" ).toString() , (ObjectId)(o.get( "_id" ) ) );
@@ -250,12 +253,41 @@ public class ByteEncoder extends Bytes {
     }
 
     protected int putFunction( String name , JSFunction func ){
-        int start = _buf.position();
-        _put( CODE , name );
-        _putValueString( func.toString() );
+        final int start = _buf.position();
+	
+	if ( name.startsWith( "$" ) && func.getGlobals() != null && func.getGlobals().size() > 0 && func.getScope() != null ){
+	    _put( CODE_W_SCOPE , name );
+	    final int save = _buf.position();
+	    _buf.putInt( 0 );
+	    _putValueString( func.toString() );
+	    
+	    JSObjectBase scopeToPass = new JSObjectBase();
+	    Scope s = func.getScope();
+
+	    if ( _dontRef.size() != 0 )
+		throw new RuntimeException( "some weird recursive thing" );
+
+	    for ( Object var : func.getGlobals() ){
+		Object val = s.get( var );
+		_dontRef.add( val );
+		scopeToPass.set( var , val );
+	    }
+	    
+	    putObject( scopeToPass );
+	    
+	    _dontRef.clear();
+	    
+	    _buf.putInt( save , _buf.position() - save );
+	}
+	else {
+	    _put( CODE , name );
+	    _putValueString( func.toString() );
+	}
+	
+	
         return _buf.position() - start;
     }
-
+    
     protected int putSymbol( String name , String s ){
         int start = _buf.position();
         _put( SYMBOL , name );
@@ -320,7 +352,8 @@ public class ByteEncoder extends Bytes {
     
     private final CharBuffer _cbuf = CharBuffer.allocate( MAX_STRING );
     private final CharsetEncoder _encoder = _utf8.newEncoder();
-
+    private IdentitySet _dontRef = new IdentitySet();
+    
     private boolean _flipped = false;
     final ByteBuffer _buf;
 }

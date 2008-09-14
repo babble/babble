@@ -39,8 +39,9 @@ public class Bytes {
     static final byte REGEX = 11;
     static final byte REF = 12;
     static final byte CODE = 13;
-
     static final byte SYMBOL = 14;
+    static final byte CODE_W_SCOPE = 15;
+    
     
     /* 
        these are binary types

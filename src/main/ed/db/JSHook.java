@@ -88,7 +88,7 @@ public class JSHook {
         JSObject obj = null;
         if ( buf != null ){
             buf.order( Bytes.ORDER );
-
+	    /*
             ByteDecoder bd = _setObjectPool.get();
             bd.reset( buf );
             
@@ -98,11 +98,27 @@ public class JSHook {
             finally {
                 _setObjectPool.done( bd );
             }
+	    */
+            obj = new DBJSObject( buf );
         }
         _scopes.get( id ).set( field , obj );
         return true;
     }
 
+    public static boolean scopeInit( long id , ByteBuffer buf ){
+        if ( buf == null )
+	    return false;
+	
+	buf.order( Bytes.ORDER );
+		    
+	Scope s = _scopes.get( id );
+	
+	JSObject obj = new DBJSObject( buf );
+	for ( Object key : obj.keySet() )
+	    s.set( key , obj.get(key ) );
+	return true;
+    }
+    
     static SimplePool<ByteDecoder> _setObjectPool = new SimplePool<ByteDecoder>( "JSHook.scopeSetObjectPool" , 10 , 10 ){
         protected ByteDecoder createNew(){
             ByteBuffer temp = ByteBuffer.wrap( new byte[1] );
