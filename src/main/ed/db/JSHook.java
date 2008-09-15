@@ -80,6 +80,8 @@ public class JSHook {
     }
     
     public static boolean scopeSetObject( long id , String field , JSObject o ){
+	if ( field.equals( "args" ) )
+	    _nextArgs.set( o );
         _scopes.get( id ).set( field , o );
         return true;
     }
@@ -88,21 +90,39 @@ public class JSHook {
         JSObject obj = null;
         if ( buf != null ){
             buf.order( Bytes.ORDER );
-
-            ByteDecoder bd = _setObjectPool.get();
-            bd.reset( buf );
-            
-            try {
-                obj = bd.readObject();
-            }
-            finally {
-                _setObjectPool.done( bd );
-            }
+            obj = new DBJSObject( buf );
         }
-        _scopes.get( id ).set( field , obj );
-        return true;
+	return scopeSetObject( id , field , obj );
     }
 
+    public static boolean scopeSetThis( long id , ByteBuffer buf ){
+        if ( buf == null )
+	    return false;
+	
+	buf.order( Bytes.ORDER );
+	
+	Scope s = _scopes.get( id );
+
+	JSObject obj = new DBJSObject( buf );
+	s.setThis( obj );
+
+	return true;
+    }
+
+    public static boolean scopeInit( long id , ByteBuffer buf ){
+        if ( buf == null )
+	    return false;
+	
+	buf.order( Bytes.ORDER );
+		    
+	Scope s = _scopes.get( id );
+	
+	JSObject obj = new DBJSObject( buf );
+	for ( Object key : obj.keySet() )
+	    s.set( key , obj.get(key ) );
+	return true;
+    }
+    
     static SimplePool<ByteDecoder> _setObjectPool = new SimplePool<ByteDecoder>( "JSHook.scopeSetObjectPool" , 10 , 10 ){
         protected ByteDecoder createNew(){
             ByteBuffer temp = ByteBuffer.wrap( new byte[1] );
@@ -289,7 +309,24 @@ public class JSHook {
         }
         
         try {
-            Object ret = f.call( s , null );
+	    Object[] args = null;
+	    {
+		JSObject argsObject = _nextArgs.get();
+		_nextArgs.set( null );
+		if ( argsObject != null ){
+		    int num=0;
+		    while ( argsObject.containsKey( String.valueOf( num ) ) )
+			num++;
+		    
+		    args = new Object[ num ];
+		    for ( int i=0; i<num; i++ ){
+			Object a = argsObject.get( String.valueOf( i ) ); 
+			args[i] = a;
+		    }
+		}
+	    }
+	    
+            Object ret = f.call( s , args );
             
             if ( ret instanceof JSFunction ){
                 if ( DEBUG ) System.err.println( "\t return was function? " + ret );
@@ -307,5 +344,5 @@ public class JSHook {
     }
 
     static final Map<String,DBJni> _clients = Collections.synchronizedMap( new HashMap<String,DBJni>() );
-    
+    static final ThreadLocal<JSObject> _nextArgs = new ThreadLocal<JSObject>();
 }

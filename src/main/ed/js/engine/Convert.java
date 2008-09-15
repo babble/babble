@@ -1365,6 +1365,7 @@ public class Convert implements StackTraceFixer {
 
         int myStringId = _strings.size();
         _strings.add( getSource( fn ) );
+        _append( "\t public String getSourceCode(){ return _strings[" + myStringId + "].toString(); }" , fn );
         _append( "\t public String toString(){ return _strings[" + myStringId + "].toString(); }" , fn );
 
         _append( "}\n" , n );
