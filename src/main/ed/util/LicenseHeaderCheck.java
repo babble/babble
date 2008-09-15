@@ -254,7 +254,9 @@ public class LicenseHeaderCheck {
         
         // random
         _skipExtensions.add( "old" );
-        
+        _skipExtensions.add( "jj" );
+        _skipExtensions.add( "jjt" );
+
     }
 
     public static void main( String args[] )
