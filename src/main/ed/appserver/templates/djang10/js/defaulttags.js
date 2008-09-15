@@ -137,7 +137,12 @@ FirstOfNode.prototype = {
     __render: function(context, printer) {
         for(var i=0; i<this.exprs.length; i++) {
             var expr = this.exprs[i];
-            var value = expr.resolve(context);
+            var value;
+            try {
+                value = expr.resolve(context);
+            } catch(e if isinstance(e, djang10.VariableDoesNotExist)) {
+                continue;
+            }
             if(djang10.Expression.is_true(value)) {
                 printer(value);
                 return;
@@ -182,10 +187,13 @@ ForNode.prototype = {
         parentloop = ("forloop" in context)? parentloop = context["forloop"] : {};
         context.push();
         
-        var values = this.sequence.resolve(context);
-
-        if(!djang10.Expression.is_true(values))
+        var values;
+        
+        try {
+            values = this.sequence.resolve(context);
+        } catch(e if isinstance(e, djang10.VariableDoesNotExist)) {
             values = [];
+        }
 
         var next_fn;
         var count;
@@ -279,10 +287,14 @@ IfChangedNode.prototype = {
         
         var compare_to;
         var is_same;
-        if(this._varlist.length > 0)
-            compare_to = this._varlist.map(function(expr) { return expr.resolve(context); });
-        else
-            compare_to = this.nodelist.render(context);
+        try {
+            if(this._varlist.length > 0)
+                compare_to = this._varlist.map(function(expr) { return expr.resolve(context); });
+            else
+                compare_to = this.nodelist.render(context);
+        } catch(e if isinstance(e, djang10.VariableDoesNotExist)) {
+            compare_to = null;
+        }
             
         if(!IfChangedNode.are_equal(last_seen, compare_to)) {
             var firstloop = (last_seen == null);
@@ -316,8 +328,22 @@ IfEqualNode.prototype = {
     },
     
     __render: function(context, printer) {
-        var value1 = this.var1.resolve(context);
-        var value2 = this.var2.resolve(context);
+        var value1;
+        var value2;
+        
+        try {
+            value1 = this.var1.resolve(context);
+        } catch(e if isinstance(e, djang10.VariableDoesNotExist)) {
+            value1 = null;
+        } catch(e) {
+            SYSOUT("MOOO: " + (e.__proto__ == null))
+        }
+        
+        try {
+            value2 = this.var2.resolve(context);
+        } catch(e if isinstance(e, djang10.VariableDoesNotExist)) {
+            value2 = null;
+        }
         
         if(this.negate != IfChangedNode.are_equal(value1, value2)) {
             this.nodelist_true.__render(context, printer);
@@ -375,7 +401,12 @@ IfNode.prototype = {
             for(var i=0; i<this.bool_exprs.length; i++) {
                 var bool_expr = this.bool_exprs[i];
 
-                var value = bool_expr.bool_expr.resolve(context);
+                var value;
+                try {
+                    value = bool_expr.bool_expr.resolve(context, true);
+                } catch(e if isinstance(e, djang10.VariableDoesNotExist)) {
+                    value = null;
+                }
                 if(djang10.Expression.is_true(value) != bool_expr.ifnot)
                     return this.nodelist_true.__render(context, printer);
             }
@@ -384,7 +415,12 @@ IfNode.prototype = {
         else {
             for(var i=0; i<this.bool_exprs.length; i++) {
                 var bool_expr = this.bool_exprs[i];
-                var value = bool_expr.bool_expr.resolve(context);
+                var value;
+                try {
+                    value = bool_expr.bool_expr.resolve(context, true);
+                } catch(e if isinstance(e, djang10.VariableDoesNotExist)) {
+                    value = null;
+                }
                 if(djang10.Expression.is_true(value) == bool_expr.ifnot)
                     return this.nodelist_false.__render(context, printer);
             }

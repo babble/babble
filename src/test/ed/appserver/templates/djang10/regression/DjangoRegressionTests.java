@@ -97,11 +97,6 @@ public class DjangoRegressionTests {
         
         //fix exceptions
         "filter-syntax14",
-        
-        "^expression-prop.*",
-        "^expression-elm-literal.*",
-        "^expression-elm-var.*",
-        "^expression-call.*",
     };    
        
     public DjangoRegressionTests(){ }
@@ -383,11 +378,11 @@ public class DjangoRegressionTests {
         }
         
         public String getTestName() {
-            return name;
+            return script.file.getName() +":"+name;
         }
         
         public abstract void handleSuccess();
-        public abstract void handleError(RuntimeException e);
+        public abstract void handleError(Throwable e);
         
         private final JSFunctionCalls1 printer = new JSFunctionCalls1() {
             public Object call(Scope scope, Object p0, Object[] extra) {
@@ -454,8 +449,8 @@ public class DjangoRegressionTests {
             assertEquals(normal, outputBuffer.toString());
         }
         
-        public void handleError(RuntimeException arg0) {
-            throw arg0;
+        public void handleError(Throwable arg0) {
+            throw new RuntimeException("Caught unexpected exception", arg0);
         }
     }
     
@@ -499,7 +494,7 @@ public class DjangoRegressionTests {
                 }
             }
         }
-        public void handleError(RuntimeException actucalE) {
+        public void handleError(Throwable actucalE) {
             for(Object expectedE : exceptionStack) {
                 //Native exception
                 if(expectedE instanceof Class) {
@@ -520,7 +515,9 @@ public class DjangoRegressionTests {
                         throw new IllegalStateException("Don't know what to do with the expected exception " + actucalE);
                     
                     assertEquals(expectedECons, actualJsE.getConstructor());
-                }            }
+                }
+                actucalE = actucalE.getCause();
+            }
         }
         public void handleSuccess() {
             fail("Expected exception not thrown");

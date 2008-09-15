@@ -10,6 +10,7 @@ public class VariableDoesNotExist extends Djang10Exception {
     private Expression expression;
     private String msg;
     private String subExpression;
+    private boolean sameAsJsNull = false;
     
     private VariableDoesNotExist() { }
     
@@ -24,9 +25,19 @@ public class VariableDoesNotExist extends Djang10Exception {
         this.expression = expression;
         this.subExpression = subExpression;
         
-        //Token t = expression.getToken();
-        //super.init(msg + " [" + expression + "] (" +t.getOrigin() + ":" + t.getStartLine() + ")", cause);
-        super.init(msg + " [" + expression + "]", cause);
+        super.init(format(msg, expression, subExpression), cause);
+    }
+    
+    public boolean isSameAsJsNull() {
+        return sameAsJsNull;
+    }
+    public void setSameAsJsNull(boolean sameAsJsNull) {
+        this.sameAsJsNull = sameAsJsNull;
+    }
+    
+    public static String format(String msg, Expression expression, String subExpression) {
+        Token t = expression.getToken();
+        return msg + ". [" + subExpression + "] in [" + expression + "] in (" +t.getOrigin() + ":" + t.getStartLine() + ")";
     }
     
     public JSFunction getConstructor() {
@@ -49,16 +60,5 @@ public class VariableDoesNotExist extends Djang10Exception {
 
             return null;
         }
-    }
-    
-    public static class VariableDoesNotExistButIsNullInJS extends VariableDoesNotExist {
-        public VariableDoesNotExistButIsNullInJS(String msg, Expression expression, String subExpression, Throwable cause) {
-            super(msg, expression, subExpression, cause);
-        }
-
-        public VariableDoesNotExistButIsNullInJS(String msg, Expression expression, String subExpression) {
-            super(msg, expression, subExpression);
-        }
-        
     }
 }

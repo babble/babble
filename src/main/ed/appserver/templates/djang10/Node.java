@@ -26,6 +26,7 @@ import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
 import ed.js.func.JSFunctionCalls1;
 import ed.js.func.JSFunctionCalls2;
+import ed.log.Logger;
 
 public class Node extends JSObjectBase {
 
@@ -177,8 +178,12 @@ public class Node extends JSObjectBase {
     
     
     public static class VariableNode extends Node {
+        private final Logger log;
+        
         public VariableNode(FilterExpression expression) {
             super(CONSTRUCTOR);
+            log = Logger.getRoot().getChild("djang10").getChild("VariableNode");
+
             this.set("expression", expression);
         }
         
@@ -191,8 +196,9 @@ public class Node extends JSObjectBase {
             scope.setGlobal(true);
             scope.set("print", printer);
             
-            Object result = expr.resolve(scope, context);                        
-            if(result != null && result != Expression.UNDEFINED_VALUE)
+            Object result = expr.resolve(scope, context);
+            
+            if(result != null && !"".equals(result))
                 printer.call(scope, result);
             
             String output = printer.getJSString().toString();
