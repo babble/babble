@@ -21,5 +21,14 @@
       </classes>
     </test>
 
+    <test name="db rb tests">
+	  <parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
+	  <parameter name="dir-name"  value="ed/src/test/ed/db/"/>
+	  <parameter name="file-ending"  value=".rb"/>
+	  <classes>
+        <class name="ed.util.ScriptTestFactory"/>
+      </classes>
+    </test>
+
 </suite>
 
