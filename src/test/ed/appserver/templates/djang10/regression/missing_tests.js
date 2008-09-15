@@ -257,136 +257,136 @@ tests=[                                                                         
        { name: "expression-name01",        content: '{{ nullVar }}',
                                            model: { nullVar: null },
                                            results: "",
-                                           unexpectedLogResults: [/^djang10\.expresion.+INFO.+$/m] },
+                                           unexpectedLogResults: [/^.*djang10\.expresion.+INFO.+$/m] },
                                            
        { name: "expression-name02",        content: '{{ nonexistentVar }}',
                                            model: { },
                                            results: "",
-                                           logResults: [/^INFO.+Failed to lookup.+nonexistentVar.*$/m]},
+                                           logResults: [/^.*INFO.+Failed to lookup.+nonexistentVar.*$/m]},
        
        //PROP lookups
        { name: "expression-prop01",        content: '{{ obj.nullProp }}',
                                            model: { obj: {nullProp: null} },
                                            results: "",
-                                           unexpectedLogResults: [/^djang10\.expresion.+INFO.+$/m] }, 
+                                           unexpectedLogResults: [/^.*djang10\.expresion.+INFO.+$/m] }, 
                                            
        { name: "expression-prop02",        content: '{{ obj.nullProp.other.stuff.that[matters.not] }}',
                                            model: { obj: { nullProp: null } },
                                            results: "",
-                                           logResults: [/^INFO.+Can't get a property from a null object.+obj\.nullProp.*$/m] },
+                                           logResults: [/^.*INFO.+Can't get a property from a null object.+obj\.nullProp.*$/m] },
        
        { name: "expression-prop03",        content: '{{ obj.nonexistentProp }}',
                                            model: { obj: { } },
                                            results: "",
-                                           logResults: [/^INFO.+Object doesn't contain the property.+nonexistentProp.+obj.nonexistentProp.*$/m] },
+                                           logResults: [/^.*INFO.+Object doesn't contain the property.+nonexistentProp.+obj.nonexistentProp.*$/m] },
 
        { name: "expression-prop04",        content: '{{ obj.nonexistentProp.other.stuff.that[matters.not] }}',
                                            model: { obj: { } },
                                            results: "",
-                                           logResults: [/^INFO.+Object doesn't contain the property.+nonexistentProp.+obj.nonexistentProp.*$/m] },
+                                           logResults: [/^.*INFO.+Object doesn't contain the property.+nonexistentProp.+obj.nonexistentProp.*$/m] },
         
        { name: "expression-prop05",        content: '{{ nullObj.other.stuff.that[matters.not] }}',
                                            model: { nullObj: null },
                                            results: "",
-                                           logResults: [/^INFO.+null object.+nullObj.+nullObj\.other.*$/m] },
+                                           logResults: [/^.*INFO.+null object.+nullObj.+nullObj\.other.*$/m] },
                                            
        { name: "expression-prop06",        content: '{{ nonexistentObj.other.stuff.that[matters.not] }}',
                                            model: { },
                                            results: "",
-                                           logResults: [/^INFO.+Failed to lookup.+nonexistentObj.*$/m] },
+                                           logResults: [/^.*INFO.+Failed to lookup.+nonexistentObj.*$/m] },
 
        //ELEMENT lookups - literal keys
        { name: "expression-elm-literal01", content: '{{ obj["nullProp"] }}',
                                            model: { obj: {nullProp: null} },
                                            results: "",
-                                           unexpectedLogResults: [/^djang10\.expresion.+INFO.+$/m] },
+                                           unexpectedLogResults: [/^.*djang10\.expresion.+INFO.+$/m] },
 
        { name: "expression-elm-literal02", content: '{{ obj["nullProp"]["other"].stuff.that[matters.not] }}',
                                            model: { obj: {nullProp: null} },
                                            results: "",
-                                           logResults: [/^INFO.+Can't get a property from a null object.+obj\["nullProp"\]\["other"\].*$/m] },                      
+                                           logResults: [/^.*INFO.+Can't get a property from a null object.+obj\["nullProp"\]\["other"\].*$/m] },                      
        
        { name: "expression-elm-literal03", content: '{{ obj["nonexistentProp"] }}',
                                            model: { obj: {} },
                                            results: "",
-                                           logResults: [/^INFO.+Object doesn't contain the property.+nonexistentProp.+obj\["nonexistentProp"\].*$/m]},
+                                           logResults: [/^.*INFO.+Object doesn't contain the property.+nonexistentProp.+obj\["nonexistentProp"\].*$/m]},
 
        { name: "expression-elm-literal04", content: '{{ obj["nonexistentProp"].other.stuff.that[matters.not] }}',
                                            model: { obj: {} },
                                            results: "",
-                                           logResults: [/^INFO.+Object doesn't contain the property.+nonexistentProp.+obj\["nonexistentProp"\].*$/m]},
+                                           logResults: [/^.*INFO.+Object doesn't contain the property.+nonexistentProp.+obj\["nonexistentProp"\].*$/m]},
         
        { name: "expression-elm-literal05", content: '{{ nullObj["other"].stuff.that[matters.not] }}',
                                            model: { nullObj: null },
                                            results: "",
-                                           logResults: [/^INFO.+null object.+nullObj.+nullObj\["other"\].*$/m] },
+                                           logResults: [/^.*INFO.+null object.+nullObj.+nullObj\["other"\].*$/m] },
                                            
        { name: "expression-elm-literal06", content: '{{ nonexistentObj["other"].stuff.that[matters.not] }}',
                                            model: { },
                                            results: "",
-                                           logResults: [/^INFO.+Failed to lookup.+nonexistentObj.*$/m] },
+                                           logResults: [/^.*INFO.+Failed to lookup.+nonexistentObj.*$/m] },
 
        //ELEMENT lookups - variable keys
        { name: "expression-elm-var01",     content: '{{ obj[nullKey] }}',
                                            model: { obj: {}, "nullKey":null },
                                            results: "",
-                                           logResults: [/^INFO.+Can't get null property.+obj\[nullKey\].*$/m]},
+                                           logResults: [/^.*INFO.+Can't get null property.+obj\[nullKey\].*$/m]},
                                            
        { name: "expression-elm-var02",     content: '{{ obj[nullKey]["other"].stuff.that[matters.not] }}',
                                            model: { obj: {}, "nullKey":null },
                                            results: "",
-                                           logResults: [/^INFO.+Can't get null property.+obj\[nullKey\].*$/m]},
+                                           logResults: [/^.*INFO.+Can't get null property.+obj\[nullKey\].*$/m]},
         
        { name: "expression-elm-var03",     content: '{{ obj[nonexistentKey] }}',
                                            model: { obj: {} },
                                            results: "",
-                                           logResults: [/^INFO.+Failed to lookup.+nonexistentKey.*$/m]},
+                                           logResults: [/^.*INFO.+Failed to lookup.+nonexistentKey.*$/m]},
        
        { name: "expression-elm-var04",     content: '{{ obj[nonexistentKey][other].stuff.that[matters.not] }}',
                                            model: { obj: {} },
                                            results: "",
-                                           logResults: [/^INFO.+Failed to lookup.+nonexistentKey.*$/m]},
+                                           logResults: [/^.*INFO.+Failed to lookup.+nonexistentKey.*$/m]},
 
        { name: "expression-elm-var05",     content: '{{ obj[var] }}',
                                            model: { obj: {}, "var":"nonexistent" },
                                            results: "",
-                                           logResults: [/^INFO.+Object doesn't contain the property.+nonexistent.+obj\[var\].*$/]},
+                                           logResults: [/^.*INFO.+Object doesn't contain the property.+nonexistent.+obj\[var\].*$/]},
 
         //CALL's
         { name: "expression-call01",        content: '{{ nullFunc() }}',
                                             model: { nullFunc: null },
                                             results: new ExceptionStack([djang10.TemplateRenderException, new NativeExceptionWrapper("java.lang.NullPointerException")]),
-                                            unexpectedLogResults: [/^djang10\.expresion.+INFO.+$/m] },
+                                            unexpectedLogResults: [/^.*djang10\.expresion.+INFO.+$/m] },
         
         { name: "expression-call02",        content: '{{ nonexistentFunc() }}',
                                             model: { },
                                             results: new ExceptionStack([djang10.TemplateRenderException, new NativeExceptionWrapper("java.lang.NullPointerException"), djang10.VariableDoesNotExist]),
-                                            unexpectedLogResults: [/^djang10\.expresion.+INFO.+$/m] },
+                                            unexpectedLogResults: [/^.*djang10\.expresion.+INFO.+$/m] },
         
         { name: "expression-call03",        content: '{{ nullObj.func() }}',
                                             model: { nullObj: null},
                                             results: new ExceptionStack([djang10.TemplateRenderException, new NativeExceptionWrapper("java.lang.NullPointerException")]),
-                                            unexpectedLogResults: [/^djang10\.expresion.+INFO.+$/m] },
+                                            unexpectedLogResults: [/^.*djang10\.expresion.+INFO.+$/m] },
 
         { name: "expression-call04",        content: '{{ nonexistentObj.func() }}',
                                             model: { },
                                             results: new ExceptionStack([djang10.TemplateRenderException, new NativeExceptionWrapper("java.lang.NullPointerException"), djang10.VariableDoesNotExist]),
-                                            unexpectedLogResults: [/^djang10\.expresion.+INFO.+$/m] },
+                                            unexpectedLogResults: [/^.*djang10\.expresion.+INFO.+$/m] },
 
         { name: "expression-call05",        content: '{{ obj.nullFunc() }}',
                                             model: { obj: { nullFunc: null} },
                                             results: new ExceptionStack([djang10.TemplateRenderException, new NativeExceptionWrapper("java.lang.NullPointerException")]),
-                                            unexpectedLogResults: [/^djang10\.expresion.+INFO.+$/m] },
+                                            unexpectedLogResults: [/^.*djang10\.expresion.+INFO.+$/m] },
 
         { name: "expression-call06",        content: '{{ obj.nullProp.func() }}',
                                             model: { obj: { nullProp: null} },
                                             results: new ExceptionStack([djang10.TemplateRenderException, new NativeExceptionWrapper("java.lang.NullPointerException")]),
-                                            unexpectedLogResults: [/^djang10\.expresion.+INFO.+$/m] },
+                                            unexpectedLogResults: [/^.*djang10\.expresion.+INFO.+$/m] },
 
         { name: "expression-call07",        content: '{{ obj.nonexistentProp.func() }}',
                                             model: { obj: {} },
                                             results: new ExceptionStack([djang10.TemplateRenderException, new NativeExceptionWrapper("java.lang.NullPointerException"), djang10.VariableDoesNotExist]),
-                                            unexpectedLogResults: [/^djang10\.expresion.+INFO.+$/m] },
+                                            unexpectedLogResults: [/^.*djang10\.expresion.+INFO.+$/m] },
 
         //CALL params
 ];
