@@ -321,6 +321,30 @@ public class Generate {
         }
     }
 
+
+    private static ArrayList<String> getSourcePath( String[] args ) {
+        ArrayList<String> paths = new ArrayList<String>();
+        String path = args.length > 0 && args.length % 2 == 1 ? args[ args.length - 1 ] : ".";
+
+        try {
+            File file = new File( path );
+
+            if( file.isDirectory() ) {
+                paths.add( file.getCanonicalPath() );
+            }
+            else {
+                Scanner sc = new Scanner( file );
+                while( sc.hasNext() ) {
+                    paths.add( sc.next() );
+                }
+            }
+        }
+        catch( Exception e ) {
+            e.printStackTrace();
+        }
+        return paths;
+    }
+
     public static Hashtable<String,Object> processArgs( String[] args ) {
         Hashtable<String,Object> argTable = new Hashtable<String,Object>();
         for( int i=0; i<args.length-1; i+=2 ) {
@@ -334,26 +358,7 @@ public class Generate {
                 argTable.put( "db_ip" , args[ i+1 ] );
             }
         }
-        try {
-            String path = args.length > 0 && args.length % 2 == 1 ? args[ args.length - 1 ] : ".";
-            ArrayList<String> paths = new ArrayList<String>();
-            File file = new File( path );
-
-            if( file.isDirectory() ) {
-                paths.add( file.getCanonicalPath() );
-            }
-            else {
-                Scanner sc = new Scanner( file );
-                while( sc.hasNext() ) {
-                    paths.add( sc.next() );
-                }
-            }
-
-            argTable.put( "path" , paths );
-        }
-        catch( Exception e ) {
-            e.printStackTrace();
-        }
+        argTable.put( "path" , getSourcePath( args ) );
         return argTable;
     }
 

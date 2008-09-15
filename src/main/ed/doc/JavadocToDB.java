@@ -46,6 +46,7 @@ public class JavadocToDB {
         tempMethod.set("isAbstract", m.isAbstract());
         tempMethod.set("isPublic", m.isPublic());
         tempMethod.set("isa", "FUNCTION");
+        tempMethod.set("srcFile", m.containingClass().qualifiedName());
         tempMethod.set("memberOf", m.containingClass().name());
         tempMethod.set("type", m.returnType().typeName());
         tempMethod.set("exceptions", new JSArray());
@@ -137,6 +138,7 @@ public class JavadocToDB {
         JSObjectBase tempField = new JSObjectBase();
         tempField.set("desc", field.commentText());
         tempField.set("name", field.name());
+        tempField.set("srcFile", field.containingClass().qualifiedName());
         tempField.set("alias", field.qualifiedName());
         tempField.set("type", (field.type()).typeName());
         tempField.set("isStatic", field.isStatic());
@@ -368,6 +370,14 @@ public class JavadocToDB {
         return master;
     }
 
+    private static JSArray getPackages( ClassDoc c ) {
+        JSArray array = new JSArray();
+        Tag pkgs[] = c.tags( "docpkg" );
+        for( Tag p : pkgs ) {
+            array.add( p.text() );
+        }
+        return array;
+    }
 
     public static boolean start(RootDoc root) {
         Scope s = Scope.getThreadLocal();
@@ -402,10 +412,11 @@ public class JavadocToDB {
 
 
             JSObjectBase topLevel = new JSObjectBase();
-            topLevel.set("_index", obj);
-            topLevel.set("ts", Calendar.getInstance().getTime().toString());
-            topLevel.set("alias", classes[i].name());
-            topLevel.set("name", classes[i].qualifiedName());
+            topLevel.set( "_index" , obj );
+            topLevel.set( "ts" , Calendar.getInstance().getTime().toString() );
+            topLevel.set( "alias" , classes[i].name() );
+            topLevel.set( "name" , classes[i].qualifiedName() );
+            topLevel.set( "packages", getPackages( classes[i] ) );
 
             int summarylen = classes[i].commentText().indexOf(". ")+1;
             if(summarylen == 0) summarylen = classes[i].commentText().indexOf(".\n")+1;
