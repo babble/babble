@@ -61,43 +61,53 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("  creating RubyJSFunctionWrapper named " + name);
 	_func = obj;
+	JavaMethod jm = _makeCallMethod(eigenclass);
 	if (name != null && name.length() > 0) {
-	    _addMethod(name, eigenclass);
+	    if (eigenclass != null)
+		_addMethod(name, jm, eigenclass);
 	    if (isRubyClassName(name) && runtime.getClass(name) == null)
 		_createJSObjectSubclass(s, name);
 	}
+	else if (eigenclass != null)
+	    eigenclass.addMethod("call", jm);
     }
 
     boolean isRubyClassName(String name) {
 	return name != null && name.length() > 0 && Character.isUpperCase(name.charAt(0));
     }
 
-    /** Adds this method to <var>eigenclass</var>. */
-    protected void _addMethod(String name, RubyClass klazz) {
+    protected JavaMethod _makeCallMethod(RubyClass klazz) {
+	if (klazz == null)
+	    return null;
+	return new JavaMethod(klazz, PUBLIC) {
+	    public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+		Ruby runtime = context.getRuntime();
+		if (RubyObjectWrapper.DEBUG)
+		    System.err.println("calling method " + clazz.getName() + "." + name + " with " + args.length + " args");
+		int n = _func.getNumParameters();
+		if (args.length != n) Arity.raiseArgumentError(runtime, args.length, n, n);
+
+		try {
+		    Object result = _func.call(_scope, RubyObjectWrapper.toJSFunctionArgs(_scope, runtime, args, 0, block));
+		    if (RubyObjectWrapper.DEBUG)
+			System.err.println("func " + name + " returned " + result + ", which is " + (result == null ? "null" : ("of class " + result.getClass().getName())));
+		    return toRuby(result);
+		}
+		catch (Exception e) {
+		    self.callMethod(context, "raise", new IRubyObject[] {RubyString.newString(context.getRuntime(), e.toString())}, Block.NULL_BLOCK);
+		    return runtime.getNil(); // will never reach
+		}
+	    }
+	    @Override public Arity getArity() { return Arity.createArity(_func.getNumParameters()); }
+	};
+    }
+
+    /** Adds this method to <var>klazz</var>. */
+    protected void _addMethod(String name, JavaMethod jm, RubyClass klazz) {
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("adding method named " + name + " to eigenclass " + klazz.getName());
 	final String internedName = name.intern();
-	klazz.addMethod(internedName, new JavaMethod(klazz, PUBLIC) {
-                public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
-		    Ruby runtime = context.getRuntime();
-		    if (RubyObjectWrapper.DEBUG)
-			System.err.println("calling method " + clazz.getName() + "." + name + " with " + args.length + " args");
-		    int n = _func.getNumParameters();
-                    if (args.length != n) Arity.raiseArgumentError(runtime, args.length, n, n);
-
-		    try {
-			Object result = _func.call(_scope, RubyObjectWrapper.toJSFunctionArgs(_scope, runtime, args, 0, block));
-			if (RubyObjectWrapper.DEBUG)
-			    System.err.println("func " + name + " returned " + result + ", which is " + (result == null ? "null" : ("of class " + result.getClass().getName())));
-			return toRuby(result);
-		    }
-		    catch (Exception e) {
-			self.callMethod(context, "raise", new IRubyObject[] {RubyString.newString(context.getRuntime(), e.toString())}, Block.NULL_BLOCK);
-			return runtime.getNil(); // will never reach
-		    }
-                }
-                @Override public Arity getArity() { return Arity.createArity(_func.getNumParameters()); }
-            });
+	klazz.addMethod(internedName, jm);
 	klazz.callMethod(getRuntime().getCurrentContext(), "method_added", getRuntime().fastNewSymbol(internedName));
     }
 

@@ -71,15 +71,15 @@ print("new_thing = " + new_thing);
 EOS
     assert_equal("foo = Object\nfoo.bar = bletch\nnew_thing = null\n", out)
 
-# FIXME this should work
-#     $foo.bar = 'xyzzy'
-#     $new_thing = 'hello'
-#     run_js <<EOS
-# print("foo = " + foo);
-# print("foo.bar = " + foo.bar);
-# print("new_thing = " + new_thing);
-# EOS
-#     assert_equal("foo = Object\nfoo.bar = xyzzy\nnew_thing = hello\n", out)
+    $foo.bar = 'xyzzy'
+    $new_thing = 'hello'
+    out = run_js <<EOS
+print("foo = " + foo);
+print("foo.bar = " + foo.bar);
+print("new_thing = " + new_thing);
+EOS
+
+    assert_equal("foo = Object\nfoo.bar = xyzzy\nnew_thing = hello\n", out)
   end
 
 end

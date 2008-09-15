@@ -23,7 +23,7 @@ done
 export CLASSPATH=$CLASSPATH:/opt/java/lib/tools.jar
 
 export headless="-Djava.awt.headless=true"
-export jruby_home="-Djruby.home=`dirname $0`/build/ruby"
+export jruby_home="-Djruby.home=`dirname $0`/include/ruby"
 
 java -ea -Djava.library.path=include $headless $jruby_home -ea -Xmx1000m -XX:MaxDirectMemorySize=600M "$@"
 

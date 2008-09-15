@@ -214,9 +214,6 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	}
     }
 
-    public static void raise(ThreadContext context, IRubyObject recv, String msg) {
-    }
-
     public static boolean isCallableJSFunction(Object o) {
 	return (o instanceof JSFunction) && ((JSFunction)o).isCallable();
     }
