@@ -277,6 +277,77 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     public String toString(){
         return _p.invoke( "__str__" ).toString();
     }
+    
+    public PyCode getPyCode(){
+        if ( _p instanceof PyFunction )
+            return ((PyFunction)_p).func_code;
+        return null;
+    }
+
+    public JSArray argumentNames(){
+        PyCode c = getPyCode();
+        if ( c == null )
+            return null;
+
+        if ( ! ( c instanceof PyTableCode ) )
+            return null;
+
+        PyTableCode tc = (PyTableCode)c;
+        
+        JSArray foo = new JSArray();
+        for ( String s : tc.co_varnames )
+            foo.add( s );
+        return foo;
+    }
+
+    public String getSourceCode(){
+        if ( ! isCallable() )
+            throw new RuntimeException( "can't call getSourceCode on something that isn't callable" );
+        
+        if ( _p instanceof PyFunction ){
+            PyFunction func = (PyFunction)_p;
+            if ( func.func_code instanceof PyTableCode )
+                return getSourceCode( (PyTableCode)func.func_code );
+            
+        }
+        return null;
+    }
+    
+    public static String getSourceCode( PyTableCode code ){
+        if ( code == null )
+            return null;
+        
+        PyFile pyFile;
+        try {
+            pyFile = new PyFile( code.co_filename, "U", -1);
+        } 
+        catch (PyException pye) {
+            return null;
+        }
+        
+        StringBuilder buf = new StringBuilder();
+        int curLine = 0;
+        try {
+            while ( true ){
+                String line = pyFile.readline();
+                curLine++;
+                if ( curLine < code.co_firstlineno )
+                    continue;
+                if ( line == null || line.equals("\n") || line.equals( "\r\n" ) )
+                    break;
+                buf.append( line );
+            }
+        } 
+        catch (PyException pye){}
+        
+        try {
+            pyFile.close();
+        }
+        catch (PyException pye){}
+        
+        return buf.toString();
+        
+    }
 
     protected PyObject _p;
 }
