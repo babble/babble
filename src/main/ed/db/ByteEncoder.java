@@ -147,14 +147,13 @@ public class ByteEncoder extends Bytes {
 
             Object val = o.get( s );
             
-            if ( val instanceof JSFunction && ((JSFunction)val).isCallable() ){
-
-                if ( s.startsWith( "$" ) && ((JSFunction)val).getSourceCode() != null ){
-                    putFunction( s , (JSFunction)val );
+            if ( val instanceof JSFunction ){
+                JSFunction func = (JSFunction)val;
+                if ( func.isCallable() ){
+                    if ( s.startsWith( "$" ) && func.isCallable() && func.getSourceCode() != null )
+                        putFunction( s , func );
                     continue;
                 }
-
-                continue;
             }
 
 
@@ -267,7 +266,7 @@ public class ByteEncoder extends Bytes {
 	    _put( CODE_W_SCOPE , name );
 	    final int save = _buf.position();
 	    _buf.putInt( 0 );
-	    _putValueString( func.toString() );
+	    _putValueString( func.getSourceCode() );
 	    
 	    JSObjectBase scopeToPass = new JSObjectBase();
 	    Scope s = func.getScope();
@@ -291,7 +290,7 @@ public class ByteEncoder extends Bytes {
 	}
 	else {
 	    _put( CODE , name );
-	    _putValueString( func.toString() );
+	    _putValueString( func.getSourceCode() );
 	}
 	
 	
