@@ -245,6 +245,11 @@ public class JSHelper extends JSObjectBase {
     }
     
     //Template loading ==========================================================================
+    public Djang10CompiledScript get_template_from_string(String str) throws IOException {
+        Djang10Source source = new Djang10Source(str);
+        
+        return (Djang10CompiledScript)source.getFunction();
+    }
     @Deprecated
     public Djang10CompiledScript loadTemplate(Scope scope, JSString path, JSArray dirs) {
         return get_template(scope, path, dirs);
