@@ -87,10 +87,7 @@ tests=[                                                                         
                                            model: { d: aDate }, 
                                            results: "p.m.,PM,3:11,3,15,03,15,11,3:11 p.m.,37" },
        
-       { name: "if-method chain01",        content: '{% autoescape off %}{% if foo.blah(x).bar %}true{% else %}false{% endif %}{% endautoescape %}', 
-                                           model: { }, 
-                                           results: "false" },
-       
+      
        { name: "if-method chain02",        content: '{% autoescape off %}{% if foo.add(x).prop %}true{% endif %}{% endautoescape %}', 
                                            model: { foo: new OtherClass2(3), x: new OtherClass2(5) }, 
                                            results: "true" },
@@ -149,11 +146,7 @@ tests=[                                                                         
        { name: "literal-escape03",         content: '{{ "moo\\nbaa" }}',
                                            model: {},
                                            results: "moo\\nbaa" },
-       
-       { name: "with-filter01",            content: '{% with none.existent.crap( "moo" ) | default:"baa" as var %}{{ var }}{% endwith %}',
-                                           model: {},
-                                           results: "baa" },
-       
+              
        { name: "filter-pprint01",          content: '{{ "moo"|pprint }}',
                                            model: {},
                                            results: '"moo"' },
