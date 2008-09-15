@@ -203,6 +203,7 @@ public class DBJSObject implements JSObject {
 		return new ObjectId( _buf.getLong( _dataStart ) , _buf.getInt( _dataStart + 8 ) );
 	    case SYMBOL:
 	    case CODE:
+		return ed.js.engine.Convert.makeAnon( _readJavaString( _dataStart ) );
 	    case STRING:
 		return _readJavaString( _dataStart );
 	    case DATE:
