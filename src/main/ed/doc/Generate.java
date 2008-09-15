@@ -101,6 +101,9 @@ public class Generate {
         query.set( "name", modname );
         Iterator it = docdb.find( query );
 
+        // set the name on the jsobj
+        jsobj.set( "name" , modname );
+
         // create a new module
         if(it == null) {
             JSObject topLevel = new JSObjectBase();
