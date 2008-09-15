@@ -330,7 +330,7 @@ public class Expression extends JSObjectBase {
                 log.debug("SHOULD NEVER HAPPEN!!! [" + this +  "]. (" + token.getOrigin() + ":" + token.getStartLine() + ")");
 
         } catch(VariableLookupError e) {
-            log.debug("Failed to resolve ["+this+"]: "+e.getMessage()+" ("+ token.getOrigin() + ":" + token.getStartLine() + ")");
+            log.info("Failed to resolve ["+this+"]: "+e.getMessage()+" ("+ token.getOrigin() + ":" + token.getStartLine() + ")");
         }        
 
         obj = JSNumericFunctions.fixType(obj);
