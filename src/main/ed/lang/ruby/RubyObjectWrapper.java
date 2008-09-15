@@ -25,7 +25,6 @@ import org.jruby.internal.runtime.methods.JavaMethod;
 import org.jruby.javasupport.JavaUtil;
 import org.jruby.parser.ReOptions;
 import org.jruby.runtime.*;
-import org.jruby.runtime.callback.Callback;
 import org.jruby.runtime.builtin.*;
 import static org.jruby.runtime.Visibility.PUBLIC;
 
@@ -198,18 +197,17 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	    if (namesToIgnore.contains(name))
 		continue;
 	    final JSFunction func = NativeBridge.getNativeFunc(jsobj, name);
-	    klazz.defineMethod(name, new Callback() {
-		    public IRubyObject execute(IRubyObject recv, IRubyObject[] args, Block block) {
-			Ruby runtime = recv.getRuntime();
+	    klazz.addMethod(name, new JavaMethod(klazz, PUBLIC) {
+		    public IRubyObject call(ThreadContext context, IRubyObject recv, RubyModule klazz, String name, IRubyObject[] args, Block block) {
+			Ruby runtime = context.getRuntime();
 			try {
 			    return toRuby(scope, runtime, func.callAndSetThis(scope, jsobj, RubyObjectWrapper.toJSFunctionArgs(scope, runtime, args, 0, block)));
 			}
 			catch (Exception e) {
-			    recv.callMethod(runtime.getCurrentContext(), "raise", new IRubyObject[] {RubyString.newString(runtime, e.toString())}, Block.NULL_BLOCK);
+			    recv.callMethod(context, "raise", new IRubyObject[] {RubyString.newString(runtime, e.toString())}, Block.NULL_BLOCK);
 			    return runtime.getNil(); // will never reach
 			}
 		    }
-		    public Arity getArity() { return Arity.OPTIONAL; }
 		});
 	}
     }
