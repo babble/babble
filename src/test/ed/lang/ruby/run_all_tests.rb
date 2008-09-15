@@ -16,5 +16,8 @@ require 'test/unit'
 
 Dir[File.join(File.dirname(__FILE__), 'test_*.rb')].each { |f| require f }
 
+puts
+puts
 passed = Test::Unit::AutoRunner.run
+puts
 raise "a test failed" unless passed

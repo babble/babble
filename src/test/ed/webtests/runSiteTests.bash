@@ -96,6 +96,7 @@ ln -s $TESTDIR/resources/definitions $FULLSITE/test/definitions/_10gen_default_d
 # Run webtest.
 cd $FULLSITE/test
 export WTPATH=$EDROOT/include/webtest
+export LOCAL_TEST_10GEN="true"
 $WTPATH/bin/webtest.sh $WTPARAMS
 STATUS=$?
 
