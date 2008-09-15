@@ -165,7 +165,6 @@ public class DBJSObject implements JSObject {
                 size += 4 + _buf.getInt( _dataStart );
                 break;
             case ARRAY:
-                throw new RuntimeException( "can't handle arrays things yet" );
             case OBJECT:
 		size += _buf.getInt( _dataStart );
 		break;
