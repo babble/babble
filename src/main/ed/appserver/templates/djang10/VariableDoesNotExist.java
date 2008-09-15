@@ -24,8 +24,9 @@ public class VariableDoesNotExist extends Djang10Exception {
         this.expression = expression;
         this.subExpression = subExpression;
         
-        Token t = expression.getToken();
-        super.init(msg + " [" + expression + "] (" +t.getOrigin() + ":" + t.getStartLine() + ")", cause);
+        //Token t = expression.getToken();
+        //super.init(msg + " [" + expression + "] (" +t.getOrigin() + ":" + t.getStartLine() + ")", cause);
+        super.init(msg + " [" + expression + "]", cause);
     }
     
     public JSFunction getConstructor() {
