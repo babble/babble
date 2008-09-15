@@ -98,7 +98,11 @@ public class DjangoRegressionTests {
         //fix exceptions
         "filter-syntax14",
         
-        "^expression-.*"
+        "^expression-name.*",
+        "^expression-prop.*",
+        "^expression-elm-literal.*",
+        "^expression-elm-var.*",
+        "^expression-call.*",
     };    
        
     public DjangoRegressionTests(){ }
