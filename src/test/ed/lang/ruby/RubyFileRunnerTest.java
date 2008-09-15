@@ -33,20 +33,14 @@ import ed.lang.ruby.RubyJxpSource;
 public class RubyFileRunnerTest {
 
     public void testRunAllRubyFiles() {
-	String edHome = System.getenv("ED_HOME");
-	File here = new File(edHome, "src/test/ed/lang/ruby");
-	File f = new File(here, "run_all_tests.rb");
-
-	Scope s = createScope(f.getParentFile());
-
+	File f = new File(System.getenv("ED_HOME"), "src/test/ed/lang/ruby/run_all_tests.rb");
 	RubyJxpSource source = new RubyJxpSource(f, null);
-	addRubyLoadPath(source, new File(edHome, "build").getPath()); // for xgen_internals.rb
-	addRubyLoadPath(source, here.getPath());
-
+	Scope s = createScope(f.getParentFile());
 	try {
 	    source.getFunction().call(s, new Object[0]);
 	}
 	catch (Exception e) {
+	    e.printStackTrace();
 	    fail("while running file " + f.getPath() + ", exception was thrown: " + e);
 	}
     }

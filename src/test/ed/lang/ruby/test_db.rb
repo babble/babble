@@ -53,7 +53,7 @@ EOS
   end
 
   def test_find_any_one
-    json = tojson($db.rubytest.findOne())
+    json = tojson(@coll.findOne())
     assert(json =~ /artist/, "JSON representation missing 'artist': #{json}")
   end
 
@@ -75,6 +75,35 @@ EOS
 
   def test_find
     assert_all_rows(@coll.find.inject('') {|str, row| str + tojson(row)})
+  end
+
+  def test_find_fields
+    str = @coll.find({}, {:song => 1}).inject('') {|str, row| str + tojson(row)}
+    assert_all_rows(str)        # only checks song column
+    %w(artist album track).each { |f| assert(str !~ /#{f}/, "saw #{f} but did not expect it") }
+  end
+
+# FIXME this is really a bug in the database; it is returning all columns if
+# the cursor returns only one record. We plan to fix this in the future.
+
+#   def test_find_fields_with_criteria
+#     # only return song column
+#     json = tojson(@coll.find(@song_id, {:song => 1}))
+#     assert(json =~ /Simpleton/, "did not find Simpleton")
+#     %w(artist album track).each { |f| assert(json !~ /#{f}/, "saw #{f} but did not expect it") }
+#   end
+
+  # length() turns results into an in-memory array (as do some other cursor
+  # methods) and returns the length of the array.
+  def test_find_limit
+    assert_equal(2, @coll.find().limit(2).length())
+  end
+
+  # count() goes to the database and returns the total number of records that
+  # match the query, ignoring limit and offset. For example if 100 records
+  # match but the limit is 10, count() will return 100.
+  def test_find_count
+    assert_equal(6, @coll.find().limit(2).count())
   end
 
   def assert_simpleton(x)
