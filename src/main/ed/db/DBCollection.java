@@ -412,6 +412,8 @@ public abstract class DBCollection extends JSObjectLame {
                         String str = o.toString();
                         if ( ObjectId.isValid( str ) )
                             o = new ObjectId( str );
+                        else 
+                            throw new IllegalArgumentException( "can't call find() with a string that is not a valid ObjectId" );
                     }
                     
                     if ( o instanceof ObjectId )

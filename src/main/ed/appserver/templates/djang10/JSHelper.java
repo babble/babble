@@ -92,6 +92,8 @@ public class JSHelper extends JSObjectBase {
         this.set("TemplateSyntaxError", TemplateSyntaxError.cons);
         this.set("Djang10Exception", Djang10Exception.cons);
         this.set("TemplateDoesNotExist", TemplateDoesNotExist.cons);
+        this.set("VariableDoesNotExist", VariableDoesNotExist.cons);
+        this.set("TemplateRenderException", TemplateRenderException.cons);
         
         this.set("mark_safe", new JSFunctionCalls1() {
             public Object call(Scope scope, Object p0, Object[] extra) {

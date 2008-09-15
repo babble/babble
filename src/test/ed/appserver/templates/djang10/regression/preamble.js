@@ -15,19 +15,26 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-HackTemplate = function(content) {
+function HackTemplate(content) {
     this.content = content;
 };
 TemplateSyntaxError = djang10.TemplateSyntaxError;
 
-SomeException = function() { }
+function SomeException() { }
 SomeException.prototype = {
     silent_variable_failure : true
 };
-SomeOtherException = function() {}
+function SomeOtherException() {}
 
+function NativeExceptionWrapper(className) {
+    this.className = className;
+};
 
-SomeClass = function() {
+function ExceptionStack(stack) {
+    this.stack = stack;
+}
+
+function SomeClass() {
     this.otherclass = new OtherClass();
 };
 SomeClass.prototype = {
@@ -45,29 +52,29 @@ SomeClass.prototype = {
     }
 };
 
-OtherClass = function() {};
+function OtherClass() {};
 OtherClass.prototype = {
     method: function() {
         return "OtherClass.method";
     }
 };
 
-UnsafeClass = function() {};
+function UnsafeClass() {};
 UnsafeClass.prototype.toString = function() {
     return "you & me";
 };
 
-SafeClass = function() {};
+function SafeClass() {};
 SafeClass.prototype.toString = function() {
     return djang10.mark_safe("you &gt; me");
 };
 
-UTF8Class = function(){};
+function UTF8Class(){};
 UTF8Class.prototype.toString = function() {
     return "ŠĐĆŽćžšđ";
 };
 
-from_now = function(sec_offset) {
+function from_now(sec_offset) {
     var now = new Date();
     now.setSeconds(now.getSeconds() + sec_offset);
     return now;

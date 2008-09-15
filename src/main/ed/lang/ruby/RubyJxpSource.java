@@ -253,6 +253,10 @@ public class RubyJxpSource extends JxpSource {
 		    ((JSFunction)o).call(scope, EMPTY_OBJECT_ARRAY);
 		}
 		catch (Exception e) {
+		    if (DEBUG) {
+			System.err.println("problem loading JSFileLibrary file: " + e + "; calling Ruby \"raise\" method");
+			e.printStackTrace();
+		    }
 		    recv.callMethod(runtime.getCurrentContext(), "raise", new IRubyObject[] {RubyString.newString(runtime, e.toString())}, Block.NULL_BLOCK);
 		}
 		return runtime.getTrue();
