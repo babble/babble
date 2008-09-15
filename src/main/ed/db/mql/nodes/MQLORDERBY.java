@@ -43,7 +43,8 @@ public class MQLORDERBY extends SimpleNode {
 
             String what = ((SimpleNode) sn.jjtGetChild(0)).stringJSForm();
             int id = ((SimpleNode) sn.jjtGetChild(1)).getId();
-            qi.addOrderBy(new QueryInfo.Field(what, id == MQLTreeConstants.JJTASCENDING ? "1" : "-1"));
+            qi.addOrderBy(new QueryInfo.Field(what, ((SimpleNode) sn.jjtGetChild(0)).getId(),
+                    id == MQLTreeConstants.JJTASCENDING ? "1" : "-1", MQLTreeConstants.JJTINTEGERLITERAL));
         }
     }
 }

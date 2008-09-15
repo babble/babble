@@ -166,11 +166,19 @@ public class QueryInfo {
         for (Field f : _setFieldList) {
 
             // fixme
-            
-            sb.append("arguments[0].");
-            sb.append(f.name);
+
+            if (f._nameType == MQLTreeConstants.JJTPATH) {
+                sb.append("arguments[0].");
+            }
+
+            sb.append(f._name);
             sb.append("=");
-            sb.append(f.value);
+
+            if (f._valueType == MQLTreeConstants.JJTPATH) {
+                sb.append("arguments[0].");
+            }
+
+            sb.append(f._value);
             sb.append("; ");
         }
 
@@ -224,9 +232,9 @@ public class QueryInfo {
                 if (count++ != 0) {
                     rf.append(", ");
                 }
-                rf.append(f.name);
+                rf.append(f._name);
                 rf.append(":");
-                rf.append(f.value);
+                rf.append(f._value);
             }
             rf.append("}");
 
@@ -271,7 +279,7 @@ public class QueryInfo {
                 if (count++ != 0) {
                     rf.append(", ");
                 }
-                rf.append(f.name);
+                rf.append(f._name);
                 rf.append(":true");
             }
             rf.append("}");
@@ -292,9 +300,9 @@ public class QueryInfo {
                 if (count++ != 0) {
                     rf.append(", ");
                 }
-                rf.append(f.name);
+                rf.append(f._name);
                 rf.append(":");
-                rf.append(f.value);
+                rf.append(f._value);
             }
             rf.append("})");
 
@@ -321,16 +329,21 @@ public class QueryInfo {
     }
 
     public static  class Field {
-        public String name;
-        public String value;
+        public String _name;
+        int _nameType;
+        public String _value;
+        int _valueType;
 
-        public Field(String s) {
-            name = s;
+        public Field(String s, int t) {
+            _name = s;
+            _nameType = t;
         }
 
-        public Field(String s, String v) {
-            name = s;
-            value = v;
+        public Field(String s, int a,  String v, int b) {
+            _name = s;
+            _nameType = a;
+            _value = v;
+            _valueType = b;
         }
     }
 }

@@ -44,7 +44,7 @@ public class MQLSELECTEXPRESSION extends SimpleNode {
         } else {
             // assume a field selection expression
 
-            qi.addReturnField(new QueryInfo.Field(sn.stringJSForm()));
+            qi.addReturnField(new QueryInfo.Field(sn.stringJSForm(), MQLTreeConstants.JJTPATH));
         }
     }
 }

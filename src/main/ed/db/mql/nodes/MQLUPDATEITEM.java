@@ -38,11 +38,13 @@ public class MQLUPDATEITEM extends SimpleNode {
 
     public void updateQI(QueryInfo qi) {
 
-        String left =  ((SimpleNode) children[0]).stringJSForm();
+        SimpleNode leftNode = (SimpleNode) children[0];
+        SimpleNode rightNode = (SimpleNode) children[2];
 
-        String right =  ((SimpleNode) children[2]).stringJSForm();
+        int rightId = ((SimpleNode) children[2].jjtGetChild(0)).getId();
 
-        qi.addSetField(new QueryInfo.Field(left, right));
+        qi.addSetField(new QueryInfo.Field(leftNode.stringJSForm(), leftNode.getId(),
+                                            rightNode.stringJSForm(), rightId));
     }
 }
 /* JavaCC - OriginalChecksum=b4cc3a7edd04e3ea35c5f9c12eb936af (do not edit this line) */
