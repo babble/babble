@@ -430,23 +430,10 @@ public class Convert implements StackTraceFixer {
 
             _append( "((JSObject)" , n );
             _add( n.getFirstChild().getFirstChild() , state );
-            _append( ").set( \"" , n );
-
-            if( fc.getType() == Token.REF_SPECIAL ) {
-                _append( fc.getProp( Node.NAME_PROP ).toString() , n );
-                _append( "\" , " , n );
-                _add( fc.getNext() , state );
-            }
-            // xml.@attribute = "value"
-            else if ( fc.getType() == Token.REF_MEMBER ) {
-                final int memberTypeFlags = fc.getIntProp(Node.MEMBER_TYPE_PROP, 0);
-                String theName = ( ( memberTypeFlags & Node.ATTRIBUTE_FLAG ) != 0 ? "@" : "" ) + fc.getFirstChild().getNext().getString();
-                if ( ( memberTypeFlags & Node.DESCENDANTS_FLAG ) != 0 )
-                    theName = ".." + theName;
-                _append( theName  + "\", " , n );
-                _add( fc.getNext() , state );
-            }
-
+            _append( ").set( " , n );
+            _add( fc , state );
+            _append( " , " , n );
+            _add( fc.getNext() , state );
             _append( " )" , n );
             break;
 
@@ -463,12 +450,15 @@ public class Convert implements StackTraceFixer {
             break;
 
         case Token.REF_MEMBER :
+            _append( "\"" , n );
             final int memberTypeFlags = n.getIntProp(Node.MEMBER_TYPE_PROP, 0);
-            String theName = ( ( memberTypeFlags & Node.ATTRIBUTE_FLAG ) != 0 ? "@" : "" ) + n.getFirstChild().getNext().getString();
             if ( ( memberTypeFlags & Node.DESCENDANTS_FLAG ) != 0 )
-                theName = ".." + theName;
-            _append( "\"" + theName  + "\"" , n );
+                _append( ".." , n );
+            if ( ( memberTypeFlags & Node.ATTRIBUTE_FLAG ) != 0 )
+                _append( "@" , n );
 
+            _append( n.getFirstChild().getNext().getString() , n );
+            _append( "\"" , n );
             break;
 
         case Token.REF_NS_MEMBER :
@@ -480,6 +470,7 @@ public class Convert implements StackTraceFixer {
             _add( n.getFirstChild().getNext().getNext() , state );
             break;
 
+        case Token.REF_NAME :
         case Token.ESCXMLTEXT :
         case Token.ESCXMLATTR :
             _add( n.getFirstChild(), state );
@@ -834,9 +825,25 @@ public class Convert implements StackTraceFixer {
 
             _append( "((JSObject)" , n );
             _add( n.getFirstChild() , state );
-            _append( " ).get( " , n );
-	    _addDotQuery( n.getFirstChild().getNext() , state );
-            _append( ") " , n  );
+            _append( " ).get( new ed.js.e4x.Query( " , n );
+
+            Node n2 = n.getFirstChild().getNext();
+            switch( n2.getFirstChild().getType() ) {
+            case Token.GET_REF :
+		_append( "\"@\" + " , n );
+		_add( n2.getFirstChild().getFirstChild() , state );
+                break;
+            case Token.NAME : 
+                _append( "\"" + n2.getFirstChild().getString() + "\"" , n );
+                break;
+            }
+
+            _append( " , " , n );
+            _add( n2.getFirstChild().getNext() , state );
+            _append( " + \"\" , " , n );
+
+            String comp = Token.name( n2.getType() );
+            _append( "\"" + comp + "\" ) ) " , n  );
 
 	    break;
 
@@ -854,8 +861,9 @@ public class Convert implements StackTraceFixer {
     }
 
     private void _addDotQuery( Node n , State state ){
-	_append( "(new ed.js.e4x.E4X.Query_" + Token.name( n.getType() )+ "(" , n );
+	_append( "(new ed.js.e4x.E4X.Query(" , n );
 
+        String s = Token.name( n.getType() );
 	{
 	    Node t = n.getFirstChild();
 	    switch ( t.getType() ){
@@ -1268,15 +1276,20 @@ public class Convert implements StackTraceFixer {
         state._fi = fi;
 
         boolean hasArguments = fi.usesArguemnts();
-
+        
         _append( "new JSFunctionCalls" + fn.getParamCount() + "( scope , null ){ \n" , n );
 
         _append( "protected void init(){ super.init(); _sourceLanguage = getFileLanguage(); \n " , n );
+
         _append( "_arguments = new JSArray();\n" , n );
         for ( int i=0; i<fn.getParamCount(); i++ ){
             final String foo = fn.getParamOrVarName( i );
             _append( "_arguments.add( \"" + foo + "\" );\n" , n );
         }
+        
+        _append( "_globals = new JSArray();\n" , n );
+        for ( String g : fi._globals )
+            _append( "_globals.add( \"" + g + "\" );\n" , n );
         _append( "}\n" , n );
 
         String callLine = "public Object call( final Scope passedIn ";
@@ -1352,6 +1365,7 @@ public class Convert implements StackTraceFixer {
 
         int myStringId = _strings.size();
         _strings.add( getSource( fn ) );
+        _append( "\t public String getSourceCode(){ return _strings[" + myStringId + "].toString(); }" , fn );
         _append( "\t public String toString(){ return _strings[" + myStringId + "].toString(); }" , fn );
 
         _append( "}\n" , n );
@@ -1863,6 +1877,7 @@ public class Convert implements StackTraceFixer {
     final Map<Node,ScriptOrFnNode> _nodeToSOR = new HashMap<Node,ScriptOrFnNode>();
     final List<Pair<String,String>> _regex = new ArrayList<Pair<String,String>>();
     final List<String> _strings = new ArrayList<String>();
+
     int _preMainLines = -1;
     private final StringBuilder _mainJavaCode = new StringBuilder();
 

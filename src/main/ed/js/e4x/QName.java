@@ -31,6 +31,49 @@ import ed.js.engine.*;
 import ed.util.*;
 
 public class QName extends JSObjectBase {
+
+    public static JSFunction _cons = new Cons();
+
+
+    public static class Cons extends JSFunctionCalls0 {
+
+        public JSObject newOne(){
+            return new QName();
+        }
+
+        public Object call( Scope scope , Object [] args){
+            Object blah = scope.getThis();
+
+            QName e;
+            if ( blah instanceof QName) {
+                e = (QName)blah;
+            }
+            else {
+                if( args.length == 0 ) {
+                    e = new QName();
+                }
+                else if( args.length == 1 ) {
+                    e = new QName( args[0] );
+                }
+                else {
+                    e = new QName( new Namespace( args[0] ), args[1] );
+                }
+            }
+
+            return e;
+        }
+    }
+
+
+    void init( String s ) {
+        this.uri = s;
+    }
+
+    void init( String p, String s ) {
+        this.localName = p;
+        this.uri = s;
+    }
+
     public String localName;
     public String uri;
     public String prefix;

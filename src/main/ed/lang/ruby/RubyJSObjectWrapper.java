@@ -40,14 +40,18 @@ import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
  */
 public class RubyJSObjectWrapper extends RubyHash {
 
+    static Map<Ruby, RubyClass> klassDefs = new WeakHashMap<Ruby, RubyClass>();
     static RubyClass jsObjectClass = null;
 
     protected Scope _scope;
     protected final JSObject _jsobj;
     protected int _size;
     protected RubyClass _eigenclass;
+    protected Set<String> _jsIvars;
+    protected Set<String> _jsFuncs;
 
     public static synchronized RubyClass getJSObjectClass(Ruby runtime) {
+	RubyClass jsObject = klassDefs.get(runtime);
 	if (jsObjectClass == null) {
 	    jsObjectClass = runtime.defineClass("JSObject", runtime.getHash(), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
 	    jsObjectClass.kindOf = new RubyModule.KindOf() {
@@ -55,6 +59,7 @@ public class RubyJSObjectWrapper extends RubyHash {
 			return obj instanceof RubyJSObjectWrapper;
 		    }
 		};
+	    klassDefs.put(runtime, jsObjectClass);
 	}
 	return jsObjectClass;
     }
@@ -66,10 +71,12 @@ public class RubyJSObjectWrapper extends RubyHash {
     RubyJSObjectWrapper(Scope s, Ruby runtime, JSObject obj, RubyClass klass) {
 	super(runtime, klass);
 	if (RubyObjectWrapper.DEBUG)
-	    System.err.println("creating RubyJSObjectWrapper around " + obj.getClass().getName());
+	    System.err.println("creating RubyJSObjectWrapper around " + obj.getClass().getName() + "; ruby class = " + klass.name());
 	_scope = s;
 	_jsobj = obj;
 	_eigenclass = getSingletonClass();
+	_jsIvars = new HashSet<String>();
+	_jsFuncs = new HashSet<String>();
 	_createMethods();
     }
 
@@ -87,17 +94,33 @@ public class RubyJSObjectWrapper extends RubyHash {
 	alreadyDefined.add("get");
 	alreadyDefined.add("set");
 
+	rebuild();
+
+	alreadyDefined.addAll(_jsIvars);
+	alreadyDefined.addAll(_jsFuncs);
+	RubyObjectWrapper.addJavaPublicMethodWrappers(_scope, _eigenclass, _jsobj, alreadyDefined);
+    }
+
+    /**
+     * Scan the key set and (re)create or modify ivars and functions.
+     * <p>
+     * Right now, we do this the dumb way by deleting all information and
+     * re-creating it.
+     */
+    public void rebuild() {
+	for (String name : new HashSet<String>(_jsIvars))
+	    _removeInstanceVariable(name);
+	for (String name : new HashSet<String>(_jsFuncs))
+	    _removeFunctionMethod(name);
 	for (final Object key : jsKeySet()) {
 	    Object val = _jsobj.get(key);
-	    if (val == null)
-		continue;
-	    alreadyDefined.add(key.toString());
-	    if (isCallableJSFunction(val))
-		_addFunctionMethod(key, (JSFunction)val);
-	    else
-		_addInstanceVariable(key);
+	    if (val != null) {
+		if (isCallableJSFunction(val))
+		    _addFunctionMethod(key, (JSFunction)val);
+		else
+		    _addInstanceVariable(key);
+	    }
 	}
-	RubyObjectWrapper.addJavaPublicMethodWrappers(_scope, _eigenclass, _jsobj, alreadyDefined);
     }
 
     public JSObject getJSObject() { return _jsobj; }
@@ -395,11 +418,19 @@ public class RubyJSObjectWrapper extends RubyHash {
     protected void _addFunctionMethod(final Object key, final JSFunction val) {
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("adding function method " + key);
+	_jsFuncs.add(key.toString());
 	_eigenclass.defineMethod(key.toString(), new Callback() {
 		public IRubyObject execute(IRubyObject recv, IRubyObject[] args, Block block) {
+		    Ruby runtime = recv.getRuntime();
 		    if (RubyObjectWrapper.DEBUG)
 			System.err.println("calling function " + key);
-		    return toRuby(((JSFunction)val).callAndSetThis(_scope, _jsobj, RubyObjectWrapper.toJSFunctionArgs(_scope, getRuntime(), args, 0, block)));
+		    try {
+			return toRuby(((JSFunction)val).callAndSetThis(_scope, _jsobj, RubyObjectWrapper.toJSFunctionArgs(_scope, runtime, args, 0, block)));
+		    }
+		    catch (Exception e) {
+			recv.callMethod(runtime.getCurrentContext(), "raise", new IRubyObject[] {RubyString.newString(runtime, e.toString())}, Block.NULL_BLOCK);
+			return runtime.getNil(); // will not reach
+		    }
 		}
 		public Arity getArity() { return Arity.OPTIONAL; }
 	    });
@@ -411,6 +442,7 @@ public class RubyJSObjectWrapper extends RubyHash {
 	    return;
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("adding ivar " + key);
+	_jsIvars.add(skey);
 
 	final IRubyObject rkey = toRuby(key);
 	final ThreadContext context = getRuntime().getCurrentContext();
@@ -430,9 +462,11 @@ public class RubyJSObjectWrapper extends RubyHash {
     }
 
     protected void _removeFunctionMethod(Object key) {
+	String skey = key.toString();
 	if (RubyObjectWrapper.DEBUG)
-	    System.err.println("removing function method " + key);
-	_eigenclass.undef(getRuntime().getCurrentContext(), key.toString());
+	    System.err.println("removing function method " + skey);
+	_eigenclass.undef(getRuntime().getCurrentContext(), skey);
+	_jsFuncs.remove(skey);
     }
 
     protected void _removeInstanceVariable(Object key) {
@@ -443,15 +477,16 @@ public class RubyJSObjectWrapper extends RubyHash {
 	_eigenclass.undef(context, skey);
 	_eigenclass.undef(context, skey + "=");
 	remove_instance_variable(context, RubyString.newString(getRuntime(), "@" + skey), null);
+	_jsIvars.remove(skey);
     }
 
     protected void _addMethodMissing() {
 	_eigenclass.addMethod("method_missing", new JavaMethod(_eigenclass, PUBLIC) {
                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
-		    if (RubyObjectWrapper.DEBUG)
-			System.err.println("RubyJSObjectWrapper.method_missing " + name);
 		    // args[0] is method name symbol, args[1..-1] are arguments
 		    String key = args[0].toString();
+		    if (RubyObjectWrapper.DEBUG)
+			System.err.println("RubyJSObjectWrapper.method_missing " + key);
 		    if (key.endsWith("=")) {
 			if (RubyObjectWrapper.DEBUG)
 			    System.err.println("method_missing: turning " + key + " into op_aset call");
@@ -472,7 +507,12 @@ public class RubyJSObjectWrapper extends RubyHash {
 			if (isCallableJSFunction(val)) {
 			    if (RubyObjectWrapper.DEBUG)
 				System.err.println("method_missing: found a callable function for key " + key + "; calling it");
-			    return toRuby(((JSFunction)val).callAndSetThis(_scope, _jsobj, RubyObjectWrapper.toJSFunctionArgs(_scope, getRuntime(), args, 1, block)));
+			    try {
+				return toRuby(((JSFunction)val).callAndSetThis(_scope, _jsobj, RubyObjectWrapper.toJSFunctionArgs(_scope, getRuntime(), args, 1, block)));
+			    }
+			    catch (Exception e) {
+				self.callMethod(context, "raise", new IRubyObject[] {RubyString.newString(context.getRuntime(), e.toString())}, Block.NULL_BLOCK);
+			    }
 			}
 			else {
 			    if (RubyObjectWrapper.DEBUG)

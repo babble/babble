@@ -70,29 +70,32 @@ module XGen
           @ivars = coll_name
           @coll_name = self.name.gsub(/([A-Z])/, '_\1').downcase.sub(/^_/, '')
         end
-        @coll = $db[@coll_name.to_s]
 
         @ivars << '_id' unless @ivars.include?('_id')
       @ivars.each { |ivar|
+          attr_method = ivar == '_id' ? 'attr_reader' : 'attr_accessor'
           eval <<EOS
-attr_accessor :#{ivar}
+#{attr_method} :#{ivar}
 def self.find_by_#{ivar}(v, *args)
   self.find(:first, {:#{ivar} => v}, *args)
 end
 def self.find_all_by_#{ivar}(v, *args)
   self.find(:all, {:#{ivar} => v}, *args)
 end
-def self.find_or_create_by_#{ivar}(h)
-  o = self.find(:first, {:#{ivar} => h[:#{ivar}]})
-  return o if o && o._id != nil
-  self.new(h).save
+if "#{ivar}" != '_id'
+  def self.find_or_create_by_#{ivar}(h)
+    o = self.find(:first, {:#{ivar} => h[:#{ivar}]})
+    return o if o && o._id != nil
+    self.new(h).save
+  end
 end
 EOS
           }
       end
 
+      # The collection object.
       def self.coll
-        @coll
+        @coll ||= $db[@coll_name.to_s]
       end
 
       # Find one or more database objects.
@@ -104,19 +107,25 @@ EOS
       # * Find :all records; returns a Cursor that can iterate over raw
       #   records
       def self.find(*args)
-        return Cursor.new(@coll.find(), self) unless args.length > 0
+        return Cursor.new(coll.find(), self) unless args.length > 0 # no args, find all
         return case args[0]
-               when String        # id
-                 self.new(@coll.findOne(args[0]))
-               when Array         # array of ids
-                 args.collect { |arg| self.new(@coll.findOne(arg.to_s)) }
+               when String      # id
+                 row = coll.findOne(args[0])
+                 (row.nil? || row['_id'] == nil) ? nil : self.new(row)
+               when Array       # array of ids
+                 args.collect { |arg| find(arg.to_s) }
                when :first
-                 self.new(@coll.findOne(*args[1..-1]))
+                 args.shift
+                 row = coll.findOne(*args)
+                 (row.nil? || row['_id'] == nil) ? nil : self.new(row)
                when :all
-                 Cursor.new(@coll.find(*args[1..-1]), self)
+                 args.shift
+                 Cursor.new(coll.find(*args), self)
                else
-                 Cursor.new(@coll.find(*args), self)
+                 Cursor.new(coll.find(*args), self)
                end
+      rescue => ex
+        nil
       end
 
       # Find a single database object. See find().

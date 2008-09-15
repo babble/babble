@@ -158,37 +158,16 @@ public class E4X {
         }
     }
 
-    static abstract class Query {
-        public Query( String what , JSString match ){
-            _what = what;
-            _match = match;
+    /**
+     * Given an ENode or ENodeFunction, this returns the ENode.
+     * This is useful for handling getter output.
+     */
+    public static ENode getENode( Object o ) {
+        if( o instanceof ENode.ENodeFunction ) {
+            return ((ENode.ENodeFunction)o).getNode();
         }
-
-        abstract boolean match( ENode n );
-
-        final String _what;
-        final JSString _match;
-    }
-
-    public static class Query_EQ extends Query {
-
-        public Query_EQ( String what , JSString match ){
-            super( what , match );
+        else {
+            return (ENode)o;
         }
-
-        boolean match( ENode n ){
-            ENode result = (ENode)n.get( _what );
-            if( result.isDummy() )
-                return false;
-            if( result.node.getNodeType() == Node.ATTRIBUTE_NODE )
-                return result.node.getNodeValue().equals( _match.toString() );
-            else
-                return JSInternalFunctions.JS_eq( E4X._nodeGet( n , _what ) , _match );
-        }
-
-        public String toString(){
-            return " [[ " + _what + " == " + _match + " ]] ";
-        }
-
     }
 }

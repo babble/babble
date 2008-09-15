@@ -199,8 +199,10 @@ public class JSRegex extends JSObjectBase {
             int compilePatterns = 0;
             if ( f.contains( "i" ) )
                 compilePatterns |= Pattern.CASE_INSENSITIVE;
-            if ( f.contains( "m" ) )
+            if ( f.contains( "m" ) ){
                 compilePatterns |= Pattern.DOTALL;
+                compilePatterns |= Pattern.MULTILINE;
+	    }
             _compilePatterns = compilePatterns;
         }
 

@@ -61,8 +61,11 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	    return runtime.getNil();
 
 	IRubyObject wrapper;
-	if ((wrapper = _wrappers.get(obj)) != null)
+	if ((wrapper = _wrappers.get(obj)) != null) {
+	    if (wrapper instanceof RubyJSObjectWrapper)
+		((RubyJSObjectWrapper)wrapper).rebuild();
 	    return wrapper;
+	}
 
 	if (obj instanceof JSFunctionWrapper)
 	    return ((JSFunctionWrapper)obj).getProc();
@@ -191,14 +194,20 @@ public abstract class RubyObjectWrapper extends RubyObject {
     }
 
     public static void addJavaPublicMethodWrappers(final Scope scope, RubyClass klazz, final JSObject jsobj, Set<String> namesToIgnore) {
-	final Ruby runtime = klazz.getRuntime();
 	for (final String name : NativeBridge.getPublicMethodNames(jsobj.getClass())) {
 	    if (namesToIgnore.contains(name))
 		continue;
 	    final JSFunction func = NativeBridge.getNativeFunc(jsobj, name);
 	    klazz.defineMethod(name, new Callback() {
 		    public IRubyObject execute(IRubyObject recv, IRubyObject[] args, Block block) {
-			return toRuby(scope, runtime, func.callAndSetThis(scope, jsobj, RubyObjectWrapper.toJSFunctionArgs(scope, runtime, args, 0, block)));
+			Ruby runtime = recv.getRuntime();
+			try {
+			    return toRuby(scope, runtime, func.callAndSetThis(scope, jsobj, RubyObjectWrapper.toJSFunctionArgs(scope, runtime, args, 0, block)));
+			}
+			catch (Exception e) {
+			    recv.callMethod(runtime.getCurrentContext(), "raise", new IRubyObject[] {RubyString.newString(runtime, e.toString())}, Block.NULL_BLOCK);
+			    return runtime.getNil(); // will never reach
+			}
 		    }
 		    public Arity getArity() { return Arity.OPTIONAL; }
 		});

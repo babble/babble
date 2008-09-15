@@ -44,6 +44,7 @@ import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
 public class RubyJxpSource extends JxpSource {
 
     public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
+    static final Map<Ruby, Set<IRubyObject>> _requiredJSFileLibFiles = new WeakHashMap<Ruby, Set<IRubyObject>>();
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB");
     static final boolean SKIP_REQUIRED_LIBS = Boolean.getBoolean("DEBUG.RB.SKIP.REQ.LIBS");
@@ -76,6 +77,8 @@ public class RubyJxpSource extends JxpSource {
 	_lib = null;
 	_runtime = runtime;
     }
+
+    public Ruby getRuntime() { return _runtime; }
 
     protected String getContent() throws IOException {
 	return StreamUtil.readFully(_file);
@@ -112,7 +115,7 @@ public class RubyJxpSource extends JxpSource {
 	_setOutput(s);
 	_runtime.setGlobalVariables(new ScopeGlobalVariables(s, _runtime));
 	_exposeScopeFunctions(s);
-	_patchRequire(s);
+	_patchRequireAndLoad(s);
 
 	// See the second part of JRuby's Ruby.executeScript(String, String)
 	ThreadContext context = _runtime.getCurrentContext();
@@ -204,33 +207,85 @@ public class RubyJxpSource extends JxpSource {
 	}
     }
 
-    protected void _patchRequire(final Scope scope) {
+    protected void _patchRequireAndLoad(final Scope scope) {
 	RubyModule kernel = _runtime.getKernel();
 	kernel.addMethod("require", new JavaMethod(kernel, PUBLIC) {
 		public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+		    Ruby runtime = self.getRuntime();
 		    String arg = args[0].toString();
 		    try {
-			if (_runtime.getLoadService().require(arg))
-			    return _runtime.getTrue();
+			return runtime.getLoadService().require(arg) ? runtime.getTrue() : runtime.getFalse();
 		    }
 		    catch (RaiseException re) {
-			try {
-			    JSFileLibrary local = (JSFileLibrary)scope.get("local");
-			    Object o = local.getFromPath(arg);
-			    if (o instanceof JSFunction && ((JSFunction)o).isCallable()) { // iscallablejsf
-				((JSFunction)o).call(scope, EMPTY_OBJECT_ARRAY);
-				return _runtime.getTrue();
-			    }
-			    else
-				return _runtime.getFalse();
+			if (_notAlreadyRequired(runtime, args[0])) {
+			    loadLibraryFile(scope, runtime, self, arg, re);
+			    _rememberAlreadyRequired(runtime, args[0]);
 			}
-			catch (Exception e) {
-			    return _runtime.getFalse();
-			}
+			return runtime.getTrue();
 		    }
-		    return _runtime.getFalse();
 		}
 	    });
+	kernel.addMethod("load", new JavaMethod(kernel, PUBLIC) {
+		public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+		    Ruby runtime = self.getRuntime();
+		    RubyString file = args[0].convertToString();
+		    boolean wrap = args.length == 2 ? args[1].isTrue() : false;
+
+		    try {
+			runtime.getLoadService().load(file.getByteList().toString(), wrap);
+			return runtime.getTrue();
+		    }
+		    catch (RaiseException re) {
+			return loadLibraryFile(scope, runtime, self, file.toString(), re);
+		    }
+		}
+	    });
+    }
+
+    protected IRubyObject loadLibraryFile(Scope scope, Ruby runtime, IRubyObject recv, String file, RaiseException re) {
+	if (DEBUG)
+	    System.err.println("going to compile and run library file " + file);
+	try {
+	    JSFileLibrary local = (JSFileLibrary)scope.get("local");
+	    Object o = local.getFromPath(file);
+	    if (isCallableJSFunction(o)) {
+		try {
+		    ((JSFunction)o).call(scope, EMPTY_OBJECT_ARRAY);
+		}
+		catch (Exception e) {
+		    recv.callMethod(runtime.getCurrentContext(), "raise", new IRubyObject[] {RubyString.newString(runtime, e.toString())}, Block.NULL_BLOCK);
+		}
+		return runtime.getTrue();
+	    }
+	    else if (DEBUG)
+		System.err.println("file library object is not a callable function");
+	}
+	catch (Exception e) {
+	    if (DEBUG)
+		System.err.println("problem loading file " + file + "; exception seen is " + e + "; falling through to throw original Ruby error");
+	    /* fall through to throw re */
+	}
+	if (DEBUG)
+	    System.err.println("problem loading file " + file + "; throwing original Ruby error " + re);
+	throw re;
+    }
+
+    protected boolean _notAlreadyRequired(Ruby runtime, IRubyObject arg) {
+	synchronized (_requiredJSFileLibFiles) {
+	    Set<IRubyObject> reqs = _requiredJSFileLibFiles.get(runtime);
+	    return reqs == null || !reqs.contains(arg);
+	}
+    }
+
+    protected void _rememberAlreadyRequired(Ruby runtime, IRubyObject arg) {
+	synchronized (_requiredJSFileLibFiles) {
+	    Set<IRubyObject> reqs = _requiredJSFileLibFiles.get(runtime);
+	    if (reqs == null) {
+		reqs = new HashSet<IRubyObject>();
+		_requiredJSFileLibFiles.put(runtime, reqs);
+	    }
+	    reqs.add(arg);
+	}
     }
 
     protected final File _file;

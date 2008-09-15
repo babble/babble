@@ -202,6 +202,10 @@ public abstract class JSFunction extends JSFunctionBase {
         }
     }
 
+    public String getSourceCode(){
+	return null;
+    }
+
     /** Return a string representation of this function.
      * @return A string "JSFunction : " and this function's name
      */
@@ -352,6 +356,13 @@ public abstract class JSFunction extends JSFunctionBase {
         return true;
     }
 
+    /**
+     * @return null if we do'nt what the globals are, or an array of global strings
+     */
+    public JSArray getGlobals(){
+        return _globals;
+    }
+
     private final Scope _scope;
     private ThreadLocal<Scope> _tlScope;
     private boolean _forceUsePassedInScope = false;
@@ -362,6 +373,7 @@ public abstract class JSFunction extends JSFunctionBase {
     protected Language _sourceLanguage = Language.JS;
 
     protected JSArray _arguments;
+    protected JSArray _globals;
     protected String _name = "NO NAME SET";
 
     private LRUCache<Long,Pair<Object,String>> _callCache;

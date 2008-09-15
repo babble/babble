@@ -35,7 +35,7 @@ public class RubyJSArrayWrapperTest {
     JSFunction addSevenFunc;
     RubyJSArrayWrapper w;
 
-    @BeforeTest
+    @BeforeMethod
     public void setUp() {
 	s = new Scope("test", null);
 	r = org.jruby.Ruby.newInstance();
@@ -46,8 +46,8 @@ public class RubyJSArrayWrapperTest {
 	    };
 
 	// FIXME use addSevenFunc when I decide what to do with funcs in arrays
-// 	array = new JSArray(new Integer(1), new JSString("test string"), addSevenFunc);
-	array = new JSArray(new Integer(1), new JSString("test string"));
+	array = new JSArray(new Integer(1), new JSString("test string"), addSevenFunc);
+// 	array = new JSArray(new Integer(1), new JSString("test string"));
 	w = new RubyJSArrayWrapper(s, r, array);
 	r.getGlobalVariables().set("$a", w);
     }
@@ -63,10 +63,10 @@ public class RubyJSArrayWrapperTest {
     }
 
     public void testAppend() {
-	int len = array.size();
+	int oldLen = array.size();
 	r.evalScriptlet("$a << 42");
-	assertEquals(array.size(), len + 1);
-	assertEquals(array.get(2).toString(), "42");
+	assertEquals(array.size(), oldLen + 1);
+	assertEquals(array.get(oldLen).toString(), "42");
     }
 
     public void testReplace() {
@@ -74,5 +74,12 @@ public class RubyJSArrayWrapperTest {
 	r.evalScriptlet("$a[0] = 42");
 	assertEquals(array.size(), len);
 	assertEquals(array.get(0).toString(), "42");
+    }
+
+    public void testFuncInArray() {
+	int oldLen = array.size();
+	r.evalScriptlet("$a << $a[2].call(35)");
+	assertEquals(array.size(), oldLen + 1);
+	assertEquals(array.get(oldLen).toString(), "42");
     }
 }
