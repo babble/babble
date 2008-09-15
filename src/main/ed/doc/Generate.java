@@ -226,6 +226,8 @@ public class Generate {
                     obj.set("ts", Calendar.getInstance().getTime().toString());
                     obj.set("_index", ss);
                     obj.set("name", name);
+                    obj.set("alias", name);
+                    obj.set("packages", unit.get( "docpkg" ));
 
                     // get the class description
                     String desc = getClassDesc( unit ); 
