@@ -97,6 +97,11 @@ public class DjangoRegressionTests {
         
         //fix exceptions
         "filter-syntax14",
+        
+        "^expression-prop.*",
+        "^expression-elm-literal.*",
+        "^expression-elm-var.*",
+        "^expression-call.*",
     };    
        
     public DjangoRegressionTests(){ }
@@ -185,18 +190,23 @@ public class DjangoRegressionTests {
                 JSObject jsTest = (JSObject)jsTestObj;
                 JSObject results = (JSObject)jsTest.get("results");
                 
-                
                 TestCase testCase;
-                if(results == null)
-                    throw new NullPointerException("Results were null");
-
-                else if(testScript.exceptionCons.values().contains(results) 
-                        || results.getConstructor() == testScript.nativeExceptionCons 
-                        || results.getConstructor() == testScript.exceptionStackCons)
-                    testCase = new ExpectedErrorTestCase(globalScope, testScript, jsTest);
                 
-                else
-                    testCase = new NormalTestCase(globalScope, testScript, jsTest);
+                try {
+                    if(results == null)
+                        throw new NullPointerException("Results were null");
+    
+                    else if(testScript.exceptionCons.values().contains(results) 
+                            || results.getConstructor() == testScript.nativeExceptionCons 
+                            || results.getConstructor() == testScript.exceptionStackCons)
+                        testCase = new ExpectedErrorTestCase(globalScope, testScript, jsTest);
+                    
+                    else
+                        testCase = new NormalTestCase(globalScope, testScript, jsTest);
+                }
+                catch(Exception e) {
+                    throw new RuntimeException("Failed to load test: " + jsTest.get("name") + ", in script: " + path, e);
+                }
                 
                 if(isSupported(testScript, testCase)) testCases.add(testCase);
                 else skipped++;

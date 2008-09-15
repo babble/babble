@@ -45,9 +45,7 @@ public class RubyJSArrayWrapperTest {
 		}
 	    };
 
-	// FIXME use addSevenFunc when I decide what to do with funcs in arrays
 	array = new JSArray(new Integer(1), new JSString("test string"), addSevenFunc);
-// 	array = new JSArray(new Integer(1), new JSString("test string"));
 	w = new RubyJSArrayWrapper(s, r, array);
 	r.getGlobalVariables().set("$a", w);
     }
