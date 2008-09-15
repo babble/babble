@@ -28,14 +28,18 @@ import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
 import ed.js.func.JSFunctionCalls2;
+import ed.log.Logger;
 
 public class FilterExpression extends JSObjectBase {
+    private final Logger log;
+    
     private Expression expression;
     private List<FilterSpec> filterSpecs;
 
     public FilterExpression(Parser parser, String filterExpression, Token token, boolean useLiteralEscapes) {
         setConstructor(CONSTRUCTOR);
-
+        this.log = Logger.getRoot().getChild("djang10").getChild("FilterExpression");
+        
         String[] parts = Util.smart_split(filterExpression.trim(), new String[] {"|"}, true);
 
         this.expression = new Expression(parts[0], token, useLiteralEscapes);
@@ -79,20 +83,20 @@ public class FilterExpression extends JSObjectBase {
     public Object resolve(Scope scope, Context context) {
         return resolve(scope, context, false);
     }
-    public Object resolve(Scope scope, Context context, boolean ignore_failures) {
-        Object value = expression.resolve(scope, context);
+    public Object resolve(Scope scope, Context context, Boolean ignore_failures) {
+        Object value;
         
-        if(value == Expression.UNDEFINED_VALUE) {
+        try {
+            value = expression.resolve(scope, context);
+        }
+        catch(VariableDoesNotExist e) {
             if(ignore_failures) {
                 value = null;
             }
             else {
+                log.info(e.getMessage(), e);
                 JSHelper jsHelper = JSHelper.get(scope);
-                JSString invalid_var_format_string = (JSString)jsHelper.get("TEMPLATE_STRING_IF_INVALID");
-                if(invalid_var_format_string != null && !invalid_var_format_string.equals("")) {
-                    return new JSString(invalid_var_format_string.toString().replace("%s", expression.toString()));
-                }
-                value = invalid_var_format_string;
+                value = jsHelper.fix_invalid_expression(expression);
             }
         }
         
@@ -116,10 +120,10 @@ public class FilterExpression extends JSObjectBase {
             throw new UnsupportedOperationException();
         }
         protected void init() {
-            _prototype.set("resolve", new JSFunctionCalls1() {
-                public Object call(Scope scope, Object contextObj, Object[] extra) {
+            _prototype.set("resolve", new JSFunctionCalls2() {
+                public Object call(Scope scope, Object contextObj, Object ignore_failuresObj, Object[] extra) {
                     FilterExpression thisObj = (FilterExpression)scope.getThis();
-                    return thisObj.resolve(scope, (Context)contextObj);
+                    return thisObj.resolve(scope, (Context)contextObj, ignore_failuresObj == Boolean.TRUE);
                 }
             });
         }

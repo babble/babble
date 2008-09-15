@@ -17,6 +17,7 @@
 
 package ed.appserver.templates.djang10;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
@@ -51,6 +52,7 @@ import ed.js.JSString;
 import ed.js.engine.JSCompiledScript;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
+import ed.js.func.JSFunctionCalls2;
 import ed.lang.python.Python;
 import ed.log.Level;
 import ed.log.Logger;
@@ -119,8 +121,7 @@ public class JSHelper extends JSObjectBase {
         this.set("TEMPLATE_STRING_IF_INVALID", new JSString(""));
         addTemplateTagsRoot("/local/templatetags");
     }
-    
-    
+       
     //Scope management ===================================================
     public static JSHelper install(Scope scope, Map<String, JSFileLibrary> fileLibRoots, Logger siteLogger) {
         //XXX: during appcontext init, the site loger hasn't been setup yet, so have to pull it out of the scope
@@ -225,6 +226,14 @@ public class JSHelper extends JSObjectBase {
         return new JSString( asciiCharset.decode(bytes).toString() );
     }
     
+    //Other
+    public JSString fix_invalid_expression(Expression expression) {
+        JSString invalid_var_format_string = (JSString)this.get("TEMPLATE_STRING_IF_INVALID");
+        if(invalid_var_format_string != null && !invalid_var_format_string.equals("")) {
+            return new JSString(invalid_var_format_string.toString().replace("%s", expression.toString()));
+        }
+        return invalid_var_format_string;
+    }
     public Object resolve_absolute_path(String path) {
         log.debug("resolving [" + path + "]");
 
@@ -245,6 +254,11 @@ public class JSHelper extends JSObjectBase {
     }
     
     //Template loading ==========================================================================
+    public Djang10CompiledScript get_template_from_string(String str) throws IOException {
+        Djang10Source source = new Djang10Source(str);
+        
+        return (Djang10CompiledScript)source.getFunction();
+    }
     @Deprecated
     public Djang10CompiledScript loadTemplate(Scope scope, JSString path, JSArray dirs) {
         return get_template(scope, path, dirs);

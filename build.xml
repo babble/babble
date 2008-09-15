@@ -7,7 +7,7 @@
   <property name="codeRoot" location="/data/"/>
 
   <!-- Override on command line with -Druby.groups=foo -->
-  <property name="ruby.groups" value="ruby, ruby.db"/>
+  <property name="ruby.groups" value="ruby,ruby.db"/>
   <property name="jruby.home" location="include/ruby"/>
 
   <path id="classpath">

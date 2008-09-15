@@ -87,10 +87,7 @@ tests=[                                                                         
                                            model: { d: aDate }, 
                                            results: "p.m.,PM,3:11,3,15,03,15,11,3:11 p.m.,37" },
        
-       { name: "if-method chain01",        content: '{% autoescape off %}{% if foo.blah(x).bar %}true{% else %}false{% endif %}{% endautoescape %}', 
-                                           model: { }, 
-                                           results: "false" },
-       
+      
        { name: "if-method chain02",        content: '{% autoescape off %}{% if foo.add(x).prop %}true{% endif %}{% endautoescape %}', 
                                            model: { foo: new OtherClass2(3), x: new OtherClass2(5) }, 
                                            results: "true" },
@@ -149,11 +146,7 @@ tests=[                                                                         
        { name: "literal-escape03",         content: '{{ "moo\\nbaa" }}',
                                            model: {},
                                            results: "moo\\nbaa" },
-       
-       { name: "with-filter01",            content: '{% with none.existent.crap( "moo" ) | default:"baa" as var %}{{ var }}{% endwith %}',
-                                           model: {},
-                                           results: "baa" },
-       
+              
        { name: "filter-pprint01",          content: '{{ "moo"|pprint }}',
                                            model: {},
                                            results: '"moo"' },
@@ -257,7 +250,7 @@ tests=[                                                                         
        { name: "expression-name01",        content: '{{ nullVar }}',
                                            model: { nullVar: null },
                                            results: "",
-                                           unexpectedLogResults: [/^.*djang10\.expresion.+INFO.+$/m] },
+                                           unexpectedLogResults: [/^.*djang10\.FilterExpression.+INFO.+$/m] },
                                            
        { name: "expression-name02",        content: '{{ nonexistentVar }}',
                                            model: { },
@@ -268,7 +261,7 @@ tests=[                                                                         
        { name: "expression-prop01",        content: '{{ obj.nullProp }}',
                                            model: { obj: {nullProp: null} },
                                            results: "",
-                                           unexpectedLogResults: [/^.*djang10\.expresion.+INFO.+$/m] }, 
+                                           unexpectedLogResults: [/^.*djang10\.FilterExpression.+INFO.+$/m] }, 
                                            
        { name: "expression-prop02",        content: '{{ obj.nullProp.other.stuff.that[matters.not] }}',
                                            model: { obj: { nullProp: null } },
@@ -299,7 +292,7 @@ tests=[                                                                         
        { name: "expression-elm-literal01", content: '{{ obj["nullProp"] }}',
                                            model: { obj: {nullProp: null} },
                                            results: "",
-                                           unexpectedLogResults: [/^.*djang10\.expresion.+INFO.+$/m] },
+                                           unexpectedLogResults: [/^.*djang10\.FilterExpression.+INFO.+$/m] },
 
        { name: "expression-elm-literal02", content: '{{ obj["nullProp"]["other"].stuff.that[matters.not] }}',
                                            model: { obj: {nullProp: null} },
@@ -350,43 +343,43 @@ tests=[                                                                         
        { name: "expression-elm-var05",     content: '{{ obj[var] }}',
                                            model: { obj: {}, "var":"nonexistent" },
                                            results: "",
-                                           logResults: [/^.*INFO.+Object doesn't contain the property.+nonexistent.+obj\[var\].*$/]},
+                                           logResults: [/^.*INFO.+Object doesn't contain the property.+nonexistent.+obj\[var\].*$/m]},
 
         //CALL's
         { name: "expression-call01",        content: '{{ nullFunc() }}',
                                             model: { nullFunc: null },
                                             results: new ExceptionStack([djang10.TemplateRenderException, new NativeExceptionWrapper("java.lang.NullPointerException")]),
-                                            unexpectedLogResults: [/^.*djang10\.expresion.+INFO.+$/m] },
+                                            unexpectedLogResults: [/^.*djang10\.FilterExpression.+INFO.+$/m] },
         
         { name: "expression-call02",        content: '{{ nonexistentFunc() }}',
                                             model: { },
                                             results: new ExceptionStack([djang10.TemplateRenderException, new NativeExceptionWrapper("java.lang.NullPointerException"), djang10.VariableDoesNotExist]),
-                                            unexpectedLogResults: [/^.*djang10\.expresion.+INFO.+$/m] },
+                                            unexpectedLogResults: [/^.*djang10\.FilterExpression.+INFO.+$/m] },
         
         { name: "expression-call03",        content: '{{ nullObj.func() }}',
                                             model: { nullObj: null},
                                             results: new ExceptionStack([djang10.TemplateRenderException, new NativeExceptionWrapper("java.lang.NullPointerException")]),
-                                            unexpectedLogResults: [/^.*djang10\.expresion.+INFO.+$/m] },
+                                            unexpectedLogResults: [/^.*djang10\.FilterExpression.+INFO.+$/m] },
 
         { name: "expression-call04",        content: '{{ nonexistentObj.func() }}',
                                             model: { },
                                             results: new ExceptionStack([djang10.TemplateRenderException, new NativeExceptionWrapper("java.lang.NullPointerException"), djang10.VariableDoesNotExist]),
-                                            unexpectedLogResults: [/^.*djang10\.expresion.+INFO.+$/m] },
+                                            unexpectedLogResults: [/^.*djang10\.FilterExpression.+INFO.+$/m] },
 
         { name: "expression-call05",        content: '{{ obj.nullFunc() }}',
                                             model: { obj: { nullFunc: null} },
                                             results: new ExceptionStack([djang10.TemplateRenderException, new NativeExceptionWrapper("java.lang.NullPointerException")]),
-                                            unexpectedLogResults: [/^.*djang10\.expresion.+INFO.+$/m] },
+                                            unexpectedLogResults: [/^.*djang10\.FilterExpression.+INFO.+$/m] },
 
         { name: "expression-call06",        content: '{{ obj.nullProp.func() }}',
                                             model: { obj: { nullProp: null} },
                                             results: new ExceptionStack([djang10.TemplateRenderException, new NativeExceptionWrapper("java.lang.NullPointerException")]),
-                                            unexpectedLogResults: [/^.*djang10\.expresion.+INFO.+$/m] },
+                                            unexpectedLogResults: [/^.*djang10\.FilterExpression.+INFO.+$/m] },
 
         { name: "expression-call07",        content: '{{ obj.nonexistentProp.func() }}',
                                             model: { obj: {} },
                                             results: new ExceptionStack([djang10.TemplateRenderException, new NativeExceptionWrapper("java.lang.NullPointerException"), djang10.VariableDoesNotExist]),
-                                            unexpectedLogResults: [/^.*djang10\.expresion.+INFO.+$/m] },
+                                            unexpectedLogResults: [/^.*djang10\.FilterExpression.+INFO.+$/m] },
 
         //CALL params
 ];

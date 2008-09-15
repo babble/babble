@@ -1,23 +1,4 @@
 #!/bin/bash
 
-export CLASSPATH=.:build:conf:$CLASSPATH
-
-for j in `ls include/*.jar`; do
-    export CLASSPATH=$CLASSPATH:$j
-done
-
-for j in `ls include/jython/*.jar`; do
-    export CLASSPATH=$CLASSPATH:$j
-done
-
-for j in `ls include/jython/javalib/*.jar`; do
-    export CLASSPATH=$CLASSPATH:$j
-done
-
-export CLASSPATH=$CLASSPATH:/opt/java/lib/tools.jar
-
-export headless="-Djava.awt.headless=true"
-export jruby_home="-Djruby.home=`dirname $0`/include/ruby"
-
-java -Djava.library.path=include -ea $headless $jruby_home -Xmx1000m  -XX:MaxDirectMemorySize=600M  ed.db.mql.MQLShell "$@"
-
+. `dirname $0`/common.bash
+$java_memory_large ed.db.mql.MQLShell "$@"
