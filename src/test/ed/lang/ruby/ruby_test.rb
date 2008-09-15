@@ -14,9 +14,6 @@
 
 require 'test/unit'
 
-TEST_JS_FNAME = '__temp_run_js'
-TEST_JS_DIR = File.dirname(__FILE__)
-
 class RubyTest < Test::Unit::TestCase
 
   def setup
@@ -29,8 +26,8 @@ class RubyTest < Test::Unit::TestCase
   end
 
   def run_js(js)
-    fname = TEST_JS_FNAME + rand(0xffffffff).to_s
-    path = File.join(TEST_JS_DIR, fname + '.js')
+    fname = '__temp_run_js' + rand(0xffffffff).to_s
+    path = File.join(File.dirname(__FILE__), fname + '.js')
     $scope['jsout'] = ''
     begin
       File.open(path, 'w') { |f| f.puts js }

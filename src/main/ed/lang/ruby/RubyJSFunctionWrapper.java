@@ -94,7 +94,7 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 		    return toRuby(result);
 		}
 		catch (Exception e) {
-		    self.callMethod(context, "raise", new IRubyObject[] {RubyString.newString(context.getRuntime(), e.toString())}, Block.NULL_BLOCK);
+		    self.callMethod(context, "raise", new IRubyObject[] {RubyString.newString(runtime, e.toString())}, Block.NULL_BLOCK);
 		    return runtime.getNil(); // will never reach
 		}
 	    }

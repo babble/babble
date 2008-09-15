@@ -63,18 +63,49 @@ DB.prototype.dropDatabase = function() {
   Clone database on another server to here.
 
   Generally, you should dropDatabase() first as otherwise the cloned information will MERGE 
-  into whatever data is already present in this database!
+  into whatever data is already present in this database.  (That is however a valid way to use 
+  clone if you are trying to do something intentionally, such as union three non-overlapping
+  databases into one.)
  
   This is a low level administrative function will is not typically used.
 
- * @param {String} clone Where to clone from (db hostname)
+ * @param {String} clone Where to clone from (dbhostname[:port]).  May not be this database 
+                   (self) as you cannot clone to yourself.
  * @return Object returned has member ok set to true if operation succeeds, false otherwise.
+ * See also: db.copyDatabase()
 */
 DB.prototype.cloneDatabase = function(from) { 
-    assert( isString(from) );
-    this.resetIndexCache();
-	
+    assert( isString(from) && from.length );
+    //this.resetIndexCache();
     return this._dbCommand( { clone: from } );
+}
+
+/**
+  Copy database from one server or name to another server or name.
+
+  Generally, you should dropDatabase() first as otherwise the copied information will MERGE 
+  into whatever data is already present in this database (and you will get duplicate objects 
+  in collections potentially.)
+
+  For security reasons this function only works when executed on the "admin" db.  However, 
+  if you have access to said db, you can copy any database from one place to another.
+
+  This method provides a way to "rename" a database by copying it to a new db name and 
+  location.  Additionally, it effectively provides a repair facility.
+
+  * @param {String} fromdb database name from which to copy.
+  * @param {String} todb database name to copy to.
+  * @param {String} fromhost hostname of the database (and optionally, ":port") from which to 
+                    copy the data.  default if unspecified is to copy from self.
+  * @return Object returned has member ok set to true if operation succeeds, false otherwise.
+  * See also: db.clone()
+*/
+DB.prototype.copyDatabase = function(fromdb, todb, fromhost) { 
+    assert( isString(fromdb) && fromdb.length );
+    assert( isString(todb) && todb.length );
+    fromhost = fromhost || "";
+    //this.resetIndexCache();
+    return this._dbCommand( { copydb:1, fromhost:fromhost, fromdb:fromdb, todb:todb } );
 }
 
 /**
