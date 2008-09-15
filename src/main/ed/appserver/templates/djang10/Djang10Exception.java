@@ -18,6 +18,7 @@ package ed.appserver.templates.djang10;
 
 import ed.js.JSFunction;
 import ed.js.JSObject;
+import ed.js.JSObjectBase;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls2;
 
@@ -25,7 +26,11 @@ public class Djang10Exception extends RuntimeException implements JSObject {
     private String detailMessage;
     private Throwable cause;
     
-    public Djang10Exception() { }
+    protected JSObjectBase inner;
+    
+    public Djang10Exception() {
+        inner = new JSObjectBase(getConstructor());
+    }
 
     public Djang10Exception(String detailMessage) {
         this();
@@ -42,36 +47,36 @@ public class Djang10Exception extends RuntimeException implements JSObject {
         this.cause = cause;
     }
     
-    //Minimal JSObject
+    //Delegate to JSObject
     public JSFunction getConstructor() {
         return cons;
     }
     public JSObject getSuper() {
-        return null;
+        return inner.getSuper();
     }
     public Object get( Object n ){
-        return null;
+        return inner.get(n);
     }
     public java.util.Collection<String> keySet(){
-        throw new UnsupportedOperationException();
+        return inner.keySet();
     }
     public java.util.Collection<String> keySet( boolean includePrototype ){
-        throw new UnsupportedOperationException();
+        return inner.keySet(includePrototype);
     }
     public boolean containsKey( String s ){
-        throw new UnsupportedOperationException();
+        return inner.containsKey(s);
     }
     public Object set( Object n , Object v ){
-        throw new UnsupportedOperationException();
+        return inner.set(n, v);
     }
     public Object setInt( int n , Object v ){
-        throw new UnsupportedOperationException();
+        return inner.setInt(n, v);
     }
     public Object getInt( int n ){
-        throw new UnsupportedOperationException();
+        return inner.getInt(n);
     }
     public Object removeField( Object n ){
-        throw new UnsupportedOperationException();
+        return inner.removeField(n);
     }
 
     
