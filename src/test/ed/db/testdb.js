@@ -29,7 +29,10 @@ function testcopydb() {
     var tc = connect("testcopy");
     tc.dropDatabase();
     var res = connect("admin").copyDatabase("test", "testcopy");
-    assert( t.system.namespaces.count() == tc.system.namespaces.count() );
+    var x= t.system.namespaces.count();
+    var y= tc.system.namespaces.count();
+    print("testcopydb: x:" + x + " y:" + y);
+    assert(x==y);
     assert( t.system.indexes.count() == tc.system.indexes.count() );
     assert( t.dots.count() == tc.dots.count() );
 }

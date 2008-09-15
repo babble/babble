@@ -196,19 +196,17 @@ EOS
     assert_nil Track.find(:first, {:song => 'Does Not Compute'})
   end
 
-# FIXME exception handling still having issues
+  def test_return_nil_if_bogus_id
+    assert_nil Track.find("bogus_id")
+  end
 
-#   def test_return_nil_if_bogus_id
-#     assert_nil Track.find("bogus_id")
-#   end
+  def test_return_nil_if_first_bogus_id
+    assert_nil Track.find(:first, "bogus_id")
+  end
 
-#   def test_return_nil_if_first_bogus_id
-#     assert_nil Track.find(:first, "bogus_id")
-#   end
-
-#   def test_return_nil_if_first_bogus_id_in_hash
-#     assert_nil Track.find(:first, {:_id => "bogus_id"})
-#   end
+  def test_return_nil_if_first_bogus_id_in_hash
+    assert_nil Track.find(:first, {:_id => "bogus_id"})
+  end
 
   def test_remove
     Track.find(:first, {:song => 'King For A Day'}).remove
