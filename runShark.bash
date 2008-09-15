@@ -12,7 +12,7 @@ for j in `ls ${ED_HOME}include/*.jar`; do
 done
 
 export headless="-Djava.awt.headless=true"
-export jruby_home="-Djruby.home=`dirname $0`/build/ruby"
+export jruby_home="-Djruby.home=`dirname $0`/include/ruby"
 
 ant && java -ea -XrunShark -Djava.library.path=include $headless $jruby_home -ea -Xmx200m -XX:MaxDirectMemorySize=200M "$@"
 
