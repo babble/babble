@@ -205,6 +205,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
 			    return toRuby(scope, runtime, func.callAndSetThis(scope, jsobj, RubyObjectWrapper.toJSFunctionArgs(scope, runtime, args, 0, block)));
 			}
 			catch (Exception e) {
+			    System.err.println("oops: exception seen; calling raise: " + e); // DEBUG
 			    recv.callMethod(runtime.getCurrentContext(), "raise", new IRubyObject[] {RubyString.newString(runtime, e.toString())}, Block.NULL_BLOCK);
 			    return runtime.getNil(); // will never reach
 			}

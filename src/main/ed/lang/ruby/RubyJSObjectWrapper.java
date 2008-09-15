@@ -419,20 +419,18 @@ public class RubyJSObjectWrapper extends RubyHash {
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("adding function method " + key);
 	_jsFuncs.add(key.toString());
-	_eigenclass.defineMethod(key.toString(), new Callback() {
-		public IRubyObject execute(IRubyObject recv, IRubyObject[] args, Block block) {
-		    Ruby runtime = recv.getRuntime();
+	_eigenclass.addMethod(key.toString(), new JavaMethod(_eigenclass, PUBLIC) {
+		public IRubyObject call(ThreadContext context, IRubyObject recv, RubyModule klazz, String name, IRubyObject[] args, Block block) {
 		    if (RubyObjectWrapper.DEBUG)
 			System.err.println("calling function " + key);
 		    try {
-			return toRuby(((JSFunction)val).callAndSetThis(_scope, _jsobj, RubyObjectWrapper.toJSFunctionArgs(_scope, runtime, args, 0, block)));
+			return toRuby(((JSFunction)val).callAndSetThis(_scope, _jsobj, RubyObjectWrapper.toJSFunctionArgs(_scope, context.getRuntime(), args, 0, block)));
 		    }
 		    catch (Exception e) {
-			recv.callMethod(runtime.getCurrentContext(), "raise", new IRubyObject[] {RubyString.newString(runtime, e.toString())}, Block.NULL_BLOCK);
-			return runtime.getNil(); // will not reach
+			recv.callMethod(context, "raise", new IRubyObject[] {RubyString.newString(context.getRuntime(), e.toString())}, Block.NULL_BLOCK);
+			return context.getRuntime().getNil(); // will not reach
 		    }
 		}
-		public Arity getArity() { return Arity.OPTIONAL; }
 	    });
     }
 
