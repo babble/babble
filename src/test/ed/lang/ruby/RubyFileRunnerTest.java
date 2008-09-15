@@ -1,15 +1,15 @@
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -33,9 +33,16 @@ import ed.lang.ruby.RubyJxpSource;
 public class RubyFileRunnerTest {
 
     public void testRunAllRubyFiles() {
-	File f = new File(System.getenv("ED_HOME"), "src/test/ed/lang/ruby/run_all_tests.rb");
-	RubyJxpSource source = new RubyJxpSource(f, null);
+	String edHome = System.getenv("ED_HOME");
+	File here = new File(edHome, "src/test/ed/lang/ruby");
+	File f = new File(here, "run_all_tests.rb");
+
 	Scope s = createScope(f.getParentFile());
+
+	RubyJxpSource source = new RubyJxpSource(f, null);
+	addRubyLoadPath(source, new File(edHome, "build").getPath()); // for xgen_internals.rb
+	addRubyLoadPath(source, here.getPath());
+
 	try {
 	    source.getFunction().call(s, new Object[0]);
 	}
