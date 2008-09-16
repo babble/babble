@@ -82,4 +82,14 @@ EOS
     assert_equal("foo = Object\nfoo.bar = xyzzy\nnew_thing = hello\n", out)
   end
 
+# FIXME
+
+#   def test_load_routes_explicitly
+#     assert(! Object.constants.include?('Route'), "Constant Route should not yet be defined")
+#     $core.core.routes.call()
+#     assert(Object.constants.include?('Route'), "Constant Route should be defined")
+#     assert_equal('Class', Route.class.name)
+#     assert_equal('Route', Route.name)
+#   end
+
 end

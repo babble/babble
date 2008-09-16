@@ -23,8 +23,8 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.fail;
 
 import ed.appserver.JSFileLibrary;
-import ed.js.Shell;
-import ed.js.JSFunction;
+import ed.appserver.Module;
+import ed.js.*;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
 import ed.lang.ruby.RubyJxpSource;
@@ -55,9 +55,14 @@ public class RubyFileRunnerTest {
     protected Scope createScope(File localRootDir) {
 	Scope s = new Scope("test", null);
 	ed.js.JSON.init(s);	// add tojson, tojson_u, fromjson
-	s.set("connect", new Shell.ConnectDB());
+
+	// From ed.js.Shell.addNiceShellStuff
+        s.put("core", CoreJS.get().getLibrary(null, null, s, false), true);
+        s.put("external", Module.getModule("external").getLibrary(null, null, s, false), true);
+        s.put("connect", new Shell.ConnectDB(), true);
+
 	s.set("local", new JSFileLibrary(localRootDir, "local", s));
-	s.set("jsout", "");	// initial value; will be written over later
+	s.set("jsout", "");	// initial value; used by tests; will be written over later
 
 	JSFunction print = new JSFunctionCalls0() {
 		public Object call(Scope s, Object[] args) {

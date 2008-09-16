@@ -28,6 +28,7 @@ import org.jruby.runtime.*;
 import org.jruby.runtime.builtin.*;
 import static org.jruby.runtime.Visibility.PUBLIC;
 
+import ed.appserver.JSFileLibrary;
 import ed.db.DBCursor;
 import ed.db.ObjectId;
 import ed.js.*;
@@ -82,6 +83,10 @@ public abstract class RubyObjectWrapper extends RubyObject {
 
 	if (obj instanceof JSString || obj instanceof ObjectId)
 	    wrapper = RubyString.newString(runtime, obj.toString());
+	else if (obj instanceof JSFileLibrary) {
+	    IRubyObject methodOwner = container == null ? runtime.getTopSelf() : container;
+	    wrapper = new RubyJSFileLibraryWrapper(s, runtime, (JSFileLibrary)obj, name, methodOwner.getSingletonClass());
+	}
 	else if (obj instanceof JSFunction) {
 	    IRubyObject methodOwner = container == null ? runtime.getTopSelf() : container;
 	    wrapper = new RubyJSFunctionWrapper(s, runtime, (JSFunction)obj, name, methodOwner.getSingletonClass());

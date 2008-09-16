@@ -113,7 +113,7 @@ public class RubyJSObjectWrapper extends RubyHash {
 	for (String name : new HashMap<String, Ruby>(_jsFuncs).keySet())
 	    _removeFunctionMethod(name);
 	for (final Object key : jsKeySet()) {
-	    Object val = _jsobj.get(key);
+	    Object val = peek(key);
 	    if (val != null) {
 		if (isCallableJSFunction(val))
 		    _addFunctionMethod(runtime, key, (JSFunction)val);
@@ -125,9 +125,18 @@ public class RubyJSObjectWrapper extends RubyHash {
 
     public JSObject getJSObject() { return _jsobj; }
 
+    /**
+     * Returns _jsobject.get(key).
+     * <p>
+     * Subclasses may override this for different reasons. For example, {@link
+     * RubyJSFileLibraryWrapper} needs to pass an additional argument to get()
+     * to make sure the library object is not initialized.
+     */
+    public Object peek(Object key) { return _jsobj.get(key); }
+
     public void visitAll(Visitor visitor) {
 	for (Object key : jsKeySet())
-	    visitor.visit(toRuby(key), toRuby(_jsobj.get(key)));
+	    visitor.visit(toRuby(key), toRuby(_jsobj.get(key))); // I think this should be get(), not peek()
     }
 
     public RubyBoolean respond_to_p(IRubyObject mname) {
@@ -138,7 +147,7 @@ public class RubyJSObjectWrapper extends RubyHash {
 	String name = mname.asJavaString().substring(1); // strip off leading ":"
 	if (name.endsWith("="))
 	    name = name.substring(0, name.length() - 1);
-	if (_jsobj.get(name) != null)
+	if (peek(name) != null)
 	    return getRuntime().getTrue();
 	return super.respond_to_p(mname, includePrivate);
     }
@@ -193,7 +202,7 @@ public class RubyJSObjectWrapper extends RubyHash {
 
     public IRubyObject op_aset(ThreadContext context, IRubyObject key, IRubyObject value) {
 	Object jsKey = toJS(key);
-	Object oldVal = _jsobj.get(jsKey);
+	Object oldVal = peek(jsKey);
 	Object newVal = toJS(value);
 
 	_jsobj.set(toJS(key), toJS(value));
@@ -232,13 +241,13 @@ public class RubyJSObjectWrapper extends RubyHash {
     }
 
     public RubyBoolean has_key_p(IRubyObject key) {
-	return _jsobj.get(toJS(key)) == null ? getRuntime().getFalse() : getRuntime().getTrue();
+	return peek(toJS(key)) == null ? getRuntime().getFalse() : getRuntime().getTrue();
     }
 
     public RubyBoolean has_value_p(ThreadContext context, IRubyObject expected) {
 	Object o = toJS(expected);
 	for (Object key : jsKeySet())
-	    if (_jsobj.get(key).equals(o))
+	    if (peek(key).equals(o))
 		return getRuntime().getTrue();
 	return getRuntime().getFalse();
     }
@@ -266,7 +275,7 @@ public class RubyJSObjectWrapper extends RubyHash {
     public IRubyObject index(ThreadContext context, IRubyObject expected) {
 	Object o = toJS(expected);
 	for (Object key : jsKeySet())
-	    if (_jsobj.get(key).equals(o))
+	    if (peek(key).equals(o))
 		return toRuby(key);
 	return getRuntime().getNil();
     }
@@ -293,7 +302,7 @@ public class RubyJSObjectWrapper extends RubyHash {
      * Deletes key/value from _jsobj and returns value.
      */
     protected Object internalDelete(Object jsKey) {
-	Object val = _jsobj.get(jsKey);
+	Object val = peek(jsKey);
 	_jsobj.removeField(jsKey);
 	if (isCallableJSFunction(val))
 	    _removeFunctionMethod(jsKey);
@@ -316,7 +325,7 @@ public class RubyJSObjectWrapper extends RubyHash {
 
     public IRubyObject delete(ThreadContext context, IRubyObject key, Block block) {
 	Object k = toJS(key);
-	Object v = _jsobj.get(k);
+	Object v = peek(k);
 	if (v != null) {
 	    IRubyObject rval = toRuby(v); // get wrapper before deleting it
 	    internalDelete(k);
@@ -349,7 +358,7 @@ public class RubyJSObjectWrapper extends RubyHash {
     public RubyHash rb_clear() {
 	Collection<? extends Object> keys = new ArrayList<Object>(jsKeySet());
 	for (Object key : keys) {
-	    Object val = _jsobj.get(key);
+	    Object val = peek(key);
 	    _jsobj.removeField(key);
 	    if (isCallableJSFunction(val))
 		_removeFunctionMethod(key);
@@ -370,7 +379,7 @@ public class RubyJSObjectWrapper extends RubyHash {
         otherHash.visitAll(new Visitor() {
             public void visit(IRubyObject key, IRubyObject value) {
                 if (block.isGiven()) {
-		    Object jsExisting = _jsobj.get(toJS(key));
+		    Object jsExisting = peek(toJS(key));
                     if (jsExisting != null)
                         value = block.yield(context, RubyArray.newArrayNoCopy(runtime, new IRubyObject[]{key, toRuby(jsExisting), value}));
                 }
@@ -484,7 +493,7 @@ public class RubyJSObjectWrapper extends RubyHash {
 		    // Look for the thing anyway. It's possible that the
 		    // JSObject does not respond to keySet but it still has
 		    // something named key.
-		    Object val = _jsobj.get(key);
+		    Object val = peek(key);
 		    if (val == null) {
 			if (RubyObjectWrapper.DEBUG)
 			    System.err.println("method_missing: did not find value for key " + key + "; calling super.method_missing");
