@@ -1,2 +1,7 @@
+/data/corejs/core/
+/data/corejs/user/
+/data/corejs/text/
+/data/corejs/util/
+/data/corejs/ws/
 src/main/ed/db/
 src/main/ed/net/httpserver/
