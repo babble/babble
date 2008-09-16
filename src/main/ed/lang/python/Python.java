@@ -27,10 +27,15 @@ import ed.db.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.js.func.*;
+import ed.lang.*;
 
 import static ed.lang.python.PythonSmallWrappers.*;
 
-public class Python {
+public class Python extends Language {
+
+    public Python(){
+        super( "python" );
+    }
 
     static final boolean D = Boolean.getBoolean( "DEBUG.PY" );
 
@@ -159,9 +164,16 @@ public class Python {
         throw new RuntimeException( "can't convert [" + o.getClass().getName() + "] from js to py" );
     }
 
+    public JSFunction compileLambda( final String source ){
+        return extractLambda( source );
+    }
+
     public static JSFunction extractLambda( final String source ){
         
         final PyCode code = (PyCode)(Py.compile( new ByteArrayInputStream( source.getBytes() ) , "anon" , "exec" ) );
+
+        if ( _extractGlobals == null )
+            _extractGlobals = Scope.newGlobal();
 
         Scope s = _extractGlobals.child();
         s.setGlobal( true );
@@ -196,5 +208,5 @@ public class Python {
         
         return new JSPyMethodWrapper( (PyFunction)(theFunc.getContained()) , true );
     }
-    private static final Scope _extractGlobals = Scope.newGlobal();
+    private static Scope _extractGlobals;
 }
