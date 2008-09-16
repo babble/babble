@@ -168,6 +168,26 @@ public class Python extends Language {
         return extractLambda( source );
     }
 
+    public Object eval( Scope s , String code , boolean[] hasReturn ){
+        PyObject globals = getGlobals( s );
+        code = code+ "\n";
+        PyCode pycode = (PyCode)(Py.compile( new ByteArrayInputStream( code.getBytes() ) , "anon" , "single" ));
+        return __builtin__.eval( pycode , globals );
+    }
+
+    public static PyObject getGlobals( Scope s ){
+        Scope pyglobals = s.child( "scope to hold python builtins" );
+
+        PyObject globals = new PyJSScopeWrapper( pyglobals , false );
+        Scope tl = pyglobals.getTLPreferred();
+
+        pyglobals.setGlobal( true );
+        __builtin__.fillWithBuiltins( globals );
+        globals.invoke( "update", PySystemState.builtins );
+        pyglobals.setGlobal( false );
+        return globals;
+    }
+
     public static JSFunction extractLambda( final String source ){
         
         final PyCode code = (PyCode)(Py.compile( new ByteArrayInputStream( source.getBytes() ) , "anon" , "exec" ) );
@@ -208,5 +228,8 @@ public class Python extends Language {
         
         return new JSPyObjectWrapper( (PyFunction)(theFunc.getContained()) , true );
     }
+
+
+
     private static Scope _extractGlobals;
 }
