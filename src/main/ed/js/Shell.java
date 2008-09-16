@@ -77,6 +77,33 @@ public class Shell {
 
     /** Connect to a database. */
     public static class ConnectDB extends JSFunctionCalls2 {
+        
+        public void init(){
+            set( "ms" , new JSFunctionCalls1(){
+                    public Object call( Scope s , Object nameObject , Object hosts[] ){
+                        if ( hosts == null || hosts.length < 2 )
+                            throw new RuntimeException( "can only use connect.ms with multiple hosts" );
+                        
+                        List<DBAddress> addrs = new ArrayList<DBAddress>();
+
+                        
+                        for ( Object foo : hosts ){
+                            try {
+                                addrs.add( new DBAddress( foo + "/" + nameObject ) );
+                            }
+                            catch ( java.net.UnknownHostException uhe ){
+                                throw new RuntimeException( "can't find host [" + foo + "]" );
+                            }
+                        }
+
+                        
+                        return new DBTCP( addrs );
+                        
+                    }
+                }
+                );;
+        }
+        
         public Object call( Scope s , Object name , Object ip , Object crap[] ){
             if ( name == null )
                 throw new NullPointerException( "connect requires a name" );
