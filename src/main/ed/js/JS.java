@@ -20,35 +20,35 @@ package ed.js;
 
 import java.io.*;
 
+import ed.lang.*;
 import ed.js.engine.*;
 
-/**
- * @expose
- */
-public class JS {
+public class JS extends Language {
 
-    /** @unexpose  */
+    public JS(){
+        super( "js" );
+    }
+
+    public JSFunction compileLambda( String source ){     
+        return Convert.makeAnon( source , true );
+    }
+
     public static boolean JNI = false;
-    /** @unexpose  */
     public static final boolean DI = false;
-    /** @unexpose  */
     public static final boolean RAW_EXCPETIONS = ed.util.Config.get().getBoolean( "RAWE" );
 
-    /** @unexpose  */
     public static void _debugSI( String name , String place ){
         if ( ! DI )
             return;
         System.err.println( "Static Init : " + name + " \t " + place  );
     }
 
-    /** @unexpose  */
     public static void _debugSIStart( String name ){
         if ( ! DI )
             return;
         System.err.println( "Static Init : " + name + " Start" );
     }
 
-    /** @unexpose  */
     public static void _debugSIDone( String name ){
         if ( ! DI )
             return;
@@ -92,7 +92,6 @@ public class JS {
         return o.toString();
     }
 
-    /** @unexpose  */
     public static void main( String args[] )
         throws Exception {
 
