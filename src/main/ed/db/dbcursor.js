@@ -8,11 +8,13 @@
  /**
   * Database Cursor API 
  *  @class 10gen Database Cursor  API
- * 
+ *
  *  When you call find() on a database collection, a DBCursor is returned which can be used to iterate the results.
  * 
  *  Example:
  *    var cursor = db.students.find();
+ * 
+ * @docmodule System.DB.cursor
  */
  var DBCursor = function(){}
 
