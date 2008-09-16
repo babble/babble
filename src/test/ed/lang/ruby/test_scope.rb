@@ -16,16 +16,17 @@ require 'ruby_test'
 
 class ScopeTest < RubyTest
 
+# TODO more work needed here
+
   def test_local
     assert_not_nil $local
-    assert_instance_of JSFunction, $local
+    assert_kind_of JSFunction, $local
   end
 
-  # TODO test for more
   # This really tests $core as defined by this test harness, but it's a start.
   def test_core
     assert_not_nil $core
-    assert_instance_of JSFunction, $core
+    assert_kind_of JSFunction, $core
   end
 
 end
