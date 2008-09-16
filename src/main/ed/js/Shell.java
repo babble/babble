@@ -171,13 +171,23 @@ public class Shell {
 
         boolean exit = false;
 
+        Language replLang = Language.JS;
+
         for ( String a : args ){
+
             if ( a.equals( "-exit" ) ){
                 System.out.println("-exit flag deprecated : please use --exit");
                 exit = true;
                 continue;
-            } else  if ( a.equals( "--exit" ) ){
+            } 
+            
+            if ( a.equals( "--exit" ) ){
                 exit = true;
+                continue;
+            }
+            
+            if ( a.startsWith( "--" ) ){
+                replLang = Language.find( a.substring( 2 ) , true );
                 continue;
             }
 
@@ -268,7 +278,7 @@ public class Shell {
 
         if ( exit )
             return;
-
+        
         String line;
         ConsoleReader console = new ConsoleReader();
         console.setHistory( new History( new File( ".jsshell" ) ) );
@@ -286,7 +296,7 @@ public class Shell {
             }
 
             try {
-                Object res = s.eval( line , "lastline" , hasReturn );
+                Object res = replLang.eval( s , line , hasReturn );
                 if ( hasReturn[0] ){
                     if ( res instanceof DBCursor )
                         ed.db.Shell.displayCursor( System.out , (DBCursor)res );

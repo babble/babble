@@ -33,6 +33,10 @@ public class JS extends Language {
         return Convert.makeAnon( source , true );
     }
 
+    public Object eval( Scope scope , String code , boolean[] hasReturn ){
+        return scope.eval( code , "eval" , hasReturn );
+    }
+
     public static boolean JNI = false;
     public static final boolean DI = false;
     public static final boolean RAW_EXCPETIONS = ed.util.Config.get().getBoolean( "RAWE" );

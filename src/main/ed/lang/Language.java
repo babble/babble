@@ -21,6 +21,7 @@ package ed.lang;
 import javax.script.*;
 
 import ed.js.*;
+import ed.js.engine.*;
 
 public abstract class Language {
     
@@ -42,6 +43,14 @@ public abstract class Language {
 
     public JSFunction compileLambda( String source ){
         throw new UnsupportedOperationException();
+    }
+
+    public Object eval( Scope scope , String code , boolean[] hasReturn ){
+        JSFunction func = compileLambda( code );
+        Object ret = func.call( scope );
+        if ( hasReturn != null && hasReturn.length > 0 )
+            hasReturn[0] = true;
+        return ret;
     }
 
     public String toString(){
@@ -81,7 +90,7 @@ public abstract class Language {
         if ( extension.equals( "php" ) )
             return PHP;
 
-        if ( extension.equals( "py" ) )
+        if ( extension.equals( "py" ) || extension.equals( "python" ) )
             return PYTHON;
         
         if ( errorOnNoMatch )

@@ -123,22 +123,12 @@ public class PythonJxpSource extends JxpSource {
                 addPath( ss , _lib.getRoot().toString() );
                 addPath( ss , _lib.getTopParent().getRoot().toString() );
 
-                Scope pyglobals = s.child( "scope to hold python builtins" );
-
-                PyObject globals = new PyJSScopeWrapper( pyglobals , false );
-                Scope tl = pyglobals.getTLPreferred();
-
-                pyglobals.setGlobal( true );
-                __builtin__.fillWithBuiltins( globals );
-                globals.invoke( "update", PySystemState.builtins );
-
+                PyObject globals = Python.getGlobals( s );
                 PyObject builtins = ss.builtins;
 
                 PyObject pyImport = builtins.__finditem__( "__import__" );
                 if( ! ( pyImport instanceof TrackImport ) )
                     builtins.__setitem__( "__import__" , new TrackImport( pyImport , (PythonModuleTracker)ss.modules ) );
-
-                pyglobals.setGlobal( false );
 
                 PyModule xgenMod = imp.addModule("_10gen");
                 // I know this is appalling but they don't expose this any other
