@@ -32,7 +32,9 @@ module XGen
         @cursor.forEach { |row| yield @model_class.new(row) }
       end
 
-      %w(sort limit skip).each { |name|
+      # toArray is for JavaScript code that needs to access @cursor and use
+      # that method.
+      %w(sort limit skip toArray).each { |name|
         eval "def #{name}(*args); @cursor.#{name}(*args); return self; end"
       }
 
