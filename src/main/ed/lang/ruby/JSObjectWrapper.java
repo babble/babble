@@ -88,7 +88,7 @@ public class JSObjectWrapper implements JSObject {
     }
 
     public boolean containsKey(String s) {
-	return _robj.hasInstanceVariable(s); // TODO extend to methods, too?
+	return _robj.hasInstanceVariable("@" + s); // TODO extend to methods, too?
     }
 
     public Collection<String> keySet() {

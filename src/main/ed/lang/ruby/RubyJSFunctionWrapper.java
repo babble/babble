@@ -22,6 +22,7 @@ import org.jruby.*;
 import org.jruby.internal.runtime.methods.JavaMethod;
 import org.jruby.runtime.*;
 import org.jruby.runtime.builtin.IRubyObject;
+import org.jruby.runtime.callback.Callback;
 import static org.jruby.runtime.Visibility.PUBLIC;
 
 import ed.js.*;
@@ -130,31 +131,33 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
     protected JSObjectAllocator jsObjectAllocator = new JSObjectAllocator();
 
     /** Creates a subclass of JSObject for that uses this method as its constructor. */
-    protected void _createJSObjectSubclass(final Scope scope, final String name) {
+    protected void _createJSObjectSubclass(final Scope scope, String name) {
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("adding class named " + name);
 	_klazz = getRuntime().defineClass(name, RubyJSObjectWrapper.getJSObjectClass(getRuntime()), jsObjectAllocator);
+	// FIXME
 	_klazz.kindOf = new RubyModule.KindOf() {
 		    public boolean isKindOf(IRubyObject obj, RubyModule type) {
 			return obj instanceof RubyJSObjectWrapper;
 		    }
 	    };
-	_klazz.addMethod("initialize", new JavaMethod(_klazz, PUBLIC) {
-                public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+	_klazz.defineMethod("initialize", new Callback() {
+                public IRubyObject execute(IRubyObject self, IRubyObject[] args, Block block) {
 		    if (RubyObjectWrapper.DEBUG) {
-			System.err.println("calling method " + clazz.getName() + ".initialize with " + args.length + " args:");
+			System.err.println("calling method " + ((RubyObject)self).type().name() + "#initialize with " + args.length + " args:");
 			for (IRubyObject iro : args) System.err.println("  " + iro.toString());
 		    }
 		    JSObject jsobj = ((RubyJSObjectWrapper)self).getJSObject();
+		    Ruby runtime = self.getRuntime();
 		    try {
-			_func.callAndSetThis(_scope, jsobj, RubyObjectWrapper.toJSFunctionArgs(scope, context.getRuntime(), args, 0, block)); // initialize it by calling _func
+			_func.callAndSetThis(scope, jsobj, RubyObjectWrapper.toJSFunctionArgs(scope, runtime, args, 0, block)); // initialize it by calling _func
 		    }
 		    catch (Exception e) {
-			self.callMethod(context, "raise", new IRubyObject[] {RubyString.newString(context.getRuntime(), e.toString())}, Block.NULL_BLOCK);
+			self.callMethod(runtime.getCurrentContext(), "raise", new IRubyObject[] {RubyString.newString(runtime, e.toString())}, Block.NULL_BLOCK);
 		    }
 		    return self;
                 }
-                @Override public Arity getArity() { return Arity.OPTIONAL; }
+                public Arity getArity() { return Arity.OPTIONAL; }
 	    });
     }
 }

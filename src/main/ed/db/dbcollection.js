@@ -85,6 +85,11 @@ DBCollection.prototype.getIndexes = function(){
 }
 
 
+/**
+ *   <p>
+ *   Re-indexes the collection
+ *   </p>
+ */
 DBCollection.prototype.reIndex = function(){
     
     var coll = this;

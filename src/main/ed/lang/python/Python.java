@@ -206,7 +206,7 @@ public class Python extends Language {
             theFunc = p;
         }
         
-        return new JSPyMethodWrapper( (PyFunction)(theFunc.getContained()) , true );
+        return new JSPyObjectWrapper( (PyFunction)(theFunc.getContained()) , true );
     }
     private static Scope _extractGlobals;
 }
