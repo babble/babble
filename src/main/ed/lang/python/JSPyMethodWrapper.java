@@ -42,44 +42,15 @@ public class JSPyMethodWrapper extends JSPyObjectWrapper {
         super( o );
         _f = o;
         _klass = klass;
-        _passThis = false;
-    }
-
-    public JSPyMethodWrapper( PyFunction o , boolean passThis ){
-        super( o );
-        _f = o;
-        _klass = null;
-        _passThis = passThis;
     }
 
     public Object call( Scope s , Object [] params ){
         // Check if scope.getThis indicates that this is a method call
         // If direct, don't add to params -- "this" could be anything
         // Maybe it would be JavaScript-ier to just pass this anyhow
-        boolean mcall = _klass == null ? _passThis : JSInternalFunctions.JS_instanceof( s.getThis(), _klass );
-        
-        return toJS( callPython( s , params , mcall ) );
-    }
+        boolean mcall = JSInternalFunctions.JS_instanceof( s.getThis(), _klass );
 
-    public PyObject callPython( Scope s , Object [] params , boolean passThis ){
-        
-        JSArray args = argumentNames();
-        if ( args == null || args.size() == 0 )
-            passThis = false;
-
-        int newlength = params == null ? 0 : params.length;
-        if( passThis ) newlength++;
-        PyObject [] pParams = new PyObject[newlength];
-        int offset = 0;
-        if( passThis ){
-            pParams[offset++] = toPython( s.getThis() );
-        }
-        if ( params != null ){
-            for(int i = 0; i < params.length; ++i){
-                pParams[ i + offset ] = toPython(params[i]);
-            }
-        }
-        return _f.__call__( pParams , new String[0] );
+        return toJS( callPython( s , params , null , mcall ) );
     }
 
     public JSObject getSuper(){
@@ -88,6 +59,5 @@ public class JSPyMethodWrapper extends JSPyObjectWrapper {
     
     final PyFunction _f;
     final JSFunction _klass;
-    final boolean _passThis;
 }
     

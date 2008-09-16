@@ -194,7 +194,7 @@ public class Python {
             theFunc = p;
         }
         
-        return new JSPyMethodWrapper( (PyFunction)(theFunc.getContained()) , true );
+        return new JSPyObjectWrapper( (PyFunction)(theFunc.getContained()) , true );
     }
     private static final Scope _extractGlobals = Scope.newGlobal();
 }

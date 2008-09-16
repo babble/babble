@@ -52,7 +52,10 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
 
                 s.setThis( obj );
                 try {
-                    return toJS( func.callPython( jary.toArray() , jo ) );
+                    // FIXME: actually passing this?
+                    boolean passThis = obj != null;
+                    return toJS( func.callPython( s , jary.toArray() , jo , passThis ) );
+
                 }
                 finally {
                     s.clearThisNormal( null );
@@ -85,13 +88,19 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     private JSPyObjectWrapper( ){
         setConstructor( _cons );
         _p = null;
+        _passThis = false;
     }
 
     public JSPyObjectWrapper( PyObject o ){
+        this( o , false );
+    }
+
+    public JSPyObjectWrapper( PyObject o , boolean passThis ){
         setConstructor( _cons );
         _p = o;
         if ( _p == null )
             throw new NullPointerException( "don't think you should create a JSPyObjectWrapper for null" );
+        _passThis = passThis;
     }
 
     public static JSPyObjectWrapper newShell( ){
@@ -171,17 +180,28 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     }
     
     public Object call( Scope s , Object [] params ){
-        return toJS( callPython( params , null ) );
+        return toJS( callPython( s , params , null , _passThis ) );
     }
 
-    public PyObject callPython( Object [] params , JSObject kwargs ){
+    public PyObject callPython( Object [] params, JSObject kwargs ){
+        return callPython( null , params , kwargs , false );
+    }
+
+    public PyObject callPython( Scope s , Object [] params , JSObject kwargs , boolean passThis ){
         Collection<String> keys = null;
         String [] pykeys = null;
+
+        JSArray args = argumentNames();
+        if ( args == null || args.size() == 0 )
+            passThis = false;
 
         int length = 0;
         if( params != null ){
             length += params.length;
         }
+        if( passThis ) length++;
+
+        int offset = 0;
 
         if( kwargs != null ){
             keys = kwargs.keySet();
@@ -191,9 +211,12 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
 
         PyObject [] pParams = new PyObject[ length ];
         int i = 0;
+        if( passThis ){
+            pParams[offset++] = toPython( s.getThis() );
+        }
         if( params != null ){
             for( ; i < params.length; ++i ){
-                pParams[ i ] = toPython( params[ i ] );
+                pParams[ offset + i ] = toPython( params[ i ] );
             }
         }
 
@@ -350,5 +373,6 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     }
 
     protected PyObject _p;
+    final boolean _passThis;
 }
     
