@@ -7,8 +7,8 @@
   <property name="codeRoot" location="/data/"/>
 
   <!-- Override on command line with -Druby.groups=foo -->
-  <property name="ruby.groups" value="ruby, ruby.db"/>
-  <property name="jruby.home" location="build/ruby"/>
+  <property name="ruby.groups" value="ruby,ruby.db"/>
+  <property name="jruby.home" location="include/ruby"/>
 
   <path id="classpath">
     <fileset dir="include">
@@ -58,11 +58,6 @@
       <fileset dir="src/main" includes="**/*.properties"/>
       <fileset dir="src/main" includes="**/*.js"/>
       <fileset dir="src/main/ed/lang/ruby" includes="xgen_internals.rb"/>
-    </copy>
-
-    <mkdir dir="build/ruby/lib/ruby"/>
-    <copy todir="build/ruby/lib/ruby">
-      <fileset dir="include/ruby"/>
     </copy>
 
     <javac srcdir="src/test"
@@ -136,6 +131,7 @@
 
   <target  name="test-django" depends="init, compile">
     <testng classpathref="classpath" outputdir="${testdir}" listeners="ed.TestNGListener" haltonfailure="true" >
+      <jvmarg value="-Xmx500M" />
       <xmlfileset dir="." includes="testng-django.xml"/>
       <sysproperty key="DEBUG.DJANG10" value="${DEBUG.DJANG10}"/>
     </testng>

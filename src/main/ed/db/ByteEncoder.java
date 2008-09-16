@@ -20,6 +20,7 @@ public class ByteEncoder extends Bytes {
 	BAD_GLOBALS.add( "db" );
 	BAD_GLOBALS.add( "local" );
 	BAD_GLOBALS.add( "core" );
+        BAD_GLOBALS.add( "args" ); // TODO: should we get rid of this
     }
     
     
@@ -147,15 +148,13 @@ public class ByteEncoder extends Bytes {
 
             Object val = o.get( s );
             
-            if ( val instanceof JSFunction && ((JSFunction)val).isCallable() ){
-
-                if ( s.startsWith( "$" ) && 
-                     ! val.toString().startsWith( JSFunction.TO_STRING_PREFIX ) ){
-                    putFunction( s , (JSFunction)val );
+            if ( val instanceof JSFunction ){
+                JSFunction func = (JSFunction)val;
+                if ( func.isCallable() ){
+                    if ( s.startsWith( "$" ) && func.isCallable() && func.getSourceCode() != null )
+                        putFunction( s , func );
                     continue;
                 }
-
-                continue;
             }
 
 
@@ -263,12 +262,26 @@ public class ByteEncoder extends Bytes {
 
     protected int putFunction( String name , JSFunction func ){
         final int start = _buf.position();
-	
-	if ( name.startsWith( "$" ) && func.getGlobals() != null && func.getGlobals().size() > 0 && func.getScope() != null ){
+        
+        Set<String> globalsToSend = new HashSet<String>();
+        {
+            JSArray globals = func.getGlobals();
+            if ( globals != null ){
+                for ( Object var : globals ){
+                    if ( BAD_GLOBALS.contains( var.toString() ) )
+                        continue;
+                    globalsToSend.add( var.toString() );
+                }
+            }
+        }
+
+        if ( D ) System.out.println( "globalsToSend : " + globalsToSend );
+
+	if ( name.startsWith( "$" ) && globalsToSend.size() > 0 && func.getScope() != null ){
 	    _put( CODE_W_SCOPE , name );
 	    final int save = _buf.position();
 	    _buf.putInt( 0 );
-	    _putValueString( func.toString() );
+	    _putValueString( func.getSourceCode() );
 	    
 	    JSObjectBase scopeToPass = new JSObjectBase();
 	    Scope s = func.getScope();
@@ -276,9 +289,7 @@ public class ByteEncoder extends Bytes {
 	    if ( _dontRef.size() != 0 )
 		throw new RuntimeException( "some weird recursive thing" );
 
-	    for ( Object var : func.getGlobals() ){
-		if ( BAD_GLOBALS.contains( var.toString() ) )
-		    continue;
+	    for ( String var : globalsToSend ){
 		Object val = s.get( var );
 		_dontRef.add( val );
 		scopeToPass.set( var , val );
@@ -292,7 +303,7 @@ public class ByteEncoder extends Bytes {
 	}
 	else {
 	    _put( CODE , name );
-	    _putValueString( func.toString() );
+	    _putValueString( func.getSourceCode() );
 	}
 	
 	

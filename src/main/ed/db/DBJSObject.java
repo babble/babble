@@ -33,7 +33,7 @@ public class DBJSObject implements JSObject {
     }
 
     public Object getInt( int n ){
-        throw new RuntimeException("not done yet" );        
+        return get( String.valueOf( n ) );
     }
 
     public Object setInt( int n , Object v ){
@@ -129,6 +129,10 @@ public class DBJSObject implements JSObject {
         }
         return null;
     }
+
+    public String toString(){
+        return "Object";
+    }
     
     class Element {
         Element( final int start ){
@@ -165,7 +169,6 @@ public class DBJSObject implements JSObject {
                 size += 4 + _buf.getInt( _dataStart );
                 break;
             case ARRAY:
-                throw new RuntimeException( "can't handle arrays things yet" );
             case OBJECT:
 		size += _buf.getInt( _dataStart );
 		break;
@@ -203,6 +206,7 @@ public class DBJSObject implements JSObject {
 		return new ObjectId( _buf.getLong( _dataStart ) , _buf.getInt( _dataStart + 8 ) );
 	    case SYMBOL:
 	    case CODE:
+		return ed.js.engine.Convert.makeAnon( _readJavaString( _dataStart ) );
 	    case STRING:
 		return _readJavaString( _dataStart );
 	    case DATE:
@@ -216,7 +220,7 @@ public class DBJSObject implements JSObject {
 	    case BOOLEAN:
 		return _buf.get( _dataStart ) > 0;
 	    case ARRAY:
-		throw new RuntimeException( "can't look at array's yet" );
+                // TODO: need to be smarter here
 	    case OBJECT:
 		return new DBJSObject( _buf , _dataStart );
 	    case NULL:

@@ -9,7 +9,10 @@ import java.util.*;
 import ed.io.*;
 import ed.js.*;
 
-/** @expose */
+/**
+ * @expose
+ * @docmodule System.DB.db
+ * */
 public abstract class DBApiLayer extends DBBase {
 
     /** @unexpose */
@@ -94,11 +97,17 @@ public abstract class DBApiLayer extends DBBase {
 
         final String root = fullNameSpace.substring( 0 , idx );
         final String table = fullNameSpace.substring( idx + 1 );
-
+        
         if ( _root.equals( root ) )
             return doGetCollection( table );
+        
+        DBApiLayer base = _sisters.get( root );
+        if ( base == null ){
+            base = DBProvider.getSisterDB( this , root );
+            _sisters.put( root , base );
+        }
 
-        return DBProvider.getSisterDB( this , root ).doGetCollection( table );
+        return base.doGetCollection( table );
     }
 
     public Collection<String> getCollectionNames(){
@@ -537,6 +546,7 @@ public abstract class DBApiLayer extends DBBase {
     /** @unexpose */
     final String _root;
     final Map<String,MyCollection> _collections = Collections.synchronizedMap( new HashMap<String,MyCollection>() );
+    final Map<String,DBApiLayer> _sisters = Collections.synchronizedMap( new HashMap<String,DBApiLayer>() );
     List<Long> _deadCursorIds = new Vector<Long>();
 
     static final List<JSObject> EMPTY = Collections.unmodifiableList( new LinkedList<JSObject>() );

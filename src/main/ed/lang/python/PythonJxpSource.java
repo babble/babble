@@ -144,7 +144,7 @@ public class PythonJxpSource extends JxpSource {
                 // I know this is appalling but they don't expose this any other
                 // way
                 xgenMod.__dict__ = globals;
-
+                
                 //Py.initClassExceptions( globals );
                 globals.__setitem__( "__file__", Py.newString( _file.toString() ) );
                 PyModule module = new PyModule( "__main__" , globals );

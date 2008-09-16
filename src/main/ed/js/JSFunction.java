@@ -202,6 +202,10 @@ public abstract class JSFunction extends JSFunctionBase {
         }
     }
 
+    public String getSourceCode(){
+	return null;
+    }
+
     /** Return a string representation of this function.
      * @return A string "JSFunction : " and this function's name
      */

@@ -25,6 +25,18 @@ function noresult(c) {
 	failure("ERROR: wrong # of results: " + c.length(), arguments);
 }
 
+function testcopydb() { 
+    var tc = connect("testcopy");
+    tc.dropDatabase();
+    var res = connect("admin").copyDatabase("test", "testcopy");
+    var x= t.system.namespaces.count();
+    var y= tc.system.namespaces.count();
+    print("testcopydb: x:" + x + " y:" + y);
+    assert(x==y);
+    assert( t.system.indexes.count() == tc.system.indexes.count() );
+    assert( t.dots.count() == tc.dots.count() );
+}
+
 function testdots() { 
     t.dots.remove({});
     t.dots.save( { a: 3, b: { y: 4, z : 5 } } );
@@ -341,4 +353,5 @@ runall();
 
 assert( db.eval(function(){return 3;}) == 3 );
 
+testcopydb();
 

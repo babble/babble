@@ -47,12 +47,6 @@ import ed.log.Logger;
 public class Expression extends JSObjectBase {
     private final Logger log;
     
-    public final static Object UNDEFINED_VALUE = new Object() {
-        public String toString() {
-            return "UNDEFINED_VALUE";
-        };
-    };
-
     private static final Set<Integer> SUPPORTED_TOKENS = new HashSet<Integer>(Arrays.asList(
         Token.GETELEM,
         Token.GETPROP,
@@ -187,6 +181,9 @@ public class Expression extends JSObjectBase {
         
     }
 
+    public ed.appserver.templates.djang10.Parser.Token getToken() {
+        return token;
+    }
     
     private static List<String> splitLiterals(String str) {
         List<String> bits = new ArrayList<String>();
@@ -323,15 +320,7 @@ public class Expression extends JSObjectBase {
     
     public Object resolve(Scope scope, Context ctx) {
 
-        Object obj = UNDEFINED_VALUE;
-        try {
-            obj = resolve(scope, ctx, parsedExpression.getFirstChild(), true);
-            if(obj == UNDEFINED_VALUE)
-                log.debug("SHOULD NEVER HAPPEN!!! [" + this +  "]. (" + token.getOrigin() + ":" + token.getStartLine() + ")");
-
-        } catch(VariableLookupError e) {
-            log.debug("Failed to resolve ["+this+"]: "+e.getMessage()+" ("+ token.getOrigin() + ":" + token.getStartLine() + ")");
-        }        
+        Object obj = resolve(scope, ctx, parsedExpression.getFirstChild(), true);
 
         obj = JSNumericFunctions.fixType(obj);
         
@@ -346,41 +335,46 @@ public class Expression extends JSObjectBase {
         case Token.GETELEM:
         case Token.GETPROP:
             //get the object
-            temp = resolve(scope, ctx, node.getFirstChild(), true);
+            try {
+                temp = resolve(scope, ctx, node.getFirstChild(), true);
+            } catch(VariableDoesNotExist e) {
+                e.setSameAsJsNull(false);
+                throw e;
+            }
             if(temp == null)
-                throw new VariableLookupError("Can't get property from a null object");
+                throw new VariableDoesNotExist("Can't get a property from a null object", this, toString(node));
 
             if(!(temp instanceof JSObject))
-                throw new TemplateException("Can't handle native objects of type [" + temp.getClass().getName() + "]");
+                throw new VariableDoesNotExist("Can't get properties from native objects of type [" + temp.getClass().getName() + "]", this, toString(node));
             JSObject obj = (JSObject)temp;
             
-            //get the property
-            Object prop = resolve(scope, ctx, node.getLastChild(), true);
+            //get the property name
+            Object prop;
+            try {
+                prop = resolve(scope, ctx, node.getLastChild(), true);
+            } catch(VariableDoesNotExist e) {
+                e.setSameAsJsNull(false);
+                throw e;
+            }
             if(prop == null)
-                throw new VariableLookupError("Can't get null property");
+                throw new VariableDoesNotExist("Can't get null property", this, toString(node));
             
+            //get the property
             Object val = obj.get(prop);
-            if(val == null && !obj.containsKey(prop.toString()))
-                throw new VariableLookupError("Object doesn't contain the property ["+prop.toString()+"]");
+            if(val == null && !obj.containsKey(prop.toString())) {
+                VariableDoesNotExist e = new VariableDoesNotExist("Object doesn't contain the property ["+prop.toString()+"]", this, toString(node));
+                e.setSameAsJsNull(true);
+                throw e;
+            }
             
-            if (autoCall 
-                    && (val instanceof JSFunction)
-                    && ( 
-                        !(val instanceof JSPyObjectWrapper) 
-                        || ((JSPyObjectWrapper)val).isCallable()
-                        )
-                    ) {
-
+            if (autoCall && (val instanceof JSFunction) && ((JSFunction)val).isCallable()) {
                 try {
                     val = ((JSFunction)val).callAndSetThis(scope.child(), obj, new Object[0]);
                 }
                 catch(JSException e) {
-                    if(isTrue(e.get("silent_variable_failure")))
-                        throw new VariableLookupError("Failed to autocall the property [" + prop.toString() + "]", e);
-                    
                     temp = e.getObject();
                     if(temp instanceof JSObject && isTrue( ((JSObject)temp).get("silent_variable_failure") ))
-                        throw new VariableLookupError("Failed to autocall the property [" + prop.toString() + "]", e);
+                        throw new VariableDoesNotExist("Failed to autocall the property [" + prop.toString() + "]", this, toString(node), e);
                     
                     throw e;
                 }
@@ -394,30 +388,71 @@ public class Expression extends JSObjectBase {
             Node callArgs = node.getFirstChild();
             
             if (callArgs.getType() == Token.GETELEM || callArgs.getType() == Token.GETPROP) {
-                //get the method
-                temp = resolve(scope, ctx, callArgs, false);
-                if(temp == null)
-                    throw new VariableLookupError("Can't call null method");
+                //get the object
+                try {
+                    callThisObj = (JSObject)resolve(scope, ctx, callArgs.getFirstChild(), true);
+                } catch(VariableDoesNotExist e) {
+                    NullPointerException npe = new NullPointerException(VariableDoesNotExist.format("Can't call methods on nonexistent objects", this, toString(node)));
+                    npe.initCause(e);
+                    throw npe;
+                }
+                if(callThisObj == null)
+                    throw new NullPointerException(VariableDoesNotExist.format("Can't call methods on null objects", this, toString(node)));
+                
+                //get the method name
+                Object propName;
+                try {
+                    propName = resolve(scope, ctx, callArgs.getLastChild(), callArgs.getType() == Token.GETELEM);
+                } catch(VariableDoesNotExist e) {
+                    NullPointerException npe = new NullPointerException(VariableDoesNotExist.format("Can't call methods with nonexistent names", this, toString(node)));
+                    npe.initCause(e);
+                    throw npe;
+                }
+                if(propName == null) {
+                    throw new NullPointerException(VariableDoesNotExist.format("Can't call methods with null name", this, toString(node)));
+                }
+                temp = callThisObj.get(propName);
+
+                if(temp == null) {
+                    String msg = callThisObj.containsKey(propName.toString())? "Can't call null method" : "Can't call nonexistent method";
+                    throw new NullPointerException(VariableDoesNotExist.format(msg, this, toString(node)));
+                }
                 if(!(temp instanceof JSFunction))
-                    throw new TemplateException("Can only call functions.  [" + expression + "]");
+                    throw new IllegalArgumentException(VariableDoesNotExist.format("Can only call functions, got [" + temp.getClass() + "]", this, toString(node)));
                 callMethodObj = (JSFunction)temp;
                 
-                //get this
-                callThisObj = (JSObject)resolve(scope, ctx, callArgs.getFirstChild(), true);;
             } else {
-                temp = resolve(scope, ctx, callArgs, false);
+                try {
+                    temp = resolve(scope, ctx, callArgs, false);
+                } catch(VariableDoesNotExist e) {
+                    NullPointerException npe = new NullPointerException(VariableDoesNotExist.format("Can't call nonexistent functions", this, toString(node)));
+                    npe.initCause(e);
+                    throw npe;
+                }
                 if(temp == null)
-                    throw new VariableLookupError("Can't call null function");
+                    throw new NullPointerException(VariableDoesNotExist.format("Can't call null functions", this, toString(node)));
                 if(!(temp instanceof JSFunction))
-                    throw new TemplateException("Can only call functions. [" + expression + "]");
+                    throw new NullPointerException(VariableDoesNotExist.format("Can only call functions, got [" + temp.getClass() + "]", this, toString(node)));
                 callMethodObj = (JSFunction)temp;
             }
 
             // arguments
-            List<Object> argList = new ArrayList<Object>();             
-            
-            for(callArgs = callArgs.getNext(); callArgs != null; callArgs = callArgs.getNext())
-                argList.add(resolve(scope, ctx, callArgs, true));
+            List<Object> argList = new ArrayList<Object>();
+            for(callArgs = callArgs.getNext(); callArgs != null; callArgs = callArgs.getNext()) {
+                try {
+                    argList.add(resolve(scope, ctx, callArgs, true));
+                } 
+                catch(VariableDoesNotExist e) {
+                    if(e.isSameAsJsNull()) {
+                        argList.add(null);
+                    }
+                    else {
+                        NullPointerException npe = new NullPointerException(VariableDoesNotExist.format("Method parameter#"+argList.size() +  " can't contain undefined variables", this, toString(callArgs)));
+                        npe.initCause(e);
+                        throw npe;
+                    }
+                }
+            }
 
             Scope callScope = scope.child();
             callScope.setGlobal(true);
@@ -429,21 +464,37 @@ public class Expression extends JSObjectBase {
                     return callMethodObj.call(callScope, argList.toArray());
             }
             catch(JSException e) {
-                if(isTrue(e.get("silent_variable_failure")))
-                    throw new VariableLookupError("Failed to call method", e);
-                
                 temp = e.getObject();
                 if(temp instanceof JSObject && isTrue( ((JSObject)temp).get("silent_variable_failure") ))
-                    throw new VariableLookupError("Failed to call method", e);
+                    throw new VariableDoesNotExist("Failed to call method", this, toString(node), e);
                 
                 throw e;
             }
-            
 
+            
+        case Token.ARRAYLIT:
+            JSArray arrayLit = new JSArray();
+            
+            for(Node arrElem = node.getFirstChild(); arrElem != null; arrElem = arrElem.getNext()) {
+                try {
+                    arrayLit.add(resolve(scope, ctx, arrElem, true));
+                } catch(VariableDoesNotExist e) {
+                    if(e.isSameAsJsNull()) {
+                        arrayLit.add(null);
+                    } else {
+                        NullPointerException npe = new NullPointerException(VariableDoesNotExist.format("Array literal element#"+arrayLit.size() +  " can't contain undefined variables", this, toString(arrElem)));
+                        npe.initCause(e);
+                        throw npe;
+                    }
+                }
+            }
+
+            return arrayLit;
+
+            
         case Token.NAME:
             Object lookupValue = ctx.get(node.getString());
-            if(lookupValue == null)
-                lookupValue = ctx.containsKey(node.getString()) ? null : UNDEFINED_VALUE;
+            boolean lookupValueDoesNotExist = (lookupValue == null) && !ctx.containsKey(node.getString());
 
             boolean use_fallabck = true;
             if(ctx.get("__use_globals") instanceof Boolean) {
@@ -454,17 +505,20 @@ public class Expression extends JSObjectBase {
             }
             
             // XXX: fallback on scope look ups
-            if (lookupValue == UNDEFINED_VALUE && use_fallabck) {
+            if (use_fallabck && lookupValueDoesNotExist) {
                 lookupValue = scope.get(node.getString());
-
-                if (lookupValue == null) {
-                    lookupValue = scope.keySet().contains(node.getString()) ? null : UNDEFINED_VALUE;
-                }
+                
+                lookupValueDoesNotExist = (lookupValue == null);
+                for(Scope s = scope; s != null && lookupValueDoesNotExist; s = s.getParent())
+                    lookupValueDoesNotExist = !s.keySet().contains(node.getString());
             }
-            if(lookupValue == UNDEFINED_VALUE)
-                throw new VariableLookupError("Failed to lookup ["+node.getString() + "]");
+            if(lookupValueDoesNotExist) {
+                VariableDoesNotExist e = new VariableDoesNotExist("Failed to lookup variable", this, toString(node));
+                e.setSameAsJsNull(true);
+                throw e;
+            }
 
-            
+
             if (autoCall 
                 && (lookupValue instanceof JSFunction)
                 && !(lookupValue instanceof JSFileLibrary)
@@ -472,19 +526,19 @@ public class Expression extends JSObjectBase {
                     !(lookupValue instanceof JSPyObjectWrapper)
                     || ((JSPyObjectWrapper)lookupValue).isCallable()
                     )
-                )
-                lookupValue = ((JSFunction) lookupValue).call(scope.child());
+               )
+                
+                try {
+                    lookupValue = ((JSFunction) lookupValue).call(scope.child());
+                }
+                catch(JSException e) {
+                    temp = e.getObject();
+                    if(temp instanceof JSObject && isTrue( ((JSObject)temp).get("silent_variable_failure") ))
+                        throw new VariableDoesNotExist("Failed to call method", this, toString(node), e);
+                    
+                    throw e;
+                }
             return lookupValue;
-
-            
-        case Token.ARRAYLIT:
-            JSArray arrayLit = new JSArray();
-            
-            for(Node arrElem = node.getFirstChild(); arrElem != null; arrElem = arrElem.getNext())
-                arrayLit.add(resolve(scope, ctx, arrElem, true));
-
-            return arrayLit;
-
 
         case Token.STRING:
             return new JSString(node.getString());
@@ -517,7 +571,7 @@ public class Expression extends JSObjectBase {
 
         default:
             //Should never happen
-            throw new IllegalStateException();
+            throw new IllegalStateException("Can't resolve the token: " + Token.name(node.getType()));
         }
     }
     
@@ -525,6 +579,104 @@ public class Expression extends JSObjectBase {
         return expression;
     }
 
+    private static String toString(Node node) {
+        StringBuilder buffer = new StringBuilder();
+        toString(node, buffer);
+        return buffer.toString();
+    }
+    private static void toString(Node node, StringBuilder buffer) {
+        switch(node.getType()) {
+        case Token.GETELEM:
+            toString(node.getFirstChild(), buffer);
+            buffer.append("[");
+            toString(node.getLastChild(), buffer);
+            buffer.append("]");
+            break;
+            
+        case Token.GETPROP:
+            toString(node.getFirstChild(), buffer);
+            buffer.append(".");
+            buffer.append(node.getLastChild().getString());
+            break;
+            
+        case Token.CALL:
+            toString(node.getFirstChild(), buffer);
+            buffer.append("(");
+            boolean isFirstCallArg = true;
+            for(Node arg = node.getFirstChild().getNext(); arg != null; arg = arg.getNext()) {
+                if(!isFirstCallArg)
+                    buffer.append(",");
+                isFirstCallArg = false;
+                
+                toString(arg, buffer);
+            }
+            buffer.append(")");
+            break;
+            
+        case Token.NAME:
+            buffer.append(node.getString());
+            break;
+            
+        case Token.ARRAYLIT:
+            boolean isFirstElm = true;
+            buffer.append("[");
+            for(Node elm = node.getFirstChild(); elm != null; elm = elm.getNext()) {
+                if(!isFirstElm)
+                    buffer.append(",");
+                isFirstElm = false;
+                
+                toString(elm, buffer);
+            }
+            buffer.append("]");
+            break;
+        
+        case Token.STRING:
+            buffer.append("\"" + node.getString().replace("\"", "\\\"") + "\"");
+            break;
+            
+        case Token.POS:
+            buffer.append("+");
+            toString(node.getFirstChild(), buffer);
+            break;
+            
+        case Token.NEG:
+            buffer.append("-");
+            toString(node.getFirstChild(), buffer);
+            break;
+            
+        case Token.NUMBER:
+            buffer.append(JSNumericFunctions.fixType(node.getDouble()));
+            break;
+
+        case Token.NULL:
+            buffer.append("null");
+            break;
+
+
+        case Token.TRUE:
+            buffer.append("true");
+            break;
+
+
+        case Token.FALSE:
+            buffer.append("false");
+            break;
+
+
+        default:
+            buffer.append("UNSUPPORTED_EXPR(");
+            boolean isFirstChild = true;
+            for(Node child = node.getFirstChild(); child != null; child = child.getNext()) {
+                if(!isFirstChild)
+                    buffer.append(",");
+                isFirstElm = false;
+                
+                toString(child, buffer);
+            }
+            buffer.append(")");
+        }
+    }
+    
     public static boolean isTrue(Object value) {
         if (value == null)
             return false;
@@ -533,8 +685,6 @@ public class Expression extends JSObjectBase {
         if("".equals(value))
             return false;
         if (value == Boolean.FALSE)
-            return false;
-        if (value == UNDEFINED_VALUE)
             return false;
         if ((value instanceof Number) && ((Number) value).doubleValue() == 0)
             return false;
@@ -573,21 +723,9 @@ public class Expression extends JSObjectBase {
             throw new UnsupportedOperationException();
         }
         protected void init() {
-            set("UNDEFINED_VALUE", UNDEFINED_VALUE);
             set("is_true", new isTrueFunc());
             set("resolve", new resolveFunc());
             set("toString", new toStringFunc());
         }
     };
-    
-    private static class VariableLookupError extends Djang10Exception {
-        public VariableLookupError(String msg, Throwable t) {
-            super(msg, t);
-        }
-
-        public VariableLookupError(String msg) {
-            super(msg);
-        }
-        
-    }
 }

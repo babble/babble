@@ -96,4 +96,10 @@ public class MQLSelectTest extends MQLTestUtil {
         testQueryOutput("select from x where a = b order by c asc skip 5 limit 10 ",
                 "db.x.find({ $where : function() { return obj.a == obj.b;}}).sort({c:1}).limit(10).skip(5)");
     }
+
+    @Test(groups = {"basic"})
+    public void testSelectOrder() throws Exception  {
+        testQueryOutput("select from geir order by n", "db.geir.find({}).sort({n:1})");
+    }
+
 }

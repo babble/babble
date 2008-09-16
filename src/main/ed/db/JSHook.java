@@ -236,6 +236,27 @@ public class JSHook {
 
 
     // -----    functions   -------
+
+    public static JSFunction convertToFunction( String code ){
+        code = code.trim();
+        int idx = 0;
+        while ( idx < code.length() && Character.isLetter( code.charAt( idx ) ) )
+            idx++;
+        
+        if ( idx >= code.length() )
+            throw new RuntimeException( "don't know how to deal with code [" + code + "]" );
+        
+        final String sym = code.substring( 0 , idx );
+        
+        if ( sym.equals( "function" ) )
+            return Convert.makeAnon( code , true );
+        
+        if ( sym.equals( "def" ) )
+            return ed.lang.python.Python.extractLambda( code );
+        
+        // default to JS
+        return Convert.makeAnon( code , true );
+    }
     
     public static long functionCreate( String code ){
         if ( DEBUG ) System.err.println( "functionCreate start " );
@@ -260,7 +281,7 @@ public class JSHook {
         if ( DEBUG ) System.err.println( "\t compiling : " + code );
 
         try {
-            f = Convert.makeAnon( code , true );
+            f = convertToFunction( code );
         }
         catch ( Throwable t ){
             t.printStackTrace();

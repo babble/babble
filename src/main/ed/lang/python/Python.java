@@ -19,6 +19,7 @@
 package ed.lang.python;
 
 import java.io.*;
+import java.util.*;
 
 import org.python.core.*;
 
@@ -157,4 +158,43 @@ public class Python {
         
         throw new RuntimeException( "can't convert [" + o.getClass().getName() + "] from js to py" );
     }
+
+    public static JSFunction extractLambda( final String source ){
+        
+        final PyCode code = (PyCode)(Py.compile( new ByteArrayInputStream( source.getBytes() ) , "anon" , "exec" ) );
+
+        Scope s = _extractGlobals.child();
+        s.setGlobal( true );
+        PyObject globals = new PyJSScopeWrapper( s , false );        
+
+        PyModule module = new PyModule( "__main__" , globals );
+        PyObject locals = module.__dict__;
+        
+        Set<String> before = new HashSet<String>( s.keySet() );
+        Py.runCode( code, locals, globals );
+        Set<String> added = new HashSet<String>( s.keySet() );
+        added.removeAll( before );
+        
+        JSPyObjectWrapper theFunc = null;
+        
+        for ( String n : added ){
+            if ( s.get( n ) == null )
+                continue;
+            Object foo = s.get( n );
+            if ( ! ( foo instanceof JSPyObjectWrapper ) )
+                continue;
+            
+            JSPyObjectWrapper p = (JSPyObjectWrapper)foo;
+            if ( ! p.isCallable() )
+                continue;
+            
+            if ( p.getPyCode() == null )
+                continue;
+            
+            theFunc = p;
+        }
+        
+        return new JSPyMethodWrapper( (PyFunction)(theFunc.getContained()) , true );
+    }
+    private static final Scope _extractGlobals = Scope.newGlobal();
 }

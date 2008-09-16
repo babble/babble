@@ -26,6 +26,7 @@ import ed.util.*;
  * @anonymous name : {findOne}, desc : {Returns the first object in this collection matching a given query.}, return : {type : (JSObject), desc : (the first matching element)}, param : {type : (JSObject), name : (query), desc : (query to use)}, param : { type : (JSObject), name : (f), desc : (fields to return)
  * @anonymous name : {tojson}, desc : {Returns a description of this collection as a string.}, return : {type : (String), desc : ("{DBCollection:this.collection.name}")}
  * @expose
+ * @docmodule System.DB.collection 
  */
 public abstract class DBCollection extends JSObjectLame {
 
@@ -402,12 +403,20 @@ public abstract class DBCollection extends JSObjectLame {
                     if ( o == null )
                         o = new JSObjectBase();
                     
+                    if ( o instanceof JSFunction && ((JSFunction)o).isCallable() && ((JSFunction)o).getSourceCode() != null ){
+                        JSObjectBase obj = new JSObjectBase();
+                        obj.set( "$where" , o );
+                        o = obj;
+                    }
+
                     if ( o instanceof String || o instanceof JSString ){
                         String str = o.toString();
                         if ( ObjectId.isValid( str ) )
                             o = new ObjectId( str );
+                        else 
+                            throw new IllegalArgumentException( "can't call find() with a string that is not a valid ObjectId" );
                     }
-
+                    
                     if ( o instanceof ObjectId )
                         return find( (ObjectId)o );
                     

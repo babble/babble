@@ -44,6 +44,7 @@ import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
 public class RubyJxpSource extends JxpSource {
 
     public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
+    static final Map<Ruby, Set<IRubyObject>> _requiredJSFileLibFiles = new WeakHashMap<Ruby, Set<IRubyObject>>();
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB");
     static final boolean SKIP_REQUIRED_LIBS = Boolean.getBoolean("DEBUG.RB.SKIP.REQ.LIBS");
@@ -216,7 +217,11 @@ public class RubyJxpSource extends JxpSource {
 			return runtime.getLoadService().require(arg) ? runtime.getTrue() : runtime.getFalse();
 		    }
 		    catch (RaiseException re) {
-			return loadLibraryFile(scope, runtime, self, arg, re);
+			if (_notAlreadyRequired(runtime, args[0])) {
+			    loadLibraryFile(scope, runtime, self, arg, re);
+			    _rememberAlreadyRequired(runtime, args[0]);
+			}
+			return runtime.getTrue();
 		    }
 		}
 	    });
@@ -248,6 +253,10 @@ public class RubyJxpSource extends JxpSource {
 		    ((JSFunction)o).call(scope, EMPTY_OBJECT_ARRAY);
 		}
 		catch (Exception e) {
+		    if (DEBUG) {
+			System.err.println("problem loading JSFileLibrary file: " + e + "; calling Ruby \"raise\" method");
+			e.printStackTrace();
+		    }
 		    recv.callMethod(runtime.getCurrentContext(), "raise", new IRubyObject[] {RubyString.newString(runtime, e.toString())}, Block.NULL_BLOCK);
 		}
 		return runtime.getTrue();
@@ -257,12 +266,30 @@ public class RubyJxpSource extends JxpSource {
 	}
 	catch (Exception e) {
 	    if (DEBUG)
-		System.err.println("problem loading file " + file + "; exception seen is " + e);
+		System.err.println("problem loading file " + file + "; exception seen is " + e + "; falling through to throw original Ruby error");
 	    /* fall through to throw re */
 	}
 	if (DEBUG)
 	    System.err.println("problem loading file " + file + "; throwing original Ruby error " + re);
 	throw re;
+    }
+
+    protected boolean _notAlreadyRequired(Ruby runtime, IRubyObject arg) {
+	synchronized (_requiredJSFileLibFiles) {
+	    Set<IRubyObject> reqs = _requiredJSFileLibFiles.get(runtime);
+	    return reqs == null || !reqs.contains(arg);
+	}
+    }
+
+    protected void _rememberAlreadyRequired(Ruby runtime, IRubyObject arg) {
+	synchronized (_requiredJSFileLibFiles) {
+	    Set<IRubyObject> reqs = _requiredJSFileLibFiles.get(runtime);
+	    if (reqs == null) {
+		reqs = new HashSet<IRubyObject>();
+		_requiredJSFileLibFiles.put(runtime, reqs);
+	    }
+	    reqs.add(arg);
+	}
     }
 
     protected final File _file;

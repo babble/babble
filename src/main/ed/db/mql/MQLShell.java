@@ -28,6 +28,8 @@ import ed.lang.StackTraceHolder;
 
 import java.io.PrintStream;
 import java.io.File;
+import java.io.FileReader;
+import java.io.BufferedReader;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
@@ -51,11 +53,13 @@ import org.apache.commons.cli.HelpFormatter;
  */
 public class MQLShell {
 
-    private PrintStream _out;
+    private MyPrintStream _out;
     private DBBase _db;
     private Scope _scope;
     private boolean _exit = true;
-
+    private String[] _mqlArgs = new String[0];
+    private boolean _dump = false;
+    
     MQLShell(PrintStream out, String[] args) throws Exception {
 
         Options opts = new Options();
@@ -63,6 +67,7 @@ public class MQLShell {
         opts.addOption("h", "help", false, "show command line usage");
         opts.addOption("noexit", false, "remain at command prompt after running a script");
         opts.addOption("db", true, "db to connect to");
+        opts.addOption("dump", false, "dump database");
 
         CommandLine cl = (new PosixParser()).parse(opts, args);
 
@@ -72,7 +77,17 @@ public class MQLShell {
             System.exit(0);
         }
 
-        _out = out;
+        setDump(cl.hasOption("dump"));
+
+        _out = new MyPrintStream(out);
+
+        // if dumping, try to intercept the spew from the libraries
+        
+        if (_dump) {
+            _out._dropJunk = true;
+            _out._comment = "// ";
+            System.setOut(_out);
+        }
 
         _scope = Scope.newGlobal().child(new File("."));
         _scope.setGlobal(true);
@@ -83,6 +98,10 @@ public class MQLShell {
         }
 
         set_exit(!cl.hasOption("noexit"));
+
+        // now, if we were given a list of files to deal with...
+
+        _mqlArgs = cl.getArgs();
     }
 
     /**
@@ -95,78 +114,104 @@ public class MQLShell {
      */
     public void go() throws Exception {
 
+        if (_dump) {
+            dumpDB();
+            return;
+        }
+        
+        if (_mqlArgs.length > 0) {
+            processScripts();
+            return;
+        }
+
         String line;
         ConsoleReader console = new ConsoleReader();
         console.setHistory(new History(new File(".MQLshell")));
 
         while ((line = console.readLine(getDBName() + " > ")) != null) {
 
-            line = line.trim();
-
-            if (line.endsWith(";")) {
-                line = line.substring(0, line.length() - 1);
-            }
-
-            if (line.length() == 0) {
-                continue;
-            }
-
-            if (line.equals("help")) {
-                showHelp();
-                continue;
-            } else if (line.equals("exit")) {
+            if (!processLine(line)) {
                 break;
-            } else if (line.equals("show collections") || line.equals("show tables")) {
-                line = "db.system.namespaces.find({});";
-            } else if (line.startsWith("use")) {
+            }
+        }            
+    }
 
-                String[] ss = line.split(" ");
+    boolean processLine(String line) throws Exception {
 
-                if (ss.length != 2) {
-                    showHelp();
-                    continue;
-                }
+        if (line == null) {
+            return true;
+        }
+        
+        line = line.trim();
 
-                setDB(ss[1]);
-                continue;
-            } else if (line.startsWith("select") || line.startsWith("update") || line.startsWith("delete")) {
+        if (line.endsWith(";")) {
+            line = line.substring(0, line.length() - 1);
+        }
 
-                // stuff that uses the parser
+        if (line.length() == 0) {
+            return true;
+        }
 
-                MQL parser = new MQL(line);
-                try {
-                    SimpleNode ast = (SimpleNode) parser.parseQuery();
-                    QueryInfo qi = new QueryInfo("db");
+        if( line.startsWith("//")) {
+            return true;
+        }
 
-                    ast.generateQuery(qi);
+        if (line.equals("help")) {
+            showHelp();
+            return true;
+        } else if (line.equals("exit")) {
+            return false;
+        } else if (line.equals("show collections") || line.equals("show tables")) {
+            line = "db.system.namespaces.find({});";
+        } else if (line.startsWith("use")) {
 
-                    line = qi.toString();
-                }
-                catch (TokenMgrError e) {
-                    _out.println("syntax error : " + e.getMessage());
-                    continue;
-                }
-                catch (ParseException e) {
-                    _out.println("syntax error : " + e.getMessage());
-                    continue;
-                }
-            } else if (line.startsWith("insert")) {
+            String[] ss = line.split(" ");
 
-                // experimental
-
-                try {
-                    for (String l : handleInsert(line)) {
-                        executeLine(l);
-                    }
-                }
-                catch (Exception e) {
-                    _out.println(e.getMessage());
-                }
-                continue;
+            if (ss.length != 2) {
+                showHelp();
+                return true;
             }
 
-            executeLine(line);
+            setDB(ss[1]);
+            return true;
+        } else if (line.startsWith("select") || line.startsWith("update") || line.startsWith("delete")) {
+
+            // stuff that uses the parser
+
+            MQL parser = new MQL(line);
+            try {
+                SimpleNode ast = (SimpleNode) parser.parseQuery();
+                QueryInfo qi = new QueryInfo("db");
+
+                ast.generateQuery(qi);
+
+                line = qi.toString();
+            }
+            catch (TokenMgrError e) {
+                _out.println("syntax error : " + e.getMessage());
+                return true;
+            }
+            catch (ParseException e) {
+                _out.println("syntax error : " + e.getMessage());
+                return true;
+            }
+        } else if (line.startsWith("insert")) {
+
+            // experimental
+
+            try {
+                for (String l : handleInsert(line)) {
+                    executeLine(l);
+                }
+            }
+            catch (Exception e) {
+                _out.println(e.getMessage());
+            }
+            return true;
         }
+
+        executeLine(line);
+        return true;
     }
 
     /**
@@ -404,8 +449,12 @@ public class MQLShell {
         return _exit;
     }
 
-    public void set_exit(boolean _exit) {
-        this._exit = _exit;
+    public void set_exit(boolean e) {
+        _exit = e;
+    }
+
+    public void setDump(boolean d) {
+        _dump = d;
     }
 
     void setDB(String db) throws UnknownHostException {
@@ -423,6 +472,116 @@ public class MQLShell {
         return s;
     }
 
+    /**
+     *  reads the script names from the command line args and processes each one in turn
+     *
+     * @throws Exception when things go wrong
+     */
+    void processScripts() throws Exception {
+
+        for (String script : _mqlArgs) {
+
+            BufferedReader f = new BufferedReader(new FileReader(new File(script)));
+
+            String s;
+            while((s = f.readLine()) != null) {
+                if (!processLine(s)) {
+                    break;
+                }
+            }
+        }
+    }
+
+    void dumpDB() throws Exception {
+
+        // get the collections
+
+        try {
+            boolean hasReturn[] = new boolean[1];
+
+            Object res = _scope.eval("db.system.namespaces.find({})", "lastline", hasReturn);
+
+            if (hasReturn[0]) {
+                if (res instanceof DBCursor) {
+
+                    DBCursor c = (DBCursor) res;
+
+                    while(c.hasNext()) {
+                        JSObject o = c.next();
+                        String s = o.get("name").toString();
+
+                        int i = s.indexOf(".");
+                        if (i == -1 || (i + 1) > s.length()) {
+                            throw new Exception("whoops - error in namspaces");
+                        }
+                        s = s.substring(i+1);
+                        dumpCollection(s);
+                    }
+                }
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace(_out);
+        }
+    }
+
+    void dumpCollection(String s) {
+        _out.commentOut("dumping collection " + s);
+        
+        try {
+            boolean hasReturn[] = new boolean[1];
+
+            Object res = _scope.eval("db."+s +".find({})", "lastline", hasReturn);
+
+            if (hasReturn[0]) {
+                if (res instanceof DBCursor) {
+
+                    DBCursor c = (DBCursor) res;
+
+                    while(c.hasNext()) {
+                        JSObject o = c.next();
+                        String ss = JSON.serialize(o, true, "");
+                        if (ss.endsWith("\n")) {
+                            ss = ss.substring(0,ss.length()-1);
+                        }
+                        _out.mqlOut("insert into " + s + " " + ss);
+                    }
+                }
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace(_out);
+        }
+    }
+
+    /**
+     *  Little adapter for a printstream so we can intercept the crap
+     *  that comes out of the various libraries when writing a dump file
+     */
+    class MyPrintStream extends PrintStream {
+
+        String _comment = "";
+        boolean _dropJunk = false;
+
+        MyPrintStream(PrintStream ps) {
+            super(ps);
+        }
+
+        public void println(String s) {
+            if (!_dropJunk) {
+                commentOut(s);
+            }
+        }
+
+        public void mqlOut(String s) {
+            super.println(s);
+        }
+        public void commentOut(String s) {
+            super.println(_comment + s);
+        }
+
+    }
+    
     public static void main(String args[]) throws Exception {
 
         MQLShell shell = new MQLShell(System.out, args);
