@@ -9,7 +9,10 @@ import java.util.*;
 import ed.io.*;
 import ed.js.*;
 
-/** @expose */
+/**
+ * @expose
+ * @docmodule System.DB.db
+ * */
 public abstract class DBApiLayer extends DBBase {
 
     /** @unexpose */

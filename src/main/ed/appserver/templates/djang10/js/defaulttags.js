@@ -335,8 +335,6 @@ IfEqualNode.prototype = {
             value1 = this.var1.resolve(context);
         } catch(e if isinstance(e, djang10.VariableDoesNotExist)) {
             value1 = null;
-        } catch(e) {
-            SYSOUT("MOOO: " + (e.__proto__ == null))
         }
         
         try {

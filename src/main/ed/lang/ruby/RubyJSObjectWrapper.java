@@ -417,21 +417,9 @@ public class RubyJSObjectWrapper extends RubyHash {
     protected void _addFunctionMethod(Object key, final JSFunction val) {
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("adding function method " + key);
-	_jsFuncs.add(key.toString());
-	_eigenclass.addMethod(key.toString(), new JavaMethod(_eigenclass, PUBLIC) {
-		public IRubyObject call(ThreadContext context, IRubyObject recv, RubyModule klazz, String name, IRubyObject[] args, Block block) {
-		    Ruby runtime = context.getRuntime();
-		    if (RubyObjectWrapper.DEBUG)
-			System.err.println("calling function " + name);
-		    try {
-			return toRuby(((JSFunction)val).callAndSetThis(_scope, _jsobj, RubyObjectWrapper.toJSFunctionArgs(_scope, runtime, args, 0, block)));
-		    }
-		    catch (Exception e) {
-			recv.callMethod(context, "raise", new IRubyObject[] {RubyString.newString(runtime, e.toString())}, Block.NULL_BLOCK);
-			return runtime.getNil(); // will not reach
-		    }
-		}
-	    });
+	String skey = key.toString();
+	_jsFuncs.add(skey);
+	new RubyJSFunctionWrapper(_scope, getRuntime(), val, skey, _eigenclass, _jsobj);
     }
 
     protected void _addInstanceVariable(Object key) {
@@ -461,6 +449,7 @@ public class RubyJSObjectWrapper extends RubyHash {
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("removing function method " + skey);
 	_eigenclass.undef(getRuntime().getCurrentContext(), skey);
+	_eigenclass.callMethod(getRuntime().getCurrentContext(), "method_removed", getRuntime().newSymbol(skey));
 	_jsFuncs.remove(skey);
     }
 
