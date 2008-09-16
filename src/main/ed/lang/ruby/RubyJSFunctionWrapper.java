@@ -40,6 +40,7 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
     static Map<Ruby, RubyClass> klassDefs = new WeakHashMap<Ruby, RubyClass>();
 
     private final JSFunction _func;
+    private final JSObject _this;
     private RubyClass _klazz;
 
     public static synchronized RubyClass getJSFunctionClass(Ruby runtime) {
@@ -57,10 +58,15 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
     }
 
     RubyJSFunctionWrapper(Scope s, Ruby runtime, JSFunction obj, String name, RubyClass eigenclass) {
+	this(s, runtime, obj, name, eigenclass, null);
+    }
+
+    RubyJSFunctionWrapper(Scope s, Ruby runtime, JSFunction obj, String name, RubyClass eigenclass, JSObject jsThis) {
 	super(s, runtime, obj, getJSFunctionClass(runtime));
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("  creating RubyJSFunctionWrapper named " + name);
 	_func = obj;
+	_this = jsThis;
 	JavaMethod jm = _makeCallMethod(eigenclass);
 	if (name != null && name.length() > 0) {
 	    if (eigenclass != null)
@@ -83,12 +89,9 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 	    public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
 		Ruby runtime = context.getRuntime();
 		if (RubyObjectWrapper.DEBUG)
-		    System.err.println("calling method " + clazz.getName() + "." + name + " with " + args.length + " args");
-		int n = _func.getNumParameters();
-		if (args.length != n) Arity.raiseArgumentError(runtime, args.length, n, n);
-
+		    System.err.println("calling method " + clazz.getName() + "#" + name + " with " + args.length + " args");
 		try {
-		    Object result = _func.call(_scope, RubyObjectWrapper.toJSFunctionArgs(_scope, runtime, args, 0, block));
+		    Object result = _func.callAndSetThis(_scope, _this, RubyObjectWrapper.toJSFunctionArgs(_scope, runtime, args, 0, block));
 		    if (RubyObjectWrapper.DEBUG)
 			System.err.println("func " + name + " returned " + result + ", which is " + (result == null ? "null" : ("of class " + result.getClass().getName())));
 		    return toRuby(result);
@@ -98,7 +101,6 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 		    return runtime.getNil(); // will never reach
 		}
 	    }
-	    @Override public Arity getArity() { return Arity.createArity(_func.getNumParameters()); }
 	};
     }
 
@@ -111,22 +113,27 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 	klazz.callMethod(getRuntime().getCurrentContext(), "method_added", getRuntime().fastNewSymbol(internedName));
     }
 
+    /** An allocator for objects created using JSFunction constructors. */
+    class JSObjectAllocator implements ObjectAllocator {
+	public IRubyObject allocate(Ruby runtime, RubyClass klass) {
+	    if (RubyObjectWrapper.DEBUG)
+		System.err.println("allocating an instance of " + klass.name());
+	    JSObject jsobj = _func.newOne();
+	    RubyObject r = (RubyObject)new RubyJSObjectWrapper(_scope, runtime, jsobj, _klazz);
+	    // Eigenclass has been created and used in RubyJSObjectWrapper ctor, so make that the metaclass here
+	    r.makeMetaClass(r.getSingletonClass());
+	    if (RubyObjectWrapper.DEBUG)
+		System.err.println("  wrapped new object inside a " + r.getClass().getName());
+	    return r;
+	}
+    }
+    protected JSObjectAllocator jsObjectAllocator = new JSObjectAllocator();
+
+    /** Creates a subclass of JSObject for that uses this method as its constructor. */
     protected void _createJSObjectSubclass(final Scope scope, final String name) {
 	if (RubyObjectWrapper.DEBUG)
 	    System.err.println("adding class named " + name);
-	_klazz = getRuntime().defineClass(name, RubyJSObjectWrapper.getJSObjectClass(getRuntime()), new ObjectAllocator() {
-		public IRubyObject allocate(Ruby runtime, RubyClass klass) {
-		    if (RubyObjectWrapper.DEBUG)
-			System.err.println("allocating an instance of " + klass.name() + " via a JSFunction named " + name);
-		    JSObject jsobj = _func.newOne();
-		    RubyObject r = (RubyObject)new RubyJSObjectWrapper(_scope, runtime, jsobj, _klazz);
-		    // Eigenclass has been created and used in RubyJSObjectWrapper ctor, so make that the metaclass here
-		    r.makeMetaClass(r.getSingletonClass());
-		    if (RubyObjectWrapper.DEBUG)
-			System.err.println("  wrapped new object inside a " + r.getClass().getName());
-		    return r;
-		}
-	    });
+	_klazz = getRuntime().defineClass(name, RubyJSObjectWrapper.getJSObjectClass(getRuntime()), jsObjectAllocator);
 	_klazz.kindOf = new RubyModule.KindOf() {
 		    public boolean isKindOf(IRubyObject obj, RubyModule type) {
 			return obj instanceof RubyJSObjectWrapper;
