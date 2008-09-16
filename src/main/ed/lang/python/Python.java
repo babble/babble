@@ -27,10 +27,15 @@ import ed.db.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.js.func.*;
+import ed.lang.*;
 
 import static ed.lang.python.PythonSmallWrappers.*;
 
-public class Python {
+public class Python extends Language {
+
+    public Python(){
+        super( "python" );
+    }
 
     static final boolean D = Boolean.getBoolean( "DEBUG.PY" );
 
@@ -157,6 +162,10 @@ public class Python {
             return new PyJSObjectWrapper( (JSObject)o );
         
         throw new RuntimeException( "can't convert [" + o.getClass().getName() + "] from js to py" );
+    }
+
+    public JSFunction compileLambda( final String source ){
+        return extractLambda( source );
     }
 
     public static JSFunction extractLambda( final String source ){

@@ -20,9 +20,18 @@ package ed.js;
 
 import java.io.*;
 
+import ed.lang.*;
 import ed.js.engine.*;
 
-public class JS {
+public class JS extends Language {
+
+    public JS(){
+        super( "js" );
+    }
+
+    public JSFunction compileLambda( String source ){     
+        return Convert.makeAnon( source , true );
+    }
 
     public static boolean JNI = false;
     public static final boolean DI = false;
