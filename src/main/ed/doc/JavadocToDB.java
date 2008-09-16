@@ -41,6 +41,7 @@ public class JavadocToDB {
         JSObjectBase tempMethod = new JSObjectBase();
         tempMethod.set("desc", m.commentText());
         tempMethod.set("name", m.name());
+        tempMethod.set("_name", m.name());
         tempMethod.set("alias", m.name());
         tempMethod.set("isStatic", m.isStatic());
         tempMethod.set("isAbstract", m.isAbstract());
@@ -138,6 +139,7 @@ public class JavadocToDB {
         JSObjectBase tempField = new JSObjectBase();
         tempField.set("desc", field.commentText());
         tempField.set("name", field.name());
+        tempField.set("_name", field.name());
         tempField.set("srcFile", field.containingClass().qualifiedName());
         tempField.set("alias", field.qualifiedName());
         tempField.set("type", (field.type()).typeName());
