@@ -172,6 +172,9 @@ public class Python extends Language {
         
         final PyCode code = (PyCode)(Py.compile( new ByteArrayInputStream( source.getBytes() ) , "anon" , "exec" ) );
 
+        if ( _extractGlobals == null )
+            _extractGlobals = Scope.newGlobal();
+
         Scope s = _extractGlobals.child();
         s.setGlobal( true );
         PyObject globals = new PyJSScopeWrapper( s , false );        
@@ -205,5 +208,5 @@ public class Python extends Language {
         
         return new JSPyMethodWrapper( (PyFunction)(theFunc.getContained()) , true );
     }
-    private static final Scope _extractGlobals = Scope.newGlobal();
+    private static Scope _extractGlobals;
 }
