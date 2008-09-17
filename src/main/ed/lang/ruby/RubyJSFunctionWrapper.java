@@ -23,6 +23,7 @@ import org.jruby.internal.runtime.methods.JavaMethod;
 import org.jruby.runtime.*;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.runtime.callback.Callback;
+import org.jruby.util.IdUtil;
 import static org.jruby.runtime.Visibility.PUBLIC;
 
 import ed.js.*;
@@ -72,15 +73,11 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 	if (name != null && name.length() > 0) {
 	    if (eigenclass != null)
 		_addMethod(name, jm, eigenclass);
-	    if (isRubyClassName(name) && runtime.getClass(name) == null)
+	    if (IdUtil.isConstant(name) && runtime.getClass(name) == null)
 		_createJSObjectSubclass(s, name);
 	}
 	else if (eigenclass != null)
 	    eigenclass.addMethod("call", jm);
-    }
-
-    boolean isRubyClassName(String name) {
-	return name != null && name.length() > 0 && Character.isUpperCase(name.charAt(0));
     }
 
     protected JavaMethod _makeCallMethod(RubyClass klazz) {

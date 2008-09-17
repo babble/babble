@@ -48,6 +48,9 @@ print(y);
 x = XML("4");
 print( x + " " + (x == 4) );
 
-x=new XML(<foo><bar>hi</bar></foo>);
-y=new XML("<foo><bar>hi</bar></foo>");
+x = new XML(<foo><bar>hi</bar></foo>);
+y = new XML("<foo><bar>hi</bar></foo>");
 print( x == y );
+
+x = <hello a='\"' />;
+print( x.toXMLString() );

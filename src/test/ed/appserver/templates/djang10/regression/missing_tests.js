@@ -245,7 +245,24 @@ tests=[                                                                         
        { name: "expr-with-filter01",       content: '{% with '+EXPR_PREFIX+'.CRAP|default:'+EXPR_PREFIX+'.echo("123moo321") | slice : '+EXPR_PREFIX+'.echo("1:-1")\t|\tcut\t:\t'+EXPR_PREFIX+'.echo("3") as var %}{{ var }}{% endwith %}',
                                            model: new ReflexiveClass(),
                                            results: '2moo2' },
+                                           
+       { name: "undef-length-filter",      content: '{{ nonexistent|length }}',
+                                           model: {},
+                                           results: '0'},
+       
+       { name: "undef-length-filter02",    content: '{{ nullObj.nonexistentProp|length }}',
+                                           model: { nullObj: null },
+                                           results: '0'},
 
+       { name: "undef-length-filter03",    content: '{{ undefObj.nonexistentProp|length }}',
+                                           model: { },
+                                           results: '0'},
+
+
+       { name: "null-length-filter",       content: '{{ nullObj|length }}',
+                                           model: { nullObj: null },
+                                           results: '0'},
+                                           
        //NAME lookups                                           
        { name: "expression-name01",        content: '{{ nullVar }}',
                                            model: { nullVar: null },

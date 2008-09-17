@@ -738,7 +738,9 @@ last.is_safe = true;
 var length =
     defaultfilters.length =
     function(value) {
-
+    
+    value = value || "";
+    
     return value.length;
 };
 length.is_safe = true;
@@ -747,6 +749,8 @@ var length_is =
     defaultfilters.length_is =
     function(value, arg) {
 
+    value = value || "";
+    
     return value.length == arg;
 };
 length_is.is_safe = true; 
