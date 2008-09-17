@@ -33,7 +33,6 @@ import ed.appserver.jxp.*;
 import ed.security.*;
 
 /** The server to handle HTTP requests.
- * @expose
  */
 public class AppServer implements HttpHandler {
 

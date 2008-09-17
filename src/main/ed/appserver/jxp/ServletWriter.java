@@ -31,6 +31,10 @@ import ed.lang.*;
 import ed.appserver.*;
 import ed.net.httpserver.*;
 
+/**
+ * @expose
+ * @docmodule system.HTTP.print
+ */
 public class ServletWriter extends JSFunctionCalls1 {
 
     public static final int MAX_WRITTEN_LENGTH = 1024 * 1024 * 15;
