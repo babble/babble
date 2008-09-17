@@ -32,12 +32,14 @@ module XGen
         @cursor.forEach { |row| yield @model_class.new(row) }
       end
 
-      # toArray is for JavaScript code that needs to access @cursor and use
-      # that method.
-      %w(sort limit skip toArray).each { |name|
+      %w(sort limit skip).each { |name|
         eval "def #{name}(*args); @cursor.#{name}(*args); return self; end"
       }
 
+      # This is for JavaScript code that needs to call toArray on the @cursor.
+      def toArray
+        @cursor.toArray
+      end
     end
 
     # A superclass for database collection instances. It creates find_by_*

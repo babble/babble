@@ -31,6 +31,8 @@ import com.caucho.quercus.script.*;
 
 public class PHP extends Language {
 
+    static final boolean DEBUG = Boolean.getBoolean( "DEBUG.PHP" );
+
     public PHP(){
         super( "php" );
     }
@@ -38,8 +40,6 @@ public class PHP extends Language {
     public boolean isScriptable(){
         return true;
     }
-
-    static boolean DEBUG = false;
 
     static QuercusScriptEngineFactory _phpFactory = new QuercusScriptEngineFactory();
     

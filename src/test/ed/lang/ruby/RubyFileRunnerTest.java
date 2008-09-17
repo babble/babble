@@ -53,17 +53,11 @@ public class RubyFileRunnerTest {
     }
 
     protected Scope createScope(File localRootDir) {
-	Scope s = new Scope("test", null);
-	ed.js.JSON.init(s);	// add tojson, tojson_u, fromjson
-
-	// From ed.js.Shell.addNiceShellStuff
-        s.put("core", CoreJS.get().getLibrary(null, null, s, false), true);
-        s.put("external", Module.getModule("external").getLibrary(null, null, s, false), true);
-        s.put("connect", new Shell.ConnectDB(), true);
-
+	Scope s = Scope.newGlobal();
+	s = new Scope("test", s); // child of global scope
+	Shell.addNiceShellStuff(s);
 	s.set("local", new JSFileLibrary(localRootDir, "local", s));
 	s.set("jsout", "");	// initial value; used by tests; will be written over later
-
 	JSFunction print = new JSFunctionCalls0() {
 		public Object call(Scope s, Object[] args) {
 		    return s.put("jsout", s.get("jsout").toString() + args[0].toString() + "\n", false); // default print behavior adds newline

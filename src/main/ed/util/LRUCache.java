@@ -21,6 +21,7 @@ package ed.util;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import ed.js.*;
 
 /**
  * simple lru cache
@@ -127,6 +128,21 @@ public class LRUCache<K,V> {
         return _cache.size();
     }
 
+    public long approxSize( IdentitySet seen ){
+        long s = 0;
+        synchronized ( _cache ){
+            for ( Map.Entry<K,Entry> e : _cache.entrySet() ){
+
+                if ( ! seen.contains( e.getKey() ) )
+                    s += JSObjectSize.size( e.getKey() , seen );
+
+                if ( ! seen.contains( e.getValue() ) )
+                    s += JSObjectSize.size( e.getValue() , seen );
+            }
+        }
+        return s;
+    }
+
     class Entry {
         Entry( V v , long cacheTime ){
             _v = v;
@@ -150,11 +166,8 @@ public class LRUCache<K,V> {
         final long _createTime = System.currentTimeMillis();
     }
 
-    /** @unexpose */
     final long _defaultCacheTime;
-    /** @unexpose */
     final int _maxSize;
-    /** @unexpose */
     final Map<K,Entry> _cache = new LinkedHashMap<K,Entry>(){
         static final long serialVersionUID = -1;
 

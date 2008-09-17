@@ -522,6 +522,18 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         return _base.getName();
     }
 
+    public long approxSize( IdentitySet seen ){
+        long size = super.approxSize( seen );
+        size += 1024;
+        
+        size += JSObjectSize.size( _mySource , seen );
+        size += JSObjectSize.size( _initFunction , seen );
+        size += JSObjectSize.size( _initSources , seen );
+        size += JSObjectSize.size( _fileCache , seen );
+        
+        return size;
+    }
+
     final JSFileLibrary _parent;
     final File _base;
     final String _uriBase;

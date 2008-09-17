@@ -278,7 +278,13 @@ public class AppContext extends ServletContextBase {
      * @return the version of the library to run as a string.  null if should use default
      */
     public String getVersionForLibrary( String name ){
-        return getVersionForLibrary( _scope , name , this );
+        String version = getVersionForLibrary( _scope , name , this );
+        _libraryVersions.set( name , version );
+        return version;
+    }
+
+    public JSObject getLibraryVersionsLoaded(){
+        return _libraryVersions;
     }
 
     /**
@@ -1035,6 +1041,32 @@ public class AppContext extends ServletContextBase {
 	throw new RuntimeException( "getResourcePaths not implemented" );
     }
 
+    public AppContext getSiteInstance(){
+        if ( _nonAdminParent == null )
+            return this;
+        return _nonAdminParent;
+    }
+
+    public long approxSize(){
+        return approxSize( new IdentitySet() );
+    }
+
+    public long approxSize( IdentitySet seen ){
+        long size = 0;
+
+        if ( _adminContext != null )
+            size += _adminContext.approxSize( seen );
+        
+        size += _scope.approxSize( seen ,false );
+        size += _initScope.approxSize( seen , true );
+        
+        size += JSObjectSize.size( _localObject , seen );
+        size += JSObjectSize.size( _core , seen );
+        size += JSObjectSize.size( _external , seen );
+
+        return size;
+    }
+
     final String _name;
     final String _root;
     final File _rootFile;
@@ -1062,6 +1094,7 @@ public class AppContext extends ServletContextBase {
     private final Map<String,File> _files = Collections.synchronizedMap( new HashMap<String,File>() );
     private final Set<File> _initFlies = new HashSet<File>();
     private final Map<String,JxpSource> _httpServlets = Collections.synchronizedMap( new HashMap<String,JxpSource>() );
+    private final JSObject _libraryVersions = new JSObjectBase();
 
     boolean _scopeInited = false;
     boolean _inScopeSetup = false;

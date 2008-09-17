@@ -31,7 +31,7 @@ class RubyTest < Test::Unit::TestCase
     $scope['jsout'] = ''
     begin
       File.open(path, 'w') { |f| f.puts js }
-      load fname
+      load "local/#{fname}"
     rescue => ex
       fail(ex.to_s)
     ensure

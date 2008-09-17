@@ -98,6 +98,10 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 		    return toRuby(result);
 		}
 		catch (Exception e) {
+		    if (RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
+			System.err.println("saw exception; going to raise Ruby error after printing the stack trace here");
+			e.printStackTrace();
+		    }
 		    self.callMethod(context, "raise", new IRubyObject[] {RubyString.newString(runtime, e.toString())}, Block.NULL_BLOCK);
 		    return runtime.getNil(); // will never reach
 		}
@@ -153,6 +157,10 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 			_func.callAndSetThis(scope, jsobj, RubyObjectWrapper.toJSFunctionArgs(scope, runtime, args, 0, block)); // initialize it by calling _func
 		    }
 		    catch (Exception e) {
+			if (RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
+			    System.err.println("saw exception; going to raise Ruby error after printing the stack trace here");
+			    e.printStackTrace();
+			}
 			self.callMethod(runtime.getCurrentContext(), "raise", new IRubyObject[] {RubyString.newString(runtime, e.toString())}, Block.NULL_BLOCK);
 		    }
 		    return self;
