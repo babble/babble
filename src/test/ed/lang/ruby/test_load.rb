@@ -82,6 +82,12 @@ EOS
     assert_equal("foo = Object\nfoo.bar = xyzzy\nnew_thing = hello\n", out)
   end
 
+  def test_lib_path_contains_jsfilelibraries
+    assert($:.include?($local.getRoot.getPath.to_s))
+    assert($:.include?($core.getRoot.getPath.to_s))
+    assert($:.include?($external.getRoot.getPath.to_s))
+  end
+
 # FIXME
 
 #   def test_load_routes_explicitly

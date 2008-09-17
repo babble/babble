@@ -1699,7 +1699,9 @@ public class Convert implements StackTraceFixer {
         }
         else {
 	    String cleanName = FileUtil.clean( _name );
-            buf.append( "\t\t scope = new Scope( \"compiled script for:" + cleanName + "\" , scope , null , getFileLanguage() ); \n" );
+            buf.append( "\t\t if ( ! usePassedInScope() ){\n" );
+            buf.append( "\t\t\t scope = new Scope( \"compiled script for:" + cleanName + "\" , scope , null , getFileLanguage() ); \n" );
+            buf.append( "\t\t }\n" );
             buf.append( "\t\t scope.putAll( getTLScope() );\n" );
         }
 
