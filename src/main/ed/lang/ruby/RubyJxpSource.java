@@ -154,19 +154,19 @@ public class RubyJxpSource extends JxpSource {
     }
 
     protected void _addJSFileLibrariesToPath(Scope s) {
-	RubyArray loadPath = (RubyArray)_runtime.getLoadService().getLoadPath();
-	for (String libName : BUILTIN_JS_FILE_LIBRARIES) {
-	    Object val = s.get(libName);
-	    if (!(val instanceof JSFileLibrary))
-		continue;
-	    File root = ((JSFileLibrary)val).getRoot();
-	    RubyString rubyRoot = RubyString.newString(_runtime, root.getPath().replace('\\', '/'));
-	    if (loadPath.include_p(_runtime.getCurrentContext(), rubyRoot).isFalse()) {
-		if (DEBUG)
-		    System.err.println("adding file library " + val.toString() + " root " + rubyRoot);
-		loadPath.append(rubyRoot);
-	    }
-	}
+// 	RubyArray loadPath = (RubyArray)_runtime.getLoadService().getLoadPath();
+// 	for (String libName : BUILTIN_JS_FILE_LIBRARIES) {
+// 	    Object val = s.get(libName);
+// 	    if (!(val instanceof JSFileLibrary))
+// 		continue;
+// 	    File root = ((JSFileLibrary)val).getRoot();
+// 	    RubyString rubyRoot = RubyString.newString(_runtime, root.getPath().replace('\\', '/'));
+// 	    if (loadPath.include_p(_runtime.getCurrentContext(), rubyRoot).isFalse()) {
+// 		if (DEBUG)
+// 		    System.err.println("adding file library " + val.toString() + " root " + rubyRoot);
+// 		loadPath.append(rubyRoot);
+// 	    }
+// 	}
     }
 
     /**
@@ -246,12 +246,20 @@ public class RubyJxpSource extends JxpSource {
 	    });
     }
 
-    protected IRubyObject loadLibraryFile(Scope scope, Ruby runtime, IRubyObject recv, String file, RaiseException re) {
+    protected IRubyObject loadLibraryFile(Scope scope, Ruby runtime, IRubyObject recv, String path, RaiseException re) {
 	if (DEBUG)
-	    System.err.println("going to compile and run library file " + file);
+	    System.err.println("going to compile and run library file " + path + "; runtime = " + runtime);
+
+	JSFileLibrary lib = getLibFromPath(path, scope);
+	if (lib == null) {
+	    if (DEBUG)
+		System.err.println("can not find JSFileLibrary for " + path + "; re-raising Ruby exception");
+	    throw re;
+	}
+	path = removeLibName(path);
+
 	try {
-	    JSFileLibrary local = (JSFileLibrary)scope.get("local");
-	    Object o = local.getFromPath(file);
+	    Object o = lib.getFromPath(path);
 	    if (isCallableJSFunction(o)) {
 		try {
 		    ((JSFunction)o).call(scope, EMPTY_OBJECT_ARRAY);
@@ -265,8 +273,8 @@ public class RubyJxpSource extends JxpSource {
 		}
 		return runtime.getTrue();
 	    }
-	    else if (DEBUG)
-		System.err.println("file library object is not a callable function");
+	    else
+		System.err.println("file library object " + o + " is not a callable function");
 	}
 	catch (Exception e) {
 	    if (DEBUG || RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
@@ -276,8 +284,37 @@ public class RubyJxpSource extends JxpSource {
 	    /* fall through to throw re */
 	}
 	if (DEBUG)
-	    System.err.println("problem loading file " + file + "; throwing original Ruby error " + re);
+	    System.err.println("problem loading file " + path + " from lib " + lib + "; throwing original Ruby error " + re);
 	throw re;
+    }
+
+    /**
+     * Returns a JSFileLibrary named at the start of <var>path</var>, which is
+     * something like "local/foo" or "/core/core/routes". The first word
+     * ("local" or "core") must be the name of a JSFileLibrary that is in the
+     * scope. Returns <code>null</code> if no library is found.
+     */
+    public JSFileLibrary getLibFromPath(String path, Scope scope) {
+	String libName = libNameFromPath(path);
+	return (JSFileLibrary)scope.get(libName);
+    }
+
+    public String libNameFromPath(String path) {
+	if (path.startsWith("/"))
+	    path = path.substring(1);
+	int loc = path.indexOf("/");
+	return (loc == -1) ? path : path.substring(0, loc);
+    }
+
+    /**
+     * Returns a new copy of <var>path</var> with the first part of the path
+     * stripped off.
+     */
+    public String removeLibName(String path) {
+	if (path.startsWith("/"))
+	    path = path.substring(1);
+	int loc = path.indexOf("/");
+	return (loc == -1) ? "" : path.substring(loc + 1);
     }
 
     protected boolean _notAlreadyRequired(Ruby runtime, IRubyObject arg) {

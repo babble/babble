@@ -33,10 +33,12 @@ class LoadTest < RubyTest
     File.open(path, 'w') { |f| f.puts 'foo.count += 1;' }
 
     begin
-      require fname
+      require "local/#{fname}"
       assert_equal(2, $foo.count)
-      require fname
+      require "local/#{fname}"
       assert_equal(2, $foo.count)
+      require "/local/#{fname}" # since path is different,should reload
+      assert_equal(3, $foo.count)
     ensure
       File.delete(path) if File.exist?(path)
     end
@@ -51,9 +53,9 @@ class LoadTest < RubyTest
     path = File.join(File.dirname(__FILE__), fname + '.js')
     File.open(path, 'w') { |f| f.puts 'foo.count += 1;' }
     begin
-      load fname
+      load "local/#{fname}"
       assert_equal(2, $foo.count)
-      load fname
+      load "local/#{fname}"
       assert_equal(3, $foo.count)
     rescue => ex
       fail(ex.to_s)
@@ -82,20 +84,31 @@ EOS
     assert_equal("foo = Object\nfoo.bar = xyzzy\nnew_thing = hello\n", out)
   end
 
-  def test_lib_path_contains_jsfilelibraries
-    assert($:.include?($local.getRoot.getPath.to_s))
-    assert($:.include?($core.getRoot.getPath.to_s))
-    assert($:.include?($external.getRoot.getPath.to_s))
+  def test_load_js_explicitly
+    assert_not_nil($core)
+    assert_not_nil($core.core)
+    $core.core.routes.call()    # same as load 'core/routes'
+    assert_not_nil($scope['Routes'], "Routes is not in scope")
+    assert(Object.constants.include?('Routes'), "Constant Routes should be defined")
+    assert_equal('Class', Routes.class.name)
+    assert_equal('Routes', Routes.name)
+    x = Routes.new
+    assert_not_nil(x, "Routes constructor returned nil")
+    assert_equal('Routes', x.class.name)
+  rescue => ex
+    fail(ex.to_s)
   end
 
 # FIXME
 
-#   def test_load_routes_explicitly
-#     assert(! Object.constants.include?('Route'), "Constant Route should not yet be defined")
-#     $core.core.routes.call()
-#     assert(Object.constants.include?('Route'), "Constant Route should be defined")
-#     assert_equal('Class', Route.class.name)
-#     assert_equal('Route', Route.name)
+#   def test_load_js
+#     load 'core/db/modelBase'
+#     assert(Object.constants.include?('ModelBase'), "Constant ModelBase should be defined")
+#     x = ModelBase.new('rubytest', Object)
+#     assert_not_nil(x, "ModelBase constructor returned nil")
+#     assert_equal('ModelBase', x.class.name)
+#   rescue => ex
+#     fail(ex.to_s)
 #   end
 
 end
