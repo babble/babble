@@ -46,6 +46,7 @@ import ed.util.*;
  * @anonymous name : {SYSOUT} desc : {Prints a string.} param : {type : (string) name : (str) desc : (the string to print)}
  * @anonymous name : {log} desc : {Global logger.} param : {type : (string) name : (str) desc : (the string to log)}
  * @expose
+ * @docmodule system.system.__instance__
  */
 public class AppContext extends ServletContextBase {
 
