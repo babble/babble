@@ -27,6 +27,7 @@ import org.jruby.internal.runtime.methods.JavaMethod;
 import org.jruby.javasupport.JavaUtil;
 import org.jruby.runtime.*;
 import org.jruby.runtime.builtin.IRubyObject;
+import org.jruby.util.IdUtil;
 import org.jruby.util.KCode;
 import static org.jruby.runtime.Visibility.PUBLIC;
 
@@ -50,7 +51,9 @@ public class RubyJxpSource extends JxpSource {
     static final boolean SKIP_REQUIRED_LIBS = Boolean.getBoolean("DEBUG.RB.SKIP.REQ.LIBS");
     /** Scope top-level functions to avoid loading. */
     static final Collection<String> DO_NOT_LOAD_FUNCS;
-    static final String[] BUILTIN_JS_FILE_LIBRARIES = {"local", "core", "external"};
+    // TODO for now, we just add the local site dir to the load path
+//     static final String[] BUILTIN_JS_FILE_LIBRARIES = {"local", "core", "external"};
+    static final String[] BUILTIN_JS_FILE_LIBRARIES = {"local"};
     static final RubyInstanceConfig config = new RubyInstanceConfig();
 
     static {
@@ -154,19 +157,19 @@ public class RubyJxpSource extends JxpSource {
     }
 
     protected void _addJSFileLibrariesToPath(Scope s) {
-// 	RubyArray loadPath = (RubyArray)_runtime.getLoadService().getLoadPath();
-// 	for (String libName : BUILTIN_JS_FILE_LIBRARIES) {
-// 	    Object val = s.get(libName);
-// 	    if (!(val instanceof JSFileLibrary))
-// 		continue;
-// 	    File root = ((JSFileLibrary)val).getRoot();
-// 	    RubyString rubyRoot = RubyString.newString(_runtime, root.getPath().replace('\\', '/'));
-// 	    if (loadPath.include_p(_runtime.getCurrentContext(), rubyRoot).isFalse()) {
-// 		if (DEBUG)
-// 		    System.err.println("adding file library " + val.toString() + " root " + rubyRoot);
-// 		loadPath.append(rubyRoot);
-// 	    }
-// 	}
+	RubyArray loadPath = (RubyArray)_runtime.getLoadService().getLoadPath();
+	for (String libName : BUILTIN_JS_FILE_LIBRARIES) {
+	    Object val = s.get(libName);
+	    if (!(val instanceof JSFileLibrary))
+		continue;
+	    File root = ((JSFileLibrary)val).getRoot();
+	    RubyString rubyRoot = RubyString.newString(_runtime, root.getPath().replace('\\', '/'));
+	    if (loadPath.include_p(_runtime.getCurrentContext(), rubyRoot).isFalse()) {
+		if (DEBUG)
+		    System.err.println("adding file library " + val.toString() + " root " + rubyRoot);
+		loadPath.append(rubyRoot);
+	    }
+	}
     }
 
     /**
@@ -263,6 +266,7 @@ public class RubyJxpSource extends JxpSource {
 	    if (isCallableJSFunction(o)) {
 		try {
 		    ((JSFunction)o).call(scope, EMPTY_OBJECT_ARRAY);
+		    createNewClasses(scope, runtime);
 		}
 		catch (Exception e) {
 		    if (DEBUG || RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
@@ -315,6 +319,22 @@ public class RubyJxpSource extends JxpSource {
 	    path = path.substring(1);
 	int loc = path.indexOf("/");
 	return (loc == -1) ? "" : path.substring(loc + 1);
+    }
+
+    /**
+     * Creates Ruby classes from any new JavaScript classes found in the top
+     * level of <var>scope</var>. Called immediately after loading a file
+     * using JSFileLibrary.
+     */
+    public void createNewClasses(Scope scope, Ruby runtime) {
+	for (Object key : scope.keySet()) {
+	    String skey = key.toString();
+	    if (IdUtil.isConstant(skey) && runtime.getClass(skey) == null) {
+		Object o = scope.get(key);
+		if (o instanceof JSFunction && isCallableJSFunction(o))
+		    toRuby(scope, runtime, (JSFunction)o, skey);
+	    }
+	}
     }
 
     protected boolean _notAlreadyRequired(Ruby runtime, IRubyObject arg) {

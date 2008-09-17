@@ -103,17 +103,21 @@ public class JSObjectWrapper implements JSObject {
 
     public Object get(Object n) {
 	String skey = n.toString();
-	IRubyObject ro = _robj.instance_variable_get(context(), ivarName(n));
 
-	if ("_id".equals(skey) && !ro.isNil())
-	    return new ObjectId(ro.toString());
+	IRubyObject ivarName = ivarName(skey);
+	if (_robj.instance_variable_defined_p(context(), ivarName).isTrue()) {
+	    IRubyObject ro = _robj.instance_variable_get(context(), ivarName);
+	    if ("_id".equals(skey) && !ro.isNil())
+		return new ObjectId(ro.toString());
+	    return toJS(_scope, ro);
+	}
 
-	if (ro.isNil() && _robj.respondsTo(skey)) {
+	if (_robj.respondsTo(skey)) {
 	    RubyMethod m = (RubyMethod)_robj.method(_robj.getRuntime().newSymbol(skey));
 	    return new JSFunctionWrapper(_scope, _robj.getRuntime(), ((RubyProc)m.to_proc(context(), Block.NULL_BLOCK)).getBlock());
 	}
 
-	return toJS(_scope, ro);
+	return toJS(_scope, null);
     }
 
     public Object setInt(int n, Object v) {
