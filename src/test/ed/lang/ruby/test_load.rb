@@ -84,31 +84,29 @@ EOS
     assert_equal("foo = Object\nfoo.bar = xyzzy\nnew_thing = hello\n", out)
   end
 
-  def test_load_js_explicitly
-    assert_not_nil($core)
-    assert_not_nil($core.core)
-    $core.core.routes.call()    # same as load 'core/routes'
-    assert_not_nil($scope['Routes'], "Routes is not in scope")
+  def test_load_js
+    load 'core/core/routes'
     assert(Object.constants.include?('Routes'), "Constant Routes should be defined")
+    assert_not_nil($scope['Routes'], "Routes is not in scope")
+    assert_not_nil(Routes)
     assert_equal('Class', Routes.class.name)
     assert_equal('Routes', Routes.name)
     x = Routes.new
     assert_not_nil(x, "Routes constructor returned nil")
     assert_equal('Routes', x.class.name)
-  rescue => ex
-    fail(ex.to_s)
   end
 
-# FIXME
-
-#   def test_load_js
-#     load 'core/db/modelBase'
-#     assert(Object.constants.include?('ModelBase'), "Constant ModelBase should be defined")
-#     x = ModelBase.new('rubytest', Object)
-#     assert_not_nil(x, "ModelBase constructor returned nil")
-#     assert_equal('ModelBase', x.class.name)
-#   rescue => ex
-#     fail(ex.to_s)
+#   def test_load_js_explicitly
+#     assert_not_nil($core)
+#     assert_not_nil($core.core)
+#     $core.core.mail.call()    # same as load 'core/core/mail'
+#     assert_not_nil($scope['Mail'], "Mail is not in scope")
+#     assert(Object.constants.include?('Mail'), "Constant Mail should be defined")
+#     assert_equal('Class', Mail.class.name)
+#     assert_equal('Mail', Mail.name)
+#     x = Mail.new('subject', 'content')
+#     assert_not_nil(x, "Mail constructor returned nil")
+#     assert_equal('Mail', x.class.name)
 #   end
 
 end
