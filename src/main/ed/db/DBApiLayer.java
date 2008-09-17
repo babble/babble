@@ -11,7 +11,7 @@ import ed.js.*;
 
 /**
  * @expose
- * @docmodule System.DB.db
+ * @docmodule system.database.db
  * */
 public abstract class DBApiLayer extends DBBase {
 

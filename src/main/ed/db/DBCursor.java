@@ -13,7 +13,7 @@ import ed.util.*;
 /**
  * @anonymous name : { forEach }, desc : { Executes a function for each of this cursor's elements. }, _name : {forEach}, alias : { DBCursor._staticMehods.forEach }, param : {title : (param), desc : (a function to execute on each iteration), type : (function), name : (f)}, return : { desc : (the array), type : (JSArray)}
  * @expose
- * @docmodule System.DB.cursor
+ * @docmodule system.database.cursor
  */
 public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
 
