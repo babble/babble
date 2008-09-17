@@ -29,7 +29,7 @@ public class JSObjectWrapperTest extends SourceRunner {
     @BeforeMethod(groups={"ruby", "ruby.jsobj"})
     public void setUp() {
 	super.setUp();
-	runRuby("class Super; attr_accessor :s; end; class Foo < Super; attr_accessor :foo; end; $x = Foo.new");
+	runRuby("class Super; attr_accessor :s; end; class Foo < Super; attr_accessor :foo; end; $x = Foo.new; $x.foo = 12");
     }
 
     public void testConversion() {
@@ -50,5 +50,10 @@ public class JSObjectWrapperTest extends SourceRunner {
 	jsobj.set("s", 42);
 	runRuby("puts $x.class.name");
 	assertEquals(rubyOutput, "Foo");
+    }
+
+    public void testGetReturnsValue() {
+	JSObject jsobj = (JSObject)s.get("x");
+	assertEquals("12", jsobj.get("foo").toString());
     }
 }
