@@ -257,8 +257,8 @@ public class RubyJxpSource extends JxpSource {
 		    ((JSFunction)o).call(scope, EMPTY_OBJECT_ARRAY);
 		}
 		catch (Exception e) {
-		    if (DEBUG) {
-			System.err.println("problem loading JSFileLibrary file: " + e + "; calling Ruby \"raise\" method");
+		    if (DEBUG || RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
+			System.err.println("problem loading JSFileLibrary file: " + e + "; going to raise Ruby error after printing the stack trace here");
 			e.printStackTrace();
 		    }
 		    recv.callMethod(runtime.getCurrentContext(), "raise", new IRubyObject[] {RubyString.newString(runtime, e.toString())}, Block.NULL_BLOCK);
@@ -269,8 +269,10 @@ public class RubyJxpSource extends JxpSource {
 		System.err.println("file library object is not a callable function");
 	}
 	catch (Exception e) {
-	    if (DEBUG)
-		System.err.println("problem loading file " + file + "; exception seen is " + e + "; falling through to throw original Ruby error");
+	    if (DEBUG || RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
+		System.err.println("problem loading JSFileLibrary file: " + e + "; going to re-throw original Ruby RaiseException after printing the stack trace here");
+		e.printStackTrace();
+	    }
 	    /* fall through to throw re */
 	}
 	if (DEBUG)

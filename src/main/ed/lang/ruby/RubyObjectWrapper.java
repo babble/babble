@@ -41,6 +41,7 @@ import ed.js.engine.NativeBridge;
 public abstract class RubyObjectWrapper extends RubyObject {
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB.WRAP");
+    static final boolean DEBUG_SEE_EXCEPTIONS = DEBUG || Boolean.getBoolean("DEBUG.RB.EXCEPTIONS");
   
     static final Map<Ruby, Map<Object, IRubyObject>> _wrappers = new WeakHashMap<Ruby, Map<Object, IRubyObject>>();
 
@@ -225,6 +226,10 @@ public abstract class RubyObjectWrapper extends RubyObject {
 			    return toRuby(scope, runtime, func.callAndSetThis(scope, jsobj, RubyObjectWrapper.toJSFunctionArgs(scope, runtime, args, 0, block)));
 			}
 			catch (Exception e) {
+			    if (DEBUG_SEE_EXCEPTIONS) {
+				System.err.println("saw exception; going to raise Ruby error after printing the stack trace here");
+				e.printStackTrace();
+			    }
 			    recv.callMethod(context, "raise", new IRubyObject[] {RubyString.newString(runtime, e.toString())}, Block.NULL_BLOCK);
 			    return runtime.getNil(); // will never reach
 			}
