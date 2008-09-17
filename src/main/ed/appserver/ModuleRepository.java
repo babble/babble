@@ -41,7 +41,7 @@ public abstract class ModuleRepository {
         _cacheFile = new File( _cacheDir , _location.replaceAll( "[^\\w]+" , "_" ) );
     }
 
-    protected abstract Map<String,ModuleConfig> getNewConfig();
+    protected abstract Map<String,ModuleConfig> getNewConfig() throws IOException;
 
     public boolean hasModule( String name ){
         sync();
@@ -79,7 +79,7 @@ public abstract class ModuleRepository {
                 newConfig = getNewConfig();
             }
             catch ( Exception e ){
-                LOGGER.error( "couldn't get new config from [" + _location + "] - will try using cached config " , e );
+                LOGGER.error( "couldn't get new config from [" + _location + "] - will try using cached config : " + e );
                 if ( _lastSyncTime == 0 ){
                     try {
                         newConfig = readFromFile( _cacheFile );
@@ -158,7 +158,8 @@ public abstract class ModuleRepository {
             _url = url;
         }
         
-        protected Map<String,ModuleConfig> getNewConfig(){
+        protected Map<String,ModuleConfig> getNewConfig()
+            throws IOException {
             Object list = go( "_list" );
             if ( ! ( list instanceof JSArray ) )
                 throw new RuntimeException( "result of _list operation has to be an array, not [" + list + "]" );
@@ -177,15 +178,17 @@ public abstract class ModuleRepository {
             return m;
         }
         
-        Object go( String command ){
+        Object go( String command )
+            throws IOException {
             final String url = _url + command;
             
             XMLHttpRequest req = new XMLHttpRequest( "GET" , url , false );
+            req.set( "timeout" , 1500 );
             try {
                 req.send();
             }
             catch ( IOException ioe ){
-                throw new RuntimeException( "error downloading [" + url + "]" , ioe );
+                throw new IOException( "error downloading [" + url + "] " + ioe );
             }
             return req.getJSON();
         }
