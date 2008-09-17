@@ -91,7 +91,10 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
         return true;
     }
 
-    public boolean add( ENode n ) { return children.add(n); }
+    public boolean add( ENode n ) { 
+        return children.add(n); 
+    }
+
     public void add( int index, ENode n) { children.add( index, n); }
     public boolean addAll( Collection<? extends ENode> list ) { return children.addAll( list ); }
     public boolean addAll( int index, Collection<? extends ENode> list ) { return children.addAll( index, list ); }

@@ -38,6 +38,7 @@ import ed.util.*;
  * to track sessions.
  * @example session.pageviews = session.pageviews + 1;
  * @expose
+ * @docmodule system.HTTP.session
  */
 public class Session extends JSObjectBase implements HttpSession {
 

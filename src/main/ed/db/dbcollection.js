@@ -9,7 +9,7 @@
  /**
   * Database collection  API
  *  @class 10gen Database Collection  API
- * @docmodule system.database.colletion
+ * @docmodule system.database.collection
  */
  var DBCollection = function(){}
 

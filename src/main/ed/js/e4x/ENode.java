@@ -45,14 +45,21 @@ public class ENode extends JSObjectBase {
             Object blah = scope.getThis();
 
             ENode e;
-            if ( blah instanceof ENode)
+            if ( blah instanceof ENode) {
                 e = (ENode)blah;
-            else
+            }
+            else {
                 e = new ENode( this, defaultNamespace );
+            }
 
             String str = "";
             if( args.length > 0 && args[0] != null ) {
-                e.init( args[0].toString() );
+                if( args[0] instanceof ENode ) {
+                    e = (ENode)args[0];
+                }
+                else {
+                    e.init( args[0].toString() );
+                }
             }
 
             return e;
@@ -573,14 +580,29 @@ public class ENode extends JSObjectBase {
             Matcher m = p.matcher(s);
             s = m.replaceAll("><");
         }
+        Node temp;
         try {
-            node = XMLUtil.parse( s ).getDocumentElement();
+            temp = XMLUtil.parse( "<parent>" + s + "</parent>" ).getDocumentElement();
         }
         catch ( Exception e ) {
             throw new RuntimeException( "can't parse : " + e );
         }
-        nodeSetup( null );
-        buildENodeDom( this );
+
+        NodeList kids = temp.getChildNodes();
+        if( kids.getLength() == 1 ) {
+            node = kids.item( 0 );
+            nodeSetup( null );
+            buildENodeDom( this );
+        }
+        else if( kids.getLength() > 1 ) {
+            children = new XMLList();
+            for( int i=0; i < kids.getLength(); i++ ) {
+                ENode kid = new ENode( kids.item( i ) , null , null );
+                kid.nodeSetup( null );
+                buildENodeDom( kid );
+                children.add( kid );
+            }
+        }
     }
 
     /** @getter
@@ -1156,6 +1178,9 @@ public class ENode extends JSObjectBase {
             return false;
 
         XMLList list = this instanceof XMLList ? (XMLList)this : this.children;
+        if( list == null ) 
+            return false;
+
         for( ENode n : list ) {
             if( n.node.getNodeType() == Node.ELEMENT_NODE )
                 return true;

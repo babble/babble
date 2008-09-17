@@ -38,3 +38,12 @@ xml.foo.@bar = "lalala";
 xml.fooy.bar.blah[0] = "fooy!";
 xml.bar.foo.bar.foo[0] = <such>a pita</such>;
 print( xml );
+
+// Make sure it's not copied if it's XML
+x = <a><b>two</b></a>;
+y = XML(x);
+x.b = "three";
+print(y);
+
+x = XML("4");
+print( x + " " + (x == 4) );

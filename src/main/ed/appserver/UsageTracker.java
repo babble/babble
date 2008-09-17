@@ -24,7 +24,6 @@ import ed.js.*;
 import ed.db.*;
 
 /** Tracks site traffic.
- * @expose
  */
 public class UsageTracker {
 

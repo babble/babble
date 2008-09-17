@@ -9,4 +9,6 @@
 /data/corejs/util/
 /data/corejs/ws/
 src/main/ed/db/
+src/main/ed/appserver/
 src/main/ed/net/httpserver/
+/data/core-modules/blog/master/
