@@ -76,10 +76,16 @@ public class CompileUtil {
             if ( f.exists() )
                 old = StreamUtil.readFully( new FileInputStream( f ) );
             
-            boolean oldOK = source.equals( old ) && output.exists() && output.lastModified() > depend;
+            final boolean oldSourceSame = source.equals( old );
+            final boolean oldExists = output.exists();
+            final boolean oldDepends = output.lastModified() > depend;
+
+            boolean oldOK = oldExists && oldSourceSame && oldDepends;
             
             if ( ! oldOK ){
                 
+                if ( D ) System.out.println( " compiling  oldSourceSame: " + oldSourceSame + " oldExists:" + oldExists + " oldDepends:" + oldDepends + "\t" + f );
+
                 FileOutputStream fout = new FileOutputStream( f );
                 fout.write( source.getBytes() );
                 fout.close();

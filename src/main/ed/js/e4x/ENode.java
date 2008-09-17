@@ -38,30 +38,36 @@ public class ENode extends JSObjectBase {
     public static class Cons extends JSFunctionCalls0 {
 
         public JSObject newOne(){
-            return new ENode( this, defaultNamespace );
+            ENode t = new ENode( this, defaultNamespace );
+            t._new = true;
+            return t;
         }
 
         public Object call( Scope scope , Object [] args){
             Object blah = scope.getThis();
 
             ENode e;
-            if ( blah instanceof ENode) {
+            if ( blah != null && blah instanceof ENode && ((ENode)blah)._new ) {
                 e = (ENode)blah;
+                e._new = false;
+            }
+            else if( args.length > 0 && args[0] != null && args[0] instanceof ENode ) {
+                e = (ENode)args[0];
+                return e;
             }
             else {
                 e = new ENode( this, defaultNamespace );
             }
 
-            String str = "";
             if( args.length > 0 && args[0] != null ) {
-                if( args[0] instanceof ENode ) {
+                if( args[0] instanceof ENode && ((ENode)args[0])._new ) {
                     e = (ENode)args[0];
+                    e._new = false;
                 }
                 else {
                     e.init( args[0].toString() );
                 }
             }
-
             return e;
         }
 
@@ -435,6 +441,7 @@ public class ENode extends JSObjectBase {
         if( n.node != null ) {
             this.node = n.node.cloneNode( false );
         }
+
         this.inScopeNamespaces = (ArrayList<Namespace>)n.inScopeNamespaces.clone();
         if( n.children != null ) {
             this.children = new XMLList();
@@ -473,6 +480,10 @@ public class ENode extends JSObjectBase {
         this.parent = parent;
         if( this.parent != null ) {
             this.XML = this.parent.XML;
+        }
+        if( this.node != null && 
+            this.node.getNodeType() == Node.ATTRIBUTE_NODE ) {
+            ((Attr)this.node).setValue( E4X.escapeAttributeValue( ((Attr)this.node).getValue() ) );
         }
         getNamespace();
         addAttributes();
@@ -1722,12 +1733,9 @@ public class ENode extends JSObjectBase {
         return true;
     }
 
-
-    public String toXMLString() {
-        return this.append( new StringBuilder(), 0, new ArrayList<Namespace>() ).toString();
+    public JSString toXMLString() {
+        return new JSString( this.append( new StringBuilder(), 0, new ArrayList<Namespace>() ).toString() );
     }
-
-    /** too painful to do right now */
 
     private void addInScopeNamespace( Namespace n ) {
         if ( this.node == null || this.isSimpleTypeNode() )
@@ -1796,7 +1804,7 @@ public class ENode extends JSObjectBase {
     public Collection<String> keySet( boolean includePrototype ) {
         XMLList list = ( this instanceof XMLList ) ? (XMLList)this : this.children;
         Collection<String> c = new ArrayList<String>();
-        for( int i=0; i<list.size(); i++ ) {
+        for( int i=0; list != null && i < list.size(); i++ ) {
             c.add( String.valueOf( i ) );
         }
         return c;
@@ -1905,4 +1913,5 @@ public class ENode extends JSObjectBase {
 
     public Namespace defaultNamespace;
 
+    private boolean _new = false;
 }
