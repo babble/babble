@@ -211,8 +211,8 @@ public class AppServer implements HttpHandler {
 
             JSString jsURI = new JSString( ar.getURI() );
 
-            if ( ar.getScope().get( "allowed" ) != null ){
-                Object foo = ar.getScope().getFunction( "allowed" ).call( ar.getScope() , request , response , jsURI );
+            if ( ar.getFromInitScope( "allowed" ) != null ){
+                Object foo = ((JSFunction)ar.getFromInitScope( "allowed" )).call( ar.getScope() , request , response , jsURI );
                 if ( foo != null ){
                     if ( response.getResponseCode() == 200 ){
                         response.setResponseCode( 401 );
@@ -225,7 +225,7 @@ public class AppServer implements HttpHandler {
             if ( ar.getURI().equals( "/~f" ) ){
                 JSFile f = ar.getContext().getJSFile( request.getParameter( "id" ) );
                 if ( f == null ){
-		    handle404( request , response , null );
+		    handle404( ar , request , response , null );
                     return;
                 }
                 response.sendFile( f );
@@ -276,7 +276,7 @@ public class AppServer implements HttpHandler {
 
             JxpServlet servlet = ar.getServlet( f );
             if ( servlet == null ){
-		handle404( request , response , null );
+		handle404( ar , request , response , null );
             }
             else {
                 servlet.handle( request , response , ar );
@@ -287,7 +287,7 @@ public class AppServer implements HttpHandler {
             handleOutOfMemoryError( oom , response );
         }
         catch ( FileNotFoundException fnf ){
-	    handle404( request , response , fnf.getMessage() );
+	    handle404( ar , request , response , fnf.getMessage() );
         }
         catch ( JSException.Quiet q ){
             response.setHeader( "X-Exception" , "quiet" );
@@ -353,8 +353,16 @@ public class AppServer implements HttpHandler {
      * @param response the HTTP response to send back to the client
      * @param extra any extra text to add to the response
      */
-    void handle404( HttpRequest request , HttpResponse response , String extra ){
+    void handle404( AppRequest ar , HttpRequest request , HttpResponse response , String extra ){
 	response.setResponseCode( 404 );
+        
+        if ( ar.getFromInitScope( "handle404" ) instanceof JSFunction){
+            JSFunction func = (JSFunction)ar.getFromInitScope( "handle404" );
+            JxpServlet serv = new JxpServlet( ar.getContext() , func );
+            serv.handle( request , response , ar );
+            return;
+        }
+
 	response.getJxpWriter().print( "not found<br>" );
 
 	if ( extra != null )
@@ -474,8 +482,8 @@ public class AppServer implements HttpHandler {
      * @return The time, in seconds
      */
     int getCacheTime( AppRequest ar , JSString jsURI , HttpRequest request , HttpResponse response ){
-        if ( ar.getScope().get( "staticCacheTime" ) != null ){
-            JSFunction f = ar.getScope().getFunction( "staticCacheTime" );
+        if ( ar.getFromInitScope( "staticCacheTime" ) != null ){
+            JSFunction f = (JSFunction)ar.getFromInitScope( "staticCacheTime" );
             if ( f != null ){
                 Object ret = f.call( ar.getScope() , jsURI , request , response );
                 if ( ret instanceof Number )
@@ -509,7 +517,7 @@ public class AppServer implements HttpHandler {
 
 
             if ( ! f.exists() ){
-		handle404( request , response , null );
+		handle404( ar , request , response , null );
                 return;
             }
 

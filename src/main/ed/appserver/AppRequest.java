@@ -86,7 +86,7 @@ public class AppRequest {
         
         return _scope;
     }
-    
+
     boolean isScopeInited(){
         return _scope != null;
     }
@@ -185,14 +185,14 @@ public class AppRequest {
     }
     
     private String getOverrideURI( String funcName ){
-        Object o = getScope().get( funcName );
+        Object o = _context.getFromInitScope( funcName );
         if ( o == null )
             return null;
         
         if ( ! ( o instanceof JSFunction ) )
             return null;
         
-        Object res = ((JSFunction)o).call( getScope() , new JSString( getURI() ) , _request , getScope().get( "response" ) );
+        Object res = ((JSFunction)o).call( getScope() , new JSString( getURI() ) , _request , _response );
         if ( res == null )
             return null;
         
@@ -341,6 +341,10 @@ public class AppRequest {
         return _session;
     }
     
+    public Object getFromInitScope( String what ){
+        return _context.getFromInitScope( what );
+    }
+
     final String _uri;
     final String _host;
     final HttpRequest _request;
