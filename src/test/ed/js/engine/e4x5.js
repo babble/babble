@@ -44,3 +44,6 @@ x = <a><b>two</b></a>;
 y = XML(x);
 x.b = "three";
 print(y);
+
+x = XML("4");
+print( x + " " + (x == 4) );
