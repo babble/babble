@@ -302,11 +302,11 @@ public class ENode extends JSObjectBase {
 
         public JSObject settings() {
             JSObjectBase sets = new JSObjectBase();
-            sets.set("ignoreComments", ignoreComments);
-            sets.set("ignoreProcessingInstructions", ignoreProcessingInstructions);
-            sets.set("ignoreWhitespace", ignoreWhitespace);
-            sets.set("prettyPrinting", prettyPrinting);
-            sets.set("prettyIndent", prettyIndent);
+            sets.set( ignoreCommentsStr, ignoreComments);
+            sets.set( ignoreProcessingInstructionsStr, ignoreProcessingInstructions);
+            sets.set( ignoreWhitespaceStr, ignoreWhitespace);
+            sets.set( prettyPrintingStr, prettyPrinting);
+            sets.set( prettyIndentStr, prettyIndent);
             return sets;
         }
 
@@ -324,32 +324,38 @@ public class ENode extends JSObjectBase {
                 return;
             }
 
-            Object setting = settings.get("ignoreComments");
+            Object setting = settings.get( ignoreCommentsStr );
             if(setting != null && setting instanceof Boolean)
                 ignoreComments = ((Boolean)setting).booleanValue();
-            setting = settings.get("ignoreProcessingInstructions");
+            setting = settings.get( ignoreProcessingInstructionsStr );
             if(setting != null && setting instanceof Boolean)
                 ignoreProcessingInstructions = ((Boolean)setting).booleanValue();
-            setting = settings.get("ignoreWhitespace");
+            setting = settings.get(ignoreWhitespaceStr );
             if(setting != null && setting instanceof Boolean)
                 ignoreWhitespace = ((Boolean)setting).booleanValue();
-            setting = settings.get("prettyPrinting");
+            setting = settings.get( prettyPrintingStr );
             if(setting != null && setting instanceof Boolean)
                 prettyPrinting = ((Boolean)setting).booleanValue();
-            setting = settings.get("prettyIndent");
+            setting = settings.get( prettyIndentStr );
             if(setting != null && setting instanceof Integer)
                 prettyIndent = ((Integer)setting).intValue();
         }
 
         public JSObject defaultSettings() {
             JSObjectBase sets = new JSObjectBase();
-            sets.set("ignoreComments", true);
-            sets.set("ignoreProcessingInstructions", true);
-            sets.set("ignoreWhitespace", true);
-            sets.set("prettyPrinting", true);
-            sets.set("prettyIndent", 2);
+            sets.set( ignoreCommentsStr, true);
+            sets.set( ignoreProcessingInstructionsStr, true);
+            sets.set( ignoreWhitespaceStr, true);
+            sets.set( prettyPrintingStr, true);
+            sets.set( prettyIndentStr, 2 );
             return sets;
         }
+
+        private final String ignoreCommentsStr = "ignoreComments";
+        private final String ignoreProcessingInstructionsStr = "ignoreProcessingInstructions";
+        private final String ignoreWhitespaceStr = "ignoreWhitespace";
+        private final String prettyPrintingStr = "prettyPrinting";
+        private final String prettyIndentStr = "prettyIndent";
 
         public boolean ignoreComments = true;
         public boolean ignoreProcessingInstructions = true;
@@ -361,15 +367,15 @@ public class ENode extends JSObjectBase {
         
         public Object get( Object n ) {
             String s = n.toString();
-            if( s.equals( "ignoreComments" ) )
+            if( s.equals( ignoreCommentsStr ) )
                 return ignoreComments;
-            if( s.equals( "ignoreProcessingInstructions " ) )
+            if( s.equals( ignoreProcessingInstructionsStr ) )
                 return ignoreProcessingInstructions;
-            if( s.equals( "ignoreWhitespace" ) )
+            if( s.equals( ignoreWhitespaceStr ) )
                 return ignoreWhitespace;
-            if( s.equals( "prettyPrinting" ) )
+            if( s.equals( prettyPrintingStr ) )
                 return prettyPrinting;
-            if( s.equals( "prettyIndent" ) )
+            if( s.equals( prettyIndentStr ) )
                 return prettyIndent;
             if( s.equals( "prototype" ) ) {
                 return this.getPrototype();
@@ -380,15 +386,15 @@ public class ENode extends JSObjectBase {
         public Object set( Object k, Object v ) {
             String s = k.toString();
             String val = v.toString();
-            if( s.equals( "ignoreComments" ) )
+            if( s.equals( ignoreCommentsStr ) )
                 ignoreComments = Boolean.parseBoolean(val);
-            if( s.equals( "ignoreProcessingInstructions" ) ) 
+            if( s.equals( ignoreProcessingInstructionsStr ) ) 
                 ignoreProcessingInstructions = Boolean.parseBoolean(val);
-            if( s.equals( "ignoreWhitespace" ) )
+            if( s.equals( ignoreWhitespaceStr ) )
                 ignoreWhitespace = Boolean.parseBoolean(val);
-            if( s.equals( "prettyPrinting" ) )
+            if( s.equals( prettyPrintingStr ) )
                 prettyPrinting = Boolean.parseBoolean(val);
-            if( s.equals( "prettyIndent" ) )
+            if( s.equals( prettyIndentStr ) )
                 prettyIndent = Integer.parseInt(val);
             return v;
         }
@@ -478,9 +484,8 @@ public class ENode extends JSObjectBase {
      */
     void nodeSetup( ENode parent ) {
         this.parent = parent;
-        if( this.parent != null ) {
-            this.XML = this.parent.XML;
-        }
+        this.XML = this.parent == null ? (Cons)this._getCons() : this.parent.XML;
+
         if( this.node != null && 
             this.node.getNodeType() == Node.ATTRIBUTE_NODE ) {
             ((Attr)this.node).setValue( E4X.escapeAttributeValue( ((Attr)this.node).getValue() ) );
@@ -609,7 +614,6 @@ public class ENode extends JSObjectBase {
             children = new XMLList();
             for( int i=0; i < kids.getLength(); i++ ) {
                 ENode kid = new ENode( kids.item( i ) , null , null );
-                kid.nodeSetup( null );
                 buildENodeDom( kid );
                 children.add( kid );
             }
