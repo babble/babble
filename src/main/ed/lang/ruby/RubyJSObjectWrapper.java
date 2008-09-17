@@ -507,6 +507,10 @@ public class RubyJSObjectWrapper extends RubyHash {
 				return toRuby(((JSFunction)val).callAndSetThis(_scope, _jsobj, RubyObjectWrapper.toJSFunctionArgs(_scope, context.getRuntime(), args, 1, block)));
 			    }
 			    catch (Exception e) {
+				if (RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
+				    System.err.println("saw exception; going to raise Ruby error after printing the stack trace here");
+				    e.printStackTrace();
+				}
 				self.callMethod(context, "raise", new IRubyObject[] {RubyString.newString(context.getRuntime(), e.toString())}, Block.NULL_BLOCK);
 			    }
 			}
