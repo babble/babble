@@ -484,9 +484,8 @@ public class ENode extends JSObjectBase {
      */
     void nodeSetup( ENode parent ) {
         this.parent = parent;
-        if( this.parent != null ) {
-            this.XML = this.parent.XML;
-        }
+        this.XML = this.parent == null ? (Cons)this._getCons() : this.parent.XML;
+
         if( this.node != null && 
             this.node.getNodeType() == Node.ATTRIBUTE_NODE ) {
             ((Attr)this.node).setValue( E4X.escapeAttributeValue( ((Attr)this.node).getValue() ) );
@@ -615,7 +614,6 @@ public class ENode extends JSObjectBase {
             children = new XMLList();
             for( int i=0; i < kids.getLength(); i++ ) {
                 ENode kid = new ENode( kids.item( i ) , null , null );
-                kid.nodeSetup( null );
                 buildENodeDom( kid );
                 children.add( kid );
             }
