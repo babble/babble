@@ -38,12 +38,12 @@ t.ensureIndex( { i : 1 } );
 
 t.findOne();
 
-print( "READY" );
+//print( "READY" );
 
 var c = [];
 
 for( pass = 0; pass < passes; pass++ ){ 
-    print("pass " + pass );
+    print("cursor.js: pass " + pass );
 
     for( var i = 0; i < 30; i++ ) { 
 	if( i % 4 == 0 )
@@ -57,8 +57,9 @@ for( pass = 0; pass < passes; pass++ ){
     }
     
     for( var j = 0; j < 40000; j++ ) { 
-	if( j % 1000 == 0 ) { 
-	    print("j:" + j);
+	if( j % 1000 == 0 ) {
+	    if( j % 10000 == 0 ) 
+		print("cursor.js: j:" + j);
 	    var k = t.find({ i : {$gt : r.nextInt(17000)} });
 	    if( k.hasNext() ) k.next();
 	}
@@ -71,7 +72,7 @@ for( pass = 0; pass < passes; pass++ ){
     
 } // end pass
 
-print("end passes");
+print("cursor.js: end passes");
     
 assert( t.validate().valid );    
 
