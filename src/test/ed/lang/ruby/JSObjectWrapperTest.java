@@ -19,6 +19,7 @@ package ed.lang.ruby;
 import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
+import ed.lang.ruby.JSFunctionWrapper;
 import ed.lang.ruby.JSObjectWrapper;
 import ed.js.JSObject;
 import ed.js.engine.Scope;
@@ -29,7 +30,7 @@ public class JSObjectWrapperTest extends SourceRunner {
     @BeforeMethod(groups={"ruby", "ruby.jsobj"})
     public void setUp() {
 	super.setUp();
-	runRuby("class Super; attr_accessor :s; end; class Foo < Super; attr_accessor :foo; end; $x = Foo.new; $x.foo = 12");
+	runRuby("class Super; attr_accessor :s; end; class Foo < Super; attr_accessor :foo; def bar; 42; end; end; $x = Foo.new; $x.foo = 12");
     }
 
     public void testConversion() {
@@ -52,8 +53,13 @@ public class JSObjectWrapperTest extends SourceRunner {
 	assertEquals(rubyOutput, "Foo");
     }
 
-    public void testGetReturnsValue() {
+    public void testGetIvarReturnsValue() {
 	JSObject jsobj = (JSObject)s.get("x");
 	assertEquals("12", jsobj.get("foo").toString());
+    }
+
+    public void testGetMethodReturnsFunction() {
+	JSObject jsobj = (JSObject)s.get("x");
+	assertTrue(jsobj.get("bar") instanceof JSFunctionWrapper, "oops: wrong type: expected ed.lang.ruby.JSFunctionWrapper but see " + jsobj.getClass().getName());
     }
 }
