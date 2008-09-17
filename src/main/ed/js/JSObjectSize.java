@@ -43,6 +43,15 @@ public class JSObjectSize {
     public static long size( Object o , IdentitySet seen ){
         if ( o == null )
             return 0;
+
+        final long size = _size( o , seen );
+        //System.out.println( "\t" + o.getClass() + "\t" + size );
+        return size;
+    }
+    
+    static long _size( Object o , IdentitySet seen ){
+        if ( o == null )
+            return 0;
         
         if ( o instanceof Boolean ||
              o instanceof Short ||
