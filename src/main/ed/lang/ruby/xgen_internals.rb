@@ -173,6 +173,10 @@ EOS
             instance_variable_set("@#{name}", row.get(name))
           }
         end
+        self.class.ivar_names.each { |iv|
+          iv = "@#{iv}"
+          instance_variable_set(iv, nil) unless instance_variable_defined?(iv)
+        }
       end
 
       # Saves and returns self.
