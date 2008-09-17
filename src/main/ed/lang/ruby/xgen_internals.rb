@@ -98,7 +98,7 @@ EOS
       end
 
       def self.ivar_names
-        return @ivar_names
+        @ivar_names ||= []
       end
 
       # The collection object.
