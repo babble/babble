@@ -173,6 +173,8 @@ var linenumbers =
     defaultfilters.linenumbers =
     function(value, autoescape) {
 
+    value = value || "";
+    
     var lines = value.split("\n");
     var width = lines.length.toString().length;
     autoescape = autoescape && !djang10.is_safe(value);
@@ -252,6 +254,8 @@ var truncatewords =
     defaultfilters.truncatewords =
     function(value, arg) {
 
+    value = value || "";
+    
     var length = parseInt(arg);
     if(isNaN(length))
         return value;
@@ -272,6 +276,8 @@ truncatewords = defaultfilters.truncatewords = stringfilter(truncatewords);
 var truncatewords_html =
     defaultfilters.truncatewords_html =
     function(value, arg) {
+    
+    value = value || "";
     
     var length = parseInt(arg);
     if(isNaN(length))
@@ -342,8 +348,9 @@ truncatewords_html = defaultfilters.truncatewords_html = stringfilter(truncatewo
 var upper =
     defaultfilters.upper =
     function(value) {
-        
-        return value.toUpperCase();
+    
+    value = value || "";
+    return value.toUpperCase();
 };
 upper.is_safe = false;
 upper = defaultfilters.upper = stringfilter(upper);
