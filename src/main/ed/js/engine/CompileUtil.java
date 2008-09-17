@@ -76,7 +76,7 @@ public class CompileUtil {
             if ( f.exists() )
                 old = StreamUtil.readFully( new FileInputStream( f ) );
             
-            final boolean oldSourceSame = source.trim().equals( old.trim() );
+            final boolean oldSourceSame = source.equals( old );
             final boolean oldExists = output.exists();
             final boolean oldDepends = output.lastModified() > depend;
 
