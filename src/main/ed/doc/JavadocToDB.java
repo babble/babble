@@ -41,6 +41,7 @@ public class JavadocToDB {
         JSObjectBase tempMethod = new JSObjectBase();
         tempMethod.set("desc", m.commentText());
         tempMethod.set("name", m.name());
+        tempMethod.set("_name", m.name());
         tempMethod.set("alias", m.name());
         tempMethod.set("isStatic", m.isStatic());
         tempMethod.set("isAbstract", m.isAbstract());
@@ -138,6 +139,7 @@ public class JavadocToDB {
         JSObjectBase tempField = new JSObjectBase();
         tempField.set("desc", field.commentText());
         tempField.set("name", field.name());
+        tempField.set("_name", field.name());
         tempField.set("srcFile", field.containingClass().qualifiedName());
         tempField.set("alias", field.qualifiedName());
         tempField.set("type", (field.type()).typeName());
@@ -295,13 +297,12 @@ public class JavadocToDB {
         return temp;
     }
 
-    public static void resolveConflicts(ClassDoc newClass, JSObjectBase javadocObj, DBCollection db) {
+    public static void resolveConflicts(ClassDoc newClass, JSObjectBase javadocObj ) {
         // is there a conflict with a js class?
         JSObject query = new JSObjectBase();
         query.set("name", newClass.name());
-        Iterator it = db.find(query);
+        Iterator it = collection.find(query);
         if(it == null) return;
-        //        System.out.println("it != null: "+newClass.name());
 
         // drill down to get the relevant obj
         JSObject jsdocObj = (JSObjectBase)it.next();
@@ -310,82 +311,46 @@ public class JavadocToDB {
         JSObject dquery = new JSObjectBase();
         dquery.set("_id", (ed.db.ObjectId)jsdocObj.get("_id"));
 
-        jsdocObj = (JSObject)jsdocObj.get("_index");
         jsdocObj = (JSObject)jsdocObj.get("symbolSet");
-        jsdocObj = (JSObject)jsdocObj.get(newClass.name());
-        mergeClasses(javadocObj, jsdocObj);
+        Generate.mergeClasses(javadocObj, jsdocObj);
 
         // remove the repeated class
-        db.remove(dquery);
+        collection.remove(dquery);
     }
 
-    public static void attachClass(ClassDoc newClass, JSObjectBase javadocObj, DBCollection db, String jsClassName) {
+    public static void attachClass(ClassDoc newClass, JSObjectBase javadocObj, String jsClassName) {
         // is there a conflict with a js class?
         JSObject query = new JSObjectBase();
         query.set("name", jsClassName);
-        Iterator it = db.find(query);
-        System.out.println("jsClassName: "+jsClassName);
+        Iterator it = collection.find(query);
         if(it == null) {
             System.out.println("Error: tried to attach "+newClass.name()+" to non-existant JavaScript class "+jsClassName);
             return;
         }
 
         JSObject jsdoc = (JSObject)it.next();
-        JSObject coreobj = (JSObject)jsdoc.get("_index");
-        coreobj = (JSObject)coreobj.get("symbolSet");
-        coreobj = (JSObject)coreobj.get(jsClassName);
-        mergeClasses(coreobj, javadocObj);
+        Generate.mergeClasses((JSObject)jsdoc.get("symbolSet"), javadocObj);
 
         // save to db
-        db.save(jsdoc);
+        collection.save(jsdoc);
     }
-
-    public static JSObject mergeClasses(JSObject master, JSObject child) {
-        // merge constructors
-        JSArray javadocCons = (JSArray)master.get("constructors");
-        if(javadocCons == null) javadocCons = new JSArray();
-        JSArray jsCons = (JSArray)child.get("constructors");
-        if(jsCons != null) {
-            Iterator p = jsCons.iterator();
-            while(p.hasNext())
-                javadocCons.add(p.next());
-        }
-
-        // merge methods
-        JSArray javadocMethod = (JSArray)master.get("methods");
-        Iterator p = ((JSArray)child.get("methods")).iterator();
-        while(p.hasNext())
-            javadocMethod.add(p.next());
-
-        // merge props
-        JSArray javadocProp = (JSArray)master.get("properties");
-        p = ((JSArray)child.get("properties")).iterator();
-        while(p.hasNext())
-            javadocProp.add(p.next());
-
-        // add src file, if it exists
-        if(child.get("srcFile") != null) {
-            master.set("srcFile", (child.get("srcFile")).toString());
-        }
-        return master;
-    }
-
-    private static JSArray getPackages( ClassDoc c ) {
-        JSArray array = new JSArray();
-        Tag pkgs[] = c.tags( "docpkg" );
+    private static JSArray getPackages( ClassDoc c , JSArray packages ) {
+        Tag pkgs[] = c.tags( "docmodule" );
         for( Tag p : pkgs ) {
-            array.add( p.text() );
+            packages.add( p.text() );
         }
-        return array;
+        return packages;
     }
+
+    private static DBCollection collection;
 
     public static boolean start(RootDoc root) {
+        // get db
         Scope s = Scope.getThreadLocal();
         Object dbo = s.get( "db" );
         if(! (dbo instanceof DBApiLayer)) throw new RuntimeException("your database isn't a database");
-
         DBApiLayer db = (DBApiLayer)dbo;
-        DBCollection collection = db.getCollection("doc");
+        collection = db.getCollection("doc");
 
         ClassDoc[] classes = root.classes();
 
@@ -395,28 +360,27 @@ public class JavadocToDB {
                 classes[i].tags( "expose" ).length == 0 )
                 continue;
 
+            // if this has one or more modules, put it in the module
+            Tag[] modules = classes[i].tags( "docmodule" );
+            if( modules.length > 0 ) {
+                for( Tag m : modules ) {
+                    Generate.addToModule( getClasses( classes[i] ), m.text() );
+                }
+                continue;
+            }
+
+            // otherwise, generate normally
             JSObjectBase obj = new JSObjectBase();
             JSObjectBase jsClasses = new JSObjectBase();
 
             JSObjectBase javaClass = getClasses(classes[i]);
-            Tag[] attacher = classes[i].tags("attachto");
-            if(attacher.length > 0) {
-                attachClass(classes[i], javaClass, collection, attacher[0].text());
-                continue;
-            }
-            else {
-                resolveConflicts(classes[i], javaClass, collection);
-            }
-            jsClasses.set(classes[i].name(), javaClass);
-            obj.set("symbolSet", jsClasses);
-
+            resolveConflicts(classes[i], javaClass );
 
             JSObjectBase topLevel = new JSObjectBase();
-            topLevel.set( "_index" , obj );
+            topLevel.set("symbolSet", javaClass);
             topLevel.set( "ts" , Calendar.getInstance().getTime().toString() );
             topLevel.set( "alias" , classes[i].name() );
             topLevel.set( "name" , classes[i].qualifiedName() );
-            topLevel.set( "packages", getPackages( classes[i] ) );
 
             int summarylen = classes[i].commentText().indexOf(". ")+1;
             if(summarylen == 0) summarylen = classes[i].commentText().indexOf(".\n")+1;

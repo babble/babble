@@ -195,33 +195,20 @@ ForNode.prototype = {
             values = [];
         }
 
-        var next_fn;
-        var count;
+        if(!(values instanceof Array)) {
+            try {
+                values = values.toArray();
+            } catch(e) {}
+        }
         
-        if ( values.getClass().getName() == "ed.db.DBCursor" ){
-            if(this.is_reversed) {
-                throw "Can't reverse a DBCursor, use array mode, if you need to do this";
-            }
-            next_fn = function() {
-                return values.next();
-            };
-            count = values.count();
-        }
-        else {
-            next_fn = function() {
-                return  values[next_fn.i++];
-            };
-            next_fn.i=0;
-
-            count = values.length;
-        }
-
+        var count = values.length;
+        
         if( this.is_reversed )
             values.reverse();
         
         var loop_dict = context["forloop"] = {parentloop: parentloop};
         for(var i=0; i<count; i++) {
-            var item = next_fn();
+            var item = values[i];
             
             loop_dict['counter0'] = i;
             loop_dict['counter'] = i+1;
@@ -335,8 +322,6 @@ IfEqualNode.prototype = {
             value1 = this.var1.resolve(context);
         } catch(e if isinstance(e, djang10.VariableDoesNotExist)) {
             value1 = null;
-        } catch(e) {
-            SYSOUT("MOOO: " + (e.__proto__ == null))
         }
         
         try {

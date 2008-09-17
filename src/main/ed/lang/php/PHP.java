@@ -29,13 +29,21 @@ import com.caucho.quercus.*;
 import com.caucho.quercus.env.*;
 import com.caucho.quercus.script.*;
 
-public class PHP {
+public class PHP extends Language {
+
+    public PHP(){
+        super( "php" );
+    }
+
+    public boolean isScriptable(){
+        return true;
+    }
 
     static boolean DEBUG = false;
 
     static QuercusScriptEngineFactory _phpFactory = new QuercusScriptEngineFactory();
     
-    public static ScriptEngine getScriptEngine(){
+    public ScriptEngine getScriptEngine(){
         QuercusScriptEngine engine = (QuercusScriptEngine)(_phpFactory.getScriptEngine());
         
         add( engine , Scope.class , PHPJSObjectClassDef.class );

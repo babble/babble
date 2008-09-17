@@ -381,7 +381,7 @@ Cloud.Site.prototype.upsertDB = function( name , server , userToInsert ){
     log( "creating new db [" + name + "] for [" + this.name + "]" );
     
     var db = new Cloud.SiteDB( name , server );
-    //db.envParition = true;
+    db.envParition = true;
     
     this.dbs.add( db );
     

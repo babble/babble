@@ -66,11 +66,72 @@ public class Generate {
 
     public static JSObjectBase _global;
 
+    public static JSObject mergeClasses(JSObject master, JSObject child) {
+        // merge constructors
+        JSArray javadocCons = (JSArray)master.get("constructors");
+        if(javadocCons == null) javadocCons = new JSArray();
+        JSArray jsCons = (JSArray)child.get("constructors");
+        if(jsCons != null) {
+            Iterator p = jsCons.iterator();
+            while(p.hasNext())
+                javadocCons.add(p.next());
+        }
+
+        // merge methods
+        JSArray javadocMethod = (JSArray)master.get("methods");
+        Iterator p = ((JSArray)child.get("methods")).iterator();
+        while(p.hasNext())
+            javadocMethod.add(p.next());
+
+        // merge props
+        JSArray javadocProp = (JSArray)master.get("properties");
+        p = ((JSArray)child.get("properties")).iterator();
+        while(p.hasNext())
+            javadocProp.add(p.next());
+
+        // add src file, if it exists
+        if(child.get("srcFile") != null) {
+            master.set("srcFile", (child.get("srcFile")).toString());
+        }
+        return master;
+    }
+
+    public static void addToModule( JSObject jsobj, String modname ) {
+        JSObject query = new JSObjectBase();
+        query.set( "name", modname );
+        Iterator it = docdb.find( query );
+
+        // set the name on the jsobj
+        jsobj.set( "name" , modname );
+
+        // create a new module
+        if(it == null) {
+            JSObject topLevel = new JSObjectBase();
+            topLevel.set( "symbolSet" , jsobj );
+            topLevel.set( "ts" , Calendar.getInstance().getTime().toString() );
+            topLevel.set( "name" , modname );
+
+            String classDesc = jsobj.get("classDesc").toString();
+            int summarylen = classDesc.indexOf(". ")+1;
+            if(summarylen == 0) 
+                summarylen = classDesc.indexOf(".\n")+1;
+            if(summarylen == 0) 
+                summarylen = classDesc.length();
+            topLevel.set("desc", classDesc.substring(0, summarylen));
+
+            docdb.save( topLevel );
+        }
+        //add to an existing
+        else {
+            JSObject existing = (JSObject)it.next();
+            mergeClasses( (JSObject)existing.get( "symbolSet" ) , jsobj );
+            docdb.save( existing );
+        }
+    }
+
     public static void globalToDb() {
-        JSObjectBase ss = new JSObjectBase();
-        ss.set("symbolSet", _global);
         JSObjectBase newGlobal = new JSObjectBase();
-        newGlobal.set("_index", ss);
+        newGlobal.set("symbolSet", _global);
         newGlobal.set("ts", Calendar.getInstance().getTime().toString());
         newGlobal.set("name", "_global_");
 
@@ -201,7 +262,6 @@ public class Generate {
         		null, jsfl.getRoot(), "");
 
         String rout = r.getOut();
-
         String jsdocUnits[] = rout.split("---=---");
         for(int i=0; i<jsdocUnits.length; i++) {
             // as far as I know, jsdocUnits[i] has never been null, but it has been "", which eval doesn't like
@@ -220,34 +280,14 @@ public class Generate {
                 JSString isa = (JSString)unit.get("isa");
                 boolean isNamespace = ((Boolean)unit.get("isNamespace")).booleanValue();
                 if(isa.equals("GLOBAL") || isa.equals("CONSTRUCTOR") || isNamespace) {
-                    JSObjectBase ss = new JSObjectBase();
-                    ss.set("symbolSet", json);
-                    JSObjectBase obj = new JSObjectBase();
-                    obj.set("ts", Calendar.getInstance().getTime().toString());
-                    obj.set("_index", ss);
-                    obj.set("name", name);
-                    obj.set("alias", name);
-                    obj.set("packages", unit.get( "docpkg" ));
-
-                    // get the class description
-                    String desc = getClassDesc( unit ); 
-
-                    int summarylen = desc.indexOf(". ")+1;
-                    if(summarylen == 0) summarylen = desc.indexOf(".\n")+1;
-                    if(summarylen == 0) summarylen = desc.length();
-                    obj.set("desc", desc.substring(0,summarylen));
-
-                    if(name.equals("_global_")) {
-                        if(_global == null) {
-                            _global = (JSObjectBase)json;
-                        }
-                        else {
-                            addToGlobal("methods", (JSArray)unit.get("methods"));
-                            addToGlobal("properties", (JSArray)unit.get("properties"));
+                    JSArray modules = (JSArray)unit.get( "docmodule" );
+                    if( modules != null && modules.size() > 0 ) {
+                        for( Object m : modules ) {
+                            addToModule( unit, m.toString() );
                         }
                     }
                     else {
-                        docdb.save(obj);
+                        addToModule( unit, name );
                     }
                 }
             }

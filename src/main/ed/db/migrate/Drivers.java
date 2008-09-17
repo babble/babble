@@ -12,9 +12,15 @@ import ed.js.engine.*;
 /**
  * @anonymous name : {jdbc}, desc : {Attempts to connect to a mySQL database using Java's database connector.}, param : {type : (string), name : (url), desc : (url of database to connect to)}, param : {type: (string) isOptional : (true), name : (username), desc : (username with which to connect to the database)},  param : {type: (string) isOptional : (true), name : (password), desc : (password with which to connect to the database)}, return : { type : (jdbcConnection), desc : (a conneection to the mySQL database specified)}
  * @expose
+ * @docmodule system.database.drivers
  */
 public class Drivers {
 
+    /** @unexpose */
+    public Drivers() {
+    }
+    
+    /** @unexpose */    
     public static void init( Scope s ){
 
         s.put( "jdbc" , new JSFunctionCalls1(){

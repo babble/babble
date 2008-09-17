@@ -32,7 +32,9 @@ module XGen
         @cursor.forEach { |row| yield @model_class.new(row) }
       end
 
-      %w(sort limit skip).each { |name|
+      # toArray is for JavaScript code that needs to access @cursor and use
+      # that method.
+      %w(sort limit skip toArray).each { |name|
         eval "def #{name}(*args); @cursor.#{name}(*args); return self; end"
       }
 
@@ -64,15 +66,15 @@ module XGen
       #
       #    set_collection :collection_name, %w(var1 var2)
       #    set_collection %w(var1 var2)
-      def self.set_collection(coll_name, ivars=nil)
-        @coll_name, @ivars = coll_name, ivars
+      def self.set_collection(coll_name, ivar_names=nil)
+        @coll_name, @ivar_names = coll_name, ivar_names
         if coll_name.kind_of?(Array)
-          @ivars = coll_name
+          @ivar_names = coll_name
           @coll_name = self.name.gsub(/([A-Z])/, '_\1').downcase.sub(/^_/, '')
         end
 
-        @ivars << '_id' unless @ivars.include?('_id')
-      @ivars.each { |ivar|
+        @ivar_names << '_id' unless @ivar_names.include?('_id')
+      @ivar_names.each { |ivar|
           attr_method = ivar == '_id' ? 'attr_reader' : 'attr_accessor'
           eval <<EOS
 #{attr_method} :#{ivar}
@@ -91,6 +93,10 @@ if "#{ivar}" != '_id'
 end
 EOS
           }
+      end
+
+      def self.ivar_names
+        return @ivar_names
       end
 
       # The collection object.
@@ -169,7 +175,9 @@ EOS
 
       # Saves and returns self.
       def save
-        row = self.class.coll.save(self)
+        h = {}
+        self.class.ivar_names.each { |iv| h[iv] = instance_variable_get("@#{iv}") }
+        row = self.class.coll.save(h)
         if self._id == nil
           self._id = row._id
         elsif row._id != self._id

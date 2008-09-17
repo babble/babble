@@ -100,6 +100,19 @@ public class DBAddress {
         return new InetSocketAddress( _addr , _port );
     }
 
+    public boolean sameHost( String host ){
+        int idx = host.indexOf( ":" );
+        int port = defaultPort();
+        if ( idx > 0 ){
+            port = Integer.parseInt( host.substring( idx + 1 ) );
+            host = host.substring( 0 , idx );
+        }
+
+        return 
+            _port == port &&
+            _host.equalsIgnoreCase( host );
+    }
+
     final String _host;
     final int _port;
     final String _name;

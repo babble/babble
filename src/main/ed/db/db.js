@@ -9,7 +9,8 @@
  
  /**
   * Database  utility API - adds functionality to standard native 10gen database connection
- *  @class 10gen Database Utility API
+  *  @class 10gen Database Utility API
+ * @docmodule system.database.db
  */
 var DB = function(){};
 

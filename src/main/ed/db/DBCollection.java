@@ -26,6 +26,7 @@ import ed.util.*;
  * @anonymous name : {findOne}, desc : {Returns the first object in this collection matching a given query.}, return : {type : (JSObject), desc : (the first matching element)}, param : {type : (JSObject), name : (query), desc : (query to use)}, param : { type : (JSObject), name : (f), desc : (fields to return)
  * @anonymous name : {tojson}, desc : {Returns a description of this collection as a string.}, return : {type : (String), desc : ("{DBCollection:this.collection.name}")}
  * @expose
+ * @docmodule system.database.collection
  */
 public abstract class DBCollection extends JSObjectLame {
 

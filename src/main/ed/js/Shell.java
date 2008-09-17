@@ -77,6 +77,33 @@ public class Shell {
 
     /** Connect to a database. */
     public static class ConnectDB extends JSFunctionCalls2 {
+        
+        public void init(){
+            set( "ms" , new JSFunctionCalls1(){
+                    public Object call( Scope s , Object nameObject , Object hosts[] ){
+                        if ( hosts == null || hosts.length < 2 )
+                            throw new RuntimeException( "can only use connect.ms with multiple hosts" );
+                        
+                        List<DBAddress> addrs = new ArrayList<DBAddress>();
+
+                        
+                        for ( Object foo : hosts ){
+                            try {
+                                addrs.add( new DBAddress( foo + "/" + nameObject ) );
+                            }
+                            catch ( java.net.UnknownHostException uhe ){
+                                throw new RuntimeException( "can't find host [" + foo + "]" );
+                            }
+                        }
+
+                        
+                        return new DBTCP( addrs );
+                        
+                    }
+                }
+                );;
+        }
+        
         public Object call( Scope s , Object name , Object ip , Object crap[] ){
             if ( name == null )
                 throw new NullPointerException( "connect requires a name" );
@@ -171,13 +198,23 @@ public class Shell {
 
         boolean exit = false;
 
+        Language replLang = Language.JS;
+
         for ( String a : args ){
+
             if ( a.equals( "-exit" ) ){
                 System.out.println("-exit flag deprecated : please use --exit");
                 exit = true;
                 continue;
-            } else  if ( a.equals( "--exit" ) ){
+            } 
+            
+            if ( a.equals( "--exit" ) ){
                 exit = true;
+                continue;
+            }
+            
+            if ( a.startsWith( "--" ) ){
+                replLang = Language.find( a.substring( 2 ) , true );
                 continue;
             }
 
@@ -268,7 +305,7 @@ public class Shell {
 
         if ( exit )
             return;
-
+        
         String line;
         ConsoleReader console = new ConsoleReader();
         console.setHistory( new History( new File( ".jsshell" ) ) );
@@ -286,7 +323,7 @@ public class Shell {
             }
 
             try {
-                Object res = s.eval( line , "lastline" , hasReturn );
+                Object res = replLang.eval( s , line , hasReturn );
                 if ( hasReturn[0] ){
                     if ( res instanceof DBCursor )
                         ed.db.Shell.displayCursor( System.out , (DBCursor)res );

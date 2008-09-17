@@ -50,6 +50,7 @@ public class RubyJxpSource extends JxpSource {
     static final boolean SKIP_REQUIRED_LIBS = Boolean.getBoolean("DEBUG.RB.SKIP.REQ.LIBS");
     /** Scope top-level functions to avoid loading. */
     static final Collection<String> DO_NOT_LOAD_FUNCS;
+    static final String[] BUILTIN_JS_FILE_LIBRARIES = {"local", "core", "external"};
     static final RubyInstanceConfig config = new RubyInstanceConfig();
 
     static {
@@ -108,7 +109,7 @@ public class RubyJxpSource extends JxpSource {
     }
 
     protected Object _doCall(Node code, Scope s, Object unused[]) {
-	_addSiteRootToPath(s);
+	_addJSFileLibrariesToPath(s);
 
 	if (_runtime.getGlobalVariables() instanceof ScopeGlobalVariables)
 	    _runtime.setGlobalVariables(((ScopeGlobalVariables)_runtime.getGlobalVariables()).getOldGlobalVariables());
@@ -152,15 +153,18 @@ public class RubyJxpSource extends JxpSource {
 	return _runtime.parseInline(new ByteArrayInputStream(bytes), filePath, null);
     }
 
-    protected void _addSiteRootToPath(Scope s) {
-	Object appContext = s.get("__instance__");
-	if (appContext != null) {
-	    RubyString siteRoot = RubyString.newString(_runtime, appContext.toString().replace('\\', '/'));
-	    RubyArray loadPath = (RubyArray)_runtime.getLoadService().getLoadPath();
-	    if (loadPath.include_p(_runtime.getCurrentContext(), siteRoot).isFalse()) {
+    protected void _addJSFileLibrariesToPath(Scope s) {
+	RubyArray loadPath = (RubyArray)_runtime.getLoadService().getLoadPath();
+	for (String libName : BUILTIN_JS_FILE_LIBRARIES) {
+	    Object val = s.get(libName);
+	    if (!(val instanceof JSFileLibrary))
+		continue;
+	    File root = ((JSFileLibrary)val).getRoot();
+	    RubyString rubyRoot = RubyString.newString(_runtime, root.getPath().replace('\\', '/'));
+	    if (loadPath.include_p(_runtime.getCurrentContext(), rubyRoot).isFalse()) {
 		if (DEBUG)
-		    System.err.println("adding site root " + siteRoot + " to Ruby load path");
-		loadPath.append(siteRoot);
+		    System.err.println("adding file library " + val.toString() + " root " + rubyRoot);
+		loadPath.append(rubyRoot);
 	    }
 	}
     }

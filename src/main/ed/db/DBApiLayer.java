@@ -9,7 +9,10 @@ import java.util.*;
 import ed.io.*;
 import ed.js.*;
 
-/** @expose */
+/**
+ * @expose
+ * @docmodule system.database.db
+ * */
 public abstract class DBApiLayer extends DBBase {
 
     /** @unexpose */
@@ -383,17 +386,42 @@ public abstract class DBApiLayer extends DBBase {
         final String _fullNameSpace;
     }
 
-    class SingleResult {
+    class QueryHeader {
+        
+        QueryHeader( ByteBuffer buf ){
+            this( buf , buf.position() );
+        }
 
+        QueryHeader( ByteBuffer buf , int start ){
+            _reserved = buf.getInt( start );
+            _cursor = buf.getLong( start + 4 );
+            _startingFrom = buf.getInt( start + 12 );
+            _num = buf.getInt( 16 );
+        }
+
+        int headerSize(){
+            return 20;
+        }
+
+        void skipPastHeader( ByteBuffer buf ){
+            buf.position( buf.position() + headerSize() );
+        }
+
+        final int _reserved;
+        final long _cursor;
+        final int _startingFrom;
+        final int _num;
+    }
+
+    class SingleResult extends QueryHeader {
+        
         SingleResult( String fullNameSpace , ByteDecoder decoder , Set<ObjectId> seen ){
+            super( decoder._buf );
+
             _bytes = decoder.remaining();
-
             _fullNameSpace = fullNameSpace;
-            _reserved = decoder.getInt();
-            _cursor = decoder.getLong();
-            _startingFrom = decoder.getInt();
-            _num = decoder.getInt();
-
+            skipPastHeader( decoder._buf );
+            
             if ( _num == 0 )
                 _lst = EMPTY;
             else if ( _num < 3 )
@@ -437,12 +465,7 @@ public abstract class DBApiLayer extends DBBase {
         }
 
         final long _bytes;
-
         final String _fullNameSpace;
-        final int _reserved;
-        final long _cursor;
-        final int _startingFrom;
-        final int _num;
 
         final List<JSObject> _lst;
     }
