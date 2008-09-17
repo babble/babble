@@ -1047,6 +1047,26 @@ public class AppContext extends ServletContextBase {
         return _nonAdminParent;
     }
 
+    public long approxSize(){
+        return approxSize( new IdentitySet() );
+    }
+
+    public long approxSize( IdentitySet seen ){
+        long size = 0;
+
+        if ( _adminContext != null )
+            size += _adminContext.approxSize( seen );
+        
+        size += _scope.approxSize( seen ,false );
+        size += _initScope.approxSize( seen , true );
+        
+        size += JSObjectSize.size( _localObject , seen );
+        size += JSObjectSize.size( _core , seen );
+        size += JSObjectSize.size( _external , seen );
+
+        return size;
+    }
+
     final String _name;
     final String _root;
     final File _rootFile;

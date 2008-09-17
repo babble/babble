@@ -79,6 +79,26 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
         Pair<String,String> p = _regex.get( id );
         return new JSRegex( p.first , p.second );
     }
+    
+    public long approxSize( IdentitySet seen ){
+        long size = super.approxSize( seen );
+
+        if ( _strings != null )
+            for ( int i=0; i<_strings.length; i++ )
+                if ( _strings[i] != null )
+                    size += 8 + _strings[i].length() * 2;
+
+        if ( _jsstrings != null )
+            for ( int i=0; i<_jsstrings.length; i++ )
+                if ( _jsstrings[i] != null )
+                    size += 8 + _jsstrings[i].length() * 2;
+        
+        if ( _regex != null )
+            for ( int i=0; i<_regex.size(); i++ )
+                size += 32 + ( _regex.get(i).first.length() * 2 ) + ( _regex.get(i).second.length() * 2 );
+        
+        return size;
+    }
 
     Convert _convert;
     protected List<Pair<String,String>> _regex;
