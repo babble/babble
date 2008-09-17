@@ -14,7 +14,7 @@
  *  Example:
  *    var cursor = db.students.find();
  * 
- * @docmodule System.DB.cursor
+ * @docmodule system.database.cursor
  */
  var DBCursor = function(){}
 
