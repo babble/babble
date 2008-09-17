@@ -75,7 +75,7 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
             return children.get(0).toString();
         }
         for( ENode n : this ) {
-            xml.append( n.toXMLString() );
+            xml.append( n.toXMLString().toString() );
             if( this.hasComplexContent() )
                 xml.append( "\n" );
         }
