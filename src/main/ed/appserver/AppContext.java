@@ -116,6 +116,7 @@ public class AppContext extends ServletContextBase {
 
         _scope = new Scope( "AppContext:" + root + ( _admin ? ":admin" : "" ) , _isGrid ? ed.cloud.Cloud.getInstance().getScope() : Scope.newGlobal() , null , Language.JS , _rootFile );
         _scope.setGlobal( true );
+        _initScope = _scope.child( "_init" );
 
         _usage = new UsageTracker( this );
 
@@ -392,6 +393,16 @@ public class AppContext extends ServletContextBase {
 	return _scope();
     }
 
+    public Scope getInitScope(){
+        return _initScope;
+    }
+
+    Object getFromInitScope( String what ){
+        if ( ! _knownInitScopeThings.contains( what ) )
+            System.err.println( "*** Unkknow thing being request from initScope [" + what + "]" );
+        return _initScope.get( what );
+    }
+
     /** Returns a child scope for app requests.
      * @return a child scope
      */
@@ -407,7 +418,7 @@ public class AppContext extends ServletContextBase {
 
     private synchronized Scope _scope(){
         
-        if ( _inScopeInit )
+        if ( _inScopeSetup )
             return _scope;
 
         if ( _getScopeTime() > _lastScopeInitTime )
@@ -420,7 +431,7 @@ public class AppContext extends ServletContextBase {
         _lastScopeInitTime = System.currentTimeMillis();
 
 
-        _initScope();
+        _setupScope();
 
         return _scope;
     }
@@ -715,7 +726,7 @@ public class AppContext extends ServletContextBase {
     }
 
     public void loadedFile( File f ){
-        if ( _inScopeInit )
+        if ( _inScopeSetup )
             _initFlies.add( f );
     }
 
@@ -727,8 +738,8 @@ public class AppContext extends ServletContextBase {
         return source.getServlet( this );
     }
 
-    private void _initScope(){
-        if ( _inScopeInit )
+    private void _setupScope(){
+        if ( _inScopeSetup )
             return;
 
         final Scope saveTLPref = _scope.getTLPreferred();
@@ -737,7 +748,7 @@ public class AppContext extends ServletContextBase {
         final Scope saveTL = Scope.getThreadLocal();
         _scope.makeThreadLocal();
 
-        _inScopeInit = true;
+        _inScopeSetup = true;
 
         try {
             _runInitFiles( INIT_FILES );
@@ -758,7 +769,7 @@ public class AppContext extends ServletContextBase {
             throw new RuntimeException( e );
         }
         finally {
-            _inScopeInit = false;
+            _inScopeSetup = false;
             _scope.setTLPreferred( saveTLPref );
 
             if ( saveTL != null )
@@ -788,7 +799,8 @@ public class AppContext extends ServletContextBase {
         _initFlies.add( f );
         JxpSource s = getSource( f );
         JSFunction func = s.getFunction();
-        func.call( _scope );
+        func.setUsePassedInScope( true );
+        func.call( _initScope );
     }
 
     long _getScopeTime(){
@@ -1040,6 +1052,7 @@ public class AppContext extends ServletContextBase {
     private JSFileLibrary _external;
 
     final Scope _scope;
+    final Scope _initScope;
     final UsageTracker _usage;
 
     final JSArray _globalHead = new JSArray();
@@ -1050,7 +1063,7 @@ public class AppContext extends ServletContextBase {
     private final Map<String,JxpSource> _httpServlets = Collections.synchronizedMap( new HashMap<String,JxpSource>() );
 
     boolean _scopeInited = false;
-    boolean _inScopeInit = false;
+    boolean _inScopeSetup = false;
     long _lastScopeInitTime = 0;
 
     final boolean _isGrid;
@@ -1067,4 +1080,14 @@ public class AppContext extends ServletContextBase {
     static {
         _libraryLogger.setLevel( Level.INFO );
     }
+
+    private static final Set<String> _knownInitScopeThings = new HashSet<String>();
+    static {
+        _knownInitScopeThings.add( "mapUrlToJxpFileCore" );
+        _knownInitScopeThings.add( "mapUrlToJxpFile" );
+        _knownInitScopeThings.add( "allowed" );
+        _knownInitScopeThings.add( "staticCacheTime" );
+        _knownInitScopeThings.add( "handle404" );
+    }
+        
 }

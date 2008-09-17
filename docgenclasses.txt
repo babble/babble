@@ -1,4 +1,9 @@
+/data/corejs/content/
 /data/corejs/core/
+/data/corejs/db/
+/data/corejs/git/
+/data/corejs/media/
+/data/corejs/net/
 /data/corejs/user/
 /data/corejs/text/
 /data/corejs/util/

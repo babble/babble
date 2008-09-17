@@ -34,7 +34,7 @@ import ed.appserver.*;
  * which is of this type.
  *
  * @expose
- * @docmodule System.HTTP.request
+ * @docmodule system.HTTP.request
  */
 public class HttpRequest extends JSObjectLame implements HttpServletRequest {
     
