@@ -113,7 +113,8 @@ public class DBTCP extends DBMessageLayer {
     }
 
     boolean _error(){
-        _pickCurrent();
+        if ( _allHosts != null )
+            _pickCurrent();
         return true;
     }
 
