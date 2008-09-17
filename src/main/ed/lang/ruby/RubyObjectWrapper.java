@@ -176,7 +176,9 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	    return new JSRegex(regex.source().toString(), options);
 	}
 	if (r instanceof RubyClass) {
-	    return new JSRubyClassWrapper(scope, (RubyClass)r);
+	    Object o = new JSRubyClassWrapper(scope, (RubyClass)r);
+	    _wrappers.put(o, r);
+	    return o;
 	}
 	if (r instanceof RubyObject) {
 	    Object o = new ed.lang.ruby.JSObjectWrapper(scope, (RubyObject)r);
