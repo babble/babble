@@ -42,7 +42,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB.WRAP");
   
-    static final Map<Object, IRubyObject> _wrappers = new WeakHashMap<Object, IRubyObject>();
+    static final Map<Ruby, Map<Object, IRubyObject>> _wrappers = new WeakHashMap<Ruby, Map<Object, IRubyObject>>();
 
     protected final Scope _scope;
     protected final Object _obj;
@@ -60,8 +60,8 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	if (obj == null)
 	    return runtime.getNil();
 
-	IRubyObject wrapper;
-	if ((wrapper = _wrappers.get(obj)) != null) {
+	IRubyObject wrapper = cachedWrapperFor(runtime, obj);
+	if (wrapper != null) {
 	    if (wrapper instanceof RubyJSObjectWrapper)
 		((RubyJSObjectWrapper)wrapper).rebuild(runtime);
 	    return wrapper;
@@ -106,8 +106,22 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	else
 	    wrapper = JavaUtil.convertJavaToUsableRubyObject(runtime, obj);
 
-	_wrappers.put(obj, wrapper);
+	cacheWrapper(runtime, obj, wrapper);
 	return wrapper;
+    }
+
+    protected static synchronized IRubyObject cachedWrapperFor(Ruby runtime, Object obj) {
+	Map<Object, IRubyObject> runtimeWrappers = _wrappers.get(runtime);
+	return runtimeWrappers == null ? null : runtimeWrappers.get(obj);
+    }
+
+    protected static synchronized void cacheWrapper(Ruby runtime, Object obj, IRubyObject wrapper) {
+	Map<Object, IRubyObject> runtimeWrappers = _wrappers.get(runtime);
+	if (runtimeWrappers == null) {
+	    runtimeWrappers = new WeakHashMap<Object, IRubyObject>();
+	    _wrappers.put(runtime, runtimeWrappers);
+	}
+	runtimeWrappers.put(obj, wrapper);
     }
 
     /** Given a Ruby block, returns a JavaScript object. */
@@ -161,7 +175,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	}
 	if (r instanceof RubyProc) {
 	    Object o = new JSFunctionWrapper(scope, r.getRuntime(), ((RubyProc)r).getBlock());
-	    _wrappers.put(o, r);
+	    cacheWrapper(r.getRuntime(), o, r);
 	    return o;
 	}
 	if (r instanceof RubyRegexp) {
@@ -177,12 +191,12 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	}
 	if (r instanceof RubyClass) {
 	    Object o = new JSRubyClassWrapper(scope, (RubyClass)r);
-	    _wrappers.put(o, r);
+	    cacheWrapper(r.getRuntime(), o, r);
 	    return o;
 	}
 	if (r instanceof RubyObject) {
 	    Object o = new ed.lang.ruby.JSObjectWrapper(scope, (RubyObject)r);
-	    _wrappers.put(o, r);
+	    cacheWrapper(r.getRuntime(), o, r);
 	    return o;
 	}
 	else
