@@ -127,9 +127,9 @@ public class E4X {
     }
 
     public static String escapeAttributeValue( String s ) {
+        s = s.replaceAll( "&", "&amp;" );
         s = s.replaceAll( "\"", "&quot;" );
         s = s.replaceAll( ">", "&gt;" );
-        s = s.replaceAll( "&", "&amp;" );
 
         s = s.replaceAll( "\\u000A", "&#xA;" );
         s = s.replaceAll( "\\u000D", "&#xD;" );

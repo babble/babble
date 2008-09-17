@@ -441,6 +441,7 @@ public class ENode extends JSObjectBase {
         if( n.node != null ) {
             this.node = n.node.cloneNode( false );
         }
+
         this.inScopeNamespaces = (ArrayList<Namespace>)n.inScopeNamespaces.clone();
         if( n.children != null ) {
             this.children = new XMLList();
@@ -479,6 +480,10 @@ public class ENode extends JSObjectBase {
         this.parent = parent;
         if( this.parent != null ) {
             this.XML = this.parent.XML;
+        }
+        if( this.node != null && 
+            this.node.getNodeType() == Node.ATTRIBUTE_NODE ) {
+            ((Attr)this.node).setValue( E4X.escapeAttributeValue( ((Attr)this.node).getValue() ) );
         }
         getNamespace();
         addAttributes();
