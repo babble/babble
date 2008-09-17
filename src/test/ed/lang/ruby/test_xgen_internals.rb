@@ -71,6 +71,13 @@ EOS
     assert Track.respond_to?(:find_or_create_by_track)
   end
 
+  def test_ivars_created
+    t = Track.new
+    %w(_id artist album song track).each { |iv|
+      assert t.instance_variable_defined?("@#{iv}")
+    }
+  end
+
   def test_method_generation
     x = Track.new({:artist => 1, :album => 2})
 
