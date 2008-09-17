@@ -59,8 +59,9 @@ public class DBTCP extends DBMessageLayer {
             port.say( new DBMessage( op , buf ) );
             mp.done( port );
         }
-        catch ( IOException ioe ){
+        catch ( Exception ioe ){
             mp.error();
+            _error();
             throw new JSException( "can't say something" , ioe );
         }
     }
@@ -86,15 +87,19 @@ public class DBTCP extends DBMessageLayer {
                     if ( retries <= 0 )
                         throw new RuntimeException( "not talking to master and retries used up" );
                     in.position( 0 );
-
+                    
                     return _call( op , out , in , retries -1 );
                 }
             }
 
             return b.dataLen();
         }
-        catch ( IOException ioe ){
+        catch ( Exception ioe ){
             mp.error();
+            if ( _error() && retries > 0 ){
+                in.position( 0 );
+                return _call( op , out , in , retries - 1 );
+            }
             throw new JSException( "can't call something" , ioe );
         }
     }
@@ -105,6 +110,11 @@ public class DBTCP extends DBMessageLayer {
     
     public String getConnectPoint(){
         return _curAddress.toString();
+    }
+
+    boolean _error(){
+        _pickCurrent();
+        return true;
     }
 
     String _getError( ByteBuffer buf ){
