@@ -45,14 +45,21 @@ public class ENode extends JSObjectBase {
             Object blah = scope.getThis();
 
             ENode e;
-            if ( blah instanceof ENode)
+            if ( blah instanceof ENode) {
                 e = (ENode)blah;
-            else
+            }
+            else {
                 e = new ENode( this, defaultNamespace );
+            }
 
             String str = "";
             if( args.length > 0 && args[0] != null ) {
-                e.init( args[0].toString() );
+                if( args[0] instanceof ENode ) {
+                    e = (ENode)args[0];
+                }
+                else {
+                    e.init( args[0].toString() );
+                }
             }
 
             return e;
@@ -1156,6 +1163,9 @@ public class ENode extends JSObjectBase {
             return false;
 
         XMLList list = this instanceof XMLList ? (XMLList)this : this.children;
+        if( list == null ) 
+            return false;
+
         for( ENode n : list ) {
             if( n.node.getNodeType() == Node.ELEMENT_NODE )
                 return true;
