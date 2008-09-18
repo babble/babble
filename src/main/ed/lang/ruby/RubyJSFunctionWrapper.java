@@ -41,9 +41,9 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 
     static Map<Ruby, RubyClass> klassDefs = new WeakHashMap<Ruby, RubyClass>();
 
-    private final JSFunction _func;
-    private final JSObject _this;
-    private RubyClass _klazz;
+    protected final JSFunction _func;
+    protected final JSObject _this;
+    protected RubyClass _klazz;
 
     public static synchronized RubyClass getJSFunctionClass(Ruby runtime) {
 	RubyClass jsFunctionClass = klassDefs.get(runtime);
@@ -78,6 +78,13 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 	}
 	else if (eigenclass != null)
 	    eigenclass.addMethod("call", jm);
+    }
+
+    /** For use by RubyJSFileLibraryWrapper subclass. */
+    protected RubyJSFunctionWrapper(Scope s, Ruby runtime, JSFunction obj, RubyClass klazz, JSObject jsThis) {
+	super(s, runtime, obj, klazz);
+	_func = obj;
+	_this = jsThis;
     }
 
     protected JavaMethod _makeCallMethod(RubyClass klazz) {

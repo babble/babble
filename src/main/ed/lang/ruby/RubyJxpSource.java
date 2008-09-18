@@ -69,6 +69,22 @@ public class RubyJxpSource extends JxpSource {
     /** Determines what major version of Ruby to compile: 1.8 (false) or YARV/1.9 (true). **/
     public static final boolean YARV_COMPILE = false;
 
+    /**
+     * Creates Ruby classes from any new JavaScript classes found in the top
+     * level of <var>scope</var>. Called immediately after loading a file
+     * using a JSFileLibrary.
+     */
+    public static void createNewClasses(Scope scope, Ruby runtime) {
+	for (Object key : scope.keySet()) {
+	    String skey = key.toString();
+	    if (IdUtil.isConstant(skey) && runtime.getClass(skey) == null) {
+		Object o = scope.get(key);
+		if (o instanceof JSFunction && isCallableJSFunction(o))
+		    toRuby(scope, runtime, (JSFunction)o, skey);
+	    }
+	}
+    }
+
     public RubyJxpSource(File f , JSFileLibrary lib) {
         _file = f;
         _lib = lib;
@@ -207,7 +223,7 @@ public class RubyJxpSource extends JxpSource {
 			System.err.println("adding top-level method " + key);
 		    alreadySeen.add(key);
 		    // Creates method and attaches to klazz. Also creates a new Ruby class if appropriate.
-		    new RubyJSFunctionWrapper(scope, _runtime, (JSFunction)obj, key, klazz);
+		    RubyObjectWrapper.createRubyMethod(scope, _runtime, (JSFunction)obj, key, klazz, null);
 		}
 	    }
 	    s = s.getParent();
@@ -319,22 +335,6 @@ public class RubyJxpSource extends JxpSource {
 	    path = path.substring(1);
 	int loc = path.indexOf("/");
 	return (loc == -1) ? "" : path.substring(loc + 1);
-    }
-
-    /**
-     * Creates Ruby classes from any new JavaScript classes found in the top
-     * level of <var>scope</var>. Called immediately after loading a file
-     * using JSFileLibrary.
-     */
-    public void createNewClasses(Scope scope, Ruby runtime) {
-	for (Object key : scope.keySet()) {
-	    String skey = key.toString();
-	    if (IdUtil.isConstant(skey) && runtime.getClass(skey) == null) {
-		Object o = scope.get(key);
-		if (o instanceof JSFunction && isCallableJSFunction(o))
-		    toRuby(scope, runtime, (JSFunction)o, skey);
-	    }
-	}
     }
 
     protected boolean _notAlreadyRequired(Ruby runtime, IRubyObject arg) {
