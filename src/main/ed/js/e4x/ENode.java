@@ -123,7 +123,7 @@ public class ENode extends JSObjectBase {
 
             _prototype.set( "contains", new ENodeFunction() {
                     public Object call( Scope s, Object foo[] ) {
-                        return getENode( s ).contains( (ENode)getOneArg( foo ) );
+                        return getENode( s ).contains( getOneArg( foo ) );
                     }
                 });
             _prototype.set( "copy", new ENodeFunction() {
@@ -1045,10 +1045,23 @@ public class ENode extends JSObjectBase {
     /** FIXME
      * Compares this with another XML object.
      */
-    public boolean contains( ENode o ) {
-        if( this instanceof XMLList && o instanceof XMLList ) {
+    public boolean contains( Object o ) {
+        if( this.equals( o ) ) 
+            return true;
+
+        if( !(o instanceof ENode ) ) {
+            if( ( o instanceof java.lang.String || 
+                  o instanceof ed.js.JSString ) &&
+                o.toString().equals( this.toString() ) )
+                return true;
+            return false;
+        }
+
+        ENode n = (ENode)o;
+
+        if( this instanceof XMLList && n instanceof XMLList ) {
             XMLList x = (XMLList)this;
-            XMLList x2 = (XMLList)o;
+            XMLList x2 = (XMLList)n;
             if( x.size() != x2.size() )
                 return false;
             for( int i=0; i < x.size(); i++ ) {
@@ -1058,21 +1071,21 @@ public class ENode extends JSObjectBase {
             }
             return true;
         }
-        else if( !(this instanceof XMLList) && !(o instanceof XMLList) ) {
-            if( !this.name.equals( o.name ) ||
-                !this.node.isEqualNode( o.node ) ) 
-                //                    !this.inScopeNamespaces.equals( o.inScopeNamespaces ) )
+        else if( !(this instanceof XMLList) && !(n instanceof XMLList) ) {
+            if( !this.name.equals( n.name ) ||
+                !this.node.isEqualNode( n.node ) ) 
+                //                    !this.inScopeNamespaces.equals( n.inScopeNamespaces ) )
                 return false;
 
-            if( ( this.children == null && o.children != null ) ||
-                ( this.children != null && o.children == null ) )
+            if( ( this.children == null && n.children != null ) ||
+                ( this.children != null && n.children == null ) )
                 return false;
 
             if( this.children != null ) {
-                if( this.children.size() != o.children.size() )
+                if( this.children.size() != n.children.size() )
                     return false;
                 for( int i=0; i<this.children.size(); i++ ) {
-                    if( !this.children.get( i ).contains( o.children.get( i ) ) ) {
+                    if( !this.children.get( i ).contains( n.children.get( i ) ) ) {
                         return false;
                     }
                 }

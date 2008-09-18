@@ -79,6 +79,12 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
         return comments;
     }
 
+    public boolean contains( Object o ) { 
+        if( this.equals( o ) ) 
+            return true;
+        return children.contains( o ); 
+    }
+
     public XMLList text() {
         XMLList list = new XMLList();
         for ( ENode n : this ) {
@@ -125,7 +131,6 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
     public boolean addAll( Collection<? extends ENode> list ) { return children.addAll( list ); }
     public boolean addAll( int index, Collection<? extends ENode> list ) { return children.addAll( index, list ); }
     public void clear() {  children.clear(); }
-    public boolean contains( Object o ) { return  children.contains( o ); }
     public boolean containsAll( Collection o ) { return  children.containsAll( o ); }
     public boolean equals( Object o ) { return children.equals(o); }
     public int hashCode( IdentitySet seen ) { return children.hashCode(); }
