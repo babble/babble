@@ -336,7 +336,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
     /**
      * @unexpose
      */
-    protected boolean done()
+    public boolean done()
         throws IOException {
 
         if ( _cleaned )
