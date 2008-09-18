@@ -154,8 +154,7 @@ EOS
           instance_variable_set("@#{name}", args[0])
           instance_eval "def #{name}; @#{name}; end; def #{name}=(val); @name = val; end"
         else
-          o = self.class.coll.send(sym, args)
-          yield o if block_given?
+          super
         end
       end
 
