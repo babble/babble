@@ -140,7 +140,6 @@ public class Convert implements StackTraceFixer {
 
     public static String cleanName( String name ){
         StringBuilder buf = new StringBuilder( name.length() + 5 );
-        boolean prevNonAlpha = false;
         
         for ( int i=0; i<name.length(); i++ ){
 
@@ -148,18 +147,13 @@ public class Convert implements StackTraceFixer {
 
             if ( Character.isLetter( c ) || Character.isDigit( c ) ){
                 buf.append( c );
-                prevNonAlpha = false;
                 continue;
             }
             
             if ( buf.length() == 0 )
                 continue;
 
-            if ( prevNonAlpha )
-                continue;
-
             buf.append( "_" );
-            prevNonAlpha = true;
         }
         return buf.toString();
     }
@@ -1864,7 +1858,7 @@ public class Convert implements StackTraceFixer {
     }
     
     String _rand(){
-        return String.valueOf( _random.nextInt( 100000 ) );
+        return String.valueOf( _random.nextInt( 1000000 ) );
     }
 
     static Random _random( String name ){
@@ -1897,8 +1891,6 @@ public class Convert implements StackTraceFixer {
     private JSFunction _it;
 
     private int _methodId = 0;
-
-    private static int ID = 1;
 
     private final static Map<Integer,String> _2ThingThings = new HashMap<Integer,String>();
     static {
