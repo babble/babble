@@ -28,6 +28,7 @@ import ed.js.*;
 import ed.js.engine.*;
 import ed.js.func.*;
 import ed.lang.*;
+import ed.appserver.*;
 
 import static ed.lang.python.PythonSmallWrappers.*;
 
@@ -229,7 +230,17 @@ public class Python extends Language {
         return new JSPyObjectWrapper( (PyFunction)(theFunc.getContained()) , true );
     }
 
+    public static PySystemState getSiteSystemState( AppContext ac ){
+        Scope s = ac.getScope();
+        Object __python__ = s.get( "__python__" );
+        if( __python__ != null && __python__ instanceof PySystemState ){
+            return (PySystemState)__python__;
+        }
 
+        PySystemState state = new PySystemState();
+        s.set( "__python__" , state );
+        return state;
+    }
 
     private static Scope _extractGlobals;
 }
