@@ -50,7 +50,7 @@ public class RubyJSFunctionWrapperTest extends SourceRunner {
     }
 
     public void testClass() {
-	RubyClass klazz = new RubyJSFunctionWrapper(s, r, addSevenFunc, null, null).type();
+	RubyClass klazz = new RubyJSFunctionWrapper(s, r, addSevenFunc, "addSevenFunc", null).type();
 	assertEquals(klazz.name().toString(), "JSFunction");
 	assertEquals(((RubyClass)klazz.superclass(r.getCurrentContext())).name().toString(), "JSObject");
     }
