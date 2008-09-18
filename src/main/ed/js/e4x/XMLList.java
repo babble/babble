@@ -100,7 +100,7 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
         }
         for( ENode n : this ) {
             xml.append( n.toXMLString().toString() );
-            if( this.hasComplexContent() )
+            if( this.hasComplexContent() && ((Cons)this._getCons()).prettyPrinting )
                 xml.append( "\n" );
         }
         if( xml.length() > 0 && xml.charAt(xml.length() - 1) == '\n' ) {

@@ -578,10 +578,19 @@ public class ENode extends JSObjectBase {
     void buildENodeDom(ENode parent) {
         NodeList kids = parent.node.getChildNodes();
         for( int i=0; i<kids.getLength(); i++) {
-            if( ( kids.item(i).getNodeType() == Node.COMMENT_NODE && parent.XML.ignoreComments ) ||
-                ( kids.item(i).getNodeType() == Node.PROCESSING_INSTRUCTION_NODE && parent.XML.ignoreProcessingInstructions ) )
+            if( ( kids.item(i).getNodeType() == Node.COMMENT_NODE && 
+                  parent.XML.ignoreComments ) ||
+                ( kids.item(i).getNodeType() == Node.PROCESSING_INSTRUCTION_NODE && 
+                  parent.XML.ignoreProcessingInstructions ) )
                 continue;
-            ENode n = new ENode(kids.item(i), parent , null);
+            if ( kids.item(i).getNodeType() == Node.TEXT_NODE && 
+                 parent.XML.ignoreWhitespace )
+                if ( kids.item(i).getNodeValue().trim().equals( "" ) )
+                    continue;
+                else 
+                    kids.item(i).setNodeValue( kids.item(i).getNodeValue().trim() );
+
+            ENode n = new ENode( kids.item(i), parent , null );
             buildENodeDom(n);
             parent.children.add(n);
         }
@@ -590,13 +599,6 @@ public class ENode extends JSObjectBase {
     /** Turns a string into a DOM.
      */
     void init( String s ){
-        // get rid of newlines and spaces if ignoreWhitespace is set (default)
-        // otherwise each block of whitespace will become a text node... blech
-        if( XML.ignoreWhitespace ) {
-            Pattern p = Pattern.compile("\\>\\s+\\<");
-            Matcher m = p.matcher(s);
-            s = m.replaceAll("><");
-        }
         Node temp;
         try {
             temp = XMLUtil.parse( "<parent>" + s + "</parent>" ).getDocumentElement();
@@ -1628,7 +1630,7 @@ public class ENode extends JSObjectBase {
                 ( XML.ignoreProcessingInstructions && c.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE ) )
                 continue;
 
-            if( XML.prettyPrinting && indentChildren )
+            if( XML.prettyPrinting && indentChildren ) 
                 buf.append( "\n" );
 
             c.append( buf , nextIndentLevel , ancestors );
