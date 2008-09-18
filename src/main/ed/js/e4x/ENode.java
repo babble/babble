@@ -744,7 +744,15 @@ public class ENode extends JSObjectBase {
             if( k.toString().equals("*") ) {
                 // replace children
                 if( v instanceof XMLList ) {
-                    children = (XMLList)vcopy;
+                    for( int i=0; i < this.children.size(); ) {
+                        if( this.children.get( i ).node.getNodeType() != Node.ATTRIBUTE_NODE ) {
+                            this.children.remove( i );
+                        }
+                        else {
+                            i++;
+                        }
+                    }
+                    this.children.addAll( (XMLList)vcopy );
                     return this;
                 }
                 this.children = new XMLList();
