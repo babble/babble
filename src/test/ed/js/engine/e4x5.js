@@ -54,3 +54,19 @@ print( x == y );
 
 x = <hello a='\"' />;
 print( x.toXMLString() );
+
+x = <alpha>
+    <bravo>one</bravo>
+    <charlie>two</charlie>
+</alpha>;
+x.insertChildAfter(x.bravo[0], <delta>three</delta>);
+x.insertChildAfter(null, <delta>three</delta>);
+print( x );
+
+x = <alpha>
+    <bravo>one</bravo>
+    <charlie>two</charlie>
+</alpha>;
+x.insertChildBefore(x.bravo[0], <delta>three</delta>)
+x.insertChildBefore(null, <delta>three</delta>);
+print( x );

@@ -227,7 +227,7 @@ public class ENode extends JSObjectBase {
                 });
             _prototype.set( "prependChild", new ENodeFunction() {
                     public Object call(Scope s, Object foo[]) {
-                        return getENode( s )._insertChild( (Object)null, (ENode)getOneArg( foo ), 0 );
+                        return getENode( s ).insertChild( (Object)null, (ENode)getOneArg( foo ), 0 );
                     }
                 });
             _prototype.set( "processingInstructions", new ENodeFunction() {
@@ -785,7 +785,7 @@ public class ENode extends JSObjectBase {
                     n._dummy = false;
                 }
                 // otherwise, we need to reset n so we don't replace an existing node
-                else {
+                else if( !n.equals( this ) ) {
                     n = new ENode( this.XML, this.defaultNamespace );
                     n.children = new XMLList();
                 }
@@ -803,11 +803,14 @@ public class ENode extends JSObjectBase {
                 n.children.add( new ENode( content, n , null) );
                 n.parent = attachee;
                 // get the last sibling's position & insert this new one there
-                attachee.children.add( attachee.children.indexOf( rep ) + 1, n );
+                int insertIndex = attachee.children.indexOf( rep ) + 1;
+                if( insertIndex == 0 )
+                    attachee.children.add( n );
+                else
+                    attachee.children.add( insertIndex, n );
             }
             // replace an existing element
             else {
-                // FIXME!  why are we using this.node?!
                 // reset the child list
                 n.children = new XMLList();
                 NodeList kids = n.node.getChildNodes();
@@ -975,7 +978,11 @@ public class ENode extends JSObjectBase {
         if( m.matches() ) {
             int i = Integer.parseInt( propertyName.toString() );
 
-            if( i < nodeList.size() ) 
+            // if we are looking for the 0th element and this isn't an xmllist, we are looking for this
+            if( i == 0 && this.node != null ) {
+                return this;
+            }
+            else if( i < nodeList.size() ) 
                 return nodeList.get(i);
             else if ( !xmllist || ( xmllist && nodeList.size() >= 1 ) )
                 return new ENode( this, this instanceof XMLList ? nodeList.get(0).name.localName : this.name.localName );
@@ -1240,23 +1247,29 @@ public class ENode extends JSObjectBase {
 
 
     public ENode insertChildAfter(Object child1, ENode child2) {
-        return _insertChild(child1, child2, 1);
+        return insertChild(child1, child2, 1);
     }
 
     public ENode insertChildBefore(Object child1, ENode child2) {
-        return _insertChild(child1, child2, 0);
+        if( child1 == null ) { 
+            this.children.add( this.children.size(), child2 );
+            return this;
+        }
+        return insertChild(child1, child2, 0);
     }
 
-    private ENode _insertChild( Object child1, ENode child2, int j ) {
-        if( this.isSimpleTypeNode() ) return null;
+    private ENode insertChild( Object child1, ENode child2, int j ) {
+        if( this.isSimpleTypeNode() ) 
+            return null;
+
         if( child1 == null ) {
             this.children.add( 0, child2 );
             return this;
         }
         else if ( child1 instanceof ENode ) {
-            for( int i=0; i<children.size(); i++) {
-                if( children.get(i) == child1 ) {
-                    children.add(i+j, child2);
+            for( int i=0; i < this.children.size(); i++) {
+                if( this.children.get(i).equals( child1 ) ) {
+                    this.children.add(i+j, child2);
                     return this;
                 }
             }

@@ -42,3 +42,15 @@
 4 true
 true
 <hello a="\&quot;"/>
+<alpha>
+  <delta>three</delta>
+  <bravo>one</bravo>
+  <delta>three</delta>
+  <charlie>two</charlie>
+</alpha>
+<alpha>
+  <delta>three</delta>
+  <bravo>one</bravo>
+  <charlie>two</charlie>
+  <delta>three</delta>
+</alpha>
