@@ -68,6 +68,10 @@ public class ENode extends JSObjectBase {
                     e.init( args[0].toString() );
                 }
             }
+            else if( args.length == 0 ) {
+                e.init( "" );
+            }
+
             return e;
         }
 
@@ -212,7 +216,7 @@ public class ENode extends JSObjectBase {
                 });
             _prototype.set( "nodeKind", new ENodeFunction() {
                     public Object call(Scope s, Object foo[]) {
-                        return getENode( s ).nodeKind();
+                        return new JSString( getENode( s ).nodeKind() );
                     }
                 });
             _prototype.set( "normalize", new ENodeFunction() {
@@ -605,18 +609,23 @@ public class ENode extends JSObjectBase {
         }
 
         NodeList kids = temp.getChildNodes();
-        if( kids.getLength() == 1 ) {
-            node = kids.item( 0 );
-            nodeSetup( null );
-            buildENodeDom( this );
-        }
-        else if( kids.getLength() > 1 ) {
+        if( kids.getLength() > 1 ) {
             children = new XMLList();
             for( int i=0; i < kids.getLength(); i++ ) {
                 ENode kid = new ENode( kids.item( i ) , null , null );
                 buildENodeDom( kid );
                 children.add( kid );
             }
+        }
+        else {
+            if( kids.getLength() == 1 ) {
+                node = kids.item( 0 );
+            }
+            else {
+                node = temp.getOwnerDocument().createTextNode( "" );
+            }
+            nodeSetup( null );
+            buildENodeDom( this );
         }
     }
 
@@ -1840,6 +1849,12 @@ public class ENode extends JSObjectBase {
         return _dummy;
     }
 
+    private static ENode textNodeFactory( String s ) {
+        ENode n = new ENode();
+        n.init( s );
+        return n;
+    }
+
     private static ENode getENode( Scope s ) {
         Object obj = s.getThis();
         if ( obj instanceof ENode ) 
@@ -1848,7 +1863,7 @@ public class ENode extends JSObjectBase {
             return ((ENodeFunction)obj).cnode;
 
         // should only do this for XML.prototype
-        return new ENode();
+        return textNodeFactory( "" );
     }
 
     private static Object getOneArg( Object foo[] ) {

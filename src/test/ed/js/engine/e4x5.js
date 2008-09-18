@@ -70,3 +70,7 @@ x = <alpha>
 x.insertChildBefore(x.bravo[0], <delta>three</delta>)
 x.insertChildBefore(null, <delta>three</delta>);
 print( x );
+
+x = new XML();
+print( x.nodeKind());
+print( XML.prototype.nodeKind());
