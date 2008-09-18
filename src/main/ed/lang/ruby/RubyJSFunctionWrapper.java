@@ -65,7 +65,7 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 
     RubyJSFunctionWrapper(Scope s, Ruby runtime, JSFunction obj, String name, RubyClass eigenclass, JSObject jsThis) {
 	super(s, runtime, obj, getJSFunctionClass(runtime));
-	if (RubyObjectWrapper.DEBUG)
+	if (RubyObjectWrapper.DEBUG_CREATE)
 	    System.err.println("  creating RubyJSFunctionWrapper named " + name);
 	_func = obj;
 	_this = jsThis;
@@ -93,11 +93,11 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 	return new JavaMethod(klazz, PUBLIC) {
 	    public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
 		Ruby runtime = context.getRuntime();
-		if (RubyObjectWrapper.DEBUG)
+		if (RubyObjectWrapper.DEBUG_FCALL)
 		    System.err.println("calling method " + clazz.getName() + "#" + name + " with " + args.length + " args");
 		try {
 		    Object result = _func.callAndSetThis(_scope, _this, RubyObjectWrapper.toJSFunctionArgs(_scope, runtime, args, 0, block));
-		    if (RubyObjectWrapper.DEBUG)
+		    if (RubyObjectWrapper.DEBUG_FCALL)
 			System.err.println("func " + name + " returned " + result + ", which is " + (result == null ? "null" : ("of class " + result.getClass().getName())));
 		    return toRuby(result);
 		}
@@ -115,7 +115,7 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 
     /** Adds this method to <var>klazz</var>. */
     protected void _addMethod(String name, JavaMethod jm, RubyClass klazz) {
-	if (RubyObjectWrapper.DEBUG)
+	if (RubyObjectWrapper.DEBUG_CREATE)
 	    System.err.println("adding method named " + name + " to eigenclass " + klazz.getName());
 	final String internedName = name.intern();
 	klazz.addMethod(internedName, jm);
@@ -125,13 +125,13 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
     /** An allocator for objects created using JSFunction constructors. */
     class JSObjectAllocator implements ObjectAllocator {
 	public IRubyObject allocate(Ruby runtime, RubyClass klass) {
-	    if (RubyObjectWrapper.DEBUG)
+	    if (RubyObjectWrapper.DEBUG_CREATE || RubyObjectWrapper.DEBUG_FCALL)
 		System.err.println("allocating an instance of " + klass.name());
 	    JSObject jsobj = _func.newOne();
 	    RubyObject r = (RubyObject)new RubyJSObjectWrapper(_scope, runtime, jsobj, _klazz);
 	    // Eigenclass has been created and used in RubyJSObjectWrapper ctor, so make that the metaclass here
 	    r.makeMetaClass(r.getSingletonClass());
-	    if (RubyObjectWrapper.DEBUG)
+	    if (RubyObjectWrapper.DEBUG_CREATE || RubyObjectWrapper.DEBUG_FCALL)
 		System.err.println("  wrapped new object inside a " + r.getClass().getName());
 	    return r;
 	}
@@ -140,7 +140,7 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 
     /** Creates a subclass of JSObject for that uses this method as its constructor. */
     protected void _createJSObjectSubclass(final Scope scope, String name) {
-	if (RubyObjectWrapper.DEBUG)
+	if (RubyObjectWrapper.DEBUG_CREATE)
 	    System.err.println("adding class named " + name);
 	_klazz = getRuntime().defineClass(name, RubyJSObjectWrapper.getJSObjectClass(getRuntime()), jsObjectAllocator);
 	// FIXME
@@ -151,7 +151,7 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 	    };
 	_klazz.defineMethod("initialize", new Callback() {
                 public IRubyObject execute(IRubyObject self, IRubyObject[] args, Block block) {
-		    if (RubyObjectWrapper.DEBUG) {
+		    if (RubyObjectWrapper.DEBUG_FCALL) {
 			System.err.println("calling method " + ((RubyObject)self).type().name() + "#initialize with " + args.length + " args:");
 			for (IRubyObject iro : args) System.err.println("  " + iro.toString());
 		    }

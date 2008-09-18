@@ -53,7 +53,7 @@ public class RubyDBCursorWrapper extends RubyArray {
 
     RubyDBCursorWrapper(Scope s, Ruby runtime, DBCursor cursor) {
 	super(runtime, getDBCursorClass(runtime));
-	if (RubyObjectWrapper.DEBUG)
+	if (RubyObjectWrapper.DEBUG_CREATE)
 	    System.err.println("creating RubyDBCursorWrapper");
 	_scope = s;
 	_cursor = cursor;

@@ -58,7 +58,7 @@ public class RubyJSFileLibraryWrapper extends RubyJSFunctionWrapper {
 
     RubyJSFileLibraryWrapper(Scope s, Ruby runtime, JSFileLibrary obj, String name, RubyClass attachTo, JSObject jsThis) {
 	super(s, runtime, obj, name, getJSFileLibraryClass(runtime), jsThis);
-	if (RubyObjectWrapper.DEBUG)
+	if (RubyObjectWrapper.DEBUG_CREATE)
 	    System.err.println("  creating RubyJSFileLibraryWrapper named " + name);
 	JavaMethod jm = _makeCallMethod(attachTo);
 	if (name != null && name.length() > 0) {
@@ -79,16 +79,16 @@ public class RubyJSFileLibraryWrapper extends RubyJSFunctionWrapper {
 	return new JavaMethod(klazz, PUBLIC) {
 	    public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
 		Ruby runtime = context.getRuntime();
-		if (RubyObjectWrapper.DEBUG)
+		if (RubyObjectWrapper.DEBUG_FCALL)
 		    System.err.println("calling method " + clazz.getName() + "#" + name + " with " + args.length + " args");
 		try {
 		    Object result = _func.callAndSetThis(_scope, _this, RubyObjectWrapper.toJSFunctionArgs(_scope, runtime, args, 0, block));
-		    if (RubyObjectWrapper.DEBUG) {
+		    if (RubyObjectWrapper.DEBUG_FCALL) {
 			System.err.println("func " + name + " returned " + result + ", which is " + (result == null ? "null" : ("of class " + result.getClass().getName())));
 			System.err.println("about to create newly-defined classes");
 		    }
 		    RubyJxpSource.createNewClasses(_scope, runtime);
-		    if (RubyObjectWrapper.DEBUG)
+		    if (RubyObjectWrapper.DEBUG_FCALL)
 			System.err.println("new classes created");
 		    return toRuby(result);
 		}
