@@ -76,11 +76,6 @@ public class ENode extends JSObjectBase {
         }
 
         protected void init() {
-            _prototype.set( "text", new ENodeFunction() {
-                    public Object call(Scope s, Object foo[]) {
-                        return getENode( s ).text();
-                    }
-                });
             _prototype.set( "addNamespace" , new ENodeFunction() {
                     public Object call( Scope s, Object foo[] ) {
                         return getENode( s ).addNamespace( getOneArg( foo ) );
@@ -288,12 +283,12 @@ public class ENode extends JSObjectBase {
                 });
             _prototype.set( "toString", new ENodeFunction() {
                     public Object call(Scope s, Object foo[]) {
-                        return getENode( s ).toString();
+                        return new JSString( getENode( s ).toString() );
                     }
                 });
             _prototype.set( "toXMLString", new ENodeFunction() {
                     public Object call(Scope s, Object foo[]) {
-                        return getENode( s ).toXMLString();
+                        return new JSString( getENode( s ).toXMLString() );
                     }
                 });
             _prototype.set( "valueOf", new ENodeFunction() {
@@ -472,7 +467,9 @@ public class ENode extends JSObjectBase {
      */
     private ENode( ENode parent, Object o ) {
         super( _getCons() );
-        if( parent instanceof XMLList && ((XMLList)parent).get(0) != null ) {
+        if( parent instanceof XMLList && 
+            ((XMLList)parent).size() > 0 && 
+            ((XMLList)parent).get(0) != null ) {
             parent = ((XMLList)parent).get(0);
         }
         if(parent != null && parent.node != null) {
@@ -1042,13 +1039,7 @@ public class ENode extends JSObjectBase {
      * was set to false when the list was created.
      */
     public XMLList comments() {
-        XMLList comments = new XMLList();
-
-        for( ENode child : this.children ) {
-            if( child.node.getNodeType() == Node.COMMENT_NODE )
-                comments.add( child );
-        }
-        return comments;
+        return this.children.comments();
     }
 
     /** FIXME
@@ -1543,16 +1534,13 @@ public class ENode extends JSObjectBase {
 
     public XMLList text() {
         XMLList list = new XMLList();
-        if( this instanceof XMLList ) {
-            for ( ENode n : (XMLList)this ) {
-                if( n.node.getNodeType() == Node.TEXT_NODE ) {
-                    list.add( n );
+        if( this.node.getNodeType() == Node.ELEMENT_NODE ) {
+            for( ENode child : this.children ) {
+                if( child.node.getNodeType() == Node.TEXT_NODE ) {
+                    list.add( child );
                 }
             }
         }
-        else if( this.node != null && this.node.getNodeType() == Node.TEXT_NODE ) {
-            list.add( this );
-        }            
         return list;
     }
 
@@ -1759,8 +1747,8 @@ public class ENode extends JSObjectBase {
         return true;
     }
 
-    public JSString toXMLString() {
-        return new JSString( this.append( new StringBuilder(), 0, new ArrayList<Namespace>() ).toString() );
+    public String toXMLString() {
+        return this.append( new StringBuilder(), 0, new ArrayList<Namespace>() ).toString();
     }
 
     private void addInScopeNamespace( Namespace n ) {

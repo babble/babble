@@ -709,11 +709,11 @@ public final class Scope implements JSObject , Bindings {
     
     public Object eval( String code , String name , boolean hasReturn[] ){
         try {
-            
+
             if ( code.matches( "\\d+" ) )
                 return Integer.parseInt( code );
 
-            if ( code.matches( "\\w[\\w\\.]+\\w" ) )
+            if ( code.matches( "\\w+(\\.\\w+)*" ) )
                 return findObject( code );
             
             // tell the Convert CTOR that we're in the context of eval so
