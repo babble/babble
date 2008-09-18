@@ -288,7 +288,7 @@ public class ENode extends JSObjectBase {
                 });
             _prototype.set( "toString", new ENodeFunction() {
                     public Object call(Scope s, Object foo[]) {
-                        return getENode( s ).toString();
+                        return new JSString( getENode( s ).toString() );
                     }
                 });
             _prototype.set( "toXMLString", new ENodeFunction() {
@@ -1042,13 +1042,7 @@ public class ENode extends JSObjectBase {
      * was set to false when the list was created.
      */
     public XMLList comments() {
-        XMLList comments = new XMLList();
-
-        for( ENode child : this.children ) {
-            if( child.node.getNodeType() == Node.COMMENT_NODE )
-                comments.add( child );
-        }
-        return comments;
+        return this.children.comments();
     }
 
     /** FIXME

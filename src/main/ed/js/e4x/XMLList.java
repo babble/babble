@@ -85,6 +85,16 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
         return xml.toString();
     }
 
+    public XMLList comments() {
+        XMLList comments = new XMLList();
+
+        for( ENode child : children ) {
+            if( child.node.getNodeType() == Node.COMMENT_NODE )
+                comments.add( child );
+        }
+        return comments;
+    }
+
     public boolean addAll(XMLList list) { 
         for( ENode n : list ) 
             children.add( n ); 
