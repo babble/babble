@@ -1097,17 +1097,7 @@ public class ENode extends JSObjectBase {
      * if a name is not provided.
      */
     public ENode descendants( String name ) {
-        List kids = new LinkedList<ENode>();
-
-        ENode childs = (ENode)this.get(name);
-        for( int i=0; i<childs.children.size(); i++) {
-            kids.add(childs.children.get(i));
-            ENode el = ((ENode)childs.children.get(i)).descendants(name);
-            for( int j=0; j<el.children.size(); j++) {
-                kids.add(el.children.get(j));
-            }
-        }
-        return new XMLList(kids);
+        return (ENode)this.get( ".." + name );
     }
 
     public ENode descendants() {
