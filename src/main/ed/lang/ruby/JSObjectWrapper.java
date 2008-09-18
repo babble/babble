@@ -19,6 +19,7 @@ package ed.lang.ruby;
 import java.util.*;
 
 import org.jruby.*;
+import org.jruby.internal.runtime.methods.DynamicMethod;
 import org.jruby.runtime.Block;
 import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.builtin.IRubyObject;
@@ -44,10 +45,12 @@ public class JSObjectWrapper implements JSObject {
 
     private Scope _scope;
     private RubyObject _robj;
+    private RubyModule _xgenModule; // cached copy for quick access
 
     public JSObjectWrapper(Scope scope, RubyObject robj) {
 	_scope = scope;
 	_robj = robj;
+	_xgenModule = RubyJxpSource.xgenModule(_robj.getRuntime());
     }
 
     public RubyObject getRubyObject() { return _robj; }
@@ -61,6 +64,20 @@ public class JSObjectWrapper implements JSObject {
 	return RubyString.newString(_robj.getRuntime(), str);
     }
 
+    /**
+     * Returns <code>true</code> if the metaclass of _robj has a method named
+     * <var>name</var> and it is not implemented only in the XGen module. In
+     * other words, we want to return <code>true</code> if the method exists
+     * but it is not a top-level JavaScript method that was imported early on
+     * (either it is not a JS method or it was overridden).
+     */
+    protected boolean respondsToAndIsNotXGen(String name) {
+	if (!_robj.respondsTo(name))
+	    return false;
+	DynamicMethod dm = _robj.getMetaClass().searchMethod(name);
+	return !dm.getImplementationClass().equals(_xgenModule);
+    }
+
     protected void _removeIvarIfExists(String skey) {
 	IRubyObject name = ivarName(skey);
 	if (_robj.instance_variable_defined_p(context(), name).isTrue())
@@ -70,7 +87,7 @@ public class JSObjectWrapper implements JSObject {
     }
 
     protected void _removeMethodIfExists(String skey) {
-	if (_robj.respondsTo(skey)) {
+	if (respondsToAndIsNotXGen(skey)) {
 	    ThreadContext context = context();
 	    IRubyObject[] names = new IRubyObject[] {RubyString.newString(_robj.getRuntime(), skey)};
 	    try {
@@ -112,7 +129,7 @@ public class JSObjectWrapper implements JSObject {
 	    return toJS(_scope, ro);
 	}
 
-	if (_robj.respondsTo(skey)) {
+	if (respondsToAndIsNotXGen(skey)) {
 	    RubyMethod m = (RubyMethod)_robj.method(_robj.getRuntime().newSymbol(skey));
 	    return new JSFunctionWrapper(_scope, _robj.getRuntime(), ((RubyProc)m.to_proc(context(), Block.NULL_BLOCK)).getBlock());
 	}
@@ -137,9 +154,11 @@ public class JSObjectWrapper implements JSObject {
 	return o;
     }
 
+    // TODO ignore top-level (Kernel) methods defined from JavaScript
     public boolean containsKey(String s) {
 	return _robj.hasInstanceVariable("@" + s) ||
-	    ((RubyArray)_robj.methods(context(), JSFunctionWrapper.EMPTY_IRUBY_OBJECT_ARRAY)).includes(context(), RubyString.newString(_robj.getRuntime(), s));
+	    respondsToAndIsNotXGen(s);
+// 	    ((RubyArray)_robj.methods(context(), JSFunctionWrapper.EMPTY_IRUBY_OBJECT_ARRAY)).includes(context(), RubyString.newString(_robj.getRuntime(), s));
     }
 
     public Collection<String> keySet() {
@@ -152,7 +171,8 @@ public class JSObjectWrapper implements JSObject {
 	    names.add(var.getName().substring(1));
 	if (includePrototype)
 	    for (Object name : ((RubyArray)_robj.methods(context(), JSFunctionWrapper.EMPTY_IRUBY_OBJECT_ARRAY)))
-		names.add(name.toString());
+		if (respondsToAndIsNotXGen(name.toString()))
+		    names.add(name.toString());
 	return names;
     }
 

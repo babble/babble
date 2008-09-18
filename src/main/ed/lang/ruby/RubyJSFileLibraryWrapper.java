@@ -52,11 +52,11 @@ public class RubyJSFileLibraryWrapper extends RubyJSFunctionWrapper {
 	return jsFileLibraryClass;
     }
 
-    RubyJSFileLibraryWrapper(Scope s, Ruby runtime, JSFileLibrary obj, String name, RubyClass attachTo) {
+    RubyJSFileLibraryWrapper(Scope s, Ruby runtime, JSFileLibrary obj, String name, RubyModule attachTo) {
 	this(s, runtime, obj, name, attachTo, null);
     }
 
-    RubyJSFileLibraryWrapper(Scope s, Ruby runtime, JSFileLibrary obj, String name, RubyClass attachTo, JSObject jsThis) {
+    RubyJSFileLibraryWrapper(Scope s, Ruby runtime, JSFileLibrary obj, String name, RubyModule attachTo, JSObject jsThis) {
 	super(s, runtime, obj, name, getJSFileLibraryClass(runtime), jsThis);
 	if (RubyObjectWrapper.DEBUG_CREATE)
 	    System.err.println("  creating RubyJSFileLibraryWrapper named " + name);
@@ -73,14 +73,14 @@ public class RubyJSFileLibraryWrapper extends RubyJSFunctionWrapper {
     public Object peek(Object key) { return ((JSFileLibrary)_jsobj).get(key, false); }
 
     /** After calling this as a function, create any newly-defined classes. */
-    protected JavaMethod _makeCallMethod(RubyClass klazz) {
-	if (klazz == null)
+    protected JavaMethod _makeCallMethod(RubyModule attachTo) {
+	if (attachTo == null)
 	    return null;
-	return new JavaMethod(klazz, PUBLIC) {
-	    public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+	return new JavaMethod(attachTo, PUBLIC) {
+	    public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
 		Ruby runtime = context.getRuntime();
 		if (RubyObjectWrapper.DEBUG_FCALL)
-		    System.err.println("calling method " + clazz.getName() + "#" + name + " with " + args.length + " args");
+		    System.err.println("calling method " + module.getName() + "#" + name + " with " + args.length + " args");
 		try {
 		    Object result = _func.callAndSetThis(_scope, _this, RubyObjectWrapper.toJSFunctionArgs(_scope, runtime, args, 0, block));
 		    if (RubyObjectWrapper.DEBUG_FCALL)

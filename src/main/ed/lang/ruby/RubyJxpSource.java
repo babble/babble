@@ -46,6 +46,7 @@ public class RubyJxpSource extends JxpSource {
 
     public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
     static final Map<Ruby, Set<IRubyObject>> _requiredJSFileLibFiles = new WeakHashMap<Ruby, Set<IRubyObject>>();
+    static final Map<Ruby, RubyModule> xgenModuleDefs = new WeakHashMap<Ruby, RubyModule>();
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB");
     static final boolean SKIP_REQUIRED_LIBS = Boolean.getBoolean("DEBUG.RB.SKIP.REQ.LIBS");
@@ -68,6 +69,15 @@ public class RubyJxpSource extends JxpSource {
 
     /** Determines what major version of Ruby to compile: 1.8 (false) or YARV/1.9 (true). **/
     public static final boolean YARV_COMPILE = false;
+
+    public static synchronized RubyModule xgenModule(Ruby runtime) {
+	RubyModule xgen = xgenModuleDefs.get(runtime);
+	if (xgen == null) {
+	    xgen = runtime.defineModule("XGen");
+	    xgenModuleDefs.put(runtime, xgen);
+	}
+	return xgen;
+    }
 
     /**
      * Creates Ruby classes from any new JavaScript classes found in the top
@@ -213,9 +223,14 @@ public class RubyJxpSource extends JxpSource {
 	_addTopLevelMethodsToObjectClass(scope);
     }
 
-    // TODO add to object class, or add to kernel?
+    /**
+     * Creates a module named XGen, includes it in the Object class (just like
+     * Kernel), and adds all top-level JavaScript methods to the module.
+     */
     protected void _addTopLevelMethodsToObjectClass(final Scope scope) {
-	RubyClass klazz = _runtime.getObject();
+	RubyModule xgen = xgenModule(_runtime);
+	_runtime.getObject().includeModule(xgen);
+
 	Set<String> alreadySeen = new HashSet<String>();
 	Scope s = scope;
 	while (s != null) {
@@ -227,8 +242,8 @@ public class RubyJxpSource extends JxpSource {
 		    if (DEBUG)
 			System.err.println("adding top-level method " + key);
 		    alreadySeen.add(key);
-		    // Creates method and attaches to klazz. Also creates a new Ruby class if appropriate.
-		    RubyObjectWrapper.createRubyMethod(scope, _runtime, (JSFunction)obj, key, klazz, null);
+		    // Creates method and attaches to xgen. Also creates a new Ruby class if appropriate.
+		    RubyObjectWrapper.createRubyMethod(scope, _runtime, (JSFunction)obj, key, xgen, null);
 		}
 	    }
 	    s = s.getParent();
@@ -238,7 +253,7 @@ public class RubyJxpSource extends JxpSource {
     protected void _patchRequireAndLoad(final Scope scope) {
 	RubyModule kernel = _runtime.getKernel();
 	kernel.addMethod("require", new JavaMethod(kernel, PUBLIC) {
-		public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+		public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
 		    Ruby runtime = self.getRuntime();
 		    String file = args[0].toString();
 
@@ -257,7 +272,7 @@ public class RubyJxpSource extends JxpSource {
 		}
 	    });
 	kernel.addMethod("load", new JavaMethod(kernel, PUBLIC) {
-		public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+		public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
 		    Ruby runtime = self.getRuntime();
 		    RubyString file = args[0].convertToString();
 		    boolean wrap = args.length == 2 ? args[1].isTrue() : false;
