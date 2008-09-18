@@ -119,7 +119,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
      * which is why this method is separate from (and is called from)
      * toRuby().
      */
-    public static IRubyObject createRubyMethod(Scope s, Ruby runtime, JSFunction func, String name, RubyClass attachTo, JSObject jsThis) {
+    public static IRubyObject createRubyMethod(Scope s, Ruby runtime, JSFunction func, String name, RubyModule attachTo, JSObject jsThis) {
 	if (func instanceof JSFileLibrary)
 	    return new RubyJSFileLibraryWrapper(s, runtime, (JSFileLibrary)func, name, attachTo, jsThis);
 	else
@@ -229,13 +229,13 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	return jargs;
     }
 
-    public static void addJavaPublicMethodWrappers(final Scope scope, RubyClass klazz, final JSObject jsobj, Set<String> namesToIgnore) {
+    public static void addJavaPublicMethodWrappers(final Scope scope, RubyModule module, final JSObject jsobj, Set<String> namesToIgnore) {
 	for (final String name : NativeBridge.getPublicMethodNames(jsobj.getClass())) {
 	    if (namesToIgnore.contains(name))
 		continue;
 	    final JSFunction func = NativeBridge.getNativeFunc(jsobj, name);
-	    klazz.addMethod(name, new JavaMethod(klazz, PUBLIC) {
-		    public IRubyObject call(ThreadContext context, IRubyObject recv, RubyModule klazz, String name, IRubyObject[] args, Block block) {
+	    module.addMethod(name, new JavaMethod(module, PUBLIC) {
+		    public IRubyObject call(ThreadContext context, IRubyObject recv, RubyModule module, String name, IRubyObject[] args, Block block) {
 			Ruby runtime = context.getRuntime();
 			try {
 			    return toRuby(scope, runtime, func.callAndSetThis(scope, jsobj, RubyObjectWrapper.toJSFunctionArgs(scope, runtime, args, 0, block)));

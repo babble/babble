@@ -114,6 +114,8 @@ EOS
       #
       # * Find :all records; returns a Cursor that can iterate over raw
       #   records
+      #
+      # * Find all records if there are no args
       def self.find(*args)
         return Cursor.new(coll.find(), self) unless args.length > 0 # no args, find all
         return case args[0]
@@ -146,19 +148,6 @@ EOS
         self.new(values_hash).save
       end
 
-      # If an unknown method is an assignment, create the ivar and assign it.
-      # Else pass the unknown method call to the collection.
-      def method_missing(sym, *args, &block)
-        if sym.to_s[-1,1] == '='       # assignment to an unknown ivar
-          name = sym.to_s[0..-2]
-          instance_variable_set("@#{name}", args[0])
-          instance_eval "def #{name}; @#{name}; end; def #{name}=(val); @name = val; end"
-        else
-          o = self.class.coll.send(sym, args)
-          yield o if block_given?
-        end
-      end
-
       # Initialize a new object with either a hash of values or a row returned
       # from the database.
       def initialize(row={})
@@ -184,9 +173,9 @@ EOS
         h = {}
         self.class.ivar_names.each { |iv| h[iv] = instance_variable_get("@#{iv}") }
         row = self.class.coll.save(h)
-        if self._id == nil
-          self._id = row._id
-        elsif row._id != self._id
+        if @_id == nil
+          @_id = row._id
+        elsif row._id != @_id
           raise "Error: after save, database id changed"
         end
         self
@@ -194,7 +183,7 @@ EOS
 
       # Removes self from the database. Must have an _id.
       def remove
-        self.class.coll.remove({:_id => self._id}) if self._id
+        self.class.coll.remove({:_id => self._id}) if @_id
       end
 
     end

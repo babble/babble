@@ -444,12 +444,12 @@ public class RubyJSObjectWrapper extends RubyHash {
 	final IRubyObject rkey = toRuby(key);
 	instance_variable_set(RubyString.newString(runtime, "@" + skey), runtime.getNil());
 	_eigenclass.addMethod(skey, new JavaMethod(_eigenclass, PUBLIC) {
-		public IRubyObject call(ThreadContext context, IRubyObject recv, RubyModule klazz, String name, IRubyObject[] args, Block block) {
+		public IRubyObject call(ThreadContext context, IRubyObject recv, RubyModule module, String name, IRubyObject[] args, Block block) {
 		    return op_aref(context, rkey);
 		}
 	    });
 	_eigenclass.addMethod(skey + "=", new JavaMethod(_eigenclass, PUBLIC) {
-		public IRubyObject call(ThreadContext context, IRubyObject recv, RubyModule klazz, String name, IRubyObject[] args, Block block) {
+		public IRubyObject call(ThreadContext context, IRubyObject recv, RubyModule module, String name, IRubyObject[] args, Block block) {
 		    return op_aset(context, rkey, args[0]);
 		}
 	    });
@@ -479,7 +479,7 @@ public class RubyJSObjectWrapper extends RubyHash {
 
     protected void _addMethodMissing() {
 	_eigenclass.addMethod("method_missing", new JavaMethod(_eigenclass, PUBLIC) {
-                public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+                public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
 		    // args[0] is method name symbol, args[1..-1] are arguments
 		    String key = args[0].toString();
 		    if (RubyObjectWrapper.DEBUG_FCALL)
@@ -506,11 +506,8 @@ public class RubyJSObjectWrapper extends RubyHash {
 				System.err.println("method_missing: found a callable function for key " + key + "; calling it");
 			    try {
 				IRubyObject retval = toRuby(((JSFunction)val).callAndSetThis(_scope, _jsobj, RubyObjectWrapper.toJSFunctionArgs(_scope, context.getRuntime(), args, 1, block)));
-				if (val instanceof JSFileLibrary) {
-				    if (RubyObjectWrapper.DEBUG_FCALL)
-					System.err.println("method_missing: what we just called is a JSFileLibrary; about to create newly-defined classes");
+				if (val instanceof JSFileLibrary)
 				    RubyJxpSource.createNewClasses(_scope, context.getRuntime());
-				}
 				return retval;
 			    }
 			    catch (Exception e) {

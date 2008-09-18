@@ -76,11 +76,6 @@ public class ENode extends JSObjectBase {
         }
 
         protected void init() {
-            _prototype.set( "text", new ENodeFunction() {
-                    public Object call(Scope s, Object foo[]) {
-                        return getENode( s ).text();
-                    }
-                });
             _prototype.set( "addNamespace" , new ENodeFunction() {
                     public Object call( Scope s, Object foo[] ) {
                         return getENode( s ).addNamespace( getOneArg( foo ) );
@@ -128,7 +123,7 @@ public class ENode extends JSObjectBase {
 
             _prototype.set( "contains", new ENodeFunction() {
                     public Object call( Scope s, Object foo[] ) {
-                        return getENode( s ).contains( (ENode)getOneArg( foo ) );
+                        return getENode( s ).contains( getOneArg( foo ) );
                     }
                 });
             _prototype.set( "copy", new ENodeFunction() {
@@ -293,7 +288,7 @@ public class ENode extends JSObjectBase {
                 });
             _prototype.set( "toXMLString", new ENodeFunction() {
                     public Object call(Scope s, Object foo[]) {
-                        return getENode( s ).toXMLString();
+                        return new JSString( getENode( s ).toXMLString() );
                     }
                 });
             _prototype.set( "valueOf", new ENodeFunction() {
@@ -472,7 +467,9 @@ public class ENode extends JSObjectBase {
      */
     private ENode( ENode parent, Object o ) {
         super( _getCons() );
-        if( parent instanceof XMLList && ((XMLList)parent).get(0) != null ) {
+        if( parent instanceof XMLList && 
+            ((XMLList)parent).size() > 0 && 
+            ((XMLList)parent).get(0) != null ) {
             parent = ((XMLList)parent).get(0);
         }
         if(parent != null && parent.node != null) {
@@ -581,10 +578,19 @@ public class ENode extends JSObjectBase {
     void buildENodeDom(ENode parent) {
         NodeList kids = parent.node.getChildNodes();
         for( int i=0; i<kids.getLength(); i++) {
-            if( ( kids.item(i).getNodeType() == Node.COMMENT_NODE && parent.XML.ignoreComments ) ||
-                ( kids.item(i).getNodeType() == Node.PROCESSING_INSTRUCTION_NODE && parent.XML.ignoreProcessingInstructions ) )
+            if( ( kids.item(i).getNodeType() == Node.COMMENT_NODE && 
+                  parent.XML.ignoreComments ) ||
+                ( kids.item(i).getNodeType() == Node.PROCESSING_INSTRUCTION_NODE && 
+                  parent.XML.ignoreProcessingInstructions ) )
                 continue;
-            ENode n = new ENode(kids.item(i), parent , null);
+            if ( kids.item(i).getNodeType() == Node.TEXT_NODE && 
+                 parent.XML.ignoreWhitespace )
+                if ( kids.item(i).getNodeValue().trim().equals( "" ) )
+                    continue;
+                else 
+                    kids.item(i).setNodeValue( kids.item(i).getNodeValue().trim() );
+
+            ENode n = new ENode( kids.item(i), parent , null );
             buildENodeDom(n);
             parent.children.add(n);
         }
@@ -593,13 +599,6 @@ public class ENode extends JSObjectBase {
     /** Turns a string into a DOM.
      */
     void init( String s ){
-        // get rid of newlines and spaces if ignoreWhitespace is set (default)
-        // otherwise each block of whitespace will become a text node... blech
-        if( XML.ignoreWhitespace ) {
-            Pattern p = Pattern.compile("\\>\\s+\\<");
-            Matcher m = p.matcher(s);
-            s = m.replaceAll("><");
-        }
         Node temp;
         try {
             temp = XMLUtil.parse( "<parent>" + s + "</parent>" ).getDocumentElement();
@@ -747,7 +746,15 @@ public class ENode extends JSObjectBase {
             if( k.toString().equals("*") ) {
                 // replace children
                 if( v instanceof XMLList ) {
-                    children = (XMLList)vcopy;
+                    for( int i=0; i < this.children.size(); ) {
+                        if( this.children.get( i ).node.getNodeType() != Node.ATTRIBUTE_NODE ) {
+                            this.children.remove( i );
+                        }
+                        else {
+                            i++;
+                        }
+                    }
+                    this.children.addAll( (XMLList)vcopy );
                     return this;
                 }
                 this.children = new XMLList();
@@ -827,7 +834,7 @@ public class ENode extends JSObjectBase {
                     n.node.removeChild(kids.item(i));
                 }
                 Node content = n.node.getOwnerDocument().createTextNode(v.toString());
-                appendChild(content, n);
+                n.appendChild( new ENode( content , n , null ) );
             }
         }
         // k must be a string
@@ -943,22 +950,16 @@ public class ENode extends JSObjectBase {
         return this;
     }
 
-
-    private ENode appendChild(Node child, ENode parent) {
-        if(parent.children == null)
-            parent.children = new XMLList();
-
-        ENode echild = new ENode(child, parent, null);
-        buildENodeDom(echild);
-        parent.children.add(echild);
-        return this;
-    }
-
     /**
      * Appends a given child to this element's properties.
      */
     public ENode appendChild(ENode child) {
-        return appendChild(child.node, this);
+        if( this.children == null )
+            this.children = new XMLList();
+
+        child.parent = this;
+        this.children.add( child );
+        return this;
     }
 
     /**
@@ -1048,10 +1049,23 @@ public class ENode extends JSObjectBase {
     /** FIXME
      * Compares this with another XML object.
      */
-    public boolean contains( ENode o ) {
-        if( this instanceof XMLList && o instanceof XMLList ) {
+    public boolean contains( Object o ) {
+        if( this.equals( o ) ) 
+            return true;
+
+        if( !(o instanceof ENode ) ) {
+            if( ( o instanceof java.lang.String || 
+                  o instanceof ed.js.JSString ) &&
+                o.toString().equals( this.toString() ) )
+                return true;
+            return false;
+        }
+
+        ENode n = (ENode)o;
+
+        if( this instanceof XMLList && n instanceof XMLList ) {
             XMLList x = (XMLList)this;
-            XMLList x2 = (XMLList)o;
+            XMLList x2 = (XMLList)n;
             if( x.size() != x2.size() )
                 return false;
             for( int i=0; i < x.size(); i++ ) {
@@ -1061,21 +1075,21 @@ public class ENode extends JSObjectBase {
             }
             return true;
         }
-        else if( !(this instanceof XMLList) && !(o instanceof XMLList) ) {
-            if( !this.name.equals( o.name ) ||
-                !this.node.isEqualNode( o.node ) ) 
-                //                    !this.inScopeNamespaces.equals( o.inScopeNamespaces ) )
+        else if( !(this instanceof XMLList) && !(n instanceof XMLList) ) {
+            if( !this.name.equals( n.name ) ||
+                !this.node.isEqualNode( n.node ) ) 
+                //                    !this.inScopeNamespaces.equals( n.inScopeNamespaces ) )
                 return false;
 
-            if( ( this.children == null && o.children != null ) ||
-                ( this.children != null && o.children == null ) )
+            if( ( this.children == null && n.children != null ) ||
+                ( this.children != null && n.children == null ) )
                 return false;
 
             if( this.children != null ) {
-                if( this.children.size() != o.children.size() )
+                if( this.children.size() != n.children.size() )
                     return false;
                 for( int i=0; i<this.children.size(); i++ ) {
-                    if( !this.children.get( i ).contains( o.children.get( i ) ) ) {
+                    if( !this.children.get( i ).contains( n.children.get( i ) ) ) {
                         return false;
                     }
                 }
@@ -1100,17 +1114,7 @@ public class ENode extends JSObjectBase {
      * if a name is not provided.
      */
     public ENode descendants( String name ) {
-        List kids = new LinkedList<ENode>();
-
-        ENode childs = (ENode)this.get(name);
-        for( int i=0; i<childs.children.size(); i++) {
-            kids.add(childs.children.get(i));
-            ENode el = ((ENode)childs.children.get(i)).descendants(name);
-            for( int j=0; j<el.children.size(); j++) {
-                kids.add(el.children.get(j));
-            }
-        }
-        return new XMLList(kids);
+        return (ENode)this.get( ".." + name );
     }
 
     public ENode descendants() {
@@ -1537,16 +1541,13 @@ public class ENode extends JSObjectBase {
 
     public XMLList text() {
         XMLList list = new XMLList();
-        if( this instanceof XMLList ) {
-            for ( ENode n : (XMLList)this ) {
-                if( n.node.getNodeType() == Node.TEXT_NODE ) {
-                    list.add( n );
+        if( this.node.getNodeType() == Node.ELEMENT_NODE ) {
+            for( ENode child : this.children ) {
+                if( child.node.getNodeType() == Node.TEXT_NODE ) {
+                    list.add( child );
                 }
             }
         }
-        else if( this.node != null && this.node.getNodeType() == Node.TEXT_NODE ) {
-            list.add( this );
-        }            
         return list;
     }
 
@@ -1629,7 +1630,7 @@ public class ENode extends JSObjectBase {
                 ( XML.ignoreProcessingInstructions && c.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE ) )
                 continue;
 
-            if( XML.prettyPrinting && indentChildren )
+            if( XML.prettyPrinting && indentChildren ) 
                 buf.append( "\n" );
 
             c.append( buf , nextIndentLevel , ancestors );
@@ -1753,8 +1754,8 @@ public class ENode extends JSObjectBase {
         return true;
     }
 
-    public JSString toXMLString() {
-        return new JSString( this.append( new StringBuilder(), 0, new ArrayList<Namespace>() ).toString() );
+    public String toXMLString() {
+        return this.append( new StringBuilder(), 0, new ArrayList<Namespace>() ).toString();
     }
 
     private void addInScopeNamespace( Namespace n ) {
