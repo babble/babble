@@ -27,6 +27,7 @@ import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.util.IdUtil;
 import static org.jruby.runtime.Visibility.PUBLIC;
 
+import ed.appserver.JSFileLibrary;
 import ed.js.*;
 import ed.js.engine.Scope;
 import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
@@ -504,7 +505,13 @@ public class RubyJSObjectWrapper extends RubyHash {
 			    if (RubyObjectWrapper.DEBUG)
 				System.err.println("method_missing: found a callable function for key " + key + "; calling it");
 			    try {
-				return toRuby(((JSFunction)val).callAndSetThis(_scope, _jsobj, RubyObjectWrapper.toJSFunctionArgs(_scope, context.getRuntime(), args, 1, block)));
+				IRubyObject retval = toRuby(((JSFunction)val).callAndSetThis(_scope, _jsobj, RubyObjectWrapper.toJSFunctionArgs(_scope, context.getRuntime(), args, 1, block)));
+				if (val instanceof JSFileLibrary) {
+				    if (RubyObjectWrapper.DEBUG)
+					System.err.println("method_missing: what we just called is a JSFileLibrary; about to create newly-defined classes");
+				    RubyJxpSource.createNewClasses(_scope, context.getRuntime());
+				}
+				return retval;
 			    }
 			    catch (Exception e) {
 				if (RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
