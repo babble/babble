@@ -266,12 +266,12 @@ public class RubyJxpSource extends JxpSource {
     }
 
     protected IRubyObject loadLibraryFile(Scope scope, Ruby runtime, IRubyObject recv, String path, RaiseException re) {
-	if (DEBUG)
+	if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
 	    System.err.println("going to compile and run library file " + path + "; runtime = " + runtime);
 
 	JSFileLibrary lib = getLibFromPath(path, scope);
 	if (lib == null) {
-	    if (DEBUG)
+	    if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
 		System.err.println("can not find JSFileLibrary for " + path + "; re-raising Ruby exception");
 	    throw re;
 	}
@@ -303,7 +303,7 @@ public class RubyJxpSource extends JxpSource {
 	    }
 	    /* fall through to throw re */
 	}
-	if (DEBUG)
+	if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
 	    System.err.println("problem loading file " + path + " from lib " + lib + "; throwing original Ruby error " + re);
 	throw re;
     }

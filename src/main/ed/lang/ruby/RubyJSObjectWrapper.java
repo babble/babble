@@ -70,7 +70,7 @@ public class RubyJSObjectWrapper extends RubyHash {
 
     RubyJSObjectWrapper(Scope s, Ruby runtime, JSObject obj, RubyClass klass) {
 	super(runtime, klass);
-	if (RubyObjectWrapper.DEBUG)
+	if (RubyObjectWrapper.DEBUG_CREATE)
 	    System.err.println("creating RubyJSObjectWrapper around " + obj.getClass().getName() + "; ruby class = " + klass.name());
 	_scope = s;
 	_jsobj = obj;
@@ -426,7 +426,7 @@ public class RubyJSObjectWrapper extends RubyHash {
     protected Object toJS(IRubyObject o) { return RubyObjectWrapper.toJS(_scope, o); }
 
     protected void _addFunctionMethod(Ruby runtime, Object key, final JSFunction val) {
-	if (RubyObjectWrapper.DEBUG)
+	if (RubyObjectWrapper.DEBUG_CREATE)
 	    System.err.println("adding function method " + key);
 	String skey = key.toString();
 	_jsFuncs.put(skey, runtime);
@@ -437,7 +437,7 @@ public class RubyJSObjectWrapper extends RubyHash {
 	String skey = key.toString();
 	if (!IdUtil.isValidInstanceVariableName("@" + skey))
 	    return;
-	if (RubyObjectWrapper.DEBUG)
+	if (RubyObjectWrapper.DEBUG_CREATE)
 	    System.err.println("adding ivar " + key);
 	_jsIvars.put(skey, runtime);
 
@@ -457,7 +457,7 @@ public class RubyJSObjectWrapper extends RubyHash {
 
     protected void _removeFunctionMethod(Object key) {
 	String skey = key.toString();
-	if (RubyObjectWrapper.DEBUG)
+	if (RubyObjectWrapper.DEBUG_CREATE)
 	    System.err.println("removing function method " + skey);
 	Ruby runtime = _jsFuncs.get(skey);
 	_eigenclass.undef(runtime.getCurrentContext(), skey);
@@ -466,7 +466,7 @@ public class RubyJSObjectWrapper extends RubyHash {
     }
 
     protected void _removeInstanceVariable(Object key) {
-	if (RubyObjectWrapper.DEBUG)
+	if (RubyObjectWrapper.DEBUG_CREATE)
 	    System.err.println("removing ivar " + key);
 	String skey = key.toString();
 	Ruby runtime = _jsIvars.get(skey);
@@ -482,10 +482,10 @@ public class RubyJSObjectWrapper extends RubyHash {
                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
 		    // args[0] is method name symbol, args[1..-1] are arguments
 		    String key = args[0].toString();
-		    if (RubyObjectWrapper.DEBUG)
+		    if (RubyObjectWrapper.DEBUG_FCALL)
 			System.err.println("RubyJSObjectWrapper.method_missing " + key);
 		    if (key.endsWith("=")) {
-			if (RubyObjectWrapper.DEBUG)
+			if (RubyObjectWrapper.DEBUG_FCALL)
 			    System.err.println("method_missing: turning " + key + " into op_aset call");
 			key = key.substring(0, key.length() - 1);
 			return op_aset(context, toRuby(key), toRuby(args[1]));
@@ -496,18 +496,18 @@ public class RubyJSObjectWrapper extends RubyHash {
 		    // something named key.
 		    Object val = peek(key);
 		    if (val == null) {
-			if (RubyObjectWrapper.DEBUG)
+			if (RubyObjectWrapper.DEBUG_FCALL)
 			    System.err.println("method_missing: did not find value for key " + key + "; calling super.method_missing");
 			return RuntimeHelpers.invokeAs(context, _eigenclass.getSuperClass(), RubyJSObjectWrapper.this, "method_missing", args, CallType.SUPER, block);
 		    }
 		    if (val instanceof JSFunction) {
 			if (isCallableJSFunction(val)) {
-			    if (RubyObjectWrapper.DEBUG)
+			    if (RubyObjectWrapper.DEBUG_FCALL)
 				System.err.println("method_missing: found a callable function for key " + key + "; calling it");
 			    try {
 				IRubyObject retval = toRuby(((JSFunction)val).callAndSetThis(_scope, _jsobj, RubyObjectWrapper.toJSFunctionArgs(_scope, context.getRuntime(), args, 1, block)));
 				if (val instanceof JSFileLibrary) {
-				    if (RubyObjectWrapper.DEBUG)
+				    if (RubyObjectWrapper.DEBUG_FCALL)
 					System.err.println("method_missing: what we just called is a JSFileLibrary; about to create newly-defined classes");
 				    RubyJxpSource.createNewClasses(_scope, context.getRuntime());
 				}
@@ -522,12 +522,12 @@ public class RubyJSObjectWrapper extends RubyHash {
 			    }
 			}
 			else {
-			    if (RubyObjectWrapper.DEBUG)
+			    if (RubyObjectWrapper.DEBUG_FCALL)
 				System.err.println("method_missing: found a non-callable function object for key " + key + "; returning it");
 			    return toRuby(val);
 			}
 		    }
-		    if (RubyObjectWrapper.DEBUG)
+		    if (RubyObjectWrapper.DEBUG_FCALL)
 			System.err.println("method_missing: turning " + key + "; returning it");
 		    return toRuby(val);
 		}

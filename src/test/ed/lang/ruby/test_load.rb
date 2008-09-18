@@ -96,17 +96,22 @@ EOS
     assert_equal('Routes', x.class.name)
   end
 
-#   def test_load_js_explicitly
-#     assert_not_nil($core)
-#     assert_not_nil($core.core)
-#     $core.core.mail.call()    # same as load 'core/core/mail'
-#     assert_not_nil($scope['Mail'], "Mail is not in scope")
-#     assert(Object.constants.include?('Mail'), "Constant Mail should be defined")
-#     assert_equal('Class', Mail.class.name)
-#     assert_equal('Mail', Mail.name)
-#     x = Mail.new('subject', 'content')
-#     assert_not_nil(x, "Mail constructor returned nil")
-#     assert_equal('Mail', x.class.name)
-#   end
+  def test_load_js_using_jsfilelibrary
+    $core.content.forms
+
+    # Forms.Form is the class. Forms will be in scope, class Form will be created.
+    # See FIXME note below, however.
+    assert_not_nil($scope['Forms'], "Forms is not in scope")
+    assert(Object.constants.include?('Form'), "Constant Form should be defined")
+    assert_equal('Class', Form.class.name)
+    assert_equal('Form', Form.name)
+    assert_not_nil($Forms, "global $Forms should be defined")
+
+    # FIXME should use $Forms.Form or Forms::Form, not just Form. Need to get
+    # "namespace" ($Forms.Form) working
+    x = Form.new({}, "prefix")
+    assert_not_nil(x, "Form constructor returned nil")
+    assert_equal('Form', x.class.name)
+  end
 
 end
