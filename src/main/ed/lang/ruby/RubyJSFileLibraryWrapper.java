@@ -83,13 +83,9 @@ public class RubyJSFileLibraryWrapper extends RubyJSFunctionWrapper {
 		    System.err.println("calling method " + clazz.getName() + "#" + name + " with " + args.length + " args");
 		try {
 		    Object result = _func.callAndSetThis(_scope, _this, RubyObjectWrapper.toJSFunctionArgs(_scope, runtime, args, 0, block));
-		    if (RubyObjectWrapper.DEBUG_FCALL) {
-			System.err.println("func " + name + " returned " + result + ", which is " + (result == null ? "null" : ("of class " + result.getClass().getName())));
-			System.err.println("about to create newly-defined classes");
-		    }
-		    RubyJxpSource.createNewClasses(_scope, runtime);
 		    if (RubyObjectWrapper.DEBUG_FCALL)
-			System.err.println("new classes created");
+			System.err.println("func " + name + " returned " + result + ", which is " + (result == null ? "null" : ("of class " + result.getClass().getName())));
+		    RubyJxpSource.createNewClasses(_scope, runtime);
 		    return toRuby(result);
 		}
 		catch (Exception e) {

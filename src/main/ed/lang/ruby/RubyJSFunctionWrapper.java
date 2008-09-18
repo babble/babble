@@ -152,13 +152,15 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 	_klazz.defineMethod("initialize", new Callback() {
                 public IRubyObject execute(IRubyObject self, IRubyObject[] args, Block block) {
 		    if (RubyObjectWrapper.DEBUG_FCALL) {
-			System.err.println("calling method " + ((RubyObject)self).type().name() + "#initialize with " + args.length + " args:");
+			System.err.println("calling " + ((RubyObject)self).type().name() + "#initialize with " + args.length + " args" + (args.length == 0 ? "" : ':'));
 			for (IRubyObject iro : args) System.err.println("  " + iro.toString());
 		    }
 		    JSObject jsobj = ((RubyJSObjectWrapper)self).getJSObject();
 		    Ruby runtime = self.getRuntime();
 		    try {
 			_func.callAndSetThis(scope, jsobj, RubyObjectWrapper.toJSFunctionArgs(scope, runtime, args, 0, block)); // initialize it by calling _func
+			if (RubyObjectWrapper.DEBUG_FCALL)
+			    System.err.println("back from initialize");
 		    }
 		    catch (Exception e) {
 			if (RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {

@@ -75,12 +75,17 @@ public class RubyJxpSource extends JxpSource {
      * using a JSFileLibrary.
      */
     public static void createNewClasses(Scope scope, Ruby runtime) {
-	for (Object key : scope.keySet()) {
+	if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
+	    System.err.println("about to create newly-defined classes");
+	for (Object key : RubyScopeWrapper.jsKeySet(scope)) {
 	    String skey = key.toString();
 	    if (IdUtil.isConstant(skey) && runtime.getClass(skey) == null) {
 		Object o = scope.get(key);
-		if (o instanceof JSFunction && isCallableJSFunction(o))
+		if (isCallableJSFunction(o)) {
+		    if (DEBUG || RubyObjectWrapper.DEBUG_FCALL || RubyObjectWrapper.DEBUG_CREATE)
+			System.err.println("creating newly-defined class " + skey);
 		    toRuby(scope, runtime, (JSFunction)o, skey);
+		}
 	    }
 	}
     }
@@ -235,13 +240,16 @@ public class RubyJxpSource extends JxpSource {
 	kernel.addMethod("require", new JavaMethod(kernel, PUBLIC) {
 		public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
 		    Ruby runtime = self.getRuntime();
-		    String arg = args[0].toString();
+		    String file = args[0].toString();
+
+		    if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
+			System.err.println("require " + file);
 		    try {
-			return runtime.getLoadService().require(arg) ? runtime.getTrue() : runtime.getFalse();
+			return runtime.getLoadService().require(file) ? runtime.getTrue() : runtime.getFalse();
 		    }
 		    catch (RaiseException re) {
 			if (_notAlreadyRequired(runtime, args[0])) {
-			    loadLibraryFile(scope, runtime, self, arg, re);
+			    loadLibraryFile(scope, runtime, self, file, re);
 			    _rememberAlreadyRequired(runtime, args[0]);
 			}
 			return runtime.getTrue();
@@ -254,6 +262,8 @@ public class RubyJxpSource extends JxpSource {
 		    RubyString file = args[0].convertToString();
 		    boolean wrap = args.length == 2 ? args[1].isTrue() : false;
 
+		    if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
+			System.err.println("load " + file);
 		    try {
 			runtime.getLoadService().load(file.getByteList().toString(), wrap);
 			return runtime.getTrue();

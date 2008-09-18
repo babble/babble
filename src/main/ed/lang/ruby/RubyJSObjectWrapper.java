@@ -506,11 +506,8 @@ public class RubyJSObjectWrapper extends RubyHash {
 				System.err.println("method_missing: found a callable function for key " + key + "; calling it");
 			    try {
 				IRubyObject retval = toRuby(((JSFunction)val).callAndSetThis(_scope, _jsobj, RubyObjectWrapper.toJSFunctionArgs(_scope, context.getRuntime(), args, 1, block)));
-				if (val instanceof JSFileLibrary) {
-				    if (RubyObjectWrapper.DEBUG_FCALL)
-					System.err.println("method_missing: what we just called is a JSFileLibrary; about to create newly-defined classes");
+				if (val instanceof JSFileLibrary)
 				    RubyJxpSource.createNewClasses(_scope, context.getRuntime());
-				}
 				return retval;
 			    }
 			    catch (Exception e) {
