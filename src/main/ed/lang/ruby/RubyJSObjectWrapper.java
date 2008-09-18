@@ -429,7 +429,7 @@ public class RubyJSObjectWrapper extends RubyHash {
 	    System.err.println("adding function method " + key);
 	String skey = key.toString();
 	_jsFuncs.put(skey, runtime);
-	new RubyJSFunctionWrapper(_scope, runtime, val, skey, _eigenclass, _jsobj);
+	RubyObjectWrapper.createRubyMethod(_scope, runtime, val, skey, _eigenclass, _jsobj);
     }
 
     protected void _addInstanceVariable(Ruby runtime, Object key) {

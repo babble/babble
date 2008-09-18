@@ -92,7 +92,7 @@ public class JSObjectWrapper implements JSObject {
 	    _robj.instance_variable_set(ivarName(n), toRuby(_scope, _robj.getRuntime(), v.toString()));
 	else if (isCallableJSFunction(v)) {
 	    _removeIvarIfExists(skey);
-	    new RubyJSFunctionWrapper(_scope, _robj.getRuntime(), (JSFunction)v, skey, _robj.getSingletonClass());
+	    toRuby(_scope, _robj.getRuntime(), (JSFunction)v, skey, _robj, this);
 	}
 	else {
 	    _removeMethodIfExists(skey);
