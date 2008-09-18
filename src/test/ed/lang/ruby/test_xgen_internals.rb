@@ -78,6 +78,39 @@ EOS
     }
   end
 
+  # Making sure we see the ivar, not the getter method
+  def test_ivars_into_js
+    $t = Track.new
+    run_js <<EOS
+print("t.album = " + t.album);
+print("typeof(t.album) = " + typeof(t.album));
+EOS
+    assert_equal("t.album = null\ntypeof(t.album) = undefined", $jsout.strip)
+  end
+
+  def test_require_and_ivars_into_js
+    require 'track2'
+    $t = Track2.new
+    run_js <<EOS
+print("t.album = " + t.album);
+print("typeof(t.album) = " + typeof(t.album));
+EOS
+    assert_equal("t.album = null\ntypeof(t.album) = undefined", $jsout.strip)
+  end
+
+# FIXME need to make require/load that uses local (JSFileLibrary) use built-in
+# JRuby require if it sees it's a Ruby file.
+
+#   def test_require_local_and_ivars_into_js
+#     require '/local/track3'
+#     $t = Track3.new
+#     run_js <<EOS
+# print("t.album = " + t.album);
+# print("typeof(t.album) = " + typeof(t.album));
+# EOS
+#     assert_equal("t.album = null\ntypeof(t.album) = undefined", $jsout.strip)
+#   end
+
   def test_method_generation
     x = Track.new({:artist => 1, :album => 2})
 
