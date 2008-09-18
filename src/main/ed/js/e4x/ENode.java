@@ -68,6 +68,10 @@ public class ENode extends JSObjectBase {
                     e.init( args[0].toString() );
                 }
             }
+            else if( args.length == 0 ) {
+                e.init( "" );
+            }
+
             return e;
         }
 
@@ -212,7 +216,7 @@ public class ENode extends JSObjectBase {
                 });
             _prototype.set( "nodeKind", new ENodeFunction() {
                     public Object call(Scope s, Object foo[]) {
-                        return getENode( s ).nodeKind();
+                        return new JSString( getENode( s ).nodeKind() );
                     }
                 });
             _prototype.set( "normalize", new ENodeFunction() {
@@ -227,7 +231,7 @@ public class ENode extends JSObjectBase {
                 });
             _prototype.set( "prependChild", new ENodeFunction() {
                     public Object call(Scope s, Object foo[]) {
-                        return getENode( s )._insertChild( (Object)null, (ENode)getOneArg( foo ), 0 );
+                        return getENode( s ).insertChild( (Object)null, (ENode)getOneArg( foo ), 0 );
                     }
                 });
             _prototype.set( "processingInstructions", new ENodeFunction() {
@@ -605,18 +609,23 @@ public class ENode extends JSObjectBase {
         }
 
         NodeList kids = temp.getChildNodes();
-        if( kids.getLength() == 1 ) {
-            node = kids.item( 0 );
-            nodeSetup( null );
-            buildENodeDom( this );
-        }
-        else if( kids.getLength() > 1 ) {
+        if( kids.getLength() > 1 ) {
             children = new XMLList();
             for( int i=0; i < kids.getLength(); i++ ) {
                 ENode kid = new ENode( kids.item( i ) , null , null );
                 buildENodeDom( kid );
                 children.add( kid );
             }
+        }
+        else {
+            if( kids.getLength() == 1 ) {
+                node = kids.item( 0 );
+            }
+            else {
+                node = temp.getOwnerDocument().createTextNode( "" );
+            }
+            nodeSetup( null );
+            buildENodeDom( this );
         }
     }
 
@@ -785,7 +794,7 @@ public class ENode extends JSObjectBase {
                     n._dummy = false;
                 }
                 // otherwise, we need to reset n so we don't replace an existing node
-                else {
+                else if( !n.equals( this ) ) {
                     n = new ENode( this.XML, this.defaultNamespace );
                     n.children = new XMLList();
                 }
@@ -803,11 +812,14 @@ public class ENode extends JSObjectBase {
                 n.children.add( new ENode( content, n , null) );
                 n.parent = attachee;
                 // get the last sibling's position & insert this new one there
-                attachee.children.add( attachee.children.indexOf( rep ) + 1, n );
+                int insertIndex = attachee.children.indexOf( rep ) + 1;
+                if( insertIndex == 0 )
+                    attachee.children.add( n );
+                else
+                    attachee.children.add( insertIndex, n );
             }
             // replace an existing element
             else {
-                // FIXME!  why are we using this.node?!
                 // reset the child list
                 n.children = new XMLList();
                 NodeList kids = n.node.getChildNodes();
@@ -975,7 +987,11 @@ public class ENode extends JSObjectBase {
         if( m.matches() ) {
             int i = Integer.parseInt( propertyName.toString() );
 
-            if( i < nodeList.size() ) 
+            // if we are looking for the 0th element and this isn't an xmllist, we are looking for this
+            if( i == 0 && this.node != null ) {
+                return this;
+            }
+            else if( i < nodeList.size() ) 
                 return nodeList.get(i);
             else if ( !xmllist || ( xmllist && nodeList.size() >= 1 ) )
                 return new ENode( this, this instanceof XMLList ? nodeList.get(0).name.localName : this.name.localName );
@@ -1240,23 +1256,29 @@ public class ENode extends JSObjectBase {
 
 
     public ENode insertChildAfter(Object child1, ENode child2) {
-        return _insertChild(child1, child2, 1);
+        return insertChild(child1, child2, 1);
     }
 
     public ENode insertChildBefore(Object child1, ENode child2) {
-        return _insertChild(child1, child2, 0);
+        if( child1 == null ) { 
+            this.children.add( this.children.size(), child2 );
+            return this;
+        }
+        return insertChild(child1, child2, 0);
     }
 
-    private ENode _insertChild( Object child1, ENode child2, int j ) {
-        if( this.isSimpleTypeNode() ) return null;
+    private ENode insertChild( Object child1, ENode child2, int j ) {
+        if( this.isSimpleTypeNode() ) 
+            return null;
+
         if( child1 == null ) {
             this.children.add( 0, child2 );
             return this;
         }
         else if ( child1 instanceof ENode ) {
-            for( int i=0; i<children.size(); i++) {
-                if( children.get(i) == child1 ) {
-                    children.add(i+j, child2);
+            for( int i=0; i < this.children.size(); i++) {
+                if( this.children.get(i).equals( child1 ) ) {
+                    this.children.add(i+j, child2);
                     return this;
                 }
             }
@@ -1827,6 +1849,12 @@ public class ENode extends JSObjectBase {
         return _dummy;
     }
 
+    private static ENode textNodeFactory( String s ) {
+        ENode n = new ENode();
+        n.init( s );
+        return n;
+    }
+
     private static ENode getENode( Scope s ) {
         Object obj = s.getThis();
         if ( obj instanceof ENode ) 
@@ -1835,7 +1863,7 @@ public class ENode extends JSObjectBase {
             return ((ENodeFunction)obj).cnode;
 
         // should only do this for XML.prototype
-        return new ENode();
+        return textNodeFactory( "" );
     }
 
     private static Object getOneArg( Object foo[] ) {
