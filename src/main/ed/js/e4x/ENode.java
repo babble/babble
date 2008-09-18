@@ -824,7 +824,7 @@ public class ENode extends JSObjectBase {
                     n.node.removeChild(kids.item(i));
                 }
                 Node content = n.node.getOwnerDocument().createTextNode(v.toString());
-                appendChild(content, n);
+                n.appendChild( new ENode( content , n , null ) );
             }
         }
         // k must be a string
@@ -940,22 +940,16 @@ public class ENode extends JSObjectBase {
         return this;
     }
 
-
-    private ENode appendChild(Node child, ENode parent) {
-        if(parent.children == null)
-            parent.children = new XMLList();
-
-        ENode echild = new ENode(child, parent, null);
-        buildENodeDom(echild);
-        parent.children.add(echild);
-        return this;
-    }
-
     /**
      * Appends a given child to this element's properties.
      */
     public ENode appendChild(ENode child) {
-        return appendChild(child.node, this);
+        if( this.children == null )
+            this.children = new XMLList();
+
+        child.parent = this;
+        this.children.add( child );
+        return this;
     }
 
     /**
