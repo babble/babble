@@ -189,8 +189,9 @@ public abstract class RubyObjectWrapper extends RubyObject {
 		jobj.set(ja[i].toString(), toJS(scope, rs.get(i)));
 	    return jobj;
 	}
-	if (r instanceof RubyProc) {
-	    Object o = new JSFunctionWrapper(scope, r.getRuntime(), ((RubyProc)r).getBlock());
+	if (r instanceof RubyProc || r instanceof RubyMethod) {
+	    RubyProc p = (r instanceof RubyProc) ? (RubyProc)r : (RubyProc)((RubyMethod)r).to_proc(r.getRuntime().getCurrentContext(), Block.NULL_BLOCK);
+	    Object o = new JSFunctionWrapper(scope, r.getRuntime(), p.getBlock());
 	    cacheWrapper(r.getRuntime(), o, r);
 	    return o;
 	}

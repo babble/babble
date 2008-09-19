@@ -205,26 +205,26 @@ public class RubyJxpSourceTest extends SourceRunner {
 //     }
 
     public void testLibNameFromPath() {
-	assertEquals("local", source.libNameFromPath("local"));
-	assertEquals("local", source.libNameFromPath("/local"));
-	assertEquals("local", source.libNameFromPath("local/foo"));
-	assertEquals("local", source.libNameFromPath("/local/foo"));
+	assertEquals(source.libNameFromPath("local"), "local");
+	assertEquals(source.libNameFromPath("/local"), "local");
+	assertEquals(source.libNameFromPath("local/foo"), "local");
+	assertEquals(source.libNameFromPath("/local/foo"), "local");
     }
 
     public void testRemoveLibName() {
-	assertEquals("", source.removeLibName(""));
-	assertEquals("", source.removeLibName("local"));
-	assertEquals("", source.removeLibName("/local"));
-	assertEquals("foo", source.removeLibName("local/foo"));
-	assertEquals("foo", source.removeLibName("/local/foo"));
+	assertEquals(source.removeLibName(""), "");
+	assertEquals(source.removeLibName("local"), "");
+	assertEquals(source.removeLibName("/local"), "");
+	assertEquals(source.removeLibName("local/foo"), "foo");
+	assertEquals(source.removeLibName("/local/foo"), "foo");
     }
 
     public void testGetLibFromPath() {
 	Object local = s.get("local");
-	assertSame(local, source.getLibFromPath("local", s));
-	assertSame(local, source.getLibFromPath("local", s));
-	assertSame(local, source.getLibFromPath("/local", s));
-	assertSame(local, source.getLibFromPath("/local/foo", s));
+	assertSame(source.getLibFromPath("local", s), local);
+	assertSame(source.getLibFromPath("local", s), local);
+	assertSame(source.getLibFromPath("/local", s), local);
+	assertSame(source.getLibFromPath("/local/foo", s), local);
 	assertNull(source.getLibFromPath("no/such/lib/name", s));
     }
 }
