@@ -65,22 +65,6 @@ public class PythonJxpSource extends JxpSource {
         return _file;
     }
 
-    static class MyStdoutFile extends PyFile {
-        MyStdoutFile(AppRequest request){
-            _request = request;
-        }
-        public void flush(){}
-
-        public void write( String s ){
-            if( _request == null )
-                // Log
-                _log.info( s );
-            else
-                _request.print( s );
-        }
-        AppRequest _request;
-    }
-
     public synchronized JSFunction getFunction()
         throws IOException {
         
@@ -95,53 +79,46 @@ public class PythonJxpSource extends JxpSource {
                 
                 final AppRequest ar = AppRequest.getThreadLocal();
                 
-                PySystemState ss = Py.getSystemState();
-
-                // Have to flush every module that depends on any module that
-                // has been updated
-                if( ! ( ss.modules instanceof PythonModuleTracker ) ){
-                    if( ss.modules instanceof PyStringMap)
-                        ss.modules = new PythonModuleTracker( (PyStringMap)ss.modules );
-                    else {
-                        // You can comment out this exception, it shouldn't
-                        // break anything beyond reloading python modules
-                        throw new RuntimeException("couldn't intercept modules " + ss.modules.getClass());
-                    }
-                }
-                else {
-                    PythonModuleTracker mods = (PythonModuleTracker)ss.modules;
-                    mods.flushOld();
-                }
                 
+                final AppContext ac = ar != null ? ar.getContext() : null ;
+
+                SiteSystemState ss = Python.getSiteSystemState( ac , s );
+                PySystemState pyOld = Py.getSystemState();
+
                 ensureMetaPathHook( ss , s );
 
-                PyObject out = ss.stdout;
-                if ( ! ( out instanceof MyStdoutFile ) || ((MyStdoutFile)out)._request != ar ){
-                    ss.stdout = new MyStdoutFile( ar );
-                }
-                
+                ss.flushOld();
+
+                ss.setOutput( ar );
+
                 addPath( ss , _lib.getRoot().toString() );
                 addPath( ss , _lib.getTopParent().getRoot().toString() );
 
-                PyObject globals = Python.getGlobals( s );
+                PyObject globals = ss.globals;
                 PyObject builtins = ss.builtins;
 
                 PyObject pyImport = builtins.__finditem__( "__import__" );
                 if( ! ( pyImport instanceof TrackImport ) )
                     builtins.__setitem__( "__import__" , new TrackImport( pyImport , (PythonModuleTracker)ss.modules ) );
 
-                PyModule xgenMod = imp.addModule("_10gen");
-                // I know this is appalling but they don't expose this any other
-                // way
-                xgenMod.__dict__ = globals;
+                try {
+                    Py.setSystemState( ss );
                 
-                //Py.initClassExceptions( globals );
-                globals.__setitem__( "__file__", Py.newString( _file.toString() ) );
-                PyModule module = new PyModule( "__main__" , globals );
+                    PyModule xgenMod = imp.addModule("_10gen");
+                    // I know this is appalling but they don't expose this any other
+                    // way
+                    xgenMod.__dict__ = globals;
 
-                PyObject locals = module.__dict__;
+                    //Py.initClassExceptions( globals );
+                    globals.__setitem__( "__file__", Py.newString( _file.toString() ) );
+                    PyModule module = new PyModule( "__main__" , globals );
 
-                return Py.runCode( code, locals, globals );
+                    PyObject locals = module.__dict__;
+                    return Py.runCode( code, locals, globals );
+                }
+                finally {
+                    Py.setSystemState( pyOld );
+                }
             }
 
             private void ensureMetaPathHook( PySystemState ss , Scope scope ){
