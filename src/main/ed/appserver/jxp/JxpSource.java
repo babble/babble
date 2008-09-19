@@ -115,9 +115,8 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
         if ( ! t.getExtension().equals( "js" ) )
             throw new RuntimeException( "don't know what do do with : " + t.getExtension() );
         
-        Convert convert = null;
         try {
-            convert = new Convert( t.getName() , t.getContent() , false , t.getSourceLanguage() );
+            Convert convert = new Convert( t.getName() , t.getContent() , false , t.getSourceLanguage() );
             _func = convert.get();
             _func.set(JXP_SOURCE_PROP, this);
             return _func;

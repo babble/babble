@@ -84,8 +84,9 @@ public class CompileUtil {
             
             if ( ! oldOK ){
                 
+                _rollingLog.write( f.toString() );
                 if ( D ) System.out.println( " compiling  oldSourceSame: " + oldSourceSame + " oldExists:" + oldExists + " oldDepends:" + oldDepends + "\t" + f );
-
+                
                 FileOutputStream fout = new FileOutputStream( f );
                 fout.write( source.getBytes() );
                 fout.close();
@@ -181,7 +182,12 @@ public class CompileUtil {
         "src/main/ed/js" , 
         "src/main/ed/js/engine" , 
         "src/main/ed/js/func" };
-    
+
+    private static final RollingNamedPipe _rollingLog = new RollingNamedPipe( "compile" );
+    static {
+        _rollingLog.setMessageDivider( "\n" );
+    }
+
     static {
         
         String root = null;
