@@ -36,8 +36,6 @@ import java.util.regex.Pattern;
 import org.python.core.PyObject;
 import org.python.core.PyString;
 
-import sun.security.action.LoadLibraryAction;
-
 import ed.appserver.JSFileLibrary;
 import ed.appserver.jxp.JxpSource;
 import ed.js.JSArray;
@@ -52,7 +50,6 @@ import ed.js.JSString;
 import ed.js.engine.JSCompiledScript;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
-import ed.js.func.JSFunctionCalls2;
 import ed.lang.python.Python;
 import ed.log.Level;
 import ed.log.Logger;
@@ -142,10 +139,9 @@ public class JSHelper extends JSObjectBase {
         
         JSArray loaders = (JSArray)helper.get("TEMPLATE_LOADERS");
         
-        loaders.add("djang10js.loaders.filesystem.load_template_source");
-        loaders.add("djang10js.loaders.absolute.load_template_source");
         loaders.add("djang10js.loaders.site_relative.load_template_source");
-        
+        loaders.add("djang10js.loaders.absolute.load_template_source");
+        loaders.add("djang10js.loaders.filesystem.load_template_source");
         
         return helper;
     }
@@ -273,7 +269,10 @@ public class JSHelper extends JSObjectBase {
         
         JSArray loaders = (JSArray)get("TEMPLATE_LOADERS");
         
-        for(Object loaderObj : loaders) {
+        ListIterator<Object> loaderIter = loaders.listIterator(loaders.size());
+        while(loaderIter.hasPrevious()) {
+            Object loaderObj = loaderIter.previous();
+
             JSFunction loader;
             if(loaderObj instanceof JSString || loaderObj instanceof String) {
                 String loaderStr = loaderObj.toString();
