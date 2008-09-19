@@ -220,7 +220,7 @@ public class Cloud extends JSObjectBase {
         JSFunction func = null;
         
         if ( func == null && t != null ){
-            func = (JSFunction)t.get( funcName );
+            func = t.getFunction( funcName );
         }
 
         if ( func == null )
