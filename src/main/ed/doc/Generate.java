@@ -64,8 +64,6 @@ public class Generate {
         connected = true;
     }
 
-    public static JSObjectBase _global;
-
     public static JSObject mergeClasses(JSObject master, JSObject child) {
         // merge constructors
         JSArray javadocCons = (JSArray)master.get("constructors");
@@ -127,15 +125,6 @@ public class Generate {
             mergeClasses( (JSObject)existing.get( "symbolSet" ) , jsobj );
             docdb.save( existing );
         }
-    }
-
-    public static void globalToDb() {
-        JSObjectBase newGlobal = new JSObjectBase();
-        newGlobal.set("symbolSet", _global);
-        newGlobal.set("ts", Calendar.getInstance().getTime().toString());
-        newGlobal.set("name", "_global_");
-
-        docdb.save(newGlobal);
     }
 
     /** javaSrcs is a list of Java classes to be processed.  In order to be merged correctly when
@@ -279,7 +268,7 @@ public class Generate {
                 JSObject unit = (JSObject)json.get(name);
                 JSString isa = (JSString)unit.get("isa");
                 boolean isNamespace = ((Boolean)unit.get("isNamespace")).booleanValue();
-                if(isa.equals("GLOBAL") || isa.equals("CONSTRUCTOR") || isNamespace) {
+                if( isa.equals("CONSTRUCTOR") || ( isNamespace && !isa.equals( "GLOBAL" ) ) ) {
                     JSArray modules = (JSArray)unit.get( "docmodule" );
                     if( modules != null && modules.size() > 0 ) {
                         for( Object m : modules ) {
@@ -305,19 +294,6 @@ public class Generate {
             return "";
         }
     }
-
-    public static void addToGlobal(String field, JSArray obj) {
-        JSObjectBase gobj = (JSObjectBase)_global.get("_global_");
-        JSArray garray = (JSArray)gobj.get(field);
-        if(garray == null) garray = new JSArray();
-
-        for ( String key : obj.keySet() ) {
-            garray.add( obj.get( key ) );
-        }
-        gobj.set(field, garray);
-        _global.set("_global_", gobj);
-    }
-
 
     /** Generate a js obj from javadoc
      * @param path to file or folder to be documented
@@ -453,7 +429,6 @@ public class Generate {
             srcToDb( (String)name );
         }
         javaSrcsToDb();
-        globalToDb();
 
         JSObjectBase nameIdx = new JSObjectBase();
         nameIdx.set( "name" , 1 );
