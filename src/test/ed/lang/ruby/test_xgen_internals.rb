@@ -71,6 +71,46 @@ EOS
     assert Track.respond_to?(:find_or_create_by_track)
   end
 
+  def test_ivars_created
+    t = Track.new
+    %w(_id artist album song track).each { |iv|
+      assert t.instance_variable_defined?("@#{iv}")
+    }
+  end
+
+  # Making sure we see the ivar, not the getter method
+  def test_ivars_into_js
+    $t = Track.new
+    run_js <<EOS
+print("t.album = " + t.album);
+print("typeof(t.album) = " + typeof(t.album));
+EOS
+    assert_equal("t.album = null\ntypeof(t.album) = undefined", $jsout.strip)
+  end
+
+  def test_require_and_ivars_into_js
+    require 'track2'
+    $t = Track2.new
+    run_js <<EOS
+print("t.album = " + t.album);
+print("typeof(t.album) = " + typeof(t.album));
+EOS
+    assert_equal("t.album = null\ntypeof(t.album) = undefined", $jsout.strip)
+  end
+
+# FIXME need to make require/load that uses local (JSFileLibrary) use built-in
+# JRuby require if it sees it's a Ruby file.
+
+#   def test_require_local_and_ivars_into_js
+#     require '/local/track3'
+#     $t = Track3.new
+#     run_js <<EOS
+# print("t.album = " + t.album);
+# print("typeof(t.album) = " + typeof(t.album));
+# EOS
+#     assert_equal("t.album = null\ntypeof(t.album) = undefined", $jsout.strip)
+#   end
+
   def test_method_generation
     x = Track.new({:artist => 1, :album => 2})
 
@@ -154,12 +194,15 @@ EOS
   end
 
   def test_new_and_save
-    x = Track.new(:artist => 'Level 42', :album => 'Standing In The Light', :song => 'Micro-Kid', :track => 1).save
-    assert_equal("artist: Level 42, album: Standing In The Light, song: Micro-Kid, track: 1", x.to_s)
-    assert_not_nil(x._id)
-    y = Track.find(x._id)
+    x = Track.new(:artist => 'Level 42', :album => 'Standing In The Light', :song => 'Micro-Kid', :track => 1)
+    assert_nil(x._id)
+    y = x.save
     assert_equal(x.to_s, y.to_s)
-    assert_equal(x._id, y._id)
+    assert_equal("artist: Level 42, album: Standing In The Light, song: Micro-Kid, track: 1", y.to_s)
+    assert_not_nil(y._id)
+    z = Track.find(y._id)
+    assert_equal(y.to_s, z.to_s)
+    assert_equal(y._id, z._id)
   end
 
   def find_or_create_but_already_exists
@@ -170,22 +213,6 @@ EOS
   def find_or_create_new_created
     assert_equal("artist: New Artist, album: New Album, song: New Song, track: ",
                  Track.find_or_create_by_song({:song => 'New Song', :artist => 'New Artist', :album => 'New Album'}).to_s)
-  end
-
-  def test_new_ivar_creation
-    t = Track.new
-    t.foo = 42
-    assert_equal 42, t.foo
-  end
-
-  def test_new_ivar_creation_uses_singleton
-    t1 = Track.new
-    t1.foo = 42
-    assert t1.respond_to?(:foo)
-
-    t2 = Track.new
-    assert !t2.respond_to?(:blargh), "t2 should not respond to :any old thing"
-    assert !t2.respond_to?(:foo), "t2 should not respond to :foo just because t1 does"
   end
 
   def test_cursor_methods

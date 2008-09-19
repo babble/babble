@@ -1,2 +1,14 @@
+/data/corejs/content/
+/data/corejs/core/
+/data/corejs/db/
+/data/corejs/git/
+/data/corejs/media/
+/data/corejs/net/
+/data/corejs/user/
+/data/corejs/text/
+/data/corejs/util/
+/data/corejs/ws/
 src/main/ed/db/
+src/main/ed/appserver/
 src/main/ed/net/httpserver/
+/data/core-modules/blog/master/

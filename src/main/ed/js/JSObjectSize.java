@@ -43,6 +43,15 @@ public class JSObjectSize {
     public static long size( Object o , IdentitySet seen ){
         if ( o == null )
             return 0;
+
+        final long size = _size( o , seen );
+        //System.out.println( "\t" + o.getClass() + "\t" + size );
+        return size;
+    }
+    
+    static long _size( Object o , IdentitySet seen ){
+        if ( o == null )
+            return 0;
         
         if ( o instanceof Boolean ||
              o instanceof Short ||
@@ -58,13 +67,8 @@ public class JSObjectSize {
         
         if ( o instanceof String ||
              o instanceof JSString )
-            return OBJ_OVERHEAD + (long)( o.toString().length() * 1.5 );
+            return OBJ_OVERHEAD + (long)( o.toString().length() * 2 );
         
-        if ( o instanceof JSFunction ){
-            // TODO
-            return 128;
-        }
-
         if ( o instanceof DBCollection ){
             // TODO
             return 128;
@@ -103,17 +107,19 @@ public class JSObjectSize {
             return ((Scope)o).approxSize( seen );
         }
 
-        if ( o.getClass() == JSObjectBase.class ){
-            return ((JSObjectBase)o).approxSize( seen );
-        }
-
         if ( o instanceof Collection ){
             long temp = 0;
             temp += 32;
-            for ( Object foo : (Collection)o )
+            for ( Object foo : (Collection)o ){
+                if ( seen.contains( foo ) )
+                    continue;
                 temp += size( foo );
+            }
             return temp;
         }
+
+        if ( o instanceof JSObjectBase )
+            return ((JSObjectBase)o).approxSize( seen );
 
 
         String blah = o.getClass().toString();

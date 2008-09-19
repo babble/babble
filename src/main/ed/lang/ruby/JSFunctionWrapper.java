@@ -44,7 +44,7 @@ public class JSFunctionWrapper extends JSFunctionCalls0 {
     private Block _block;
 
     public JSFunctionWrapper(Scope scope, Ruby runtime, Block block) {
-	if (RubyObjectWrapper.DEBUG)
+	if (RubyObjectWrapper.DEBUG_CREATE)
 	    System.err.println("wrapping a block in a JSFunctionWrapper");
 	_scope = scope;
 	_runtime = runtime;
@@ -52,7 +52,7 @@ public class JSFunctionWrapper extends JSFunctionCalls0 {
     }
 
     public Object callBlock(Scope scope, Object ... args) {
-	if (RubyObjectWrapper.DEBUG)
+	if (RubyObjectWrapper.DEBUG_FCALL)
 	    System.err.println("calling Ruby block");
 	List<IRubyObject> rargs = new ArrayList<IRubyObject>();
 	if (args != null)

@@ -38,3 +38,39 @@ xml.foo.@bar = "lalala";
 xml.fooy.bar.blah[0] = "fooy!";
 xml.bar.foo.bar.foo[0] = <such>a pita</such>;
 print( xml );
+
+// Make sure it's not copied if it's XML
+x = <a><b>two</b></a>;
+y = XML(x);
+x.b = "three";
+print(y);
+
+x = XML("4");
+print( x + " " + (x == 4) );
+
+x = new XML(<foo><bar>hi</bar></foo>);
+y = new XML("<foo><bar>hi</bar></foo>");
+print( x == y );
+
+x = <hello a='\"' />;
+print( x.toXMLString() );
+
+x = <alpha>
+    <bravo>one</bravo>
+    <charlie>two</charlie>
+</alpha>;
+x.insertChildAfter(x.bravo[0], <delta>three</delta>);
+x.insertChildAfter(null, <delta>three</delta>);
+print( x );
+
+x = <alpha>
+    <bravo>one</bravo>
+    <charlie>two</charlie>
+</alpha>;
+x.insertChildBefore(x.bravo[0], <delta>three</delta>)
+x.insertChildBefore(null, <delta>three</delta>);
+print( x );
+
+x = new XML();
+print( x.nodeKind());
+print( XML.prototype.nodeKind());

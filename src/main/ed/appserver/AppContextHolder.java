@@ -103,9 +103,6 @@ public class AppContextHolder {
         host = info.host;
         uri = info.uri;
 
-	if ( host.equals( "corejs.com" ) )
-	    return new Result( _getCoreContext() , host , uri );
-
         AppContext ac = _getContextFromMap( host );
         if ( ac != null )
             return new Result( ac , host , uri );
@@ -194,8 +191,6 @@ public class AppContextHolder {
             if ( _same( _defaultContext , oldOne ) )
                 _defaultContext = newOne;
             
-            if ( _same( _coreContext , oldOne ) )
-                _coreContext = newOne;
         }
     }
     
@@ -470,12 +465,6 @@ public class AppContextHolder {
         final String uri;
     }
 
-    private synchronized AppContext _getCoreContext(){
-        if ( _coreContext == null )
-            _coreContext = new AppContext( CoreJS.get().getRootFile( null ) );
-        return _coreContext;
-    }
-
     class Result {
         
         Result( AppContext context , String host , String uri ){
@@ -502,8 +491,6 @@ public class AppContextHolder {
 
     private final String _defaultWebRoot;
     private AppContext _defaultContext;
-
-    private AppContext _coreContext;
 
     private final Map<String,AppContext> _contextCache = Collections.synchronizedMap( new StringMap<AppContext>() );
     private final String _contextCreationLock = ( "AppContextHolder-Lock-" + Math.random() ).intern();

@@ -96,6 +96,7 @@ public abstract class HttpMonitor implements HttpHandler {
             super( "threads" );
             _style =   
                 "<style>\n" + 
+                " body { font-size: .75em; }\n" + 
                 ".js { color: red; }\n" + 
                 ".ed { color: blue; }\n" +
                 "</style>\n";

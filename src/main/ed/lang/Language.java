@@ -20,9 +20,12 @@ package ed.lang;
 
 import javax.script.*;
 
+import ed.js.*;
+import ed.js.engine.*;
+
 public abstract class Language {
     
-    Language( String name ){
+    protected Language( String name ){
         _name = name;
     }
     
@@ -38,30 +41,29 @@ public abstract class Language {
         throw new UnsupportedOperationException();
     }
 
+    public JSFunction compileLambda( String source ){
+        throw new UnsupportedOperationException();
+    }
+
+    public Object eval( Scope scope , String code , boolean[] hasReturn ){
+        JSFunction func = compileLambda( code );
+        Object ret = func.call( scope );
+        if ( hasReturn != null && hasReturn.length > 0 )
+            hasReturn[0] = true;
+        return ret;
+    }
+
     public String toString(){
         return _name;
     }
 
     final String _name;
     
-    public static final Language JS = new Language( "js" ){};
+    public static final Language JS = new ed.js.JS();
     public static final Language RUBY = new Language( "ruby" ){};
-    public static final Language PYTHON = new Language( "python" ){};
-    
-    public static final Language PHP = new Language( "php" ){
-            public boolean isScriptable(){
-                return true;
-            }
+    public static final Language PYTHON = new ed.lang.python.Python();
+    public static final Language PHP = new ed.lang.php.PHP();
 
-            public ScriptEngine getScriptEngine(){
-                return ed.lang.php.PHP.getScriptEngine();
-            }
-
-            public ObjectConvertor getObjectConvertor(){
-                return null;
-            }
-        };
-    
     public static Language find( String file ){
         return find( file , false );
     }
@@ -88,7 +90,7 @@ public abstract class Language {
         if ( extension.equals( "php" ) )
             return PHP;
 
-        if ( extension.equals( "py" ) )
+        if ( extension.equals( "py" ) || extension.equals( "python" ) )
             return PYTHON;
         
         if ( errorOnNoMatch )

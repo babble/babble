@@ -83,5 +83,17 @@ public class MemUtil {
         return ( r.maxMemory() - r.totalMemory() ) + r.freeMemory();
     }
 
+    public static String getMemInfo( boolean gc ){
+        if ( gc )
+            System.gc();
+
+        Runtime r = Runtime.getRuntime();
+
+        StringBuilder buf = new StringBuilder();
+        buf.append( "max   : " ).append( MemUtil.bytesToMB( r.maxMemory() ) ).append( "\n" );
+        buf.append( "total : " ).append( MemUtil.bytesToMB( r.totalMemory() ) ).append( "\n" );
+        buf.append( "free  : " ).append( MemUtil.bytesToMB( r.freeMemory() ) ).append( "\n" );
+        return buf.toString();
+    }
 
 }

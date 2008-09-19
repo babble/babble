@@ -53,7 +53,7 @@ public class RubyDBCursorWrapper extends RubyArray {
 
     RubyDBCursorWrapper(Scope s, Ruby runtime, DBCursor cursor) {
 	super(runtime, getDBCursorClass(runtime));
-	if (RubyObjectWrapper.DEBUG)
+	if (RubyObjectWrapper.DEBUG_CREATE)
 	    System.err.println("creating RubyDBCursorWrapper");
 	_scope = s;
 	_cursor = cursor;
@@ -96,7 +96,8 @@ public class RubyDBCursorWrapper extends RubyArray {
 	return getRuntime().newFixnum(_cursor.hashCode());
     }
 
-    private final void concurrentModification() {
+    private final void concurrentModification(Exception e) {
+	e.printStackTrace();
         throw getRuntime().newConcurrencyError("Detected invalid array contents due to unsynchronized modifications with concurrent users");
     }
 
@@ -113,29 +114,29 @@ public class RubyDBCursorWrapper extends RubyArray {
         try {
             return _at(index);
         } catch (ArrayIndexOutOfBoundsException e) {
-            concurrentModification();
+            concurrentModification(e);
             return getRuntime().getNil();
         }
     }
 
     public IRubyObject fetch(ThreadContext context, IRubyObject arg0, IRubyObject arg1, Block block) {
-       if (block.isGiven()) getRuntime().getWarnings().warn(ID.BLOCK_BEATS_DEFAULT_VALUE, "block supersedes default value argument");
+	if (block.isGiven()) getRuntime().getWarnings().warn(ID.BLOCK_BEATS_DEFAULT_VALUE, "block supersedes default value argument");
 
-       long index = RubyNumeric.num2long(arg0);
+	long index = RubyNumeric.num2long(arg0);
 
 	long realLength = _cursor.length();
-       if (index < 0) index += realLength;
-       if (index < 0 || index >= realLength) {
-           if (block.isGiven()) return block.yield(context, arg0);
-           return arg1;
-       }
+	if (index < 0) index += realLength;
+	if (index < 0 || index >= realLength) {
+	    if (block.isGiven()) return block.yield(context, arg0);
+	    return arg1;
+	}
 
-       try {
-           return _at(index);
-       } catch (ArrayIndexOutOfBoundsException e) {
-           concurrentModification();
-           return getRuntime().getNil();
-       }
+	try {
+	    return _at(index);
+	} catch (ArrayIndexOutOfBoundsException e) {
+	    concurrentModification(e);
+	    return getRuntime().getNil();
+	}
     }
 
     public IRubyObject insert(IRubyObject arg) {
@@ -413,7 +414,7 @@ public class RubyDBCursorWrapper extends RubyArray {
             try {
                 tmp = _at(i);
             } catch (ArrayIndexOutOfBoundsException e) {
-                concurrentModification();
+                concurrentModification(e);
                 return runtime.newString("");
             }
             if (tmp instanceof RubyString) {
@@ -699,7 +700,7 @@ public class RubyDBCursorWrapper extends RubyArray {
 	    for (int i = 0; i < yRealLength; ++i)
 		z.append(y.at(getRuntime().newFixnum(i)));
         } catch (ArrayIndexOutOfBoundsException e) {
-            concurrentModification();
+            concurrentModification(e);
         }
         return z;
     }

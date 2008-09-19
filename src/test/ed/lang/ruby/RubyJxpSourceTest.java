@@ -16,11 +16,14 @@
 
 package ed.lang.ruby;
 
+import java.io.File;
+
 import org.jruby.runtime.builtin.IRubyObject;
 
 import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
+import ed.appserver.JSFileLibrary;
 import ed.js.*;
 import ed.js.engine.Scope;
 
@@ -189,5 +192,39 @@ public class RubyJxpSourceTest extends SourceRunner {
 	child.put("kiddie", new Integer(666));
 	s = child;
 	assertRubyEquals("puts $adult; puts $kiddie", "555\n666");
+    }
+
+//     public void testLibPathAdditions() {
+// 	s.put("local", new JSFileLibrary(new File("/foo/bar/local"), null, s));
+// 	s.put("core", new JSFileLibrary(new File("/foo/bar/core"), null, s));
+// 	s.put("external", new JSFileLibrary(new File("/foo/bar/external"), null, s));
+// 	runRuby("puts $:.join(',')");
+// 	assertTrue(rubyOutput.contains("/foo/bar/local"));
+// 	assertTrue(rubyOutput.contains("/foo/bar/core"));
+// 	assertTrue(rubyOutput.contains("/foo/bar/external"));
+//     }
+
+    public void testLibNameFromPath() {
+	assertEquals("local", source.libNameFromPath("local"));
+	assertEquals("local", source.libNameFromPath("/local"));
+	assertEquals("local", source.libNameFromPath("local/foo"));
+	assertEquals("local", source.libNameFromPath("/local/foo"));
+    }
+
+    public void testRemoveLibName() {
+	assertEquals("", source.removeLibName(""));
+	assertEquals("", source.removeLibName("local"));
+	assertEquals("", source.removeLibName("/local"));
+	assertEquals("foo", source.removeLibName("local/foo"));
+	assertEquals("foo", source.removeLibName("/local/foo"));
+    }
+
+    public void testGetLibFromPath() {
+	Object local = s.get("local");
+	assertSame(local, source.getLibFromPath("local", s));
+	assertSame(local, source.getLibFromPath("local", s));
+	assertSame(local, source.getLibFromPath("/local", s));
+	assertSame(local, source.getLibFromPath("/local/foo", s));
+	assertNull(source.getLibFromPath("no/such/lib/name", s));
     }
 }

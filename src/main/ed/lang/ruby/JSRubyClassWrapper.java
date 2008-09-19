@@ -40,7 +40,7 @@ public class JSRubyClassWrapper extends JSFunctionCalls0 {
     private RubyClass _klazz;
 
     public JSRubyClassWrapper(Scope scope, RubyClass klazz) {
-	if (RubyObjectWrapper.DEBUG)
+	if (RubyObjectWrapper.DEBUG_CREATE)
 	    System.err.println("wrapping the class " + klazz.name() + " in a JSRubyClassWrapper");
 	_scope = scope;
 	_klazz = klazz;

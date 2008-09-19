@@ -47,9 +47,12 @@ public class JxpScriptContext implements ScriptContext {
     }
     
     public Object getAttribute(String name, int scope){
+        Object o = null;
+        
         if ( name.equals( "_10gen" ) || name.equals( "_xgen" ) )
-            return _scope;
-        Object o = _scope.get( name );
+            o = _scope;
+        else 
+            o = _scope.get( name );
         if ( _convertor != null )
             o = _convertor.toOther( o );
         return o;

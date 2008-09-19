@@ -18,9 +18,10 @@ package ed.lang.ruby;
 
 import java.util.*;
 
-import org.jruby.RubyObject;
-import org.jruby.RubyString;
+import org.jruby.*;
+import org.jruby.internal.runtime.methods.DynamicMethod;
 import org.jruby.runtime.Block;
+import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.runtime.builtin.Variable;
 
@@ -30,6 +31,7 @@ import ed.js.JSObject;
 import ed.js.engine.Scope;
 import static ed.lang.ruby.RubyObjectWrapper.toJS;
 import static ed.lang.ruby.RubyObjectWrapper.toRuby;
+import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
 
 /**
  * JSObjectWrapper acts as a bridge between Ruby objects and JSObjects. This
@@ -43,13 +45,17 @@ public class JSObjectWrapper implements JSObject {
 
     private Scope _scope;
     private RubyObject _robj;
+    private RubyModule _xgenModule; // cached copy for quick access
 
     public JSObjectWrapper(Scope scope, RubyObject robj) {
 	_scope = scope;
 	_robj = robj;
+	_xgenModule = RubyJxpSource.xgenModule(_robj.getRuntime());
     }
 
     public RubyObject getRubyObject() { return _robj; }
+
+    protected ThreadContext context() { return _robj.getRuntime().getCurrentContext(); }
 
     protected IRubyObject ivarName(Object key) {
 	String str = key.toString();
@@ -58,54 +64,123 @@ public class JSObjectWrapper implements JSObject {
 	return RubyString.newString(_robj.getRuntime(), str);
     }
 
+    /**
+     * Returns <code>true</code> if the metaclass of _robj has a method named
+     * <var>name</var> and it is not implemented only in the XGen module. In
+     * other words, we want to return <code>true</code> if the method exists
+     * but it is not a top-level JavaScript method that was imported early on
+     * (either it is not a JS method or it was overridden).
+     */
+    protected boolean respondsToAndIsNotXGen(String name) {
+	if (!_robj.respondsTo(name))
+	    return false;
+	DynamicMethod dm = _robj.getMetaClass().searchMethod(name);
+	return !dm.getImplementationClass().equals(_xgenModule);
+    }
+
+    protected void _removeIvarIfExists(String skey) {
+	IRubyObject name = ivarName(skey);
+	if (_robj.instance_variable_defined_p(context(), name).isTrue())
+	    _robj.remove_instance_variable(context(), name, Block.NULL_BLOCK);
+	_removeMethodIfExists(skey);
+	_removeMethodIfExists(skey + "=");
+    }
+
+    protected void _removeMethodIfExists(String skey) {
+	if (respondsToAndIsNotXGen(skey)) {
+	    ThreadContext context = context();
+	    IRubyObject[] names = new IRubyObject[] {RubyString.newString(_robj.getRuntime(), skey)};
+	    try {
+		_robj.getSingletonClass().remove_method(context, names);
+	    }
+	    catch (Exception e) {
+		try {
+		    _robj.type().remove_method(context, names);
+		}
+		catch (Exception e2) {}
+	    }
+	}
+    }
+
     public Object set(Object n, Object v) {
-	if (v instanceof ObjectId)
-	    v = v.toString();
-	_robj.instance_variable_set(ivarName(n), toRuby(_scope, _robj.getRuntime(), v));
+	String skey = n.toString();
+
+	if ("_id".equals(skey) && v instanceof ObjectId)
+	    _robj.instance_variable_set(ivarName(n), toRuby(_scope, _robj.getRuntime(), v.toString()));
+	else if (isCallableJSFunction(v)) {
+	    _removeIvarIfExists(skey);
+	    toRuby(_scope, _robj.getRuntime(), (JSFunction)v, skey, _robj, this);
+	}
+	else {
+	    _removeMethodIfExists(skey);
+	    _robj.instance_variable_set(ivarName(n), toRuby(_scope, _robj.getRuntime(), v));
+	}
 	return v;
     }
 
     public Object get(Object n) {
-	IRubyObject ro = _robj.instance_variable_get(_robj.getRuntime().getCurrentContext(), ivarName(n));
-	if ("_id".equals(n.toString()) && !ro.isNil()) {
-	    return new ObjectId(ro.toString());
+	String skey = n.toString();
+
+	IRubyObject ivarName = ivarName(skey);
+	if (_robj.instance_variable_defined_p(context(), ivarName).isTrue()) {
+	    IRubyObject ro = _robj.instance_variable_get(context(), ivarName);
+	    if ("_id".equals(skey) && !ro.isNil())
+		return new ObjectId(ro.toString());
+	    return toJS(_scope, ro);
 	}
-	return toJS(_scope, ro);
+
+	if (respondsToAndIsNotXGen(skey)) {
+	    RubyMethod m = (RubyMethod)_robj.method(_robj.getRuntime().newSymbol(skey));
+	    return new JSFunctionWrapper(_scope, _robj.getRuntime(), ((RubyProc)m.to_proc(context(), Block.NULL_BLOCK)).getBlock());
+	}
+
+	return toJS(_scope, null);
     }
 
     public Object setInt(int n, Object v) {
-	return null;
+	if (_robj instanceof RubyArray)
+	    ((RubyArray)_robj).aset(_robj.getRuntime().newFixnum(n), toRuby(_scope, _robj.getRuntime(), v));
+	return v;
     }
 
     public Object getInt(int n) {
-	return null;
+	return _robj instanceof RubyArray ? toJS(_scope, ((RubyArray)_robj).aref(_robj.getRuntime().newFixnum(n))) : null;
     }
 
     public Object removeField(Object n) {
 	Object o = get(n);
-	_robj.remove_instance_variable(_robj.getRuntime().getCurrentContext(), ivarName(n), Block.NULL_BLOCK);
+	_removeIvarIfExists(n.toString());
+	_removeMethodIfExists(n.toString());
 	return o;
     }
 
+    // TODO ignore top-level (Kernel) methods defined from JavaScript
     public boolean containsKey(String s) {
-	return _robj.hasInstanceVariable(s); // TODO extend to methods, too?
+	return _robj.hasInstanceVariable("@" + s) ||
+	    respondsToAndIsNotXGen(s);
+// 	    ((RubyArray)_robj.methods(context(), JSFunctionWrapper.EMPTY_IRUBY_OBJECT_ARRAY)).includes(context(), RubyString.newString(_robj.getRuntime(), s));
     }
 
     public Collection<String> keySet() {
-	Set<String> names = new HashSet<String>();
-	for (Variable var : _robj.getInstanceVariables().getInstanceVariableList())
-	    names.add(var.getName().substring(1));
-	return names;
+	return keySet(true);
     }
 
     public Collection<String> keySet(boolean includePrototype) {
-	return keySet();
+	Set<String> names = new HashSet<String>();
+	for (Variable var : _robj.getInstanceVariables().getInstanceVariableList())
+	    names.add(var.getName().substring(1));
+	if (includePrototype)
+	    for (Object name : ((RubyArray)_robj.methods(context(), JSFunctionWrapper.EMPTY_IRUBY_OBJECT_ARRAY)))
+		if (respondsToAndIsNotXGen(name.toString()))
+		    names.add(name.toString());
+	return names;
     }
 
     public JSFunction getConstructor() {
-	return null;
+	return new JSRubyClassWrapper(_scope, _robj.type());
     }
 
+    // Can't return super (?) because Ruby super != JavaScript super.
     public JSObject getSuper() {
 	return null;
     }

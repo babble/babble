@@ -262,7 +262,6 @@ public class Generate {
         		null, jsfl.getRoot(), "");
 
         String rout = r.getOut();
-
         String jsdocUnits[] = rout.split("---=---");
         for(int i=0; i<jsdocUnits.length; i++) {
             // as far as I know, jsdocUnits[i] has never been null, but it has been "", which eval doesn't like
@@ -282,7 +281,7 @@ public class Generate {
                 boolean isNamespace = ((Boolean)unit.get("isNamespace")).booleanValue();
                 if(isa.equals("GLOBAL") || isa.equals("CONSTRUCTOR") || isNamespace) {
                     JSArray modules = (JSArray)unit.get( "docmodule" );
-                    if( modules != null ) {
+                    if( modules != null && modules.size() > 0 ) {
                         for( Object m : modules ) {
                             addToModule( unit, m.toString() );
                         }
@@ -290,19 +289,6 @@ public class Generate {
                     else {
                         addToModule( unit, name );
                     }
-
-                    /*                    if(name.equals("_global_")) {
-                        if(_global == null) {
-                            _global = (JSObjectBase)json;
-                        }
-                        else {
-                            addToGlobal("methods", (JSArray)unit.get("methods"));
-                            addToGlobal("properties", (JSArray)unit.get("properties"));
-                        }
-                    }
-                    else {
-                        docdb.save(obj);
-                        }*/
                 }
             }
         }

@@ -26,7 +26,7 @@ import ed.util.*;
  * @anonymous name : {findOne}, desc : {Returns the first object in this collection matching a given query.}, return : {type : (JSObject), desc : (the first matching element)}, param : {type : (JSObject), name : (query), desc : (query to use)}, param : { type : (JSObject), name : (f), desc : (fields to return)
  * @anonymous name : {tojson}, desc : {Returns a description of this collection as a string.}, return : {type : (String), desc : ("{DBCollection:this.collection.name}")}
  * @expose
- * @docmodule System.DB.collection 
+ * @docmodule system.database.collection
  */
 public abstract class DBCollection extends JSObjectLame {
 
@@ -722,33 +722,22 @@ public abstract class DBCollection extends JSObjectLame {
         }
         return _javaMethods;
     }
-
-    /** @unexpose */
+    
     final DBBase _base;
 
-    /** @unexpose */
     final JSFunction _save;
-    /** @unexpose */
     final JSFunction _update;
-    /** @unexpose */
     final JSFunction _apply;
-    /** @unexpose */
     final JSFunction _find;
 
-    /** @unexpose */
     static Set<String> _javaMethods;
 
-    /** @unexpose */
     protected Map _entries = new TreeMap();
-    /** @unexpose */
     final protected String _name;
-    /** @unexpose */
     final protected String _fullName;
 
-    /** @unexpose */
     protected JSFunction _constructor;
 
-    /** @unexpose */
     private boolean _anyUpdateSave = false;
 
     private boolean _checkedIdIndex = false;

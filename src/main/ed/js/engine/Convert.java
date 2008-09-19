@@ -120,6 +120,8 @@ public class Convert implements StackTraceFixer {
 
         _className = cleanName( _name ) + _getNumForClass( _name , _source );
         _fullClassName = _package + "." + _className;
+        _random = _random( _fullClassName );
+        _id = _random.nextInt();
 
         CompilerEnvirons ce = new CompilerEnvirons();
 
@@ -138,7 +140,6 @@ public class Convert implements StackTraceFixer {
 
     public static String cleanName( String name ){
         StringBuilder buf = new StringBuilder( name.length() + 5 );
-        boolean prevNonAlpha = false;
         
         for ( int i=0; i<name.length(); i++ ){
 
@@ -146,18 +147,13 @@ public class Convert implements StackTraceFixer {
 
             if ( Character.isLetter( c ) || Character.isDigit( c ) ){
                 buf.append( c );
-                prevNonAlpha = false;
                 continue;
             }
             
             if ( buf.length() == 0 )
                 continue;
 
-            if ( prevNonAlpha )
-                continue;
-
             buf.append( "_" );
-            prevNonAlpha = true;
         }
         return buf.toString();
     }
@@ -385,7 +381,7 @@ public class Convert implements StackTraceFixer {
             _append( ";\n" , n );
 
 
-            String tempName = "__temp" + (int)(Math.random() * 10000);
+            String tempName = "__temp" + _rand();
             state._tempOpNames.push( tempName );
 
             _append( "Object " + tempName + " = " , n );
@@ -885,8 +881,8 @@ public class Convert implements StackTraceFixer {
     private void _addSwitch( Node n , State state ){
         _assertType( n , Token.SWITCH );
 
-        String ft = "ft" + (int)(Math.random() * 10000);
-        String val = "val" + (int)(Math.random() * 10000);
+        String ft = "ft" + _rand();
+        String val = "val" + _rand();
         _append( "boolean " + ft + " = false;\n" , n );
         _append( "do { \n " , n );
         _append( " if ( false ) break; \n" , n );
@@ -959,7 +955,7 @@ public class Convert implements StackTraceFixer {
 
         n = mainBlock.getNext();
 
-        final int num  = (int)(Math.random() * 100000 );
+        final String num  = _rand();
         final String javaEName = "javaEEE" + num;
         final String javaName = "javaEEEO" + num;
 
@@ -1424,7 +1420,7 @@ public class Convert implements StackTraceFixer {
 
         _append( "{" , n );
 
-        String ret = "retName" + (int)((Math.random()*1000));
+        String ret = "retName" + _rand();
         if ( endReturn )
             _append( "\n\nObject " + ret + " = null;\n\n" , n );
 
@@ -1699,7 +1695,9 @@ public class Convert implements StackTraceFixer {
         }
         else {
 	    String cleanName = FileUtil.clean( _name );
-            buf.append( "\t\t scope = new Scope( \"compiled script for:" + cleanName + "\" , scope , null , getFileLanguage() ); \n" );
+            buf.append( "\t\t if ( ! usePassedInScope() ){\n" );
+            buf.append( "\t\t\t scope = new Scope( \"compiled script for:" + cleanName + "\" , scope , null , getFileLanguage() ); \n" );
+            buf.append( "\t\t }\n" );
             buf.append( "\t\t scope.putAll( getTLScope() );\n" );
         }
 
@@ -1858,8 +1856,16 @@ public class Convert implements StackTraceFixer {
         }
         return -1;
     }
+    
+    String _rand(){
+        return String.valueOf( _random.nextInt( 1000000 ) );
+    }
 
-    //final File _file;
+    static Random _random( String name ){
+        return new Random( name.hashCode() );
+    }
+    
+    final Random _random;
     final String _name;
     final String _source;
     final String _encodedSource;
@@ -1868,8 +1874,8 @@ public class Convert implements StackTraceFixer {
     final String _package = DEFAULT_PACKAGE;
     final boolean _invokedFromEval;
     final Language _sourceLanguage;
-    final int _id = ID++;
-
+    final int _id;
+    
     // these 3 variables should only be use by _append
     private int _currentLineNumber = 0;
     final Map<Integer,List<Node>> _javaCodeToLines = new TreeMap<Integer,List<Node>>();
@@ -1885,8 +1891,6 @@ public class Convert implements StackTraceFixer {
     private JSFunction _it;
 
     private int _methodId = 0;
-
-    private static int ID = 1;
 
     private final static Map<Integer,String> _2ThingThings = new HashMap<Integer,String>();
     static {

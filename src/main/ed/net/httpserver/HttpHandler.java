@@ -39,9 +39,13 @@ public interface HttpHandler {
         public void reset(){
             fork = false;
             admin = false;
+            doneAfterHandles = true;
         }
 
         public boolean fork;
+        public boolean doneAfterHandles; // only relevant if fork is false  
         public boolean admin;
+
+
     }
 }

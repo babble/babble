@@ -59,7 +59,6 @@ public class QName extends JSObjectBase {
                     e = new QName( new Namespace( args[0] ), args[1] );
                 }
             }
-
             return e;
         }
     }
@@ -77,6 +76,10 @@ public class QName extends JSObjectBase {
     public String localName;
     public String uri;
     public String prefix;
+
+    private String localNameStr = "localName";
+    private String uriStr = "uri";
+    private String prefixStr = "prefix";
 
     public QName() {
         this( null, null );
@@ -102,6 +105,10 @@ public class QName extends JSObjectBase {
             this.uri = namespace.uri;
             this.prefix = namespace.prefix;
         }
+        else {
+            this.uri = "";
+            this.prefix = "";
+        }
     }
 
     public String toString() {
@@ -109,10 +116,15 @@ public class QName extends JSObjectBase {
         return s + this.localName;
     }
 
-    public boolean equals( QName o ) {
-        if( ( ( this.localName == null && o.localName == null) || (this.localName != null && this.localName.equals( o.localName ) ) ) &&
-            ( ( this.uri == null && o.uri == null ) || ( this.uri != null && this.uri.equals( o.uri ) ) ) &&
-            ( ( this.prefix == null && o.prefix == null ) || ( this.prefix != null && this.prefix.equals( o.prefix ) ) ) )
+    public boolean equals( Object o ) {
+        if( !( o instanceof QName ) )
+            return false;
+
+        QName q = (QName)o;
+        if( ( ( this.localName == null && q.localName == null) || 
+              ( this.localName != null && this.localName.equals( q.localName ) ) ) &&
+            ( ( this.uri == null && q.uri == null ) || 
+              ( this.uri != null && this.uri.equals( q.uri ) ) ) )
             return true;
         return false;
     }
@@ -133,12 +145,16 @@ public class QName extends JSObjectBase {
         return new Namespace( this.uri );
     }
 
-    public String get( Object n ) {
-        if( n.toString().equals( "uri" ) ) {
-            return this.uri;
+    public JSString get( Object n ) {
+        String str = n.toString();
+        if( str.equals( uriStr ) ) {
+            return new JSString(this.uri);
         }
-        else if ( n.toString().equals( "prefix" ) ) {
-            return this.prefix;
+        else if ( str.equals( prefixStr ) ) {
+            return new JSString(this.prefix);
+        }
+        else if ( str.equals( localNameStr ) ) {
+            return new JSString(this.localName);
         }
         else 
             return null;

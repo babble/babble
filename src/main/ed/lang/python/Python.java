@@ -27,10 +27,16 @@ import ed.db.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.js.func.*;
+import ed.lang.*;
+import ed.appserver.*;
 
 import static ed.lang.python.PythonSmallWrappers.*;
 
-public class Python {
+public class Python extends Language {
+
+    public Python(){
+        super( "python" );
+    }
 
     static final boolean D = Boolean.getBoolean( "DEBUG.PY" );
 
@@ -159,9 +165,36 @@ public class Python {
         throw new RuntimeException( "can't convert [" + o.getClass().getName() + "] from js to py" );
     }
 
+    public JSFunction compileLambda( final String source ){
+        return extractLambda( source );
+    }
+
+    public Object eval( Scope s , String code , boolean[] hasReturn ){
+        PyObject globals = getGlobals( s );
+        code = code+ "\n";
+        PyCode pycode = (PyCode)(Py.compile( new ByteArrayInputStream( code.getBytes() ) , "anon" , "single" ));
+        return __builtin__.eval( pycode , globals );
+    }
+
+    public static PyObject getGlobals( Scope s ){
+        Scope pyglobals = s.child( "scope to hold python builtins" );
+
+        PyObject globals = new PyJSScopeWrapper( pyglobals , false );
+        Scope tl = pyglobals.getTLPreferred();
+
+        pyglobals.setGlobal( true );
+        __builtin__.fillWithBuiltins( globals );
+        globals.invoke( "update", PySystemState.builtins );
+        pyglobals.setGlobal( false );
+        return globals;
+    }
+
     public static JSFunction extractLambda( final String source ){
         
         final PyCode code = (PyCode)(Py.compile( new ByteArrayInputStream( source.getBytes() ) , "anon" , "exec" ) );
+
+        if ( _extractGlobals == null )
+            _extractGlobals = Scope.newGlobal();
 
         Scope s = _extractGlobals.child();
         s.setGlobal( true );
@@ -194,7 +227,20 @@ public class Python {
             theFunc = p;
         }
         
-        return new JSPyMethodWrapper( (PyFunction)(theFunc.getContained()) , true );
+        return new JSPyObjectWrapper( (PyFunction)(theFunc.getContained()) , true );
     }
-    private static final Scope _extractGlobals = Scope.newGlobal();
+
+    public static PySystemState getSiteSystemState( AppContext ac ){
+        Scope s = ac.getScope();
+        Object __python__ = s.get( "__python__" );
+        if( __python__ != null && __python__ instanceof PySystemState ){
+            return (PySystemState)__python__;
+        }
+
+        PySystemState state = new PySystemState();
+        s.set( "__python__" , state );
+        return state;
+    }
+
+    private static Scope _extractGlobals;
 }

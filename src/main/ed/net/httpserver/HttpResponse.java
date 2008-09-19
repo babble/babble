@@ -40,7 +40,7 @@ import ed.appserver.*;
  * Represents response to an HTTP request.  On each request, the 10gen app server defines 
  * the variable 'response' which is of this type.
  * @expose
- * @docmodule System.HTTP.response
+ * @docmodule system.HTTP.response
  */
 public class HttpResponse extends JSObjectBase implements HttpServletResponse {
 
@@ -336,7 +336,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
     /**
      * @unexpose
      */
-    protected boolean done()
+    public boolean done()
         throws IOException {
 
         if ( _cleaned )

@@ -127,9 +127,9 @@ public class E4X {
     }
 
     public static String escapeAttributeValue( String s ) {
+        s = s.replaceAll( "&", "&amp;" );
         s = s.replaceAll( "\"", "&quot;" );
         s = s.replaceAll( ">", "&gt;" );
-        s = s.replaceAll( "&", "&amp;" );
 
         s = s.replaceAll( "\\u000A", "&#xA;" );
         s = s.replaceAll( "\\u000D", "&#xD;" );
@@ -138,11 +138,11 @@ public class E4X {
     }
 
     public static XMLList addNodes(ENode a, ENode b) {
-        if( a instanceof XMLList && b instanceof XMLList) {
+        if( ( a instanceof XMLList || a.node == null ) && b instanceof XMLList) {
             ((XMLList)a).addAll( (XMLList)b );
             return (XMLList)a;
         }
-        else if ( a instanceof XMLList ) {
+        else if ( a instanceof XMLList || a.node == null ) {
             ((XMLList)a).add(b);
             return (XMLList)a;
         }

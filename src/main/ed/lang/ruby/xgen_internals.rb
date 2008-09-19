@@ -36,6 +36,10 @@ module XGen
         eval "def #{name}(*args); @cursor.#{name}(*args); return self; end"
       }
 
+      # This is for JavaScript code that needs to call toArray on the @cursor.
+      def toArray
+        @cursor.toArray
+      end
     end
 
     # A superclass for database collection instances. It creates find_by_*
@@ -64,15 +68,15 @@ module XGen
       #
       #    set_collection :collection_name, %w(var1 var2)
       #    set_collection %w(var1 var2)
-      def self.set_collection(coll_name, ivars=nil)
-        @coll_name, @ivars = coll_name, ivars
+      def self.set_collection(coll_name, ivar_names=nil)
+        @coll_name, @ivar_names = coll_name, ivar_names
         if coll_name.kind_of?(Array)
-          @ivars = coll_name
+          @ivar_names = coll_name
           @coll_name = self.name.gsub(/([A-Z])/, '_\1').downcase.sub(/^_/, '')
         end
 
-        @ivars << '_id' unless @ivars.include?('_id')
-      @ivars.each { |ivar|
+        @ivar_names << '_id' unless @ivar_names.include?('_id')
+      @ivar_names.each { |ivar|
           attr_method = ivar == '_id' ? 'attr_reader' : 'attr_accessor'
           eval <<EOS
 #{attr_method} :#{ivar}
@@ -93,6 +97,10 @@ EOS
           }
       end
 
+      def self.ivar_names
+        @ivar_names ||= []
+      end
+
       # The collection object.
       def self.coll
         @coll ||= $db[@coll_name.to_s]
@@ -106,6 +114,8 @@ EOS
       #
       # * Find :all records; returns a Cursor that can iterate over raw
       #   records
+      #
+      # * Find all records if there are no args
       def self.find(*args)
         return Cursor.new(coll.find(), self) unless args.length > 0 # no args, find all
         return case args[0]
@@ -138,19 +148,6 @@ EOS
         self.new(values_hash).save
       end
 
-      # If an unknown method is an assignment, create the ivar and assign it.
-      # Else pass the unknown method call to the collection.
-      def method_missing(sym, *args, &block)
-        if sym.to_s[-1,1] == '='       # assignment to an unknown ivar
-          name = sym.to_s[0..-2]
-          instance_variable_set("@#{name}", args[0])
-          instance_eval "def #{name}; @#{name}; end; def #{name}=(val); @name = val; end"
-        else
-          o = self.class.coll.send(sym, args)
-          yield o if block_given?
-        end
-      end
-
       # Initialize a new object with either a hash of values or a row returned
       # from the database.
       def initialize(row={})
@@ -165,14 +162,20 @@ EOS
             instance_variable_set("@#{name}", row.get(name))
           }
         end
+        self.class.ivar_names.each { |iv|
+          iv = "@#{iv}"
+          instance_variable_set(iv, nil) unless instance_variable_defined?(iv)
+        }
       end
 
       # Saves and returns self.
       def save
-        row = self.class.coll.save(self)
-        if self._id == nil
-          self._id = row._id
-        elsif row._id != self._id
+        h = {}
+        self.class.ivar_names.each { |iv| h[iv] = instance_variable_get("@#{iv}") }
+        row = self.class.coll.save(h)
+        if @_id == nil
+          @_id = row._id
+        elsif row._id != @_id
           raise "Error: after save, database id changed"
         end
         self
@@ -180,7 +183,7 @@ EOS
 
       # Removes self from the database. Must have an _id.
       def remove
-        self.class.coll.remove({:_id => self._id}) if self._id
+        self.class.coll.remove({:_id => self._id}) if @_id
       end
 
     end

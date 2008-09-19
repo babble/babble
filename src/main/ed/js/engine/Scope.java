@@ -709,11 +709,11 @@ public final class Scope implements JSObject , Bindings {
     
     public Object eval( String code , String name , boolean hasReturn[] ){
         try {
-            
+
             if ( code.matches( "\\d+" ) )
                 return Integer.parseInt( code );
 
-            if ( code.matches( "\\w[\\w\\.]+\\w" ) )
+            if ( code.matches( "\\w+(\\.\\w+)*" ) )
                 return findObject( code );
             
             // tell the Convert CTOR that we're in the context of eval so
@@ -960,6 +960,10 @@ public final class Scope implements JSObject , Bindings {
     }
 
     public long approxSize( IdentitySet seen ){
+        return approxSize( seen , true );
+    }
+    
+    public long approxSize( IdentitySet seen , boolean includeChildren ){
         if ( seen.contains( this ) )
             return 0;
         
@@ -970,7 +974,7 @@ public final class Scope implements JSObject , Bindings {
         if ( _objects != null )
             size += _objects.approxSize( seen );
         
-        if ( _children != null ){
+        if ( includeChildren && _children != null ){
             synchronized ( _children ){
                 size += _children.approxSize( seen );
             }

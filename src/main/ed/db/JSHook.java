@@ -232,8 +232,6 @@ public class JSHook {
         return _scopes.get( id ).get( field );
     }
     
-    private static Map<Long,Scope> _scopes = Collections.synchronizedMap( new HashMap<Long,Scope>() );
-
 
     // -----    functions   -------
 
@@ -296,14 +294,14 @@ public class JSHook {
         _functionIDS.put( id , f );
         return id;
     }
-    private final static MD5 _myMd5 = new MD5();
-    private final static Map<String,Pair<JSFunction,Long>> _functions = Collections.synchronizedMap( new HashMap<String,Pair<JSFunction,Long>>() );
-    private final static Map<Long,JSFunction> _functionIDS = Collections.synchronizedMap( new HashMap<Long,JSFunction>() );
-    private static long _funcID = 1;
 
     // ------ invoke -----
 
     public static int invoke( long scopeID , long functionID  ){
+        
+        if( ++_numInvokes % 100000 == 0 )
+            printStatus( true );
+
         Scope s = _scopes.get( scopeID );
         if ( DEBUG ) System.err.println( "invoke -- scopeID : " + scopeID + " functionID : " + functionID );
         if ( s == null )
@@ -346,7 +344,7 @@ public class JSHook {
 		    }
 		}
 	    }
-	    
+            
             Object ret = f.call( s , args );
             
             if ( ret instanceof JSFunction ){
@@ -363,7 +361,26 @@ public class JSHook {
             return INVOKE_ERROR;
         }
     }
+    
+    static void printStatus( boolean gc ){
+        System.out.println( MemUtil.getMemInfo( gc ) );
+        System.out.println( "num calls   \t " + _numInvokes );
+        System.out.println( "functions   \t " + _functions.size() );
+        System.out.println( "functionIDS \t " + _functionIDS.size() );
+        System.out.println( "scopes      \t " + _scopes.size() );
+        System.out.println( "clients     \t " + _clients.size() );
+    }
+    
+    private final static MD5 _myMd5 = new MD5();
+    
+    private final static Map<String,Pair<JSFunction,Long>> _functions = Collections.synchronizedMap( new HashMap<String,Pair<JSFunction,Long>>() );
+    private final static Map<Long,JSFunction> _functionIDS = Collections.synchronizedMap( new HashMap<Long,JSFunction>() );
+    private static long _funcID = 1;
+    
+    private static Map<Long,Scope> _scopes = Collections.synchronizedMap( new HashMap<Long,Scope>() );
 
     static final Map<String,DBJni> _clients = Collections.synchronizedMap( new HashMap<String,DBJni>() );
+
+    static int _numInvokes = 0;
     static final ThreadLocal<JSObject> _nextArgs = new ThreadLocal<JSObject>();
 }

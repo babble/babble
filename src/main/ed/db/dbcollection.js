@@ -9,7 +9,7 @@
  /**
   * Database collection  API
  *  @class 10gen Database Collection  API
- * @docmodule System.DB.collection 
+ * @docmodule system.database.collection
  */
  var DBCollection = function(){}
 
@@ -85,6 +85,11 @@ DBCollection.prototype.getIndexes = function(){
 }
 
 
+/**
+ *   <p>
+ *   Re-indexes the collection
+ *   </p>
+ */
 DBCollection.prototype.reIndex = function(){
     
     var coll = this;

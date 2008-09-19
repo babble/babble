@@ -94,38 +94,38 @@ public class Logger extends JSFunctionCalls2 {
 
     // --------------------
 
-    public void debug( String msg ){
+    public void debug( Object msg ){
         log( Level.DEBUG , msg , null );
     }
-    public void debug( String msg , Throwable t ){
+    public void debug( Object msg , Throwable t ){
         log( Level.DEBUG , msg , t );
     }
 
-    public void info( String msg ){
+    public void info( Object msg ){
         log( Level.INFO , msg , null );
     }
-    public void info( String msg , Throwable t ){
+    public void info( Object msg , Throwable t ){
         log( Level.INFO , msg , t );
     }
 
-    public void warn( String msg ){
+    public void warn( Object msg ){
         log( Level.WARN , msg , null );
     }
-    public void warn( String msg , Throwable t ){
+    public void warn( Object msg , Throwable t ){
         log( Level.WARN , msg , t );
     }
 
-    public void error( String msg ){
+    public void error( Object msg ){
         log( Level.ERROR , msg , null );
     }
-    public void error( String msg , Throwable t ){
+    public void error( Object msg , Throwable t ){
         log( Level.ERROR , msg , t );
     }
 
-    public void fatal( String msg ){
+    public void fatal( Object msg ){
         log( Level.FATAL , msg , null );
     }
-    public void fatal( String msg , Throwable t ){
+    public void fatal( Object msg , Throwable t ){
         log( Level.FATAL , msg , t );
     }
 
@@ -237,11 +237,13 @@ public class Logger extends JSFunctionCalls2 {
         return Level.DEBUG;
     }
 
-    public void log( Level level , String msg ){
+    public void log( Level level , Object msg ){
         log( level , msg , null );
     }
 
-    public void log( Level level , String msg , Throwable throwable ){
+    public void log( Level level , Object msgObject , Throwable throwable ){
+        String msg = msgObject == null ? null : msgObject.toString();
+        
         Level eLevel = getEffectiveLevel();
         if ( eLevel.compareTo( level ) > 0 )
             return;

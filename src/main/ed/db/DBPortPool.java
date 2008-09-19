@@ -13,6 +13,10 @@ class DBPortPool extends SimplePool<DBPort> {
 
     public final long _maxWaitTime = 1000 * 60 * 2;
 
+    static DBPortPool get( DBAddress addr ){
+        return get( addr.getSocketAddress() );
+    }
+
     static DBPortPool get( InetSocketAddress addr ){
         
         DBPortPool p = _pools.get( addr );
@@ -73,6 +77,10 @@ class DBPortPool extends SimplePool<DBPort> {
     void gotError(){
         System.out.println( "emptying DBPortPool b/c of error" );
         clear();
+    }
+
+    public boolean ok( DBPort t ){
+        return _addr.equals( t._addr );
     }
     
     protected DBPort createNew(){

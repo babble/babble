@@ -27,6 +27,7 @@ import org.jruby.internal.runtime.methods.JavaMethod;
 import org.jruby.javasupport.JavaUtil;
 import org.jruby.runtime.*;
 import org.jruby.runtime.builtin.IRubyObject;
+import org.jruby.util.IdUtil;
 import org.jruby.util.KCode;
 import static org.jruby.runtime.Visibility.PUBLIC;
 
@@ -45,11 +46,15 @@ public class RubyJxpSource extends JxpSource {
 
     public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
     static final Map<Ruby, Set<IRubyObject>> _requiredJSFileLibFiles = new WeakHashMap<Ruby, Set<IRubyObject>>();
+    static final Map<Ruby, RubyModule> xgenModuleDefs = new WeakHashMap<Ruby, RubyModule>();
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB");
     static final boolean SKIP_REQUIRED_LIBS = Boolean.getBoolean("DEBUG.RB.SKIP.REQ.LIBS");
     /** Scope top-level functions to avoid loading. */
     static final Collection<String> DO_NOT_LOAD_FUNCS;
+    // TODO for now, we just add the local site dir to the load path
+//     static final String[] BUILTIN_JS_FILE_LIBRARIES = {"local", "core", "external"};
+    static final String[] BUILTIN_JS_FILE_LIBRARIES = {"local"};
     static final RubyInstanceConfig config = new RubyInstanceConfig();
 
     static {
@@ -64,6 +69,36 @@ public class RubyJxpSource extends JxpSource {
 
     /** Determines what major version of Ruby to compile: 1.8 (false) or YARV/1.9 (true). **/
     public static final boolean YARV_COMPILE = false;
+
+    public static synchronized RubyModule xgenModule(Ruby runtime) {
+	RubyModule xgen = xgenModuleDefs.get(runtime);
+	if (xgen == null) {
+	    xgen = runtime.defineModule("XGen");
+	    xgenModuleDefs.put(runtime, xgen);
+	}
+	return xgen;
+    }
+
+    /**
+     * Creates Ruby classes from any new JavaScript classes found in the top
+     * level of <var>scope</var>. Called immediately after loading a file
+     * using a JSFileLibrary.
+     */
+    public static void createNewClasses(Scope scope, Ruby runtime) {
+	if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
+	    System.err.println("about to create newly-defined classes");
+	for (Object key : RubyScopeWrapper.jsKeySet(scope)) {
+	    String skey = key.toString();
+	    if (IdUtil.isConstant(skey) && runtime.getClass(skey) == null) {
+		Object o = scope.get(key);
+		if (isCallableJSFunction(o)) {
+		    if (DEBUG || RubyObjectWrapper.DEBUG_FCALL || RubyObjectWrapper.DEBUG_CREATE)
+			System.err.println("creating newly-defined class " + skey);
+		    toRuby(scope, runtime, (JSFunction)o, skey);
+		}
+	    }
+	}
+    }
 
     public RubyJxpSource(File f , JSFileLibrary lib) {
         _file = f;
@@ -108,7 +143,7 @@ public class RubyJxpSource extends JxpSource {
     }
 
     protected Object _doCall(Node code, Scope s, Object unused[]) {
-	_addSiteRootToPath(s);
+	_addJSFileLibrariesToPath(s);
 
 	if (_runtime.getGlobalVariables() instanceof ScopeGlobalVariables)
 	    _runtime.setGlobalVariables(((ScopeGlobalVariables)_runtime.getGlobalVariables()).getOldGlobalVariables());
@@ -152,15 +187,18 @@ public class RubyJxpSource extends JxpSource {
 	return _runtime.parseInline(new ByteArrayInputStream(bytes), filePath, null);
     }
 
-    protected void _addSiteRootToPath(Scope s) {
-	Object appContext = s.get("__instance__");
-	if (appContext != null) {
-	    RubyString siteRoot = RubyString.newString(_runtime, appContext.toString().replace('\\', '/'));
-	    RubyArray loadPath = (RubyArray)_runtime.getLoadService().getLoadPath();
-	    if (loadPath.include_p(_runtime.getCurrentContext(), siteRoot).isFalse()) {
+    protected void _addJSFileLibrariesToPath(Scope s) {
+	RubyArray loadPath = (RubyArray)_runtime.getLoadService().getLoadPath();
+	for (String libName : BUILTIN_JS_FILE_LIBRARIES) {
+	    Object val = s.get(libName);
+	    if (!(val instanceof JSFileLibrary))
+		continue;
+	    File root = ((JSFileLibrary)val).getRoot();
+	    RubyString rubyRoot = RubyString.newString(_runtime, root.getPath().replace('\\', '/'));
+	    if (loadPath.include_p(_runtime.getCurrentContext(), rubyRoot).isFalse()) {
 		if (DEBUG)
-		    System.err.println("adding site root " + siteRoot + " to Ruby load path");
-		loadPath.append(siteRoot);
+		    System.err.println("adding file library " + val.toString() + " root " + rubyRoot);
+		loadPath.append(rubyRoot);
 	    }
 	}
     }
@@ -185,9 +223,14 @@ public class RubyJxpSource extends JxpSource {
 	_addTopLevelMethodsToObjectClass(scope);
     }
 
-    // TODO add to object class, or add to kernel?
+    /**
+     * Creates a module named XGen, includes it in the Object class (just like
+     * Kernel), and adds all top-level JavaScript methods to the module.
+     */
     protected void _addTopLevelMethodsToObjectClass(final Scope scope) {
-	RubyClass klazz = _runtime.getObject();
+	RubyModule xgen = xgenModule(_runtime);
+	_runtime.getObject().includeModule(xgen);
+
 	Set<String> alreadySeen = new HashSet<String>();
 	Scope s = scope;
 	while (s != null) {
@@ -199,8 +242,8 @@ public class RubyJxpSource extends JxpSource {
 		    if (DEBUG)
 			System.err.println("adding top-level method " + key);
 		    alreadySeen.add(key);
-		    // Creates method and attaches to klazz. Also creates a new Ruby class if appropriate.
-		    new RubyJSFunctionWrapper(scope, _runtime, (JSFunction)obj, key, klazz);
+		    // Creates method and attaches to xgen. Also creates a new Ruby class if appropriate.
+		    RubyObjectWrapper.createRubyMethod(scope, _runtime, (JSFunction)obj, key, xgen, null);
 		}
 	    }
 	    s = s.getParent();
@@ -210,15 +253,18 @@ public class RubyJxpSource extends JxpSource {
     protected void _patchRequireAndLoad(final Scope scope) {
 	RubyModule kernel = _runtime.getKernel();
 	kernel.addMethod("require", new JavaMethod(kernel, PUBLIC) {
-		public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+		public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
 		    Ruby runtime = self.getRuntime();
-		    String arg = args[0].toString();
+		    String file = args[0].toString();
+
+		    if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
+			System.err.println("require " + file);
 		    try {
-			return runtime.getLoadService().require(arg) ? runtime.getTrue() : runtime.getFalse();
+			return runtime.getLoadService().require(file) ? runtime.getTrue() : runtime.getFalse();
 		    }
 		    catch (RaiseException re) {
 			if (_notAlreadyRequired(runtime, args[0])) {
-			    loadLibraryFile(scope, runtime, self, arg, re);
+			    loadLibraryFile(scope, runtime, self, file, re);
 			    _rememberAlreadyRequired(runtime, args[0]);
 			}
 			return runtime.getTrue();
@@ -226,11 +272,13 @@ public class RubyJxpSource extends JxpSource {
 		}
 	    });
 	kernel.addMethod("load", new JavaMethod(kernel, PUBLIC) {
-		public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+		public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
 		    Ruby runtime = self.getRuntime();
 		    RubyString file = args[0].convertToString();
 		    boolean wrap = args.length == 2 ? args[1].isTrue() : false;
 
+		    if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
+			System.err.println("load " + file);
 		    try {
 			runtime.getLoadService().load(file.getByteList().toString(), wrap);
 			return runtime.getTrue();
@@ -242,36 +290,76 @@ public class RubyJxpSource extends JxpSource {
 	    });
     }
 
-    protected IRubyObject loadLibraryFile(Scope scope, Ruby runtime, IRubyObject recv, String file, RaiseException re) {
-	if (DEBUG)
-	    System.err.println("going to compile and run library file " + file);
+    protected IRubyObject loadLibraryFile(Scope scope, Ruby runtime, IRubyObject recv, String path, RaiseException re) {
+	if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
+	    System.err.println("going to compile and run library file " + path + "; runtime = " + runtime);
+
+	JSFileLibrary lib = getLibFromPath(path, scope);
+	if (lib == null) {
+	    if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
+		System.err.println("can not find JSFileLibrary for " + path + "; re-raising Ruby exception");
+	    throw re;
+	}
+	path = removeLibName(path);
+
 	try {
-	    JSFileLibrary local = (JSFileLibrary)scope.get("local");
-	    Object o = local.getFromPath(file);
+	    Object o = lib.getFromPath(path);
 	    if (isCallableJSFunction(o)) {
 		try {
 		    ((JSFunction)o).call(scope, EMPTY_OBJECT_ARRAY);
+		    createNewClasses(scope, runtime);
 		}
 		catch (Exception e) {
-		    if (DEBUG) {
-			System.err.println("problem loading JSFileLibrary file: " + e + "; calling Ruby \"raise\" method");
+		    if (DEBUG || RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
+			System.err.println("problem loading JSFileLibrary file: " + e + "; going to raise Ruby error after printing the stack trace here");
 			e.printStackTrace();
 		    }
 		    recv.callMethod(runtime.getCurrentContext(), "raise", new IRubyObject[] {RubyString.newString(runtime, e.toString())}, Block.NULL_BLOCK);
 		}
 		return runtime.getTrue();
 	    }
-	    else if (DEBUG)
-		System.err.println("file library object is not a callable function");
+	    else
+		System.err.println("file library object " + o + " is not a callable function");
 	}
 	catch (Exception e) {
-	    if (DEBUG)
-		System.err.println("problem loading file " + file + "; exception seen is " + e + "; falling through to throw original Ruby error");
+	    if (DEBUG || RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
+		System.err.println("problem loading JSFileLibrary file: " + e + "; going to re-throw original Ruby RaiseException after printing the stack trace here");
+		e.printStackTrace();
+	    }
 	    /* fall through to throw re */
 	}
-	if (DEBUG)
-	    System.err.println("problem loading file " + file + "; throwing original Ruby error " + re);
+	if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
+	    System.err.println("problem loading file " + path + " from lib " + lib + "; throwing original Ruby error " + re);
 	throw re;
+    }
+
+    /**
+     * Returns a JSFileLibrary named at the start of <var>path</var>, which is
+     * something like "local/foo" or "/core/core/routes". The first word
+     * ("local" or "core") must be the name of a JSFileLibrary that is in the
+     * scope. Returns <code>null</code> if no library is found.
+     */
+    public JSFileLibrary getLibFromPath(String path, Scope scope) {
+	String libName = libNameFromPath(path);
+	return (JSFileLibrary)scope.get(libName);
+    }
+
+    public String libNameFromPath(String path) {
+	if (path.startsWith("/"))
+	    path = path.substring(1);
+	int loc = path.indexOf("/");
+	return (loc == -1) ? path : path.substring(0, loc);
+    }
+
+    /**
+     * Returns a new copy of <var>path</var> with the first part of the path
+     * stripped off.
+     */
+    public String removeLibName(String path) {
+	if (path.startsWith("/"))
+	    path = path.substring(1);
+	int loc = path.indexOf("/");
+	return (loc == -1) ? "" : path.substring(loc + 1);
     }
 
     protected boolean _notAlreadyRequired(Ruby runtime, IRubyObject arg) {

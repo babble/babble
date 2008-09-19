@@ -341,6 +341,19 @@ public abstract class JSFunction extends JSFunctionBase {
         };
     }
 
+    public long approxSize( IdentitySet seen ){
+        long size = super.approxSize( seen );
+        size += 1024; // for sub-type overhead
+
+        if ( _prototype != null && ! seen.contains( _prototype ) )
+            size += _prototype.approxSize( seen );
+        
+        if ( _callCache != null )
+            size += _callCache.approxSize( seen );
+
+        return size;
+    }
+
     public Language getSourceLanguage(){
         return _sourceLanguage;
     }

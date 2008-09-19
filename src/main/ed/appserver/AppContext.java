@@ -46,6 +46,7 @@ import ed.util.*;
  * @anonymous name : {SYSOUT} desc : {Prints a string.} param : {type : (string) name : (str) desc : (the string to print)}
  * @anonymous name : {log} desc : {Global logger.} param : {type : (string) name : (str) desc : (the string to log)}
  * @expose
+ * @docmodule system.system.__instance__
  */
 public class AppContext extends ServletContextBase {
 
@@ -116,6 +117,7 @@ public class AppContext extends ServletContextBase {
 
         _scope = new Scope( "AppContext:" + root + ( _admin ? ":admin" : "" ) , _isGrid ? ed.cloud.Cloud.getInstance().getScope() : Scope.newGlobal() , null , Language.JS , _rootFile );
         _scope.setGlobal( true );
+        _initScope = _scope.child( "_init" );
 
         _usage = new UsageTracker( this );
 
@@ -276,7 +278,13 @@ public class AppContext extends ServletContextBase {
      * @return the version of the library to run as a string.  null if should use default
      */
     public String getVersionForLibrary( String name ){
-        return getVersionForLibrary( _scope , name , this );
+        String version = getVersionForLibrary( _scope , name , this );
+        _libraryVersions.set( name , version );
+        return version;
+    }
+
+    public JSObject getLibraryVersionsLoaded(){
+        return _libraryVersions;
     }
 
     /**
@@ -392,6 +400,16 @@ public class AppContext extends ServletContextBase {
 	return _scope();
     }
 
+    public Scope getInitScope(){
+        return _initScope;
+    }
+
+    Object getFromInitScope( String what ){
+        if ( ! _knownInitScopeThings.contains( what ) )
+            System.err.println( "*** Unkknow thing being request from initScope [" + what + "]" );
+        return _initScope.get( what );
+    }
+
     /** Returns a child scope for app requests.
      * @return a child scope
      */
@@ -407,7 +425,7 @@ public class AppContext extends ServletContextBase {
 
     private synchronized Scope _scope(){
         
-        if ( _inScopeInit )
+        if ( _inScopeSetup )
             return _scope;
 
         if ( _getScopeTime() > _lastScopeInitTime )
@@ -420,7 +438,7 @@ public class AppContext extends ServletContextBase {
         _lastScopeInitTime = System.currentTimeMillis();
 
 
-        _initScope();
+        _setupScope();
 
         return _scope;
     }
@@ -715,7 +733,7 @@ public class AppContext extends ServletContextBase {
     }
 
     public void loadedFile( File f ){
-        if ( _inScopeInit )
+        if ( _inScopeSetup )
             _initFlies.add( f );
     }
 
@@ -727,8 +745,8 @@ public class AppContext extends ServletContextBase {
         return source.getServlet( this );
     }
 
-    private void _initScope(){
-        if ( _inScopeInit )
+    private void _setupScope(){
+        if ( _inScopeSetup )
             return;
 
         final Scope saveTLPref = _scope.getTLPreferred();
@@ -737,7 +755,7 @@ public class AppContext extends ServletContextBase {
         final Scope saveTL = Scope.getThreadLocal();
         _scope.makeThreadLocal();
 
-        _inScopeInit = true;
+        _inScopeSetup = true;
 
         try {
             _runInitFiles( INIT_FILES );
@@ -758,7 +776,7 @@ public class AppContext extends ServletContextBase {
             throw new RuntimeException( e );
         }
         finally {
-            _inScopeInit = false;
+            _inScopeSetup = false;
             _scope.setTLPreferred( saveTLPref );
 
             if ( saveTL != null )
@@ -788,7 +806,8 @@ public class AppContext extends ServletContextBase {
         _initFlies.add( f );
         JxpSource s = getSource( f );
         JSFunction func = s.getFunction();
-        func.call( _scope );
+        func.setUsePassedInScope( true );
+        func.call( _initScope );
     }
 
     long _getScopeTime(){
@@ -1022,6 +1041,32 @@ public class AppContext extends ServletContextBase {
 	throw new RuntimeException( "getResourcePaths not implemented" );
     }
 
+    public AppContext getSiteInstance(){
+        if ( _nonAdminParent == null )
+            return this;
+        return _nonAdminParent;
+    }
+
+    public long approxSize(){
+        return approxSize( new IdentitySet() );
+    }
+
+    public long approxSize( IdentitySet seen ){
+        long size = 0;
+
+        if ( _adminContext != null )
+            size += _adminContext.approxSize( seen );
+        
+        size += _scope.approxSize( seen ,false );
+        size += _initScope.approxSize( seen , true );
+        
+        size += JSObjectSize.size( _localObject , seen );
+        size += JSObjectSize.size( _core , seen );
+        size += JSObjectSize.size( _external , seen );
+
+        return size;
+    }
+
     final String _name;
     final String _root;
     final File _rootFile;
@@ -1040,6 +1085,7 @@ public class AppContext extends ServletContextBase {
     private JSFileLibrary _external;
 
     final Scope _scope;
+    final Scope _initScope;
     final UsageTracker _usage;
 
     final JSArray _globalHead = new JSArray();
@@ -1048,9 +1094,10 @@ public class AppContext extends ServletContextBase {
     private final Map<String,File> _files = Collections.synchronizedMap( new HashMap<String,File>() );
     private final Set<File> _initFlies = new HashSet<File>();
     private final Map<String,JxpSource> _httpServlets = Collections.synchronizedMap( new HashMap<String,JxpSource>() );
+    private final JSObject _libraryVersions = new JSObjectBase();
 
     boolean _scopeInited = false;
-    boolean _inScopeInit = false;
+    boolean _inScopeSetup = false;
     long _lastScopeInitTime = 0;
 
     final boolean _isGrid;
@@ -1067,4 +1114,14 @@ public class AppContext extends ServletContextBase {
     static {
         _libraryLogger.setLevel( Level.INFO );
     }
+
+    private static final Set<String> _knownInitScopeThings = new HashSet<String>();
+    static {
+        _knownInitScopeThings.add( "mapUrlToJxpFileCore" );
+        _knownInitScopeThings.add( "mapUrlToJxpFile" );
+        _knownInitScopeThings.add( "allowed" );
+        _knownInitScopeThings.add( "staticCacheTime" );
+        _knownInitScopeThings.add( "handle404" );
+    }
+        
 }

@@ -60,8 +60,13 @@ public class JSObjectBase implements JSObject {
         setConstructor( constructor );
     }
 
-    /** Sets up any necessary fields for this object. */
-    public void prefunc(){}
+    /** 
+	Sets up any necessary fields for this object. 
+	@return this or the correct object
+    */
+    public Object prefunc(){
+	return this;
+    }
 
     /** Sets or creates this object's field with the key <tt>n</tt> to the value <tt>v</tt>
      * @param n Key to set
@@ -178,7 +183,10 @@ public class JSObjectBase implements JSObject {
         if ( n instanceof Number )
             return getInt( ((Number)n).intValue() );
 
-        return _simpleGet( n.toString() );
+	Object ret = _simpleGet( n.toString() );
+	if ( ret instanceof JSObjectBase )
+	    return ((JSObjectBase)ret).prefunc();
+	return ret;
     }
 
     /** @unexpose */
