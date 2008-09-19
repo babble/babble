@@ -80,7 +80,10 @@ public class SourceRunner {
 	assertEquals(jsOutput, expected);
     }
 
-    /** Output is stored in rubyOutput. */
+    /**
+     * Runs <var>rubyCode</var> and returns the JSObject result. Output is
+     * stored in rubyOutput.
+     */
     protected Object runRuby(String rubyCode) {
 	source._content = rubyCode;
 	Object o = null;
