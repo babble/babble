@@ -36,8 +36,6 @@ import java.util.regex.Pattern;
 import org.python.core.PyObject;
 import org.python.core.PyString;
 
-import sun.security.action.LoadLibraryAction;
-
 import ed.appserver.JSFileLibrary;
 import ed.appserver.jxp.JxpSource;
 import ed.js.JSArray;
@@ -52,7 +50,6 @@ import ed.js.JSString;
 import ed.js.engine.JSCompiledScript;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
-import ed.js.func.JSFunctionCalls2;
 import ed.lang.python.Python;
 import ed.log.Level;
 import ed.log.Logger;
