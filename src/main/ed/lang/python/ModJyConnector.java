@@ -1,19 +1,19 @@
 /*###
   #
-  # Copyright 2004-2007 Alan Kennedy. 
-  # 
+  # Copyright 2004-2007 Alan Kennedy.
+  #
   # You may contact the copyright holder at this uri:
-  # 
+  #
   # http://www.xhaus.com/contact/modjy
-  # 
+  #
   # The licence under which this code is released is the Apache License v2.0.
-  # 
+  #
   # The terms and conditions of this license are listed in a file contained
   # in the distribution that also contained this file, under the name
   # LICENSE.txt.
-  # 
+  #
   # You may also read a copy of the license at the following web address.
-  # 
+  #
   # http://www.xhaus.com/modjy/LICENSE.txt
   #
   ###*/
@@ -66,13 +66,13 @@ public class ModJyConnector extends HttpServlet  {
 		sys.path.append(new PyString((String)props.get("modjy_jar.location")));
 	    else
 		sys.path.append(new PyString(getServletContext().getRealPath("/WEB-INF/lib/modjy.jar")));
-	    
-	    try{ 
+
+	    try{
 		interp.exec("from modjy import modjy_servlet"); }
 	    catch (PyException ix){
 		throw new ServletException("Unable to import modjy_servlet: do you maybe need to set the 'modjy_jar.location' parameter?");
 	    }
-	    
+
 	    PyObject py_servlet = ((PyClass)interp.get("modjy_servlet")).__call__();
 	    Object temp = py_servlet.__tojava__(HttpServlet.class);
 	    if (temp == Py.NoConversion)
@@ -84,7 +84,7 @@ public class ModJyConnector extends HttpServlet  {
 	    throw new ServletException("Exception creating modjy servlet: " + pyx.toString());
 	}
     }
-    
+
     public void service ( HttpServletRequest req, HttpServletResponse resp )
 	throws ServletException, IOException {
 	modjy_servlet.service(req, resp);
