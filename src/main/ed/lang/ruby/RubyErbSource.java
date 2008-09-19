@@ -21,6 +21,7 @@ import java.io.IOException;
 
 import org.jruby.Ruby;
 import org.jruby.ast.Node;
+import org.jruby.runtime.builtin.IRubyObject;
 
 import ed.appserver.JSFileLibrary;
 import ed.js.engine.Scope;
@@ -75,7 +76,7 @@ public class RubyErbSource extends RubyJxpSource {
 	return wrap(super.getContent(), getName());
     }
 
-    protected Object _doCall(Node code, Scope s, Object unused[]) {
+    protected IRubyObject _doCall(Node code, Scope s, Object unused[]) {
 	Object print = s.get("print");
 	Object puts = s.get("puts");
 	Object __puts__ = s.get("__puts__");

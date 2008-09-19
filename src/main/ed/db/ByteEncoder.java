@@ -21,6 +21,7 @@ public class ByteEncoder extends Bytes {
 	BAD_GLOBALS.add( "local" );
 	BAD_GLOBALS.add( "core" );
         BAD_GLOBALS.add( "args" ); // TODO: should we get rid of this
+        BAD_GLOBALS.add( "obj" ); // TODO: get rid of this
     }
     
     
