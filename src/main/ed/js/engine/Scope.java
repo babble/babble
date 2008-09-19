@@ -514,11 +514,9 @@ public final class Scope implements JSObject , Bindings {
         _tlPreferred.set( s );
     }
 
-    public JSFunction getFunction( String name ){
-        //System.err.println( "getFunction : " + name );
+    public JSFunction getFunctionFromScope( String name ){
         JSObject with[] = new JSObject[1];
         Object o = get( name , _alternate , with );
-        //System.err.println( "\t" + o + "\t" + with[0] );
         
         if ( o == null ){
             if ( getParent().getThis( false ) instanceof JSObject ){
@@ -526,14 +524,7 @@ public final class Scope implements JSObject , Bindings {
                 o = pt.get( name );
                 if ( o instanceof JSFunction ){
                     JSFunction func = (JSFunction)o;
-                    // THIS IS BROKEN  TODO: fix for JS
-                    //if ( func.getSourceLanguage() == Language.RUBY || 
-                    //( pt instanceof JSFunction && ((JSFunction)pt).getSourceLanguage() == Language.RUBY ) )
                     _this.push( new This( pt ) );
-                    //else {
-                    // = null;
-                    //throw new RuntimeException( "not doing something b/c language is : " + func.getSourceLanguage() );
-                    //}
                 }
             }
         }
@@ -576,7 +567,7 @@ public final class Scope implements JSObject , Bindings {
         if ( DEBUG ) System.out.println( _id + " getFunctionAndSetThis.  name:" + name );
         
         if ( obj instanceof Number ){
-            JSFunction func = ((JSFunction)(getFunction( "Number" ).get( name )));
+            JSFunction func = ((JSFunction)(getFunctionFromScope( "Number" ).get( name )));
             if ( func != null ){
                 _this.push( new This( obj ) );
                 return func;
@@ -753,7 +744,7 @@ public final class Scope implements JSObject , Bindings {
                 throw new NullPointerException( soFar );
             
             if ( foo instanceof Number )
-                return getFunction( "Number" ).get( origName );
+                return getFunctionFromScope( "Number" ).get( origName );
 
             if ( ! ( foo instanceof JSObject ) )
                 throw new JSException( soFar + " is not a JSObject" );

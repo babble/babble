@@ -49,7 +49,7 @@ public class DNSServer extends Thread {
         _scope.setGlobal( true );
 
         _scope.evalFromPath( "ed/net/dnsserver/dns.js" , "dns.js" );
-        _function = _scope.getFunction( "eval" );
+        _function = _scope.getFunctionFromScope( "eval" );
         
         _scope.put( "add" , 
                     new JSFunctionCalls4(){
