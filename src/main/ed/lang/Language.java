@@ -60,7 +60,7 @@ public abstract class Language {
     final String _name;
     
     public static final Language JS = new ed.js.JS();
-    public static final Language RUBY = new Language( "ruby" ){};
+    public static final Language RUBY = new ed.lang.ruby.RubyLanguage();
     public static final Language PYTHON = new ed.lang.python.Python();
     public static final Language PHP = new ed.lang.php.PHP();
 
@@ -84,7 +84,8 @@ public abstract class Language {
 
         if ( extension.equals( "rb" )
              || extension.equals( "erb" )
-             || extension.equals( "rhtml" ) )
+             || extension.equals( "rhtml" )
+             || extension.equals( "ruby" ) ) // this is to make "./shell --ruby" work
             return RUBY;
 
         if ( extension.equals( "php" ) )

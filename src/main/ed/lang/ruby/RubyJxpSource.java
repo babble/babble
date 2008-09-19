@@ -106,7 +106,7 @@ public class RubyJxpSource extends JxpSource {
 	_runtime = Ruby.newInstance(config);
     }
 
-    /** For testing. */
+    /** For testing and {@link RubyLanguage} use. */
     protected RubyJxpSource(Ruby runtime) {
 	_file = null;
 	_lib = null;
