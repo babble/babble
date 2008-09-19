@@ -513,7 +513,7 @@ public final class Scope implements JSObject , Bindings {
             _tlPreferred = new ThreadLocal<Scope>();
         _tlPreferred.set( s );
     }
-
+    
     public JSFunction getFunction( String name ){
         return getFunctionFromScope( name , false );
     }
