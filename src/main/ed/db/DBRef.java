@@ -25,6 +25,10 @@ public class DBRef extends JSObjectBase {
         _inited = true;
         markClean();
     }
+
+    public boolean isNull(){
+	return _getPointedTo() == null;
+    }
     
     public Object prefunc(){
         return doLoad();
@@ -41,25 +45,15 @@ public class DBRef extends JSObjectBase {
         
         if ( _db == null )
             throw new RuntimeException( "db is null" );
-        
-        final RefCache rc = getRefCache();
+	
+	JSObject o = _getPointedTo();
 
-        DBCollection coll = _db.getCollectionFromString( _ns );
-        
-        JSObject o = rc == null ? null : rc.get( _id );
-        
-        if ( o == null ){
-            o = coll.find( _id );
-            if ( o != null && rc != null )
-                rc.put( _id , o );
-        }
-        
         if ( o == null ){
             System.out.println( "can't find ref.  ns:" + _ns + " id:" + _id );
             _parent.set( _fieldName , null );
             return null;
         }
-        coll.apply( o );
+
         MyAsserts.assertEquals( _id , o.get( "_id" ) );
         MyAsserts.assertEquals( _ns.toString() , o.get( "_ns" ).toString() );
 
@@ -88,6 +82,29 @@ public class DBRef extends JSObjectBase {
         return _doneLoading && super.isDirty();
     }
     
+    private JSObject _getPointedTo(){
+	if ( _loadedPointedTo )
+	    return _pointedTo;
+
+        final RefCache rc = getRefCache();
+        final DBCollection coll = _db.getCollectionFromString( _ns );
+        
+        JSObject o = rc == null ? null : rc.get( _id );
+        
+        if ( o == null ){
+            o = coll.find( _id );
+            if ( o != null && rc != null )
+                rc.put( _id , o );
+        }
+	else {
+	    coll.apply( o );
+	}
+
+	_pointedTo = o;
+	_loadedPointedTo = true;
+	return _pointedTo;
+    }
+
     final JSObject _parent;
     final String _fieldName;
 
@@ -100,6 +117,10 @@ public class DBRef extends JSObjectBase {
     boolean _doneLoading = false;
     
     private Object _actual;
+
+    private boolean _loadedPointedTo = false;
+    private JSObject _pointedTo;
+    
 
     private static RefCache getRefCache(){
         AppRequest r = AppRequest.getThreadLocal();
