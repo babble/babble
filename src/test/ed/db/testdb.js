@@ -31,8 +31,12 @@ function testcopydb() {
     var res = connect("admin").copyDatabase("test", "testcopy");
     var x= t.system.namespaces.count();
     var y= tc.system.namespaces.count();
-    print("testcopydb: x:" + x + " y:" + y);
-    assert(x==y);
+    if( x != y ) { 
+	print("testcopydb: x:" + x + " y:" + y);
+	print("t:" + tojson(t.system.namespaces.find().toArray()));
+	print("tc:" + tojson(t.system.namespaces.find().toArray()));
+	assert(x==y);
+    }
     assert( t.system.indexes.count() == tc.system.indexes.count() );
     assert( t.dots.count() == tc.dots.count() );
 }
