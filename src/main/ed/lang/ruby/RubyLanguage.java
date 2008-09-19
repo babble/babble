@@ -22,9 +22,12 @@ import ed.lang.Language;
 import ed.js.engine.Scope;
 
 class RubyShellSource extends RubyJxpSource {
+
+    static final Ruby RUNTIME = Ruby.newInstance(RubyJxpSource.config);
+
     protected String _code;
     RubyShellSource(String code) {
-	super(Ruby.newInstance(RubyJxpSource.config));
+	super(RUNTIME);
 	_code = code;
     }
     protected String getContent() { return _code; }
@@ -35,16 +38,14 @@ class RubyShellSource extends RubyJxpSource {
  */
 public class RubyLanguage extends Language {
 
-    public RubyLanguage() {
-        super("ruby");
-    }
+    static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB");
 
-    static final boolean DEBUG = Boolean.getBoolean( "DEBUG.RB" );
+    public RubyLanguage() { super("ruby"); }
 
     public Object eval(Scope s, String code, boolean[] hasReturn) {
 	RubyJxpSource source = new RubyShellSource(code);
 	try {
-	    return source._doCall(source._parseContent(""), s, RubyJxpSource.EMPTY_OBJECT_ARRAY);
+	    return source._doCall(source._parseContent("(shell)"), s, RubyJxpSource.EMPTY_OBJECT_ARRAY);
 	}
 	catch (Exception e) {
 	    System.err.println(e.toString());
