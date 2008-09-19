@@ -26,8 +26,8 @@ public class DBRef extends JSObjectBase {
         markClean();
     }
     
-    public void prefunc(){
-        doLoad();
+    public Object prefunc(){
+        return doLoad();
     }
 
     public Object doLoad(){
