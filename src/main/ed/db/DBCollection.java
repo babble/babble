@@ -568,7 +568,7 @@ public abstract class DBCollection extends JSObjectLame {
                 // ok - now we knows its a reference
 
                 if ( e.get( "_id" ) == null ){ // new object, lets save it
-                    JSFunction otherSave = (JSFunction)e.get( "_save" );
+                    JSFunction otherSave = e.getFunction( "_save" );
                     if ( otherSave == null )
                         throw new RuntimeException( "no save :(" );
                     otherSave.call( s , e , null );
@@ -579,7 +579,7 @@ public abstract class DBCollection extends JSObjectLame {
                 JSObject lookup = new JSObjectBase();
                 lookup.set( "_id" , e.get( "_id" ) );
 
-                JSFunction otherUpdate = (JSFunction)e.get( "_update" );
+                JSFunction otherUpdate = e.getFunction( "_update" );
                 if ( otherUpdate == null ){
 
                     // already taken care of

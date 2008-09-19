@@ -295,7 +295,7 @@ public class JSHelper extends JSObjectBase {
                 if(loader == null) {
                     Scope childScope = scope.child();
                     file.call(childScope);
-                    loader = childScope.getFunction(methodPart);
+                    loader = childScope.getFunctionFromScope(methodPart);
                     loaderCache.put(file, loader);
                 }
             }

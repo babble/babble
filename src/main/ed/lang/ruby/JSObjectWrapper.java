@@ -185,4 +185,7 @@ public class JSObjectWrapper implements JSObject {
 	return null;
     }
 
+    public JSFunction getFunction( String name ){
+        return ed.js.JSObjectBase.getFunction( this , name );
+    }
 }

@@ -32,6 +32,10 @@ public class DBJSObject implements JSObject {
         return e.getObject();
     }
 
+    public JSFunction getFunction( String name ){
+        return JSObjectBase.getFunction( this , name );
+    }
+
     public Object getInt( int n ){
         return get( String.valueOf( n ) );
     }
