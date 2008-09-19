@@ -43,9 +43,6 @@ public class DBRef extends JSObjectBase {
 
 	if ( D ) System.out.println( "following dbref" );
         
-        if ( _db == null )
-            throw new RuntimeException( "db is null" );
-	
 	JSObject o = _getPointedTo();
 
         if ( o == null ){
@@ -85,6 +82,9 @@ public class DBRef extends JSObjectBase {
     private JSObject _getPointedTo(){
 	if ( _loadedPointedTo )
 	    return _pointedTo;
+
+        if ( _db == null )
+            throw new RuntimeException( "db is null" );
 
         final RefCache rc = getRefCache();
         final DBCollection coll = _db.getCollectionFromString( _ns );
