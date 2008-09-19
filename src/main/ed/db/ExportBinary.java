@@ -8,6 +8,18 @@ import java.util.*;
 
 import ed.js.*;
 
+/**
+ *  Exports data from a Mongo database
+ *
+ *   Usage :
+ *
+ *    ./runAnt.sh ed.db.ExportBinary ip dir [dname1 dbname2 ...]
+ *
+ *   where :
+ *      ip is ip address of server to export from
+ *      dir is local directory for exported data
+ *      dbnameN is optional name of database to export.  If omitted, full DB will be exported
+ *  */
 public class ExportBinary {
     
     static void export( String root , String ip , File baseDir )
