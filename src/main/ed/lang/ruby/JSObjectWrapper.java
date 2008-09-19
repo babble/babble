@@ -185,4 +185,8 @@ public class JSObjectWrapper implements JSObject {
 	else
 	    return null;
     }
+
+    public String toString() {
+	return _robj.callMethod(context(), "to_s", JSFunctionWrapper.EMPTY_IRUBY_OBJECT_ARRAY, Block.NULL_BLOCK).toString();
+    }
 }
