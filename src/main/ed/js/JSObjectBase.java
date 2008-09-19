@@ -699,13 +699,10 @@ public class JSObjectBase implements JSObject {
      * @return the string representation of this object.
      */
     public String toString(){
-        Object temp = get( "toString" );
-
-        if ( ! ( temp instanceof JSFunction ) )
+        JSFunction f = getFunction( "toString" );
+        if ( f == null )
             return OBJECT_STRING;
-
-        JSFunction f = (JSFunction)temp;
-
+        
         Scope s;
         try {
             s= f.getScope().child();

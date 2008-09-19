@@ -514,14 +514,22 @@ public final class Scope implements JSObject , Bindings {
         _tlPreferred.set( s );
     }
 
+    public JSFunction getFunction( String name ){
+        return getFunctionFromScope( name , false );
+    }
+
     public JSFunction getFunctionFromScope( String name ){
+        return getFunctionFromScope( name , true );
+    }
+    
+    public JSFunction getFunctionFromScope( String name , boolean errorOnNull ){
         JSObject with[] = new JSObject[1];
         Object o = get( name , _alternate , with );
         
         if ( o == null ){
             if ( getParent().getThis( false ) instanceof JSObject ){
                 JSObject pt = (JSObject)getParent().getThis();
-                o = pt.get( name );
+                o = pt.getFunction( name );
                 if ( o instanceof JSFunction ){
                     JSFunction func = (JSFunction)o;
                     _this.push( new This( pt ) );
@@ -530,7 +538,9 @@ public final class Scope implements JSObject , Bindings {
         }
 
         if ( o == null ){
-            throw new NullPointerException( name );
+            if ( errorOnNull )
+                throw new NullPointerException( name );
+            return null;
         }
         
         if ( ! ( o instanceof JSFunction ) )
@@ -577,11 +587,7 @@ public final class Scope implements JSObject , Bindings {
         if ( obj instanceof JSObject ){
             JSObject jsobj = (JSObject)obj;
             
-            Object shouldBeFunc = jsobj.get( name );
-            if ( shouldBeFunc != null && ! ( shouldBeFunc instanceof JSFunction ) )
-                throw new RuntimeException( name + " is not a function.  is a:" + shouldBeFunc.getClass()  );
-            
-            JSFunction func = (JSFunction)shouldBeFunc;
+            JSFunction func = jsobj.getFunction( name );
             
             if ( func != null ){
                 if ( DEBUG ) System.out.println( "\t pushing js" );
