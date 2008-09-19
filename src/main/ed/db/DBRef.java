@@ -27,6 +27,8 @@ public class DBRef extends JSObjectBase {
     }
 
     public boolean isNull(){
+	if ( _db == null )
+	    return false;
 	return _getPointedTo() == null;
     }
     
