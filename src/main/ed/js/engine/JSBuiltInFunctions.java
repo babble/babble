@@ -614,6 +614,11 @@ public class JSBuiltInFunctions {
         s.put( "ObjectID" , crid , true );
         s.put( "ObjectId" , crid , true );
 
+        s.put( "gc" , new JSFunctionCalls0() {
+                public Object call( Scope scope , Object extra[] ){
+                    return ed.util.MemUtil.gc();
+                }
+            } , true );
         s.put( "parseBool" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object b , Object extra[] ){
                     if ( b == null )

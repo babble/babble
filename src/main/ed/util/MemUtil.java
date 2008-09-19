@@ -96,4 +96,11 @@ public class MemUtil {
         return buf.toString();
     }
 
+    public static String gc() {
+        long before = MemUtil.bytesAvailable();
+        System.gc();
+        long after = MemUtil.bytesAvailable();
+        return "before "+before+", after "+after+", break "+Runtime.getRuntime().totalMemory();
+    }
+
 }
