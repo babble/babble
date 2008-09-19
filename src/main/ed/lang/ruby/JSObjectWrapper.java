@@ -158,7 +158,6 @@ public class JSObjectWrapper implements JSObject {
     public boolean containsKey(String s) {
 	return _robj.hasInstanceVariable("@" + s) ||
 	    respondsToAndIsNotXGen(s);
-// 	    ((RubyArray)_robj.methods(context(), JSFunctionWrapper.EMPTY_IRUBY_OBJECT_ARRAY)).includes(context(), RubyString.newString(_robj.getRuntime(), s));
     }
 
     public Collection<String> keySet() {
@@ -185,7 +184,7 @@ public class JSObjectWrapper implements JSObject {
 	return null;
     }
 
-    public JSFunction getFunction( String name ){
-        return ed.js.JSObjectBase.getFunction( this , name );
+    public JSFunction getFunction(String name) {
+        return ed.js.JSObjectBase.getFunction(this, name);
     }
 }
