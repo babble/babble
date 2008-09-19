@@ -109,6 +109,10 @@ public class IRCBot extends PircBot implements JSObject {
         return null;
     }
 
+    public JSFunction getFunction( String name ){
+        return JSObjectBase.getFunction( this , name );
+    }
+
     private Map<String,Object> _things = new TreeMap<String,Object>();
 
 }

@@ -169,8 +169,25 @@ public class JSObjectBase implements JSObject {
         final Object v = get( n );
         if ( v == null )
             return null;
-
+        
         return v.toString();
+    }
+
+    public JSFunction getFunction( String name ){
+        return getFunction( this , name );
+    }
+    
+    public static final JSFunction getFunction( JSObject o , String name ){
+        if ( o == null )
+            return null;
+        
+        Object f = o.get( name );
+        if ( f == null )
+            return null;
+        if ( f instanceof JSFunction )
+            return (JSFunction)f;
+        // TODO: should this return null or throw an exception?
+        return null;
     }
 
     /** Given a key for this object, return its corresponding value.
