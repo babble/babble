@@ -68,6 +68,10 @@ public class JSObjectBase implements JSObject {
 	return this;
     }
 
+    public boolean isNull(){
+	return false;
+    }
+
     /** Sets or creates this object's field with the key <tt>n</tt> to the value <tt>v</tt>
      * @param n Key to set
      * @param v Value to set
@@ -184,8 +188,8 @@ public class JSObjectBase implements JSObject {
             return getInt( ((Number)n).intValue() );
 
 	Object ret = _simpleGet( n.toString() );
-	if ( ret instanceof JSObjectBase )
-	    return ((JSObjectBase)ret).prefunc();
+	if ( ret instanceof JSObjectBase && ((JSObjectBase)ret).isNull() )
+	    return null;
 	return ret;
     }
 
