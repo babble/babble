@@ -984,6 +984,10 @@ public final class Scope implements JSObject , Bindings {
         if ( _children == null )
             _children = new WeakBag<Scope>();
         synchronized ( _children ){
+            if ( ++_childrenAdds > 1000 ){
+                _children.clean();
+                _childrenAdds = 0;
+            }
             _children.add( s );
         }
     }
@@ -1019,6 +1023,7 @@ public final class Scope implements JSObject , Bindings {
     Error _toThrowError;
 
     private WeakBag<Scope> _children;
+    private int _childrenAdds = 0;
     
     public void makeThreadLocal(){
         _threadLocal.set( this );
