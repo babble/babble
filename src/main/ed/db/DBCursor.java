@@ -15,7 +15,7 @@ import ed.util.*;
  * @expose
  * @docmodule system.database.cursor
  */
-public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
+public class DBCursor extends JSObjectLame implements Iterator<JSObject>, Iterable<JSObject> {
 
     /** @unexpose */
     public static final long MAX_RAW_BYTES = 1024 * 1024 * 25;
@@ -334,6 +334,10 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
 
         throw new RuntimeException( "why did call return a non-number" );
     }
+
+    public Iterator<JSObject> iterator() {
+        return this;
+    }    
 
     // ---- js methods ----
     /** @unexpose */
