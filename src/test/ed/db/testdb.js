@@ -34,9 +34,15 @@ function testcopydb() {
     var x= t.system.namespaces.find(query).count();
     var y= tc.system.namespaces.find(query).count();
     if( x != y ) { 
+	function f(x) { 
+	    print(x.name);
+	}
 	print("testcopydb: x:" + x + " y:" + y);
-	print("t:" + tojson(t.system.namespaces.find().toArray()));
-	print("tc:" + tojson(t.system.namespaces.find().toArray()));
+	print("t:");
+	t.system.namespaces.find().sort({name:1}).forEach(f);
+	print("tc:");
+	tc.system.namespaces.find().sort({name:1}).forEach(f);
+
 	assert(x==y);
     }
     assert( t.system.indexes.count() == tc.system.indexes.count() );

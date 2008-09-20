@@ -106,7 +106,7 @@ public class RubyJxpSource extends JxpSource {
 	_runtime = Ruby.newInstance(config);
     }
 
-    /** For testing. */
+    /** For testing and {@link RubyLanguage} use. */
     protected RubyJxpSource(Ruby runtime) {
 	_file = null;
 	_lib = null;
@@ -138,11 +138,11 @@ public class RubyJxpSource extends JxpSource {
     public JSFunction getFunction() throws IOException {
         final Node code = _getCode(); // Parsed Ruby code
         return new ed.js.func.JSFunctionCalls0() {
-            public Object call(Scope s, Object unused[]) { return _doCall(code, s, unused); }
+            public Object call(Scope s, Object unused[]) { return RubyObjectWrapper.toJS(s, _doCall(code, s, unused)); }
         };
     }
 
-    protected Object _doCall(Node code, Scope s, Object unused[]) {
+    protected IRubyObject _doCall(Node code, Scope s, Object unused[]) {
 	_addJSFileLibrariesToPath(s);
 
 	if (_runtime.getGlobalVariables() instanceof ScopeGlobalVariables)

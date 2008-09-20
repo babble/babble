@@ -31,7 +31,7 @@ import ed.io.*;
 import ed.lang.*;
 import ed.util.*;
 
-public class Convert implements StackTraceFixer {
+public class Convert {
 
     static boolean DJS = Boolean.getBoolean( "DEBUG.JS" );
     final boolean D;
@@ -122,6 +122,7 @@ public class Convert implements StackTraceFixer {
         _fullClassName = _package + "." + _className;
         _random = _random( _fullClassName );
         _id = _random.nextInt();
+        _scriptInfo = new ScriptInfo( _name , _fullClassName , _sourceLanguage , this );
 
         CompilerEnvirons ce = new CompilerEnvirons();
 
@@ -1722,7 +1723,9 @@ public class Convert implements StackTraceFixer {
         try {
             Class c = CompileUtil.compile( _package , getClassName() , getClassString() , this );
             JSCompiledScript it = (JSCompiledScript)c.newInstance();
-            it._convert = this;
+
+            _scriptInfo.setup( this );
+            it._scriptInfo = _scriptInfo;
 
             it._regex = _regex;
 
@@ -1734,10 +1737,10 @@ public class Convert implements StackTraceFixer {
 
             _it = it;
 
-            StackTraceHolder.getInstance().set( _fullClassName , this );
-            StackTraceHolder.getInstance().setPackage( "ed.js" , this );
-            StackTraceHolder.getInstance().setPackage( "ed.js.func" , this );
-            StackTraceHolder.getInstance().setPackage( "ed.js.engine" , this );
+            StackTraceHolder.getInstance().set( _fullClassName , _scriptInfo );
+            StackTraceHolder.getInstance().setPackage( "ed.js" , _scriptInfo );
+            StackTraceHolder.getInstance().setPackage( "ed.js.func" , _scriptInfo );
+            StackTraceHolder.getInstance().setPackage( "ed.js.engine" , _scriptInfo );
 
             return _it;
         }
@@ -1788,44 +1791,6 @@ public class Convert implements StackTraceFixer {
         System.out.println( "-----" );
     }
 
-    public StackTraceElement fixSTElement( StackTraceElement element ){
-        return fixSTElement( element , false );
-    }
-
-    public StackTraceElement fixSTElement( StackTraceElement element , boolean debug ){
-
-        if ( ! element.getClassName().startsWith( _fullClassName ) )
-            return null;
-
-        if ( debug ){
-            System.out.println( element );
-            _debugLineNumber( element.getLineNumber() );
-        }
-
-        Node n = _getNodeFromJavaLine( element.getLineNumber() );
-        if ( n == null )
-            return null;
-
-        // the +1 is for the way rhino does stuff
-        int line = _mapLineNumber( element.getLineNumber() );
-
-        ScriptOrFnNode sof = _nodeToSOR.get( n );
-        String method = "___";
-        if ( sof instanceof FunctionNode )
-            method = ((FunctionNode)sof).getFunctionName();
-
-        return new StackTraceElement( _name , method , _name , line );
-    }
-
-    public boolean removeSTElement( StackTraceElement element ){
-        String s = element.toString();
-
-        return
-            s.contains( ".call(JSFunctionCalls" ) ||
-            s.contains( "ed.js.JSFunctionBase.call(" ) ||
-            s.contains( "ed.js.engine.JSCompiledScript.call" );
-    }
-
 
 
     String getSource( FunctionNode fn ){
@@ -1864,7 +1829,7 @@ public class Convert implements StackTraceFixer {
     static Random _random( String name ){
         return new Random( name.hashCode() );
     }
-    
+
     final Random _random;
     final String _name;
     final String _source;
@@ -1883,6 +1848,7 @@ public class Convert implements StackTraceFixer {
     final Map<Node,ScriptOrFnNode> _nodeToSOR = new HashMap<Node,ScriptOrFnNode>();
     final List<Pair<String,String>> _regex = new ArrayList<Pair<String,String>>();
     final List<String> _strings = new ArrayList<String>();
+    final ScriptInfo _scriptInfo;
 
     int _preMainLines = -1;
     private final StringBuilder _mainJavaCode = new StringBuilder();
@@ -1935,6 +1901,79 @@ public class Convert implements StackTraceFixer {
 
         return n == null ? foo : null;
     }
+
+    // SCRIPT INFO
+
+    static class ScriptInfo implements StackTraceFixer {
+        
+        ScriptInfo( String name , String fullClassName , Language l , Convert c ){
+            _name = name;
+            _fullClassName = fullClassName;
+            _sourceLanguage = l;
+            _convert = DJS ? c : null;
+        }
+
+        public void fixStack( Throwable e ){
+            StackTraceHolder.getInstance().fix( e );
+        }
+        
+        public StackTraceElement fixSTElement( StackTraceElement element ){
+            return fixSTElement( element , false );
+        }
+        
+        public StackTraceElement fixSTElement( StackTraceElement element , boolean debug ){
+            
+            if ( ! element.getClassName().startsWith( _fullClassName ) )
+                return null;
+            
+            if ( debug ){
+                System.out.println( element );
+                if ( _convert != null )
+                    _convert._debugLineNumber( element.getLineNumber() );
+            }
+            
+            Pair<Integer,String> p = _lines.get( element.getLineNumber() );
+            if ( p == null )
+                return null;
+            
+            return new StackTraceElement( _name , p.second , _name , p.first );
+        }
+        
+        public boolean removeSTElement( StackTraceElement element ){
+            String s = element.toString();
+            
+            return
+                s.contains( ".call(JSFunctionCalls" ) ||
+                s.contains( "ed.js.JSFunctionBase.call(" ) ||
+                s.contains( "ed.js.engine.JSCompiledScript.call" );
+        }
+
+        void setup( Convert c ){
+            for ( int i=0; i<c._currentLineNumber + 100; i++ ){
+                Node n = c._getNodeFromJavaLine( i );
+                if ( n == null )
+                    continue;
+                
+                int line = c._mapLineNumber( i );
+            
+                ScriptOrFnNode sof = c._nodeToSOR.get( n );
+                String method = "___";
+                if ( sof instanceof FunctionNode )
+                    method = ((FunctionNode)sof).getFunctionName();                
+
+                _lines.put( i , new Pair<Integer,String>( line , method ) );
+            }
+        }
+        
+        final String _name;
+        final String _fullClassName;
+        final Language _sourceLanguage;
+        final Convert _convert;
+
+        final Map<Integer,Pair<Integer,String>> _lines = new HashMap<Integer,Pair<Integer,String>>();
+    }
+
+    // END SCRIPT INFO
 
     // this is class compile optimization below
 

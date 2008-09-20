@@ -27,6 +27,16 @@ public class JSObjectLame implements JSObject {
         throw _getException();
     }
 
+    public JSFunction getFunction( String name ){
+        Object o = get( name );
+        if ( o == null )
+            return null;
+        if ( o instanceof JSFunction )
+            return (JSFunction)o;
+        // TODO: should this return null or throw an exception?
+        return null;
+    }
+
     public final Collection<String> keySet(){
         return keySet( true );
     }

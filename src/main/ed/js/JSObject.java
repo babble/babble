@@ -37,6 +37,8 @@ public interface JSObject {
      */
     public Object get( Object n );
 
+    public JSFunction getFunction( String name );
+
     /** Add a key/value pair to this object, using a numeric key.
      * @param n Key to use.
      * @param v Value to use.

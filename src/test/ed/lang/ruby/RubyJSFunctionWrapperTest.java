@@ -78,7 +78,7 @@ public class RubyJSFunctionWrapperTest extends SourceRunner {
     public void testClassHierarchy() {
 	runRuby("# gotta run something for the class to be created");
 	RubyModule mo = r.getClassFromPath("MyJSClass");
-	assertTrue(mo instanceof RubyClass);
+	assertTrue(mo instanceof RubyClass, "expected RubyClass, saw " + (mo == null ? "null" : mo.getClass().getName()));
 	RubyClass c = (RubyClass)mo;
 	RubyClass superClass = (RubyClass)c.superclass(r.getCurrentContext());
 	assertNotNull(superClass);
@@ -93,25 +93,22 @@ public class RubyJSFunctionWrapperTest extends SourceRunner {
 	runRuby("# gotta run something for the class to be created");
 	RubyModule m = r.getClassFromPath("MyJSClass");
 	assertNotNull(m);
-	assertEquals(runRuby("MyJSClass"), m);
+	runRuby("puts Object.constants.include?('MyJSClass').to_s");
+	assertEquals(rubyOutput, "true");
     }
 
     public void testConstruction() {
 	Object o = runRuby("MyJSClass.new('bar')");
 	assertNotNull(o);
-	assertTrue(o instanceof ed.lang.ruby.RubyJSObjectWrapper);
-	RubyJSObjectWrapper wrapper = (RubyJSObjectWrapper)o;
-	assertEquals(wrapper.type().name().toString(), "MyJSClass");
-	assertEquals(wrapper.type().getSuperClass().name().toString(), "JSObject");
+	// We return the underlying JS object, not the Ruby wrapper around it
+	assertTrue(o instanceof JSObject, "expected JSObject, saw " + (o == null ? "null" : o.getClass().getName()));
 
-	Object foo = wrapper.getJSObject().get("foo");
-	assertEquals(foo.toString(), "bar");
-	assertTrue(foo instanceof JSString);
+	JSObject jo = (JSObject)o;
+	Object reverse = jo.getFunction("reverse");
+	assertTrue(reverse instanceof JSFunction, "expected JSFunction, saw " + (reverse == null ? "null" : reverse.getClass().getName()));
+	assertEquals(((JSFunction)reverse).callAndSetThis(s, jo, RubyJxpSource.EMPTY_OBJECT_ARRAY).toString(), "rab");
 
-	Object reverse = wrapper.getJSObject().get("reverse");
-	assertTrue(reverse instanceof JSFunction);
-
-	assertNotNull(r.getModule("MyJSClass"));
+	assertNotNull(r.getModule("MyJSClass")); // Ruby class was created
     }
 
     public void testClassNameInRuby() {
@@ -128,10 +125,11 @@ public class RubyJSFunctionWrapperTest extends SourceRunner {
     public void testModifyJSObject() {
 	// We can't call x.foo because foo is not in the object's keySet
 	Object o = runRuby("x = MyJSClass.new('bar'); x['foo'] = 'new_value'; x");
-	RubyJSObjectWrapper wrapper = (RubyJSObjectWrapper)o;
-	Object foo = wrapper.getJSObject().get("foo");
-	assertEquals(foo.toString(), "new_value");
-	assertTrue(foo instanceof JSString);
+	JSObject wrapper = (JSObject)o;
+
+	Object reverse = wrapper.getFunction("reverse");
+	assertTrue(reverse instanceof JSFunction, "expected JSFunction, saw " + (reverse == null ? "null" : reverse.getClass().getName()));
+	assertEquals(((JSFunction)reverse).callAndSetThis(s, wrapper, RubyJxpSource.EMPTY_OBJECT_ARRAY).toString(), "eulav_wen");
     }
 
     public void testCallJSObjectFunction() {

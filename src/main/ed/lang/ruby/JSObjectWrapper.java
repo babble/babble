@@ -41,8 +41,6 @@ import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
  */
 public class JSObjectWrapper implements JSObject {
 
-    private static final IRubyObject[] EMPTY_ARG_LIST = new IRubyObject[0];
-
     private Scope _scope;
     private RubyObject _robj;
     private RubyModule _xgenModule; // cached copy for quick access
@@ -105,36 +103,27 @@ public class JSObjectWrapper implements JSObject {
     public Object set(Object n, Object v) {
 	String skey = n.toString();
 
-	if ("_id".equals(skey) && v instanceof ObjectId)
+	if ("_id".equals(skey) && v instanceof ObjectId) // needed so database can update object's id on save
 	    _robj.instance_variable_set(ivarName(n), toRuby(_scope, _robj.getRuntime(), v.toString()));
 	else if (isCallableJSFunction(v)) {
-	    _removeIvarIfExists(skey);
-	    toRuby(_scope, _robj.getRuntime(), (JSFunction)v, skey, _robj, this);
+	    toRuby(_scope, _robj.getRuntime(), (JSFunction)v, skey, _robj, this); // attaches method to eigenclass of _robj
 	}
 	else {
-	    _removeMethodIfExists(skey);
-	    _robj.instance_variable_set(ivarName(n), toRuby(_scope, _robj.getRuntime(), v));
+	    skey += "=";
+	    if (_robj.respondsTo(skey))
+		return toJS(_scope, _robj.callMethod(context(), skey, new IRubyObject[] {toRuby(_scope, _robj.getRuntime(), v, skey, _robj)}, Block.NULL_BLOCK));
+	    else
+		throw new IllegalArgumentException("no such method: " + skey);
 	}
 	return v;
     }
 
     public Object get(Object n) {
 	String skey = n.toString();
-
-	IRubyObject ivarName = ivarName(skey);
-	if (_robj.instance_variable_defined_p(context(), ivarName).isTrue()) {
-	    IRubyObject ro = _robj.instance_variable_get(context(), ivarName);
-	    if ("_id".equals(skey) && !ro.isNil())
-		return new ObjectId(ro.toString());
-	    return toJS(_scope, ro);
-	}
-
-	if (respondsToAndIsNotXGen(skey)) {
-	    RubyMethod m = (RubyMethod)_robj.method(_robj.getRuntime().newSymbol(skey));
-	    return new JSFunctionWrapper(_scope, _robj.getRuntime(), ((RubyProc)m.to_proc(context(), Block.NULL_BLOCK)).getBlock());
-	}
-
-	return toJS(_scope, null);
+	if (_robj.respondsTo(skey))
+	    return toJS(_scope, _robj.callMethod(context(), skey, JSFunctionWrapper.EMPTY_IRUBY_OBJECT_ARRAY, Block.NULL_BLOCK));
+	else
+	    throw new IllegalArgumentException("no such method: " + skey);
     }
 
     public Object setInt(int n, Object v) {
@@ -158,7 +147,6 @@ public class JSObjectWrapper implements JSObject {
     public boolean containsKey(String s) {
 	return _robj.hasInstanceVariable("@" + s) ||
 	    respondsToAndIsNotXGen(s);
-// 	    ((RubyArray)_robj.methods(context(), JSFunctionWrapper.EMPTY_IRUBY_OBJECT_ARRAY)).includes(context(), RubyString.newString(_robj.getRuntime(), s));
     }
 
     public Collection<String> keySet() {
@@ -167,8 +155,14 @@ public class JSObjectWrapper implements JSObject {
 
     public Collection<String> keySet(boolean includePrototype) {
 	Set<String> names = new HashSet<String>();
-	for (Variable var : _robj.getInstanceVariables().getInstanceVariableList())
-	    names.add(var.getName().substring(1));
+
+	// Add each ivar's name iff the ivar has a setter or a getter
+	for (Variable var : _robj.getInstanceVariables().getInstanceVariableList()) {
+	    String name = var.getName().substring(1); // Strip off leading "@"
+	    if (_robj.respondsTo(name) || _robj.respondsTo(name + "="))
+		names.add(var.getName().substring(1));
+	}
+
 	if (includePrototype)
 	    for (Object name : ((RubyArray)_robj.methods(context(), JSFunctionWrapper.EMPTY_IRUBY_OBJECT_ARRAY)))
 		if (respondsToAndIsNotXGen(name.toString()))
@@ -185,4 +179,14 @@ public class JSObjectWrapper implements JSObject {
 	return null;
     }
 
+    public JSFunction getFunction(String name) {
+	if (respondsToAndIsNotXGen(name))
+	    return (JSFunction)toJS(_scope, _robj.method(RubyString.newString(_robj.getRuntime(), name)));
+	else
+	    return null;
+    }
+
+    public String toString() {
+	return _robj.callMethod(context(), "to_s", JSFunctionWrapper.EMPTY_IRUBY_OBJECT_ARRAY, Block.NULL_BLOCK).toString();
+    }
 }

@@ -513,33 +513,34 @@ public final class Scope implements JSObject , Bindings {
             _tlPreferred = new ThreadLocal<Scope>();
         _tlPreferred.set( s );
     }
-
+    
     public JSFunction getFunction( String name ){
-        //System.err.println( "getFunction : " + name );
+        return getFunctionFromScope( name , false );
+    }
+
+    public JSFunction getFunctionFromScope( String name ){
+        return getFunctionFromScope( name , true );
+    }
+    
+    public JSFunction getFunctionFromScope( String name , boolean errorOnNull ){
         JSObject with[] = new JSObject[1];
         Object o = get( name , _alternate , with );
-        //System.err.println( "\t" + o + "\t" + with[0] );
         
         if ( o == null ){
             if ( getParent().getThis( false ) instanceof JSObject ){
                 JSObject pt = (JSObject)getParent().getThis();
-                o = pt.get( name );
+                o = pt.getFunction( name );
                 if ( o instanceof JSFunction ){
                     JSFunction func = (JSFunction)o;
-                    // THIS IS BROKEN  TODO: fix for JS
-                    //if ( func.getSourceLanguage() == Language.RUBY || 
-                    //( pt instanceof JSFunction && ((JSFunction)pt).getSourceLanguage() == Language.RUBY ) )
                     _this.push( new This( pt ) );
-                    //else {
-                    // = null;
-                    //throw new RuntimeException( "not doing something b/c language is : " + func.getSourceLanguage() );
-                    //}
                 }
             }
         }
 
         if ( o == null ){
-            throw new NullPointerException( name );
+            if ( errorOnNull )
+                throw new NullPointerException( name );
+            return null;
         }
         
         if ( ! ( o instanceof JSFunction ) )
@@ -576,7 +577,7 @@ public final class Scope implements JSObject , Bindings {
         if ( DEBUG ) System.out.println( _id + " getFunctionAndSetThis.  name:" + name );
         
         if ( obj instanceof Number ){
-            JSFunction func = ((JSFunction)(getFunction( "Number" ).get( name )));
+            JSFunction func = ((JSFunction)(getFunctionFromScope( "Number" ).get( name )));
             if ( func != null ){
                 _this.push( new This( obj ) );
                 return func;
@@ -586,11 +587,7 @@ public final class Scope implements JSObject , Bindings {
         if ( obj instanceof JSObject ){
             JSObject jsobj = (JSObject)obj;
             
-            Object shouldBeFunc = jsobj.get( name );
-            if ( shouldBeFunc != null && ! ( shouldBeFunc instanceof JSFunction ) )
-                throw new RuntimeException( name + " is not a function.  is a:" + shouldBeFunc.getClass()  );
-            
-            JSFunction func = (JSFunction)shouldBeFunc;
+            JSFunction func = jsobj.getFunction( name );
             
             if ( func != null ){
                 if ( DEBUG ) System.out.println( "\t pushing js" );
@@ -753,7 +750,7 @@ public final class Scope implements JSObject , Bindings {
                 throw new NullPointerException( soFar );
             
             if ( foo instanceof Number )
-                return getFunction( "Number" ).get( origName );
+                return getFunctionFromScope( "Number" ).get( origName );
 
             if ( ! ( foo instanceof JSObject ) )
                 throw new JSException( soFar + " is not a JSObject" );
@@ -987,6 +984,10 @@ public final class Scope implements JSObject , Bindings {
         if ( _children == null )
             _children = new WeakBag<Scope>();
         synchronized ( _children ){
+            if ( ++_childrenAdds > 1000 ){
+                _children.clean();
+                _childrenAdds = 0;
+            }
             _children.add( s );
         }
     }
@@ -1022,6 +1023,7 @@ public final class Scope implements JSObject , Bindings {
     Error _toThrowError;
 
     private WeakBag<Scope> _children;
+    private int _childrenAdds = 0;
     
     public void makeThreadLocal(){
         _threadLocal.set( this );

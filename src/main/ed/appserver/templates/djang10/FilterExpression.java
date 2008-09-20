@@ -96,7 +96,7 @@ public class FilterExpression extends JSObjectBase {
             }
             else {
                 if(log.getEffectiveLevel().compareTo(Level.DEBUG) <= 0) {
-                    log.debug(e.getMessage(),e);
+                    log.info(e.getMessage(),e);
                 } 
                 else {
                     Throwable t=e;

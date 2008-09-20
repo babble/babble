@@ -147,7 +147,7 @@ public class XMLHttpRequest extends JSObjectBase {
     void setStatus( int status ){
         set( "readyState" , status );
 
-        JSFunction onreadystatechange = (JSFunction)get( "onreadystatechange" );
+        JSFunction onreadystatechange = getFunction( "onreadystatechange" );
         if ( onreadystatechange != null && status > 0 )
             onreadystatechange.call( _onreadystatechangeScope , null );
 
