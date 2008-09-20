@@ -46,6 +46,7 @@ public class RubyJxpSource extends JxpSource {
 
     public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
     static final Map<Ruby, Set<IRubyObject>> _requiredJSFileLibFiles = new WeakHashMap<Ruby, Set<IRubyObject>>();
+    static final Map<Ruby, RubyModule> xgenModuleDefs = new WeakHashMap<Ruby, RubyModule>();
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB");
     static final boolean SKIP_REQUIRED_LIBS = Boolean.getBoolean("DEBUG.RB.SKIP.REQ.LIBS");
@@ -69,13 +70,43 @@ public class RubyJxpSource extends JxpSource {
     /** Determines what major version of Ruby to compile: 1.8 (false) or YARV/1.9 (true). **/
     public static final boolean YARV_COMPILE = false;
 
+    public static synchronized RubyModule xgenModule(Ruby runtime) {
+	RubyModule xgen = xgenModuleDefs.get(runtime);
+	if (xgen == null) {
+	    xgen = runtime.defineModule("XGen");
+	    xgenModuleDefs.put(runtime, xgen);
+	}
+	return xgen;
+    }
+
+    /**
+     * Creates Ruby classes from any new JavaScript classes found in the top
+     * level of <var>scope</var>. Called immediately after loading a file
+     * using a JSFileLibrary.
+     */
+    public static void createNewClasses(Scope scope, Ruby runtime) {
+	if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
+	    System.err.println("about to create newly-defined classes");
+	for (Object key : RubyScopeWrapper.jsKeySet(scope)) {
+	    String skey = key.toString();
+	    if (IdUtil.isConstant(skey) && runtime.getClass(skey) == null) {
+		Object o = scope.get(key);
+		if (isCallableJSFunction(o)) {
+		    if (DEBUG || RubyObjectWrapper.DEBUG_FCALL || RubyObjectWrapper.DEBUG_CREATE)
+			System.err.println("creating newly-defined class " + skey);
+		    toRuby(scope, runtime, (JSFunction)o, skey);
+		}
+	    }
+	}
+    }
+
     public RubyJxpSource(File f , JSFileLibrary lib) {
         _file = f;
         _lib = lib;
 	_runtime = Ruby.newInstance(config);
     }
 
-    /** For testing. */
+    /** For testing and {@link RubyLanguage} use. */
     protected RubyJxpSource(Ruby runtime) {
 	_file = null;
 	_lib = null;
@@ -107,11 +138,11 @@ public class RubyJxpSource extends JxpSource {
     public JSFunction getFunction() throws IOException {
         final Node code = _getCode(); // Parsed Ruby code
         return new ed.js.func.JSFunctionCalls0() {
-            public Object call(Scope s, Object unused[]) { return _doCall(code, s, unused); }
+            public Object call(Scope s, Object unused[]) { return RubyObjectWrapper.toJS(s, _doCall(code, s, unused)); }
         };
     }
 
-    protected Object _doCall(Node code, Scope s, Object unused[]) {
+    protected IRubyObject _doCall(Node code, Scope s, Object unused[]) {
 	_addJSFileLibrariesToPath(s);
 
 	if (_runtime.getGlobalVariables() instanceof ScopeGlobalVariables)
@@ -192,9 +223,14 @@ public class RubyJxpSource extends JxpSource {
 	_addTopLevelMethodsToObjectClass(scope);
     }
 
-    // TODO add to object class, or add to kernel?
+    /**
+     * Creates a module named XGen, includes it in the Object class (just like
+     * Kernel), and adds all top-level JavaScript methods to the module.
+     */
     protected void _addTopLevelMethodsToObjectClass(final Scope scope) {
-	RubyClass klazz = _runtime.getObject();
+	RubyModule xgen = xgenModule(_runtime);
+	_runtime.getObject().includeModule(xgen);
+
 	Set<String> alreadySeen = new HashSet<String>();
 	Scope s = scope;
 	while (s != null) {
@@ -206,8 +242,8 @@ public class RubyJxpSource extends JxpSource {
 		    if (DEBUG)
 			System.err.println("adding top-level method " + key);
 		    alreadySeen.add(key);
-		    // Creates method and attaches to klazz. Also creates a new Ruby class if appropriate.
-		    new RubyJSFunctionWrapper(scope, _runtime, (JSFunction)obj, key, klazz);
+		    // Creates method and attaches to xgen. Also creates a new Ruby class if appropriate.
+		    RubyObjectWrapper.createRubyMethod(scope, _runtime, (JSFunction)obj, key, xgen, null);
 		}
 	    }
 	    s = s.getParent();
@@ -217,15 +253,18 @@ public class RubyJxpSource extends JxpSource {
     protected void _patchRequireAndLoad(final Scope scope) {
 	RubyModule kernel = _runtime.getKernel();
 	kernel.addMethod("require", new JavaMethod(kernel, PUBLIC) {
-		public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+		public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
 		    Ruby runtime = self.getRuntime();
-		    String arg = args[0].toString();
+		    String file = args[0].toString();
+
+		    if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
+			System.err.println("require " + file);
 		    try {
-			return runtime.getLoadService().require(arg) ? runtime.getTrue() : runtime.getFalse();
+			return runtime.getLoadService().require(file) ? runtime.getTrue() : runtime.getFalse();
 		    }
 		    catch (RaiseException re) {
 			if (_notAlreadyRequired(runtime, args[0])) {
-			    loadLibraryFile(scope, runtime, self, arg, re);
+			    loadLibraryFile(scope, runtime, self, file, re);
 			    _rememberAlreadyRequired(runtime, args[0]);
 			}
 			return runtime.getTrue();
@@ -233,11 +272,13 @@ public class RubyJxpSource extends JxpSource {
 		}
 	    });
 	kernel.addMethod("load", new JavaMethod(kernel, PUBLIC) {
-		public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule clazz, String name, IRubyObject[] args, Block block) {
+		public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
 		    Ruby runtime = self.getRuntime();
 		    RubyString file = args[0].convertToString();
 		    boolean wrap = args.length == 2 ? args[1].isTrue() : false;
 
+		    if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
+			System.err.println("load " + file);
 		    try {
 			runtime.getLoadService().load(file.getByteList().toString(), wrap);
 			return runtime.getTrue();
@@ -250,12 +291,12 @@ public class RubyJxpSource extends JxpSource {
     }
 
     protected IRubyObject loadLibraryFile(Scope scope, Ruby runtime, IRubyObject recv, String path, RaiseException re) {
-	if (DEBUG)
+	if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
 	    System.err.println("going to compile and run library file " + path + "; runtime = " + runtime);
 
 	JSFileLibrary lib = getLibFromPath(path, scope);
 	if (lib == null) {
-	    if (DEBUG)
+	    if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
 		System.err.println("can not find JSFileLibrary for " + path + "; re-raising Ruby exception");
 	    throw re;
 	}
@@ -287,7 +328,7 @@ public class RubyJxpSource extends JxpSource {
 	    }
 	    /* fall through to throw re */
 	}
-	if (DEBUG)
+	if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
 	    System.err.println("problem loading file " + path + " from lib " + lib + "; throwing original Ruby error " + re);
 	throw re;
     }
@@ -319,22 +360,6 @@ public class RubyJxpSource extends JxpSource {
 	    path = path.substring(1);
 	int loc = path.indexOf("/");
 	return (loc == -1) ? "" : path.substring(loc + 1);
-    }
-
-    /**
-     * Creates Ruby classes from any new JavaScript classes found in the top
-     * level of <var>scope</var>. Called immediately after loading a file
-     * using JSFileLibrary.
-     */
-    public void createNewClasses(Scope scope, Ruby runtime) {
-	for (Object key : scope.keySet()) {
-	    String skey = key.toString();
-	    if (IdUtil.isConstant(skey) && runtime.getClass(skey) == null) {
-		Object o = scope.get(key);
-		if (o instanceof JSFunction && isCallableJSFunction(o))
-		    toRuby(scope, runtime, (JSFunction)o, skey);
-	    }
-	}
     }
 
     protected boolean _notAlreadyRequired(Ruby runtime, IRubyObject arg) {

@@ -78,7 +78,9 @@ public class Djang10Exception extends RuntimeException implements JSObject {
     public Object removeField( Object n ){
         return inner.removeField(n);
     }
-
+    public JSFunction getFunction( String name ){
+        return JSObjectBase.getFunction( this , name );
+    }
     
     //Exception overrides
     public Throwable getCause() {

@@ -231,6 +231,10 @@ public class JSException extends RuntimeException implements JSObject {
         return null;
     }
 
+    public JSFunction getFunction( String name ){
+        return JSObjectBase.getFunction( this , name );
+    }
+
     /** @unexpose */
     JSFunction _mycons;
     private Object _msg;

@@ -68,12 +68,12 @@ public class HttpServer extends NIOServer {
             info.reset();
             if ( _handlers.get( i ).handles( request , info ) ){
                 request._handler.pause();
+                if ( info.admin ) _numRequestsAdmin++;
+
                 if ( info.fork ){
+                    _numRequestsForked++;
                     
                     WorkerThreadPool tp = info.admin ? _forkThreadsAdmin : _forkThreads;
-                    
-                    if ( info.fork ) _numRequestsForked++;
-                    if ( info.admin ) _numRequestsAdmin++;
 
                     if ( tp.offer( new Task( request , response , _handlers.get( i ) ) ) ){
                         if ( D ) System.out.println( "successfully gave thing to a forked thing" );
@@ -86,7 +86,8 @@ public class HttpServer extends NIOServer {
                     return false;
                 }
                 _handlers.get( i ).handle( request , response );
-                response.done();
+                if ( info.doneAfterHandles )
+                    response.done();
                 return false;
             }
         }

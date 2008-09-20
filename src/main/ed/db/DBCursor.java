@@ -322,7 +322,7 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject>, Iterab
         if ( _collection._base._collectionPrototype == null )
             throw new RuntimeException( "why is _collection._base._collectionPrototype null" );
 
-        JSFunction c = (JSFunction)(_collection._base._collectionPrototype.get( "count" ));
+        JSFunction c = _collection._base._collectionPrototype.getFunction( "count" );
         if ( c == null )
             throw new RuntimeException( "can't find count function" );
 

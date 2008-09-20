@@ -55,8 +55,8 @@ public class ScopeGlobalVariables extends GlobalVariables {
 
     public Set<String> getNames() {
 	Set<String> names = new HashSet<String>(super.getNames());
-	for (String key : _scope.keySet())
-	    names.add("$" + key);
+	for (Object key : RubyScopeWrapper.jsKeySet(_scope))
+	    names.add("$" + key.toString());
 	return names;
     }
 

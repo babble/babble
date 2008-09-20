@@ -60,8 +60,17 @@ public class JSObjectBase implements JSObject {
         setConstructor( constructor );
     }
 
-    /** Sets up any necessary fields for this object. */
-    public void prefunc(){}
+    /** 
+	Sets up any necessary fields for this object. 
+	@return this or the correct object
+    */
+    public Object prefunc(){
+	return this;
+    }
+
+    public boolean isNull(){
+	return false;
+    }
 
     /** Sets or creates this object's field with the key <tt>n</tt> to the value <tt>v</tt>
      * @param n Key to set
@@ -160,8 +169,25 @@ public class JSObjectBase implements JSObject {
         final Object v = get( n );
         if ( v == null )
             return null;
-
+        
         return v.toString();
+    }
+
+    public JSFunction getFunction( String name ){
+        return getFunction( this , name );
+    }
+    
+    public static final JSFunction getFunction( JSObject o , String name ){
+        if ( o == null )
+            return null;
+        
+        Object f = o.get( name );
+        if ( f == null )
+            return null;
+        if ( f instanceof JSFunction )
+            return (JSFunction)f;
+        // TODO: should this return null or throw an exception?
+        return null;
     }
 
     /** Given a key for this object, return its corresponding value.
@@ -178,7 +204,10 @@ public class JSObjectBase implements JSObject {
         if ( n instanceof Number )
             return getInt( ((Number)n).intValue() );
 
-        return _simpleGet( n.toString() );
+	Object ret = _simpleGet( n.toString() );
+	if ( ret instanceof JSObjectBase && ((JSObjectBase)ret).isNull() )
+	    return null;
+	return ret;
     }
 
     /** @unexpose */
@@ -670,13 +699,10 @@ public class JSObjectBase implements JSObject {
      * @return the string representation of this object.
      */
     public String toString(){
-        Object temp = get( "toString" );
-
-        if ( ! ( temp instanceof JSFunction ) )
+        JSFunction f = getFunction( "toString" );
+        if ( f == null )
             return OBJECT_STRING;
-
-        JSFunction f = (JSFunction)temp;
-
+        
         Scope s;
         try {
             s= f.getScope().child();

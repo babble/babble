@@ -69,6 +69,30 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
         return children.get(index);
     }
 
+    public XMLList comments() {
+        XMLList comments = new XMLList();
+
+        for( ENode child : children ) {
+            if( child.node.getNodeType() == Node.COMMENT_NODE )
+                comments.add( child );
+        }
+        return comments;
+    }
+
+    public boolean contains( Object o ) { 
+        if( this.equals( o ) ) 
+            return true;
+        return children.contains( o ); 
+    }
+
+    public XMLList text() {
+        XMLList list = new XMLList();
+        for ( ENode n : this ) {
+            list.addAll( n.text() );
+        }
+        return list;
+    }
+
     public String toString() {
         StringBuilder xml = new StringBuilder();
         if( children.size() == 1 ) {
@@ -76,11 +100,19 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
         }
         for( ENode n : this ) {
             xml.append( n.toXMLString().toString() );
-            if( this.hasComplexContent() )
+            if( this.hasComplexContent() && ((Cons)this._getCons()).prettyPrinting )
                 xml.append( "\n" );
         }
         if( xml.length() > 0 && xml.charAt(xml.length() - 1) == '\n' ) {
             xml.deleteCharAt(xml.length()-1);
+        }
+        return xml.toString();
+    }
+
+    public String toXMLString() {
+        StringBuilder xml = new StringBuilder();
+        for( ENode n : this ) {
+            xml.append( n.append( new StringBuilder(), 0, new ArrayList<Namespace>() ).toString() );
         }
         return xml.toString();
     }
@@ -99,7 +131,6 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
     public boolean addAll( Collection<? extends ENode> list ) { return children.addAll( list ); }
     public boolean addAll( int index, Collection<? extends ENode> list ) { return children.addAll( index, list ); }
     public void clear() {  children.clear(); }
-    public boolean contains( Object o ) { return  children.contains( o ); }
     public boolean containsAll( Collection o ) { return  children.containsAll( o ); }
     public boolean equals( Object o ) { return children.equals(o); }
     public int hashCode( IdentitySet seen ) { return children.hashCode(); }

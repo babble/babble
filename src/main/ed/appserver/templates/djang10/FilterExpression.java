@@ -28,6 +28,7 @@ import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
 import ed.js.func.JSFunctionCalls2;
+import ed.log.Level;
 import ed.log.Logger;
 
 public class FilterExpression extends JSObjectBase {
@@ -94,7 +95,22 @@ public class FilterExpression extends JSObjectBase {
                 value = null;
             }
             else {
-                log.info(e.getMessage(), e);
+                if(log.getEffectiveLevel().compareTo(Level.DEBUG) <= 0) {
+                    log.info(e.getMessage(),e);
+                } 
+                else {
+                    Throwable t=e;
+                    StringBuilder buffer = new StringBuilder();
+                    while(t != null) {
+                        if(t != e)
+                            buffer.append("Caused By: ");
+                            
+                        buffer.append(t.getMessage());
+                        t = t.getCause();
+                    }
+                    log.info(buffer);
+                }
+                
                 JSHelper jsHelper = JSHelper.get(scope);
                 value = jsHelper.fix_invalid_expression(expression);
             }

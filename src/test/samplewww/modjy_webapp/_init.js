@@ -1,4 +1,4 @@
 
 function mapUrlToJxpFile(){
-    return "com.xhaus.modjy.ModjyJServlet.class";
+    return "ed.lang.python.ModJyConnector.class";
 }

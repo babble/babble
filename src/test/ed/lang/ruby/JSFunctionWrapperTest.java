@@ -41,12 +41,12 @@ public class JSFunctionWrapperTest extends SourceRunner {
     }
 
     public void testCallBlockAsJSFunction() {
-	Object o = RubyObjectWrapper.toJS(s, (IRubyObject)runRuby("Proc.new {|i| i + 7}"));
-	assertTrue(o instanceof JSFunctionWrapper);
+	Object o = runRuby("Proc.new {|i| i + 7}");
+	assertTrue(o instanceof JSFunctionWrapper, "expected JSFunctionWrapper, saw " + (o == null ? "null" : o.getClass().getName()));
 	JSFunctionWrapper fw = (JSFunctionWrapper)o;
 	Object answer = fw.call(s, new Integer(35), new Object[0]);
 	assertNotNull(answer);
-	assertTrue(answer instanceof Number);
+	assertTrue(answer instanceof Number, "expected Number, saw " + (answer == null ? "null" : answer.getClass().getName()));
 	assertEquals(((Number)answer).intValue(), 42);
     }
 }

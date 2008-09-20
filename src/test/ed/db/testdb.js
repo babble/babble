@@ -29,10 +29,22 @@ function testcopydb() {
     var tc = connect("testcopy");
     tc.dropDatabase();
     var res = connect("admin").copyDatabase("test", "testcopy");
-    var x= t.system.namespaces.count();
-    var y= tc.system.namespaces.count();
-    print("testcopydb: x:" + x + " y:" + y);
-    assert(x==y);
+    // system tables aren't copied (system.profile)
+    var query = function() { return !/system/.match(this.name); }
+    var x= t.system.namespaces.find(query).count();
+    var y= tc.system.namespaces.find(query).count();
+    if( x != y ) { 
+	function f(x) { 
+	    print(x.name);
+	}
+	print("testcopydb: x:" + x + " y:" + y);
+	print("t:");
+	t.system.namespaces.find().sort({name:1}).forEach(f);
+	print("tc:");
+	tc.system.namespaces.find().sort({name:1}).forEach(f);
+
+	assert(x==y);
+    }
     assert( t.system.indexes.count() == tc.system.indexes.count() );
     assert( t.dots.count() == tc.dots.count() );
 }

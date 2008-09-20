@@ -102,14 +102,6 @@ public class JSNumber extends JSObjectLame {
         
     }
 
-    /** Returns a function, given its name
-     * @param Function name
-     * @return Function corresponding to the given name.
-     */
-    public static JSFunction getFunction( String name ){
-        return (JSFunction)getFunctions().get( name );
-    }
-
     public static Cons getCons(){
         return (Cons)(Scope.getThreadLocalFunction( "Number" , new Cons() ) );
     }

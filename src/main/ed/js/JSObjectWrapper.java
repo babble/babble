@@ -102,6 +102,10 @@ public class JSObjectWrapper implements JSObject {
     public JSObject getSuper(){
         return _wrap.getSuper();
     }
+    
+    public JSFunction getFunction( String name ){
+        return _wrap.getFunction( name );
+    }
 
     /** @unexpose */
     final JSObject _wrap;

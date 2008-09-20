@@ -42,6 +42,8 @@ public abstract class RubyObjectWrapper extends RubyObject {
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB.WRAP");
     static final boolean DEBUG_SEE_EXCEPTIONS = DEBUG || Boolean.getBoolean("DEBUG.RB.EXCEPTIONS");
+    static final boolean DEBUG_CREATE = DEBUG || Boolean.getBoolean("DEBUG.RB.CREATE");
+    static final boolean DEBUG_FCALL = DEBUG || Boolean.getBoolean("DEBUG.RB.FCALL");
   
     static final Map<Ruby, Map<Object, IRubyObject>> _wrappers = new WeakHashMap<Ruby, Map<Object, IRubyObject>>();
 
@@ -49,15 +51,19 @@ public abstract class RubyObjectWrapper extends RubyObject {
     protected final Object _obj;
 
     public static IRubyObject toRuby(Scope s, Ruby runtime, Object obj) {
-	return toRuby(s, runtime, obj, null, null);
+	return toRuby(s, runtime, obj, null, null, null);
     }
 
     public static IRubyObject toRuby(Scope s, Ruby runtime, Object obj, String name) {
-	return toRuby(s, runtime, obj, name, null);
+	return toRuby(s, runtime, obj, name, null, null);
+    }
+
+    public static IRubyObject toRuby(Scope s, Ruby runtime, Object obj, String name, IRubyObject container) {
+	return toRuby(s, runtime, obj, name, container, null);
     }
 
     /** Given a Java object (JSObject, Number, etc.), return a Ruby object. */
-    public static IRubyObject toRuby(Scope s, Ruby runtime, Object obj, String name, RubyObjectWrapper container) {
+    public static IRubyObject toRuby(Scope s, Ruby runtime, Object obj, String name, IRubyObject container, JSObject jsThis) {
 	if (obj == null)
 	    return runtime.getNil();
 
@@ -84,13 +90,9 @@ public abstract class RubyObjectWrapper extends RubyObject {
 
 	if (obj instanceof JSString || obj instanceof ObjectId)
 	    wrapper = RubyString.newString(runtime, obj.toString());
-	else if (obj instanceof JSFileLibrary) {
-	    IRubyObject methodOwner = container == null ? runtime.getTopSelf() : container;
-	    wrapper = new RubyJSFileLibraryWrapper(s, runtime, (JSFileLibrary)obj, name, methodOwner.getSingletonClass());
-	}
 	else if (obj instanceof JSFunction) {
 	    IRubyObject methodOwner = container == null ? runtime.getTopSelf() : container;
-	    wrapper = new RubyJSFunctionWrapper(s, runtime, (JSFunction)obj, name, methodOwner.getSingletonClass());
+	    wrapper = createRubyMethod(s, runtime, (JSFunction)obj, name, methodOwner.getSingletonClass(), jsThis);
 	}
 	else if (obj instanceof JSArray)
 	    wrapper = new RubyJSArrayWrapper(s, runtime, (JSArray)obj);
@@ -109,6 +111,19 @@ public abstract class RubyObjectWrapper extends RubyObject {
 
 	cacheWrapper(runtime, obj, wrapper);
 	return wrapper;
+    }
+
+    /**
+     * Note: does not return cached wrapper or cache the returned wrapper.
+     * Caller is responsible for doing so if desired. Sometimes it's not,
+     * which is why this method is separate from (and is called from)
+     * toRuby().
+     */
+    public static IRubyObject createRubyMethod(Scope s, Ruby runtime, JSFunction func, String name, RubyModule attachTo, JSObject jsThis) {
+	if (func instanceof JSFileLibrary)
+	    return new RubyJSFileLibraryWrapper(s, runtime, (JSFileLibrary)func, name, attachTo, jsThis);
+	else
+	    return new RubyJSFunctionWrapper(s, runtime, func, name, attachTo, jsThis);
     }
 
     protected static synchronized IRubyObject cachedWrapperFor(Ruby runtime, Object obj) {
@@ -174,8 +189,9 @@ public abstract class RubyObjectWrapper extends RubyObject {
 		jobj.set(ja[i].toString(), toJS(scope, rs.get(i)));
 	    return jobj;
 	}
-	if (r instanceof RubyProc) {
-	    Object o = new JSFunctionWrapper(scope, r.getRuntime(), ((RubyProc)r).getBlock());
+	if (r instanceof RubyProc || r instanceof RubyMethod) {
+	    RubyProc p = (r instanceof RubyProc) ? (RubyProc)r : (RubyProc)((RubyMethod)r).to_proc(r.getRuntime().getCurrentContext(), Block.NULL_BLOCK);
+	    Object o = new JSFunctionWrapper(scope, r.getRuntime(), p.getBlock());
 	    cacheWrapper(r.getRuntime(), o, r);
 	    return o;
 	}
@@ -214,13 +230,13 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	return jargs;
     }
 
-    public static void addJavaPublicMethodWrappers(final Scope scope, RubyClass klazz, final JSObject jsobj, Set<String> namesToIgnore) {
+    public static void addJavaPublicMethodWrappers(final Scope scope, RubyModule module, final JSObject jsobj, Set<String> namesToIgnore) {
 	for (final String name : NativeBridge.getPublicMethodNames(jsobj.getClass())) {
 	    if (namesToIgnore.contains(name))
 		continue;
 	    final JSFunction func = NativeBridge.getNativeFunc(jsobj, name);
-	    klazz.addMethod(name, new JavaMethod(klazz, PUBLIC) {
-		    public IRubyObject call(ThreadContext context, IRubyObject recv, RubyModule klazz, String name, IRubyObject[] args, Block block) {
+	    module.addMethod(name, new JavaMethod(module, PUBLIC) {
+		    public IRubyObject call(ThreadContext context, IRubyObject recv, RubyModule module, String name, IRubyObject[] args, Block block) {
 			Ruby runtime = context.getRuntime();
 			try {
 			    return toRuby(scope, runtime, func.callAndSetThis(scope, jsobj, RubyObjectWrapper.toJSFunctionArgs(scope, runtime, args, 0, block)));
@@ -246,7 +262,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	super(runtime, runtime.getObject());
 	_scope = s;
 	_obj = obj;
-	if (RubyObjectWrapper.DEBUG)
+	if (RubyObjectWrapper.DEBUG_CREATE)
 	    System.err.println("creating RubyObjectWrapper around " + (obj == null ? "null" : ("instance of " + obj.getClass().getName())));
     }
 

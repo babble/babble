@@ -55,11 +55,11 @@ public class JSObjectWrapperTest extends SourceRunner {
 
     public void testGetIvarReturnsValue() {
 	JSObject jsobj = (JSObject)s.get("x");
-	assertEquals("12", jsobj.get("foo").toString());
+	assertEquals(jsobj.get("foo").toString(), "12");
     }
 
-    public void testGetMethodReturnsFunction() {
+    public void testGetFunctionReturnsFunction() {
 	JSObject jsobj = (JSObject)s.get("x");
-	assertTrue(jsobj.get("bar") instanceof JSFunctionWrapper, "oops: wrong type: expected ed.lang.ruby.JSFunctionWrapper but see " + jsobj.getClass().getName());
+	assertTrue(jsobj.getFunction("bar") instanceof JSFunctionWrapper, "oops: wrong type: expected ed.lang.ruby.JSFunctionWrapper but see " + jsobj.getClass().getName());
     }
 }

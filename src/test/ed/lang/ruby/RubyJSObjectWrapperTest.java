@@ -76,7 +76,7 @@ public class RubyJSObjectWrapperTest {
 
 	try {
 	    IRubyObject result = r.evalScriptlet("$obj_with_func.add_seven(35)");
-	    assertTrue(result instanceof RubyNumeric);
+	    assertTrue(result instanceof RubyNumeric, "expected RubyNumeric, saw " + (result == null ? "null" : result.getClass().getName()));
 	    assertEquals(RubyNumeric.num2long(result), 42L);
 	}
 	catch (Exception e) {
@@ -95,7 +95,7 @@ public class RubyJSObjectWrapperTest {
 
 	try {
 	    IRubyObject result = r.evalScriptlet("$obj_with_innie.innie.add_seven(35)");
-	    assertTrue(result instanceof RubyNumeric);
+	    assertTrue(result instanceof RubyNumeric, "expected RubyNumeric, saw " + (result == null ? "null" : result.getClass().getName()));
 	    assertEquals(RubyNumeric.num2long(result), 42L);
 	}
 	catch (Exception e) {
@@ -106,7 +106,7 @@ public class RubyJSObjectWrapperTest {
 
     public void testMethodMissing() {
 	IRubyObject answer = r.evalScriptlet("$data.hash");
-	assertTrue(answer instanceof RubyFixnum);
+	assertTrue(answer instanceof RubyFixnum, "expected RubyFixnum, saw " + (answer == null ? "null" : answer.getClass().getName()));
     }
 
     public void testMethodMissingNoSuchMethod() {
@@ -126,7 +126,7 @@ public class RubyJSObjectWrapperTest {
     public void testInstanceVariables() {
 	IRubyObject ro = r.evalScriptlet("$data.instance_variables");
 	assertNotNull(ro);
-	assertTrue(ro instanceof RubyArray);
+	assertTrue(ro instanceof RubyArray, "expected RubyArray, saw " + (ro == null ? "null" : ro.getClass().getName()));
 	RubyArray ra = (RubyArray)ro;
 	assertTrue(ra.includes(r.getCurrentContext(), RubyString.newString(r, "@count")), "instance variable \"@count\" is missing");
     }
@@ -142,7 +142,7 @@ public class RubyJSObjectWrapperTest {
     public void testPublicMethods() {
 	IRubyObject ro = r.evalScriptlet("$data.public_methods");
 	assertNotNull(ro);
-	assertTrue(ro instanceof RubyArray);
+	assertTrue(ro instanceof RubyArray, "expected RubyArray, saw " + (ro == null ? "null" : ro.getClass().getName()));
 	RubyArray ra = (RubyArray)ro;
 	assertTrue(ra.includes(r.getCurrentContext(), RubyString.newString(r, "count")), "public method \"count\" is missing");
 	assertTrue(ra.includes(r.getCurrentContext(), RubyString.newString(r, "count=")), "public method \"count=\" is missing");

@@ -549,7 +549,7 @@ public class AppContext extends ServletContextBase {
      * @param request HTTP request to create
      * @return the request
      */
-    AppRequest createRequest( HttpRequest request ){
+    public AppRequest createRequest( HttpRequest request ){
         return createRequest( request , request.getHost() , request.getURI() );
     }
 
@@ -559,7 +559,7 @@ public class AppContext extends ServletContextBase {
      * @param uri the URI requested
      * @return the request
      */
-    AppRequest createRequest( HttpRequest request , String host , String uri ){
+    public AppRequest createRequest( HttpRequest request , String host , String uri ){
         _numRequests++;
         
         if ( AppRequest.isAdmin( request ) )
