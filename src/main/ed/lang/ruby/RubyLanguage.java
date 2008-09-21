@@ -46,9 +46,8 @@ public class RubyLanguage extends Language {
     public Object eval(Scope s, String code, boolean[] hasReturn) {
 	RubyJxpSource source = new RubyShellSource(code);
 	try {
-	    Object o = RubyObjectWrapper.toJS(s, source._doCall(source._parseContent("(shell)"), s, RubyJxpSource.EMPTY_OBJECT_ARRAY));
-	    System.out.println(o == null ? "nil" : o.toString());
-	    return o;
+	    hasReturn[0] = true;
+	    return RubyObjectWrapper.toJS(s, source._doCall(source._parseContent("(shell)"), s, RubyJxpSource.EMPTY_OBJECT_ARRAY));
 	}
 	catch (Exception e) {
 	    System.err.println(e.toString());
