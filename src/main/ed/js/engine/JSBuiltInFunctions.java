@@ -755,7 +755,14 @@ public class JSBuiltInFunctions {
                     return Character.isDigit( c );
                 }
             } , true );
-
+        s.put( "isXMLName" , new JSFunctionCalls1() {
+                public Object call( Scope scope , Object o , Object extra[] ){
+                    QName q = new QName( o );
+                    if( q.localName.matches( "[A-Za-z_][\\w\\.\\-]*" ) )
+                        return true;
+                    return false;
+                }
+            } , true );
         s.put( "__self" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object o , Object extra[] ){
                     return o;
@@ -803,7 +810,6 @@ public class JSBuiltInFunctions {
 	s.put( "XMLList" , new XMLList.Cons() , true );
 	s.put( "Namespace" , new Namespace.Cons() , true );
 	s.put( "QName" , new QName.Cons() , true );
-
         s.put( "RegExp" , new JSRegex.Cons() , true );
         s.put( "Regexp" , s.get( "RegExp" ) , true ); // for Ruby technically
 
