@@ -1082,7 +1082,7 @@ public class Convert {
                 _add( n.getFirstChild() , state );
                 _append( " ; " , n );
             }
-
+	    
             _append( "  \n JS_evalToBool( " , n );
             _add( n.getFirstChild().getNext() , state );
             _append( " ) ; \n" , n );
@@ -1512,7 +1512,7 @@ public class Convert {
         _append( " , " + local + "  ) " , val );
     }
 
-    private int countChildren( Node n ){
+    static int countChildren( Node n ){
         int num = 0;
         Node c = n.getFirstChild();
         while ( c != null ){
