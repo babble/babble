@@ -508,7 +508,7 @@ public class DNSResolver {
     }
 
 
-    static final class DNSCache implements Serializable  {
+    static final class DNSCache implements Serializable , Updatable {
 
         DNSCache(){
             Map<Entry,CachedStuff> m = null;
@@ -540,15 +540,26 @@ public class DNSResolver {
             }
             
             _map = m;
+	    UpdateManager.add( this );
         }
-
+	
         protected void finalize(){
             write();
         }
 
+	public void update(){
+	    write();
+	}
+
+	public long timeBeforeUpdates(){
+	    return TimeConstants.MS_MINUTE * 5;
+	}
+	
         void write(){
             try {
-                FileOutputStream fout = new FileOutputStream( "log/dns-cache.temp" );
+		_logger.info( "writing to cache" );
+
+                FileOutputStream fout = new FileOutputStream( "logs/dns-cache.temp" );
                 ObjectOutputStream out = new ObjectOutputStream( fout );
                 out.writeInt( VERSION_ID );
 		synchronized ( _map ){
@@ -556,7 +567,7 @@ public class DNSResolver {
 		}
                 out.close();
                 fout.close();
-
+		
                 File old = new File( "log/dns-cache.temp" );
                 old.renameTo( new File("log/dns-cache" ) );
             }
