@@ -401,9 +401,9 @@ public class Convert {
 
         case Token.SETPROP:
         case Token.SETELEM:
-            _append( "((JSObject)" , n );
-            _add( n.getFirstChild() , state );
-            _append( ").set( " , n );
+	    
+            _addAsJSObject( n.getFirstChild() , state );
+            _append( ".set( " , n );
             _add( n.getFirstChild().getNext() , state );
             _append( " , " , n );
             _add( n.getFirstChild().getNext().getNext() , state );
@@ -413,9 +413,8 @@ public class Convert {
         case Token.GETPROPNOWARN:
         case Token.GETPROP:
         case Token.GETELEM:
-            _append( "((JSObject)" , n );
-            _add( n.getFirstChild() , state );
-            _append( ").get( " , n );
+	    _addAsJSObject( n.getFirstChild() , state );
+            _append( ".get( " , n );
             _add( n.getFirstChild().getNext() , state );
             _append( " )" , n );
             break;
@@ -425,9 +424,8 @@ public class Convert {
             if( fc.getType() != Token.REF_SPECIAL && fc.getType() != Token.REF_MEMBER )
                 throw new RuntimeException( "token is of type "+Token.name(fc.getType())+", should be of type REF_SPECIAL or REF_MEMBER.");
 
-            _append( "((JSObject)" , n );
-            _add( n.getFirstChild().getFirstChild() , state );
-            _append( ").set( " , n );
+	    _addAsJSObject( n.getFirstChild().getFirstChild() , state );
+            _append( ".set( " , n );
             _add( fc , state );
             _append( " , " , n );
             _add( fc.getNext() , state );
@@ -435,13 +433,12 @@ public class Convert {
             break;
 
         case Token.GET_REF:
-            _append( "((JSObject)" , n );
-            _add( n.getFirstChild().getFirstChild() , state );
-            _append( ").get( " , n );
+            _addAsJSObject( n.getFirstChild().getFirstChild() , state );
+            _append( ".get( " , n );
             _add( n.getFirstChild() , state );
             _append( " ) ", n );
             break;
-
+	    
         case Token.REF_SPECIAL :
             _append( "\"" + n.getProp( Node.NAME_PROP ).toString() + "\"" , n );
             break;
@@ -754,17 +751,15 @@ public class Convert {
                 throw new RuntimeException( "something is wrong" );
             break;
         case Token.DELPROP:
-            _append( "((JSObject)" , n );
-            _add( n.getFirstChild() , state );
-            _append( " ).removeField( "  , n );
+            _addAsJSObject( n.getFirstChild() , state );
+            _append( ".removeField( "  , n );
             _add( n.getFirstChild().getNext() , state );
             _append( " ) " , n );
             break;
 
         case Token.DEL_REF:
-            _append( "((JSObject)" , n );
-            _add( n.getFirstChild().getFirstChild() , state );
-            _append( ").removeField( " , n );
+            _addAsJSObject( n.getFirstChild().getFirstChild() , state );
+            _append( ".removeField( " , n );
             _add( n.getFirstChild() , state );            
             _append( " )" , n );
             break;
@@ -791,9 +786,8 @@ public class Convert {
             break;
 
         case Token.IN:
-            _append( "((JSObject)" , n );
-            _add( n.getFirstChild().getNext() , state );
-            _append( " ).containsKey( " , n );
+            _addAsJSObject( n.getFirstChild().getNext() , state );
+            _append( ".containsKey( " , n );
             _add( n.getFirstChild() , state );
             _append( ".toString() ) " , n  );
             break;
@@ -820,9 +814,8 @@ public class Convert {
 
 	case Token.DOTQUERY:
 
-            _append( "((JSObject)" , n );
-            _add( n.getFirstChild() , state );
-            _append( " ).get( new ed.js.e4x.Query( " , n );
+            _addAsJSObject( n.getFirstChild() , state );
+            _append( ".get( new ed.js.e4x.Query( " , n );
 
             Node n2 = n.getFirstChild().getNext();
             switch( n2.getFirstChild().getType() ) {
@@ -855,6 +848,16 @@ public class Convert {
             throw new RuntimeException( "can't handle : " + n.getType() + ":" + Token.name( n.getType() ) + ":" + n.getClass().getName() + " line no : " + n.getLineno() );
         }
 
+    }
+    
+    private void _addAsJSObject( Node n , State state ){
+	if ( n.getType() == Token.NUMBER ){
+	    _append( "(new JSNumber( " + n.getDouble() + "))" , n );
+	    return;
+	}
+	_append( "((JSObject)" , n );
+	_add( n , state );
+	_append( ")" , n );
     }
 
     private void _addDotQuery( Node n , State state ){
