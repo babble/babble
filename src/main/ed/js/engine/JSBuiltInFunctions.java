@@ -757,10 +757,7 @@ public class JSBuiltInFunctions {
             } , true );
         s.put( "isXMLName" , new JSFunctionCalls1() {
                 public Object call( Scope scope , Object o , Object extra[] ){
-                    QName q = new QName( o );
-                    if( q.localName.matches( "[A-Za-z_][\\w\\.\\-]*" ) )
-                        return true;
-                    return false;
+                    return ed.js.e4x.E4X.isXMLName( o );
                 }
             } , true );
         s.put( "__self" , new JSFunctionCalls1(){
