@@ -557,7 +557,7 @@ public class DNSResolver {
 	
         void write(){
             try {
-		_logger.info( "writing to cache" );
+		_logger.debug( "writing to cache" );
 
                 FileOutputStream fout = new FileOutputStream( "logs/dns-cache.temp" );
                 ObjectOutputStream out = new ObjectOutputStream( fout );
