@@ -407,7 +407,7 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
 
         source = _sources.get( f );
         if ( source == null ){
-            source = JxpSource.getSource( f , this );
+            source = JxpSource.getSource( f , _context , this );
             _sources.put( f , source );
         }
         
