@@ -1324,6 +1324,7 @@ public class Convert {
         _append( callLine + " final Scope scope = usePassedInScope() ? passedIn : new Scope( \"func scope\" , getScope() , passedIn , getFileLanguage() ); " , n );
         if ( hasArguments ){
             _append( "JSArray arguments = new JSArray();\n" , n );
+	    _append( "arguments.set( \"callee\" , this );\n" , n );
             _append( "scope.put( \"arguments\" , arguments , true );\n" , n );
         }
 
