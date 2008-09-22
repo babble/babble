@@ -234,6 +234,21 @@ public class JSMath extends JSObjectBase {
             }
         } );
 
+        set( "tan" , new JSFunctionCalls1() {
+                public Object call( Scope s , Object foo[] ){
+                    return Double.NaN;
+                }
+
+                public Object call( Scope s , Object xObject , Object foo[] ){
+                    if( xObject == null )
+                        xObject = 0;
+                    else if( xObject instanceof Boolean ) {
+                        xObject = ((Boolean)xObject).booleanValue() ? 1 : 0;
+                    }
+                    double X = ((Number)xObject).doubleValue();
+                    return Math.tan(X);
+                }
+            } );
         set( "pow" , new JSFunctionCalls2(){
             public Object call( Scope s , Object baseArg , Object expArg , Object foo[] ){
                 double base = ((Number)baseArg).doubleValue();
@@ -259,7 +274,7 @@ public class JSMath extends JSObjectBase {
     }
 
     public static final double LN10 = Math.log(10);
-    public final static double PI = Math.PI;
-    public final static double SQRT1_2 = Math.sqrt( .5 );
+    public static final double PI = Math.PI;
+    public static final double SQRT1_2 = Math.sqrt( .5 );
 
 }
