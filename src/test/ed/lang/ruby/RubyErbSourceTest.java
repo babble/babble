@@ -24,28 +24,28 @@ public class RubyErbSourceTest extends ErbSourceRunner {
 
     @BeforeMethod(groups={"ruby", "ruby.erbsource"})
     public void setUp() {
-	super.setUp();
-	runJS("add_seven = function(i) { return i + 7; };" +
-	      "two_args = function(a, b) { return a + b; };" +
-	      "data = {};" +
-	      "data.count = 1;" +
-	      "data.subobj = {};" +
-	      "data.subobj.subvar = 99;" +
-	      "data.subobj.add_seven = add_seven;" +
-	      "data.add_seven = add_seven;" +
-	      "array = [100, \"test string\", null, add_seven];");
+        super.setUp();
+        runJS("add_seven = function(i) { return i + 7; };" +
+              "two_args = function(a, b) { return a + b; };" +
+              "data = {};" +
+              "data.count = 1;" +
+              "data.subobj = {};" +
+              "data.subobj.subvar = 99;" +
+              "data.subobj.add_seven = add_seven;" +
+              "data.add_seven = add_seven;" +
+              "array = [100, \"test string\", null, add_seven];");
     }
 
     public void testSimple() {
-	assertRubyEquals("<%= $data.count %>", "1");
+        assertRubyEquals("<%= $data.count %>", "1");
     }
 
     public void testJSPrintWorksInline() {
-	assertRubyEquals("foo <% $scope.print('bar') %> bletch", "foo bar bletch");
+        assertRubyEquals("foo <% $scope.print('bar') %> bletch", "foo bar bletch");
     }
 
     public void testJSPrintRestoredAfterRun() {
-	runRuby("foo <% $scope.print('bar') %> bletch");
-	assertJSEquals("print('hello, world!');", "hello, world!");
+        runRuby("foo <% $scope.print('bar') %> bletch");
+        assertJSEquals("print('hello, world!');", "hello, world!");
     }
 }

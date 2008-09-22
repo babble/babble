@@ -34,13 +34,13 @@ public class RubyDBCursorWrapperTest {
 
     @BeforeMethod
     public void setUp() {
-	s = new Scope("test", null);
-	r = org.jruby.Ruby.newInstance();
+        s = new Scope("test", null);
+        r = org.jruby.Ruby.newInstance();
     }
 
     public void testClass() {
-	RubyClass klazz = new RubyDBCursorWrapper(s, r, new DBCursor(null, null, null, null)).type();
-	assertEquals(klazz.name().toString(), "DBCursor");
-	assertEquals(((RubyClass)klazz.superclass(r.getCurrentContext())).name().toString(), "Array");
+        RubyClass klazz = new RubyDBCursorWrapper(s, r, new DBCursor(null, null, null, null)).type();
+        assertEquals(klazz.name().toString(), "DBCursor");
+        assertEquals(((RubyClass)klazz.superclass(r.getCurrentContext())).name().toString(), "Array");
     }
 }

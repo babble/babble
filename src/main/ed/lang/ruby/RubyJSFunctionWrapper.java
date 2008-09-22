@@ -46,132 +46,132 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
     protected RubyModule _module;
 
     public static synchronized RubyClass getJSFunctionClass(Ruby runtime) {
-	RubyClass jsFunctionClass = klassDefs.get(runtime);
-	if (jsFunctionClass == null) {
-	    jsFunctionClass = runtime.defineClass("JSFunction", RubyJSObjectWrapper.getJSObjectClass(runtime), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
-	    jsFunctionClass.kindOf = new RubyModule.KindOf() {
-		    public boolean isKindOf(IRubyObject obj, RubyModule type) {
-			return obj instanceof RubyJSFunctionWrapper;
-		    }
-		};
-	    klassDefs.put(runtime, jsFunctionClass);
-	}
-	return jsFunctionClass;
+        RubyClass jsFunctionClass = klassDefs.get(runtime);
+        if (jsFunctionClass == null) {
+            jsFunctionClass = runtime.defineClass("JSFunction", RubyJSObjectWrapper.getJSObjectClass(runtime), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
+            jsFunctionClass.kindOf = new RubyModule.KindOf() {
+                    public boolean isKindOf(IRubyObject obj, RubyModule type) {
+                        return obj instanceof RubyJSFunctionWrapper;
+                    }
+                };
+            klassDefs.put(runtime, jsFunctionClass);
+        }
+        return jsFunctionClass;
     }
 
     RubyJSFunctionWrapper(Scope s, Ruby runtime, JSFunction obj, String name, RubyModule attachTo) {
-	this(s, runtime, obj, name, attachTo, null);
+        this(s, runtime, obj, name, attachTo, null);
     }
 
     RubyJSFunctionWrapper(Scope s, Ruby runtime, JSFunction obj, String name, RubyModule attachTo, JSObject jsThis) {
-	super(s, runtime, obj, getJSFunctionClass(runtime));
-	if (RubyObjectWrapper.DEBUG_CREATE)
-	    System.err.println("  creating RubyJSFunctionWrapper named " + name);
-	_func = obj;
-	_this = jsThis;
-	JavaMethod jm = _makeCallMethod(attachTo);
-	if (name != null && name.length() > 0) {
-	    if (attachTo != null)
-		_addMethod(name, jm, attachTo);
-	    if (IdUtil.isConstant(name) && runtime.getClass(name) == null)
-		_createJSObjectSubclass(s, name);
-	}
-	else if (attachTo != null)
-	    attachTo.addMethod("call", jm);
+        super(s, runtime, obj, getJSFunctionClass(runtime));
+        if (RubyObjectWrapper.DEBUG_CREATE)
+            System.err.println("  creating RubyJSFunctionWrapper named " + name);
+        _func = obj;
+        _this = jsThis;
+        JavaMethod jm = _makeCallMethod(attachTo);
+        if (name != null && name.length() > 0) {
+            if (attachTo != null)
+                _addMethod(name, jm, attachTo);
+            if (IdUtil.isConstant(name) && runtime.getClass(name) == null)
+                _createJSObjectSubclass(s, name);
+        }
+        else if (attachTo != null)
+            attachTo.addMethod("call", jm);
     }
 
     /** For use by RubyJSFileLibraryWrapper subclass. */
     protected RubyJSFunctionWrapper(Scope s, Ruby runtime, JSFunction obj, RubyClass klazz, JSObject jsThis) {
-	super(s, runtime, obj, klazz);
-	_func = obj;
-	_this = jsThis;
+        super(s, runtime, obj, klazz);
+        _func = obj;
+        _this = jsThis;
     }
 
     protected JavaMethod _makeCallMethod(RubyModule module) {
-	if (module == null)
-	    return null;
-	return new JavaMethod(module, PUBLIC) {
-	    public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
-		Ruby runtime = context.getRuntime();
-		if (RubyObjectWrapper.DEBUG_FCALL)
-		    System.err.println("calling method " + module.getName() + "#" + name + " with " + args.length + " args");
-		try {
-		    Object result = _func.callAndSetThis(_scope, _this, RubyObjectWrapper.toJSFunctionArgs(_scope, runtime, args, 0, block));
-		    if (RubyObjectWrapper.DEBUG_FCALL)
-			System.err.println("func " + name + " returned " + result + ", which is " + (result == null ? "null" : ("of class " + result.getClass().getName())));
-		    return toRuby(result);
-		}
-		catch (Exception e) {
-		    if (RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
-			System.err.println("saw exception; going to raise Ruby error after printing the stack trace here");
-			e.printStackTrace();
-		    }
-		    self.callMethod(context, "raise", new IRubyObject[] {runtime.newString(e.toString())}, Block.NULL_BLOCK);
-		    return runtime.getNil(); // will never reach
-		}
-	    }
-	};
+        if (module == null)
+            return null;
+        return new JavaMethod(module, PUBLIC) {
+            public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
+                Ruby runtime = context.getRuntime();
+                if (RubyObjectWrapper.DEBUG_FCALL)
+                    System.err.println("calling method " + module.getName() + "#" + name + " with " + args.length + " args");
+                try {
+                    Object result = _func.callAndSetThis(_scope, _this, RubyObjectWrapper.toJSFunctionArgs(_scope, runtime, args, 0, block));
+                    if (RubyObjectWrapper.DEBUG_FCALL)
+                        System.err.println("func " + name + " returned " + result + ", which is " + (result == null ? "null" : ("of class " + result.getClass().getName())));
+                    return toRuby(result);
+                }
+                catch (Exception e) {
+                    if (RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
+                        System.err.println("saw exception; going to raise Ruby error after printing the stack trace here");
+                        e.printStackTrace();
+                    }
+                    self.callMethod(context, "raise", new IRubyObject[] {runtime.newString(e.toString())}, Block.NULL_BLOCK);
+                    return runtime.getNil(); // will never reach
+                }
+            }
+        };
     }
 
     /** Adds this method to <var>module</var>. */
     protected void _addMethod(String name, JavaMethod jm, RubyModule module) {
-	if (RubyObjectWrapper.DEBUG_CREATE)
-	    System.err.println("adding method named " + name + " to module " + module.getName());
-	final String internedName = name.intern();
-	module.addMethod(internedName, jm);
-	module.callMethod(getRuntime().getCurrentContext(), "method_added", getRuntime().fastNewSymbol(internedName));
+        if (RubyObjectWrapper.DEBUG_CREATE)
+            System.err.println("adding method named " + name + " to module " + module.getName());
+        final String internedName = name.intern();
+        module.addMethod(internedName, jm);
+        module.callMethod(getRuntime().getCurrentContext(), "method_added", getRuntime().fastNewSymbol(internedName));
     }
 
     /** An allocator for objects created using JSFunction constructors. */
     class JSObjectAllocator implements ObjectAllocator {
-	public IRubyObject allocate(Ruby runtime, RubyClass klass) {
-	    if (RubyObjectWrapper.DEBUG_CREATE || RubyObjectWrapper.DEBUG_FCALL)
-		System.err.println("allocating an instance of " + klass.name());
-	    JSObject jsobj = _func.newOne();
-	    RubyObject r = (RubyObject)new RubyJSObjectWrapper(_scope, runtime, jsobj, klass);
-	    // Eigenclass has been created and used in RubyJSObjectWrapper ctor, so make that the metaclass here
-	    r.makeMetaClass(r.getSingletonClass());
-	    if (RubyObjectWrapper.DEBUG_CREATE || RubyObjectWrapper.DEBUG_FCALL)
-		System.err.println("  wrapped new object inside a " + r.getClass().getName());
-	    return r;
-	}
+        public IRubyObject allocate(Ruby runtime, RubyClass klass) {
+            if (RubyObjectWrapper.DEBUG_CREATE || RubyObjectWrapper.DEBUG_FCALL)
+                System.err.println("allocating an instance of " + klass.name());
+            JSObject jsobj = _func.newOne();
+            RubyObject r = (RubyObject)new RubyJSObjectWrapper(_scope, runtime, jsobj, klass);
+            // Eigenclass has been created and used in RubyJSObjectWrapper ctor, so make that the metaclass here
+            r.makeMetaClass(r.getSingletonClass());
+            if (RubyObjectWrapper.DEBUG_CREATE || RubyObjectWrapper.DEBUG_FCALL)
+                System.err.println("  wrapped new object inside a " + r.getClass().getName());
+            return r;
+        }
     }
     protected JSObjectAllocator jsObjectAllocator = new JSObjectAllocator();
 
     /** Creates a subclass of JSObject for that uses this method as its constructor. */
     protected void _createJSObjectSubclass(final Scope scope, String name) {
-	if (RubyObjectWrapper.DEBUG_CREATE)
-	    System.err.println("adding class named " + name);
-	_module = getRuntime().defineClass(name, RubyJSObjectWrapper.getJSObjectClass(getRuntime()), jsObjectAllocator);
-	// FIXME
-	_module.kindOf = new RubyModule.KindOf() {
-		    public boolean isKindOf(IRubyObject obj, RubyModule type) {
-			return obj instanceof RubyJSObjectWrapper;
-		    }
-	    };
-	_module.defineMethod("initialize", new Callback() {
+        if (RubyObjectWrapper.DEBUG_CREATE)
+            System.err.println("adding class named " + name);
+        _module = getRuntime().defineClass(name, RubyJSObjectWrapper.getJSObjectClass(getRuntime()), jsObjectAllocator);
+        // FIXME
+        _module.kindOf = new RubyModule.KindOf() {
+                    public boolean isKindOf(IRubyObject obj, RubyModule type) {
+                        return obj instanceof RubyJSObjectWrapper;
+                    }
+            };
+        _module.defineMethod("initialize", new Callback() {
                 public IRubyObject execute(IRubyObject self, IRubyObject[] args, Block block) {
-		    if (RubyObjectWrapper.DEBUG_FCALL) {
-			System.err.println("calling " + ((RubyObject)self).type().name() + "#initialize with " + args.length + " args" + (args.length == 0 ? "" : ':'));
-			for (IRubyObject iro : args) System.err.println("  " + iro.toString());
-		    }
-		    JSObject jsobj = ((RubyJSObjectWrapper)self).getJSObject();
-		    Ruby runtime = self.getRuntime();
-		    try {
-			_func.callAndSetThis(scope, jsobj, RubyObjectWrapper.toJSFunctionArgs(scope, runtime, args, 0, block)); // initialize it by calling _func
-			if (RubyObjectWrapper.DEBUG_FCALL)
-			    System.err.println("back from initialize");
-		    }
-		    catch (Exception e) {
-			if (RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
-			    System.err.println("saw exception; going to raise Ruby error after printing the stack trace here");
-			    e.printStackTrace();
-			}
-			self.callMethod(runtime.getCurrentContext(), "raise", new IRubyObject[] {runtime.newString(e.toString())}, Block.NULL_BLOCK);
-		    }
-		    return self;
+                    if (RubyObjectWrapper.DEBUG_FCALL) {
+                        System.err.println("calling " + ((RubyObject)self).type().name() + "#initialize with " + args.length + " args" + (args.length == 0 ? "" : ':'));
+                        for (IRubyObject iro : args) System.err.println("  " + iro.toString());
+                    }
+                    JSObject jsobj = ((RubyJSObjectWrapper)self).getJSObject();
+                    Ruby runtime = self.getRuntime();
+                    try {
+                        _func.callAndSetThis(scope, jsobj, RubyObjectWrapper.toJSFunctionArgs(scope, runtime, args, 0, block)); // initialize it by calling _func
+                        if (RubyObjectWrapper.DEBUG_FCALL)
+                            System.err.println("back from initialize");
+                    }
+                    catch (Exception e) {
+                        if (RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
+                            System.err.println("saw exception; going to raise Ruby error after printing the stack trace here");
+                            e.printStackTrace();
+                        }
+                        self.callMethod(runtime.getCurrentContext(), "raise", new IRubyObject[] {runtime.newString(e.toString())}, Block.NULL_BLOCK);
+                    }
+                    return self;
                 }
                 public Arity getArity() { return Arity.OPTIONAL; }
-	    });
+            });
     }
 }
