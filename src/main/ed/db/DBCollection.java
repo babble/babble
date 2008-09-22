@@ -195,7 +195,22 @@ public abstract class DBCollection extends JSObjectLame {
      * @return an iterator over the results
      */
     public final Iterator<JSObject> find( JSObject ref ){
-        return find( ref , null , 0 , 0 );
+        return find( ref == null ? new JSObjectBase() : ref , null , 0 , 0 );
+    }
+
+    public final Iterator<JSObject> find(){
+        return find( new JSObjectBase() , null , 0 , 0 );
+    }
+
+    public final JSObject findOne(){
+        return findOne( new JSObjectBase() );
+    }
+
+    public final JSObject findOne( JSObject o ){
+        Iterator<JSObject> i = find( o , null , 0 , 1 );
+        if ( i == null || ! i.hasNext() )
+            return null;
+        return i.next();
     }
 
     /**

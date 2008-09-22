@@ -87,6 +87,9 @@ public class JSObjectBase implements JSObject {
         if ( n == null )
             n = "null";
 
+        if( isLockedKey( n.toString() ) ) {
+            return v;
+        }
         if ( v != null && "_id".equals( n ) &&
 	     ( ( v instanceof String ) || ( v instanceof JSString ) )
 	     ){
@@ -486,6 +489,8 @@ public class JSObjectBase implements JSObject {
         Object val = null;
 
         if ( n instanceof String ){
+            if ( isLockedKey( (String)n ) )
+                return false;
             if ( _map != null )
                 val = _map.remove( (String)n );
             if ( _keys != null )
@@ -824,6 +829,17 @@ public class JSObjectBase implements JSObject {
         setReadOnly( true );
     }
 
+    public void lockKey( String key ) {
+        if( _lockedKeys == null ) {
+            _lockedKeys = new ArrayList<String>(); 
+        }
+        _lockedKeys.add( key );
+    }
+
+    private boolean isLockedKey( String key ) {
+        return _lockedKeys != null && _lockedKeys.contains( key );
+    }
+
     /** Sets if an object is locked or not.
      * @param readOnly If this object's fields should be read-only.
      */
@@ -1070,6 +1086,7 @@ public class JSObjectBase implements JSObject {
     protected FastStringMap _map = null;
     protected Map<String,Pair<JSFunction,JSFunction>> _setterAndGetters = null;
     private Collection<String> _keys = null;
+    private Collection<String> _lockedKeys = null;
     private Set<String> _dontEnum;
     private JSFunction _constructor;
     private JSObject __proto__ = null;

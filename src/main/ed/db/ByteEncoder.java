@@ -100,8 +100,11 @@ public class ByteEncoder extends Bytes {
      * this is really for embedded objects
      */
     private int putObject( String name , JSObject o ){
+        if ( o == null )
+            throw new NullPointerException( "can't save a null object" );
+
         if ( DEBUG ) System.out.println( "putObject : " + name + " [" + o.getClass() + "]" + " # keys " + o.keySet( false ).size() );
-            
+        
         if ( _flipped )
             throw new RuntimeException( "already flipped" );
         final int start = _buf.position();
@@ -186,6 +189,9 @@ public class ByteEncoder extends Bytes {
     }
 
     private boolean _handleSpecialObjects( String name , JSObject o ){
+
+        if ( o == null )
+            return false;
 
         if ( o instanceof JSDate ){
             _put( DATE , name );

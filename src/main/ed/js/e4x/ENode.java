@@ -604,6 +604,16 @@ public class ENode extends JSObjectBase {
     void init( String s ){
         Node temp;
         try {
+            /* Some XML has the stupid form
+               <><foo>bar</foo></>
+             */
+            Pattern emptyTags = Pattern.compile( "<>(.*)</>", Pattern.DOTALL );
+            Matcher m = emptyTags.matcher( s );
+            if( m.matches() ) {
+                s = m.group( 1 );
+                if( s == null ) 
+                    s = "";
+            }
             temp = XMLUtil.parse( "<parent>" + s + "</parent>" ).getDocumentElement();
         }
         catch ( Exception e ) {
