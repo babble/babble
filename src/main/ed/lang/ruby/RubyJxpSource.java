@@ -295,12 +295,10 @@ public class RubyJxpSource extends JxpSource {
 	    System.err.println("going to compile and run library file " + path + "; runtime = " + runtime);
 
 	JSFileLibrary lib = getLibFromPath(path, scope);
-	if (lib == null) {
-	    if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
-		System.err.println("can not find JSFileLibrary for " + path + "; re-raising Ruby exception");
-	    throw re;
-	}
-	path = removeLibName(path);
+	if (lib == null)
+	    lib = (JSFileLibrary)scope.get("local");
+	else
+	    path = removeLibName(path);
 
 	try {
 	    Object o = lib.getFromPath(path);
