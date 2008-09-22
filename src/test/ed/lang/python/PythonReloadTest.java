@@ -158,7 +158,7 @@ public class PythonReloadTest extends ed.TestCase {
             log.makeThreadLocal();
             
             Map<String, JSFileLibrary> rootFiles = new HashMap<String, JSFileLibrary>();
-            rootFiles.put("local", new JSFileLibrary(new File(TEST_DIR), "local", ac ));
+            rootFiles.put("local", new JSFileLibrary(testDir, "local", ac ));
             for(Map.Entry<String, JSFileLibrary> rootFileLib : rootFiles.entrySet())
                 globalScope.set(rootFileLib.getKey(), rootFileLib.getValue());
 
