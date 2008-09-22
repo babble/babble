@@ -80,9 +80,6 @@ public class JSObjectBase implements JSObject {
      */
     public Object set( Object n , Object v ){
         _readOnlyCheck();
-        if( isLockedKey( n.toString() ) ) {
-            return v;
-        }
         prefunc();
 
         _dirty = _dirty || ! ByteEncoder.dbOnlyField( n );
@@ -90,6 +87,9 @@ public class JSObjectBase implements JSObject {
         if ( n == null )
             n = "null";
 
+        if( isLockedKey( n.toString() ) ) {
+            return v;
+        }
         if ( v != null && "_id".equals( n ) &&
 	     ( ( v instanceof String ) || ( v instanceof JSString ) )
 	     ){
@@ -489,6 +489,8 @@ public class JSObjectBase implements JSObject {
         Object val = null;
 
         if ( n instanceof String ){
+            if ( isLockedKey( (String)n ) )
+                return false;
             if ( _map != null )
                 val = _map.remove( (String)n );
             if ( _keys != null )
