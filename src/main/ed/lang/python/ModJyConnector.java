@@ -57,7 +57,7 @@ public class ModJyConnector extends HttpServlet  {
         AppContext ac = (AppContext)context;
 
         try {
-            PySystemState pystate = Python.getSiteSystemState( ac );
+            PySystemState pystate = Python.getSiteSystemState( ac , ac.getScope() );
 	    PythonInterpreter.initialize(System.getProperties(), props, new String[0]);
 	    interp = new PythonInterpreter( null , pystate );
 	    // Ouch. Why doesn't tomcat set the classpath?
