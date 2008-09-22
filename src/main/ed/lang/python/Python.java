@@ -50,6 +50,17 @@ public class Python extends Language {
         return (PyCode)(Py.compile( new FileInputStream( f ) , f.toString() , "exec" ));
     }
 
+    public static void deleteCachedJythonFiles( File dir ){
+        for( File child : dir.listFiles() ){
+            if( child.getName().endsWith( "$py.class") ){
+                child.delete();
+            }
+            if( child.isDirectory() ){
+                deleteCachedJythonFiles( child );
+            }
+        }
+    }
+
 
     public static Object toJS( Object p ){
 
