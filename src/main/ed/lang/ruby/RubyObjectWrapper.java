@@ -89,7 +89,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	}
 
 	if (obj instanceof JSString || obj instanceof ObjectId)
-	    wrapper = RubyString.newString(runtime, obj.toString());
+	    wrapper = runtime.newString(obj.toString());
 	else if (obj instanceof JSFunction) {
 	    IRubyObject methodOwner = container == null ? runtime.getTopSelf() : container;
 	    wrapper = createRubyMethod(s, runtime, (JSFunction)obj, name, methodOwner.getSingletonClass(), jsThis);
@@ -246,7 +246,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
 				System.err.println("saw exception; going to raise Ruby error after printing the stack trace here");
 				e.printStackTrace();
 			    }
-			    recv.callMethod(context, "raise", new IRubyObject[] {RubyString.newString(runtime, e.toString())}, Block.NULL_BLOCK);
+			    recv.callMethod(context, "raise", new IRubyObject[] {runtime.newString(e.toString())}, Block.NULL_BLOCK);
 			    return runtime.getNil(); // will never reach
 			}
 		    }

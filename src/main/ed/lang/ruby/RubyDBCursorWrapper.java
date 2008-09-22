@@ -62,7 +62,8 @@ public class RubyDBCursorWrapper extends RubyArray {
 
     private void _createMethods() {
 	RubyClass eigenclass = getSingletonClass();
-	eigenclass.alias_method(getRuntime().getCurrentContext(), RubyString.newString(getRuntime(), "forEach"), RubyString.newString(getRuntime(), "each"));
+	Ruby r = getRuntime();
+	eigenclass.alias_method(r.getCurrentContext(), r.newString("forEach"), r.newString("each"));
 	Set<String> alreadyDefined = new HashSet<String>();
 	alreadyDefined.add("forEach");
 	RubyObjectWrapper.addJavaPublicMethodWrappers(_scope, eigenclass, _cursor, alreadyDefined);
@@ -89,7 +90,7 @@ public class RubyDBCursorWrapper extends RubyArray {
     }
 
     public IRubyObject to_s() {
-	return RubyString.newString(getRuntime(), _cursor.toString());
+	return getRuntime().newString(_cursor.toString());
     }
 
     public RubyFixnum hash(ThreadContext context) {
@@ -297,7 +298,7 @@ public class RubyDBCursorWrapper extends RubyArray {
         for (int i = 0; i < realLength; i++) {
             if (i > 0) buffer.append(',').append(' ');
 
-            RubyString str = RubyString.newString(getRuntime(), _at(i).toString());
+            RubyString str = getRuntime().newString(_at(i).toString());
             if (str.isTaint()) tainted = true;
             buffer.append(str.getByteList());
         }
@@ -415,7 +416,7 @@ public class RubyDBCursorWrapper extends RubyArray {
                 tmp = _at(i);
             } catch (ArrayIndexOutOfBoundsException e) {
                 concurrentModification(e);
-                return runtime.newString("");
+                return runtime.newString();
             }
             if (tmp instanceof RubyString) {
                 // do nothing
