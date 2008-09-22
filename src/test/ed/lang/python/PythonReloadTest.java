@@ -70,7 +70,6 @@ public class PythonReloadTest extends ed.TestCase {
             assertRan2(globalScope);
 
             Thread.sleep(SLEEP_MS);
-            System.out.println("New test");
             clearScope(globalScope);
             writeTest2File2();
             globalScope.eval("local.file1();");

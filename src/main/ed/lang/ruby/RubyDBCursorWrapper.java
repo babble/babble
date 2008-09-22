@@ -38,43 +38,43 @@ public class RubyDBCursorWrapper extends RubyArray {
     protected DBCursor _cursor;
 
     public static synchronized RubyClass getDBCursorClass(Ruby runtime) {
-	RubyClass dbCursorClass = klassDefs.get(runtime);
-	if (dbCursorClass == null) {
-	    dbCursorClass = runtime.defineClass("DBCursor", runtime.getArray(), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
-	    dbCursorClass.kindOf = new RubyModule.KindOf() {
-		    public boolean isKindOf(IRubyObject obj, RubyModule type) {
-			return obj instanceof RubyDBCursorWrapper;
-		    }
-		};
-	    klassDefs.put(runtime, dbCursorClass);
-	}
-	return dbCursorClass;
+        RubyClass dbCursorClass = klassDefs.get(runtime);
+        if (dbCursorClass == null) {
+            dbCursorClass = runtime.defineClass("DBCursor", runtime.getArray(), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
+            dbCursorClass.kindOf = new RubyModule.KindOf() {
+                    public boolean isKindOf(IRubyObject obj, RubyModule type) {
+                        return obj instanceof RubyDBCursorWrapper;
+                    }
+                };
+            klassDefs.put(runtime, dbCursorClass);
+        }
+        return dbCursorClass;
     }
 
     RubyDBCursorWrapper(Scope s, Ruby runtime, DBCursor cursor) {
-	super(runtime, getDBCursorClass(runtime));
-	if (RubyObjectWrapper.DEBUG_CREATE)
-	    System.err.println("creating RubyDBCursorWrapper");
-	_scope = s;
-	_cursor = cursor;
-	_createMethods();
+        super(runtime, getDBCursorClass(runtime));
+        if (RubyObjectWrapper.DEBUG_CREATE)
+            System.err.println("creating RubyDBCursorWrapper");
+        _scope = s;
+        _cursor = cursor;
+        _createMethods();
     }
 
     private void _createMethods() {
-	RubyClass eigenclass = getSingletonClass();
-	Ruby r = getRuntime();
-	eigenclass.alias_method(r.getCurrentContext(), r.newString("forEach"), r.newString("each"));
-	Set<String> alreadyDefined = new HashSet<String>();
-	alreadyDefined.add("forEach");
-	RubyObjectWrapper.addJavaPublicMethodWrappers(_scope, eigenclass, _cursor, alreadyDefined);
+        RubyClass eigenclass = getSingletonClass();
+        Ruby r = getRuntime();
+        eigenclass.alias_method(r.getCurrentContext(), r.newString("forEach"), r.newString("each"));
+        Set<String> alreadyDefined = new HashSet<String>();
+        alreadyDefined.add("forEach");
+        RubyObjectWrapper.addJavaPublicMethodWrappers(_scope, eigenclass, _cursor, alreadyDefined);
     }
 
     protected RubyArray notImplemented(String what) {
-	throw getRuntime().newNotImplementedError("Can not call " + what + " on database cursors");
+        throw getRuntime().newNotImplementedError("Can not call " + what + " on database cursors");
     }
 
     protected IRubyObject _at(long i) {
-	return toRuby(_cursor.getInt((int)i));
+        return toRuby(_cursor.getInt((int)i));
     }
 
     // Superclass implementation is OK
@@ -86,26 +86,26 @@ public class RubyDBCursorWrapper extends RubyArray {
 //     }
 
     public IRubyObject replace(IRubyObject orig) {
-	return notImplemented("replace");
+        return notImplemented("replace");
     }
 
     public IRubyObject to_s() {
-	return getRuntime().newString(_cursor.toString());
+        return getRuntime().newString(_cursor.toString());
     }
 
     public RubyFixnum hash(ThreadContext context) {
-	return getRuntime().newFixnum(_cursor.hashCode());
+        return getRuntime().newFixnum(_cursor.hashCode());
     }
 
     private final void concurrentModification(Exception e) {
-	e.printStackTrace();
+        e.printStackTrace();
         throw getRuntime().newConcurrencyError("Detected invalid array contents due to unsynchronized modifications with concurrent users");
     }
 
     public IRubyObject fetch(ThreadContext context, IRubyObject arg0, Block block) {
         long index = RubyNumeric.num2long(arg0);
 
-	long realLength = _cursor.length();
+        long realLength = _cursor.length();
         if (index < 0) index += realLength;
         if (index < 0 || index >= realLength) {
             if (block.isGiven()) return block.yield(context, arg0);
@@ -121,39 +121,39 @@ public class RubyDBCursorWrapper extends RubyArray {
     }
 
     public IRubyObject fetch(ThreadContext context, IRubyObject arg0, IRubyObject arg1, Block block) {
-	if (block.isGiven()) getRuntime().getWarnings().warn(ID.BLOCK_BEATS_DEFAULT_VALUE, "block supersedes default value argument");
+        if (block.isGiven()) getRuntime().getWarnings().warn(ID.BLOCK_BEATS_DEFAULT_VALUE, "block supersedes default value argument");
 
-	long index = RubyNumeric.num2long(arg0);
+        long index = RubyNumeric.num2long(arg0);
 
-	long realLength = _cursor.length();
-	if (index < 0) index += realLength;
-	if (index < 0 || index >= realLength) {
-	    if (block.isGiven()) return block.yield(context, arg0);
-	    return arg1;
-	}
+        long realLength = _cursor.length();
+        if (index < 0) index += realLength;
+        if (index < 0 || index >= realLength) {
+            if (block.isGiven()) return block.yield(context, arg0);
+            return arg1;
+        }
 
-	try {
-	    return _at(index);
-	} catch (ArrayIndexOutOfBoundsException e) {
-	    concurrentModification(e);
-	    return getRuntime().getNil();
-	}
+        try {
+            return _at(index);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            concurrentModification(e);
+            return getRuntime().getNil();
+        }
     }
 
     public IRubyObject insert(IRubyObject arg) {
-	return notImplemented("insert");
+        return notImplemented("insert");
     }
 
     public IRubyObject insert(IRubyObject arg1, IRubyObject arg2) {
-	return notImplemented("insert");
+        return notImplemented("insert");
     }
 
     public IRubyObject insert(IRubyObject[] args) {
-	return notImplemented("insert");
+        return notImplemented("insert");
     }
 
     public RubyArray transpose() {
-	return notImplemented("transpose");
+        return notImplemented("transpose");
     }
 
     // Copied from RubyRange and modified
@@ -178,10 +178,10 @@ public class RubyDBCursorWrapper extends RubyArray {
         }
 
         if (end < 0) end += len;
-	// HACK ALERT! The only way to figure out if the range is exclusive is
-	// to look at the range's hash value. If the hash has bit 24 set, then
-	// the range is exclusive.
-	boolean isExclusive = ((range.hash().getLongValue() >> 24) & 1) == 1;
+        // HACK ALERT! The only way to figure out if the range is exclusive is
+        // to look at the range's hash value. If the hash has bit 24 set, then
+        // the range is exclusive.
+        boolean isExclusive = ((range.hash().getLongValue() >> 24) & 1) == 1;
         if (!isExclusive) end++;
         len = end - beg;
         if (len < 0) len = 0;
@@ -191,7 +191,7 @@ public class RubyDBCursorWrapper extends RubyArray {
 
     public IRubyObject values_at(IRubyObject[] args) {
         RubyArray result = RubyArray.newArray(getRuntime(), args.length);
-	int realLength = _cursor.length();
+        int realLength = _cursor.length();
         for (int i = 0; i < args.length; i++) {
             if (args[i] instanceof RubyFixnum) {
                 result.append(_at(((RubyFixnum)args[i]).getLongValue()));
@@ -216,34 +216,34 @@ public class RubyDBCursorWrapper extends RubyArray {
     }
 
     public RubyFixnum length() {
-	return getRuntime().newFixnum(_cursor.length());
+        return getRuntime().newFixnum(_cursor.length());
     }
 
     public RubyArray append(IRubyObject item) {
-	return notImplemented("replace");
+        return notImplemented("replace");
     }
 
     public RubyArray push_m(IRubyObject[] items) {
-	return notImplemented("replace");
+        return notImplemented("replace");
     }
 
     public IRubyObject pop() {
-	return notImplemented("pop");
+        return notImplemented("pop");
     }
 
     public IRubyObject shift() {
-	return notImplemented("shift");
+        return notImplemented("shift");
     }
 
     public RubyArray unshift_m(IRubyObject[] items) {
-	return notImplemented("unshift");
+        return notImplemented("unshift");
     }
 
     public RubyBoolean include_p(ThreadContext context, IRubyObject item) {
-	while (_cursor.hasNext())
-	    if (equalInternal(context, toRuby(_cursor.next()), item))
-		return getRuntime().getTrue();
-	return getRuntime().getFalse();
+        while (_cursor.hasNext())
+            if (equalInternal(context, toRuby(_cursor.next()), item))
+                return getRuntime().getTrue();
+        return getRuntime().getFalse();
     }
 
     // Superclass implementation is OK
@@ -274,19 +274,19 @@ public class RubyDBCursorWrapper extends RubyArray {
     }
 
     public IRubyObject aset(IRubyObject arg0, IRubyObject arg1) {
-	return notImplemented("aset");
+        return notImplemented("aset");
     }
 
     public IRubyObject aset(IRubyObject arg0, IRubyObject arg1, IRubyObject arg2) {
-	return notImplemented("aset");
+        return notImplemented("aset");
     }
 
     public IRubyObject at(IRubyObject pos) {
-	return _at(RubyNumeric.num2long(pos));
+        return _at(RubyNumeric.num2long(pos));
     }
 
     public RubyArray concat(IRubyObject obj) {
-	return notImplemented("concat");
+        return notImplemented("concat");
     }
 
     private IRubyObject inspectAry(ThreadContext context) {
@@ -294,7 +294,7 @@ public class RubyDBCursorWrapper extends RubyArray {
         buffer.append('[');
         boolean tainted = isTaint();
 
-	int realLength = _cursor.length();
+        int realLength = _cursor.length();
         for (int i = 0; i < realLength; i++) {
             if (i > 0) buffer.append(',').append(' ');
 
@@ -311,7 +311,7 @@ public class RubyDBCursorWrapper extends RubyArray {
     }
 
     public IRubyObject inspect() {
-	int realLength = _cursor.length();
+        int realLength = _cursor.length();
         if (realLength == 0) return getRuntime().newString("[]");
         if (getRuntime().isInspecting(this)) return  getRuntime().newString("[...]");
 
@@ -324,30 +324,30 @@ public class RubyDBCursorWrapper extends RubyArray {
     }
 
     public IRubyObject first() {
-	if (_cursor.length() == 0) return getRuntime().getNil();
-	return _at(0);
+        if (_cursor.length() == 0) return getRuntime().getNil();
+        return _at(0);
     }
 
     public IRubyObject first(IRubyObject arg0) {
         long n = RubyNumeric.num2long(arg0);
-	long realLength = _cursor.length();
+        long realLength = _cursor.length();
         if (n > realLength) {
             n = realLength;
         } else if (n < 0) {
             throw getRuntime().newArgumentError("negative array size (or size too big)");
         }
-	return subseq(0, n);
+        return subseq(0, n);
     }
 
     public IRubyObject last() {
-	long realLength = _cursor.length();
+        long realLength = _cursor.length();
         if (realLength == 0) return getRuntime().getNil();
         return _at(realLength - 1);
     }
 
     public IRubyObject last(IRubyObject arg0) {
         long n = RubyNumeric.num2long(arg0);
-	int realLength = _cursor.length();
+        int realLength = _cursor.length();
         if (n > realLength) {
             n = realLength;
         } else if (n < 0) {
@@ -358,21 +358,21 @@ public class RubyDBCursorWrapper extends RubyArray {
     }
 
     public IRubyObject each(ThreadContext context, Block block) {
-	while (_cursor.hasNext())
-	    block.yield(context, toRuby(_cursor.next()));
-	return this;
+        while (_cursor.hasNext())
+            block.yield(context, toRuby(_cursor.next()));
+        return this;
     }
 
     public IRubyObject each_index(ThreadContext context, Block block) {
         Ruby runtime = getRuntime();
-	int realLength = _cursor.length();
+        int realLength = _cursor.length();
         for (int i = 0; i < realLength; i++)
             block.yield(context, runtime.newFixnum(i));
-	return this;
+        return this;
     }
 
     public IRubyObject reverse_each(ThreadContext context, Block block) {
-	int realLength = _cursor.length();
+        int realLength = _cursor.length();
         int len = realLength;
         while (len-- > 0) {
             block.yield(context, _at(len));
@@ -400,7 +400,7 @@ public class RubyDBCursorWrapper extends RubyArray {
     public RubyString join(ThreadContext context, IRubyObject sep) {
         final Ruby runtime = getRuntime();
 
-	int realLength = _cursor.length();
+        int realLength = _cursor.length();
         if (realLength == 0) return RubyString.newEmptyString(getRuntime());
 
         boolean taint = isTaint() || sep.isTaint();
@@ -463,14 +463,14 @@ public class RubyDBCursorWrapper extends RubyArray {
         if (!(obj instanceof RubyArray)) {
             if (!obj.respondsTo("to_ary")) {
                 return getRuntime().getFalse();
-	    } else {
+            } else {
                 if (equalInternal(context, obj.callMethod(context, "to_ary"), this)) return getRuntime().getTrue();
                 return getRuntime().getFalse();
             }
         }
 
         RubyArray ary = (RubyArray) obj;
-	long realLength = _cursor.length();
+        long realLength = _cursor.length();
         if (realLength != ary.size()) return getRuntime().getFalse();
 
         Ruby runtime = getRuntime();
@@ -486,7 +486,7 @@ public class RubyDBCursorWrapper extends RubyArray {
 
         RubyArray ary = (RubyArray) obj;
 
-	long realLength = _cursor.length();
+        long realLength = _cursor.length();
         if (realLength != ary.size()) return getRuntime().getFalse();
 
         Ruby runtime = getRuntime();
@@ -496,11 +496,11 @@ public class RubyDBCursorWrapper extends RubyArray {
     }
 
     public IRubyObject compact_bang() {
-	return getRuntime().getNil();
+        return getRuntime().getNil();
     }
 
     public IRubyObject compact() {
-	return getRuntime().getNil();
+        return getRuntime().getNil();
     }
 
     public IRubyObject empty_p() {
@@ -508,16 +508,16 @@ public class RubyDBCursorWrapper extends RubyArray {
     }
 
     public IRubyObject rb_clear() {
-	return notImplemented("rb_clear");
+        return notImplemented("rb_clear");
     }
 
     public IRubyObject fill(ThreadContext context, IRubyObject[] args, Block block) {
-	return notImplemented("fill");
+        return notImplemented("fill");
     }
 
     public IRubyObject index(ThreadContext context, IRubyObject obj) {
         Ruby runtime = getRuntime();
-	int realLength = _cursor.length();
+        int realLength = _cursor.length();
         for (int i = 0; i < realLength; i++) {
             if (equalInternal(context, _at(i), obj)) return runtime.newFixnum(i);
         }
@@ -527,7 +527,7 @@ public class RubyDBCursorWrapper extends RubyArray {
 
     public IRubyObject rindex(ThreadContext context, IRubyObject obj) {
         Ruby runtime = getRuntime();
-	int realLength = _cursor.length();
+        int realLength = _cursor.length();
         int i = realLength;
 
         while (i-- > 0) {
@@ -546,23 +546,23 @@ public class RubyDBCursorWrapper extends RubyArray {
 //     }
 
     public IRubyObject reverse_bang() {
-	return notImplemented("reverse!");
+        return notImplemented("reverse!");
     }
 
     public IRubyObject reverse() {
-	return notImplemented("reverse");
+        return notImplemented("reverse");
     }
 
     public RubyArray collect(ThreadContext context, Block block) {
         Ruby runtime = getRuntime();
-	int realLength = _cursor.length();
+        int realLength = _cursor.length();
 
         if (!block.isGiven()) {
-	    RubyArray a = RubyArray.newArray(runtime);
-	    for (int i = 0; i < realLength; ++i)
-		a.append(_at(i));
-	    return a;
-	}
+            RubyArray a = RubyArray.newArray(runtime);
+            for (int i = 0; i < realLength; ++i)
+                a.append(_at(i));
+            return a;
+        }
 
         RubyArray collect = RubyArray.newArray(runtime);
         for (int i = 0; i < realLength; i++)
@@ -571,47 +571,47 @@ public class RubyDBCursorWrapper extends RubyArray {
     }
 
     protected RubyArray toRubyArray() {
-	return collect(getRuntime().getCurrentContext(), Block.NULL_BLOCK);
+        return collect(getRuntime().getCurrentContext(), Block.NULL_BLOCK);
     }
 
     public RubyArray collect_bang(ThreadContext context, Block block) {
-	return notImplemented("collect!");
+        return notImplemented("collect!");
     }
 
     public RubyArray select(ThreadContext context, Block block) {
         RubyArray result = RubyArray.newArray(getRuntime());
-	int realLength = _cursor.length();
-	for (int i = 0; i < realLength; i++) {
-	    IRubyObject o = _at(i);
-	    if (block.yield(context, o).isTrue()) result.append(o);
-	}
+        int realLength = _cursor.length();
+        for (int i = 0; i < realLength; i++) {
+            IRubyObject o = _at(i);
+            if (block.yield(context, o).isTrue()) result.append(o);
+        }
         return result;
     }
 
     public IRubyObject delete(ThreadContext context, IRubyObject item, Block block) {
-	return notImplemented("delete");
+        return notImplemented("delete");
     }
 
     public IRubyObject delete_at(IRubyObject obj) {
-	return notImplemented("delete_at");
+        return notImplemented("delete_at");
     }
 
     public IRubyObject reject(ThreadContext context, Block block) {
         RubyArray result = RubyArray.newArray(getRuntime());
-	int realLength = _cursor.length();
-	for (int i = 0; i < realLength; i++) {
-	    IRubyObject o = _at(i);
-	    if (!block.yield(context, o).isTrue()) result.append(o);
-	}
+        int realLength = _cursor.length();
+        for (int i = 0; i < realLength; i++) {
+            IRubyObject o = _at(i);
+            if (!block.yield(context, o).isTrue()) result.append(o);
+        }
         return result;
     }
 
     public IRubyObject reject_bang(ThreadContext context, Block block) {
-	return notImplemented("reject!");
+        return notImplemented("reject!");
     }
 
     public IRubyObject delete_if(ThreadContext context, Block block) {
-	return notImplemented("delete_if");
+        return notImplemented("delete_if");
     }
 
     public IRubyObject zip(ThreadContext context, IRubyObject[] args, Block block) {
@@ -621,7 +621,7 @@ public class RubyDBCursorWrapper extends RubyArray {
         Ruby runtime = getRuntime();
         int len = _cursor.length();
         if (block.isGiven()) {
-	    long realLength = _cursor.length();
+            long realLength = _cursor.length();
             for (int i = 0; i < realLength; i++) {
                 RubyArray tmp = RubyArray.newArray(runtime);
                 tmp.append(_at(i));
@@ -646,10 +646,10 @@ public class RubyDBCursorWrapper extends RubyArray {
     public IRubyObject op_cmp(ThreadContext context, IRubyObject obj) {
         RubyArray ary2 = obj.convertToArray();
 
-	int realLength = _cursor.length();
+        int realLength = _cursor.length();
         long len = realLength;
 
-	long ary2RealLength = ary2.size();
+        long ary2RealLength = ary2.size();
         if (len > ary2RealLength) len = ary2RealLength;
 
         Ruby runtime = getRuntime();
@@ -666,40 +666,40 @@ public class RubyDBCursorWrapper extends RubyArray {
     }
 
     public IRubyObject slice_bang(IRubyObject arg0) {
-	return notImplemented("slice!");
+        return notImplemented("slice!");
     }
 
     public IRubyObject slice_bang(IRubyObject arg0, IRubyObject arg1) {
-	return notImplemented("slice!");
+        return notImplemented("slice!");
     }
 
     public IRubyObject assoc(ThreadContext context, IRubyObject key) {
-	return notImplemented("assoc");
+        return notImplemented("assoc");
     }
 
     public IRubyObject rassoc(ThreadContext context, IRubyObject value) {
-	return notImplemented("rassoc");
+        return notImplemented("rassoc");
     }
 
     public IRubyObject flatten_bang(ThreadContext context) {
-	return notImplemented("flatten!");
+        return notImplemented("flatten!");
     }
 
     public IRubyObject flatten(ThreadContext context) {
-	return this;
+        return this;
     }
 
     public IRubyObject nitems() {
-	return length();	// db cursor rows are never nil
+        return length();        // db cursor rows are never nil
     }
 
     public IRubyObject op_plus(IRubyObject obj) {
         RubyArray y = obj.convertToArray();
         RubyArray z = toRubyArray();
         try {
-	    long yRealLength = y.size();
-	    for (int i = 0; i < yRealLength; ++i)
-		z.append(y.at(getRuntime().newFixnum(i)));
+            long yRealLength = y.size();
+            for (int i = 0; i < yRealLength; ++i)
+                z.append(y.at(getRuntime().newFixnum(i)));
         } catch (ArrayIndexOutOfBoundsException e) {
             concurrentModification(e);
         }
@@ -707,44 +707,44 @@ public class RubyDBCursorWrapper extends RubyArray {
     }
 
     public IRubyObject op_times(ThreadContext context, IRubyObject times) {
-	RubyArray me = toRubyArray();
-	return me.op_times(context, times);
+        RubyArray me = toRubyArray();
+        return me.op_times(context, times);
     }
 
     public IRubyObject uniq_bang() {
-	return this;
+        return this;
     }
 
     public IRubyObject uniq() {
-	return this;
+        return this;
     }
 
     public IRubyObject op_diff(IRubyObject other) {
-	return toRubyArray().op_diff(other);
+        return toRubyArray().op_diff(other);
     }
 
     public IRubyObject op_and(IRubyObject other) {
-	return toRubyArray().op_and(other);
+        return toRubyArray().op_and(other);
     }
 
     public IRubyObject op_or(IRubyObject other) {
-	return toRubyArray().op_or(other);
+        return toRubyArray().op_or(other);
     }
 
     public RubyArray sort(Block block) {
-	return toRubyArray().sort(block);
+        return toRubyArray().sort(block);
     }
 
     public RubyArray sort_bang(Block block) {
-	return notImplemented("sort!");
+        return notImplemented("sort!");
     }
 
     public RubyString pack(ThreadContext context, IRubyObject obj) {
-	return toRubyArray().pack(context, obj);
+        return toRubyArray().pack(context, obj);
     }
 
     public IRubyObject subseq(long beg, long len) {
-	int realLength = _cursor.length();
+        int realLength = _cursor.length();
         if (beg > realLength || beg < 0 || len < 0) return getRuntime().getNil();
 
         if (beg + len > realLength) {
@@ -755,14 +755,14 @@ public class RubyDBCursorWrapper extends RubyArray {
 
         if (len == 0) return RubyArray.newArray(getRuntime());
 
-	RubyArray a = RubyArray.newArray(getRuntime());
-	for (long i = beg; i < beg + len; ++i)
-	    a.append(_at(i));
-	return a;
+        RubyArray a = RubyArray.newArray(getRuntime());
+        for (long i = beg; i < beg + len; ++i)
+            a.append(_at(i));
+        return a;
     }
 
     public IRubyObject subseqLight(long beg, long len) {
-	return subseq(beg, len);
+        return subseq(beg, len);
     }
 
     protected IRubyObject toRuby(Object o) { return RubyObjectWrapper.toRuby(_scope, getRuntime(), o); }

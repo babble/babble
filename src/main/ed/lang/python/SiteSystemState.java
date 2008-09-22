@@ -25,36 +25,36 @@ import org.python.core.*;
 import ed.appserver.*;
 import ed.log.*;
 
-public class SiteSystemState extends PySystemState {
+public class SiteSystemState {
     SiteSystemState( AppContext ac , PyObject newGlobals ){
-        super();
+        state = new PySystemState();
         globals = newGlobals;
         setupModules();
     }
     public void setupModules(){
-        if( ! ( modules instanceof PythonModuleTracker ) ){
-            if( modules instanceof PyStringMap)
-                modules = new PythonModuleTracker( (PyStringMap)modules );
+        if( ! ( state.modules instanceof PythonModuleTracker ) ){
+            if( state.modules instanceof PyStringMap)
+                state.modules = new PythonModuleTracker( (PyStringMap)state.modules );
             else {
                 // You can comment out this exception, it shouldn't
                 // break anything beyond reloading python modules
-                throw new RuntimeException("couldn't intercept modules " + modules.getClass());
+                throw new RuntimeException("couldn't intercept modules " + state.modules.getClass());
             }
         }
     }
 
     public void flushOld(){
-        if( ! ( modules instanceof PythonModuleTracker ) ){
+        if( ! ( state.modules instanceof PythonModuleTracker ) ){
             throw new RuntimeException( "i'm not sufficiently set up yet" );
         }
 
-        ((PythonModuleTracker)modules).flushOld();
+        ((PythonModuleTracker)state.modules).flushOld();
     }
 
     public void setOutput( AppRequest ar ){
-        PyObject out = stdout;
+        PyObject out = state.stdout;
         if ( ! ( out instanceof MyStdoutFile ) || ((MyStdoutFile)out)._request != ar ){
-            stdout = new MyStdoutFile( ar );
+            state.stdout = new MyStdoutFile( ar );
         }
     }
 
@@ -76,4 +76,5 @@ public class SiteSystemState extends PySystemState {
 
     final static Logger _log = Logger.getLogger( "python" );
     final public PyObject globals;
+    final public PySystemState state;
 }

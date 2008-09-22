@@ -33,47 +33,48 @@ import ed.lang.ruby.RubyJxpSource;
 public class RubyFileRunnerTest {
 
     public void testRunAllRubyFiles() {
-	String edHome = System.getenv("ED_HOME");
-	File here = new File(edHome, "src/test/ed/lang/ruby");
-	File f = new File(here, "run_all_tests.rb");
+        String edHome = System.getenv("ED_HOME");
+        File here = new File(edHome, "src/test/ed/lang/ruby");
+        File f = new File(here, "run_all_tests.rb");
 
-	Scope s = createScope(f.getParentFile());
+        Scope s = createScope(f.getParentFile());
 
-	RubyJxpSource source = new RubyJxpSource(f, null);
-	addRubyLoadPath(source, new File(edHome, "build").getPath()); // for xgen_internals.rb
-	addRubyLoadPath(source, here.getPath());
+        RubyJxpSource source = new RubyJxpSource(f, null);
+        addRubyLoadPath(source, new File(edHome, "build").getPath()); // for xgen_internals.rb
+        addRubyLoadPath(source, here.getPath());
 
-	try {
-	    source.getFunction().call(s, new Object[0]);
-	}
-	catch (Exception e) {
-	    e.printStackTrace();
-	    fail("while running file " + f.getPath() + ", exception was thrown: " + e);
-	}
+        try {
+            source.getFunction().call(s, new Object[0]);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            fail("while running file " + f.getPath() + ", exception was thrown: " + e);
+        }
     }
 
     protected Scope createScope(File localRootDir) {
-	Scope s = Scope.newGlobal();
-	s = new Scope("test", s); // child of global scope
-	Shell.addNiceShellStuff(s);
-	s.set("local", new JSFileLibrary(localRootDir, "local", s));
-	s.set("jsout", "");	// initial value; used by tests; will be written over later
-	JSFunction print = new JSFunctionCalls0() {
-		public Object call(Scope s, Object[] args) {
-		    return s.put("jsout", s.get("jsout").toString() + args[0].toString() + "\n", false); // default print behavior adds newline
-		}
-	    };
-	print.setName("print");
-	s.set("print", print);
+        Scope s = Scope.newGlobal();
+        s = new Scope("test", s); // child of global scope
+        Shell.addNiceShellStuff(s);
+        s.set("local", new JSFileLibrary(localRootDir, "local", s));
 
-	return s;
+        s.set("jsout", ""); // initial value; used by tests; will be written over later
+        JSFunction print = new JSFunctionCalls0() {
+                public Object call(Scope s, Object[] args) {
+                    return s.put("jsout", s.get("jsout").toString() + args[0].toString() + "\n", false); // default print behavior adds newline
+                }
+            };
+        print.setName("print");
+        s.set("print", print);
+
+        return s;
     }
 
     protected void addRubyLoadPath(RubyJxpSource source, String path) {
-	Ruby runtime = source.getRuntime();
-	RubyString rpath = RubyString.newString(runtime, path.replace('\\', '/'));
-	RubyArray loadPath = (RubyArray)runtime.getLoadService().getLoadPath();
-	if (loadPath.include_p(runtime.getCurrentContext(), rpath).isFalse())
-	    loadPath.append(rpath);
+        Ruby runtime = source.getRuntime();
+        RubyString rpath = RubyString.newString(runtime, path.replace('\\', '/'));
+        RubyArray loadPath = (RubyArray)runtime.getLoadService().getLoadPath();
+        if (loadPath.include_p(runtime.getCurrentContext(), rpath).isFalse())
+            loadPath.append(rpath);
     }
 }

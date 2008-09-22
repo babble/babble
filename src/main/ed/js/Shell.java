@@ -153,6 +153,11 @@ public class Shell {
                     return s.child(new File(fileName.toString()));
                 }
             } , true);
+        s.put( "gc" , new JSFunctionCalls0() {
+                public Object call( Scope scope , Object extra[] ){
+                    return ed.util.MemUtil.gc();
+                }
+            } , true );
 
         Map<String, JSFileLibrary> rootFileMap = new HashMap<String, JSFileLibrary>();
         for(String rootKey : new String[] {"local", "core", "external"}) {

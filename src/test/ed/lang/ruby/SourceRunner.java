@@ -33,16 +33,16 @@ import ed.net.httpserver.JxpWriter;
 
 /** Makes RubyJxpSource testable by letting us control input and capture output. */
 class TestRubyJxpSource extends RubyJxpSource {
-    JxpWriter.Basic _writer;	// receives output
-    String _content;		// set directly from within test methods
+    JxpWriter.Basic _writer;    // receives output
+    String _content;            // set directly from within test methods
     public TestRubyJxpSource(org.jruby.Ruby runtime) {
-	super(runtime);
+        super(runtime);
     }
     protected String getContent() { return _content; }
-    protected Node _getCode() throws IOException { return _parseContent("fake_file_path"); }
+    protected Node _parseCode() throws IOException { return _parseContent("fake_file_path"); }
     protected void _setOutput(Scope s) {
-	_writer = new JxpWriter.Basic();
-	_runtime.getGlobalVariables().set("$stdout", new RubyIO(_runtime, new RubyJxpOutputStream(_writer)));
+        _writer = new JxpWriter.Basic();
+        _runtime.getGlobalVariables().set("$stdout", new RubyIO(_runtime, new RubyJxpOutputStream(_writer)));
     }
     protected String getOutput() { return _writer.getContent(); }
 }
@@ -60,24 +60,24 @@ public class SourceRunner {
 
     @BeforeMethod(groups={"ruby", "ruby.jxpsource", "ruby.db", "ruby.db.findone", "ruby.db.find", "ruby.jsobj", "ruby.jsfunc", "ruby.required"})
     public void setUp() {
-	s = new Scope("test", null);
-	ed.js.JSON.init(s);	// add tojson, tojson_u, fromjson
-	r = org.jruby.Ruby.newInstance();
-	source = new TestRubyJxpSource(r);
+        s = new Scope("test", null);
+        ed.js.JSON.init(s);        // add tojson, tojson_u, fromjson
+        r = org.jruby.Ruby.newInstance();
+        source = new TestRubyJxpSource(r);
     }
 
     /** Return result of running jsCode. Output is stored in jsOutput. */
     protected Object runJS(String jsCode) {
-	PrintBuffer buf = new PrintBuffer();
-	s.put("print", buf);
-	Object o = s.eval(jsCode);
-	jsOutput = buf.toString().trim();
-	return o;
+        PrintBuffer buf = new PrintBuffer();
+        s.put("print", buf);
+        Object o = s.eval(jsCode);
+        jsOutput = buf.toString().trim();
+        return o;
     }
 
     protected void assertJSEquals(String jsCode, String expected) {
-	runJS(jsCode);
-	assertEquals(jsOutput, expected);
+        runJS(jsCode);
+        assertEquals(jsOutput, expected);
     }
 
     /**
@@ -85,22 +85,22 @@ public class SourceRunner {
      * stored in rubyOutput.
      */
     protected Object runRuby(String rubyCode) {
-	source._content = rubyCode;
-	Object o = null;
-	try {
-	    o = source.getFunction().call(s, new Object[0]);
-	    rubyOutput = source.getOutput().trim();
-	}
-	catch (Exception e) {
-	    e.printStackTrace();
-	    fail(e.toString());
-	}
-	return o;
+        source._content = rubyCode;
+        Object o = null;
+        try {
+            o = source.getFunction().call(s, new Object[0]);
+            rubyOutput = source.getOutput().trim();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            fail(e.toString());
+        }
+        return o;
     }
 
     protected void assertRubyEquals(String rubyCode, String expected) {
-	runRuby(rubyCode);
-	assertEquals(rubyOutput, expected);
+        runRuby(rubyCode);
+        assertEquals(rubyOutput, expected);
     }
 
     /**
@@ -108,8 +108,8 @@ public class SourceRunner {
      * as the expected value.
      */
     protected void assertRubyEqualsJS(String rubyCode, String jsCode) {
-	runJS(jsCode);
-	runRuby(rubyCode);
-	assertEquals(rubyOutput, jsOutput);
+        runJS(jsCode);
+        runRuby(rubyCode);
+        assertEquals(rubyOutput, jsOutput);
     }
 }
