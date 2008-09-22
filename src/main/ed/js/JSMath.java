@@ -17,6 +17,8 @@
 */
 
 package ed.js;
+import java.util.regex.*;
+
 import ed.util.StringParseUtil;
 
 import ed.js.func.*;
@@ -220,35 +222,14 @@ public class JSMath extends JSObjectBase {
                 }
             } );
 
-        set( "sin" , new JSFunctionCalls2(){
-            public Object call( Scope s , Object xObject , Object nObject , Object foo[] ){
-                double X = ((Number)xObject).doubleValue();
-                return Math.sin(X);
-            }
-        } );
 
-        set( "cos" , new JSFunctionCalls2(){
-            public Object call( Scope s , Object xObject , Object nObject , Object foo[] ){
-                double X = ((Number)xObject).doubleValue();
-                return Math.cos(X);
-            }
-        } );
+        set( "asin" , new TrigFunc( "asin" ) );
+        set( "acos" , new TrigFunc( "acos" ) );
+        set( "atan" , new TrigFunc( "atan" ) );
+        set( "sin" , new TrigFunc( "sin" ) );
+        set( "cos" , new TrigFunc( "cos" ) );
+        set( "tan" , new TrigFunc( "tan" ) );
 
-        set( "tan" , new JSFunctionCalls1() {
-                public Object call( Scope s , Object foo[] ){
-                    return Double.NaN;
-                }
-
-                public Object call( Scope s , Object xObject , Object foo[] ){
-                    if( xObject == null )
-                        xObject = 0;
-                    else if( xObject instanceof Boolean ) {
-                        xObject = ((Boolean)xObject).booleanValue() ? 1 : 0;
-                    }
-                    double X = ((Number)xObject).doubleValue();
-                    return Math.tan(X);
-                }
-            } );
         set( "pow" , new JSFunctionCalls2(){
             public Object call( Scope s , Object baseArg , Object expArg , Object foo[] ){
                 double base = ((Number)baseArg).doubleValue();
@@ -263,6 +244,66 @@ public class JSMath extends JSObjectBase {
         lockKey( "SQRT1_2" );
 
     }
+
+    static class TrigFunc extends JSFunctionCalls1 {
+        private final types type;
+
+        private enum types {
+            asin() {
+                public double go( double d ) {
+                    return Math.asin( d );
+                }
+            }, acos() {
+                public double go( double d ) {
+                    return Math.acos( d );
+                }
+            }, atan() {
+                public double go( double d ) {
+                    return Math.atan( d );
+                }
+            }, sin() {
+                public double go( double d ) {
+                    return Math.sin( d );
+                }
+            }, cos() {
+                public double go( double d ) {
+                    return Math.cos( d );
+                }
+            }, tan() {
+                public double go( double d ) {
+                    return Math.tan( d );
+                }
+            };
+            public abstract double go( double d );
+        };
+
+        public TrigFunc( String s ) {
+            type = types.valueOf( s );
+        }
+
+        public Object call( Scope s , Object foo[] ){
+            return Double.NaN;
+        }
+
+        public Object call( Scope s , Object xObject , Object foo[] ){
+            if( xObject == null )
+                xObject = 0;
+            else if( xObject instanceof Boolean ) {
+                xObject = ((Boolean)xObject).booleanValue() ? 1 : 0;
+            }
+            else if( xObject instanceof String ||
+                     xObject instanceof JSString ) {
+                Pattern num = Pattern.compile( "-?\\d(\\.\\d+)?(e-?\\d+)?" );
+                Matcher possibleNum = num.matcher( xObject.toString() );
+                if( possibleNum.matches() )
+                    xObject = StringParseUtil.parseStrict( xObject.toString() );
+                else
+                    return Double.NaN;
+            }
+            double X = ((Number)xObject).doubleValue();
+            return type.go( X );
+        }
+    };
 
     public static double sigFig( double X ){
         return sigFig( X , 3 );

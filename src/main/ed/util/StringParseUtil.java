@@ -193,7 +193,7 @@ public final class StringParseUtil {
     public static Number parseStrict( String s ){
         if( s.indexOf('.') != -1 )
             return Double.parseDouble(s);
-        else if( s.charAt( 0 ) == '0' && s.charAt( 1 ) == 'x')
+        else if( s.length() > 2 && s.charAt( 0 ) == '0' && s.charAt( 1 ) == 'x')
             return Integer.parseInt( s.substring( 2, s.length() ) , 16 );
 
         int e = s.indexOf( 'e' );
