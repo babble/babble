@@ -33,6 +33,7 @@ import ed.js.func.*;
 import ed.lang.*;
 import ed.net.httpserver.*;
 import ed.util.*;
+import ed.lang.python.*;
 
 /**
  * This is the container for an instance of a site on a single server.
@@ -924,6 +925,7 @@ public class AppContext extends ServletContextBase {
         String branch = env.get( "branch" ).toString() ;
         _logger.info( "updating to [" + branch + "]"  );
         AppContextHolder._checkout( _rootFile , branch );
+        Python.deleteCachedJythonFiles( _rootFile );
 
         return getCurrentGitBranch();
     }
