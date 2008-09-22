@@ -80,6 +80,13 @@ class PHPEnv extends Env {
         return v;
     }
 
+    public Value wrapJava( Object obj ){
+        _convertor.checkConfigged( obj );
+        if ( obj instanceof JSObject )
+            return (Value)(_convertor.toOther( obj ) );
+        return super.wrapJava( obj );
+    }
+    
     class ServerObject extends JSObjectLame {
         public Object get( Object thing ){
             final String name = thing.toString();
