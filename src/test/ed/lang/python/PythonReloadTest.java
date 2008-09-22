@@ -14,6 +14,9 @@ import org.python.core.*;
 
 import ed.js.Encoding;
 import ed.appserver.JSFileLibrary;
+import ed.appserver.AppContext;
+import ed.appserver.AppRequest;
+import ed.net.httpserver.HttpRequest;
 import ed.appserver.templates.djang10.Printer.RedirectedPrinter;
 import ed.js.JSLocalFile;
 import ed.js.JSObjectBase;
@@ -143,7 +146,9 @@ public class PythonReloadTest extends ed.TestCase {
     private Scope initScope() {
         //Initialize Scope ==================================
         Scope oldScope = Scope.getThreadLocal();
-        Scope globalScope = Scope.newGlobal().child();
+
+        AppContext ac = new AppContext( "python reload test" );
+        Scope globalScope = ac.getScope();
         globalScope.setGlobal(true);
         globalScope.makeThreadLocal();
         
@@ -154,10 +159,10 @@ public class PythonReloadTest extends ed.TestCase {
             log.makeThreadLocal();
             
             Map<String, JSFileLibrary> rootFiles = new HashMap<String, JSFileLibrary>();
-            rootFiles.put("local", new JSFileLibrary(new File(TEST_DIR), "local", globalScope));
+            rootFiles.put("local", new JSFileLibrary(new File(TEST_DIR), "local", ac ));
             for(Map.Entry<String, JSFileLibrary> rootFileLib : rootFiles.entrySet())
                 globalScope.set(rootFileLib.getKey(), rootFileLib.getValue());
-            
+
             Encoding.install(globalScope);
             //JSHelper helper = JSHelper.install(globalScope, rootFiles, log);
     
