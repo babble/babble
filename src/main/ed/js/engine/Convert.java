@@ -333,7 +333,8 @@ public class Convert {
             if ( ( tempChild.getType() == Token.NAME || tempChild.getType() == Token.GETVAR ) && state.useLocalVariable( tempChild.getString() ) ){
                 if ( ! state.isNumber( tempChild.getString() ) )
                     throw new RuntimeException( "can't increment local variable : " + tempChild.getString()  );
-                _append( tempChild.getString() + "++ " , n );
+                String str = n.getType() == Token.INC ? "++ " : "-- ";
+                _append( tempChild.getString() + str , n );
             }
             else {
                 _append( "JS_inc( " , n );
@@ -1074,17 +1075,18 @@ public class Convert {
                     if ( temp != null )
                         _append( " , " , n );
                 }
+            }
+            else if ( n.getFirstChild().getType() != Token.EMPTY ) {
+                _add( n.getFirstChild() , state );
+            }
 
-                _append( " ; "  , n );
-
+            _append( " ; \n JS_evalToBool( " , n );
+            if( n.getFirstChild().getNext().getType() == Token.EMPTY ) {
+                _append( "true" , n );
             }
             else {
-                _add( n.getFirstChild() , state );
-                _append( " ; " , n );
+                _add( n.getFirstChild().getNext() , state );
             }
-
-            _append( "  \n JS_evalToBool( " , n );
-            _add( n.getFirstChild().getNext() , state );
             _append( " ) ; \n" , n );
             _add( n.getFirstChild().getNext().getNext() , state );
             _append( " )\n " , n );
