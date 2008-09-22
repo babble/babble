@@ -195,6 +195,13 @@ public final class StringParseUtil {
             return Double.parseDouble(s);
         else if( s.charAt( 0 ) == '0' && s.charAt( 1 ) == 'x')
             return Integer.parseInt( s.substring( 2, s.length() ) , 16 );
+
+        int e = s.indexOf( 'e' );
+        if( e > 0 ) {
+            double num = Double.parseDouble( s.substring( 0, e ) );
+            int exp = Integer.parseInt( s.substring( e + 1 ) );
+            return num * Math.pow( 10 , exp );
+        }
         return Integer.parseInt(s);
     }
 

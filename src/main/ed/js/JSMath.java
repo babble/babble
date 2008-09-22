@@ -36,9 +36,6 @@ import ed.js.engine.*;
  */
 public class JSMath extends JSObjectBase {
 
-    private final static double PI = Math.PI;
-    private final static double SQRT1_2 = Math.sqrt( .5 );
-
     public JSMath(){
         set( "max" ,
              new JSFunctionCalls2(){
@@ -127,16 +124,34 @@ public class JSMath extends JSObjectBase {
 
         set( "round" ,
              new JSFunctionCalls1(){
-                 public Object call( Scope s , Object a , Object foo[] ){
+                 public Object call( Scope s , Object foo[] ) {
+                     return Double.NaN;
+                 }
+
+                 public Object call( Scope s , Object a, Object foo[] ){
                      if ( a == null )
                          return 0;
-                     if ( ! ( a instanceof Number ) )
+                     if ( ! ( a instanceof Number ) ) {
+                         if( a instanceof Boolean ) {
+                             boolean b = ((Boolean)a).booleanValue();
+                             return b ? 1 : 0;
+                         }
                          try {
                              a = StringParseUtil.parseStrict(a.toString());
                          }
                          catch (Exception e) {
                              return Double.NaN;
                          }
+                     }
+                     // Java returns 0 for Math.round(NaN), MIN_VALUE for
+                     // Math.round( -inf ), and MAX_VALUE for Math.round( inf )
+                     // JavaScript returns:
+                     if( a.equals( Double.NaN ) )
+                         return Double.NaN;
+                     if( a.equals( Double.POSITIVE_INFINITY ) ) 
+                         return Double.POSITIVE_INFINITY;
+                     if( a.equals( Double.NEGATIVE_INFINITY ) ) 
+                         return Double.NEGATIVE_INFINITY;
                      return (int)Math.round(((Number)a).doubleValue());
                  }
              } );
@@ -244,4 +259,7 @@ public class JSMath extends JSObjectBase {
     }
 
     public static final double LN10 = Math.log(10);
+    public final static double PI = Math.PI;
+    public final static double SQRT1_2 = Math.sqrt( .5 );
+
 }
