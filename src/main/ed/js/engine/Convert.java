@@ -542,7 +542,7 @@ public class Convert {
         case Token.SETNAME:
             _addSet( n , state );
             break;
-
+	    
         case Token.GET:
             _addFunction( n.getFirstChild() , state );
             break;
@@ -562,7 +562,7 @@ public class Convert {
             _append( ";\n" , n );
             break;
         case Token.RETURN:
-            boolean last = n.getNext() == null;
+            boolean last = state._depth <= 1 && n.getNext() == null;
 	    if ( ! last )
                 _append( "if ( true ) { " , n );
             _append( "return " , n );
@@ -1426,9 +1426,10 @@ public class Convert {
         boolean endReturn =
             n.getLastChild() != null &&
             n.getLastChild().getType() == Token.RETURN_RESULT;
-
+	
+	state._depth++;
         _append( "{" , n );
-
+	
         String ret = "retName" + _rand();
         if ( endReturn )
             _append( "\n\nObject " + ret + " = null;\n\n" , n );
@@ -1453,7 +1454,7 @@ public class Convert {
         if ( endReturn )
             _append( "\n\nif ( true ){ return " + ret + "; }\n\n" , n );
         _append( "}" , n );
-
+	state._depth--;
     }
 
     private void _addSet( Node n , State state ){
