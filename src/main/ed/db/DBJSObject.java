@@ -86,14 +86,17 @@ public class DBJSObject implements JSObject {
     }
     
     String _readCStr( final int start , final int[] end ){
-        int pos = 0;
-        while ( _buf.get( pos + start ) > 0 ){
-            _cStrBuf[pos] = _buf.get( pos + start );
-            pos++;
+        synchronized ( _cStrBuf ){
+            int pos = 0;
+            while ( _buf.get( pos + start ) > 0 ){
+                _cStrBuf[pos] = _buf.get( pos + start );
+                pos++;
+            }
+            if ( end != null && end.length > 0 )
+                end[0] = start + pos;
+            return new String( _cStrBuf , 0 , pos );
+
         }
-	if ( end != null && end.length > 0 )
-	    end[0] = start + pos;
-        return new String( _cStrBuf , 0 , pos );
     }
 
     String _readJavaString( final int start ){
@@ -268,5 +271,5 @@ public class DBJSObject implements JSObject {
     final ByteBuffer _buf;
     final int _offset;
     final int _end;
-    final byte[] _cStrBuf = new byte[1024];
+    private final static byte[] _cStrBuf = new byte[1024];
 }
