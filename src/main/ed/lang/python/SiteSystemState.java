@@ -25,12 +25,36 @@ import org.python.core.*;
 import ed.appserver.*;
 import ed.log.*;
 
+/**
+ * 10gen-specific Python system state.
+ *
+ * Originally this was going to be a subclass of PySystemState, but
+ * this lead to exciting breakage in calls to sys.getEnviron(). It
+ * seems that Python introspects for method calls on whatever object
+ * is used as Py.getSystemState(), and this introspection isn't very
+ * smart -- specifically, it doesn't pick up on methods inherited from
+ * a superclass. As a result, sys.getEnviron() can't be found and
+ * everything breaks. This even happens in modules like os.
+ *
+ * This is our new approach. Instead of re-wrapping all those method
+ * calls, we just store a PySystemState and hopefully do all the
+ * 10gen-specific munging here. Our caller should pass
+ * SiteSystemState.state to Py.setSystemState as needed.
+ */
 public class SiteSystemState {
     SiteSystemState( AppContext ac , PyObject newGlobals ){
         state = new PySystemState();
         globals = newGlobals;
         setupModules();
     }
+
+    /**
+     * Set up module interception code.
+     *
+     * We replace sys.modules with a subclass of PyDictionary so we
+     * can intercept calls to import and flush old versions of modules
+     * when needed.
+     */
     public void setupModules(){
         if( ! ( state.modules instanceof PythonModuleTracker ) ){
             if( state.modules instanceof PyStringMap)
@@ -43,6 +67,10 @@ public class SiteSystemState {
         }
     }
 
+    /**
+     * Flush old modules that have been imported by Python code but
+     * whose source is now newer.
+     */
     public void flushOld(){
         if( ! ( state.modules instanceof PythonModuleTracker ) ){
             throw new RuntimeException( "i'm not sufficiently set up yet" );
@@ -51,6 +79,12 @@ public class SiteSystemState {
         ((PythonModuleTracker)state.modules).flushOld();
     }
 
+    /**
+     * Set output to an AppRequest.
+     *
+     * Replace the Python sys.stdout with a file-like object which
+     * actually prints to an AppRequest stream.
+     */
     public void setOutput( AppRequest ar ){
         PyObject out = state.stdout;
         if ( ! ( out instanceof MyStdoutFile ) || ((MyStdoutFile)out)._request != ar ){
