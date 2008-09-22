@@ -136,13 +136,13 @@ public class RubyJxpSource extends JxpSource {
     }
 
     public JSFunction getFunction() throws IOException {
-        final Node code = _getCode(); // Parsed Ruby code
+        final Node node = _parseCode();
         return new ed.js.func.JSFunctionCalls0() {
-            public Object call(Scope s, Object unused[]) { return RubyObjectWrapper.toJS(s, _doCall(code, s, unused)); }
+            public Object call(Scope s, Object unused[]) { return RubyObjectWrapper.toJS(s, _doCall(node, s, unused)); }
         };
     }
 
-    protected IRubyObject _doCall(Node code, Scope s, Object unused[]) {
+    protected IRubyObject _doCall(Node node, Scope s, Object unused[]) {
 	_addJSFileLibrariesToPath(s);
 
 	if (_runtime.getGlobalVariables() instanceof ScopeGlobalVariables)
@@ -158,21 +158,21 @@ public class RubyJxpSource extends JxpSource {
 	String oldFile = context.getFile();
 	int oldLine = context.getLine();
 	try {
-	    context.setFileAndLine(code.getPosition().getFile(), code.getPosition().getStartLine());
-	    return _runtime.runNormally(code, YARV_COMPILE);
+	    context.setFileAndLine(node.getPosition().getFile(), node.getPosition().getStartLine());
+	    return _runtime.runNormally(node, YARV_COMPILE);
 	} finally {
 	    context.setFile(oldFile);
 	    context.setLine(oldLine);
 	}
     }
 
-    protected synchronized Node _getCode() throws IOException {
+    protected synchronized Node _parseCode() throws IOException {
 	final long lastModified = _file.lastModified();
-        if (_code == null || _lastCompile < lastModified) {
-	    _code = _parseContent(_file.getPath());
+        if (_node == null || _lastCompile < lastModified) {
+	    _node = _parseContent(_file.getPath());
 	    _lastCompile = lastModified;
 	}
-        return _code;
+        return _node;
     }
 
     protected Node _parseContent(String filePath) throws IOException {
@@ -382,6 +382,6 @@ public class RubyJxpSource extends JxpSource {
     protected final JSFileLibrary _lib;
     protected final Ruby _runtime;
 
-    protected Node _code;
+    protected Node _node;
     protected long _lastCompile;
 }
