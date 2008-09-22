@@ -84,6 +84,7 @@ public abstract class HttpMonitor implements HttpHandler {
             out.print( "max   : " ).print( MemUtil.bytesToMB( _r.maxMemory() ) ).print( "\n" );
             out.print( "total : " ).print( MemUtil.bytesToMB( _r.totalMemory() ) ).print( "\n" );
             out.print( "free  : " ).print( MemUtil.bytesToMB( _r.freeMemory() ) ).print( "\n" );
+            out.print( "used  : " ).print( MemUtil.bytesToMB( _r.totalMemory() - _r.freeMemory() ) ).print( "\n" );
         }
 
         final Runtime _r;

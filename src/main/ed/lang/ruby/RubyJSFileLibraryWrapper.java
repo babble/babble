@@ -93,7 +93,7 @@ public class RubyJSFileLibraryWrapper extends RubyJSFunctionWrapper {
 			System.err.println("saw exception; going to raise Ruby error after printing the stack trace here");
 			e.printStackTrace();
 		    }
-		    self.callMethod(context, "raise", new IRubyObject[] {RubyString.newString(runtime, e.toString())}, Block.NULL_BLOCK);
+		    self.callMethod(context, "raise", new IRubyObject[] {runtime.newString(e.toString())}, Block.NULL_BLOCK);
 		    return runtime.getNil(); // will never reach
 		}
 	    }

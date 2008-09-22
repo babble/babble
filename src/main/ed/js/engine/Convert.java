@@ -181,18 +181,23 @@ public class Convert {
 
         Node n = sn.getFirstChild();
 
+	String whyRasReturn = null;
+
         while ( n != null ){
             if ( n.getType() != Token.FUNCTION ){
 
                 if ( n.getNext() == null ){
-
+		    
                     if ( n.getType() == Token.EXPR_RESULT ){
                         _append( "return " , n );
                         _hasReturn = true;
+			whyRasReturn = "EXPR_RESULT";
                     }
 
-                    if ( n.getType() == Token.RETURN )
+                    if ( n.getType() == Token.RETURN ){
                         _hasReturn = true;
+			whyRasReturn = "RETURN";
+		    }
                 }
 
 
@@ -204,9 +209,10 @@ public class Convert {
         }
 
         if ( ! _hasReturn ) {
-            _append( "return null;" , sn );
+            _append( "return null; /* null added at end */" , sn );
         }
         else {
+	    _append( "/* no return b/c : " + whyRasReturn + " */" , sn );
             int end = _mainJavaCode.length() - 1;
             boolean alreadyHaveOne = false;
             for ( ; end >= 0; end-- ){
@@ -231,12 +237,11 @@ public class Convert {
         }
     }
 
-    private void _add( Node n , State s ){
-        _add( n , null , s );
+    private void _add( Node n , State state ){
+	_add( n , null , state );
     }
 
     private void _add( Node n , ScriptOrFnNode sn , State state ){
-
         switch ( n.getType() ){
 
         case Token.TYPEOF:
@@ -402,9 +407,9 @@ public class Convert {
 
         case Token.SETPROP:
         case Token.SETELEM:
-            _append( "((JSObject)" , n );
-            _add( n.getFirstChild() , state );
-            _append( ").set( " , n );
+	    
+            _addAsJSObject( n.getFirstChild() , state );
+            _append( ".set( " , n );
             _add( n.getFirstChild().getNext() , state );
             _append( " , " , n );
             _add( n.getFirstChild().getNext().getNext() , state );
@@ -414,9 +419,8 @@ public class Convert {
         case Token.GETPROPNOWARN:
         case Token.GETPROP:
         case Token.GETELEM:
-            _append( "((JSObject)" , n );
-            _add( n.getFirstChild() , state );
-            _append( ").get( " , n );
+	    _addAsJSObject( n.getFirstChild() , state );
+            _append( ".get( " , n );
             _add( n.getFirstChild().getNext() , state );
             _append( " )" , n );
             break;
@@ -426,9 +430,8 @@ public class Convert {
             if( fc.getType() != Token.REF_SPECIAL && fc.getType() != Token.REF_MEMBER )
                 throw new RuntimeException( "token is of type "+Token.name(fc.getType())+", should be of type REF_SPECIAL or REF_MEMBER.");
 
-            _append( "((JSObject)" , n );
-            _add( n.getFirstChild().getFirstChild() , state );
-            _append( ").set( " , n );
+	    _addAsJSObject( n.getFirstChild().getFirstChild() , state );
+            _append( ".set( " , n );
             _add( fc , state );
             _append( " , " , n );
             _add( fc.getNext() , state );
@@ -436,13 +439,12 @@ public class Convert {
             break;
 
         case Token.GET_REF:
-            _append( "((JSObject)" , n );
-            _add( n.getFirstChild().getFirstChild() , state );
-            _append( ").get( " , n );
+            _addAsJSObject( n.getFirstChild().getFirstChild() , state );
+            _append( ".get( " , n );
             _add( n.getFirstChild() , state );
             _append( " ) ", n );
             break;
-
+	    
         case Token.REF_SPECIAL :
             _append( "\"" + n.getProp( Node.NAME_PROP ).toString() + "\"" , n );
             break;
@@ -541,7 +543,7 @@ public class Convert {
         case Token.SETNAME:
             _addSet( n , state );
             break;
-
+	    
         case Token.GET:
             _addFunction( n.getFirstChild() , state );
             break;
@@ -561,8 +563,8 @@ public class Convert {
             _append( ";\n" , n );
             break;
         case Token.RETURN:
-            boolean last = n.getNext() == null;
-            if ( ! last )
+            boolean last = state._depth <= 1 && n.getNext() == null;
+	    if ( ! last )
                 _append( "if ( true ) { " , n );
             _append( "return " , n );
             if ( n.getFirstChild() != null ){
@@ -572,7 +574,7 @@ public class Convert {
             else {
                 _append( " null " , n );
             }
-            _append( ";" , n );
+            _append( "; /* explicit return */" , n );
             if ( ! last )
                 _append( "}" , n );
             _append( "\n" , n );
@@ -755,17 +757,15 @@ public class Convert {
                 throw new RuntimeException( "something is wrong" );
             break;
         case Token.DELPROP:
-            _append( "((JSObject)" , n );
-            _add( n.getFirstChild() , state );
-            _append( " ).removeField( "  , n );
+            _addAsJSObject( n.getFirstChild() , state );
+            _append( ".removeField( "  , n );
             _add( n.getFirstChild().getNext() , state );
             _append( " ) " , n );
             break;
 
         case Token.DEL_REF:
-            _append( "((JSObject)" , n );
-            _add( n.getFirstChild().getFirstChild() , state );
-            _append( ").removeField( " , n );
+            _addAsJSObject( n.getFirstChild().getFirstChild() , state );
+            _append( ".removeField( " , n );
             _add( n.getFirstChild() , state );            
             _append( " )" , n );
             break;
@@ -792,9 +792,8 @@ public class Convert {
             break;
 
         case Token.IN:
-            _append( "((JSObject)" , n );
-            _add( n.getFirstChild().getNext() , state );
-            _append( " ).containsKey( " , n );
+            _addAsJSObject( n.getFirstChild().getNext() , state );
+            _append( ".containsKey( " , n );
             _add( n.getFirstChild() , state );
             _append( ".toString() ) " , n  );
             break;
@@ -821,9 +820,8 @@ public class Convert {
 
 	case Token.DOTQUERY:
 
-            _append( "((JSObject)" , n );
-            _add( n.getFirstChild() , state );
-            _append( " ).get( new ed.js.e4x.Query( " , n );
+            _addAsJSObject( n.getFirstChild() , state );
+            _append( ".get( new ed.js.e4x.Query( " , n );
 
             Node n2 = n.getFirstChild().getNext();
             switch( n2.getFirstChild().getType() ) {
@@ -856,6 +854,16 @@ public class Convert {
             throw new RuntimeException( "can't handle : " + n.getType() + ":" + Token.name( n.getType() ) + ":" + n.getClass().getName() + " line no : " + n.getLineno() );
         }
 
+    }
+    
+    private void _addAsJSObject( Node n , State state ){
+	if ( n.getType() == Token.NUMBER ){
+	    _append( "(new JSNumber( " + n.getDouble() + "))" , n );
+	    return;
+	}
+        _append( "JS_toJSObject( " , n );
+	_add( n , state );
+	_append( ")" , n );
     }
 
     private void _addDotQuery( Node n , State state ){
@@ -1318,6 +1326,7 @@ public class Convert {
         _append( callLine + " final Scope scope = usePassedInScope() ? passedIn : new Scope( \"func scope\" , getScope() , passedIn , getFileLanguage() ); " , n );
         if ( hasArguments ){
             _append( "JSArray arguments = new JSArray();\n" , n );
+	    _append( "arguments.set( \"callee\" , this );\n" , n );
             _append( "scope.put( \"arguments\" , arguments , true );\n" , n );
         }
 
@@ -1359,7 +1368,7 @@ public class Convert {
 
         _addFunctionNodes( fn , state );
 
-        _add( n.getFirstChild() , state );
+        _add( n.getFirstChild() , fn , state );
         _append( "}\n" , n );
 
         int myStringId = _strings.size();
@@ -1420,9 +1429,10 @@ public class Convert {
         boolean endReturn =
             n.getLastChild() != null &&
             n.getLastChild().getType() == Token.RETURN_RESULT;
-
+	
+	state._depth++;
         _append( "{" , n );
-
+	
         String ret = "retName" + _rand();
         if ( endReturn )
             _append( "\n\nObject " + ret + " = null;\n\n" , n );
@@ -1447,7 +1457,7 @@ public class Convert {
         if ( endReturn )
             _append( "\n\nif ( true ){ return " + ret + "; }\n\n" , n );
         _append( "}" , n );
-
+	state._depth--;
     }
 
     private void _addSet( Node n , State state ){
@@ -1514,7 +1524,7 @@ public class Convert {
         _append( " , " + local + "  ) " , val );
     }
 
-    private int countChildren( Node n ){
+    static int countChildren( Node n ){
         int num = 0;
         Node c = n.getFirstChild();
         while ( c != null ){
