@@ -96,11 +96,12 @@ public class PythonJxpSource extends JxpSource {
                 PyObject builtins = ss.state.builtins;
 
                 PyObject pyImport = builtins.__finditem__( "__import__" );
-                if( ! ( pyImport instanceof TrackImport ) )
+                if( ! ( pyImport instanceof TrackImport ) || ((TrackImport)pyImport)._moduleDict != ss.state.modules )
                     builtins.__setitem__( "__import__" , new TrackImport( pyImport , (PythonModuleTracker)ss.state.modules ) );
 
                 try {
                     Py.setSystemState( ss.state );
+
                 
                     PyModule xgenMod = imp.addModule("_10gen");
                     // I know this is appalling but they don't expose this any other
