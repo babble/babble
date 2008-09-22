@@ -36,6 +36,9 @@ import ed.js.engine.*;
  */
 public class JSMath extends JSObjectBase {
 
+    private final static double PI = Math.PI;
+    private final static double SQRT1_2 = Math.sqrt( .5 );
+
     public JSMath(){
         set( "max" ,
              new JSFunctionCalls2(){
@@ -224,7 +227,10 @@ public class JSMath extends JSObjectBase {
             }
         } );
         
-        set("PI", Math.PI);
+        set( "PI", JSMath.PI );
+        lockKey( "PI" );
+        set( "SQRT1_2", JSMath.SQRT1_2 );
+        lockKey( "SQRT1_2" );
 
     }
 
