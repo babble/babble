@@ -34,12 +34,7 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
     
     public static final String JXP_SOURCE_PROP = "_jxpSource";
 
-    public static JxpSource getSource( File f ){
-        return getSource( f , null );
-        
-    }
-    
-    public static JxpSource getSource( File f , JSFileLibrary lib ){
+    public static JxpSource getSource( File f , AppContext context , JSFileLibrary lib ){
         if ( f == null )
             throw new NullPointerException( "can't have null file" );
         
@@ -60,9 +55,10 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
 
         JxpSource s = new JxpFileSource( f );
         s._lib = lib;
+        s._context = context;
         return s;
     }
-
+    
     // -----
 
     protected abstract String getContent() throws IOException;
@@ -178,6 +174,10 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
     public String toString(){
         return getName();
     }
+
+    protected AppContext getAppContext(){
+        return _context;
+    }
     
     protected long _lastParse = 0;
     protected List<Dependency> _dependencies = new ArrayList<Dependency>();
@@ -186,8 +186,8 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
     private JxpServlet _servlet;
 
     private JSFileLibrary _lib;
-
-
+    private AppContext _context;
+    
     // -------------------
     
     public static class JxpFileSource extends JxpSource {
