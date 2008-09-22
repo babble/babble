@@ -44,33 +44,33 @@ public class JSFunctionWrapper extends JSFunctionCalls0 {
     private Block _block;
 
     public JSFunctionWrapper(Scope scope, Ruby runtime, Block block) {
-	if (RubyObjectWrapper.DEBUG_CREATE)
-	    System.err.println("wrapping a block in a JSFunctionWrapper");
-	_scope = scope;
-	_runtime = runtime;
-	_block = block;
+        if (RubyObjectWrapper.DEBUG_CREATE)
+            System.err.println("wrapping a block in a JSFunctionWrapper");
+        _scope = scope;
+        _runtime = runtime;
+        _block = block;
     }
 
     public Object callBlock(Scope scope, Object ... args) {
-	if (RubyObjectWrapper.DEBUG_FCALL)
-	    System.err.println("calling Ruby block");
-	List<IRubyObject> rargs = new ArrayList<IRubyObject>();
-	if (args != null)
-	    for (Object obj : args)
-		rargs.add(toRuby(_scope, _runtime, obj));
-	return toJS(scope, _block.call(_runtime.getCurrentContext(), (IRubyObject[])rargs.toArray(EMPTY_IRUBY_OBJECT_ARRAY)));
+        if (RubyObjectWrapper.DEBUG_FCALL)
+            System.err.println("calling Ruby block");
+        List<IRubyObject> rargs = new ArrayList<IRubyObject>();
+        if (args != null)
+            for (Object obj : args)
+                rargs.add(toRuby(_scope, _runtime, obj));
+        return toJS(scope, _block.call(_runtime.getCurrentContext(), (IRubyObject[])rargs.toArray(EMPTY_IRUBY_OBJECT_ARRAY)));
     }
 
     public Block getBlock() { return _block; }
 
     public RubyProc getProc() {
-	RubyProc p = _block.getProcObject();
-	if (p != null)
-	    return p;
+        RubyProc p = _block.getProcObject();
+        if (p != null)
+            return p;
 
-	p = RubyProc.newProc(_runtime, _block, _block.type);
-	_block.setProcObject(p);
-	return p;
+        p = RubyProc.newProc(_runtime, _block, _block.type);
+        _block.setProcObject(p);
+        return p;
     }
 
     public Object call(Scope scope, Object[] extra) { return callBlock(scope, extra); }

@@ -36,44 +36,44 @@ public class ScopeGlobalVariables extends GlobalVariables {
     private IRubyObject _defaultSeparator;
 
     public ScopeGlobalVariables(Scope scope, Ruby runtime) {
-	super(runtime);
-	_scope = scope;
-	_runtime = runtime;
+        super(runtime);
+        _scope = scope;
+        _runtime = runtime;
 
-	_oldies = _runtime.getGlobalVariables();
-	for (String name : _oldies.getNames()) {
-	    if (!"$=".equals(name))
-		_scope.put(nameToKey(name), toJS(_scope, _oldies.get(name)));
-	}
+        _oldies = _runtime.getGlobalVariables();
+        for (String name : _oldies.getNames()) {
+            if (!"$=".equals(name))
+                _scope.put(nameToKey(name), toJS(_scope, _oldies.get(name)));
+        }
     }
 
     public GlobalVariables getOldGlobalVariables() { return _oldies; }
 
     public boolean isDefined(String name) {
-	if (_scope.get(nameToKey(name)) != null)
-	    return true;
-	return _oldies.isDefined(name);
+        if (_scope.get(nameToKey(name)) != null)
+            return true;
+        return _oldies.isDefined(name);
     }
 
     public IRubyObject get(String name) {
-	String key = nameToKey(name);
-	Object o = _scope.get(key);
-	if (o == null)
-	    return _oldies.get(name);
-	return toRuby(_scope, _runtime, o, key);
+        String key = nameToKey(name);
+        Object o = _scope.get(key);
+        if (o == null)
+            return _oldies.get(name);
+        return toRuby(_scope, _runtime, o, key);
     }
 
     public IRubyObject set(String name, IRubyObject value) {
-	IRubyObject val = super.set(name, value);
-	_scope.put(nameToKey(name), toJS(_scope, val));
-	return val;
+        IRubyObject val = super.set(name, value);
+        _scope.put(nameToKey(name), toJS(_scope, val));
+        return val;
     }
 
     public Set<String> getNames() {
-	Set<String> names = new HashSet<String>(super.getNames());
-	for (Object key : RubyScopeWrapper.jsKeySet(_scope))
-	    names.add("$" + key.toString());
-	return names;
+        Set<String> names = new HashSet<String>(super.getNames());
+        for (Object key : RubyScopeWrapper.jsKeySet(_scope))
+            names.add("$" + key.toString());
+        return names;
     }
 
     public IRubyObject getDefaultSeparator() {
@@ -81,12 +81,12 @@ public class ScopeGlobalVariables extends GlobalVariables {
     }
 
     public void setDefaultSeparator(IRubyObject defaultSeparator) {
-	_oldies.setDefaultSeparator(defaultSeparator);
+        _oldies.setDefaultSeparator(defaultSeparator);
     }
 
     private String nameToKey(String name) {
         assert name != null;
         assert name.startsWith("$");
-	return name.substring(1);
+        return name.substring(1);
     }
 }

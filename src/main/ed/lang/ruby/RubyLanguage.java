@@ -29,8 +29,8 @@ class RubyShellSource extends RubyJxpSource {
 
     protected String _code;
     RubyShellSource(String code) {
-	super(RUNTIME);
-	_code = code;
+        super(RUNTIME);
+        _code = code;
     }
     protected String getContent() { return _code; }
 }
@@ -45,22 +45,22 @@ public class RubyLanguage extends Language {
     public RubyLanguage() { super("ruby"); }
 
     public Object eval(Scope s, String code, boolean[] hasReturn) {
-	RubyJxpSource source = new RubyShellSource(code);
-	Object result = null;
-	try {
-	    result = RubyObjectWrapper.toJS(s, source._doCall(source._parseContent("(shell)"), s, RubyJxpSource.EMPTY_OBJECT_ARRAY));
-	    hasReturn[0] = true;
-	}
-	catch (RaiseException re) {
-	    re.printStackTrace();
-	}
-	catch (Exception e) {
-	    System.err.println(e.toString());
-	    if (DEBUG)
-		e.printStackTrace();
-	}
-	finally {
-	    return result;
-	}
+        RubyJxpSource source = new RubyShellSource(code);
+        Object result = null;
+        try {
+            result = RubyObjectWrapper.toJS(s, source._doCall(source._parseContent("(shell)"), s, RubyJxpSource.EMPTY_OBJECT_ARRAY));
+            hasReturn[0] = true;
+        }
+        catch (RaiseException re) {
+            re.printStackTrace();
+        }
+        catch (Exception e) {
+            System.err.println(e.toString());
+            if (DEBUG)
+                e.printStackTrace();
+        }
+        finally {
+            return result;
+        }
     }
 }

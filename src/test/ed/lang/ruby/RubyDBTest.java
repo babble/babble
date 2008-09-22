@@ -34,14 +34,14 @@ public class RubyDBTest extends SourceRunner {
 
     @BeforeMethod(groups={"ruby.db", "ruby.db.findone", "ruby.db.find"})
     public void setUp() {
-	super.setUp();
-	s.put("connect", new Shell.ConnectDB(), true);
-	runJS("db = connect('" + DB_NAME + "');");
+        super.setUp();
+        s.put("connect", new Shell.ConnectDB(), true);
+        runJS("db = connect('" + DB_NAME + "');");
     }
 
     public void testCollectionWrapper() {
-	Object jsobj = runRuby("$db.foobar");
-	assertNotNull(jsobj);
-	assertTrue(jsobj instanceof DBCollection, "jsobj is not a DBCollection; it's " + jsobj.getClass().getName());
+        Object jsobj = runRuby("$db.foobar");
+        assertNotNull(jsobj);
+        assertTrue(jsobj instanceof DBCollection, "jsobj is not a DBCollection; it's " + jsobj.getClass().getName());
     }
 }
