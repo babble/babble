@@ -30,23 +30,23 @@ public class JSFunctionWrapperTest extends SourceRunner {
 
     @BeforeMethod(groups={"ruby", "ruby.block"})
     public void setUp() {
-	super.setUp();
-	runRuby("$rfunc = Proc.new {|i| i + 7}");
+        super.setUp();
+        runRuby("$rfunc = Proc.new {|i| i + 7}");
     }
 
     public void testConversion() {
-	Object o = s.get("rfunc");
-	assertNotNull(o);
-	assertTrue(o instanceof JSFunctionWrapper, "oops: wrong type: expected JSFunctionWrapper but see " + o.getClass().getName());
+        Object o = s.get("rfunc");
+        assertNotNull(o);
+        assertTrue(o instanceof JSFunctionWrapper, "oops: wrong type: expected JSFunctionWrapper but see " + o.getClass().getName());
     }
 
     public void testCallBlockAsJSFunction() {
-	Object o = runRuby("Proc.new {|i| i + 7}");
-	assertTrue(o instanceof JSFunctionWrapper, "expected JSFunctionWrapper, saw " + (o == null ? "null" : o.getClass().getName()));
-	JSFunctionWrapper fw = (JSFunctionWrapper)o;
-	Object answer = fw.call(s, new Integer(35), new Object[0]);
-	assertNotNull(answer);
-	assertTrue(answer instanceof Number, "expected Number, saw " + (answer == null ? "null" : answer.getClass().getName()));
-	assertEquals(((Number)answer).intValue(), 42);
+        Object o = runRuby("Proc.new {|i| i + 7}");
+        assertTrue(o instanceof JSFunctionWrapper, "expected JSFunctionWrapper, saw " + (o == null ? "null" : o.getClass().getName()));
+        JSFunctionWrapper fw = (JSFunctionWrapper)o;
+        Object answer = fw.call(s, new Integer(35), new Object[0]);
+        assertNotNull(answer);
+        assertTrue(answer instanceof Number, "expected Number, saw " + (answer == null ? "null" : answer.getClass().getName()));
+        assertEquals(((Number)answer).intValue(), 42);
     }
 }

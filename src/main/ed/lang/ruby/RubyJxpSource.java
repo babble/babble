@@ -58,25 +58,25 @@ public class RubyJxpSource extends JxpSource {
     static final RubyInstanceConfig config = new RubyInstanceConfig();
 
     static {
-	if (!SKIP_REQUIRED_LIBS)
-	    config.requiredLibraries().add("xgen_internals");
-	DO_NOT_LOAD_FUNCS = new ArrayList<String>();
-	DO_NOT_LOAD_FUNCS.add("print");
-	DO_NOT_LOAD_FUNCS.add("sleep");
-	DO_NOT_LOAD_FUNCS.add("fork");
-	DO_NOT_LOAD_FUNCS.add("eval");
+        if (!SKIP_REQUIRED_LIBS)
+            config.requiredLibraries().add("xgen_internals");
+        DO_NOT_LOAD_FUNCS = new ArrayList<String>();
+        DO_NOT_LOAD_FUNCS.add("print");
+        DO_NOT_LOAD_FUNCS.add("sleep");
+        DO_NOT_LOAD_FUNCS.add("fork");
+        DO_NOT_LOAD_FUNCS.add("eval");
     }
 
     /** Determines what major version of Ruby to compile: 1.8 (false) or YARV/1.9 (true). **/
     public static final boolean YARV_COMPILE = false;
 
     public static synchronized RubyModule xgenModule(Ruby runtime) {
-	RubyModule xgen = xgenModuleDefs.get(runtime);
-	if (xgen == null) {
-	    xgen = runtime.defineModule("XGen");
-	    xgenModuleDefs.put(runtime, xgen);
-	}
-	return xgen;
+        RubyModule xgen = xgenModuleDefs.get(runtime);
+        if (xgen == null) {
+            xgen = runtime.defineModule("XGen");
+            xgenModuleDefs.put(runtime, xgen);
+        }
+        return xgen;
     }
 
     /**
@@ -85,42 +85,42 @@ public class RubyJxpSource extends JxpSource {
      * using a JSFileLibrary.
      */
     public static void createNewClasses(Scope scope, Ruby runtime) {
-	if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
-	    System.err.println("about to create newly-defined classes");
-	for (Object key : RubyScopeWrapper.jsKeySet(scope)) {
-	    String skey = key.toString();
-	    if (IdUtil.isConstant(skey) && runtime.getClass(skey) == null) {
-		Object o = scope.get(key);
-		if (isCallableJSFunction(o)) {
-		    if (DEBUG || RubyObjectWrapper.DEBUG_FCALL || RubyObjectWrapper.DEBUG_CREATE)
-			System.err.println("creating newly-defined class " + skey);
-		    toRuby(scope, runtime, (JSFunction)o, skey);
-		}
-	    }
-	}
+        if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
+            System.err.println("about to create newly-defined classes");
+        for (Object key : RubyScopeWrapper.jsKeySet(scope)) {
+            String skey = key.toString();
+            if (IdUtil.isConstant(skey) && runtime.getClass(skey) == null) {
+                Object o = scope.get(key);
+                if (isCallableJSFunction(o)) {
+                    if (DEBUG || RubyObjectWrapper.DEBUG_FCALL || RubyObjectWrapper.DEBUG_CREATE)
+                        System.err.println("creating newly-defined class " + skey);
+                    toRuby(scope, runtime, (JSFunction)o, skey);
+                }
+            }
+        }
     }
 
     public RubyJxpSource(File f , JSFileLibrary lib) {
         _file = f;
         _lib = lib;
-	_runtime = Ruby.newInstance(config);
+        _runtime = Ruby.newInstance(config);
     }
 
     /** For testing and {@link RubyLanguage} use. */
     protected RubyJxpSource(Ruby runtime) {
-	_file = null;
-	_lib = null;
-	_runtime = runtime;
+        _file = null;
+        _lib = null;
+        _runtime = runtime;
     }
 
     public Ruby getRuntime() { return _runtime; }
 
     protected String getContent() throws IOException {
-	return StreamUtil.readFully(_file);
+        return StreamUtil.readFully(_file);
     }
 
     protected InputStream getInputStream() throws FileNotFoundException {
-	return new FileInputStream(_file);
+        return new FileInputStream(_file);
     }
 
     public long lastUpdated(Set<Dependency> visitedDeps) {
@@ -143,64 +143,64 @@ public class RubyJxpSource extends JxpSource {
     }
 
     protected IRubyObject _doCall(Node node, Scope s, Object unused[]) {
-	_addJSFileLibrariesToPath(s);
+        _addJSFileLibrariesToPath(s);
 
-	if (_runtime.getGlobalVariables() instanceof ScopeGlobalVariables)
-	    _runtime.setGlobalVariables(((ScopeGlobalVariables)_runtime.getGlobalVariables()).getOldGlobalVariables());
-	_setOutput(s);
-	_runtime.setGlobalVariables(new ScopeGlobalVariables(s, _runtime));
-	_exposeScopeFunctions(s);
-	_patchRequireAndLoad(s);
+        if (_runtime.getGlobalVariables() instanceof ScopeGlobalVariables)
+            _runtime.setGlobalVariables(((ScopeGlobalVariables)_runtime.getGlobalVariables()).getOldGlobalVariables());
+        _setOutput(s);
+        _runtime.setGlobalVariables(new ScopeGlobalVariables(s, _runtime));
+        _exposeScopeFunctions(s);
+        _patchRequireAndLoad(s);
 
-	// See the second part of JRuby's Ruby.executeScript(String, String)
-	ThreadContext context = _runtime.getCurrentContext();
+        // See the second part of JRuby's Ruby.executeScript(String, String)
+        ThreadContext context = _runtime.getCurrentContext();
 
-	String oldFile = context.getFile();
-	int oldLine = context.getLine();
-	try {
-	    context.setFileAndLine(node.getPosition().getFile(), node.getPosition().getStartLine());
-	    return _runtime.runNormally(node, YARV_COMPILE);
-	} finally {
-	    context.setFile(oldFile);
-	    context.setLine(oldLine);
-	}
+        String oldFile = context.getFile();
+        int oldLine = context.getLine();
+        try {
+            context.setFileAndLine(node.getPosition().getFile(), node.getPosition().getStartLine());
+            return _runtime.runNormally(node, YARV_COMPILE);
+        } finally {
+            context.setFile(oldFile);
+            context.setLine(oldLine);
+        }
     }
 
     protected synchronized Node _parseCode() throws IOException {
-	final long lastModified = _file.lastModified();
+        final long lastModified = _file.lastModified();
         if (_node == null || _lastCompile < lastModified) {
-	    _node = _parseContent(_file.getPath());
-	    _lastCompile = lastModified;
-	}
+            _node = _parseContent(_file.getPath());
+            _lastCompile = lastModified;
+        }
         return _node;
     }
 
     protected Node _parseContent(String filePath) throws IOException {
-	// See the first part of JRuby's Ruby.executeScript(String, String)
-	String script = getContent();
-	byte[] bytes;
-	try {
-	    bytes = script.getBytes(KCode.NONE.getKCode());
-	} catch (UnsupportedEncodingException e) {
-	    bytes = script.getBytes();
-	}
-	return _runtime.parseInline(new ByteArrayInputStream(bytes), filePath, null);
+        // See the first part of JRuby's Ruby.executeScript(String, String)
+        String script = getContent();
+        byte[] bytes;
+        try {
+            bytes = script.getBytes(KCode.NONE.getKCode());
+        } catch (UnsupportedEncodingException e) {
+            bytes = script.getBytes();
+        }
+        return _runtime.parseInline(new ByteArrayInputStream(bytes), filePath, null);
     }
 
     protected void _addJSFileLibrariesToPath(Scope s) {
-	RubyArray loadPath = (RubyArray)_runtime.getLoadService().getLoadPath();
-	for (String libName : BUILTIN_JS_FILE_LIBRARIES) {
-	    Object val = s.get(libName);
-	    if (!(val instanceof JSFileLibrary))
-		continue;
-	    File root = ((JSFileLibrary)val).getRoot();
-	    RubyString rubyRoot = _runtime.newString(root.getPath().replace('\\', '/'));
-	    if (loadPath.include_p(_runtime.getCurrentContext(), rubyRoot).isFalse()) {
-		if (DEBUG)
-		    System.err.println("adding file library " + val.toString() + " root " + rubyRoot);
-		loadPath.append(rubyRoot);
-	    }
-	}
+        RubyArray loadPath = (RubyArray)_runtime.getLoadService().getLoadPath();
+        for (String libName : BUILTIN_JS_FILE_LIBRARIES) {
+            Object val = s.get(libName);
+            if (!(val instanceof JSFileLibrary))
+                continue;
+            File root = ((JSFileLibrary)val).getRoot();
+            RubyString rubyRoot = _runtime.newString(root.getPath().replace('\\', '/'));
+            if (loadPath.include_p(_runtime.getCurrentContext(), rubyRoot).isFalse()) {
+                if (DEBUG)
+                    System.err.println("adding file library " + val.toString() + " root " + rubyRoot);
+                loadPath.append(rubyRoot);
+            }
+        }
     }
 
     /**
@@ -209,9 +209,9 @@ public class RubyJxpSource extends JxpSource {
      * the app server), then nothing happens.
      */
     protected void _setOutput(Scope s) {
-	HttpResponse response = (HttpResponse)s.get("response");
-	if (response != null)
-	    _runtime.getGlobalVariables().set("$stdout", new RubyIO(_runtime, new RubyJxpOutputStream(response.getJxpWriter())));
+        HttpResponse response = (HttpResponse)s.get("response");
+        if (response != null)
+            _runtime.getGlobalVariables().set("$stdout", new RubyIO(_runtime, new RubyJxpOutputStream(response.getJxpWriter())));
     }
 
     /**
@@ -219,8 +219,8 @@ public class RubyJxpSource extends JxpSource {
      * top-level object.
      */
     protected void _exposeScopeFunctions(Scope scope) {
-	_runtime.getGlobalVariables().set("$scope", toRuby(scope, _runtime, scope));
-	_addTopLevelMethodsToObjectClass(scope);
+        _runtime.getGlobalVariables().set("$scope", toRuby(scope, _runtime, scope));
+        _addTopLevelMethodsToObjectClass(scope);
     }
 
     /**
@@ -228,107 +228,107 @@ public class RubyJxpSource extends JxpSource {
      * Kernel), and adds all top-level JavaScript methods to the module.
      */
     protected void _addTopLevelMethodsToObjectClass(final Scope scope) {
-	RubyModule xgen = xgenModule(_runtime);
-	_runtime.getObject().includeModule(xgen);
+        RubyModule xgen = xgenModule(_runtime);
+        _runtime.getObject().includeModule(xgen);
 
-	Set<String> alreadySeen = new HashSet<String>();
-	Scope s = scope;
-	while (s != null) {
-	    for (String key : s.keySet()) {
-		if (alreadySeen.contains(key) || DO_NOT_LOAD_FUNCS.contains(key))
-		    continue;
-		final Object obj = s.get(key);
-		if (isCallableJSFunction(obj)) {
-		    if (DEBUG)
-			System.err.println("adding top-level method " + key);
-		    alreadySeen.add(key);
-		    // Creates method and attaches to xgen. Also creates a new Ruby class if appropriate.
-		    RubyObjectWrapper.createRubyMethod(scope, _runtime, (JSFunction)obj, key, xgen, null);
-		}
-	    }
-	    s = s.getParent();
-	}
+        Set<String> alreadySeen = new HashSet<String>();
+        Scope s = scope;
+        while (s != null) {
+            for (String key : s.keySet()) {
+                if (alreadySeen.contains(key) || DO_NOT_LOAD_FUNCS.contains(key))
+                    continue;
+                final Object obj = s.get(key);
+                if (isCallableJSFunction(obj)) {
+                    if (DEBUG)
+                        System.err.println("adding top-level method " + key);
+                    alreadySeen.add(key);
+                    // Creates method and attaches to xgen. Also creates a new Ruby class if appropriate.
+                    RubyObjectWrapper.createRubyMethod(scope, _runtime, (JSFunction)obj, key, xgen, null);
+                }
+            }
+            s = s.getParent();
+        }
     }
 
     protected void _patchRequireAndLoad(final Scope scope) {
-	RubyModule kernel = _runtime.getKernel();
-	kernel.addMethod("require", new JavaMethod(kernel, PUBLIC) {
-		public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
-		    Ruby runtime = self.getRuntime();
-		    String file = args[0].toString();
+        RubyModule kernel = _runtime.getKernel();
+        kernel.addMethod("require", new JavaMethod(kernel, PUBLIC) {
+                public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
+                    Ruby runtime = self.getRuntime();
+                    String file = args[0].toString();
 
-		    if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
-			System.err.println("require " + file);
-		    try {
-			return runtime.getLoadService().require(file) ? runtime.getTrue() : runtime.getFalse();
-		    }
-		    catch (RaiseException re) {
-			if (_notAlreadyRequired(runtime, args[0])) {
-			    loadLibraryFile(scope, runtime, self, file, re);
-			    _rememberAlreadyRequired(runtime, args[0]);
-			}
-			return runtime.getTrue();
-		    }
-		}
-	    });
-	kernel.addMethod("load", new JavaMethod(kernel, PUBLIC) {
-		public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
-		    Ruby runtime = self.getRuntime();
-		    RubyString file = args[0].convertToString();
-		    boolean wrap = args.length == 2 ? args[1].isTrue() : false;
+                    if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
+                        System.err.println("require " + file);
+                    try {
+                        return runtime.getLoadService().require(file) ? runtime.getTrue() : runtime.getFalse();
+                    }
+                    catch (RaiseException re) {
+                        if (_notAlreadyRequired(runtime, args[0])) {
+                            loadLibraryFile(scope, runtime, self, file, re);
+                            _rememberAlreadyRequired(runtime, args[0]);
+                        }
+                        return runtime.getTrue();
+                    }
+                }
+            });
+        kernel.addMethod("load", new JavaMethod(kernel, PUBLIC) {
+                public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
+                    Ruby runtime = self.getRuntime();
+                    RubyString file = args[0].convertToString();
+                    boolean wrap = args.length == 2 ? args[1].isTrue() : false;
 
-		    if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
-			System.err.println("load " + file);
-		    try {
-			runtime.getLoadService().load(file.getByteList().toString(), wrap);
-			return runtime.getTrue();
-		    }
-		    catch (RaiseException re) {
-			return loadLibraryFile(scope, runtime, self, file.toString(), re);
-		    }
-		}
-	    });
+                    if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
+                        System.err.println("load " + file);
+                    try {
+                        runtime.getLoadService().load(file.getByteList().toString(), wrap);
+                        return runtime.getTrue();
+                    }
+                    catch (RaiseException re) {
+                        return loadLibraryFile(scope, runtime, self, file.toString(), re);
+                    }
+                }
+            });
     }
 
     protected IRubyObject loadLibraryFile(Scope scope, Ruby runtime, IRubyObject recv, String path, RaiseException re) {
-	if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
-	    System.err.println("going to compile and run library file " + path + "; runtime = " + runtime);
+        if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
+            System.err.println("going to compile and run library file " + path + "; runtime = " + runtime);
 
-	JSFileLibrary lib = getLibFromPath(path, scope);
-	if (lib == null)
-	    lib = (JSFileLibrary)scope.get("local");
-	else
-	    path = removeLibName(path);
+        JSFileLibrary lib = getLibFromPath(path, scope);
+        if (lib == null)
+            lib = (JSFileLibrary)scope.get("local");
+        else
+            path = removeLibName(path);
 
-	try {
-	    Object o = lib.getFromPath(path);
-	    if (isCallableJSFunction(o)) {
-		try {
-		    ((JSFunction)o).call(scope, EMPTY_OBJECT_ARRAY);
-		    createNewClasses(scope, runtime);
-		}
-		catch (Exception e) {
-		    if (DEBUG || RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
-			System.err.println("problem loading JSFileLibrary file: " + e + "; going to raise Ruby error after printing the stack trace here");
-			e.printStackTrace();
-		    }
-		    recv.callMethod(runtime.getCurrentContext(), "raise", new IRubyObject[] {runtime.newString(e.toString())}, Block.NULL_BLOCK);
-		}
-		return runtime.getTrue();
-	    }
-	    else
-		System.err.println("file library object " + o + " is not a callable function");
-	}
-	catch (Exception e) {
-	    if (DEBUG || RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
-		System.err.println("problem loading JSFileLibrary file: " + e + "; going to re-throw original Ruby RaiseException after printing the stack trace here");
-		e.printStackTrace();
-	    }
-	    /* fall through to throw re */
-	}
-	if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
-	    System.err.println("problem loading file " + path + " from lib " + lib + "; throwing original Ruby error " + re);
-	throw re;
+        try {
+            Object o = lib.getFromPath(path);
+            if (isCallableJSFunction(o)) {
+                try {
+                    ((JSFunction)o).call(scope, EMPTY_OBJECT_ARRAY);
+                    createNewClasses(scope, runtime);
+                }
+                catch (Exception e) {
+                    if (DEBUG || RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
+                        System.err.println("problem loading JSFileLibrary file: " + e + "; going to raise Ruby error after printing the stack trace here");
+                        e.printStackTrace();
+                    }
+                    recv.callMethod(runtime.getCurrentContext(), "raise", new IRubyObject[] {runtime.newString(e.toString())}, Block.NULL_BLOCK);
+                }
+                return runtime.getTrue();
+            }
+            else
+                System.err.println("file library object " + o + " is not a callable function");
+        }
+        catch (Exception e) {
+            if (DEBUG || RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
+                System.err.println("problem loading JSFileLibrary file: " + e + "; going to re-throw original Ruby RaiseException after printing the stack trace here");
+                e.printStackTrace();
+            }
+            /* fall through to throw re */
+        }
+        if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
+            System.err.println("problem loading file " + path + " from lib " + lib + "; throwing original Ruby error " + re);
+        throw re;
     }
 
     /**
@@ -338,15 +338,15 @@ public class RubyJxpSource extends JxpSource {
      * scope. Returns <code>null</code> if no library is found.
      */
     public JSFileLibrary getLibFromPath(String path, Scope scope) {
-	String libName = libNameFromPath(path);
-	return (JSFileLibrary)scope.get(libName);
+        String libName = libNameFromPath(path);
+        return (JSFileLibrary)scope.get(libName);
     }
 
     public String libNameFromPath(String path) {
-	if (path.startsWith("/"))
-	    path = path.substring(1);
-	int loc = path.indexOf("/");
-	return (loc == -1) ? path : path.substring(0, loc);
+        if (path.startsWith("/"))
+            path = path.substring(1);
+        int loc = path.indexOf("/");
+        return (loc == -1) ? path : path.substring(0, loc);
     }
 
     /**
@@ -354,28 +354,28 @@ public class RubyJxpSource extends JxpSource {
      * stripped off.
      */
     public String removeLibName(String path) {
-	if (path.startsWith("/"))
-	    path = path.substring(1);
-	int loc = path.indexOf("/");
-	return (loc == -1) ? "" : path.substring(loc + 1);
+        if (path.startsWith("/"))
+            path = path.substring(1);
+        int loc = path.indexOf("/");
+        return (loc == -1) ? "" : path.substring(loc + 1);
     }
 
     protected boolean _notAlreadyRequired(Ruby runtime, IRubyObject arg) {
-	synchronized (_requiredJSFileLibFiles) {
-	    Set<IRubyObject> reqs = _requiredJSFileLibFiles.get(runtime);
-	    return reqs == null || !reqs.contains(arg);
-	}
+        synchronized (_requiredJSFileLibFiles) {
+            Set<IRubyObject> reqs = _requiredJSFileLibFiles.get(runtime);
+            return reqs == null || !reqs.contains(arg);
+        }
     }
 
     protected void _rememberAlreadyRequired(Ruby runtime, IRubyObject arg) {
-	synchronized (_requiredJSFileLibFiles) {
-	    Set<IRubyObject> reqs = _requiredJSFileLibFiles.get(runtime);
-	    if (reqs == null) {
-		reqs = new HashSet<IRubyObject>();
-		_requiredJSFileLibFiles.put(runtime, reqs);
-	    }
-	    reqs.add(arg);
-	}
+        synchronized (_requiredJSFileLibFiles) {
+            Set<IRubyObject> reqs = _requiredJSFileLibFiles.get(runtime);
+            if (reqs == null) {
+                reqs = new HashSet<IRubyObject>();
+                _requiredJSFileLibFiles.put(runtime, reqs);
+            }
+            reqs.add(arg);
+        }
     }
 
     protected final File _file;

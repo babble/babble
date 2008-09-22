@@ -179,6 +179,13 @@ public class JSNumber extends Number implements JSObject {
         
         protected void init(){
             _prototype.addAll( _functions );
+
+            set( "NaN" , Double.NaN );
+            set( "POSITIVE_INFINITY" , Double.POSITIVE_INFINITY );
+            set( "NEGATIVE_INFINITY" , Double.NEGATIVE_INFINITY );
+            lockKey( "NaN" );
+            lockKey( "POSITIVE_INFINITY" );
+            lockKey( "NEGATIVE_INFINITY" );
         }
         
     }
