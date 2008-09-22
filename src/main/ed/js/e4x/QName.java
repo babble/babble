@@ -34,7 +34,6 @@ public class QName extends JSObjectBase {
 
     public static JSFunction _cons = new Cons();
 
-
     public static class Cons extends JSFunctionCalls0 {
 
         public JSObject newOne(){
@@ -45,51 +44,54 @@ public class QName extends JSObjectBase {
             Object blah = scope.getThis();
 
             QName e;
-            if ( blah instanceof QName) {
+            if ( blah instanceof QName ) {
                 e = (QName)blah;
             }
             else {
-                if( args.length == 0 ) {
-                    e = new QName();
-                }
-                else if( args.length == 1 ) {
-                    e = new QName( args[0] );
-                }
-                else {
-                    e = new QName( new Namespace( args[0] ), args[1] );
-                }
+                e = new QName();
+            }
+
+            if( args.length == 1 ) {
+                e.init( args[0] );
+            }
+            else if( args.length > 1 ) {
+                e.init( new Namespace( args[0] ), args[1] );
             }
             return e;
+        }
+
+        protected void init() {
+            _prototype.set( "hasOwnProperty" , new JSFunctionCalls1() {
+                    public Object call( Scope s, Object foo, Object extra[] ) {
+                        if( foo == null )
+                            throw new JSException( "hasOwnProperty must take a non-null argument." );
+                        return propFunc( foo.toString() );
+                    }
+                });
+            _prototype.set( "propertyIsEnumerable" , new JSFunctionCalls1() {
+                    public Object call( Scope s, Object foo, Object extra[] ) {
+                        if( foo == null )
+                            throw new JSException( "propertyIsEnumerable must take a non-null argument." );
+                        return propFunc( foo.toString() );
+                    }
+                });
+        }
+
+        private boolean propFunc( String foo ) {
+            if( foo.equals( localNameStr ) ||
+                foo.equals( uriStr ) ||
+                foo.equals( prefixStr ) )
+                return true;
+            return false;
         }
     }
 
 
-    void init( String s ) {
-        this.uri = s;
+    void init( Object s ) {
+        init( null, s );
     }
 
-    void init( String p, String s ) {
-        this.localName = p;
-        this.uri = s;
-    }
-
-    public String localName;
-    public String uri;
-    public String prefix;
-
-    private String localNameStr = "localName";
-    private String uriStr = "uri";
-    private String prefixStr = "prefix";
-
-    public QName() {
-        this( null, null );
-    }
-
-    public QName( Object name )  {
-        this( null, name );
-    }
-
-    public QName( Namespace namespace, Object name )  {
+    void init( Namespace namespace, Object name ) {
         if( name instanceof QName ) {
             if ( namespace == null ) {
                 this.localName = ((QName)name).localName;
@@ -109,6 +111,31 @@ public class QName extends JSObjectBase {
             this.uri = "";
             this.prefix = "";
         }
+    }
+
+    public String localName;
+    public String uri;
+    public String prefix;
+
+    private static String localNameStr = "localName";
+    private static String uriStr = "uri";
+    private static String prefixStr = "prefix";
+
+    public QName() {
+        this( null, null );
+    }
+
+    public QName( Object name )  {
+        this( null, name );
+    }
+
+    public QName( Namespace namespace, Object name )  {
+        super( _getCons() );
+        init( namespace , name );
+    }
+
+    public static JSFunction _getCons() {
+        return Scope.getThreadLocalFunction( "QName" , _cons );
     }
 
     public String toString() {
@@ -145,9 +172,16 @@ public class QName extends JSObjectBase {
         return new Namespace( this.uri );
     }
 
-    public JSString get( Object n ) {
+    public Object get( Object n ) {
+        if( n == null )
+            return null;
+
         String str = n.toString();
-        if( str.equals( uriStr ) ) {
+        Object objFromProto = QName._cons.getPrototype().get( str );
+        if( objFromProto != null && objFromProto instanceof JSFunction ) {
+            return objFromProto;
+        }
+        else if( str.equals( uriStr ) ) {
             return new JSString(this.uri);
         }
         else if ( str.equals( prefixStr ) ) {
@@ -159,4 +193,5 @@ public class QName extends JSObjectBase {
         else 
             return null;
     }
+
 }
