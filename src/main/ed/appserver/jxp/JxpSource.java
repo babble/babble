@@ -34,35 +34,33 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
     
     public static final String JXP_SOURCE_PROP = "_jxpSource";
 
-    public static JxpSource getSource( File f ){
-        return getSource( f , null );
-        
-    }
-    
-    public static JxpSource getSource( File f , JSFileLibrary lib ){
+    public static JxpSource getSource( File f , AppContext context , JSFileLibrary lib ){
         if ( f == null )
             throw new NullPointerException( "can't have null file" );
         
+        JxpSource s = null;
         if ( f.getName().endsWith(".djang10") )
-            return new Djang10Source(f);
+            s = new Djang10Source(f);
         
-        if ( f.getName().endsWith( ".py" ) )
-            return new ed.lang.python.PythonJxpSource( f , lib );
+        else if ( f.getName().endsWith( ".py" ) )
+            s = new ed.lang.python.PythonJxpSource( f , lib );
         
-        if ( f.getName().endsWith( ".rb" ) )
-            return new ed.lang.ruby.RubyJxpSource( f , lib );
+        else if ( f.getName().endsWith( ".rb" ) )
+            s = new ed.lang.ruby.RubyJxpSource( f , lib );
         
-        if ( f.getName().endsWith( ".erb" ) || f.getName().endsWith( ".rhtml" ) )
-            return new ed.lang.ruby.RubyErbSource( f , lib );
+        else if ( f.getName().endsWith( ".erb" ) || f.getName().endsWith( ".rhtml" ) )
+            s = new ed.lang.ruby.RubyErbSource( f , lib );
 
-        if ( f.getName().endsWith( ".php" ) )
-            return new ed.lang.php.PHPJxpSource( f );
+        else if ( f.getName().endsWith( ".php" ) )
+            s = new ed.lang.php.PHPJxpSource( f );
 
-        JxpSource s = new JxpFileSource( f );
+        if( s == null )
+            s = new JxpFileSource( f );
         s._lib = lib;
+        s._context = context;
         return s;
     }
-
+    
     // -----
 
     protected abstract String getContent() throws IOException;
@@ -178,6 +176,10 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
     public String toString(){
         return getName();
     }
+
+    protected AppContext getAppContext(){
+        return _context;
+    }
     
     protected long _lastParse = 0;
     protected List<Dependency> _dependencies = new ArrayList<Dependency>();
@@ -186,8 +188,8 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
     private JxpServlet _servlet;
 
     private JSFileLibrary _lib;
-
-
+    private AppContext _context;
+    
     // -------------------
     
     public static class JxpFileSource extends JxpSource {

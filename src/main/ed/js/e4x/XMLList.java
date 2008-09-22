@@ -35,6 +35,7 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
     public static JSFunction _cons = new ENode.Cons();
 
     public List<ENode> children;
+
     public XMLList() {
         children = new LinkedList<ENode>();
     }

@@ -170,4 +170,14 @@ public class E4X {
             return (ENode)o;
         }
     }
+    
+    public static boolean isXMLName( Object o ) {
+        if( o == null )
+            return false;
+
+        QName q = new QName( o );
+        if( q.localName.matches( "[A-Za-z_][\\w\\.\\-]*" ) )
+            return true;
+        return false;
+    }
 }
