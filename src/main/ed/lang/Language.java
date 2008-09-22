@@ -85,7 +85,7 @@ public abstract class Language {
         if ( extension.equals( "rb" )
              || extension.equals( "erb" )
              || extension.equals( "rhtml" )
-             || extension.equals( "ruby" ) ) // this is to make "./shell --ruby" work
+	     || extension.equals( "ruby" ) ) // only so "--ruby" will work
             return RUBY;
 
         if ( extension.equals( "php" ) )

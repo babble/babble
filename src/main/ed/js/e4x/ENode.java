@@ -90,7 +90,10 @@ public class ENode extends JSObjectBase {
                 });
             _prototype.set( "attribute", new ENodeFunction() {
                     public Object call( Scope s, Object foo[] ) {
-                        return getENode( s ).attribute( getOneArg( foo ).toString() );
+                        Object arg = getOneArg( foo );
+                        if( arg == null )
+                            throw new JSException( "\"attribute\" cannot take null as an argument." );
+                        return getENode( s ).attribute( arg.toString() );
                     }
                 });
             _prototype.set( "attributes", new ENodeFunction() {
@@ -360,7 +363,7 @@ public class ENode extends JSObjectBase {
         public boolean ignoreProcessingInstructions = true;
         public boolean ignoreWhitespace = true;
         public boolean prettyPrinting = true;
-        public int prettyIndent = 2;
+        public long prettyIndent = 2;
 
         public Namespace defaultNamespace = new Namespace();
         
@@ -394,7 +397,7 @@ public class ENode extends JSObjectBase {
             if( s.equals( prettyPrintingStr ) )
                 prettyPrinting = Boolean.parseBoolean(val);
             if( s.equals( prettyIndentStr ) )
-                prettyIndent = Integer.parseInt(val);
+                prettyIndent = Long.parseLong(val);
             return v;
         }
 
@@ -1648,7 +1651,7 @@ public class ENode extends JSObjectBase {
 
     private StringBuilder _level( StringBuilder buf , int level ){
         for ( int i=0; i<level; i++ ) {
-            for( int j=0; j< XML.prettyIndent; j++) {
+            for( long j=0; j< XML.prettyIndent; j++) {
                 buf.append( " " );
             }
         }
@@ -1755,6 +1758,9 @@ public class ENode extends JSObjectBase {
     }
 
     public String toXMLString() {
+        if( this.isDummy() )
+            return "";
+
         return this.append( new StringBuilder(), 0, new ArrayList<Namespace>() ).toString();
     }
 

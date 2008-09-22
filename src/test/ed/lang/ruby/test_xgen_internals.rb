@@ -18,7 +18,8 @@ require 'xgen_internals'
 class Track < XGen::Mongo::Base
   set_collection :rubytest, %w(artist album song track)
   def to_s
-    "artist: #{artist}, album: #{album}, song: #{song}, track: #{track ? track.to_i : nil}"
+    # Uses both accessor methods and ivars themselves
+    "artist: #{artist}, album: #{album}, song: #@song, track: #{@track ? @track.to_i : nil}"
   end
 end
 
@@ -51,24 +52,6 @@ EOS
   def teardown
     run_js 'db.rubytest.remove({});'
     super
-  end
-
-  def test_class_method_generation
-    assert Track.respond_to?(:find_by__id)
-    assert Track.respond_to?(:find_by_artist)
-    assert Track.respond_to?(:find_by_album)
-    assert Track.respond_to?(:find_by_song)
-    assert Track.respond_to?(:find_by_track)
-    assert Track.respond_to?(:find_all_by__id)
-    assert Track.respond_to?(:find_all_by_artist)
-    assert Track.respond_to?(:find_all_by_album)
-    assert Track.respond_to?(:find_all_by_song)
-    assert Track.respond_to?(:find_all_by_track)
-    assert ! Track.respond_to?(:find_or_create_by__id) # can not create by id
-    assert Track.respond_to?(:find_or_create_by_artist)
-    assert Track.respond_to?(:find_or_create_by_album)
-    assert Track.respond_to?(:find_or_create_by_song)
-    assert Track.respond_to?(:find_or_create_by_track)
   end
 
   def test_ivars_created

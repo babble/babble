@@ -60,7 +60,7 @@ public class XgenInternalsTest extends RubyDBTest {
 	assertEquals(rubyOutput, "artist: Level 42, album: Standing In The Light, song: Micro-Kid, track: 1");
 	Object x = s.get("x");
 	assertNotNull(x);
-	assertTrue(x instanceof ed.lang.ruby.JSObjectWrapper, "expected ed.lang.ruby.JSObjectWrapper, instead saw " + x.getClass().getName());
+	assertTrue(x instanceof ed.lang.ruby.JSObjectWrapper, "expected ed.lang.ruby.JSObjectWrapper, saw " + x.getClass().getName());
 	Object id = ((JSObjectWrapper)x).get("_id");
 	assertNotNull(id);
 	assertTrue(ObjectId.isValid(id.toString()), "non-valid object id: " + id.toString());

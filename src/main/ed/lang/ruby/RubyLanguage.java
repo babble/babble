@@ -17,6 +17,8 @@
 package ed.lang.ruby;
 
 import org.jruby.Ruby;
+import org.jruby.exceptions.RaiseException;
+import org.jruby.runtime.builtin.IRubyObject;
 
 import ed.lang.Language;
 import ed.js.engine.Scope;
@@ -44,14 +46,21 @@ public class RubyLanguage extends Language {
 
     public Object eval(Scope s, String code, boolean[] hasReturn) {
 	RubyJxpSource source = new RubyShellSource(code);
+	Object result = null;
 	try {
-	    return source._doCall(source._parseContent("(shell)"), s, RubyJxpSource.EMPTY_OBJECT_ARRAY);
+	    result = RubyObjectWrapper.toJS(s, source._doCall(source._parseContent("(shell)"), s, RubyJxpSource.EMPTY_OBJECT_ARRAY));
+	    hasReturn[0] = true;
+	}
+	catch (RaiseException re) {
+	    re.printStackTrace();
 	}
 	catch (Exception e) {
 	    System.err.println(e.toString());
 	    if (DEBUG)
 		e.printStackTrace();
-	    return null;
+	}
+	finally {
+	    return result;
 	}
     }
 }

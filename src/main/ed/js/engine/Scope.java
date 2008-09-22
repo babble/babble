@@ -397,10 +397,16 @@ public final class Scope implements JSObject , Bindings {
                 
                 if ( foo instanceof JSFunction && with != null )
                     with[0] = pt;
-                
+		
                 return foo;
             }
         }
+
+	if ( _globalThis != null ){
+	    Object fg = _globalThis.get( name );
+	    if ( fg != null )
+		return fg;
+	}
 
         return _parent._get( nameHash , name , alt , with , noThis , depth + 1 );
     }
@@ -984,6 +990,10 @@ public final class Scope implements JSObject , Bindings {
         if ( _children == null )
             _children = new WeakBag<Scope>();
         synchronized ( _children ){
+            if ( ++_childrenAdds > 1000 ){
+                _children.clean();
+                _childrenAdds = 0;
+            }
             _children.add( s );
         }
     }
@@ -1019,6 +1029,7 @@ public final class Scope implements JSObject , Bindings {
     Error _toThrowError;
 
     private WeakBag<Scope> _children;
+    private int _childrenAdds = 0;
     
     public void makeThreadLocal(){
         _threadLocal.set( this );

@@ -37,13 +37,13 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
         }
         catch ( RuntimeException re ){
             if ( Convert.DJS ) re.printStackTrace();
-            _convert.fixStack( re );
+            _scriptInfo.fixStack( re );
             throw re;
         }
         catch ( Exception e ){
             e.printStackTrace();
             if ( Convert.DJS ) e.printStackTrace();
-            _convert.fixStack( e );
+            _scriptInfo.fixStack( e );
             throw new RuntimeException( "weird error : " + e.getClass().getName() , e );
         }
     }
@@ -60,9 +60,9 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
     }
 
     public Language getFileLanguage(){
-        if ( _convert == null )
+        if ( _scriptInfo == null )
             return Language.JS;
-        return _convert._sourceLanguage;
+        return _scriptInfo._sourceLanguage;
     }
     
     public JSString _string( int id ){
@@ -100,7 +100,7 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
         return size;
     }
 
-    Convert _convert;
+    Convert.ScriptInfo _scriptInfo;
     protected List<Pair<String,String>> _regex;
     protected String _strings[];
     protected JSString _jsstrings[];

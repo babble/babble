@@ -1,4 +1,4 @@
-// RandomAccessSublist.java
+// ListWrapperSubList.java
 
 /**
 *    Copyright (C) 2008 10gen Inc.
@@ -20,8 +20,19 @@ package ed.lang.python;
 
 import java.util.*;
 
-public class RandomAccessSublist extends java.util.AbstractList {
-    public RandomAccessSublist( List l , int start , int end ){
+/**
+ * Sublist implementation for arbitrary lists.
+ *
+ * I'm too lazy to write a list-specific sublist when I can write a sublist
+ * that wraps any sublist.
+ *
+ * Supports the java.util.List API interface by keeping start/end
+ * pointers and adjusting on all incoming method calls. This is only
+ * efficient if the list we wrap is random access. Since I only use this on
+ * JSPySequenceListWrapper, it's fine, but be careful if you use it yourself.
+ */
+public class ListWrapperSubList extends java.util.AbstractList {
+    public ListWrapperSubList( List l , int start , int end ){
         _l = l;
         _start = start;
         _end = end;
@@ -39,6 +50,7 @@ public class RandomAccessSublist extends java.util.AbstractList {
     }
 
     public Object remove( int index ){
+        // FIXME: decrease _end?
         return _l.remove( index + _start );
     }
 

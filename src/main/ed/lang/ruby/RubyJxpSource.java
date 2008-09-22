@@ -138,11 +138,11 @@ public class RubyJxpSource extends JxpSource {
     public JSFunction getFunction() throws IOException {
         final Node code = _getCode(); // Parsed Ruby code
         return new ed.js.func.JSFunctionCalls0() {
-            public Object call(Scope s, Object unused[]) { return _doCall(code, s, unused); }
+            public Object call(Scope s, Object unused[]) { return RubyObjectWrapper.toJS(s, _doCall(code, s, unused)); }
         };
     }
 
-    protected Object _doCall(Node code, Scope s, Object unused[]) {
+    protected IRubyObject _doCall(Node code, Scope s, Object unused[]) {
 	_addJSFileLibrariesToPath(s);
 
 	if (_runtime.getGlobalVariables() instanceof ScopeGlobalVariables)
@@ -194,7 +194,7 @@ public class RubyJxpSource extends JxpSource {
 	    if (!(val instanceof JSFileLibrary))
 		continue;
 	    File root = ((JSFileLibrary)val).getRoot();
-	    RubyString rubyRoot = RubyString.newString(_runtime, root.getPath().replace('\\', '/'));
+	    RubyString rubyRoot = _runtime.newString(root.getPath().replace('\\', '/'));
 	    if (loadPath.include_p(_runtime.getCurrentContext(), rubyRoot).isFalse()) {
 		if (DEBUG)
 		    System.err.println("adding file library " + val.toString() + " root " + rubyRoot);
@@ -295,12 +295,10 @@ public class RubyJxpSource extends JxpSource {
 	    System.err.println("going to compile and run library file " + path + "; runtime = " + runtime);
 
 	JSFileLibrary lib = getLibFromPath(path, scope);
-	if (lib == null) {
-	    if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
-		System.err.println("can not find JSFileLibrary for " + path + "; re-raising Ruby exception");
-	    throw re;
-	}
-	path = removeLibName(path);
+	if (lib == null)
+	    lib = (JSFileLibrary)scope.get("local");
+	else
+	    path = removeLibName(path);
 
 	try {
 	    Object o = lib.getFromPath(path);
@@ -314,7 +312,7 @@ public class RubyJxpSource extends JxpSource {
 			System.err.println("problem loading JSFileLibrary file: " + e + "; going to raise Ruby error after printing the stack trace here");
 			e.printStackTrace();
 		    }
-		    recv.callMethod(runtime.getCurrentContext(), "raise", new IRubyObject[] {RubyString.newString(runtime, e.toString())}, Block.NULL_BLOCK);
+		    recv.callMethod(runtime.getCurrentContext(), "raise", new IRubyObject[] {runtime.newString(e.toString())}, Block.NULL_BLOCK);
 		}
 		return runtime.getTrue();
 	    }

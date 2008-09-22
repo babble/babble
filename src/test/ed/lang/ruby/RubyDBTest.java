@@ -40,14 +40,8 @@ public class RubyDBTest extends SourceRunner {
     }
 
     public void testCollectionWrapper() {
-	Object ro = runRuby("$db.foobar");
-	assertNotNull(ro);
-	assertTrue(ro instanceof RubyJSObjectWrapper, "ro is not a RubyJSObjectWrapper; it's " + ro.getClass().getName());
-	assertTrue(((RubyObject)ro).respond_to_p(RubySymbol.newSymbol(r, ":findOne")).isTrue());
-	assertTrue(((RubyObject)ro).respond_to_p(RubySymbol.newSymbol(r, ":find")).isTrue());
-
-	Object o = toJS(s, (IRubyObject)ro);
-	assertTrue(o instanceof DBCollection, "o is not a DBCollection; it's " + o.getClass().getName());
-	assertSame(toJS(s, (IRubyObject)ro), ((RubyJSObjectWrapper)ro).getJSObject());
+	Object jsobj = runRuby("$db.foobar");
+	assertNotNull(jsobj);
+	assertTrue(jsobj instanceof DBCollection, "jsobj is not a DBCollection; it's " + jsobj.getClass().getName());
     }
 }

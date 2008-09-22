@@ -89,7 +89,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
 	}
 
 	if (obj instanceof JSString || obj instanceof ObjectId)
-	    wrapper = RubyString.newString(runtime, obj.toString());
+	    wrapper = runtime.newString(obj.toString());
 	else if (obj instanceof JSFunction) {
 	    IRubyObject methodOwner = container == null ? runtime.getTopSelf() : container;
 	    wrapper = createRubyMethod(s, runtime, (JSFunction)obj, name, methodOwner.getSingletonClass(), jsThis);
@@ -189,8 +189,9 @@ public abstract class RubyObjectWrapper extends RubyObject {
 		jobj.set(ja[i].toString(), toJS(scope, rs.get(i)));
 	    return jobj;
 	}
-	if (r instanceof RubyProc) {
-	    Object o = new JSFunctionWrapper(scope, r.getRuntime(), ((RubyProc)r).getBlock());
+	if (r instanceof RubyProc || r instanceof RubyMethod) {
+	    RubyProc p = (r instanceof RubyProc) ? (RubyProc)r : (RubyProc)((RubyMethod)r).to_proc(r.getRuntime().getCurrentContext(), Block.NULL_BLOCK);
+	    Object o = new JSFunctionWrapper(scope, r.getRuntime(), p.getBlock());
 	    cacheWrapper(r.getRuntime(), o, r);
 	    return o;
 	}
@@ -245,7 +246,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
 				System.err.println("saw exception; going to raise Ruby error after printing the stack trace here");
 				e.printStackTrace();
 			    }
-			    recv.callMethod(context, "raise", new IRubyObject[] {RubyString.newString(runtime, e.toString())}, Block.NULL_BLOCK);
+			    recv.callMethod(context, "raise", new IRubyObject[] {runtime.newString(e.toString())}, Block.NULL_BLOCK);
 			    return runtime.getNil(); // will never reach
 			}
 		    }

@@ -141,7 +141,14 @@ public class DNSUtil {
 
     public static InetAddress getByName( String host )
         throws UnknownHostException {
-        return InetAddress.getByName( host );
+	
+	if ( host == null )
+	    throw new NullPointerException( "can't lookup null host" );
+
+	if ( host.indexOf( "." ) < 0 )
+	    return InetAddress.getByName( host );
+
+	return DNSResolver.getByName( host );
     }
 
     public static void main( String args[] )
