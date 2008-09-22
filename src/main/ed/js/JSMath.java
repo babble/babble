@@ -238,11 +238,16 @@ public class JSMath extends JSObjectBase {
             }
         } );
         
+        set( "E", JSMath.E );
+        lockKey( "E" );
         set( "PI", JSMath.PI );
         lockKey( "PI" );
         set( "SQRT1_2", JSMath.SQRT1_2 );
         lockKey( "SQRT1_2" );
-
+        set( "LN10" , JSMath.LN10 );
+        lockKey( "LN10" );
+        set( "LOG10E" , JSMath.LOG10E );
+        lockKey( "LOG10E" );
     }
 
     static class TrigFunc extends JSFunctionCalls1 {
@@ -315,7 +320,9 @@ public class JSMath extends JSObjectBase {
     }
 
     public static final double LN10 = Math.log(10);
+    public static final double LOG10E = Math.log10( Math.E );
     public static final double PI = Math.PI;
+    public static final double E = Math.E;
     public static final double SQRT1_2 = Math.sqrt( .5 );
 
 }
