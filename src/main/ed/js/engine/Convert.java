@@ -860,7 +860,7 @@ public class Convert {
 	    _append( "(new JSNumber( " + n.getDouble() + "))" , n );
 	    return;
 	}
-	_append( "((JSObject)" , n );
+        _append( "JS_toJSObject( " , n );
 	_add( n , state );
 	_append( ")" , n );
     }
