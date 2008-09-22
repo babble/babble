@@ -1,20 +1,20 @@
 // JSNumber.java
 
 /**
-*    Copyright (C) 2008 10gen Inc.
-*  
-*    This program is free software: you can redistribute it and/or  modify
-*    it under the terms of the GNU Affero General Public License, version 3,
-*    as published by the Free Software Foundation.
-*  
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU Affero General Public License for more details.
-*  
-*    You should have received a copy of the GNU Affero General Public License
-*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    Copyright (C) 2008 10gen Inc.
+ *  
+ *    This program is free software: you can redistribute it and/or  modify
+ *    it under the terms of the GNU Affero General Public License, version 3,
+ *    as published by the Free Software Foundation.
+ *  
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU Affero General Public License for more details.
+ *  
+ *    You should have received a copy of the GNU Affero General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 package ed.js;
 
@@ -25,24 +25,105 @@ import ed.js.func.*;
 import ed.js.engine.*;
 
 /** @expose
-   i'm not really sure what to do with this
-   right now its just holder for weird stuff
- */
-public class JSNumber extends JSObjectLame {
+    i'm not really sure what to do with this
+    right now its just holder for weird stuff
+*/
+public class JSNumber extends Number implements JSObject {
 
-    JSNumber( Number val ){
+    public JSNumber( int i ){
+	_val = i;
+    }
+
+    public JSNumber( double d ){
+	_val = d;
+    }
+
+    public JSNumber( Number val ){
         _val = val;
     }
 
     public Number get(){
         return _val;
     }
+
+    public byte byteValue(){
+	return _val.byteValue();
+    }
+
+    public double doubleValue(){
+	return _val.doubleValue();
+    }
     
+    public float floatValue(){
+	return _val.floatValue();
+    }
+    
+    public int intValue(){
+	return _val.intValue();
+    }
+    
+    public long longValue(){
+	return _val.longValue();
+    }
+    
+    public short shortValue(){
+	return _val.shortValue();
+    }
+
     public String toString(){
         return _val.toString();
     }
 
+    public Object set( Object n , Object v ){
+	// this seems to be a no-op
+	return v;
+    }
+
+    public Object setInt( int n , Object v ){
+	// this seems to be a no-op
+	return v; 
+    }
+
+    public Object get( Object n ){
+	return null;
+    }
+
+    public Object getInt( int n ){
+	return null;
+    }
+
+    public JSFunction getFunction( String name ){
+	return getFunctions().getFunction( name );
+    }
+    
+    public Object removeField( Object n ){
+	return null;
+    }
+
+    public boolean containsKey( String s ){
+	return false;
+    }
+
+    public Collection<String> keySet(){
+	return new LinkedList();
+    }
+
+    public Collection<String> keySet( boolean includePrototype ){
+	return new LinkedList();
+    }
+
+    public JSFunction getConstructor(){
+	return getCons();
+    }
+
+    public JSObject getSuper(){
+	return null;
+    }
+
     private Number _val;
+
+    // -----------
+    // STATIC STUFF BELOW
     // -----------
     
     /** Returns a given double.
@@ -50,7 +131,7 @@ public class JSNumber extends JSObjectLame {
      * @return <tt>x</tt>
      */
     public final static double self( double x ){
-        return x;
+	return x;
     }
 
     /** Returns a given int.

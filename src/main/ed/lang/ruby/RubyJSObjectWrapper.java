@@ -84,9 +84,9 @@ public class RubyJSObjectWrapper extends RubyHash {
 	final Ruby runtime = getRuntime();
 	final ThreadContext context = runtime.getCurrentContext();
 
-	_eigenclass.alias_method(context, RubyString.newString(runtime, "keySet"), RubyString.newString(runtime, "keys"));
-	_eigenclass.alias_method(context, RubyString.newString(runtime, "get"), RubyString.newString(runtime, "[]"));
-	_eigenclass.alias_method(context, RubyString.newString(runtime, "set"), RubyString.newString(runtime, "[]="));
+	_eigenclass.alias_method(context, runtime.newString("keySet"), runtime.newString("keys"));
+	_eigenclass.alias_method(context, runtime.newString("get"), runtime.newString("[]"));
+	_eigenclass.alias_method(context, runtime.newString("set"), runtime.newString("[]="));
 	_addMethodMissing();
 
 	Set<String> alreadyDefined = new HashSet<String>();
@@ -442,7 +442,7 @@ public class RubyJSObjectWrapper extends RubyHash {
 	_jsIvars.put(skey, runtime);
 
 	final IRubyObject rkey = toRuby(key);
-	instance_variable_set(RubyString.newString(runtime, "@" + skey), runtime.getNil());
+	instance_variable_set(runtime.newString("@" + skey), runtime.getNil());
 	_eigenclass.addMethod(skey, new JavaMethod(_eigenclass, PUBLIC) {
 		public IRubyObject call(ThreadContext context, IRubyObject recv, RubyModule module, String name, IRubyObject[] args, Block block) {
 		    return op_aref(context, rkey);
@@ -473,7 +473,7 @@ public class RubyJSObjectWrapper extends RubyHash {
 	ThreadContext context = runtime.getCurrentContext();
 	_eigenclass.undef(context, skey);
 	_eigenclass.undef(context, skey + "=");
-	remove_instance_variable(context, RubyString.newString(runtime, "@" + skey), null);
+	remove_instance_variable(context, runtime.newString("@" + skey), null);
 	_jsIvars.remove(skey);
     }
 
@@ -515,7 +515,7 @@ public class RubyJSObjectWrapper extends RubyHash {
 				    System.err.println("saw exception; going to raise Ruby error after printing the stack trace here");
 				    e.printStackTrace();
 				}
-				self.callMethod(context, "raise", new IRubyObject[] {RubyString.newString(context.getRuntime(), e.toString())}, Block.NULL_BLOCK);
+				self.callMethod(context, "raise", new IRubyObject[] {context.getRuntime().newString(e.toString())}, Block.NULL_BLOCK);
 			    }
 			}
 			else {

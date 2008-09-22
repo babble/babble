@@ -59,7 +59,7 @@ public class JSObjectWrapper implements JSObject {
 	String str = key.toString();
 	if (!str.startsWith("@"))
 	    str = "@" + str;
-	return RubyString.newString(_robj.getRuntime(), str);
+	return _robj.getRuntime().newString(str);
     }
 
     /**
@@ -87,7 +87,7 @@ public class JSObjectWrapper implements JSObject {
     protected void _removeMethodIfExists(String skey) {
 	if (respondsToAndIsNotXGen(skey)) {
 	    ThreadContext context = context();
-	    IRubyObject[] names = new IRubyObject[] {RubyString.newString(_robj.getRuntime(), skey)};
+	    IRubyObject[] names = new IRubyObject[] {_robj.getRuntime().newString(skey)};
 	    try {
 		_robj.getSingletonClass().remove_method(context, names);
 	    }
@@ -181,8 +181,12 @@ public class JSObjectWrapper implements JSObject {
 
     public JSFunction getFunction(String name) {
 	if (respondsToAndIsNotXGen(name))
-	    return (JSFunction)toJS(_scope, _robj.method(RubyString.newString(_robj.getRuntime(), name)));
+	    return (JSFunction)toJS(_scope, _robj.method(_robj.getRuntime().newString(name)));
 	else
 	    return null;
+    }
+
+    public String toString() {
+	return _robj.callMethod(context(), "to_s", JSFunctionWrapper.EMPTY_IRUBY_OBJECT_ARRAY, Block.NULL_BLOCK).toString();
     }
 }

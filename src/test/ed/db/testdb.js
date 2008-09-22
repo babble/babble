@@ -29,8 +29,10 @@ function testcopydb() {
     var tc = connect("testcopy");
     tc.dropDatabase();
     var res = connect("admin").copyDatabase("test", "testcopy");
-    var x= t.system.namespaces.count();
-    var y= tc.system.namespaces.count();
+    // system tables aren't copied (system.profile)
+    var query = function() { return !/system/.match(this.name); }
+    var x= t.system.namespaces.find(query).count();
+    var y= tc.system.namespaces.find(query).count();
     if( x != y ) { 
 	function f(x) { 
 	    print(x.name);

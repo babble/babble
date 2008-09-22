@@ -397,10 +397,16 @@ public final class Scope implements JSObject , Bindings {
                 
                 if ( foo instanceof JSFunction && with != null )
                     with[0] = pt;
-                
+		
                 return foo;
             }
         }
+
+	if ( _globalThis != null ){
+	    Object fg = _globalThis.get( name );
+	    if ( fg != null )
+		return fg;
+	}
 
         return _parent._get( nameHash , name , alt , with , noThis , depth + 1 );
     }

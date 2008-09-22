@@ -473,6 +473,9 @@ public class JSInternalFunctions extends JSNumericFunctions {
         if ( o instanceof Collection )
             return (Collection<String>)o;
 
+        if ( o instanceof Number )
+            return EMPTY_STRING_LIST;
+
         throw new RuntimeException( "can't for with a : " + o.getClass() );
     }
 
@@ -539,6 +542,19 @@ public class JSInternalFunctions extends JSNumericFunctions {
         return hash;
     }
 
+    public final static JSObject JS_toJSObject( final Object o ){
+        if ( o == null )
+            return null;
+        
+        if ( o instanceof JSObject )
+            return (JSObject)o;
+        
+        if ( o instanceof Number )
+            return new JSNumber( (Number)o );
+        
+        throw new RuntimeException( "can't convert [" + o.getClass() + "] to a JSObject" );
+    }
+
     /** @unexpose */
     static String _debug( Object o ){
         if ( o == null )
@@ -550,4 +566,6 @@ public class JSInternalFunctions extends JSNumericFunctions {
     static {
         JS._debugSIDone( "JSInternalFunctions" );
     }
+    
+    static final List<String> EMPTY_STRING_LIST = Collections.synchronizedList( new LinkedList<String>() );
 }
