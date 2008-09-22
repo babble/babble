@@ -181,18 +181,23 @@ public class Convert {
 
         Node n = sn.getFirstChild();
 
+	String whyRasReturn = null;
+
         while ( n != null ){
             if ( n.getType() != Token.FUNCTION ){
 
                 if ( n.getNext() == null ){
-
+		    
                     if ( n.getType() == Token.EXPR_RESULT ){
                         _append( "return " , n );
                         _hasReturn = true;
+			whyRasReturn = "EXPR_RESULT";
                     }
 
-                    if ( n.getType() == Token.RETURN )
+                    if ( n.getType() == Token.RETURN ){
                         _hasReturn = true;
+			whyRasReturn = "RETURN";
+		    }
                 }
 
 
@@ -204,9 +209,10 @@ public class Convert {
         }
 
         if ( ! _hasReturn ) {
-            _append( "return null;" , sn );
+            _append( "return null; /* null added at end */" , sn );
         }
         else {
+	    _append( "/* no return b/c : " + whyRasReturn + " */" , sn );
             int end = _mainJavaCode.length() - 1;
             boolean alreadyHaveOne = false;
             for ( ; end >= 0; end-- ){
@@ -231,12 +237,11 @@ public class Convert {
         }
     }
 
-    private void _add( Node n , State s ){
-        _add( n , null , s );
+    private void _add( Node n , State state ){
+	_add( n , null , state );
     }
 
     private void _add( Node n , ScriptOrFnNode sn , State state ){
-
         switch ( n.getType() ){
 
         case Token.TYPEOF:
@@ -558,7 +563,7 @@ public class Convert {
             break;
         case Token.RETURN:
             boolean last = n.getNext() == null;
-            if ( ! last )
+	    if ( ! last )
                 _append( "if ( true ) { " , n );
             _append( "return " , n );
             if ( n.getFirstChild() != null ){
@@ -568,7 +573,7 @@ public class Convert {
             else {
                 _append( " null " , n );
             }
-            _append( ";" , n );
+            _append( "; /* explicit return */" , n );
             if ( ! last )
                 _append( "}" , n );
             _append( "\n" , n );
@@ -1360,7 +1365,7 @@ public class Convert {
 
         _addFunctionNodes( fn , state );
 
-        _add( n.getFirstChild() , state );
+        _add( n.getFirstChild() , fn , state );
         _append( "}\n" , n );
 
         int myStringId = _strings.size();
