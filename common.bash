@@ -12,7 +12,7 @@ for j in `find include \( -name webtest -type d \) -prune -o -type f -name '*.ja
 done
 export CLASSPATH="$CLASSPATH":/opt/java/lib/tools.jar
 
-export java_lib_path="-Djava.library-path=include"
+export java_lib_path="-Djava.library.path=include"
 export headless="-Djava.awt.headless=true"
 export jruby_home="-Djruby.home=$ED_HOME/include/ruby"
 
