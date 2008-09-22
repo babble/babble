@@ -473,6 +473,9 @@ public class JSInternalFunctions extends JSNumericFunctions {
         if ( o instanceof Collection )
             return (Collection<String>)o;
 
+        if ( o instanceof Number )
+            return EMPTY_STRING_LIST;
+
         throw new RuntimeException( "can't for with a : " + o.getClass() );
     }
 
@@ -563,4 +566,6 @@ public class JSInternalFunctions extends JSNumericFunctions {
     static {
         JS._debugSIDone( "JSInternalFunctions" );
     }
+    
+    static final List<String> EMPTY_STRING_LIST = Collections.synchronizedList( new LinkedList<String>() );
 }
