@@ -106,7 +106,7 @@ class State {
 
     final State _parent;
     
-
+    int _depth = 0;
     FunctionInfo _fi;
     
     final static Set<String> JAVA_RESERVED_WORDS = new HashSet<String>();

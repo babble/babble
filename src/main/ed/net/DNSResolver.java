@@ -34,6 +34,9 @@ public class DNSResolver {
     public static boolean TRACE_ALL = false;
 
     private static final Logger _logger = Logger.getLogger( "ed.net.DNSResolver" );
+    static {
+	_logger.setLevel( Level.INFO );
+    }
 
     public static final boolean trace(){
         if ( ! DEBUG )
@@ -557,7 +560,7 @@ public class DNSResolver {
 	
         void write(){
             try {
-		_logger.info( "writing to cache" );
+		_logger.debug( "writing to cache" );
 
                 FileOutputStream fout = new FileOutputStream( "logs/dns-cache.temp" );
                 ObjectOutputStream out = new ObjectOutputStream( fout );
