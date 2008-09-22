@@ -59,6 +59,13 @@ public class PythonDeleteTest extends ed.TestCase {
             globalScope.eval("local.file1();");
             Python.deleteCachedJythonFiles(testDir);
             assert(! foundClassFile(testDir));
+
+            Thread.sleep(SLEEP_MS);
+            writeTest2File1();
+            writeTest2File2();
+            globalScope.eval("local.file1();");
+            Python.deleteCachedJythonFiles(testDir);
+            assert(! foundClassFile(testDir));
         }
         finally {
             if(oldScope != null)
