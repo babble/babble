@@ -177,6 +177,14 @@ public final class StringParseUtil {
             
             isDouble = true;
         }
+
+        if ( lastDigit < s.length() && s.charAt( lastDigit ) == 'E' ){
+            lastDigit++;
+            while ( lastDigit < s.length() && Character.isDigit( s.charAt( lastDigit ) ) )
+                lastDigit++;
+            
+            isDouble = true;
+        }
 	
 
 	final String actual = s.substring( firstDigit , lastDigit );
