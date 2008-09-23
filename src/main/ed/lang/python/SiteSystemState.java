@@ -81,6 +81,16 @@ public class SiteSystemState {
                 throw new RuntimeException("couldn't intercept modules " + pyState.modules.getClass());
             }
         }
+
+        String modName = "_10gen".intern();
+        if( pyState.modules.__finditem__( modName ) == null ){
+            PyModule xgenMod = new PyModule( modName );
+            pyState.modules.__setitem__( modName , xgenMod );
+            // I know this is appalling but they don't expose this any other
+            // way
+            xgenMod.__dict__ = globals;
+        }
+
     }
 
     private void _checkModules(){
