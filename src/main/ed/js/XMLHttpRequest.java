@@ -270,34 +270,6 @@ public class XMLHttpRequest extends JSObjectBase {
     }
 
 
-    /** Returns request header information.
-     * @return Request header information.
-     */
-    public String getRequestHeader(){
-        StringBuffer buf = new StringBuffer();
-
-        buf.append( _method ).append( " " ).append( getLocalURL() ).append( " " ).append( "HTTP/1.0\r\n" );
-
-        if ( ! _headersToSend.containsKey( "Host" ) ){
-            buf.append( "Host: " ).append( getHost() );
-            if ( _url.getPort() > 0 )
-                buf.append( ":" ).append( getPort() );
-            buf.append( "\r\n" );
-        }
-        
-        buf.append( "Connection: Close\r\n"  );
-        
-	for( String label : _headersToSend.keySet() )
-	    buf.append(label).append( ": " ).append( _headersToSend.get( label ) ).append( "\r\n" ) ;
-        
-        buf.append( "\r\n" );
-        
-        return buf.toString();
-    }
-
-    /** @unexpose */
-
-
     /** Add a label/value pair to the request headers.
      * @param label Header label.
      * @param value Header value.
@@ -457,7 +429,7 @@ public class XMLHttpRequest extends JSObjectBase {
         }
         
         public Map<String,String> getHeadersToSend(){
-            return null;
+            return _headersToSend;
         }
 
         public Map<String,Cookie> getCookiesToSend(){
