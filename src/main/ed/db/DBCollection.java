@@ -480,7 +480,7 @@ public abstract class DBCollection extends JSObjectLame {
         _entries.put( "tojson" ,
                       new JSFunctionCalls0() {
                           public Object call( Scope s , Object foo[] ){
-                              return "{DBCollection:" + DBCollection.this._fullName + "}";
+                              return DBCollection.this._fullName;
                           }
                       } );
     }
@@ -721,11 +721,11 @@ public abstract class DBCollection extends JSObjectLame {
         return o == this;
     }
 
-    /** Returns a string representation of this collection, that is, "{DBCollection: name.of.this.collection}"
-     * @return a string representation of this collection
+    /** Returns name of the collection.
+     * @return name of the collection.
      */
     public String toString(){
-        return "{DBCollection:" + _name + "}";
+        return _name;
     }
 
     private Set<String> _getJavaMethods(){

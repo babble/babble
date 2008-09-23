@@ -10,6 +10,11 @@ import ed.js.*;
 import static ed.db.Bytes.*;
 import static ed.MyAsserts.*;
 
+/* This object wraps the binary object format ("BSON") used for the transport of serialized objects 
+   to / from the Mongo database.
+
+   http://www.10gen.com/wiki/bson
+*/
 public class DBJSObject implements JSObject {
 
     static boolean DEBUG = Boolean.getBoolean( "DEBUG.DBJSO" );
