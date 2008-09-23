@@ -177,13 +177,26 @@ public final class StringParseUtil {
             
             isDouble = true;
         }
-        
-        if ( isDouble )
-            return Double.parseDouble( s.substring( firstDigit , lastDigit ) );
 
-        return Integer.parseInt( s.substring( firstDigit , lastDigit ) );
+        if ( lastDigit < s.length() && s.charAt( lastDigit ) == 'E' ){
+            lastDigit++;
+            while ( lastDigit < s.length() && Character.isDigit( s.charAt( lastDigit ) ) )
+                lastDigit++;
+            
+            isDouble = true;
+        }
+	
+
+	final String actual = s.substring( firstDigit , lastDigit );
+
+        if ( isDouble || actual.length() > 17  )
+            return Double.parseDouble( actual );
 
 
+	if ( actual.length() > 10 )
+	    return Long.parseLong(  actual );
+
+        return Integer.parseInt( actual );
     }
 
     /** Use Java's "strict parsing" methods Integer.parseInt and  Double.parseDouble to parse s "strictly". i.e. if it's neither a double or an integer, fail.

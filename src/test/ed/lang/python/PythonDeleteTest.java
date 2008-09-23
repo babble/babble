@@ -26,8 +26,8 @@ import ed.js.func.JSFunctionCalls1;
 import ed.log.Level;
 import ed.log.Logger;
 
-public class PythonReloadTest extends ed.TestCase {
-    private static final String TEST_DIR = "/tmp/pyreload";
+public class PythonDeleteTest extends ed.TestCase {
+    private static final String TEST_DIR = "/tmp/pydelete";
     private static final File testDir = new File(TEST_DIR);
     
     //time to wait between file modifications to allow the fs to update the timestamps
@@ -57,68 +57,15 @@ public class PythonReloadTest extends ed.TestCase {
         
         try {
             globalScope.eval("local.file1();");
-            assertRan3(globalScope);
-
-            clearScope(globalScope);
-            Thread.sleep(SLEEP_MS);
-            writeTest1File2();
-
-            PyObject m = Py.getSystemState().__findattr__("modules");
-
-            globalScope.eval("local.file1();");
-
-            assertRan2(globalScope);
+            Python.deleteCachedJythonFiles(testDir);
+            assert(! foundClassFile(testDir));
 
             Thread.sleep(SLEEP_MS);
-            clearScope(globalScope);
+            writeTest2File1();
             writeTest2File2();
             globalScope.eval("local.file1();");
-
-            assertRan2(globalScope);
-
-            clearScope(globalScope);
-
-            globalScope.eval("local.file1();");
-            assertRan1(globalScope);
-
-            Thread.sleep(SLEEP_MS);
-            writeTest2File2();
-            clearScope(globalScope);
-            globalScope.eval("local.file1();");
-            assertRan2(globalScope);
-
-            Thread.sleep(SLEEP_MS);
-            writeTest3File2();
-            writeTest3File3();
-
-            clearScope(globalScope);
-            globalScope.eval("local.file1();");
-
-            assertRan3(globalScope);
-
-            clearScope(globalScope);
-            globalScope.eval("local.file1();");
-            assertRan1(globalScope);
-
-            Thread.sleep(SLEEP_MS);
-            writeTest3File2();
-            writeTest3File3();
-
-            clearScope(globalScope);
-            globalScope.eval("local.file1();");
-            assertRan3(globalScope);
-
-
-            clearScope(globalScope);
-            globalScope.eval("local.file1();");
-            assertRan1(globalScope);
-
-            Thread.sleep(SLEEP_MS);
-            writeTest3File3();
-            clearScope(globalScope);
-            globalScope.eval("local.file1();");
-
-            assertRan3(globalScope);
+            Python.deleteCachedJythonFiles(testDir);
+            assert(! foundClassFile(testDir));
         }
         finally {
             if(oldScope != null)
@@ -146,7 +93,7 @@ public class PythonReloadTest extends ed.TestCase {
         //Initialize Scope ==================================
         Scope oldScope = Scope.getThreadLocal();
 
-        AppContext ac = new AppContext( "python-reload-test" );
+        AppContext ac = new AppContext( "python-deletion-test" );
         Scope globalScope = ac.getScope();
         globalScope.setGlobal(true);
         globalScope.makeThreadLocal();
@@ -188,12 +135,6 @@ public class PythonReloadTest extends ed.TestCase {
         return globalScope;
     }
 
-    private void clearScope(Scope s){
-        s.set("ranFile1", 0);
-        s.set("ranFile2", 0);
-        s.set("ranFile3", 0);
-    }
-
     // file1 -> file2 -> file3
     private void writeTest1File1() throws IOException{
         fillFile(1, true);
@@ -223,8 +164,25 @@ public class PythonReloadTest extends ed.TestCase {
         writer.close();
     }
 
+    private void writeTest2File1() throws IOException{
+        File f = new File(testDir, "file1.py");
+        PrintWriter writer = new PrintWriter(f);
+        writer.println("import _10gen");
+        writer.println("_10gen.ranFile1 = 1");
+        writer.println("import lib.file2");
+        writer.close();
+    }
+
     private void writeTest2File2() throws IOException{
-        File f = new File(testDir, "file2.py");
+        File lib = new File(testDir, "lib");
+        if(! lib.exists() ) lib.mkdir();
+
+        File init = new File(lib, "__init__.py");
+        PrintWriter writer_i = new PrintWriter(init);
+        writer_i.println("# nothing to see here...");
+        writer_i.close();
+
+        File f = new File(lib, "file2.py");
         PrintWriter writer = new PrintWriter(f);
         writer.println("import _10gen");
         writer.println("_10gen.ranFile2 = 1");
@@ -232,35 +190,13 @@ public class PythonReloadTest extends ed.TestCase {
         writer.close();
     }
 
-    private void writeTest3File2() throws IOException{
-        fillFile(2, true);
-    }
-
-    private void writeTest3File3() throws IOException{
-        File f = new File(testDir, "file3.py");
-        PrintWriter writer = new PrintWriter(f);
-        writer.println("import _10gen");
-        writer.println("_10gen.ranFile3 = 1");
-        writer.println("import file2");
-        writer.close();
-    }
-
-    private void assertRan1(Scope s){
-        assertEquals(s.get("ranFile1"), 1);
-        assertEquals(s.get("ranFile2"), 0);
-        assertEquals(s.get("ranFile3"), 0);
-    }
-
-    private void assertRan2(Scope s){
-        assertEquals(s.get("ranFile1"), 1);
-        assertEquals(s.get("ranFile2"), 1);
-        assertEquals(s.get("ranFile3"), 0);
-    }
-
-    private void assertRan3(Scope s){
-        assertEquals(s.get("ranFile1"), 1);
-        assertEquals(s.get("ranFile2"), 1);
-        assertEquals(s.get("ranFile3"), 1);
+    public boolean foundClassFile(File dir){
+        for(File child : dir.listFiles()){
+            if(child.getName().endsWith(".class")) return true;
+            if(child.isDirectory() && foundClassFile(child))
+                return true;
+        }
+        return false;
     }
 
     public static void main(String [] args){

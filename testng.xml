@@ -23,6 +23,7 @@
       <class name="ed.appserver.templates.HtmlTemplateTest" />
       <class name="ed.lang.python.JSPySequenceListWrapperTest" />
       <class name="ed.lang.python.PythonReloadTest" />
+      <class name="ed.lang.python.PythonDeleteTest" />
     </classes>
   </test>
 

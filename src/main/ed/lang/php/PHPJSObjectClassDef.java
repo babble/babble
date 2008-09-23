@@ -110,13 +110,6 @@ public class PHPJSObjectClassDef extends JavaClassDef {
             return _object.keySet().size();
         }
 
-        public Value wrapJava( Object obj ){
-            PHP.getConvertor( getEnv() ).checkConfigged( obj );
-            if ( obj instanceof JSObject )
-                return (Value)(PHP.getConvertor( getEnv() ).toOther( obj ) );
-            return super.wrapJava( obj );
-        }
-
         // -----------------
         // STUFF NEEEDED FOR JavaAdapter
         // -----------------

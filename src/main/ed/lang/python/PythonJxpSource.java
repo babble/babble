@@ -83,24 +83,25 @@ public class PythonJxpSource extends JxpSource {
                 SiteSystemState ss = Python.getSiteSystemState( ac , s );
                 PySystemState pyOld = Py.getSystemState();
 
-                ensureMetaPathHook( ss , s );
+                ensureMetaPathHook( ss.state , s );
 
                 ss.flushOld();
 
                 ss.setOutput( ar );
 
-                addPath( ss , _lib.getRoot().toString() );
-                addPath( ss , _lib.getTopParent().getRoot().toString() );
+                addPath( ss.state , _lib.getRoot().toString() );
+                addPath( ss.state , _lib.getTopParent().getRoot().toString() );
 
                 PyObject globals = ss.globals;
-                PyObject builtins = ss.builtins;
+                PyObject builtins = ss.state.builtins;
 
                 PyObject pyImport = builtins.__finditem__( "__import__" );
-                if( ! ( pyImport instanceof TrackImport ) )
-                    builtins.__setitem__( "__import__" , new TrackImport( pyImport , (PythonModuleTracker)ss.modules ) );
+                if( ! ( pyImport instanceof TrackImport ) || ((TrackImport)pyImport)._moduleDict != ss.state.modules )
+                    builtins.__setitem__( "__import__" , new TrackImport( pyImport , (PythonModuleTracker)ss.state.modules ) );
 
                 try {
-                    Py.setSystemState( ss );
+                    Py.setSystemState( ss.state );
+
                 
                     PyModule xgenMod = imp.addModule("_10gen");
                     // I know this is appalling but they don't expose this any other

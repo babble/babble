@@ -41,47 +41,29 @@ public class JSMath extends JSObjectBase {
     public JSMath(){
         set( "max" ,
              new JSFunctionCalls2(){
+                 public Object call( Scope s , Object foo[] ) {
+                     return Double.POSITIVE_INFINITY;
+                 }
                  public Object call( Scope s , Object a , Object b , Object foo[] ){
-
-                     if ( a != null && ! ( a instanceof Number ) )
+                     double d1 = getDouble( a );
+                     double d2 = getDouble( b );
+                     if( Double.isNaN( d1 ) || Double.isNaN( d2 ) )
                          return Double.NaN;
-
-                     if ( b != null && ! ( b instanceof Number ) )
-                         return Double.NaN;
-
-                     if ( a == null && b == null )
-                         return 0;
-
-                     if ( a == null )
-                         return b;
-
-                     if ( b == null )
-                         return a;
-
-                     return ((Number)a).doubleValue() > ((Number)b).doubleValue() ? a : b;
+                     return d1 > d2 ? d1 : d2;
                  }
              } );
 
         set( "min" ,
              new JSFunctionCalls2(){
+                 public Object call( Scope s , Object foo[] ) {
+                     return Double.POSITIVE_INFINITY;
+                 }
                  public Object call( Scope s , Object a , Object b , Object foo[] ){
-
-                     if ( a != null && ! ( a instanceof Number ) )
+                     double d1 = getDouble( a );
+                     double d2 = getDouble( b );
+                     if( Double.isNaN( d1 ) || Double.isNaN( d2 ) )
                          return Double.NaN;
-
-                     if ( b != null && ! ( b instanceof Number ) )
-                         return Double.NaN;
-
-                     if ( a == null && b == null )
-                         return 0;
-
-                     if ( a == null )
-                         return b;
-
-                     if ( b == null )
-                         return a;
-
-                     return ((Number)a).doubleValue() < ((Number)b).doubleValue() ? a : b;
+                     return d1 < d2 ? d1 : d2;
                  }
              } );
 
@@ -238,11 +220,16 @@ public class JSMath extends JSObjectBase {
             }
         } );
         
+        set( "E", JSMath.E );
+        lockKey( "E" );
         set( "PI", JSMath.PI );
         lockKey( "PI" );
         set( "SQRT1_2", JSMath.SQRT1_2 );
         lockKey( "SQRT1_2" );
-
+        set( "LN10" , JSMath.LN10 );
+        lockKey( "LN10" );
+        set( "LOG10E" , JSMath.LOG10E );
+        lockKey( "LOG10E" );
     }
 
     static class TrigFunc extends JSFunctionCalls1 {
@@ -286,24 +273,30 @@ public class JSMath extends JSObjectBase {
         }
 
         public Object call( Scope s , Object xObject , Object foo[] ){
-            if( xObject == null )
-                xObject = 0;
-            else if( xObject instanceof Boolean ) {
-                xObject = ((Boolean)xObject).booleanValue() ? 1 : 0;
-            }
-            else if( xObject instanceof String ||
-                     xObject instanceof JSString ) {
-                Pattern num = Pattern.compile( "-?\\d(\\.\\d+)?(e-?\\d+)?" );
-                Matcher possibleNum = num.matcher( xObject.toString() );
-                if( possibleNum.matches() )
-                    xObject = StringParseUtil.parseStrict( xObject.toString() );
-                else
-                    return Double.NaN;
-            }
-            double X = ((Number)xObject).doubleValue();
+            double X = getDouble( xObject );
             return type.go( X );
         }
     };
+
+    public static double getDouble( Object a ) {
+        double d;
+        if ( a == null ) {
+            return 0;
+        }
+        else if( a instanceof Number ) {
+            return ((Number)a).doubleValue();
+        }
+        else if( a instanceof Boolean ) {
+            return ((Boolean)a).booleanValue() ? 1 : 0;
+        }
+        else if( ( a instanceof String || a instanceof JSString ) 
+                 && a.toString().matches( POSSIBLE_NUM ) ) {
+            return StringParseUtil.parseStrict(a.toString()).doubleValue();
+        }
+        else {
+            return Double.NaN;
+        }
+    }
 
     public static double sigFig( double X ){
         return sigFig( X , 3 );
@@ -315,7 +308,11 @@ public class JSMath extends JSObjectBase {
     }
 
     public static final double LN10 = Math.log(10);
+    public static final double LOG10E = Math.log10( Math.E );
     public static final double PI = Math.PI;
+    public static final double E = Math.E;
     public static final double SQRT1_2 = Math.sqrt( .5 );
+
+    private static String POSSIBLE_NUM = "-?\\d+(\\.\\d+)?(e-?\\d+)?";
 
 }
