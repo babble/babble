@@ -37,7 +37,7 @@ Cloud.Server = function( name ){
 Cloud.Server.prototype.gridServer = function(){
     if ( this.bad )
         return null;
-    return this.location + "-" + this.provider + "-grid.10gen.com";
+    return this.location + "-" + this.provider + "-grid.10gen.cc";
 };
 
 Cloud.Server.prototype.toString = function(){
