@@ -625,8 +625,8 @@ public class AppServer implements HttpHandler {
         if ( _administrativeAllowed( request ) ){
             ar.getContext().getLogger().info("creating new context" );
 
+            ar.getContext().updateCode();
             AppContext newContext = ar.getContext().newCopy();
-            newContext.updateCode();
             newContext.getScope();
             newContext.getFileSafe( "index.jxp" );
             _contextHolder.replace( ar.getContext() , newContext );
