@@ -93,7 +93,7 @@ public class PythonDeleteTest extends ed.TestCase {
         //Initialize Scope ==================================
         Scope oldScope = Scope.getThreadLocal();
 
-        AppContext ac = new AppContext( "python deletion test" );
+        AppContext ac = new AppContext( "python-deletion-test" );
         Scope globalScope = ac.getScope();
         globalScope.setGlobal(true);
         globalScope.makeThreadLocal();

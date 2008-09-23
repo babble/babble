@@ -146,7 +146,7 @@ public class PythonReloadTest extends ed.TestCase {
         //Initialize Scope ==================================
         Scope oldScope = Scope.getThreadLocal();
 
-        AppContext ac = new AppContext( "python reload test" );
+        AppContext ac = new AppContext( "python-reload-test" );
         Scope globalScope = ac.getScope();
         globalScope.setGlobal(true);
         globalScope.makeThreadLocal();
