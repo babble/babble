@@ -93,6 +93,8 @@ if [ ! -d $FULLSITE/test/definitions ]
 fi
 ln -s $TESTDIR/resources/definitions $FULLSITE/test/definitions/_10gen_default_defs
 
+sleep 5
+
 # Run webtest.
 cd $FULLSITE/test
 export WTPATH=$EDROOT/include/webtest

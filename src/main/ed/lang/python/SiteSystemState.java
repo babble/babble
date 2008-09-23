@@ -67,16 +67,23 @@ public class SiteSystemState {
         }
     }
 
+    private void _checkModules(){
+        if( ! ( state.modules instanceof PythonModuleTracker ) ){
+            throw new RuntimeException( "i'm not sufficiently set up yet" );
+        }
+    }
+
     /**
      * Flush old modules that have been imported by Python code but
      * whose source is now newer.
      */
     public void flushOld(){
-        if( ! ( state.modules instanceof PythonModuleTracker ) ){
-            throw new RuntimeException( "i'm not sufficiently set up yet" );
-        }
-
         ((PythonModuleTracker)state.modules).flushOld();
+    }
+
+    public void addDependency( PyObject to, PyObject importer ){
+        _checkModules();
+        ((PythonModuleTracker)state.modules).addDependency( to , importer );
     }
 
     /**

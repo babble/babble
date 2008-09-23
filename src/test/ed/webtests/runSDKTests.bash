@@ -94,8 +94,11 @@ for site in $SITES_LIST; do
     rm -r ./sites/${site}test/dtd
 
     # Figure out the pid of the appserver we just brought up.
-    http_pid=`ps -e -o pid,command | grep java | grep "ed.appserver.AppServer" | grep "port $http_port" | awk '{ print $1 }'`
+    http_pid=`ps -e -o pid,command | grep java | grep "port $http_port" | awk '{ print $1 }'`
     # Bring down the appserver
+	echo "ps -e -o pid,command | grep java | grep 'port $http_port':"
+	echo `ps -e -o pid,command | grep java | grep "port $http_port"`
+	echo "Bringing down appserver at pid: ${http_pid}"
     kill $http_pid
 
     # If the webtests failed then bring down the db and exit w/ an error
