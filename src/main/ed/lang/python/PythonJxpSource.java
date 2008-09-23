@@ -85,18 +85,19 @@ public class PythonJxpSource extends JxpSource {
 
                 ss.setOutput( ar );
 
-                addPath( ss.state , _lib.getRoot().toString() );
-                addPath( ss.state , _lib.getTopParent().getRoot().toString() );
+                addPath( ss.getPyState() , _lib.getRoot().toString() );
+                addPath( ss.getPyState() , _lib.getTopParent().getRoot().toString() );
 
                 PyObject globals = ss.globals;
-                PyObject builtins = ss.state.builtins;
+                // Careful -- this is static PySystemState.builtins
+                PyObject builtins = ss.getPyState().builtins;
 
                 PyObject pyImport = builtins.__finditem__( "__import__" );
                 if( ! ( pyImport instanceof TrackImport ) )
                     builtins.__setitem__( "__import__" , new TrackImport( pyImport ) );
 
                 try {
-                    Py.setSystemState( ss.state );
+                    Py.setSystemState( ss.getPyState() );
 
                 
                     PyModule xgenMod = imp.addModule("_10gen");

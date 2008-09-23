@@ -272,7 +272,7 @@ public class Python extends Language {
         if( _rmap == null ){
             _rmap = new HashMap<PySystemState, SiteSystemState>();
         }
-        _rmap.put( state.state, state );
+        _rmap.put( state.getPyState(), state );
         
         return state;
     }

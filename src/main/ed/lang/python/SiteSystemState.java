@@ -49,15 +49,19 @@ import ed.appserver.jxp.*;
  * This is our new approach. Instead of re-wrapping all those method
  * calls, we just store a PySystemState and hopefully do all the
  * 10gen-specific munging here. Our caller should pass
- * SiteSystemState.state to Py.setSystemState as needed.
+ * SiteSystemState.getPyState() to Py.setSystemState as needed.
  */
 public class SiteSystemState {
     SiteSystemState( AppContext ac , PyObject newGlobals , Scope s){
-        state = new PySystemState();
+        pyState = new PySystemState();
         globals = newGlobals;
         _scope = s;
         setupModules();
-        ensureMetaPathHook( state , s );
+        ensureMetaPathHook( pyState , s );
+    }
+
+    public PySystemState getPyState(){
+        return pyState;
     }
 
     /**
@@ -68,19 +72,19 @@ public class SiteSystemState {
      * when needed.
      */
     public void setupModules(){
-        if( ! ( state.modules instanceof PythonModuleTracker ) ){
-            if( state.modules instanceof PyStringMap)
-                state.modules = new PythonModuleTracker( (PyStringMap)state.modules );
+        if( ! ( pyState.modules instanceof PythonModuleTracker ) ){
+            if( pyState.modules instanceof PyStringMap)
+                pyState.modules = new PythonModuleTracker( (PyStringMap)pyState.modules );
             else {
                 // You can comment out this exception, it shouldn't
                 // break anything beyond reloading python modules
-                throw new RuntimeException("couldn't intercept modules " + state.modules.getClass());
+                throw new RuntimeException("couldn't intercept modules " + pyState.modules.getClass());
             }
         }
     }
 
     private void _checkModules(){
-        if( ! ( state.modules instanceof PythonModuleTracker ) ){
+        if( ! ( pyState.modules instanceof PythonModuleTracker ) ){
             throw new RuntimeException( "i'm not sufficiently set up yet" );
         }
     }
@@ -90,7 +94,7 @@ public class SiteSystemState {
      * whose source is now newer.
      */
     public void flushOld(){
-        ((PythonModuleTracker)state.modules).flushOld();
+        ((PythonModuleTracker)pyState.modules).flushOld();
     }
 
     private void ensureMetaPathHook( PySystemState ss , Scope scope ){
@@ -108,7 +112,7 @@ public class SiteSystemState {
 
     public void addDependency( PyObject to, PyObject importer ){
         _checkModules();
-        ((PythonModuleTracker)state.modules).addDependency( to , importer );
+        ((PythonModuleTracker)pyState.modules).addDependency( to , importer );
     }
 
     /**
@@ -118,9 +122,9 @@ public class SiteSystemState {
      * actually prints to an AppRequest stream.
      */
     public void setOutput( AppRequest ar ){
-        PyObject out = state.stdout;
+        PyObject out = pyState.stdout;
         if ( ! ( out instanceof MyStdoutFile ) || ((MyStdoutFile)out)._request != ar ){
-            state.stdout = new MyStdoutFile( ar );
+            pyState.stdout = new MyStdoutFile( ar );
         }
     }
 
@@ -317,6 +321,6 @@ public class SiteSystemState {
 
     final static Logger _log = Logger.getLogger( "python" );
     final public PyObject globals;
-    final public PySystemState state;
+    private PySystemState pyState;
     private Scope _scope;
 }
