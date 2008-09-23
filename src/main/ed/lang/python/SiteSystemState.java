@@ -78,13 +78,11 @@ public class SiteSystemState {
      * whose source is now newer.
      */
     public void flushOld(){
-        System.out.println("Flushing " + __builtin__.id(state.modules));
         ((PythonModuleTracker)state.modules).flushOld();
     }
 
     public void addDependency( PyObject to, PyObject importer ){
         _checkModules();
-        System.out.println("Adding dependency to " + __builtin__.id(state.modules));
         ((PythonModuleTracker)state.modules).addDependency( to , importer );
     }
 
