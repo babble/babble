@@ -61,10 +61,10 @@ module XGen
     class Base
 
       class << self # Class methods
-        # Call this method to initialize your class with the database collection
-        # and instance variable names. If coll_name is not given, the collection
-        # name is assumed to be the class name turned into
-        # lower_case_with_underscores.
+        # Call this method to initialize your class with the database
+        # collection and instance variable names. If collection_name is not
+        # given, the collection name is assumed to be the class name turned
+        # into lower_case_with_underscores.
         #
         #    set_collection :collection_name, %w(var1 var2)
         #    set_collection %w(var1 var2)
@@ -128,6 +128,29 @@ module XGen
         # Find a single database object. See find().
         def findOne(*args)
           find(:first, *args)
+        end
+
+        # Returns all records matching mql. Not yet implemented.
+        def find_by_mql(mql)    # :nodoc:
+          raise "not implemented"
+        end
+        alias_method :find_by_sql, :find_by_mql
+
+        # Returns the number of matching records.
+        def count(*args)
+          find(:all, *args).length
+        end
+
+        # Deletes the record with the given id from the collection.
+        def delete(id)
+          coll.remove({:_id => id})
+        end
+        alias_method :remove, :delete
+
+        # Deletes all matching records. If you want to remove everything in
+        # the collection, pass in an empty hash.
+        def delete_all(*args)
+          coll.remove(*args)
         end
 
         # Creates, saves, and returns a new database object.
@@ -205,10 +228,15 @@ module XGen
         self
       end
 
-      # Removes self from the database. Must have an _id.
-      def remove
-        self.class.coll.remove({:_id => self._id}) if @_id
+      # Removes self from the database and sets @_id to nil. If self has no
+      # @_id, does nothing.
+      def delete
+        if @_id
+          self.class.coll.remove({:_id => self._id})
+          @_id = nil
+        end
       end
+      alias_method :remove, :delete
 
     end
 

@@ -218,8 +218,8 @@ EOS
     assert_nil Track.find(:first, {:_id => "bogus_id"})
   end
 
-  def test_remove
-    Track.find(:first, {:song => 'King For A Day'}).remove
+  def test_delete
+    Track.find(:first, {:song => 'King For A Day'}).delete
     str = Track.find(:all).inject('') { |str, t| str + t.to_s }
     assert str =~ /song: The Ability to Swing/
     assert str =~ /song: Budapest by Blimp/
@@ -227,6 +227,31 @@ EOS
     assert str =~ /song: Garden Of Earthly Delights/
     assert str =~ /song: The Mayor Of Simpleton/
     assert str !~ /song: King For A Day/
+  end
+
+  def test_class_delete
+    Track.delete(@song_id)
+    assert Track.find(:all).inject('') { |str, t| str + t.to_s } !~ /song: The Mayor Of Simpleton/
+  end
+
+  def test_delete_all
+    Track.delete_all({:artist => 'XTC'})
+    assert Track.find(:all).inject('') { |str, t| str + t.to_s } !~ /artist: XTC/
+
+    Track.delete_all({})        # must explicitly pass in {} if you want to delete everything
+    assert_equal 0, Track.count
+  end
+
+  def test_find_by_mql_not_implemented
+    Track.find_by_mql("")
+    fail "should have raised a 'not implemented' exception"
+  rescue => ex
+    assert_equal("not implemented", ex.to_s)
+  end
+
+  def test_count
+    assert_equal 6, Track.count
+    assert_equal 3, Track.count({:artist => 'XTC'})
   end
 
   def assert_all_songs(str)
