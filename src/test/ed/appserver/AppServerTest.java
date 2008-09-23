@@ -29,7 +29,7 @@ public class AppServerTest extends ed.TestCase {
     @Test(groups = {"basic"})
     public void testGetContext(){
         AppContextHolder as = new AppContextHolder( _root + "admin" , _root );
-        
+
         assertEquals( _root + "alleyinsider" , as.getContext( "alleyinsider.latenightcoders.com" , ""  ).getRoot() );
         assertEquals( _root + "alleyinsider" , as.getContext( "alleyinsider.com" , ""  ).getRoot() );
         
@@ -40,9 +40,43 @@ public class AppServerTest extends ed.TestCase {
         assertEquals( _root + "a/www" , as.getContext( "a.com" , ""  ).getRoot() );
         assertEquals( _root + "a/www" , as.getContext( "www.a.com" , ""  ).getRoot() );
         assertEquals( _root + "a/dev" , as.getContext( "dev.a.com" , ""  ).getRoot() );
+
+        assertEquals( _root + "a/www||a.com||/" , as.getContext( "a.com" , ""  ).toString() );
+        assertEquals( _root + "a/www||a.com||/" , as.getContext( "www.a.com" , ""  ).toString() );
+        assertEquals( _root + "a/dev||dev.a.com||/" , as.getContext( "dev.a.com" , ""  ).toString() );
         
+        
+
         assertEquals( _root + "alleyinsider||alleyinsider||/images/logo.gif" , as.getContext( "origin.10gen.com" , "/alleyinsider/images/logo.gif"  ).toString() );
-        assertEquals( _root + "admin||www.com||/alleyinsider/images/logo.gif" , as.getContext( "www.10gen.com" , "/alleyinsider/images/logo.gif" ).toString() );
+        assertEquals( _root + "admin||zzz.com||/alleyinsider/images/logo.gif" , as.getContext( "zzz.10gen.com" , "/alleyinsider/images/logo.gif" ).toString() );
+
+        assertEquals( _root + "www/www||www||/foo" , as.getContext( "www.10gen.com" , "/foo" ).toString() );
+        assertEquals( _root + "www/www||www||/foo" , as.getContext( "www.www.10gen.com" , "/foo" ).toString() );
+        assertEquals( _root + "www/www||www||/foo" , as.getContext( "www.www.10gen.com" , "/foo" ).toString() );
+        assertEquals( _root + "www/www||www||/foo" , as.getContext( "www.10gen.com" , "/foo" ).toString() );
+        assertEquals( _root + "www/www||www||/foo" , as.getContext( "www.www.10gen.com" , "/foo" ).toString() );
+        
+        assertEquals( _root + "www/stage||stage.www||/foo" , as.getContext( "stage.www.10gen.com" , "/foo" ).toString() );
+        
+        assertEquals( _root + "www/www||www||/foo" , as.getContext( "www.10gen.com" , "/foo" ).toString() );
+        assertEquals( _root + "www/www||www||/foo" , as.getContext( "www.www.10gen.com" , "/foo" ).toString() );
+
+        assertEquals( _root + "www/www||www||/foo" , as.getContext( "www.10gen.com" , "/foo" ).toString() );
+        assertEquals( _root + "www/www||www||/foo" , as.getContext( "www.www.10gen.com" , "/foo" ).toString() );
+        assertEquals( _root + "www/www||www||/foo" , as.getContext( "www.www.10gen.com" , "/foo" ).toString() );
+        assertEquals( _root + "www/www||www||/foo" , as.getContext( "www.10gen.com" , "/foo" ).toString() );
+        assertEquals( _root + "www/www||www||/foo" , as.getContext( "www.www.10gen.com" , "/foo" ).toString() );
+        
+        assertEquals( _root + "www/stage||stage.www||/foo" , as.getContext( "stage.www.10gen.com" , "/foo" ).toString() );
+        
+        assertEquals( _root + "www/www||www||/foo" , as.getContext( "www.10gen.com" , "/foo" ).toString() );
+        assertEquals( _root + "www/www||www||/foo" , as.getContext( "www.www.10gen.com" , "/foo" ).toString() );
+
+        assertEquals( _root + "www/stage||stage.www||/foo" , as.getContext( "origin.10gen.com" , "/stage.www.10gen.com/foo" ).toString() );
+
+        assertEquals( _root + "www/www||www||/foo" , as.getContext( "origin.10gen.com" , "/www.10gen.com/foo" ).toString() );
+        assertEquals( _root + "www/www||www||/foo" , as.getContext( "origin.10gen.com" , "/www.www.10gen.com/foo" ).toString() );
+        
     }
 
 

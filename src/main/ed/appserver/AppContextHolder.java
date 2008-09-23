@@ -49,6 +49,10 @@ public class AppContextHolder {
     private static final String LOCAL_BRANCH_LIST[] = new String[]{ "master" , "test" , "www" };
     private static final String WWW_BRANCH_LIST[] = new String[]{ "test" , "master" };
 
+    /**
+     * @param defaultWebRoot default web site
+     * @param root where all your sites live
+     */
     public AppContextHolder( String defaultWebRoot  , String root ){
         _defaultWebRoot = defaultWebRoot;
         _root = root;
@@ -104,26 +108,30 @@ public class AppContextHolder {
         uri = info.uri;
 
         AppContext ac = _getContextFromMap( host );
-        if ( ac != null )
+        if ( ac != null ){
+            if ( D ) System.out.println( "\t found in cache [" + host + "]" );
             return new Result( ac , host , uri );
+        }
         
         synchronized ( _contextCreationLock ){
             
             ac = _getContextFromMap( host );
-            if ( ac != null )
+            if ( ac != null ){
+                if ( D ) System.out.println( "\t found in cache [" + host + "]"  );
                 return _finish( ac , host, uri , host );
+            }
 
             for ( Info i : getPossibleSiteNames( info ) ){
                 if ( D ) System.out.println( "\t possible site name [" + i.host + "]" );
                 File temp = new File( _root , i.host );
                 if ( temp.exists() )
-                    return _finish( getEnvironmentContext( temp , i , host ) , i.host , info.uri , host );
+                    return _finish( getEnvironmentContext( temp , i , host ) , host , info.uri , host );
 
                 JSObject site = getSiteFromCloud( i.host );
                 if ( site != null ){
                     if ( D ) System.out.println( "\t found site from cloud" );
                     temp.mkdirs();
-                    return _finish( getEnvironmentContext( temp , i , host ) , i.host , info.uri , host );
+                    return _finish( getEnvironmentContext( temp , i , host ) , host , info.uri , host );
                 }
             }
         }
@@ -133,7 +141,6 @@ public class AppContextHolder {
     
     private Result _finish( AppContext context , String host , String uri , String origHost ){
         _contextCache.put( origHost , context );
-        _contextCache.put( host , context );
         return new Result( context , host , uri );
     }
 
@@ -171,7 +178,6 @@ public class AppContextHolder {
             
         }
 
-        _contextCache.put( info.host , ac );
         _contextCache.put( originalHost , ac );
         return ac;
     }
@@ -413,7 +419,9 @@ public class AppContextHolder {
         for ( String d : OUR_DOMAINS ){
             if ( host.endsWith( d ) ){
                 host = host.substring( 0 , host.length() - d.length() );
-                if ( host.indexOf( "." ) < 0 )
+                if ( host.equals( "www" ) || host.equals( "www.www" ) )
+                    host = "www";
+                else if ( host.indexOf( "." ) < 0 )
                     host += ".com";
                 break;
             }
@@ -454,7 +462,7 @@ public class AppContextHolder {
             }
 
             return big.substring( 0 , idx );
-
+            
         }
 
         public String toString(){
@@ -471,8 +479,10 @@ public class AppContextHolder {
             this.context = context;
             this.host = host;
             this.uri = uri;
+            if ( this.host.equalsIgnoreCase( "www" ) && getRoot().contains( "stage" ) )
+                throw new RuntimeException( "blah" );
         }
-
+        
         String getRoot(){
             return context.getRoot();
         }
@@ -492,6 +502,16 @@ public class AppContextHolder {
     private final String _defaultWebRoot;
     private AppContext _defaultContext;
 
-    private final Map<String,AppContext> _contextCache = Collections.synchronizedMap( new StringMap<AppContext>() );
+    private final Map<String,AppContext> _contextCache = Collections.synchronizedMap( new StringMap<AppContext>(){
+            public AppContext put( String name , AppContext c ){
+                if ( D ) System.out.println( "adding to cache [" + name + "] -> [" + c + "]" );
+
+                if ( name.equalsIgnoreCase( "www" ) && c.toString().contains( "stage" ) )
+                    throw new RuntimeException( "here" );
+
+
+                return super.put( name , c );
+            }
+        } );
     private final String _contextCreationLock = ( "AppContextHolder-Lock-" + Math.random() ).intern();
 }
