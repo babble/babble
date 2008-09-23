@@ -113,28 +113,31 @@ import ed.appserver.jxp.*;
 
      @Test
      public void testGuessNameAndEnv(){
-         assertEquals( "silly" , AppContext.guessNameAndEnv( "../silly/www" )[0] );
-         assertEquals( "silly" , AppContext.guessNameAndEnv( "../silly/" )[0] );
-         assertEquals( "silly" , AppContext.guessNameAndEnv( "../silly" )[0] );
-         assertEquals( "www" , AppContext.guessNameAndEnv( "../silly/www" )[1] );
-         assertEquals( "www" , AppContext.guessNameAndEnv( "/silly/www" )[1] );
+         assertEquals( "silly" , AppContext.guessNameAndEnv( "../silly/www" ).name );
+         assertEquals( "silly" , AppContext.guessNameAndEnv( "../silly/" ).name );
+         assertEquals( "silly" , AppContext.guessNameAndEnv( "../silly" ).name );
+         assertEquals( "www" , AppContext.guessNameAndEnv( "../silly/www" ).env );
+         assertEquals( "www" , AppContext.guessNameAndEnv( "/silly/www" ).env );
 
-         assertEquals( "test" , AppContext.guessNameAndEnv( "../test/www" )[0] );
-         assertEquals( "www" , AppContext.guessNameAndEnv( "../test/www" )[1] );
-         assertEquals( "test" , AppContext.guessNameAndEnv( "./test/www" )[0] );
-         assertEquals( "www" , AppContext.guessNameAndEnv( "./test/www" )[1] );
-         assertEquals( "test" , AppContext.guessNameAndEnv( "/data/sites/test/www" )[0] );
-         assertEquals( "www" , AppContext.guessNameAndEnv( "/data/sites/test/www" )[1] );
-         assertEquals( "test" , AppContext.guessNameAndEnv( "/asdasdasdsd123qsa////asds12zd../../.a.sd/sad/sites/test/www" )[0] );
-         assertEquals( "www" , AppContext.guessNameAndEnv( "/aksjd12hlasnciuashdn!@#$!asd124/sites/test/www" )[1] );
+         assertEquals( "test" , AppContext.guessNameAndEnv( "../test/www" ).name );
+         assertEquals( "www" , AppContext.guessNameAndEnv( "../test/www" ).env );
+         assertEquals( "test" , AppContext.guessNameAndEnv( "./test/www" ).name );
+         assertEquals( "www" , AppContext.guessNameAndEnv( "./test/www" ).env );
+         assertEquals( "test" , AppContext.guessNameAndEnv( "/data/sites/test/www" ).name );
+         assertEquals( "www" , AppContext.guessNameAndEnv( "/data/sites/test/www" ).env );
+         assertEquals( "test" , AppContext.guessNameAndEnv( "/asdasdasdsd123qsa////asds12zd../../.a.sd/sad/sites/test/www" ).name );
+         assertEquals( "www" , AppContext.guessNameAndEnv( "/aksjd12hlasnciuashdn!@#$!asd124/sites/test/www" ).env );
 
-         assertEquals( "test" , AppContext.guessNameAndEnv( "../test/test" )[0] );
-         assertEquals( "test" , AppContext.guessNameAndEnv( "../test/test" )[1] );
-         assertEquals( "test" , AppContext.guessNameAndEnv( "./test/test" )[0] );
-         assertEquals( "test" , AppContext.guessNameAndEnv( "./test/test" )[1] );
+         assertEquals( "www" , AppContext.guessNameAndEnv( "/data/sites/www/stage" ).name );
+         assertEquals( "stage" , AppContext.guessNameAndEnv( "/data/sites/www/stage" ).env );
+
+         assertEquals( "test" , AppContext.guessNameAndEnv( "../test/test" ).name );
+         assertEquals( "test" , AppContext.guessNameAndEnv( "../test/test" ).env );
+         assertEquals( "test" , AppContext.guessNameAndEnv( "./test/test" ).name );
+         assertEquals( "test" , AppContext.guessNameAndEnv( "./test/test" ).env );
          
-         assertEquals( "test" , AppContext.guessNameAndEnv( "../test" )[0] );
-         assertEquals( "test" , AppContext.guessNameAndEnv( "./test" )[0] );
+         assertEquals( "test" , AppContext.guessNameAndEnv( "../test" ).name );
+         assertEquals( "test" , AppContext.guessNameAndEnv( "./test" ).name );
      }
 
      public static void main(String[] args) throws Exception{
