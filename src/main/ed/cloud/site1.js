@@ -391,13 +391,13 @@ Cloud.Site.prototype.upsertDB = function( name , server , userToInsert ){
         if ( this.defaultUsers ){
             for each ( u in this.defaultUsers ){
                 log( "storing user [" + u.email + "] in [" + conn + "]" );
-                conn.users.save( u );
+                conn.users.save( this._copyUser( u ) );
             }
         }
 
         if ( userToInsert ){
 	    if ( ! db.users.findOne( { email : userToInsert.email } ) ){
-	        conn.users.save( userToInsert );
+	        conn.users.save( this._copyUser( userToInsert ) );
             }
         }
 
@@ -405,6 +405,18 @@ Cloud.Site.prototype.upsertDB = function( name , server , userToInsert ){
 
     return true;
 };
+
+Cloud.Site.prototype._copyUser = function( u ){
+    var n = {};
+    
+    for ( var k in u ){
+        if ( k == "_id" || javaStatic( "ed.db.ByteEncoder" , "dbOnlyField" , k ) )
+            continue;
+        n[k] = u[k];
+    }
+
+    return n;
+}
 
 // -----  Util Stuff -----------
 
