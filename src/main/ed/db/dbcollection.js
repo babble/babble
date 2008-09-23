@@ -107,6 +107,25 @@ DBCollection.prototype.reIndex = function(){
 }
 
 /** 
+ * clean the collection AND all of its indexes
+ * note: prints output to the console.
+ */
+DBCollection.prototype.cleanAll = function(){    
+    var coll = this;
+    print("cleaning " + coll);
+    print( tojson( coll.clean() ) );
+    var all = this.getDB().system.indexes.find( { ns : this.getFullName() } ).toArray();
+    all.forEach(
+        function(z){
+	    var idx = coll + ".$" + z.name;
+	    print("cleaning " + idx);
+	    // print("db: " + coll.getDB());
+	    print( tojson(coll.getDB()[idx].clean()) );
+        }
+    );
+}
+
+/** 
  * Validate the data in a collection, returning some stats.
  * @return An object with several fields set including:
  * <ul>
@@ -161,6 +180,7 @@ DBCollection.prototype.drop = function()
 
 /**
  *  Drop free lists. Normally not used.
+ *  Note this only does the collection itself, not the namespaces of its indexes (see cleanAll).
  */
 DBCollection.prototype.clean = function() {
     return this._dbCommand( { clean: this.getName() } );

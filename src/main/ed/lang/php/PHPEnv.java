@@ -82,8 +82,23 @@ class PHPEnv extends Env {
 
     public Value wrapJava( Object obj ){
         _convertor.checkConfigged( obj );
+        //wrap jsobjects
         if ( obj instanceof JSObject )
             return (Value)(_convertor.toOther( obj ) );
+
+        //rewrap jsobjects that have been wrapped already
+        if( (obj instanceof JavaAdapter) && !(obj instanceof PHPJSObjectClassDef.Adapter) ) {
+            Object inner = ((JavaAdapter)obj).toJavaObject();
+            if(inner instanceof JSObject) {
+                if(PHP.DEBUG) {
+                    System.err.println("Found a wrapped jsobject, which was wrapped using the default php wrapping mechanism, rewrapping....");
+                    try { System.err.println("Obj: " + JSON.serialize(inner)); } catch(Exception e) {}
+                }
+                
+                return (Value)_convertor.toOther(inner);
+            }
+        }
+        //use default php wrappers for non 10gen stuff
         return super.wrapJava( obj );
     }
     
