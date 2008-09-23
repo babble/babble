@@ -36,6 +36,10 @@ Cloud.Pool.getAllNames = function(){
     ); 
 }
 
+Cloud.Pool.prototype.toString = function(){
+    return "pool [" + this.name + "] machines [" + this.machines + "]";
+}
+
 db.pools.setConstructor( Cloud.Pool );
 
 if ( me.real ){

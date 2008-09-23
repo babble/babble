@@ -68,7 +68,7 @@ public class AppContext extends ServletContextBase {
      * @param root the path to the site from where ed is being run
      */
     public AppContext( String root ){
-        this( root , guessNameAndEnv( root )[0] , guessNameAndEnv( root )[1] );
+        this( root , guessNameAndEnv( root ).name , guessNameAndEnv( root ).env );
     }
 
     /** Initializes a new context.
@@ -99,7 +99,7 @@ public class AppContext extends ServletContextBase {
             throw new NullPointerException( "AppContext rootFile can't be null" );
 
         if ( name == null )
-            name = guessNameAndEnv( root )[0];
+            name = guessNameAndEnv( root ).name;
 
         if ( name == null )
             throw new NullPointerException( "how could name be null" );
@@ -334,7 +334,11 @@ public class AppContext extends ServletContextBase {
        return null;
     }
 
-    static String[] guessNameAndEnv( String root ){
+
+    /**
+     * @return [ <name> , <env> ]
+     */
+    static NameAndEnv guessNameAndEnv( String root ){
 	root = ed.io.FileUtil.clean( root );
         root = root.replaceAll( "\\.+/" , "" );
         String pcs[] = root.split("/+");
@@ -345,25 +349,37 @@ public class AppContext extends ServletContextBase {
         // handle anything with sites/foo
         for ( int i=0; i<pcs.length-1; i++ )
             if ( pcs[i].equals( "sites" ) ){
-                return new String[]{ pcs[i+1] , i+2 < pcs.length ? pcs[i+2] : null };
+                return new NameAndEnv( pcs[i+1] , i+2 < pcs.length ? pcs[i+2] : null );
             }
         
         final int start = pcs.length-1;
         for ( int i=start; i>0; i-- ){
             String s = pcs[i];
-
+            
             if ( i == start && 
                  ( s.equals("master" ) ||
                    s.equals("test") ||
                    s.equals("www") ||
                    s.equals("staging") ||
+                   //s.equals("stage") ||
                    s.equals("dev" ) ) )
                 continue;
 
-            return new String[]{ s , i + 1 < pcs.length ? pcs[i+1] : null };
+            return new NameAndEnv( s , i + 1 < pcs.length ? pcs[i+1] : null );
         }
 
-        return new String[]{ pcs[0] , pcs.length > 1 ? pcs[1] : null };
+        return new NameAndEnv( pcs[0] , pcs.length > 1 ? pcs[1] : null );
+    }
+    
+    static class NameAndEnv {
+        NameAndEnv( String name , String env ){
+            this.name = name;
+            this.env = env;
+        }
+
+        final String name;
+        final String env;
+        
     }
 
     /**
