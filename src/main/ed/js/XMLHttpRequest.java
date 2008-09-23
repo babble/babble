@@ -278,30 +278,34 @@ public class XMLHttpRequest extends JSObjectBase {
 
         buf.append( _method ).append( " " ).append( getLocalURL() ).append( " " ).append( "HTTP/1.0\r\n" );
 
-        buf.append( "Host: " ).append( getHost() );
-        if ( _url.getPort() > 0 )
-            buf.append( ":" ).append( getPort() );
-        buf.append( "\r\n" );
-
+        if ( ! _headersToSend.containsKey( "Host" ) ){
+            buf.append( "Host: " ).append( getHost() );
+            if ( _url.getPort() > 0 )
+                buf.append( ":" ).append( getPort() );
+            buf.append( "\r\n" );
+        }
+        
         buf.append( "Connection: Close\r\n"  );
-
-	for( String x : _extraHeaders )
-	    buf.append(x);
-
+        
+	for( String label : _headersToSend.keySet() )
+	    buf.append(label).append( ": " ).append( _headersToSend.get( label ) ).append( "\r\n" ) ;
+        
         buf.append( "\r\n" );
-
+        
         return buf.toString();
     }
 
     /** @unexpose */
-    List<String> _extraHeaders = new ArrayList<String>();
+
 
     /** Add a label/value pair to the request headers.
      * @param label Header label.
      * @param value Header value.
      */
     public void setRequestHeader(String label, String value) {
-	_extraHeaders.add(label + ": " + value + "\r\n");
+        if ( label.equalsIgnoreCase( "connection" ) )
+            return;
+        _headersToSend.put( label , value );
     }
 
     /** Get the path and query parts of the URL, if they exist.
@@ -481,7 +485,8 @@ public class XMLHttpRequest extends JSObjectBase {
     String _method;
     String _urlString;
     boolean _async;
-
+    Map<String,String> _headersToSend = new HashMap<String,String>();
+    
     URL _url;
     Scope _onreadystatechangeScope;
 }
