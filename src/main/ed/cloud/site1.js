@@ -475,16 +475,18 @@ Cloud.Site.prototype.updateEnvironment = function( envName , fullReset , dryRun 
     if ( ! p )
         throw "couldn't find pool [" + env.pool + "]";
     
+    log.debug( "update site [" + this.name + "] env [" + envName + "] pool [" + p + "]" );
+
     var threads = [];
-
+    
     var hostName = env.name + "." + this.name + ".10gen.com";
-
+    
     var res = { ok : true };
     for ( var i=0; i<p.machines.length; i++ ){
         var machine = p.machines[i];
-	threads.push(
+    	threads.push(
 	    fork( 
-		function(){
+		function( machine ){
 		    try {
 			res[machine] = Cloud.Site.resetSiteOnHost( machine , hostName , command , dryRun );
 		    }
@@ -493,13 +495,14 @@ Cloud.Site.prototype.updateEnvironment = function( envName , fullReset , dryRun 
 			res[machine] = e;
 		    }
 		}
+                , machine
             )
         );
     }
 
     for ( var i=0; i<threads.length; i++ ) threads[i].start();
     for ( var i=0; i<threads.length; i++ ) threads[i].join();
-
+    
     return res;
 }
 
