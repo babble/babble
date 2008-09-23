@@ -310,11 +310,6 @@ public class Shell {
 
         if ( exit )
             return;
-
-        if (replLang.equals(Language.RUBY)) {
-            ((ed.lang.ruby.RubyLanguage)replLang).irb();
-            return;
-        }
         
         String line;
         ConsoleReader console = new ConsoleReader();
