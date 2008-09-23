@@ -59,7 +59,7 @@ public class ModJyConnector extends HttpServlet  {
         try {
             SiteSystemState ssstate = Python.getSiteSystemState( ac , ac.getScope() );
 	    PythonInterpreter.initialize(System.getProperties(), props, new String[0]);
-	    interp = new PythonInterpreter( null , ssstate.state );
+	    interp = new PythonInterpreter( null , ssstate.getPyState() );
 	    // Ouch. Why doesn't tomcat set the classpath?
 	    PySystemState sys = Py.getSystemState();
 	    if (props.get("modjy_jar.location") != null)
