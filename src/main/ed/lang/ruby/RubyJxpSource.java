@@ -184,7 +184,7 @@ public class RubyJxpSource extends JxpSource {
         } catch (UnsupportedEncodingException e) {
             bytes = script.getBytes();
         }
-        return _runtime.parseInline(new ByteArrayInputStream(bytes), filePath, null);
+        return _runtime.parseFile(new ByteArrayInputStream(bytes), filePath, null);
     }
 
     protected void _addJSFileLibrariesToPath(Scope s) {
