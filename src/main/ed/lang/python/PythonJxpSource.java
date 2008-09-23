@@ -96,8 +96,8 @@ public class PythonJxpSource extends JxpSource {
                 PyObject builtins = ss.state.builtins;
 
                 PyObject pyImport = builtins.__finditem__( "__import__" );
-                if( ! ( pyImport instanceof TrackImport ) || ((TrackImport)pyImport)._moduleDict != ss.state.modules )
-                    builtins.__setitem__( "__import__" , new TrackImport( pyImport , (PythonModuleTracker)ss.state.modules ) );
+                if( ! ( pyImport instanceof TrackImport ) )
+                    builtins.__setitem__( "__import__" , new TrackImport( pyImport ) );
 
                 try {
                     Py.setSystemState( ss.state );
@@ -167,13 +167,14 @@ public class PythonJxpSource extends JxpSource {
 
     class TrackImport extends PyObject {
         PyObject _import;
-        PythonModuleTracker _moduleDict;
-        TrackImport( PyObject importF , PythonModuleTracker sys_modules ){
+        TrackImport( PyObject importF ){
             _import = importF;
-            _moduleDict = sys_modules;
         }
 
         public PyObject __call__( PyObject args[] , String keywords[] ){
+            AppContext ac = Python.getAppContext( Py.getSystemState() );
+            SiteSystemState sss = Python.getSiteSystemState( ac , null );
+            
             int argc = args.length;
             // Second argument is the dict of globals. Mostly this is helpful
             // for getting context -- file or module *doing* the import.
@@ -201,11 +202,13 @@ public class PythonJxpSource extends JxpSource {
 
             // Add a plain old JXP dependency on the file that was imported
             // Not sure if this is helpful or not
-            addDependency( to.toString() );
+            // Can't do this right now -- one TrackImport is created for all
+            // PythonJxpSources. FIXME.
+            //addDependency( to.toString() );
 
             // Add a module dependency -- module being imported was imported by
             // the importing module
-            _moduleDict.addDependency( to , importer );
+            sss.addDependency( to , importer );
             return m;
 
             //PythonJxpSource foo = PythonJxpSource.this;

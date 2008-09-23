@@ -188,7 +188,7 @@ public class Python extends Language {
     }
 
     public static PyObject getGlobals( Scope s ){
-        if( s == null ) throw new RuntimeException("can't happen??");
+        if( s == null ) return null; //throw new RuntimeException("can't happen??");
         Scope pyglobals = s.child( "scope to hold python builtins" );
 
         PyObject globals = new PyJSScopeWrapper( pyglobals , false );
@@ -243,8 +243,11 @@ public class Python extends Language {
     }
 
     public static SiteSystemState getSiteSystemState( AppContext ac , Scope s ){
-        if( ac == null || s == null ){
+        if( ac == null && s == null ){
             return new SiteSystemState( ac , getGlobals( s ) );
+        }
+        if( s == null ){ // but ac != null 
+            s = ac.getScope();
         }
         Object __python__ = s.get( "__python__" );
         if( __python__ != null && __python__ instanceof SiteSystemState ){
@@ -253,8 +256,19 @@ public class Python extends Language {
 
         SiteSystemState state = new SiteSystemState( ac , getGlobals( s ) );
         s.set( "__python__" , state );
+
+        if( _rmap == null ){
+            _rmap = new HashMap<PySystemState, AppContext>();
+        }
+        _rmap.put( state.state, ac );
+
         return state;
     }
 
+    public static AppContext getAppContext( PySystemState py ){
+        return _rmap.get( py );
+    }
+
     private static Scope _extractGlobals;
+    private static Map<PySystemState, AppContext> _rmap;
 }
