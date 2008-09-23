@@ -316,8 +316,6 @@ public class RubyJxpSource extends JxpSource {
                 }
                 return runtime.getTrue();
             }
-            else
-                System.err.println("file library object " + o + " is not a callable function");
         }
         catch (Exception e) {
             if (DEBUG || RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
