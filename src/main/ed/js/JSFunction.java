@@ -56,6 +56,8 @@ public abstract class JSFunction extends JSFunctionBase {
         _prototype = new JSObjectBase();
 
         set( "prototype" , _prototype );
+        set( "length" , num );
+        dontEnum( "length" );
         init();
     }
 

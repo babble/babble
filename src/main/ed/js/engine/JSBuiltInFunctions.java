@@ -690,6 +690,7 @@ public class JSBuiltInFunctions {
                       } , true );
 
         s.put( "NaN" , Double.NaN , true );
+        s.put( "Infinity" , Double.POSITIVE_INFINITY , true );
 
         s.put( "md5" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object b , Object extra[] ){

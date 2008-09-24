@@ -142,6 +142,7 @@ public class JSNumber extends Number implements JSObject {
         return x;
     }
 
+    public final static JSNumber NEGATIVE_ZERO = new JSNumber( 0 );
 
     /** Function to parse a number using a given base.  */
     public static class Cons extends JSFunctionCalls2{
@@ -183,9 +184,13 @@ public class JSNumber extends Number implements JSObject {
             set( "NaN" , Double.NaN );
             set( "POSITIVE_INFINITY" , Double.POSITIVE_INFINITY );
             set( "NEGATIVE_INFINITY" , Double.NEGATIVE_INFINITY );
+            set( "MAX_VALUE" , Double.MAX_VALUE );
+            set( "MIN_VALUE" , Double.MIN_VALUE );
             lockKey( "NaN" );
             lockKey( "POSITIVE_INFINITY" );
             lockKey( "NEGATIVE_INFINITY" );
+            lockKey( "MAX_VALUE" );
+            lockKey( "MIN_VALUE" );
         }
         
     }
