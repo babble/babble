@@ -151,6 +151,26 @@ public class DNSUtil {
 	return DNSResolver.getByName( host );
     }
 
+    public static InetAddress getLocalHost(){
+        return LOCALHOST;
+    }
+
+    private final static InetAddress LOCALHOST;
+    static {
+        InetAddress l = null;
+	try {
+	    l = InetAddress.getLocalHost();
+	}
+	catch ( Exception e ){
+	    e.printStackTrace();
+	    System.err.println( "exiting" );
+	    System.exit(-1);
+	}
+        finally {
+            LOCALHOST = l;
+        }
+    }
+    
     public static void main( String args[] )
         throws Exception {
         
