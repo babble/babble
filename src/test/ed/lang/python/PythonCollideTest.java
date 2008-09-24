@@ -26,11 +26,11 @@ import ed.js.func.JSFunctionCalls1;
 import ed.log.Level;
 import ed.log.Logger;
 
-public class PythonCollideTest extends ed.TestCase {
+public class PythonCollideTest extends PythonTestCase {
     private static final String TEST_DIR_1 = "/tmp/pycontext1";
     private static final String TEST_DIR_2 = "/tmp/pycontext2";
-    private static final File testDir1 = new File(TEST_DIR_1);
-    private static final File testDir2 = new File(TEST_DIR_2);
+    private final File testDir1 = new File(TEST_DIR_1);
+    private final File testDir2 = new File(TEST_DIR_2);
     
     //time to wait between file modifications to allow the fs to update the timestamps
     private static final long SLEEP_MS = 5000;
@@ -45,8 +45,8 @@ public class PythonCollideTest extends ed.TestCase {
         
     @Test
     public void test() throws IOException, InterruptedException {
-        final Scope site1Scope = initScope(testDir1);
-        final Scope site2Scope = initScope(testDir2);
+        final Scope site1Scope = initScope(testDir1, "pycontext1");
+        final Scope site2Scope = initScope(testDir2, "pycontext2");
         site1Scope.set( "counter", 0 );
         site2Scope.set( "counter", 1000 );
         writeTest1Files(true);
@@ -148,60 +148,6 @@ public class PythonCollideTest extends ed.TestCase {
         
     }
     
-    private static void rdelete(File f) {
-        if(f.isDirectory()) {
-            for(File sf : f.listFiles())
-                rdelete(sf);
-        }
-        f.delete();
-    }
-    
-    private Scope initScope(final File dir) {
-        //Initialize Scope ==================================
-        Scope oldScope = Scope.getThreadLocal();
-
-        AppContext ac = new AppContext( "python-collision-test-"+dir );
-        Scope globalScope = ac.getScope();
-        globalScope.setGlobal(true);
-        globalScope.makeThreadLocal();
-        
-        try {
-            //Load native objects
-            Logger log = Logger.getRoot();
-            globalScope.set("log", log);
-            log.makeThreadLocal();
-            
-            Map<String, JSFileLibrary> rootFiles = new HashMap<String, JSFileLibrary>();
-            rootFiles.put("local", new JSFileLibrary(dir, "local", ac ));
-            for(Map.Entry<String, JSFileLibrary> rootFileLib : rootFiles.entrySet())
-                globalScope.set(rootFileLib.getKey(), rootFileLib.getValue());
-
-            Encoding.install(globalScope);
-            //JSHelper helper = JSHelper.install(globalScope, rootFiles, log);
-    
-            globalScope.set("SYSOUT", new JSFunctionCalls1() {
-                public Object call(Scope scope, Object p0, Object[] extra) {
-                    System.out.println(p0);
-                    return null;
-                }
-            });
-            globalScope.put("openFile", new JSFunctionCalls1() {
-                public Object call(Scope s, Object name, Object extra[]) {
-                    return new JSLocalFile(dir, name.toString());
-                }
-            }, true);
-            
-            //configure Djang10 =====================================
-            //helper.addTemplateRoot(globalScope, new JSString("/local"));
-
-        }
-        finally {
-            if(oldScope != null) oldScope.makeThreadLocal();
-            else Scope.clearThreadLocal();
-        }
-        return globalScope;
-    }
-
     // file1 -> file2 -> file3
     private void writeTest1Files(boolean sleep) throws IOException{
         fillFile(testDir1, 1, 0, sleep, true);
@@ -219,10 +165,6 @@ public class PythonCollideTest extends ed.TestCase {
     private void refreshTest1Files() throws IOException{
         fillFile(testDir1, 3, 0, false, false);
         fillFile(testDir2, 3, 0, false, false);
-    }
-
-    private void setTime(PrintWriter writer, String name){
-        writer.println("_10gen."+name+" = _10gen.counter; _10gen.counter += 1");
     }
 
     private void fillFile(File dir, int n, int val, boolean sleep, boolean importNext) throws IOException{
