@@ -112,8 +112,8 @@ public class SiteSystemState {
      * Flush old modules that have been imported by Python code but
      * whose source is now newer.
      */
-    public void flushOld(){
-        ((PythonModuleTracker)pyState.modules).flushOld();
+    public Set<File> flushOld(){
+        return ((PythonModuleTracker)pyState.modules).flushOld();
     }
 
     private void ensureMetaPathHook( PySystemState ss , Scope scope ){

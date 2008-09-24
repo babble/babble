@@ -61,11 +61,15 @@ public class PythonModuleTracker extends PyStringMap {
         // point in time, the module doesn't have a __file__
     }
 
-    public void flushOld(){
+    /**
+     * @return the flushed files
+     */
+    public Set<File> flushOld(){
 
         boolean shouldFlush = false;
 
         Set<String> newer = new HashSet<String>();
+        Set<File> files = new HashSet<File>();
 
         // Go through each module in sys.modules and see if the file is newer
         for( Object o : keys() ){
@@ -97,6 +101,7 @@ public class PythonModuleTracker extends PyStringMap {
                 pyFile.lastModified() > clsFile.lastModified() ){
                 //System.out.println("Newer " + pyFile + " " + clsFile);
                 newer.add( s );
+                files.add( pyFile );
             }
         }
 
@@ -133,6 +138,7 @@ public class PythonModuleTracker extends PyStringMap {
 
         }
 
+        return files;
     }
 
     // Stores relationships of "module Y was imported by modules X1, X2, X3.."
