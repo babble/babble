@@ -124,7 +124,7 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     }
 
     public Object set( Object n , Object v ){
-        if( _p == null && n.equals( "prototype" ) ){
+        if( _p == null && ( n.equals( "prototype" ) || n.equals( "length" ) ) ){
             if( DEBUG )
                 System.err.println("I'm not set up yet! Ignoring set to " + n);
             return v;
