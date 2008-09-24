@@ -149,7 +149,7 @@ Cloud.Site.prototype.findEnvironmentById = function( id ){
     return ret;
 };
 
-Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool , aliases ){
+Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool , aliases , comment ){
     if ( isObject( name ) && branch == null ){
         var o = name;
         var tempID = o.iid || o.id;
@@ -163,7 +163,7 @@ Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool , a
         db = o.db || e.db;
         pool = o.pool || e.pool;
         aliases = o.aliases || e.aliases;
-
+        comment = o.comment || e.comment;
             
     }
         
@@ -225,6 +225,11 @@ Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool , a
             e.aliases = aliases;
             if ( old == null || old.hashCode() != e.aliases.hashCode() )
                 changed = true;
+        }
+
+        if ( e.comment != comment ){
+            e.comment = comment;
+            changed = true;
         }
 
         return changed;
