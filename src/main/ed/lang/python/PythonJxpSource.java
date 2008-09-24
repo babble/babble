@@ -92,10 +92,6 @@ public class PythonJxpSource extends JxpSource {
                 // Careful -- this is static PySystemState.builtins
                 PyObject builtins = ss.getPyState().builtins;
 
-                PyObject pyImport = builtins.__finditem__( "__import__" );
-                if( ! ( pyImport instanceof TrackImport ) )
-                    builtins.__setitem__( "__import__" , new TrackImport( pyImport ) );
-
                 try {
                     Py.setSystemState( ss.getPyState() );
 
@@ -144,55 +140,6 @@ public class PythonJxpSource extends JxpSource {
     
     void addDependency( String to ){
         super.addDependency( new FileDependency( new File( to ) ) );
-    }
-
-    class TrackImport extends PyObject {
-        PyObject _import;
-        TrackImport( PyObject importF ){
-            _import = importF;
-        }
-
-        public PyObject __call__( PyObject args[] , String keywords[] ){
-            SiteSystemState sss = Python.getSiteSystemState( null , Scope.getThreadLocal() );
-            
-            int argc = args.length;
-            // Second argument is the dict of globals. Mostly this is helpful
-            // for getting context -- file or module *doing* the import.
-            PyObject globals = ( argc > 1 ) ? args[1] : null;
-
-            //System.out.println("Overrode import importing. import " + args[0] + " in file " + globals.__finditem__( "__file__" ) );
-
-            PyObject m = _import.__call__( args, keywords );
-
-            if( globals == null ){
-                // Only happens (AFAICT) from within Java code.
-                // For example, Jython's codecs.java calls
-                // __builtin__.__import__("encodings");
-                return m;
-            }
-
-
-            // gets the module name -- __file__ is the file
-            PyObject importer = globals.__finditem__( "__name__".intern() );
-
-            PyObject to = m.__findattr__( "__name__".intern() );
-            // no __file__: builtin or something -- don't bother adding
-            // dependency
-            if( to == null ) return m;
-
-            // Add a plain old JXP dependency on the file that was imported
-            // Not sure if this is helpful or not
-            // Can't do this right now -- one TrackImport is created for all
-            // PythonJxpSources. FIXME.
-            //addDependency( to.toString() );
-
-            // Add a module dependency -- module being imported was imported by
-            // the importing module
-            sss.addDependency( to , importer );
-            return m;
-
-            //PythonJxpSource foo = PythonJxpSource.this;
-        }
     }
 
     // static b/c it has to use ThreadLocal anyway
