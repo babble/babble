@@ -47,8 +47,6 @@ public class HttpClient {
 
     public static int MAX_REDIRECTS = 30;
 
-    public static boolean WANT_400s = false;
-
     public static final boolean TRACE = Boolean.getBoolean("HTTP.TRACE");
 
     /**
@@ -121,13 +119,13 @@ public class HttpClient {
 
 	conn.done();
 
-        if( !WANT_400s ) {
-            if ( rc == 404 )
-                throw new FileNotFoundException( url.toString() );
+	if ( handler.wantHttpErrorExceptions() ) {
+		if ( rc == 404 )
+			throw new FileNotFoundException( url.toString() );
 
-            if ( rc >= 400 )
-                throw new IOException("Error Code:" + String.valueOf(rc) );
-        }
+		if ( rc >= 400 )
+			throw new IOException("Error Code:" + String.valueOf(rc) );
+	}
 
 	return contentLength;
     }
