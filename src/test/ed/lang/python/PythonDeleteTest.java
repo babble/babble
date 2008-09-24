@@ -26,22 +26,22 @@ import ed.js.func.JSFunctionCalls1;
 import ed.log.Level;
 import ed.log.Logger;
 
-public class PythonDeleteTest extends ed.TestCase {
+public class PythonDeleteTest extends PythonTestCase {
     private static final String TEST_DIR = "/tmp/pydelete";
     private static final File testDir = new File(TEST_DIR);
     
     //time to wait between file modifications to allow the fs to update the timestamps
     private static final long SLEEP_MS = 5000;
 
+
     @BeforeClass
     public void setUp() throws IOException, InterruptedException {
-        if(!testDir.mkdir() && !testDir.exists())
-            throw new IOException("Failed to create test dir");
+        super.setUp(testDir);
     }
         
     @Test
     public void test() throws IOException, InterruptedException {
-        Scope globalScope = initScope();
+        Scope globalScope = initScope(testDir, "python-delete-test");
         RedirectedPrinter printer = new RedirectedPrinter();
         globalScope.set("print", printer);
         globalScope.set("counter", 0);
@@ -80,60 +80,6 @@ public class PythonDeleteTest extends ed.TestCase {
         }
         
     }
-    
-    private static void rdelete(File f) {
-        if(f.isDirectory()) {
-            for(File sf : f.listFiles())
-                rdelete(sf);
-        }
-        f.delete();
-    }
-    
-    private Scope initScope() {
-        //Initialize Scope ==================================
-        Scope oldScope = Scope.getThreadLocal();
-
-        AppContext ac = new AppContext( "python-deletion-test" );
-        Scope globalScope = ac.getScope();
-        globalScope.setGlobal(true);
-        globalScope.makeThreadLocal();
-        
-        try {
-            //Load native objects
-            Logger log = Logger.getRoot();
-            globalScope.set("log", log);
-            log.makeThreadLocal();
-            
-            Map<String, JSFileLibrary> rootFiles = new HashMap<String, JSFileLibrary>();
-            rootFiles.put("local", new JSFileLibrary(testDir, "local", ac ));
-            for(Map.Entry<String, JSFileLibrary> rootFileLib : rootFiles.entrySet())
-                globalScope.set(rootFileLib.getKey(), rootFileLib.getValue());
-
-            Encoding.install(globalScope);
-            //JSHelper helper = JSHelper.install(globalScope, rootFiles, log);
-    
-            globalScope.set("SYSOUT", new JSFunctionCalls1() {
-                public Object call(Scope scope, Object p0, Object[] extra) {
-                    System.out.println(p0);
-                    return null;
-                }
-            });
-            globalScope.put("openFile", new JSFunctionCalls1() {
-                public Object call(Scope s, Object name, Object extra[]) {
-                    return new JSLocalFile(new File(TEST_DIR), name.toString());
-                }
-            }, true);
-            
-            //configure Djang10 =====================================
-            //helper.addTemplateRoot(globalScope, new JSString("/local"));
-
-        }
-        finally {
-            if(oldScope != null) oldScope.makeThreadLocal();
-            else Scope.clearThreadLocal();
-        }
-        return globalScope;
-    }
 
     // file1 -> file2 -> file3
     private void writeTest1File1() throws IOException{
@@ -146,10 +92,6 @@ public class PythonDeleteTest extends ed.TestCase {
 
     private void writeTest1File3() throws IOException{
         fillFile(3, false);
-    }
-
-    private void setTime(PrintWriter writer, String name){
-        writer.println("_10gen."+name+" = _10gen.counter; _10gen.counter += 1");
     }
 
     private void fillFile(int n, boolean importNext) throws IOException{

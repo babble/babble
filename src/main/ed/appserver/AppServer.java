@@ -66,7 +66,17 @@ public class AppServer implements HttpHandler {
         _contextHolder = new AppContextHolder( defaultWebRoot , root );
     }
 
-
+    public void addToServer(){
+        HttpServer.addGlobalHandler( this );
+        HttpServer.addGlobalHandler( new HttpMonitor( "appserverstats" , true ){
+                public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
+                    handleStats( out , request , response );
+                }
+            }
+            );
+        _contextHolder.addToServer();
+    }
+    
     /** Creates a new AppRequest using the given HttpRequest.
      * @param request The HTTP request that needs to be processed
      * @return The corresponding AppRequest
@@ -77,7 +87,6 @@ public class AppServer implements HttpHandler {
     }
 
     /** Checks if the request's uri starts with a "/" and, if so, sets some information about the request.
-     * If the request's URI is "/~appserverstats", <tt>info.fork</tt> is set to false and <tt>info.admin</tt> is set to true.
      * Otherwise, <tt>info.fork</tt> is set to true.
      * If the URI is "/~~/core/sys", <tt>info.admin</tt> is set to true.
      * @param request HTTP request to be processed
@@ -88,12 +97,6 @@ public class AppServer implements HttpHandler {
 
         if ( ! uri.startsWith( "/" ) )
             return false;
-
-        if ( uri.equals( "/~appserverstats" ) ){
-            info.fork = false;
-            info.admin = true;
-            return true;
-        }
 
         info.fork = true;
         info.admin = uri.startsWith( "/~~/core/sys/" );
@@ -115,11 +118,6 @@ public class AppServer implements HttpHandler {
     }
 
     private void _handle( HttpRequest request , HttpResponse response ){
-
-        if ( request.getURI().equals( "/~appserverstats" ) ){
-            handleStats( request , response );
-            return;
-        }
 
         final long start = System.currentTimeMillis();
 
@@ -588,15 +586,11 @@ public class AppServer implements HttpHandler {
         return stats;
     }
 
-    /** Get stats about this site.
+    /** Get stats about all the sites on the server
      * @param request
      * @param response Sets stats as content of this
      */
-    void handleStats( HttpRequest request , HttpResponse response ){
-        response.setHeader( "Content-Type" , "text/plain" );
-
-        JxpWriter out = response.getJxpWriter();
-
+    void handleStats( JxpWriter out , HttpRequest request , HttpResponse response ){
         List<String> lst = new ArrayList<String>();
         lst.addAll( _stats.keySet() );
 
@@ -794,9 +788,8 @@ public class AppServer implements HttpHandler {
         System.out.println("==================================");
         
         AppServer as = new AppServer( webRoot , sitesRoot );
-
-        HttpServer.addGlobalHandler( as );
-
+        as.addToServer();
+        
         HttpServer hs = new HttpServer(portNum);
         if ( secure )
             System.setSecurityManager( new AppSecurityManager() );

@@ -145,12 +145,29 @@ public class DNSUtil {
 	if ( host == null )
 	    throw new NullPointerException( "can't lookup null host" );
 
-	if ( host.indexOf( "." ) < 0 )
-	    return InetAddress.getByName( host );
-
-	return DNSResolver.getByName( host );
+        return InetAddress.getByName( host );
     }
 
+    public static InetAddress getLocalHost(){
+        return LOCALHOST;
+    }
+
+    private final static InetAddress LOCALHOST;
+    static {
+        InetAddress l = null;
+	try {
+	    l = InetAddress.getLocalHost();
+	}
+	catch ( Exception e ){
+	    e.printStackTrace();
+	    System.err.println( "exiting" );
+	    System.exit(-1);
+	}
+        finally {
+            LOCALHOST = l;
+        }
+    }
+    
     public static void main( String args[] )
         throws Exception {
         

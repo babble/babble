@@ -329,7 +329,7 @@ public class HttpServer extends NIOServer {
         
     }
 
-    static final HttpHandler _stats = new HttpMonitor( "stats" ){
+    static final HttpHandler _stats = new HttpMonitor( "stats" , true ){
 
             public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
                 out.print( "stats\n" );

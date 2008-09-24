@@ -215,22 +215,18 @@ public abstract class DBCollection extends JSObjectLame {
 
     /**
      */
-    public final ObjectId apply( Object o ){
+    public final ObjectId apply( JSObject o ){
         return apply( o , true );
     }
-
+    
     /** Adds the "private" fields _save, _update, and _id to an object.
      * @param o object to which to add fields
      * @param ensureID if an _id field is needed
      * @return the _id assigned to the object
      * @throws RuntimeException if <tt>o</tt> is not a JSObject
      */
-    public final ObjectId apply( Object o , boolean ensureID ){
+    public final ObjectId apply( JSObject jo , boolean ensureID ){
 
-        if ( ! ( o instanceof JSObject ) )
-            throw new RuntimeException( "can only apply JSObject" );
-
-        JSObject jo = (JSObject)o;
         jo.set( "_save" , _save );
         jo.set( "_update" , _update );
 
@@ -263,7 +259,7 @@ public abstract class DBCollection extends JSObjectLame {
      * @param o the object to save
      * @return the new object from the collection
      */
-    public final Object save( Object o ){
+    public final Object save( JSObject o ){
         if ( checkReadOnly( true ) ) return null;
         return save( null , o );
     }
@@ -273,13 +269,11 @@ public abstract class DBCollection extends JSObjectLame {
      * @param o the object to save
      * @return the new object from the collection
      */
-    public final Object save( Scope s , Object o ){
-        if ( checkReadOnly( true ) ) return o;
-        o = _handleThis( s , o );
+    public final Object save( Scope s , JSObject jo ){
+        if ( checkReadOnly( true ) ) return jo;
+        jo = _handleThis( s , jo );
 
-        _checkObject( o , false );
-
-        JSObject jo = (JSObject)o;
+        _checkObject( jo , false );
 
         if ( s != null ){
             Object presaveObject = jo.get( "preSave" );
@@ -330,11 +324,11 @@ public abstract class DBCollection extends JSObjectLame {
 
         _entries.put( "base" , _base.getName() );
         _entries.put( "name" , _name );
-
+        
         _save = new JSFunctionCalls1() {
                 public Object call( Scope s , Object o , Object fooasd[] ){
                     _anyUpdateSave = true;
-                    return save( s , o );
+                    return save( s , _checkObject( o , false ) );
                 }
             };
         _entries.put( "save" , _save );
@@ -385,16 +379,15 @@ public abstract class DBCollection extends JSObjectLame {
                       new JSFunctionCalls1(){
                           public Object call( Scope s , Object o , Object foo[] ){
                               if ( checkReadOnly( true ) ) return o;
+                              
+                              _checkObject( o , true );
 
-                              o = _handleThis( s , o );
+                              JSObject jo = _handleThis( s , (JSObject)o );
 
                               if ( o == null )
                                   throw new NullPointerException( "can't pass null to collection.remove. if you mean to remove everything, do remove( {} ) " );
 
-                              if ( ! ( o instanceof JSObject ) )
-                                  throw new RuntimeException( "have to pass collection.remove a javascript object" );
-
-                              return remove( (JSObject)o );
+                              return remove( jo );
 
                           }
                       } );
@@ -404,7 +397,7 @@ public abstract class DBCollection extends JSObjectLame {
 
         _apply = new JSFunctionCalls1() {
                 public Object call( Scope s , Object o , Object foo[] ){
-                    return apply( o );
+                    return apply( _checkObject( o , false ) );
                 }
             };
         _entries.put( "apply" , _apply );
@@ -498,7 +491,7 @@ public abstract class DBCollection extends JSObjectLame {
 
     }
 
-    private final Object _handleThis( Scope s , Object o ){
+    private final JSObject _handleThis( Scope s , JSObject o ){
         if ( o != null )
             return o;
 
@@ -506,27 +499,30 @@ public abstract class DBCollection extends JSObjectLame {
         if ( t == null )
             return null;
 
+        if ( ! ( t instanceof JSObject ) )
+            return null;
+
         if ( t.getClass() != JSObjectBase.class )
             return null;
 
-        return t;
+        return (JSObject)t;
     }
 
-    private final void _checkObject( Object o , boolean canBeNull ){
+    private final JSObject _checkObject( Object o , boolean canBeNull ){
         if ( o == null ){
             if ( canBeNull )
-                return;
+                return null;
             throw new NullPointerException( "can't be null" );
         }
 
+        if ( ! ( o instanceof JSObject ) )
+            throw new IllegalArgumentException( " has to be a JSObject not : " + o.getClass() );
+        
         if ( o instanceof JSObjectBase &&
              ((JSObjectBase)o).isPartialObject() )
             throw new IllegalArgumentException( "can't save partial objects" );
-
-        if ( o instanceof JSObject )
-            return;
-
-        throw new IllegalArgumentException( " has to be a JSObject not : " + o.getClass() );
+        
+        return (JSObject)o;
     }
 
     private void _findSubObject( Scope s , JSObject jo , IdentitySet seenSubs ){

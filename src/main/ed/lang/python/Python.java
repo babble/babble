@@ -188,7 +188,7 @@ public class Python extends Language {
     }
 
     public static PyObject getGlobals( Scope s ){
-        if( s == null ) throw new RuntimeException("can't happen??");
+        if( s == null ) throw new RuntimeException("can't construct globals for null");
         Scope pyglobals = s.child( "scope to hold python builtins" );
 
         PyObject globals = new PyJSScopeWrapper( pyglobals , false );
@@ -242,19 +242,53 @@ public class Python extends Language {
         return new JSPyObjectWrapper( (PyFunction)(theFunc.getContained()) , true );
     }
 
+    /**
+     * Get a sensible site-specific state for either the given app
+     * context or the given scope.
+     *
+     * Given a Scope, get the Python site-specific state for that scope.
+     * If one does not exist, create one with the given AppContext and Scope.
+     * If the Scope is null, it will be obtained from the AppContext.
+     *
+     * @return an already-existing SiteSystemState for the given site
+     *   or a new one if needed
+     */
     public static SiteSystemState getSiteSystemState( AppContext ac , Scope s ){
-        if( ac == null || s == null ){
-            return new SiteSystemState( ac , getGlobals( s ) );
+        if( ac == null && s == null ){
+            throw new RuntimeException( "can't get site-specific state for null site with no context" );
+        }
+
+        if( s == null ){ // but ac != null, or we'd throw above
+            s = ac.getScope();
         }
         Object __python__ = s.get( "__python__" );
         if( __python__ != null && __python__ instanceof SiteSystemState ){
             return (SiteSystemState)__python__;
         }
+        
+        SiteSystemState state = new SiteSystemState( ac , getGlobals( s ) , s );
+        s.putExplicit( "__python__" , state );
 
-        SiteSystemState state = new SiteSystemState( ac , getGlobals( s ) );
-        s.set( "__python__" , state );
+        if( _rmap == null ){
+            _rmap = new HashMap<PySystemState, SiteSystemState>();
+        }
+        _rmap.put( state.getPyState(), state );
+        
         return state;
     }
 
+    /**
+     * Get the already-existing SiteSystemState that wraps the given
+     * PySystemState.
+     *
+     * This assumes you've already passed through the other
+     * getSiteSystemState code path at some point and are returning a
+     * PySystemState wrapped by a SiteSystemState.
+     */
+    public static SiteSystemState getSiteSystemState( PySystemState py ){
+        return _rmap.get( py );
+    }
+
     private static Scope _extractGlobals;
+    private static Map<PySystemState, SiteSystemState> _rmap;
 }
