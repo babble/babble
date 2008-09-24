@@ -153,7 +153,7 @@ public class PythonJxpSource extends JxpSource {
         }
 
         public PyObject __call__( PyObject args[] , String keywords[] ){
-            SiteSystemState sss = Python.getSiteSystemState( Py.getSystemState() );
+            SiteSystemState sss = Python.getSiteSystemState( null , Scope.getThreadLocal() );
             
             int argc = args.length;
             // Second argument is the dict of globals. Mostly this is helpful
