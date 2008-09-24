@@ -267,7 +267,7 @@ public class Python extends Language {
         }
         
         SiteSystemState state = new SiteSystemState( ac , getGlobals( s ) , s );
-        s.set( "__python__" , state );
+        s.putExplicit( "__python__" , state );
 
         if( _rmap == null ){
             _rmap = new HashMap<PySystemState, SiteSystemState>();
