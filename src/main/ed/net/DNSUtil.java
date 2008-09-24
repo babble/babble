@@ -145,10 +145,7 @@ public class DNSUtil {
 	if ( host == null )
 	    throw new NullPointerException( "can't lookup null host" );
 
-	if ( host.indexOf( "." ) < 0 )
-	    return InetAddress.getByName( host );
-
-	return DNSResolver.getByName( host );
+        return InetAddress.getByName( host );
     }
 
     public static InetAddress getLocalHost(){
