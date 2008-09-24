@@ -1085,6 +1085,14 @@ public class AppContext extends ServletContextBase {
         return size;
     }
 
+    public int hashCode(){
+        return System.identityHashCode( this );
+    }
+    
+    public boolean equals( Object o ){
+        return o == this;
+    }
+
     final String _name;
     final String _root;
     final File _rootFile;

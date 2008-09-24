@@ -58,6 +58,29 @@ public class AppContextHolder {
         _root = root;
         _rootFile = _root == null ? null : new File( _root );
     }
+
+    public void addToServer(){
+        HttpServer.addGlobalHandler( new HttpMonitor( "appcontextholder" ){
+                
+                public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
+                    IdentitySet<AppContext> all = new IdentitySet<AppContext>();
+                    synchronized ( _contextCreationLock ){
+                        all.addAll( _contextCache.values() );
+                    }
+                    
+                    IdentitySet seen = new IdentitySet();
+
+                    for ( AppContext ac : all ){
+                        out.print( "<h3>" ).print( ac.getName() ).print( ":" ).print( ac.getEnvironmentName() ).print( "</h3>\n" );
+                        startTable( out );
+                        addTableRow( out , "Num Requests" , ac._numRequests );
+                        addTableRow( out , "Created" , ac._created );
+                        addTableRow( out , "Memory (kb)" , ac.approxSize( seen ) / 1024 );
+                        endTable( out );
+                    }
+                }
+            } );
+    }
     
     public Result getContext( HttpRequest request ){
         String host = request.getHeader( "X-Host" );

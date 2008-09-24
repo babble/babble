@@ -840,7 +840,7 @@ public class DNSResolver {
     static class Monitor extends HttpMonitor {
 
 	Monitor(){
-	    super( "dns" );
+	    super( "dns" , false );
 	}
 	
 	public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
