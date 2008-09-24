@@ -884,9 +884,11 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         }
         
         public JxpWriter print( String s ){
-            if ( _done ){
+            if ( _done )
                 throw new RuntimeException( "already done" );
-            }
+
+            if ( s == null )
+                s = "null";
             
             if ( s.length() > MAX_STRING_SIZE ){
                 for ( int i=0; i<s.length(); ){
