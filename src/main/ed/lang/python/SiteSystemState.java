@@ -171,8 +171,6 @@ public class SiteSystemState {
         }
 
         public PyObject __call__( PyObject args[] , String keywords[] ){
-            SiteSystemState sss = Python.getSiteSystemState( null , Scope.getThreadLocal() );
-
             int argc = args.length;
             // Second argument is the dict of globals. Mostly this is helpful
             // for getting context -- file or module *doing* the import.
@@ -186,6 +184,7 @@ public class SiteSystemState {
                 // Only happens (AFAICT) from within Java code.
                 // For example, Jython's codecs.java calls
                 // __builtin__.__import__("encodings");
+                // Python calls to __import__ provide an empty Python dict.
                 return m;
             }
 
@@ -206,6 +205,7 @@ public class SiteSystemState {
 
             // Add a module dependency -- module being imported was imported by
             // the importing module
+            SiteSystemState sss = Python.getSiteSystemState( null , Scope.getThreadLocal() );
             sss.addDependency( to , importer );
             return m;
 
