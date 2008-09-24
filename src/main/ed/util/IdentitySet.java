@@ -20,7 +20,7 @@ package ed.util;
 
 import java.util.*;
 
-public class IdentitySet<T> {
+public class IdentitySet<T> implements Iterable<T> {
 
     public void add( T t ){
         _map.put( t , "a" );
@@ -40,6 +40,16 @@ public class IdentitySet<T> {
 
     public int size(){
 	return _map.size();
+    }
+
+    public Iterator<T> iterator(){
+        return _map.keySet().iterator();
+    }
+
+    public void addAll( Collection<T> c ){
+        for ( T t : c ){
+            add( t );
+        }
     }
 
     final IdentityHashMap<T,String> _map = new IdentityHashMap<T,String>();
