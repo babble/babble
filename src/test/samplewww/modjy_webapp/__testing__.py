@@ -2,6 +2,7 @@ import os
 import sys
 import _10gen
 import foo
+import modjy_webapp.foo
 
 print 'running me'
 
@@ -20,6 +21,7 @@ def handler(environ, start_response):
     environ_str = "<table border='1'>"
     environ['10gen.db'] = _10gen.db
     environ['10gen.foo.hi'] = foo.hi
+    environ['10gen.sitename.foo.hi'] = modjy_webapp.foo.hi
     keys = environ.keys()
     keys.sort()
     ix = 0

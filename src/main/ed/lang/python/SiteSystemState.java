@@ -58,6 +58,7 @@ public class SiteSystemState {
         pyState = new PySystemState();
         globals = newGlobals;
         _scope = s;
+        _context = ac;
         setupModules();
         ensureMetaPathHook( pyState , s );
 
@@ -100,6 +101,20 @@ public class SiteSystemState {
             // I know this is appalling but they don't expose this any other
             // way
             xgenMod.__dict__ = globals;
+        }
+
+        // This allows you to do import sitename.foo
+        // importing sitename.foo will rerun your foo.py or whatever,
+        // ends up as a different module from just importing foo. This also
+        // means it'll get dependency-tracked separately -- but it will get
+        // tracked.
+        modName = _context.getName().intern();
+        if( pyState.modules.__finditem__( modName ) == null ){
+            PyModule siteMod = new PyModule( modName );
+            pyState.modules.__setitem__( modName , siteMod );
+            PyList __path__ = new PyList( PyString.TYPE );
+            __path__.append( new PyString( _context.toString() ) );
+            siteMod.__dict__.__setitem__( "__path__", __path__ );
         }
 
     }
@@ -454,5 +469,6 @@ public class SiteSystemState {
     final static Logger _log = Logger.getLogger( "python" );
     final public PyObject globals;
     private PySystemState pyState;
+    private AppContext _context;
     private Scope _scope;
 }
