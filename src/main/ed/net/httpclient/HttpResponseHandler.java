@@ -2,16 +2,16 @@
 
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -46,11 +46,16 @@ public interface HttpResponseHandler {
     public void gotCookie( Cookie c );
     public void setFinalUrl( URL url );
 
-    /** Called if there was a redirect to a url that is not unfollow. 
+    /** Called if there was a redirect to a url that is not unfollow.
         @see ShopUrl#followRedirect(ShopUrl)
      */
     public boolean followRedirect( URL url );
-    
+
+	/**
+	 * If true, we want statuses in the 400s and 500s to be exceptions.
+	 */
+	public boolean wantHttpErrorExceptions();
+
     public Map<String,String> getHeadersToSend();
     public Map<String,Cookie> getCookiesToSend();
     public byte[] getPostDataToSend();

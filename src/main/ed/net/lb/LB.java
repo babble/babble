@@ -34,7 +34,7 @@ public class LB extends NIOClient {
 
     public LB( int port , boolean verbose )
         throws IOException {
-        super( "LB" , verbose );
+        super( "LB" , 15 , verbose );
         
         _port = port;
         _handler = new LBHandler();
@@ -75,18 +75,27 @@ public class LB extends NIOClient {
             return new InetSocketAddress( "www.google.com" , 80 );
         }
 
-        protected void errorOpen( IOException ioe ){
+        protected void error( Exception e ){
             try {
-                _response.getJxpWriter().print( "couldn't open connection : " +  ioe );
+                _response.getJxpWriter().print( "client error : " + e );
                 _response.done();
             }
             catch ( IOException ioe2 ){
                 ioe2.printStackTrace();
             }
         }
+        
+        protected void fillInRequest( ByteBuffer buf ){
+            buf.put( generateRequestHeader().getBytes() );
+        }
 
-        protected void handleRead(){}
-        protected void handleConnect(){}
+        String generateRequestHeader(){
+            StringBuilder buf = new StringBuilder( _request.getRawHeader().length() + 200 );
+            buf.append( _request.getMethod() ).append( " " ).append( _request.getURL() ).append( " HTTP/1.0\r\n" );
+            buf.append( "Host: www.google.com\r\n" );
+            buf.append( "\r\n" );
+            return buf.toString();
+        }
 
         final HttpRequest _request;
         final HttpResponse _response;

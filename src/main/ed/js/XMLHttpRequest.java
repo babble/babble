@@ -2,16 +2,16 @@
 
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -65,7 +65,7 @@ public class XMLHttpRequest extends JSObjectBase {
                 XMLHttpRequest r = null;
                 if ( s.getThis() instanceof XMLHttpRequest )
                     r = (XMLHttpRequest)s.getThis();
-                
+
                 if ( r == null )
                     r = new XMLHttpRequest();
 
@@ -228,10 +228,10 @@ public class XMLHttpRequest extends JSObjectBase {
         finally {
             setStatus( DONE );
         }
-        
+
         return this;
     }
-    
+
     /** Gets the length of the header.
      * @param Buffer containing this request string.
      * @return The number of characters in first line of the request.
@@ -348,7 +348,7 @@ public class XMLHttpRequest extends JSObjectBase {
     }
 
     class Handler implements HttpResponseHandler {
-        
+
         Handler( String postData ){
             this( postData == null ? null : postData.getBytes() );
         }
@@ -356,7 +356,7 @@ public class XMLHttpRequest extends JSObjectBase {
         Handler( byte[] postData ){
             _postData = postData;
         }
-        
+
         public int read( InputStream is )
             throws IOException {
 
@@ -369,16 +369,16 @@ public class XMLHttpRequest extends JSObjectBase {
             set( "responseText" , new String( data , _contentEncoding ) );
             return data.length;
         }
-        
+
         public void gotHeader( String name , String value ){
 
             boolean firstLine = name.equals( "FIRST_LINE" );
-            
+
 
             if ( ! firstLine )
                 _header.append( name ).append( ": " );
             _header.append( value ).append( "\n" );
-            
+
             if ( firstLine ){
                 String statusText = value;
                 int idx = statusText.indexOf( " " );
@@ -389,7 +389,7 @@ public class XMLHttpRequest extends JSObjectBase {
                         statusText = statusText.substring( idx + 1 ).trim();
                     }
                 }
-                 
+
                 set( "statusText" , new JSString( statusText ) );
             }
 
@@ -400,14 +400,14 @@ public class XMLHttpRequest extends JSObjectBase {
             }
             headers.set( name , new JSString( value ) );
         }
-    
+
         public void removeHeader( String name ){}
-        
+
         public void gotResponseCode( int responseCode ){
             set( "status" , responseCode );
             setStatus( HEADERS_RECEIVED );
         }
-        
+
         public void gotContentLength( int contentLength ){
             _contentLength = contentLength;
             set( "contentLength" , contentLength );
@@ -417,17 +417,21 @@ public class XMLHttpRequest extends JSObjectBase {
             _contentEncoding = contentEncoding;
             set( "contentEncoding" , contentEncoding );
         }
-        
+
         public void gotCookie( Cookie c ){}
 
         public void setFinalUrl( URL url ){
             set( "finalURL" , url.toString() );
         }
-        
+
         public boolean followRedirect( URL url ){
             return true;
         }
-        
+
+		public boolean wantHttpErrorExceptions () {
+			return false;
+		}
+
         public Map<String,String> getHeadersToSend(){
             return _headersToSend;
         }
@@ -435,7 +439,7 @@ public class XMLHttpRequest extends JSObjectBase {
         public Map<String,Cookie> getCookiesToSend(){
             return null;
         }
-        
+
         public byte[] getPostDataToSend(){
             return _postData;
         }
@@ -446,19 +450,19 @@ public class XMLHttpRequest extends JSObjectBase {
                 return -1;
             return ((Number)foo).longValue();
         }
-        
+
         final byte[] _postData;
         int _contentLength = 0;
         String _contentEncoding = "UTF8";
         StringBuilder _header = new StringBuilder();
     }
-    
+
 
     String _method;
     String _urlString;
     boolean _async;
     Map<String,String> _headersToSend = new HashMap<String,String>();
-    
+
     URL _url;
     Scope _onreadystatechangeScope;
 }
