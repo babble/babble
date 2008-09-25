@@ -23,6 +23,7 @@ import java.util.*;
 import java.io.*;
 
 public class PythonModuleTracker extends PyStringMap {
+    static final boolean DEBUG = Boolean.getBoolean( "DEBUG.PYTHONMODULETRACKER" );
 
     boolean _flushing = false;
 
@@ -99,7 +100,8 @@ public class PythonModuleTracker extends PyStringMap {
 
             if( clsFile.exists() && 
                 pyFile.lastModified() > clsFile.lastModified() ){
-                //System.out.println("Newer " + pyFile + " " + clsFile);
+                if( DEBUG )
+                    System.out.println("Newer " + pyFile + " " + clsFile);
                 newer.add( s );
                 files.add( pyFile );
             }
@@ -116,23 +118,25 @@ public class PythonModuleTracker extends PyStringMap {
             toAdd.remove( o );
             PyObject obj = super.__finditem__( o );
 
-            //System.out.println("Module " + obj);
             if( obj == null || ! ( obj instanceof PyModule ) )
                 continue;  // User madness?
             PyModule mod = (PyModule)obj;
 
-            //System.out.println("Flushing " + o);
+            if( DEBUG )
+                System.out.println("Flushing " + o);
             __delitem__( o );
 
             // Get the set of modules that imported module o
             Set<String> rdeps = _reverseDeps.get( o );
             _reverseDeps.remove( o );
             if( rdeps == null ){
-                //System.out.println("Nothing imported " + o );
+                if( DEBUG )
+                    System.out.println("Nothing imported " + o );
                 continue;
             }
             for( String s : rdeps ){
-                //System.out.println("module "+ s + " imported " + o );
+                if( DEBUG )
+                    System.out.println("module "+ s + " imported " + o );
                 toAdd.add( s );
             }
 
@@ -152,7 +156,8 @@ public class PythonModuleTracker extends PyStringMap {
             rdeps = new HashSet<String>();
             _reverseDeps.put( moduleS , rdeps );
         }
-        //System.out.println( "Module "+ module + " was imported by module " + importer );
+        if( DEBUG )
+            System.out.println( "Module "+ module + " was imported by module " + importer );
         rdeps.add( importerS );
     }
 

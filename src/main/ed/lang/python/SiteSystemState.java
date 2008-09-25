@@ -52,6 +52,8 @@ import ed.appserver.jxp.*;
  * SiteSystemState.getPyState() to Py.setSystemState as needed.
  */
 public class SiteSystemState {
+    static final boolean DEBUG = Boolean.getBoolean( "DEBUG.SITESYSTEMSTATE" );
+    
     SiteSystemState( AppContext ac , PyObject newGlobals , Scope s){
         pyState = new PySystemState();
         globals = newGlobals;
@@ -176,7 +178,10 @@ public class SiteSystemState {
             // for getting context -- file or module *doing* the import.
             PyObject globals = ( argc > 1 ) ? args[1] : null;
 
-            //System.out.println("Overrode import importing. import " + args[0] + " in file " + globals.__finditem__( "__file__" ) );
+            if( DEBUG ){
+                System.out.println("Overrode import importing. import " + args[0]);
+                System.out.println("globals? " + (globals == null ? "null" : "not null, file " + globals.__finditem__("__file__")));
+            }
 
             PyObject m = _import.__call__( args, keywords );
 
@@ -199,7 +204,7 @@ public class SiteSystemState {
                 // and hope for the best.
                 PyFrame f = Py.getFrame();
                 if( f == null ){
-                    System.out.println("Can't figure out where the call to import " + args[0] + " came from! Import tracking is going to be screwed up!");
+                    System.err.println("Can't figure out where the call to import " + args[0] + " came from! Import tracking is going to be screwed up!");
                 }
                 else {
                     globals = f.f_globals;
