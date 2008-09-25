@@ -108,13 +108,15 @@ public class SiteSystemState {
         // ends up as a different module from just importing foo. This also
         // means it'll get dependency-tracked separately -- but it will get
         // tracked.
-        modName = _context.getName().intern();
-        if( pyState.modules.__finditem__( modName ) == null ){
-            PyModule siteMod = new PyModule( modName );
-            pyState.modules.__setitem__( modName , siteMod );
-            PyList __path__ = new PyList( PyString.TYPE );
-            __path__.append( new PyString( _context.toString() ) );
-            siteMod.__dict__.__setitem__( "__path__", __path__ );
+        if( _context != null ){
+            modName = _context.getName().intern();
+            if( pyState.modules.__finditem__( modName ) == null ){
+                PyModule siteMod = new PyModule( modName );
+                pyState.modules.__setitem__( modName , siteMod );
+                PyList __path__ = new PyList( PyString.TYPE );
+                __path__.append( new PyString( _context.toString() ) );
+                siteMod.__dict__.__setitem__( "__path__", __path__ );
+            }
         }
 
     }
