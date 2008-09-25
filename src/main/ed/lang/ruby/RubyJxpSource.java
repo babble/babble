@@ -65,6 +65,8 @@ public class RubyJxpSource extends JxpSource {
         DO_NOT_LOAD_FUNCS.add("sleep");
         DO_NOT_LOAD_FUNCS.add("fork");
         DO_NOT_LOAD_FUNCS.add("eval");
+        for (int i = 0; i < RubyJSFunctionWrapper.IGNORE_JS_CLASSES.length; ++i)
+            DO_NOT_LOAD_FUNCS.add(RubyJSFunctionWrapper.IGNORE_JS_CLASSES[i]);
     }
 
     /** Determines what major version of Ruby to compile: 1.8 (false) or YARV/1.9 (true). **/
