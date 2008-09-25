@@ -121,6 +121,24 @@ public class PythonReloadTest extends PythonTestCase {
             writeTest4File3();
             shouldRun3(globalScope);
 
+            // Test 5 -- __import__(file, {}) is tracked
+            Thread.sleep(SLEEP_MS);
+            writeTest5File1();
+            writeTest5File2();
+            writeTest5File3();
+            shouldRun3(globalScope);
+
+            shouldRun1(globalScope);
+
+            Thread.sleep(SLEEP_MS);
+            writeTest5File2();
+            shouldRun2(globalScope);
+            shouldRun1(globalScope);
+
+            Thread.sleep(SLEEP_MS);
+            writeTest5File3();
+            shouldRun3(globalScope);
+            shouldRun1(globalScope);
         }
         finally {
             if(oldScope != null)
@@ -208,6 +226,23 @@ public class PythonReloadTest extends PythonTestCase {
     }
 
     private void writeTest4File3() throws IOException {
+        fillFile(3, false);
+    }
+
+    private void writeTest5File1() throws IOException {
+        fillFile(1, true);
+    }
+
+    private void writeTest5File2() throws IOException {
+        File f = new File(testDir, "file2.py");
+        PrintWriter writer = new PrintWriter(f);
+        writer.println("import _10gen");
+        writer.println("_10gen.ranFile2 = 1");
+        writer.println("__import__('file3', {})");
+        writer.close();
+    }
+
+    private void writeTest5File3() throws IOException {
         fillFile(3, false);
     }
 
