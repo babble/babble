@@ -58,6 +58,7 @@ public class SiteSystemState {
         pyState = new PySystemState();
         globals = newGlobals;
         _scope = s;
+        _context = ac;
         setupModules();
         ensureMetaPathHook( pyState , s );
 
@@ -102,6 +103,19 @@ public class SiteSystemState {
             xgenMod.__dict__ = globals;
         }
 
+        // This allows you to do import sitename
+        // We handle import sitename.foo in the __import__ handler.
+        if( _context != null ){
+            modName = _context.getName().intern();
+            if( pyState.modules.__finditem__( modName ) == null ){
+                PyModule siteMod = new PyModule( modName );
+                pyState.modules.__setitem__( modName , siteMod );
+                PyList __path__ = new PyList( PyString.TYPE );
+                __path__.append( new PyString( _context.toString() ) );
+                siteMod.__dict__.__setitem__( "__path__", __path__ );
+            }
+        }
+
     }
 
     private void _checkModules(){
@@ -134,6 +148,10 @@ public class SiteSystemState {
     public void addDependency( PyObject to, PyObject importer ){
         _checkModules();
         ((PythonModuleTracker)pyState.modules).addDependency( to , importer );
+    }
+
+    public AppContext getContext(){
+        return _context;
     }
 
     /**
@@ -177,20 +195,46 @@ public class SiteSystemState {
             // Second argument is the dict of globals. Mostly this is helpful
             // for getting context -- file or module *doing* the import.
             PyObject globals = ( argc > 1 ) ? args[1] : null;
+            PyObject fromlist = (argc > 3) ? args[3] : null;
 
             if( DEBUG ){
                 System.out.println("Overrode import importing. import " + args[0]);
                 System.out.println("globals? " + (globals == null ? "null" : "not null, file " + globals.__finditem__("__file__")));
             }
 
-            PyObject m = _import.__call__( args, keywords );
+            SiteSystemState sss = Python.getSiteSystemState( null , Scope.getThreadLocal() );
+            AppContext ac = sss.getContext();
+            PyObject targetP = args[0];
+            if( ! ( targetP instanceof PyString ) )
+                throw new RuntimeException( "first argument to __import__ must be a string, not a "+ targetP.getClass());
+            String target = targetP.toString();
+
+            PyObject siteModule = null;
+            PyObject m = null;
+            if( target.indexOf('.') != -1 ){
+                String firstPart = target.substring( 0 , target.indexOf('.'));
+                if( ac != null && firstPart.equals( ac.getName() ) ){
+                    siteModule = sss.getPyState().modules.__finditem__( firstPart.intern() );
+                    if( siteModule == null ){
+                        siteModule = new PyModule( firstPart );
+                        sss.getPyState().modules.__setitem__( firstPart.intern() , siteModule );
+                    }
+                    target = target.substring( target.indexOf('.') + 1 );
+                    args[0] = new PyString( target );
+                    // Don't recur -- just allow one replacement
+                    // This'll still do meta_path stuff, but at least it won't
+                    // let you do import sitename.sitename.sitename.foo..
+                }
+            }
+
+            m = _import.__call__( args, keywords );
 
             if( globals == null ){
                 // Only happens (AFAICT) from within Java code.
                 // For example, Jython's codecs.java calls
                 // __builtin__.__import__("encodings");
                 // Python calls to __import__ provide an empty Python dict.
-                return m;
+                return _finish( target , siteModule , m );
             }
 
 
@@ -206,7 +250,7 @@ public class SiteSystemState {
                 if( f == null ){
                     // No idea what this means
                     System.err.println("Can't figure out where the call to import " + args[0] + " came from! Import tracking is going to be screwed up!");
-                    return m;
+                    return _finish( target, siteModule, m );
                 }
 
                 globals = f.f_globals;
@@ -236,29 +280,19 @@ public class SiteSystemState {
             // But if we got "from foo import bar", m = bar, and we don't want
             // to do anything. Ahh, crappy __import__ semantics..
             // For more information see http://docs.python.org/lib/built-in-funcs.html
-            PyObject fromlist = (argc > 3) ? args[3] : null;
             PyObject innerMod = null;
             if( fromlist != null && fromlist.__len__() > 0 ) innerMod = m;
             else {
                 innerMod = m;
-                PyObject targetP = args[0];
-                if( targetP instanceof PyString ){
-                    String target = targetP.toString();
-                    String [] modNames = target.split("\\.");
-
-                    for( int i = 1; i < modNames.length; ++i ){
-                        innerMod = innerMod.__findattr__( modNames[i].intern() );
-                    }
-                }
-                else {
-                    // ?? 
-                    // Someone hates us..
-                    System.err.println("I will not be party to this madness " + targetP.getClass());
+                String [] modNames = target.split("\\.");
+                
+                for( int i = 1; i < modNames.length; ++i ){
+                    innerMod = innerMod.__findattr__( modNames[i].intern() );
                 }
             }
 
             PyObject to = innerMod.__findattr__( "__name__".intern() );
-            if( to == null ) return m;
+            if( to == null ) return _finish( target , siteModule , m );
 
             // Add a plain old JXP dependency on the file that was imported
             // Not sure if this is helpful or not
@@ -268,11 +302,22 @@ public class SiteSystemState {
 
             // Add a module dependency -- module being imported was imported by
             // the importing module
-            SiteSystemState sss = Python.getSiteSystemState( null , Scope.getThreadLocal() );
             sss.addDependency( to , importer );
-            return m;
+            return _finish( target , siteModule , m );
 
             //PythonJxpSource foo = PythonJxpSource.this;
+        }
+
+        public PyObject _finish( String target , PyObject siteModule , PyObject result ){
+            if( siteModule == null ) return result;
+            // We got an import for sitename.foo, and result is <module foo>.
+            // siteModule is <module sitename>. target is "foo".
+            int dot = target.indexOf( '.' );
+            String firstPart = target;
+            if( dot != -1 )
+                firstPart = target.substring( 0 , dot );
+            siteModule.__setattr__( firstPart , result );
+            return siteModule;
         }
     }
 
@@ -454,5 +499,6 @@ public class SiteSystemState {
     final static Logger _log = Logger.getLogger( "python" );
     final public PyObject globals;
     private PySystemState pyState;
+    private AppContext _context;
     private Scope _scope;
 }
