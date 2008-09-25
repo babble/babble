@@ -116,4 +116,15 @@ EOS
 #     assert_equal('Form', x.class.name)
 #   end
 
+# TODO
+# FIXME
+
+#   def test_require_date
+#     require 'date'
+#     d = DateTime.new(2008, 9, 24)
+#     assert_not_nil(d)
+#     assert_kind_of(DateTime, d, "expected DateTime, got #{d.class.name}")
+#     assert_equal('2008-09-24T00:00:00+00:00', d.strftime)
+#   end
+
 end
