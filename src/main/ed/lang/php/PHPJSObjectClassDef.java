@@ -30,6 +30,7 @@ import ed.js.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 import ed.lang.*;
+import ed.util.MapEntryImpl;
 
 public class PHPJSObjectClassDef extends JavaClassDef {
 
@@ -46,6 +47,7 @@ public class PHPJSObjectClassDef extends JavaClassDef {
     }       
     
     static class Adapter extends JavaAdapter {
+
         Adapter( Env env , JSObject obj , PHPJSObjectClassDef def ){
             this( env , obj , def , PHP.getConvertor( env ) );
         }
@@ -113,40 +115,134 @@ public class PHPJSObjectClassDef extends JavaClassDef {
         // -----------------
         // STUFF NEEEDED FOR JavaAdapter
         // -----------------
+        public Iterator<Value> getKeyIterator( Env env ) {
+            return new  PHPConvertedIterator( env , _object.keySet().iterator() );
+        }
+
+        public Iterator<Value> getValueIterator( Env env ) {
+            return new  PHPConvertedIterator( env , new JSObjectValueIterator( _object ) );
+        }
+
+        public Iterator<Map.Entry<Value, Value> > getIterator( Env env ) {
+          return new PHPConvertedEntryIterator( getEnv(),  new JSObjectEntryIterator( _object ) );
+        }
+
+        public Set<Map.Entry<Object, Object> > objectEntrySet() {
+            Set<Map.Entry<Object, Object> > entries = new HashSet<Map.Entry<Object,Object> >();
+            
+            fillCollection( getIterator( getEnv() ) , (Collection)entries );
+            return entries;
+        }
+
+        public Set<Map.Entry<Value, Value> > entrySet() {
+            Set<Map.Entry<Value, Value> > entries = new HashSet<Map.Entry<Value,Value> >();
+
+            fillCollection( getIterator( getEnv() ) , entries );
+            return entries;
+        }
+
+        public Collection<Value> values() {
+            ArrayList<Value> values = new ArrayList<Value>();
+            fillCollection( getValueIterator( getEnv() ) , values );
+            return values;
+        }
         
-        public Set<Map.Entry<Object, Object>> objectEntrySet(){
-            throw new UnimplementedException();
+        public Value createTailKey() {
+            long nextAvailableIndex = 0;
+
+            for ( String key : _object.keySet() ) {
+                long keyIndex;
+                
+                try {
+                    double temp = Double.parseDouble( key );
+                    if( ! JSNumericFunctions.couldBeLong( temp ) )
+                        continue;
+                    keyIndex = (long)temp;
+                }
+                catch( NumberFormatException e ) {
+                    continue;
+                }
+                nextAvailableIndex = Math.max( nextAvailableIndex , keyIndex + 1 );
+            }
+            
+            return LongValue.create( nextAvailableIndex );
         }
 
-        public Set<Map.Entry<Value,Value>> entrySet(){
-            throw new UnimplementedException();
-        }
-
-        public Value createTailKey(){
-            throw new UnimplementedException();
-        }
-
-        public Value putImpl(Value key, Value value){
+        public Value putImpl( Value key, Value value ){
             return wrapJava( _object.set( _convertor.toJS( key ) , _convertor.toJS( value ) ) );
         }
 
         public void clear(){
-            throw new UnimplementedException();
+            ArrayList<String> keys = new ArrayList<String>( _object.keySet() );
+            for ( String key : keys )
+                _object.removeField( key );
         }
         
-        public Value copy(Env env, IdentityHashMap<Value,Value> map){
+        public Value copy( Env env, IdentityHashMap<Value, Value> map ){
             return new Adapter( env , _object , _def , _convertor ); 
         }
         
         public Value copy(){
             return new Adapter( getEnv() , _object , _def , _convertor ); 
         }
-
+        
+        private static <T> void fillCollection(Iterator<? extends T> srcIter, Collection<T> dest) {
+            while( srcIter.hasNext() )
+                dest.add( srcIter.next() );
+        }
+        
+        public static class PHPConvertedIterator implements Iterator<Value> {
+            
+            public PHPConvertedIterator(Env env, Iterator<?> iter) {
+                _env = env;
+                _inner = iter;
+            }
+            
+            public boolean hasNext() {
+                return _inner.hasNext();
+            }
+            
+            public Value next() {
+                return _env.wrapJava( _inner.next() );
+            }
+            
+            public void remove() {
+                _inner.remove();
+            }
+            
+            private final Iterator<?> _inner;
+            private final Env _env;
+        }
+        
+        public static class PHPConvertedEntryIterator implements Iterator<Map.Entry<Value, Value> > {
+            
+            public PHPConvertedEntryIterator(Env env, Iterator<? extends Map.Entry> iter) {
+                _env = env;
+                _inner = iter;
+            }
+            
+            public boolean hasNext() {
+                return _inner.hasNext();
+            }
+            
+            public Map.Entry<Value, Value> next() {
+                Map.Entry org = _inner.next();
+                return new MapEntryImpl<Value, Value>( _env.wrapJava( org.getKey() ) , _env.wrapJava( org.getValue() ) );
+            }
+            
+            public void remove() {
+                _inner.remove();
+            }
+            
+            private final Iterator<? extends Map.Entry> _inner;
+            private final Env _env;
+        }
+        
+        
+        
+        
         final JSObject _object;
         final PHPConvertor _convertor;
         final PHPJSObjectClassDef _def;
     }
-
-
-    
 }
