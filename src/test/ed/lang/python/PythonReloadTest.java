@@ -60,104 +60,66 @@ public class PythonReloadTest extends PythonTestCase {
             globalScope.eval("local.file1();");
             assertRan3(globalScope);
 
-            clearScope(globalScope);
             Thread.sleep(SLEEP_MS);
             writeTest1File2();
 
             PyObject m = Py.getSystemState().__findattr__("modules");
 
-            globalScope.eval("local.file1();");
-
-            assertRan2(globalScope);
-
-            Thread.sleep(SLEEP_MS);
-            clearScope(globalScope);
-            writeTest2File2();
-            globalScope.eval("local.file1();");
-
-            assertRan2(globalScope);
-
-            clearScope(globalScope);
-
-            globalScope.eval("local.file1();");
-            assertRan1(globalScope);
+            shouldRun2(globalScope);
 
             Thread.sleep(SLEEP_MS);
             writeTest2File2();
-            clearScope(globalScope);
-            globalScope.eval("local.file1();");
-            assertRan2(globalScope);
+            shouldRun2(globalScope);
+
+            shouldRun1(globalScope);
+
+            Thread.sleep(SLEEP_MS);
+            writeTest2File2();
+            shouldRun2(globalScope);
 
             Thread.sleep(SLEEP_MS);
             writeTest3File2();
             writeTest3File3();
 
-            clearScope(globalScope);
-            globalScope.eval("local.file1();");
+            shouldRun3(globalScope);
 
-            assertRan3(globalScope);
-
-            clearScope(globalScope);
-            globalScope.eval("local.file1();");
-            assertRan1(globalScope);
+            shouldRun1(globalScope);
 
             Thread.sleep(SLEEP_MS);
             writeTest3File2();
             writeTest3File3();
 
-            clearScope(globalScope);
-            globalScope.eval("local.file1();");
-            assertRan3(globalScope);
+            shouldRun3(globalScope);
 
-
-            clearScope(globalScope);
-            globalScope.eval("local.file1();");
-            assertRan1(globalScope);
+            shouldRun1(globalScope);
 
             Thread.sleep(SLEEP_MS);
             writeTest3File3();
-            clearScope(globalScope);
-            globalScope.eval("local.file1();");
-
-            assertRan3(globalScope);
+            shouldRun3(globalScope);
 
             Thread.sleep(SLEEP_MS);
             // Test 4
             writeTest4File1();
             writeTest4File2();
             writeTest4File3();
-            clearScope(globalScope);
 
-            /*SiteSystemState ssstate = Python.getSiteState( null , globalScope );
-            PySystemState sys = ssstate.getPyState();
-            PythonInterpreter interp = new PythonInterpreter( null , sys );
-            interp.exec("import file1");*/
-            globalScope.eval("local.file1();");
             // 1 exec() 2 import 3
             // 1 runs, execs 2 (runs unconditionally), imports 3 (runs once)
-            assertRan3(globalScope);
+            shouldRun3(globalScope);
 
-            clearScope(globalScope);
-            globalScope.eval("local.file1();");
-            assertRan2(globalScope);
+            shouldRun2(globalScope);
 
             Thread.sleep(SLEEP_MS);
             writeTest4File1();
-            clearScope(globalScope);
-            globalScope.eval("local.file1();");
-            assertRan2(globalScope);
+            shouldRun2(globalScope);
 
             Thread.sleep(SLEEP_MS);
             writeTest4File2();
-            clearScope(globalScope);
-            globalScope.eval("local.file1();");
-            assertRan2(globalScope);
+            shouldRun2(globalScope);
 
             Thread.sleep(SLEEP_MS);
             writeTest4File3();
-            clearScope(globalScope);
-            globalScope.eval("local.file1();");
-            assertRan3(globalScope);
+            shouldRun3(globalScope);
 
         }
         finally {
@@ -249,16 +211,34 @@ public class PythonReloadTest extends PythonTestCase {
         fillFile(3, false);
     }
 
+    private void shouldRun1(Scope s){
+        clearScope(s);
+        s.eval("local.file1();");
+        assertRan1(s);
+    }
+
     private void assertRan1(Scope s){
         assertEquals(s.get("ranFile1"), 1);
         assertEquals(s.get("ranFile2"), 0);
         assertEquals(s.get("ranFile3"), 0);
     }
 
+    private void shouldRun2(Scope s){
+        clearScope(s);
+        s.eval("local.file1();");
+        assertRan2(s);
+    }
+
     private void assertRan2(Scope s){
         assertEquals(s.get("ranFile1"), 1);
         assertEquals(s.get("ranFile2"), 1);
         assertEquals(s.get("ranFile3"), 0);
+    }
+
+    private void shouldRun3(Scope s){
+        clearScope(s);
+        s.eval("local.file1();");
+        assertRan3(s);
     }
 
     private void assertRan3(Scope s){
