@@ -495,8 +495,10 @@ class HttpConnection{
 
     public void setPostData( byte b[] ){
         _postData = b;
-        _headers.put( "Content-Length" , b.length );
-        _headers.put( "Content-Type" , "application/x-www-form-urlencoded" );
+		if (b != null) {
+			_headers.put( "Content-Length" , b.length );
+			_headers.put( "Content-Type" , "application/x-www-form-urlencoded" );
+		}
     }
 
 	public byte[] getPostData () {

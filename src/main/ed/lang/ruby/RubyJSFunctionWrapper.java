@@ -40,6 +40,13 @@ import ed.js.engine.Scope;
 public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 
     static Map<Ruby, RubyClass> klassDefs = new WeakHashMap<Ruby, RubyClass>();
+    /**
+     * Class names that should <em>not</em> be turned in to Ruby classes when
+     * looking at scope contents.
+     */
+    static final String[] IGNORE_JS_CLASSES = {
+        "Array", "Base64", "Class", "Date", "Math", "Number", "Object", "Regexp"
+    };
 
     protected final JSFunction _func;
     protected final JSObject _this;
@@ -59,6 +66,15 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
         return jsFunctionClass;
     }
 
+    public static boolean canBeNewClass(Ruby runtime, String name) {
+        if (!IdUtil.isConstant(name))
+            return false;
+        for (int i = 0; i < IGNORE_JS_CLASSES.length; ++i)
+            if (IGNORE_JS_CLASSES[i].equals(name))
+                return false;
+        return runtime.getClass(name) == null;
+    }
+
     RubyJSFunctionWrapper(Scope s, Ruby runtime, JSFunction obj, String name, RubyModule attachTo) {
         this(s, runtime, obj, name, attachTo, null);
     }
@@ -73,7 +89,7 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
         if (name != null && name.length() > 0) {
             if (attachTo != null)
                 _addMethod(name, jm, attachTo);
-            if (IdUtil.isConstant(name) && runtime.getClass(name) == null)
+            if (canBeNewClass(runtime, name))
                 _createJSObjectSubclass(s, name);
         }
         else if (attachTo != null)

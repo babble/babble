@@ -230,6 +230,11 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         return getHeader( "Content-Type" );
     }
 
+    public void clearHeaders(){
+        _headers.clear();
+        _useDefaultHeaders = false;
+    }
+
     /**
      * Set a header in the response.
      * Overwrites previous headers with the same name
@@ -465,7 +470,10 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
 
         if ( _jsfile != null ){
             if ( ! _jsfile.write( _handler.getChannel() ) ){
-                _handler.registerForWrites();
+                if ( _jsfile.pause() )
+                    _handler.pause();
+                else
+                    _handler.registerForWrites();
                 return false;
             }
         }
@@ -504,7 +512,8 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
             a.append( "\n" );
         }
 
-	a.append( SERVER_HEADERS );
+        if ( _useDefaultHeaders )
+            a.append( SERVER_HEADERS );
 
         // headers
         if ( _headers != null ){
@@ -739,8 +748,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         }
 
         long length = f.getLength();
-        _jsfile = f.sender();
-        _stringContent = null;
+        sendFile( f.sender() );
         
         long range[] = _request.getRange();
         if ( range != null && ( range[0] > 0 || range[1] < length ) ){
@@ -767,7 +775,11 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         }
         setContentLength( f.getLength() );
         setContentType( f.getContentType() );
+    }
 
+    public void sendFile( JSFile.Sender sender ){
+        _jsfile = sender;
+        _stringContent = null;
     }
     
     private int _numDataThings(){
@@ -820,6 +832,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
     // header
     int _responseCode = 200;
     Map<String,List<String>> _headers = new StringMap<List<String>>();
+    boolean _useDefaultHeaders = true;
     List<Cookie> _cookies = new ArrayList<Cookie>();
     boolean _sentHeader = false;
 

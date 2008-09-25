@@ -67,6 +67,9 @@ public abstract class RubyObjectWrapper extends RubyObject {
         if (obj == null)
             return runtime.getNil();
 
+        if (obj instanceof IRubyObject)
+            return (IRubyObject)obj;
+
         IRubyObject wrapper = cachedWrapperFor(runtime, obj);
         if (wrapper != null) {
             if (wrapper instanceof RubyJSObjectWrapper)
@@ -149,6 +152,8 @@ public abstract class RubyObjectWrapper extends RubyObject {
     public static Object toJS(final Scope scope, IRubyObject r) {
         if (r == null || r.isNil())
             return null;
+        if (r instanceof JSObject)
+            return r;
         if (r instanceof RubyString)
             return new JSString(((RubyString)r).toString());
         if (r instanceof RubyObjectWrapper)
