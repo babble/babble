@@ -399,6 +399,10 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest {
         return a.getEnumeration();
     }
 
+    public Set<String> getHeaderNameKeySet(){
+        return _headers.keySet();
+    }
+
     // cookies
 
 
