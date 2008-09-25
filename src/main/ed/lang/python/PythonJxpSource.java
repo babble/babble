@@ -89,8 +89,6 @@ public class PythonJxpSource extends JxpSource {
                 addPath( ss.getPyState() , _lib.getTopParent().getRoot().toString() );
 
                 PyObject globals = ss.globals;
-                // Careful -- this is static PySystemState.builtins
-                PyObject builtins = ss.getPyState().builtins;
 
                 try {
                     Py.setSystemState( ss.getPyState() );

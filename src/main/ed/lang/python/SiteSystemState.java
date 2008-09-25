@@ -52,6 +52,8 @@ import ed.appserver.jxp.*;
  * SiteSystemState.getPyState() to Py.setSystemState as needed.
  */
 public class SiteSystemState {
+    static final boolean DEBUG = Boolean.getBoolean( "DEBUG.SITESYSTEMSTATE" );
+    
     SiteSystemState( AppContext ac , PyObject newGlobals , Scope s){
         pyState = new PySystemState();
         globals = newGlobals;
@@ -112,8 +114,8 @@ public class SiteSystemState {
      * Flush old modules that have been imported by Python code but
      * whose source is now newer.
      */
-    public void flushOld(){
-        ((PythonModuleTracker)pyState.modules).flushOld();
+    public Set<File> flushOld(){
+        return ((PythonModuleTracker)pyState.modules).flushOld();
     }
 
     private void ensureMetaPathHook( PySystemState ss , Scope scope ){
@@ -171,14 +173,15 @@ public class SiteSystemState {
         }
 
         public PyObject __call__( PyObject args[] , String keywords[] ){
-            SiteSystemState sss = Python.getSiteSystemState( null , Scope.getThreadLocal() );
-
             int argc = args.length;
             // Second argument is the dict of globals. Mostly this is helpful
             // for getting context -- file or module *doing* the import.
             PyObject globals = ( argc > 1 ) ? args[1] : null;
 
-            //System.out.println("Overrode import importing. import " + args[0] + " in file " + globals.__finditem__( "__file__" ) );
+            if( DEBUG ){
+                System.out.println("Overrode import importing. import " + args[0]);
+                System.out.println("globals? " + (globals == null ? "null" : "not null, file " + globals.__finditem__("__file__")));
+            }
 
             PyObject m = _import.__call__( args, keywords );
 
@@ -186,12 +189,37 @@ public class SiteSystemState {
                 // Only happens (AFAICT) from within Java code.
                 // For example, Jython's codecs.java calls
                 // __builtin__.__import__("encodings");
+                // Python calls to __import__ provide an empty Python dict.
                 return m;
             }
 
 
             // gets the module name -- __file__ is the file
             PyObject importer = globals.__finditem__( "__name__".intern() );
+            if( importer == null ){
+                // Globals was empty? Maybe we were called "manually" with
+                // __import__, or maybe import is happening from an exec()
+                // or something.
+                // Let's try to get the place that called the import manually
+                // and hope for the best.
+                PyFrame f = Py.getFrame();
+                if( f == null ){
+                    System.err.println("Can't figure out where the call to import " + args[0] + " came from! Import tracking is going to be screwed up!");
+                }
+                else {
+                    globals = f.f_globals;
+                    importer = globals.__finditem__( "__name__".intern() );
+                }
+                if( importer == null ){ // Still??
+                    // Well, that probably means we're being called from an
+                    // exec() or something where there is no __name__.
+                    // This is fine, because if we get re-exec()ed, we'll
+                    // just get reloaded. So we don't need to track this
+                    // dependency since we can't flush it.
+
+                    return m;
+                }
+            }
 
             PyObject to = m.__findattr__( "__name__".intern() );
             // no __file__: builtin or something -- don't bother adding
@@ -206,6 +234,7 @@ public class SiteSystemState {
 
             // Add a module dependency -- module being imported was imported by
             // the importing module
+            SiteSystemState sss = Python.getSiteSystemState( null , Scope.getThreadLocal() );
             sss.addDependency( to , importer );
             return m;
 
