@@ -176,7 +176,9 @@ public class HttpClient {
             if ( handler.getPostDataToSend() != null && number == 0 ){
                 conn.setRequestMethod("POST");
                 conn.setPostData( handler.getPostDataToSend() );
-            }
+            } else {
+				conn.setPostData(null);
+			}
 
 	    Map headers = handler.getHeadersToSend();
 	    if ( headers != null ){
