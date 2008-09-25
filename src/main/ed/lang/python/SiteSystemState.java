@@ -204,20 +204,28 @@ public class SiteSystemState {
                 // and hope for the best.
                 PyFrame f = Py.getFrame();
                 if( f == null ){
+                    // No idea what this means
                     System.err.println("Can't figure out where the call to import " + args[0] + " came from! Import tracking is going to be screwed up!");
-                }
-                else {
-                    globals = f.f_globals;
-                    importer = globals.__finditem__( "__name__".intern() );
-                }
-                if( importer == null ){ // Still??
-                    // Well, that probably means we're being called from an
-                    // exec() or something where there is no __name__.
-                    // This is fine, because if we get re-exec()ed, we'll
-                    // just get reloaded. So we don't need to track this
-                    // dependency since we can't flush it.
-
                     return m;
+                }
+
+                globals = f.f_globals;
+                importer = globals.__finditem__( "__name__".intern() );
+                if( importer == null ){
+                    // Probably an import from within an exec("foo", {}).
+                    // Let's go for broke and try to get the filename from
+                    // the PyFrame. This won't be tracked any further,
+                    // but that's fine -- at least we'll know which file
+                    // needs to be re-exec'ed (e.g. for modjy).
+                    // FIXME: exec('import foo', {}) ???
+                    //   -- filename is <string> or what?
+                    PyTableCode code = f.f_code;
+                    // FIXME: wrap just to unwrap later
+                    importer = new PyString( code.co_filename );
+                }
+
+                if( importer == null ){ // Still??
+                    System.err.println("Totally unable to figure out how import to " + args[0] + " came about. Import tracking is going to be screwed up.");
                 }
             }
 
