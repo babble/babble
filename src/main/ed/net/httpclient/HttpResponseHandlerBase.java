@@ -1,20 +1,20 @@
 // HttpResponseHandlerBase.java
 
 /**
-*    Copyright (C) 2008 10gen Inc.
-*
-*    This program is free software: you can redistribute it and/or  modify
-*    it under the terms of the GNU Affero General Public License, version 3,
-*    as published by the Free Software Foundation.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU Affero General Public License for more details.
-*
-*    You should have received a copy of the GNU Affero General Public License
-*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    Copyright (C) 2008 10gen Inc.
+ *
+ *    This program is free software: you can redistribute it and/or  modify
+ *    it under the terms of the GNU Affero General Public License, version 3,
+ *    as published by the Free Software Foundation.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU Affero General Public License for more details.
+ *
+ *    You should have received a copy of the GNU Affero General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 package ed.net.httpclient;
 
@@ -26,12 +26,12 @@ import ed.util.*;
 import ed.net.*;
 
 /**
-*/
+ */
 public abstract class HttpResponseHandlerBase implements HttpResponseHandler {
 
     public void gotHeader( String name , String value )
-	throws java.io.IOException {
-	_receivedHeaders.put( name , value );
+        throws java.io.IOException {
+        _receivedHeaders.put( name , value );
     }
 
     public void removeHeader( String name ){
@@ -39,25 +39,25 @@ public abstract class HttpResponseHandlerBase implements HttpResponseHandler {
     }
 
     public void gotResponseCode( int responseCode ){
-	_responseCode = responseCode;
+        _responseCode = responseCode;
     }
 
     public int getContentLength() { return _contentLength; }
 
     public void gotContentLength( int contentLength ){
-	_contentLength = contentLength;
+        _contentLength = contentLength;
     }
 
     public void gotContentEncoding( String contentEncoding ){
-	_contentEncoding = contentEncoding;
+        _contentEncoding = contentEncoding;
     }
 
     public void gotCookie( Cookie c ){
-	_cookies.add( c );
+        _cookies.add( c );
     }
 
     public void setFinalUrl( URL url ){
-	_finalUrl = url;
+        _finalUrl = url;
     }
 
     public URL getFinalUrl() {
@@ -65,16 +65,16 @@ public abstract class HttpResponseHandlerBase implements HttpResponseHandler {
     }
 
     public void addHeader( String n , String v ){
-	_headersToSend.put( n , v );
+        _headersToSend.put( n , v );
     }
 
     public void setAuthentication( String username , String password ){
-	addHeader( "Authorization" ,
-		   " Basic " + Base64.encodeBytes( new String( username+":"+password ).getBytes() ) );
+        addHeader( "Authorization" ,
+                   " Basic " + Base64.encodeBytes( new String( username+":"+password ).getBytes() ) );
     }
 
     public String getHeader( String n ) {
-	return( _receivedHeaders.get( n ) );
+        return( _receivedHeaders.get( n ) );
     }
 
     public long getDesiredTimeout(){
@@ -86,9 +86,9 @@ public abstract class HttpResponseHandlerBase implements HttpResponseHandler {
         return true;
     }
 
-	public boolean wantHttpErrorExceptions() {
-		return true;
-	}
+    public boolean wantHttpErrorExceptions() {
+        return true;
+    }
 
     public Map<String,String> getHeadersToSend(){ return _headersToSend; };
     public Map<String,Cookie> getCookiesToSend(){ return null; };
