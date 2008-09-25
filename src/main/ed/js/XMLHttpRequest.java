@@ -1,20 +1,20 @@
 // XMLHttpRequest.java
 
 /**
-*    Copyright (C) 2008 10gen Inc.
-*
-*    This program is free software: you can redistribute it and/or  modify
-*    it under the terms of the GNU Affero General Public License, version 3,
-*    as published by the Free Software Foundation.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU Affero General Public License for more details.
-*
-*    You should have received a copy of the GNU Affero General Public License
-*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    Copyright (C) 2008 10gen Inc.
+ *
+ *    This program is free software: you can redistribute it and/or  modify
+ *    it under the terms of the GNU Affero General Public License, version 3,
+ *    as published by the Free Software Foundation.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU Affero General Public License for more details.
+ *
+ *    You should have received a copy of the GNU Affero General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 package ed.js;
 
@@ -162,20 +162,20 @@ public class XMLHttpRequest extends JSObjectBase {
     public Object set( Object n , Object v ){
         String name = n.toString();
 
-       if ( n.equals( "onreadystatechange" ) ){
+        if ( n.equals( "onreadystatechange" ) ){
 
-           JSFunction f = (JSFunction)v;
+            JSFunction f = (JSFunction)v;
 
-           if ( f != null )
-               _async = true;
+            if ( f != null )
+                _async = true;
 
-           _onreadystatechangeScope = f.getScope().child();
-           _onreadystatechangeScope.setThis( this );
+            _onreadystatechangeScope = f.getScope().child();
+            _onreadystatechangeScope.setThis( this );
 
-           return super.set( n , v );
+            return super.set( n , v );
         }
 
-       return super.set( n , v );
+        return super.set( n , v );
     }
 
     /** Send an XML HTTP request.
@@ -326,9 +326,9 @@ public class XMLHttpRequest extends JSObjectBase {
      * @return An object parsed from the response text.
      */
     public Object getJSON(){
-	Object r = get( "responseText" );
-	if ( r == null )
-	    throw new JSException( "no 'responseText' " );
+        Object r = get( "responseText" );
+        if ( r == null )
+            throw new JSException( "no 'responseText' " );
         return JSON.parse( r.toString() );
     }
 
@@ -428,9 +428,9 @@ public class XMLHttpRequest extends JSObjectBase {
             return true;
         }
 
-		public boolean wantHttpErrorExceptions () {
-			return false;
-		}
+        public boolean wantHttpErrorExceptions () {
+            return false;
+        }
 
         public Map<String,String> getHeadersToSend(){
             return _headersToSend;
