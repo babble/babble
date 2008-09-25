@@ -13,6 +13,7 @@
       <class name="ed.net.DNSUtilTest" />
       <class name="ed.net.httpserver.ReplayTest"/>
       <class name="ed.net.httpserver.HttpRequestTest"/>
+	  <class name="ed.net.httpclient.HttpClientTest"/>
       <class name="ed.util.FastStringMapTest"/>
       <class name="ed.appserver.AppContextTestNG" />
       <class name="ed.appserver.JSFileLibraryTest" />
