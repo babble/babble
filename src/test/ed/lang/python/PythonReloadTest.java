@@ -11,6 +11,7 @@ import java.util.Map;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
 import org.python.core.*;
+import org.python.util.*;
 
 import ed.js.Encoding;
 import ed.appserver.JSFileLibrary;
@@ -25,13 +26,14 @@ import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
 import ed.log.Level;
 import ed.log.Logger;
+import ed.lang.python.Python;
 
 public class PythonReloadTest extends PythonTestCase {
     private static final String TEST_DIR = "/tmp/pyreload";
     private static final File testDir = new File(TEST_DIR);
     
     //time to wait between file modifications to allow the fs to update the timestamps
-    private static final long SLEEP_MS = 5000;
+    private static final long SLEEP_MS = 2000;
 
     @BeforeClass
     public void setUp() throws IOException, InterruptedException {
@@ -118,6 +120,45 @@ public class PythonReloadTest extends PythonTestCase {
             globalScope.eval("local.file1();");
 
             assertRan3(globalScope);
+
+            Thread.sleep(SLEEP_MS);
+            // Test 4
+            writeTest4File1();
+            writeTest4File2();
+            writeTest4File3();
+            clearScope(globalScope);
+
+            /*SiteSystemState ssstate = Python.getSiteState( null , globalScope );
+            PySystemState sys = ssstate.getPyState();
+            PythonInterpreter interp = new PythonInterpreter( null , sys );
+            interp.exec("import file1");*/
+            globalScope.eval("local.file1();");
+            // 1 exec() 2 import 3
+            // 1 runs, execs 2 (runs unconditionally), imports 3 (runs once)
+            assertRan3(globalScope);
+
+            clearScope(globalScope);
+            globalScope.eval("local.file1();");
+            assertRan2(globalScope);
+
+            Thread.sleep(SLEEP_MS);
+            writeTest4File1();
+            clearScope(globalScope);
+            globalScope.eval("local.file1();");
+            assertRan2(globalScope);
+
+            Thread.sleep(SLEEP_MS);
+            writeTest4File2();
+            clearScope(globalScope);
+            globalScope.eval("local.file1();");
+            assertRan2(globalScope);
+
+            Thread.sleep(SLEEP_MS);
+            writeTest4File3();
+            clearScope(globalScope);
+            globalScope.eval("local.file1();");
+            assertRan3(globalScope);
+
         }
         finally {
             if(oldScope != null)
@@ -184,6 +225,28 @@ public class PythonReloadTest extends PythonTestCase {
         writer.println("_10gen.ranFile3 = 1");
         writer.println("import file2");
         writer.close();
+    }
+
+    private void writeTest4File1() throws IOException {
+        File f = new File(testDir, "file1.py");
+        PrintWriter writer = new PrintWriter(f);
+        writer.println("import _10gen");
+        writer.println("_10gen.ranFile1 = 1");
+        writer.println("execfile('"+testDir+"/file2.py', {})");
+        writer.close();
+    }
+
+    private void writeTest4File2() throws IOException {
+        File f = new File(testDir, "file2.py");
+        PrintWriter writer = new PrintWriter(f);
+        writer.println("import _10gen");
+        writer.println("_10gen.ranFile2 = 1");
+        writer.println("import file3");
+        writer.close();
+    }
+
+    private void writeTest4File3() throws IOException {
+        fillFile(3, false);
     }
 
     private void assertRan1(Scope s){

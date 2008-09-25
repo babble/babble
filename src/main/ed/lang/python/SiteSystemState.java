@@ -191,6 +191,30 @@ public class SiteSystemState {
 
             // gets the module name -- __file__ is the file
             PyObject importer = globals.__finditem__( "__name__".intern() );
+            if( importer == null ){
+                // Globals was empty? Maybe we were called "manually" with
+                // __import__, or maybe import is happening from an exec()
+                // or something.
+                // Let's try to get the place that called the import manually
+                // and hope for the best.
+                PyFrame f = Py.getFrame();
+                if( f == null ){
+                    System.out.println("Can't figure out where the call to import " + args[0] + " came from! Import tracking is going to be screwed up!");
+                }
+                else {
+                    globals = f.f_globals;
+                    importer = globals.__finditem__( "__name__".intern() );
+                }
+                if( importer == null ){ // Still??
+                    // Well, that probably means we're being called from an
+                    // exec() or something where there is no __name__.
+                    // This is fine, because if we get re-exec()ed, we'll
+                    // just get reloaded. So we don't need to track this
+                    // dependency since we can't flush it.
+
+                    return m;
+                }
+            }
 
             PyObject to = m.__findattr__( "__name__".intern() );
             // no __file__: builtin or something -- don't bother adding
