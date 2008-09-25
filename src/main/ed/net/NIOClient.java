@@ -30,17 +30,19 @@ import ed.util.*;
 
 public class NIOClient extends Thread {
     
-    public NIOClient( String name , int connectionsPerHost , boolean verbose ){
+    protected enum WhatToDo { CONTINUE , PAUSE , DONE_AND_CLOSE , DONE_AND_CONTINUE , ERROR };
+
+    public NIOClient( String name , int connectionsPerHost , int verboseLevel ){
         super( "NIOClient: " + name );
         _name = name;
-        _verbose = verbose;
+        _verbose = verboseLevel;
         _connectionsPerHost = connectionsPerHost;
         
         _logger = Logger.getLogger( "nioclient-" + name );
         _loggerOpen = _logger.getChild( "open" );
         _loggerDrop = _logger.getChild( "drop" );
 
-        _logger.setLevel( verbose ? Level.DEBUG : Level.INFO );
+        _logger.setLevel( _verbose > 0 ? Level.DEBUG : Level.INFO );
 
         try {
             _selector = Selector.open();
@@ -70,7 +72,7 @@ public class NIOClient extends Thread {
         _doNewRequests();
         _doOldStuff();
     }
-
+    
     private void _doOldStuff(){
         int numKeys = 0;
         try {
@@ -86,22 +88,23 @@ public class NIOClient extends Thread {
         final Iterator<SelectionKey> i = _selector.selectedKeys().iterator();
         while ( i.hasNext() ){
             SelectionKey key = i.next();
+
+            i.remove();
             Connection c = (Connection)key.attachment();
             
-            if ( key.isConnectable() ){
-                i.remove();
+            if ( c == null ){
+                _logger.error( "attachment was null " );
+                continue;
+            }                
+
+            if ( key.isConnectable() )
                 c.handleConnect();
-            }
             
-            if ( key.isReadable() ){
-                i.remove();
+            if ( key.isReadable() )
                 c.handleRead();
-            }
             
-            if ( key.isWritable() ){
-                i.remove();
+            if ( key.isWritable() )
                 c.handleWrite();
-            }
         }
         
     }
@@ -159,7 +162,7 @@ public class NIOClient extends Thread {
         return p;
     }
 
-    class Connection {
+    protected class Connection {
         
         Connection( ConnectionPool pool , InetSocketAddress addr ){
             _pool = pool;
@@ -210,22 +213,84 @@ public class NIOClient extends Thread {
             if ( System.currentTimeMillis() - _opened > 1000 * 60 )
                 return false;
             
+            if ( _closed )
+                return false;
+
             return true;
+        }
+        
+        public int doRead(){
+            _fromServer.position( 0 );
+            _fromServer.limit( _fromServer.capacity() );
+            
+            int read = 0;
+
+            try {
+                read = _sock.read( _fromServer );
+            }
+            catch ( IOException ioe ){
+                _error( ioe );
+                _current.error( ioe );
+                return -1;
+            }
+            
+            if ( read != _fromServer.position() )
+                throw new RuntimeException( "i'm confused  says i read [" + read + "] but at position [" + _fromServer.position() + "]" );
+            
+            _fromServer.flip();
+
+            return read;
         }
 
         void handleRead(){
-            throw new RuntimeException( "don't know how to read" );
+            // read data from wire
+            // pass data to Call
+            // response could be
+            //   - continue
+            //   - pause - turn off selector
+            //   - done - add yourself back to the pool
+            //   - error, close connection
+            
+            doRead();
+            
+            WhatToDo next = _current.handleRead( _fromServer , this );
+            switch ( next ){
+            case CONTINUE: 
+                _key.interestOps( _key.OP_READ );
+                return;
+            case PAUSE: 
+                _key.interestOps( 0 );
+                return;
+            case ERROR:
+                _userError( "unknown" );
+                return;
+            case DONE_AND_CLOSE:
+                done( true );
+                return;
+            case DONE_AND_CONTINUE:
+                done( false );
+                return;
+            }
+        }
+        
+        public void done( boolean close ){
+
+            if ( close )
+                close();
+
+            if ( _error == null ){
+                _logger.debug( "putting connection back in pool" );
+                _pool.done( this );
+            }
+            _current = null;
         }
 
         void handleWrite(){
-            
-            System.out.println( "writing data" );
-
             try {
                 _sock.write( _toServer );
             }
             catch ( IOException ioe ){
-                _error = ioe;
+                _error( ioe );
                 _key.interestOps( 0 );
             }
             
@@ -266,12 +331,35 @@ public class NIOClient extends Thread {
         }
 
         private void _userError( String msg ){
-            _error = new IOException( "User Error : " + msg );
+            _error( new IOException( "User Error : " + msg ) );
             throw new RuntimeException( msg );
+        }
+
+        private void _error( IOException e ){
+            _error = e;
+            if ( _current != null )
+                _current.error( e );
+            if ( _ready ){
+                close();
+            }
         }
 
         public String toString(){
             return _addr.toString();
+        }
+        
+        void close(){
+            if ( _closed )
+                return;
+
+            _closed = true;
+            try {
+                _key.cancel();
+                _sock.close();
+            }
+            catch ( IOException ioe ){
+                    // don't care
+            }
         }
 
         final ConnectionPool _pool;
@@ -279,14 +367,15 @@ public class NIOClient extends Thread {
         final long _opened = System.currentTimeMillis();
 
         final ByteBuffer _toServer = ByteBuffer.allocateDirect( 1024 * 32 );
-        
+        final ByteBuffer _fromServer = ByteBuffer.allocateDirect( 1024 * 32 );
+
         final SocketChannel _sock;
         final SelectionKey _key;  
         
         private boolean _ready = false;
         private IOException _error = null;
-        private long _lastOp = _opened;
-
+        private boolean _closed = false;
+        
         private Call _current = null;
 
         
@@ -330,11 +419,12 @@ public class NIOClient extends Thread {
         protected abstract void error( Exception e );
 
         protected abstract void fillInRequest( ByteBuffer buf );
-        
+        protected abstract WhatToDo handleRead( ByteBuffer buf , Connection conn );
+
     }
 
     final protected String _name;
-    final protected boolean _verbose;
+    final protected int _verbose;
     final protected int _connectionsPerHost;
 
     final Logger _logger;
