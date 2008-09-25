@@ -62,6 +62,22 @@ public class PythonModuleTracker extends PyStringMap {
         // point in time, the module doesn't have a __file__
     }
 
+    public static boolean needsRefresh( String filename ){
+        // Src for file
+        File pyFile = new File( filename );
+        String clsPath = filename.replace( ".py" , "$py.class" );
+        // Compiled class file -- might not exist
+        File clsFile = new File( clsPath );
+        
+        if( clsFile.exists() && 
+            pyFile.lastModified() > clsFile.lastModified() ){
+            if( DEBUG )
+                System.out.println("Newer " + pyFile + " " + clsFile);
+            return true;
+        }
+        return false;
+    }
+
     /**
      * @return the flushed files
      */
@@ -90,20 +106,8 @@ public class PythonModuleTracker extends PyStringMap {
                 continue;
             }
 
-            PyString filenameP = (PyString)__file__;
-            String filename = __file__.toString();
-            // Src for file
-            File pyFile = new File( filename );
-            String clsPath = filename.replace( ".py" , "$py.class" );
-            // Compiled class file -- might not exist
-            File clsFile = new File( clsPath );
-
-            if( clsFile.exists() && 
-                pyFile.lastModified() > clsFile.lastModified() ){
-                if( DEBUG )
-                    System.out.println("Newer " + pyFile + " " + clsFile);
+            if( needsRefresh( __file__.toString() ) ){
                 newer.add( s );
-                files.add( pyFile );
             }
         }
 
@@ -118,9 +122,22 @@ public class PythonModuleTracker extends PyStringMap {
             toAdd.remove( o );
             PyObject obj = super.__finditem__( o );
 
-            if( obj == null || ! ( obj instanceof PyModule ) )
-                continue;  // User madness?
+            if( obj == null ){
+                // Not really a module -- someone probably stuck a filename in
+                // our rdeps.
+                files.add( new File( o ) );
+                continue;
+            }
+            if( ! ( obj instanceof PyModule ) ){
+                // user madness?
+                // FIXME: go in files?
+                continue;
+            }
             PyModule mod = (PyModule)obj;
+
+            PyObject __file__ = obj.__findattr__( "__file__" );
+            if( __file__ != null )
+                files.add( new File( __file__.toString() ) );
 
             if( DEBUG )
                 System.out.println("Flushing " + o);

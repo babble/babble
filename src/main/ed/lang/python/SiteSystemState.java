@@ -204,26 +204,60 @@ public class SiteSystemState {
                 // and hope for the best.
                 PyFrame f = Py.getFrame();
                 if( f == null ){
+                    // No idea what this means
                     System.err.println("Can't figure out where the call to import " + args[0] + " came from! Import tracking is going to be screwed up!");
-                }
-                else {
-                    globals = f.f_globals;
-                    importer = globals.__finditem__( "__name__".intern() );
-                }
-                if( importer == null ){ // Still??
-                    // Well, that probably means we're being called from an
-                    // exec() or something where there is no __name__.
-                    // This is fine, because if we get re-exec()ed, we'll
-                    // just get reloaded. So we don't need to track this
-                    // dependency since we can't flush it.
-
                     return m;
+                }
+
+                globals = f.f_globals;
+                importer = globals.__finditem__( "__name__".intern() );
+                if( importer == null ){
+                    // Probably an import from within an exec("foo", {}).
+                    // Let's go for broke and try to get the filename from
+                    // the PyFrame. This won't be tracked any further,
+                    // but that's fine -- at least we'll know which file
+                    // needs to be re-exec'ed (e.g. for modjy).
+                    // FIXME: exec('import foo', {}) ???
+                    //   -- filename is <string> or what?
+                    PyTableCode code = f.f_code;
+                    // FIXME: wrap just to unwrap later
+                    importer = new PyString( code.co_filename );
+                }
+
+                if( importer == null ){ // Still??
+                    System.err.println("Totally unable to figure out how import to " + args[0] + " came about. Import tracking is going to be screwed up.");
                 }
             }
 
-            PyObject to = m.__findattr__( "__name__".intern() );
-            // no __file__: builtin or something -- don't bother adding
-            // dependency
+            // We have to return m, but that might not be the module itself.
+            // If we got "import foo.bar", m = foo, but we want to get 
+            // bar.__name__. So we have to search through modules to get to the
+            // innermost.
+            // But if we got "from foo import bar", m = bar, and we don't want
+            // to do anything. Ahh, crappy __import__ semantics..
+            // For more information see http://docs.python.org/lib/built-in-funcs.html
+            PyObject fromlist = (argc > 3) ? args[3] : null;
+            PyObject innerMod = null;
+            if( fromlist != null && fromlist.__len__() > 0 ) innerMod = m;
+            else {
+                innerMod = m;
+                PyObject targetP = args[0];
+                if( targetP instanceof PyString ){
+                    String target = targetP.toString();
+                    String [] modNames = target.split("\\.");
+
+                    for( int i = 1; i < modNames.length; ++i ){
+                        innerMod = innerMod.__findattr__( modNames[i].intern() );
+                    }
+                }
+                else {
+                    // ?? 
+                    // Someone hates us..
+                    System.err.println("I will not be party to this madness " + targetP.getClass());
+                }
+            }
+
+            PyObject to = innerMod.__findattr__( "__name__".intern() );
             if( to == null ) return m;
 
             // Add a plain old JXP dependency on the file that was imported

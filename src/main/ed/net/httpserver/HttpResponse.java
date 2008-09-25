@@ -260,6 +260,10 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         setHeader( "Content-Length" , String.valueOf( length ) );
     }
 
+    public int getContentLength(){
+        return getIntHeader( "Content-Length" , -1 );
+    }
+
     public void setIntHeader( String n , int v ){
         List<String> lst = _getHeaderList( n , true );
         lst.clear();
@@ -276,6 +280,10 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         if ( lst == null || lst.size() == 0 )
             return null;
         return lst.get( 0 );
+    }
+
+    public int getIntHeader( String h , int def ){
+        return StringParseUtil.parseInt( getHeader( h ) , def );
     }
 
     private List<String> _getHeaderList( String n , boolean create ){
