@@ -3,7 +3,9 @@ import sys
 import _10gen
 import foo
 import modjy_webapp.foo
+import modjy_webapp.core.foo
 
+foo.hello = 61
 print 'running me'
 
 def escape_html(s): return s.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
@@ -22,6 +24,9 @@ def handler(environ, start_response):
     environ['10gen.db'] = _10gen.db
     environ['10gen.foo.hi'] = foo.hi
     environ['10gen.sitename.foo.hi'] = modjy_webapp.foo.hi
+
+    environ['10gen.foo.hello'] = foo.hello
+    environ['10gen.sitename.foo.hello'] = getattr(modjy_webapp.foo, 'hello', None)
     keys = environ.keys()
     keys.sort()
     ix = 0
