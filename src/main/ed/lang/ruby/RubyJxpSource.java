@@ -145,10 +145,8 @@ public class RubyJxpSource extends JxpSource {
     protected IRubyObject _doCall(Node node, Scope s, Object unused[]) {
         _addJSFileLibrariesToPath(s);
 
-        if (_runtime.getGlobalVariables() instanceof ScopeGlobalVariables)
-            _runtime.setGlobalVariables(((ScopeGlobalVariables)_runtime.getGlobalVariables()).getOldGlobalVariables());
-        _setOutput(s);
         _runtime.setGlobalVariables(new ScopeGlobalVariables(s, _runtime));
+        _setOutput(s);
         _exposeScopeFunctions(s);
         _patchRequireAndLoad(s);
 
@@ -220,14 +218,14 @@ public class RubyJxpSource extends JxpSource {
      */
     protected void _exposeScopeFunctions(Scope scope) {
         _runtime.getGlobalVariables().set("$scope", toRuby(scope, _runtime, scope));
-        _addTopLevelMethodsToObjectClass(scope);
+        _addTopLevelMethodsToXGenModule(scope);
     }
 
     /**
      * Creates a module named XGen, includes it in the Object class (just like
      * Kernel), and adds all top-level JavaScript methods to the module.
      */
-    protected void _addTopLevelMethodsToObjectClass(final Scope scope) {
+    protected void _addTopLevelMethodsToXGenModule(final Scope scope) {
         RubyModule xgen = xgenModule(_runtime);
         _runtime.getObject().includeModule(xgen);
 
@@ -255,7 +253,7 @@ public class RubyJxpSource extends JxpSource {
         kernel.addMethod("require", new JavaMethod(kernel, PUBLIC) {
                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
                     Ruby runtime = self.getRuntime();
-                    String file = args[0].toString();
+                    String file = args[0].convertToString().toString();
 
                     if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
                         System.err.println("require " + file);

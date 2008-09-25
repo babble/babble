@@ -20,11 +20,12 @@ import java.util.Set;
 import java.util.HashSet;
 
 import org.jruby.Ruby;
+import org.jruby.RubyProc;
 import org.jruby.internal.runtime.GlobalVariables;
+import org.jruby.runtime.IAccessor;
 import org.jruby.runtime.builtin.IRubyObject;
 
 import ed.js.engine.Scope;
-import ed.net.httpserver.HttpResponse;
 import static ed.lang.ruby.RubyObjectWrapper.toJS;
 import static ed.lang.ruby.RubyObjectWrapper.toRuby;
 
@@ -32,7 +33,7 @@ public class ScopeGlobalVariables extends GlobalVariables {
 
     private Scope _scope;
     private Ruby _runtime;
-    private GlobalVariables _oldies;
+    private GlobalVariables _delegate;
     private IRubyObject _defaultSeparator;
 
     public ScopeGlobalVariables(Scope scope, Ruby runtime) {
@@ -40,51 +41,60 @@ public class ScopeGlobalVariables extends GlobalVariables {
         _scope = scope;
         _runtime = runtime;
 
-        _oldies = _runtime.getGlobalVariables();
-        for (String name : _oldies.getNames()) {
-            if (!"$=".equals(name))
-                _scope.put(nameToKey(name), toJS(_scope, _oldies.get(name)));
+        _delegate = _runtime.getGlobalVariables();
+        while (_delegate instanceof ScopeGlobalVariables)
+            _delegate = ((ScopeGlobalVariables)_delegate)._delegate;
+
+        Set<String> delegateNamesCopy = new HashSet<String>(_delegate.getNames());
+        for (Object key : RubyScopeWrapper.jsKeySet(_scope)) { // Add scope vars to Ruby globals
+            if (Character.isLetter(key.toString().charAt(0))) {
+                Object val = _scope.get(key);
+                _delegate.set("$" + key.toString(), toRuby(_scope, _runtime, val, "$" + key));
+            }
+        }
+        for (String name : delegateNamesCopy) { // Add existing Ruby globals to scope
+            if (Character.isLetter(name.charAt(0)))
+                _scope.put(globalNameToJSKey(name), toJS(_scope, _delegate.get(name)));
         }
     }
 
-    public GlobalVariables getOldGlobalVariables() { return _oldies; }
+    public void define(String name, IAccessor accessor) { _delegate.define(name, accessor); }
 
-    public boolean isDefined(String name) {
-        if (_scope.get(nameToKey(name)) != null)
-            return true;
-        return _oldies.isDefined(name);
-    }
+    public void defineReadonly(String name, IAccessor accessor) { _delegate.defineReadonly(name, accessor); }
+
+    public boolean isDefined(String name) { return _delegate.isDefined(name); }
+
+    public void alias(String name, String oldName) { _delegate.alias(name, oldName); }
 
     public IRubyObject get(String name) {
-        String key = nameToKey(name);
-        Object o = _scope.get(key);
-        if (o == null)
-            return _oldies.get(name);
-        return toRuby(_scope, _runtime, o, key);
+        String key = globalNameToJSKey(name);
+        Object val = _scope.get(key);
+        return val == null ? _delegate.get(name) : toRuby(_scope, _runtime, val, key);
     }
 
     public IRubyObject set(String name, IRubyObject value) {
-        IRubyObject val = super.set(name, value);
-        _scope.put(nameToKey(name), toJS(_scope, val));
+        IRubyObject val = _delegate.set(name, value);
+        _scope.put(globalNameToJSKey(name), toJS(_scope, val));
         return val;
     }
 
-    public Set<String> getNames() {
-        Set<String> names = new HashSet<String>(super.getNames());
-        for (Object key : RubyScopeWrapper.jsKeySet(_scope))
-            names.add("$" + key.toString());
-        return names;
-    }
+    public void setTraceVar(String name, RubyProc proc) { _delegate.setTraceVar(name, proc); }
+
+    public boolean untraceVar(String name, IRubyObject command) { return _delegate.untraceVar(name, command); }
+
+    public void untraceVar(String name) { _delegate.untraceVar(name); }
+
+    public Set<String> getNames() { return _delegate.getNames(); }
 
     public IRubyObject getDefaultSeparator() {
-        return _oldies.getDefaultSeparator();
+        return _delegate.getDefaultSeparator();
     }
 
     public void setDefaultSeparator(IRubyObject defaultSeparator) {
-        _oldies.setDefaultSeparator(defaultSeparator);
+        _delegate.setDefaultSeparator(defaultSeparator);
     }
 
-    private String nameToKey(String name) {
+    private String globalNameToJSKey(String name) {
         assert name != null;
         assert name.startsWith("$");
         return name.substring(1);
