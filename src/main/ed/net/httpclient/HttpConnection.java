@@ -2,16 +2,16 @@
 
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -30,16 +30,16 @@ import ed.log.*;
 import ed.net.*;
 import ed.util.*;
 
-/** 
+/**
  */
 class HttpConnection{
 
     public static int keepAliveMillis = 1000 * 5; // 5 seconds - this is how long we'll leave a connection idle before killing it
     public static int maxKeepAliveMillis = 1000 * 60 * 5; // 5 minutes - this is the max amount of time we'll use a single connection
-    
+
     public static boolean DUMP_HEADERS = false;
     public static int CONNECT_TIMEOUT_SECONDS = 60;
-    
+
     static boolean DEBUG = Boolean.getBoolean( "DEBUG.HTTP" );
     static int HTTP_CONNECTION_NUMBER = 1;
 
@@ -60,16 +60,16 @@ class HttpConnection{
 	    conn.reset( url, true );
             LOGGER.debug( "using old connection" );
 	}
-        
+
 	return conn;
     }
-    
-    
+
+
     private HttpConnection( HCKey key , URL url ){
 	_key = key;
 	reset( url, true );
     }
-    
+
     private void reset( URL url, boolean initial ){
         assert( initial || _currentUrl == url );
 	_currentUrl = url;
@@ -99,7 +99,7 @@ class HttpConnection{
 
     public void done()
 	throws IOException {
-	
+
 	_timeOutKeeper.remove( this );
 
         /*
@@ -112,7 +112,7 @@ class HttpConnection{
 	    byte buf[] = new byte[1024];
 	    while ( _userIn != null && _userIn.read( buf ) >= 0 );
 	}
-	
+
 	_lastAccess = System.currentTimeMillis();
 
 	if ( _keepAlive ){
@@ -121,20 +121,20 @@ class HttpConnection{
 	else{
 	    close();
 	}
-	
+
     }
 
     protected void finalize(){
 	close();
     }
-    
+
     protected void close(){
         _closed = true;
-	
+
 	if ( _sock != null ){
 	    try {
 		if  ( ! _usingSLL ){
-		    if ( _sock != null ) 
+		    if ( _sock != null )
 			_sock.shutdownInput();
 		    if ( _sock != null )
 			_sock.shutdownOutput();
@@ -156,7 +156,7 @@ class HttpConnection{
 	    }
 	    catch ( Exception e ){}
 	}
-	
+
 	if ( _sock != null ){
 	    try {
 		_sock.close();
@@ -167,7 +167,7 @@ class HttpConnection{
 	_userIn = null;
 	_in = null;
 	_sock = null;
-	
+
 	_keepAlive = false;
     }
 
@@ -178,14 +178,14 @@ class HttpConnection{
     public void setRequestProperty( String name , String value ){
 	_headers.put( name, value);
     }
-    
+
     /**
        reconstrucs status line
     */
     public String getStatus(){
 	return "HTTP/" + _httpVersion + " " + _rc + " " + ( _message == null ? "" : _message );
     }
-    
+
     public void go()
 	throws IOException {
 
@@ -201,17 +201,17 @@ class HttpConnection{
                 else
                     port = 80;
             }
-            
+
 	    if ( DEBUG ) LOGGER.debug( "creating new socket to " + _key.getAddress() );
 	    InetSocketAddress isa = new InetSocketAddress( _key.getAddress() , port );
-	    
+
 	    _sock = new Socket();
-            
+
             int timeOut = CONNECT_TIMEOUT_SECONDS;
 
 	    _sock.connect( isa , timeOut * 1000 );
             _sock.setSoTimeout( timeOut * 1000 * 5 );
-            
+
 	    if ( _currentUrl.getProtocol().equalsIgnoreCase("https") ){
 		try {
 		    //_sock = SSL.getSocketFactory().createSocket( _sock , _currentUrl.getHost() , port , true );
@@ -223,7 +223,7 @@ class HttpConnection{
 		    throw new RuntimeException(e);
 		}
 	    }
-	    
+
             if ( _sock == null ){
                 RuntimeException re = new RuntimeException("_sock can't be null here.  close called? " + _closed );
                 re.fillInStackTrace();
@@ -235,34 +235,34 @@ class HttpConnection{
 		throw new RuntimeException("_sock.getInputStream() is null!!");  // should never happen, should be IOException
 	    _in = new BufferedInputStream( _sock.getInputStream() );
 	}
-	
+
 	StringBuilder buf = new StringBuilder();
-	
+
 	// First Line
 	buf.append( _requestMethod).append(" ");
 	String f = _currentUrl.getFile();
-        
+
 	if ( f == null || f.trim().length() == 0 )
 	    f = "/";
 	buf.append( f.replace(' ','+') );
 	buf.append( " HTTP/1.1\r\n");
-        
+
 	for ( Iterator i = _headers.keySet().iterator() ; i.hasNext() ; ){
 	    String name = (String)i.next();
 	    String value = String.valueOf( _headers.get(name) );
-	    
+
 	    buf.append( name ).append(": ").append(value).append("\r\n");
-            
+
 	    if ( name.equalsIgnoreCase("connection") && value.equalsIgnoreCase("close") )
 		doIWantKeepAlive = false;
 	}
 	buf.append("\r\n");
-	
+
 	String headerString = buf.toString();
 	if ( DEBUG ) System.out.println( headerString );
 	try {
 	    _sock.getOutputStream().write( headerString.getBytes() );
-            
+
             if ( _postData != null )
                 _sock.getOutputStream().write( _postData );
 
@@ -289,7 +289,7 @@ class HttpConnection{
 	    }
 	    throw ioe;
 	}
-	
+
 	// need to look for end of headers
 
 	byte currentLine[] = new byte[2048];
@@ -336,11 +336,11 @@ class HttpConnection{
 
 		if ( ! gotStatus ){
 		    gotStatus = true;
-	
+
 		    Matcher m = STATUS_PATTERN.matcher( line );
 		    if ( ! m.find() )
 			throw new IOException("invalid status line:" + line );
-		    
+
 		    _httpVersion = Double.parseDouble( m.group(1) );
 		    _rc = Integer.parseInt( m.group(2) );
 		    _message = m.group(3);
@@ -357,28 +357,28 @@ class HttpConnection{
 		    }
 		    String name = line.substring(0,colon).trim();
 		    String value = line.substring(colon+1).trim();
-	
+
 		    _responseHeaders.put( name , value );
-		    
-		    if ( name.equalsIgnoreCase("Transfer-Encoding") && 
+
+		    if ( name.equalsIgnoreCase("Transfer-Encoding") &&
 			 value.equalsIgnoreCase("chunked") )
 			chunked = true;
-		    
+
 		    if ( lineNumber >= ( _responseHeaderFields.length - 2 ) ){
 			// need to enlarge header...
-			
+
 			String keys[] = new String[_responseHeaderFieldKeys.length*2];
 			String values[] = new String[_responseHeaderFields.length*2];
-			
+
 			for ( int i=0; i<lineNumber; i++ ){
 			    keys[i] = _responseHeaderFieldKeys[i];
 			    values[i] = _responseHeaderFields[i];
 			}
-			
+
 			_responseHeaderFieldKeys = keys;
 			_responseHeaderFields = values;
 		    }
-		    
+
 		    _responseHeaderFieldKeys[lineNumber] = name;
 		    _responseHeaderFields[lineNumber] = value;
 
@@ -389,10 +389,10 @@ class HttpConnection{
 	    }
 	    idx++;
 	}
-	
+
 	_responseHeaderFieldKeys[lineNumber] = null;
 	_responseHeaderFields[lineNumber] = null;
-	
+
 	// TODO: obey max? etc...?
 
 	_keepAlive = false;
@@ -401,14 +401,14 @@ class HttpConnection{
 
             if ( hf == null )
                 hf = "Connection";
-            
+
 	    if ( _httpVersion > 1 ){
-		_keepAlive =  
-		    getHeaderField( hf ) == null || 
+		_keepAlive =
+		    getHeaderField( hf ) == null ||
 		    getHeaderField( hf ).toLowerCase().indexOf("close") < 0;
 	    }
 	    else {
-		_keepAlive = 
+		_keepAlive =
 		    getHeaderField( hf ) != null &&
 		    getHeaderField( hf ).toLowerCase().indexOf("keep-alive") >= 0 ;
 	    }
@@ -430,7 +430,7 @@ class HttpConnection{
                 _userIn = _in; // just pass throgh
             }
         }
-	
+
 	_lastAccess = System.currentTimeMillis();
 
     }
@@ -438,7 +438,7 @@ class HttpConnection{
     public String getHeaderFieldKey( int i ){
 	return _responseHeaderFieldKeys[i];
     }
-    
+
     public String getHeaderField( int i ){
 	return _responseHeaderFields[i];
     }
@@ -454,11 +454,11 @@ class HttpConnection{
     public InputStream getInputStream(){
 	return _userIn;
     }
-    
+
     public int getContentLength(){
 	return StringParseUtil.parseInt( getHeaderField("Content-Length") , -1 );
     }
-    
+
     public String getContentEncoding(){
 	String s = getHeaderField("Content-Type");
 	if ( s == null )
@@ -469,16 +469,16 @@ class HttpConnection{
 	return pcs[1];
     }
 
-    
+
     boolean isOk(){
 
         long now = System.currentTimeMillis();
 
-	return 
-	    _keepAlive && 
+	return
+	    _keepAlive &&
 	    _sock != null &&
-	    _lastAccess + _keepAliveMillis > now && 
-	    _creation + _maxKeepAliveMillis > now && 
+	    _lastAccess + _keepAliveMillis > now &&
+	    _creation + _maxKeepAliveMillis > now &&
 	    ! _sock.isClosed() &&
 	    _sock.isConnected() &&
 	    ! _sock.isInputShutdown() &&
@@ -501,7 +501,7 @@ class HttpConnection{
 
     private static int ID = 1;
     private int _id = ID++;
-    
+
     private URL _currentUrl;
     private HCKey _key;
 
@@ -511,22 +511,22 @@ class HttpConnection{
 
     private Map _headers = new StringMap();
     private Map _responseHeaders = new StringMap();
-    
+
     private String _responseHeaderFieldKeys[] = new String[50];
     private String _responseHeaderFields[] = new String[50];
-    
+
     private Socket _sock;
     private BufferedInputStream _in;
     private boolean _usingSLL = false;
 
     private InputStream _userIn;
-    
+
     private int _rc ;
     private double _httpVersion;
     private String _message;
 
     private boolean _keepAlive = false;
-    
+
     private long _lastAccess = System.currentTimeMillis();
     private final long _creation = System.currentTimeMillis();
 
@@ -543,10 +543,10 @@ class HttpConnection{
 
             _host = url.getHost();
             _port = url.getPort();
-            
+
             _string = _host + ":" + _port;
             _hash = _string.hashCode();
-            
+
             reset();
 	}
 
@@ -554,22 +554,22 @@ class HttpConnection{
             throws IOException {
 	    _address = DNSUtil.getByName( _host );
         }
-	
+
         final InetAddress getAddress(){
 	    return _address;
 	}
-	
+
         public final int hashCode(){
 	    return _hash;
 	}
-	
+
         public String toString(){
 	    return _string;
 	}
-	
+
 	public boolean equals( Object o ){
 	    HCKey other = (HCKey)o;
-	    return 
+	    return
 		this._string.equals( other._string );
 	}
 
@@ -578,7 +578,7 @@ class HttpConnection{
 
 	final int _hash;
 	final String _string;
-        
+
 	private InetAddress _address;
     }
 
@@ -586,7 +586,7 @@ class HttpConnection{
 
 
     static class KeepAliveCache {
-        
+
         KeepAliveCache(){
 	    _cleaner = new KeepAliveCacheCleaner();
 	    _cleaner.start();
@@ -594,7 +594,7 @@ class HttpConnection{
 	    _closer = new KeepAliveCacheCloser();
 	    _closer.start();
 	}
-	
+
         synchronized HttpConnection get( HCKey key ){
 	    List<HttpConnection> l = _hostKeyToList.get( key );
 
@@ -620,7 +620,7 @@ class HttpConnection{
 	    */
 	    return null;
 	}
-	
+
         synchronized void add( HttpConnection conn ){
 	    if ( DEBUG ) System.out.println( "adding connection for:" + conn._key );
 	    List<HttpConnection> l = _hostKeyToList.get( conn._key );
@@ -649,12 +649,12 @@ class HttpConnection{
 		}
 	    }
 	}
-	
+
 	private Map<HCKey,List<HttpConnection>> _hostKeyToList = new HashMap<HCKey,List<HttpConnection>>();
 
 	private Thread _cleaner;
 	private KeepAliveCacheCloser _closer;
-	
+
 	class KeepAliveCacheCloser extends Thread {
             KeepAliveCacheCloser(){
 		super("KeepAliveCacheCloser");
@@ -679,7 +679,7 @@ class HttpConnection{
 		    }
 		}
 	    }
-	    
+
 	    BlockingQueue<HttpConnection> _toClose = new ArrayBlockingQueue<HttpConnection>(10000);
 	}
 
@@ -688,7 +688,7 @@ class HttpConnection{
 		super("KeepAliveCacheCleaner");
 		setDaemon( true );
 	    }
-	    
+
 	    public void run(){
 		while ( true ){
 		    try {
@@ -702,7 +702,7 @@ class HttpConnection{
 	    }
 	}
     }
-    
+
     static TimeOutKeeper _timeOutKeeper = new TimeOutKeeper();
 
     static class TimeOutKeeper extends Thread {
@@ -711,7 +711,7 @@ class HttpConnection{
 	    setDaemon(true);
 	    start();
 	}
-	
+
         void add( HttpConnection conn , long seconds ){
 	    synchronized ( _lock ){
 		_connectionToKillTime.put( conn , new Long( System.currentTimeMillis() + ( seconds * 1000 ) ) );
@@ -723,7 +723,7 @@ class HttpConnection{
 		_connectionToKillTime.remove( conn );
 	    }
 	}
-	
+
 	public void run(){
 	    while ( true ){
 		try {
@@ -731,13 +731,13 @@ class HttpConnection{
 		}
 		catch ( InterruptedException ie ){
 		}
-		
+
 		List toRemove = new ArrayList();
 		synchronized ( _lock ){
 		    for ( Iterator i = _connectionToKillTime.keySet().iterator() ; i.hasNext() ; ){
 			HttpConnection conn = (HttpConnection)i.next();
 			Long time = (Long)_connectionToKillTime.get( conn );
-			
+
 			if ( time.longValue() < System.currentTimeMillis() ){
 			    LOGGER.debug( "timing out a connection" );
 			    i.remove();
@@ -749,15 +749,15 @@ class HttpConnection{
 		    HttpConnection conn = (HttpConnection)i.next();
 		    conn.close();
 		}
-		
+
 	    }
 	}
-	
+
 	private String _lock = "HttpConnection-LOCK";
 	private Map _connectionToKillTime = new HashMap();
-	
+
     }
-    
+
     static class MaxReadInputStream extends InputStream {
         MaxReadInputStream( InputStream in , int max ){
             _in = in;
@@ -768,13 +768,13 @@ class HttpConnection{
             throws IOException {
             return _in.available();
         }
-    
+
         public int read()
             throws IOException {
-	
-            /** [dm] this was returning zero, which is bad as you then get a file downloaded 
+
+            /** [dm] this was returning zero, which is bad as you then get a file downloaded
                 on a timeout that ends with a bunch of zeroes and no error reported!  it might
-                be better to throw an ioexception rather than return -1.  -1 worked for my 
+                be better to throw an ioexception rather than return -1.  -1 worked for my
                 purposes.  feel free to change that if you like that better.
             */
             if ( _in == null || _closed )
@@ -782,12 +782,12 @@ class HttpConnection{
 
             if ( _toGo <= 0 )
                 return -1;
-	
+
             int val = _in.read();
             _toGo--;
             return val;
         }
-    
+
         public void close(){
             _closed = true;
         }
@@ -796,5 +796,5 @@ class HttpConnection{
         private int _toGo;
         private boolean _closed = false;
     }
- 
+
 }
