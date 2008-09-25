@@ -1,6 +1,7 @@
 import os
 import sys
 import _10gen
+import foo
 
 def escape_html(s): return s.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
@@ -16,6 +17,7 @@ def handler(environ, start_response):
     response_parts.append("<h4>Here are the contents of the WSGI environment</h4>")
     environ_str = "<table border='1'>"
     environ['10gen.db'] = _10gen.db
+    environ['10gen.foo.hi'] = foo.hi
     keys = environ.keys()
     keys.sort()
     ix = 0
