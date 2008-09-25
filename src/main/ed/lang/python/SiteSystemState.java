@@ -110,9 +110,9 @@ public class SiteSystemState {
             if( pyState.modules.__finditem__( modName ) == null ){
                 PyModule siteMod = new PyModule( modName );
                 pyState.modules.__setitem__( modName , siteMod );
-                PyList __path__ = new PyList( PyString.TYPE );
-                __path__.append( new PyString( _context.toString() ) );
-                siteMod.__dict__.__setitem__( "__path__", __path__ );
+                // Make sure it's not a real package module that can 
+                // actually cause imports. This should only happen virtually.
+                siteMod.__dict__.__setitem__( "__path__", Py.None );
             }
         }
 
