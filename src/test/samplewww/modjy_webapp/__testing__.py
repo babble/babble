@@ -83,7 +83,7 @@ def return_none(environ, start_response):
     return None
 
 def return_no_start(environ, start_response):
-    pass 
+    pass
     return ['hello', 'world']
 
 def return_list(environ, start_response):
