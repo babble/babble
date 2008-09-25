@@ -3,6 +3,8 @@ import sys
 import _10gen
 import foo
 
+print 'running me'
+
 def escape_html(s): return s.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
 def cutoff(s, n=100):

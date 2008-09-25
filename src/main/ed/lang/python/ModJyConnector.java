@@ -33,9 +33,11 @@ public class ModJyConnector extends HttpServlet  {
     private PythonInterpreter interp;
     private HttpServlet modjy_servlet;
     private PyObject py_servlet;
+    private Map<File, Long> lastMod;
 
     public void init ( )
 	throws ServletException{
+        lastMod = new HashMap<File, Long>();
 
 	Properties props = new Properties();
         // Context parameters
@@ -92,6 +94,30 @@ public class ModJyConnector extends HttpServlet  {
 	}
     }
 
+    public boolean needsRefresh( File f ){
+        return ! lastMod.get( f ).equals(f.lastModified());
+    }
+
+    public void updateLastMod(){
+        PyObject dict = ((PyInstance)py_servlet).__dict__;
+        PyObject cache = dict.__finditem__("cache".intern());
+        if(cache instanceof PyDictionary){
+            for(Object o : ((PyDictionary)cache).keySet()){
+                if( ! ( o instanceof PyTuple ) ){
+                    System.err.println("Cache format changed?? key was " + o.getClass());
+                    continue;
+                }
+                
+                String fname = ((PyTuple)o).__finditem__( 0 ).toString();
+                File f = new File(fname);
+                if( ! lastMod.containsKey( f ) ){
+                    // newly inserted into cache
+                    lastMod.put( f, f.lastModified() );
+                }
+            }
+        }
+    }
+
     public void service ( HttpServletRequest req, HttpServletResponse resp )
 	throws ServletException, IOException {
         PySystemState oldPyState = Py.getSystemState();
@@ -114,9 +140,11 @@ public class ModJyConnector extends HttpServlet  {
                         continue;
                     }
 
-                    File f = new File(((PyTuple)o).__finditem__(0).toString());
-                    if( newer.contains( f.getAbsoluteFile() ) ){
+                    String fname = ((PyTuple)o).__finditem__( 0 ).toString();
+                    File f = new File(fname);
+                    if( newer.contains( f.getAbsoluteFile() ) || needsRefresh( f ) ){
                         cache.__delitem__( (PyObject)o );
+                        lastMod.remove( f );
                     }
                 }
             }
@@ -126,6 +154,10 @@ public class ModJyConnector extends HttpServlet  {
             Py.setSystemState( sss.getPyState() );
 
             modjy_servlet.service(req, resp);
+            // FIXME: This is kind of a race condition, because the cache gets 
+            // filled before the file gets run -- if the file timestamp changes
+            // while the file is running, I'm screwed.
+            updateLastMod();
         }
         finally {
             Py.setSystemState( oldPyState );
