@@ -499,6 +499,10 @@ class HttpConnection{
         _headers.put( "Content-Type" , "application/x-www-form-urlencoded" );
     }
 
+	public byte[] getPostData () {
+		return _postData;
+	}
+
     private static int ID = 1;
     private int _id = ID++;
 
