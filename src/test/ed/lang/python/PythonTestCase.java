@@ -81,6 +81,9 @@ abstract public class PythonTestCase extends ed.TestCase {
             
             //configure Djang10 =====================================
             //helper.addTemplateRoot(globalScope, new JSString("/local"));
+            RedirectedPrinter printer = new RedirectedPrinter();
+            globalScope.put("print", printer);
+            globalScope.put("counter", 0);
 
         }
         finally {
