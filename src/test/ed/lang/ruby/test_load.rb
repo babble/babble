@@ -119,12 +119,15 @@ EOS
 # TODO
 # FIXME
 
-#   def test_require_date
-#     require 'date'
-#     d = DateTime.new(2008, 9, 24)
-#     assert_not_nil(d)
-#     assert_kind_of(DateTime, d, "expected DateTime, got #{d.class.name}")
-#     assert_equal('2008-09-24T00:00:00+00:00', d.strftime)
-#   end
+  # Make sure JS classes in scope aren't destroying Ruby classes. This failed
+  # with an NPE before we prevented clashes with Ruby built-in classes.
+  def test_require_date
+    require 'date'
+    d = DateTime.new(2008, 9, 24)
+    assert_not_nil(d)
+    assert_kind_of(DateTime, d, "expected DateTime, got #{d.class.name}")
+    assert_equal('2008-09-24T00:00:00+00:00', d.strftime)
+    assert_equal('2008-09-24T00:00:00+00:00', d.to_s)
+  end
 
 end
