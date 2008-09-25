@@ -2,16 +2,16 @@
 
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -47,8 +47,6 @@ public class HttpClient {
 
     public static int MAX_REDIRECTS = 30;
 
-    public static boolean WANT_400s = false;
-
     public static final boolean TRACE = Boolean.getBoolean("HTTP.TRACE");
 
     /**
@@ -76,14 +74,8 @@ public class HttpClient {
             }
             handler.gotResponseCode( rc );
 	    addResponseHeaders( url , handler , conn , setHeaders );
-	    URL redir = null;
-	    try {
-                //redir = url.getFullPath( loc.trim() );
-                if ( true ) throw new RuntimeException( "TODO: blah" );
-	    }
-	    catch ( Exception e ){
-		throw new MalformedURLException("bad location header:" + loc.trim() );
-	    }
+
+	    URL redir = new URL( url, loc.trim() );
 
 	    if ( DEBUG ) LOGGER.log( DEBUG_LEVEL , "redirect to: " + redir );
 	    if ( handler != null && ! handler.followRedirect( redir ) ) {
@@ -127,13 +119,13 @@ public class HttpClient {
 
 	conn.done();
 
-        if( !WANT_400s ) {
-            if ( rc == 404 )
-                throw new FileNotFoundException( url.toString() );
+	if ( handler.wantHttpErrorExceptions() ) {
+		if ( rc == 404 )
+			throw new FileNotFoundException( url.toString() );
 
-            if ( rc >= 400 )
-                throw new IOException("Error Code:" + String.valueOf(rc) );
-        }
+		if ( rc >= 400 )
+			throw new IOException("Error Code:" + String.valueOf(rc) );
+	}
 
 	return contentLength;
     }

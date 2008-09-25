@@ -33,22 +33,42 @@ public class CompileUtil {
     static boolean CD = false;
     
     static final String TMP_DIR = WorkingFiles.TMP_DIR;
-    private static final URLClassLoader _loader;
-    static {
+
+    static class MyClassLoader extends ClassLoader {
+        MyClassLoader(){
+        }
+
+        public Class findClass(String name)
+            throws ClassNotFoundException {
+            byte[] b = loadClassData( name );
+            return defineClass(name, b, 0, b.length);
+        }
         
-        URLClassLoader cl = null;
-        try {
-            File dir = new File( TMP_DIR );
-            dir.mkdirs();
-            cl = new URLClassLoader( new URL[]{ dir.toURL() } );
-        }
-        catch ( Exception e ){
-            e.printStackTrace();
-            System.exit(-1);
-        }
-        _loader = cl;
+        private byte[] loadClassData( String name )
+            throws ClassNotFoundException {
+            
+            String file = getCompileSrcDir( name );
+            file = file.substring( 0 , file.length() - 1 );
+            
+            File f = new File( file + ".class" );
+            if ( ! f.exists() )
+                throw new ClassNotFoundException( "[" + f + "] doesn't exist for [" + name + "]" );
+            
+            byte d[] = new byte[(int)(f.length())];
+            try {
+                FileInputStream fin = new FileInputStream( f );
+                fin.read( d );
+                fin.close();
+            }
+            catch ( IOException ioe ){
+                throw new ClassNotFoundException( "can't load [" + f + "] for [" + name + "] " + ioe );                
+            }
+            return d;
+         }
     }
 
+    private static final ClassLoader _loader = new MyClassLoader();
+    
     public static String getCompileSrcDir( final String pack ){
         return TMP_DIR + pack.replace( '.' , '/' ) + "/";
     }
