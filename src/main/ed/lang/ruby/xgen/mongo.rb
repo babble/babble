@@ -253,8 +253,3 @@ module XGen
   end
 
 end
-
-# A convenience method that escapes text for HTML.
-def h(o)
-  o.to_s.gsub(/&/, '&amp;').gsub(/</, '&lt;').gsub(/>/, '&gt;').gsub(/'/, '&apos;').gsub(/"/, '&quot;')
-end
