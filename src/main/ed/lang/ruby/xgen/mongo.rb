@@ -202,6 +202,7 @@ module XGen
         when Hash
           row.each { |k, v|
             k = '_id' if k == 'id' # Rails helper
+            v = nil if v == '' && k == '_id'
             instance_variable_set("@#{k}", v)
           }
         else
@@ -216,9 +217,8 @@ module XGen
         }
       end
 
-      def id
-        @_id.to_s
-      end
+      def id=(val); @_id = (val == '' ? nil : val); end
+      def id; @_id.to_s; end
 
       # Rails convenience method.
       def to_param
@@ -252,9 +252,4 @@ module XGen
 
   end
 
-end
-
-# A convenience method that escapes text for HTML.
-def h(o)
-  o.to_s.gsub(/&/, '&amp;').gsub(/</, '&lt;').gsub(/>/, '&gt;').gsub(/'/, '&apos;').gsub(/"/, '&quot;')
 end
