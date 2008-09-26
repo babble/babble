@@ -88,8 +88,11 @@ public class NIOClient extends Thread {
         final Iterator<SelectionKey> i = _selector.selectedKeys().iterator();
         while ( i.hasNext() ){
             SelectionKey key = i.next();
-
             i.remove();
+            
+            if ( ! key.isValid() )
+                continue;
+            
             Connection c = (Connection)key.attachment();
             
             if ( c == null ){
@@ -234,6 +237,12 @@ public class NIOClient extends Thread {
                 return -1;
             }
             
+            if ( read < 0 ){
+                _error( new IOException( "socket dead" ) );
+                done( true );
+                return -1;
+            }
+
             if ( read != _fromServer.position() )
                 throw new RuntimeException( "i'm confused  says i read [" + read + "] but at position [" + _fromServer.position() + "]" );
             
@@ -251,9 +260,18 @@ public class NIOClient extends Thread {
             //   - done - add yourself back to the pool
             //   - error, close connection
             
-            doRead();
+            if ( doRead() < 0 )
+                return;
             
-            WhatToDo next = _current.handleRead( _fromServer , this );
+            WhatToDo next = null;
+            if ( _current == null ){
+                _logger.error( " _current is null in handleRead, should never happen" );
+                next = WhatToDo.DONE_AND_CLOSE;
+            }
+            else {
+                next = _current.handleRead( _fromServer , this );
+            }
+            
             switch ( next ){
             case CONTINUE: 
                 _key.interestOps( _key.OP_READ );
@@ -286,8 +304,9 @@ public class NIOClient extends Thread {
         }
 
         void handleWrite(){
+            int wrote = 0;
             try {
-                _sock.write( _toServer );
+                wrote = _sock.write( _toServer );
             }
             catch ( IOException ioe ){
                 _error( ioe );
@@ -296,6 +315,12 @@ public class NIOClient extends Thread {
             
             if ( _toServer.position() == _toServer.limit() ){
                 _key.interestOps( _key.OP_READ );
+                _logger.debug( "finished writing" );
+                return;
+            }
+            
+            if ( wrote < 0 ){
+                _error( new IOException( "wrote 0 bytes" ) );
                 return;
             }
 
@@ -351,14 +376,16 @@ public class NIOClient extends Thread {
         void close(){
             if ( _closed )
                 return;
-
+            
             _closed = true;
             try {
+                _key.interestOps( 0 );
+                _key.attach( null );
                 _key.cancel();
                 _sock.close();
             }
             catch ( IOException ioe ){
-                    // don't care
+                // don't care
             }
         }
 

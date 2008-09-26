@@ -57,6 +57,7 @@ public abstract class JSFunction extends JSFunctionBase {
 
         set( "prototype" , _prototype );
         set( "length" , num );
+        lockKey( "length" );
         dontEnum( "length" );
         init();
     }

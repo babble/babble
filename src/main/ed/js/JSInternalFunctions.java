@@ -302,6 +302,15 @@ public class JSInternalFunctions extends JSNumericFunctions {
         if ( a == null || b == null )
             return false;
 
+        if ( a instanceof JSBoolean || a instanceof Boolean ||
+             b instanceof JSBoolean || b instanceof Boolean ) {
+            a = JSBoolean.booleanValue( a );
+            b = JSBoolean.booleanValue( b );
+        }
+        if ( a.equals( b ) ) {
+            return true;
+        }
+
         if ( a instanceof Number || b instanceof Number ){
             a = _parseNumber( a );
             b = _parseNumber( b );
