@@ -59,7 +59,7 @@ public class RubyJxpSource extends JxpSource {
 
     static {
         if (!SKIP_REQUIRED_LIBS)
-            config.requiredLibraries().add("xgen_internals");
+            config.requiredLibraries().add("xgen");
         DO_NOT_LOAD_FUNCS = new ArrayList<String>();
         DO_NOT_LOAD_FUNCS.add("print");
         DO_NOT_LOAD_FUNCS.add("sleep");

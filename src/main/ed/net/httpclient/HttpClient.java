@@ -118,7 +118,7 @@ public class HttpClient {
 
         conn.done();
 
-        if ( handler.wantHttpErrorExceptions() ) {
+        if ( handler == null || handler.wantHttpErrorExceptions() ) {
             if ( rc == 404 )
                 throw new FileNotFoundException( url.toString() );
 
@@ -212,7 +212,7 @@ public class HttpClient {
     private static void addResponseHeaders( URL url , HttpResponseHandler handler , HttpConnection conn , Set<String> setHeaders )
         throws IOException {
 
-        if ( handler == null ) // HEAD reqeuest
+        if ( handler == null || handler.getMethodToUse() == "HEAD") // HEAD reqeuest
             return;
 
         for ( int i=0; i<100; i++){

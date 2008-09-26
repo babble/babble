@@ -392,8 +392,8 @@ public class AppContextHolder {
         return getPossibleSiteNames( fixBase( host , uri ) );
     }
 
-    static List<Info> getPossibleSiteNames( Info base ){
-
+    public static List<Info> getPossibleSiteNames( Info base ){
+        
         List<Info> all = new ArrayList<Info>( 6 );
         all.add( base );
 
@@ -411,7 +411,7 @@ public class AppContextHolder {
         return all;
     }
 
-    static Info fixBase( String host , String uri ){
+    public static Info fixBase( String host , String uri ){
 
         {
             int idx = host.indexOf( ":" );
@@ -459,7 +459,7 @@ public class AppContextHolder {
         return new Info( host , uri );
     }
 
-    static class Info {
+    public static class Info {
 
         Info( String host ){
             this( host , "/" );
@@ -469,8 +469,16 @@ public class AppContextHolder {
             this.host = host;
             this.uri = uri;
         }
+        
+        public String getHost(){
+            return host;
+        }
 
-        String getEnvironment( String big ){
+        public String getURI(){
+            return uri;
+        }
+
+        public String getEnvironment( String big ){
 
             if ( big.equalsIgnoreCase( host ) ||
                  host.startsWith( "www." ) ||

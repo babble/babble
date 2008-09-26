@@ -58,16 +58,6 @@ public class JSBoolean extends JSObjectBase {
                         return ((JSBoolean)o).value;
                     }
                 } );
-            _prototype.set( "toString" , new JSFunctionCalls0() {
-                    public Object call( Scope s , Object foo[] ) {
-                        Object o = s.getThis();
-                        if( !(o instanceof JSBoolean ) )
-                            throw new JSException( "error" );
-
-                        return ((JSBoolean)o).value + "";
-                    }
-                } );
-
             _prototype.dontEnumExisting();
             dontEnum( "prototype" );
         }
@@ -84,6 +74,10 @@ public class JSBoolean extends JSObjectBase {
     public JSBoolean( Object o ) {
         super( _getCons() );
         init( o );
+    }
+
+    public String toString() {
+        return value + "";
     }
 
     public boolean value = false;
