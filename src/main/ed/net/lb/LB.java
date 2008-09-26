@@ -51,6 +51,7 @@ public class LB extends NIOClient {
         _server.addGlobalHandler( _handler ) ;
         
         _cloud = Cloud.getInstanceIfOnGrid();
+        _addMonitors();
 
         setDaemon( true );
     }
@@ -93,25 +94,39 @@ public class LB extends NIOClient {
         RR( HttpRequest req , HttpResponse res ){
             _request = req;
             _response = res;
+            reset();
+        }
+        
+        void reset(){
             _response.clearHeaders();
             _response.setHeader( "X-lb" , LBIDENT );
+            _state = State.WAITING;
+            _line = null;
         }
         
         protected InetSocketAddress where(){
-            return new InetSocketAddress( "www.10gen.com" , 80 );
+            return new InetSocketAddress( "localhost" , 80 );
         }
         
         protected void error( Exception e ){
+            _debug( 1 , "backend error" , e );
+            
+            if ( ( _state == State.WAITING || _state == State.IN_HEADER ) && ++_numFails <= 3 ){
+                reset();
+                _debug( 1 , "retrying" );
+                add( this );
+                return;
+            }
+            
             try {
-                _debug( 1 , "backend error" , e );
-                _response.getJxpWriter().print( "backend error : " + e );
+                _response.getJxpWriter().print( "backend error : " + e + " too many retries" );
                 _response.done();
             }
             catch ( IOException ioe2 ){
                 ioe2.printStackTrace();
             }
         }
-
+        
         
         void backendError( String msg ){
             backendError( new IOException( msg ) );
@@ -187,7 +202,7 @@ public class LB extends NIOClient {
 
                 _debug( 3 , "starting to stream data" );
             }
-
+            
             if ( _state == State.READY_TO_STREAM ){
                 MyChunk chunk = new MyChunk( this , conn , _response.getContentLength() , buf );
                 _response.sendFile( new MySender( chunk ) );
@@ -226,9 +241,11 @@ public class LB extends NIOClient {
         
         final HttpRequest _request;
         final HttpResponse _response;
+        
+        int _numFails = 0;
 
-        private boolean _keepalive = false;
-        private State _state = State.WAITING;
+        private boolean _keepalive;
+        private State _state;
         private StringBuilder _line;
     }
 
@@ -327,6 +344,15 @@ public class LB extends NIOClient {
         public double priority(){
             return Double.MAX_VALUE;
         }
+    }
+
+    void _addMonitors(){
+        HttpServer.addGlobalHandler( new HttpMonitor( "lb" ){
+                public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
+                    out.print( "overview" );
+                }
+            }
+            );
     }
 
     final int _port;

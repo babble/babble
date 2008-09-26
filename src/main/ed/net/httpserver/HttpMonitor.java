@@ -64,7 +64,7 @@ public abstract class HttpMonitor implements HttpHandler {
     public abstract void handle( JxpWriter out , HttpRequest request , HttpResponse response );
     
     public boolean handles( HttpRequest request , Info info ){
-        if ( ! request.getURI().equals( _uri ) )
+        if ( ! request.getURI().equalsIgnoreCase( _uri ) )
             return false;
 
         info.fork = false;
@@ -81,6 +81,12 @@ public abstract class HttpMonitor implements HttpHandler {
         else {
             out.print( _header );
             out.print( _allContent );
+            String section = _section();
+            if ( section != null ){
+                String sc = _subContent.get( section );
+                if ( sc != null )
+                    out.print( sc );
+            }
         }
         try {
             handle( out , request , response );
@@ -121,13 +127,46 @@ public abstract class HttpMonitor implements HttpHandler {
         return Double.MIN_VALUE;
     }
 
+    String _section(){
+        return _section( _name );
+    }
+
+    private static String _section( String name ){
+        int idx = name.indexOf( "-" );
+        if ( idx < 0 )
+            return name.toLowerCase();
+        return name.substring( 0 , idx ).toLowerCase();
+    }
+
     private static void _addAll( String name ){
+
+        if ( name.contains( "-" ) ){
+            // sub menu item
+            String section = _section( name );
+            List<String> sub = _subs.get( section );
+            if ( sub == null ){
+                sub = new ArrayList<String>();
+                _subs.put( section , sub );
+            }
+            sub.add( name );
+            Collections.sort( sub );
+
+            StringBuilder buf = new StringBuilder( section + " : " );
+            for ( String t : sub ){
+                buf.append( "<a href='/~" + t + "'>" + t + "</a> | " );
+            }
+            buf.append( "<hr>" );            
+            _subContent.put( section , buf.toString() );
+            return;
+        }
+
         _all.add( name );
         Collections.sort( _all );
-
+        
         StringBuilder buf = new StringBuilder();
-        for ( String t : _all )
+        for ( String t : _all ){
             buf.append( "<a href='/~" + t + "'>" + t + "</a> | " );
+        }
         buf.append( "<hr>" );
         _allContent = buf.toString();
     }
@@ -136,8 +175,12 @@ public abstract class HttpMonitor implements HttpHandler {
     final String _name;
     final String _uri;
     final String _header;
+    
     static final List<String> _all = new ArrayList<String>();
     static String _allContent = "";
+    static final Map<String,List<String>> _subs = new HashMap<String,List<String>>();
+    static final Map<String,String> _subContent = new HashMap<String,String>();
+
     
     // ----------------------------------------
     // Some Basic Monitors

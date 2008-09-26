@@ -201,6 +201,7 @@ module XGen
         case row
         when Hash
           row.each { |k, v|
+            k = '_id' if k == 'id' # Rails helper
             instance_variable_set("@#{k}", v)
           }
         else
@@ -213,6 +214,15 @@ module XGen
           iv = "@#{iv}"
           instance_variable_set(iv, nil) unless instance_variable_defined?(iv)
         }
+      end
+
+      def id
+        @_id.to_s
+      end
+
+      # Rails convenience method.
+      def to_param
+        @_id.to_s
       end
 
       # Saves and returns self.
