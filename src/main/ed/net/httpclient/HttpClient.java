@@ -212,7 +212,7 @@ public class HttpClient {
     private static void addResponseHeaders( URL url , HttpResponseHandler handler , HttpConnection conn , Set<String> setHeaders )
         throws IOException {
 
-        if ( handler == null || handler.getMethodToUse() == "HEAD") // HEAD reqeuest
+        if ( handler == null || handler.getMethodToUse().equals("HEAD")) // HEAD reqeuest
             return;
 
         for ( int i=0; i<100; i++){
