@@ -47,6 +47,7 @@ public abstract class HttpMonitor implements HttpHandler {
             buf.append( " body { font-size: .65em; font-family: Monaco; }\n" );
             buf.append( " table { font-size: 10px; }\n" );
             buf.append( " th { backgroud: #dddddd; text-align:left; }\n" );
+            buf.append( " bottomLine { border-bottom: 1px solid black; }\n" );
 	    buf.append( " .warn { color: orange; }\n" );
 	    buf.append( " .error { color: red; font-decoration: bold; }\n" );
             addStyle( buf );
@@ -112,6 +113,16 @@ public abstract class HttpMonitor implements HttpHandler {
 	addTableRow( out , header , data , null );
     }
     
+    protected void addTableCell( JxpWriter out , Object data ){
+        out.print( "<td>" );
+        if ( data == null )
+            out.print( "null" );
+        else 
+            out.print( data.toString() );
+        out.print( "</td>" );
+    }
+
+
     protected void addTableRow( JxpWriter out , Object header , Object data , String valueClass ){
         out.print( "<tr><th>" );
         out.print( header == null ? "null" : header.toString() );
@@ -153,7 +164,7 @@ public abstract class HttpMonitor implements HttpHandler {
 
             StringBuilder buf = new StringBuilder( section + " : " );
             for ( String t : sub ){
-                buf.append( "<a href='/~" + t + "'>" + t + "</a> | " );
+                buf.append( "<a href='/~" + t + "'>" + t.substring( section.length() + 1 ) + "</a> | " );
             }
             buf.append( "<hr>" );            
             _subContent.put( section , buf.toString() );
