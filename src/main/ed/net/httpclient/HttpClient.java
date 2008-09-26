@@ -118,7 +118,7 @@ public class HttpClient {
 
         conn.done();
 
-        if ( handler != null && handler.wantHttpErrorExceptions() ) {
+        if ( handler == null || handler.wantHttpErrorExceptions() ) {
             if ( rc == 404 )
                 throw new FileNotFoundException( url.toString() );
 
