@@ -264,7 +264,7 @@ public class Convert {
             int myId = _regex.size();
             ScriptOrFnNode parent  = _nodeToSOR.get( n );
             if ( parent == null )
-                throw new RuntimeException( "how is parent null" );
+                throw new RuntimeException( "how is parent null : " + n.hashCode() );
             int rId = n.getIntProp( Node.REGEXP_PROP , -1 );
 
             _regex.add( new Pair<String,String>( parent.getRegexpString( rId ) , parent.getRegexpFlags( rId ) ) );
@@ -1856,8 +1856,8 @@ public class Convert {
     // these 3 variables should only be use by _append
     private int _currentLineNumber = 0;
     final Map<Integer,List<Node>> _javaCodeToLines = new TreeMap<Integer,List<Node>>();
-    final Map<Node,Integer> _nodeToSourceLine = new HashMap<Node,Integer>();
-    final Map<Node,ScriptOrFnNode> _nodeToSOR = new HashMap<Node,ScriptOrFnNode>();
+    final Map<Node,Integer> _nodeToSourceLine = new IdentityHashMap<Node,Integer>();
+    final Map<Node,ScriptOrFnNode> _nodeToSOR = new IdentityHashMap<Node,ScriptOrFnNode>();
     final List<Pair<String,String>> _regex = new ArrayList<Pair<String,String>>();
     final List<String> _strings = new ArrayList<String>();
     final ScriptInfo _scriptInfo;
