@@ -329,50 +329,59 @@ public class HttpServer extends NIOServer {
         
     }
 
-    static final HttpHandler _stats = new HttpMonitor( "stats" , true ){
+    static final HttpHandler _stats = new HttpMonitor( "stats" ){
 
             public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
-                out.print( "stats\n" );
-                out.print( "---\n" );
+                out.print( "<h3>stats</h3>" );
                 
-                final int forkedQueueSize = request._handler._server._forkThreads.queueSize();
-
-                out.print( "forked queue length : " + forkedQueueSize  + "\n" );
-                out.print( "admin queue length : " + request._handler._server._forkThreadsAdmin.queueSize()  + "\n" );
-
+		final HttpServer server = request._handler._server;
+                final int forkedQueueSize = server._forkThreads.queueSize();
+		
                 if ( forkedQueueSize >= WORKER_THREAD_QUEUE_MAX )
                     response.setResponseCode( 510 );
 
-                out.print( "\n" );
+		startTable( out );
+
+                addTableRow( out ,  "forked queue length" , forkedQueueSize , forkedQueueSize == 0 ? null : ( forkedQueueSize < 50 ? "warn" : "error" )  );
+                addTableRow( out ,  "admin queue length" , server._forkThreadsAdmin.queueSize() );
+		
+		addTableRow( out ,  "forked processing" , server._forkThreads.inProgress() );
+		addTableRow( out ,  "admin processing" , server._forkThreadsAdmin.inProgress() );
+		
+                addTableRow( out ,  "&nbsp;" , "" );
+		
+                addTableRow( out ,  "numRequests" , _numRequests );
+                addTableRow( out ,  "numRequestsForked" , _numRequestsForked );
+                addTableRow( out ,  "numRequestsAdmin" , _numRequestsAdmin );
+		
+		addTableRow( out ,  "&nbsp;" , "" );
                 
-                out.print( "numRequests : " + _numRequests + "\n" );
-                out.print( "numRequestsForked : " + _numRequestsForked + "\n" );
-                out.print( "numRequestsAdmin : " + _numRequestsAdmin + "\n" );
+                addTableRow( out ,  "uptime" , ed.js.JSMath.sigFig( ( System.currentTimeMillis() - _startTime ) / ( 1000 * 60.0 ) ) + " min\n" );
                 
-                out.print( "\n" );
-                
-                out.print( "uptime : " + ed.js.JSMath.sigFig( ( System.currentTimeMillis() - _startTime ) / ( 1000 * 60.0 ) ) + " min\n" );
-                
-                out.print( "\n" );
-                
+		endTable( out );
+            
+		out.print( "<br>" );
+
+		out.print( "<table>" );
                 _printTracker( "Request Per Second" , _reqPerSecTracker , out );
                 _printTracker( "Request Per " + _trackerSmall + " Seconds" , _reqPerSmallTracker , out );
                 _printTracker( "Request Per Minute" , _reqPerMinTracker , out );
-
+		out.print( "</table>" );
             }
 
             
             void _printTracker( String name , ThingsPerTimeTracker tracker , JxpWriter out ){
-
+		
                 tracker.validate();
-
-                out.print( name + "\n" );
+		
+		out.print( "<tr><th colspan='10'>" + name + "</th></tr>" );
+		out.print( "<tr>" );
                 for ( int i=0; i<tracker.size(); i++ ){
+		    out.print( "<td>" );
                     out.print( tracker.get( i ) );
-                    out.print( " " );
+		    out.print( "&nbsp;</td>" );
                 }
-                
-                out.print( "\n" );
+		out.print( "</tr>" );                
             }
             
             final long _startTime = System.currentTimeMillis();

@@ -76,6 +76,10 @@ public abstract class ThreadPool<T> {
         return _queue.offer( t );
     }
 
+    public int inProgress(){
+	return _inProgress.get();
+    }
+
     class MyThread extends Thread {
         MyThread(){
             super( "ThreadPool.MyThread:" + _name + ":" + _threads.size() );

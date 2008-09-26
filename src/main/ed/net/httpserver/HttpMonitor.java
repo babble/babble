@@ -46,7 +46,9 @@ public abstract class HttpMonitor implements HttpHandler {
             buf.append( "<style>\n" );
             buf.append( " body { font-size: .65em; font-family: Monaco; }\n" );
             buf.append( " table { font-size: 10px; }\n" );
-            buf.append( " th { backgroud: #dddddd; }\n" );
+            buf.append( " th { backgroud: #dddddd; text-align:left; }\n" );
+	    buf.append( " .warn { color: orange; }\n" );
+	    buf.append( " .error { color: red; font-decoration: bold; }\n" );
             addStyle( buf );
             buf.append( "</style>\n" );
             buf.append( "</head>" );            
@@ -101,9 +103,16 @@ public abstract class HttpMonitor implements HttpHandler {
     }
 
     protected void addTableRow( JxpWriter out , Object header , Object data ){
+	addTableRow( out , header , data , null );
+    }
+    
+    protected void addTableRow( JxpWriter out , Object header , Object data , String valueClass ){
         out.print( "<tr><th>" );
         out.print( header == null ? "null" : header.toString() );
-        out.print( "</th><td>" );
+        out.print( "</th><td " );
+	if ( valueClass != null )
+	    out.print( "class=\"" + valueClass + "\" " );
+	out.print( ">" );
         out.print( data == null ? "null" : data.toString() );
         out.print( "</td></tr>" );
     }
