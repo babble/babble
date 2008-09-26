@@ -38,7 +38,7 @@ public class LB extends NIOClient {
 
     enum State { WAITING , IN_HEADER , READY_TO_STREAM , STREAMING };
 
-    public LB( int port , int verbose )
+    public LB( int port , MappingFactory mappingFactory , int verbose )
         throws IOException {
         super( "LB" , 15 , verbose );
         
@@ -46,11 +46,11 @@ public class LB extends NIOClient {
         _handler = new LBHandler();
         
         _logger = Logger.getLogger( "LB" );
-
+        
         _server = new HttpServer( port );
         _server.addGlobalHandler( _handler ) ;
         
-        _cloud = Cloud.getInstanceIfOnGrid();
+        _router = new Router( mappingFactory );
         _addMonitors();
 
         setDaemon( true );
@@ -110,13 +110,15 @@ public class LB extends NIOClient {
         }
         
         protected InetSocketAddress where(){
-            return new InetSocketAddress( "www.10gen.com" , 80 );
+            return _router.chooseAddress( _request );
         }
         
-        protected void error( Exception e ){
+        protected void error( ServerErrorType type , Exception e ){
             _debug( 1 , "backend error" , e );
             
-            if ( ( _state == State.WAITING || _state == State.IN_HEADER ) && ++_numFails <= 3 ){
+            if ( type != ServerErrorType.WEIRD && 
+                 ( _state == State.WAITING || _state == State.IN_HEADER ) && 
+                 ++_numFails <= 3 ){
                 reset();
                 _debug( 1 , "retrying" );
                 add( this );
@@ -124,7 +126,7 @@ public class LB extends NIOClient {
             }
             
             try {
-                _response.getJxpWriter().print( "backend error : " + e + " too many retries" );
+                _response.getJxpWriter().print( "backend error : " + e + "\n\n" );
                 _response.done();
             }
             catch ( IOException ioe2 ){
@@ -133,13 +135,13 @@ public class LB extends NIOClient {
         }
         
         
-        void backendError( String msg ){
-            backendError( new IOException( msg ) );
+        void backendError( ServerErrorType type , String msg ){
+            backendError( type , new IOException( msg ) );
         }
         
-        void backendError( IOException ioe ){
+        void backendError( ServerErrorType type , IOException ioe ){
             _debug( 1 , "backend error" , ioe );
-            error( ioe );
+            error( type , ioe );
         }
 
         protected WhatToDo handleRead( ByteBuffer buf , Connection conn ){
@@ -165,7 +167,7 @@ public class LB extends NIOClient {
                         if ( _state == State.WAITING ){
                             int idx = line.indexOf( " " );
                             if ( idx < 0 ){
-                                backendError( "invalid first line [" + line + "]" );
+                                backendError( ServerErrorType.INVALID , "invalid first line [" + line + "]" );
                                 return WhatToDo.ERROR;
                             }
                             line = line.substring( idx + 1 ).trim();
@@ -181,7 +183,7 @@ public class LB extends NIOClient {
                         else {
                             int idx = line.indexOf( ":" );
                             if ( idx < 0 ){
-                                backendError( "invalid line [ " + line + "]" );
+                                backendError( ServerErrorType.INVALID , "invalid line [ " + line + "]" );
                                 return WhatToDo.ERROR;
                             }
                             String name = line.substring( 0 , idx );
@@ -363,7 +365,7 @@ public class LB extends NIOClient {
     final int _port;
     final LBHandler _handler;
     final HttpServer _server;
-    final Cloud _cloud;
+    final Router _router;
     
     final Logger _logger;
 
@@ -391,7 +393,7 @@ public class LB extends NIOClient {
         System.out.println( "\t port \t " + port  );
         System.out.println( "\t verbose \t " + verbose  );
 
-        LB lb = new LB( port , verbose );
+        LB lb = new LB( port , new GridMapping.Factory() , verbose );
         lb.start();
         lb.join();
     }

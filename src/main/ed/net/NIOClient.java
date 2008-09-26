@@ -31,7 +31,7 @@ import ed.net.httpserver.*;
 
 public abstract class NIOClient extends Thread {
 
-    public enum ServerErrorType { CONNECT , FIRST_BYTE_TIMEOUT , READ_TIMEOUT };
+    public enum ServerErrorType { WEIRD , INVALID , CONNECT , SOCK_TIMEOUT };
 
     protected enum WhatToDo { CONTINUE , PAUSE , DONE_AND_CLOSE , DONE_AND_CONTINUE , ERROR };
 
@@ -151,9 +151,13 @@ public abstract class NIOClient extends Thread {
             }
             catch ( CantOpen co ){
                 _logger.error( "couldn't open" , co );
-                c.error( co );
+                c.error( ServerErrorType.CONNECT , co );
                 if ( addr != null )
                     serverError( addr , ServerErrorType.CONNECT , co._ioe );
+            }
+            catch ( RuntimeException re ){
+                _logger.error( "runtime exception in _doNewRequests" , re );
+                c.error( ServerErrorType.WEIRD , re );
             }
                 
         }
@@ -253,14 +257,13 @@ public abstract class NIOClient extends Thread {
                 read = _sock.read( _fromServer );
             }
             catch ( IOException ioe ){
-                _error( ioe );
-                _current.error( ioe );
+                _error( ServerErrorType.SOCK_TIMEOUT , ioe );
                 return -1;
             }
             
             if ( read < 0 ){
                 if ( errorOnEOF )
-                    _error( new IOException( "socket dead" ) );
+                    _error( ServerErrorType.SOCK_TIMEOUT ,new IOException( "socket dead" ) );
                 done( true );
                 return -1;
             }
@@ -331,7 +334,7 @@ public abstract class NIOClient extends Thread {
                 wrote = _sock.write( _toServer );
             }
             catch ( IOException ioe ){
-                _error( ioe );
+                _error( ServerErrorType.SOCK_TIMEOUT , ioe );
                 _key.interestOps( 0 );
             }
             
@@ -342,7 +345,7 @@ public abstract class NIOClient extends Thread {
             }
             
             if ( wrote < 0 ){
-                _error( new IOException( "wrote 0 bytes" ) );
+                _error( ServerErrorType.SOCK_TIMEOUT , new IOException( "wrote 0 bytes" ) );
                 return;
             }
 
@@ -378,14 +381,14 @@ public abstract class NIOClient extends Thread {
         }
 
         private void _userError( String msg ){
-            _error( new IOException( "User Error : " + msg ) );
+            _error( ServerErrorType.WEIRD , new IOException( "User Error : " + msg ) );
             throw new RuntimeException( msg );
         }
 
-        private void _error( IOException e ){
+        private void _error( ServerErrorType type , IOException e ){
             _error = e;
             if ( _current != null )
-                _current.error( e );
+                _current.error( type , e );
             if ( _ready ){
                 close();
             }
@@ -468,8 +471,8 @@ public abstract class NIOClient extends Thread {
     public abstract class Call {
         
         protected abstract InetSocketAddress where(); 
-        protected abstract void error( Exception e );
-
+        protected abstract void error( ServerErrorType type , Exception e );
+        
         protected abstract void fillInRequest( ByteBuffer buf );
         protected abstract WhatToDo handleRead( ByteBuffer buf , Connection conn );
         
