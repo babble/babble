@@ -53,7 +53,7 @@ public abstract class JSFunction extends JSFunctionBase {
         _scope = scope;
         _name = name;
 
-        _prototype = new JSObjectBase();
+        _prototype = new JSObjectBase( this );
 
         set( "prototype" , _prototype );
         set( "length" , num );
