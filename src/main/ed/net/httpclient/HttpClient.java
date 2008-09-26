@@ -179,6 +179,15 @@ public class HttpClient {
                 conn.setPostData(null);
             }
 
+            // use the handler's method if it's set
+            if (handler.getMethodToUse() != null) {
+                if (handler.getMethodToUse() == "POST" && number != 0) {
+                    conn.setRequestMethod("GET");
+                } else {
+                    conn.setRequestMethod(handler.getMethodToUse());
+                }
+            }
+
             Map headers = handler.getHeadersToSend();
             if ( headers != null ){
                 for ( Iterator i = headers.keySet().iterator() ; i.hasNext();){

@@ -444,6 +444,10 @@ public class XMLHttpRequest extends JSObjectBase {
             return _postData;
         }
 
+        public String getMethodToUse() {
+            return _method;
+        }
+
         public long getDesiredTimeout(){
             Object foo = get( "timeout" );
             if ( ! ( foo instanceof Number ) )
