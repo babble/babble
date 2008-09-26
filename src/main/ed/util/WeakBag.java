@@ -39,6 +39,26 @@ public class WeakBag<T> {
         _set.add( new MyRef( t ) );
     }
 
+    public void remove( T t ){
+        
+        for ( Iterator<MyRef> i = _set.iterator(); i.hasNext(); ){
+            MyRef ref = i.next();
+            T me = ref.get();
+
+            if ( me == null ){
+                // this is just here cause i'm already doing the work, so why not
+                i.remove();
+                continue;
+            }
+
+            if ( me == t ){
+                i.remove();
+                break;
+            }
+
+        }
+    }
+
     /** Returns the size of the bag.
      * @return the size of the bag
      */
@@ -51,7 +71,7 @@ public class WeakBag<T> {
     public void clear(){
         _set.clear();
     }
-
+    
     /** Removes any null objects from the bag. */
     public void clean(){
         for ( Iterator<MyRef> i = _set.iterator(); i.hasNext(); ){

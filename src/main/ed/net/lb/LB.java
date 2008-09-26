@@ -51,6 +51,7 @@ public class LB extends NIOClient {
         _server.addGlobalHandler( _handler ) ;
         
         _cloud = Cloud.getInstanceIfOnGrid();
+        _addMonitors();
 
         setDaemon( true );
     }
@@ -86,6 +87,11 @@ public class LB extends NIOClient {
         if ( data2 != null )
             buf.append( " [" + data2 + "]" );
         _logger.info( buf );
+    }
+
+    protected void serverError( InetSocketAddress addr , ServerErrorType type , Exception why ){
+        // TODO: uh oh
+        _debug( 1 , "serverError" , addr + ":" + type );
     }
     
     class RR extends Call {
@@ -277,7 +283,7 @@ public class LB extends NIOClient {
                 return null;
             }
             
-            _conn.doRead();
+            _conn.doRead( _length > 0 );
             _sent += _data.length();            
             _last = _data.length();
             _debug( _last == 0 ? 4 : 3 , "sent " + _sent + "/" + _length );
@@ -343,6 +349,15 @@ public class LB extends NIOClient {
         public double priority(){
             return Double.MAX_VALUE;
         }
+    }
+
+    void _addMonitors(){
+        HttpServer.addGlobalHandler( new HttpMonitor( "lb" ){
+                public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
+                    out.print( "overview" );
+                }
+            }
+            );
     }
 
     final int _port;

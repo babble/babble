@@ -27,9 +27,12 @@ import java.util.concurrent.*;
 
 import ed.log.*;
 import ed.util.*;
+import ed.net.httpserver.*;
 
-public class NIOClient extends Thread {
-    
+public abstract class NIOClient extends Thread {
+
+    public enum ServerErrorType { CONNECT , FIRST_BYTE_TIMEOUT , READ_TIMEOUT };
+
     protected enum WhatToDo { CONTINUE , PAUSE , DONE_AND_CLOSE , DONE_AND_CONTINUE , ERROR };
 
     public NIOClient( String name , int connectionsPerHost , int verboseLevel ){
@@ -43,6 +46,8 @@ public class NIOClient extends Thread {
         _loggerDrop = _logger.getChild( "drop" );
 
         _logger.setLevel( _verbose > 0 ? Level.DEBUG : Level.INFO );
+        
+        _addMonitors();
 
         try {
             _selector = Selector.open();
@@ -53,6 +58,8 @@ public class NIOClient extends Thread {
         
     }
     
+    protected abstract void serverError( InetSocketAddress addr , ServerErrorType type , Exception why );
+
     public void run(){
         while ( true ){
             try {
@@ -118,9 +125,13 @@ public class NIOClient extends Thread {
             Call c = _newRequests.poll();
             if ( c == null )
                 break;
+
+            if ( c._cancelled )
+                continue;
             
+            InetSocketAddress addr = null;
             try {
-                final InetSocketAddress addr = c.where();
+                addr = c.where();
                 final ConnectionPool pool = getConnectionPool( addr );
                 
                 Connection conn = pool.get( 0 );
@@ -141,10 +152,12 @@ public class NIOClient extends Thread {
             catch ( CantOpen co ){
                 _logger.error( "couldn't open" , co );
                 c.error( co );
+                if ( addr != null )
+                    serverError( addr , ServerErrorType.CONNECT , co._ioe );
             }
                 
         }
-
+        
         for ( Call c : pushBach ){
             if ( ! _newRequests.offer( c ) ){
                 _loggerDrop.error( "couldn't push something back on to queue." );
@@ -152,7 +165,7 @@ public class NIOClient extends Thread {
         }
     }
 
-    ConnectionPool getConnectionPool( InetSocketAddress addr ){
+    protected ConnectionPool getConnectionPool( InetSocketAddress addr ){
         ConnectionPool p = _connectionPools.get( addr );
         if ( p != null )
             return p;
@@ -161,6 +174,10 @@ public class NIOClient extends Thread {
         _connectionPools.put( addr , p );
         
         return p;
+    }
+
+    protected List<InetSocketAddress> getAllConnections(){
+        return new LinkedList<InetSocketAddress>( _connectionPools.keySet() );
     }
 
     protected class Connection {
@@ -175,6 +192,10 @@ public class NIOClient extends Thread {
                 _sock.connect( _addr );
                 
                 _loggerOpen.debug( "opening connection to [" + addr + "]" );
+            }
+            catch ( UnresolvedAddressException e ){
+                _error = new UnknownHostException( addr.toString() );
+                throw new CantOpen( addr , _error );
             }
             catch ( IOException ioe ){
                 _error = ioe;
@@ -199,10 +220,12 @@ public class NIOClient extends Thread {
                 _ready = true;
                 return;
             }
-            
-            _error = err;
-        }
 
+            _error = err;            
+            serverError( _addr , ServerErrorType.CONNECT , err );
+            _loggerOpen.error( "error opening connection to [" + _addr + "]" , _error );            
+        }
+        
         boolean ready(){
             return _ready;
         }
@@ -220,7 +243,7 @@ public class NIOClient extends Thread {
             return true;
         }
         
-        public int doRead(){
+        public int doRead( boolean errorOnEOF ){
             _fromServer.position( 0 );
             _fromServer.limit( _fromServer.capacity() );
             
@@ -236,11 +259,12 @@ public class NIOClient extends Thread {
             }
             
             if ( read < 0 ){
-                _error( new IOException( "socket dead" ) );
+                if ( errorOnEOF )
+                    _error( new IOException( "socket dead" ) );
                 done( true );
                 return -1;
             }
-
+            
             if ( read != _fromServer.position() )
                 throw new RuntimeException( "i'm confused  says i read [" + read + "] but at position [" + _fromServer.position() + "]" );
             
@@ -258,7 +282,7 @@ public class NIOClient extends Thread {
             //   - done - add yourself back to the pool
             //   - error, close connection
             
-            if ( doRead() < 0 )
+            if ( doRead( true ) < 0 )
                 return;
             
             WhatToDo next = null;
@@ -435,7 +459,10 @@ public class NIOClient extends Thread {
     class CantOpen extends ConnectionError {
         CantOpen( InetSocketAddress addr , IOException ioe ){
             super( "can't open" , addr , ioe );
+            _ioe = ioe;
         }
+
+        IOException _ioe;
     }
     
     public abstract class Call {
@@ -445,7 +472,51 @@ public class NIOClient extends Thread {
 
         protected abstract void fillInRequest( ByteBuffer buf );
         protected abstract WhatToDo handleRead( ByteBuffer buf , Connection conn );
+        
+        protected void cancel(){
+            _cancelled = true;
+        }
 
+        private boolean _cancelled = false;
+    }
+
+    protected abstract class MyMonitor extends HttpMonitor {
+        protected MyMonitor( String name ){
+            super( _name + "-" + name );
+        }
+        
+    }
+
+    void _addMonitors(){
+        HttpServer.addGlobalHandler( new MyMonitor( "backendPools" ){
+                public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
+                    
+                    for ( InetSocketAddress addr : getAllConnections() ){
+                        out.print( "<b>"  );
+                        out.print( addr.toString() );
+                        out.print( "</b>   " );
+
+                        ConnectionPool pool = getConnectionPool( addr );
+
+                        out.print( "total: " );
+                        out.print( pool.total() );
+                        out.print( "   " );
+
+                        out.print( "inUse: " );
+                        out.print( pool.inUse() );
+                        out.print( "   " );
+                        
+                        out.print( "everCreated: " );
+                        out.print( pool.everCreated() );
+                        out.print( "   " );
+
+                        out.print( "<br>" );
+                        
+                    }
+                }
+            }
+            );
+        
     }
 
     final protected String _name;
@@ -459,6 +530,5 @@ public class NIOClient extends Thread {
     private Selector _selector;
     private final BlockingQueue<Call> _newRequests = new ArrayBlockingQueue<Call>( 1000 );
     private final Map<InetSocketAddress,ConnectionPool> _connectionPools = new HashMap<InetSocketAddress,ConnectionPool>();
-    
     
 }
