@@ -102,11 +102,9 @@ public class NIOClient extends Thread {
 
             if ( key.isConnectable() )
                 c.handleConnect();
-            
-            if ( key.isReadable() )
+            else if ( key.isReadable() )
                 c.handleRead();
-            
-            if ( key.isWritable() )
+            else if ( key.isWritable() )
                 c.handleWrite();
         }
         
