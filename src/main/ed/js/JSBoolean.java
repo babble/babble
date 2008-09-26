@@ -113,6 +113,10 @@ public class JSBoolean extends JSObjectBase {
             return d == 1 || d == -1 || Double.isInfinite( d );
         }
 
+        if ( o instanceof JSObject ) {
+            return true;
+        }
+
         return false;
     }
 }
