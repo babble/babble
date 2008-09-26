@@ -26,6 +26,7 @@ import com.caucho.quercus.program.*;
 import com.caucho.quercus.env.*;
 import com.caucho.quercus.module.*;
 
+import ed.appserver.AppRequest;
 import ed.js.*;
 import ed.js.func.*;
 import ed.js.engine.*;
@@ -74,7 +75,7 @@ public class PHPJSObjectClassDef extends JavaClassDef {
             JSFunction func = (JSFunction)foo;
             Scope s = func.getScope();
             if ( s == null )
-                s = Scope.getAScope();
+                s = AppRequest.getThreadLocal().getScope();
             s = s.child();
             
             s.setThis( _object );
@@ -87,10 +88,16 @@ public class PHPJSObjectClassDef extends JavaClassDef {
                 };
 
 	    s.set( "print" , myPrint );
+            Scope oldTLScope = func.getTLScope();
             func.getScope( true ).set( "print" , myPrint );
 
-            Object ret = func.call( s , _convertor.toJS( args ) );
-            return wrapJava( ret );
+            try {
+                Object ret = func.call( s , _convertor.toJS( args ) );
+                return wrapJava( ret );
+            }
+            finally {
+                func.setTLScope( oldTLScope );
+            }
         }
         
         public Value get(Value key){
