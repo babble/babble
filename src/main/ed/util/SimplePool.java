@@ -113,6 +113,7 @@ public abstract class SimplePool<T> {
                     return _avail.remove( _avail.size() - 1 );
 
                 if ( _maxTotal <= 0 || _all.size() < _maxTotal ){
+                    _everCreated++;
                     T t = createNew();
                     _all.add( t );
                     return t;
@@ -155,6 +156,18 @@ public abstract class SimplePool<T> {
         _where.clear(); // is this correct
     }
 
+    public int total(){
+        return _all.size();
+    }
+    
+    public int inUse(){
+        return _all.size() - _avail.size();
+    }
+
+    public int everCreated(){
+        return _everCreated;
+    }
+
     protected final String _name;
     protected final int _maxToKeep;
     protected final int _maxTotal;
@@ -164,5 +177,6 @@ public abstract class SimplePool<T> {
     private final WeakBag<T> _all = new WeakBag<T>();
     private final Map<Integer,Throwable> _where = new HashMap<Integer,Throwable>();
 
+    private int _everCreated = 0;
     private int _trackPrintCount = 0;
 }
