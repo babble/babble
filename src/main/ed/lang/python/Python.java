@@ -22,6 +22,8 @@ import java.io.*;
 import java.util.*;
 
 import org.python.core.*;
+import org.python.antlr.*;
+import org.python.antlr.ast.*;
 
 import ed.db.*;
 import ed.js.*;
@@ -191,18 +193,33 @@ public class Python extends Language {
         PyObject globals = getGlobals( s );
         code = code+ "\n";
         PyCode pycode;
-        // Try to compile the code as an expression, and if it fails try it as
-        // a statement. This isn't the most appropriate, since statements like:
-        // 2*5;
-        // won't get returned.
-        try {
-            pycode = (PyCode)(Py.compile( new ByteArrayInputStream( code.getBytes() ) , "anon" , "eval" ) );
-            hasReturn[0] = true;
+        String filename = "<input>";
+
+        // Hideous antlr code to figure out if this is a module or an expression
+        ModuleParser m = new ModuleParser( new org.antlr.runtime.ANTLRStringStream( code ) , filename , false );
+        modType tree = m.file_input();
+        if( ! ( tree instanceof org.python.antlr.ast.Module ) ){
+            // no idea what this would mean -- tell Ethan
+            throw new RuntimeException( "can't happen -- blame Ethan" );
         }
-        catch( PyException py ){
-            pycode = (PyCode)(Py.compile( new ByteArrayInputStream( code.getBytes() ) , "anon" , "exec" ) );
-            hasReturn[0] = false;
+
+        // Module is the class meaning "toplevel sequence of statements"
+        org.python.antlr.ast.Module mod = (org.python.antlr.ast.Module)tree;
+
+        // If there's only one statement and it's an expression statement,
+        // compile just that expression as its own module.
+        hasReturn[0] = mod.body != null && mod.body.length == 1 && (mod.body[0] instanceof Expr );
+        if( hasReturn[0] ){
+            // I guess this class is treated specially, has a return value, etc.
+            Expression expr = new Expression( new PythonTree() , ((Expr)mod.body[0]).value );
+
+            pycode = (PyCode)Py.compile( expr , filename );
         }
+        else {
+            // Otherwise compile the whole module
+            pycode = (PyCode)Py.compile( mod , filename );
+        }
+
         return toJS( __builtin__.eval( pycode , globals ) );
     }
 
