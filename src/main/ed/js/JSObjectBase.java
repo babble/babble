@@ -268,7 +268,8 @@ public class JSObjectBase implements JSObject {
         if ( res != null ) return res;
 
         if ( _objectLowFunctions != null
-             && _constructor == null ){
+             && ( _constructor == null || 
+                  this.equals ( _constructor._prototype ) ) ){
             res = _objectLowFunctions.get( s );
             if ( res != null ) return res;
         }
@@ -580,8 +581,8 @@ public class JSObjectBase implements JSObject {
 
         if ( _keys != null )
 	    keys.addAll( _keys );
-        
-        if ( includePrototype && _constructor != null ){
+
+        if ( includePrototype && _constructor != null && !this.equals( _constructor._prototype ) ){
 
             IdentitySet<JSObjectBase> seen = new IdentitySet<JSObjectBase>();
             JSObjectBase start = _constructor._prototype;

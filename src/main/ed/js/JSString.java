@@ -542,6 +542,12 @@ public class JSString extends JSObjectBase implements Comparable {
                     }
                 } );
 
+            _prototype.set( "valueOf" , new JSFunctionCalls0() {
+                    public Object call( Scope s , Object crap[] ){
+                        return new JSString( ((JSString)s.getThis()).toString() );
+                    }
+                } );
+
             set("fromCharCode", new JSFunctionCalls0() {
                     public Object call(Scope s, Object [] args){
                         if(args == null) return new JSString("");
