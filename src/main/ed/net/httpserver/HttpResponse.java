@@ -427,54 +427,56 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
             _sentHeader = true;
         }
 
-        if ( _file != null ){
-            if ( _fileChannel == null ){
+        if (!_request.getMethod().equals("HEAD")) {
+            if ( _file != null ){
+                if ( _fileChannel == null ){
+                    try {
+                        _fileChannel = (new FileInputStream(_file)).getChannel();
+                    }
+                    catch( IOException ioe ){
+                        throw new RuntimeException( "can't get file : " + _file , ioe );
+                    }
+                }
+
                 try {
-                    _fileChannel = (new FileInputStream(_file)).getChannel();
+                    _fileSent += _fileChannel.transferTo( _fileSent , Long.MAX_VALUE , _handler.getChannel() );
                 }
-                catch( IOException ioe ){
-                    throw new RuntimeException( "can't get file : " + _file , ioe );
+                catch ( IOException ioe ){
+                    if ( ioe.toString().indexOf( "Resource temporarily unavailable" ) < 0 )
+                        throw ioe;
                 }
-            }
-
-            try {
-                _fileSent += _fileChannel.transferTo( _fileSent , Long.MAX_VALUE , _handler.getChannel() );
-            }
-            catch ( IOException ioe ){
-                if ( ioe.toString().indexOf( "Resource temporarily unavailable" ) < 0 )
-                    throw ioe;
-            }
-            if ( _fileSent < _file.length() ){
-                if ( HttpServer.D ) System.out.println( "only sent : " + _fileSent );
-                _handler.registerForWrites();
-                return false;
-            }
-        }
-
-        if ( _writer != null )
-            _writer._push();
-
-        if ( _stringContent != null ){
-            for ( ; _stringContentSent < _stringContent.size() ; _stringContentSent++ ){
-
-                ByteBuffer bb = _stringContent.get( _stringContentSent );
-                _stringContentPos += _handler.getChannel().write( bb );
-                if ( _stringContentPos < bb.limit() ){
-                    if ( HttpServer.D ) System.out.println( "only wrote " + _stringContentPos + " out of " + bb );
+                if ( _fileSent < _file.length() ){
+                    if ( HttpServer.D ) System.out.println( "only sent : " + _fileSent );
                     _handler.registerForWrites();
                     return false;
                 }
-                _stringContentPos = 0;
             }
-        }
 
-        if ( _jsfile != null ){
-            if ( ! _jsfile.write( _handler.getChannel() ) ){
-                if ( _jsfile.pause() )
-                    _handler.pause();
-                else
-                    _handler.registerForWrites();
-                return false;
+            if ( _writer != null )
+                _writer._push();
+
+            if ( _stringContent != null ){
+                for ( ; _stringContentSent < _stringContent.size() ; _stringContentSent++ ){
+
+                    ByteBuffer bb = _stringContent.get( _stringContentSent );
+                    _stringContentPos += _handler.getChannel().write( bb );
+                    if ( _stringContentPos < bb.limit() ){
+                        if ( HttpServer.D ) System.out.println( "only wrote " + _stringContentPos + " out of " + bb );
+                        _handler.registerForWrites();
+                        return false;
+                    }
+                    _stringContentPos = 0;
+                }
+            }
+
+            if ( _jsfile != null ){
+                if ( ! _jsfile.write( _handler.getChannel() ) ){
+                    if ( _jsfile.pause() )
+                        _handler.pause();
+                    else
+                        _handler.registerForWrites();
+                    return false;
+                }
             }
         }
 
