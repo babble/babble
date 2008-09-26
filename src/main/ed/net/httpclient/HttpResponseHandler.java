@@ -56,6 +56,11 @@ public interface HttpResponseHandler {
      */
     public boolean wantHttpErrorExceptions();
 
+    /**
+     * Returns the method to use for the request, or null to use the default method.
+     */
+    public String getMethodToUse();
+
     public Map<String,String> getHeadersToSend();
     public Map<String,Cookie> getCookiesToSend();
     public byte[] getPostDataToSend();
