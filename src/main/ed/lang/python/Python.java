@@ -63,6 +63,8 @@ public class Python extends Language {
 
 
     public static Object toJS( Object p ){
+        if( D )
+            System.out.println( "toJS " + p );
 
         if ( p == null || p instanceof PyNone )
             return null;
@@ -78,8 +80,11 @@ public class Python extends Language {
         if ( p instanceof PyJSStringWrapper )
             p = ((PyJSStringWrapper)p)._p;
 
-        if ( p instanceof PyJSObjectWrapper )
+        if ( p instanceof PyJSObjectWrapper ){
+            if( D )
+                System.out.println( "unwrapping " + p );
             return ((PyJSObjectWrapper)p)._js;
+        }
 
         if ( p instanceof PyBoolean )
             return ((PyBoolean)p).getValue() == 1;
@@ -181,10 +186,24 @@ public class Python extends Language {
     }
 
     public Object eval( Scope s , String code , boolean[] hasReturn ){
+        if( D )
+            System.out.println( "Doing eval on " + code );
         PyObject globals = getGlobals( s );
         code = code+ "\n";
-        PyCode pycode = (PyCode)(Py.compile( new ByteArrayInputStream( code.getBytes() ) , "anon" , "single" ));
-        return __builtin__.eval( pycode , globals );
+        PyCode pycode;
+        // Try to compile the code as an expression, and if it fails try it as
+        // a statement. This isn't the most appropriate, since statements like:
+        // 2*5;
+        // won't get returned.
+        try {
+            pycode = (PyCode)(Py.compile( new ByteArrayInputStream( code.getBytes() ) , "anon" , "eval" ) );
+            hasReturn[0] = true;
+        }
+        catch( PyException py ){
+            pycode = (PyCode)(Py.compile( new ByteArrayInputStream( code.getBytes() ) , "anon" , "exec" ) );
+            hasReturn[0] = false;
+        }
+        return toJS( __builtin__.eval( pycode , globals ) );
     }
 
     public static PyObject getGlobals( Scope s ){
