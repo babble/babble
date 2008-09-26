@@ -51,9 +51,8 @@ public abstract class SimplePool<T> {
     protected abstract T createNew();
 
     /** 
-     * callback to determin if an object is ok to be added back to the pool
-     * by default just returns true.  override to return false in some cases if you want 
-     * an object to be tossed under certain conditions
+     * callback to determine if an object is ok to be added back to the pool or used
+     * will be called when something is put back into the queue and when it comes out
      * @return true iff the object is ok to be added back to pool
      */
     public boolean ok( T t ){
@@ -68,8 +67,12 @@ public abstract class SimplePool<T> {
     public void done( T t ){
         _where.remove( _hash( t ) );
 
-        if ( ! ok( t ) )
+        if ( ! ok( t ) ){
+            synchronized ( _avail ){
+                _all.remove( t );
+            }
             return;
+        }
 
         synchronized ( _avail ){
             if ( _maxToKeep < 0 || _avail.size() < _maxToKeep )
@@ -109,8 +112,14 @@ public abstract class SimplePool<T> {
 	long totalSlept = 0;
         while ( true ){
             synchronized ( _avail ){
-                if ( _avail.size() > 0 )
-                    return _avail.remove( _avail.size() - 1 );
+
+                while ( _avail.size() > 0 ){
+                    T t = _avail.remove( _avail.size() - 1 );
+                    if ( ok( t ) )
+                        return t;
+                    _all.remove( t );
+                    continue;
+                }
 
                 if ( _maxTotal <= 0 || _all.size() < _maxTotal ){
                     _everCreated++;
