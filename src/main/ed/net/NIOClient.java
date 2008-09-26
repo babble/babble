@@ -27,6 +27,7 @@ import java.util.concurrent.*;
 
 import ed.log.*;
 import ed.util.*;
+import ed.net.httpserver.*;
 
 public class NIOClient extends Thread {
     
@@ -43,6 +44,8 @@ public class NIOClient extends Thread {
         _loggerDrop = _logger.getChild( "drop" );
 
         _logger.setLevel( _verbose > 0 ? Level.DEBUG : Level.INFO );
+        
+        _addMonitors();
 
         try {
             _selector = Selector.open();
@@ -152,7 +155,7 @@ public class NIOClient extends Thread {
         }
     }
 
-    ConnectionPool getConnectionPool( InetSocketAddress addr ){
+    protected ConnectionPool getConnectionPool( InetSocketAddress addr ){
         ConnectionPool p = _connectionPools.get( addr );
         if ( p != null )
             return p;
@@ -161,6 +164,10 @@ public class NIOClient extends Thread {
         _connectionPools.put( addr , p );
         
         return p;
+    }
+
+    protected List<InetSocketAddress> getAllConnections(){
+        return new LinkedList<InetSocketAddress>( _connectionPools.keySet() );
     }
 
     protected class Connection {
@@ -175,6 +182,10 @@ public class NIOClient extends Thread {
                 _sock.connect( _addr );
                 
                 _loggerOpen.debug( "opening connection to [" + addr + "]" );
+            }
+            catch ( UnresolvedAddressException e ){
+                _error = new UnknownHostException( addr.toString() );
+                throw new CantOpen( addr , _error );
             }
             catch ( IOException ioe ){
                 _error = ioe;
@@ -200,9 +211,10 @@ public class NIOClient extends Thread {
                 return;
             }
             
+            _loggerOpen.error( "error opening connection to [" + _addr + "]" , _error );            
             _error = err;
         }
-
+        
         boolean ready(){
             return _ready;
         }
@@ -448,6 +460,45 @@ public class NIOClient extends Thread {
 
     }
 
+    protected abstract class MyMonitor extends HttpMonitor {
+        protected MyMonitor( String name ){
+            super( _name + "-" + name );
+        }
+        
+    }
+
+    void _addMonitors(){
+        HttpServer.addGlobalHandler( new MyMonitor( "backendPools" ){
+                public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
+                    
+                    for ( InetSocketAddress addr : getAllConnections() ){
+                        out.print( "<b>"  );
+                        out.print( addr.toString() );
+                        out.print( "</b>   " );
+
+                        ConnectionPool pool = getConnectionPool( addr );
+
+                        out.print( "total: " );
+                        out.print( pool.total() );
+                        out.print( "   " );
+
+                        out.print( "inUse: " );
+                        out.print( pool.inUse() );
+                        out.print( "   " );
+                        
+                        out.print( "everCreated: " );
+                        out.print( pool.everCreated() );
+                        out.print( "   " );
+
+                        out.print( "<br>" );
+                        
+                    }
+                }
+            }
+            );
+        
+    }
+
     final protected String _name;
     final protected int _verbose;
     final protected int _connectionsPerHost;
@@ -459,6 +510,5 @@ public class NIOClient extends Thread {
     private Selector _selector;
     private final BlockingQueue<Call> _newRequests = new ArrayBlockingQueue<Call>( 1000 );
     private final Map<InetSocketAddress,ConnectionPool> _connectionPools = new HashMap<InetSocketAddress,ConnectionPool>();
-    
     
 }
