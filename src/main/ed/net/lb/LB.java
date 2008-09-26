@@ -88,6 +88,11 @@ public class LB extends NIOClient {
             buf.append( " [" + data2 + "]" );
         _logger.info( buf );
     }
+
+    protected void serverError( InetSocketAddress addr , ServerErrorType type , Exception why ){
+        // TODO: uh oh
+        _debug( 1 , "serverError" , addr + ":" + type );
+    }
     
     class RR extends Call {
         
@@ -105,7 +110,7 @@ public class LB extends NIOClient {
         }
         
         protected InetSocketAddress where(){
-            return new InetSocketAddress( "localhost" , 80 );
+            return new InetSocketAddress( "www.10gen.com" , 80 );
         }
         
         protected void error( Exception e ){
@@ -278,7 +283,7 @@ public class LB extends NIOClient {
                 return null;
             }
             
-            _conn.doRead();
+            _conn.doRead( _length > 0 );
             _sent += _data.length();            
             _last = _data.length();
             _debug( _last == 0 ? 4 : 3 , "sent " + _sent + "/" + _length );
