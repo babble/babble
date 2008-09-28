@@ -971,14 +971,21 @@ public final class Scope implements JSObject , Bindings {
         return approxSize( new IdentitySet() );
     }
 
+    public long myApproxSize(){
+	return approxSize( new IdentitySet() , true , false );
+    }
+    
     public long approxSize( IdentitySet seen ){
         return approxSize( seen , true , true );
     }
     
     public long approxSize( IdentitySet seen , boolean includeChildren , boolean includeParents ){
-        if ( seen.contains( this ) ){
+	
+	if ( seen == null )
+	    seen = new IdentitySet();
+	
+        if ( seen.contains( this ) )
             return 0;
-	}
         
         seen.add( this );
 
@@ -994,7 +1001,7 @@ public final class Scope implements JSObject , Bindings {
             }
         }
 
-	if ( _parent != null && ! seen.contains( _parent ) )
+	if ( includeParents && _parent != null && ! seen.contains( _parent ) )
 	    size += _parent.approxSize( seen , false , true );
 
         return size;
