@@ -26,6 +26,7 @@ import ed.lang.*;
 import ed.util.*;
 import ed.js.*;
 import ed.js.func.*;
+import ed.appserver.*;
 
 public abstract class JSCompiledScript extends JSFunctionCalls0 {
  
@@ -59,6 +60,20 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
         throw new JSException( foo );
     }
 
+    /**
+     * load this file once.
+     * if its already defined in the scope, don't include
+     */
+    public void load( Scope scope ){
+	String name = this.getClass().getName();
+	if ( scope.isLoaded( name ) )
+	    return;
+	
+	call( scope );
+	
+	scope.markLoaded( name );
+    }
+    
     public Language getFileLanguage(){
         if ( _scriptInfo == null )
             return Language.JS;
@@ -100,8 +115,13 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
         return size;
     }
 
+    public void setPath( JSFileLibrary path ){
+	_path = path;
+    }
+
     Convert.ScriptInfo _scriptInfo;
     protected List<Pair<String,String>> _regex;
     protected String _strings[];
     protected JSString _jsstrings[];
+    protected JSFileLibrary _path;
 }

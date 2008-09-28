@@ -28,6 +28,7 @@ import ed.js.*;
 import ed.js.func.*;
 import ed.lang.*;
 import ed.util.*;
+import ed.appserver.*;
 
 public final class Scope implements JSObject , Bindings {
 
@@ -307,8 +308,11 @@ public final class Scope implements JSObject , Bindings {
             return foo;
         }
 
-        if ( "__path__".equals( name ) )
+        if ( "__path__".equals( name ) ){
+	    if ( _path != null )
+		return _path;
             return ed.appserver.JSFileLibrary.findPath();
+	}
 
 
         if ( name.equals( "__puts__" ) ){
@@ -1019,6 +1023,18 @@ public final class Scope implements JSObject , Bindings {
         }
     }
 
+    public boolean isLoaded( String thing ){
+	return get( _loadedMarker + thing ) != null;
+    }
+    
+    public void markLoaded( String thing ){
+	put( _loadedMarker + thing , true );
+    }
+
+    public void setPath( JSFileLibrary path ){
+	_path = path;
+    }
+
     final String _name;
     final Scope _parent;
     final Scope _maybeWritableGlobal;
@@ -1027,6 +1043,7 @@ public final class Scope implements JSObject , Bindings {
     final Language _lang;
 
     private File _root;
+    private JSFileLibrary _path;
 
     public final long _id = ID++;
     
@@ -1048,10 +1065,12 @@ public final class Scope implements JSObject , Bindings {
 
     RuntimeException _toThrow;
     Error _toThrowError;
-
+    
     private WeakBag<Scope> _children;
     private int _childrenAdds = 0;
     
+    private static String _loadedMarker = "___loaded___";
+
     public void makeThreadLocal(){
         _threadLocal.set( this );
     }

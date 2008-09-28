@@ -26,6 +26,7 @@ import ed.*;
 import ed.js.*;
 import ed.js.func.*;
 import ed.io.*;
+import ed.appserver.*;
 
 public class ConvertTest extends TestCase {
 
@@ -101,10 +102,12 @@ public class ConvertTest extends TestCase {
                 scope.put( "print" , myout , true );
                 scope.put( "SYSOUT" , myout , true );
             }
-
+	    
+	    
+	    ((JSCompiledScript)f).setPath( new JSFileLibrary( _file.getParentFile() , "local" , scope ) );
             f.call( scope );
 
-
+	    
             String outString = _clean( bout.toString() );
             
             if ( _file.toString().contains( "/engine/" ) ){
@@ -139,8 +142,11 @@ public class ConvertTest extends TestCase {
     public static void main( String args[] ){
         if ( args.length > 0 ){
             TestCase all = new TestCase();
-            for ( String s : args )
+            for ( String s : args ){
+		if ( s.contains( "_" ) )
+		    continue;
                 all.add( new FileTest( new File( s ) ) );
+	    }
             all.runConsole();
         }
         else {
