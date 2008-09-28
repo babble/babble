@@ -37,7 +37,7 @@ public class XgenInternalsTest extends RubyDBTest {
     public void setUp() {
         super.setUp();
         runJS(JS_RECORD_CREATION_CODE);
-        runRuby("require 'xgen_internals.rb';" +
+        runRuby("require 'xgen/mongo';" +
                 "class Track < XGen::Mongo::Base;" +
                 "  set_collection :rubytest, %w(artist album song track);" +
                 "  def to_s;" +
