@@ -29,10 +29,21 @@ import ed.js.func.*;
 import ed.appserver.*;
 
 public abstract class JSCompiledScript extends JSFunctionCalls0 {
- 
+
+    public JSCompiledScript(){
+	myInit();
+    }
+
+    protected abstract void myInit();
     protected abstract Object _call( Scope scope , Object extra[] ) throws Exception;
     
     public Object call( Scope scope , Object extra[] ){
+	if ( _loadOnce )
+	    return load( scope );
+	return docall( scope , extra );
+    }
+
+    Object docall( Scope scope , Object extra[] ){
         try {
             return _call( scope, extra );
         }
@@ -64,14 +75,21 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
      * load this file once.
      * if its already defined in the scope, don't include
      */
-    public void load( Scope scope ){
+    public Object load( Scope scope ){
 	String name = this.getClass().getName();
-	if ( scope.isLoaded( name ) )
-	    return;
 	
-	call( scope );
+	Object res = scope.getLoaded( name );
+	if ( res != null ){
+	    if ( res == _nullMarker )
+		return null;
+	    return res;
+	}
 	
-	scope.markLoaded( name );
+	res = docall( scope , null );
+	if ( res == null )
+	    res = _nullMarker;
+	scope.markLoaded( name , res );
+	return res;
     }
     
     public Language getFileLanguage(){
@@ -124,4 +142,7 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
     protected String _strings[];
     protected JSString _jsstrings[];
     protected JSFileLibrary _path;
+    protected boolean _loadOnce = false;
+
+    static String _nullMarker = "_nullMarker";
 }

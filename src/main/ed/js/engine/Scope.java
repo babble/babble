@@ -1023,11 +1023,11 @@ public final class Scope implements JSObject , Bindings {
         }
     }
 
-    public boolean isLoaded( String thing ){
-	return get( _loadedMarker + thing ) != null;
+    public Object getLoaded( String thing ){
+	return get( _loadedMarker + thing );
     }
     
-    public void markLoaded( String thing ){
+    public void markLoaded( String thing , Object res ){
 	put( _loadedMarker + thing , true );
     }
 

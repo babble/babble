@@ -180,6 +180,15 @@ public class Convert {
         if ( D ) System.out.println( "***************" );
 
         Node n = sn.getFirstChild();
+	
+	if ( n.getType() == Token.EXPR_RESULT ){
+	    Node n2 = n.getFirstChild();
+	    if ( n2 != null && n2.getType() == Token.NAME ){
+		if ( n2.getString().equals( "loadonce" ) ){
+		    _loadOnce = true;
+		}
+	    }
+	}
 
 	String whyRasReturn = null;
 
@@ -202,9 +211,10 @@ public class Convert {
 
 
                 _add( n , sn , state );
-
+		
                 _append( "\n" , n );
             }
+
             n = n.getNext();
         }
 
@@ -1699,6 +1709,12 @@ public class Convert {
 
         buf.append( "public class " ).append( _className ).append( " extends JSCompiledScript {\n" );
 
+	buf.append( "\t protected void myInit(){\n" );
+	if ( _loadOnce )
+	    buf.append( "\t\t _loadOnce = true; \n" );
+	buf.append( "\t} \n" );
+	
+
         buf.append( "\tpublic Object _call( Scope scope , Object extra[] ) throws Exception {\n" );
 
         buf.append( "\t\t final Scope passedIn = scope; \n" );
@@ -1868,6 +1884,7 @@ public class Convert {
 
     private boolean _hasReturn = false;
     private JSFunction _it;
+    private boolean _loadOnce = false;
 
     private int _methodId = 0;
 

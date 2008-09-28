@@ -13,3 +13,7 @@ __path__._once1b.load();
 assert( blah2 );
 __path__._once1b.load();
 
+__path__._once1c();
+assert( blah3 );
+__path__._once1c();
+
