@@ -28,7 +28,7 @@ import ed.util.*;
  * @expose
  * @docmodule system.database.collection
  */
-public abstract class DBCollection extends JSObjectLame {
+public abstract class DBCollection extends JSObjectLame implements Sizable {
 
     /** @unexpose */
     final static boolean DEBUG = Boolean.getBoolean( "DEBUG.DB" );
@@ -727,6 +727,17 @@ public abstract class DBCollection extends JSObjectLame {
      */
     public String toString(){
         return _name;
+    }
+
+    public long approxSize( IdentitySet seen ){
+	long size = 256;
+	if ( _constructor != null ){
+	    if ( ! seen.contains( _constructor ) ){
+		seen.add( _constructor );
+		size += _constructor.approxSize( seen );
+	    }
+	}
+	return size;
     }
 
     private Set<String> _getJavaMethods(){

@@ -69,16 +69,6 @@ public class JSObjectSize {
              o instanceof JSString )
             return OBJ_OVERHEAD + (long)( o.toString().length() * 2 );
         
-        if ( o instanceof DBCollection ){
-            // TODO
-            return 128;
-        }
-
-        if ( o instanceof DBBase ){
-            // TODO
-            return 128;
-        }
-        
         if ( o instanceof JSRegex ){
             // this is a total guess
             // TODO: make it a litlte more realistic
@@ -93,7 +83,7 @@ public class JSObjectSize {
             
             return OBJ_OVERHEAD + ((JSBinaryData)data).length();
         }
-        
+
         // -------- this is the end of the "primitive" types ------
 
         if ( seen == null )
@@ -113,14 +103,17 @@ public class JSObjectSize {
             for ( Object foo : (Collection)o ){
                 if ( seen.contains( foo ) )
                     continue;
-                temp += size( foo );
+		seen.add( foo );
+                temp += _size( foo , seen );
             }
             return temp;
         }
 
         if ( o instanceof JSObjectBase )
             return ((JSObjectBase)o).approxSize( seen );
-
+	
+	if ( o instanceof Sizable )
+	    return ((Sizable)o).approxSize( seen );
 
         String blah = o.getClass().toString();
         if ( ! _seenClasses.contains( blah ) ){

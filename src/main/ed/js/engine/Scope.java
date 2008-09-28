@@ -48,10 +48,14 @@ public final class Scope implements JSObject , Bindings {
         return JSBuiltInFunctions.create( name );
     }
     
-    static class _NULL {
+    static class _NULL implements Sizable {
         public String toString(){
             return "This is an internal thing for Scope.  It means something is null.  You should never seen this.";
         }
+
+	public long approxSize( IdentitySet seen ){
+	    return 24;
+	}
     }
     static _NULL NULL = new _NULL();
 
@@ -968,26 +972,31 @@ public final class Scope implements JSObject , Bindings {
     }
 
     public long approxSize( IdentitySet seen ){
-        return approxSize( seen , true );
+        return approxSize( seen , true , true );
     }
     
-    public long approxSize( IdentitySet seen , boolean includeChildren ){
-        if ( seen.contains( this ) )
+    public long approxSize( IdentitySet seen , boolean includeChildren , boolean includeParents ){
+        if ( seen.contains( this ) ){
             return 0;
+	}
         
         seen.add( this );
 
         long size = 128;
         
-        if ( _objects != null )
+        if ( _objects != null ){
             size += _objects.approxSize( seen );
+	}
         
         if ( includeChildren && _children != null ){
             synchronized ( _children ){
                 size += _children.approxSize( seen );
             }
         }
-            
+
+	if ( _parent != null && ! seen.contains( _parent ) )
+	    size += _parent.approxSize( seen , false , true );
+
         return size;
     }
     

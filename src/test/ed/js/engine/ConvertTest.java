@@ -32,9 +32,12 @@ public class ConvertTest extends TestCase {
     public ConvertTest(){
         
         File dir = new File( "src/test/ed/js/engine/" );
-        for ( File f : dir.listFiles() )
+        for ( File f : dir.listFiles() ){
+	    if ( f.toString().contains( "_") )
+		continue;
             if ( f.toString().endsWith( ".js" ) )
                 add( new FileTest( f ) );
+	}
         
         _scope = Scope.newGlobal().child( new File(".") );
     }
