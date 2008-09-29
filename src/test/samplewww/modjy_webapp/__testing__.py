@@ -3,7 +3,6 @@ import sys
 import _10gen
 import foo
 import modjy_webapp.foo
-import modjy_webapp.core.foo
 
 foo.hello = 61
 print 'running me'

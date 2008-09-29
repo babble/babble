@@ -211,7 +211,7 @@ public class JSObjectBase implements JSObject {
 	if ( ret instanceof JSObjectBase && ((JSObjectBase)ret).isNull() )
 	    return null;
         if ( ret instanceof DBRef )
-            return ((DBRef)ret).doLoad();
+            return ((DBRef)ret).getRealObject();
 	return ret;
     }
 

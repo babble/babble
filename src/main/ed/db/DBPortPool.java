@@ -74,8 +74,9 @@ class DBPortPool extends SimplePool<DBPort> {
 	return port;
     }
 
-    void gotError(){
+    void gotError( Exception e ){
         System.out.println( "emptying DBPortPool b/c of error" );
+        e.printStackTrace();
         clear();
     }
 
