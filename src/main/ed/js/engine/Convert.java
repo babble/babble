@@ -181,17 +181,11 @@ public class Convert {
 
         Node n = sn.getFirstChild();
 
-        if ( n != null && n.getType() == Token.EXPR_RESULT ){
-            Node n2 = n.getFirstChild();
-            if ( n2 != null && n2.getType() == Token.NAME ){
-                if ( n2.getString().equals( "loadonce" ) ){
-                    _loadOnce = true;
-                }
-            }
-        }
-
-        String whyRasReturn = null;
-
+        _loadOnce = _isLoadOnce( n );	
+        if ( _loadOnce ) 
+            n = n.getNext();
+        
+	String whyRasReturn = null;
         while ( n != null ){
             if ( n.getType() != Token.FUNCTION ){
 
@@ -249,6 +243,21 @@ public class Convert {
 
     private void _add( Node n , State state ){
         _add( n , null , state );
+    }
+
+    private boolean _isLoadOnce( Node n ){
+        if ( n == null || n.getType() != Token.EXPR_RESULT )
+            return false;
+        
+        n = n.getFirstChild();
+        if ( n == null || n.getType() != Token.CALL )
+            return false;
+
+        n = n.getFirstChild();
+        if ( n == null || n.getType() != Token.NAME )
+            return false;
+        
+        return n.getString().equals( "loadOnce" );
     }
 
     private void _add( Node n , ScriptOrFnNode sn , State state ){
@@ -1581,6 +1590,7 @@ public class Convert {
 
             Node n = temp.first;
             final ScriptOrFnNode sof = temp.second;
+            assert( sof != null );
 
             final int line = n.getLineno();
 
