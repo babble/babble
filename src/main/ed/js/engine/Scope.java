@@ -472,7 +472,7 @@ public final class Scope implements JSObject , Bindings {
 	if ( _parent._locked && writable )
 	    return this;
 
-	return _parent.getGlobal();
+	return _parent.getGlobal( writable );
     }
 
     public Scope getParent(){
