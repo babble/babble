@@ -328,6 +328,8 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
         _save = new JSFunctionCalls1() {
                 public Object call( Scope s , Object o , Object fooasd[] ){
                     _anyUpdateSave = true;
+                    if ( o == null )
+                        o = _handleThis( s , null );
                     return save( s , _checkObject( o , false ) );
                 }
             };
