@@ -180,12 +180,6 @@ public class PythonReloadTest extends PythonTestCase {
         
     }
 
-    private void clearScope(Scope s){
-        s.set("ranFile1", 0);
-        s.set("ranFile2", 0);
-        s.set("ranFile3", 0);
-    }
-
     // file1 -> file2 -> file3
     private void writeTest1File1() throws IOException{
         fillFile(1, true);
@@ -296,42 +290,6 @@ public class PythonReloadTest extends PythonTestCase {
         writer.println("_10gen.ranFile3 = 1");
         writer.println("_10gen.ranSubFile3 = 100");
         writer.close();
-    }
-
-    private void shouldRun1(Scope s){
-        clearScope(s);
-        s.eval("local.file1();");
-        assertRan1(s);
-    }
-
-    private void assertRan1(Scope s){
-        assertEquals(s.get("ranFile1"), 1);
-        assertEquals(s.get("ranFile2"), 0);
-        assertEquals(s.get("ranFile3"), 0);
-    }
-
-    private void shouldRun2(Scope s){
-        clearScope(s);
-        s.eval("local.file1();");
-        assertRan2(s);
-    }
-
-    private void assertRan2(Scope s){
-        assertEquals(s.get("ranFile1"), 1);
-        assertEquals(s.get("ranFile2"), 1);
-        assertEquals(s.get("ranFile3"), 0);
-    }
-
-    private void shouldRun3(Scope s){
-        clearScope(s);
-        s.eval("local.file1();");
-        assertRan3(s);
-    }
-
-    private void assertRan3(Scope s){
-        assertEquals(s.get("ranFile1"), 1);
-        assertEquals(s.get("ranFile2"), 1);
-        assertEquals(s.get("ranFile3"), 1);
     }
 
     public static void main(String [] args){

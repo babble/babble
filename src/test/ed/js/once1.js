@@ -9,9 +9,9 @@ catch( e ) {
     
 }
 
-__path__._once1b.load();
+__path__._once1b.loadOnce();
 assert( blah2 );
-__path__._once1b.load();
+__path__._once1b.loadOnce();
 
 __path__._once1c();
 assert( blah3 );

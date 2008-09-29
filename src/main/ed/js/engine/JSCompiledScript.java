@@ -39,7 +39,7 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
     
     public Object call( Scope scope , Object extra[] ){
 	if ( _loadOnce )
-	    return load( scope );
+	    return loadOnce( scope );
 	return docall( scope , extra );
     }
 
@@ -75,7 +75,7 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
      * load this file once.
      * if its already defined in the scope, don't include
      */
-    public Object load( Scope scope ){
+    public Object loadOnce( Scope scope ){
 	String name = this.getClass().getName();
 	
 	Object res = scope.getLoaded( name );

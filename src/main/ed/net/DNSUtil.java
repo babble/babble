@@ -148,11 +148,16 @@ public class DNSUtil {
         return InetAddress.getByName( host );
     }
 
-    public static InetAddress getLocalHost(){
+    public static final InetAddress getLocalHost(){
         return LOCALHOST;
     }
 
+    public static final String getLocalHostString(){
+        return LOCALHOST_STRING;
+    }
+
     private final static InetAddress LOCALHOST;
+    private final static String LOCALHOST_STRING;
     static {
         InetAddress l = null;
 	try {
@@ -165,6 +170,7 @@ public class DNSUtil {
 	}
         finally {
             LOCALHOST = l;
+            LOCALHOST_STRING = l == null ? "unknown host" : l.toString();
         }
     }
     

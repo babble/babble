@@ -45,6 +45,10 @@ abstract public class PythonTestCase extends ed.TestCase {
     }
     
     protected Scope initScope(final File dir, String name) {
+        return initContext( dir, name ).getScope();
+    }
+
+    protected AppContext initContext(final File dir, String name){
         //Initialize Scope ==================================
         Scope oldScope = Scope.getThreadLocal();
 
@@ -90,7 +94,49 @@ abstract public class PythonTestCase extends ed.TestCase {
             if(oldScope != null) oldScope.makeThreadLocal();
             else Scope.clearThreadLocal();
         }
-        return globalScope;
+        return ac;
+    }
+
+    protected void clearScope(Scope s){
+        s.set("ranFile1", 0);
+        s.set("ranFile2", 0);
+        s.set("ranFile3", 0);
+    }
+
+    protected void shouldRun1(Scope s){
+        clearScope(s);
+        s.eval("local.file1();");
+        assertRan1(s);
+    }
+
+    protected void assertRan1(Scope s){
+        assertEquals(s.get("ranFile1"), 1);
+        assertEquals(s.get("ranFile2"), 0);
+        assertEquals(s.get("ranFile3"), 0);
+    }
+
+    protected void shouldRun2(Scope s){
+        clearScope(s);
+        s.eval("local.file1();");
+        assertRan2(s);
+    }
+
+    protected void assertRan2(Scope s){
+        assertEquals(s.get("ranFile1"), 1);
+        assertEquals(s.get("ranFile2"), 1);
+        assertEquals(s.get("ranFile3"), 0);
+    }
+
+    protected void shouldRun3(Scope s){
+        clearScope(s);
+        s.eval("local.file1();");
+        assertRan3(s);
+    }
+
+    protected void assertRan3(Scope s){
+        assertEquals(s.get("ranFile1"), 1);
+        assertEquals(s.get("ranFile2"), 1);
+        assertEquals(s.get("ranFile3"), 1);
     }
 
     protected void setTime(PrintWriter writer, String name){

@@ -1,5 +1,5 @@
 
-loadonce;
+loadOnce();
 
 if ( blah3 )
     throw "already defined";
