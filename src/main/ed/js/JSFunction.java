@@ -353,10 +353,13 @@ public abstract class JSFunction extends JSFunctionBase {
         
         if ( _callCache != null )
             size += _callCache.approxSize( seen );
+	
+	if ( _scope != null )
+	    size += _scope.approxSize( seen );
 
         return size;
     }
-
+    
     public Language getSourceLanguage(){
         return _sourceLanguage;
     }

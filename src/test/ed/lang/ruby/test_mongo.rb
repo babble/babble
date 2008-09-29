@@ -13,7 +13,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 require 'ruby_test'
-require 'xgen_internals'
+require 'xgen/mongo'
 
 class Track < XGen::Mongo::Base
   set_collection :rubytest, %w(artist album song track)

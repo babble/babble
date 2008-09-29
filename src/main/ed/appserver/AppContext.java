@@ -49,7 +49,7 @@ import ed.lang.python.*;
  * @expose
  * @docmodule system.system.__instance__
  */
-public class AppContext extends ServletContextBase {
+public class AppContext extends ServletContextBase implements Sizable {
 
     /** @unexpose */
     static final boolean DEBUG = AppServer.D;
@@ -171,11 +171,14 @@ public class AppContext extends ServletContextBase {
 			if ( name.equals( _lastSetTo ) )
 			    return true;
 
-                        DBBase db = (DBBase)s.get( "db" );
+                        DBBase db = (DBBase)AppContext.this._scope.get( "db" );
                         if ( ! db.allowedToAccess( name.toString() ) )
                             throw new JSException( "you are not allowed to access db [" + name + "]" );
                         
-                        s.put( "db" , DBProvider.get( AppContext.this , name.toString() ) , false );
+			if ( name.equals( db.getName() ) )
+			    return true;
+
+                        AppContext.this._scope.put( "db" , DBProvider.get( AppContext.this , name.toString() ) , false );
 			_lastSetTo = name.toString();
                         
                         if ( _adminContext != null ){
@@ -1072,16 +1075,16 @@ public class AppContext extends ServletContextBase {
     public long approxSize( IdentitySet seen ){
         long size = 0;
 
-        if ( _adminContext != null )
-            size += _adminContext.approxSize( seen );
-        
-        size += _scope.approxSize( seen ,false );
-        size += _initScope.approxSize( seen , true );
-        
+        size += _scope.approxSize( seen , false , true );
+        size += _initScope.approxSize( seen , true , false );
+	
         size += JSObjectSize.size( _localObject , seen );
         size += JSObjectSize.size( _core , seen );
         size += JSObjectSize.size( _external , seen );
 
+        if ( _adminContext != null )
+            size += _adminContext.approxSize( seen );
+	
         return size;
     }
 

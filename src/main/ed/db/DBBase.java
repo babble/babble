@@ -8,16 +8,14 @@ import ed.appserver.JSFileLibrary;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.js.func.*;
+import ed.util.*;
 
-public abstract class DBBase extends JSObjectLame {
+public abstract class DBBase extends JSObjectLame implements Sizable {
 
     public DBBase( String name ){
     	_name = name;
 	
-        /*
-         *  augment the db object 
-         */
-        
+         // augment the db object 
     	Scope s = Scope.newGlobal();
 
         JSFileLibrary lib = JSFileLibrary.loadLibraryFromEd("ed/db/", null, s);
@@ -36,11 +34,12 @@ public abstract class DBBase extends JSObjectLame {
 
     public abstract DBAddress getAddress();
     public abstract String getConnectPoint();
-
+    
     public final DBCollection getCollection( String name ){
         DBCollection c = doGetCollection( name );
-        if ( c != null )
+        if ( c != null ){
             _seenCollections.add( c );
+	}
         return c;
     }
     
@@ -137,9 +136,15 @@ public abstract class DBBase extends JSObjectLame {
     }
     
     public void resetIndexCache(){
-        System.out.println( _seenCollections );
         for ( DBCollection c : _seenCollections )
             c.resetIndexCache();
+    }
+
+    public long approxSize( IdentitySet seen ){
+	long size = 1024;
+	for ( DBCollection c : _seenCollections )
+	    size += c.approxSize( seen );
+	return size;
     }
     
     final tojson _tojson = new tojson();

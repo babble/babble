@@ -23,12 +23,15 @@ import java.util.*;
 
 import ed.js.*;
 import ed.db.*;
+import ed.log.*;
 import ed.net.*;
 import ed.net.httpserver.*;
 import ed.cloud.*;
 import static ed.appserver.AppContextHolder.*;
 
 public class GridMapping implements Mapping {
+
+    static Logger _logger = Logger.getLogger( "grid-mapping" );
 
     public static class Factory implements MappingFactory {
         Factory(){
@@ -48,7 +51,7 @@ public class GridMapping implements Mapping {
             throw new RuntimeException( "can't have a GridMapping when not running on a grid!" );
         
         DBBase db = (DBBase)_cloud.getScope().get("db");
-
+        
         for ( Iterator<JSObject> i = db.getCollection( "sites" ).find(); i.hasNext();  ){
             final JSObject site = i.next();
             final String name = site.get("name").toString().toLowerCase();
@@ -66,11 +69,12 @@ public class GridMapping implements Mapping {
             _sites.put( name , envs );
         }
 
+        String defaultPool = null;
 
         for ( Iterator<JSObject> i = db.getCollection( "pools" ).find(); i.hasNext();  ){
             final JSObject pool = i.next();
             final String name = pool.get( "name" ).toString().toLowerCase();
-
+            
             List<InetSocketAddress> all = new ArrayList<InetSocketAddress>();
             
             for ( Object mo : ((JSArray)pool.get( "machines" ) ) ){
@@ -87,8 +91,14 @@ public class GridMapping implements Mapping {
                 all.add( addr );
             }
             _pools.put( name , all );
+
+            if ( name.startsWith( "prod" ) ){
+                if ( defaultPool == null || name.compareTo( defaultPool ) > 0 )
+                    defaultPool = name;
+            }
         }
-        
+
+        _defaultPool = defaultPool;
     }
 
     public String getPool( HttpRequest request ){
@@ -106,12 +116,19 @@ public class GridMapping implements Mapping {
 
         final String name = site.getHost();
         final String env = site.getEnvironment( info.getHost() );
-        final String pool = _sites.get( name ).get( env );
         
-        System.out.println( "site: " + name + " env: " + env + " -->> " + pool );
-
-        if ( pool == null )
-            throw new RuntimeException( "something is misconfigured.  site [" + name + "] environment [" + env + "]" );
+        Map<String,String> m = _sites.get( name );
+        if ( m == null ){
+            _logger.error( "no site for [" + name + "]" );
+            return _defaultPool;
+        }
+        
+        final String pool = m.get( env );
+        
+        if ( pool == null ){
+            _logger.error( "no env [" + env + "] for site [" + name + "]" );
+            return _defaultPool;
+        }
 
         return pool;
     }
@@ -125,6 +142,7 @@ public class GridMapping implements Mapping {
     }
 
     final Cloud _cloud;
+    final String _defaultPool;
     final Map<String,Map<String,String>> _sites = new HashMap<String,Map<String,String>>();
     final Map<String,List<InetSocketAddress>> _pools = new HashMap<String,List<InetSocketAddress>>();
 

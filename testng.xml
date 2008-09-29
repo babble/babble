@@ -32,6 +32,7 @@
 	<parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
 	<parameter name="dir-name"  value="ed/src/test/ed/js/engine/"/>
 	<parameter name="file-ending"  value=".js"/>
+	<parameter name="ex-regex" value=".*_.*"/>
 	<classes>
       <class name="ed.util.ScriptTestFactory"/>
     </classes>

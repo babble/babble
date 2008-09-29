@@ -22,6 +22,7 @@ import java.io.*;
 import java.net.*;
 import java.nio.*;
 import java.nio.channels.*;
+import java.text.*;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -34,6 +35,8 @@ public abstract class NIOClient extends Thread {
     public enum ServerErrorType { WEIRD , INVALID , CONNECT , SOCK_TIMEOUT };
 
     protected enum WhatToDo { CONTINUE , PAUSE , DONE_AND_CLOSE , DONE_AND_CONTINUE , ERROR };
+
+    public static final SimpleDateFormat SHORT_TIME = new SimpleDateFormat( "MM/dd HH:mm:ss.S" );
 
     public NIOClient( String name , int connectionsPerHost , int verboseLevel ){
         super( "NIOClient: " + name );
@@ -125,10 +128,13 @@ public abstract class NIOClient extends Thread {
             Call c = _newRequests.poll();
             if ( c == null )
                 break;
-
+            
             if ( c._cancelled )
                 continue;
             
+            if ( c._paused )
+                continue;
+
             InetSocketAddress addr = null;
             try {
                 addr = c.where();
@@ -480,7 +486,39 @@ public abstract class NIOClient extends Thread {
             _cancelled = true;
         }
 
+        protected void pause(){
+            _paused = true;
+        }
+        
+        protected void wakeup(){
+            _paused = false;
+        }
+
+        public long getStartedTime(){
+            return _started;
+        }
+
+        public long getTotalTime(){
+            if ( _done )
+                return _doneTime - _started;
+            return -1;
+        }
+
+        public void done(){
+            _done = true;
+            _doneTime = System.currentTimeMillis();
+        }
+
+        public boolean isDone(){
+            return _done;
+        }
+
         private boolean _cancelled = false;
+        private boolean _paused = false;
+        private boolean _done = false;
+        
+        protected final long _started = System.currentTimeMillis();
+        private long _doneTime = -1;
     }
 
     protected abstract class MyMonitor extends HttpMonitor {
@@ -491,7 +529,7 @@ public abstract class NIOClient extends Thread {
     }
 
     void _addMonitors(){
-        HttpServer.addGlobalHandler( new MyMonitor( "backendPools" ){
+        HttpServer.addGlobalHandler( new MyMonitor( "serverConnPools" ){
                 public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
                     
                     for ( InetSocketAddress addr : getAllConnections() ){

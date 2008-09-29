@@ -26,12 +26,24 @@ import ed.lang.*;
 import ed.util.*;
 import ed.js.*;
 import ed.js.func.*;
+import ed.appserver.*;
 
 public abstract class JSCompiledScript extends JSFunctionCalls0 {
- 
+
+    public JSCompiledScript(){
+	myInit();
+    }
+
+    protected abstract void myInit();
     protected abstract Object _call( Scope scope , Object extra[] ) throws Exception;
     
     public Object call( Scope scope , Object extra[] ){
+	if ( _loadOnce )
+	    return load( scope );
+	return docall( scope , extra );
+    }
+
+    Object docall( Scope scope , Object extra[] ){
         try {
             return _call( scope, extra );
         }
@@ -59,6 +71,27 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
         throw new JSException( foo );
     }
 
+    /**
+     * load this file once.
+     * if its already defined in the scope, don't include
+     */
+    public Object load( Scope scope ){
+	String name = this.getClass().getName();
+	
+	Object res = scope.getLoaded( name );
+	if ( res != null ){
+	    if ( res == _nullMarker )
+		return null;
+	    return res;
+	}
+	
+	res = docall( scope , null );
+	if ( res == null )
+	    res = _nullMarker;
+	scope.markLoaded( name , res );
+	return res;
+    }
+    
     public Language getFileLanguage(){
         if ( _scriptInfo == null )
             return Language.JS;
@@ -100,8 +133,16 @@ public abstract class JSCompiledScript extends JSFunctionCalls0 {
         return size;
     }
 
+    public void setPath( JSFileLibrary path ){
+	_path = path;
+    }
+
     Convert.ScriptInfo _scriptInfo;
     protected List<Pair<String,String>> _regex;
     protected String _strings[];
     protected JSString _jsstrings[];
+    protected JSFileLibrary _path;
+    protected boolean _loadOnce = false;
+
+    static String _nullMarker = "_nullMarker";
 }

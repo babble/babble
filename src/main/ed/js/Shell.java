@@ -158,6 +158,11 @@ public class Shell {
                     return ed.util.MemUtil.gc();
                 }
             } , true );
+        s.put( "sysgc" , new JSFunctionCalls1() {
+                public Object call( Scope scope , Object doGC , Object extra[] ){
+                    return ed.util.MemUtil.getMemInfo( JSInternalFunctions.JS_evalToBool( doGC ) );
+                }
+            } , true );
 
         Map<String, JSFileLibrary> rootFileMap = new HashMap<String, JSFileLibrary>();
         for(String rootKey : new String[] {"local", "core", "external"}) {

@@ -48,7 +48,7 @@ public class Router {
     public void error( InetSocketAddress addr , NIOClient.ServerErrorType type , Exception what ){
         
     }
-    
+
     class Pool {
 
         Pool( List<InetSocketAddress> addrs ){
@@ -60,6 +60,32 @@ public class Router {
         }
         
         final List<InetSocketAddress> _addrs;
+    }
+
+    void _addMonitors(){
+        HttpServer.addGlobalHandler( new HttpMonitor( "lb-pools" ){
+                public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){   
+                    out.print( "<ul>" );
+                    
+                    for ( String s : _pools.keySet() ){
+                        out.print( "<li>" );
+                        out.print( s );
+
+                        out.print( "<ul>" );
+                        for ( InetSocketAddress addr : _pools.get( s )._addrs ){
+                            out.print( "<li>" );
+                            out.print( addr.toString() );
+                            out.print( "</li>" );
+                        }
+                        out.print( "</ul>" );
+
+                        out.print( "</li>" );
+                    }
+
+                    out.print( "</ul>" );
+                }
+            }
+            );
     }
 
     private final MappingFactory _mappingFactory;

@@ -30,78 +30,78 @@ import ed.io.StreamUtil;
 import ed.TestCase;
 
 public class HttpClientTest extends TestCase {
-	private static class DummyHttpResponseHandler extends HttpResponseHandlerBase {
-		byte[] _postData;
+    private static class DummyHttpResponseHandler extends HttpResponseHandlerBase {
+        byte[] _postData;
 
-		public DummyHttpResponseHandler(byte[] postData) {
-			_postData = postData;
-		}
+        public DummyHttpResponseHandler(byte[] postData) {
+            _postData = postData;
+        }
 
-		public byte[] getPostDataToSend () {
-			return _postData;
-		};
+        public byte[] getPostDataToSend () {
+            return _postData;
+        };
 
-		public int read (InputStream is) throws IOException {
+        public int read (InputStream is) throws IOException {
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
             StreamUtil.pipe(is , bout);
             byte[] data = bout.toByteArray();
             return data.length;
         }
-	}
+    }
 
-	@Test(groups = {"basic"})
-	public static void testPostData() {
-		URL url;
-		try {
-		    url = new URL("http://www.10gen.com");
-		} catch (MalformedURLException e) {
-			throw new RuntimeException("this should never happen");
-		}
+    @Test(groups = {"basic"})
+    public static void testPostData() {
+        URL url;
+        try {
+            url = new URL("http://www.10gen.com");
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("this should never happen");
+        }
 
-		byte[] postData = "foo=bar".getBytes();
-		DummyHttpResponseHandler postHandler = new DummyHttpResponseHandler(postData);
-		DummyHttpResponseHandler emptyHandler = new DummyHttpResponseHandler(null);
-		int redirects = 0;
+        byte[] postData = "foo=bar".getBytes();
+        DummyHttpResponseHandler postHandler = new DummyHttpResponseHandler(postData);
+        DummyHttpResponseHandler emptyHandler = new DummyHttpResponseHandler(null);
+        int redirects = 0;
         Set<String> headers = new HashSet<String>();
 
-		HttpConnection connection1;
-		HttpConnection connection2;
+        HttpConnection connection1;
+        HttpConnection connection2;
 
-		// Make a connection with some post data
-		try {
-			connection1 = HttpClient.setUpConnection(url, postHandler, redirects, headers);
-		} catch (IOException e) {
-			throw new RuntimeException("connection to 10gen.com failed");
-		}
+        // Make a connection with some post data
+        try {
+            connection1 = HttpClient.setUpConnection(url, postHandler, redirects, headers);
+        } catch (IOException e) {
+            throw new RuntimeException("connection to 10gen.com failed");
+        }
 
-		// connection.postData ought to be postData
-		assertEquals(connection1.getPostData(), postData);
+        // connection.postData ought to be postData
+        assertEquals(connection1.getPostData(), postData);
 
-		try {
-			connection1.done();
-		} catch (IOException e) {
-			throw new RuntimeException("this should never happen");
-		}
+        try {
+            connection1.done();
+        } catch (IOException e) {
+            throw new RuntimeException("this should never happen");
+        }
 
-		// Now make one with an empty handler
-		try {
-			connection2 = HttpClient.setUpConnection(url, emptyHandler, redirects, headers);
-		} catch (IOException e) {
-			throw new RuntimeException("connection to 10gen.com failed");
-		}
+        // Now make one with an empty handler
+        try {
+            connection2 = HttpClient.setUpConnection(url, emptyHandler, redirects, headers);
+        } catch (IOException e) {
+            throw new RuntimeException("connection to 10gen.com failed");
+        }
 
-		// Make sure that we are using the same connections both times
-		assertEquals(connection1, connection2);
+        // Make sure that we are using the same connections both times
+        assertEquals(connection1, connection2);
 
-		// connection.postData ought to be null
-		assertNull(connection2.getPostData());
+        // connection.postData ought to be null
+        assertNull(connection2.getPostData());
 
-		try {
-			connection2.done();
-		} catch (IOException e) {
-			throw new RuntimeException("this should never happen");
-		}
-	}
+        try {
+            connection2.done();
+        } catch (IOException e) {
+            throw new RuntimeException("this should never happen");
+        }
+    }
 
     public static void main( String args[] ){
         (new HttpClientTest()).runConsole();

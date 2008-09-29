@@ -36,7 +36,7 @@ public class LB extends NIOClient {
 
     static final String LBIDENT = DNSUtil.getLocalHost().getHostName() + " : v0" ;
 
-    enum State { WAITING , IN_HEADER , READY_TO_STREAM , STREAMING };
+    enum State { WAITING , IN_HEADER , READY_TO_STREAM , STREAMING , ERROR , DONE };
 
     public LB( int port , MappingFactory mappingFactory , int verbose )
         throws IOException {
@@ -100,6 +100,12 @@ public class LB extends NIOClient {
             _request = req;
             _response = res;
             reset();
+
+            _lastCalls[_lastCallsPos] = this;
+
+            _lastCallsPos++;
+            if ( _lastCallsPos >= _lastCalls.length )
+                _lastCallsPos = 0;
         }
         
         void reset(){
@@ -110,7 +116,8 @@ public class LB extends NIOClient {
         }
         
         protected InetSocketAddress where(){
-            return _router.chooseAddress( _request );
+            _lastWent = _router.chooseAddress( _request );
+            return _lastWent;
         }
         
         protected void error( ServerErrorType type , Exception e ){
@@ -126,8 +133,11 @@ public class LB extends NIOClient {
             }
             
             try {
+                _response.setResponseCode( 500 );
                 _response.getJxpWriter().print( "backend error : " + e + "\n\n" );
                 _response.done();
+                _state = State.ERROR;
+                done();
             }
             catch ( IOException ioe2 ){
                 ioe2.printStackTrace();
@@ -251,6 +261,8 @@ public class LB extends NIOClient {
         
         int _numFails = 0;
 
+        private InetSocketAddress _lastWent;
+
         private boolean _keepalive;
         private State _state;
         private StringBuilder _line;
@@ -282,6 +294,8 @@ public class LB extends NIOClient {
             if ( _sent == _length ){
                 _debug( 4 , "no more data" );
                 _conn.done( ! _rr._keepalive );
+                _rr._state = State.DONE;
+                _rr.done();
                 return null;
             }
             
@@ -360,14 +374,63 @@ public class LB extends NIOClient {
                 }
             }
             );
-    }
 
+        HttpServer.addGlobalHandler( new HttpMonitor( "lb-last" ){
+                public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
+                    out.print( "<table border='1' >" );
+                    
+                    out.print( "<tr>" );
+                    out.print( "<th>Host</th>" );
+                    out.print( "<th>URL</th>" );
+                    out.print( "<th>Server</th>" );
+                    out.print( "<th>Started</th>" );
+                    
+                    out.print( "<th>Code</th>" );
+                    out.print( "<th>Lenghth</th>" );
+                    out.print( "<th>time</th>" );
+
+                    out.print( "</tr>\n" );
+
+                    for ( int i=0; i<_lastCalls.length; i++ ){
+                        int pos = ( _lastCallsPos - i ) - 1;
+                        if ( pos < 0 )
+                            pos += 1000;
+
+                        RR rr = _lastCalls[pos];
+                        
+                        if ( rr == null )
+                            break;
+                        
+                        out.print( "<tr>" );
+                        addTableCell( out , rr._request.getHost() );
+                        addTableCell( out , rr._request.getURL() );
+                        addTableCell( out , rr._lastWent );
+                        addTableCell( out , SHORT_TIME.format( new Date( rr.getStartedTime() ) ) );
+                        if ( rr.isDone() ){
+                            addTableCell( out , rr._response.getResponseCode() );
+                            addTableCell( out , rr._response.getContentLength() );
+                            addTableCell( out , rr.getTotalTime() );
+                        }
+                        out.print( "</tr>\n" );
+                    }
+                    out.print( "</table>" );
+                }
+            } 
+            );
+
+        _router._addMonitors();
+        
+    }
+    
     final int _port;
     final LBHandler _handler;
     final HttpServer _server;
     final Router _router;
     
     final Logger _logger;
+    
+    final RR[] _lastCalls = new RR[1000];
+    int _lastCallsPos = 0;
 
     public static void main( String args[] )
         throws Exception {

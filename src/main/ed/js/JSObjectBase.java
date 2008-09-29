@@ -1037,22 +1037,40 @@ public class JSObjectBase implements JSObject {
      */
     public long approxSize( IdentitySet seen ){
         long size = JSObjectSize.OBJ_OVERHEAD + 128;
-
-        if ( _name != null )
-            size += JSObjectSize.OBJ_OVERHEAD + ( _name.length() * 2 );
-
-        if ( _keys != null ){
-            size += 32 + ( _keys.size() * 4 ) ; // overhead for Collection
-            for ( String s : _keys )
-                size += ( s.length() * 2 );
-        }
-
+	
+	size += JSObjectSize.size( _name , seen );
+	size += JSObjectSize.size( _keys , seen );
+	size += JSObjectSize.size( _lockedKeys , seen );
+	size += JSObjectSize.size( _dontEnum , seen );
+	size += JSObjectSize.size( _dependencies , seen );
+	
         if ( _map != null )
             size += _map.approxSize( seen );
+	
+	// TODO _setterAndGetters
+
+	if ( _constructor != null && ! seen.contains( _constructor ) ){
+	    seen.contains( _constructor );
+	    size += _constructor.approxSize( seen );
+	}
+	
+	if ( __proto__ != null && ! seen.contains( __proto__ ) ){
+	    seen.contains( __proto__ );
+	    size += JSObjectSize.size( __proto__ , seen );
+	}
+	
+	for ( int i=0; i<_placesToLook.length; i++ ){
+	    if ( _placesToLook[i] == null )
+		continue;
+	    if ( seen.contains( _placesToLook[i] ) )
+		continue;
+	    seen.add( _placesToLook[i] );
+	    size += JSObjectSize.size( _placesToLook[i] , seen );
+	}
 
         return size;
     }
-
+    
     /** Returns if this is a partial object.
      * @return if this is a partial object.
      */

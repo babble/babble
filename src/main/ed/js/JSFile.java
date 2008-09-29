@@ -93,7 +93,6 @@ public abstract class JSFile extends JSObjectBase {
         if ( getLength() == 0 )
             return null;
 
-        ((JSObject)get( "next" )).keySet();
         JSFileChunk chunk = (JSFileChunk)get( "next" );
         if ( chunk == null )
             throw new NullPointerException( "first chunk is null :(" );
