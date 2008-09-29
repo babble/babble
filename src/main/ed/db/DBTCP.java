@@ -60,7 +60,7 @@ public class DBTCP extends DBMessageLayer {
             mp.done( port );
         }
         catch ( Exception ioe ){
-            mp.error();
+            mp.error( ioe );
             _error();
             throw new JSException( "can't say something" , ioe );
         }
@@ -95,7 +95,7 @@ public class DBTCP extends DBMessageLayer {
             return b.dataLen();
         }
         catch ( Exception ioe ){
-            mp.error();
+            mp.error( ioe );
             if ( _error() && retries > 0 ){
                 in.position( 0 );
                 return _call( op , out , in , retries - 1 );
@@ -148,9 +148,9 @@ public class DBTCP extends DBMessageLayer {
                 _curPortPool.done( p );
         }
 
-        void error(){
+        void error( Exception e ){
             _port = null;
-            _curPortPool.gotError();
+            _curPortPool.gotError( e );
         }
 
         void requestEnsureConnection(){

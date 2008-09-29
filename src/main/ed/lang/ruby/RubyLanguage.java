@@ -29,7 +29,7 @@ class RubyShellSource extends RubyJxpSource {
 
     protected String _code;
     RubyShellSource(String code) {
-        super(RUNTIME);
+        super(null, null, RUNTIME);
         _code = code;
     }
     protected String getContent() { return _code; }

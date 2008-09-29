@@ -28,6 +28,8 @@ import static org.jruby.runtime.Visibility.PUBLIC;
 import ed.appserver.JSFileLibrary;
 import ed.js.JSObject;
 import ed.js.engine.Scope;
+import static ed.lang.ruby.RubyObjectWrapper.toRuby;
+import static ed.lang.ruby.RubyObjectWrapper.toJSFunctionArgs;
 
 /**
  * The JSFileLibrary wrapper implements peek() in a way that makes sure the
@@ -82,11 +84,11 @@ public class RubyJSFileLibraryWrapper extends RubyJSFunctionWrapper {
                 if (RubyObjectWrapper.DEBUG_FCALL)
                     System.err.println("calling method " + module.getName() + "#" + name + " with " + args.length + " args");
                 try {
-                    Object result = _func.callAndSetThis(_scope, _this, RubyObjectWrapper.toJSFunctionArgs(_scope, runtime, args, 0, block));
+                    Object result = _func.callAndSetThis(_scope, _this, toJSFunctionArgs(_scope, runtime, args, 0, block));
                     if (RubyObjectWrapper.DEBUG_FCALL)
                         System.err.println("func " + name + " returned " + result + ", which is " + (result == null ? "null" : ("of class " + result.getClass().getName())));
                     RubyJxpSource.createNewClasses(_scope, runtime);
-                    return toRuby(result);
+                    return toRuby(_scope, runtime, result);
                 }
                 catch (Exception e) {
                     if (RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {

@@ -99,7 +99,7 @@ for site in $SITES_LIST; do
 	echo "ps -e -o pid,command | grep java | grep 'port $http_port':"
 	echo `ps -e -o pid,command | grep java | grep "port $http_port"`
 	echo "Bringing down appserver at pid: ${http_pid}"
-    kill -9 $http_pid
+    kill -9 $http_pid || echo "failed to kill appserver"
 
     # If the webtests failed then bring down the db and exit w/ an error
     if [ $STATUS != "0" ]

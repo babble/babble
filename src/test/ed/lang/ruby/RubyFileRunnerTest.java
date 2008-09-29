@@ -39,7 +39,7 @@ public class RubyFileRunnerTest {
 
         Scope s = createScope(f.getParentFile());
 
-        RubyJxpSource source = new RubyJxpSource(f, null);
+        RubyJxpSource source = new RubyJxpSource(f, null, Ruby.newInstance());
         addRubyLoadPath(source, new File(edHome, "build").getPath()); // for xgen.rb and files it includes
         addRubyLoadPath(source, here.getPath());
 
