@@ -28,6 +28,8 @@ import static org.jruby.runtime.Visibility.PUBLIC;
 
 import ed.js.*;
 import ed.js.engine.Scope;
+import static ed.lang.ruby.RubyObjectWrapper.toRuby;
+import static ed.lang.ruby.RubyObjectWrapper.toJSFunctionArgs;
 
 /**
  * RubyJSFunctionWrapper acts as a bridge between Ruby code and JavaScript
@@ -112,10 +114,10 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
                 if (RubyObjectWrapper.DEBUG_FCALL)
                     System.err.println("calling method " + module.getName() + "#" + name + " with " + args.length + " args");
                 try {
-                    Object result = _func.callAndSetThis(_scope, _this, RubyObjectWrapper.toJSFunctionArgs(_scope, runtime, args, 0, block));
+                    Object result = _func.callAndSetThis(_scope, _this, toJSFunctionArgs(_scope, runtime, args, 0, block));
                     if (RubyObjectWrapper.DEBUG_FCALL)
                         System.err.println("func " + name + " returned " + result + ", which is " + (result == null ? "null" : ("of class " + result.getClass().getName())));
-                    return toRuby(result);
+                    return toRuby(_scope, runtime, result);
                 }
                 catch (Exception e) {
                     if (RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
@@ -174,7 +176,7 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
                     JSObject jsobj = ((RubyJSObjectWrapper)self).getJSObject();
                     Ruby runtime = self.getRuntime();
                     try {
-                        _func.callAndSetThis(scope, jsobj, RubyObjectWrapper.toJSFunctionArgs(scope, runtime, args, 0, block)); // initialize it by calling _func
+                        _func.callAndSetThis(scope, jsobj, toJSFunctionArgs(scope, runtime, args, 0, block)); // initialize it by calling _func
                         if (RubyObjectWrapper.DEBUG_FCALL)
                             System.err.println("back from initialize");
                     }
