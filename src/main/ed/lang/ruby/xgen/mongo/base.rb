@@ -194,7 +194,7 @@ module XGen
       end
 
       def id=(val); @_id = (val == '' ? nil : val); end
-      def id; @_id.to_s; end
+      def id; @_id ? @_id.to_s : nil; end
 
       # Rails convenience method.
       def to_param
