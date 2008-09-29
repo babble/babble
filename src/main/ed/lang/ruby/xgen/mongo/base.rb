@@ -26,7 +26,8 @@ module XGen
     # Example:
     #
     #    class MP3Track < XGen::Mongo::Base
-    #      set_collection :mp3_track, %w(artist album song track)
+    #      collection_name :mp3_track
+    #      fields :artist, :album, :song, :track
     #      def to_s
     #        "artist: #{self.artist}, album: #{self.album}, song: #{self.song}, track: #{track}"
     #      end
@@ -37,31 +38,40 @@ module XGen
     class Base
 
       class << self # Class methods
-        # Call this method to initialize your class with the database
-        # collection and instance variable names. If collection_name is not
-        # given, the collection name is assumed to be the class name turned
-        # into lower_case_with_underscores.
-        #
-        #    set_collection :collection_name, %w(var1 var2)
-        #    set_collection %w(var1 var2)
-        def set_collection(coll_name, ivar_names=nil)
-          @coll_name, @ivar_names = coll_name, ivar_names
-          if coll_name.kind_of?(Array)
-            @ivar_names = coll_name
-            @coll_name = self.name.gsub(/([A-Z])/, '_\1').downcase.sub(/^_/, '')
-          end
 
-          @ivar_names << '_id' unless @ivar_names.include?('_id')
-          @ivar_names.each { |ivar|
-            attr_method = ivar == '_id' ? 'attr_reader' : 'attr_accessor'
-            ivar_name = "@" + ivar
-            define_method(ivar.to_sym, lambda { instance_variable_get(ivar_name) })
-            define_method("#{ivar}=".to_sym, lambda { |val| instance_variable_set(ivar_name, val) }) unless ivar == '_id'
-          }
+        def inherited(subclass)
+          subclass.instance_variable_set("@coll_name", subclass.name.gsub(/([A-Z])/, '_\1').downcase.sub(/^_/, ''))
+          subclass.instance_variable_set("@field_names", [])
+          subclass.field(:_id)
         end
 
-        def ivar_names
-          @ivar_names ||= []
+        # Call this method to set the Mongo collection name for this class.
+        # The default value is the class name turned into
+        # lower_case_with_underscores.
+        def collection_name(coll_name)
+          @coll_name = coll_name
+        end
+
+        # Creates one or more collection fields. Each field will be saved to
+        # and loaded from the database. Then field named "_id" is
+        # automatically saved and loaded.
+        #
+        # The method "field" is also called "fields"; you can use either one.
+        def field(*fields)
+          fields.each { |field|
+            field = field.to_sym
+            unless @field_names.include?(field)
+              ivar_name = "@" + field.to_s
+              define_method(field, lambda { instance_variable_get(ivar_name) })
+              define_method("#{field}=".to_sym, lambda { |val| instance_variable_set(ivar_name, val) })
+              @field_names << field
+            end
+          }
+        end
+        alias_method :fields, :field
+
+        def field_names
+          @field_names ||= []
         end
 
         # The collection object.
@@ -138,16 +148,16 @@ module XGen
         def method_missing(sym, *args)
           if match = /^find_(all_by|by)_([_a-zA-Z]\w*)$/.match(sym.to_s)
             find_how_many = ($1 == 'all_by') ? :all : :first
-            ivar_names = $2.split(/_and_/)
-            super unless all_ivars_exist?(ivar_names)
-            search = search_from_names_and_values(ivar_names, args)
-            self.find(find_how_many, search, *args[ivar_names.length..-1])
+            field_names = $2.split(/_and_/)
+            super unless all_fields_exist?(field_names)
+            search = search_from_names_and_values(field_names, args)
+            self.find(find_how_many, search, *args[field_names.length..-1])
           elsif match = /^find_or_(initialize|create)_by_([_a-zA-Z]\w*)$/.match(sym.to_s)
             create = $1 == 'create'
-            ivar_names = $2.split(/_and_/)
-            super unless all_ivars_exist?(ivar_names)
-            search = search_from_names_and_values(ivar_names, args)
-            row = self.find(:first, search, *args[ivar_names.length..-1])
+            field_names = $2.split(/_and_/)
+            super unless all_fields_exist?(field_names)
+            search = search_from_names_and_values(field_names, args)
+            row = self.find(:first, search, *args[field_names.length..-1])
             obj = self.new(row)
             obj.save if create
             obj
@@ -158,15 +168,15 @@ module XGen
 
         private
 
-        # Returns true if all ivar_names are in @ivar_names.
-        def all_ivars_exist?(ivar_names)
-          (ivar_names - @ivar_names).empty?
+        # Returns true if all field_names are in @field_names.
+        def all_fields_exist?(field_names)
+          (field_names - @field_names.collect{|f| f.to_s}).empty?
         end
 
-        # Returns a db search hash, given ivar_names and values.
-        def search_from_names_and_values(ivar_names, values)
+        # Returns a db search hash, given field_names and values.
+        def search_from_names_and_values(field_names, values)
           h = {}
-          ivar_names.each_with_index { |iv, i| h[iv.to_sym] = values[i] }
+          field_names.each_with_index { |iv, i| h[iv.to_sym] = values[i] }
           h
         end
       end
@@ -187,7 +197,7 @@ module XGen
             instance_variable_set("@#{name}", row.get(name))
           }
         end
-        self.class.ivar_names.each { |iv|
+        self.class.field_names.each { |iv|
           iv = "@#{iv}"
           instance_variable_set(iv, nil) unless instance_variable_defined?(iv)
         }
@@ -204,7 +214,7 @@ module XGen
       # Saves and returns self.
       def save
         h = {}
-        self.class.ivar_names.each { |iv| h[iv] = instance_variable_get("@#{iv}") }
+        self.class.field_names.each { |iv| h[iv] = instance_variable_get("@#{iv}") }
         row = self.class.coll.save(h)
         if @_id == nil
           @_id = row._id

@@ -16,7 +16,8 @@ require 'ruby_test'
 require 'xgen/mongo'
 
 class Track < XGen::Mongo::Base
-  set_collection :rubytest, %w(artist album song track)
+  collection_name :rubytest
+  fields :artist, :album, :song, :track
   def to_s
     # Uses both accessor methods and ivars themselves
     "artist: #{artist}, album: #{album}, song: #@song, track: #{@track ? @track.to_i : nil}"
@@ -24,9 +25,9 @@ class Track < XGen::Mongo::Base
 end
 
 # Same class, but this time class.name.downcase == collection name so we don't
-# have to use it in set_collection.
+# have to call collection_name.
 class Rubytest < XGen::Mongo::Base
-  set_collection %w(artist album song track)
+  fields :artist, :album, :song, :track
   def to_s
     "artist: #{artist}, album: #{album}, song: #{song}, track: #{track ? track.to_i : nil}"
   end
@@ -102,7 +103,7 @@ EOS
     assert x.respond_to?(:album)
     assert x.respond_to?(:song)
     assert x.respond_to?(:track)
-    assert ! x.respond_to?(:_id=) # no writer for id field
+    assert x.respond_to?(:_id=)
     assert x.respond_to?(:artist=)
     assert x.respond_to?(:album=)
     assert x.respond_to?(:song=)
@@ -122,7 +123,7 @@ EOS
     assert_equal("artist: Thomas Dolby, album: Aliens Ate My Buick, song: Budapest by Blimp, track: ", Track.find_by_song('Budapest by Blimp').to_s)
   end
 
-  def test_set_collection_using_class_name
+  def test_collection_name_using_class_name
     assert_equal("artist: XTC, album: Oranges & Lemons, song: The Mayor Of Simpleton, track: 2", Rubytest.find_by__id(@song_id).to_s)
   end
 
