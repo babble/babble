@@ -121,11 +121,6 @@ public class RubyJxpSource extends JxpSource {
     }
 
     /** For testing and {@link RubyLanguage} use. */
-    protected RubyJxpSource(Ruby runtime) {
-        this(null, null, runtime);
-    }
-
-    /** For testing and {@link RubyLanguage} use. */
     protected RubyJxpSource(File f, JSFileLibrary lib, Ruby runtime) {
         _file = f;
         _lib = lib;
