@@ -159,7 +159,7 @@ public class RubyJxpSourceTest extends SourceRunner {
         // sanity test
         runRuby("puts \"#{$hash == nil ? 'oops: global $hash is not defined' : 'ok'}\"");
         assertEquals(rubyOutput, "ok");
-        runRuby("puts \"#{$hash['a'].to_s == '1' ? 'ok' : 'oops: $hash[\"a\"] is not defined properly'}\"");
+        runRuby("s = $hash['a'].to_s; if s == '1'; puts 'ok'; else; puts \"oops: $hash['a'] is not defined properly; it is '#{s}'\"; end");
         assertEquals(rubyOutput, "ok");
 
         runRuby("$hash['a'] = 99");
@@ -176,7 +176,7 @@ public class RubyJxpSourceTest extends SourceRunner {
         // sanity test
         runRuby("puts \"#{$data.hash == nil ? 'oops: global $data.hash is not defined' : 'ok'}\"");
         assertEquals(rubyOutput, "ok");
-        runRuby("s = $data.hash['a'].to_s; if s == '1'; puts 'ok'; else; puts \"oops: $data.hash['a'] is not defined properly; it is #{s}\"; end");
+        runRuby("s = $data.hash['a'].to_s; if s == '1'; puts 'ok'; else; puts \"oops: $data.hash['a'] is not defined properly; it is '#{s}'\"; end");
         assertEquals(rubyOutput, "ok");
 
         Object o = ((JSObject)s.get("data")).get("hash");
