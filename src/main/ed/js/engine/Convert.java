@@ -181,7 +181,7 @@ public class Convert {
 
         Node n = sn.getFirstChild();
 
-        if ( n.getType() == Token.EXPR_RESULT ){
+        if ( n != null && n.getType() == Token.EXPR_RESULT ){
             Node n2 = n.getFirstChild();
             if ( n2 != null && n2.getType() == Token.NAME ){
                 if ( n2.getString().equals( "loadonce" ) ){
