@@ -337,6 +337,6 @@ public class JSMath extends JSObjectBase {
     public static final double SQRT2 = Math.sqrt( 2 );
 
     // matches negative, infinity, int, double, scientific notation, hex
-    public static String POSSIBLE_NUM = "-?((Infinity)|(\\d+(\\.\\d+)?(e-?\\d+)?)|(0x[\\da-fA-f]+))";
+    public static String POSSIBLE_NUM = "(-?((Infinity)|(\\d*(\\.\\d+)?([eE]-?\\d+)?)|(0x[\\da-fA-f]+)))?";
 
 }

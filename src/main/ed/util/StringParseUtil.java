@@ -204,6 +204,9 @@ public final class StringParseUtil {
      * @return the numeric value
      */
     public static Number parseStrict( String s ){
+        if( s.length() == 0 )
+            return 0;
+
         if( s.matches( "-?Infinity" ) ) {
             if( s.startsWith( "-" ) ) {
                 return Double.NEGATIVE_INFINITY;
