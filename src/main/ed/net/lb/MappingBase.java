@@ -36,7 +36,7 @@ public abstract class MappingBase implements Mapping {
         _logger = Logger.getLogger( name );
     }
     
-    public String getPool( HttpRequest request ){
+    public Environment getEnvironment( HttpRequest request ){
         Info info = fixBase( request.getHost() , request.getURI() );
         Info site = info;
         
@@ -52,16 +52,21 @@ public abstract class MappingBase implements Mapping {
         final String name = site.getHost();
         final String env = site.getEnvironment( info.getHost() );
         
-        Map<String,String> m = _sites.get( name );
+        return new Environment( name , env );
+    }
+    
+    public String getPool( Environment e ){
+
+        Map<String,String> m = _sites.get( e.site );
         if ( m == null ){
-            _logger.error( "no site for [" + name + "]" );
+            _logger.error( "no site for [" + e.site + "]" );
             return _defaultPool;
         }
         
-        final String pool = m.get( env );
+        final String pool = m.get( e.env );
         
         if ( pool == null ){
-            _logger.error( "no env [" + env + "] for site [" + name + "]" );
+            _logger.error( "no env [" + e.env + "] for site [" + e.site + "]" );
             return _defaultPool;
         }
 
