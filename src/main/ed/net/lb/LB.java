@@ -114,6 +114,11 @@ public class LB extends NIOClient {
             _state = State.WAITING;
             _line = null;
         }
+
+        void success(){
+            done();
+            _router.success( _request , _lastWent );
+        }
         
         protected InetSocketAddress where(){
             _lastWent = _router.chooseAddress( _request );
@@ -122,6 +127,7 @@ public class LB extends NIOClient {
         
         protected void error( ServerErrorType type , Exception e ){
             _debug( 1 , "backend error" , e );
+            _router.error( _request , _lastWent , type , e );
             
             if ( type != ServerErrorType.WEIRD && 
                  ( _state == State.WAITING || _state == State.IN_HEADER ) && 
@@ -447,16 +453,23 @@ public class LB extends NIOClient {
         Options o = new Options();
         o.addOption( "p" , "port" , true , "Port to Listen On" );
         o.addOption( "v" , "verbose" , false , "Verbose" );
-        
+        o.addOption( "mapfile" , "m" , true , "file from which to load mappings" );
+
         CommandLine cl = ( new BasicParser() ).parse( o , args );
         
         final int port = Integer.parseInt( cl.getOptionValue( "p" , "8080" ) );
         
+        MappingFactory mf = null;
+        if ( cl.hasOption( "m" ) )
+            mf = new TextMapping.Factory( cl.getOptionValue( "m" , null ) );
+        else 
+            mf = new GridMapping.Factory();
+
         System.out.println( "10gen load balancer" );
         System.out.println( "\t port \t " + port  );
         System.out.println( "\t verbose \t " + verbose  );
-
-        LB lb = new LB( port , new GridMapping.Factory() , verbose );
+        
+        LB lb = new LB( port , mf , verbose );
         lb.start();
         lb.join();
     }

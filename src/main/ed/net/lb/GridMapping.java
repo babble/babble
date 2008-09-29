@@ -29,9 +29,7 @@ import ed.net.httpserver.*;
 import ed.cloud.*;
 import static ed.appserver.AppContextHolder.*;
 
-public class GridMapping implements Mapping {
-
-    static Logger _logger = Logger.getLogger( "grid-mapping" );
+public class GridMapping extends MappingBase {
 
     public static class Factory implements MappingFactory {
         Factory(){
@@ -46,10 +44,12 @@ public class GridMapping implements Mapping {
     }
 
     GridMapping( Cloud c ){
+        super( "GridMapping" );
+
         _cloud = c;
         if ( _cloud == null )
             throw new RuntimeException( "can't have a GridMapping when not running on a grid!" );
-        
+
         DBBase db = (DBBase)_cloud.getScope().get("db");
         
         for ( Iterator<JSObject> i = db.getCollection( "sites" ).find(); i.hasNext();  ){
@@ -58,15 +58,12 @@ public class GridMapping implements Mapping {
 
             if ( site.get( "environments" ) == null )
                 continue;
-
-            final Map<String,String> envs = new TreeMap<String,String>();
-
+            
             for ( Object eo : ((JSArray)site.get( "environments" ) ) ){
                 JSObject e = (JSObject)eo;
-                envs.put( e.get( "name" ).toString().toLowerCase() , e.get( "pool" ).toString().toLowerCase() );
+                addSiteMapping( name , e.get( "name" ).toString().toLowerCase() , e.get( "pool" ).toString().toLowerCase() );
             }
-
-            _sites.put( name , envs );
+            
         }
 
         String defaultPool = null;
@@ -75,76 +72,21 @@ public class GridMapping implements Mapping {
             final JSObject pool = i.next();
             final String name = pool.get( "name" ).toString().toLowerCase();
             
-            List<InetSocketAddress> all = new ArrayList<InetSocketAddress>();
-            
             for ( Object mo : ((JSArray)pool.get( "machines" ) ) ){
                 String m = mo.toString().toLowerCase();
-                int port = 8080;
-                
-                int idx = m.indexOf( ":" );
-                if ( idx > 0 ){
-                    port = Integer.parseInt( m.substring( idx + 1 ) );
-                    m = m.substring( 0 , idx );
-                }
-
-                InetSocketAddress addr = new InetSocketAddress( m , port );
-                all.add( addr );
+                addAddressToPool( name , m );
             }
-            _pools.put( name , all );
 
             if ( name.startsWith( "prod" ) ){
                 if ( defaultPool == null || name.compareTo( defaultPool ) > 0 )
                     defaultPool = name;
             }
         }
-
-        _defaultPool = defaultPool;
-    }
-
-    public String getPool( HttpRequest request ){
-        Info info = fixBase( request.getHost() , request.getURI() );
-        Info site = info;
-
-        if ( ! _sites.containsKey( site.getHost() ) ){
-            for ( Info i : getPossibleSiteNames( info ) ){
-                if ( _sites.containsKey( i.getHost() ) ){
-                    site = i;
-                    break;
-                }
-            }
-        }
-
-        final String name = site.getHost();
-        final String env = site.getEnvironment( info.getHost() );
         
-        Map<String,String> m = _sites.get( name );
-        if ( m == null ){
-            _logger.error( "no site for [" + name + "]" );
-            return _defaultPool;
-        }
-        
-        final String pool = m.get( env );
-        
-        if ( pool == null ){
-            _logger.error( "no env [" + env + "] for site [" + name + "]" );
-            return _defaultPool;
-        }
-
-        return pool;
-    }
-    
-    public List<InetSocketAddress> getAddressesForPool( String pool ){
-        return _pools.get( pool );
-    }
-    
-    public String toString(){
-        return "GridMapping";
+        setDefaultPool( defaultPool );
     }
 
     final Cloud _cloud;
-    final String _defaultPool;
-    final Map<String,Map<String,String>> _sites = new HashMap<String,Map<String,String>>();
-    final Map<String,List<InetSocketAddress>> _pools = new HashMap<String,List<InetSocketAddress>>();
 
     public static void main( String args[] ){
         System.out.println( (new Factory()).getMapping() );

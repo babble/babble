@@ -318,6 +318,15 @@ public class AppServer implements HttpHandler {
         
         final JxpWriter out = response.getJxpWriter();
         
+        out.print( "\n<!-- " );
+        out.print( DNSUtil.getLocalHostString() );
+        out.print( "  " );
+        out.print( System.currentTimeMillis() - ar._created );
+        out.print( "ms " );
+        if ( ar._somethingCompiled )
+            out.print( " compile " );
+        out.print( " -->\n" );
+
         if ( ar._profiler != null && showProfilingInfo( request , user ) ){
             out.print( "<!--\n" );
             out.print( ar._profiler.toString() );

@@ -66,9 +66,10 @@ public abstract class RubyObjectWrapper extends RubyObject {
     public static IRubyObject toRuby(Scope s, Ruby runtime, Object obj, String name, IRubyObject container, JSObject jsThis) {
         if (obj == null)
             return runtime.getNil();
-
         if (obj instanceof IRubyObject)
             return (IRubyObject)obj;
+        if (obj instanceof JSString || obj instanceof ObjectId)
+            return runtime.newString(obj.toString());
 
         IRubyObject wrapper = cachedWrapperFor(runtime, obj);
         if (wrapper != null) {
@@ -91,8 +92,6 @@ public abstract class RubyObjectWrapper extends RubyObject {
             return RubyRegexp.newRegexp(runtime, regex.getPattern(), intFlags);
         }
 
-        if (obj instanceof JSString || obj instanceof ObjectId)
-            wrapper = runtime.newString(obj.toString());
         else if (obj instanceof JSFunction) {
             IRubyObject methodOwner = container == null ? runtime.getTopSelf() : container;
             wrapper = createRubyMethod(s, runtime, (JSFunction)obj, name, methodOwner.getSingletonClass(), jsThis);

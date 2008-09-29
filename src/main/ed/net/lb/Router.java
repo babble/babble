@@ -24,6 +24,7 @@ import java.util.*;
 
 import ed.net.*;
 import ed.net.httpserver.*;
+import static ed.net.lb.Mapping.*;
 
 public class Router {
     
@@ -33,33 +34,131 @@ public class Router {
     }
 
     public InetSocketAddress chooseAddress( HttpRequest request ){
-        return chooseAddressForPool( request , _mapping.getPool( request ) );
-    }
-
-    InetSocketAddress chooseAddressForPool( final HttpRequest request , final String pool ){
-        Pool p = _pools.get( pool );
-        if ( p == null ){
-            p = new Pool( _mapping.getAddressesForPool( pool ) );
-            _pools.put( pool , p );
-        }
-        return p.getAddress( request );
+        Environment e = _mapping.getEnvironment( request );
+        return chooseAddressForPool( e , _mapping.getPool( e ) );
     }
     
-    public void error( InetSocketAddress addr , NIOClient.ServerErrorType type , Exception what ){
-        
+    InetSocketAddress chooseAddressForPool( final Environment e , final String pool ){
+        Pool p = _pools.get( pool );
+        if ( p == null ){
+            p = new Pool( pool , _mapping.getAddressesForPool( pool ) );
+            _pools.put( pool , p );
+        }
+        return p.getAddress( e );
     }
+
+    public void error( HttpRequest request , InetSocketAddress addr , NIOClient.ServerErrorType type , Exception what ){
+        getServer( addr ).error( request , type , what );
+    }
+
+    public void success( HttpRequest request , InetSocketAddress addr ){
+        getServer( addr ).success( request );
+    }
+
+    Server getServer( InetSocketAddress addr ){
+        Server s = _addressToServer.get( addr );
+        if ( s != null )
+            return s;
+        
+        synchronized( _addressToServer ){
+
+            s = _addressToServer.get( addr );
+            if ( s != null )
+                return s;
+            
+            s = new Server( addr );
+            _addressToServer.put( addr , s );
+        }
+        return s;
+    }
+
+    class Server {
+        Server( InetSocketAddress addr ){
+            _addr = addr;
+            reset();
+        }
+        
+        void reset(){
+            _environmentsWithTraffic.clear();
+            _serverStart = System.currentTimeMillis();
+            _inErrorState = false;
+        }
+
+        void error( HttpRequest request , NIOClient.ServerErrorType type , Exception what ){
+            _inErrorState = true;
+        }
+        
+        void success( HttpRequest request ){
+            _environmentsWithTraffic.add( _mapping.getEnvironment( request ) );
+        }
+
+        /**
+         * < 0 do not send traffic
+         * 0 rather not have traffic
+         * > 1 the higher the better
+         */
+        double rating( Environment e ){
+            if ( _inErrorState )
+                return 0;
+            
+            if ( _environmentsWithTraffic.contains( e ) )
+                return 2;
+            
+            return 1;
+        }
+        
+        public String toString(){
+            return _addr.toString();
+        }
+        
+        final InetSocketAddress _addr;
+
+        final Set<Environment> _environmentsWithTraffic = Collections.synchronizedSet( new HashSet<Environment>() );
+        long _serverStart;
+        boolean _inErrorState = false;
+    }
+
 
     class Pool {
 
-        Pool( List<InetSocketAddress> addrs ){
-            _addrs = addrs;
+        Pool( String name , List<InetSocketAddress> addrs ){
+            _name = name;
+            _servers = new ArrayList<Server>();
+            for ( InetSocketAddress addr : addrs )
+                _servers.add( getServer( addr ) );
         }
 
-        InetSocketAddress getAddress( HttpRequest request ){
-            return _addrs.get( (int)(Math.random()*_addrs.size()) );
+        InetSocketAddress getAddress( Environment e ){
+            final int start = (int)(Math.random()*_servers.size());
+            final int size = _servers.size();
+            _seen.add( e );
+            
+            Server best = null;
+            double score = Double.MIN_VALUE;
+            
+            for ( int i=0; i<size ; i++ ){
+                Server s = _servers.get( ( i + start ) % size );
+                
+                double myScore = s.rating( e );
+                if ( myScore < 0 )
+                    continue;
+                
+                if ( myScore < score )
+                    continue;
+                
+                score = myScore;
+                best = s;
+            }
+            
+            if ( best == null )
+                throw new RuntimeException( "no server available for pool [" + _name + "]" );
+            
+            return best._addr;
         }
         
-        final List<InetSocketAddress> _addrs;
+        final String _name;
+        final List<Server> _servers;
+        final Set<Environment> _seen = new HashSet<Environment>();
     }
 
     void _addMonitors(){
@@ -72,9 +171,9 @@ public class Router {
                         out.print( s );
 
                         out.print( "<ul>" );
-                        for ( InetSocketAddress addr : _pools.get( s )._addrs ){
+                        for ( Server server : _pools.get( s )._servers ){
                             out.print( "<li>" );
-                            out.print( addr.toString() );
+                            out.print( server.toString() );
                             out.print( "</li>" );
                         }
                         out.print( "</ul>" );
@@ -90,5 +189,6 @@ public class Router {
 
     private final MappingFactory _mappingFactory;
     private final Map<String,Pool> _pools = Collections.synchronizedMap( new TreeMap<String,Pool>() );
+    private final Map<InetSocketAddress,Server> _addressToServer = Collections.synchronizedMap( new HashMap<InetSocketAddress,Server>() );
     private Mapping _mapping;
 }

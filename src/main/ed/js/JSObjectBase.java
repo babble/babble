@@ -210,6 +210,8 @@ public class JSObjectBase implements JSObject {
 	Object ret = _simpleGet( n.toString() );
 	if ( ret instanceof JSObjectBase && ((JSObjectBase)ret).isNull() )
 	    return null;
+        if ( ret instanceof DBRef )
+            return ((DBRef)ret).getRealObject();
 	return ret;
     }
 

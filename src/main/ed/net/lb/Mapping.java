@@ -25,8 +25,44 @@ import ed.net.*;
 import ed.net.httpserver.*;
 
 public interface Mapping {
-    
-    public String getPool( HttpRequest request );
+
+    public Environment getEnvironment( HttpRequest request );
+    public String getPool( Environment e );
     public List<InetSocketAddress> getAddressesForPool( String poolName );
+
+    
+    public static class Environment {
+        
+        public Environment( String site , String env ){
+            this.site = site;
+            this.env = env;
+        }
+        
+        public int hashCode(){
+            int h = 0;
+            if ( site != null )
+                h += site.hashCode();
+            if ( env != null )
+                h += env.hashCode();
+            return h;
+        }
+
+        public boolean equals( Object o ){
+            if ( ! ( o instanceof Environment ) )
+                return false;
+
+            Environment e = (Environment)o;
+            if ( site == null && e.site != null )
+                return false;
+            if ( env == null && e.env != null )
+                return false;
+            
+            return site.equals( e.site ) && env.equals( e.env );
+        }
+                
+        public final String site;
+        public final String env;
+        
+    }
     
 }

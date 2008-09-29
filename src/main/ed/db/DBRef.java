@@ -31,6 +31,13 @@ public class DBRef extends JSObjectBase {
 	    return false;
 	return _getPointedTo() == null;
     }
+
+    public JSObject getRealObject(){
+        JSObject o = _getPointedTo();
+        if ( ! o.getClass().equals( JSObjectBase.class ) )
+            return o;
+        return this;
+    }
     
     public Object prefunc(){
         return doLoad();
