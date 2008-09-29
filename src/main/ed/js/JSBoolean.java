@@ -111,6 +111,6 @@ public class JSBoolean extends JSObjectBase {
             return true;
         }
 
-        return false;
+        return true;
     }
 }
