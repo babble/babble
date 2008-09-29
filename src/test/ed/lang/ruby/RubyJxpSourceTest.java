@@ -37,6 +37,7 @@ public class RubyJxpSourceTest extends SourceRunner {
               "two_args = function(a, b) { return a + b; };" +
               "data = {};" +
               "data.count = 1;" +
+              "data.str = 'foo';" +
               "data.subobj = {};" +
               "data.subobj.subvar = 99;" +
               "data.subobj.add_seven = add_seven;" +
@@ -113,7 +114,7 @@ public class RubyJxpSourceTest extends SourceRunner {
     }
 
     public void testBuiltIn() {
-        assertRubyEquals("puts $data.keySet.sort", "add_seven\ncount\nsubobj");
+        assertRubyEquals("puts $data.keySet.sort", "add_seven\ncount\nstr\nsubobj");
     }
 
     public void testSubObject() {
@@ -192,6 +193,23 @@ public class RubyJxpSourceTest extends SourceRunner {
         child.put("kiddie", new Integer(666));
         s = child;
         assertRubyEquals("puts $adult; puts $kiddie", "555\n666");
+    }
+
+    // Make sure JS objects are getting methods defined in Ruby.
+    public void testRubyExtensionsSeenByConvertedObjects() {
+        assertRubyEquals("class Object\n" +
+                         "  def to_param\n" +
+                         "    to_s\n" +
+                         "  end\n" +
+                         "end\n" +
+                         "begin\n" +
+                         "  puts 'bar'.to_param\n" +
+                         "  puts $data.str\n" +
+                         "  puts $data.str.to_param\n" +
+                         "rescue => ex\n" +
+                         "  puts ex.to_s\n" +
+                         "end",
+                         "bar\nfoo\nfoo");
     }
 
 //     public void testLibPathAdditions() {

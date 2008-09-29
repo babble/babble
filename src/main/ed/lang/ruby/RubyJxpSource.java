@@ -31,6 +31,7 @@ import org.jruby.util.IdUtil;
 import org.jruby.util.KCode;
 import static org.jruby.runtime.Visibility.PUBLIC;
 
+import ed.appserver.AppContext;
 import ed.appserver.JSFileLibrary;
 import ed.appserver.jxp.JxpSource;
 import ed.io.StreamUtil;
@@ -46,7 +47,9 @@ public class RubyJxpSource extends JxpSource {
 
     public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
     static final Map<Ruby, Set<IRubyObject>> _requiredJSFileLibFiles = new WeakHashMap<Ruby, Set<IRubyObject>>();
-    static final Map<Ruby, RubyModule> xgenModuleDefs = new WeakHashMap<Ruby, RubyModule>();
+    static final Map<Ruby, RubyModule> _xgenModuleDefs = new WeakHashMap<Ruby, RubyModule>();
+    static final Map<AppContext, Ruby> _runtimes = new WeakHashMap<AppContext, Ruby>();
+    static final Ruby PARSE_RUNTIME = Ruby.newInstance();
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB");
     static final boolean SKIP_REQUIRED_LIBS = Boolean.getBoolean("DEBUG.RB.SKIP.REQ.LIBS");
@@ -73,10 +76,10 @@ public class RubyJxpSource extends JxpSource {
     public static final boolean YARV_COMPILE = false;
 
     public static synchronized RubyModule xgenModule(Ruby runtime) {
-        RubyModule xgen = xgenModuleDefs.get(runtime);
+        RubyModule xgen = _xgenModuleDefs.get(runtime);
         if (xgen == null) {
             xgen = runtime.defineModule("XGen");
-            xgenModuleDefs.put(runtime, xgen);
+            _xgenModuleDefs.put(runtime, xgen);
         }
         return xgen;
     }
@@ -102,20 +105,46 @@ public class RubyJxpSource extends JxpSource {
         }
     }
 
+    public static synchronized Ruby getRuntimeInstance(AppContext ac) {
+        if (ac == null)
+            return Ruby.newInstance(config);
+        Ruby runtime = _runtimes.get(ac);
+        if (runtime == null) {
+            runtime = Ruby.newInstance(config);
+            _runtimes.put(ac, runtime);
+        }
+        return runtime;
+    }
+
     public RubyJxpSource(File f , JSFileLibrary lib) {
-        _file = f;
-        _lib = lib;
-        _runtime = Ruby.newInstance(config);
+        this(f, lib, null);
     }
 
     /** For testing and {@link RubyLanguage} use. */
-    protected RubyJxpSource(Ruby runtime) {
-        _file = null;
-        _lib = null;
+    protected RubyJxpSource(File f, JSFileLibrary lib, Ruby runtime) {
+        _file = f;
+        _lib = lib;
         _runtime = runtime;
     }
 
-    public Ruby getRuntime() { return _runtime; }
+    public synchronized Ruby getRuntime(Scope s) {
+        return s == null ? getRuntime((AppContext)null) : getRuntime((AppContext)s.get("__instance__"));
+    }
+
+    public synchronized Ruby getRuntime(AppContext ac) {
+        if (_runtime == null)
+            _runtime = getRuntimeInstance(ac);
+        return _runtime;
+    }
+
+    /**
+     * Really only for testing. Always use {@link #getRuntime(Scope)} or
+     * {@link #getRuntime(AppContext)} unless you know that a runtime has
+     * already been assigned.
+     */
+    public Ruby getRuntime() {
+        return getRuntime((AppContext)null);
+    }
 
     protected String getContent() throws IOException {
         return StreamUtil.readFully(_file);
@@ -147,19 +176,20 @@ public class RubyJxpSource extends JxpSource {
     protected IRubyObject _doCall(Node node, Scope s, Object unused[]) {
         _addJSFileLibrariesToPath(s);
 
-        _runtime.setGlobalVariables(new ScopeGlobalVariables(s, _runtime));
+        Ruby runtime = getRuntime(s);
+        runtime.setGlobalVariables(new ScopeGlobalVariables(s, runtime));
         _setOutput(s);
         _exposeScopeFunctions(s);
         _patchRequireAndLoad(s);
 
         // See the second part of JRuby's Ruby.executeScript(String, String)
-        ThreadContext context = _runtime.getCurrentContext();
+        ThreadContext context = runtime.getCurrentContext();
 
         String oldFile = context.getFile();
         int oldLine = context.getLine();
         try {
             context.setFileAndLine(node.getPosition().getFile(), node.getPosition().getStartLine());
-            return _runtime.runNormally(node, YARV_COMPILE);
+            return runtime.runNormally(node, YARV_COMPILE);
         } finally {
             context.setFile(oldFile);
             context.setLine(oldLine);
@@ -184,18 +214,19 @@ public class RubyJxpSource extends JxpSource {
         } catch (UnsupportedEncodingException e) {
             bytes = script.getBytes();
         }
-        return _runtime.parseFile(new ByteArrayInputStream(bytes), filePath, null);
+        return PARSE_RUNTIME.parseFile(new ByteArrayInputStream(bytes), filePath, null);
     }
 
     protected void _addJSFileLibrariesToPath(Scope s) {
-        RubyArray loadPath = (RubyArray)_runtime.getLoadService().getLoadPath();
+        Ruby runtime = getRuntime(s);
+        RubyArray loadPath = (RubyArray)runtime.getLoadService().getLoadPath();
         for (String libName : BUILTIN_JS_FILE_LIBRARIES) {
             Object val = s.get(libName);
             if (!(val instanceof JSFileLibrary))
                 continue;
             File root = ((JSFileLibrary)val).getRoot();
-            RubyString rubyRoot = _runtime.newString(root.getPath().replace('\\', '/'));
-            if (loadPath.include_p(_runtime.getCurrentContext(), rubyRoot).isFalse()) {
+            RubyString rubyRoot = runtime.newString(root.getPath().replace('\\', '/'));
+            if (loadPath.include_p(runtime.getCurrentContext(), rubyRoot).isFalse()) {
                 if (DEBUG)
                     System.err.println("adding file library " + val.toString() + " root " + rubyRoot);
                 loadPath.append(rubyRoot);
@@ -210,8 +241,10 @@ public class RubyJxpSource extends JxpSource {
      */
     protected void _setOutput(Scope s) {
         HttpResponse response = (HttpResponse)s.get("response");
-        if (response != null)
-            _runtime.getGlobalVariables().set("$stdout", new RubyIO(_runtime, new RubyJxpOutputStream(response.getJxpWriter())));
+        if (response != null) {
+            Ruby runtime = getRuntime(s);
+            runtime.getGlobalVariables().set("$stdout", new RubyIO(runtime, new RubyJxpOutputStream(response.getJxpWriter())));
+        }
     }
 
     /**
@@ -219,7 +252,8 @@ public class RubyJxpSource extends JxpSource {
      * top-level object.
      */
     protected void _exposeScopeFunctions(Scope scope) {
-        _runtime.getGlobalVariables().set("$scope", toRuby(scope, _runtime, scope));
+        Ruby runtime = getRuntime(scope);
+        runtime.getGlobalVariables().set("$scope", toRuby(scope, runtime, scope));
         _addTopLevelMethodsToXGenModule(scope);
     }
 
@@ -227,9 +261,10 @@ public class RubyJxpSource extends JxpSource {
      * Creates a module named XGen, includes it in the Object class (just like
      * Kernel), and adds all top-level JavaScript methods to the module.
      */
-    protected void _addTopLevelMethodsToXGenModule(final Scope scope) {
-        RubyModule xgen = xgenModule(_runtime);
-        _runtime.getObject().includeModule(xgen);
+    protected void _addTopLevelMethodsToXGenModule(Scope scope) {
+        Ruby runtime = getRuntime(scope);
+        RubyModule xgen = xgenModule(runtime);
+        runtime.getObject().includeModule(xgen);
 
         Set<String> alreadySeen = new HashSet<String>();
         Scope s = scope;
@@ -243,7 +278,7 @@ public class RubyJxpSource extends JxpSource {
                         System.err.println("adding top-level method " + key);
                     alreadySeen.add(key);
                     // Creates method and attaches to xgen. Also creates a new Ruby class if appropriate.
-                    RubyObjectWrapper.createRubyMethod(scope, _runtime, (JSFunction)obj, key, xgen, null);
+                    RubyObjectWrapper.createRubyMethod(scope, runtime, (JSFunction)obj, key, xgen, null);
                 }
             }
             s = s.getParent();
@@ -251,7 +286,7 @@ public class RubyJxpSource extends JxpSource {
     }
 
     protected void _patchRequireAndLoad(final Scope scope) {
-        RubyModule kernel = _runtime.getKernel();
+        RubyModule kernel = getRuntime(scope).getKernel();
         kernel.addMethod("require", new JavaMethod(kernel, PUBLIC) {
                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
                     Ruby runtime = self.getRuntime();
@@ -378,7 +413,7 @@ public class RubyJxpSource extends JxpSource {
 
     protected final File _file;
     protected final JSFileLibrary _lib;
-    protected final Ruby _runtime;
+    protected Ruby _runtime;
 
     protected Node _node;
     protected long _lastCompile;

@@ -65,12 +65,12 @@ public class RubyErbSource extends RubyJxpSource {
     }
 
     /** For testing. */
-    protected RubyErbSource(Ruby runtime) {
-        super(runtime);
+    protected RubyErbSource(File f, JSFileLibrary lib, Ruby runtime) {
+        super(f, lib, runtime);
     }
     
     /**
-     * @see {#wrap}
+     * @see {#wrap(String)}
      */
     protected String getContent() throws IOException {
         return wrap(super.getContent(), getName());

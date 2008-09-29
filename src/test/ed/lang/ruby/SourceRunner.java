@@ -36,7 +36,7 @@ class TestRubyJxpSource extends RubyJxpSource {
     JxpWriter.Basic _writer;    // receives output
     String _content;            // set directly from within test methods
     public TestRubyJxpSource(org.jruby.Ruby runtime) {
-        super(runtime);
+        super(null, null, runtime);
     }
     protected String getContent() { return _content; }
     protected Node _parseCode() throws IOException { return _parseContent("fake_file_path"); }
