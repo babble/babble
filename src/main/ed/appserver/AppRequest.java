@@ -345,21 +345,31 @@ public class AppRequest {
         return _context.getFromInitScope( what );
     }
 
+    public static void somethingCompiled(){
+        AppRequest ar = _tl.get();
+        if ( ar != null )
+            ar._somethingCompiled = true;
+    }
+
     final String _uri;
     final String _host;
     final HttpRequest _request;
     final AppContext _context;
+
+    final long _created = System.currentTimeMillis();
+    boolean _somethingCompiled = false;
+
     private HttpResponse _response;
 
     final URLFixer _fixer;
     final JSArray _head = new HeadArray();
-
+    
     private Scope _scope;
     private Session _session;
     private boolean _done = false;
-
+    
     private ServletWriter _writer;
-
+    
     String _wantedURI = null;
     JSFunction _wantedFunction = null;
 
