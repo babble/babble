@@ -13,7 +13,7 @@
       <class name="ed.net.DNSUtilTest" />
       <class name="ed.net.httpserver.ReplayTest"/>
       <class name="ed.net.httpserver.HttpRequestTest"/>
-	  <class name="ed.net.httpclient.HttpClientTest"/>
+      <class name="ed.net.httpclient.HttpClientTest"/>
       <class name="ed.util.FastStringMapTest"/>
       <class name="ed.appserver.AppContextTestNG" />
       <class name="ed.appserver.JSFileLibraryTest" />
@@ -25,24 +25,25 @@
       <class name="ed.lang.python.JSPySequenceListWrapperTest" />
       <class name="ed.lang.python.PythonReloadTest" />
       <class name="ed.lang.python.PythonDeleteTest" />
+      <class name="ed.lang.python.PythonResetTest" />
     </classes>
   </test>
 
   <test name="engine js tests">
-	<parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
-	<parameter name="dir-name"  value="ed/src/test/ed/js/engine/"/>
-	<parameter name="file-ending"  value=".js"/>
-	<parameter name="ex-regex" value=".*_.*"/>
-	<classes>
+    <parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
+    <parameter name="dir-name"  value="ed/src/test/ed/js/engine/"/>
+    <parameter name="file-ending"  value=".js"/>
+    <parameter name="ex-regex" value=".*_.*"/>
+    <classes>
       <class name="ed.util.ScriptTestFactory"/>
     </classes>
   </test>
 
   <test name="app-level js tests">
-	<parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
-	<parameter name="dir-name"  value="ed/src/test/ed/js/"/>
-	<parameter name="file-ending"  value=".js"/>
-	<classes>
+    <parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
+    <parameter name="dir-name"  value="ed/src/test/ed/js/"/>
+    <parameter name="file-ending"  value=".js"/>
+    <classes>
       <class name="ed.util.ScriptTestFactory"/>
     </classes>
   </test>
