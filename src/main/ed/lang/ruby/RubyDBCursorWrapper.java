@@ -365,8 +365,7 @@ public class RubyDBCursorWrapper extends RubyArray {
 
     public IRubyObject each_index(ThreadContext context, Block block) {
         Ruby runtime = getRuntime();
-        int realLength = _cursor.length();
-        for (int i = 0; i < realLength; i++)
+        for (int i = 0; _cursor.hasNext(); ++i)
             block.yield(context, runtime.newFixnum(i));
         return this;
     }
