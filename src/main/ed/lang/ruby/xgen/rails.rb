@@ -32,7 +32,7 @@ end
 Next, add public/xgen_dispatch.rb:
 
 require 'xgen/rails'
-load 'xgen/cgi_env.rb'
+load 'xgen/rails/cgi_env.rb'
 Dispatcher.dispatch
 =end
 
