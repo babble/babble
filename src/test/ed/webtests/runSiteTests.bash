@@ -126,9 +126,9 @@ if [ -z $NO_TEST_CONFIG ]
 fi
 
 # Bring down the db and appserver.
-kill $db_pid
+kill -9 $db_pid || echo "failed to kill database"
 # Really hacky way to find the appserver pid
 http_pid=`ps -e -o pid,command | grep java | grep "ed.appserver.AppServer" | grep "port $http_port" | awk '{ print $1 }'`
-kill $http_pid
+kill -9 $http_pid || echo "failed to kill appserver"
 
 exit $STATUS
