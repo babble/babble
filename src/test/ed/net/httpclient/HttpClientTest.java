@@ -26,6 +26,7 @@ import java.io.IOException;
 
 import org.testng.annotations.Test;
 
+import ed.net.httpserver.HttpServer;
 import ed.io.StreamUtil;
 import ed.TestCase;
 
@@ -51,9 +52,17 @@ public class HttpClientTest extends TestCase {
 
     @Test(groups = {"basic"})
     public static void testPostData() {
+        HttpServer server;
+        try {
+            server = new HttpServer(8086);
+            server.start();
+        } catch (IOException e) {
+            throw new RuntimeException("couldn't start the server");
+        }
+
         URL url;
         try {
-            url = new URL("http://www.10gen.com");
+            url = new URL("http://localhost:8086");
         } catch (MalformedURLException e) {
             throw new RuntimeException("this should never happen");
         }
@@ -71,7 +80,7 @@ public class HttpClientTest extends TestCase {
         try {
             connection1 = HttpClient.setUpConnection(url, postHandler, redirects, headers);
         } catch (IOException e) {
-            throw new RuntimeException("connection to 10gen.com failed");
+            throw new RuntimeException("connection failed");
         }
 
         // connection.postData ought to be postData
@@ -87,7 +96,7 @@ public class HttpClientTest extends TestCase {
         try {
             connection2 = HttpClient.setUpConnection(url, emptyHandler, redirects, headers);
         } catch (IOException e) {
-            throw new RuntimeException("connection to 10gen.com failed");
+            throw new RuntimeException("connection failed");
         }
 
         // Make sure that we are using the same connections both times
@@ -101,6 +110,9 @@ public class HttpClientTest extends TestCase {
         } catch (IOException e) {
             throw new RuntimeException("this should never happen");
         }
+
+        // should use something cleaner. waiting on BUG 881
+        server.stop();
     }
 
     public static void main( String args[] ){
