@@ -60,6 +60,7 @@ public class PythonResetTest extends PythonTestCase {
             // simulate reset without an AppContextHolder
             ac = initContext(testDir, "python-reset-test");
             globalScope = ac.getScope();
+            globalScope.makeThreadLocal();
             shouldRun3(globalScope);
             shouldRun1(globalScope);
         }
@@ -107,7 +108,7 @@ public class PythonResetTest extends PythonTestCase {
     }
 
     public static void main(String [] args){
-        (new PythonReloadTest()).runConsole();
+        (new PythonResetTest()).runConsole();
     }
 
 }

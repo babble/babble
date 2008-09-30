@@ -286,6 +286,9 @@ public class Python extends Language {
      * If one does not exist, create one with the given AppContext and Scope.
      * If the Scope is null, it will be obtained from the AppContext.
      *
+     * The Scope will store the Python state, so if possible make it an
+     * AppContext (or suitably long-lived) scope.
+     *
      * @return an already-existing SiteSystemState for the given site
      *   or a new one if needed
      */
@@ -301,15 +304,18 @@ public class Python extends Language {
         if( __python__ != null && __python__ instanceof SiteSystemState ){
             return (SiteSystemState)__python__;
         }
-        
+
         SiteSystemState state = new SiteSystemState( ac , getGlobals( s ) , s );
+        if( D )
+            System.out.println("Making a new PySystemState "+ __python__ + " in " + s + " " + __builtin__.id( state.getPyState() ));
+
         s.putExplicit( "__python__" , state );
 
         if( _rmap == null ){
             _rmap = new HashMap<PySystemState, SiteSystemState>();
         }
         _rmap.put( state.getPyState(), state );
-        
+
         return state;
     }
 
