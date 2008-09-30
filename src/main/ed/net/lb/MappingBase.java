@@ -35,6 +35,10 @@ public abstract class MappingBase implements Mapping {
         _name = name;
         _logger = Logger.getLogger( name );
     }
+
+    public String getPool( HttpRequest request ){
+	return getPool( getEnvironment( request ) );
+    }
     
     public Environment getEnvironment( HttpRequest request ){
         Info info = fixBase( request.getHost() , request.getURI() );
