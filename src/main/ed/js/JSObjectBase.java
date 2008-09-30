@@ -1052,12 +1052,12 @@ public class JSObjectBase implements JSObject {
         // TODO _setterAndGetters
 
         if ( _constructor != null && ! seen.contains( _constructor ) ){
-            seen.contains( _constructor );
+            seen.add( _constructor );
             size += _constructor.approxSize( seen );
         }
 
         if ( __proto__ != null && ! seen.contains( __proto__ ) ){
-            seen.contains( __proto__ );
+            seen.add( __proto__ );
             size += JSObjectSize.size( __proto__ , seen );
         }
 
