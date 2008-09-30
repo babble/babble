@@ -51,7 +51,7 @@ for site in $SITES_LIST; do
     # Bring up the app server.
     ./runserver.sh ./sites/$site&
 
-	sleep 5
+	sleep 45
 
     # Populate the db with setup data.
     if [ -f ./sites/${site}test/setup.js ]
