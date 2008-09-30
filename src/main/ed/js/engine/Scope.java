@@ -66,6 +66,10 @@ public final class Scope implements JSObject , Bindings {
         return o;
     }
 
+    public Scope(){
+	this( "empty scope" , null );
+    }
+    
     public Scope( String name , Scope parent ){
         this( name , parent , null , Language.JS );
     }
