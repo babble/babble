@@ -94,6 +94,15 @@ public class Generate {
         return master;
     }
 
+    private static JSArray getSearchIndex( String s ) {
+        String[] pieces = s.split("[. ]");
+        JSArray sindex = new JSArray( pieces.length );
+        for( String p : pieces ) {
+            sindex.add( new JSString( p.toLowerCase() ) );
+        }
+        return sindex;
+    }
+
     public static void addToModule( JSObject jsobj, String modname ) {
         JSObject query = new JSObjectBase();
         query.set( "name", modname );
@@ -115,7 +124,10 @@ public class Generate {
                 summarylen = classDesc.indexOf(".\n")+1;
             if(summarylen == 0) 
                 summarylen = classDesc.length();
-            topLevel.set("desc", classDesc.substring(0, summarylen));
+            String desc = classDesc.substring(0, summarylen);
+            topLevel.set( "desc", desc );
+            topLevel.set( "_searchIndex", getSearchIndex( modname ) );
+            topLevel.set( "_searchIndex_0_2", getSearchIndex( desc ) );
 
             docdb.save( topLevel );
         }
