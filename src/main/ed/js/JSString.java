@@ -114,6 +114,17 @@ public class JSString extends JSObjectBase implements Comparable {
                     private final MD5 _myMd5 = new MD5();
                 } );
 
+            _prototype.set( "toString" , new JSFunctionCalls0() {
+                    public Object call( Scope s , Object extra[] ) {
+                        Object o = s.getThis();
+                        if( !( o instanceof JSString ) ) 
+                            if ( o == myPrototype )
+                                return new JSString( "" );
+                            else
+                                throw new JSException( "String.prototype.toString can only be called on Strings" );
+                        return o.toString();
+                    }
+                } );
 
             _prototype.set( "toLowerCase" , new JSFunctionCalls0() {
                     public Object call( Scope s , Object foo[] ){
@@ -132,6 +143,8 @@ public class JSString extends JSObjectBase implements Comparable {
                     public Object call( Scope s , Object o , Object foo[] ){
                         String str = s.getThis().toString();
                         int idx = ((Number)o).intValue();
+                        if( idx >= str.length() )
+                            return Double.NaN;
                         return Integer.valueOf( str.charAt( idx ) );
                     }
                 } );
@@ -150,12 +163,14 @@ public class JSString extends JSObjectBase implements Comparable {
             _prototype.set( "indexOf" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object o , Object foo[] ){
                         String str = s.getThis().toString();
+                        if( o == null )
+                            return -1;
                         String thing = o.toString();
 
                         int start = 0;
-                        if ( foo != null && foo.length > 0 )
+                        if ( foo != null && foo.length > 0 && foo[0] != null ) {
                             start = ((Number)foo[0]).intValue();
-
+                        }
                         return str.indexOf( thing , start );
                     }
                 } );
@@ -284,39 +299,51 @@ public class JSString extends JSObjectBase implements Comparable {
                 } );
 
 
-            _prototype.set( "split" , new JSFunctionCalls1(){
-                    public Object call( Scope s , Object o , Object extra[] ){
+            _prototype.set( "split" , new JSFunctionCalls2(){
+                    public Object call( Scope s , Object o , Object limit, Object extra[] ){
 
                         String str = s.getThis().toString();
 
+                        JSArray a = new JSArray();
+
+                        if ( limit == null ) {
+                            limit = Integer.MAX_VALUE;
+                        }
+                        else {
+                            limit = StringParseUtil.parseStrict( limit.toString() );
+                            if ( ((Number)limit).intValue() == 0 ) {
+                                return a;
+                            }
+                        }
+
+                        if ( o == null ) {
+                            a.add( s.getThis() );
+                            return a;
+                        }
+
                         if ( o instanceof String || o instanceof JSString )
                             o = new JSRegex( JSRegex.quote( o.toString() ) , "" );
-
                         if ( ! ( o instanceof JSRegex ) )
                             throw new RuntimeException( "not a regex : " + o.getClass() );
-
-                        int limit = Integer.MAX_VALUE;
-                        if ( extra != null && extra.length > 0 && extra[0] instanceof Number )
-                            limit = ((Number)extra[0]).intValue();
-
                         JSRegex r = (JSRegex)o;
 
                         String spacer = null;
                         if ( r.getPattern().contains( "(" ) )
                             spacer = r.getPattern().replaceAll( "[()]" , "" );
 
-                        JSArray a = new JSArray();
                         for ( String pc : r._patt.split( str , -1 ) ){
                             if ( a.size() > 0 && spacer != null )
                                 a.add( spacer );
                             a.add( new JSString( pc ) );
-                            if ( a.size() >= limit )
+                            if ( a.size() >= ((Number)limit).intValue() )
                                 break;
                         }
 
                         if ( r.getPattern().length() == 0 ){
-                            a.remove(0);
-                            a.remove( a.size() - 1 );
+                            a.remove( 0 );
+                            if( a.size() > 0 ) {
+                                a.remove( a.size() - 1 );
+                            }
                         }
 
                         return a;
@@ -544,7 +571,11 @@ public class JSString extends JSObjectBase implements Comparable {
 
             _prototype.set( "valueOf" , new JSFunctionCalls0() {
                     public Object call( Scope s , Object crap[] ){
-                        return new JSString( ((JSString)s.getThis()).toString() );
+                        Object o = s.getThis();
+                        if( o == myPrototype ) 
+                            return new JSString( "" );
+                    
+                        return new JSString( ((JSString)o).toString() );
                     }
                 } );
 
