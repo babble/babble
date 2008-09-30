@@ -271,7 +271,7 @@ public class JSObjectBase implements JSObject {
 
         if ( _objectLowFunctions != null
              && ( _constructor == null || 
-                  this.equals ( _constructor._prototype ) ) ){
+                  this == _constructor._prototype ) ){
             res = _objectLowFunctions.get( s );
             if ( res != null ) return res;
         }
@@ -711,13 +711,13 @@ public class JSObjectBase implements JSObject {
         if ( f == null )
             return OBJECT_STRING;
         
-        Scope s;
-        try {
-            s= f.getScope().child();
-            s.setThis( this );
-        } catch(RuntimeException t) {
-            throw t;
-        }
+        Scope s = f.getScope();
+	if ( s == null )
+	    s = new Scope();
+	else 
+	    s = s.child();
+	
+	s.setThis( this );
 
         Object res = f.call( s );
         if ( res == null )
