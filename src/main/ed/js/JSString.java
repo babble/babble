@@ -122,10 +122,10 @@ public class JSString extends JSObjectBase implements Comparable {
                                 return new JSString( "" );
                             else
                                 throw new JSException( "String.prototype.toString can only be called on Strings" );
-                        return o.toString();
+                        return new JSString( ((JSString)o)._s );
                     }
                 } );
-
+            
             _prototype.set( "toLowerCase" , new JSFunctionCalls0() {
                     public Object call( Scope s , Object foo[] ){
                         return new JSString( s.getThis().toString().toLowerCase() );
