@@ -197,12 +197,16 @@ public class SiteSystemState {
             PyObject globals = ( argc > 1 ) ? args[1] : null;
             PyObject fromlist = (argc > 3) ? args[3] : null;
 
+            SiteSystemState sss = Python.getSiteSystemState( null , Scope.getThreadLocal() );
             if( DEBUG ){
+                PySystemState current = Py.getSystemState();
+                PySystemState sssPy = sss.getPyState();
                 System.out.println("Overrode import importing. import " + args[0]);
                 System.out.println("globals? " + (globals == null ? "null" : "not null, file " + globals.__finditem__("__file__")));
+                System.out.println("Scope : " + Scope.getThreadLocal() + " PyState: " + sssPy + "  id: " + __builtin__.id(sssPy) + " current id: " + __builtin__.id(current) );
+                System.out.println("Modules are " + sssPy.modules);
             }
 
-            SiteSystemState sss = Python.getSiteSystemState( null , Scope.getThreadLocal() );
             AppContext ac = sss.getContext();
             PyObject targetP = args[0];
             if( ! ( targetP instanceof PyString ) )
@@ -227,7 +231,14 @@ public class SiteSystemState {
                 }
             }
 
-            m = _import.__call__( args, keywords );
+            PySystemState oldPyState = Py.getSystemState();
+            try {
+                Py.setSystemState( sss.getPyState() );
+                m = _import.__call__( args, keywords );
+            }
+            finally {
+                Py.setSystemState( oldPyState );
+            }
 
             if( globals == null ){
                 // Only happens (AFAICT) from within Java code.
@@ -387,6 +398,10 @@ public class SiteSystemState {
             assert argc >= 1;
             assert args[0] instanceof PyString;
             String modName = args[0].toString();
+            if( DEBUG ){
+                System.out.println( "meta_path " + __builtin__.id(this) + " looking for " + modName );
+            }
+
             if( modName.equals("core.modules") ){
                 return new LibraryModuleLoader( _coreModules );
             }
@@ -414,6 +429,9 @@ public class SiteSystemState {
                 return new LibraryModuleLoader( _core );
             }
 
+            if( DEBUG ){
+                System.out.println( "meta_path hook didn't match " + modName );
+            }
             return Py.None;
         }
     }

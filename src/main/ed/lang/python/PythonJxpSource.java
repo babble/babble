@@ -78,7 +78,10 @@ public class PythonJxpSource extends JxpSource {
                 final AppRequest ar = AppRequest.getThreadLocal();
                 final AppContext ac = getAppContext();
 
-                SiteSystemState ss = Python.getSiteSystemState( ac , s );
+                Scope siteScope;
+                if( ac != null ) siteScope = ac.getScope();
+                else siteScope = s.getGlobal( true );
+                SiteSystemState ss = Python.getSiteSystemState( ac , siteScope );
                 PySystemState pyOld = Py.getSystemState();
 
                 ss.flushOld();
