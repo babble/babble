@@ -1215,6 +1215,7 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest {
 
     // ----
     
+    final long _startTime = System.currentTimeMillis();
     final HttpServer.HttpSocketHandler _handler;
     final String _firstLine;
     final Map<String,String> _headers = new StringMap<String>();

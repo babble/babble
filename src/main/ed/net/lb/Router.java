@@ -39,20 +39,34 @@ public class Router {
     }
     
     InetSocketAddress chooseAddressForPool( final Environment e , final String pool ){
-        Pool p = _pools.get( pool );
-        if ( p == null ){
-            p = new Pool( pool , _mapping.getAddressesForPool( pool ) );
-            _pools.put( pool , p );
-        }
-        return p.getAddress( e );
+	return getPool( pool ).getAddress( e );
     }
-
     public void error( HttpRequest request , InetSocketAddress addr , NIOClient.ServerErrorType type , Exception what ){
         getServer( addr ).error( request , type , what );
     }
 
     public void success( HttpRequest request , InetSocketAddress addr ){
         getServer( addr ).success( request );
+    }
+
+    Pool getPool( HttpRequest request ){
+	return getPool( _mapping.getPool( request ) );
+    }
+
+    Pool getPool( String name ){
+        Pool p = _pools.get( name );
+        if ( p != null )
+	    return p;
+	
+	synchronized( _pools ){
+	    p = _pools.get( name );
+	    if ( p != null )
+		return p;
+	    
+            p = new Pool( name , _mapping.getAddressesForPool( name ) );
+            _pools.put( name , p );
+        }
+        return p;
     }
 
     Server getServer( InetSocketAddress addr ){
@@ -123,6 +137,7 @@ public class Router {
 
         Pool( String name , List<InetSocketAddress> addrs ){
             _name = name;
+	    _tracker = new HttpLoadTracker( name , 2 , 60 );
             _servers = new ArrayList<Server>();
             for ( InetSocketAddress addr : addrs )
                 _servers.add( getServer( addr ) );
@@ -159,6 +174,7 @@ public class Router {
         final String _name;
         final List<Server> _servers;
         final Set<Environment> _seen = new HashSet<Environment>();
+	final HttpLoadTracker _tracker;
     }
 
     void _addMonitors(){

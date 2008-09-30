@@ -62,7 +62,9 @@ public abstract class Language {
     public static final Language JS = new ed.js.JS();
     public static final Language RUBY = new ed.lang.ruby.RubyLanguage();
     public static final Language PYTHON = new ed.lang.python.Python();
-    public static final Language PHP = new ed.lang.php.PHP();
+
+    // instantiate lazily so PHP can be optional
+    public static  Language PHP;
 
     public static Language find( String file ){
         return find( file , false );
@@ -88,9 +90,17 @@ public abstract class Language {
 	     || extension.equals( "ruby" ) ) // only so "--ruby" will work
             return RUBY;
 
-        if ( extension.equals( "php" ) )
-            return PHP;
+        if ( extension.equals( "php" ) ) {
 
+            /*
+             *   lazy instantiation - if this method isn't static at some point, protect this 
+             */
+            if (PHP == null) {
+                PHP = new ed.lang.php.PHP();
+            }
+            return PHP;
+        }
+        
         if ( extension.equals( "py" ) || extension.equals( "python" ) )
             return PYTHON;
         

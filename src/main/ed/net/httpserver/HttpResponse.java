@@ -1,3 +1,5 @@
+/* -*- mode: java; c-basic-offset: 4; indent-tabs-mode: nil -*- */
+
 // HttpResponse.java
 
 /**
@@ -356,6 +358,8 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
             return true;
 
         _done = true;
+        if ( _doneTime <= 0 )
+            _doneTime = System.currentTimeMillis();
         boolean f = flush();
         if ( f )
             cleanup();
@@ -417,8 +421,8 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
 
         if ( _numDataThings() > 1 )
             throw new RuntimeException( "too much data" );
-
-
+        
+	
         if ( ! _sentHeader ){
             final String header = _genHeader();
             final byte[] bytes = header.getBytes();
@@ -698,7 +702,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
 
         if ( _headers.get( "Content-Length" ) != null )
             return true;
-
+	
         if ( _stringContent != null ){
             // TODO: chunking
             return _done;
@@ -828,6 +832,13 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         _appRequest = ar;
     }
 
+    public long handleTime(){
+        long end = _doneTime;
+        if ( end <= 0 )
+            end = System.currentTimeMillis();
+        return end - _request._startTime;
+    }
+
     final HttpRequest _request;
     final HttpServer.HttpSocketHandler _handler;
 
@@ -850,6 +861,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
     long _fileSent = 0;
 
     boolean _done = false;
+    long _doneTime = -1;
     boolean _cleaned = false;
     MyJxpWriter _writer = null;
     PrintWriter _printWriter;

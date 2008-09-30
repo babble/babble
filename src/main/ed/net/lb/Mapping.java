@@ -28,6 +28,7 @@ public interface Mapping {
 
     public Environment getEnvironment( HttpRequest request );
     public String getPool( Environment e );
+    public String getPool( HttpRequest request );
     public List<InetSocketAddress> getAddressesForPool( String poolName );
 
     

@@ -51,6 +51,8 @@ public class LB extends NIOClient {
         _server.addGlobalHandler( _handler ) ;
         
         _router = new Router( mappingFactory );
+	_loadMonitor = new LoadMonitor( _router );
+
         _addMonitors();
 
         setDaemon( true );
@@ -118,6 +120,7 @@ public class LB extends NIOClient {
         void success(){
             done();
             _router.success( _request , _lastWent );
+	    _loadMonitor.hit( _request , _response );
         }
         
         protected InetSocketAddress where(){
@@ -144,6 +147,7 @@ public class LB extends NIOClient {
                 _response.done();
                 _state = State.ERROR;
                 done();
+		_loadMonitor.hit( _request , _response );
             }
             catch ( IOException ioe2 ){
                 ioe2.printStackTrace();
@@ -425,6 +429,7 @@ public class LB extends NIOClient {
             );
 
         _router._addMonitors();
+	_loadMonitor._addMonitors( _name );
         
     }
     
@@ -432,6 +437,7 @@ public class LB extends NIOClient {
     final LBHandler _handler;
     final HttpServer _server;
     final Router _router;
+    final LoadMonitor _loadMonitor;
     
     final Logger _logger;
     
