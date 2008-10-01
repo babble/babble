@@ -129,24 +129,57 @@ module XGen
         # * Find :all records; returns a Cursor that can iterate over raw
         #   records
         #
-        # * Find all records if there are no args
+        # * Find all records if there are no args.
+        #
+        # Options:
+        # :conditions:: Hash where key = field name and value = field value.
+        # :select:: Single field name or list of field names. If not
+        #           specified, all fields are returned.
+        # :order:: If string or symbol, orders by that field ascending. If an
+        #          array, each element is a field name or symbol and the
+        #          results are ordered by those values ascending. If a hash,
+        #          key = field and value = 'asc' or 'desc' (case-insensitive),
+        #          1 or -1, or if any other value then true == 1 and false/nil
+        #          == -1.
+        # :limit:: Maximum number of records to return.
+        # :offset:: Number of records to skip.
         def find(*args)
           return Cursor.new(coll.find(), self) unless args.length > 0 # no args, find all
           return case args[0]
-                 when String      # id
+                 when String    # find single id
                    row = coll.findOne(args[0])
                    (row.nil? || row['_id'] == nil) ? nil : self.new(row)
-                 when Array       # array of ids
+                 when Array     # find array of ids
                    args.collect { |arg| find(arg.to_s) }
-                 when :first
+                 when :first    # findOne
                    args.shift
-                   row = coll.findOne(*args)
+                   options = case args[0]
+                             when nil
+                               {}
+                             when String
+                               {:conditions => {:_id => args[0]}}
+                             else
+                               args[0]
+                             end
+                   criteria = criteria_from(options[:conditions])
+                   fields = fields_from(options[:select])
+                   row = coll.findOne(criteria, fields)
                    (row.nil? || row['_id'] == nil) ? nil : self.new(row)
-                 when :all
-                   args.shift
-                   Cursor.new(coll.find(*args), self)
-                 else
-                   Cursor.new(coll.find(*args), self)
+                 else           # all
+                   args.shift if args[0] == :all
+                   if args.length == 0
+                     Cursor.new(coll.find(), self)
+                   else
+                     options = args[0] || {}
+                     criteria = criteria_from(options[:conditions])
+                     fields = fields_from(options[:select])
+                     db_cursor = coll.find(criteria, fields)
+                     db_cursor.limit(options[:limit].to_i) if options[:limit]
+                     db_cursor.skip(options[:offset].to_i) if options[:offset]
+                     sort_by = sort_by_from(options[:order]) if options[:order]
+                     db_cursor.sort(sort_by) if sort_by
+                     Cursor.new(db_cursor, self)
+                   end
                  end
         rescue => ex
           nil
@@ -194,13 +227,13 @@ module XGen
             field_names = $2.split(/_and_/)
             super unless all_fields_exist?(field_names)
             search = search_from_names_and_values(field_names, args)
-            self.find(find_how_many, search, *args[field_names.length..-1])
+            self.find(find_how_many, {:conditions => search}, *args[field_names.length..-1])
           elsif match = /^find_or_(initialize|create)_by_([_a-zA-Z]\w*)$/.match(sym.to_s)
             create = $1 == 'create'
             field_names = $2.split(/_and_/)
             super unless all_fields_exist?(field_names)
             search = search_from_names_and_values(field_names, args)
-            row = self.find(:first, search, *args[field_names.length..-1])
+            row = self.find(:first, {:conditions => search}, *args[field_names.length..-1])
             obj = self.new(row)
             obj.save if create
             obj
@@ -233,6 +266,46 @@ module XGen
           name = name.to_s.dup.gsub(/_([a-z])/) {$1.upcase}
           name[0,1] = name[0,1].upcase
           name
+        end
+
+        private
+
+        def criteria_from(h)
+          h || {}
+        end
+
+        def fields_from(h)
+          return nil unless h
+          h = [h] unless h.kind_of?(Array)
+          return nil unless h.length > 0
+          fields = {}
+          h.each { |k| fields[k.to_sym] = 1 }
+          fields
+        end
+
+        def sort_by_from(option)
+          return nil unless option
+          sort_by = {}
+          case option
+          when String, Symbol   # Single value
+            sort_by[option.to_sym] = 1
+          when Array            # Array of field names; assume ascending sort
+            option.each {|o| sort_by[o.to_sym] = 1}
+          else                  # Hash
+            option.each { |k,v|
+              sort_by[k.to_sym] = case v
+                                  when /^asc/i
+                                    v = 1
+                                  when /^desc/i
+                                    v = -1
+                                  when Number
+                                    v.to_i == 1 ? 1 : -1
+                                  else
+                                    v ? 1 : -1
+                                  end
+            }
+          end
+          sort_by
         end
 
       end

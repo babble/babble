@@ -169,7 +169,7 @@ EOS
   end
 
   def test_find_using_hash
-    str = Track.find({:album => 'Aliens Ate My Buick'}).inject('') { |str, t| str + t.to_s }
+    str = Track.find(:conditions => {:album => 'Aliens Ate My Buick'}).inject('') { |str, t| str + t.to_s }
     assert str =~ /song: The Ability to Swing/
     assert str =~ /song: Budapest by Blimp/
   end
@@ -182,8 +182,9 @@ EOS
   end
 
   def test_find_first_with_search
-    assert_equal("artist: XTC, album: Oranges & Lemons, song: King For A Day, track: 3",
-                 Track.find(:first, {:track => 3}).to_s)
+    t = Track.find(:first, :conditions => {:track => 3})
+    assert_not_nil t, "oops: nill track returned"
+    assert_equal "artist: XTC, album: Oranges & Lemons, song: King For A Day, track: 3", t.to_s
   end
 
   def test_find_all_by
@@ -216,12 +217,12 @@ EOS
 
   def find_or_create_but_already_exists
     assert_equal("artist: Thomas Dolby, album: Aliens Ate My Buick, song: The Ability to Swing, track: ",
-                 Track.find_or_create_by_song({:song => 'The Ability to Swing', :artist => 'Thomas Dolby'}).to_s)
+                 Track.find_or_create_by_song(:conditions => {:song => 'The Ability to Swing', :artist => 'Thomas Dolby'}).to_s)
   end
 
   def find_or_create_new_created
     assert_equal("artist: New Artist, album: New Album, song: New Song, track: ",
-                 Track.find_or_create_by_song({:song => 'New Song', :artist => 'New Artist', :album => 'New Album'}).to_s)
+                 Track.find_or_create_by_song(:conditions => {:song => 'New Song', :artist => 'New Artist', :album => 'New Album'}).to_s)
   end
 
   def test_cursor_methods
@@ -229,7 +230,7 @@ EOS
   end
 
   def test_return_nil_if_no_match
-    assert_nil Track.find(:first, {:song => 'Does Not Compute'})
+    assert_nil Track.find(:first, :conditions => {:song => 'Does Not Compute'})
   end
 
   def test_return_nil_if_bogus_id
@@ -241,11 +242,15 @@ EOS
   end
 
   def test_return_nil_if_first_bogus_id_in_hash
-    assert_nil Track.find(:first, {:_id => "bogus_id"})
+    assert_nil Track.find(:first, :conditions => {:_id => "bogus_id"})
+  end
+
+  def test_find_options
+    assert_equal 2, Track.find(:all, :limit => 2).length
   end
 
   def test_delete
-    Track.find(:first, {:song => 'King For A Day'}).delete
+    Track.find(:first, :conditions => {:song => 'King For A Day'}).delete
     str = Track.find(:all).inject('') { |str, t| str + t.to_s }
     assert str =~ /song: The Ability to Swing/
     assert str =~ /song: Budapest by Blimp/
@@ -277,7 +282,7 @@ EOS
 
   def test_count
     assert_equal 6, Track.count
-    assert_equal 3, Track.count({:artist => 'XTC'})
+    assert_equal 3, Track.count(:conditions => {:artist => 'XTC'})
   end
 
   def test_has_one_initialize
