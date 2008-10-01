@@ -142,8 +142,8 @@ public class JSString extends JSObjectBase implements Comparable {
             _prototype.set( "charCodeAt" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object o , Object foo[] ){
                         String str = s.getThis().toString();
-                        int idx = ((Number)o).intValue();
-                        if( idx >= str.length() )
+                        int idx = (int)JSNumber.getDouble( o );
+                        if( idx >= str.length() || idx < 0 )
                             return Double.NaN;
                         return Integer.valueOf( str.charAt( idx ) );
                     }
@@ -153,7 +153,7 @@ public class JSString extends JSObjectBase implements Comparable {
             _prototype.set( "charAt" , new JSFunctionCalls1() {
                     public Object call( Scope s , Object o , Object foo[] ){
                         String str = s.getThis().toString();
-                        int idx = ((Number)o).intValue();
+                        int idx = (int)JSNumber.getDouble( o );
                         if ( idx >= str.length() || idx < 0 )
                             return EMPTY;
                         return new JSString( str.substring( idx , idx + 1 ) );
@@ -228,21 +228,19 @@ public class JSString extends JSObjectBase implements Comparable {
                     public Object call( Scope s , Object startO , Object endO , Object foo[] ){
                         String str = s.getThis().toString();
 
-                        int start = ((Number)startO).intValue();
+                        int start = (int)JSNumber.getDouble( startO );
+                        int end = endO == null ? str.length() : (int)JSNumber.getDouble( endO );
+
                         if ( start < 0 )
                             start = 0;
                         if ( start >= str.length() || start < 0 )
                             return EMPTY;
 
-                        int end = -1;
-                        if ( endO != null && endO instanceof Number )
-                            end = ((Number)endO).intValue();
-
                         if ( end > str.length() )
                             end = str.length();
-
                         if ( end < 0 )
-                            return new JSString( str.substring( start) );
+                            return new JSString( str.substring( start ) );
+
                         return new JSString( str.substring( start , end ) );
                     }
                 } );
