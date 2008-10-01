@@ -112,6 +112,8 @@ public class JSObjectWrapper implements JSObject {
             skey += "=";
             if (_robj.respondsTo(skey))
                 return toJS(_scope, _robj.callMethod(context(), skey, new IRubyObject[] {toRuby(_scope, _robj.getRuntime(), v, skey, _robj)}, Block.NULL_BLOCK));
+            else if (skey.startsWith("_")) // Assume it's an internal field; let it set the ivar
+                return toJS(_scope, _robj.instance_variable_set(ivarName(n), toRuby(_scope, _robj.getRuntime(), v)));
             else
                 throw new IllegalArgumentException("no such method: " + skey);
         }
@@ -122,6 +124,8 @@ public class JSObjectWrapper implements JSObject {
         String skey = n.toString();
         if (_robj.respondsTo(skey))
             return toJS(_scope, _robj.callMethod(context(), skey, JSFunctionWrapper.EMPTY_IRUBY_OBJECT_ARRAY, Block.NULL_BLOCK));
+        else if (skey.startsWith("_")) // Assume it's an internal field; return the ivar value
+            return toJS(_scope, _robj.instance_variable_get(context(), ivarName(skey)));
         else
             throw new IllegalArgumentException("no such method: " + skey);
     }

@@ -40,8 +40,10 @@ module XGen
       class << self # Class methods
 
         def inherited(subclass)
-          subclass.instance_variable_set("@coll_name", subclass.name.gsub(/([A-Z])/, '_\1').downcase.sub(/^_/, ''))
-          subclass.instance_variable_set("@field_names", [])
+          subclass.instance_variable_set("@coll_name", class_name_to_field_name(subclass.name)) # default name
+          subclass.instance_variable_set("@field_names", []) # array of scalars names (symbols)
+          subclass.instance_variable_set("@subobjects", {}) # key = name (symbol), value = class
+          subclass.instance_variable_set("@arrays", {})     # key = name (symbol), value = class
           subclass.field(:_id)
         end
 
@@ -64,14 +66,53 @@ module XGen
               ivar_name = "@" + field.to_s
               define_method(field, lambda { instance_variable_get(ivar_name) })
               define_method("#{field}=".to_sym, lambda { |val| instance_variable_set(ivar_name, val) })
+              define_method("#{field}?", lambda {
+                              val = instance_variable_get(ivar_name)
+                              val != nil && (!val.kind_of?(String) || val != '')
+                            })
               @field_names << field
             end
           }
         end
         alias_method :fields, :field
 
-        def field_names
-          @field_names ||= []
+        def field_names; @field_names; end
+        def subobjects; @subobjects; end
+        def arrays; @arrays; end
+
+        # Tells Mongo about a subobject.
+        #
+        # Options:
+        # :class_name:: Name of the class of the subobject.
+        def has_one(name, options={})
+          name = name.to_sym
+          unless @subobjects[name]
+            ivar_name = "@" + name.to_s
+            define_method(name, lambda { instance_variable_get(ivar_name) })
+            define_method("#{name}=".to_sym, lambda { |val| instance_variable_set(ivar_name, val) })
+            define_method("#{name}?", lambda {
+                            val = instance_variable_get(ivar_name)
+                            val != nil && (!val.kind_of?(String) || val != '')
+                          })
+            klass_name = options[:class_name] || field_name_to_class_name(name)
+            @subobjects[name] = Kernel.const_get(klass_name)
+          end
+        end
+
+        # Tells Mongo about an array of subobjects.
+        #
+        # Options:
+        # :class_name:: Name of the class of the subobject.
+        def has_many(name, options={})
+          name = name.to_sym
+          unless @arrays[name]
+            ivar_name = "@" + name.to_s
+            define_method(name, lambda { instance_variable_get(ivar_name) })
+            define_method("#{name}=".to_sym, lambda { |val| instance_variable_set(ivar_name, val) })
+            define_method("#{name}?", lambda { !instance_variable_get(ivar_name).empty? })
+            klass_name = options[:class_name] || field_name_to_class_name(name)
+            @arrays[name] = Kernel.const_get(klass_name)
+          end
         end
 
         # The collection object.
@@ -179,6 +220,19 @@ module XGen
           field_names.each_with_index { |iv, i| h[iv.to_sym] = values[i] }
           h
         end
+
+        # Given a "SymbolOrStringLikeThis", return the string "symbol_or_string_like_this".
+        def class_name_to_field_name(name)
+          name.gsub(/([A-Z])/, '_\1').downcase.sub(/^_/, '')
+        end
+
+        # Given a "symbol_or_string_like_this", return the string "SymbolOrStringLikeThis".
+        def field_name_to_class_name(name)
+          name = name.to_s.dup.gsub(/_([a-z])/) {$1.upcase}
+          name[0,1] = name[0,1].upcase
+          name
+        end
+
       end
 
       # Initialize a new object with either a hash of values or a row returned
@@ -186,20 +240,24 @@ module XGen
       def initialize(row={})
         case row
         when Hash
-          row.each { |k, v|
+          row.each { |k, val|
             k = '_id' if k == 'id' # Rails helper
-            v = nil if v == '' && k == '_id'
-            instance_variable_set("@#{k}", v)
+            val = nil if val == '' && k == '_id'
+            init_ivar("@#{k}", val)
           }
         else
-          row.instance_variables.each { |v|
-            name = v[1..-1]
-            instance_variable_set("@#{name}", row.get(name))
+          row.instance_variables.each { |iv|
+            init_ivar(iv, row.instance_variable_get(iv))
           }
         end
-        self.class.field_names.each { |iv|
+        # Default values for remaining fields
+        (self.class.field_names + self.class.subobjects.keys).each { |iv|
           iv = "@#{iv}"
           instance_variable_set(iv, nil) unless instance_variable_defined?(iv)
+        }
+        self.class.arrays.keys.each { |iv|
+          iv = "@#{iv}"
+          instance_variable_set(iv, []) unless instance_variable_defined?(iv)
         }
       end
 
@@ -213,15 +271,21 @@ module XGen
 
       # Saves and returns self.
       def save
-        h = {}
-        self.class.field_names.each { |iv| h[iv] = instance_variable_get("@#{iv}") }
-        row = self.class.coll.save(h)
+        row = self.class.coll.save(to_hash)
         if @_id == nil
           @_id = row._id
         elsif row._id != @_id
           raise "Error: after save, database id changed"
         end
         self
+      end
+
+      def to_hash
+        h = {}
+        self.class.field_names.each {|iv| h[iv] = instance_variable_get("@#{iv}") }
+        self.class.subobjects.keys.each {|iv| h[iv] = instance_variable_get("@#{iv}") }
+        self.class.arrays.keys.each {|iv, v| h[iv] = instance_variable_get("@#{iv}").collect{|val| val.to_hash} }
+        h
       end
 
       # Removes self from the database and sets @_id to nil. If self has no
@@ -233,6 +297,22 @@ module XGen
         end
       end
       alias_method :remove, :delete
+
+      private
+
+      # Initialize ivar. +name+ must include the leading '@'.
+      def init_ivar(ivar_name, val)
+            sym = ivar_name[1..-1].to_sym
+            if self.class.subobjects.keys.include?(sym)
+              instance_variable_set(ivar_name, self.class.subobjects[sym].new(val))
+            elsif self.class.arrays.keys.include?(sym)
+              klazz = self.class.arrays[sym]
+              val = [val] unless val.kind_of?(Array)
+              instance_variable_set(ivar_name, val.collect {|v| v.kind_of?(XGen::Mongo::Base) ? v : klazz.new(v)})
+            else
+              instance_variable_set(ivar_name, val)
+            end
+      end
 
     end
 

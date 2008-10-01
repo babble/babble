@@ -14,6 +14,10 @@
 
 require 'ruby_test'
 require 'xgen/mongo'
+require 'address'
+require 'student_has_one'
+require 'student_has_many'
+require 'student_array_field'
 
 class Track < XGen::Mongo::Base
   collection_name :rubytest
@@ -33,12 +37,13 @@ class Rubytest < XGen::Mongo::Base
   end
 end
 
-class XGenInternalsTest < RubyTest
+class MongoTest < RubyTest
 
   def setup
     super
     run_js <<EOS
 db = connect('test');
+db.rubytest_students.remove({});
 db.rubytest.remove({});
 db.rubytest.save({artist: 'Thomas Dolby', album: 'Aliens Ate My Buick', song: 'The Ability to Swing'});
 db.rubytest.save({artist: 'Thomas Dolby', album: 'Aliens Ate My Buick', song: 'Budapest by Blimp'});
@@ -48,6 +53,9 @@ song_id = db.rubytest.save({artist: 'XTC', album: 'Oranges & Lemons', song: 'The
 db.rubytest.save({artist: 'XTC', album: 'Oranges & Lemons', song: 'King For A Day', track: 3});
 EOS
     @song_id = $song_id._id
+
+    @spongebob_addr = Address.new(:street => "3 Pineapple Lane", :city => "Bikini Bottom", :state => "HI", :postal_code => "12345")
+    @bender_addr = Address.new(:street => "Planet Express", :city => "New New York", :state => "NY", :postal_code => "10001")
   end
 
   def teardown
@@ -108,6 +116,11 @@ EOS
     assert x.respond_to?(:album=)
     assert x.respond_to?(:song=)
     assert x.respond_to?(:track=)
+    assert x.respond_to?(:_id?)
+    assert x.respond_to?(:artist?)
+    assert x.respond_to?(:album?)
+    assert x.respond_to?(:song?)
+    assert x.respond_to?(:track?)
 
     assert_equal(1, x.artist)
     assert_equal(2, x.album)
@@ -253,6 +266,85 @@ EOS
   def test_count
     assert_equal 6, Track.count
     assert_equal 3, Track.count({:artist => 'XTC'})
+  end
+
+  def test_has_one_initialize
+    s = StudentHasOne.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :address => @spongebob_addr)
+
+    assert_not_nil s.address, "Address not set correctly in StudentHasOne#initialize"
+    assert_equal '3 Pineapple Lane', s.address.street
+  end
+
+  def test_has_one_save_and_find
+    s = StudentHasOne.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :address => @spongebob_addr)
+    s.save
+
+    s2 = StudentHasOne.find(:first)
+    assert_equal 'Spongebob Squarepants', s2.name
+    assert_equal 'spongebob@example.com', s2.email
+    a2 = s2.address
+    assert_not_nil a2
+    assert_kind_of Address, a2
+    assert_equal @spongebob_addr.street, a2.street
+    assert_equal @spongebob_addr.city, a2.city
+    assert_equal @spongebob_addr.state, a2.state
+    assert_equal @spongebob_addr.postal_code, a2.postal_code
+  end
+
+  def test_student_array_field
+    s = StudentArrayField.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :math_scores => [100, 90, 80])
+    s.save
+
+    s2 = StudentArrayField.find(:first)
+    assert_equal [100, 90, 80], s2.math_scores
+  end
+
+  def test_has_many_initialize
+    addresses = [@spongebob_addr, @bender_addr]
+    s = StudentHasMany.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :addresses => addresses)
+    assert_not_nil s.addresses
+    assert_equal 2, s.addresses.length
+  end
+
+  def test_has_many_initialize_one_value
+    addresses = @spongebob_addr
+    s = StudentHasMany.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :addresses => addresses)
+    assert_not_nil s.addresses
+    assert_equal 1, s.addresses.length
+    assert_equal @spongebob_addr.street, s.addresses.first.street
+  end
+
+  def test_has_many_save_and_find
+    addresses = [@spongebob_addr, @bender_addr]
+    s = StudentHasMany.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :addresses => addresses)
+    s.save
+
+    s2 = StudentHasMany.find(:first)
+    assert_equal 'Spongebob Squarepants', s2.name
+    assert_equal 'spongebob@example.com', s2.email
+    list = s2.addresses
+    assert_not_nil list
+    assert_equal 2, list.length
+    a = list.first
+    assert_not_nil a
+    assert_kind_of Address, a
+    assert (a.street == @spongebob_addr.street || a.street == @bender_addr.street), "oops: first address is unknown: #{a}"
+  end
+
+  def test_field_query_methods
+    addresses = [@spongebob_addr, @bender_addr]
+    s = StudentHasMany.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :addresses => addresses)
+    assert s.name?
+    assert s.email?
+    assert s.addresses
+
+    s = StudentHasMany.new(:name => 'Spongebob Squarepants')
+    assert s.name?
+    assert !s.email?
+    assert !s.addresses?
+
+    s.email = ''
+    assert !s.email?
   end
 
   def assert_all_songs(str)
