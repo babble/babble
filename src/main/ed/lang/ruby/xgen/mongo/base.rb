@@ -156,6 +156,8 @@ module XGen
         def findOne(*args)
           find(:first, *args)
         end
+        alias_method :find_one, :findOne
+        alias_method :first, :findOne
 
         # Returns all records matching mql. Not yet implemented.
         def find_by_mql(mql)    # :nodoc:
@@ -259,6 +261,7 @@ module XGen
           iv = "@#{iv}"
           instance_variable_set(iv, []) unless instance_variable_defined?(iv)
         }
+        yield self if block_given?
       end
 
       def id=(val); @_id = (val == '' ? nil : val); end

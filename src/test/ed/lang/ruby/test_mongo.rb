@@ -128,6 +128,18 @@ EOS
     assert_nil(x.track)
   end
 
+  def test_initialize_block
+    track = Track.new { |t|
+      t.artist = "Me'Shell Ndegeocello"
+      t.album = "Peace Beyond Passion"
+      t.song = "Bittersweet"
+    }
+    assert_equal "Me'Shell Ndegeocello", track.artist
+    assert_equal "Peace Beyond Passion", track.album
+    assert_equal "Bittersweet", track.song
+    assert !track.track?
+  end
+
   def test_find_by__id
     assert_equal("artist: XTC, album: Oranges & Lemons, song: The Mayor Of Simpleton, track: 2", Track.find_by__id(@song_id).to_s)
   end
