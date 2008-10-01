@@ -246,7 +246,7 @@ module XGen
           iv = "@#{iv}"
           instance_variable_set(iv, nil) unless instance_variable_defined?(iv)
         }
-        self.class.arrays.keys.each  { |iv|
+        self.class.arrays.keys.each { |iv|
           iv = "@#{iv}"
           instance_variable_set(iv, []) unless instance_variable_defined?(iv)
         }
@@ -297,7 +297,9 @@ module XGen
             if self.class.subobjects.keys.include?(sym)
               instance_variable_set(ivar_name, self.class.subobjects[sym].new(val))
             elsif self.class.arrays.keys.include?(sym)
-              instance_variable_get(ivar_name) << self.class.arrays[sym].new(val)
+              klazz = self.class.arrays[sym]
+              val = [val] unless val.kind_of?(Array)
+              instance_variable_set(ivar_name, val.collect {|v| v.kind_of?(XGen::Mongo::Base) ? v : klazz.new(v)})
             else
               instance_variable_set(ivar_name, val)
             end
