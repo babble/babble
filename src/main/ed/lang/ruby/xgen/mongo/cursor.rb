@@ -32,6 +32,8 @@ module XGen
         @cursor.forEach { |row| yield @model_class.new(row) }
       end
 
+      # Sort, limit, and skip methods that return self (the cursor) instead of
+      # whatever those methods return.
       %w(sort limit skip).each { |name|
         eval "def #{name}(*args); @cursor.#{name}(*args); return self; end"
       }

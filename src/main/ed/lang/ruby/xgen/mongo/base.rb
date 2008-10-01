@@ -66,6 +66,10 @@ module XGen
               ivar_name = "@" + field.to_s
               define_method(field, lambda { instance_variable_get(ivar_name) })
               define_method("#{field}=".to_sym, lambda { |val| instance_variable_set(ivar_name, val) })
+              define_method("#{field}?", lambda {
+                              val = instance_variable_get(ivar_name)
+                              val != nil && (!val.kind_of?(String) || val != '')
+                            })
               @field_names << field
             end
           }
@@ -86,6 +90,10 @@ module XGen
             ivar_name = "@" + name.to_s
             define_method(name, lambda { instance_variable_get(ivar_name) })
             define_method("#{name}=".to_sym, lambda { |val| instance_variable_set(ivar_name, val) })
+            define_method("#{name}?", lambda {
+                            val = instance_variable_get(ivar_name)
+                            val != nil && (!val.kind_of?(String) || val != '')
+                          })
             klass_name = options[:class_name] || field_name_to_class_name(name)
             @subobjects[name] = Kernel.const_get(klass_name)
           end
@@ -101,6 +109,7 @@ module XGen
             ivar_name = "@" + name.to_s
             define_method(name, lambda { instance_variable_get(ivar_name) })
             define_method("#{name}=".to_sym, lambda { |val| instance_variable_set(ivar_name, val) })
+            define_method("#{name}?", lambda { !instance_variable_get(ivar_name).empty? })
             klass_name = options[:class_name] || field_name_to_class_name(name)
             @arrays[name] = Kernel.const_get(klass_name)
           end
@@ -246,7 +255,7 @@ module XGen
           iv = "@#{iv}"
           instance_variable_set(iv, nil) unless instance_variable_defined?(iv)
         }
-        self.class.arrays.keys.each  { |iv|
+        self.class.arrays.keys.each { |iv|
           iv = "@#{iv}"
           instance_variable_set(iv, []) unless instance_variable_defined?(iv)
         }
@@ -297,7 +306,9 @@ module XGen
             if self.class.subobjects.keys.include?(sym)
               instance_variable_set(ivar_name, self.class.subobjects[sym].new(val))
             elsif self.class.arrays.keys.include?(sym)
-              instance_variable_get(ivar_name) << self.class.arrays[sym].new(val)
+              klazz = self.class.arrays[sym]
+              val = [val] unless val.kind_of?(Array)
+              instance_variable_set(ivar_name, val.collect {|v| v.kind_of?(XGen::Mongo::Base) ? v : klazz.new(v)})
             else
               instance_variable_set(ivar_name, val)
             end
