@@ -14,6 +14,9 @@
 
 require 'ruby_test'
 require 'xgen/mongo'
+require 'address'
+require 'student_has_one'
+require 'student_array_field'
 
 class Track < XGen::Mongo::Base
   collection_name :rubytest
@@ -33,12 +36,13 @@ class Rubytest < XGen::Mongo::Base
   end
 end
 
-class XGenInternalsTest < RubyTest
+class MongoTest < RubyTest
 
   def setup
     super
     run_js <<EOS
 db = connect('test');
+db.rubytest_students.remove({});
 db.rubytest.remove({});
 db.rubytest.save({artist: 'Thomas Dolby', album: 'Aliens Ate My Buick', song: 'The Ability to Swing'});
 db.rubytest.save({artist: 'Thomas Dolby', album: 'Aliens Ate My Buick', song: 'Budapest by Blimp'});
@@ -253,6 +257,39 @@ EOS
   def test_count
     assert_equal 6, Track.count
     assert_equal 3, Track.count({:artist => 'XTC'})
+  end
+
+  def test_has_one_initialize
+    a = Address.new(:street => "3 Pineapple Lane", :city => "Bikini Bottom", :state => "HI", :postal_code => "12345")
+    s = StudentHasOne.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :address => a)
+
+    assert_not_nil s.address, "Address not set correctly in StudentHasOne#initialize"
+    assert_equal '3 Pineapple Lane', s.address.street
+  end
+
+  def test_has_one_save_and_find
+    a = Address.new(:street => "3 Pineapple Lane", :city => "Bikini Bottom", :state => "HI", :postal_code => "12345")
+    s = StudentHasOne.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :address => a)
+    s.save
+
+    s2 = StudentHasOne.find(:first)
+    assert_equal 'Spongebob Squarepants', s2.name
+    assert_equal 'spongebob@example.com', s2.email
+    a2 = s2.address
+    assert_not_nil a2
+    assert_equal 'Address', a2.class.name, "Expected Address, saw #{a2.class.name}"
+    assert_equal '3 Pineapple Lane', a2.street
+    assert_equal 'Bikini Bottom', a2.city
+    assert_equal 'HI', a2.state
+    assert_equal '12345', a2.postal_code
+  end
+
+  def test_student_array_field
+    s = StudentArrayField.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :math_scores => [100, 90, 80])
+    s.save
+
+    s2 = StudentArrayField.find(:first)
+    assert_equal [100, 90, 80], s2.math_scores
   end
 
   def assert_all_songs(str)

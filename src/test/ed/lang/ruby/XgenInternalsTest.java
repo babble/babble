@@ -52,10 +52,6 @@ public class XgenInternalsTest extends RubyDBTest {
         runJS(JS_RECORD_DELETION_CODE);
     }
 
-    public void testRequired() {
-        runRuby("$x = XGen::Mongo::Base.new({'a' => 1, 'b' => 2}); puts $x.class.name");
-    }
-
     public void testNewAndSave() {
         runRuby("$x = Track.new(:artist => 'Level 42', :album => 'Standing In The Light', :song => 'Micro-Kid', :track => 1).save; puts $x.to_s");
         assertEquals(rubyOutput, "artist: Level 42, album: Standing In The Light, song: Micro-Kid, track: 1");
