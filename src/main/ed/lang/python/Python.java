@@ -26,6 +26,7 @@ import org.python.antlr.*;
 import org.python.antlr.ast.*;
 
 import ed.db.*;
+import ed.util.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.js.func.*;
@@ -329,6 +330,60 @@ public class Python extends Language {
      */
     public static SiteSystemState getSiteSystemState( PySystemState py ){
         return _rmap.get( py );
+    }
+
+    public static long size( PyObject o , IdentitySet seen ){
+        return _size( o , seen );
+    }
+
+    public static long _size( PyObject o , IdentitySet seen ){
+        // PyObject: private PyType objtype
+
+        // PyInteger: private int value
+        if ( o instanceof PyBoolean || o instanceof PyInteger )
+            return JSObjectSize.OBJ_OVERHEAD + 8;
+
+        // PySequence
+        // public int gListAllocatedStatus
+
+        // PyString
+        // transient int cached_hashcode
+        // transient boolean interned
+        if ( o instanceof PyString ){
+            PyString s = (PyString)o;
+            return JSObjectSize.OBJ_OVERHEAD + (long)(s.toString().length() * 2) + 12;
+        }
+
+        // PyList
+        // PySequenceList: protected PyObjectList list
+        // PyObjectList: PyObjectArray array
+        // PyObjectArray:
+        //    protected int capacity
+        //    protected int size
+        //    protected int modCountIncr
+        // PySequence: public int gListAllocatedStatus
+        if( o instanceof PyList ){
+            PyList l = (PyList)o;
+            int n = l.size();
+            long size = 0;
+            for( int i = 0; i < n; ++i){
+                PyObject foo = l.pyget(i);
+                size += JSObjectSize.size( foo, seen );
+            }
+            return size;
+        }
+
+        // PyDictionary: protected final ConcurrentMap table
+        if( o instanceof PyDictionary ){
+            long temp = 0;
+            temp += 32; // sizeof ConcurrentMap?
+            temp += JSObjectSize.size( ((PyDictionary)o).keys() , seen );
+            temp += JSObjectSize.size( ((PyDictionary)o).values() , seen );
+            return temp;
+        }
+
+        System.out.println("Couldn't figure out " + o.getClass());
+        return 0;
     }
 
     private static Scope _extractGlobals;

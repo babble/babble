@@ -24,6 +24,9 @@ import ed.db.*;
 import ed.util.*;
 import ed.js.engine.*;
 
+import ed.lang.python.Python;
+import org.python.core.PyObject;
+
 /** @expose
  */
 public class JSObjectSize {
@@ -109,9 +112,13 @@ public class JSObjectSize {
             return temp;
         }
 
+        if ( o instanceof PyObject ){
+            return Python.size( (PyObject)o , seen );
+        }
+	
         if ( o instanceof JSObjectBase )
             return ((JSObjectBase)o).approxSize( seen );
-	
+
 	if ( o instanceof Sizable )
 	    return ((Sizable)o).approxSize( seen );
 
