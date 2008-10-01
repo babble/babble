@@ -39,23 +39,24 @@ public class JSString extends JSObjectBase implements Comparable {
             return new JSString("");
         }
 
-        public Object call( Scope s , Object foo , Object[] args ){
+        public Object call( Scope s , Object[] args ){
+            return new JSString( "" );
+        }
+
+        public Object call( Scope s , Object fooO, Object[] args ){
+            JSString foo = new JSString( fooO + "" );
 
             Object o = s.getThis();
-            if ( o == null ){
-                if ( foo == null )
-                    return new JSString( "" );
-                return new JSString( foo.toString() );
-            }
-
-            if ( ! ( o instanceof JSString ) )
-                return new JSString( foo == null ? "" : foo.toString() );
+            if ( o == null || ! ( o instanceof JSString ) )
+                return foo;
             
             JSString str = (JSString)o;
             if ( foo != null )
                 str._s = foo.toString();
+            else 
+                str._s = "";
 
-            return o;
+            return str;
         }
 
         protected void init(){
