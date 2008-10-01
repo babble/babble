@@ -45,8 +45,8 @@ public class JSMath extends JSObjectBase {
                      return Double.POSITIVE_INFINITY;
                  }
                  public Object call( Scope s , Object a , Object b , Object foo[] ){
-                     double d1 = getDouble( a );
-                     double d2 = getDouble( b );
+                     double d1 = JSNumber.getDouble( a );
+                     double d2 = JSNumber.getDouble( b );
                      if( Double.isNaN( d1 ) || Double.isNaN( d2 ) )
                          return Double.NaN;
                      return d1 > d2 ? d1 : d2;
@@ -59,8 +59,8 @@ public class JSMath extends JSObjectBase {
                      return Double.POSITIVE_INFINITY;
                  }
                  public Object call( Scope s , Object a , Object b , Object foo[] ){
-                     double d1 = getDouble( a );
-                     double d2 = getDouble( b );
+                     double d1 = JSNumber.getDouble( a );
+                     double d2 = JSNumber.getDouble( b );
                      if( Double.isNaN( d1 ) || Double.isNaN( d2 ) )
                          return Double.NaN;
                      return d1 < d2 ? d1 : d2;
@@ -80,7 +80,7 @@ public class JSMath extends JSObjectBase {
                      return Double.NaN;
                  }
                  public Object call( Scope s , Object a , Object foo[] ){
-                     double d = getDouble( a );
+                     double d = JSNumber.getDouble( a );
                      if( Double.isNaN( d ) || Double.isInfinite( d ) ) {
                          return d;
                      }
@@ -94,7 +94,7 @@ public class JSMath extends JSObjectBase {
                      return Double.NaN;
                  }
                  public Object call( Scope s , Object a , Object foo[] ){
-                     double d = getDouble( a );
+                     double d = JSNumber.getDouble( a );
                      if( Double.isNaN( d ) || Double.isInfinite( d ) ) {
                          return d;
                      }
@@ -142,7 +142,7 @@ public class JSMath extends JSObjectBase {
                      return Double.NaN;
                  }
                  public Object call( Scope s , Object a , Object foo[] ){
-                     return Math.abs( getDouble( a ) );
+                     return Math.abs( JSNumber.getDouble( a ) );
                  }
              } );
 
@@ -153,7 +153,7 @@ public class JSMath extends JSObjectBase {
                      return Double.NaN;
                  }
                  public Object call( Scope s , Object a , Object foo[] ){
-                     return Math.sqrt( getDouble( a ) );
+                     return Math.sqrt( JSNumber.getDouble( a ) );
                  }
 
              } );
@@ -194,8 +194,8 @@ public class JSMath extends JSObjectBase {
                     return Double.NaN;
                 }
                 public Object call( Scope s , Object a , Object b , Object foo[] ){
-                    double d1 = getDouble( a );
-                    double d2 = getDouble( b );
+                    double d1 = JSNumber.getDouble( a );
+                    double d2 = JSNumber.getDouble( b );
                     return Math.atan2( d1 , d2 );
                 }
             } );
@@ -205,8 +205,8 @@ public class JSMath extends JSObjectBase {
                     return Double.NaN;
                 }
                 public Object call( Scope s , Object baseArg , Object expArg , Object foo[] ){
-                    double base = getDouble( baseArg );
-                    double exp = getDouble( expArg );
+                    double base = JSNumber.getDouble( baseArg );
+                    double exp = JSNumber.getDouble( expArg );
                     return Math.pow(base, exp);
                 }
             } );
@@ -215,7 +215,7 @@ public class JSMath extends JSObjectBase {
                     return Double.NaN;
                 }
                 public Object call( Scope s , Object expArg , Object foo[] ){
-                    double exp = getDouble( expArg );
+                    double exp = JSNumber.getDouble( expArg );
                     return Math.exp( exp );
                 }
             } );
@@ -224,7 +224,7 @@ public class JSMath extends JSObjectBase {
                     return Double.NaN;
                 }
                 public Object call( Scope s , Object expArg , Object foo[] ){
-                    double exp = getDouble( expArg );
+                    double exp = JSNumber.getDouble( expArg );
                     return Math.log( exp );
                 }
             } );
@@ -293,30 +293,10 @@ public class JSMath extends JSObjectBase {
         }
 
         public Object call( Scope s , Object xObject , Object foo[] ){
-            double X = getDouble( xObject );
+            double X = JSNumber.getDouble( xObject );
             return type.go( X );
         }
     };
-
-    public static double getDouble( Object a ) {
-        double d;
-        if ( a == null ) {
-            return 0;
-        }
-        else if( a instanceof Number ) {
-            return ((Number)a).doubleValue();
-        }
-        else if( a instanceof Boolean ) {
-            return ((Boolean)a).booleanValue() ? 1 : 0;
-        }
-        else if( ( a instanceof String || a instanceof JSString ) 
-                 && a.toString().matches( POSSIBLE_NUM ) ) {
-            return StringParseUtil.parseStrict(a.toString()).doubleValue();
-        }
-        else {
-            return Double.NaN;
-        }
-    }
 
     public static double sigFig( double X ){
         return sigFig( X , 3 );
@@ -335,8 +315,5 @@ public class JSMath extends JSObjectBase {
     public static final double E = Math.E;
     public static final double SQRT1_2 = Math.sqrt( .5 );
     public static final double SQRT2 = Math.sqrt( 2 );
-
-    // matches negative, infinity, int, double, scientific notation, hex
-    public static String POSSIBLE_NUM = "(-?((Infinity)|(\\d*(\\.\\d+)?([eE]-?\\d+)?)|(0x[\\da-fA-f]+)))?";
 
 }
