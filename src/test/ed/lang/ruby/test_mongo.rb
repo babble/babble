@@ -116,6 +116,11 @@ EOS
     assert x.respond_to?(:album=)
     assert x.respond_to?(:song=)
     assert x.respond_to?(:track=)
+    assert x.respond_to?(:_id?)
+    assert x.respond_to?(:artist?)
+    assert x.respond_to?(:album?)
+    assert x.respond_to?(:song?)
+    assert x.respond_to?(:track?)
 
     assert_equal(1, x.artist)
     assert_equal(2, x.album)
@@ -324,6 +329,22 @@ EOS
     assert_not_nil a
     assert_kind_of Address, a
     assert (a.street == @spongebob_addr.street || a.street == @bender_addr.street), "oops: first address is unknown: #{a}"
+  end
+
+  def test_field_query_methods
+    addresses = [@spongebob_addr, @bender_addr]
+    s = StudentHasMany.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :addresses => addresses)
+    assert s.name?
+    assert s.email?
+    assert s.addresses
+
+    s = StudentHasMany.new(:name => 'Spongebob Squarepants')
+    assert s.name?
+    assert !s.email?
+    assert !s.addresses?
+
+    s.email = ''
+    assert !s.email?
   end
 
   def assert_all_songs(str)
