@@ -60,26 +60,38 @@ public class JSInternalFunctions extends JSNumericFunctions {
     }
 
     /** Function call. */
-    public static class FunctionCons extends JSFunctionCalls0 {
+    public static class FunctionCons extends JSFunctionCalls1 {
+        
+        public JSObject newOne() {
+            return new JSFunctionCalls0() {
+                public Object call( Scope s , Object extra[] ) {
+                    return null;
+                }
+            };
+        }
 
-            public Object call( Scope s , Object extra[] ){
-                Object t = s.getThis();
-                if ( t != null )
-                    return t;
-
-                return new JSFunctionCalls0(){
+        public Object call( Scope s , Object foo , Object extra[] ) {
+            final String code = foo == null ? "return null" : foo.toString();
+            JSFunction func =  new JSFunctionCalls0(){
                     public Object call( Scope s , Object extra[] ){
-                        return null;
+                        return s.eval( code );
                     }
                 };
 
+            Object o = s.getThis();
+            if( o instanceof JSFunction ) {
+                s.clearThisNormal( o ); // get rid of the empty function
+                s.setThis( func ); // put func with code in it on the scope stack
             }
 
-            protected void init(){
-                JSFunction._init( this );
-            }
+            return func;
+        }
 
-        };
+        protected void init(){
+            JSFunction._init( this );
+        }
+
+    };
 
     private static FunctionCons _defaultFunctionCons = new FunctionCons();
 
