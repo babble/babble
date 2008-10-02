@@ -57,7 +57,7 @@ public class HttpLoadTracker {
 	out.print( name );
     	out.print( "</h3>" );
 	
-        out.print( "<img src=\"http://chart.apis.google.com/chart?cht=lc&chd=t:" );
+        out.print( "<img width=" + options._width + " height=" + options._height + " src=\"http://chart.apis.google.com/chart?cht=lc&chd=t:" );
 	
 	double max = Math.max( t1.max() , t2.max() );
 	
