@@ -5,6 +5,7 @@ package ed.js;
 import java.util.*;
 import java.lang.reflect.*;
 
+import ed.db.*;
 import ed.util.*;
 import ed.js.func.*;
 import ed.js.engine.*;
@@ -55,6 +56,22 @@ public abstract class JavaJSObject implements JSObject {
         return null;
     }
 
+    public ObjectId get_id(){
+        return _id;
+    }
+
+    public void set_id( ObjectId id ){
+        _id = id;
+    }
+
+    public String get_ns(){
+        return _ns;
+    }
+
+    public void set_ns( String ns ){
+        _ns = ns;
+    }
+
     JavaWrapper getWrapper(){
         if ( _wrapper != null )
             return _wrapper;
@@ -64,6 +81,8 @@ public abstract class JavaJSObject implements JSObject {
     }
 
     JavaWrapper _wrapper;
+    ObjectId _id;
+    String _ns;
 
     public static class JavaWrapper {
         JavaWrapper( Class c ){
@@ -133,7 +152,7 @@ public abstract class JavaJSObject implements JSObject {
             if ( i == null )
                 return null;
             try {
-                return i._getter.invoke( t );
+                return NativeBridge.toJSObject( i._getter.invoke( t ) );
             }
             catch ( Exception e ){
                 throw new RuntimeException( "could not invoke getter for [" + name + "] on [" + _name + "]" , e );
@@ -141,11 +160,13 @@ public abstract class JavaJSObject implements JSObject {
         }
 
         public Object set( JavaJSObject t , String name , Object val ){
+            if ( IGNORE_SETS.contains( name ) )
+                return null;
             FieldInfo i = _fields.get( name );
             if ( i == null )
                 throw new IllegalArgumentException( "no field [" + name + "] on [" + _name + "]" );
             try {
-                return i._setter.invoke( t , val );
+                return NativeBridge.toJSObject( i._setter.invoke( t , NativeBridge.toJavaObject( val ) ) );
             }
             catch ( Exception e ){
                 throw new RuntimeException( "could not invoke setter for [" + name + "] on [" + _name + "]" , e );
@@ -189,4 +210,12 @@ public abstract class JavaJSObject implements JSObject {
     static {
         IGNORE_FIELDS.add( "Int" );
     }
+
+    private static final Set<String> IGNORE_SETS = new HashSet<String>();
+    static {
+        IGNORE_SETS.add( "_save" );
+        IGNORE_SETS.add( "_update" );
+    }
+
+    
 }
