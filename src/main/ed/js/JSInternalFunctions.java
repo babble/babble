@@ -19,6 +19,7 @@
 package ed.js;
 
 import java.util.*;
+import java.io.IOException;
 
 import ed.ext.org.mozilla.javascript.*;
 
@@ -71,13 +72,50 @@ public class JSInternalFunctions extends JSNumericFunctions {
         }
 
         public Object call( Scope s , Object foo , Object extra[] ) {
-            final String code = foo == null ? "return null" : foo.toString();
+            String precode = foo == null ? "return null" : foo.toString();
+            if( extra.length > 0 ) {
+                precode = extra[ extra.length - 1 ].toString();
+            }
+            final String code = precode;
+
             JSFunction func =  new JSFunctionCalls0(){
-                    public Object call( Scope s , Object extra[] ){
-                        return s.eval( code );
+                    public Object call( Scope s2 , Object extra2[] ){
+                        Scope local = s2.child();
+                        // get any named arguments
+                        if( this._arguments != null ) {
+                            int namedArgs = Math.min( this._arguments.size(), extra2.length );
+                            for( int i=0; i < namedArgs; i++ ) {
+                                local.set( this._arguments.get( i ).toString(), extra2[i] );
+                            }
+                        }
+
+                        // eval doesn't take arguments, so we'll do the conversion ourselves
+                        try {
+                            Convert c = new Convert( "anon"+Math.random() , code , true);
+                            return c.get().call( local, extra2 );
+                        }
+                        catch( IOException e ) {
+                            System.out.println("couldn't convert "+code+":");
+                            e.printStackTrace();
+                        }
+                        return null;
                     }
                 };
 
+            // catch stuff like func=Function( "a,b","c", "return a+b+c" );
+            // remember, foo is the first extra
+            if( extra.length > 0 ) {
+                String argsStr = foo.toString();
+                for( int i=0; i<extra.length-1; i++) {
+                    argsStr += "," + extra[i];
+                }
+                String argList[] = argsStr.split( "," );
+
+                func._arguments = new JSArray();
+                for( String arg : argList ) {
+                    func._arguments.add( arg );
+                }
+            }
             Object o = s.getThis();
             if( o instanceof JSFunction ) {
                 s.clearThisNormal( o ); // get rid of the empty function

@@ -287,25 +287,38 @@ module XGen
           return nil unless option
           sort_by = {}
           case option
-          when String, Symbol   # Single value
+          when Symbol           # Single value
             sort_by[option.to_sym] = 1
-          when Array            # Array of field names; assume ascending sort
-            option.each {|o| sort_by[o.to_sym] = 1}
-          else                  # Hash
-            option.each { |k,v|
-              sort_by[k.to_sym] = case v
-                                  when /^asc/i
-                                    v = 1
-                                  when /^desc/i
-                                    v = -1
-                                  when Number
-                                    v.to_i == 1 ? 1 : -1
-                                  else
-                                    v ? 1 : -1
-                                  end
+          when String
+            # TODO order these by building an array of hashes
+            fields = option.split(',')
+            fields.each {|f|
+              name, order = f.split
+              order ||= 'asc'
+              sort_by[name.to_sym] = sort_value_from_arg(order)
             }
+          when Array            # Array of field names; assume ascending sort
+            # TODO order these by building an array of hashes
+            option.each {|o| sort_by[o.to_sym] = 1}
+          else                  # Hash (order of sorts is not guaranteed)
+            option.each {|k,v| sort_by[k.to_sym] = sort_value_from_arg(v) }
           end
+          return nil unless sort_by.keys.length > 0
           sort_by
+        end
+
+        # Turns "asc" into 1, "desc" into -1, and other values into 1 or -1.
+        def sort_value_from_arg(arg)
+          case arg
+          when /^asc/i
+            arg = 1
+          when /^desc/i
+            arg = -1
+          when Number
+            arg.to_i == 1 ? 1 : -1
+          else
+            arg ? 1 : -1
+          end
         end
 
       end
