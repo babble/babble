@@ -217,12 +217,12 @@ EOS
 
   def find_or_create_but_already_exists
     assert_equal("artist: Thomas Dolby, album: Aliens Ate My Buick, song: The Ability to Swing, track: ",
-                 Track.find_or_create_by_song(:conditions => {:song => 'The Ability to Swing', :artist => 'Thomas Dolby'}).to_s)
+                 Track.find_or_create_by_song('The Ability to Swing', :artist => 'ignored because song found').to_s)
   end
 
   def find_or_create_new_created
     assert_equal("artist: New Artist, album: New Album, song: New Song, track: ",
-                 Track.find_or_create_by_song(:conditions => {:song => 'New Song', :artist => 'New Artist', :album => 'New Album'}).to_s)
+                 Track.find_or_create_by_song('New Song', :artist => 'New Artist', :album => 'New Album').to_s)
   end
 
   def test_cursor_methods
@@ -394,6 +394,25 @@ EOS
 
     s.email = ''
     assert !s.email?
+  end
+
+  def test_new_record
+    t = Track.new
+    assert t.new_record?
+    t.save
+    assert !t.new_record?
+
+    t = Track.create(:artist => 'Level 42', :album => 'Standing In The Light', :song => 'Micro-Kid', :track => 1)
+    assert !t.new_record?
+
+    t = Track.find(:first)
+    assert !t.new_record?
+
+    t = Track.find_or_create_by_song('New Song', :artist => 'New Artist', :album => 'New Album')
+    assert !t.new_record?
+
+    t = Track.find_or_initialize_by_song('Newer Song', :artist => 'Newer Artist', :album => 'Newer Album')
+    assert t.new_record?
   end
 
   def assert_all_songs(str)

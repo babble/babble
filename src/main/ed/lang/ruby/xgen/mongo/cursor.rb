@@ -16,6 +16,21 @@ module XGen
 
   module Mongo
 
+    # A Mongo cursor is like Schrodenger's cat: it is neither an array nor an
+    # enumerable collection until you use it. It can not be both. Once you
+    # reference it as an array (by retrieving a record via index or asking for
+    # the length or count), you can't iterate over the contents using +each+.
+    # Likewise, once you start iterating over the contents using +each+ you
+    # can't ask for the count of the number of records.
+    #
+    # Example:
+    #   Person.find(:all).sort({:created_on => 1}).each { |p| puts p.to_s }
+    #   n = Thing.find(:all).count()
+    #
+    # The sort, limit, and skip methods must be called before resolving the
+    # quantum state of a cursor.
+    #
+    # See Base#find for more information.
     class Cursor
       include Enumerable
 

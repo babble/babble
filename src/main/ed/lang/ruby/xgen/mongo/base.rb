@@ -122,27 +122,62 @@ module XGen
 
         # Find one or more database objects.
         #
-        # * Find by id (a single id or an array of ids)
+        # * Find by id (a single id or an array of ids) returns one record or a Cursor.
         #
-        # * Find :first that matches hash search params
+        # * Find :first returns the first record that matches the options used.
         #
         # * Find :all records; returns a Cursor that can iterate over raw
-        #   records
+        #   records.
         #
-        # * Find all records if there are no args.
+        # * Find all records if there are no conditions.
         #
         # Options:
+        #
         # :conditions:: Hash where key = field name and value = field value.
+        #               Value may be a simple value like a string, number, or
+        #               regular expression.
+        #
         # :select:: Single field name or list of field names. If not
-        #           specified, all fields are returned.
-        # :order:: If string or symbol, orders by that field ascending. If an
-        #          array, each element is a field name or symbol and the
-        #          results are ordered by those values ascending. If a hash,
+        #           specified, all fields are returned. Names may be symbols
+        #           or strings. The database always returns _id field.
+        #
+        # :order:: If a symbol, orders by that field in ascending order. If a
+        #          string like "field1 asc, field2 desc, field3", then sorts
+        #          those fields in the specified order (default is ascending).
+        #          If an array, each element is either a field name or symbol
+        #          (which will be sorted in ascending order) or a hash where
         #          key = field and value = 'asc' or 'desc' (case-insensitive),
         #          1 or -1, or if any other value then true == 1 and false/nil
         #          == -1.
+        #
         # :limit:: Maximum number of records to return.
+        #
         # :offset:: Number of records to skip.
+        #
+        # Examples for find by id:
+        #   Person.find("48e5307114f4abdf00dfeb86")     # returns the object for this ID
+        #   Person.find(["a_hex_id", "another_hex_id"]) # returns a Cursor over these two objects
+        #   Person.find(["a_hex_id"])                   # returns a Cursor over the object with this ID
+        #   Person.find("a_hex_id", :conditions => {admin: 1}, :order => "created_on DESC")
+        #
+        # Examples for find first:
+        #   Person.find(:first) # returns the first object in the collection
+        #   Person.find(:first, :conditions => {user_name: user_name})
+        #   Person.find(:first, :order => "created_on DESC", :offset => 5)
+        #   Person.find(:first, :order => {:created_on => -1}, :offset => 5) # same as previous example
+        #
+        # Examples for find all:
+        #   Person.find(:all) # returns a Cursor over all objects in the collection
+        #   Person.find(:all, :conditions => {category: category}, :limit => 50)
+        #   Person.find(:all, :offset => 10, :limit => 10)
+        #   Person.find(:all, :select => :name) # Only returns name (and _id) fields
+        #
+        # As a side note, the :order, :limit, and :offset options are passed
+        # on to the Cursor (after the :order option is rewritten to be a
+        # hash). So
+        #   Person.find(:all, :offset => 10, :limit => 10, :order => :created_on)
+        # is the same as
+        #   Person.find(:all).skip(10).limit(10).sort({:created_on => 1})
         def find(*args)
           return Cursor.new(coll.find(), self) unless args.length > 0 # no args, find all
           return case args[0]
@@ -220,7 +255,8 @@ module XGen
           self.new(values_hash).save
         end
 
-        # Handles find_* methods such as find_by_name and find_all_by_shoe_size.
+        # Handles find_* methods such as find_by_name, find_all_by_shoe_size,
+        # and find_or_create_by_name.
         def method_missing(sym, *args)
           if match = /^find_(all_by|by)_([_a-zA-Z]\w*)$/.match(sym.to_s)
             find_how_many = ($1 == 'all_by') ? :all : :first
@@ -233,8 +269,9 @@ module XGen
             field_names = $2.split(/_and_/)
             super unless all_fields_exist?(field_names)
             search = search_from_names_and_values(field_names, args)
-            row = self.find(:first, {:conditions => search}, *args[field_names.length..-1])
-            obj = self.new(row)
+            row = self.find(:first, {:conditions => search})
+            return self.new(row) if row # found
+            obj = self.new(search.merge(args[field_names.length] || {})) # new object using search and remainder of args
             obj.save if create
             obj
           else
@@ -367,6 +404,10 @@ module XGen
           raise "Error: after save, database id changed"
         end
         self
+      end
+
+      def new_record?
+        @_id == nil
       end
 
       def to_hash
