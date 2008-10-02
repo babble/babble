@@ -298,6 +298,25 @@ EOS
     assert_equal 3, Track.count(:conditions => {:artist => 'XTC'})
   end
 
+  def test_select
+    str = Track.find(:all, :select => :album).inject('') { |str, t| str + t.to_s }
+    assert str.include?("artist: , album: Oranges & Lemons, song: , track:")
+  end
+
+  def test_find_one_using_id
+    t = Track.findOne(@song_id)
+    assert_equal "artist: XTC, album: Oranges & Lemons, song: The Mayor Of Simpleton, track: 2", t.to_s
+  end
+
+  def test_select_find_one
+    t = Track.findOne(@song_id, :select => :album)
+    assert t.album?
+    assert !t.artist?
+    assert !t.song?
+    assert !t.track?
+    assert_equal "artist: , album: Oranges & Lemons, song: , track: ", t.to_s
+  end
+
   def test_has_one_initialize
     s = StudentHasOne.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :address => @spongebob_addr)
 

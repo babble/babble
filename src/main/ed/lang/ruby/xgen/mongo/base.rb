@@ -154,11 +154,11 @@ module XGen
                  when :first    # findOne
                    args.shift
                    options = case args[0]
-                             when nil
+                             when nil # first record, no conditions
                                {}
-                             when String
-                               {:conditions => {:_id => args[0]}}
-                             else
+                             when String # args[0] is id, args[1] is remaining options
+                               {:conditions => {:_id => args[0]}}.merge(args[1] || {})
+                             else # use options passed in
                                args[0]
                              end
                    criteria = criteria_from(options[:conditions])
@@ -274,12 +274,12 @@ module XGen
           h || {}
         end
 
-        def fields_from(h)
-          return nil unless h
-          h = [h] unless h.kind_of?(Array)
-          return nil unless h.length > 0
+        def fields_from(a)
+          return nil unless a
+          a = [a] unless a.kind_of?(Array)
+          return nil unless a.length > 0
           fields = {}
-          h.each { |k| fields[k.to_sym] = 1 }
+          a.each { |k| fields[k.to_sym] = 1 }
           fields
         end
 

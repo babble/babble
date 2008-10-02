@@ -1091,18 +1091,20 @@ public class Parser
             int lineno = ts.getLineno();
 
             decompiler.addToken(Token.BREAK);
-
+            
             if ( ED_HACK ){
                 int tempTT = peekTokenOrEOL();
                 if ( tempTT == Token.NAME ){
                     consumeToken();
                     String name = ts.getString();
                     decompiler.addName( name );
-                    return Node.newString( Token.BREAK , name );
+                    pn = Node.newString( Token.BREAK , name );
+                    break;
                 }
-                return Node.newString( Token.BREAK , "" );
+                pn = Node.newString( Token.BREAK , "" );
+                break;
             }
-
+            
             // matchJumpLabelName only matches if there is one
             Node breakStatement = matchJumpLabelName();
             if (breakStatement == null) {
@@ -1128,9 +1130,11 @@ public class Parser
                     consumeToken();
                     String name = ts.getString();
                     decompiler.addName( name );
-                    return Node.newString( Token.CONTINUE , name );
+                    pn = Node.newString( Token.CONTINUE , name );
+                    break;
                 }
-                return Node.newString( Token.CONTINUE , "" );
+                pn = Node.newString( Token.CONTINUE , "" );
+                break;
             }
 
             Node loop;
