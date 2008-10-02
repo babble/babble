@@ -290,6 +290,7 @@ module XGen
           when Symbol           # Single value
             sort_by[option.to_sym] = 1
           when String
+            # TODO order these by building an array of hashes
             fields = option.split(',')
             fields.each {|f|
               name, order = f.split
@@ -298,8 +299,9 @@ module XGen
               sort_by[name.to_sym] = sort_value_from_arg(order)
             }
           when Array            # Array of field names; assume ascending sort
+            # TODO order these by building an array of hashes
             option.each {|o| sort_by[o.to_sym] = 1}
-          else                  # Hash
+          else                  # Hash (order of sorts is not guaranteed)
             option.each {|k,v| sort_by[k.to_sym] = sort_value_from_arg(v) }
           end
           return nil unless sort_by.keys.length > 0
