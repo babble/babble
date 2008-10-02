@@ -24,8 +24,8 @@ module XGen
     # can't ask for the count of the number of records.
     #
     # Example:
-    #   Person.find(:all).each { |p| puts p.to_s }
-    #   Person.find(:all).sort
+    #   Person.find(:all).sort({:created_on => 1}).each { |p| puts p.to_s }
+    #   n = Thing.find(:all).count()
     #
     # The sort, limit, and skip methods must be called before resolving the
     # quantum state of a cursor.
