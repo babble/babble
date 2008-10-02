@@ -33,5 +33,5 @@ public class LoadMonitor {
     }
     
     final Router _router;
-    final HttpLoadTracker _all = new HttpLoadTracker( "all" , 2 , 60 );
+    final HttpLoadTracker _all = new HttpLoadTracker( "all" , 20 , 60 );
 }

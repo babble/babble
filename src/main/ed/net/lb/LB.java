@@ -305,7 +305,7 @@ public class LB extends NIOClient {
                 _debug( 4 , "no more data" );
                 _conn.done( ! _rr._keepalive );
                 _rr._state = State.DONE;
-                _rr.done();
+                _rr.success();
                 return null;
             }
             
