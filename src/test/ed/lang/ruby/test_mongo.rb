@@ -217,12 +217,12 @@ EOS
 
   def find_or_create_but_already_exists
     assert_equal("artist: Thomas Dolby, album: Aliens Ate My Buick, song: The Ability to Swing, track: ",
-                 Track.find_or_create_by_song(:conditions => {:song => 'The Ability to Swing', :artist => 'Thomas Dolby'}).to_s)
+                 Track.find_or_create_by_song('The Ability to Swing', :artist => 'ignored because song found').to_s)
   end
 
   def find_or_create_new_created
     assert_equal("artist: New Artist, album: New Album, song: New Song, track: ",
-                 Track.find_or_create_by_song(:conditions => {:song => 'New Song', :artist => 'New Artist', :album => 'New Album'}).to_s)
+                 Track.find_or_create_by_song('New Song', :artist => 'New Artist', :album => 'New Album').to_s)
   end
 
   def test_cursor_methods

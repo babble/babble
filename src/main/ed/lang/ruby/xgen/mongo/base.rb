@@ -220,7 +220,8 @@ module XGen
           self.new(values_hash).save
         end
 
-        # Handles find_* methods such as find_by_name and find_all_by_shoe_size.
+        # Handles find_* methods such as find_by_name, find_all_by_shoe_size,
+        # and find_or_create_by_name.
         def method_missing(sym, *args)
           if match = /^find_(all_by|by)_([_a-zA-Z]\w*)$/.match(sym.to_s)
             find_how_many = ($1 == 'all_by') ? :all : :first
@@ -233,8 +234,9 @@ module XGen
             field_names = $2.split(/_and_/)
             super unless all_fields_exist?(field_names)
             search = search_from_names_and_values(field_names, args)
-            row = self.find(:first, {:conditions => search}, *args[field_names.length..-1])
-            obj = self.new(row)
+            row = self.find(:first, {:conditions => search})
+            return self.new(row) if row # found
+            obj = self.new(search.merge(args[field_names.length] || {})) # new object using search and remainder of args
             obj.save if create
             obj
           else
