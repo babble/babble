@@ -295,7 +295,6 @@ module XGen
             fields.each {|f|
               name, order = f.split
               order ||= 'asc'
-              $stderr.puts "name = #{name}, sort value of '#{order}' = #{sort_value_from_arg(order)}" # DEBUG
               sort_by[name.to_sym] = sort_value_from_arg(order)
             }
           when Array            # Array of field names; assume ascending sort
