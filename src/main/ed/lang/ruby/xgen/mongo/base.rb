@@ -157,7 +157,7 @@ module XGen
                              when nil # first record, no conditions
                                {}
                              when String # args[0] is id, args[1] is remaining options
-                               {:conditions => {:_id => args[0]}}.merge(args[1])
+                               {:conditions => {:_id => args[0]}}.merge(args[1] || {})
                              else # use options passed in
                                args[0]
                              end
