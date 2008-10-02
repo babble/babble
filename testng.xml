@@ -20,6 +20,7 @@
       <class name="ed.js.engine.ConvertTest" />
       <class name="ed.js.engine.line.LineTest" />
       <class name="ed.js.JSONTest" />
+      <class name="ed.js.JavaJSObjectTest" />
       <class name="ed.appserver.templates.JxpConvertTest" />
       <class name="ed.appserver.templates.HtmlTemplateTest" />
       <class name="ed.lang.python.JSPySequenceListWrapperTest" />
