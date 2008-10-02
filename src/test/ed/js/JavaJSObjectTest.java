@@ -32,8 +32,10 @@ public class JavaJSObjectTest extends TestCase {
         assertTrue( f.containsKey( "Foo" ) );
         assertFalse( f.containsKey( "Food" ) );
 
-        assertEquals( 1 , f.keySet().size() );
+        System.out.println( f.keySet() );
+        assertEquals( 2 , f.keySet().size() );
         assertTrue( f.keySet().contains("Foo") );
+        assertTrue( f.keySet().contains("_id") );
     }
 
     public static void main( String args[] ){
