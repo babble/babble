@@ -249,6 +249,19 @@ EOS
     assert_equal 2, Track.find(:all, :limit => 2).length
   end
 
+  def test_order_options
+    tracks = Track.find(:all, :order => "song asc")
+    assert_not_nil tracks
+    assert_equal "Budapest by Blimp:Europa and the Pirate Twins:Garden Of Earthly Delights:King For A Day:The Ability to Swing:The Mayor Of Simpleton",
+                 tracks.collect {|t| t.song }.join(':')
+
+    # TODO this should work, but the database does not yet sort this properly
+#     tracks = Track.find(:all, :order => "artist desc, song")
+#     assert_not_nil tracks
+#     assert_equal "Garden Of Earthly Delights:King For A Day:The Mayor Of Simpleton:Budapest by Blimp:Europa and the Pirate Twins:The Ability to Swing",
+#                  tracks.collect {|t| t.song }.join(':')
+  end
+
   def test_delete
     Track.find(:first, :conditions => {:song => 'King For A Day'}).delete
     str = Track.find(:all).inject('') { |str, t| str + t.to_s }
