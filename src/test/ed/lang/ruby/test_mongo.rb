@@ -249,6 +249,19 @@ EOS
     assert_equal 2, Track.find(:all, :limit => 2).length
   end
 
+  def test_order_options
+    tracks = Track.find(:all, :order => "song asc")
+    assert_not_nil tracks
+    assert_equal "Budapest by Blimp:Europa and the Pirate Twins:Garden Of Earthly Delights:King For A Day:The Ability to Swing:The Mayor Of Simpleton",
+                 tracks.collect {|t| t.song }.join(':')
+
+    # TODO this should work, but the database does not yet sort this properly
+#     tracks = Track.find(:all, :order => "artist desc, song")
+#     assert_not_nil tracks
+#     assert_equal "Garden Of Earthly Delights:King For A Day:The Mayor Of Simpleton:Budapest by Blimp:Europa and the Pirate Twins:The Ability to Swing",
+#                  tracks.collect {|t| t.song }.join(':')
+  end
+
   def test_delete
     Track.find(:first, :conditions => {:song => 'King For A Day'}).delete
     str = Track.find(:all).inject('') { |str, t| str + t.to_s }
@@ -283,6 +296,25 @@ EOS
   def test_count
     assert_equal 6, Track.count
     assert_equal 3, Track.count(:conditions => {:artist => 'XTC'})
+  end
+
+  def test_select
+    str = Track.find(:all, :select => :album).inject('') { |str, t| str + t.to_s }
+    assert str.include?("artist: , album: Oranges & Lemons, song: , track:")
+  end
+
+  def test_find_one_using_id
+    t = Track.findOne(@song_id)
+    assert_equal "artist: XTC, album: Oranges & Lemons, song: The Mayor Of Simpleton, track: 2", t.to_s
+  end
+
+  def test_select_find_one
+    t = Track.findOne(@song_id, :select => :album)
+    assert t.album?
+    assert !t.artist?
+    assert !t.song?
+    assert !t.track?
+    assert_equal "artist: , album: Oranges & Lemons, song: , track: ", t.to_s
   end
 
   def test_has_one_initialize
