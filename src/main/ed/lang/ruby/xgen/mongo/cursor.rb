@@ -30,7 +30,7 @@ module XGen
     # The sort, limit, and skip methods must be called before resolving the
     # quantum state of a cursor.
     #
-    # See Base#find for more infromation.
+    # See Base#find for more information.
     class Cursor
       include Enumerable
 
