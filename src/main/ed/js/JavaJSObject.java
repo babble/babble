@@ -64,13 +64,6 @@ public abstract class JavaJSObject implements JSObject {
         _id = id;
     }
 
-    public String get_ns(){
-        return _ns;
-    }
-
-    public void set_ns( String ns ){
-        _ns = ns;
-    }
 
     JavaWrapper getWrapper(){
         if ( _wrapper != null )
@@ -82,7 +75,6 @@ public abstract class JavaJSObject implements JSObject {
 
     JavaWrapper _wrapper;
     ObjectId _id;
-    String _ns;
 
     public static class JavaWrapper {
         JavaWrapper( Class c ){
@@ -215,6 +207,7 @@ public abstract class JavaJSObject implements JSObject {
     static {
         IGNORE_SETS.add( "_save" );
         IGNORE_SETS.add( "_update" );
+        IGNORE_SETS.add( "_ns" );
     }
 
     
