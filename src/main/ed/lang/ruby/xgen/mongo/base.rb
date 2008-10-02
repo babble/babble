@@ -371,6 +371,10 @@ module XGen
         self
       end
 
+      def new_record?
+        @_id == nil
+      end
+
       def to_hash
         h = {}
         self.class.field_names.each {|iv| h[iv] = instance_variable_get("@#{iv}") }
