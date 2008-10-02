@@ -2,6 +2,9 @@
 
 package ed.net;
 
+import java.util.*;
+import java.text.*;
+
 import ed.util.*;
 import ed.net.httpserver.*;
 
@@ -38,41 +41,69 @@ public class HttpLoadTracker {
         out.print( "</h3>" );
         
         if ( options._requestsAndErrors )
-            printGraph( out , options , _requests , _errors );
+            printGraph( out , "Requests" , options , _requests , _errors , "requests" , "errors" );
         
         if ( options._data )
-            printGraph( out , options , _dataIn , _dataOut );
+            printGraph( out , "Data" , options , _dataOut , _dataIn , "data out" , "data in" );
         
         if ( options._time )
-            printGraph( out , options , _totalTime , null );
+            printGraph( out , "Time" , options , _totalTime , null , "time" , null );
         
         out.print( "\n</div>\n" );
     }
 
-    void printGraph( JxpWriter out , GraphOptions options , ThingsPerTimeTracker t1 , ThingsPerTimeTracker t2 ){
+    void printGraph( JxpWriter out , String name , GraphOptions options , ThingsPerTimeTracker t1 , ThingsPerTimeTracker t2 , String n1 , String n2 ){
+	out.print( "<h3>" );
+	out.print( name );
+    	out.print( "</h3>" );
+	
         out.print( "<img src=\"http://chart.apis.google.com/chart?cht=lc&chd=t:" );
-
-        for ( int i=t1.size(); i>=0; i-- ){
-            out.print( t1.get( i ) );
-            if ( i > 0 )
-                out.print( "," );
-        }
-        
+	
+	double max = Math.max( t1.max() , t2.max() );
+	
+	printGraphList( out , max , t1 );
+	
         if ( t2 != null ){
             out.print( "|" );
-            for ( int i=t2.size(); i>=0; i-- ){
-                out.print( t2.get( i ) );
-                if ( i > 0 )
-                    out.print( "," );
-            }
+	    printGraphList( out , max , t2 );
         }
         
         out.print( "&chs=" );
         out.print( options._width );
         out.print( "x" );
         out.print( options._height );
-        
-        out.print( "\" >" );
+	
+	if ( n1 != null ){
+	    out.print( "&chdl=" );
+	    out.print( n1 );
+	    if ( n2 != null ){
+		out.print( "|" );
+		out.print( n2 );
+	    }
+	}
+
+	if ( name.equalsIgnoreCase( "data" ) ){
+	    max = max / 1024;
+	}
+	
+        out.print( "&chm=r&chco=00ff00,0000ff&chxt=y,x&" );
+	out.print( "chxl=0:|0|" + Math.round( max ) + "|1:|" +  _format( t1.beginning() )  + "|" + _format( t1.bucket() ) );
+	out.print( "\" ><br>" );
+    }
+
+    void printGraphList( JxpWriter out , double max , ThingsPerTimeTracker t ){
+	for ( int i=t.size()-1; i>=0; i-- ){
+	    out.print( Math.round( ( 100 * t.get( i ) ) / max ) );
+	    if ( i > 0 )
+		out.print( "," );
+	}
+    }
+    
+    String _format( long t ){
+	Date d = new Date( t );
+	synchronized ( DATE_TIME ){
+	    return DATE_TIME.format( d );
+	}
     }
 
     final String _name;
@@ -88,7 +119,7 @@ public class HttpLoadTracker {
     public static class GraphOptions {
         
         public GraphOptions(){
-            this( 600 , 200 , true , true , false );
+            this( 600 , 100 , true , true , false );
         }
 
         public GraphOptions( int width , int height , boolean requestsAndErrors , boolean data , boolean time ){
@@ -109,4 +140,5 @@ public class HttpLoadTracker {
     }
 
     static final GraphOptions DEFAULTS = new GraphOptions();
+    static final DateFormat DATE_TIME = new SimpleDateFormat( "hh:mm:ss" );
 }

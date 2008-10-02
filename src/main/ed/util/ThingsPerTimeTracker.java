@@ -40,7 +40,7 @@ public class ThingsPerTimeTracker {
      * @param num the number to add
      */
     public void hit( long num ){
-        long b = _bucket();
+        long b = bucket();
         while ( _lastBucket < b ){
             _pos++;
             if ( _pos == _counts.length )
@@ -54,9 +54,13 @@ public class ThingsPerTimeTracker {
         return;
     }
 
-    private long _bucket(){
+    public long bucket(){
         final long t = System.currentTimeMillis();
         return t - ( t % _interval );
+    }
+
+    public long beginning(){
+	return bucket() - ( _counts.length * _interval );
     }
 
     /** Returns the number of intervals to save.
@@ -82,6 +86,13 @@ public class ThingsPerTimeTracker {
     /** Performs a 0-count hit */
     public void validate(){
         hit( 0 );
+    }
+    
+    public long max(){
+	long max = 0;
+	for ( int i=0; i<_counts.length; i++ )
+	    max = Math.max( max , _counts[i] );
+	return max;
     }
 
     private long _lastBucket;
