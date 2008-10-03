@@ -57,9 +57,10 @@ public class HttpServer extends NIOServer {
         throws IOException {
         
         _numRequests++;
-        _reqPerSecTracker.hit();
-        _reqPerSmallTracker.hit();
-        _reqPerMinTracker.hit();
+        _tracker.hit( null , null );
+        //_reqPerSecTracker.hit();
+        //_reqPerSmallTracker.hit();
+        //_reqPerMinTracker.hit();
 
         _requestPipe.write( request.getFullURL() );
 
@@ -362,28 +363,9 @@ public class HttpServer extends NIOServer {
             
 		out.print( "<br>" );
 
-		out.print( "<table>" );
-                _printTracker( "Request Per Second" , _reqPerSecTracker , out );
-                _printTracker( "Request Per " + _trackerSmall + " Seconds" , _reqPerSmallTracker , out );
-                _printTracker( "Request Per Minute" , _reqPerMinTracker , out );
-		out.print( "</table>" );
+                _tracker.displayGraph( out , _trackerOptions );
             }
 
-            
-            void _printTracker( String name , ThingsPerTimeTracker tracker , JxpWriter out ){
-		
-                tracker.validate();
-		
-		out.print( "<tr><th colspan='10'>" + name + "</th></tr>" );
-		out.print( "<tr>" );
-                for ( int i=0; i<tracker.size(); i++ ){
-		    out.print( "<td>" );
-                    out.print( tracker.get( i ) );
-		    out.print( "&nbsp;</td>" );
-                }
-		out.print( "</tr>" );                
-            }
-            
             final long _startTime = System.currentTimeMillis();
         };
 
@@ -403,9 +385,12 @@ public class HttpServer extends NIOServer {
 
     private static final int _trackerSmall = 10;
 
-    private static ThingsPerTimeTracker _reqPerSecTracker = new ThingsPerTimeTracker( 1000  , 30 );
-    private static ThingsPerTimeTracker _reqPerSmallTracker = new ThingsPerTimeTracker( 1000 * 10 , 30 );
-    private static ThingsPerTimeTracker _reqPerMinTracker = new ThingsPerTimeTracker( 1000 * 60 , 30 );
+    private static HttpLoadTracker.Rolling _tracker = new HttpLoadTracker.Rolling( "webserver" );
+    private static HttpLoadTracker.GraphOptions _trackerOptions = new HttpLoadTracker.GraphOptions( 600 , 120 , true , false , false );
+
+    //private static ThingsPerTimeTracker _reqPerSecTracker = new ThingsPerTimeTracker( 1000  , 30 );
+    //private static ThingsPerTimeTracker _reqPerSmallTracker = new ThingsPerTimeTracker( 1000 * 10 , 30 );
+    //private static ThingsPerTimeTracker _reqPerMinTracker = new ThingsPerTimeTracker( 1000 * 60 , 30 );
     
 
     // ---

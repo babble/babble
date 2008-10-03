@@ -29,6 +29,7 @@ import java.util.concurrent.*;
 import ed.log.*;
 import ed.util.*;
 import ed.net.httpserver.*;
+import static ed.net.HttpExceptions.*;
 
 public abstract class NIOClient extends Thread {
 
@@ -138,6 +139,9 @@ public abstract class NIOClient extends Thread {
             InetSocketAddress addr = null;
             try {
                 addr = c.where();
+                if ( addr == null )
+                    continue;
+                
                 final ConnectionPool pool = getConnectionPool( addr );
                 
                 Connection conn = pool.get( 0 );
@@ -175,7 +179,7 @@ public abstract class NIOClient extends Thread {
         }
     }
 
-    protected ConnectionPool getConnectionPool( InetSocketAddress addr ){
+    public ConnectionPool getConnectionPool( InetSocketAddress addr ){
         ConnectionPool p = _connectionPools.get( addr );
         if ( p != null )
             return p;
@@ -186,7 +190,7 @@ public abstract class NIOClient extends Thread {
         return p;
     }
 
-    protected List<InetSocketAddress> getAllConnections(){
+    public List<InetSocketAddress> getAllConnections(){
         return new LinkedList<InetSocketAddress>( _connectionPools.keySet() );
     }
 
@@ -456,25 +460,8 @@ public abstract class NIOClient extends Thread {
         final InetSocketAddress _addr;
     }
     
-    class ConnectionError extends RuntimeException {
-        ConnectionError( String msg , InetSocketAddress addr , IOException cause ){
-            super( "[" + addr + "] : " + msg + " " + cause , cause );
-            _addr = addr;
-        }
-
-        final InetSocketAddress _addr;
-    }
     
-    class CantOpen extends ConnectionError {
-        CantOpen( InetSocketAddress addr , IOException ioe ){
-            super( "can't open" , addr , ioe );
-            _ioe = ioe;
-        }
-
-        IOException _ioe;
-    }
-    
-    public abstract class Call {
+    public static abstract class Call {
         
         protected abstract InetSocketAddress where(); 
         protected abstract void error( ServerErrorType type , Exception e );

@@ -47,6 +47,7 @@ public abstract class HttpMonitor implements HttpHandler {
             buf.append( " body { font-size: .65em; font-family: Monaco; }\n" );
             buf.append( " table { font-size: 10px; }\n" );
             buf.append( " th { backgroud: #dddddd; text-align:left; }\n" );
+            buf.append( " .floatingList li { float: left; list-style-type:none; }\n" );
             buf.append( " bottomLine { border-bottom: 1px solid black; }\n" );
 	    buf.append( " .warn { color: orange; }\n" );
 	    buf.append( " .error { color: red; font-decoration: bold; }\n" );
@@ -93,6 +94,7 @@ public abstract class HttpMonitor implements HttpHandler {
             handle( out , request , response );
         }
         catch ( Exception e ){
+            e.printStackTrace();
             out.print( e.toString() ).print( "<br>" );
             for ( StackTraceElement element : e.getStackTrace() )
                 out.print( element + "<br>\n" );

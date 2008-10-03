@@ -16,6 +16,7 @@
 
 package ed.lang.ruby;
 
+import java.lang.ref.WeakReference;
 import java.io.*;
 import java.util.*;
 
@@ -47,7 +48,7 @@ public class RubyJxpSource extends JxpSource {
 
     public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
     static final Map<Ruby, Set<IRubyObject>> _requiredJSFileLibFiles = new WeakHashMap<Ruby, Set<IRubyObject>>();
-    static final Map<Ruby, RubyModule> _xgenModuleDefs = new WeakHashMap<Ruby, RubyModule>();
+    static final Map<Ruby, WeakReference<RubyModule>> _xgenModuleDefs = new WeakHashMap<Ruby, WeakReference<RubyModule>>();
     static final Map<AppContext, Ruby> _runtimes = new WeakHashMap<AppContext, Ruby>();
     static final Ruby PARSE_RUNTIME = Ruby.newInstance();
 
@@ -76,11 +77,14 @@ public class RubyJxpSource extends JxpSource {
     public static final boolean YARV_COMPILE = false;
 
     public static synchronized RubyModule xgenModule(Ruby runtime) {
-        RubyModule xgen = _xgenModuleDefs.get(runtime);
-        if (xgen == null) {
+        RubyModule xgen = null;
+        WeakReference<RubyModule> ref = _xgenModuleDefs.get(runtime);
+        if (ref == null) {
             xgen = runtime.defineModule("XGen");
-            _xgenModuleDefs.put(runtime, xgen);
+            _xgenModuleDefs.put(runtime, new WeakReference<RubyModule>(xgen));
         }
+        else
+            xgen = ref.get();
         return xgen;
     }
 

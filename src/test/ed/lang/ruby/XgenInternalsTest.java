@@ -20,9 +20,10 @@ import org.testng.annotations.*;
 import static org.testng.Assert.*;
 
 import ed.db.ObjectId;
+import ed.js.Shell;
 
-@Test(groups = {"ruby", "ruby.required", "ruby.db"})
-public class XgenInternalsTest extends RubyDBTest {
+@Test(groups = {"ruby", "ruby.db"})
+public class XgenInternalsTest extends SourceRunner {
 
     static final String JS_RECORD_CREATION_CODE = "db.rubytest.remove({});" +
         "db.rubytest.save({artist: 'Thomas Dolby', album: 'Aliens Ate My Buick', song: 'The Ability to Swing'});" +
@@ -36,6 +37,8 @@ public class XgenInternalsTest extends RubyDBTest {
     @BeforeMethod(groups={"ruby", "ruby.required", "ruby.db"})
     public void setUp() {
         super.setUp();
+        s.put("connect", new Shell.ConnectDB(), true);
+        runJS("db = connect('rubytest');");
         runJS(JS_RECORD_CREATION_CODE);
         runRuby("require 'xgen/mongo';" +
                 "class Track < XGen::Mongo::Base;" +
