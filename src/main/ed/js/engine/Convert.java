@@ -1580,7 +1580,7 @@ public class Convert {
 
     private void _setLineNumbers( final Node startN , final ScriptOrFnNode startSOF ){
 
-        final Set<Integer> seen = new HashSet<Integer>();
+        final IdentitySet seen = new IdentitySet();
 
         final List<Pair<Node,ScriptOrFnNode>> overallTODO = new LinkedList<Pair<Node,ScriptOrFnNode>>();
         overallTODO.add( new Pair<Node,ScriptOrFnNode>( startN , startSOF ) );
@@ -1610,10 +1610,10 @@ public class Convert {
             while ( todo.size() > 0 ){
                 n = todo.remove(0);
 
-                if ( seen.contains( n.hashCode() ) )
+                if ( seen.contains( n ) )
                     continue;
 
-                seen.add( n.hashCode() );
+                seen.add( n );
 
                 if ( n.getLineno() > 0 ){
                     overallTODO.add( new Pair<Node,ScriptOrFnNode>( n , n instanceof ScriptOrFnNode ? (ScriptOrFnNode)n : sof ) );
