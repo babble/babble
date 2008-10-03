@@ -146,6 +146,17 @@ public abstract class DBBase extends JSObjectLame implements Sizable {
 	    size += c.approxSize( seen );
 	return size;
     }
+
+    public Object evalPrototypeFunction( String name , Object ... args ){
+        JSFunction f = getFunction( name );
+        if ( f == null ){
+            System.out.println( _collectionPrototype.keySet() );
+            throw new NullPointerException( "no function called [" + name + "] in db" );
+        }
+        Scope s = f.getScope().child();
+        s.setThis( this );
+        return f.call( s , args );
+    }
     
     final tojson _tojson = new tojson();
     final String _name;
