@@ -54,20 +54,17 @@ public class RubyJSObjectWrapper extends RubyHash {
     protected Map<String, Ruby> _jsFuncs;
 
     public static synchronized RubyClass getJSObjectClass(Ruby runtime) {
-        RubyClass jsObjectClass = null;
         WeakReference<RubyClass> ref = klassDefs.get(runtime);
         if (ref == null) {
-            jsObjectClass = runtime.defineClass("JSObject", runtime.getHash(), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
-            jsObjectClass.kindOf = new RubyModule.KindOf() {
+            RubyClass klazz = runtime.defineClass("JSObject", runtime.getHash(), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
+            klazz.kindOf = new RubyModule.KindOf() {
                     public boolean isKindOf(IRubyObject obj, RubyModule type) {
                         return obj instanceof RubyJSObjectWrapper;
                     }
                 };
-            klassDefs.put(runtime, new WeakReference<RubyClass>(jsObjectClass));
+            klassDefs.put(runtime, ref = new WeakReference<RubyClass>(klazz));
         }
-        else
-            jsObjectClass = ref.get();
-        return jsObjectClass;
+        return ref.get();
     }
 
     RubyJSObjectWrapper(Scope s, Ruby runtime, JSObject obj) {
