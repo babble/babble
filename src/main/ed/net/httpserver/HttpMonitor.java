@@ -19,6 +19,7 @@
 package ed.net.httpserver;
 
 import java.util.*;
+import javax.servlet.http.*;
 
 import ed.lang.*;
 import ed.util.*;
@@ -62,11 +63,37 @@ public abstract class HttpMonitor implements HttpHandler {
         _addAll( name );
     }
     
+    protected boolean allowed( HttpRequest request ){
+        String h = request.getHost();
+        if ( h == null )
+            return false;
+        
+        if ( ! h.endsWith( "." + Config.getInternalDomain() ) )
+            return false;
+
+        if ( AUTH_COOKIE == null ){
+            System.err.println( "WARNING: no cookie info, letting everyone in" );
+            return true;
+        }
+        
+        if ( AUTH_COOKIE.equalsIgnoreCase( request.getCookie( "auth" ) ) )
+            return true;
+
+        if ( AUTH_COOKIE.equalsIgnoreCase( request.getParameter( "auth" ) ) )
+            return true;
+
+        return false;
+    }
+    
     protected void addStyle( StringBuilder buf ){}
     public abstract void handle( JxpWriter out , HttpRequest request , HttpResponse response );
     
     public boolean handles( HttpRequest request , Info info ){
+        
         if ( ! request.getURI().equalsIgnoreCase( _uri ) )
+            return false;
+
+        if ( ! allowed( request ) )
             return false;
 
         info.fork = false;
@@ -76,6 +103,18 @@ public abstract class HttpMonitor implements HttpHandler {
     }
     
     public void handle( HttpRequest request , HttpResponse response ){
+
+        if ( AUTH_COOKIE != null && AUTH_COOKIE.equalsIgnoreCase( request.getParameter( "auth" ) ) ){
+            Cookie c = new Cookie( "auth" , AUTH_COOKIE );
+            c.setDomain( "10gen.cc" );
+            c.setPath( "/" );
+            c.setMaxAge( 86400 * 30 );
+
+            response.addCookie( c );
+            response.sendRedirectTemporary( request.getFullURL().replaceAll( "auth=" + AUTH_COOKIE , "" ) );
+            return;
+        }
+
         JxpWriter out = response.getJxpWriter();
         
         if ( _plainText )
@@ -193,7 +232,8 @@ public abstract class HttpMonitor implements HttpHandler {
     static String _allContent = "";
     static final Map<String,List<String>> _subs = new HashMap<String,List<String>>();
     static final Map<String,String> _subContent = new HashMap<String,String>();
-
+    
+    static final String AUTH_COOKIE = Config.get().getProperty( "authCookie" , null );
     
     // ----------------------------------------
     // Some Basic Monitors
@@ -319,26 +359,7 @@ public abstract class HttpMonitor implements HttpHandler {
         }
         
         public static String getFilter( HttpRequest request ){
-            String f = request.getParameter( "f" );
-            if ( f != null )
-                return f;
-            
-            f = request.getHost();
-            if ( f == null )
-                return null;
-            
-            if ( f.endsWith( ".10gen.cc" ) )
-                return null;
-
-            if ( f.endsWith( ".10gen.com" ) )
-                f = f.substring( 0 , f.length() - 10 ) + ".com";
-            
-            f = ed.net.DNSUtil.getJustDomainName( f );
-            
-            if ( f.startsWith( "local" ) )
-                return null;
-
-            return f;
+            return request.getParameter( "f" );
         }
 
     }

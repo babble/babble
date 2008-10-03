@@ -32,7 +32,10 @@ public class LoadMonitor {
     
     public void hit( HttpRequest request , HttpResponse response ){
         _all.hit( request , response );
-	_router.getPool( request )._tracker.hit( request , response );
+        Router.Pool p = _router.getPool( request );
+        if ( p == null )
+            return;
+        p._tracker.hit( request , response );
     }
 
     HttpLoadTracker getTracker( String name ){
