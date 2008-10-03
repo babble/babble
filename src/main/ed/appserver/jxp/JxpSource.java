@@ -135,7 +135,7 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
             throw new RuntimeException( msg , e );
         }
         finally {
-            ProfilingTracker.tlGotTime( "compile" , System.currentTimeMillis() - start );
+            ProfilingTracker.tlGotTime( "compile" , System.currentTimeMillis() - start , 0 );
         }
     }
     
