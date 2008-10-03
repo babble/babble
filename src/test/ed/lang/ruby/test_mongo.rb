@@ -15,9 +15,7 @@
 require 'ruby_test'
 require 'xgen/mongo'
 require 'address'
-require 'student_has_one'
-require 'student_has_many'
-require 'student_array_field'
+require 'student'
 
 class Track < XGen::Mongo::Base
   collection_name :rubytest
@@ -56,6 +54,8 @@ EOS
 
     @spongebob_addr = Address.new(:street => "3 Pineapple Lane", :city => "Bikini Bottom", :state => "HI", :postal_code => "12345")
     @bender_addr = Address.new(:street => "Planet Express", :city => "New New York", :state => "NY", :postal_code => "10001")
+    @score1 = Score.new(:course_name => 'Course 101', :grade => 4.0)
+    @score2 = Score.new(:course_name => 'Course 201', :grade => 3.5)
   end
 
   def teardown
@@ -318,17 +318,17 @@ EOS
   end
 
   def test_has_one_initialize
-    s = StudentHasOne.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :address => @spongebob_addr)
+    s = Student.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :address => @spongebob_addr)
 
-    assert_not_nil s.address, "Address not set correctly in StudentHasOne#initialize"
+    assert_not_nil s.address, "Address not set correctly in Student#initialize"
     assert_equal '3 Pineapple Lane', s.address.street
   end
 
   def test_has_one_save_and_find
-    s = StudentHasOne.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :address => @spongebob_addr)
+    s = Student.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :address => @spongebob_addr)
     s.save
 
-    s2 = StudentHasOne.find(:first)
+    s2 = Student.find(:first)
     assert_equal 'Spongebob Squarepants', s2.name
     assert_equal 'spongebob@example.com', s2.email
     a2 = s2.address
@@ -341,56 +341,54 @@ EOS
   end
 
   def test_student_array_field
-    s = StudentArrayField.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :math_scores => [100, 90, 80])
+    s = Student.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :num_array => [100, 90, 80])
     s.save
 
-    s2 = StudentArrayField.find(:first)
-    assert_equal [100, 90, 80], s2.math_scores
+    s2 = Student.find(:first)
+    assert_equal [100, 90, 80], s2.num_array
   end
 
   def test_has_many_initialize
-    addresses = [@spongebob_addr, @bender_addr]
-    s = StudentHasMany.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :addresses => addresses)
-    assert_not_nil s.addresses
-    assert_equal 2, s.addresses.length
+    s = Student.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :scores => [@score1, @score2])
+    assert_not_nil s.scores
+    assert_equal 2, s.scores.length
+    assert_equal @score1, s.scores[0]
+    assert_equal @score2, s.scores[1]
   end
 
   def test_has_many_initialize_one_value
-    addresses = @spongebob_addr
-    s = StudentHasMany.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :addresses => addresses)
-    assert_not_nil s.addresses
-    assert_equal 1, s.addresses.length
-    assert_equal @spongebob_addr.street, s.addresses.first.street
+    s = Student.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :scores => @score1)
+    assert_not_nil s.scores
+    assert_equal 1, s.scores.length
+    assert_equal @score1, s.scores[0]
   end
 
   def test_has_many_save_and_find
-    addresses = [@spongebob_addr, @bender_addr]
-    s = StudentHasMany.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :addresses => addresses)
+    s = Student.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :scores => [@score1, @score2])
     s.save
 
-    s2 = StudentHasMany.find(:first)
+    s2 = Student.find(:first)
     assert_equal 'Spongebob Squarepants', s2.name
     assert_equal 'spongebob@example.com', s2.email
-    list = s2.addresses
+    list = s2.scores
     assert_not_nil list
     assert_equal 2, list.length
-    a = list.first
-    assert_not_nil a
-    assert_kind_of Address, a
-    assert (a.street == @spongebob_addr.street || a.street == @bender_addr.street), "oops: first address is unknown: #{a}"
+    score = list.first
+    assert_not_nil score
+    assert_kind_of Score, score
+    assert (score.course_name == @score1.course_name && score.grade == @score1.grade), "oops: first score is wrong: #{score}"
   end
 
   def test_field_query_methods
-    addresses = [@spongebob_addr, @bender_addr]
-    s = StudentHasMany.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :addresses => addresses)
+    s = Student.new(:name => 'Spongebob Squarepants', :email => 'spongebob@example.com', :scores => [@score1, @score2])
     assert s.name?
     assert s.email?
-    assert s.addresses
+    assert s.scores
 
-    s = StudentHasMany.new(:name => 'Spongebob Squarepants')
+    s = Student.new(:name => 'Spongebob Squarepants')
     assert s.name?
     assert !s.email?
-    assert !s.addresses?
+    assert !s.scores?
 
     s.email = ''
     assert !s.email?
