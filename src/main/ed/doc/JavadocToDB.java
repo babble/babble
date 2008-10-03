@@ -58,15 +58,14 @@ public class JavadocToDB {
 
 
         Tag mTags[] = m.tags();
+        JSArray returns = new JSArray();
         for(int k=0; k<mTags.length; k++) {
             if(mTags[k].name().equals("@return")) {
-                JSArray returns = new JSArray();
                 JSObjectBase tempReturn = new JSObjectBase();
                 tempReturn.set("title", "return");
                 tempReturn.set("desc", mTags[k].text());
                 tempReturn.set("type", m.returnType().typeName());
                 returns.add(tempReturn);
-                tempMethod.set("returns", returns);
             }
             else if (mTags[k].name().equals("@jsget")) {
                 tempMethod.set("desc", "Getter for the class "+m.containingClass().name());
@@ -81,14 +80,13 @@ public class JavadocToDB {
                 tempMethod.set(mTags[k].name(), mTags[k].text());
             }
         }
-        if(!tempMethod.containsKey("returns")) {
-            JSArray returns = new JSArray();
+        if( returns.size() == 0 ) {
             JSObjectBase tempReturn = new JSObjectBase();
             tempReturn.set("title", "return");
             tempReturn.set("type", m.returnType().typeName());
             returns.add(tempReturn);
-            tempMethod.set("returns", returns);
         }
+        tempMethod.set("returns", returns);
 
         tempMethod.set("example", getTagArray( m, "example" ) );
 
@@ -147,6 +145,13 @@ public class JavadocToDB {
         tempField.set("type", (field.type()).typeName());
         tempField.set("isStatic", field.isStatic());
         tempField.set("isPublic", field.isPublic());
+
+        Tag[] rtags = field.tags( "return" );
+        if( rtags.length > 0 ) {
+            JSObjectBase r = new JSObjectBase();
+            r.set("desc", rtags[0].text());
+            tempField.set( "returns", (new JSArray()).add( r ) );
+        }
 
         getTags(field, tempField);
 
@@ -279,7 +284,6 @@ public class JavadocToDB {
                             }
                         }
                         returns.add(pgroup);
-                        a.set("returns", returns);
                     }
                     else if(m.group(1).equals("name")) {
                         a.set("alias", m.group(2));
@@ -291,6 +295,7 @@ public class JavadocToDB {
                 }
                 a.set("_params", params);
                 a.set("params", params);
+                a.set("returns", returns);
                 jsAnon.add(a);
             }
             temp.set("anonymous", jsAnon);
