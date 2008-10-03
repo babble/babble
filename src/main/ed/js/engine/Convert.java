@@ -147,6 +147,8 @@ public class Convert {
             final char c = name.charAt(i);
 
             if ( Character.isLetter( c ) || Character.isDigit( c ) ){
+                if ( buf.length() == 0 && Character.isDigit( c ) )
+                    buf.append( "N" ); // java classes can't start with a number
                 buf.append( c );
                 continue;
             }
