@@ -25,6 +25,40 @@ import ed.util.*;
 import ed.net.httpserver.*;
 
 public class HttpLoadTracker {
+
+    static final int _shortSeconds = 10;
+
+    public static class Rolling {
+        
+        public Rolling( String name ){
+            _name = name;
+            _seconds = new HttpLoadTracker( name + " per Second" , 1 , 1 );
+            _short = new HttpLoadTracker( name + " per " + _shortSeconds + " Seconds" , _shortSeconds , _shortSeconds );
+            _minutes = new HttpLoadTracker( name + " per Minute" , 60 , 60 );
+        }
+
+        public void hit( HttpRequest request , HttpResponse response ){
+            _seconds.hit( request , response );
+            _short.hit( request , response );
+            _minutes.hit( request , response );
+        }
+
+        public void displayGraph( JxpWriter out ){
+            displayGraph( out , DEFAULTS );
+        }
+        
+        public void displayGraph( JxpWriter out , GraphOptions options ){
+            _seconds.displayGraph( out , options );
+            _short.displayGraph( out , options );
+            _minutes.displayGraph( out , options );
+        }
+            
+        final String _name;
+        final HttpLoadTracker _seconds;
+        final HttpLoadTracker _short;
+        final HttpLoadTracker _minutes;
+    }
+    
     public HttpLoadTracker( String name , int secondsInInterval , int minutesToGoBack ){
         _name = name;
         _sliceTime = 1000 * secondsInInterval;
@@ -39,10 +73,16 @@ public class HttpLoadTracker {
 
     public void hit( HttpRequest request , HttpResponse response ){
         _requests.hit();
-        _dataIn.hit( request.totalSize() );
-        _dataOut.hit( response.totalSize() );
-        _errors.hit( response.getResponseCode() >= 500 ? 1 : 0 );
-        _totalTime.hit( response.handleTime() );
+
+        if ( request != null ){
+            _dataIn.hit( request.totalSize() );
+        }
+        
+        if ( response != null ){
+            _dataOut.hit( response.totalSize() );
+            _errors.hit( response.getResponseCode() >= 500 ? 1 : 0 );
+            _totalTime.hit( response.handleTime() );
+        }
     }
 
     public void displayGraph( JxpWriter out ){
@@ -50,29 +90,41 @@ public class HttpLoadTracker {
     }
 
     public void displayGraph( JxpWriter out , GraphOptions options ){
-        out.print( "\n<div class='loadGraph'>\n" );
-
-        out.print( "<h3>" );
+        out.print( "\n<div class='loadGraph' style='clear: both;'>\n" );
+        
+        out.print( "<h4>" );
         out.print( _name );
-        out.print( "</h3>" );
+        out.print( "</h4>" );
         
-        if ( options._requestsAndErrors )
+        out.print( "<ul class='floatingList'>" );
+        out.print( "<li>" );
+
+        if ( options._requestsAndErrors ){
             printGraph( out , "Requests" , options , _requests , _errors , "requests" , "errors" );
+            out.print( "</li><li>" );
+        }
         
-        if ( options._data )
+        if ( options._data ){
             printGraph( out , "Data" , options , _dataOut , _dataIn , "data out" , "data in" );
+            out.print( "</li><li>" );
+        }
         
-        if ( options._time )
+        if ( options._time ){
             printGraph( out , "Time" , options , _totalTime , null , "time" , null );
+            out.print( "</li><li>" );
+        }
+
+        out.print( "</li>" );
+        out.print( "</ul>" );
         
         out.print( "\n</div>\n" );
     }
 
     public static void printGraph( JxpWriter out , String name , GraphOptions options , ThingsPerTimeTracker t1 , ThingsPerTimeTracker t2 , String n1 , String n2 ){
         if ( name != null ){
-            out.print( "<h3>" );
+            out.print( "<h5>" );
             out.print( name );
-            out.print( "</h3>" );
+            out.print( "</h5>" );
         }
 	
         out.print( "<img width=" + options._width + " height=" + options._height + " src=\"http://chart.apis.google.com/chart?cht=lc&chd=t:" );

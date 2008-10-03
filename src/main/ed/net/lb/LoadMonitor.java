@@ -49,5 +49,5 @@ public class LoadMonitor {
     }
     
     final Router _router;
-    final HttpLoadTracker _all = new HttpLoadTracker( "all" , 20 , 60 );
+    final HttpLoadTracker.Rolling _all = new HttpLoadTracker.Rolling( "lb traffic" );
 }
