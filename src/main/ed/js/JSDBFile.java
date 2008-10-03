@@ -20,16 +20,26 @@ package ed.js;
 
 import java.io.*;
 
+import ed.db.*;
+import ed.js.engine.*;
+
 public class JSDBFile extends JSFile {
 
-    public JSDBFile(){
-        
+    public JSDBFile( DBBase base ){
+        _base = base;
     }
 
     public JSFileChunk getChunk( int num ){
         throw new RuntimeException( "not done uet" );
     }
 
+    public void remove(){
+        if ( _base == null )
+            throw new NullPointerException( "no base to delete file" );
+        
+        _base.evalPrototypeFunction( "eval" , _removeFunc , get( "_id" ) );
+    }
+    
     public void debug(){
         
         System.out.println( "--- START" );
@@ -48,4 +58,21 @@ public class JSDBFile extends JSFile {
         System.out.println( "--- END" );
 
     }
+
+    final DBBase _base;
+
+    static final JSFunction _removeFunc =  
+        Convert.makeAnon( "function(z){ " + 
+                          "   var f = db._files.findOne( z ); " + 
+                          "   if ( ! f ){ return; }; " + 
+                          "   var next = f.next; " + 
+                          "   db._files.remove( { _id : f._id } ); " + 
+                          "   while ( next ){ " + 
+                          "      var temp = next.next; " + 
+                          "      db._chunks.remove( { _id : next._id } ); " + 
+                          "      next = temp; " + 
+                          "   } " + 
+                          "}"
+                          );
+
 }
