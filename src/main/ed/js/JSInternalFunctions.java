@@ -143,7 +143,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
 
         protected void init(){
             JSFunction._init( this );
-            dontEnum( "prototype" );
+            setProperties( "prototype", JSObjectBase.LOCK );
         }
 
     };

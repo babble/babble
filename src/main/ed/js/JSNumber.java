@@ -186,11 +186,12 @@ public class JSNumber extends Number implements JSObject {
             set( "NEGATIVE_INFINITY" , Double.NEGATIVE_INFINITY );
             set( "MAX_VALUE" , Double.MAX_VALUE );
             set( "MIN_VALUE" , Double.MIN_VALUE );
-            lockKey( "NaN" );
-            lockKey( "POSITIVE_INFINITY" );
-            lockKey( "NEGATIVE_INFINITY" );
-            lockKey( "MAX_VALUE" );
-            lockKey( "MIN_VALUE" );
+            setProperties( "NaN" , JSObjectBase.LOCK );
+            setProperties( "POSITIVE_INFINITY" , JSObjectBase.LOCK );
+            setProperties( "NEGATIVE_INFINITY",  JSObjectBase.LOCK );
+            setProperties( "MAX_VALUE" , JSObjectBase.LOCK );
+            setProperties( "MIN_VALUE" , JSObjectBase.LOCK );
+            dontEnumExisting();
         }
         
     }
