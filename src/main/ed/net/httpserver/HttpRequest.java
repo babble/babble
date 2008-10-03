@@ -1213,6 +1213,14 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest {
         }
     }
 
+    public long created(){
+        return _startTime;
+    }
+
+    public long elapsed(){
+        return System.currentTimeMillis() - _startTime;
+    }
+
     // ----
     
     final long _startTime = System.currentTimeMillis();

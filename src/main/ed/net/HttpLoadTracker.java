@@ -1,5 +1,21 @@
 // HttpLoadTracker.java
 
+/**
+*    Copyright (C) 2008 10gen Inc.
+*  
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*  
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package ed.net;
 
 import java.util.*;
@@ -52,14 +68,16 @@ public class HttpLoadTracker {
         out.print( "\n</div>\n" );
     }
 
-    void printGraph( JxpWriter out , String name , GraphOptions options , ThingsPerTimeTracker t1 , ThingsPerTimeTracker t2 , String n1 , String n2 ){
-	out.print( "<h3>" );
-	out.print( name );
-    	out.print( "</h3>" );
+    public static void printGraph( JxpWriter out , String name , GraphOptions options , ThingsPerTimeTracker t1 , ThingsPerTimeTracker t2 , String n1 , String n2 ){
+        if ( name != null ){
+            out.print( "<h3>" );
+            out.print( name );
+            out.print( "</h3>" );
+        }
 	
         out.print( "<img width=" + options._width + " height=" + options._height + " src=\"http://chart.apis.google.com/chart?cht=lc&chd=t:" );
 	
-	double max = Math.max( t1.max() , t2.max() );
+	double max = Math.max( t1.max() , t2 == null ? 0 : t2.max() );
 	
 	printGraphList( out , max , t1 );
 	
@@ -82,16 +100,16 @@ public class HttpLoadTracker {
 	    }
 	}
 
-	if ( name.equalsIgnoreCase( "data" ) ){
+	if ( name != null && name.equalsIgnoreCase( "data" ) ){
 	    max = max / 1024;
 	}
 	
-        out.print( "&chm=r&chco=00ff00,0000ff&chxt=y,x&" );
+        out.print( "&chm=r&chco=0000ff,00ff00&chxt=y,x&" );
 	out.print( "chxl=0:|0|" + Math.round( max ) + "|1:|" +  _format( t1.beginning() )  + "|" + _format( t1.bucket() ) );
 	out.print( "\" ><br>" );
     }
 
-    void printGraphList( JxpWriter out , double max , ThingsPerTimeTracker t ){
+    static void printGraphList( JxpWriter out , double max , ThingsPerTimeTracker t ){
 	for ( int i=t.size()-1; i>=0; i-- ){
 	    out.print( Math.round( ( 100 * t.get( i ) ) / max ) );
 	    if ( i > 0 )
@@ -99,7 +117,7 @@ public class HttpLoadTracker {
 	}
     }
     
-    String _format( long t ){
+    static String _format( long t ){
 	Date d = new Date( t );
 	synchronized ( DATE_TIME ){
 	    return DATE_TIME.format( d );
@@ -119,7 +137,7 @@ public class HttpLoadTracker {
     public static class GraphOptions {
         
         public GraphOptions(){
-            this( 600 , 100 , true , true , false );
+            this( 600 , 150 , true , true , false );
         }
 
         public GraphOptions( int width , int height , boolean requestsAndErrors , boolean data , boolean time ){
@@ -139,6 +157,6 @@ public class HttpLoadTracker {
         
     }
 
-    static final GraphOptions DEFAULTS = new GraphOptions();
-    static final DateFormat DATE_TIME = new SimpleDateFormat( "hh:mm:ss" );
+    public static final GraphOptions DEFAULTS = new GraphOptions();
+    private static final DateFormat DATE_TIME = new SimpleDateFormat( "hh:mm:ss" );
 }

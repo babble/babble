@@ -373,15 +373,22 @@ public class HttpServer extends NIOServer {
             void _printTracker( String name , ThingsPerTimeTracker tracker , JxpWriter out ){
 		
                 tracker.validate();
-		
+                
 		out.print( "<tr><th colspan='10'>" + name + "</th></tr>" );
-		out.print( "<tr>" );
-                for ( int i=0; i<tracker.size(); i++ ){
+
+                out.print( "<tr><td colspan='" + ( 1 + tracker.size() ) + "' >" );
+                HttpLoadTracker.printGraph( out , null , HttpLoadTracker.DEFAULTS , tracker , null , null , null );
+		out.print( "</td></tr>" );                
+
+		out.print( "<tr><td>&nbsp;&nbsp;</td>" );
+                for ( int i=tracker.size()-1; i>=0; i-- ){
 		    out.print( "<td>" );
                     out.print( tracker.get( i ) );
 		    out.print( "&nbsp;</td>" );
                 }
 		out.print( "</tr>" );                
+                
+
             }
             
             final long _startTime = System.currentTimeMillis();

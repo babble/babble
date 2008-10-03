@@ -34,6 +34,7 @@ import ed.net.httpserver.*;
 
 public class LB extends NIOClient {
 
+    static final long WAIT_FOR_POOL_TIMEOUT = 10000;
     static final String LBIDENT = DNSUtil.getLocalHost().getHostName() + " : v0" ;
 
     enum State { WAITING , IN_HEADER , READY_TO_STREAM , STREAMING , ERROR , DONE };
@@ -124,7 +125,7 @@ public class LB extends NIOClient {
         }
         
         protected InetSocketAddress where(){
-            _lastWent = _router.chooseAddress( _request );
+            _lastWent = _router.chooseAddress( _request , _request.elapsed() > WAIT_FOR_POOL_TIMEOUT );
             return _lastWent;
         }
         

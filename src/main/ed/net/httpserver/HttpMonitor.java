@@ -93,6 +93,7 @@ public abstract class HttpMonitor implements HttpHandler {
             handle( out , request , response );
         }
         catch ( Exception e ){
+            e.printStackTrace();
             out.print( e.toString() ).print( "<br>" );
             for ( StackTraceElement element : e.getStackTrace() )
                 out.print( element + "<br>\n" );

@@ -33,14 +33,20 @@ public class Router {
         _mapping = _mappingFactory.getMapping();
     }
 
-    public InetSocketAddress chooseAddress( HttpRequest request ){
+    public InetSocketAddress chooseAddress( HttpRequest request , boolean doOrDie ){
         Environment e = _mapping.getEnvironment( request );
-        return chooseAddressForPool( e , _mapping.getPool( e ) );
+        return chooseAddressForPool( e , _mapping.getPool( e ) , doOrDie );
     }
-    
-    InetSocketAddress chooseAddressForPool( final Environment e , final String pool ){
-	return getPool( pool ).getAddress( e );
+
+
+    /**
+     * @param doOrDie if this is false, this function will return nul if it doesn't like any of the appservers
+     *                if it is true, it'll return its best option, and failing that will throw an exception
+     */
+    InetSocketAddress chooseAddressForPool( final Environment e , final String pool , boolean doOrDie ){
+	return getPool( pool ).getAddress( e , doOrDie );
     }
+
     public void error( HttpRequest request , InetSocketAddress addr , NIOClient.ServerErrorType type , Exception what ){
         getServer( addr ).error( request , type , what );
     }
@@ -143,7 +149,7 @@ public class Router {
                 _servers.add( getServer( addr ) );
         }
 
-        InetSocketAddress getAddress( Environment e ){
+        InetSocketAddress getAddress( Environment e , boolean doOrDie ){
             final int start = (int)(Math.random()*_servers.size());
             final int size = _servers.size();
             _seen.add( e );
@@ -165,9 +171,15 @@ public class Router {
                 best = s;
             }
             
-            if ( best == null )
-                throw new RuntimeException( "no server available for pool [" + _name + "]" );
+            if ( best == null ){
+                if ( doOrDie )
+                    throw new RuntimeException( "no server available for pool [" + _name + "]" );
+                return null;
+            }
             
+            if ( score == 0 && ! doOrDie )
+                return null;
+
             return best._addr;
         }
         
