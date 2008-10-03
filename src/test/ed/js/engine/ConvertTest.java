@@ -67,6 +67,7 @@ public class ConvertTest extends TestCase {
         assertEquals( "abc_123" , Convert.cleanName( "abc/123" ) );
         assertEquals( "abc__123" , Convert.cleanName( "abc//123" ) );
         assertEquals( "abc__123" , Convert.cleanName( "/abc//123" ) );
+        assertEquals( "N123abc" , Convert.cleanName( "123abc" ) );
     }
 
     Object _makeAnon( String code ){
