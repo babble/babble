@@ -14,6 +14,24 @@
 
 require 'xgen/mongo/cursor'
 
+class Object
+  def to_mongo_value
+    self
+  end
+end
+class Array
+  def to_mongo_value
+    self.collect {|v| v.to_mongo_value}
+  end
+end
+class Hash
+  def to_mongo_value
+    h = {}
+    self.each {|k,v| h[k] = v.to_mongo_value}
+    h
+  end
+end
+
 module XGen
 
   module Mongo
@@ -79,6 +97,7 @@ module XGen
         def field_names; @field_names; end
         def subobjects; @subobjects; end
         def arrays; @arrays; end
+        def mongo_ivar_names; @field_names + @subobjects.keys + @arrays.keys; end
 
         # Tells Mongo about a subobject.
         #
@@ -397,7 +416,7 @@ module XGen
 
       # Saves and returns self.
       def save
-        row = self.class.coll.save(to_hash)
+        row = self.class.coll.save(to_mongo_value)
         if @_id == nil
           @_id = row._id
         elsif row._id != @_id
@@ -410,11 +429,9 @@ module XGen
         @_id == nil
       end
 
-      def to_hash
+      def to_mongo_value
         h = {}
-        self.class.field_names.each {|iv| h[iv] = instance_variable_get("@#{iv}") }
-        self.class.subobjects.keys.each {|iv| h[iv] = instance_variable_get("@#{iv}") }
-        self.class.arrays.keys.each {|iv, v| h[iv] = instance_variable_get("@#{iv}").collect{|val| val.to_hash} }
+        self.class.mongo_ivar_names.each {|iv| h[iv] = instance_variable_get("@#{iv}").to_mongo_value }
         h
       end
 
