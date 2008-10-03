@@ -34,11 +34,18 @@ public class Router {
     }
 
     public InetSocketAddress chooseAddress( HttpRequest request , boolean doOrDie ){
-        Environment e = _mapping.getEnvironment( request );
-        return chooseAddressForPool( e , _mapping.getPool( e ) , doOrDie );
+        final Environment e = _mapping.getEnvironment( request );
+        if ( e == null )
+            throw new IllegalArgumentException( "can't find pool for [" + request.getFullURL() + "]" );
+        
+        final String p = _mapping.getPool( e );
+        if ( p == null )
+            throw new IllegalArgumentException( "can't find pool for " + e + " from [" + request.getFullURL() + "]" );
+        
+        return chooseAddressForPool( e , p , doOrDie );
     }
 
-
+    
     /**
      * @param doOrDie if this is false, this function will return nul if it doesn't like any of the appservers
      *                if it is true, it'll return its best option, and failing that will throw an exception
@@ -60,6 +67,9 @@ public class Router {
     }
 
     Pool getPool( String name ){
+        if ( name == null )
+            return null;
+
         Pool p = _pools.get( name );
         if ( p != null )
 	    return p;
@@ -74,7 +84,7 @@ public class Router {
         }
         return p;
     }
-
+    
     Server getServer( InetSocketAddress addr ){
         Server s = _addressToServer.get( addr );
         if ( s != null )
@@ -142,6 +152,10 @@ public class Router {
     class Pool {
 
         Pool( String name , List<InetSocketAddress> addrs ){
+
+            if ( addrs == null )
+                throw new NullPointerException( "can't create a Pool with no addresses" );
+
             _name = name;
 	    _tracker = new HttpLoadTracker( name , 2 , 60 );
             _servers = new ArrayList<Server>();
