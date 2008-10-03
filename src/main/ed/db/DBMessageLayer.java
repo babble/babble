@@ -40,7 +40,7 @@ public abstract class DBMessageLayer extends DBApiLayer {
     protected int doQuery( ByteBuffer out , ByteBuffer in ){
         final long start = System.currentTimeMillis();
         final int res = call( 2004 , out , in );
-        ProfilingTracker.tlGotTime( "db.queries" , System.currentTimeMillis() - start , res );
+        ProfilingTracker.tlGotTime( "db.query" , System.currentTimeMillis() - start , res );
         return res;
     }
     protected int doGetMore( ByteBuffer out , ByteBuffer in ){
