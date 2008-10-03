@@ -46,6 +46,11 @@ public class JSObjectBase implements JSObject {
         JS._debugSIStart( "JSObjectBase" );
     }
 
+    public static int READ_ONLY = 1;
+    public static int DONT_DELETE = 2;
+    public static int DONT_ENUM = 4;
+    public static int LOCK = 7;
+
     /** The name for objects: "Object" */
     static final String OBJECT_STRING = "Object";
 
@@ -87,7 +92,7 @@ public class JSObjectBase implements JSObject {
         if ( n == null )
             n = "null";
 
-        if( isLockedKey( n.toString() ) ) {
+        if( _readOnlyKeys != null && _readOnlyKeys.contains( n.toString() ) ) {
             return v;
         }
         if ( v != null && "_id".equals( n ) &&
@@ -150,6 +155,25 @@ public class JSObjectBase implements JSObject {
         if ( v instanceof JSObjectBase )
             ((JSObjectBase)v)._name = name;
         return v;
+    }
+
+    /** Sets a field and gives it certain properties from the set DontEnum, ReadOnly, and DontDelete. 
+     */
+
+    public void setProperties( String s , int opts ) {
+        if( ( opts & DONT_ENUM ) != 0 ) {
+            dontEnum( s );
+        }
+        if( ( opts & DONT_DELETE ) != 0 ) {
+            if( _dontDeleteKeys == null )
+                _dontDeleteKeys = new HashSet();
+            _dontDeleteKeys.add( s );
+        }
+        if( ( opts & READ_ONLY ) != 0 ) {
+            if( _readOnlyKeys == null )
+                _readOnlyKeys = new HashSet();
+            _readOnlyKeys.add( s );
+        }
     }
 
     private void _checkMap(){
@@ -492,7 +516,7 @@ public class JSObjectBase implements JSObject {
         Object val = null;
 
         if ( n instanceof String ){
-            if ( isLockedKey( (String)n ) )
+            if ( _dontDeleteKeys != null && _dontDeleteKeys.contains( (String)n ) )
                 return false;
             if ( _map != null )
                 val = _map.remove( (String)n );
@@ -832,17 +856,6 @@ public class JSObjectBase implements JSObject {
         setReadOnly( true );
     }
 
-    public void lockKey( String key ) {
-        if( _lockedKeys == null ) {
-            _lockedKeys = new ArrayList<String>();
-        }
-        _lockedKeys.add( key );
-    }
-
-    private boolean isLockedKey( String key ) {
-        return _lockedKeys != null && _lockedKeys.contains( key );
-    }
-
     /** Sets if an object is locked or not.
      * @param readOnly If this object's fields should be read-only.
      */
@@ -1042,7 +1055,8 @@ public class JSObjectBase implements JSObject {
 
         size += JSObjectSize.size( _name , seen );
         size += JSObjectSize.size( _keys , seen );
-        size += JSObjectSize.size( _lockedKeys , seen );
+        size += JSObjectSize.size( _dontDeleteKeys , seen );
+        size += JSObjectSize.size( _readOnlyKeys , seen );
         size += JSObjectSize.size( _dontEnum , seen );
         size += JSObjectSize.size( _dependencies , seen );
 
@@ -1107,7 +1121,8 @@ public class JSObjectBase implements JSObject {
     protected FastStringMap _map = null;
     protected Map<String,Pair<JSFunction,JSFunction>> _setterAndGetters = null;
     private Collection<String> _keys = null;
-    private Collection<String> _lockedKeys = null;
+    private Set<String> _readOnlyKeys;
+    private Set<String> _dontDeleteKeys;
     private Set<String> _dontEnum;
     private JSFunction _constructor;
     private JSObject __proto__ = null;

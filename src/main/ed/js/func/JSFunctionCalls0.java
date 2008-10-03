@@ -21,6 +21,11 @@ package ed.js.func;
 import ed.js.engine.*;
 import ed.js.*;
 public abstract class JSFunctionCalls0 extends JSFunction { 
+    // for Function objects with num args
+    public JSFunctionCalls0( int num ){
+        super( num );
+    }
+
     public JSFunctionCalls0(){
         super( 0 );
     }
