@@ -19,34 +19,34 @@ public abstract class DBMessageLayer extends DBApiLayer {
     protected void doInsert( ByteBuffer buf ){
         final long start = System.currentTimeMillis();
         say( 2002 , buf );
-        ProfilingTracker.tlGotTime( "db.insert" , System.currentTimeMillis() - start );
+        ProfilingTracker.tlGotTime( "db.insert" , System.currentTimeMillis() - start , 0 );
     }
     protected  void doDelete( ByteBuffer buf ){
         final long start = System.currentTimeMillis();
         say( 2006 , buf );
-        ProfilingTracker.tlGotTime( "db.delete" , System.currentTimeMillis() - start );
+        ProfilingTracker.tlGotTime( "db.delete" , System.currentTimeMillis() - start , 0 );
     }
     protected void doUpdate( ByteBuffer buf ){
         final long start = System.currentTimeMillis();
         say( 2001 , buf );
-        ProfilingTracker.tlGotTime( "db.update" , System.currentTimeMillis() - start );
+        ProfilingTracker.tlGotTime( "db.update" , System.currentTimeMillis() - start , 0 );
     }
     protected void doKillCursors( ByteBuffer buf ){
         final long start = System.currentTimeMillis();
         say( 2007 , buf );
-        ProfilingTracker.tlGotTime( "db.killCursors" , System.currentTimeMillis() - start );
+        ProfilingTracker.tlGotTime( "db.killCursors" , System.currentTimeMillis() - start , 0 );
     }
     
     protected int doQuery( ByteBuffer out , ByteBuffer in ){
         final long start = System.currentTimeMillis();
         final int res = call( 2004 , out , in );
-        ProfilingTracker.tlGotTime( "db.query" , System.currentTimeMillis() - start );
+        ProfilingTracker.tlGotTime( "db.query" , System.currentTimeMillis() - start , res );
         return res;
     }
     protected int doGetMore( ByteBuffer out , ByteBuffer in ){
         final long start = System.currentTimeMillis();
         final int res = call( 2005 , out , in );
-        ProfilingTracker.tlGotTime( "db.getMore" , System.currentTimeMillis() - start );
+        ProfilingTracker.tlGotTime( "db.getMore" , System.currentTimeMillis() - start , res );
         return res;
     }
     

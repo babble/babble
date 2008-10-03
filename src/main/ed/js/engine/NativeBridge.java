@@ -155,7 +155,19 @@ public class NativeBridge {
 
         return o;
     }
-    
+
+    public static Object toJavaObject( final Object o ){
+        if ( o == null )
+            return null;
+        
+        if ( ! ( o instanceof JSObject ) )
+            return o;
+
+        if ( o instanceof JSString )
+            return o.toString();
+        
+        return o;
+    }
 
     public static Object callNative( Scope s , Object obj , String name , Object params[] ){
         return callNative( s , obj , name , params , false );
