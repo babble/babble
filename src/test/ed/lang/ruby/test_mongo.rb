@@ -217,12 +217,12 @@ EOS
 
   def find_or_create_but_already_exists
     assert_equal("artist: Thomas Dolby, album: Aliens Ate My Buick, song: The Ability to Swing, track: ",
-                 Track.find_or_create_by_song(:conditions => {:song => 'The Ability to Swing', :artist => 'Thomas Dolby'}).to_s)
+                 Track.find_or_create_by_song('The Ability to Swing', :artist => 'ignored because song found').to_s)
   end
 
   def find_or_create_new_created
     assert_equal("artist: New Artist, album: New Album, song: New Song, track: ",
-                 Track.find_or_create_by_song(:conditions => {:song => 'New Song', :artist => 'New Artist', :album => 'New Album'}).to_s)
+                 Track.find_or_create_by_song('New Song', :artist => 'New Artist', :album => 'New Album').to_s)
   end
 
   def test_cursor_methods
@@ -247,6 +247,19 @@ EOS
 
   def test_find_options
     assert_equal 2, Track.find(:all, :limit => 2).length
+  end
+
+  def test_order_options
+    tracks = Track.find(:all, :order => "song asc")
+    assert_not_nil tracks
+    assert_equal "Budapest by Blimp:Europa and the Pirate Twins:Garden Of Earthly Delights:King For A Day:The Ability to Swing:The Mayor Of Simpleton",
+                 tracks.collect {|t| t.song }.join(':')
+
+    # TODO this should work, but the database does not yet sort this properly
+#     tracks = Track.find(:all, :order => "artist desc, song")
+#     assert_not_nil tracks
+#     assert_equal "Garden Of Earthly Delights:King For A Day:The Mayor Of Simpleton:Budapest by Blimp:Europa and the Pirate Twins:The Ability to Swing",
+#                  tracks.collect {|t| t.song }.join(':')
   end
 
   def test_delete
@@ -283,6 +296,25 @@ EOS
   def test_count
     assert_equal 6, Track.count
     assert_equal 3, Track.count(:conditions => {:artist => 'XTC'})
+  end
+
+  def test_select
+    str = Track.find(:all, :select => :album).inject('') { |str, t| str + t.to_s }
+    assert str.include?("artist: , album: Oranges & Lemons, song: , track:")
+  end
+
+  def test_find_one_using_id
+    t = Track.findOne(@song_id)
+    assert_equal "artist: XTC, album: Oranges & Lemons, song: The Mayor Of Simpleton, track: 2", t.to_s
+  end
+
+  def test_select_find_one
+    t = Track.findOne(@song_id, :select => :album)
+    assert t.album?
+    assert !t.artist?
+    assert !t.song?
+    assert !t.track?
+    assert_equal "artist: , album: Oranges & Lemons, song: , track: ", t.to_s
   end
 
   def test_has_one_initialize
@@ -362,6 +394,25 @@ EOS
 
     s.email = ''
     assert !s.email?
+  end
+
+  def test_new_record
+    t = Track.new
+    assert t.new_record?
+    t.save
+    assert !t.new_record?
+
+    t = Track.create(:artist => 'Level 42', :album => 'Standing In The Light', :song => 'Micro-Kid', :track => 1)
+    assert !t.new_record?
+
+    t = Track.find(:first)
+    assert !t.new_record?
+
+    t = Track.find_or_create_by_song('New Song', :artist => 'New Artist', :album => 'New Album')
+    assert !t.new_record?
+
+    t = Track.find_or_initialize_by_song('Newer Song', :artist => 'Newer Artist', :album => 'Newer Album')
+    assert t.new_record?
   end
 
   def assert_all_songs(str)
