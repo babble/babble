@@ -101,17 +101,6 @@ public class HttpRequestTest extends TestCase {
         
         r = HttpRequest.getDummy( "/?a=data" );        
         assertEquals( null , HttpMonitor.ThreadMonitor.getFilter( r ) );
-
-        r = HttpRequest.getDummy( "/?a=data" , "Host: www.alleyinsider.com" );        
-        assertEquals( "alleyinsider" , HttpMonitor.ThreadMonitor.getFilter( r ) );
-
-        r = HttpRequest.getDummy( "/?a=data" , "Host: www.10gen.com" );        
-        assertEquals( "www" , HttpMonitor.ThreadMonitor.getFilter( r ) );
-
-        r = HttpRequest.getDummy( "/?a=data" , "Host: iad-sb-n7.10gen.cc" );        
-        assertEquals( null , HttpMonitor.ThreadMonitor.getFilter( r ) );
-        r = HttpRequest.getDummy( "/?a=data" , "Host: iad-sb-n7.10gen.cc:8080" );        
-        assertEquals( null , HttpMonitor.ThreadMonitor.getFilter( r ) );
         
     }
 
