@@ -946,14 +946,17 @@ public final class Scope implements JSObject , Bindings {
     }
 
     private void _throw(){
-        if ( _toThrow != null ){
-            _toThrow.fillInStackTrace();
-            throw _toThrow;
-        }
-
-        if ( _toThrowError != null ){
-            _toThrowError.fillInStackTrace();
-            throw _toThrowError;
+        
+        if ( ! _killed ){
+            if ( _toThrow != null ){
+                _toThrow.fillInStackTrace();
+                throw _toThrow;
+            }
+            
+            if ( _toThrowError != null ){
+                _toThrowError.fillInStackTrace();
+                throw _toThrowError;
+            }
         }
 
         if ( _parent == null )
@@ -970,7 +973,6 @@ public final class Scope implements JSObject , Bindings {
 
     private void _ensureObjectMap(){
         if ( _objects == null ){
-            //_objects = new HashMap<String,Object>();
             _objects = new FastStringMap();
         }
     }

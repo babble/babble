@@ -19,6 +19,7 @@
 package ed.log;
 
 import java.io.*;
+import java.text.*;
 
 public class PrintStreamAppender implements Appender {
 
@@ -27,7 +28,8 @@ public class PrintStreamAppender implements Appender {
     }
 
     public void append( String loggerName , ed.js.JSDate date , Level level , String msg , Throwable throwable , Thread thread ){
-        String output = "[" + date + "] " + thread.getName() + " || " + loggerName + " " + level + " >> " + msg + "\n";
+	String output = "[" + date.format( _format ) + "] " + thread.getName() + " || " + loggerName + " " + level + " >> " + msg + "\n";
+	
         try {
             _out.write( output.getBytes( "utf8" ) );
         }
@@ -39,5 +41,5 @@ public class PrintStreamAppender implements Appender {
     }
 
     final PrintStream _out;
-
+    static final SimpleDateFormat _format = new SimpleDateFormat( "mm/dd/yyyy hh:MM:ss.SSS z" );
 }

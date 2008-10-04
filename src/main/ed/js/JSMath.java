@@ -230,21 +230,21 @@ public class JSMath extends JSObjectBase {
             } );
         
         set( "E", JSMath.E );
-        lockKey( "E" );
         set( "PI", JSMath.PI );
-        lockKey( "PI" );
         set( "SQRT1_2", JSMath.SQRT1_2 );
-        lockKey( "SQRT1_2" );
         set( "SQRT2", JSMath.SQRT2 );
-        lockKey( "SQRT2" );
         set( "LN10" , JSMath.LN10 );
-        lockKey( "LN10" );
         set( "LN2" , JSMath.LN2 );
-        lockKey( "LN2" );
         set( "LOG10E" , JSMath.LOG10E );
-        lockKey( "LOG10E" );
         set( "LOG2E" , JSMath.LOG2E );
-        lockKey( "LOG2E" );
+        setProperties( "E", JSObjectBase.LOCK );
+        setProperties( "PI", JSObjectBase.LOCK );
+        setProperties( "SQRT1_2", JSObjectBase.LOCK );
+        setProperties( "SQRT2", JSObjectBase.LOCK );
+        setProperties( "LN10", JSObjectBase.LOCK );
+        setProperties( "LN2", JSObjectBase.LOCK );
+        setProperties( "LOG10E", JSObjectBase.LOCK );
+        setProperties( "LOG2E", JSObjectBase.LOCK );
         dontEnumExisting();
     }
 

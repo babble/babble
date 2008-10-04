@@ -72,7 +72,7 @@ public class ByteDecoder extends Bytes {
 
         if ( _ns != null ){
             if ( _ns.endsWith( "._files" ) ){
-                created = new JSDBFile();
+                created = new JSDBFile( _base );
             }
             else if ( _ns.endsWith( "._chunks" ) ){
                 created = new JSFileChunk();

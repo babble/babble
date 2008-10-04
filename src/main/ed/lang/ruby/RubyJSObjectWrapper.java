@@ -16,6 +16,7 @@
 
 package ed.lang.ruby;
 
+import java.lang.ref.WeakReference;
 import java.util.*;
 
 import org.jruby.*;
@@ -42,7 +43,7 @@ import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
  */
 public class RubyJSObjectWrapper extends RubyHash {
 
-    static Map<Ruby, RubyClass> klassDefs = new WeakHashMap<Ruby, RubyClass>();
+    static Map<Ruby, WeakReference<RubyClass>> klassDefs = new WeakHashMap<Ruby, WeakReference<RubyClass>>();
     static RubyClass jsObjectClass = null;
 
     protected Scope _scope;
@@ -53,17 +54,17 @@ public class RubyJSObjectWrapper extends RubyHash {
     protected Map<String, Ruby> _jsFuncs;
 
     public static synchronized RubyClass getJSObjectClass(Ruby runtime) {
-        RubyClass jsObject = klassDefs.get(runtime);
-        if (jsObjectClass == null) {
-            jsObjectClass = runtime.defineClass("JSObject", runtime.getHash(), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
-            jsObjectClass.kindOf = new RubyModule.KindOf() {
+        WeakReference<RubyClass> ref = klassDefs.get(runtime);
+        if (ref == null) {
+            RubyClass klazz = runtime.defineClass("JSObject", runtime.getHash(), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
+            klazz.kindOf = new RubyModule.KindOf() {
                     public boolean isKindOf(IRubyObject obj, RubyModule type) {
                         return obj instanceof RubyJSObjectWrapper;
                     }
                 };
-            klassDefs.put(runtime, jsObjectClass);
+            klassDefs.put(runtime, ref = new WeakReference<RubyClass>(klazz));
         }
-        return jsObjectClass;
+        return ref.get();
     }
 
     RubyJSObjectWrapper(Scope s, Ruby runtime, JSObject obj) {

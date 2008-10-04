@@ -26,6 +26,10 @@ public class Config extends Properties {
     public static Config get(){
         return INSTANCE;
     }
+
+    public static String getInternalDomain(){
+        return "10gen.cc";
+    }
     
     static String _placesToLook[] = new String[]{
         "./" , 
