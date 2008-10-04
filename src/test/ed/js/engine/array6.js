@@ -38,3 +38,10 @@ print( a.foo ? "yes" : "no" );
 
 delete a[1]
 print( a );
+
+a = [ 1 ];
+print( a );
+print( a.shift() );
+print( a );
+print( a.shift() == null );
+print( a );

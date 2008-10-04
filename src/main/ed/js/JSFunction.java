@@ -53,9 +53,11 @@ public abstract class JSFunction extends JSFunctionBase {
         _scope = scope;
         _name = name;
 
-        _prototype = new JSObjectBase();
+        _prototype = new JSObjectBase( this );
 
         set( "prototype" , _prototype );
+        set( "length" , num );
+        setProperties( "length" , JSObjectBase.LOCK );
         init();
     }
 
@@ -350,10 +352,13 @@ public abstract class JSFunction extends JSFunctionBase {
         
         if ( _callCache != null )
             size += _callCache.approxSize( seen );
+	
+	if ( _scope != null )
+	    size += _scope.approxSize( seen );
 
         return size;
     }
-
+    
     public Language getSourceLanguage(){
         return _sourceLanguage;
     }

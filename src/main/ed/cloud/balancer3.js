@@ -19,10 +19,10 @@
 Cloud.Balancer = {};
 
 Cloud.Balancer.getAvailableDB = function(){
-    return "test1";
+    return "prod2";
 }
 
 Cloud.Balancer.getAvailablePool = function(){
-    return "test1";
+    return "prod2";
 }
 

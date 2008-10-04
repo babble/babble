@@ -21,6 +21,7 @@ public class ByteDecoder extends Bytes {
     }
 
     protected void done(){
+	_constructor = null;
         _pool.done( this );
     }
 
@@ -71,7 +72,7 @@ public class ByteDecoder extends Bytes {
 
         if ( _ns != null ){
             if ( _ns.endsWith( "._files" ) ){
-                created = new JSDBFile();
+                created = new JSDBFile( _base );
             }
             else if ( _ns.endsWith( "._chunks" ) ){
                 created = new JSFileChunk();
@@ -281,6 +282,6 @@ public class ByteDecoder extends Bytes {
 
     String _ns;
     DBBase _base;
-    JSFunction _constructor;
+    private JSFunction _constructor;
 }
 

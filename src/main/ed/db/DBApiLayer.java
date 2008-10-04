@@ -337,7 +337,7 @@ public abstract class DBApiLayer extends DBBase {
 
             int len = doQuery( encoder._buf , decoder._buf );
             decoder.doneReading( len );
-
+	    
             SingleResult res = new SingleResult( _fullNameSpace , decoder , null );
 
             decoder.done();
@@ -345,6 +345,12 @@ public abstract class DBApiLayer extends DBBase {
 
             if ( res._lst.size() == 0 )
                 return null;
+
+	    if ( res._lst.size() == 1 ){
+		Object err = res._lst.get(0).get( "$err" );
+		if ( err != null )
+		    throw new JSException( "db error [" + err + "]" );
+	    }
 
             return new Result( this , res , numToReturn );
         }

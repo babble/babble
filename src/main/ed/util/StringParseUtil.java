@@ -177,13 +177,26 @@ public final class StringParseUtil {
             
             isDouble = true;
         }
-        
-        if ( isDouble )
-            return Double.parseDouble( s.substring( firstDigit , lastDigit ) );
 
-        return Integer.parseInt( s.substring( firstDigit , lastDigit ) );
+        if ( lastDigit < s.length() && s.charAt( lastDigit ) == 'E' ){
+            lastDigit++;
+            while ( lastDigit < s.length() && Character.isDigit( s.charAt( lastDigit ) ) )
+                lastDigit++;
+            
+            isDouble = true;
+        }
+	
+
+	final String actual = s.substring( firstDigit , lastDigit );
+
+        if ( isDouble || actual.length() > 17  )
+            return Double.parseDouble( actual );
 
 
+	if ( actual.length() > 10 )
+	    return Long.parseLong(  actual );
+
+        return Integer.parseInt( actual );
     }
 
     /** Use Java's "strict parsing" methods Integer.parseInt and  Double.parseDouble to parse s "strictly". i.e. if it's neither a double or an integer, fail.
@@ -191,10 +204,28 @@ public final class StringParseUtil {
      * @return the numeric value
      */
     public static Number parseStrict( String s ){
-        if( s.indexOf('.') != -1 )
+        if( s.length() == 0 )
+            return 0;
+
+        if( s.matches( "-?Infinity" ) ) {
+            if( s.startsWith( "-" ) ) {
+                return Double.NEGATIVE_INFINITY;
+            }
+            else {
+                return Double.POSITIVE_INFINITY;
+            }
+        }
+        else if( s.indexOf('.') != -1 )
             return Double.parseDouble(s);
-        else if( s.charAt( 0 ) == '0' && s.charAt( 1 ) == 'x')
+        else if( s.length() > 2 && s.charAt( 0 ) == '0' && s.charAt( 1 ) == 'x')
             return Integer.parseInt( s.substring( 2, s.length() ) , 16 );
+
+        int e = s.indexOf( 'e' );
+        if( e > 0 ) {
+            double num = Double.parseDouble( s.substring( 0, e ) );
+            int exp = Integer.parseInt( s.substring( e + 1 ) );
+            return num * Math.pow( 10 , exp );
+        }
         return Integer.parseInt(s);
     }
 

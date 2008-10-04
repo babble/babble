@@ -40,16 +40,16 @@ public class JSRubyClassWrapper extends JSFunctionCalls0 {
     private RubyClass _klazz;
 
     public JSRubyClassWrapper(Scope scope, RubyClass klazz) {
-	if (RubyObjectWrapper.DEBUG_CREATE)
-	    System.err.println("wrapping the class " + klazz.name() + " in a JSRubyClassWrapper");
-	_scope = scope;
-	_klazz = klazz;
+        if (RubyObjectWrapper.DEBUG_CREATE)
+            System.err.println("wrapping the class " + klazz.name() + " in a JSRubyClassWrapper");
+        _scope = scope;
+        _klazz = klazz;
     }
 
     public Object call(Scope scope, Object[] extra) { return _scope.getThis(); }
 
     public JSObject newOne() {
-	RubyObject r = (RubyObject)_klazz.newInstance(_klazz.getRuntime().getCurrentContext(), JSFunctionWrapper.EMPTY_IRUBY_OBJECT_ARRAY, Block.NULL_BLOCK);
-	return new JSObjectWrapper(_scope, r);
+        RubyObject r = (RubyObject)_klazz.newInstance(_klazz.getRuntime().getCurrentContext(), JSFunctionWrapper.EMPTY_IRUBY_OBJECT_ARRAY, Block.NULL_BLOCK);
+        return new JSObjectWrapper(_scope, r);
     }
 }

@@ -149,7 +149,7 @@ Cloud.Site.prototype.findEnvironmentById = function( id ){
     return ret;
 };
 
-Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool , aliases ){
+Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool , aliases , comment ){
     if ( isObject( name ) && branch == null ){
         var o = name;
         var tempID = o.iid || o.id;
@@ -163,7 +163,7 @@ Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool , a
         db = o.db || e.db;
         pool = o.pool || e.pool;
         aliases = o.aliases || e.aliases;
-
+        comment = o.comment || e.comment;
             
     }
         
@@ -225,6 +225,11 @@ Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool , a
             e.aliases = aliases;
             if ( old == null || old.hashCode() != e.aliases.hashCode() )
                 changed = true;
+        }
+
+        if ( e.comment != comment ){
+            e.comment = comment;
+            changed = true;
         }
 
         return changed;
@@ -391,13 +396,13 @@ Cloud.Site.prototype.upsertDB = function( name , server , userToInsert ){
         if ( this.defaultUsers ){
             for each ( u in this.defaultUsers ){
                 log( "storing user [" + u.email + "] in [" + conn + "]" );
-                conn.users.save( u );
+                conn.users.save( this._copyUser( u ) );
             }
         }
 
         if ( userToInsert ){
 	    if ( ! db.users.findOne( { email : userToInsert.email } ) ){
-	        conn.users.save( userToInsert );
+	        conn.users.save( this._copyUser( userToInsert ) );
             }
         }
 
@@ -405,6 +410,18 @@ Cloud.Site.prototype.upsertDB = function( name , server , userToInsert ){
 
     return true;
 };
+
+Cloud.Site.prototype._copyUser = function( u ){
+    var n = {};
+    
+    for ( var k in u ){
+        if ( k == "_id" || javaStatic( "ed.db.ByteEncoder" , "dbOnlyField" , k ) )
+            continue;
+        n[k] = u[k];
+    }
+
+    return n;
+}
 
 // -----  Util Stuff -----------
 
@@ -475,16 +492,18 @@ Cloud.Site.prototype.updateEnvironment = function( envName , fullReset , dryRun 
     if ( ! p )
         throw "couldn't find pool [" + env.pool + "]";
     
+    log.debug( "update site [" + this.name + "] env [" + envName + "] pool [" + p + "]" );
+
     var threads = [];
-
+    
     var hostName = env.name + "." + this.name + ".10gen.com";
-
+    
     var res = { ok : true };
     for ( var i=0; i<p.machines.length; i++ ){
         var machine = p.machines[i];
-	threads.push(
+    	threads.push(
 	    fork( 
-		function(){
+		function( machine ){
 		    try {
 			res[machine] = Cloud.Site.resetSiteOnHost( machine , hostName , command , dryRun );
 		    }
@@ -493,13 +512,14 @@ Cloud.Site.prototype.updateEnvironment = function( envName , fullReset , dryRun 
 			res[machine] = e;
 		    }
 		}
+                , machine
             )
         );
     }
 
     for ( var i=0; i<threads.length; i++ ) threads[i].start();
     for ( var i=0; i<threads.length; i++ ) threads[i].join();
-
+    
     return res;
 }
 

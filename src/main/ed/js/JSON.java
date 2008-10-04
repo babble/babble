@@ -214,7 +214,8 @@ public class JSON {
 
                 if ( something instanceof Number ||
                      something instanceof Boolean ||
-                     something instanceof JSRegex ){
+                     something instanceof JSRegex ||
+                     something instanceof JSBoolean ){
                     a.append( something.toString() );
                     return;
                 }

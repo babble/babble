@@ -11,9 +11,13 @@ import java.util.Map;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
 import org.python.core.*;
+import org.python.util.*;
 
 import ed.js.Encoding;
 import ed.appserver.JSFileLibrary;
+import ed.appserver.AppContext;
+import ed.appserver.AppRequest;
+import ed.net.httpserver.HttpRequest;
 import ed.appserver.templates.djang10.Printer.RedirectedPrinter;
 import ed.js.JSLocalFile;
 import ed.js.JSObjectBase;
@@ -22,28 +26,29 @@ import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
 import ed.log.Level;
 import ed.log.Logger;
+import ed.lang.python.Python;
 
-public class PythonReloadTest extends ed.TestCase {
+public class PythonReloadTest extends PythonTestCase {
     private static final String TEST_DIR = "/tmp/pyreload";
+    private static final String TEST_DIR_SUB = "/tmp/pyreload/mymodule";
     private static final File testDir = new File(TEST_DIR);
+    private static final File testDirSub = new File(TEST_DIR_SUB);
     
     //time to wait between file modifications to allow the fs to update the timestamps
-    private static final long SLEEP_MS = 5000;
+    private static final long SLEEP_MS = 2000;
 
     @BeforeClass
     public void setUp() throws IOException, InterruptedException {
-        if(!testDir.mkdir() && !testDir.exists())
-            throw new IOException("Failed to create test dir");
+        super.setUp(testDir);
+        super.setUp(testDirSub);
+        // Mark as a module
+        new File(testDirSub, "__init__.py").createNewFile();
     }
         
     @Test
     public void test() throws IOException, InterruptedException {
-        Scope globalScope = initScope();
-        RedirectedPrinter printer = new RedirectedPrinter();
-        globalScope.set("print", printer);
-        globalScope.set("counter", 0);
+        Scope globalScope = initScope(testDir, "python-reload-test");
         JSFileLibrary fileLib = (JSFileLibrary)globalScope.get("local");
-        
         
         writeTest1File1();
         writeTest1File2();
@@ -56,67 +61,110 @@ public class PythonReloadTest extends ed.TestCase {
             globalScope.eval("local.file1();");
             assertRan3(globalScope);
 
-            clearScope(globalScope);
             Thread.sleep(SLEEP_MS);
             writeTest1File2();
 
             PyObject m = Py.getSystemState().__findattr__("modules");
 
-            globalScope.eval("local.file1();");
-
-            assertRan2(globalScope);
-
-            Thread.sleep(SLEEP_MS);
-            System.out.println("New test");
-            clearScope(globalScope);
-            writeTest2File2();
-            globalScope.eval("local.file1();");
-
-            assertRan2(globalScope);
-
-            clearScope(globalScope);
-
-            globalScope.eval("local.file1();");
-            assertRan1(globalScope);
+            shouldRun2(globalScope);
 
             Thread.sleep(SLEEP_MS);
             writeTest2File2();
-            clearScope(globalScope);
-            globalScope.eval("local.file1();");
-            assertRan2(globalScope);
+            shouldRun2(globalScope);
+
+            shouldRun1(globalScope);
+
+            Thread.sleep(SLEEP_MS);
+            writeTest2File2();
+            shouldRun2(globalScope);
 
             Thread.sleep(SLEEP_MS);
             writeTest3File2();
             writeTest3File3();
 
-            clearScope(globalScope);
-            globalScope.eval("local.file1();");
+            shouldRun3(globalScope);
 
-            assertRan3(globalScope);
-
-            clearScope(globalScope);
-            globalScope.eval("local.file1();");
-            assertRan1(globalScope);
+            shouldRun1(globalScope);
 
             Thread.sleep(SLEEP_MS);
             writeTest3File2();
             writeTest3File3();
 
-            clearScope(globalScope);
-            globalScope.eval("local.file1();");
-            assertRan3(globalScope);
+            shouldRun3(globalScope);
 
-
-            clearScope(globalScope);
-            globalScope.eval("local.file1();");
-            assertRan1(globalScope);
+            shouldRun1(globalScope);
 
             Thread.sleep(SLEEP_MS);
             writeTest3File3();
-            clearScope(globalScope);
-            globalScope.eval("local.file1();");
+            shouldRun3(globalScope);
 
-            assertRan3(globalScope);
+            Thread.sleep(SLEEP_MS);
+            // Test 4
+            writeTest4File1();
+            writeTest4File2();
+            writeTest4File3();
+
+            // 1 exec() 2 import 3
+            // 1 runs, execs 2 (runs unconditionally), imports 3 (runs once)
+            shouldRun3(globalScope);
+
+            shouldRun2(globalScope);
+
+            Thread.sleep(SLEEP_MS);
+            writeTest4File1();
+            shouldRun2(globalScope);
+
+            Thread.sleep(SLEEP_MS);
+            writeTest4File2();
+            shouldRun2(globalScope);
+
+            Thread.sleep(SLEEP_MS);
+            writeTest4File3();
+            shouldRun3(globalScope);
+
+            // Test 5 -- __import__(file, {}) is tracked
+            Thread.sleep(SLEEP_MS);
+            writeTest5File1();
+            writeTest5File2();
+            writeTest5File3();
+            shouldRun3(globalScope);
+
+            shouldRun1(globalScope);
+
+            Thread.sleep(SLEEP_MS);
+            writeTest5File2();
+            shouldRun2(globalScope);
+            shouldRun1(globalScope);
+
+            Thread.sleep(SLEEP_MS);
+            writeTest5File3();
+            shouldRun3(globalScope);
+            shouldRun1(globalScope);
+
+            // Test 6 -- importing in modules is tracked
+            globalScope = initScope(testDir, "python-reload-test6"); // flush sys.modules
+            globalScope.makeThreadLocal();
+            writeTest6File1();
+            writeTest6File2();
+            writeTest6File3();
+            shouldRun3(globalScope);
+            // make sure right module was getting run
+            assertEquals(globalScope.get("ranSubFile3"), 100);
+            globalScope.set("ranSubFile3", 0);
+
+            shouldRun1(globalScope);
+            assertEquals(globalScope.get("ranSubFile3"), 0);
+
+            Thread.sleep(SLEEP_MS);
+            writeTest6File2();
+            shouldRun2(globalScope);
+            shouldRun1(globalScope);
+
+            Thread.sleep(SLEEP_MS);
+            writeTest6File3();
+            shouldRun3(globalScope);
+            shouldRun1(globalScope);
+
         }
         finally {
             if(oldScope != null)
@@ -130,64 +178,6 @@ public class PythonReloadTest extends ed.TestCase {
             }
         }
         
-    }
-    
-    private static void rdelete(File f) {
-        if(f.isDirectory()) {
-            for(File sf : f.listFiles())
-                rdelete(sf);
-        }
-        f.delete();
-    }
-    
-    private Scope initScope() {
-        //Initialize Scope ==================================
-        Scope oldScope = Scope.getThreadLocal();
-        Scope globalScope = Scope.newGlobal().child();
-        globalScope.setGlobal(true);
-        globalScope.makeThreadLocal();
-        
-        try {
-            //Load native objects
-            Logger log = Logger.getRoot();
-            globalScope.set("log", log);
-            log.makeThreadLocal();
-            
-            Map<String, JSFileLibrary> rootFiles = new HashMap<String, JSFileLibrary>();
-            rootFiles.put("local", new JSFileLibrary(new File(TEST_DIR), "local", globalScope));
-            for(Map.Entry<String, JSFileLibrary> rootFileLib : rootFiles.entrySet())
-                globalScope.set(rootFileLib.getKey(), rootFileLib.getValue());
-            
-            Encoding.install(globalScope);
-            //JSHelper helper = JSHelper.install(globalScope, rootFiles, log);
-    
-            globalScope.set("SYSOUT", new JSFunctionCalls1() {
-                public Object call(Scope scope, Object p0, Object[] extra) {
-                    System.out.println(p0);
-                    return null;
-                }
-            });
-            globalScope.put("openFile", new JSFunctionCalls1() {
-                public Object call(Scope s, Object name, Object extra[]) {
-                    return new JSLocalFile(new File(TEST_DIR), name.toString());
-                }
-            }, true);
-            
-            //configure Djang10 =====================================
-            //helper.addTemplateRoot(globalScope, new JSString("/local"));
-
-        }
-        finally {
-            if(oldScope != null) oldScope.makeThreadLocal();
-            else Scope.clearThreadLocal();
-        }
-        return globalScope;
-    }
-
-    private void clearScope(Scope s){
-        s.set("ranFile1", 0);
-        s.set("ranFile2", 0);
-        s.set("ranFile3", 0);
     }
 
     // file1 -> file2 -> file3
@@ -203,12 +193,12 @@ public class PythonReloadTest extends ed.TestCase {
         fillFile(3, false);
     }
 
-    private void setTime(PrintWriter writer, String name){
-        writer.println("_10gen."+name+" = _10gen.counter; _10gen.counter += 1");
+    private void fillFile(int n, boolean importNext) throws IOException{
+        fillFile(testDir, n, importNext);
     }
 
-    private void fillFile(int n, boolean importNext) throws IOException{
-        File f = new File(testDir, "file"+n+".py");
+    private void fillFile(File dir, int n, boolean importNext) throws IOException{
+        File f = new File(dir, "file"+n+".py");
         PrintWriter writer = new PrintWriter(f);
         writer.println("import _10gen");
         writer.println("_10gen.ranFile"+n+" = 1");
@@ -241,22 +231,65 @@ public class PythonReloadTest extends ed.TestCase {
         writer.close();
     }
 
-    private void assertRan1(Scope s){
-        assertEquals(s.get("ranFile1"), 1);
-        assertEquals(s.get("ranFile2"), 0);
-        assertEquals(s.get("ranFile3"), 0);
+    private void writeTest4File1() throws IOException {
+        File f = new File(testDir, "file1.py");
+        PrintWriter writer = new PrintWriter(f);
+        writer.println("import _10gen");
+        writer.println("_10gen.ranFile1 = 1");
+        writer.println("execfile('"+testDir+"/file2.py', {})");
+        writer.close();
     }
 
-    private void assertRan2(Scope s){
-        assertEquals(s.get("ranFile1"), 1);
-        assertEquals(s.get("ranFile2"), 1);
-        assertEquals(s.get("ranFile3"), 0);
+    private void writeTest4File2() throws IOException {
+        File f = new File(testDir, "file2.py");
+        PrintWriter writer = new PrintWriter(f);
+        writer.println("import _10gen");
+        writer.println("_10gen.ranFile2 = 1");
+        writer.println("import file3");
+        writer.close();
     }
 
-    private void assertRan3(Scope s){
-        assertEquals(s.get("ranFile1"), 1);
-        assertEquals(s.get("ranFile2"), 1);
-        assertEquals(s.get("ranFile3"), 1);
+    private void writeTest4File3() throws IOException {
+        fillFile(3, false);
+    }
+
+    private void writeTest5File1() throws IOException {
+        fillFile(1, true);
+    }
+
+    private void writeTest5File2() throws IOException {
+        File f = new File(testDir, "file2.py");
+        PrintWriter writer = new PrintWriter(f);
+        writer.println("import _10gen");
+        writer.println("_10gen.ranFile2 = 1");
+        writer.println("__import__('file3', {})");
+        writer.close();
+    }
+
+    private void writeTest5File3() throws IOException {
+        fillFile(3, false);
+    }
+
+    private void writeTest6File1() throws IOException {
+        fillFile(1, true);
+    }
+
+    private void writeTest6File2() throws IOException {
+        File f = new File(testDir, "file2.py");
+        PrintWriter writer = new PrintWriter(f);
+        writer.println("import _10gen");
+        writer.println("_10gen.ranFile2 = 1");
+        writer.println("import mymodule.file3");
+        writer.close();
+    }
+
+    private void writeTest6File3() throws IOException {
+        File f = new File(testDirSub, "file3.py");
+        PrintWriter writer = new PrintWriter(f);
+        writer.println("import _10gen");
+        writer.println("_10gen.ranFile3 = 1");
+        writer.println("_10gen.ranSubFile3 = 100");
+        writer.close();
     }
 
     public static void main(String [] args){

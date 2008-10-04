@@ -137,6 +137,7 @@ public abstract class NIOServer extends Thread {
                     if ( D ) System.out.println( key + " read : " + key.isReadable() + " write : " + key.isWritable() );
                     
                     if ( key.isAcceptable() ){
+                        i.remove();
                         
                         ServerSocketChannel ssc = (ServerSocketChannel)key.channel();
                         
@@ -148,7 +149,7 @@ public abstract class NIOServer extends Thread {
                         sh._key = sc.register( _selector , SelectionKey.OP_READ , sh );
                         
                         if ( D ) System.out.println( sc );
-                        i.remove();
+
                         continue;
                     }
                     
@@ -156,6 +157,8 @@ public abstract class NIOServer extends Thread {
                     sh = (SocketHandler)key.attachment();
                     
                     if ( sh.shouldClose() ){
+                        i.remove();
+
                         if ( D ) System.out.println( "\t want to close : " + sc );
                         Socket temp = sc.socket();
                         temp.shutdownInput();
@@ -166,8 +169,10 @@ public abstract class NIOServer extends Thread {
                         continue;
                     }
                     
-                    if ( key.isWritable() )
+                    if ( key.isWritable() ){
+                        i.remove();
                         sh.writeMoreIfWant();
+                    }
                     
                     if ( key.isReadable() ){
                         i.remove();
@@ -277,7 +282,6 @@ public abstract class NIOServer extends Thread {
             key.interestOps( ops );
             _selector.wakeup();
             if ( D ) System.out.println( key + " : " + key.isValid() );
-
         }
         
         public void cancel(){
@@ -285,6 +289,7 @@ public abstract class NIOServer extends Thread {
         }
 
         public void pause(){
+            if ( D ) System.out.println( "pausing selector" );
             _key.interestOps( 0 );
         }
         

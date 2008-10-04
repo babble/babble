@@ -87,3 +87,4 @@ function f(){
 };
 
 print(f.d());
+delete Function.prototype.d;

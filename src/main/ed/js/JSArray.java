@@ -135,6 +135,8 @@ public class JSArray extends JSObjectBase implements Iterable , List {
             _prototype.set( "shift" , new JSFunctionCalls0() {
                     public Object call( Scope s , Object foo[] ){
                         JSArray a = (JSArray)(s.getThis());
+			if ( a.size() == 0 )
+			    return null;
                         return a._array.remove( 0 );
                     }
                 } );

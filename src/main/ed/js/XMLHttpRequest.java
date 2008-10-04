@@ -1,20 +1,20 @@
 // XMLHttpRequest.java
 
 /**
-*    Copyright (C) 2008 10gen Inc.
-*  
-*    This program is free software: you can redistribute it and/or  modify
-*    it under the terms of the GNU Affero General Public License, version 3,
-*    as published by the Free Software Foundation.
-*  
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU Affero General Public License for more details.
-*  
-*    You should have received a copy of the GNU Affero General Public License
-*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    Copyright (C) 2008 10gen Inc.
+ *
+ *    This program is free software: you can redistribute it and/or  modify
+ *    it under the terms of the GNU Affero General Public License, version 3,
+ *    as published by the Free Software Foundation.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU Affero General Public License for more details.
+ *
+ *    You should have received a copy of the GNU Affero General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 package ed.js;
 
@@ -65,7 +65,7 @@ public class XMLHttpRequest extends JSObjectBase {
                 XMLHttpRequest r = null;
                 if ( s.getThis() instanceof XMLHttpRequest )
                     r = (XMLHttpRequest)s.getThis();
-                
+
                 if ( r == null )
                     r = new XMLHttpRequest();
 
@@ -162,20 +162,20 @@ public class XMLHttpRequest extends JSObjectBase {
     public Object set( Object n , Object v ){
         String name = n.toString();
 
-       if ( n.equals( "onreadystatechange" ) ){
+        if ( n.equals( "onreadystatechange" ) ){
 
-           JSFunction f = (JSFunction)v;
+            JSFunction f = (JSFunction)v;
 
-           if ( f != null )
-               _async = true;
+            if ( f != null )
+                _async = true;
 
-           _onreadystatechangeScope = f.getScope().child();
-           _onreadystatechangeScope.setThis( this );
+            _onreadystatechangeScope = f.getScope().child();
+            _onreadystatechangeScope.setThis( this );
 
-           return super.set( n , v );
+            return super.set( n , v );
         }
 
-       return super.set( n , v );
+        return super.set( n , v );
     }
 
     /** Send an XML HTTP request.
@@ -228,10 +228,10 @@ public class XMLHttpRequest extends JSObjectBase {
         finally {
             setStatus( DONE );
         }
-        
+
         return this;
     }
-    
+
     /** Gets the length of the header.
      * @param Buffer containing this request string.
      * @return The number of characters in first line of the request.
@@ -270,38 +270,14 @@ public class XMLHttpRequest extends JSObjectBase {
     }
 
 
-    /** Returns request header information.
-     * @return Request header information.
-     */
-    public String getRequestHeader(){
-        StringBuffer buf = new StringBuffer();
-
-        buf.append( _method ).append( " " ).append( getLocalURL() ).append( " " ).append( "HTTP/1.0\r\n" );
-
-        buf.append( "Host: " ).append( getHost() );
-        if ( _url.getPort() > 0 )
-            buf.append( ":" ).append( getPort() );
-        buf.append( "\r\n" );
-
-        buf.append( "Connection: Close\r\n"  );
-
-	for( String x : _extraHeaders )
-	    buf.append(x);
-
-        buf.append( "\r\n" );
-
-        return buf.toString();
-    }
-
-    /** @unexpose */
-    List<String> _extraHeaders = new ArrayList<String>();
-
     /** Add a label/value pair to the request headers.
      * @param label Header label.
      * @param value Header value.
      */
     public void setRequestHeader(String label, String value) {
-	_extraHeaders.add(label + ": " + value + "\r\n");
+        if ( label.equalsIgnoreCase( "connection" ) )
+            return;
+        _headersToSend.put( label , value );
     }
 
     /** Get the path and query parts of the URL, if they exist.
@@ -350,9 +326,9 @@ public class XMLHttpRequest extends JSObjectBase {
      * @return An object parsed from the response text.
      */
     public Object getJSON(){
-	Object r = get( "responseText" );
-	if ( r == null )
-	    throw new JSException( "no 'responseText' " );
+        Object r = get( "responseText" );
+        if ( r == null )
+            throw new JSException( "no 'responseText' " );
         return JSON.parse( r.toString() );
     }
 
@@ -372,7 +348,7 @@ public class XMLHttpRequest extends JSObjectBase {
     }
 
     class Handler implements HttpResponseHandler {
-        
+
         Handler( String postData ){
             this( postData == null ? null : postData.getBytes() );
         }
@@ -380,7 +356,7 @@ public class XMLHttpRequest extends JSObjectBase {
         Handler( byte[] postData ){
             _postData = postData;
         }
-        
+
         public int read( InputStream is )
             throws IOException {
 
@@ -393,16 +369,16 @@ public class XMLHttpRequest extends JSObjectBase {
             set( "responseText" , new String( data , _contentEncoding ) );
             return data.length;
         }
-        
+
         public void gotHeader( String name , String value ){
 
             boolean firstLine = name.equals( "FIRST_LINE" );
-            
+
 
             if ( ! firstLine )
                 _header.append( name ).append( ": " );
             _header.append( value ).append( "\n" );
-            
+
             if ( firstLine ){
                 String statusText = value;
                 int idx = statusText.indexOf( " " );
@@ -413,7 +389,7 @@ public class XMLHttpRequest extends JSObjectBase {
                         statusText = statusText.substring( idx + 1 ).trim();
                     }
                 }
-                 
+
                 set( "statusText" , new JSString( statusText ) );
             }
 
@@ -424,14 +400,14 @@ public class XMLHttpRequest extends JSObjectBase {
             }
             headers.set( name , new JSString( value ) );
         }
-    
+
         public void removeHeader( String name ){}
-        
+
         public void gotResponseCode( int responseCode ){
             set( "status" , responseCode );
             setStatus( HEADERS_RECEIVED );
         }
-        
+
         public void gotContentLength( int contentLength ){
             _contentLength = contentLength;
             set( "contentLength" , contentLength );
@@ -441,27 +417,35 @@ public class XMLHttpRequest extends JSObjectBase {
             _contentEncoding = contentEncoding;
             set( "contentEncoding" , contentEncoding );
         }
-        
+
         public void gotCookie( Cookie c ){}
 
         public void setFinalUrl( URL url ){
             set( "finalURL" , url.toString() );
         }
-        
+
         public boolean followRedirect( URL url ){
             return true;
         }
-        
+
+        public boolean wantHttpErrorExceptions () {
+            return false;
+        }
+
         public Map<String,String> getHeadersToSend(){
-            return null;
+            return _headersToSend;
         }
 
         public Map<String,Cookie> getCookiesToSend(){
             return null;
         }
-        
+
         public byte[] getPostDataToSend(){
             return _postData;
+        }
+
+        public String getMethodToUse() {
+            return _method;
         }
 
         public long getDesiredTimeout(){
@@ -470,17 +454,18 @@ public class XMLHttpRequest extends JSObjectBase {
                 return -1;
             return ((Number)foo).longValue();
         }
-        
+
         final byte[] _postData;
         int _contentLength = 0;
         String _contentEncoding = "UTF8";
         StringBuilder _header = new StringBuilder();
     }
-    
+
 
     String _method;
     String _urlString;
     boolean _async;
+    Map<String,String> _headersToSend = new HashMap<String,String>();
 
     URL _url;
     Scope _onreadystatechangeScope;

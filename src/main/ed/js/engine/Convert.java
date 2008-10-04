@@ -141,16 +141,18 @@ public class Convert {
 
     public static String cleanName( String name ){
         StringBuilder buf = new StringBuilder( name.length() + 5 );
-        
+
         for ( int i=0; i<name.length(); i++ ){
 
             final char c = name.charAt(i);
 
             if ( Character.isLetter( c ) || Character.isDigit( c ) ){
+                if ( buf.length() == 0 && Character.isDigit( c ) )
+                    buf.append( "N" ); // java classes can't start with a number
                 buf.append( c );
                 continue;
             }
-            
+
             if ( buf.length() == 0 )
                 continue;
 
@@ -181,6 +183,11 @@ public class Convert {
 
         Node n = sn.getFirstChild();
 
+        _loadOnce = _isLoadOnce( n );	
+        if ( _loadOnce ) 
+            n = n.getNext();
+        
+	String whyRasReturn = null;
         while ( n != null ){
             if ( n.getType() != Token.FUNCTION ){
 
@@ -189,10 +196,13 @@ public class Convert {
                     if ( n.getType() == Token.EXPR_RESULT ){
                         _append( "return " , n );
                         _hasReturn = true;
+                        whyRasReturn = "EXPR_RESULT";
                     }
 
-                    if ( n.getType() == Token.RETURN )
+                    if ( n.getType() == Token.RETURN ){
                         _hasReturn = true;
+                        whyRasReturn = "RETURN";
+                    }
                 }
 
 
@@ -200,13 +210,15 @@ public class Convert {
 
                 _append( "\n" , n );
             }
+
             n = n.getNext();
         }
 
         if ( ! _hasReturn ) {
-            _append( "return null;" , sn );
+            _append( "return null; /* null added at end */" , sn );
         }
         else {
+            _append( "/* no return b/c : " + whyRasReturn + " */" , sn );
             int end = _mainJavaCode.length() - 1;
             boolean alreadyHaveOne = false;
             for ( ; end >= 0; end-- ){
@@ -231,12 +243,26 @@ public class Convert {
         }
     }
 
-    private void _add( Node n , State s ){
-        _add( n , null , s );
+    private void _add( Node n , State state ){
+        _add( n , null , state );
+    }
+
+    private boolean _isLoadOnce( Node n ){
+        if ( n == null || n.getType() != Token.EXPR_RESULT )
+            return false;
+        
+        n = n.getFirstChild();
+        if ( n == null || n.getType() != Token.CALL )
+            return false;
+
+        n = n.getFirstChild();
+        if ( n == null || n.getType() != Token.NAME )
+            return false;
+        
+        return n.getString().equals( "loadOnce" );
     }
 
     private void _add( Node n , ScriptOrFnNode sn , State state ){
-
         switch ( n.getType() ){
 
         case Token.TYPEOF:
@@ -259,7 +285,7 @@ public class Convert {
             int myId = _regex.size();
             ScriptOrFnNode parent  = _nodeToSOR.get( n );
             if ( parent == null )
-                throw new RuntimeException( "how is parent null" );
+                throw new RuntimeException( "how is parent null : " + n.hashCode() );
             int rId = n.getIntProp( Node.REGEXP_PROP , -1 );
 
             _regex.add( new Pair<String,String>( parent.getRegexpString( rId ) , parent.getRegexpFlags( rId ) ) );
@@ -333,7 +359,8 @@ public class Convert {
             if ( ( tempChild.getType() == Token.NAME || tempChild.getType() == Token.GETVAR ) && state.useLocalVariable( tempChild.getString() ) ){
                 if ( ! state.isNumber( tempChild.getString() ) )
                     throw new RuntimeException( "can't increment local variable : " + tempChild.getString()  );
-                _append( tempChild.getString() + "++ " , n );
+                String str = n.getType() == Token.INC ? "++ " : "-- ";
+                _append( tempChild.getString() + str , n );
             }
             else {
                 _append( "JS_inc( " , n );
@@ -401,9 +428,9 @@ public class Convert {
 
         case Token.SETPROP:
         case Token.SETELEM:
-            _append( "((JSObject)" , n );
-            _add( n.getFirstChild() , state );
-            _append( ").set( " , n );
+
+            _addAsJSObject( n.getFirstChild() , state );
+            _append( ".set( " , n );
             _add( n.getFirstChild().getNext() , state );
             _append( " , " , n );
             _add( n.getFirstChild().getNext().getNext() , state );
@@ -413,9 +440,8 @@ public class Convert {
         case Token.GETPROPNOWARN:
         case Token.GETPROP:
         case Token.GETELEM:
-            _append( "((JSObject)" , n );
-            _add( n.getFirstChild() , state );
-            _append( ").get( " , n );
+            _addAsJSObject( n.getFirstChild() , state );
+            _append( ".get( " , n );
             _add( n.getFirstChild().getNext() , state );
             _append( " )" , n );
             break;
@@ -425,9 +451,8 @@ public class Convert {
             if( fc.getType() != Token.REF_SPECIAL && fc.getType() != Token.REF_MEMBER )
                 throw new RuntimeException( "token is of type "+Token.name(fc.getType())+", should be of type REF_SPECIAL or REF_MEMBER.");
 
-            _append( "((JSObject)" , n );
-            _add( n.getFirstChild().getFirstChild() , state );
-            _append( ").set( " , n );
+            _addAsJSObject( n.getFirstChild().getFirstChild() , state );
+            _append( ".set( " , n );
             _add( fc , state );
             _append( " , " , n );
             _add( fc.getNext() , state );
@@ -435,9 +460,8 @@ public class Convert {
             break;
 
         case Token.GET_REF:
-            _append( "((JSObject)" , n );
-            _add( n.getFirstChild().getFirstChild() , state );
-            _append( ").get( " , n );
+            _addAsJSObject( n.getFirstChild().getFirstChild() , state );
+            _append( ".get( " , n );
             _add( n.getFirstChild() , state );
             _append( " ) ", n );
             break;
@@ -560,7 +584,7 @@ public class Convert {
             _append( ";\n" , n );
             break;
         case Token.RETURN:
-            boolean last = n.getNext() == null;
+            boolean last = state._depth <= 1 && n.getNext() == null;
             if ( ! last )
                 _append( "if ( true ) { " , n );
             _append( "return " , n );
@@ -571,7 +595,7 @@ public class Convert {
             else {
                 _append( " null " , n );
             }
-            _append( ";" , n );
+            _append( "; /* explicit return */" , n );
             if ( ! last )
                 _append( "}" , n );
             _append( "\n" , n );
@@ -696,19 +720,19 @@ public class Convert {
 
         case Token.AND:
             /*
-            _append( " ( " , n );
-            Node c = n.getFirstChild();
-            while ( c != null ){
-                if ( c != n.getFirstChild() )
-                    _append( " && " , n );
+              _append( " ( " , n );
+              Node c = n.getFirstChild();
+              while ( c != null ){
+              if ( c != n.getFirstChild() )
+              _append( " && " , n );
 
-                _append( " JS_evalToBool( " , n );
-                _add( c , state );
-                _append( " ) " , n );
-                c = c.getNext();
-            }
-            _append( " ) " , n );
-            break;
+              _append( " JS_evalToBool( " , n );
+              _add( c , state );
+              _append( " ) " , n );
+              c = c.getNext();
+              }
+              _append( " ) " , n );
+              break;
             */
         case Token.OR:
             Node cc = n.getFirstChild();
@@ -754,18 +778,16 @@ public class Convert {
                 throw new RuntimeException( "something is wrong" );
             break;
         case Token.DELPROP:
-            _append( "((JSObject)" , n );
-            _add( n.getFirstChild() , state );
-            _append( " ).removeField( "  , n );
+            _addAsJSObject( n.getFirstChild() , state );
+            _append( ".removeField( "  , n );
             _add( n.getFirstChild().getNext() , state );
             _append( " ) " , n );
             break;
 
         case Token.DEL_REF:
-            _append( "((JSObject)" , n );
-            _add( n.getFirstChild().getFirstChild() , state );
-            _append( ").removeField( " , n );
-            _add( n.getFirstChild() , state );            
+            _addAsJSObject( n.getFirstChild().getFirstChild() , state );
+            _append( ".removeField( " , n );
+            _add( n.getFirstChild() , state );
             _append( " )" , n );
             break;
 
@@ -791,9 +813,8 @@ public class Convert {
             break;
 
         case Token.IN:
-            _append( "((JSObject)" , n );
-            _add( n.getFirstChild().getNext() , state );
-            _append( " ).containsKey( " , n );
+            _addAsJSObject( n.getFirstChild().getNext() , state );
+            _append( ".containsKey( " , n );
             _add( n.getFirstChild() , state );
             _append( ".toString() ) " , n  );
             break;
@@ -818,19 +839,18 @@ public class Convert {
             _add( n.getFirstChild() , state );
             break;
 
-	case Token.DOTQUERY:
+        case Token.DOTQUERY:
 
-            _append( "((JSObject)" , n );
-            _add( n.getFirstChild() , state );
-            _append( " ).get( new ed.js.e4x.Query( " , n );
+            _addAsJSObject( n.getFirstChild() , state );
+            _append( ".get( new ed.js.e4x.Query( " , n );
 
             Node n2 = n.getFirstChild().getNext();
             switch( n2.getFirstChild().getType() ) {
             case Token.GET_REF :
-		_append( "\"@\" + " , n );
-		_add( n2.getFirstChild().getFirstChild() , state );
+                _append( "\"@\" + " , n );
+                _add( n2.getFirstChild().getFirstChild() , state );
                 break;
-            case Token.NAME : 
+            case Token.NAME :
                 _append( "\"" + n2.getFirstChild().getString() + "\"" , n );
                 break;
             }
@@ -842,7 +862,7 @@ public class Convert {
             String comp = Token.name( n2.getType() );
             _append( "\"" + comp + "\" ) ) " , n  );
 
-	    break;
+            break;
 
         case Token.DEFAULTNAMESPACE :
             _append( "((ed.js.e4x.ENode.Cons)scope.get( \"XML\")).setAndGetDefaultNamespace( ", n );
@@ -857,26 +877,36 @@ public class Convert {
 
     }
 
+    private void _addAsJSObject( Node n , State state ){
+        if ( n.getType() == Token.NUMBER ){
+            _append( "(new JSNumber( " + n.getDouble() + "))" , n );
+            return;
+        }
+        _append( "JS_toJSObject( " , n );
+        _add( n , state );
+        _append( ")" , n );
+    }
+
     private void _addDotQuery( Node n , State state ){
-	_append( "(new ed.js.e4x.E4X.Query(" , n );
+        _append( "(new ed.js.e4x.E4X.Query(" , n );
 
         String s = Token.name( n.getType() );
-	{
-	    Node t = n.getFirstChild();
-	    switch ( t.getType() ){
-	    case Token.GET_REF:
-		_append( "\"@\" + " , n );
-		_add( t.getFirstChild().getFirstChild() , state );
-		break;
-	    default:
-		throw new RuntimeException( "don't know how to handle " + Token.name( t.getType() ) + " in a DOTQUERY" );
-	    }
+        {
+            Node t = n.getFirstChild();
+            switch ( t.getType() ){
+            case Token.GET_REF:
+                _append( "\"@\" + " , n );
+                _add( t.getFirstChild().getFirstChild() , state );
+                break;
+            default:
+                throw new RuntimeException( "don't know how to handle " + Token.name( t.getType() ) + " in a DOTQUERY" );
+            }
 
-	}
+        }
 
-	_append( " , " , n );
-	_add( n.getFirstChild().getNext() , state );
-	_append( "))" , n );
+        _append( " , " , n );
+        _add( n.getFirstChild().getNext() , state );
+        _append( "))" , n );
     }
 
     private void _addSwitch( Node n , State state ){
@@ -1074,17 +1104,18 @@ public class Convert {
                     if ( temp != null )
                         _append( " , " , n );
                 }
+            }
+            else if ( n.getFirstChild().getType() != Token.EMPTY ) {
+                _add( n.getFirstChild() , state );
+            }
 
-                _append( " ; "  , n );
-
+            _append( " ; \n JS_evalToBool( " , n );
+            if( n.getFirstChild().getNext().getType() == Token.EMPTY ) {
+                _append( "true" , n );
             }
             else {
-                _add( n.getFirstChild() , state );
-                _append( " ; " , n );
+                _add( n.getFirstChild().getNext() , state );
             }
-
-            _append( "  \n JS_evalToBool( " , n );
-            _add( n.getFirstChild().getNext() , state );
             _append( " ) ; \n" , n );
             _add( n.getFirstChild().getNext().getNext() , state );
             _append( " )\n " , n );
@@ -1273,7 +1304,7 @@ public class Convert {
         state._fi = fi;
 
         boolean hasArguments = fi.usesArguemnts();
-        
+
         _append( "new JSFunctionCalls" + fn.getParamCount() + "( scope , null ){ \n" , n );
 
         _append( "protected void init(){ super.init(); _sourceLanguage = getFileLanguage(); \n " , n );
@@ -1283,7 +1314,7 @@ public class Convert {
             final String foo = fn.getParamOrVarName( i );
             _append( "_arguments.add( \"" + foo + "\" );\n" , n );
         }
-        
+
         _append( "_globals = new JSArray();\n" , n );
         for ( String g : fi._globals )
             _append( "_globals.add( \"" + g + "\" );\n" , n );
@@ -1316,6 +1347,7 @@ public class Convert {
         _append( callLine + " final Scope scope = usePassedInScope() ? passedIn : new Scope( \"func scope\" , getScope() , passedIn , getFileLanguage() ); " , n );
         if ( hasArguments ){
             _append( "JSArray arguments = new JSArray();\n" , n );
+            _append( "arguments.set( \"callee\" , this );\n" , n );
             _append( "scope.put( \"arguments\" , arguments , true );\n" , n );
         }
 
@@ -1357,7 +1389,7 @@ public class Convert {
 
         _addFunctionNodes( fn , state );
 
-        _add( n.getFirstChild() , state );
+        _add( n.getFirstChild() , fn , state );
         _append( "}\n" , n );
 
         int myStringId = _strings.size();
@@ -1419,6 +1451,7 @@ public class Convert {
             n.getLastChild() != null &&
             n.getLastChild().getType() == Token.RETURN_RESULT;
 
+        state._depth++;
         _append( "{" , n );
 
         String ret = "retName" + _rand();
@@ -1445,7 +1478,7 @@ public class Convert {
         if ( endReturn )
             _append( "\n\nif ( true ){ return " + ret + "; }\n\n" , n );
         _append( "}" , n );
-
+        state._depth--;
     }
 
     private void _addSet( Node n , State state ){
@@ -1512,7 +1545,7 @@ public class Convert {
         _append( " , " + local + "  ) " , val );
     }
 
-    private int countChildren( Node n ){
+    static int countChildren( Node n ){
         int num = 0;
         Node c = n.getFirstChild();
         while ( c != null ){
@@ -1549,7 +1582,7 @@ public class Convert {
 
     private void _setLineNumbers( final Node startN , final ScriptOrFnNode startSOF ){
 
-        final Set<Integer> seen = new HashSet<Integer>();
+        final IdentitySet seen = new IdentitySet();
 
         final List<Pair<Node,ScriptOrFnNode>> overallTODO = new LinkedList<Pair<Node,ScriptOrFnNode>>();
         overallTODO.add( new Pair<Node,ScriptOrFnNode>( startN , startSOF ) );
@@ -1559,6 +1592,7 @@ public class Convert {
 
             Node n = temp.first;
             final ScriptOrFnNode sof = temp.second;
+            assert( sof != null );
 
             final int line = n.getLineno();
 
@@ -1578,10 +1612,10 @@ public class Convert {
             while ( todo.size() > 0 ){
                 n = todo.remove(0);
 
-                if ( seen.contains( n.hashCode() ) )
+                if ( seen.contains( n ) )
                     continue;
 
-                seen.add( n.hashCode() );
+                seen.add( n );
 
                 if ( n.getLineno() > 0 ){
                     overallTODO.add( new Pair<Node,ScriptOrFnNode>( n , n instanceof ScriptOrFnNode ? (ScriptOrFnNode)n : sof ) );
@@ -1687,6 +1721,12 @@ public class Convert {
 
         buf.append( "public class " ).append( _className ).append( " extends JSCompiledScript {\n" );
 
+        buf.append( "\t protected void myInit(){\n" );
+        if ( _loadOnce )
+            buf.append( "\t\t _loadOnce = true; \n" );
+        buf.append( "\t} \n" );
+
+
         buf.append( "\tpublic Object _call( Scope scope , Object extra[] ) throws Exception {\n" );
 
         buf.append( "\t\t final Scope passedIn = scope; \n" );
@@ -1695,9 +1735,10 @@ public class Convert {
             buf.append("\t\t // not creating new scope for execution as we're being run in the context of an eval\n");
         }
         else {
-	    String cleanName = FileUtil.clean( _name );
+            String cleanName = FileUtil.clean( _name );
             buf.append( "\t\t if ( ! usePassedInScope() ){\n" );
             buf.append( "\t\t\t scope = new Scope( \"compiled script for:" + cleanName + "\" , scope , null , getFileLanguage() ); \n" );
+            buf.append( "\t\t\t scope.setPath( this._path ); \n" );
             buf.append( "\t\t }\n" );
             buf.append( "\t\t scope.putAll( getTLScope() );\n" );
         }
@@ -1821,7 +1862,7 @@ public class Convert {
         }
         return -1;
     }
-    
+
     String _rand(){
         return String.valueOf( _random.nextInt( 1000000 ) );
     }
@@ -1840,12 +1881,12 @@ public class Convert {
     final boolean _invokedFromEval;
     final Language _sourceLanguage;
     final int _id;
-    
+
     // these 3 variables should only be use by _append
     private int _currentLineNumber = 0;
     final Map<Integer,List<Node>> _javaCodeToLines = new TreeMap<Integer,List<Node>>();
-    final Map<Node,Integer> _nodeToSourceLine = new HashMap<Node,Integer>();
-    final Map<Node,ScriptOrFnNode> _nodeToSOR = new HashMap<Node,ScriptOrFnNode>();
+    final Map<Node,Integer> _nodeToSourceLine = new IdentityHashMap<Node,Integer>();
+    final Map<Node,ScriptOrFnNode> _nodeToSOR = new IdentityHashMap<Node,ScriptOrFnNode>();
     final List<Pair<String,String>> _regex = new ArrayList<Pair<String,String>>();
     final List<String> _strings = new ArrayList<String>();
     final ScriptInfo _scriptInfo;
@@ -1855,6 +1896,7 @@ public class Convert {
 
     private boolean _hasReturn = false;
     private JSFunction _it;
+    private boolean _loadOnce = false;
 
     private int _methodId = 0;
 
@@ -1905,7 +1947,7 @@ public class Convert {
     // SCRIPT INFO
 
     static class ScriptInfo implements StackTraceFixer {
-        
+
         ScriptInfo( String name , String fullClassName , Language l , Convert c ){
             _name = name;
             _fullClassName = fullClassName;
@@ -1916,32 +1958,32 @@ public class Convert {
         public void fixStack( Throwable e ){
             StackTraceHolder.getInstance().fix( e );
         }
-        
+
         public StackTraceElement fixSTElement( StackTraceElement element ){
             return fixSTElement( element , false );
         }
-        
+
         public StackTraceElement fixSTElement( StackTraceElement element , boolean debug ){
-            
+
             if ( ! element.getClassName().startsWith( _fullClassName ) )
                 return null;
-            
+
             if ( debug ){
                 System.out.println( element );
                 if ( _convert != null )
                     _convert._debugLineNumber( element.getLineNumber() );
             }
-            
+
             Pair<Integer,String> p = _lines.get( element.getLineNumber() );
             if ( p == null )
                 return null;
-            
+
             return new StackTraceElement( _name , p.second , _name , p.first );
         }
-        
+
         public boolean removeSTElement( StackTraceElement element ){
             String s = element.toString();
-            
+
             return
                 s.contains( ".call(JSFunctionCalls" ) ||
                 s.contains( "ed.js.JSFunctionBase.call(" ) ||
@@ -1953,18 +1995,18 @@ public class Convert {
                 Node n = c._getNodeFromJavaLine( i );
                 if ( n == null )
                     continue;
-                
+
                 int line = c._mapLineNumber( i );
-            
+
                 ScriptOrFnNode sof = c._nodeToSOR.get( n );
                 String method = "___";
                 if ( sof instanceof FunctionNode )
-                    method = ((FunctionNode)sof).getFunctionName();                
+                    method = ((FunctionNode)sof).getFunctionName();
 
                 _lines.put( i , new Pair<Integer,String>( line , method ) );
             }
         }
-        
+
         final String _name;
         final String _fullClassName;
         final Language _sourceLanguage;

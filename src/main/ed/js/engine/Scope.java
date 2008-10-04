@@ -28,6 +28,7 @@ import ed.js.*;
 import ed.js.func.*;
 import ed.lang.*;
 import ed.util.*;
+import ed.appserver.*;
 
 public final class Scope implements JSObject , Bindings {
 
@@ -48,10 +49,14 @@ public final class Scope implements JSObject , Bindings {
         return JSBuiltInFunctions.create( name );
     }
     
-    static class _NULL {
+    static class _NULL implements Sizable {
         public String toString(){
             return "This is an internal thing for Scope.  It means something is null.  You should never seen this.";
         }
+
+	public long approxSize( IdentitySet seen ){
+	    return 24;
+	}
     }
     static _NULL NULL = new _NULL();
 
@@ -61,6 +66,10 @@ public final class Scope implements JSObject , Bindings {
         return o;
     }
 
+    public Scope(){
+	this( "empty scope" , null );
+    }
+    
     public Scope( String name , Scope parent ){
         this( name , parent , null , Language.JS );
     }
@@ -303,8 +312,11 @@ public final class Scope implements JSObject , Bindings {
             return foo;
         }
 
-        if ( "__path__".equals( name ) )
+        if ( "__path__".equals( name ) ){
+	    if ( _path != null )
+		return _path;
             return ed.appserver.JSFileLibrary.findPath();
+	}
 
 
         if ( name.equals( "__puts__" ) ){
@@ -397,10 +409,16 @@ public final class Scope implements JSObject , Bindings {
                 
                 if ( foo instanceof JSFunction && with != null )
                     with[0] = pt;
-                
+		
                 return foo;
             }
         }
+
+	if ( _globalThis != null ){
+	    Object fg = _globalThis.get( name );
+	    if ( fg != null )
+		return fg;
+	}
 
         return _parent._get( nameHash , name , alt , with , noThis , depth + 1 );
     }
@@ -458,7 +476,7 @@ public final class Scope implements JSObject , Bindings {
 	if ( _parent._locked && writable )
 	    return this;
 
-	return _parent.getGlobal();
+	return _parent.getGlobal( writable );
     }
 
     public Scope getParent(){
@@ -710,8 +728,13 @@ public final class Scope implements JSObject , Bindings {
             if ( code.matches( "\\d+" ) )
                 return Integer.parseInt( code );
 
-            if ( code.matches( "\\w+(\\.\\w+)*" ) )
-                return findObject( code );
+            if ( code.matches( "\\w+(\\.\\w+)*" ) ) {
+                Object o = findObject( code );
+                if( hasReturn != null && hasReturn.length > 0 ) {
+                    hasReturn[0] = ( o == null ) ? false : true;
+                }
+                return o;
+            }
             
             // tell the Convert CTOR that we're in the context of eval so
             //  not use a private scope for the execution of this code
@@ -923,14 +946,17 @@ public final class Scope implements JSObject , Bindings {
     }
 
     private void _throw(){
-        if ( _toThrow != null ){
-            _toThrow.fillInStackTrace();
-            throw _toThrow;
-        }
-
-        if ( _toThrowError != null ){
-            _toThrowError.fillInStackTrace();
-            throw _toThrowError;
+        
+        if ( ! _killed ){
+            if ( _toThrow != null ){
+                _toThrow.fillInStackTrace();
+                throw _toThrow;
+            }
+            
+            if ( _toThrowError != null ){
+                _toThrowError.fillInStackTrace();
+                throw _toThrowError;
+            }
         }
 
         if ( _parent == null )
@@ -947,7 +973,6 @@ public final class Scope implements JSObject , Bindings {
 
     private void _ensureObjectMap(){
         if ( _objects == null ){
-            //_objects = new HashMap<String,Object>();
             _objects = new FastStringMap();
         }
     }
@@ -956,11 +981,19 @@ public final class Scope implements JSObject , Bindings {
         return approxSize( new IdentitySet() );
     }
 
-    public long approxSize( IdentitySet seen ){
-        return approxSize( seen , true );
+    public long myApproxSize(){
+	return approxSize( new IdentitySet() , true , false );
     }
     
-    public long approxSize( IdentitySet seen , boolean includeChildren ){
+    public long approxSize( IdentitySet seen ){
+        return approxSize( seen , true , true );
+    }
+    
+    public long approxSize( IdentitySet seen , boolean includeChildren , boolean includeParents ){
+	
+	if ( seen == null )
+	    seen = new IdentitySet();
+	
         if ( seen.contains( this ) )
             return 0;
         
@@ -968,15 +1001,19 @@ public final class Scope implements JSObject , Bindings {
 
         long size = 128;
         
-        if ( _objects != null )
+        if ( _objects != null ){
             size += _objects.approxSize( seen );
+	}
         
         if ( includeChildren && _children != null ){
             synchronized ( _children ){
                 size += _children.approxSize( seen );
             }
         }
-            
+
+	if ( includeParents && _parent != null && ! seen.contains( _parent ) )
+	    size += _parent.approxSize( seen , false , true );
+
         return size;
     }
     
@@ -992,6 +1029,18 @@ public final class Scope implements JSObject , Bindings {
         }
     }
 
+    public Object getLoaded( String thing ){
+	return get( _loadedMarker + thing );
+    }
+    
+    public void markLoaded( String thing , Object res ){
+	put( _loadedMarker + thing , true );
+    }
+
+    public void setPath( JSFileLibrary path ){
+	_path = path;
+    }
+
     final String _name;
     final Scope _parent;
     final Scope _maybeWritableGlobal;
@@ -1000,6 +1049,7 @@ public final class Scope implements JSObject , Bindings {
     final Language _lang;
 
     private File _root;
+    private JSFileLibrary _path;
 
     public final long _id = ID++;
     
@@ -1021,10 +1071,12 @@ public final class Scope implements JSObject , Bindings {
 
     RuntimeException _toThrow;
     Error _toThrowError;
-
+    
     private WeakBag<Scope> _children;
     private int _childrenAdds = 0;
     
+    private static String _loadedMarker = "___loaded___";
+
     public void makeThreadLocal(){
         _threadLocal.set( this );
     }

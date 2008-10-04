@@ -93,7 +93,6 @@ public abstract class JSFile extends JSObjectBase {
         if ( getLength() == 0 )
             return null;
 
-        ((JSObject)get( "next" )).keySet();
         JSFileChunk chunk = (JSFileChunk)get( "next" );
         if ( chunk == null )
             throw new NullPointerException( "first chunk is null :(" );
@@ -238,7 +237,7 @@ public abstract class JSFile extends JSObjectBase {
      * @return A modified input stream
      */
     public Sender sender(){
-        return new Sender( getFirstChunk() );
+        return new Sender( getFirstChunk() , getLength() );
     }
 
     /** Get a temporary directory suitable for the instance described by root.
@@ -331,19 +330,23 @@ public abstract class JSFile extends JSObjectBase {
         return f.getAbsolutePath();
     }
 
-    public class Sender extends InputStream {
+    public static class Sender extends InputStream {
 
-        Sender( JSFileChunk chunk ){
+        public Sender( JSFileChunk chunk , long length ){
 
             if ( chunk == null ){
                 _chunk = null;
                 _buf = null;
+                _length = 0;
                 return;
             }
-
+            
             if ( chunk.getData() == null )
                 throw new NullPointerException("chunk data can't be null" );
+
             _chunk = chunk;
+            _length = length;
+
             _buf = _chunk.getData().asByteBuffer();
         }
 
@@ -424,7 +427,7 @@ public abstract class JSFile extends JSObjectBase {
         }
 
         public int available(){
-            return (int)(getLength() - _bytesWritten);
+            return (int)(_length - _bytesWritten);
         }
 
         public void close(){
@@ -463,11 +466,17 @@ public abstract class JSFile extends JSObjectBase {
         public void reset(){
             throw new RuntimeException( "not supported" );
         }
+        
+        public boolean pause(){
+            return false;
+        }
 
-        JSFileChunk _chunk;
+        protected JSFileChunk _chunk;
         ByteBuffer _buf;
         long _bytesWritten = 0;
         long _maxPostion = -1;
+        
+        protected final long _length;
     }
 
     /** Given a path, get rid of everything other than the filename. (For example, cleanFilename("/x/y/z/log.out") would return "log.out").

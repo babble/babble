@@ -78,6 +78,11 @@ public class JSDate extends JSObjectBase implements Comparable {
                         }
                     } );
 
+                _prototype.set( "getTimezoneOffset" , new JSFunctionCalls0() {
+                        public Object call( Scope s , Object foo[] ) {
+                            return ((JSDate)s.getThis()).getTimezoneOffset();
+                        }
+                    } );
 
                 _prototype.set( "utc" , new JSFunctionCalls0() {
                         public Object call( Scope s , Object foo[] ){
@@ -350,6 +355,11 @@ public class JSDate extends JSObjectBase implements Comparable {
     public int getHourOfDay(){
         _cal();
         return _c.get( Calendar.HOUR_OF_DAY );
+    }
+
+    public int getTimezoneOffset() {
+        _cal();
+        return _c.get( Calendar.ZONE_OFFSET );
     }
 
     /** The minutes field of this date, which ranges from 0 to 59.

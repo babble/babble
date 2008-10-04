@@ -109,7 +109,7 @@ public class JSNumericFunctions extends JSObjectBase {
      * @param b Second object
      * @return their product, if <tt>a</tt> and <tt>b</tt> can be converted to numbers.
      */
-    public Object JS_mul( Object a , Object b ){
+    public Double JS_mul( Object a , Object b ){
         a = _parseNumber( a );
         b = _parseNumber( b );
 
@@ -118,7 +118,7 @@ public class JSNumericFunctions extends JSObjectBase {
 
             Number an = (Number)a;
             Number bn = (Number)b;
-
+	    /*
             if ( an instanceof Integer &&
                  bn instanceof Integer ){
 
@@ -126,11 +126,11 @@ public class JSNumericFunctions extends JSObjectBase {
                 int bi = bn.intValue();
 
                 int mul = an.intValue() * bn.intValue();
-
+		
                 if ( ai > 0 && bi > 0 && mul < 0 );
-                else return mul;
+                else return (double)mul;
             }
-
+	    */
             return an.doubleValue() * bn.doubleValue();
         }
 
@@ -142,7 +142,7 @@ public class JSNumericFunctions extends JSObjectBase {
      * @param b Second object
      * @return their quotient, if <tt>a</tt> and <tt>b</tt> can be converted to numbers.
      */
-    public Object JS_div( Object a , Object b ){
+    public Double JS_div( Object a , Object b ){
         a = _parseNumber( a );
         b = _parseNumber( b ) ;
 
@@ -163,7 +163,7 @@ public class JSNumericFunctions extends JSObjectBase {
      * @param b Second object
      * @return their difference, if <tt>a</tt> and <tt>b</tt> can be converted to numbers.
      */
-    public Object JS_sub( Object a , Object b ){
+    public Double JS_sub( Object a , Object b ){
         a = _parseNumber( a );
         b = _parseNumber( b );
 
@@ -172,11 +172,11 @@ public class JSNumericFunctions extends JSObjectBase {
 
             Number an = (Number)a;
             Number bn = (Number)b;
-
+	    /*
             if ( an instanceof Integer &&
                  bn instanceof Integer )
                 return an.intValue() - bn.intValue();
-
+	    */
             return an.doubleValue() - bn.doubleValue();
         }
 

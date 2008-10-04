@@ -23,6 +23,7 @@ import java.util.*;
 import java.io.*;
 
 public class PythonModuleTracker extends PyStringMap {
+    static final boolean DEBUG = Boolean.getBoolean( "DEBUG.PYTHONMODULETRACKER" );
 
     boolean _flushing = false;
 
@@ -61,11 +62,31 @@ public class PythonModuleTracker extends PyStringMap {
         // point in time, the module doesn't have a __file__
     }
 
-    public void flushOld(){
+    public static boolean needsRefresh( String filename ){
+        // Src for file
+        File pyFile = new File( filename );
+        String clsPath = filename.replace( ".py" , "$py.class" );
+        // Compiled class file -- might not exist
+        File clsFile = new File( clsPath );
+        
+        if( clsFile.exists() && 
+            pyFile.lastModified() > clsFile.lastModified() ){
+            if( DEBUG )
+                System.out.println("Newer " + pyFile + " " + clsFile);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @return the flushed files
+     */
+    public Set<File> flushOld(){
 
         boolean shouldFlush = false;
 
         Set<String> newer = new HashSet<String>();
+        Set<File> files = new HashSet<File>();
 
         // Go through each module in sys.modules and see if the file is newer
         for( Object o : keys() ){
@@ -85,17 +106,7 @@ public class PythonModuleTracker extends PyStringMap {
                 continue;
             }
 
-            PyString filenameP = (PyString)__file__;
-            String filename = __file__.toString();
-            // Src for file
-            File pyFile = new File( filename );
-            String clsPath = filename.replace( ".py" , "$py.class" );
-            // Compiled class file -- might not exist
-            File clsFile = new File( clsPath );
-
-            if( clsFile.exists() && 
-                pyFile.lastModified() > clsFile.lastModified() ){
-                //System.out.println("Newer " + pyFile + " " + clsFile);
+            if( needsRefresh( __file__.toString() ) ){
                 newer.add( s );
             }
         }
@@ -111,28 +122,44 @@ public class PythonModuleTracker extends PyStringMap {
             toAdd.remove( o );
             PyObject obj = super.__finditem__( o );
 
-            //System.out.println("Module " + obj);
-            if( obj == null || ! ( obj instanceof PyModule ) )
-                continue;  // User madness?
+            if( obj == null ){
+                // Not really a module -- someone probably stuck a filename in
+                // our rdeps.
+                files.add( new File( o ) );
+                continue;
+            }
+            if( ! ( obj instanceof PyModule ) ){
+                // user madness?
+                // FIXME: go in files?
+                continue;
+            }
             PyModule mod = (PyModule)obj;
 
-            //System.out.println("Flushing " + o);
+            PyObject __file__ = obj.__findattr__( "__file__" );
+            if( __file__ != null )
+                files.add( new File( __file__.toString() ) );
+
+            if( DEBUG )
+                System.out.println("Flushing " + o);
             __delitem__( o );
 
             // Get the set of modules that imported module o
             Set<String> rdeps = _reverseDeps.get( o );
             _reverseDeps.remove( o );
             if( rdeps == null ){
-                //System.out.println("Nothing imported " + o );
+                if( DEBUG )
+                    System.out.println("Nothing imported " + o );
                 continue;
             }
             for( String s : rdeps ){
-                //System.out.println("module "+ s + " imported " + o );
+                if( DEBUG )
+                    System.out.println("module "+ s + " imported " + o );
                 toAdd.add( s );
             }
 
         }
 
+        return files;
     }
 
     // Stores relationships of "module Y was imported by modules X1, X2, X3.."
@@ -146,7 +173,8 @@ public class PythonModuleTracker extends PyStringMap {
             rdeps = new HashSet<String>();
             _reverseDeps.put( moduleS , rdeps );
         }
-        //System.out.println( "Module "+ module + " was imported by module " + importer );
+        if( DEBUG )
+            System.out.println( "Module "+ module + " was imported by module " + importer );
         rdeps.add( importerS );
     }
 

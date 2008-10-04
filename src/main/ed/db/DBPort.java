@@ -146,6 +146,20 @@ public class DBPort {
     void _error( String msg ){
         System.err.println( "DBPort " + host() + " " + msg );
     }
+
+    protected void finalize(){
+        if ( _sock != null ){
+            try {
+                _sock.close();
+            }
+            catch ( Exception e ){
+                // don't care
+            }
+            
+            _sock = null;            
+        }
+
+    }
     
     final int _hashCode;
     final InetSocketAddress _addr;

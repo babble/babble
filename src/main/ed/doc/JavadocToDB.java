@@ -14,6 +14,8 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+package ed.doc;
+
 import com.sun.javadoc.*;
 import com.sun.tools.doclets.formats.html.*;
 import java.util.*;

@@ -155,7 +155,7 @@ public class DjangoRegressionTests {
             Encoding.install(globalScope);
             JSHelper.install(globalScope, Collections.EMPTY_MAP, Logger.getRoot());
             
-            JxpSource preambleSource = JxpSource.getSource(new File(getBasePath(), "preamble.js"));
+            JxpSource preambleSource = JxpSource.getSource(new File(getBasePath(), "preamble.js") , null , null );
             preambleSource.getFunction().call(globalScope);
         }
         finally {
@@ -259,7 +259,7 @@ public class DjangoRegressionTests {
                 
                 //invoke the script
                 this.file = new File(path);
-                JxpSource testSource = JxpSource.getSource(this.file);
+                JxpSource testSource = JxpSource.getSource(this.file,null,null);
                 JSFunction compiledTests = testSource.getFunction();
                 compiledTests.call(loadingScope);
             

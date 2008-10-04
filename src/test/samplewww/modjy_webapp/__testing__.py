@@ -1,5 +1,11 @@
 import os
 import sys
+import _10gen
+import foo
+import modjy_webapp.foo
+
+foo.hello = 61
+print 'running me'
 
 def escape_html(s): return s.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
@@ -14,6 +20,12 @@ def handler(environ, start_response):
     response_parts.append("<h3>Hello WSGI World!</h3>")
     response_parts.append("<h4>Here are the contents of the WSGI environment</h4>")
     environ_str = "<table border='1'>"
+    environ['10gen.db'] = _10gen.db
+    environ['10gen.foo.hi'] = foo.hi
+    environ['10gen.sitename.foo.hi'] = modjy_webapp.foo.hi
+
+    environ['10gen.foo.hello'] = foo.hello
+    environ['10gen.sitename.foo.hello'] = getattr(modjy_webapp.foo, 'hello', None)
     keys = environ.keys()
     keys.sort()
     ix = 0
@@ -79,7 +91,7 @@ def return_none(environ, start_response):
     return None
 
 def return_no_start(environ, start_response):
-    pass 
+    pass
     return ['hello', 'world']
 
 def return_list(environ, start_response):

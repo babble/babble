@@ -141,9 +141,39 @@ public class DNSUtil {
 
     public static InetAddress getByName( String host )
         throws UnknownHostException {
+	
+	if ( host == null )
+	    throw new NullPointerException( "can't lookup null host" );
+
         return InetAddress.getByName( host );
     }
 
+    public static final InetAddress getLocalHost(){
+        return LOCALHOST;
+    }
+
+    public static final String getLocalHostString(){
+        return LOCALHOST_STRING;
+    }
+
+    private final static InetAddress LOCALHOST;
+    private final static String LOCALHOST_STRING;
+    static {
+        InetAddress l = null;
+	try {
+	    l = InetAddress.getLocalHost();
+	}
+	catch ( Exception e ){
+	    e.printStackTrace();
+	    System.err.println( "exiting" );
+	    System.exit(-1);
+	}
+        finally {
+            LOCALHOST = l;
+            LOCALHOST_STRING = l == null ? "unknown host" : l.toString();
+        }
+    }
+    
     public static void main( String args[] )
         throws Exception {
         

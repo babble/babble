@@ -1,5 +1,3 @@
-// HttpResponse.java
-
 /**
 *    Copyright (C) 2008 10gen Inc.
 *  
@@ -12,6 +10,26 @@
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
 *  
+*    You should have received a copy of the GNU Affero General Public License
+*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/* -*- mode: java; c-basic-offset: 4; indent-tabs-mode: nil -*- */
+
+// HttpResponse.java
+
+/**
+*    Copyright (C) 2008 10gen Inc.
+*
+*    This program is free software: you can redistribute it and/or  modify
+*    it under the terms of the GNU Affero General Public License, version 3,
+*    as published by the Free Software Foundation.
+*
+*    This program is distributed in the hope that it will be useful,
+*    but WITHOUT ANY WARRANTY; without even the implied warranty of
+*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*    GNU Affero General Public License for more details.
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -37,7 +55,7 @@ import ed.net.*;
 import ed.appserver.*;
 
 /**
- * Represents response to an HTTP request.  On each request, the 10gen app server defines 
+ * Represents response to an HTTP request.  On each request, the 10gen app server defines
  * the variable 'response' which is of this type.
  * @expose
  * @docmodule system.HTTP.response
@@ -51,17 +69,17 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
     public static final String SERVER_HEADERS;
 
     static {
-	HeaderTimeFormat.setTimeZone( TimeZone.getTimeZone("GMT") );
-	
-	String hostname = "unknown";
-	try {
-	    hostname = InetAddress.getLocalHost().getHostName();
-	}
-	catch ( Throwable t ){
-	    t.printStackTrace();
-	}
+        HeaderTimeFormat.setTimeZone( TimeZone.getTimeZone("GMT") );
 
-	SERVER_HEADERS = "Server: ED\r\nX-svr: " + hostname + "\r\n";
+        String hostname = "unknown";
+        try {
+            hostname = InetAddress.getLocalHost().getHostName();
+        }
+        catch ( Throwable t ){
+            t.printStackTrace();
+        }
+
+        SERVER_HEADERS = "Server: ED\r\nX-svr: " + hostname + "\r\n";
     }
 
     /**
@@ -72,7 +90,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         _handler = _request._handler;
 
         setContentType( "text/html;charset=" + getContentEncoding() );
-	setDateHeader( "Date" , System.currentTimeMillis() );
+        setDateHeader( "Date" , System.currentTimeMillis() );
 
         set( "prototype" , _prototype );
     }
@@ -144,7 +162,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
     public void addCookie( String name , String value ){
         addCookie( name , value , -1 );
     }
-    
+
     /**
      * Equivalent to "addCookie( name , null , 0 )". Tells the browser
      * that the cookie with this name is already expired.
@@ -164,10 +182,10 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
      * @param seconds the number of seconds that this response should be cached
      */
     public void setCacheTime( int seconds ){
-	setHeader("Cache-Control" , "max-age=" + seconds );
-	setDateHeader( "Expires" , System.currentTimeMillis() + ( 1000 * seconds ) );
+        setHeader("Cache-Control" , "max-age=" + seconds );
+        setDateHeader( "Expires" , System.currentTimeMillis() + ( 1000 * seconds ) );
     }
-    
+
     /**
      * Set a header as a date.
      *
@@ -178,15 +196,15 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
      * @param t the value of the header, as a number of milliseconds
      */
     public void setDateHeader( String n , long t ){
-	synchronized( HeaderTimeFormat ) {
-	    setHeader( n , HeaderTimeFormat.format( new Date(t) ) );
-	}
+        synchronized( HeaderTimeFormat ) {
+            setHeader( n , HeaderTimeFormat.format( new Date(t) ) );
+        }
     }
 
     public void addDateHeader( String n , long t ){
-	synchronized( HeaderTimeFormat ) {
-	    addHeader( n , HeaderTimeFormat.format( new Date(t) ) );
-	}
+        synchronized( HeaderTimeFormat ) {
+            addHeader( n , HeaderTimeFormat.format( new Date(t) ) );
+        }
     }
 
     public Locale getLocale(){
@@ -230,6 +248,11 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         return getHeader( "Content-Type" );
     }
 
+    public void clearHeaders(){
+        _headers.clear();
+        _useDefaultHeaders = false;
+    }
+
     /**
      * Set a header in the response.
      * Overwrites previous headers with the same name
@@ -246,7 +269,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         List<String> lst = _getHeaderList( n , true );
         lst.add( v );
     }
-    
+
     public void addIntHeader( String n , int v ){
         List<String> lst = _getHeaderList( n , true );
         lst.add( String.valueOf( v ) );
@@ -258,6 +281,10 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
 
     public void setContentLength( int length ){
         setHeader( "Content-Length" , String.valueOf( length ) );
+    }
+
+    public int getContentLength(){
+        return getIntHeader( "Content-Length" , -1 );
     }
 
     public void setIntHeader( String n , int v ){
@@ -278,6 +305,10 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         return lst.get( 0 );
     }
 
+    public int getIntHeader( String h , int def ){
+        return StringParseUtil.parseInt( getHeader( h ) , def );
+    }
+
     private List<String> _getHeaderList( String n , boolean create ){
         List<String> lst = _headers.get( n );
         if ( lst != null || ! create )
@@ -293,7 +324,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
     void cleanup(){
         if ( _cleaned )
             return;
-        
+
         if ( _doneHooks != null ){
             for ( Pair<Scope,JSFunction> p : _doneHooks ){
                 try {
@@ -310,9 +341,9 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
 
         if ( _appRequest != null && _appRequest.getScope() != null )
             _appRequest.getScope().kill();
-        
+
         _handler._done = ! keepAlive();
-        
+
         _cleaned = true;
         if ( _myStringContent != null ){
 
@@ -320,17 +351,17 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
                 if ( USE_POOL )
                     _bbPool.done( bb );
             }
-            
+
             _myStringContent.clear();
             _myStringContent = null;
         }
-        
+
         if ( _writer != null ){
             _charBufPool.done( _writer._cur );
             _writer._cur = null;
             _writer = null;
         }
-        
+
     }
 
     /**
@@ -343,6 +374,8 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
             return true;
 
         _done = true;
+        if ( _doneTime <= 0 )
+            _doneTime = System.currentTimeMillis();
         boolean f = flush();
         if ( f )
             cleanup();
@@ -395,17 +428,17 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         throws IOException {
         return _flush();
     }
-    
+
     private boolean _flush()
         throws IOException {
 
         if ( _cleaned )
             throw new RuntimeException( "already cleaned" );
-        
+
         if ( _numDataThings() > 1 )
             throw new RuntimeException( "too much data" );
-
-
+        
+	
         if ( ! _sentHeader ){
             final String header = _genHeader();
             final byte[] bytes = header.getBytes();
@@ -413,60 +446,65 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
             _handler.getChannel().write( headOut );
             _sentHeader = true;
         }
-        
-        if ( _file != null ){
-            if ( _fileChannel == null ){
-		try {
-		    _fileChannel = (new FileInputStream(_file)).getChannel();
-		}
-		catch( IOException ioe ){
-		    throw new RuntimeException( "can't get file : " + _file , ioe );
-		}
-	    }
-            
-            try {
-                _fileSent += _fileChannel.transferTo( _fileSent , Long.MAX_VALUE , _handler.getChannel() );
-            }
-            catch ( IOException ioe ){
-                if ( ioe.toString().indexOf( "Resource temporarily unavailable" ) < 0 )
-                    throw ioe;
-            }
-            if ( _fileSent < _file.length() ){
-                if ( HttpServer.D ) System.out.println( "only sent : " + _fileSent );
-                _handler.registerForWrites();
-                return false;
-            }
-        }
 
-        if ( _writer != null )
-            _writer._push();
-        
-        if ( _stringContent != null ){
-            for ( ; _stringContentSent < _stringContent.size() ; _stringContentSent++ ){
-                
-                ByteBuffer bb = _stringContent.get( _stringContentSent );
-                _stringContentPos += _handler.getChannel().write( bb );
-                if ( _stringContentPos < bb.limit() ){
-                    if ( HttpServer.D ) System.out.println( "only wrote " + _stringContentPos + " out of " + bb );
+        if (!_request.getMethod().equals("HEAD")) {
+            if ( _file != null ){
+                if ( _fileChannel == null ){
+                    try {
+                        _fileChannel = (new FileInputStream(_file)).getChannel();
+                    }
+                    catch( IOException ioe ){
+                        throw new RuntimeException( "can't get file : " + _file , ioe );
+                    }
+                }
+
+                try {
+                    _fileSent += _fileChannel.transferTo( _fileSent , Long.MAX_VALUE , _handler.getChannel() );
+                }
+                catch ( IOException ioe ){
+                    if ( ioe.toString().indexOf( "Resource temporarily unavailable" ) < 0 )
+                        throw ioe;
+                }
+                if ( _fileSent < _file.length() ){
+                    if ( HttpServer.D ) System.out.println( "only sent : " + _fileSent );
                     _handler.registerForWrites();
                     return false;
                 }
-                _stringContentPos = 0;
+            }
+
+            if ( _writer != null )
+                _writer._push();
+
+            if ( _stringContent != null ){
+                for ( ; _stringContentSent < _stringContent.size() ; _stringContentSent++ ){
+
+                    ByteBuffer bb = _stringContent.get( _stringContentSent );
+                    _stringContentPos += _handler.getChannel().write( bb );
+                    if ( _stringContentPos < bb.limit() ){
+                        if ( HttpServer.D ) System.out.println( "only wrote " + _stringContentPos + " out of " + bb );
+                        _handler.registerForWrites();
+                        return false;
+                    }
+                    _stringContentPos = 0;
+                }
+            }
+
+            if ( _jsfile != null ){
+                if ( ! _jsfile.write( _handler.getChannel() ) ){
+                    if ( _jsfile.pause() )
+                        _handler.pause();
+                    else
+                        _handler.registerForWrites();
+                    return false;
+                }
             }
         }
 
-        if ( _jsfile != null ){
-            if ( ! _jsfile.write( _handler.getChannel() ) ){
-                _handler.registerForWrites();
-                return false;
-            }
-        }
-        
         cleanup();
-        
+
         if ( keepAlive() && ! _handler.hasData() )
             _handler.registerForReads();
-        else 
+        else
             _handler.registerForWrites();
 
         return true;
@@ -480,7 +518,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         _headerBufferPool.done( buf );
         return header;
     }
-    
+
     private Appendable _genHeader( Appendable a )
         throws IOException {
         // first line
@@ -496,7 +534,8 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
             a.append( "\n" );
         }
 
-	a.append( SERVER_HEADERS );
+        if ( _useDefaultHeaders )
+            a.append( SERVER_HEADERS );
 
         // headers
         if ( _headers != null ){
@@ -525,7 +564,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
                 a.append( "Expires=" ).append( expires ).append( "; " );
             a.append( "\r\n" );
         }
-        
+
         if ( keepAlive() )
             a.append( "Connection: keep-alive\r\n" );
         else
@@ -535,7 +574,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
             _writer._push();
 
         if ( _headers.get( "Content-Length") == null ){
-            
+
             if ( _stringContent != null ){
                 int cl = 0;
                 for ( ByteBuffer buf : _stringContent )
@@ -546,9 +585,9 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
             else if ( _numDataThings() == 0 ) {
                 a.append( "Content-Length: 0\r\n" );
             }
-            
+
         }
-        
+
         // empty line
         a.append( "\r\n" );
         return a;
@@ -584,15 +623,15 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
                     }
 
                     _count--;
-                    
+
                     if ( "Content-Length".equalsIgnoreCase( s.toString() ) )
                         _count = 2;
                     if ( "Content-Length: ".equalsIgnoreCase( s.toString() ) )
                         _count = 1;
-                    
+
                     return this;
                 }
-                
+
                 int _count = 0;
             };
         try {
@@ -603,7 +642,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         }
         return size[0];
     }
-    
+
     /**
      * Return this response, formatted as a string: HTTP response, headers,
      * cookies.
@@ -624,44 +663,44 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         if ( _writer == null ){
             if ( _cleaned )
                 throw new RuntimeException( "already cleaned" );
-            
+
             _writer = new MyJxpWriter();
         }
         return _writer;
     }
 
     public PrintWriter getWriter(){
-	if ( _printWriter == null ){
-	    final JxpWriter jxpWriter = getJxpWriter();
-	    _printWriter = new PrintWriter( new Writer(){
+        if ( _printWriter == null ){
+            final JxpWriter jxpWriter = getJxpWriter();
+            _printWriter = new PrintWriter( new Writer(){
 
-		    public void close(){
-		    }
+                    public void close(){
+                    }
 
-		    public void flush(){
-		    }
-		    
-		    public void write(char[] cbuf, int off, int len){
-			jxpWriter.print( new String( cbuf , off , len ) );
-		    }
-			
-		} , true );
-	}
-	return _printWriter;
+                    public void flush(){
+                    }
+
+                    public void write(char[] cbuf, int off, int len){
+                        jxpWriter.print( new String( cbuf , off , len ) );
+                    }
+
+                } , true );
+        }
+        return _printWriter;
     }
 
     public ServletOutputStream getOutputStream(){
-	if ( _outputStream == null ){
-	    final JxpWriter jxpWriter = getJxpWriter();
-	    _outputStream = new ServletOutputStream(){
-		    public void write( int b ){
-			jxpWriter.print( String.valueOf( (char)b ) );
-		    }
-		};
-	}
-	return _outputStream;
+        if ( _outputStream == null ){
+            final JxpWriter jxpWriter = getJxpWriter();
+            _outputStream = new ServletOutputStream(){
+                    public void write( int b ){
+                        jxpWriter.print( String.valueOf( (char)b ) );
+                    }
+                };
+        }
+        return _outputStream;
     }
-    
+
     /**
      * @unexpose
      */
@@ -679,7 +718,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
 
         if ( _headers.get( "Content-Length" ) != null )
             return true;
-
+	
         if ( _stringContent != null ){
             // TODO: chunking
             return _done;
@@ -698,7 +737,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
     public void setCharacterEncoding( String encoding ){
         throw new RuntimeException( "setCharacterEncoding not supported" );
     }
-    
+
     public String getCharacterEncoding(){
         return getContentEncoding();
     }
@@ -712,7 +751,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
             throw new IllegalArgumentException( "file doesn't exist" );
         _file = f;
         setContentLength( f.length() );
-	_stringContent = null;
+        _stringContent = null;
     }
 
     /**
@@ -725,21 +764,20 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
             sendFile( ((JSLocalFile)f).getRealFile() );
             return;
         }
-        
+
         if ( f.getFileName() != null && getHeader( "Content-Disposition" ) == null ){
             setHeader( "Content-Disposition" , f.getContentDisposition() + "; filename=\"" + f.getFileName() + "\"" );
         }
 
         long length = f.getLength();
-        _jsfile = f.sender();
-        _stringContent = null;
-        
+        sendFile( f.sender() );
+
         long range[] = _request.getRange();
         if ( range != null && ( range[0] > 0 || range[1] < length ) ){
-            
+
             if ( range[1] > length )
                 range[1] = length;
-            
+
             try {
                 _jsfile.skip( range[0] );
             }
@@ -753,15 +791,19 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
             setHeader( "Content-Range" , "bytes " + range[0] + "-" + range[1] + "/" + length );
             setContentLength( 1 + range[1] - range[0] );
             System.out.println( "got range " + range[0] + " -> " + range[1] );
-            
+
 
             return;
         }
         setContentLength( f.getLength() );
         setContentType( f.getContentType() );
-
     }
-    
+
+    public void sendFile( JSFile.Sender sender ){
+        _jsfile = sender;
+        _stringContent = null;
+    }
+
     private int _numDataThings(){
         int num = 0;
 
@@ -798,7 +840,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
             _doneHooks = new ArrayList<Pair<Scope,JSFunction>>();
         _doneHooks.add( new Pair<Scope,JSFunction>( s , f ) );
     }
-    
+
     /**
      * @unexpose
      */
@@ -806,19 +848,27 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         _appRequest = ar;
     }
 
+    public long handleTime(){
+        long end = _doneTime;
+        if ( end <= 0 )
+            end = System.currentTimeMillis();
+        return end - _request._startTime;
+    }
+
     final HttpRequest _request;
     final HttpServer.HttpSocketHandler _handler;
-    
+
     // header
     int _responseCode = 200;
     Map<String,List<String>> _headers = new StringMap<List<String>>();
+    boolean _useDefaultHeaders = true;
     List<Cookie> _cookies = new ArrayList<Cookie>();
     boolean _sentHeader = false;
 
     // data
     List<ByteBuffer> _stringContent = null;
     private List<ByteBuffer> _myStringContent = null; // tihs is the real one
-    
+
     int _stringContentSent = 0;
     int _stringContentPos = 0;
 
@@ -827,6 +877,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
     long _fileSent = 0;
 
     boolean _done = false;
+    long _doneTime = -1;
     boolean _cleaned = false;
     MyJxpWriter _writer = null;
     PrintWriter _printWriter;
@@ -836,14 +887,14 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
 
     private AppRequest _appRequest;
     private List<Pair<Scope,JSFunction>> _doneHooks;
-    
+
     class MyJxpWriter implements JxpWriter {
         MyJxpWriter(){
             _checkNoContent();
 
             _myStringContent = new LinkedList<ByteBuffer>();
             _stringContent = _myStringContent;
-            
+
             _cur = _charBufPool.get();
             _resetBuf();
         }
@@ -852,7 +903,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
             print( String.valueOf( c ) );
             return this;
         }
-        
+
         public Appendable append(CharSequence csq){
             print( csq.toString() );
             return this;
@@ -866,7 +917,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         public JxpWriter print( int i ){
             return print( String.valueOf( i ) );
         }
-        
+
         public JxpWriter print( double d ){
             return print( String.valueOf( d ) );
         }
@@ -874,7 +925,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         public JxpWriter print( long l ){
             return print( String.valueOf( l ) );
         }
-        
+
         public JxpWriter print( boolean b ){
             return print( String.valueOf( b ) );
         }
@@ -882,12 +933,14 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         public boolean closed(){
             return _done;
         }
-        
+
         public JxpWriter print( String s ){
-            if ( _done ){
+            if ( _done )
                 throw new RuntimeException( "already done" );
-            }
-            
+
+            if ( s == null )
+                s = "null";
+
             if ( s.length() > MAX_STRING_SIZE ){
                 for ( int i=0; i<s.length(); ){
                     String temp = s.substring( i , Math.min( i + MAX_STRING_SIZE , s.length() ) );
@@ -902,7 +955,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
                     throw new RuntimeException( "can't put that much stuff in spot" );
                 _push();
             }
-            
+
 
             if ( _cur.position() + ( 3 * s.length() ) > _cur.capacity() )
                 throw new RuntimeException( "still too big" );
@@ -910,16 +963,16 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
             _cur.append( s );
             return this;
         }
-        
+
         void _push(){
             if ( _cur.position() == 0 )
                 return;
-            
+
             _cur.flip();
             ByteBuffer bb = USE_POOL ? _bbPool.get() : ByteBuffer.wrap( new byte[ _cur.limit() * 2 ] );
             if ( bb.position() != 0 || bb.limit() != bb.capacity() )
                 throw new RuntimeException( "something is wrong with _bbPool" );
-            
+
             CharsetEncoder encoder = _defaultCharset.newEncoder(); // TODO: pool
             try {
                 CoderResult cr = encoder.encode( _cur , bb , true );
@@ -927,9 +980,9 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
                     throw new RuntimeException( "can't map some character" );
                 if ( cr.isOverflow() )
                     throw new RuntimeException( "buffer overflow here is a bad thing.  bb after:" + bb );
-                
+
                 bb.flip();
-                
+
                 if ( _inSpot )
                     _myStringContent.add( _spot , bb );
                 else
@@ -940,7 +993,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
                 throw new RuntimeException( "no" , e );
             }
         }
-        
+
         public void flush()
             throws IOException {
             _flush();
@@ -971,7 +1024,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         public String fromMark(){
             throw new RuntimeException( "not implemented yet" );
         }
-        
+
         // going back
         public void saveSpot(){
             if ( _spot >= 0 )
@@ -989,31 +1042,31 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
             _push();
             _inSpot = false;
             _spot = -1;
-        }        
+        }
         public boolean hasSpot(){
             return _spot >= 0;
         }
 
         private CharBuffer _cur;
         private int _mark = 0;
-        
+
         private int _spot = -1;
         private boolean _inSpot = false;
     }
-    
+
     static final int CHAR_BUFFER_SIZE = 1024 * 128;
     static final int MAX_STRING_SIZE = CHAR_BUFFER_SIZE / 4;
     static SimplePool<CharBuffer> _charBufPool = new SimplePool<CharBuffer>( "Response.CharBufferPool" , 50 , -1 ){
-            public CharBuffer createNew(){
-                return CharBuffer.allocate( CHAR_BUFFER_SIZE );
-            }
-            
-            public boolean ok( CharBuffer buf ){
-                buf.position( 0 );
-                buf.limit( buf.capacity() );
-                return true;
-            }
-        };
+        public CharBuffer createNew(){
+            return CharBuffer.allocate( CHAR_BUFFER_SIZE );
+        }
+
+        public boolean ok( CharBuffer buf ){
+            buf.position( 0 );
+            buf.limit( buf.capacity() );
+            return true;
+        }
+    };
     static ByteBufferPool _bbPool = new ByteBufferPool( 50 , CHAR_BUFFER_SIZE * 4  );
     static StringBuilderPool _headerBufferPool = new StringBuilderPool( 25 , 1024 );
     static Charset _defaultCharset = Charset.forName( DEFAULT_CHARSET );
@@ -1027,24 +1080,24 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
             throw new RuntimeException( ioe );
         }
     }
-    
-    
+
+
     static final JSObjectBase _prototype = new JSObjectBase();
     static {
 
         _prototype.set( "afterSendingCall" , new JSFunctionCalls1(){
                 public Object call( Scope s , Object func , Object foo[] ){
-                    
+
                     if ( ! ( func instanceof JSFunction ) )
                         throw new RuntimeException( "can't call afterSendingCall w/o function" );
-                    
+
                     HttpResponse res = (HttpResponse)s.getThis();
                     res.addDoneHook( s , (JSFunction)func );
-                    
+
                     return null;
                 }
             } );
-        
+
     }
 
 }

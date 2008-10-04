@@ -215,8 +215,10 @@ public class JSLocalFile extends JSNewFile {
      */
     public JSArray listFiles(){
         JSArray a = new JSArray();
-        for ( File f : _file.listFiles() )
-            a.add( new JSLocalFile( f ) );
+        File[] lst = _file.listFiles();
+        if ( lst != null )
+            for ( File f : _file.listFiles() )
+                a.add( new JSLocalFile( f ) );
         return a;
     }
 

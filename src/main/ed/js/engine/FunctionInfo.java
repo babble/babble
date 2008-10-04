@@ -121,12 +121,15 @@ public class FunctionInfo implements Iterable<String> {
                 
                 if ( cur.getFirstChild().getType() == Token.GETVAR || 
                      cur.getFirstChild().getType() == Token.NAME ){
-                    
+		    
                     _vars.incOrDec( cur.getFirstChild().getString() );
                     
                 }
                 
             }
+	    else if ( cur.getType() == Token.FOR && Convert.countChildren( cur ) == 3 ){
+		_vars.unknownEvidence( cur.getFirstChild().getString() );
+	    }
             else if ( cur.getType() == Token.SETVAR ){
                 _vars.settingTo( cur.getFirstChild().getString() , cur.getFirstChild().getNext() );
             }

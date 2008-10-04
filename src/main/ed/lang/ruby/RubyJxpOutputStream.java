@@ -26,28 +26,28 @@ public class RubyJxpOutputStream extends OutputStream {
     private final JxpWriter _writer;
 
     public RubyJxpOutputStream(JxpWriter writer) {
-	_writer = writer;
+        _writer = writer;
     }
 
     public void write(int i) throws IOException {
-	_writer.print((byte)(i & 0xff));
+        _writer.print((byte)(i & 0xff));
     }
 
     public void write(byte[] b) throws IOException {
-	_writer.print(new String(b));
+        _writer.print(new String(b));
     }
 
     public void write(byte[] b, int off, int len) throws IOException {
-	byte[] subseq = new byte[len];
-	System.arraycopy(b, off, subseq, 0, len);
-	_writer.print(new String(subseq));
+        byte[] subseq = new byte[len];
+        System.arraycopy(b, off, subseq, 0, len);
+        _writer.print(new String(subseq));
     }
 
     public void flush() throws IOException {
-	_writer.flush();
+        _writer.flush();
     }
 
     public void close() throws IOException {
-	_writer.reset();
+        _writer.reset();
     }
 }

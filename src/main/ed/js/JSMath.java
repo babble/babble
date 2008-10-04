@@ -17,6 +17,8 @@
 */
 
 package ed.js;
+import java.util.regex.*;
+
 import ed.util.StringParseUtil;
 
 import ed.js.func.*;
@@ -39,47 +41,29 @@ public class JSMath extends JSObjectBase {
     public JSMath(){
         set( "max" ,
              new JSFunctionCalls2(){
+                 public Object call( Scope s , Object foo[] ) {
+                     return Double.POSITIVE_INFINITY;
+                 }
                  public Object call( Scope s , Object a , Object b , Object foo[] ){
-
-                     if ( a != null && ! ( a instanceof Number ) )
+                     double d1 = JSNumber.getDouble( a );
+                     double d2 = JSNumber.getDouble( b );
+                     if( Double.isNaN( d1 ) || Double.isNaN( d2 ) )
                          return Double.NaN;
-
-                     if ( b != null && ! ( b instanceof Number ) )
-                         return Double.NaN;
-
-                     if ( a == null && b == null )
-                         return 0;
-
-                     if ( a == null )
-                         return b;
-
-                     if ( b == null )
-                         return a;
-
-                     return ((Number)a).doubleValue() > ((Number)b).doubleValue() ? a : b;
+                     return d1 > d2 ? d1 : d2;
                  }
              } );
 
         set( "min" ,
              new JSFunctionCalls2(){
+                 public Object call( Scope s , Object foo[] ) {
+                     return Double.POSITIVE_INFINITY;
+                 }
                  public Object call( Scope s , Object a , Object b , Object foo[] ){
-
-                     if ( a != null && ! ( a instanceof Number ) )
+                     double d1 = JSNumber.getDouble( a );
+                     double d2 = JSNumber.getDouble( b );
+                     if( Double.isNaN( d1 ) || Double.isNaN( d2 ) )
                          return Double.NaN;
-
-                     if ( b != null && ! ( b instanceof Number ) )
-                         return Double.NaN;
-
-                     if ( a == null && b == null )
-                         return 0;
-
-                     if ( a == null )
-                         return b;
-
-                     if ( b == null )
-                         return a;
-
-                     return ((Number)a).doubleValue() < ((Number)b).doubleValue() ? a : b;
+                     return d1 < d2 ? d1 : d2;
                  }
              } );
 
@@ -92,88 +76,84 @@ public class JSMath extends JSObjectBase {
 
         set( "floor" ,
              new JSFunctionCalls1(){
+                 public Object call( Scope s , Object foo[] ) {
+                     return Double.NaN;
+                 }
                  public Object call( Scope s , Object a , Object foo[] ){
-                     if ( a == null )
-                         return 0;
-                     if ( ! ( a instanceof Number ) )
-                         try {
-                             a = StringParseUtil.parseStrict(a.toString());
-                         }
-                         catch (Exception e) {
-                             return Double.NaN;
-                         }
-                     return (int)Math.floor(((Number)a).doubleValue());
+                     double d = JSNumber.getDouble( a );
+                     if( Double.isNaN( d ) || Double.isInfinite( d ) ) {
+                         return d;
+                     }
+                     return (int)Math.floor( d );
                  }
              } );
 
         set( "ceil" ,
              new JSFunctionCalls1(){
+                 public Object call( Scope s , Object foo[] ) {
+                     return Double.NaN;
+                 }
                  public Object call( Scope s , Object a , Object foo[] ){
-                     if ( a == null )
-                         return 0;
-                     if ( ! ( a instanceof Number ) )
-                         try {
-                             a = StringParseUtil.parseStrict(a.toString());
-                         }
-                         catch (Exception e) {
-                             return Double.NaN;
-                         }
-                     return (int)Math.ceil(((Number)a).doubleValue());
+                     double d = JSNumber.getDouble( a );
+                     if( Double.isNaN( d ) || Double.isInfinite( d ) ) {
+                         return d;
+                     }
+                     return (int)Math.ceil( d );
                  }
              } );
 
         set( "round" ,
              new JSFunctionCalls1(){
-                 public Object call( Scope s , Object a , Object foo[] ){
+                 public Object call( Scope s , Object foo[] ) {
+                     return Double.NaN;
+                 }
+
+                 public Object call( Scope s , Object a, Object foo[] ){
                      if ( a == null )
                          return 0;
-                     if ( ! ( a instanceof Number ) )
+                     if ( ! ( a instanceof Number ) ) {
+                         if( a instanceof Boolean ) {
+                             boolean b = ((Boolean)a).booleanValue();
+                             return b ? 1 : 0;
+                         }
                          try {
                              a = StringParseUtil.parseStrict(a.toString());
                          }
                          catch (Exception e) {
                              return Double.NaN;
                          }
+                     }
+                     // Java returns 0 for Math.round(NaN), MIN_VALUE for
+                     // Math.round( -inf ), and MAX_VALUE for Math.round( inf )
+                     // JavaScript returns:
+                     if( a.equals( Double.NaN ) )
+                         return Double.NaN;
+                     if( a.equals( Double.POSITIVE_INFINITY ) ) 
+                         return Double.POSITIVE_INFINITY;
+                     if( a.equals( Double.NEGATIVE_INFINITY ) ) 
+                         return Double.NEGATIVE_INFINITY;
                      return (int)Math.round(((Number)a).doubleValue());
                  }
              } );
 
         set( "abs" ,
              new JSFunctionCalls1(){
-                 public Object call( Scope s , Object a , Object foo[] ){
-                     if ( a == null )
-                         return 0;
-                     if ( ! ( a instanceof Number ) )
-                         try {
-                             a = StringParseUtil.parseStrict(a.toString());
-                         }
-                         catch (Exception e) {
-                             return Double.NaN;
-                         }
-
-                     if ( a instanceof Integer )
-                         return Math.abs(((Integer)a).intValue());
-                     return Math.abs(((Number)a).doubleValue());
-
+                 public Object call( Scope s , Object foo[] ){
+                     return Double.NaN;
                  }
-
+                 public Object call( Scope s , Object a , Object foo[] ){
+                     return Math.abs( JSNumber.getDouble( a ) );
+                 }
              } );
 
 
         set( "sqrt" ,
              new JSFunctionCalls1(){
+                 public Object call( Scope s , Object foo[] ){
+                     return Double.NaN;
+                 }
                  public Object call( Scope s , Object a , Object foo[] ){
-                     if ( a == null )
-                         return 0;
-                     if ( ! ( a instanceof Number ) )
-                         try {
-                             a = StringParseUtil.parseStrict(a.toString());
-                         }
-                         catch (Exception e) {
-                             return Double.NaN;
-                         }
-
-                     return Math.sqrt( ((Number)a).doubleValue() );
+                     return Math.sqrt( JSNumber.getDouble( a ) );
                  }
 
              } );
@@ -202,31 +182,121 @@ public class JSMath extends JSObjectBase {
                 }
             } );
 
-        set( "sin" , new JSFunctionCalls2(){
-            public Object call( Scope s , Object xObject , Object nObject , Object foo[] ){
-                double X = ((Number)xObject).doubleValue();
-                return Math.sin(X);
-            }
-        } );
+        set( "asin" , new TrigFunc( "asin" ) );
+        set( "acos" , new TrigFunc( "acos" ) );
+        set( "atan" , new TrigFunc( "atan" ) );
+        set( "sin" , new TrigFunc( "sin" ) );
+        set( "cos" , new TrigFunc( "cos" ) );
+        set( "tan" , new TrigFunc( "tan" ) );
 
-        set( "cos" , new JSFunctionCalls2(){
-            public Object call( Scope s , Object xObject , Object nObject , Object foo[] ){
-                double X = ((Number)xObject).doubleValue();
-                return Math.cos(X);
-            }
-        } );
+        set( "atan2" , new JSFunctionCalls2(){
+                public Object call( Scope s , Object foo[] ){
+                    return Double.NaN;
+                }
+                public Object call( Scope s , Object a , Object b , Object foo[] ){
+                    double d1 = JSNumber.getDouble( a );
+                    double d2 = JSNumber.getDouble( b );
+                    return Math.atan2( d1 , d2 );
+                }
+            } );
 
         set( "pow" , new JSFunctionCalls2(){
-            public Object call( Scope s , Object baseArg , Object expArg , Object foo[] ){
-                double base = ((Number)baseArg).doubleValue();
-                double exp = ((Number)expArg).doubleValue();
-                return Math.pow(base, exp);
-            }
-        } );
+                public Object call( Scope s , Object foo[] ){
+                    return Double.NaN;
+                }
+                public Object call( Scope s , Object baseArg , Object expArg , Object foo[] ){
+                    double base = JSNumber.getDouble( baseArg );
+                    double exp = JSNumber.getDouble( expArg );
+                    return Math.pow(base, exp);
+                }
+            } );
+        set( "exp" , new JSFunctionCalls1(){
+                public Object call( Scope s , Object foo[] ){
+                    return Double.NaN;
+                }
+                public Object call( Scope s , Object expArg , Object foo[] ){
+                    double exp = JSNumber.getDouble( expArg );
+                    return Math.exp( exp );
+                }
+            } );
+        set( "log" , new JSFunctionCalls1() {
+                public Object call( Scope s , Object foo[] ){
+                    return Double.NaN;
+                }
+                public Object call( Scope s , Object expArg , Object foo[] ){
+                    double exp = JSNumber.getDouble( expArg );
+                    return Math.log( exp );
+                }
+            } );
         
-        set("PI", Math.PI);
-
+        set( "E", JSMath.E );
+        set( "PI", JSMath.PI );
+        set( "SQRT1_2", JSMath.SQRT1_2 );
+        set( "SQRT2", JSMath.SQRT2 );
+        set( "LN10" , JSMath.LN10 );
+        set( "LN2" , JSMath.LN2 );
+        set( "LOG10E" , JSMath.LOG10E );
+        set( "LOG2E" , JSMath.LOG2E );
+        setProperties( "E", JSObjectBase.LOCK );
+        setProperties( "PI", JSObjectBase.LOCK );
+        setProperties( "SQRT1_2", JSObjectBase.LOCK );
+        setProperties( "SQRT2", JSObjectBase.LOCK );
+        setProperties( "LN10", JSObjectBase.LOCK );
+        setProperties( "LN2", JSObjectBase.LOCK );
+        setProperties( "LOG10E", JSObjectBase.LOCK );
+        setProperties( "LOG2E", JSObjectBase.LOCK );
+        dontEnumExisting();
     }
+
+    static class TrigFunc extends JSFunctionCalls1 {
+        private final types type;
+
+        private enum types {
+            asin() {
+                public double go( double d ) {
+                    return Math.asin( d );
+                }
+            }, acos() {
+                public double go( double d ) {
+                    return Math.acos( d );
+                }
+            }, atan() {
+                public double go( double d ) {
+                    if( Double.isInfinite( d ) ) {
+                        int sign = d > 0 ? 1 : -1;
+                        return sign * Math.PI / 2;
+                    }
+                    return Math.atan( d );
+                }
+            }, sin() {
+                public double go( double d ) {
+                    return Math.sin( d );
+                }
+            }, cos() {
+                public double go( double d ) {
+                    return Math.cos( d );
+                }
+            }, tan() {
+                public double go( double d ) {
+                    return Math.tan( d );
+                }
+            };
+            public abstract double go( double d );
+        };
+
+        public TrigFunc( String s ) {
+            type = types.valueOf( s );
+        }
+
+        public Object call( Scope s , Object foo[] ){
+            return Double.NaN;
+        }
+
+        public Object call( Scope s , Object xObject , Object foo[] ){
+            double X = JSNumber.getDouble( xObject );
+            return type.go( X );
+        }
+    };
 
     public static double sigFig( double X ){
         return sigFig( X , 3 );
@@ -237,5 +307,13 @@ public class JSMath extends JSObjectBase {
         return Math.round(X*p)/p;
     }
 
-    public static final double LN10 = Math.log(10);
+    public static final double LN10 = Math.log( 10 );
+    public static final double LN2 = Math.log( 2 );
+    public static final double LOG10E = Math.log10( Math.E );
+    public static final double LOG2E = 1.4426950408889634;
+    public static final double PI = Math.PI;
+    public static final double E = Math.E;
+    public static final double SQRT1_2 = Math.sqrt( .5 );
+    public static final double SQRT2 = Math.sqrt( 2 );
+
 }

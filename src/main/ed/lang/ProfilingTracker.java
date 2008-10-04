@@ -24,15 +24,15 @@ import ed.js.*;
 
 public class ProfilingTracker {
 
-    public static void tlGotTime( String name , long time ){
-        tlGotTime( name , time , null );
+    public static void tlGotTime( String name , long time , long size ){
+        tlGotTime( name , time , size , null );
     }
 
-    public static void tlGotTime( String name , long time , Object last ){
+    public static void tlGotTime( String name , long time , long size , Object last ){
         ProfilingTracker pt = getThreadLocal();
         if ( pt == null )
             return;
-        pt.gotTime( name , time , last );
+        pt.gotTime( name , time , size , last );
     }
 
     //
@@ -53,12 +53,12 @@ public class ProfilingTracker {
         _threadLocal.set( null );
     }
 
-    public void gotTime( String name , long time ){
-        gotTime( name , time , null );
+    public void gotTime( String name , long time , long size ){
+        gotTime( name , time , size , null );
     }
 
-    public void gotTime( String name , long time , Object last ){
-        _root.inc( name , time , last );
+    public void gotTime( String name , long time , long size , Object last ){
+        _root.inc( name , time , size , last );
     }
     
     public void push( String name ){}
@@ -70,25 +70,27 @@ public class ProfilingTracker {
             _name = name;
         }
 
-        void inc( String name , long t , Object last ){
-            inc( t );
+        void inc( String name , long t , long size , Object last ){
+            inc( t , size );
             
             if ( name != null )
-                _children.inc( name , t , last );
+                _children.inc( name , t , size , last );
             else if ( last != null )
-                _children.inc( null , t , last );
+                _children.inc( null , t , size , last );
                 
         }
 
-        void inc( long t ){
+        void inc( long t , long s ){
             _time += t;
+            _size += s;
+
             _num++;
         }
         
         void toString( StringBuilder buf , int level , String spacer , String eol ){
             for ( int i=0; i<level; i++ )
                 buf.append( spacer );
-            buf.append( _name ).append( " num:" ).append( _num ).append( " total:" ).append( _time ).append( eol );
+            buf.append( _name ).append( " num:" ).append( _num ).append( " time:" ).append( _time ).append( " size:" ).append( _size ).append( eol );
             _children.toString( buf , level + 1 , spacer , eol );
         }
 
@@ -96,12 +98,13 @@ public class ProfilingTracker {
         final FrameSet _children = new FrameSet();
         
         long _time = 0;
+        long _size = 0;
         int _num;
     }
     
     class FrameSet extends HashMap<String,Frame> {
         
-        void inc( String name , long t , Object last ){
+        void inc( String name , long t , long s , Object last ){
             
             String next = null;
 
@@ -122,7 +125,7 @@ public class ProfilingTracker {
                 f = new Frame( name );
                 put( name , f );
             }
-            f.inc( next , t , last );
+            f.inc( next , t , s , last );
         }
         
         public StringBuilder toString( StringBuilder buf , int level , String spacer , String eol ){

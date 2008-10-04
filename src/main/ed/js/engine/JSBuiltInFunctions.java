@@ -614,11 +614,6 @@ public class JSBuiltInFunctions {
         s.put( "ObjectID" , crid , true );
         s.put( "ObjectId" , crid , true );
 
-        s.put( "gc" , new JSFunctionCalls0() {
-                public Object call( Scope scope , Object extra[] ){
-                    return ed.util.MemUtil.gc();
-                }
-            } , true );
         s.put( "parseBool" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object b , Object extra[] ){
                     if ( b == null )
@@ -695,6 +690,7 @@ public class JSBuiltInFunctions {
                       } , true );
 
         s.put( "NaN" , Double.NaN , true );
+        s.put( "Infinity" , Double.POSITIVE_INFINITY , true );
 
         s.put( "md5" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object b , Object extra[] ){
@@ -755,7 +751,11 @@ public class JSBuiltInFunctions {
                     return Character.isDigit( c );
                 }
             } , true );
-
+        s.put( "isXMLName" , new JSFunctionCalls1() {
+                public Object call( Scope scope , Object o , Object extra[] ){
+                    return ed.js.e4x.E4X.isXMLName( o );
+                }
+            } , true );
         s.put( "__self" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object o , Object extra[] ){
                     return o;
@@ -796,6 +796,7 @@ public class JSBuiltInFunctions {
 
         s.put( "Object" , new NewObject() , true );
         s.put( "Array" , new JSArray.JSArrayCons() , true );
+        s.put( "Boolean" , JSBoolean._cons , true );
         s.put( "Date" , new JSDate.Cons() , true );
         s.put( "JSDate" , s.get( "Date" ) , true ); // b/c Eliot always types this
         s.put( "String" , new JSString.JSStringCons() , true );
@@ -803,7 +804,6 @@ public class JSBuiltInFunctions {
 	s.put( "XMLList" , new XMLList.Cons() , true );
 	s.put( "Namespace" , new Namespace.Cons() , true );
 	s.put( "QName" , new QName.Cons() , true );
-
         s.put( "RegExp" , new JSRegex.Cons() , true );
         s.put( "Regexp" , s.get( "RegExp" ) , true ); // for Ruby technically
 

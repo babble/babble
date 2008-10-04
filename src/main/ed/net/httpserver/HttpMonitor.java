@@ -19,21 +19,81 @@
 package ed.net.httpserver;
 
 import java.util.*;
+import javax.servlet.http.*;
 
 import ed.lang.*;
 import ed.util.*;
+import ed.net.*;
 
 public abstract class HttpMonitor implements HttpHandler {
 
     public HttpMonitor( String name ){
+        this( name , false );
+    }
+
+    public HttpMonitor( String name , boolean plainText ){
         _name = name;
+        _plainText = plainText;
         _uri = "/~" + name;
+
+        if ( _plainText )
+            _header = null;
+        else {
+            StringBuilder buf = new StringBuilder();
+            buf.append( "<html>" );
+            
+            buf.append( "<head>" );
+            buf.append( "<title>" ).append( DNSUtil.getLocalHost() ).append( " " ).append( _name ).append( "</title>" );
+            buf.append( "<style>\n" );
+            buf.append( " body { font-size: .65em; font-family: Monaco; }\n" );
+            buf.append( " table { font-size: 10px; }\n" );
+            buf.append( " th { backgroud: #dddddd; text-align:left; }\n" );
+            buf.append( " .floatingList li { float: left; list-style-type:none; }\n" );
+            buf.append( " bottomLine { border-bottom: 1px solid black; }\n" );
+	    buf.append( " .warn { color: orange; }\n" );
+	    buf.append( " .error { color: red; font-decoration: bold; }\n" );
+            addStyle( buf );
+            buf.append( "</style>\n" );
+            buf.append( "</head>" );            
+            
+            buf.append( "<body>" );
+            _header = buf.toString();
+        }
+        
+        _addAll( name );
     }
     
+    protected boolean allowed( HttpRequest request ){
+        String h = request.getHost();
+        if ( h == null )
+            return false;
+        
+        if ( ! h.endsWith( "." + Config.getInternalDomain() ) )
+            return false;
+
+        if ( AUTH_COOKIE == null ){
+            System.err.println( "WARNING: no cookie info, letting everyone in" );
+            return true;
+        }
+        
+        if ( AUTH_COOKIE.equalsIgnoreCase( request.getCookie( "auth" ) ) )
+            return true;
+
+        if ( AUTH_COOKIE.equalsIgnoreCase( request.getParameter( "auth" ) ) )
+            return true;
+
+        return false;
+    }
+    
+    protected void addStyle( StringBuilder buf ){}
     public abstract void handle( JxpWriter out , HttpRequest request , HttpResponse response );
     
     public boolean handles( HttpRequest request , Info info ){
-        if ( ! request.getURI().equals( _uri ) )
+        
+        if ( ! request.getURI().equalsIgnoreCase( _uri ) )
+            return false;
+
+        if ( ! allowed( request ) )
             return false;
 
         info.fork = false;
@@ -43,18 +103,138 @@ public abstract class HttpMonitor implements HttpHandler {
     }
     
     public void handle( HttpRequest request , HttpResponse response ){
-        response.setHeader( "Content-Type" , "text/plain" );
+
+        if ( AUTH_COOKIE != null && AUTH_COOKIE.equalsIgnoreCase( request.getParameter( "auth" ) ) ){
+            Cookie c = new Cookie( "auth" , AUTH_COOKIE );
+            c.setDomain( "10gen.cc" );
+            c.setPath( "/" );
+            c.setMaxAge( 86400 * 30 );
+
+            response.addCookie( c );
+            response.sendRedirectTemporary( request.getFullURL().replaceAll( "auth=" + AUTH_COOKIE , "" ) );
+            return;
+        }
+
         JxpWriter out = response.getJxpWriter();
-        handle( out , request , response );
+        
+        if ( _plainText )
+            response.setHeader( "Content-Type" , "text/plain" );
+        else {
+            out.print( _header );
+            out.print( _allContent );
+            String section = _section();
+            if ( section != null ){
+                String sc = _subContent.get( section );
+                if ( sc != null )
+                    out.print( sc );
+            }
+        }
+        try {
+            handle( out , request , response );
+        }
+        catch ( Exception e ){
+            e.printStackTrace();
+            out.print( e.toString() ).print( "<br>" );
+            for ( StackTraceElement element : e.getStackTrace() )
+                out.print( element + "<br>\n" );
+        }
+        if ( ! _plainText )
+            out.print( "</body></html>" );
+    }
+    
+    protected void startTable( JxpWriter out ){
+        out.print( "<table border='1' >" );
+    }
+
+    protected void endTable( JxpWriter out ){
+        out.print( "</table>" );
+    }
+
+    protected void addTableRow( JxpWriter out , Object header , Object data ){
+	addTableRow( out , header , data , null );
+    }
+    
+    protected void addTableCell( JxpWriter out , Object data ){
+        out.print( "<td>" );
+        if ( data == null )
+            out.print( "null" );
+        else 
+            out.print( data.toString() );
+        out.print( "</td>" );
+    }
+
+
+    protected void addTableRow( JxpWriter out , Object header , Object data , String valueClass ){
+        out.print( "<tr><th>" );
+        out.print( header == null ? "null" : header.toString() );
+        out.print( "</th><td " );
+	if ( valueClass != null )
+	    out.print( "class=\"" + valueClass + "\" " );
+	out.print( ">" );
+        out.print( data == null ? "null" : data.toString() );
+        out.print( "</td></tr>" );
     }
 
     public double priority(){
         return Double.MIN_VALUE;
     }
 
+    String _section(){
+        return _section( _name );
+    }
+
+    private static String _section( String name ){
+        int idx = name.indexOf( "-" );
+        if ( idx < 0 )
+            return name.toLowerCase();
+        return name.substring( 0 , idx ).toLowerCase();
+    }
+
+    private static void _addAll( String name ){
+
+        if ( name.contains( "-" ) ){
+            // sub menu item
+            String section = _section( name );
+            List<String> sub = _subs.get( section );
+            if ( sub == null ){
+                sub = new ArrayList<String>();
+                _subs.put( section , sub );
+            }
+            sub.add( name );
+            Collections.sort( sub );
+
+            StringBuilder buf = new StringBuilder( section + " : " );
+            for ( String t : sub ){
+                buf.append( "<a href='/~" + t + "'>" + t.substring( section.length() + 1 ) + "</a> | " );
+            }
+            buf.append( "<hr>" );            
+            _subContent.put( section , buf.toString() );
+            return;
+        }
+
+        _all.add( name );
+        Collections.sort( _all );
+        
+        StringBuilder buf = new StringBuilder();
+        for ( String t : _all ){
+            buf.append( "<a href='/~" + t + "'>" + t + "</a> | " );
+        }
+        buf.append( "<hr>" );
+        _allContent = buf.toString();
+    }
+    
+    final boolean _plainText;
     final String _name;
     final String _uri;
-
+    final String _header;
+    
+    static final List<String> _all = new ArrayList<String>();
+    static String _allContent = "";
+    static final Map<String,List<String>> _subs = new HashMap<String,List<String>>();
+    static final Map<String,String> _subContent = new HashMap<String,String>();
+    
+    static final String AUTH_COOKIE = Config.get().getProperty( "authCookie" , null );
+    
     // ----------------------------------------
     // Some Basic Monitors
     // ----------------------------------------
@@ -63,7 +243,7 @@ public abstract class HttpMonitor implements HttpHandler {
     public static final class MemMonitor extends HttpMonitor {
 
         MemMonitor(){
-            super( "mem" );
+            super( "mem" , false );
             _r = Runtime.getRuntime();
         }
 
@@ -81,9 +261,12 @@ public abstract class HttpMonitor implements HttpHandler {
         }
         
         void print( JxpWriter out ){
-            out.print( "max   : " ).print( MemUtil.bytesToMB( _r.maxMemory() ) ).print( "\n" );
-            out.print( "total : " ).print( MemUtil.bytesToMB( _r.totalMemory() ) ).print( "\n" );
-            out.print( "free  : " ).print( MemUtil.bytesToMB( _r.freeMemory() ) ).print( "\n" );
+            startTable( out );
+            addTableRow( out , "max" , MemUtil.bytesToMB( _r.maxMemory() ) );
+            addTableRow( out , "total" , MemUtil.bytesToMB( _r.totalMemory() ) );
+            addTableRow( out , "free" , MemUtil.bytesToMB( _r.freeMemory() ) );
+            addTableRow( out , "used" , MemUtil.bytesToMB( _r.totalMemory() - _r.freeMemory() ) );
+            endTable( out );
         }
 
         final Runtime _r;
@@ -93,19 +276,19 @@ public abstract class HttpMonitor implements HttpHandler {
     public static class ThreadMonitor extends HttpMonitor {
 
         ThreadMonitor(){
-            super( "threads" );
-            _style =   
-                "<style>\n" + 
-                " body { font-size: .75em; }\n" + 
-                ".js { color: red; }\n" + 
-                ".ed { color: blue; }\n" +
-                "</style>\n";
+            super( "threads" , false );
+        }
+
+        protected void addStyle( StringBuilder buf ){
+            
+            buf.append( ".js { color: red; }\n" );
+            buf.append( ".ed { color: blue; }\n" );
+
         }
 
         public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
-            response.setHeader( "Content-Type" , "text/html" );
             
-            out.print( "<html><head>" ).print( _style ).print( "</head><body>Threads<br>" );
+            out.print( "Threads<br>" );
 
             final Map<Thread,StackTraceElement[]> all = Thread.getAllStackTraces();
             final Thread cur = Thread.currentThread();
@@ -152,8 +335,6 @@ public abstract class HttpMonitor implements HttpHandler {
 
                 out.print( "<hr>" );
             }
-            
-            out.print( "</body></html>" );
         }
 
         boolean _match( Map.Entry<Thread,StackTraceElement[]> t , String filter ){
@@ -178,29 +359,9 @@ public abstract class HttpMonitor implements HttpHandler {
         }
         
         public static String getFilter( HttpRequest request ){
-            String f = request.getParameter( "f" );
-            if ( f != null )
-                return f;
-            
-            f = request.getHost();
-            if ( f == null )
-                return null;
-            
-            if ( f.endsWith( ".10gen.cc" ) )
-                return null;
-
-            if ( f.endsWith( ".10gen.com" ) )
-                f = f.substring( 0 , f.length() - 10 ) + ".com";
-            
-            f = ed.net.DNSUtil.getJustDomainName( f );
-            
-            if ( f.startsWith( "local" ) )
-                return null;
-
-            return f;
+            return request.getParameter( "f" );
         }
 
-        final String _style;
     }
 
 

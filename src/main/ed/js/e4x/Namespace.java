@@ -32,7 +32,7 @@ import ed.util.*;
 
 public class Namespace extends JSObjectBase {
 
-    public static JSFunction _ns = new Cons();
+    public static JSFunction _cons = new Cons();
 
     public static class Cons extends JSFunctionCalls0 {
 
@@ -59,30 +59,38 @@ public class Namespace extends JSObjectBase {
             }
            return e;
         }
+
+        protected void init() {
+            _prototype.set( "hasOwnProperty" , new JSFunctionCalls1() {
+                    public Object call( Scope s, Object foo, Object extra[] ) {
+                        if( foo == null )
+                            throw new JSException( "hasOwnProperty must take a non-null argument." );
+                        return propFunc( foo.toString() );
+                    }
+                });
+            _prototype.set( "propertyIsEnumerable" , new JSFunctionCalls1() {
+                    public Object call( Scope s, Object foo, Object extra[] ) {
+                        if( foo == null )
+                            throw new JSException( "propertyIsEnumerable must take a non-null argument." );
+                        return propFunc( foo.toString() );
+                    }
+                });
+        }
+
+        private boolean propFunc( String foo ) {
+            if( foo.equals( uriStr ) ||
+                foo.equals( prefixStr ) )
+                return true;
+            return false;
+        }
     }
 
 
-    void init( String s ) {
-        this.uri = s;
+    void init( Object s ) {
+        init( null, s );
     }
 
-    void init( String p, String s ) {
-        this.prefix = p;
-        this.uri = s;
-    }
-
-    public String prefix;
-    public String uri;
-
-    public Namespace() {
-        this(null, null);
-    }
-
-    public Namespace( Object uri) {
-        this(null, uri);
-    }
-
-    public Namespace( String prefix, Object uri) {
+    void init( String prefix, Object uri ) {
         if(prefix == null && uri == null) {
             this.prefix = "";
             this.uri = "";
@@ -122,6 +130,29 @@ public class Namespace extends JSObjectBase {
                 this.prefix = prefix;
             }
         }
+    }
+
+    public String prefix;
+    public String uri;
+
+    private static String prefixStr = "prefix";
+    private static String uriStr = "uri";
+
+    public Namespace() {
+        this(null, null);
+    }
+
+    public Namespace( Object uri) {
+        this(null, uri);
+    }
+
+    public Namespace( String prefix, Object uri) {
+        super( _getCons() );
+        init( prefix, uri );
+    }
+
+    public static JSFunction _getCons() {
+        return Scope.getThreadLocalFunction( "Namespace" , _cons );
     }
 
     public boolean equals( Namespace ns ) {
@@ -188,5 +219,25 @@ public class Namespace extends JSObjectBase {
         prefix = prefix.substring( prefix.lastIndexOf("/") + 1 );
         prefix = prefix.substring( prefix.lastIndexOf(".") + 1 );
         return prefix;
+    }
+
+    public Object get( Object n ) {
+        if( n == null ) 
+            return null;
+
+        String str = n.toString();
+        Object objFromProto = Namespace._cons.getPrototype().get( str );
+        if( objFromProto != null && objFromProto instanceof JSFunction ) {
+            return objFromProto;
+        }
+        else if( str.equals( uriStr ) ) {
+            return new JSString(this.uri);
+        }
+        else if ( str.equals( prefixStr ) ) {
+            return new JSString(this.prefix);
+        }
+        else {
+            return null;
+        }
     }
 }

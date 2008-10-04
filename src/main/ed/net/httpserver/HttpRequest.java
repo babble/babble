@@ -399,6 +399,10 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest {
         return a.getEnumeration();
     }
 
+    public Set<String> getHeaderNameKeySet(){
+        return _headers.keySet();
+    }
+
     // cookies
 
 
@@ -1209,8 +1213,17 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest {
         }
     }
 
+    public long created(){
+        return _startTime;
+    }
+
+    public long elapsed(){
+        return System.currentTimeMillis() - _startTime;
+    }
+
     // ----
     
+    final long _startTime = System.currentTimeMillis();
     final HttpServer.HttpSocketHandler _handler;
     final String _firstLine;
     final Map<String,String> _headers = new StringMap<String>();

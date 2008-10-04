@@ -19,6 +19,7 @@
 package ed.js;
 
 import java.util.*;
+import java.io.IOException;
 
 import ed.ext.org.mozilla.javascript.*;
 
@@ -60,26 +61,92 @@ public class JSInternalFunctions extends JSNumericFunctions {
     }
 
     /** Function call. */
-    public static class FunctionCons extends JSFunctionCalls0 {
+    public static class FunctionCons extends JSFunctionCalls1 {
+        
+        public JSObject newOne() {
+            return new JSFunctionCalls0() {
+                public Object call( Scope s , Object extra[] ) {
+                    return null;
+                }
+            };
+        }
 
-            public Object call( Scope s , Object extra[] ){
-                Object t = s.getThis();
-                if ( t != null )
-                    return t;
+        public Object call( Scope s , Object foo , Object extra[] ) {
+            // Function()
+            if( foo == null && extra == null ) {
+                return newOne();
+            }
 
-                return new JSFunctionCalls0(){
-                    public Object call( Scope s , Object extra[] ){
+            String precode = foo == null ? "return null" : foo.toString();
+            if( extra.length > 0 ) {
+                precode = extra[ extra.length - 1 ].toString();
+            }
+            final String code = precode;
+
+            // parse the function's args
+            // remember, foo is the first extra
+            String argList[];
+            if( extra.length > 0 ) {
+                String argsStr = foo.toString();
+                for( int i=0; i<extra.length-1; i++) {
+                    argsStr += "," + extra[i];
+                }
+                argList = argsStr.split( "," );
+            }
+            else {
+                argList = new String[0];
+            }
+
+            // set the function length manually
+            JSFunction func =  new JSFunctionCalls0( argList.length ){
+                    public Object call( Scope s2 , Object extra2[] ){
+                        Scope local = s2.child();
+                        // get any named arguments
+                        if( this._arguments != null ) {
+                            int namedArgs = Math.min( this._arguments.size(), extra2.length );
+                            for( int i=0; i < namedArgs; i++ ) {
+                                System.out.println( "arguments: "+this._arguments.get( i ).toString());
+                                local.set( this._arguments.get( i ).toString(), extra2[i] );
+                            }
+                        }
+
+                        // eval doesn't take arguments, so we'll do the conversion ourselves
+                        try {
+                            String randomFile = "anon"+Math.random();
+                            System.out.println("anon: "+randomFile);
+                            Convert c = new Convert( randomFile , code , true);
+                            return c.get().call( local, extra2 );
+                        }
+                        catch( IOException e ) {
+                            System.out.println("couldn't convert "+code+":");
+                            e.printStackTrace();
+                        }
                         return null;
                     }
                 };
 
+            if( extra.length > 0 ) {
+                func._arguments = new JSArray();
+                for( String arg : argList ) {
+                    func._arguments.add( arg );
+                }
             }
 
-            protected void init(){
-                JSFunction._init( this );
+            Object o = s.getThis();
+            if( o instanceof JSFunction ) {
+                s.clearThisNormal( o ); // get rid of the empty function
+                s.setThis( func ); // put func with code in it on the scope stack
             }
 
-        };
+            return func;
+        }
+
+        protected void init(){
+            JSFunction._init( this );
+            setProperties( "prototype", JSObjectBase.LOCK );
+        }
+
+    };
 
     private static FunctionCons _defaultFunctionCons = new FunctionCons();
 
@@ -302,6 +369,15 @@ public class JSInternalFunctions extends JSNumericFunctions {
         if ( a == null || b == null )
             return false;
 
+        if ( a instanceof JSBoolean || a instanceof Boolean ||
+             b instanceof JSBoolean || b instanceof Boolean ) {
+            a = JSBoolean.booleanValue( a );
+            b = JSBoolean.booleanValue( b );
+        }
+        if ( a.equals( b ) ) {
+            return true;
+        }
+
         if ( a instanceof Number || b instanceof Number ){
             a = _parseNumber( a );
             b = _parseNumber( b );
@@ -473,6 +549,9 @@ public class JSInternalFunctions extends JSNumericFunctions {
         if ( o instanceof Collection )
             return (Collection<String>)o;
 
+        if ( o instanceof Number )
+            return EMPTY_STRING_LIST;
+
         throw new RuntimeException( "can't for with a : " + o.getClass() );
     }
 
@@ -539,6 +618,19 @@ public class JSInternalFunctions extends JSNumericFunctions {
         return hash;
     }
 
+    public final static JSObject JS_toJSObject( final Object o ){
+        if ( o == null )
+            return null;
+        
+        if ( o instanceof JSObject )
+            return (JSObject)o;
+        
+        if ( o instanceof Number )
+            return new JSNumber( (Number)o );
+        
+        throw new RuntimeException( "can't convert [" + o.getClass() + "] to a JSObject" );
+    }
+
     /** @unexpose */
     static String _debug( Object o ){
         if ( o == null )
@@ -550,4 +642,6 @@ public class JSInternalFunctions extends JSNumericFunctions {
     static {
         JS._debugSIDone( "JSInternalFunctions" );
     }
+    
+    static final List<String> EMPTY_STRING_LIST = Collections.synchronizedList( new LinkedList<String>() );
 }

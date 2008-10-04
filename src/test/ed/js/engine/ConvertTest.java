@@ -26,15 +26,19 @@ import ed.*;
 import ed.js.*;
 import ed.js.func.*;
 import ed.io.*;
+import ed.appserver.*;
 
 public class ConvertTest extends TestCase {
 
     public ConvertTest(){
         
         File dir = new File( "src/test/ed/js/engine/" );
-        for ( File f : dir.listFiles() )
+        for ( File f : dir.listFiles() ){
+	    if ( f.toString().contains( "_") )
+		continue;
             if ( f.toString().endsWith( ".js" ) )
                 add( new FileTest( f ) );
+	}
         
         _scope = Scope.newGlobal().child( new File(".") );
     }
@@ -63,6 +67,7 @@ public class ConvertTest extends TestCase {
         assertEquals( "abc_123" , Convert.cleanName( "abc/123" ) );
         assertEquals( "abc__123" , Convert.cleanName( "abc//123" ) );
         assertEquals( "abc__123" , Convert.cleanName( "/abc//123" ) );
+        assertEquals( "N123abc" , Convert.cleanName( "123abc" ) );
     }
 
     Object _makeAnon( String code ){
@@ -98,10 +103,12 @@ public class ConvertTest extends TestCase {
                 scope.put( "print" , myout , true );
                 scope.put( "SYSOUT" , myout , true );
             }
-
+	    
+	    
+	    ((JSCompiledScript)f).setPath( new JSFileLibrary( _file.getParentFile() , "local" , scope ) );
             f.call( scope );
 
-
+	    
             String outString = _clean( bout.toString() );
             
             if ( _file.toString().contains( "/engine/" ) ){
@@ -136,8 +143,11 @@ public class ConvertTest extends TestCase {
     public static void main( String args[] ){
         if ( args.length > 0 ){
             TestCase all = new TestCase();
-            for ( String s : args )
+            for ( String s : args ){
+		if ( s.contains( "_" ) )
+		    continue;
                 all.add( new FileTest( new File( s ) ) );
+	    }
             all.runConsole();
         }
         else {

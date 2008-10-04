@@ -94,6 +94,40 @@ public class Generate {
         return master;
     }
 
+
+
+    private static JSArray getSearchIndex( String s ) {
+        String[] pieces = s.split("[. ]");
+        JSArray sindex = new JSArray( pieces.length );
+        for( String p : pieces ) {
+            sindex.add( new JSString( p.toLowerCase() ) );
+        }
+        return sindex;
+    }
+
+    private static void addSearchElements( String s, JSArray array, JSObject o ) {
+        JSArray foo = (JSArray)o.get( s );
+        if( foo == null )
+            return;
+
+        Iterator k = foo.iterator();
+        while(k.hasNext()) {
+            JSObject n = (JSObject)k.next();
+            Object name = n.get("name");
+            if( name == null || name.toString() == "" )
+                continue;
+            array.add( new JSString( name.toString().toLowerCase() ) );
+        }
+    }
+
+    private static JSArray getSearchIndex( JSObject o ) {
+        JSArray sindex = new JSArray();
+        addSearchElements( "anonymous", sindex, o );
+        addSearchElements( "methods", sindex, o );
+        addSearchElements( "properties", sindex, o );
+        return sindex;
+    }
+
     public static void addToModule( JSObject jsobj, String modname ) {
         JSObject query = new JSObjectBase();
         query.set( "name", modname );
@@ -115,7 +149,10 @@ public class Generate {
                 summarylen = classDesc.indexOf(".\n")+1;
             if(summarylen == 0) 
                 summarylen = classDesc.length();
-            topLevel.set("desc", classDesc.substring(0, summarylen));
+            String desc = classDesc.substring(0, summarylen);
+            topLevel.set( "desc", desc );
+            topLevel.set( "_searchIndex", getSearchIndex( modname ) );
+            topLevel.set( "_searchIndex_0_2", getSearchIndex( jsobj ) );
 
             docdb.save( topLevel );
         }
@@ -123,6 +160,7 @@ public class Generate {
         else {
             JSObject existing = (JSObject)it.next();
             mergeClasses( (JSObject)existing.get( "symbolSet" ) , jsobj );
+            ((JSArray)existing.get( "_searchIndex_0_2" )).addAll( getSearchIndex( jsobj ) );
             docdb.save( existing );
         }
     }
@@ -301,7 +339,7 @@ public class Generate {
     public static void javaToDb(String path) throws IOException {
         if( D )
             System.out.println("Generate.javaToDB() : processing " + path);
-        com.sun.tools.javadoc.Main.execute(new String[]{"-doclet", "JavadocToDB", "-docletpath", "./", path } );
+        com.sun.tools.javadoc.Main.execute(new String[]{"-doclet", "ed.doc.JavadocToDB", "-docletpath", "./", path } );
     }
 
     /** Remove old documentation files.

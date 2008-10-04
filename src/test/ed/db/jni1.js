@@ -1,6 +1,6 @@
 
 
-db = connect( "foo" , "127.0.0.1" );
+db = connect( "foo" );
 t = db.jni1;
 t.remove( {} );
 

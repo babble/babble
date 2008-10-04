@@ -51,7 +51,7 @@ for site in $SITES_LIST; do
     # Bring up the app server.
     ./runserver.sh ./sites/$site&
 
-	sleep 5
+	sleep 45
 
     # Populate the db with setup data.
     if [ -f ./sites/${site}test/setup.js ]
@@ -94,9 +94,12 @@ for site in $SITES_LIST; do
     rm -r ./sites/${site}test/dtd
 
     # Figure out the pid of the appserver we just brought up.
-    http_pid=`ps -e -o pid,command | grep java | grep "ed.appserver.AppServer" | grep "port $http_port" | awk '{ print $1 }'`
+    http_pid=`ps -e -o pid,command | grep java | grep "port $http_port" | awk '{ print $1 }'`
     # Bring down the appserver
-    kill $http_pid
+	echo "ps -e -o pid,command | grep java | grep 'port $http_port':"
+	echo `ps -e -o pid,command | grep java | grep "port $http_port"`
+	echo "Bringing down appserver at pid: ${http_pid}"
+    kill -9 $http_pid || echo "failed to kill appserver"
 
     # If the webtests failed then bring down the db and exit w/ an error
     if [ $STATUS != "0" ]

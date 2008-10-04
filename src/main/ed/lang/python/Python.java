@@ -22,8 +22,11 @@ import java.io.*;
 import java.util.*;
 
 import org.python.core.*;
+import org.python.antlr.*;
+import org.python.antlr.ast.*;
 
 import ed.db.*;
+import ed.util.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.js.func.*;
@@ -50,8 +53,21 @@ public class Python extends Language {
         return (PyCode)(Py.compile( new FileInputStream( f ) , f.toString() , "exec" ));
     }
 
+    public static void deleteCachedJythonFiles( File dir ){
+        for( File child : dir.listFiles() ){
+            if( child.getName().endsWith( "$py.class") ){
+                child.delete();
+            }
+            if( child.isDirectory() ){
+                deleteCachedJythonFiles( child );
+            }
+        }
+    }
+
 
     public static Object toJS( Object p ){
+        if( D )
+            System.out.println( "toJS " + p );
 
         if ( p == null || p instanceof PyNone )
             return null;
@@ -67,8 +83,11 @@ public class Python extends Language {
         if ( p instanceof PyJSStringWrapper )
             p = ((PyJSStringWrapper)p)._p;
 
-        if ( p instanceof PyJSObjectWrapper )
+        if ( p instanceof PyJSObjectWrapper ){
+            if( D )
+                System.out.println( "unwrapping " + p );
             return ((PyJSObjectWrapper)p)._js;
+        }
 
         if ( p instanceof PyBoolean )
             return ((PyBoolean)p).getValue() == 1;
@@ -170,13 +189,43 @@ public class Python extends Language {
     }
 
     public Object eval( Scope s , String code , boolean[] hasReturn ){
+        if( D )
+            System.out.println( "Doing eval on " + code );
         PyObject globals = getGlobals( s );
         code = code+ "\n";
-        PyCode pycode = (PyCode)(Py.compile( new ByteArrayInputStream( code.getBytes() ) , "anon" , "single" ));
-        return __builtin__.eval( pycode , globals );
+        PyCode pycode;
+        String filename = "<input>";
+
+        // Hideous antlr code to figure out if this is a module or an expression
+        ModuleParser m = new ModuleParser( new org.antlr.runtime.ANTLRStringStream( code ) , filename , false );
+        modType tree = m.file_input();
+        if( ! ( tree instanceof org.python.antlr.ast.Module ) ){
+            // no idea what this would mean -- tell Ethan
+            throw new RuntimeException( "can't happen -- blame Ethan" );
+        }
+
+        // Module is the class meaning "toplevel sequence of statements"
+        org.python.antlr.ast.Module mod = (org.python.antlr.ast.Module)tree;
+
+        // If there's only one statement and it's an expression statement,
+        // compile just that expression as its own module.
+        hasReturn[0] = mod.body != null && mod.body.length == 1 && (mod.body[0] instanceof Expr );
+        if( hasReturn[0] ){
+            // I guess this class is treated specially, has a return value, etc.
+            Expression expr = new Expression( new PythonTree() , ((Expr)mod.body[0]).value );
+
+            pycode = (PyCode)Py.compile( expr , filename );
+        }
+        else {
+            // Otherwise compile the whole module
+            pycode = (PyCode)Py.compile( mod , filename );
+        }
+
+        return toJS( __builtin__.eval( pycode , globals ) );
     }
 
     public static PyObject getGlobals( Scope s ){
+        if( s == null ) throw new RuntimeException("can't construct globals for null");
         Scope pyglobals = s.child( "scope to hold python builtins" );
 
         PyObject globals = new PyJSScopeWrapper( pyglobals , false );
@@ -230,17 +279,113 @@ public class Python extends Language {
         return new JSPyObjectWrapper( (PyFunction)(theFunc.getContained()) , true );
     }
 
-    public static PySystemState getSiteSystemState( AppContext ac ){
-        Scope s = ac.getScope();
-        Object __python__ = s.get( "__python__" );
-        if( __python__ != null && __python__ instanceof PySystemState ){
-            return (PySystemState)__python__;
+    /**
+     * Get a sensible site-specific state for either the given app
+     * context or the given scope.
+     *
+     * Given a Scope, get the Python site-specific state for that scope.
+     * If one does not exist, create one with the given AppContext and Scope.
+     * If the Scope is null, it will be obtained from the AppContext.
+     *
+     * The Scope will store the Python state, so if possible make it an
+     * AppContext (or suitably long-lived) scope.
+     *
+     * @return an already-existing SiteSystemState for the given site
+     *   or a new one if needed
+     */
+    public static SiteSystemState getSiteSystemState( AppContext ac , Scope s ){
+        if( ac == null && s == null ){
+            throw new RuntimeException( "can't get site-specific state for null site with no context" );
         }
 
-        PySystemState state = new PySystemState();
-        s.set( "__python__" , state );
+        if( s == null ){ // but ac != null, or we'd throw above
+            s = ac.getScope();
+        }
+        Object __python__ = s.get( "__python__" );
+        if( __python__ != null && __python__ instanceof SiteSystemState ){
+            return (SiteSystemState)__python__;
+        }
+
+        SiteSystemState state = new SiteSystemState( ac , getGlobals( s ) , s );
+        if( D )
+            System.out.println("Making a new PySystemState "+ __python__ + " in " + s + " " + __builtin__.id( state.getPyState() ));
+
+        s.putExplicit( "__python__" , state );
+
+        if( _rmap == null ){
+            _rmap = new HashMap<PySystemState, SiteSystemState>();
+        }
+        _rmap.put( state.getPyState(), state );
+
         return state;
     }
 
+    /**
+     * Get the already-existing SiteSystemState that wraps the given
+     * PySystemState.
+     *
+     * This assumes you've already passed through the other
+     * getSiteSystemState code path at some point and are returning a
+     * PySystemState wrapped by a SiteSystemState.
+     */
+    public static SiteSystemState getSiteSystemState( PySystemState py ){
+        return _rmap.get( py );
+    }
+
+    public static long size( PyObject o , IdentitySet seen ){
+        return _size( o , seen );
+    }
+
+    public static long _size( PyObject o , IdentitySet seen ){
+        // PyObject: private PyType objtype
+
+        // PyInteger: private int value
+        if ( o instanceof PyBoolean || o instanceof PyInteger )
+            return JSObjectSize.OBJ_OVERHEAD + 8;
+
+        // PySequence
+        // public int gListAllocatedStatus
+
+        // PyString
+        // transient int cached_hashcode
+        // transient boolean interned
+        if ( o instanceof PyString ){
+            PyString s = (PyString)o;
+            return JSObjectSize.OBJ_OVERHEAD + (long)(s.toString().length() * 2) + 12;
+        }
+
+        // PyList
+        // PySequenceList: protected PyObjectList list
+        // PyObjectList: PyObjectArray array
+        // PyObjectArray:
+        //    protected int capacity
+        //    protected int size
+        //    protected int modCountIncr
+        // PySequence: public int gListAllocatedStatus
+        if( o instanceof PyList ){
+            PyList l = (PyList)o;
+            int n = l.size();
+            long size = 0;
+            for( int i = 0; i < n; ++i){
+                PyObject foo = l.pyget(i);
+                size += JSObjectSize.size( foo, seen );
+            }
+            return size;
+        }
+
+        // PyDictionary: protected final ConcurrentMap table
+        if( o instanceof PyDictionary ){
+            long temp = 0;
+            temp += 32; // sizeof ConcurrentMap?
+            temp += JSObjectSize.size( ((PyDictionary)o).keys() , seen );
+            temp += JSObjectSize.size( ((PyDictionary)o).values() , seen );
+            return temp;
+        }
+
+        System.out.println("Couldn't figure out " + o.getClass());
+        return 0;
+    }
+
     private static Scope _extractGlobals;
+    private static Map<PySystemState, SiteSystemState> _rmap;
 }

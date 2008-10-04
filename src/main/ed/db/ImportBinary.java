@@ -162,7 +162,9 @@ public class ImportBinary {
         CommandLine cl = ( new BasicParser() ).parse( o , args );
         
         if ( cl.getArgList().size() == 0 ){
-            System.out.println( o );
+            HelpFormatter formatter = new HelpFormatter();
+            formatter.printHelp("ImportBinary [options] [ dirname | filename ]", o);
+            System.exit(0);
             return;
         }
         

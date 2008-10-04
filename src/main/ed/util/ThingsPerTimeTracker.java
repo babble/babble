@@ -27,7 +27,7 @@ public class ThingsPerTimeTracker {
      */
     public ThingsPerTimeTracker( long interval , int intervalsBack ){
         _interval = interval;
-        _counts = new int[intervalsBack];
+        _counts = new long[intervalsBack];
         _lastBucket = System.currentTimeMillis();
     }
 
@@ -39,8 +39,8 @@ public class ThingsPerTimeTracker {
     /** Adds a given number to a bucket
      * @param num the number to add
      */
-    public void hit( int num ){
-        long b = _bucket();
+    public void hit( long num ){
+        long b = bucket();
         while ( _lastBucket < b ){
             _pos++;
             if ( _pos == _counts.length )
@@ -54,9 +54,13 @@ public class ThingsPerTimeTracker {
         return;
     }
 
-    private long _bucket(){
+    public long bucket(){
         final long t = System.currentTimeMillis();
         return t - ( t % _interval );
+    }
+
+    public long beginning(){
+	return bucket() - ( _counts.length * _interval );
     }
 
     /** Returns the number of intervals to save.
@@ -72,7 +76,7 @@ public class ThingsPerTimeTracker {
      *   MAX = farthest back
      * @return the number of hits on that interval
      */
-    public int get( int num ){
+    public long get( int num ){
         int p = _pos - num;
         if ( p < 0 )
             p += _counts.length;
@@ -83,10 +87,17 @@ public class ThingsPerTimeTracker {
     public void validate(){
         hit( 0 );
     }
+    
+    public long max(){
+	long max = 0;
+	for ( int i=0; i<_counts.length; i++ )
+	    max = Math.max( max , _counts[i] );
+	return max;
+    }
 
     private long _lastBucket;
     private int _pos = 0;
 
-    private final int _counts[];
+    private final long _counts[];
     private final long _interval;
 }

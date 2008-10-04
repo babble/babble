@@ -1,4 +1,4 @@
-
+version = { corejs: 'master'};
 servletConfigs = {};
 var py = 'ed.lang.python.ModJyConnector';
 servletConfigs[py] = {};

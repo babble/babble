@@ -17,6 +17,7 @@
 package ed.lang.ruby;
 
 import org.jruby.Ruby;
+import org.jruby.exceptions.RaiseException;
 import org.jruby.runtime.builtin.IRubyObject;
 
 import ed.lang.Language;
@@ -28,8 +29,8 @@ class RubyShellSource extends RubyJxpSource {
 
     protected String _code;
     RubyShellSource(String code) {
-	super(RUNTIME);
-	_code = code;
+        super(null, null, RUNTIME);
+        _code = code;
     }
     protected String getContent() { return _code; }
 }
@@ -44,17 +45,22 @@ public class RubyLanguage extends Language {
     public RubyLanguage() { super("ruby"); }
 
     public Object eval(Scope s, String code, boolean[] hasReturn) {
-	RubyJxpSource source = new RubyShellSource(code);
-	try {
-	    Object o = RubyObjectWrapper.toJS(s, source._doCall(source._parseContent("(shell)"), s, RubyJxpSource.EMPTY_OBJECT_ARRAY));
-	    System.out.println(o == null ? "nil" : o.toString());
-	    return o;
-	}
-	catch (Exception e) {
-	    System.err.println(e.toString());
-	    if (DEBUG)
-		e.printStackTrace();
-	    return null;
-	}
+        RubyJxpSource source = new RubyShellSource(code);
+        Object result = null;
+        try {
+            result = RubyObjectWrapper.toJS(s, source._doCall(source._parseContent("(shell)"), s, RubyJxpSource.EMPTY_OBJECT_ARRAY));
+            hasReturn[0] = true;
+        }
+        catch (RaiseException re) {
+            re.printStackTrace();
+        }
+        catch (Exception e) {
+            System.err.println(e.toString());
+            if (DEBUG)
+                e.printStackTrace();
+        }
+        finally {
+            return result;
+        }
     }
 }

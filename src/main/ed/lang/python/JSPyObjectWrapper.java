@@ -22,6 +22,7 @@ import java.util.*;
 
 import org.python.core.*;
 
+import ed.util.*;
 import ed.js.*;
 import ed.js.func.*;
 import ed.js.engine.*;
@@ -124,7 +125,7 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     }
 
     public Object set( Object n , Object v ){
-        if( _p == null && n.equals( "prototype" ) ){
+        if( _p == null && ( n.equals( "prototype" ) || n.equals( "length" ) ) ){
             if( DEBUG )
                 System.err.println("I'm not set up yet! Ignoring set to " + n);
             return v;
@@ -295,6 +296,16 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
         // FIXME: This is probably wrong; since we treat all Python objects as
         // functions, why shouldn't we return JSFunction._prototype?
         return JSObjectBase._objectLowFunctions;
+    }
+
+    public long approxSize(){
+        return approxSize( new IdentitySet() );
+    }
+
+    public long approxSize( IdentitySet seen ){
+        long sum = super.approxSize( seen );
+        sum += JSObjectSize.size( _p , seen );
+        return sum;
     }
     
     public String toString(){

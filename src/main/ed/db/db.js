@@ -167,8 +167,8 @@ DB.prototype.setProfilingLevel = function(level) {
  */
 DB.prototype.eval = function(jsfunction) {
     var cmd = { $eval: jsfunction };
-    if( arguments.length > 1 ) {
-		cmd.args = arguments.slice(1);
+    if ( arguments.length > 1 ) {
+	cmd.args = arguments.slice(1);
     }
     var res = this._dbCommand( cmd );
     
