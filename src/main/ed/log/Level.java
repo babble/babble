@@ -26,9 +26,17 @@ public enum Level {
 
     DEBUG_7 , DEBUG_6 , DEBUG_5 , DEBUG_4 , DEBUG_3 , DEBUG_2 , DEBUG_1 , 
 	DEBUG , INFO , WARN , ERROR , FATAL ;
-
+    
     public static Level forDebugId( int id ){
-	return LEVELS[ ( -1 * id ) + DEBUG_LEVELS ];
+	int idx = ( -1 * id ) + DEBUG_LEVELS;
+
+	if ( idx < 0 )
+	    idx = 0;
+	
+	if ( idx >= LEVELS.length )
+	    idx = LEVELS.length - 1;
+
+	return LEVELS[ idx ];
     }
     
     public static Level forId( int id ){
