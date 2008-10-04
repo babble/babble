@@ -23,9 +23,19 @@ import ed.js.func.*;
 import ed.js.engine.*;
 
 public enum Level {
-    DEBUG , INFO , WARN , ERROR , FATAL ;
 
-    static Level forName( String name ){
+    DEBUG_7 , DEBUG_6 , DEBUG_5 , DEBUG_4 , DEBUG_3 , DEBUG_2 , DEBUG_1 , 
+	DEBUG , INFO , WARN , ERROR , FATAL ;
+
+    public static Level forDebugId( int id ){
+	return LEVELS[ ( -1 * id ) + DEBUG_LEVELS ];
+    }
+    
+    public static Level forId( int id ){
+	return LEVELS[ id + DEBUG_LEVELS ];
+    }
+    
+    public static Level forName( String name ){
         if ( name.equalsIgnoreCase( "debug" ) )
             return DEBUG;
 
@@ -44,7 +54,9 @@ public enum Level {
         throw new RuntimeException( "unknown level : " + name );
     }
 
-    static JSObject me = new JSObjectBase();
+    static final JSObject me = new JSObjectBase();
+    static final Level[] LEVELS;
+    static final int DEBUG_LEVELS;
     static {
         me.set( "DEBUG" , DEBUG );
         me.set( "INFO" , INFO );
@@ -53,5 +65,12 @@ public enum Level {
         me.set( "FATAL" , FATAL );
 	
         me.set( "ALL" , DEBUG );
+	
+	LEVELS = Level.values();
+	int debug = 0;
+	for ( int i=0; i<LEVELS.length; i++ )
+	    if ( LEVELS[i].name().equalsIgnoreCase( "info" ) )
+		debug = i;
+	DEBUG_LEVELS = debug;
     }
 }
