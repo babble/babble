@@ -42,14 +42,13 @@ public abstract class NIOClient extends Thread {
     public NIOClient( String name , int connectionsPerHost , int verboseLevel ){
         super( "NIOClient: " + name );
         _name = name;
-        _verbose = verboseLevel;
         _connectionsPerHost = connectionsPerHost;
         
         _logger = Logger.getLogger( "nioclient-" + name );
+	_logger.setLevel( Level.forDebugId( verboseLevel ) );
+
         _loggerOpen = _logger.getChild( "open" );
         _loggerDrop = _logger.getChild( "drop" );
-
-        _logger.setLevel( _verbose > 0 ? Level.DEBUG : Level.INFO );
         
         _addMonitors();
 
@@ -548,7 +547,6 @@ public abstract class NIOClient extends Thread {
     }
 
     final protected String _name;
-    final protected int _verbose;
     final protected int _connectionsPerHost;
 
     final Logger _logger;
