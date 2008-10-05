@@ -29,12 +29,18 @@ for( z = 0; z < 2; z++ ) {
     
     
     // NPE test
-    assert( 0 == t.find( { $where : 
+    var ok = false;
+    try {
+    var x = t.find( { $where : 
 			   function(){ 
                                asdf.asdf.f.s.s();
 			   } 
-			 } ).length() );
-    
+	} ).length();
+    }
+    catch(e) { 
+	ok = true;
+    }
+    assert(ok);
     
     t.ensureIndex({z:1});
     t.ensureIndex({q:1});
