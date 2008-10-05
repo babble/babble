@@ -95,7 +95,7 @@ public abstract class HttpResponseHandlerBase implements HttpResponseHandler {
 
     public byte[] getPostDataToSend(){ return null; };
 
-    public String getMethodToUse() { return null; };
+    public String getMethodToUse() { return "GET"; };
 
     protected Map<String,String> _headersToSend = new StringMap<String>();
 
