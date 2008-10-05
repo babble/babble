@@ -525,8 +525,10 @@ public abstract class NIOClient extends Thread {
 
     void _addMonitors(){
         HttpServer.addGlobalHandler( new MyMonitor( "serverConnPools" ){
-                public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
-                    
+                public void handle( MonitorRequest mr ){
+		    
+		    JxpWriter out = mr.getWriter();
+
                     for ( InetSocketAddress addr : getAllConnections() ){
                         out.print( "<b>"  );
                         out.print( addr.toString() );

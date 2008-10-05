@@ -26,6 +26,7 @@ import ed.util.*;
 import ed.net.*;
 
 public abstract class HttpMonitor implements HttpHandler {
+    
 
     public HttpMonitor( String name ){
         this( name , false );
@@ -67,7 +68,10 @@ public abstract class HttpMonitor implements HttpHandler {
         String h = request.getHost();
         if ( h == null )
             return false;
-        
+	
+	if ( h.equals( "127.0.0.1" ) )
+	    return true;
+
         if ( ! h.endsWith( "." + Config.getInternalDomain() ) )
             return false;
 
@@ -78,7 +82,7 @@ public abstract class HttpMonitor implements HttpHandler {
         
         if ( AUTH_COOKIE.equalsIgnoreCase( request.getCookie( "auth" ) ) )
             return true;
-
+	
         if ( AUTH_COOKIE.equalsIgnoreCase( request.getParameter( "auth" ) ) )
             return true;
 
@@ -86,7 +90,7 @@ public abstract class HttpMonitor implements HttpHandler {
     }
     
     protected void addStyle( StringBuilder buf ){}
-    public abstract void handle( JxpWriter out , HttpRequest request , HttpResponse response );
+    public abstract void handle( MonitorRequest request );
     
     public boolean handles( HttpRequest request , Info info ){
         
@@ -109,14 +113,16 @@ public abstract class HttpMonitor implements HttpHandler {
             c.setDomain( "10gen.cc" );
             c.setPath( "/" );
             c.setMaxAge( 86400 * 30 );
-
+	    
             response.addCookie( c );
             response.sendRedirectTemporary( request.getFullURL().replaceAll( "auth=" + AUTH_COOKIE , "" ) );
             return;
         }
 
         JxpWriter out = response.getJxpWriter();
-        
+	
+	MonitorRequest mr = new MonitorRequest( out , request , response );
+
         if ( _plainText )
             response.setHeader( "Content-Type" , "text/plain" );
         else {
@@ -129,8 +135,9 @@ public abstract class HttpMonitor implements HttpHandler {
                     out.print( sc );
             }
         }
+
         try {
-            handle( out , request , response );
+            handle( mr );
         }
         catch ( Exception e ){
             e.printStackTrace();
@@ -138,43 +145,11 @@ public abstract class HttpMonitor implements HttpHandler {
             for ( StackTraceElement element : e.getStackTrace() )
                 out.print( element + "<br>\n" );
         }
+
         if ( ! _plainText )
             out.print( "</body></html>" );
     }
     
-    protected void startTable( JxpWriter out ){
-        out.print( "<table border='1' >" );
-    }
-
-    protected void endTable( JxpWriter out ){
-        out.print( "</table>" );
-    }
-
-    protected void addTableRow( JxpWriter out , Object header , Object data ){
-	addTableRow( out , header , data , null );
-    }
-    
-    protected void addTableCell( JxpWriter out , Object data ){
-        out.print( "<td>" );
-        if ( data == null )
-            out.print( "null" );
-        else 
-            out.print( data.toString() );
-        out.print( "</td>" );
-    }
-
-
-    protected void addTableRow( JxpWriter out , Object header , Object data , String valueClass ){
-        out.print( "<tr><th>" );
-        out.print( header == null ? "null" : header.toString() );
-        out.print( "</th><td " );
-	if ( valueClass != null )
-	    out.print( "class=\"" + valueClass + "\" " );
-	out.print( ">" );
-        out.print( data == null ? "null" : data.toString() );
-        out.print( "</td></tr>" );
-    }
-
     public double priority(){
         return Double.MIN_VALUE;
     }
@@ -222,6 +197,84 @@ public abstract class HttpMonitor implements HttpHandler {
         buf.append( "<hr>" );
         _allContent = buf.toString();
     }
+
+    public class MonitorRequest {
+	
+
+	public MonitorRequest( JxpWriter out , HttpRequest request , HttpResponse response ){
+	    _out = out;
+	    _request = request;
+	    _response = response;
+
+	    _json = _request.getBoolean( "json" , false );
+	}
+
+	public void addHeader( String header ){
+	    _out.print( "<h3>" );
+	    _out.print( header );
+	    _out.print( "</h3>" );
+	}
+
+	public void addSpacingLine(){
+	    if ( _json )
+		return;
+	    _out.print( "<br>" );
+	}
+	
+	public void startTable(){
+	    _out.print( "<table border='1' >" );
+	}
+	
+	public void endTable(){
+	    _out.print( "</table>" );
+	}
+	
+	public void addTableRow( Object header , Object data ){
+	    addTableRow( header , data , null );
+	}
+	
+	public void addTableCell( Object data ){
+	    _out.print( "<td>" );
+	    if ( data == null )
+		_out.print( "null" );
+	    else 
+		_out.print( data.toString() );
+	    _out.print( "</td>" );
+	}
+	
+	
+	public void addTableRow( Object header , Object data , String valueClass ){
+	    _out.print( "<tr><th>" );
+	    _out.print( header == null ? "null" : header.toString() );
+	    _out.print( "</th><td " );
+	    if ( valueClass != null )
+		_out.print( "class=\"" + valueClass + "\" " );
+	    _out.print( ">" );
+	    _out.print( data == null ? "null" : data.toString() );
+	    _out.print( "</td></tr>" );
+	}
+
+	public JxpWriter getWriter(){
+	    if ( _json )
+		throw new RuntimeException( "this is a json request so can't get a raw writer" );
+	    return _out;
+	}
+
+	public HttpRequest getRequest(){
+	    return _request;
+	}
+
+	public HttpResponse getResponse(){
+	    return _response;
+	}
+	
+	private final JxpWriter _out;
+	private final HttpRequest _request;
+	private final HttpResponse _response;
+	
+	protected final boolean _json ;
+    }
+
     
     final boolean _plainText;
     final String _name;
@@ -247,26 +300,25 @@ public abstract class HttpMonitor implements HttpHandler {
             _r = Runtime.getRuntime();
         }
 
-        public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
-            print( out );
+        public void handle( MonitorRequest request ){
+            print( request );
             
-            Object gc = request.get("gc");
-            if ( gc != null && gc.equals( "t" ) ){
+            if ( request.getRequest().getBoolean( "gc" , false ) ){
                 System.gc();
-                out.print( "\n\n after gc\n\n" );
+                request.getWriter().print( "\n\n after gc\n\n" );
                 
-                print( out );
+                print( request );
             }
             
         }
         
-        void print( JxpWriter out ){
-            startTable( out );
-            addTableRow( out , "max" , MemUtil.bytesToMB( _r.maxMemory() ) );
-            addTableRow( out , "total" , MemUtil.bytesToMB( _r.totalMemory() ) );
-            addTableRow( out , "free" , MemUtil.bytesToMB( _r.freeMemory() ) );
-            addTableRow( out , "used" , MemUtil.bytesToMB( _r.totalMemory() - _r.freeMemory() ) );
-            endTable( out );
+        void print( MonitorRequest request ){
+            request.startTable();
+            request.addTableRow( "max" , MemUtil.bytesToMB( _r.maxMemory() ) );
+            request.addTableRow( "total" , MemUtil.bytesToMB( _r.totalMemory() ) );
+            request.addTableRow( "free" , MemUtil.bytesToMB( _r.freeMemory() ) );
+            request.addTableRow( "used" , MemUtil.bytesToMB( _r.totalMemory() - _r.freeMemory() ) );
+            request.endTable();
         }
 
         final Runtime _r;
@@ -286,14 +338,15 @@ public abstract class HttpMonitor implements HttpHandler {
 
         }
 
-        public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
+        public void handle( MonitorRequest mr ){
             
-            out.print( "Threads<br>" );
+	    mr.addHeader( "Threads" );
+	    final JxpWriter out = mr.getWriter();
 
             final Map<Thread,StackTraceElement[]> all = Thread.getAllStackTraces();
             final Thread cur = Thread.currentThread();
             
-            final String filter = getFilter( request );
+            final String filter = getFilter( mr.getRequest() );
             
             if ( filter != null )
                 out.print( "filter : <b>" ).print( filter ).print( "</b><br>" );

@@ -162,7 +162,9 @@ public class Router {
 
     void _addMonitors(){
         HttpServer.addGlobalHandler( new HttpMonitor( "lb-pools" ){
-                public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){   
+                public void handle( MonitorRequest request ){
+		    JxpWriter out = request.getWriter();
+
                     out.print( "<ul>" );
                     
                     for ( String s : _pools.keySet() ){

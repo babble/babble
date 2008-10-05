@@ -358,14 +358,16 @@ public class LB extends NIOClient {
 
     void _addMonitors(){
         HttpServer.addGlobalHandler( new HttpMonitor( "lb" ){
-                public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
-                    out.print( "overview" );
+                public void handle( MonitorRequest mr ){
+                    mr.getWriter().print( "overview" );
                 }
             }
             );
 
         HttpServer.addGlobalHandler( new HttpMonitor( "lb-last" ){
-                public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
+                public void handle( MonitorRequest mr ){
+		    JxpWriter out = mr.getWriter();
+
                     out.print( "<table border='1' >" );
                     
                     out.print( "<tr>" );
@@ -391,14 +393,14 @@ public class LB extends NIOClient {
                             break;
                         
                         out.print( "<tr>" );
-                        addTableCell( out , rr._request.getHost() );
-                        addTableCell( out , rr._request.getURL() );
-                        addTableCell( out , rr._lastWent );
-                        addTableCell( out , SHORT_TIME.format( new Date( rr.getStartedTime() ) ) );
+                        mr.addTableCell( rr._request.getHost() );
+                        mr.addTableCell( rr._request.getURL() );
+                        mr.addTableCell( rr._lastWent );
+                        mr.addTableCell( SHORT_TIME.format( new Date( rr.getStartedTime() ) ) );
                         if ( rr.isDone() ){
-                            addTableCell( out , rr._response.getResponseCode() );
-                            addTableCell( out , rr._response.getContentLength() );
-                            addTableCell( out , rr.getTotalTime() );
+                            mr.addTableCell( rr._response.getResponseCode() );
+                            mr.addTableCell( rr._response.getContentLength() );
+                            mr.addTableCell( rr.getTotalTime() );
                         }
                         out.print( "</tr>\n" );
                     }
