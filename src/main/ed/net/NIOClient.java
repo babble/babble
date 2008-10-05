@@ -123,23 +123,29 @@ public abstract class NIOClient extends Thread {
     private void _doNewRequests(){
         List<Call> pushBach = new LinkedList<Call>();
         
-        for ( int i=0; i<10; i++ ){ // don't want to just handle new requests
+        for ( int i=0; i<20; i++ ){ // don't want to just handle new requests
             
             Call c = _newRequests.poll();
             if ( c == null )
                 break;
             
-            if ( c._cancelled )
+            if ( c._cancelled ){
+		pushBach.add( c );
                 continue;
+	    }
             
-            if ( c._paused )
+            if ( c._paused ){
+		pushBach.add( c );
                 continue;
-
+	    }
+	    
             InetSocketAddress addr = null;
             try {
                 addr = c.where();
-                if ( addr == null )
+                if ( addr == null ){
+		    pushBach.add( c );
                     continue;
+		}
                 
                 final ConnectionPool pool = getConnectionPool( addr );
                 

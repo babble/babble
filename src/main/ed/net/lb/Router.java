@@ -153,9 +153,9 @@ public class Router {
 
         Pool( String name , List<InetSocketAddress> addrs ){
 
-            if ( addrs == null )
+            if ( addrs == null || addrs.size() == 0 )
                 throw new NullPointerException( "can't create a Pool with no addresses" );
-
+	    
             _name = name;
 	    _tracker = new HttpLoadTracker( name , 2 , 60 );
             _servers = new ArrayList<Server>();
@@ -168,6 +168,9 @@ public class Router {
             final int size = _servers.size();
             _seen.add( e );
             
+	    if ( size == 1 )
+		return _servers.get(0)._addr;
+
             Server best = null;
             double score = Double.MIN_VALUE;
             
