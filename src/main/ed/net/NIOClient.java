@@ -201,8 +201,8 @@ public abstract class NIOClient extends Thread {
             try {
                 _sock = SocketChannel.open();
                 _sock.configureBlocking( false );
-                _key = _sock.register( _selector , SelectionKey.OP_CONNECT , this );
                 _sock.connect( _addr );
+                _key = _sock.register( _selector , SelectionKey.OP_CONNECT , this );
                 
                 _loggerOpen.debug( "opening connection to [" + addr + "]" );
             }
@@ -226,6 +226,9 @@ public abstract class NIOClient extends Thread {
             }
             catch ( IOException ioe ){
                 err = ioe;
+            }
+            catch ( Exception e ){
+                err = new IOException( "weird error on finish connect : " + e );
             }
             
             if ( err == null ){
