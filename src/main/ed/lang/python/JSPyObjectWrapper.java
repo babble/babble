@@ -171,7 +171,20 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
     
     public Object removeField( Object n ){
         super.removeField( n );
-        _p.__delattr__( n.toString() );
+        try {
+            _p.__delattr__( n.toString() );
+        }
+        catch ( PyException pyE ){
+            // Whatever
+        }
+
+        try {
+            _p.__delitem__( n.toString() );
+        }
+        catch ( PyException pyE ){
+            // Beats me
+        }
+
         return null; // FIXME: we removed both of them, who cares
     }
     
