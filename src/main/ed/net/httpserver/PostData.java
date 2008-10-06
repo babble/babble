@@ -28,6 +28,8 @@ import ed.js.*;
 import ed.util.*;
 
 public abstract class PostData {
+    
+    static final boolean DEBUG = false;
 
     static PostData create( HttpRequest req ){
         final int cl = req.getIntHeader( "Content-Length" , 0 );
@@ -61,6 +63,11 @@ public abstract class PostData {
     public int length(){
         return _len;
     }
+
+    public Set<String> filenames(){
+        return _files.keySet();
+    }
+
 
     abstract int position();
     abstract byte get( int pos );
@@ -122,7 +129,8 @@ public abstract class PostData {
     }
 
     private void parseMultiPart( HttpRequest req ){
-        
+        if ( DEBUG ) System.out.println( "starting to parse multi-part" );
+
         int start = indexOf( _boundary , 0 );
         if ( start < 0 )
             return;
@@ -157,6 +165,8 @@ public abstract class PostData {
                 if ( line.length() == 0 )
                     break;
                 
+                if ( DEBUG ) System.out.println( "\t got post header [" + line + "]" );
+
                 int col = line.indexOf( ":" );
                 if ( col < 0 )
                     continue;
@@ -176,8 +186,13 @@ public abstract class PostData {
                 headers.put( name , value );
             }
             
-            if ( mainPieces.get( "filename" ) != null && type != null  ){
+            if ( DEBUG ) System.out.println( "\t multipart headers " + headers + " mainPieces " + mainPieces );
+
+            if ( mainPieces.get( "filename" ) != null ){
                 String fn = mainPieces.get( "filename" ).trim();
+                if ( type == null )
+                    type = ed.appserver.MimeTypes.get( fn );
+                if ( DEBUG ) System.out.println( "got filename [" + fn + "] of type [" + type + "]" );
 
                 /*
                  *  1 byte to back off of the start of boundary, and 1 byte to back off of the terminating \n of the
