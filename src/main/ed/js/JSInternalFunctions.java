@@ -292,10 +292,16 @@ public class JSInternalFunctions extends JSNumericFunctions {
      */
     public Object JS_inc( JSRef ref , boolean post , int num ){
         Object obj = ref.get();
-        if ( obj == null || ! ( obj instanceof Number ) )
-            throw new RuntimeException( "got a non number : [" + obj + "] from : [" + ref  + "] is a [" +  ( obj == null ? "null" : obj.getClass().getName() ) + "]" );
-        Object n = JS_add( num , obj );
-        ref.set( n );
+        Object n;
+        if ( ! ( obj instanceof Number ) ) {
+            obj = JSNumber.getDouble( obj );
+            n = (Double)obj + num;
+            ref.set( n );
+        }
+        else {
+            n = JS_add( num , obj );
+            ref.set( n );
+        }
         return post ? obj : n;
     }
 

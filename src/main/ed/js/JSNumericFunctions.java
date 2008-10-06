@@ -419,6 +419,10 @@ public class JSNumericFunctions extends JSObjectBase {
         if ( o instanceof JSDate )
             return ((JSDate)o).getTime();
 
+        if ( o instanceof JSBoolean ||
+             o instanceof Boolean )
+            return JSBoolean.booleanValue( o ) ? 1 : 0;
+
         String s = null;
         if ( o instanceof JSString )
             s = o.toString();
