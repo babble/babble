@@ -117,8 +117,6 @@ public abstract class HttpMonitor implements HttpHandler {
             c.setMaxAge( 86400 * 30 );
 	    
             response.addCookie( c );
-            response.sendRedirectTemporary( request.getFullURL().replaceAll( "auth=" + AUTH_COOKIE , "" ) );
-            return;
         }
 	
         final JxpWriter out = response.getJxpWriter();
