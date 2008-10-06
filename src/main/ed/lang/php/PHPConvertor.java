@@ -89,6 +89,9 @@ public class PHPConvertor extends Value implements ObjectConvertor {
         if ( o == null )
             return null; // TODO: should this be NullValue
         
+        if( o instanceof PHPWrapper)
+            return ((PHPWrapper) o)._value;
+        
         if ( o instanceof JSString )
             o = o.toString();
         
