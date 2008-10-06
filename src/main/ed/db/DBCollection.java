@@ -382,6 +382,8 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
                           public Object call( Scope s , Object o , Object foo[] ){
                               if ( checkReadOnly( true ) ) return o;
                               
+			      o = _massageObjectToFilter( o , false , true );
+
                               _checkObject( o , true );
 
                               JSObject jo = _handleThis( s , (JSObject)o );
@@ -407,34 +409,11 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
         _find = new JSFunctionCalls2() {
                 public Object call( Scope s , Object o , Object fieldsWantedO , Object foo[] ){
                     
-                    if ( o instanceof DBRef )
-                        o = ((DBRef)o)._id;
+		    o = _massageObjectToFilter( o , true , fieldsWantedO != null );
 
-                    if ( o == null )
-                        o = new JSObjectBase();
-                    
-                    if ( o instanceof JSFunction && ((JSFunction)o).isCallable() && ((JSFunction)o).getSourceCode() != null ){
-                        JSObjectBase obj = new JSObjectBase();
-                        obj.set( "$where" , o );
-                        o = obj;
-                    }
-
-                    if ( o instanceof String || o instanceof JSString ){
-                        String str = o.toString();
-                        if ( ObjectId.isValid( str ) )
-                            o = new ObjectId( str );
-                        else 
-                            throw new IllegalArgumentException( "can't call find() with a string that is not a valid ObjectId" );
-                    }
-                    
-                    if ( o instanceof ObjectId ){
-			if ( fieldsWantedO == null )
-			    return find( (ObjectId)o );
-			JSObjectBase obj = new JSObjectBase();
-			obj.set( "_id" , o );
-			o = obj;
-		    }
-                    
+		    if ( o instanceof ObjectId )
+			return find( (ObjectId)o );
+		    
                     if ( o instanceof JSObject ){
                         JSObject key = (JSObject)o;
                         checkForIDIndex( key );
@@ -483,6 +462,40 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
                               return DBCollection.this._fullName;
                           }
                       } );
+    }
+
+    Object _massageObjectToFilter( Object o , boolean maskNull , boolean convertIdToObject ){
+	if ( o == null ){
+	    if ( maskNull )
+		return new JSObjectBase();
+	    return null;
+	}
+	
+	if ( o instanceof JSFunction && ((JSFunction)o).isCallable() && ((JSFunction)o).getSourceCode() != null ){
+	    JSObjectBase obj = new JSObjectBase();
+	    obj.set( "$where" , o );
+	    return obj;
+	}
+
+	if ( o instanceof DBRef )
+	    o = ((DBRef)o)._id;
+
+	if ( o instanceof String || o instanceof JSString ){
+	    String str = o.toString();
+	    if ( ObjectId.isValid( str ) )
+		o = new ObjectId( str );
+	    else 
+		throw new IllegalArgumentException( "can't call find() with a string that is not a valid ObjectId" );
+	}
+
+	if ( convertIdToObject && o instanceof ObjectId ){
+	    JSObjectBase obj = new JSObjectBase();
+	    obj.set( "_id" , o );
+	    return obj;
+	}
+
+	return o;
+	
     }
 
     protected void _finishInit(){
