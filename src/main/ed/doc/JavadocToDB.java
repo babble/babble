@@ -31,6 +31,7 @@ public class JavadocToDB {
         Tag cTags[] = from.tags();
         for(int j=0; j<cTags.length; j++) {
             if(!(cTags[j].name().equals("@return") ||
+                 cTags[j].name().equals("@returnpkg") ||
                  cTags[j].name().equals("@example") ||
                  cTags[j].name().equals("@param") ||
                  cTags[j].name().equals("@anonymous"))) {
@@ -58,15 +59,17 @@ public class JavadocToDB {
 
 
         Tag mTags[] = m.tags();
+        JSArray returns = new JSArray();
         for(int k=0; k<mTags.length; k++) {
             if(mTags[k].name().equals("@return")) {
-                JSArray returns = new JSArray();
                 JSObjectBase tempReturn = new JSObjectBase();
                 tempReturn.set("title", "return");
                 tempReturn.set("desc", mTags[k].text());
                 tempReturn.set("type", m.returnType().typeName());
                 returns.add(tempReturn);
-                tempMethod.set("returns", returns);
+            }
+            else if (mTags[k].name().equals("@returnpkg")) {
+                returns.add( getReturnPkg( mTags[k] ) );
             }
             else if (mTags[k].name().equals("@jsget")) {
                 tempMethod.set("desc", "Getter for the class "+m.containingClass().name());
@@ -81,14 +84,13 @@ public class JavadocToDB {
                 tempMethod.set(mTags[k].name(), mTags[k].text());
             }
         }
-        if(!tempMethod.containsKey("returns")) {
-            JSArray returns = new JSArray();
+        if( returns.size() == 0 ) {
             JSObjectBase tempReturn = new JSObjectBase();
             tempReturn.set("title", "return");
             tempReturn.set("type", m.returnType().typeName());
             returns.add(tempReturn);
-            tempMethod.set("returns", returns);
         }
+        tempMethod.set("returns", returns);
 
         tempMethod.set("example", getTagArray( m, "example" ) );
 
@@ -137,6 +139,33 @@ public class JavadocToDB {
         return tempMethod;
     }
 
+    public static JSObjectBase getReturnPkg( Tag t ) {
+        JSObjectBase tempReturn = new JSObjectBase();
+        String rTag = t.text();
+        int typeIndex = rTag.indexOf(" ");
+        // there is only one arg:
+        // @returnpkg foo.bar.blah
+        if( typeIndex == -1 ) {
+            tempReturn.set( "url", rTag );
+            return tempReturn;
+        }
+        tempReturn.set( "url", rTag.substring( 0, typeIndex ) );
+
+        int descIndex = rTag.substring( typeIndex + 1 ).indexOf(" ");
+        // there are only two args:
+        // @returnpkg foo.bar.blah Object
+        if( descIndex == -1 ) {
+            tempReturn.set( "type", rTag.substring( typeIndex + 1 ) );
+            return tempReturn;
+        }
+        tempReturn.set( "type", rTag.substring( typeIndex+1, typeIndex+descIndex+1 ) );
+
+        // all three args
+        // @returnpkg foo.bar.blah Object desc
+        tempReturn.set( "desc", rTag.substring( typeIndex+descIndex+1 ) );
+        return tempReturn;
+    }
+
     public static JSObjectBase getField( FieldDoc field ) {
         JSObjectBase tempField = new JSObjectBase();
         tempField.set("desc", field.commentText());
@@ -147,6 +176,19 @@ public class JavadocToDB {
         tempField.set("type", (field.type()).typeName());
         tempField.set("isStatic", field.isStatic());
         tempField.set("isPublic", field.isPublic());
+
+        JSArray returns = new JSArray();
+        Tag[] rtags = field.tags( "return" );
+        if( rtags.length > 0 ) {
+            JSObjectBase r = new JSObjectBase();
+            r.set("desc", rtags[0].text());
+            returns.add( r );
+        }
+        rtags = field.tags( "returnpkg" );
+        if( rtags.length > 0 ) {
+            returns.add( getReturnPkg( rtags[0] ) );
+        }
+        tempField.set( "returns", returns );
 
         getTags(field, tempField);
 
@@ -267,7 +309,7 @@ public class JavadocToDB {
                         }
                         params.add(pgroup);
                     }
-                    else if(m.group(1).equals("return")) {
+                    else if(m.group(1).equals("return") || m.group(1).equals("returnpkg") ) {
                         Pattern subtagger = Pattern.compile("([A-Za-z]+) : \\(([^\\)]+)\\)");
                         Matcher subm = subtagger.matcher(m.group(2));
                         JSObjectBase pgroup = new JSObjectBase();
@@ -279,7 +321,6 @@ public class JavadocToDB {
                             }
                         }
                         returns.add(pgroup);
-                        a.set("returns", returns);
                     }
                     else if(m.group(1).equals("name")) {
                         a.set("alias", m.group(2));
@@ -291,6 +332,7 @@ public class JavadocToDB {
                 }
                 a.set("_params", params);
                 a.set("params", params);
+                a.set("returns", returns);
                 jsAnon.add(a);
             }
             temp.set("anonymous", jsAnon);
