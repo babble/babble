@@ -29,7 +29,7 @@ import ed.util.*;
 
 public abstract class PostData {
     
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     static PostData create( HttpRequest req ){
         final int cl = req.getIntHeader( "Content-Length" , 0 );
