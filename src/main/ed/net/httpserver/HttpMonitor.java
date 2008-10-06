@@ -112,13 +112,12 @@ public abstract class HttpMonitor implements HttpHandler {
 
         if ( AUTH_COOKIE != null && AUTH_COOKIE.equalsIgnoreCase( request.getParameter( "auth" ) ) ){
             Cookie c = new Cookie( "auth" , AUTH_COOKIE );
-            c.setDomain( "10gen.cc" );
+            if ( request.getHost().endsWith( Config.getInternalDomain() ) )
+                c.setDomain( Config.getInternalDomain() );
             c.setPath( "/" );
             c.setMaxAge( 86400 * 30 );
 	    
             response.addCookie( c );
-            response.sendRedirectTemporary( request.getFullURL().replaceAll( "auth=" + AUTH_COOKIE , "" ) );
-            return;
         }
 	
         final JxpWriter out = response.getJxpWriter();
@@ -269,7 +268,7 @@ public abstract class HttpMonitor implements HttpHandler {
 	
 	public void addData( Object name , Object value , String type ){
 	    if ( _json )
-		_cur.peek().set( name.toString() , value.toString() );
+		_cur.peek().set( name.toString() , value );
 	    else
 		addTableRow( name , value , type );
 	}

@@ -558,10 +558,12 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
             a.append( "Set-Cookie: " );
             a.append( c.getName() ).append( "=" ).append( c.getValue() ).append( ";" );
             if ( c.getPath() != null )
-                a.append( " " ).append( "Path=" ).append( c.getPath() ).append( ";" );
+                a.append( " Path=" ).append( c.getPath() ).append( ";" );
+            if ( c.getDomain() != null )
+                a.append( " Domain=" ).append( c.getDomain() ).append( ";" );
             String expires = CookieUtil.getExpires( c );
             if ( expires != null )
-                a.append( "Expires=" ).append( expires ).append( "; " );
+                a.append( " Expires=" ).append( expires ).append( "; " );
             a.append( "\r\n" );
         }
 
