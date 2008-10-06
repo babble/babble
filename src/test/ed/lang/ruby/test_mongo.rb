@@ -50,7 +50,8 @@ db.rubytest.save({artist: 'XTC', album: 'Oranges & Lemons', song: 'Garden Of Ear
 song_id = db.rubytest.save({artist: 'XTC', album: 'Oranges & Lemons', song: 'The Mayor Of Simpleton', track: 2});
 db.rubytest.save({artist: 'XTC', album: 'Oranges & Lemons', song: 'King For A Day', track: 3});
 EOS
-    @song_id = $song_id._id
+    @mayor_id = $song_id._id
+    @mayor_str = "artist: XTC, album: Oranges & Lemons, song: The Mayor Of Simpleton, track: 2"
 
     @spongebob_addr = Address.new(:street => "3 Pineapple Lane", :city => "Bikini Bottom", :state => "HI", :postal_code => "12345")
     @bender_addr = Address.new(:street => "Planet Express", :city => "New New York", :state => "NY", :postal_code => "10001")
@@ -141,7 +142,7 @@ EOS
   end
 
   def test_find_by__id
-    assert_equal("artist: XTC, album: Oranges & Lemons, song: The Mayor Of Simpleton, track: 2", Track.find_by__id(@song_id).to_s)
+    assert_equal(@mayor_str, Track.find_by__id(@mayor_id).to_s)
   end
 
   def test_find_by_song
@@ -149,19 +150,16 @@ EOS
   end
 
   def test_collection_name_using_class_name
-    assert_equal("artist: XTC, album: Oranges & Lemons, song: The Mayor Of Simpleton, track: 2", Rubytest.find_by__id(@song_id).to_s)
+    assert_equal(@mayor_str, Rubytest.find_by__id(@mayor_id).to_s)
   end
 
   def test_update
     t = Track.find_by_track(2)
     t.track = 99
     t.save
-    assert_equal("artist: XTC, album: Oranges & Lemons, song: The Mayor Of Simpleton, track: 99", t.to_s)
-    assert_equal("artist: XTC, album: Oranges & Lemons, song: The Mayor Of Simpleton, track: 99", Track.find_by_track(99).to_s)
-  end
-
-  def test_find
-    assert_all_songs Track.find.inject('') { |str, t| str + t.to_s }
+    str = @mayor_str.sub(/2/, '99')
+    assert_equal(str, t.to_s)
+    assert_equal(str, Track.find_by_track(99).to_s)
   end
 
   def test_find_all
@@ -169,16 +167,16 @@ EOS
   end
 
   def test_find_using_hash
-    str = Track.find(:conditions => {:album => 'Aliens Ate My Buick'}).inject('') { |str, t| str + t.to_s }
-    assert str =~ /song: The Ability to Swing/
-    assert str =~ /song: Budapest by Blimp/
+    str = Track.find(:all, :conditions => {:album => 'Aliens Ate My Buick'}).inject('') { |str, t| str + t.to_s }
+    assert_match(/song: The Ability to Swing/, str)
+    assert_match(/song: Budapest by Blimp/, str)
   end
 
   def test_find_first
     t = Track.find(:first)
     assert t.kind_of?(Track)
     str = t.to_s
-    assert str =~ /artist: [^,]+,/, "did not find non-empty artist name"
+    assert_match(/artist: [^,]+,/, str, "did not find non-empty artist name")
   end
 
   def test_find_first_with_search
@@ -189,9 +187,9 @@ EOS
 
   def test_find_all_by
     str = Track.find_all_by_album('Oranges & Lemons').inject('') { |str, t| str + t.to_s }
-    assert str =~ /song: Garden Of Earthly Delights/
-    assert str =~ /song: The Mayor Of Simpleton/
-    assert str =~ /song: King For A Day/
+    assert_match(/song: Garden Of Earthly Delights/, str)
+    assert_match(/song: The Mayor Of Simpleton/, str)
+    assert_match(/song: King For A Day/, str)
   end
 
   def test_new_no_arg
@@ -237,10 +235,6 @@ EOS
     assert_nil Track.find("bogus_id")
   end
 
-  def test_return_nil_if_first_bogus_id
-    assert_nil Track.find(:first, "bogus_id")
-  end
-
   def test_return_nil_if_first_bogus_id_in_hash
     assert_nil Track.find(:first, :conditions => {:_id => "bogus_id"})
   end
@@ -265,22 +259,22 @@ EOS
   def test_delete
     Track.find(:first, :conditions => {:song => 'King For A Day'}).delete
     str = Track.find(:all).inject('') { |str, t| str + t.to_s }
-    assert str =~ /song: The Ability to Swing/
-    assert str =~ /song: Budapest by Blimp/
-    assert str =~ /song: Europa and the Pirate Twins/
-    assert str =~ /song: Garden Of Earthly Delights/
-    assert str =~ /song: The Mayor Of Simpleton/
-    assert str !~ /song: King For A Day/
+    assert_match(/song: The Ability to Swing/, str)
+    assert_match(/song: Budapest by Blimp/, str)
+    assert_match(/song: Europa and the Pirate Twins/, str)
+    assert_match(/song: Garden Of Earthly Delights/, str)
+    assert_match(/song: The Mayor Of Simpleton/, str)
+    assert_no_match(/song: King For A Day/, str)
   end
 
   def test_class_delete
-    Track.delete(@song_id)
-    assert Track.find(:all).inject('') { |str, t| str + t.to_s } !~ /song: The Mayor Of Simpleton/
+    Track.delete(@mayor_id)
+    assert_no_match(/song: The Mayor Of Simpleton/, Track.find(:all).inject('') { |str, t| str + t.to_s })
   end
 
   def test_delete_all
     Track.delete_all({:artist => 'XTC'})
-    assert Track.find(:all).inject('') { |str, t| str + t.to_s } !~ /artist: XTC/
+    assert_no_match(/artist: XTC/, Track.find(:all).inject('') { |str, t| str + t.to_s })
 
     Track.delete_all({})        # must explicitly pass in {} if you want to delete everything
     assert_equal 0, Track.count
@@ -304,12 +298,12 @@ EOS
   end
 
   def test_find_one_using_id
-    t = Track.findOne(@song_id)
-    assert_equal "artist: XTC, album: Oranges & Lemons, song: The Mayor Of Simpleton, track: 2", t.to_s
+    t = Track.find(@mayor_id)
+    assert_equal @mayor_str, t.to_s
   end
 
   def test_select_find_one
-    t = Track.findOne(@song_id, :select => :album)
+    t = Track.find(@mayor_id, :select => :album)
     assert t.album?
     assert !t.artist?
     assert !t.song?
@@ -414,12 +408,12 @@ EOS
   end
 
   def assert_all_songs(str)
-    assert str =~ /song: The Ability to Swing/
-    assert str =~ /song: Budapest by Blimp/
-    assert str =~ /song: Europa and the Pirate Twins/
-    assert str =~ /song: Garden Of Earthly Delights/
-    assert str =~ /song: The Mayor Of Simpleton/
-    assert str =~ /song: King For A Day/
+    assert_match(/song: The Ability to Swing/, str)
+    assert_match(/song: Budapest by Blimp/, str)
+    assert_match(/song: Europa and the Pirate Twins/, str)
+    assert_match(/song: Garden Of Earthly Delights/, str)
+    assert_match(/song: The Mayor Of Simpleton/, str)
+    assert_match(/song: King For A Day/, str)
   end
 
 end
