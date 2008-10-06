@@ -55,11 +55,11 @@ public class Router {
     }
 
     public void error( HttpRequest request , InetSocketAddress addr , NIOClient.ServerErrorType type , Exception what ){
-        getServer( addr ).error( request , type , what );
+        getServer( addr ).error( _mapping.getEnvironment( request ) , type , what );
     }
 
     public void success( HttpRequest request , InetSocketAddress addr ){
-        getServer( addr ).success( request );
+        getServer( addr ).success( _mapping.getEnvironment( request ) );
     }
 
     Pool getPool( HttpRequest request ){
@@ -102,60 +102,14 @@ public class Router {
         return s;
     }
 
-    class Server {
-        Server( InetSocketAddress addr ){
-            _addr = addr;
-            reset();
-        }
-        
-        void reset(){
-            _environmentsWithTraffic.clear();
-            _serverStart = System.currentTimeMillis();
-            _inErrorState = false;
-        }
-
-        void error( HttpRequest request , NIOClient.ServerErrorType type , Exception what ){
-            _inErrorState = true;
-        }
-        
-        void success( HttpRequest request ){
-            _environmentsWithTraffic.add( _mapping.getEnvironment( request ) );
-        }
-
-        /**
-         * < 0 do not send traffic
-         * 0 rather not have traffic
-         * > 1 the higher the better
-         */
-        double rating( Environment e ){
-            if ( _inErrorState )
-                return 0;
-            
-            if ( _environmentsWithTraffic.contains( e ) )
-                return 2;
-            
-            return 1;
-        }
-        
-        public String toString(){
-            return _addr.toString();
-        }
-        
-        final InetSocketAddress _addr;
-
-        final Set<Environment> _environmentsWithTraffic = Collections.synchronizedSet( new HashSet<Environment>() );
-        long _serverStart;
-        boolean _inErrorState = false;
-    }
-
 
     class Pool {
 
         Pool( String name , List<InetSocketAddress> addrs ){
 
-            if ( addrs == null )
+            if ( addrs == null || addrs.size() == 0 )
                 throw new NullPointerException( "can't create a Pool with no addresses" );
-
+	    
             _name = name;
 	    _tracker = new HttpLoadTracker( name , 2 , 60 );
             _servers = new ArrayList<Server>();
@@ -168,6 +122,9 @@ public class Router {
             final int size = _servers.size();
             _seen.add( e );
             
+	    if ( size == 1 )
+		return _servers.get(0)._addr;
+
             Server best = null;
             double score = Double.MIN_VALUE;
             
@@ -205,7 +162,9 @@ public class Router {
 
     void _addMonitors(){
         HttpServer.addGlobalHandler( new HttpMonitor( "lb-pools" ){
-                public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){   
+                public void handle( MonitorRequest request ){
+		    JxpWriter out = request.getWriter();
+
                     out.print( "<ul>" );
                     
                     for ( String s : _pools.keySet() ){

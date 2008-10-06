@@ -44,8 +44,8 @@ public class LoadMonitor {
     
     void _addMonitors( String name ){
 	HttpServer.addGlobalHandler( new HttpMonitor( name + "-load" ){
-                public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
-                    _all.displayGraph( out );
+                public void handle( MonitorRequest request ){
+                    _all.displayGraph( request.getWriter() );
                 }
             }
             );
