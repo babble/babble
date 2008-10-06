@@ -364,7 +364,7 @@ public class JSNumber extends Number implements JSObject {
     }
 
     // matches negative, infinity, int, double, scientific notation, hex
-    public static String POSSIBLE_NUM = "(-?((Infinity)|(\\d*(\\.\\d+)?([eE]-?\\d+)?)|(0[xX][\\da-fA-f]+)))?";
+    public static String POSSIBLE_NUM = "(-?((Infinity)|(\\d*(\\.\\d+)?([eE]-?\\d+)?)|(0[xX][\\da-fA-F]+)))?";
 
     public static double getDouble( Object a ) {
         double d;
