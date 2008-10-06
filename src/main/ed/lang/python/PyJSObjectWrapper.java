@@ -2,16 +2,16 @@
 
 /**
 *    Copyright (C) 2008 10gen Inc.
-*  
+*
 *    This program is free software: you can redistribute it and/or  modify
 *    it under the terms of the GNU Affero General Public License, version 3,
 *    as published by the Free Software Foundation.
-*  
+*
 *    This program is distributed in the hope that it will be useful,
 *    but WITHOUT ANY WARRANTY; without even the implied warranty of
 *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 *    GNU Affero General Public License for more details.
-*  
+*
 *    You should have received a copy of the GNU Affero General Public License
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -44,7 +44,7 @@ public class PyJSObjectWrapper extends PyDictionary {
             throw new RuntimeException("Couldn't expose PyJSObjectWrapper as Python type");
         }
     }
-    
+
     public PyJSObjectWrapper( JSObject jsObject ){
         this( jsObject , true );
     }
@@ -66,7 +66,7 @@ public class PyJSObjectWrapper extends PyDictionary {
         // FIXME: return an actual iterator
         return jswrapper_keys();
     }
-    
+
     public PyObject iteritems(){
         // FIXME: an actual iterator
         return jswrapper_iteritems();
@@ -80,7 +80,7 @@ public class PyJSObjectWrapper extends PyDictionary {
 
                 if ( ! keys.hasNext() )
                     return null;
-                
+
                 String key = keys.next();
 
                 return new PyTuple( Py.newString( key ) , toPython( _js.get( key ) ) );
@@ -130,7 +130,7 @@ public class PyJSObjectWrapper extends PyDictionary {
         }
         return list;
     }
-    
+
     @ExposedMethod
     public final boolean jswrapper___nonzero__(){
         return _js.keySet().size() > 0;
@@ -152,13 +152,13 @@ public class PyJSObjectWrapper extends PyDictionary {
         }
         catch(PyException e){
         }
-        
+
         Object res = _js.get( name );
         if ( res == null )
             res = NativeBridge.getNativeFunc( _js , name );
-        
+
         return _fixReturn( res );
-    }    
+    }
 
     public PyObject __finditem__(PyObject key){
 
@@ -170,7 +170,7 @@ public class PyJSObjectWrapper extends PyDictionary {
             return p;
         Object o = _js.get( toJS( key ) );
         // Explicitly return null here rather than converting to None
-        // This isn't findattr, after all; this is the check used to 
+        // This isn't findattr, after all; this is the check used to
         // see if a dict contains a value.
         if( o == null )
             return null;
@@ -181,7 +181,7 @@ public class PyJSObjectWrapper extends PyDictionary {
     private PyObject _fixReturn( Object o ){
         if ( o == null && ! _returnPyNone )
             return null;
-        
+
         return toPython( o , _js );
     }
 

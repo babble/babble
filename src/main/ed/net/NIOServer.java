@@ -46,6 +46,16 @@ public abstract class NIOServer extends Thread {
         setDaemon( true );
     }
 
+    public void stopServer(){
+        try {
+            _ssChannel.socket().close();
+        }
+        catch ( IOException ioe ){
+            // don't care
+        }
+        _closed = true;
+    }
+
     public Selector getSelector(){
         return _selector;
     }
@@ -83,6 +93,7 @@ public abstract class NIOServer extends Thread {
         final ByteBuffer writeBuf = ByteBuffer.allocateDirect(1024);
         
         int deadSelectorCount = 0;
+        int emptyCycles = 0;
 
         while ( true ){
 
@@ -100,8 +111,9 @@ public abstract class NIOServer extends Thread {
             }
             
             final Iterator<SelectionKey> i = _selector.selectedKeys().iterator();
-
+            
             if ( numKeys == 0 && ! i.hasNext() ){
+                emptyCycles++;
                 if ( selectTime == 0 ){
                     deadSelectorCount++;
                     
@@ -121,10 +133,17 @@ public abstract class NIOServer extends Thread {
                         }
                     }
                 }
+                
+
+                // the idea here is we want to give people a bit of time to finish up running requests
+                if ( _closed && emptyCycles > 20 )
+                    break;
+                
                 continue;
             }
             
             deadSelectorCount = 0;
+            emptyCycles = 0;
 
             for ( ; i.hasNext() ;  ){
                 SelectionKey key = i.next();
@@ -222,6 +241,14 @@ public abstract class NIOServer extends Thread {
                 
             }
         }
+        
+        try {
+            _selector.close();
+        }
+        catch ( IOException ioe ){
+            // don't care
+        }
+        
     }
 
     protected abstract SocketHandler accept( SocketChannel sc );
@@ -312,4 +339,5 @@ public abstract class NIOServer extends Thread {
     protected Selector _selector;
 
     private boolean _didASelectorReset = false;
+    private boolean _closed = false;
 }

@@ -26,6 +26,8 @@ import static ed.net.lb.Mapping.*;
 
 public class Server {
     Server( InetSocketAddress addr ){
+        if ( addr == null )
+            throw new NullPointerException( "addr can't be null" );
 	_addr = addr;
 	_monitor = ServerMonitor.register( this );
 	reset();

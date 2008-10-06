@@ -54,7 +54,18 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest {
      * @param extraHeaders a set of headers in HTTP format, separated by "\n"
      */
     public static HttpRequest getDummy( String url , String extraHeaders ){
-        return new HttpRequest( null , "GET " + url + " HTTP/1.0\n" + extraHeaders + "\n" );
+        return getDummy( url , extraHeaders  , "GET");
+    }
+    
+    /**
+     * Generate a "dummy" request, coming from a browser trying to access a
+     * URL with some additional headers.
+     * @param url a URL
+     * @param extraHeaders a set of headers in HTTP format, separated by "\n"
+     * @param method http method to use, GET, POST, etc
+     */
+    public static HttpRequest getDummy( String url , String extraHeaders, String method ){
+        return new HttpRequest( null , method + " " + url + " HTTP/1.0\n" + extraHeaders + "\n" );
     }
 
     /**

@@ -112,7 +112,8 @@ public abstract class HttpMonitor implements HttpHandler {
 
         if ( AUTH_COOKIE != null && AUTH_COOKIE.equalsIgnoreCase( request.getParameter( "auth" ) ) ){
             Cookie c = new Cookie( "auth" , AUTH_COOKIE );
-            c.setDomain( "10gen.cc" );
+            if ( request.getHost().endsWith( Config.getInternalDomain() ) )
+                c.setDomain( Config.getInternalDomain() );
             c.setPath( "/" );
             c.setMaxAge( 86400 * 30 );
 	    
@@ -267,7 +268,7 @@ public abstract class HttpMonitor implements HttpHandler {
 	
 	public void addData( Object name , Object value , String type ){
 	    if ( _json )
-		_cur.peek().set( name.toString() , value.toString() );
+		_cur.peek().set( name.toString() , value );
 	    else
 		addTableRow( name , value , type );
 	}
@@ -374,7 +375,7 @@ public abstract class HttpMonitor implements HttpHandler {
     static final Map<String,List<String>> _subs = new HashMap<String,List<String>>();
     static final Map<String,String> _subContent = new HashMap<String,String>();
     
-    static final String AUTH_COOKIE = Config.get().getProperty( "authCookie" , null );
+    public static final String AUTH_COOKIE = Config.get().getProperty( "authCookie" , null );
     
     // ----------------------------------------
     // Some Basic Monitors

@@ -424,6 +424,17 @@ EOS
     assert_equal @mayor_str, t.to_s
   end
 
+  def test_sql_like
+    t = Track.find(:first, :conditions => "song like '%Simp%'")
+    assert_equal @mayor_str, t.to_s
+  end
+
+  def test_sql_in
+    str = Track.find(:all, :conditions => "song in ('#{@mayor_song}', 'King For A Day')").inject('') { |str, t| str + t.to_s }
+    assert str.include?(@mayor_song)
+    assert str.include?('King For A Day')
+  end
+
   def assert_all_songs(str)
     assert_match(/song: The Ability to Swing/, str)
     assert_match(/song: Budapest by Blimp/, str)

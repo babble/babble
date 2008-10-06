@@ -22,8 +22,10 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+import ed.js.*;
 import ed.util.*;
 import ed.log.*;
+import ed.net.httpserver.*;
 
 
 public class ServerMonitor extends Thread {
@@ -67,7 +69,12 @@ public class ServerMonitor extends Thread {
 	while ( true ){
 	    for ( Server s : new HashSet<Server>( _monitors.keySet() ) ){
 		Monitor m = getMonitor( s );
-		m.check();
+                try {
+                    m.check();
+                }
+                catch ( Exception e ){
+                    _logger.error( "error checking [" + m._server + "]" , e );
+                }
 	    }
 	    ThreadUtil.sleep( 100 );
 	}
@@ -83,7 +90,7 @@ public class ServerMonitor extends Thread {
 		throw new RuntimeException( "invalid host [" + host + "]" );
 	    
 	    try {
-		_base = new java.net.URL( "http://" + host + "/" );
+		_base = new java.net.URL( "http://" + host + ":" + s._addr.getPort() + "/" );
 	    }
 	    catch ( MalformedURLException bad ){
 		throw new RuntimeException( "how is this possible with host [" + host + "]" );
@@ -95,19 +102,23 @@ public class ServerMonitor extends Thread {
 	    final long now = System.currentTimeMillis();
 	    if ( now - _lastCheck < MS_BETWEEN_CHECKS )
 		return;
-
+            
+            Status s = null;
 	    try {
-		_lastStatus = new Status( _base );
+		s = new Status( _base );
 	    }
 	    catch ( IOException ioe ){
 		_lastStatus = null;
 		_logger.error( "error checking host [" + _base + "]" , ioe );
 	    }
-	    
-	    _lastCheck = now;
-	    _server.update( _lastStatus );
+            finally {
+                _lastCheck = now;
+                _lastStatus = s;
+                _server.update( s );
+                _logger.debug( 2 , "server check" , _server , s );
+            }
 	}
-	
+        
 	final Server _server;
 	final URL _base;
 
@@ -120,25 +131,63 @@ public class ServerMonitor extends Thread {
 	Status( URL url )
 	    throws IOException {
 	    
-	    System.out.println( url );
-	    System.out.println( new URL( url , "/~mem" ) );
-
 	    _whenChecked = System.currentTimeMillis();
-	    
-	    _uptimeMinutes = 0;
-	    _memMax = 0;
-	    _memFree = 0;
-	    
+
+            // ~mem
+            JSObject mem = fetch( buildURL( url , "mem" ) );
+            JSObject before = (JSObject)mem.get( "before" );
+            _memMax = StringParseUtil.parseInt( before.get( "max" ).toString() , -1 );
+            _memFree = StringParseUtil.parseInt( before.get( "free" ).toString() , -1 );
+
+            
+            // ~stats
+            JSObject stats = fetch( buildURL( url , "stats" ) );
+            _uptimeMinutes = StringParseUtil.parseInt( stats.get( "uptime" ).toString() , -1 );
+
+            
+            // -- DONE
+            
 	    _timeToCheck = System.currentTimeMillis() - _whenChecked;
 	}
 	
+        public String toString(){
+            StringBuilder buf = new StringBuilder();
+            buf.append( "_whenChecked: " ).append( new java.util.Date( _whenChecked ) ).append( " " );
+            buf.append( "_timeToCheck: " ).append( _timeToCheck ).append( " " );
+            buf.append( "_uptimeMinutes: " ).append( _uptimeMinutes ).append( " " );
+            buf.append( "_memMax: " ).append( _memMax ).append( " " );
+            buf.append( "_memFree: " ).append( _memFree ).append( " " );
+            return buf.toString();
+        }
+        
 	final long _whenChecked;
 	final long _timeToCheck;
-
+        
 	final int _uptimeMinutes;
 	final int _memMax;
 	final int _memFree;
 
+    }
+    
+    URL buildURL( URL base , String page )
+        throws MalformedURLException {
+        return buildURL( base , page , null );
+    }
+    
+    URL buildURL( URL base , String page , String extra )
+        throws MalformedURLException {
+        return new URL( base , "/~" + page + "?json=true&auth=" + HttpMonitor.AUTH_COOKIE + "&" + ( extra == null ? "" : extra ) );
+    }
+
+    JSObject fetch( URL url )
+        throws IOException {
+        
+        _logger.debug( 4 , url );
+
+        XMLHttpRequest x = new XMLHttpRequest( url );
+        if ( x.send() == null )
+            throw (IOException)(x.get( "error" ));
+        return (JSObject)(x.getJSON());
     }
 
     private Map<Server,Monitor> _monitors = Collections.synchronizedMap( new HashMap<Server,Monitor>() );
