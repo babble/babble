@@ -796,12 +796,12 @@ public class JSBuiltInFunctions {
 
         s.put( "Object" , new NewObject() , true );
         s.put( "Array" , new JSArray.JSArrayCons() , true );
-        s.put( "Boolean" , JSBoolean._cons , true );
+        s.put( "Boolean" , new JSBoolean.Cons() , true );
         s.put( "Date" , new JSDate.Cons() , true );
         s.put( "JSDate" , s.get( "Date" ) , true ); // b/c Eliot always types this
         s.put( "String" , new JSString.JSStringCons() , true );
 	s.put( "XML" , new ENode.Cons() , true );
-	s.put( "XMLList" , new XMLList.Cons() , true );
+	s.put( "XMLList" , new XMLList.ListCons() , true );
 	s.put( "Namespace" , new Namespace.Cons() , true );
 	s.put( "QName" , new QName.Cons() , true );
         s.put( "RegExp" , new JSRegex.Cons() , true );
