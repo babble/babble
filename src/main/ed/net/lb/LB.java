@@ -47,7 +47,8 @@ public class LB extends NIOClient {
         _handler = new LBHandler();
         
         _logger = Logger.getLogger( "LB" );
-        
+	_logger.setLevel( Level.forDebugId( verbose ) );
+
         _server = new HttpServer( port );
         _server.addGlobalHandler( _handler ) ;
         
@@ -65,36 +66,13 @@ public class LB extends NIOClient {
     }
     
     public void run(){
-        _debug( "Started" );
+        _logger.debug( "Started" );
         super.run();
     }
     
-    private void _debug( String msg ){
-        _debug( 1 , msg );
-    }
-    private void _debug( int level , String msg ){
-        _debug( level , msg , null );
-    }
-    private void _debug( int level , String msg , Object data ){
-        _debug( level , msg , data , null );
-    }
-    private void _debug( int level , String msg , Object data1 , Object data2 ){
-        if ( _verbose < level )
-            return;
-        
-        StringBuilder buf = new StringBuilder();
-        
-        buf.append( msg );
-        if ( data1 != null )
-            buf.append( " [" + data1 + "]" );
-        if ( data2 != null )
-            buf.append( " [" + data2 + "]" );
-        _logger.info( buf );
-    }
-
     protected void serverError( InetSocketAddress addr , ServerErrorType type , Exception why ){
         // TODO: uh oh
-        _debug( 1 , "serverError" , addr + ":" + type );
+        _logger.debug( 1 , "serverError" , addr + ":" + type );
     }
     
     class RR extends Call {
@@ -130,14 +108,14 @@ public class LB extends NIOClient {
         }
         
         protected void error( ServerErrorType type , Exception e ){
-            _debug( 1 , "backend error" , e );
+            _logger.debug( 1 , "backend error" , e );
             _router.error( _request , _lastWent , type , e );
             
             if ( type != ServerErrorType.WEIRD && 
                  ( _state == State.WAITING || _state == State.IN_HEADER ) && 
                  ++_numFails <= 3 ){
                 reset();
-                _debug( 1 , "retrying" );
+                _logger.debug( 1 , "retrying" );
                 add( this );
                 return;
             }
@@ -161,7 +139,7 @@ public class LB extends NIOClient {
         }
         
         void backendError( ServerErrorType type , IOException ioe ){
-            _debug( 1 , "backend error" , ioe );
+            _logger.debug( 1 , "backend error" , ioe );
             error( type , ioe );
         }
 
@@ -178,7 +156,7 @@ public class LB extends NIOClient {
                         continue;
                     if ( c == '\n' ){
                         if ( _line.length() == 0 ){
-                            _debug( 3 , "end of header" );
+                            _logger.debug( 3 , "end of header" );
                             _state = State.READY_TO_STREAM;
                             break;
                         }
@@ -198,7 +176,7 @@ public class LB extends NIOClient {
                             else
                                 _response.setStatus( Integer.parseInt( line.substring( 0 , idx ) ) , line.substring( idx + 1 ).trim() );
                             
-                            _debug( 3 , "got first line " , line );
+                            _logger.debug( 3 , "got first line " , line );
                             _state = State.IN_HEADER;
                         }
                         else {
@@ -209,7 +187,7 @@ public class LB extends NIOClient {
                             }
                             String name = line.substring( 0 , idx );
                             String value = line.substring( idx + 1 ).trim();
-                            _debug( 3 , "got header line " , line );
+                            _logger.debug( 3 , "got header line " , line );
                             
                             if ( name.equalsIgnoreCase( "Connection" ) ){
                                 _keepalive = ! value.toLowerCase().contains( "close" );
@@ -228,7 +206,7 @@ public class LB extends NIOClient {
                 if ( _state != State.READY_TO_STREAM )
                     return WhatToDo.CONTINUE;
 
-                _debug( 3 , "starting to stream data" );
+                _logger.debug( 3 , "starting to stream data" );
             }
             
             if ( _state == State.READY_TO_STREAM ){
@@ -241,7 +219,7 @@ public class LB extends NIOClient {
                 _response.done();
             }
             catch ( IOException ioe ){
-                _debug( 2 , "client error" , ioe );
+                _logger.debug( 2 , "client error" , ioe );
                 return WhatToDo.ERROR;
             }
             return WhatToDo.PAUSE;
@@ -262,7 +240,7 @@ public class LB extends NIOClient {
             }
             buf.append( "\r\n" );
 
-            _debug( 3 , "request\n" , buf );
+            _logger.debug( 3 , "request\n" , buf );
             
             return buf.toString();
         }
@@ -301,9 +279,9 @@ public class LB extends NIOClient {
         }
         
         public MyChunk getNext(){
-            _debug( 4, "want next chunk of data" );
+            _logger.debug( 4, "want next chunk of data" );
             if ( _sent == _length ){
-                _debug( 4 , "no more data" );
+                _logger.debug( 4 , "no more data" );
                 _conn.done( ! _rr._keepalive );
                 _rr._state = State.DONE;
                 _rr.success();
@@ -313,7 +291,7 @@ public class LB extends NIOClient {
             _conn.doRead( _length > 0 );
             _sent += _data.length();            
             _last = _data.length();
-            _debug( _last == 0 ? 4 : 3 , "sent " + _sent + "/" + _length );
+            _logger.debug( _last == 0 ? 4 : 3 , "sent " + _sent + "/" + _length );
             return this;
         }
         
@@ -380,14 +358,16 @@ public class LB extends NIOClient {
 
     void _addMonitors(){
         HttpServer.addGlobalHandler( new HttpMonitor( "lb" ){
-                public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
-                    out.print( "overview" );
+                public void handle( MonitorRequest mr ){
+                    mr.getWriter().print( "overview" );
                 }
             }
             );
 
         HttpServer.addGlobalHandler( new HttpMonitor( "lb-last" ){
-                public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
+                public void handle( MonitorRequest mr ){
+		    JxpWriter out = mr.getWriter();
+
                     out.print( "<table border='1' >" );
                     
                     out.print( "<tr>" );
@@ -413,14 +393,14 @@ public class LB extends NIOClient {
                             break;
                         
                         out.print( "<tr>" );
-                        addTableCell( out , rr._request.getHost() );
-                        addTableCell( out , rr._request.getURL() );
-                        addTableCell( out , rr._lastWent );
-                        addTableCell( out , SHORT_TIME.format( new Date( rr.getStartedTime() ) ) );
+                        mr.addTableCell( rr._request.getHost() );
+                        mr.addTableCell( rr._request.getURL() );
+                        mr.addTableCell( rr._lastWent );
+                        mr.addTableCell( SHORT_TIME.format( new Date( rr.getStartedTime() ) ) );
                         if ( rr.isDone() ){
-                            addTableCell( out , rr._response.getResponseCode() );
-                            addTableCell( out , rr._response.getContentLength() );
-                            addTableCell( out , rr.getTotalTime() );
+                            mr.addTableCell( rr._response.getResponseCode() );
+                            mr.addTableCell( rr._response.getContentLength() );
+                            mr.addTableCell( rr.getTotalTime() );
                         }
                         out.print( "</tr>\n" );
                     }

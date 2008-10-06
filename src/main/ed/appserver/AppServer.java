@@ -69,8 +69,8 @@ public class AppServer implements HttpHandler {
     public void addToServer(){
         HttpServer.addGlobalHandler( this );
         HttpServer.addGlobalHandler( new HttpMonitor( "appserverstats" , true ){
-                public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
-                    handleStats( out , request , response );
+                public void handle( MonitorRequest mr ){
+                    handleStats( mr.getWriter() );
                 }
             }
             );
@@ -599,7 +599,8 @@ public class AppServer implements HttpHandler {
      * @param request
      * @param response Sets stats as content of this
      */
-    void handleStats( JxpWriter out , HttpRequest request , HttpResponse response ){
+    void handleStats( JxpWriter out ){
+
         List<String> lst = new ArrayList<String>();
         lst.addAll( _stats.keySet() );
 

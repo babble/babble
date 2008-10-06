@@ -42,14 +42,13 @@ public abstract class NIOClient extends Thread {
     public NIOClient( String name , int connectionsPerHost , int verboseLevel ){
         super( "NIOClient: " + name );
         _name = name;
-        _verbose = verboseLevel;
         _connectionsPerHost = connectionsPerHost;
         
         _logger = Logger.getLogger( "nioclient-" + name );
+	_logger.setLevel( Level.forDebugId( verboseLevel ) );
+
         _loggerOpen = _logger.getChild( "open" );
         _loggerDrop = _logger.getChild( "drop" );
-
-        _logger.setLevel( _verbose > 0 ? Level.DEBUG : Level.INFO );
         
         _addMonitors();
 
@@ -124,23 +123,29 @@ public abstract class NIOClient extends Thread {
     private void _doNewRequests(){
         List<Call> pushBach = new LinkedList<Call>();
         
-        for ( int i=0; i<10; i++ ){ // don't want to just handle new requests
+        for ( int i=0; i<20; i++ ){ // don't want to just handle new requests
             
             Call c = _newRequests.poll();
             if ( c == null )
                 break;
             
-            if ( c._cancelled )
+            if ( c._cancelled ){
+		pushBach.add( c );
                 continue;
+	    }
             
-            if ( c._paused )
+            if ( c._paused ){
+		pushBach.add( c );
                 continue;
-
+	    }
+	    
             InetSocketAddress addr = null;
             try {
                 addr = c.where();
-                if ( addr == null )
+                if ( addr == null ){
+		    pushBach.add( c );
                     continue;
+		}
                 
                 final ConnectionPool pool = getConnectionPool( addr );
                 
@@ -202,8 +207,8 @@ public abstract class NIOClient extends Thread {
             try {
                 _sock = SocketChannel.open();
                 _sock.configureBlocking( false );
-                _key = _sock.register( _selector , SelectionKey.OP_CONNECT , this );
                 _sock.connect( _addr );
+                _key = _sock.register( _selector , SelectionKey.OP_CONNECT , this );
                 
                 _loggerOpen.debug( "opening connection to [" + addr + "]" );
             }
@@ -227,6 +232,9 @@ public abstract class NIOClient extends Thread {
             }
             catch ( IOException ioe ){
                 err = ioe;
+            }
+            catch ( Exception e ){
+                err = new IOException( "weird error on finish connect : " + e );
             }
             
             if ( err == null ){
@@ -517,8 +525,10 @@ public abstract class NIOClient extends Thread {
 
     void _addMonitors(){
         HttpServer.addGlobalHandler( new MyMonitor( "serverConnPools" ){
-                public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
-                    
+                public void handle( MonitorRequest mr ){
+		    
+		    JxpWriter out = mr.getWriter();
+
                     for ( InetSocketAddress addr : getAllConnections() ){
                         out.print( "<b>"  );
                         out.print( addr.toString() );
@@ -548,7 +558,6 @@ public abstract class NIOClient extends Thread {
     }
 
     final protected String _name;
-    final protected int _verbose;
     final protected int _connectionsPerHost;
 
     final Logger _logger;

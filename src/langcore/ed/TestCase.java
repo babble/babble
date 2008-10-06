@@ -216,9 +216,15 @@ public class TestCase extends MyAsserts {
             line = line.replace( '/' , '.' );
 
             
-            System.out.println( line );
             try {
-                TestCase tc = (TestCase) Class.forName( line ).newInstance();
+		Class c = Class.forName( line );
+		Object thing = c.newInstance();
+		if ( ! ( thing instanceof TestCase ) )
+		    continue;
+
+		System.out.println( line );
+	    
+                TestCase tc = (TestCase)thing;
                 theTestCase._tests.addAll( tc._tests );
             }
             catch ( Exception e ){

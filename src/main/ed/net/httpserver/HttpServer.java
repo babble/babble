@@ -332,38 +332,39 @@ public class HttpServer extends NIOServer {
 
     static final HttpHandler _stats = new HttpMonitor( "stats" ){
 
-            public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
-                out.print( "<h3>stats</h3>" );
+            public void handle( MonitorRequest mr ){
+		mr.addHeader( "stats" );
                 
-		final HttpServer server = request._handler._server;
+		final HttpServer server = mr.getRequest()._handler._server;
                 final int forkedQueueSize = server._forkThreads.queueSize();
 		
                 if ( forkedQueueSize >= WORKER_THREAD_QUEUE_MAX )
-                    response.setResponseCode( 510 );
+                    mr.getResponse().setResponseCode( 510 );
 
-		startTable( out );
+		mr.startData();
 
-                addTableRow( out ,  "forked queue length" , forkedQueueSize , forkedQueueSize == 0 ? null : ( forkedQueueSize < 50 ? "warn" : "error" )  );
-                addTableRow( out ,  "admin queue length" , server._forkThreadsAdmin.queueSize() );
+                mr.addData( "forked queue length" , forkedQueueSize , forkedQueueSize == 0 ? null : ( forkedQueueSize < 50 ? "warn" : "error" )  );
+                mr.addData( "admin queue length" , server._forkThreadsAdmin.queueSize() );
 		
-		addTableRow( out ,  "forked processing" , server._forkThreads.inProgress() );
-		addTableRow( out ,  "admin processing" , server._forkThreadsAdmin.inProgress() );
+		mr.addData( "forked processing" , server._forkThreads.inProgress() );
+		mr.addData( "admin processing" , server._forkThreadsAdmin.inProgress() );
 		
-                addTableRow( out ,  "&nbsp;" , "" );
+                mr.addData( "&nbsp;" , "" );
 		
-                addTableRow( out ,  "numRequests" , _numRequests );
-                addTableRow( out ,  "numRequestsForked" , _numRequestsForked );
-                addTableRow( out ,  "numRequestsAdmin" , _numRequestsAdmin );
+                mr.addData( "numRequests" , _numRequests );
+                mr.addData( "numRequestsForked" , _numRequestsForked );
+                mr.addData( "numRequestsAdmin" , _numRequestsAdmin );
 		
-		addTableRow( out ,  "&nbsp;" , "" );
+		mr.addData( "&nbsp;" , "" );
                 
-                addTableRow( out ,  "uptime" , ed.js.JSMath.sigFig( ( System.currentTimeMillis() - _startTime ) / ( 1000 * 60.0 ) ) + " min\n" );
-                
-		endTable( out );
+                mr.addData( "uptime" , ed.js.JSMath.sigFig( ( System.currentTimeMillis() - _startTime ) / ( 1000 * 60.0 ) ) + " min\n" );
+		
+		mr.endData();
             
-		out.print( "<br>" );
-
-                _tracker.displayGraph( out , _trackerOptions );
+		mr.addSpacingLine();
+		
+		if ( mr.html() )
+		    _tracker.displayGraph( mr.getWriter() , _trackerOptions );
             }
 
             final long _startTime = System.currentTimeMillis();

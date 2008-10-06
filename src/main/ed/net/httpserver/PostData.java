@@ -178,7 +178,14 @@ public abstract class PostData {
             
             if ( mainPieces.get( "filename" ) != null && type != null  ){
                 String fn = mainPieces.get( "filename" ).trim();
-                UploadFile uf = new UploadFile( fn , type , this , start , end - 1 );
+
+                /*
+                 *  1 byte to back off of the start of boundary, and 1 byte to back off of the terminating \n of the
+                 *  data
+                 */
+                int lastByte = end - 2;
+                
+                UploadFile uf = new UploadFile( fn , type , this , start, lastByte);
                 _files.put( mainPieces.get( "name" ) , uf );
             }
             else if ( type == null ){
