@@ -60,6 +60,10 @@ public interface Mapping {
             
             return site.equals( e.site ) && env.equals( e.env );
         }
+
+        public String toString(){
+            return "site: [" + site + "] env: [" + env + "]";
+        }
                 
         public final String site;
         public final String env;

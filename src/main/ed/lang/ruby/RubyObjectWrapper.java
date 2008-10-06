@@ -16,6 +16,7 @@
 
 package ed.lang.ruby;
   
+import java.lang.ref.WeakReference;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
@@ -45,7 +46,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
     static final boolean DEBUG_CREATE = DEBUG || Boolean.getBoolean("DEBUG.RB.CREATE");
     static final boolean DEBUG_FCALL = DEBUG || Boolean.getBoolean("DEBUG.RB.FCALL");
   
-    static final Map<Ruby, Map<Object, IRubyObject>> _wrappers = new WeakHashMap<Ruby, Map<Object, IRubyObject>>();
+    static final Map<Ruby, Map<Object, WeakReference<IRubyObject>>> _wrappers = new WeakHashMap<Ruby, Map<Object, WeakReference<IRubyObject>>>();
 
     protected final Scope _scope;
     protected final Object _obj;
@@ -78,9 +79,9 @@ public abstract class RubyObjectWrapper extends RubyObject {
             return wrapper;
         }
 
-        if (obj instanceof JSFunctionWrapper)
+        if (obj instanceof JSFunctionWrapper && ((JSFunctionWrapper)obj).getProc().getRuntime() == runtime)
             return ((JSFunctionWrapper)obj).getProc();
-        if (obj instanceof JSObjectWrapper)
+        if (obj instanceof JSObjectWrapper && ((JSObjectWrapper)obj).getRubyObject().getRuntime() == runtime)
             return ((JSObjectWrapper)obj).getRubyObject();
 
         if (obj instanceof JSRegex) {
@@ -129,17 +130,20 @@ public abstract class RubyObjectWrapper extends RubyObject {
     }
 
     protected static synchronized IRubyObject cachedWrapperFor(Ruby runtime, Object obj) {
-        Map<Object, IRubyObject> runtimeWrappers = _wrappers.get(runtime);
-        return runtimeWrappers == null ? null : runtimeWrappers.get(obj);
+        Map<Object, WeakReference<IRubyObject>> runtimeWrappers = _wrappers.get(runtime);
+        if (runtimeWrappers == null)
+            return null;
+        WeakReference<IRubyObject> ref = runtimeWrappers.get(obj);
+        return ref == null ? null : ref.get();
     }
 
     protected static synchronized void cacheWrapper(Ruby runtime, Object obj, IRubyObject wrapper) {
-        Map<Object, IRubyObject> runtimeWrappers = _wrappers.get(runtime);
+        Map<Object, WeakReference<IRubyObject>> runtimeWrappers = _wrappers.get(runtime);
         if (runtimeWrappers == null) {
-            runtimeWrappers = new WeakHashMap<Object, IRubyObject>();
+            runtimeWrappers = new WeakHashMap<Object, WeakReference<IRubyObject>>();
             _wrappers.put(runtime, runtimeWrappers);
         }
-        runtimeWrappers.put(obj, wrapper);
+        runtimeWrappers.put(obj, new WeakReference<IRubyObject>(wrapper));
     }
 
     /** Given a Ruby block, returns a JavaScript object. */

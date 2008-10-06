@@ -576,7 +576,7 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
 
                 if ( e.get( "_ns" ) == null ){
                     if ( seen.containsKey( e ) )
-                        throw new RuntimeException( "you have a loop. key : " + name + " from a " + n.getClass()  + " whis is a : " + e.getClass() );
+                        throw new RuntimeException( "you have a loop. key : " + name + " from a " + n.getClass()  + " which is a : " + e.getClass() );
                     seenNow.put( e , "a" );
                     toSearch.add( e );
                     continue;

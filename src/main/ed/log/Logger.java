@@ -85,6 +85,9 @@ public class Logger extends JSFunctionCalls2 {
 
         if ( _parent == null )
             _appenders = new ArrayList<Appender>( _defaultAppenders );
+
+	if ( _parent == null )
+	    _level = Level.DEBUG;
     }
 
     public void makeThreadLocal(){
@@ -93,6 +96,40 @@ public class Logger extends JSFunctionCalls2 {
 
 
     // --------------------
+
+    public void debug( int debugLevel , Object o1 , Object o2 ){
+	debug( debugLevel , o1 , o2 , null , null , null );
+    }
+
+    public void debug( int debugLevel , Object o1 , Object o2 , Object o3 ){
+	debug( debugLevel , o1 , o2 , o3 , null , null );
+    }
+
+    public void debug( int debugLevel , Object o1 , Object o2 , Object o3 , Object o4 ){
+	debug( debugLevel , o1 , o2 , o3 , o4 , null );
+    }
+
+    public void debug( int debugLevel , Object o1 , Object o2 , Object o3 , Object o4 , Object o5 ){
+	Level l = Level.forDebugId( debugLevel );
+	if ( ! shouldLog( l ) )
+	    return;
+	
+	StringBuilder buf = new StringBuilder( o1.toString() );
+	if ( o2 != null )
+	    buf.append( " [" ).append( o2 ).append( "] " );
+	if ( o3 != null )
+	    buf.append( " [" ).append( o3 ).append( "] " );
+	if ( o4 != null )
+	    buf.append( " [" ).append( o4 ).append( "] " );
+	if ( o5 != null )
+	    buf.append( " [" ).append( o5 ).append( "] " );
+
+	log( l , buf );
+    }
+
+    public void debug( int debugLevel , Object msg ){
+	log( Level.forDebugId( debugLevel ) , msg );
+    }
 
     public void debug( Object msg ){
         log( Level.DEBUG , msg , null );
@@ -237,16 +274,21 @@ public class Logger extends JSFunctionCalls2 {
         return Level.DEBUG;
     }
 
+    public boolean shouldLog( Level l ){
+        Level eLevel = getEffectiveLevel();
+        return eLevel.compareTo( l ) <= 0;
+    }
+
     public void log( Level level , Object msg ){
         log( level , msg , null );
     }
 
     public void log( Level level , Object msgObject , Throwable throwable ){
+	
+	if ( ! shouldLog( level ) )
+	    return;
+
         String msg = msgObject == null ? null : msgObject.toString();
-        
-        Level eLevel = getEffectiveLevel();
-        if ( eLevel.compareTo( level ) > 0 )
-            return;
 
         JSDate date = new JSDate();
         Thread thread = Thread.currentThread();

@@ -14,6 +14,24 @@
 
 require 'xgen/mongo/cursor'
 
+class Object
+  def to_mongo_value
+    self
+  end
+end
+class Array
+  def to_mongo_value
+    self.collect {|v| v.to_mongo_value}
+  end
+end
+class Hash
+  def to_mongo_value
+    h = {}
+    self.each {|k,v| h[k] = v.to_mongo_value}
+    h
+  end
+end
+
 module XGen
 
   module Mongo
@@ -79,6 +97,7 @@ module XGen
         def field_names; @field_names; end
         def subobjects; @subobjects; end
         def arrays; @arrays; end
+        def mongo_ivar_names; @field_names + @subobjects.keys + @arrays.keys; end
 
         # Tells Mongo about a subobject.
         #
@@ -179,53 +198,18 @@ module XGen
         # is the same as
         #   Person.find(:all).skip(10).limit(10).sort({:created_on => 1})
         def find(*args)
-          return Cursor.new(coll.find(), self) unless args.length > 0 # no args, find all
-          return case args[0]
-                 when String    # find single id
-                   row = coll.findOne(args[0])
-                   (row.nil? || row['_id'] == nil) ? nil : self.new(row)
-                 when Array     # find array of ids
-                   args.collect { |arg| find(arg.to_s) }
-                 when :first    # findOne
-                   args.shift
-                   options = case args[0]
-                             when nil # first record, no conditions
-                               {}
-                             when String # args[0] is id, args[1] is remaining options
-                               {:conditions => {:_id => args[0]}}.merge(args[1] || {})
-                             else # use options passed in
-                               args[0]
-                             end
-                   criteria = criteria_from(options[:conditions])
-                   fields = fields_from(options[:select])
-                   row = coll.findOne(criteria, fields)
-                   (row.nil? || row['_id'] == nil) ? nil : self.new(row)
-                 else           # all
-                   args.shift if args[0] == :all
-                   if args.length == 0
-                     Cursor.new(coll.find(), self)
-                   else
-                     options = args[0] || {}
-                     criteria = criteria_from(options[:conditions])
-                     fields = fields_from(options[:select])
-                     db_cursor = coll.find(criteria, fields)
-                     db_cursor.limit(options[:limit].to_i) if options[:limit]
-                     db_cursor.skip(options[:offset].to_i) if options[:offset]
-                     sort_by = sort_by_from(options[:order]) if options[:order]
-                     db_cursor.sort(sort_by) if sort_by
-                     Cursor.new(db_cursor, self)
-                   end
-                 end
+          options = extract_options_from_args!(args)
+          case args.first
+          when :first
+            find_initial(options)
+          when :all
+            find_every(options)
+          else
+            find_from_ids(args, options)
+          end
         rescue => ex
           nil
         end
-
-        # Find a single database object. See find().
-        def findOne(*args)
-          find(:first, *args)
-        end
-        alias_method :find_one, :findOne
-        alias_method :first, :findOne
 
         # Returns all records matching mql. Not yet implemented.
         def find_by_mql(mql)    # :nodoc:
@@ -280,6 +264,41 @@ module XGen
         end
 
         private
+
+        def extract_options_from_args!(args)
+          args.last.is_a?(Hash) ? args.pop : {}
+        end
+
+        def find_initial(options)
+          criteria = criteria_from(options[:conditions])
+          fields = fields_from(options[:select])
+          row = coll.findOne(criteria, fields)
+          (row.nil? || row['_id'] == nil) ? nil : self.new(row)
+        end
+
+        def find_every(options)
+          criteria = criteria_from(options[:conditions])
+          fields = fields_from(options[:select])
+          db_cursor = coll.find(criteria, fields)
+          db_cursor.limit(options[:limit].to_i) if options[:limit]
+          db_cursor.skip(options[:offset].to_i) if options[:offset]
+          sort_by = sort_by_from(options[:order]) if options[:order]
+          db_cursor.sort(sort_by) if sort_by
+          Cursor.new(db_cursor, self)
+        end
+
+        def find_from_ids(args, options)
+          args = [args] unless args.kind_of?(Array)
+          # TODO use _id: {$in: [ObjectId(id1), ObjectId(id2)...]}
+          args = args.flatten.compact.uniq
+          recs = args.collect { |arg|
+            c = criteria_from(options[:conditions])
+            c[:_id] = arg.to_s
+            options[:conditions] = c
+            find_initial(options)
+          }
+          recs.length == 1 ? recs[0] : recs
+        end
 
         # Returns true if all field_names are in @field_names.
         def all_fields_exist?(field_names)
@@ -360,6 +379,8 @@ module XGen
 
       end
 
+      public
+
       # Initialize a new object with either a hash of values or a row returned
       # from the database.
       def initialize(row={})
@@ -397,7 +418,7 @@ module XGen
 
       # Saves and returns self.
       def save
-        row = self.class.coll.save(to_hash)
+        row = self.class.coll.save(to_mongo_value)
         if @_id == nil
           @_id = row._id
         elsif row._id != @_id
@@ -410,11 +431,9 @@ module XGen
         @_id == nil
       end
 
-      def to_hash
+      def to_mongo_value
         h = {}
-        self.class.field_names.each {|iv| h[iv] = instance_variable_get("@#{iv}") }
-        self.class.subobjects.keys.each {|iv| h[iv] = instance_variable_get("@#{iv}") }
-        self.class.arrays.keys.each {|iv, v| h[iv] = instance_variable_get("@#{iv}").collect{|val| val.to_hash} }
+        self.class.mongo_ivar_names.each {|iv| h[iv] = instance_variable_get("@#{iv}").to_mongo_value }
         h
       end
 

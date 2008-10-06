@@ -57,9 +57,10 @@ public class HttpServer extends NIOServer {
         throws IOException {
         
         _numRequests++;
-        _reqPerSecTracker.hit();
-        _reqPerSmallTracker.hit();
-        _reqPerMinTracker.hit();
+        _tracker.hit( null , null );
+        //_reqPerSecTracker.hit();
+        //_reqPerSmallTracker.hit();
+        //_reqPerMinTracker.hit();
 
         _requestPipe.write( request.getFullURL() );
 
@@ -331,59 +332,41 @@ public class HttpServer extends NIOServer {
 
     static final HttpHandler _stats = new HttpMonitor( "stats" ){
 
-            public void handle( JxpWriter out , HttpRequest request , HttpResponse response ){
-                out.print( "<h3>stats</h3>" );
+            public void handle( MonitorRequest mr ){
+		mr.addHeader( "stats" );
                 
-		final HttpServer server = request._handler._server;
+		final HttpServer server = mr.getRequest()._handler._server;
                 final int forkedQueueSize = server._forkThreads.queueSize();
 		
                 if ( forkedQueueSize >= WORKER_THREAD_QUEUE_MAX )
-                    response.setResponseCode( 510 );
+                    mr.getResponse().setResponseCode( 510 );
 
-		startTable( out );
+		mr.startData();
 
-                addTableRow( out ,  "forked queue length" , forkedQueueSize , forkedQueueSize == 0 ? null : ( forkedQueueSize < 50 ? "warn" : "error" )  );
-                addTableRow( out ,  "admin queue length" , server._forkThreadsAdmin.queueSize() );
+                mr.addData( "forked queue length" , forkedQueueSize , forkedQueueSize == 0 ? null : ( forkedQueueSize < 50 ? "warn" : "error" )  );
+                mr.addData( "admin queue length" , server._forkThreadsAdmin.queueSize() );
 		
-		addTableRow( out ,  "forked processing" , server._forkThreads.inProgress() );
-		addTableRow( out ,  "admin processing" , server._forkThreadsAdmin.inProgress() );
+		mr.addData( "forked processing" , server._forkThreads.inProgress() );
+		mr.addData( "admin processing" , server._forkThreadsAdmin.inProgress() );
 		
-                addTableRow( out ,  "&nbsp;" , "" );
+                mr.addData( "&nbsp;" , "" );
 		
-                addTableRow( out ,  "numRequests" , _numRequests );
-                addTableRow( out ,  "numRequestsForked" , _numRequestsForked );
-                addTableRow( out ,  "numRequestsAdmin" , _numRequestsAdmin );
+                mr.addData( "numRequests" , _numRequests );
+                mr.addData( "numRequestsForked" , _numRequestsForked );
+                mr.addData( "numRequestsAdmin" , _numRequestsAdmin );
 		
-		addTableRow( out ,  "&nbsp;" , "" );
+		mr.addData( "&nbsp;" , "" );
                 
-                addTableRow( out ,  "uptime" , ed.js.JSMath.sigFig( ( System.currentTimeMillis() - _startTime ) / ( 1000 * 60.0 ) ) + " min\n" );
-                
-		endTable( out );
+                mr.addData( "uptime" , ed.js.JSMath.sigFig( ( System.currentTimeMillis() - _startTime ) / ( 1000 * 60.0 ) ) + " min\n" );
+		
+		mr.endData();
             
-		out.print( "<br>" );
-
-		out.print( "<table>" );
-                _printTracker( "Request Per Second" , _reqPerSecTracker , out );
-                _printTracker( "Request Per " + _trackerSmall + " Seconds" , _reqPerSmallTracker , out );
-                _printTracker( "Request Per Minute" , _reqPerMinTracker , out );
-		out.print( "</table>" );
+		mr.addSpacingLine();
+		
+		if ( mr.html() )
+		    _tracker.displayGraph( mr.getWriter() , _trackerOptions );
             }
 
-            
-            void _printTracker( String name , ThingsPerTimeTracker tracker , JxpWriter out ){
-		
-                tracker.validate();
-		
-		out.print( "<tr><th colspan='10'>" + name + "</th></tr>" );
-		out.print( "<tr>" );
-                for ( int i=0; i<tracker.size(); i++ ){
-		    out.print( "<td>" );
-                    out.print( tracker.get( i ) );
-		    out.print( "&nbsp;</td>" );
-                }
-		out.print( "</tr>" );                
-            }
-            
             final long _startTime = System.currentTimeMillis();
         };
 
@@ -403,9 +386,12 @@ public class HttpServer extends NIOServer {
 
     private static final int _trackerSmall = 10;
 
-    private static ThingsPerTimeTracker _reqPerSecTracker = new ThingsPerTimeTracker( 1000  , 30 );
-    private static ThingsPerTimeTracker _reqPerSmallTracker = new ThingsPerTimeTracker( 1000 * 10 , 30 );
-    private static ThingsPerTimeTracker _reqPerMinTracker = new ThingsPerTimeTracker( 1000 * 60 , 30 );
+    private static HttpLoadTracker.Rolling _tracker = new HttpLoadTracker.Rolling( "webserver" );
+    private static HttpLoadTracker.GraphOptions _trackerOptions = new HttpLoadTracker.GraphOptions( 600 , 120 , true , false , false );
+
+    //private static ThingsPerTimeTracker _reqPerSecTracker = new ThingsPerTimeTracker( 1000  , 30 );
+    //private static ThingsPerTimeTracker _reqPerSmallTracker = new ThingsPerTimeTracker( 1000 * 10 , 30 );
+    //private static ThingsPerTimeTracker _reqPerMinTracker = new ThingsPerTimeTracker( 1000 * 60 , 30 );
     
 
     // ---

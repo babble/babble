@@ -16,6 +16,7 @@
 
 package ed.lang.ruby;
 
+import java.lang.ref.WeakReference;
 import java.util.*;
 
 import org.jruby.*;
@@ -41,7 +42,7 @@ import static ed.lang.ruby.RubyObjectWrapper.toJSFunctionArgs;
  */
 public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
 
-    static Map<Ruby, RubyClass> klassDefs = new WeakHashMap<Ruby, RubyClass>();
+    static Map<Ruby, WeakReference<RubyClass>> klassDefs = new WeakHashMap<Ruby, WeakReference<RubyClass>>();
     /**
      * Class names that should <em>not</em> be turned in to Ruby classes when
      * looking at scope contents.
@@ -55,17 +56,17 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
     protected RubyModule _module;
 
     public static synchronized RubyClass getJSFunctionClass(Ruby runtime) {
-        RubyClass jsFunctionClass = klassDefs.get(runtime);
-        if (jsFunctionClass == null) {
-            jsFunctionClass = runtime.defineClass("JSFunction", RubyJSObjectWrapper.getJSObjectClass(runtime), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
-            jsFunctionClass.kindOf = new RubyModule.KindOf() {
+        WeakReference<RubyClass> ref = klassDefs.get(runtime);
+        if (ref == null) {
+            RubyClass klazz = runtime.defineClass("JSFunction", RubyJSObjectWrapper.getJSObjectClass(runtime), ObjectAllocator.NOT_ALLOCATABLE_ALLOCATOR);
+            klazz.kindOf = new RubyModule.KindOf() {
                     public boolean isKindOf(IRubyObject obj, RubyModule type) {
                         return obj instanceof RubyJSFunctionWrapper;
                     }
                 };
-            klassDefs.put(runtime, jsFunctionClass);
+            klassDefs.put(runtime, ref = new WeakReference<RubyClass>(klazz));
         }
-        return jsFunctionClass;
+        return ref.get();
     }
 
     public static boolean canBeNewClass(Ruby runtime, String name) {
