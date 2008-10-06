@@ -62,8 +62,13 @@ public class RubyJxpSource extends JxpSource {
     static final RubyInstanceConfig config = new RubyInstanceConfig();
 
     static {
-        if (!SKIP_REQUIRED_LIBS)
-            config.requiredLibraries().add("xgen");
+        // Don't pre-load XGen::Mongo::Base because it uses /core/js/sql, and
+        // that isn't on the path this early in the game. Since Base was the
+        // only thing that we pre-loaded here, I've commented this out.
+        // Uncomment and re-add xgen.rb if there's anything we always want
+        // required.
+//         if (!SKIP_REQUIRED_LIBS)
+//             config.requiredLibraries().add("xgen");
         DO_NOT_LOAD_FUNCS = new ArrayList<String>();
         DO_NOT_LOAD_FUNCS.add("print");
         DO_NOT_LOAD_FUNCS.add("sleep");

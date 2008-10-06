@@ -41,6 +41,7 @@ Dispatcher.dispatch
 # (for example, you are running locally), then 'development' is used.
 ENV['RAILS_ENV'] = $scope['__instance__'].getEnvironmentName() || 'development'
 
+require 'xgen/mongo'
 require File.join($local.getRoot.getPath, "config/environment") unless defined?(RAILS_ROOT)
 require 'dispatcher'
 require 'xgen/rails/dispatcher'

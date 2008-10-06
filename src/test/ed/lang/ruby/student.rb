@@ -1,3 +1,4 @@
+require 'xgen/mongo'            # not needed in Rails code
 require 'address'
 
 class Score < XGen::Mongo::Base

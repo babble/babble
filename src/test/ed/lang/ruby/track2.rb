@@ -1,3 +1,5 @@
+require 'xgen/mongo'            # not needed in Rails code
+
 class Track2 < XGen::Mongo::Base
   collection_name :rubytest
   fields :artist, :album, :song, :track
