@@ -96,14 +96,14 @@ EOS
   # length() turns results into an in-memory array (as do some other cursor
   # methods) and returns the length of the array.
   def test_find_limit
-    assert_equal(2, @coll.find().limit(2).length())
+    assert_equal(2, @coll.find(:all).limit(2).length())
   end
 
   # count() goes to the database and returns the total number of records that
   # match the query, ignoring limit and offset. For example if 100 records
   # match but the limit is 10, count() will return 100.
   def test_find_count
-    assert_equal(6, @coll.find().limit(2).count())
+    assert_equal(6, @coll.find(:all).limit(2).count())
   end
 
   def assert_simpleton(x)
