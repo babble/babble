@@ -602,6 +602,9 @@ public class ENode extends JSObjectBase {
     /** Turns a string into a DOM.
      */
     void init( String s ){
+        if( XML.ignoreWhitespace ) 
+            s = s.trim();
+
         Node temp;
         try {
             /* Some XML has the stupid form
