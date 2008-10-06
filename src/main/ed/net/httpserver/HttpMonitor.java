@@ -268,7 +268,7 @@ public abstract class HttpMonitor implements HttpHandler {
 	
 	public void addData( Object name , Object value , String type ){
 	    if ( _json )
-		_cur.peek().set( name.toString() , value.toString() );
+		_cur.peek().set( name.toString() , value );
 	    else
 		addTableRow( name , value , type );
 	}
