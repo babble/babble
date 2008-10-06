@@ -375,7 +375,7 @@ public abstract class HttpMonitor implements HttpHandler {
     static final Map<String,List<String>> _subs = new HashMap<String,List<String>>();
     static final Map<String,String> _subContent = new HashMap<String,String>();
     
-    static final String AUTH_COOKIE = Config.get().getProperty( "authCookie" , null );
+    public static final String AUTH_COOKIE = Config.get().getProperty( "authCookie" , null );
     
     // ----------------------------------------
     // Some Basic Monitors
