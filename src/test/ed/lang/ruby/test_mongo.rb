@@ -52,6 +52,7 @@ db.rubytest.save({artist: 'XTC', album: 'Oranges & Lemons', song: 'King For A Da
 EOS
     @mayor_id = $song_id._id
     @mayor_str = "artist: XTC, album: Oranges & Lemons, song: The Mayor Of Simpleton, track: 2"
+    @mayor_song = 'The Mayor Of Simpleton'
 
     @spongebob_addr = Address.new(:street => "3 Pineapple Lane", :city => "Bikini Bottom", :state => "HI", :postal_code => "12345")
     @bender_addr = Address.new(:street => "Planet Express", :city => "New New York", :state => "NY", :postal_code => "10001")
@@ -405,6 +406,22 @@ EOS
 
     t = Track.find_or_initialize_by_song('Newer Song', :artist => 'Newer Artist', :album => 'Newer Album')
     assert t.new_record?
+  end
+
+  def test_sql_parsing
+    t = Track.find(:first, :conditions => "song = '#{@mayor_song}'")
+    assert_equal @mayor_str, t.to_s
+  end
+
+  def test_sql_substitution
+    s = @mayor_song
+    t = Track.find(:first, :conditions => ["song = ?", s])
+    assert_equal @mayor_str, t.to_s
+  end
+
+  def test_sql_named_substitution
+    t = Track.find(:first, :conditions => ["song = :song", {:song => @mayor_song}])
+    assert_equal @mayor_str, t.to_s
   end
 
   def assert_all_songs(str)
