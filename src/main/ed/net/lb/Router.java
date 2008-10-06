@@ -55,7 +55,11 @@ public class Router {
     }
 
     public void error( HttpRequest request , InetSocketAddress addr , NIOClient.ServerErrorType type , Exception what ){
-        getServer( addr ).error( _mapping.getEnvironment( request ) , type , what );
+        final Environment e = _mapping.getEnvironment( request );
+        if ( addr != null )
+            getServer( addr ).error( e , type , what );
+
+        // TODO: something with env?
     }
 
     public void success( HttpRequest request , InetSocketAddress addr ){
@@ -86,6 +90,9 @@ public class Router {
     }
     
     Server getServer( InetSocketAddress addr ){
+        if ( addr == null )
+            throw new NullPointerException( "addr can't be null" );
+
         Server s = _addressToServer.get( addr );
         if ( s != null )
             return s;

@@ -71,12 +71,11 @@ public class AppContextHolder {
                     IdentitySet seen = new IdentitySet();
 		    
                     for ( AppContext ac : all ){
-                        mr.addHeader( ac.getName() + ":" + ac.getEnvironmentName() );
-                        mr.startTable();
-                        mr.addTableRow( "Num Requests" , ac._numRequests );
-                        mr.addTableRow( "Created" , ac._created );
-                        mr.addTableRow( "Memory (kb)" , ac.approxSize( seen ) / 1024 );
-                        mr.endTable();
+                        mr.startData( ac.getName() + ":" + ac.getEnvironmentName() );
+                        mr.addData( "Num Requests" , ac._numRequests );
+                        mr.addData( "Created" , ac._created );
+                        mr.addData( "Memory (kb)" , ac.approxSize( seen ) / 1024 );
+                        mr.endData();
                     }
                 }
             } );

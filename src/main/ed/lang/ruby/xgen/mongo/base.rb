@@ -13,6 +13,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 require 'xgen/mongo/cursor'
+require '/core/db/sql.js'
 
 class Object
   def to_mongo_value
@@ -324,13 +325,89 @@ module XGen
           name
         end
 
-        private
+        protected
 
-        def criteria_from(h)
-          h || {}
+        # Turns array, string, or hash conditions into something useable by Mongo.
+        #   ["name='%s' and group_id='%s'", "foo'bar", 4]  returns  {:name => 'foo''bar', :group_id => 4}
+        #   "name='foo''bar' and group_id='4'" returns {:name => 'foo''bar', :group_id => 4}
+        #   { :name => "foo'bar", :group_id => 4 }  returns the hash, modified for Mongo
+        def criteria_from(condition) # :nodoc:
+          case condition
+          when Array
+            criteria_from_array(condition)
+          when String
+            criteria_from_string(condition)
+          when Hash
+            criteria_from_hash(condition)
+          else
+            {}
+          end
         end
 
-        def fields_from(a)
+        # Substitutes values at the end of an array into the string at its
+        # start, sanitizing strings in the values. Then passes the string on
+        # to criteria_from_string.
+        def criteria_from_array(condition) # :nodoc:
+          str, *values = condition
+          sql = if values.first.kind_of?(Hash) and str =~ /:\w+/
+                  replace_named_bind_variables(str, values.first)
+                elsif str.include?('?')
+                  replace_bind_variables(str, values)
+                else
+                  str % values.collect {|value| quote(value) }
+                end
+          criteria_from_string(sql)
+        end
+
+        # Turns a string into a Mongo search condition hash.
+        def criteria_from_string(sql) # :nodoc:
+          $SQL.parseWhere(sql)
+        end
+
+        # Turns a hash that ActiveRecord would expect into one for Mongo.
+        def criteria_from_hash(condition) # :nodoc:
+          h = {}
+          condition.each { |k,v|
+            h[k] = case v
+                   when Array
+                     {:$in => k == 'id' || k == '_id' ? v.collect{ |val| mongo_id(val)} : v} # if id, can't pass in string; must be ObjectId
+                   when Range
+                     {:$gte => v.first, :$lte => v.last}
+                   else
+                     v
+                   end
+          }
+          h
+        end
+
+        def replace_named_bind_variables(str, h) # :nodoc:
+          str.gsub(/:(\w+)/) do
+            match = $1.to_sym
+            if h.include?(match)
+              quote(h[match])
+            else
+              raise "missing value for :#{match} in #{str}" # TODO this gets swallowed in find()
+            end
+          end
+        end
+
+        def replace_bind_variables(str, values) # :nodoc:
+          raise "parameter count does not match value count" unless str.count('?') == values.length
+          bound = values.dup
+          str.gsub('?') { quote(bound.shift) }
+        end
+
+        # Returns value quoted if appropriate (if it's a string).
+        def quote(val) # :nodoc:
+          return val unless val.is_a?(String)
+          return "'#{val.gsub(/\'/, "\\\\'")}'" # " <= for Emacs font-lock
+        end
+
+        def mongo_id(val) # :nodoc:
+          return ObjectId(val.to_s)
+        end
+
+        def fields_from(a) # :nodoc:
           return nil unless a
           a = [a] unless a.kind_of?(Array)
           return nil unless a.length > 0
@@ -339,7 +416,7 @@ module XGen
           fields
         end
 
-        def sort_by_from(option)
+        def sort_by_from(option) # :nodoc:
           return nil unless option
           sort_by = {}
           case option
@@ -364,7 +441,7 @@ module XGen
         end
 
         # Turns "asc" into 1, "desc" into -1, and other values into 1 or -1.
-        def sort_value_from_arg(arg)
+        def sort_value_from_arg(arg) # :nodoc:
           case arg
           when /^asc/i
             arg = 1

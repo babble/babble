@@ -32,7 +32,30 @@ import ed.util.*;
 
 public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
 
-    public static JSFunction _cons = new ENode.Cons();
+    public static JSFunction c = new ListCons();
+
+    public static class ListCons extends JSFunctionCalls0 {
+            public JSObject newOne(){
+                return new XMLList();
+            }
+
+            public Object call( Scope scope , Object [] args){
+                ENode n = (ENode)(new ENode.Cons()).call( scope, args );
+                XMLList x = new XMLList( n );
+
+                Object o = scope.getThis();
+                if( o instanceof XMLList ) {
+                    ((XMLList)o).addAll( x );
+                    return o;
+                }
+
+                return x;
+            }
+
+            protected void init() {
+                (new ENode.Cons()).init();
+            }
+        };
 
     public List<ENode> children;
 
@@ -41,16 +64,22 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
     }
 
     public XMLList( ENode node ) {
-        children = new LinkedList<ENode>();
+        this.children = new LinkedList<ENode>();
+        if( node == null ) {
+            return;
+        }
         // make a copy of an existing xmllist
-        if( node instanceof XMLList ) {
+        else if( node instanceof XMLList ) {
             for( ENode child : (XMLList)node ) {
                 ENode temp = child.copy();
                 this.add( temp );
             }
         }
-        else if( node != null && node.node != null ) {
-            children.add( node );
+        else if( node.node == null && node.children().size() > 0 ) {
+            this.addAll( node.children() );
+        }
+        else if( node.node != null ) {
+            this.add( node );
         }
     }
 
