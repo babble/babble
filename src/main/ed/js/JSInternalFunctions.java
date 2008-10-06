@@ -26,6 +26,7 @@ import ed.ext.org.mozilla.javascript.*;
 import ed.js.engine.*;
 import ed.js.func.*;
 import ed.js.e4x.*;
+import ed.util.*;
 
 /** @expose */
 public class JSInternalFunctions extends JSNumericFunctions {
@@ -366,22 +367,16 @@ public class JSInternalFunctions extends JSNumericFunctions {
      * @return If <tt>a</tt> is equal to <tt>b</tt>
      */
     public static Boolean JS_sheq( Object a , Object b ){
-        if ( a == b )
-            return true;
-
         if ( a == null && b == null )
             return true;
 
         if ( a == null || b == null )
             return false;
 
-        if ( a instanceof JSBoolean || a instanceof Boolean ||
-             b instanceof JSBoolean || b instanceof Boolean ) {
+        if ( a instanceof Boolean ||
+             b instanceof Boolean ) {
             a = JSBoolean.booleanValue( a );
             b = JSBoolean.booleanValue( b );
-        }
-        if ( a.equals( b ) ) {
-            return true;
         }
 
         if ( a instanceof Number || b instanceof Number ){
@@ -390,8 +385,15 @@ public class JSInternalFunctions extends JSNumericFunctions {
         }
 
         if ( a instanceof Number && b instanceof Number ){
+            if( Double.isNaN( ((Number)a).doubleValue() ) ||
+                Double.isNaN( ((Number)b).doubleValue() ) ) {
+                return false;
+            }
             return ((Number)a).doubleValue() == ((Number)b).doubleValue();
         }
+
+        if ( a == b || a.equals(b) )
+            return true;
 
         if ( a instanceof JSString )
             a = a.toString();
@@ -404,9 +406,6 @@ public class JSInternalFunctions extends JSNumericFunctions {
 
         if ( _charEQ( a , b ) || _charEQ( b , a ) )
             return true;
-
-        if( a instanceof ENode || b instanceof ENode )
-            return a.toString().equals( b.toString() );
 
         return false;
     }
@@ -439,6 +438,42 @@ public class JSInternalFunctions extends JSNumericFunctions {
 
 	if ( a == null || b == null )
 	    return false;
+
+        if ( a instanceof JSObject &&
+             b instanceof JSObject ) {
+            return false;
+        }
+
+        if( a instanceof ENode ) { 
+            a = a.toString();
+        }
+        if( b instanceof ENode ) { 
+            b = b.toString();
+        }
+
+        // "promote" booleans and strings to numbers
+        if ( a instanceof JSBoolean || a instanceof Boolean ) {
+            a = JSBoolean.booleanValue( a ) ? 1 : 0;
+        }
+        if ( b instanceof JSBoolean || b instanceof Boolean ) {
+            b = JSBoolean.booleanValue( b ) ? 1 : 0;
+        }
+        if ( a instanceof Number && 
+             ( b instanceof String || b instanceof JSString ) && 
+             b.toString().matches( JSNumber.POSSIBLE_NUM ) ) {
+            a = ((Number)a).doubleValue();
+            b = StringParseUtil.parseStrict(b.toString()).doubleValue();
+        }
+        if ( b instanceof Number && 
+             ( a instanceof String || a instanceof JSString ) &&
+             a.toString().matches( JSNumber.POSSIBLE_NUM ) ) {
+            a = StringParseUtil.parseStrict(a.toString()).doubleValue();
+            b = ((Number)b).doubleValue();
+        }
+
+        if ( ( a instanceof Number && Double.isNaN( ((Number)a).doubleValue() ) ) ||
+             ( b instanceof Number && Double.isNaN( ((Number)b).doubleValue() ) ) )
+            return false;
 
 	return a.equals( b );
     }
