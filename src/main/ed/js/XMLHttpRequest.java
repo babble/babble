@@ -101,6 +101,11 @@ public class XMLHttpRequest extends JSObjectBase {
         super( _cons );
     }
 
+    public XMLHttpRequest( URL url ){
+        super( _cons );
+        init( "GET" , url.toString() , false );
+    }
+
     /** Create an XML HTTP request, setting the handler, url, and if it is asynchronous
      * @param method Method to handle the response.
      * @param url URL to which to send HTTP request.
