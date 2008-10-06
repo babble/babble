@@ -111,8 +111,7 @@ public class HttpClientTest extends TestCase {
             throw new RuntimeException("this should never happen");
         }
 
-        // should use something cleaner. waiting on BUG 881
-        server.stop();
+        server.stopServer();
     }
 
     public static void main( String args[] ){
