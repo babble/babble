@@ -341,29 +341,30 @@ public class HttpServer extends NIOServer {
                 if ( forkedQueueSize >= WORKER_THREAD_QUEUE_MAX )
                     mr.getResponse().setResponseCode( 510 );
 
-		mr.startTable();
+		mr.startData();
 
-                mr.addTableRow( "forked queue length" , forkedQueueSize , forkedQueueSize == 0 ? null : ( forkedQueueSize < 50 ? "warn" : "error" )  );
-                mr.addTableRow( "admin queue length" , server._forkThreadsAdmin.queueSize() );
+                mr.addData( "forked queue length" , forkedQueueSize , forkedQueueSize == 0 ? null : ( forkedQueueSize < 50 ? "warn" : "error" )  );
+                mr.addData( "admin queue length" , server._forkThreadsAdmin.queueSize() );
 		
-		mr.addTableRow( "forked processing" , server._forkThreads.inProgress() );
-		mr.addTableRow( "admin processing" , server._forkThreadsAdmin.inProgress() );
+		mr.addData( "forked processing" , server._forkThreads.inProgress() );
+		mr.addData( "admin processing" , server._forkThreadsAdmin.inProgress() );
 		
-                mr.addTableRow( "&nbsp;" , "" );
+                mr.addData( "&nbsp;" , "" );
 		
-                mr.addTableRow( "numRequests" , _numRequests );
-                mr.addTableRow( "numRequestsForked" , _numRequestsForked );
-                mr.addTableRow( "numRequestsAdmin" , _numRequestsAdmin );
+                mr.addData( "numRequests" , _numRequests );
+                mr.addData( "numRequestsForked" , _numRequestsForked );
+                mr.addData( "numRequestsAdmin" , _numRequestsAdmin );
 		
-		mr.addTableRow( "&nbsp;" , "" );
+		mr.addData( "&nbsp;" , "" );
                 
-                mr.addTableRow( "uptime" , ed.js.JSMath.sigFig( ( System.currentTimeMillis() - _startTime ) / ( 1000 * 60.0 ) ) + " min\n" );
-                
-		mr.endTable();
+                mr.addData( "uptime" , ed.js.JSMath.sigFig( ( System.currentTimeMillis() - _startTime ) / ( 1000 * 60.0 ) ) + " min\n" );
+		
+		mr.endData();
             
 		mr.addSpacingLine();
-
-                _tracker.displayGraph( mr.getWriter() , _trackerOptions );
+		
+		if ( mr.html() )
+		    _tracker.displayGraph( mr.getWriter() , _trackerOptions );
             }
 
             final long _startTime = System.currentTimeMillis();

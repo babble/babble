@@ -21,9 +21,11 @@ package ed.net.httpserver;
 import java.util.*;
 import javax.servlet.http.*;
 
+import ed.js.*;
+import ed.net.*;
 import ed.lang.*;
 import ed.util.*;
-import ed.net.*;
+
 
 public abstract class HttpMonitor implements HttpHandler {
     
@@ -31,7 +33,7 @@ public abstract class HttpMonitor implements HttpHandler {
     public HttpMonitor( String name ){
         this( name , false );
     }
-
+    
     public HttpMonitor( String name , boolean plainText ){
         _name = name;
         _plainText = plainText;
@@ -118,14 +120,15 @@ public abstract class HttpMonitor implements HttpHandler {
             response.sendRedirectTemporary( request.getFullURL().replaceAll( "auth=" + AUTH_COOKIE , "" ) );
             return;
         }
-
-        JxpWriter out = response.getJxpWriter();
 	
-	MonitorRequest mr = new MonitorRequest( out , request , response );
+        final JxpWriter out = response.getJxpWriter();
+	final MonitorRequest mr = new MonitorRequest( out , request , response );
+	
+	boolean html = mr.html() && ! _plainText;
 
         if ( _plainText )
             response.setHeader( "Content-Type" , "text/plain" );
-        else {
+        else if ( html ) {
             out.print( _header );
             out.print( _allContent );
             String section = _section();
@@ -138,15 +141,18 @@ public abstract class HttpMonitor implements HttpHandler {
 
         try {
             handle( mr );
+	    if ( mr.json() ){
+		out.print( JSON.serialize( mr._data ) );
+	    }
         }
         catch ( Exception e ){
             e.printStackTrace();
-            out.print( e.toString() ).print( "<br>" );
+            out.print( e.toString() ).print( "<br>\n" );
             for ( StackTraceElement element : e.getStackTrace() )
                 out.print( element + "<br>\n" );
         }
-
-        if ( ! _plainText )
+	
+        if ( html )
             out.print( "</body></html>" );
     }
     
@@ -207,12 +213,75 @@ public abstract class HttpMonitor implements HttpHandler {
 	    _response = response;
 
 	    _json = _request.getBoolean( "json" , false );
+
+	    if ( _json ){
+		_data = new JSObjectBase();
+		_cur = new Stack<JSObject>();
+		_cur.push( _data );
+		_response.setContentType( "application/json" );
+	    }
+	    else {
+		_data = null;
+		_cur = null;
+	    }
+
 	}
 
+	// DATA API
+
+	public void startData(){
+	    startData( null );
+	}
+
+	public void startData( String type ){
+	    if ( _json ){
+		JSObject next = _cur.peek();
+		if ( type != null ){
+		    JSObject o = next;
+		    next = (JSObject)(o.get( type ));
+		    if ( next == null ){
+			next = new JSObjectBase();
+			o.set( type , next );
+		    }
+		}
+		_cur.push( next );
+	    }
+	    else {
+		if ( type != null )
+		    addHeader( type );
+		startTable();
+	    }
+	    
+	}
+	
+	public void endData(){
+	    if ( _json ){
+		_cur.pop();
+	    }
+	    else {
+		endTable();
+	    }
+	}
+	
+	public void addData( Object name , Object value ){
+	    addData( name , value , null );
+	}
+	
+	public void addData( Object name , Object value , String type ){
+	    if ( _json )
+		_cur.peek().set( name.toString() , value.toString() );
+	    else
+		addTableRow( name , value , type );
+	}
+
+	// RAW HTML API
+
 	public void addHeader( String header ){
-	    _out.print( "<h3>" );
-	    _out.print( header );
-	    _out.print( "</h3>" );
+	    if ( html() ){
+		_out.print( "<h3>" );
+		_out.print( header );
+		_out.print( "</h3>" );
+	    }
 	}
 
 	public void addSpacingLine(){
@@ -222,18 +291,22 @@ public abstract class HttpMonitor implements HttpHandler {
 	}
 	
 	public void startTable(){
+	    _assertIfJson();
 	    _out.print( "<table border='1' >" );
 	}
 	
 	public void endTable(){
+	    _assertIfJson();
 	    _out.print( "</table>" );
 	}
 	
 	public void addTableRow( Object header , Object data ){
 	    addTableRow( header , data , null );
+	    _assertIfJson();
 	}
 	
 	public void addTableCell( Object data ){
+	    _assertIfJson();
 	    _out.print( "<td>" );
 	    if ( data == null )
 		_out.print( "null" );
@@ -242,8 +315,8 @@ public abstract class HttpMonitor implements HttpHandler {
 	    _out.print( "</td>" );
 	}
 	
-	
 	public void addTableRow( Object header , Object data , String valueClass ){
+	    _assertIfJson();
 	    _out.print( "<tr><th>" );
 	    _out.print( header == null ? "null" : header.toString() );
 	    _out.print( "</th><td " );
@@ -253,13 +326,22 @@ public abstract class HttpMonitor implements HttpHandler {
 	    _out.print( data == null ? "null" : data.toString() );
 	    _out.print( "</td></tr>" );
 	}
+	
+	// BASICS
 
-	public JxpWriter getWriter(){
-	    if ( _json )
-		throw new RuntimeException( "this is a json request so can't get a raw writer" );
-	    return _out;
+	public boolean json(){
+	    return _json;
+	}
+	
+	public boolean html(){
+	    return ! _json;
 	}
 
+	public JxpWriter getWriter(){
+	    _assertIfJson();
+	    return _out;
+	}
+	
 	public HttpRequest getRequest(){
 	    return _request;
 	}
@@ -267,12 +349,20 @@ public abstract class HttpMonitor implements HttpHandler {
 	public HttpResponse getResponse(){
 	    return _response;
 	}
+
+	private void _assertIfJson(){
+	    if ( _json )
+		throw new RuntimeException( "this is a json request, and you're trying to do a non-json thing" );
+	}
 	
 	private final JxpWriter _out;
 	private final HttpRequest _request;
 	private final HttpResponse _response;
 	
-	protected final boolean _json ;
+	protected final boolean _json;
+
+	private final JSObject _data;
+	private final Stack<JSObject> _cur;
     }
 
     
@@ -301,24 +391,23 @@ public abstract class HttpMonitor implements HttpHandler {
         }
 
         public void handle( MonitorRequest request ){
-            print( request );
+            print( request , "before" );
             
             if ( request.getRequest().getBoolean( "gc" , false ) ){
                 System.gc();
-                request.getWriter().print( "\n\n after gc\n\n" );
                 
-                print( request );
+                print( request , "after" );
             }
             
         }
-        
-        void print( MonitorRequest request ){
-            request.startTable();
-            request.addTableRow( "max" , MemUtil.bytesToMB( _r.maxMemory() ) );
-            request.addTableRow( "total" , MemUtil.bytesToMB( _r.totalMemory() ) );
-            request.addTableRow( "free" , MemUtil.bytesToMB( _r.freeMemory() ) );
-            request.addTableRow( "used" , MemUtil.bytesToMB( _r.totalMemory() - _r.freeMemory() ) );
-            request.endTable();
+	
+        void print( MonitorRequest request , String name ){
+            request.startData( name );
+            request.addData( "max" , MemUtil.bytesToMB( _r.maxMemory() ) );
+            request.addData( "total" , MemUtil.bytesToMB( _r.totalMemory() ) );
+            request.addData( "free" , MemUtil.bytesToMB( _r.freeMemory() ) );
+            request.addData( "used" , MemUtil.bytesToMB( _r.totalMemory() - _r.freeMemory() ) );
+            request.endData();
         }
 
         final Runtime _r;
