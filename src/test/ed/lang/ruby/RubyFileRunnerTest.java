@@ -57,6 +57,7 @@ public class RubyFileRunnerTest {
         s = new Scope("test", s); // child of global scope
         Shell.addNiceShellStuff(s);
         s.set("local", new JSFileLibrary(localRootDir, "local", s));
+        s.set("core", CoreJS.get().getLibrary(null, null, s, false));
 
         s.set("jsout", ""); // initial value; used by tests; will be written over later
         JSFunction print = new JSFunctionCalls0() {
