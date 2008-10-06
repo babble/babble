@@ -145,36 +145,49 @@ public class JSNumber extends Number implements JSObject {
     public final static JSNumber NEGATIVE_ZERO = new JSNumber( 0 );
 
     /** Function to parse a number using a given base.  */
-    public static class Cons extends JSFunctionCalls2{
+    public static class Cons extends JSFunctionCalls1{
             
         public JSObject newOne(){
             return new JSNumber( 0 );
         }
-        
-        public Object call( Scope scope , Object a , Object b , Object extra[] ){
-            
+
+        public Object call( Scope scope , Object a , Object extra[] ){
+            Object def = 0;
+            if( extra != null && extra.length > 0 )
+                def = extra[0];            
+
             if ( scope.getThis() instanceof JSNumber ){
                 JSNumber n = (JSNumber)(scope.getThis());
-                n._val = _parse( a , b );
+                n._val = _parse( a , def );
                 return n._val;
             }
             
-            return _parse( a , b );
+            return _parse( a , def );
         }
         
         Number _parse( Object a , Object b ){
-            
+            if( a == null )
+                return JSNumber.getDouble( b );
+
+            if ( a instanceof JSNumber ) 
+                return ((JSNumber)a)._val;
+
             if ( a instanceof Number )
                 return (Number)a;
             
             if ( a instanceof JSDate )
                 return ((JSDate)a).getTime();
             
-            if ( a != null )
+            if ( ( a instanceof String || a instanceof JSString ) && 
+                 a.toString().matches( POSSIBLE_NUM ) ) 
                 return StringParseUtil.parseNumber( a.toString() , (Number)b );
-            
+
+            if ( a != null )
+                return Double.NaN;
+
             if ( b != null )
                 return (Number)b;
+
             throw new RuntimeException( "not a number [" + a + "]" );
         }
         
@@ -322,6 +335,19 @@ public class JSNumber extends Number implements JSObject {
         _functions.set( "zero_q_" , new JSFunctionCalls0(){
                 public Object call( Scope s , Object foo[] ){
                     return ((Number)s.getThis()).doubleValue() == 0;
+                }
+            } );
+        _functions.set( "valueOf" , new JSFunctionCalls0(){
+                public Object call( Scope s , Object foo[] ){
+                    Object o = s.getThis();
+                    if( o instanceof JSObjectBase && 
+                        ((JSObjectBase)o).getConstructor() instanceof Cons )
+                        return ((Cons)((JSObjectBase)o).getConstructor())._parse( null, null );
+                    
+                    if( o instanceof JSNumber )
+                        throw new JSException( "TypeError: valueOf must be called on a Number" );
+                    
+                    return ((JSNumber)o)._val;
                 }
             } );
 
