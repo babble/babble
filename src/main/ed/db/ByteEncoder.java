@@ -124,10 +124,12 @@ public class ByteEncoder extends Bytes {
         _buf.putInt( 0 ); // leaving space for this.  set it at the end
 
         Object possibleId = o.get( "_id" );
+	boolean skipId = true;
         if ( possibleId != null ){
-            if ( ! ( possibleId instanceof ObjectId ) )
-                throw new RuntimeException( "_id is not an ObjectId is a " + possibleId.getClass() );
-            putObjectId( "_id" , (ObjectId)possibleId );
+            if ( possibleId instanceof ObjectId )
+		putObjectId( "_id" , (ObjectId)possibleId );
+	    skipId = false;
+	    //throw new RuntimeException( "_id is not an ObjectId is a " + possibleId.getClass() );
         }
             
         JSArray transientFields = null;
@@ -140,10 +142,11 @@ public class ByteEncoder extends Bytes {
 
         for ( String s : o.keySet( false ) ){
             
-            if ( dbOnlyField( s ) 
-                 || s.equals( "_transientFields" ) 
-                 || s.equals( "_id" ) )
+            if ( dbOnlyField( s ) || s.equals( "_transientFields" ) )
                 continue;
+
+	    if ( skipId && s.equals( "_id" ) )
+		continue;
             
             if ( transientFields != null && transientFields.contains( s ) )
                 continue;

@@ -294,7 +294,13 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
             _findSubObject( s , jo , null );
         }
 
-        ObjectId id = (ObjectId)jo.get( "_id" );
+        ObjectId id = null;
+	{ 
+	    Object temp = jo.get( "_id" );
+	    if ( temp != null && ! ( temp instanceof ObjectId ) )
+		throw new RuntimeException( "_id has to be an ObjectId" );
+	    id = (ObjectId)temp;
+	}
         if ( DEBUG ) System.out.println( "id : " + id );
 
         if ( id == null || id._new ){
