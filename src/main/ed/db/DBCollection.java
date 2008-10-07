@@ -415,18 +415,15 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
         _find = new JSFunctionCalls2() {
                 public Object call( Scope s , Object o , Object fieldsWantedO , Object foo[] ){
                     
-		    o = _massageObjectToFilter( o , true , fieldsWantedO != null );
-
-		    if ( o instanceof ObjectId )
-			return find( (ObjectId)o );
-		    
+		    o = _massageObjectToFilter( o , true , true );
+                    
                     if ( o instanceof JSObject ){
                         JSObject key = (JSObject)o;
                         checkForIDIndex( key );
                         return new DBCursor( DBCollection.this , key , (JSObject)fieldsWantedO , _constructor );
                     }
 
-                    throw new RuntimeException( "wtf : " + o.getClass() );
+                    throw new IllegalArgumentException( "invalid type for db find [" + o.getClass().getName() + "]" );
                 }
             };
         _entries.put( "find" , _find );
@@ -434,6 +431,13 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
         _entries.put( "findOne" ,
                       new JSFunctionCalls1() {
                           public Object call( Scope s , Object o , Object foo[] ){
+                              
+                              o = _massageObjectToFilter( o , true , false );
+                              if ( o instanceof ObjectId && ( foo == null || foo.length == 0 || foo[0] == null ) ){
+                                  ensureIDIndex();
+                                  return find( (ObjectId)o );
+                              }
+
                               Object res = _find.call( s , o , foo );
                               if ( res == null )
                                   return null;
