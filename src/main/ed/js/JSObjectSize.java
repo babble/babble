@@ -106,7 +106,6 @@ public class JSObjectSize {
             for ( Object foo : (Collection)o ){
                 if ( seen.contains( foo ) )
                     continue;
-		seen.add( foo );
                 temp += _size( foo , seen );
             }
             return temp;
