@@ -301,7 +301,7 @@ module XGen
         end
 
         def ids_clause(ids)
-          ids.length == 1 ? ids[0] : {:$in => ids.collect{|id| ObjectId(id)}}
+          ids.length == 1 ? ids[0] : {:$in => ids.collect{|id| mongo_id(id)}}
         end
 
         # Returns true if all field_names are in @field_names.
