@@ -66,7 +66,7 @@ public class UploadFile extends JSNewFile  {
                 
                 public void write( OutputStream out ) 
                     throws IOException {
-                    throw new RuntimeException( "not implemented" );
+                    _data.write( out , start , end );
                 }
                 
                 public ByteBuffer asByteBuffer(){

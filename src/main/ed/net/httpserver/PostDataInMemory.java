@@ -55,6 +55,11 @@ class PostDataInMemory extends PostData {
         buf.put( _data , start , end - start );
     }
 
+    public void write( OutputStream out , int start , int end )
+        throws IOException {
+        out.write( _data , start , end - start );
+    }
+
     public void writeTo( File f )
         throws IOException {
         FileOutputStream fout = new FileOutputStream( f );
