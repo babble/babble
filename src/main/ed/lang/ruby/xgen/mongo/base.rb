@@ -489,6 +489,7 @@ module XGen
       end
 
       def id=(val); @_id = (val == '' ? nil : val); end
+      # You'll get a deprecation warning if you call this outside of Rails.
       def id; @_id ? @_id.to_s : nil; end
 
       # Rails convenience method.
