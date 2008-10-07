@@ -122,4 +122,9 @@ public class MyAsserts {
         throw new MyAssert( lower + " is higher than " + higher );
     }
 
+    public static void assertEmptyString( String s ) {
+        if( !s.equals( "" ) )
+            throw new MyAssert( s );
+    }
+
 }

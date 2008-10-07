@@ -106,7 +106,6 @@ public class JSInternalFunctions extends JSNumericFunctions {
                         if( this._arguments != null ) {
                             int namedArgs = Math.min( this._arguments.size(), extra2.length );
                             for( int i=0; i < namedArgs; i++ ) {
-                                System.out.println( "arguments: "+this._arguments.get( i ).toString());
                                 local.set( this._arguments.get( i ).toString(), extra2[i] );
                             }
                         }
@@ -114,7 +113,6 @@ public class JSInternalFunctions extends JSNumericFunctions {
                         // eval doesn't take arguments, so we'll do the conversion ourselves
                         try {
                             String randomFile = "anon"+Math.random();
-                            System.out.println("anon: "+randomFile);
                             Convert c = new Convert( randomFile , code , true);
                             return c.get().call( local, extra2 );
                         }
