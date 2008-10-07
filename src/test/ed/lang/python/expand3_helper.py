@@ -14,6 +14,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from _10gen import jsMap, jsArray
+
 assert jsMap.a == 1
 assert jsMap.b == 4
 

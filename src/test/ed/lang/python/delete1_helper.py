@@ -14,19 +14,22 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import _10gen
 class C(object):
     pass
 
-pythonObj1 = C()
+_10gen.pythonObj1 = pythonObj1 = C()
 pythonObj1.a = 1
 pythonObj1.b = 2
 pythonObj1.c = 4
 pythonObj1.d = 8
 
-pythonObj2 = C()
+
+_10gen.pythonObj2 = pythonObj2 = C()
 pythonObj2.foo = "hi"
 pythonObj2.bar = "hello"
 pythonObj2.baz = "yo"
 
 def pythonDelete(o, attr):
     delattr(o, attr)
+_10gen.pythonDelete = pythonDelete
