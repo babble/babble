@@ -22,4 +22,4 @@ _10gen.pyFoo = pyFoo
 
 def pyBar(a, b, c):
     return [c, b, a]
-_10gen.pyBar
+_10gen.pyBar = pyBar
