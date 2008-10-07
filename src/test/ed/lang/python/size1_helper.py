@@ -14,25 +14,30 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-pyBoolean = True
+import _10gen
+_10gen.pyBoolean = True
 
-pyInt = 1254
+_10gen.pyInt = 1254
 
-pyString = 'hello this is a string'
-pyString2 = pyString + ' with some appended text'
+_10gen.pyString = 'hello this is a string'
+_10gen.pyString2 = _10gen.pyString + ' with some appended text'
 
 def pyFunction():
     return 15
+_10gen.pyFunction = pyFunction
 
 class pyClass(object):
     x = 14
+_10gen.pyClass = pyClass
 
-pyDict1 = {'a': 'b'}
+_10gen.pyDict1 = {'a': 'b'}
 
-pyDict2 = {pyString : pyString2}
+_10gen.pyDict2 = {_10gen.pyString : _10gen.pyString2}
 
 def pyModifyDict2():
-    pyDict2[pyString] = pyString2
+    _10gen.pyDict2[_10gen.pyString] = _10gen.pyString2
 
 def pyModifyDict3():
-    pyDict2[pyString2] = pyString2
+    _10gen.pyDict2[_10gen.pyString2] = _10gen.pyString2
+_10gen.pyModifyDict2 = pyModifyDict2
+_10gen.pyModifyDict3 = pyModifyDict3

@@ -14,7 +14,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-
+from _10gen import o, a
 assert "a" in o
 assert "c" not in o
 

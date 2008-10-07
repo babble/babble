@@ -14,6 +14,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from _10gen import jsMap
 assert jsMap.has_key('a')
 assert jsMap.has_key('b')
 assert not jsMap.has_key('c')

@@ -14,15 +14,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import _10gen
 class Foo(object):
     def __call__(self):
         return 'hi'
 
-pyFoo = Foo()
+_10gen.pyFoo = Foo()
 
-pyBar = object()
+_10gen.pyBar = object()
 
-pyCallable = Foo   # class
+_10gen.pyCallable = Foo   # class
 
-pyCallable2 = chr  # builtin
+_10gen.pyCallable2 = chr  # builtin
 

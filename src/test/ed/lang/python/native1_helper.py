@@ -14,5 +14,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import _10gen
 def callSysexec(s):
-    return sysexec(s)
+    return _10gen.sysexec(s)
+
+_10gen.callSysexec = callSysexec

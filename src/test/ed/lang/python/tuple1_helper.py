@@ -15,4 +15,5 @@
 '''
 
 # Used by both tuple1_test and tuple2_test
-pythonTuple = (5, 8, 13)
+import _10gen
+_10gen.pythonTuple = (5, 8, 13)

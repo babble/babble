@@ -14,10 +14,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import _10gen
 __pyL = [1, 2];
 
 def getList():
     return __pyL
+_10gen.getList = getList
 
 def pyManipList(l): # expecting [1, 3, 5]
     if len([x for x in l if x % 3 == 0]) != 1: return False
@@ -26,12 +28,16 @@ def pyManipList(l): # expecting [1, 3, 5]
 
 
     return True
+_10gen.pyManipList = pyManipList
 
 def pyGetLength(l):
     return len(l)
+_10gen.pyGetLength = pyGetLength
 
 def pyCheckEven(l, n):
     return l[n] % 2 == 0
+_10gen.pyCheckEven = pyCheckEven
 
 def pyGetSecretLength():
     return len(__pyL)
+_10gen.pyGetSecretLength = pyGetSecretLength

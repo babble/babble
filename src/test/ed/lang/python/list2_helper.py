@@ -14,6 +14,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-pyL2 = [{'a': 1, 'b': 2}, {'c': 2, 'd': 4}]
+import _10gen
+_10gen.pyL2 = [{'a': 1, 'b': 2}, {'c': 2, 'd': 4}]
 
-pyL2Numbers = [{'a': 1, 'b': 4}, {'a': 2, 'b': 8}]
+_10gen.pyL2Numbers = [{'a': 1, 'b': 4}, {'a': 2, 'b': 8}]
