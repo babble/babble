@@ -230,4 +230,17 @@ public final class StringParseUtil {
         return Integer.parseInt(s);
     }
 
+    public static int parseIfInt( String s , int def ){
+        if ( s == null || s.length() == 0 )
+            return def;
+
+        s = s.trim();
+        
+        for ( int i=0; i<s.length(); i++ )
+            if ( ! Character.isDigit( s.charAt(i) ) )
+                return def;
+        
+        return Integer.parseInt( s );
+    }
+    
 }

@@ -752,7 +752,14 @@ public class JSArray extends JSObjectBase implements Iterable , List {
      */
     @Override
     public boolean containsKey(String s) {
-        return "length".equals(s) || super.containsKey(s);
+        if ( "length".equals(s) )
+            return true;
+        
+        int idx = StringParseUtil.parseIfInt( s , -1 );
+        if ( idx >= 0 )
+            return idx < _array.size();
+        
+        return super.containsKey(s);
     }
 
     /** Return a comma-separated list of array elements converted to strings.
