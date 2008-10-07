@@ -909,7 +909,14 @@ public final class Scope implements JSObject , Bindings {
         _ensureObjectMap();
         _objects.putAll( s._objects );
     }
-
+    
+    public void putAll( JSObject obj ){
+        if ( obj == null )
+            return;
+        
+        for ( String s : obj.keySet() )
+            put( s , obj.get( s ) );
+    }
 
     public Throwable currentException(){
         if ( _exceptions == null )
