@@ -32,4 +32,7 @@ pyDict1 = {'a': 'b'}
 pyDict2 = {pyString : pyString2}
 
 def pyModifyDict2():
-    pyDict2[pyString2] = pyString
+    pyDict2[pyString] = pyString2
+
+def pyModifyDict3():
+    pyDict2[pyString2] = pyString2

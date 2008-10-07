@@ -27,10 +27,16 @@ local.src.test.ed.lang.python.size1_helper();
 var start = pyDict2.approxSize();
 
 var before = pyDict2.approxSize();
-//assert.eq(start, before); // FIXME
+assert.eq( before , pyDict2.approxSize() );
+assert( before >= start );
+assert( before - start < 100 );
+assert.eq( before , pyDict2.approxSize() );
+
 
 pyModifyDict2();
-
 assert.eq(pyDict2.approxSize() , before);
+
+pyModifyDict3();
+assert(pyDict2.approxSize() > before);
 
 
