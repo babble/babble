@@ -319,9 +319,13 @@ public class Shell {
         String line;
         ConsoleReader console = new ConsoleReader();
         console.setHistory( new History( new File( ".jsshell" ) ) );
-
+        SimpleCompletor myCompletor = new SimpleCompletor( new String[]{ "connect" } );
+        console.addCompletor( myCompletor );
+        console.addCompletor( new MemberCompletor( s ) );
+        addAll( myCompletor , s );
+        
         boolean hasReturn[] = new boolean[1];
-
+        
         while ( ( line = console.readLine( "> " ) ) != null ){
             line = line.trim();
             if ( line.length() == 0 )
@@ -340,6 +344,7 @@ public class Shell {
                     else
                         System.out.println( JSON.serialize( res ) );
                 }
+                addAll( myCompletor , s );
             }
             catch ( Exception e ){
                 if ( JS.RAW_EXCPETIONS )
@@ -348,6 +353,60 @@ public class Shell {
                 e.printStackTrace();
                 System.out.println();
             }
+        }
+    }
+
+    static class MemberCompletor implements Completor {
+
+        MemberCompletor( Scope s ){
+            _scope = s;
+        }
+        
+        public int complete( String buffer , int cursor , List candidates ){
+            if ( cursor != buffer.length() )
+                return cursor;
+            
+            String pcs[] = buffer.split( "\\." );
+            if ( pcs.length != 2 )
+                return cursor;
+
+            Object thing = _scope.get( pcs[0] );
+            if ( ! ( thing instanceof JSObject ) )
+                return cursor;
+            
+            JSObject j = (JSObject)thing;
+            
+            SimpleCompletor sc = new SimpleCompletor( new String[]{} );
+
+            for ( String s : j.keySet( true ) )
+                sc.addCandidateString( pcs[0] + "." + s );
+            
+            if ( j.getSuper() != null ){
+                
+                for ( String s : j.getSuper().keySet( true ) )
+                    sc.addCandidateString( pcs[0] + "." + s );
+
+                if ( j.getSuper() instanceof JSObjectBase )
+                    for ( String s : ((JSObjectBase)j.getSuper()).keySet( true , true ) )
+                        sc.addCandidateString( pcs[0] + "." + s );
+                
+            }
+            
+            return sc.complete( buffer , cursor , candidates );
+        }
+        
+        final Scope _scope;
+    }
+    
+    static void addAll( SimpleCompletor completor , Scope s ){
+        addAll( completor , s.allKeys() , null );
+    }
+
+    static void addAll( SimpleCompletor completor , Set<String> keys , String prefix ){
+        for ( String s : keys ){
+            if ( prefix != null )
+                s = prefix + s;
+            completor.addCandidateString( s );
         }
     }
 }
