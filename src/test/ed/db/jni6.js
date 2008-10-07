@@ -13,3 +13,5 @@ var bar = t.findOne( { $where :
 assert( bar );
 
 assert.eq( myNum , db.eval( function(){ return myNum; } ) );
+
+assert(t.validate().valid);

@@ -62,3 +62,6 @@ assert( tb.find().toArray().length == 1 );
 b = tb.findOne();
 assert( 3 == b.thing.num );
 assert( 3 == b.thing.a.length , b.thing.a.length );
+
+assert(ta.validate().valid);
+assert(tb.validate().valid);

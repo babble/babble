@@ -17,3 +17,5 @@ t.drop();
 f(300, 1);
 
 f(500, -1);
+
+assert(t.validate().valid);

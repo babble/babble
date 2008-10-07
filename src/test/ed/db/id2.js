@@ -15,3 +15,5 @@ assert(e2.name == e.name);
 
 e3 = t.findOne(eid_str);
 assert(e3.name == e.name);
+
+assert(t.validate().valid);

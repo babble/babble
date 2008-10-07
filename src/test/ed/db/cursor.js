@@ -81,3 +81,6 @@ assert( t.validate().valid );
 print( "run go(#passes)" );
 
 go();
+
+assert(t.validate().valid);
+

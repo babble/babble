@@ -38,3 +38,4 @@ assert( t.find({z:{a:18}}).length() == 1 );
 assert( t.find().sort( { z : 1 } ).length() == 4 );
 assert( t.find().sort( { z : -1 } ).length() == 4 );
 
+assert(t.validate().valid);

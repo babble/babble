@@ -12,3 +12,5 @@ ta.save( { a : 1 , b : 1 } );
 b = { a : 1 , thing : ta.findOne( {} , { a : 1 } ) };
 tb.save( b );
 
+assert(ta.validate().valid);
+assert(tb.validate().valid);

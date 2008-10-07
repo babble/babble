@@ -27,3 +27,4 @@ c = t.find().sort( { a : 1 } ).skip(1).limit(1);
 assert( c.next().a == 2 );
 assert( ! c.hasNext() );
 
+assert(t.validate().valid);

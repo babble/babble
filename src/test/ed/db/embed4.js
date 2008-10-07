@@ -46,3 +46,5 @@ var x = t.findOne();
 assert.eq( 1 , x.things.length );
 assert.eq( 5 , x.things[0].meth1() );
 assert.eq( 20 , x.stuff.meth1() );
+
+assert(t.validate().valid);

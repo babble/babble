@@ -16,3 +16,5 @@ t.save( { n : 2 } );
 assert.eq( 1 , t.findOne().a );
 assert.eq( 2 , t.findOne().n );
 assert.eq( 3 , t.findOne().c );
+
+assert(t.validate().valid);

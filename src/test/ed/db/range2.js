@@ -12,3 +12,4 @@ for( pass = 0; pass < 2; pass++ ) {
 }
 
 
+assert(t.validate().valid);

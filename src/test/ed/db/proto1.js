@@ -20,5 +20,3 @@ assert( "test.a.foo" == full );
 assert( db.nutty.getClass().toString().match( /Collection/ ) );
 db.nutty = 123;
 assert( 123 == db.nutty );
-
-

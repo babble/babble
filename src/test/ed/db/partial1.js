@@ -37,3 +37,4 @@ assert( o );
 assert( o.a == 2 );
 
 
+assert(t.validate().valid);

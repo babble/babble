@@ -28,3 +28,5 @@ ta.save( a1 );
 assert( tb.findOne().a1.foo == 17 );
 
 
+assert(ta.validate().valid);
+assert(tb.validate().valid);

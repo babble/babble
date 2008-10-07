@@ -19,3 +19,5 @@ assert( t.findOne( id ).b );
 
 assert( t.findOne( id , { a : 1 } ).a );
 assert( ! t.findOne( id , { a : 1 } ).b );
+
+assert(t.validate().valid);
