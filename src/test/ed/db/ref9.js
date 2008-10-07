@@ -22,6 +22,7 @@ try {
     assert( 0 , "should have said there was a loop" );
 }
 catch ( e ){
+    assert( ! e.toString().match(/assert/i) );
 }
 
 assert(t.validate().valid);

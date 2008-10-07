@@ -91,7 +91,8 @@ public class PythonJxpSource extends JxpSource {
                 addPath( ss.getPyState() , _lib.getRoot().toString() );
                 addPath( ss.getPyState() , _lib.getTopParent().getRoot().toString() );
 
-                PyObject globals = ss.globals;
+                //PyObject globals = ss.globals;
+                PyObject globals = new PyDictionary();
 
                 try {
                     Py.setSystemState( ss.getPyState() );

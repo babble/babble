@@ -752,6 +752,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         if ( ! f.exists() )
             throw new IllegalArgumentException( "file doesn't exist" );
         _file = f;
+        setContentType( MimeTypes.get( f ) );
         setContentLength( f.length() );
         _stringContent = null;
     }

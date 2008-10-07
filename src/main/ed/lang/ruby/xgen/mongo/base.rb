@@ -192,6 +192,10 @@ module XGen
         #   Person.find(:all, :offset => 10, :limit => 10)
         #   Person.find(:all, :select => :name) # Only returns name (and _id) fields
         #
+        # Mongo-specific example:
+        # TODO this does not yet work; database does not yet accept string representations of functions.
+        #   Person.find(:all, :where => "function() { return obj.song == '#{@mayor_song}'; }")
+        #
         # As a side note, the :order, :limit, and :offset options are passed
         # on to the Cursor (after the :order option is rewritten to be a
         # hash). So
@@ -271,14 +275,20 @@ module XGen
         end
 
         def find_initial(options)
-          criteria = criteria_from(options[:conditions])
+          # Note: must use merge! because JSObject (returned by
+          # criteria_from_string) does not have an allocator (therefore dup()
+          # is not allowed).
+          criteria = criteria_from(options[:conditions]).merge!(where_func(options[:where]))
           fields = fields_from(options[:select])
           row = coll.findOne(criteria, fields)
           (row.nil? || row['_id'] == nil) ? nil : self.new(row)
         end
 
         def find_every(options)
-          criteria = criteria_from(options[:conditions])
+          # Note: must use merge! because JSObject (returned by
+          # criteria_from_string) does not have an allocator (therefore dup()
+          # is not allowed).
+          criteria = criteria_from(options[:conditions]).merge!(where_func(options[:where]))
           fields = fields_from(options[:select])
           db_cursor = coll.find(criteria, fields)
           db_cursor.limit(options[:limit].to_i) if options[:limit]
@@ -290,7 +300,10 @@ module XGen
 
         def find_from_ids(ids, options)
           ids = ids.to_a.flatten.compact.uniq
-          criteria = criteria_from(options[:conditions]) || {}
+          # Note: must use merge! because JSObject (returned by
+          # criteria_from_string) does not have an allocator (therefore dup()
+          # is not allowed).
+          criteria = criteria_from(options[:conditions]).merge!(where_func(options[:where]))
           criteria[:_id] = ids_clause(ids)
           fields = fields_from(options[:select])
           db_cursor = coll.find(criteria, fields)
@@ -301,7 +314,7 @@ module XGen
         end
 
         def ids_clause(ids)
-          ids.length == 1 ? ids[0] : {:$in => ids.collect{|id| ObjectId(id)}}
+          ids.length == 1 ? ids[0] : {:$in => ids.collect{|id| mongo_id(id)}}
         end
 
         # Returns true if all field_names are in @field_names.
@@ -381,6 +394,12 @@ module XGen
                    end
           }
           h
+        end
+
+        # Returns a hash useable by Mongo for applying +func+ on the db
+        # server. +func+ must be a JavaScript function in a string.
+        def where_func(func)    # :nodoc:
+          func ? {:$where => func} : {}
         end
 
         def replace_named_bind_variables(str, h) # :nodoc:

@@ -6,7 +6,7 @@ t.drop();
 o = { n : 2 };
 t.save( o );
 
-assert.eq( 2 , t.find( o._id ).n );
+assert.eq( 2 , t.find( o._id )[0].n );
 assert.eq( 2 , t.find( o._id , { n : 1 } )[0].n );
 
 t.remove( o._id );
