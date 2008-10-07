@@ -290,7 +290,7 @@ module XGen
 
         def find_from_ids(ids, options)
           ids = ids.to_a.flatten.compact.uniq
-          criteria = criteria_from(options[:conditions]) || {}
+          criteria = criteria_from(options[:conditions])
           criteria[:_id] = ids_clause(ids)
           fields = fields_from(options[:select])
           db_cursor = coll.find(criteria, fields)
