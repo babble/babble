@@ -158,7 +158,7 @@ public class ByteEncoder extends Bytes {
             if ( val instanceof JSFunction ){
                 JSFunction func = (JSFunction)val;
                 if ( func.isCallable() ){
-                    if ( s.startsWith( "$" ) && func.isCallable() && func.getSourceCode() != null )
+                    if ( s.startsWith( "$" ) && func.getSourceCode() != null )
                         putFunction( s , func );
                     continue;
                 }
@@ -210,7 +210,7 @@ public class ByteEncoder extends Bytes {
             return true;
         }
 
-        if ( ! _dontRef.contains( o ) && name != null && o instanceof DBRef ){
+        if ( ! _dontRefContains( o ) && name != null && o instanceof DBRef ){
             DBRef r = (DBRef)o;
             putDBRef( name , r._ns , r._id );
             return true;
@@ -221,7 +221,7 @@ public class ByteEncoder extends Bytes {
             return false;
         }
 
-        if ( ! _dontRef.contains( o ) && 
+        if ( ! _dontRefContains( o ) && 
 	     name != null && 
              ( o.get( "_id" ) != null && 
                o.get( "_ns" ) != null ) ){ 
@@ -271,6 +271,7 @@ public class ByteEncoder extends Bytes {
     }
 
     protected int putFunction( String name , JSFunction func ){
+        if ( D ) System.out.println( "putFunction [" + name + "]" );
         final int start = _buf.position();
         
         Set<String> globalsToSend = new HashSet<String>();
@@ -296,18 +297,18 @@ public class ByteEncoder extends Bytes {
 	    JSObjectBase scopeToPass = new JSObjectBase();
 	    Scope s = func.getScope();
 
-	    if ( _dontRef.size() != 0 )
-		throw new RuntimeException( "some weird recursive thing" );
+            IdentitySet dontRef = new IdentitySet();
+            _dontRef.push( dontRef );
 
 	    for ( String var : globalsToSend ){
 		Object val = s.get( var );
-		_dontRef.add( val );
+		dontRef.add( val );
 		scopeToPass.set( var , val );
 	    }
 	    
-	    putObject( scopeToPass );
+	    putObject( null , scopeToPass );
 	    
-	    _dontRef.clear();
+            _dontRef.pop();
 	    
 	    _buf.putInt( save , _buf.position() - save );
 	}
@@ -381,10 +382,16 @@ public class ByteEncoder extends Bytes {
 
         return _buf.position() - start;
     }
+
+    boolean _dontRefContains( Object o ){
+        if ( _dontRef.size() == 0 )
+            return false;
+        return _dontRef.peek().contains( o );
+    }
     
     private final CharBuffer _cbuf = CharBuffer.allocate( MAX_STRING );
     private final CharsetEncoder _encoder = _utf8.newEncoder();
-    private IdentitySet _dontRef = new IdentitySet();
+    private Stack<IdentitySet> _dontRef = new Stack<IdentitySet>();
     
     private boolean _flipped = false;
     final ByteBuffer _buf;

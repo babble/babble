@@ -6,6 +6,7 @@ import java.nio.*;
 import java.util.*;
 
 import ed.js.*;
+import ed.js.engine.*;
 
 import static ed.db.Bytes.*;
 import static ed.MyAsserts.*;
@@ -180,6 +181,7 @@ public class DBJSObject implements JSObject {
             case STRING:
                 size += 4 + _buf.getInt( _dataStart );
                 break;
+            case CODE_W_SCOPE:
             case ARRAY:
             case OBJECT:
 		size += _buf.getInt( _dataStart );
@@ -211,6 +213,10 @@ public class DBJSObject implements JSObject {
         }
 	
         Object getObject(){
+            
+            if ( _cached != null )
+                return _cached;
+            
             switch ( _type ){
             case NUMBER:
                 return _buf.getDouble( _dataStart );
@@ -218,7 +224,15 @@ public class DBJSObject implements JSObject {
 		return new ObjectId( _buf.getLong( _dataStart ) , _buf.getInt( _dataStart + 8 ) );
 	    case SYMBOL:
 	    case CODE:
-		return ed.js.engine.Convert.makeAnon( _readJavaString( _dataStart ) );
+		return Convert.makeAnon( _readJavaString( _dataStart ) );
+            case CODE_W_SCOPE:
+                JSFunction func = Convert.makeAnon( _readJavaString( _dataStart + 4 ) );
+                int scopeStart = _dataStart + 4 + _buf.getInt( _dataStart + 4 ) + 4;
+                JSObject obj = new DBJSObject( _buf , scopeStart );
+                Scope s = func.getScope( true );
+                s.putAll( obj );
+                _cached = func;
+                return func;
 	    case STRING:
 		return _readJavaString( _dataStart );
 	    case DATE:
@@ -249,6 +263,8 @@ public class DBJSObject implements JSObject {
         final String _name;
         final int _dataStart;
         final int _size;
+
+        Object _cached;
     }
     
     class ElementIter {
