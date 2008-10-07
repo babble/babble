@@ -152,9 +152,15 @@ public class ByteEncoder extends Bytes {
                 continue;
 
             if ( DEBUG ) System.out.println( "\t put thing : " + s );
-
+	    
             Object val = o.get( s );
             
+	    if ( s.equals( "$where") && ( val instanceof String || val instanceof JSString ) ){
+		_put( CODE , s );
+		_putValueString( val.toString() );
+		continue;
+	    }
+
             if ( val instanceof JSFunction ){
                 JSFunction func = (JSFunction)val;
                 if ( func.isCallable() ){
