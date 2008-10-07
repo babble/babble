@@ -193,8 +193,7 @@ module XGen
         #   Person.find(:all, :select => :name) # Only returns name (and _id) fields
         #
         # Mongo-specific example:
-        # TODO this does not yet work; database does not yet accept string representations of functions.
-        #   Person.find(:all, :where => "function() { return obj.song == '#{@mayor_song}'; }")
+        #   Person.find(:all, :where => "function() { return obj.song == 'Song Title'; }")
         #
         # As a side note, the :order, :limit, and :offset options are passed
         # on to the Cursor (after the :order option is rewritten to be a
