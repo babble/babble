@@ -36,3 +36,5 @@ for( var pass = 0; pass < 2; pass++ ) {
   assert( db.bar.find().sort({'x': -1}).limit(1).next().x == 'zed' );
   assert( db.bar.find().sort({'x': -1}).next().x == 'zed' );
 }
+
+assert(db.bar.validate().valid);

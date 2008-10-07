@@ -69,7 +69,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
             return runtime.getNil();
         if (obj instanceof IRubyObject)
             return (IRubyObject)obj;
-        if (obj instanceof JSString || obj instanceof ObjectId)
+        if (obj instanceof JSString)
             return runtime.newString(obj.toString());
 
         IRubyObject wrapper = cachedWrapperFor(runtime, obj);
@@ -107,6 +107,8 @@ public abstract class RubyObjectWrapper extends RubyObject {
             wrapper = new RubyBignum(runtime, (BigInteger)obj);
         else if (obj instanceof Scope)
             wrapper = new RubyScopeWrapper(s, runtime, (Scope)obj);
+        else if (obj instanceof ObjectId)
+            wrapper = new RubyObjectIdWrapper(runtime, (ObjectId)obj);
         else if (obj instanceof JSObject)
             wrapper = new RubyJSObjectWrapper(s, runtime, (JSObject)obj);
         else
@@ -171,6 +173,8 @@ public abstract class RubyObjectWrapper extends RubyObject {
             return ((RubyJSObjectWrapper)r).getJSObject();
         if (r instanceof RubyJSArrayWrapper)
             return ((RubyJSArrayWrapper)r).getJSArray();
+        if (r instanceof RubyObjectIdWrapper)
+            return ((RubyObjectIdWrapper)r).getObjectId();
         if (r instanceof RubyArray) {
             RubyArray ra = (RubyArray)r;
             int len = ra.getLength();

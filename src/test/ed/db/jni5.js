@@ -35,3 +35,5 @@ var bar = t.findOne( { $where :
 		     } );
 assert( bar );
 assert.eq( foo.a , bar.a );
+
+assert(t.validate().valid);

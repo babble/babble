@@ -35,3 +35,5 @@ catch ( e ){
 assert( myException );
 
 db.setReadOnly(false);
+
+assert(t.validate().valid);

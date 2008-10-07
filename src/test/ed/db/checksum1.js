@@ -14,3 +14,5 @@ t2.save( { _id : foo._id , a : 1 } );
 assert( t1.checksum() != 0 );
 assert.eq( t1.checksum() , t2.checksum() );
 
+assert(t1.validate().valid);
+assert(t2.validate().valid);

@@ -27,3 +27,5 @@ assert( t.find().sort( { z : { a : -1 } } ).length() == 2 );
 //
 //assert( t.find().sort( { z : { a : 1 } } )[0].name == "foo" );
 //assert( t.find().sort( { z : { a : -1 } } )[1].name == "bar" );
+
+assert(t.validate().valid);

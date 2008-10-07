@@ -15,3 +15,4 @@ assert.eq( 2 , t.find( { a : 2 } )[0].n );
 assert.eq( 1 , t.find( { $where : function(){ return obj.a == 2 } } ).toArray().length );
 assert.eq( 2 , t.find( { $where : function(){ fullObject; return obj.a == 2 } } )[0].n );
 
+assert(t.validate().valid);

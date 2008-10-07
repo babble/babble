@@ -288,17 +288,20 @@ module XGen
           Cursor.new(db_cursor, self)
         end
 
-        def find_from_ids(args, options)
-          args = [args] unless args.kind_of?(Array)
-          # TODO use _id: {$in: [ObjectId(id1), ObjectId(id2)...]}
-          args = args.flatten.compact.uniq
-          recs = args.collect { |arg|
-            c = criteria_from(options[:conditions])
-            c[:_id] = arg.to_s
-            options[:conditions] = c
-            find_initial(options)
-          }
-          recs.length == 1 ? recs[0] : recs
+        def find_from_ids(ids, options)
+          ids = ids.to_a.flatten.compact.uniq
+          criteria = criteria_from(options[:conditions]) || {}
+          criteria[:_id] = ids_clause(ids)
+          fields = fields_from(options[:select])
+          db_cursor = coll.find(criteria, fields)
+          sort_by = sort_by_from(options[:order]) if options[:order]
+          db_cursor.sort(sort_by) if sort_by
+          cursor = Cursor.new(db_cursor, self)
+          ids.length == 1 ? self.new(cursor[0]) : cursor
+        end
+
+        def ids_clause(ids)
+          ids.length == 1 ? ids[0] : {:$in => ids.collect{|id| mongo_id(id)}}
         end
 
         # Returns true if all field_names are in @field_names.
@@ -486,6 +489,7 @@ module XGen
       end
 
       def id=(val); @_id = (val == '' ? nil : val); end
+      # You'll get a deprecation warning if you call this outside of Rails.
       def id; @_id ? @_id.to_s : nil; end
 
       # Rails convenience method.

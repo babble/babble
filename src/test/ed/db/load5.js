@@ -34,3 +34,5 @@ for ( var i=0; i<10000; i++ ){
         assert( c.next() );
     
 }
+
+assert(t.validate().valid);

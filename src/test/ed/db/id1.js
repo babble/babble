@@ -26,6 +26,7 @@ t.save( { _id : id , name : "b" } );
 assert( t.find().length() == 1 );
 assert( t.find()[0].name == "b" );
 
+assert(t.validate().valid);
 
 
 

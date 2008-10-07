@@ -25,4 +25,4 @@ catch ( e ){
     assert( ! e.toString().match(/assert/i) );
 }
 
-
+assert(t.validate().valid);

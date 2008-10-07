@@ -48,7 +48,7 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
      * looking at scope contents.
      */
     static final String[] IGNORE_JS_CLASSES = {
-        "Array", "Base64", "Class", "Date", "Exception", "Math", "Number", "Object", "Regexp", "String", "XML"
+        "Array", "Base64", "Class", "Date", "Exception", "Math", "Number", "Object", "ObjectId", "Regexp", "String", "XML"
     };
 
     protected final JSFunction _func;

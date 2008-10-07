@@ -35,3 +35,5 @@ for ( var i=0; i<max; i++ ){
 
     t.find().limit(2).next();
 }
+
+assert(t.validate().valid);

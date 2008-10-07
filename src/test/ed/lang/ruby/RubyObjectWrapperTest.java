@@ -179,8 +179,10 @@ public class RubyObjectWrapperTest {
     public void testOidToRuby() {
         ObjectId oid = new ObjectId("0123456789abcdef01");
         IRubyObject ro = toRuby(s, r, oid);
-        assertTrue(ro instanceof RubyString, "expected RubyString, saw " + (ro == null ? "null" : ro.getClass().getName()));
+        assertTrue(ro instanceof RubyObjectIdWrapper, "expected RubyObjectIdWrapper, saw " + (ro == null ? "null" : ro.getClass().getName()));
         assertEquals(ro.toString(), oid.toString());
+        assertSame(((RubyObjectIdWrapper)ro).getObjectId(), oid);
+        assertSame(toJS(s, ro), oid);
     }
 
     @Test(groups = {"js2r"})

@@ -298,9 +298,13 @@ EOS
     assert str.include?("artist: , album: Oranges & Lemons, song: , track:")
   end
 
-  def test_find_one_using_id
-    t = Track.find(@mayor_id)
-    assert_equal @mayor_str, t.to_s
+  def test_find_using_id
+    t = Track.find_by_song('King For A Day')
+    tid = t._id
+    # first is string id, second is ObjectId
+    str = Track.find([@mayor_id, tid]).inject('') { |str, t| str + t.to_s }
+    assert str.include?(@mayor_str)
+    assert str.include?('King For A Day')
   end
 
   def test_select_find_one

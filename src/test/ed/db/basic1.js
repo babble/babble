@@ -12,3 +12,5 @@ o.a = 2;
 o._save();
 
 assert.eq( 2 , t.findOne().a );
+
+assert(t.validate().valid);

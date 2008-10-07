@@ -31,11 +31,13 @@ for( z = 0; z < 2; z++ ) {
     // NPE test
     var ok = false;
     try {
-    var x = t.find( { $where : 
-			   function(){ 
-                               asdf.asdf.f.s.s();
-			   } 
-	} ).length();
+        var x = t.find( { $where : 
+			  function(){ 
+                              asdf.asdf.f.s.s();
+			  } 
+	                } );
+        print( x.length() );
+        print( tojson( x ) );
     }
     catch(e) { 
 	ok = true;

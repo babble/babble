@@ -15,3 +15,5 @@ ta.remove( {} );
 
 assert( tb.findOne().dbref == null );
 
+assert(ta.validate().valid);
+assert(tb.validate().valid);

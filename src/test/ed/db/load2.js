@@ -19,3 +19,5 @@ for ( var i=0; i < 999999999.0; i++ ){
         print( b + "  ->  " + a );
     }
 }
+
+assert(t.validate().valid);

@@ -16,3 +16,4 @@ t.save( { a : 5 } );
 
 assert.eq( 2 , t.find( { n : { $in : [ 1 , 2 ] } } ).toArray().length );
 
+assert(t.validate().valid);
