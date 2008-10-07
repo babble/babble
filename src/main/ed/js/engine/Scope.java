@@ -164,6 +164,17 @@ public final class Scope implements JSObject , Bindings {
         return _objects.keySet( true );
     }
 
+    public Set<String> allKeys(){
+        HashSet<String> all = new HashSet<String>();
+        Scope cur = this;
+        while ( cur != null ){
+            if ( _objects != null )
+                all.addAll( cur._objects.keySet() );
+            cur = cur._parent;
+        }
+        return all;
+    }
+
     public Set<Map.Entry<String,Object>> entrySet(){
         throw new RuntimeException( "not sure this makes sense" );
     }
