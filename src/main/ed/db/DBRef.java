@@ -6,6 +6,7 @@ import java.util.*;
 
 import ed.*;
 import ed.js.*;
+import ed.log.*;
 import ed.appserver.*;
 
 public class DBRef extends JSObjectBase {
@@ -55,14 +56,13 @@ public class DBRef extends JSObjectBase {
 	JSObject o = _getPointedTo();
 
         if ( o == null ){
-            System.out.println( "can't find ref.  ns:" + _ns + " id:" + _id );
             _parent.set( _fieldName , null );
             return null;
         }
 
         MyAsserts.assertEquals( _id , o.get( "_id" ) );
         MyAsserts.assertEquals( _ns.toString() , o.get( "_ns" ).toString() );
-
+        
         _loaded = true; // this technically makes a race condition...
         
         Object ret = this;
@@ -108,6 +108,10 @@ public class DBRef extends JSObjectBase {
 	else {
 	    coll.apply( o );
 	}
+
+        if ( o == null )
+            Logger.getRoot().getChild( "missingref" ).info( "ns:" + _ns + " id:" + _id );
+
 
 	_pointedTo = o;
 	_loadedPointedTo = true;
