@@ -439,12 +439,10 @@ EOS
     assert str.include?('King For A Day')
   end
 
-# TODO uncomment this when $where can accept a string function definition.
-
-#   def test_where
-#     str = Track.find(:all, :where => "function() { return obj.song == '#{@mayor_song}'; }").inject('') { |str, t| str + t.to_s }
-#     assert_equal @mayor_str, str
-#   end
+  def test_where
+    str = Track.find(:all, :where => "function() { return obj.song == '#{@mayor_song}'; }").inject('') { |str, t| str + t.to_s }
+    assert_equal @mayor_str, str
+  end
 
   def assert_all_songs(str)
     assert_match(/song: The Ability to Swing/, str)
