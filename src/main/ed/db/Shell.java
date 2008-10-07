@@ -49,6 +49,9 @@ public class Shell {
         if ( val == null )
             return "null";
         
+        if ( val instanceof DBRef )
+            return "DBRef";
+        
         if ( val instanceof JSDate )
             return ((JSDate)val).strftime( "%D %T" );
 
@@ -76,7 +79,7 @@ public class Shell {
                 if ( JSON.IGNORE_NAMES.contains( f ) )
                     continue;
 
-                Object blah = obj.get( f );
+                Object blah = _get( obj , f );
                 
                 Integer old = fields.get( f );
                 if ( old == null )
@@ -96,12 +99,18 @@ public class Shell {
 
         for ( JSObject obj : all ){
             for ( String f : fields.keySet() ){
-                out.printf( "%" + fields.get( f ) + "s | " , _string( obj.get( f ) ) );
+                out.printf( "%" + fields.get( f ) + "s | " , _string( _get( obj , f ) ) );
             }   
             out.printf( "\n" );
         }
         
         return all.size();
+    }
+
+    static Object _get( JSObject o , String n ){
+        if ( o instanceof JSObjectBase )
+            return ((JSObjectBase)o)._simpleGet( n );
+        return o.get( n );
     }
 
     public void repl()
