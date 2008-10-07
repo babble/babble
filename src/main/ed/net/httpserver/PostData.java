@@ -84,6 +84,9 @@ public abstract class PostData {
     public abstract void writeTo( File f )
         throws IOException ;
 
+    public abstract void write( OutputStream out , int start , int end )
+        throws IOException;
+
     public ServletInputStream getInputStream(){
         // TODO: make this faster
         final int max = _len;
