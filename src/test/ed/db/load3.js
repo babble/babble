@@ -12,3 +12,4 @@ for ( var i=0; i<100000; i++ ){
 
 t.ensureIndex( { name : 1 } );
 
+assert(t.validate().valid);

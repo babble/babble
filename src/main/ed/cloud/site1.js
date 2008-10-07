@@ -27,6 +27,9 @@ Cloud.Environment = function( name , branch , db , pool ){
 
     this.id = ObjectId();
     this.aliases = [];
+
+    if ( this.name )
+        this.name = this.name.toLowerCase();
 };
 
 // iid is the old name - should deprecate 
@@ -166,9 +169,11 @@ Cloud.Site.prototype.upsertEnvironment = function( name , branch , db , pool , a
         comment = o.comment || e.comment;
             
     }
-        
+    
     if ( ! name )
         throw "envinroment must have a name";
+
+    name = name.toLowerCase();
 
     var e = this.findEnvironmentByName( name );
     
@@ -367,7 +372,9 @@ Cloud.Site.prototype.upsertDB = function( name , server , userToInsert ){
 
     if ( ! name )
         throw "need to specify db name";
-        
+    
+    name = name.toLowerCase();
+
     if ( ! server )
         server = Cloud.Balancer.getAvailableDB();
     

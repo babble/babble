@@ -29,4 +29,4 @@ o = t.findOne();
 assert( 3 == o.a );
 assert( o.b == null , "not null when it should be: [" + o.b + "]" );
 
-
+assert(t.validate().valid);

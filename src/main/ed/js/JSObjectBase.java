@@ -601,6 +601,10 @@ public class JSObjectBase implements JSObject {
     }
 
     public Collection<String> keySet( boolean includePrototype ){
+        return keySet( includePrototype , false );
+    }
+    
+    public Collection<String> keySet( boolean includePrototype , boolean ignoreDontEnum ){
         prefunc();
 
         List<String> keys = new ArrayList<String>();
@@ -626,7 +630,7 @@ public class JSObjectBase implements JSObject {
             }
         }
 
-        if ( _dontEnum != null )
+        if ( ! ignoreDontEnum && _dontEnum != null )
             keys.removeAll( _dontEnum );
 
         return keys;

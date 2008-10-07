@@ -22,3 +22,6 @@ db.foo.ensureIndex({a:1});
 sum3 = db.foo.checksum();
 
 assert( sum3 != sum2);
+
+assert(db.foo.validate().valid);
+assert(db.bar.validate().valid);

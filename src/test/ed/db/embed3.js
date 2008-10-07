@@ -71,3 +71,4 @@ assert.eq( 1 , t.findOne().b.things.length );
 assert.eq( 111 , t.findOne().b.things[0].batman );
 assert.eq( 7 , t.findOne().b.things[0].z );
 
+assert(t.validate().valid);

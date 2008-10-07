@@ -36,3 +36,5 @@ for( pass=0; pass<2; pass++ ) {
     assert( t.find({i:{$gte:98}}).count() == 2 );
 
 }
+
+assert(t.validate().valid);

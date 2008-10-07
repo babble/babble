@@ -37,4 +37,5 @@ b = tb.findOne( { name : "some b" } );
 assert( 2 == b.as.length );
 assert( b.as[0].foo == 17 );
 
-
+assert(ta.validate().valid);
+assert(tb.validate().valid);

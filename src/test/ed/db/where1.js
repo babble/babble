@@ -22,3 +22,5 @@ $g = function(){
     return n;
 }
 assert.eq( 1 , t.find( function(){ return this.a == $g(); } ).length() );
+
+assert(t.validate().valid);

@@ -18,6 +18,4 @@ sleep( 1000 );
 
 assert( t.getIndexes().length() == 1 );
 
-
-
-
+assert(t.validate().valid);

@@ -22,3 +22,4 @@ for(var i=1; i<=5000; i++) {
     }
 }
 
+assert(asdf.validate().valid);

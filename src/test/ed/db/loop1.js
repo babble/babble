@@ -157,6 +157,7 @@ assert( 8 , ta.findOne().b.z );
 assert( 9 , ta.findOne().b.c.z );
 assert( 7 , ta.findOne().b.c.a.z );
 
-
+assert(ta.validate().valid);
+assert(tb.validate().valid);
 
 

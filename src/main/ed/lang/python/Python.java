@@ -382,10 +382,16 @@ public class Python extends Language {
             return temp;
         }
 
-        System.out.println("Couldn't figure out " + o.getClass());
+        String blah = o.getClass().toString();
+        if ( ! _seenClasses.contains( blah ) ){
+            System.out.println("Python bridge couldn't figure out size of " + blah);
+            _seenClasses.add( blah );
+        }
+
         return 0;
     }
 
     private static Scope _extractGlobals;
     private static Map<PySystemState, SiteSystemState> _rmap;
+    private static Set<String> _seenClasses = Collections.synchronizedSet( new HashSet<String>() );
 }

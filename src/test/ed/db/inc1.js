@@ -13,3 +13,4 @@ t.update( { name : "foo" } , { $inc : { num : 1 } } );
 assert( t.findOne( { name : "foo" }  ) );
 assert( t.findOne( { name : "foo" } ).z == 17 );
 
+assert(t.validate().valid);

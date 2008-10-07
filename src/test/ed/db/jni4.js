@@ -46,3 +46,5 @@ var cursor = t.find( { $where :
 		      } 
 		     } );
 assert.eq( 1 , cursor.toArray().length );
+
+assert(t.validate().valid);

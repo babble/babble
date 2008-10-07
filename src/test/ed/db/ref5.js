@@ -22,4 +22,5 @@ tb.save( b );
 assert( 1 == tb.find( { mya : a } ).length() );
 assert( 2 == tb.find().length() );
 
-
+assert(ta.validate().valid);
+assert(tb.validate().valid);

@@ -34,3 +34,5 @@ assert( t2.findOne( o2._id ).o._id == origo1id );
 assert( t1.findOne( origo1id ).a == "c" );
 
 
+assert(t1.validate().valid);
+assert(t2.validate().valid);

@@ -24,4 +24,4 @@ try {
 catch ( e ){
 }
 
-
+assert(t.validate().valid);

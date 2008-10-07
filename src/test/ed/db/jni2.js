@@ -27,3 +27,5 @@ assert( 2 == t.find( { $where :
                            return 1; 
                        } 
                      } ).length() );
+
+assert(t.validate().valid);

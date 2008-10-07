@@ -24,3 +24,5 @@ sleep( 10 );
 a = t.find( { instances : { pool : "prod1" } } );
 assert( a.length() == 1 );
 assert( a[0].name == "alleyinsider" );
+
+assert(t.validate().valid);

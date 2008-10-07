@@ -22,3 +22,5 @@ t.drop();
 id = ObjectId();
 t.save( { _id : id , n : 17 } );
 assert.eq( id , t.findOne()._id );
+
+assert(t.validate().valid);

@@ -47,3 +47,5 @@ if( !z || !z.valid ) {
 	assert(false);
     }
 }
+
+assert(t.validate().valid);

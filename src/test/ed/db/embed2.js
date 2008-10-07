@@ -37,3 +37,5 @@ assert( f.z == 2 );
 assert( f.as.a1 );
 assert( f.as.a1.y == 2 );
 assert( f.as.a1.z == 11 );
+
+assert(t.validate().valid);
