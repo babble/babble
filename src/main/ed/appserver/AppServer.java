@@ -149,6 +149,11 @@ public class AppServer implements HttpHandler {
             return;
         }
 
+        if ( request.getURI().equals( "/~admin" ) ){
+            handleAdmin( ar , request , response );
+            return;
+        }
+
         final AppContext ctxt = ar.getContext();
 
 	ar.setResponse( response );
@@ -156,7 +161,7 @@ public class AppServer implements HttpHandler {
         ctxt.getLogger().makeThreadLocal();
 
         final UsageTracker usage = ctxt._usage;
-        final HttpLoadTracker stats = getTracker( ctxt._name , ctxt._environment );
+        final HttpLoadTracker stats = getTracker( ctxt );
 
         {
             final int inSize  = request.totalSize();
@@ -652,14 +657,48 @@ public class AppServer implements HttpHandler {
         }
 
     }
+    
+    void handleAdmin( AppRequest ar , HttpRequest request , HttpResponse response ){
+    
+        JxpWriter out = response.getJxpWriter();        
+        
+        if ( ! _administrativeAllowed( request ) ){
+            out.print( "you are not allowed here" );
+            return;
+        }
+        
+        
+        out.print( "<html><head>" );
+        out.print( "<title>admin | " + request.getHost() + "</title>" );
+        out.print( "</head><body>" );
+        
+        out.print( "<h1>Quick Admin</h1>" );
 
+        out.print( "<table border='1'>" );
+        out.print( "<tr><th>Created</th><td>" + ar.getContext()._created + "</td></tr>" );
+        out.print( "<tr><th>Memory (kb)</th><td>" + ( ar.getContext().approxSize() / 1024 ) + "</td></tr>" );
+        out.print( "</table>" );
+        
+        out.print( "<h3>Stats</h3>" );
+        getTracker( ar.getContext() ).displayGraph( out , _displayOptions );
+        
+        out.print( "<hr>" );
+        
+        out.print( "<a href='/~update'>Update Code</a> | " );
+        out.print( "<a href='/~reset'>Reset Site (include code update)</a> | " );
+
+        out.print( "</body></html>" );
+    }
+    
     boolean _administrativeAllowed( HttpRequest request ){
         return
             request.getRemoteIP().equals( "127.0.0.1" ) &&
             request.getHeader( "X-Cluster-Cluster-Ip" ) == null;
     }
 
-    HttpLoadTracker getTracker( String site , String env ){
+    HttpLoadTracker getTracker( final AppContext ctxt ){
+        final String site = ctxt._name;
+        final String env = ctxt._environment;
         final String name = site + ":" + ( env == null ? "NONE" : env );
 
         HttpLoadTracker t = _stats.get( name );

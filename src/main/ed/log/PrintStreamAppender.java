@@ -41,5 +41,5 @@ public class PrintStreamAppender implements Appender {
     }
 
     final PrintStream _out;
-    static final SimpleDateFormat _format = new SimpleDateFormat( "mm/dd/yyyy hh:MM:ss.SSS z" );
+    static final SimpleDateFormat _format = new SimpleDateFormat( "MM/dd/yyyy hh:mm:ss.SSS z" );
 }
