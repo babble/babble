@@ -82,6 +82,8 @@ function run_ed {
     ./runAnt.bash ed.appserver.AppServer --port $http_port $FULLSITE&
     popd >> /dev/null
     
+    sleep 5
+    
     unset PID
     for ((i=0;i<10;i+=1)); do
         PID=`ps -a -x -e -o pid,command | grep java | grep "ed.appserver.AppServer" |  awk '{ print $1 }'`
