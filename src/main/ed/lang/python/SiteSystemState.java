@@ -96,11 +96,8 @@ public class SiteSystemState {
 
         String modName = "_10gen".intern();
         if( pyState.modules.__finditem__( modName ) == null ){
-            PyModule xgenMod = new PyModule( modName );
+            PyModule xgenMod = new PyModule( modName , globals );
             pyState.modules.__setitem__( modName , xgenMod );
-            // I know this is appalling but they don't expose this any other
-            // way
-            xgenMod.__dict__ = globals;
         }
 
         // This allows you to do import sitename

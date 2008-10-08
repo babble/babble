@@ -75,7 +75,7 @@ public abstract class RubyObjectWrapper extends RubyObject {
         IRubyObject wrapper = cachedWrapperFor(runtime, obj);
         if (wrapper != null) {
             if (wrapper instanceof RubyJSObjectWrapper)
-                ((RubyJSObjectWrapper)wrapper).rebuild(runtime);
+                ((RubyJSObjectWrapper)wrapper).rebuild();
             return wrapper;
         }
 

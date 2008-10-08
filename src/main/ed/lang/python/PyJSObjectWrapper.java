@@ -213,6 +213,10 @@ public class PyJSObjectWrapper extends PyDictionary {
         _js.set( toJS( key ) , toJS( value ) );
     }
 
+    public void __delitem__( String key ){
+        __delattr__( key );
+    }
+
     public void __delattr__( String key ){
         try {
             super.__delitem__( key );
