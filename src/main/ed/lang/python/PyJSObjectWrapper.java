@@ -185,6 +185,9 @@ public class PyJSObjectWrapper extends PyDictionary {
         return toPython( o , _js );
     }
 
+    // FIXME: why is this being unwrapped twice?
+    // (i.e. once here, once in handleSet)
+    // When I take it out, I get a bunch of test failures. Look into
     public void __setitem__(PyObject key, PyObject value) {
         super.__setitem__(key, value);
         this.handleSet( toJS( key ) , toJS( value ) );
