@@ -178,13 +178,7 @@ public class JavadocToDB {
         tempField.set("isPublic", field.isPublic());
 
         JSArray returns = new JSArray();
-        Tag[] rtags = field.tags( "return" );
-        if( rtags.length > 0 ) {
-            JSObjectBase r = new JSObjectBase();
-            r.set("desc", rtags[0].text());
-            returns.add( r );
-        }
-        rtags = field.tags( "returnpkg" );
+        Tag[] rtags = field.tags( "returnpkg" );
         if( rtags.length > 0 ) {
             returns.add( getReturnPkg( rtags[0] ) );
         }

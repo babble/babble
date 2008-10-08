@@ -17,14 +17,12 @@ require 'ruby_test'
 class LoadTest < RubyTest
 
   def test_load
-    assert_nil($foo)
     run_js "foo = {}; foo.bar = 'bletch';"
     assert_not_nil($foo)
     assert_equal($foo.bar, 'bletch')
   end
 
   def test_require_only_loads_once
-    assert_nil($foo)
     run_js "foo = {}; foo.count = 1;"
     assert_equal($foo.count, 1)
 
@@ -45,7 +43,6 @@ class LoadTest < RubyTest
   end
 
   def test_load_loads_multiple_times
-    assert_nil($foo)
     run_js "foo = {}; foo.count = 1;"
     assert_equal($foo.count, 1)
 
