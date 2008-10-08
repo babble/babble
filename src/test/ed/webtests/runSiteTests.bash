@@ -18,7 +18,6 @@ fi
 
 # SITE is just the name of the site, like 'alleyinsider'. FULLSITE is the full
 # path to the site's directory. TESTDIR is the webtest directory.
-cd "$1"
 FULLSITE=`pwd`
 SITE=`basename $FULLSITE`
 
@@ -50,6 +49,8 @@ http_pid=$PID
 # Populate the db with setup data.
 if [ -f $FULLSITE/test/setup.js ]
     then
+        pushd $EDROOT >> /dev/null
+
         if [ -x $FULLSITE/test/setup.js ]
             then
                 # if the setup script needs $GITROOT, make it an executable script
@@ -58,6 +59,8 @@ if [ -f $FULLSITE/test/setup.js ]
                 # otherwise it'll just be run in the shell
                 ./runLight.bash ed.js.Shell --exit $FULLSITE/test/setup.js
         fi
+
+        popd >> /dev/null
 fi
 
 # Copy test resources into test directory.
