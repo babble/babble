@@ -1,4 +1,4 @@
-source common.bash
+source `dirname "$0"`/common.bash
 
 FULLSITE="/tmp/serverTestsSite/serverTestsSite"
 SITE=`basename $FULLSITE`
