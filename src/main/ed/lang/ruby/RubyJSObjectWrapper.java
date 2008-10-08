@@ -97,7 +97,7 @@ public class RubyJSObjectWrapper extends RubyHash {
         alreadyDefined.add("get");
         alreadyDefined.add("set");
 
-        rebuild(runtime);
+        rebuild();
 
         alreadyDefined.addAll(_jsIvars.keySet());
         alreadyDefined.addAll(_jsFuncs.keySet());
@@ -110,7 +110,7 @@ public class RubyJSObjectWrapper extends RubyHash {
      * Right now, we do this the dumb way by deleting all information and
      * re-creating it.
      */
-    public void rebuild(Ruby runtime) {
+    public void rebuild() {
         Map<String, Ruby> map;
         for (String name : new HashMap<String, Ruby>(_jsIvars).keySet())
             _removeInstanceVariable(name);
@@ -120,9 +120,9 @@ public class RubyJSObjectWrapper extends RubyHash {
             Object val = peek(key);
             if (val != null) {
                 if (isCallableJSFunction(val))
-                    _addFunctionMethod(runtime, key, (JSFunction)val);
+                    _addFunctionMethod(key, (JSFunction)val);
                 else
-                    _addInstanceVariable(runtime, key);
+                    _addInstanceVariable(key);
             }
         }
     }
@@ -217,11 +217,11 @@ public class RubyJSObjectWrapper extends RubyHash {
             boolean newIsCallableFunc = isCallableJSFunction(newVal);
             if (oldIsCallableFunc && !newIsCallableFunc) {
                 _removeFunctionMethod(jsKey);
-                _addInstanceVariable(context.getRuntime(), jsKey);
+                _addInstanceVariable(jsKey);
             }
             else if (!oldIsCallableFunc && newIsCallableFunc) {
                 _removeInstanceVariable(jsKey);
-                _addFunctionMethod(context.getRuntime(), jsKey, (JSFunction)newVal);
+                _addFunctionMethod(jsKey, (JSFunction)newVal);
             }
         }
 
@@ -426,15 +426,16 @@ public class RubyJSObjectWrapper extends RubyHash {
         }
     }
 
-    protected void _addFunctionMethod(Ruby runtime, Object key, final JSFunction val) {
+    protected void _addFunctionMethod(Object key, final JSFunction val) {
         if (RubyObjectWrapper.DEBUG_CREATE)
             System.err.println("adding function method " + key);
         String skey = key.toString();
-        _jsFuncs.put(skey, runtime);
-        RubyObjectWrapper.createRubyMethod(_scope, runtime, val, skey, _eigenclass, _jsobj);
+        _jsFuncs.put(skey, getRuntime());
+        RubyObjectWrapper.createRubyMethod(_scope, getRuntime(), val, skey, _eigenclass, _jsobj);
     }
 
-    protected void _addInstanceVariable(Ruby runtime, Object key) {
+    protected void _addInstanceVariable(Object key) {
+        Ruby runtime = getRuntime();
         String skey = key.toString();
         if (!IdUtil.isValidInstanceVariableName("@" + skey))
             return;
