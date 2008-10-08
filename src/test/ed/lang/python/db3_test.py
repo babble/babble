@@ -13,7 +13,6 @@ _10gen.assert.eq( 3 , len( orig["things"] ) );
 
 t.save( orig );
 after = t.findOne();
-print 'after is', after, type(after)
 
 _10gen.assert.eq( 3 , len( after["things"] ) );
 
