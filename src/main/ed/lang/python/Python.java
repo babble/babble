@@ -24,6 +24,8 @@ import java.util.*;
 import org.python.core.*;
 import org.python.antlr.*;
 import org.python.antlr.ast.*;
+import org.python.modules.sre.PatternObject;
+import org.python.modules.sre.SRE_STATE;
 
 import ed.db.*;
 import ed.util.*;
@@ -110,6 +112,34 @@ public class Python extends Language {
 
         if ( p instanceof PySequenceList ){
             return new JSPySequenceListWrapper((PySequenceList)p);
+        }
+
+        // TODO: this doesn't support several of the Python extensions
+        // known things that won't work:
+        //   (?iLmsux)
+        //   (?P<name>...)
+        //   (?P=name)
+        //   (?#...)
+        //   (?<=...)
+        //   (?<!...)
+        //   (?(id/name)yes-pattern|no-pattern)
+        //   LOCALE, UNICODE and VERBOSE flags
+        //   either of MULTILINE or DOTALL will be translated to both MULTILINE and DOTALL
+        //   {,n} doesn't work. can be written as {0,n} which will work
+        // other stuff could be broken as well...
+        if (p instanceof PatternObject) {
+            PatternObject re = (PatternObject)p;
+
+            // all Python re's get the JS global match flag
+            String flags = "g";
+            if ((re.flags & SRE_STATE.SRE_FLAG_IGNORECASE) > 0) {
+                flags = flags + "i";
+            }
+            if ((re.flags & SRE_STATE.SRE_FLAG_MULTILINE) > 0 || (re.flags & SRE_STATE.SRE_FLAG_DOTALL) > 0) {
+                flags = flags + "m";
+            }
+
+            return new JSRegex(re.pattern.toString(), flags);
         }
 
         // this needs to be last
