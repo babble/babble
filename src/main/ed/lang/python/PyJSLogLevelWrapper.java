@@ -32,20 +32,6 @@ import static ed.lang.python.Python.*;
 @ExposedType(name = "log_level")
 public class PyJSLogLevelWrapper extends PyString {
 
-    static {
-        try {
-            ExposedTypeProcessor etp = new ExposedTypeProcessor(PyJSObjectWrapper.class.getClassLoader()
-                                                                .getResourceAsStream("ed/lang/python/PyJSObjectWrapper.class"));
-            TypeBuilder t = etp.getTypeExposer().makeBuilder();
-            PyType.addBuilder(PyJSObjectWrapper.class, t);
-            PyType js = PyType.fromClass(PyJSObjectWrapper.class);
-            PyObject dict = t.getDict(js);
-        }
-        catch(java.io.IOException e){
-            throw new RuntimeException("Couldn't expose PyJSObjectWrapper as Python type");
-        }
-    }
-
     public PyJSLogLevelWrapper( Level level ){
         super(level.toString());
         _level = level;

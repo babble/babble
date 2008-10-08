@@ -17,5 +17,8 @@
 import _10gen
 
 s = _10gen.log.level
+error = _10gen.log.LEVEL.ERROR
+_10gen.assert.eq(str(error), "ERROR")
 _10gen.log.level = _10gen.log.LEVEL.ERROR
 
+_10gen.assert.eq(_10gen.log.level, _10gen.log.LEVEL.ERROR)
