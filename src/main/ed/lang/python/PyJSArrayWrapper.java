@@ -81,11 +81,7 @@ public class PyJSArrayWrapper extends PySequence {
     }
 
     public int __len__(){
-        Object foo = _js.get("length");
-        if(foo instanceof Integer){
-            return ((Integer)foo).intValue();
-        }
-        return 0; //??
+        return _js.size();
     }
 
     @ExposedMethod(names={"__str__", "__repr__"})
@@ -132,11 +128,24 @@ public class PyJSArrayWrapper extends PySequence {
     @ExposedMethod()
     public PyObject jsarraywrapper_insert(PyObject index, PyObject value){
         if( ! index.isIndex() ){
-            throw Py.TypeError(getType().fastGetName() + " indices must be integers");
+            throw Py.TypeError("an integer is required");
         }
         int i = fixindex(index.asIndex(Py.IndexError));
         _js.add(i, toJS(value));
         return Py.None;
+    }
+
+    @ExposedMethod(defaults="null")
+    public PyObject jsarraywrapper_pop(PyObject index){
+        if( index == null ){
+            return toPython( _js.remove( _js.size() - 1 ) );
+        }
+
+        if( ! index.isIndex() ){
+            throw Py.TypeError("an integer is required");
+        }
+        int i = fixindex(index.asIndex(Py.IndexError));
+        return toPython( _js.remove( i ) );
     }
 
     // eq, ne, lt, le, gt, ge, cmp

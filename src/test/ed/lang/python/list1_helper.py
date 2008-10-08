@@ -27,7 +27,10 @@ def pyManipList(l): # expecting [1, 3, 5]
     if l.count(3) != 1: return False
 
     l.insert(1, 2)
-    return True
+    l.append(4)
+    _10gen.assert.eq( l.pop() , 4 )
+    l.append(4)
+    return l.pop(-2)
 _10gen.pyManipList = pyManipList
 
 def pyGetLength(l):
