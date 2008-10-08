@@ -446,6 +446,12 @@ public class Python extends Language {
         return 0;
     }
 
+    /**
+     * Exposes a Java type to Jython using the ExposedTypeProcessor.
+     *
+     * The alternative is to use PyType.fromClass(), which seems to be more
+     * for "ordinary" Java classes.
+     */
     public static PyType exposeClass( Class c ){
         String fileName = c.getName().replaceAll( "\\.", "/" ) + ".class";
         try {

@@ -31,19 +31,7 @@ import static ed.lang.python.Python.*;
 @ExposedType(name = "jswrapper")
 public class PyJSObjectWrapper extends PyDictionary {
 
-    static {
-        try {
-            ExposedTypeProcessor etp = new ExposedTypeProcessor(PyJSObjectWrapper.class.getClassLoader()
-                                                                .getResourceAsStream("ed/lang/python/PyJSObjectWrapper.class"));
-            TypeBuilder t = etp.getTypeExposer().makeBuilder();
-            PyType.addBuilder(PyJSObjectWrapper.class, t);
-            PyType js = PyType.fromClass(PyJSObjectWrapper.class);
-            PyObject dict = t.getDict(js);
-        }
-        catch(java.io.IOException e){
-            throw new RuntimeException("Couldn't expose PyJSObjectWrapper as Python type");
-        }
-    }
+    static PyType TYPE = Python.exposeClass(PyJSObjectWrapper.class);
 
     public PyJSObjectWrapper( JSObject jsObject ){
         this( jsObject , true );
