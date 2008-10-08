@@ -114,8 +114,13 @@ public class Generate {
         while(k.hasNext()) {
             JSObject n = (JSObject)k.next();
             Object name = n.get("name");
-            if( name == null || name.toString() == "" )
-                continue;
+            if( name == null || name.toString() == "" ) {
+                name = n.get("_name");
+                if( name == null || name.toString() == "" ) {
+                    continue;
+                }
+                n.set( "name", name.toString() );
+            }
             array.add( new JSString( name.toString().toLowerCase() ) );
         }
     }
