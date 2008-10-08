@@ -88,6 +88,29 @@ public class PyJSArrayWrapper extends PySequence {
         return 0; //??
     }
 
+    @ExposedMethod(names={"__str__", "__repr__"})
+    public PyObject jsarraywrapper___repr__(){
+        return new PyString(toString());
+    }
+
+    public String toString(){
+        StringBuilder foo = new StringBuilder();
+        int n = __len__();
+        int count = 0;
+        foo.append("[");
+        for(int i = 0; i < n-1; ++i){
+            PyObject p = toPython(_js.getInt(i));
+            PyObject repr = p.__repr__();
+            foo.append(repr.toString());
+            foo.append(", ");
+        }
+        PyObject p = toPython(_js.getInt(n-1));
+        PyObject repr = p.__repr__();
+        foo.append(repr.toString());
+        foo.append("]");
+        return foo.toString();
+    }
+
     @ExposedMethod()
     public PyObject jsarraywrapper_append(PyObject value){
         _js.add(toJS(value));
