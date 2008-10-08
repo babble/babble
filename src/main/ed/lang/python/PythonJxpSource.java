@@ -105,6 +105,9 @@ public class PythonJxpSource extends JxpSource {
                     return Py.runCode( code, locals, globals );
                 }
                 finally {
+                    // FIXME -- delitem should really be deleting from siteScope
+                    globals.__delitem__( "__file__" );
+                    siteScope.set( "__file__" , null );
                     Py.setSystemState( pyOld );
                 }
             }
