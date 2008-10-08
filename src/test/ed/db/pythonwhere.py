@@ -1,5 +1,7 @@
 
-db = connect( "ed_db_test_py" )
+import _10gen;
+
+db = _10gen.connect( "ed_db_test_py" )
 t = db["pwhere1"]
 t.drop();
 
