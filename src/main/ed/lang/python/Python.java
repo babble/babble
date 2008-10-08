@@ -162,11 +162,7 @@ public class Python extends Language {
         // FILL IN MORE HERE
 
         if ( o instanceof JSArray ){
-            PyList l = new PyList();
-            for( Object c : ((JSArray)o) ){
-                l.append( toPython( c ) );
-            }
-            return l;
+            return new PyJSArrayWrapper( (JSArray)o );
         }
 
         if ( o instanceof ed.log.Level ){

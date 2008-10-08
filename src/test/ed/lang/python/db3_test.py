@@ -14,12 +14,12 @@ _10gen.assert.eq( 3 , len( orig["things"] ) );
 t.save( orig );
 after = t.findOne();
 
-#_10gen.assert.eq( 3 , len( after["things"] ) );
+_10gen.assert.eq( 3 , len( after["things"] ) );
 
 
-#after["things"].append( 4 );
-# THIS BREAKS!
-# _10gen.assert.eq( 4 , len( after["things"] ) );  
+after["things"].append( 4 );
+_10gen.assert.eq( 4 , len( after["things"] ) );
 
-
+after['things'][1] = 9
+_10gen.assert.eq( sum(after['things']), 17 )
 
