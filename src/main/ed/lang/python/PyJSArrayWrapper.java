@@ -94,6 +94,18 @@ public class PyJSArrayWrapper extends PySequence {
         return Py.None;
     }
 
+    @ExposedMethod
+    public PyObject jsarraywrapper_count(PyObject value){
+        Object jval = toJS(value);
+        int n = __len__();
+        int count = 0;
+        for(int i = 0; i < n; ++i){
+            if(_js.getInt(i).equals(jval))
+                count++;
+        }
+        return Py.newInteger(count);
+    }
+
     // eq, ne, lt, le, gt, ge, cmp
     // finditem, setitem, getslice, delslice -- handled for us?
     final JSArray _js;
