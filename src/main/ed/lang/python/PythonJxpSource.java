@@ -92,6 +92,7 @@ public class PythonJxpSource extends JxpSource {
                 addPath( ss.getPyState() , _lib.getTopParent().getRoot().toString() );
 
                 PyObject globals = ss.globals;
+                PyObject oldFile = globals.__finditem__( "__file__" );
 
                 try {
                     Py.setSystemState( ss.getPyState() );
@@ -105,9 +106,15 @@ public class PythonJxpSource extends JxpSource {
                     return Py.runCode( code, locals, globals );
                 }
                 finally {
-                    // FIXME -- delitem should really be deleting from siteScope
-                    globals.__delitem__( "__file__" );
-                    siteScope.set( "__file__" , null );
+                    if( oldFile != null ){
+                        globals.__setitem__( "__file__" , oldFile );
+                    }
+                    else{
+                        // FIXME -- delitem should really be deleting from siteScope
+                        globals.__delitem__( "__file__" );
+                        siteScope.set( "__file__", null );
+                        
+                    }
                     Py.setSystemState( pyOld );
                 }
             }
