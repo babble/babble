@@ -26,6 +26,8 @@ import org.python.antlr.*;
 import org.python.antlr.ast.*;
 import org.python.modules.sre.PatternObject;
 import org.python.modules.sre.SRE_STATE;
+import org.python.expose.*;
+import org.python.expose.generate.*;
 
 import ed.db.*;
 import ed.util.*;
@@ -442,6 +444,20 @@ public class Python extends Language {
         }
 
         return 0;
+    }
+
+    public static PyType exposeClass( Class c ){
+        String fileName = c.getName().replaceAll( "\\.", "/" ) + ".class";
+        try {
+            ExposedTypeProcessor etp = new ExposedTypeProcessor( c.getClassLoader()
+                                                                 .getResourceAsStream( fileName ));
+            TypeBuilder t = etp.getTypeExposer().makeBuilder();
+            PyType.addBuilder( c, t );
+        }
+        catch( IOException e ){
+            throw new RuntimeException( "Couldn't expose " + c.getName() );
+        }
+        return PyType.fromClass( c );
     }
 
     private static Scope _extractGlobals;

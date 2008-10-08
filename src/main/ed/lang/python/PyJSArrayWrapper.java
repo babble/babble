@@ -22,7 +22,6 @@ import java.util.*;
 
 import org.python.core.*;
 import org.python.expose.*;
-import org.python.expose.generate.*;
 
 import ed.js.*;
 import ed.js.engine.*;
@@ -31,19 +30,7 @@ import static ed.lang.python.Python.*;
 @ExposedType(name = "jsarraywrapper")
 public class PyJSArrayWrapper extends PySequence {
 
-    static {
-        try {
-            ExposedTypeProcessor etp = new ExposedTypeProcessor(PyJSArrayWrapper.class.getClassLoader()
-                                                                .getResourceAsStream("ed/lang/python/PyJSArrayWrapper.class"));
-            TypeBuilder t = etp.getTypeExposer().makeBuilder();
-            PyType.addBuilder(PyJSArrayWrapper.class, t);
-            PyType js = PyType.fromClass(PyJSArrayWrapper.class);
-            PyObject dict = t.getDict(js);
-        }
-        catch(java.io.IOException e){
-            throw new RuntimeException("Couldn't expose PyJSArrayWrapper as Python type");
-        }
-    }
+    static PyType TYPE = Python.exposeClass(PyJSArrayWrapper.class);
 
     public PyJSArrayWrapper( JSArray jsA ){
         super( );
