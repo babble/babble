@@ -129,6 +129,16 @@ public class PyJSArrayWrapper extends PySequence {
         return Py.newInteger(count);
     }
 
+    @ExposedMethod()
+    public PyObject jsarraywrapper_insert(PyObject index, PyObject value){
+        if( ! index.isIndex() ){
+            throw Py.TypeError(getType().fastGetName() + " indices must be integers");
+        }
+        int i = fixindex(index.asIndex(Py.IndexError));
+        _js.add(i, toJS(value));
+        return Py.None;
+    }
+
     // eq, ne, lt, le, gt, ge, cmp
     // finditem, setitem, getslice, delslice -- handled for us?
     final JSArray _js;

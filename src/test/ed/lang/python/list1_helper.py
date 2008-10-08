@@ -26,7 +26,7 @@ def pyManipList(l): # expecting [1, 3, 5]
 
     if l.count(3) != 1: return False
 
-
+    l.insert(1, 2)
     return True
 _10gen.pyManipList = pyManipList
 

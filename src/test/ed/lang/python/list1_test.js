@@ -44,6 +44,11 @@ var jsA = [1, 3, 5];
 
 assert( pyManipList(jsA) );
 
+assert.eq( jsA[0] , 1 );
+assert.eq( jsA[1] , 2 );
+assert.eq( jsA[2] , 3 );
+assert.eq( jsA[3] , 5 );
+
 newL = pyL.filter(function(x){ return x % 2;});
 assert( newL[0] == 1 );
 assert( newL[1] == 9 );
