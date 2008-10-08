@@ -244,13 +244,20 @@ public class JSHook {
         if ( idx >= code.length() )
             throw new RuntimeException( "don't know how to deal with code [" + code + "]" );
         
+	String firstLine = code;
+	if ( firstLine.indexOf( "\n" ) > 0 )
+	    firstLine = firstLine.substring( 0 , firstLine.indexOf( "\n" ) ).trim();
+
         final String sym = code.substring( 0 , idx );
         
         if ( sym.equals( "function" ) )
             return Convert.makeAnon( code , true );
         
-        if ( sym.equals( "def" ) )
-            return ed.lang.python.Python.extractLambda( code );
+        if ( sym.equals( "def" ) ){
+	    if ( firstLine.endsWith( ":" ) )
+		return ed.lang.python.Python.extractLambda( code );
+	    throw new RuntimeException( "can't do ruby" );
+	}
         
         // default to JS
         return Convert.makeAnon( code , true );

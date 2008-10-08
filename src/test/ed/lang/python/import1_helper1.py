@@ -14,6 +14,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from _10gen import jsFoo
 assert jsFoo == 14
 
 import _10gen as js

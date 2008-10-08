@@ -14,25 +14,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from _10gen import jsMap, jsArray
+import _10gen
 
-assert jsMap.a == 1
-assert jsMap.b == 4
+s = _10gen.log.level
+error = _10gen.log.LEVEL.ERROR
+_10gen.assert.eq(str(error), "ERROR")
+_10gen.log.level = _10gen.log.LEVEL.ERROR
 
-assert dir(jsMap) == ['a', 'b']
-assert jsMap.keys() == dir(jsMap)
-assert len(jsMap.keys()) == 2
-
-def extract(a=None, b=None):
-    assert a == 1
-    assert b == 4
-
-extract(**jsMap)
-
-
-def extractAry(a, b, c):
-    assert a == 4
-    assert b == 8
-    assert c == 2
-
-extractAry(*jsArray)
+_10gen.assert.eq(_10gen.log.level, _10gen.log.LEVEL.ERROR)

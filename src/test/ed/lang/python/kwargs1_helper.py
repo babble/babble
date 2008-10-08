@@ -14,9 +14,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import _10gen
+
 def pyFoo(*args, **kwargs):
     return [args, kwargs]
+_10gen.pyFoo = pyFoo
 
 def pyBar(a, b, c):
     return [c, b, a]
-
+_10gen.pyBar = pyBar

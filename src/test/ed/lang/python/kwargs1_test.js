@@ -16,6 +16,7 @@
 
 local.src.test.ed.lang.python.kwargs1_helper();
 
+
 var result = pyFoo.apply(null, [1, 2, 3], {a: 'a', b: 'b'});
 
 var args = result[0];

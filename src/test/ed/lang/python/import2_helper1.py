@@ -18,3 +18,5 @@ import import2_helper2
 def pyImport():
     import import2_helper2
     return import2_helper2.CONSTANT
+import _10gen
+_10gen.pyImport = pyImport

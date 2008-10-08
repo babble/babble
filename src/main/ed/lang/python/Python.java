@@ -67,13 +67,14 @@ public class Python extends Language {
 
     public static Object toJS( Object p ){
         if( D )
-            System.out.println( "toJS " + p );
+            System.out.println( "toJS " + p + " " + p.getClass());
 
         if ( p == null || p instanceof PyNone )
             return null;
 
         if ( p instanceof JSObject ||
              p instanceof JSString ||
+             p instanceof ed.log.Level ||
              p instanceof Number )
             return p;
 
@@ -88,6 +89,9 @@ public class Python extends Language {
                 System.out.println( "unwrapping " + p );
             return ((PyJSObjectWrapper)p)._js;
         }
+
+        if ( p instanceof PyJSLogLevelWrapper )
+            return ((PyJSLogLevelWrapper)p)._level;
 
         if ( p instanceof PyBoolean )
             return ((PyBoolean)p).getValue() == 1;
@@ -158,11 +162,11 @@ public class Python extends Language {
         // FILL IN MORE HERE
 
         if ( o instanceof JSArray ){
-            PyList l = new PyList();
-            for( Object c : ((JSArray)o) ){
-                l.append( toPython( c ) );
-            }
-            return l;
+            return new PyJSArrayWrapper( (JSArray)o );
+        }
+
+        if ( o instanceof ed.log.Level ){
+            return new PyJSLogLevelWrapper( (ed.log.Level)o );
         }
 
         // these should be at the bottom

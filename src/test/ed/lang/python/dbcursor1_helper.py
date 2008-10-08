@@ -14,6 +14,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from _10gen import db, local
 cursor = db.coll.find()
 
 local.src.test.ed.lang.python.dbcursor1_template({

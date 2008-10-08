@@ -15,12 +15,17 @@
 '''
 
 # Used by both expose1_test and expose2_test
-
-pyX = getglobal('x')
-pyY = getglobal('y')
+from _10gen import getglobal
+import _10gen
+_10gen.pyX = getglobal('x')
+_10gen.pyY = getglobal('y')
 
 def pythonAddAttr(obj, k, v):
     setattr(obj, k, v)
 
 def pythonAddFoo(obj):
     obj.foo = "yippee"
+
+import _10gen
+_10gen.pythonAddAttr = pythonAddAttr
+_10gen.pythonAddFoo = pythonAddFoo
