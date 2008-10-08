@@ -16,10 +16,9 @@
 
 import _10gen
 
-def pyFoo(*args, **kwargs):
-    return [args, kwargs]
-_10gen.pyFoo = pyFoo
+s = _10gen.log.level
+error = _10gen.log.LEVEL.ERROR
+_10gen.assert.eq(str(error), "ERROR")
+_10gen.log.level = _10gen.log.LEVEL.ERROR
 
-def pyBar(a, b, c):
-    return [c, b, a]
-_10gen.pyBar = pyBar
+_10gen.assert.eq(_10gen.log.level, _10gen.log.LEVEL.ERROR)
