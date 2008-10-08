@@ -1,3 +1,5 @@
+source `dirname "$0"`/common.bash
+
 # Print usage info if necessary.
 if [ -z "$1" ]
     then
@@ -16,45 +18,17 @@ fi
 
 # SITE is just the name of the site, like 'alleyinsider'. FULLSITE is the full
 # path to the site's directory. TESTDIR is the webtest directory.
-pushd $1
+pushd "$1" > /dev/null
 FULLSITE=`pwd`
+popd > /dev/null
 SITE=`basename $FULLSITE`
-popd
-cd `dirname $0`
-TESTDIR=`pwd`
+
 
 if [ ! -d "$FULLSITE/test" ]
     then
         echo "Site '$1' does not contain a test directory, aborting."
         exit 1
 fi
-
-# Do configuration steps.
-source $TESTDIR/webtest-config.bash
-
-# Do local configuration if we have a webtest-local.bash.
-if [ -f $TESTDIR/webtest-local.bash ]
-    then
-        echo "Using webtest-local: $TESTDIR/webtest-local.bash"
-        source $TESTDIR/webtest-local.bash
-fi
-
-# Set EDROOT and PROOT if they aren't already set
-if [ -z $EDROOT ]
-    then
-        EDROOT=$GITROOT/ed
-fi
-if [ -z $PROOT ]
-    then
-        PROOT=$GITROOT/p
-fi
-
-# Bring up the test database.
-mkdir -p /tmp/$SITE/logs /tmp/$SITE/db
-rm /tmp/$SITE/db/*
-cd $PROOT/db
-nohup ./db --port $db_port --dbpath /tmp/$SITE/db/ run > /tmp/$SITE/logs/db&
-db_pid=$!
 
 # Use the _config.js in the test directory if there is one.
 if [ -z $NO_TEST_CONFIG ]
@@ -67,13 +41,18 @@ if [ -z $NO_TEST_CONFIG ]
         fi
 fi
 
-# Bring up the app server.
-cd $EDROOT
-./runAnt.bash ed.appserver.AppServer --port $http_port $FULLSITE&
+# Start the servers
+run_db $SITE
+db_pid=$PID
+
+run_ed $FULLSITE
+http_pid=$PID
 
 # Populate the db with setup data.
 if [ -f $FULLSITE/test/setup.js ]
     then
+        pushd $EDROOT >> /dev/null
+
         if [ -x $FULLSITE/test/setup.js ]
             then
                 # if the setup script needs $GITROOT, make it an executable script
@@ -82,18 +61,21 @@ if [ -f $FULLSITE/test/setup.js ]
                 # otherwise it'll just be run in the shell
                 ./runLight.bash ed.js.Shell --exit $FULLSITE/test/setup.js
         fi
+
+        popd >> /dev/null
 fi
 
 # Copy test resources into test directory.
-cp $TESTDIR/resources/build.xml $FULLSITE/test/build.xml
-cp $TESTDIR/resources/buildReal.xml $FULLSITE/test/buildReal.xml
+cp "$TESTDIR/resources/build.xml" "$FULLSITE/test/build.xml"
+echo "done"
+
+cp "$TESTDIR/resources/buildReal.xml" "$FULLSITE/test/buildReal.xml"
 if [ ! -d $FULLSITE/test/definitions ]
     then
         mkdir $FULLSITE/test/definitions
 fi
 ln -s $TESTDIR/resources/definitions $FULLSITE/test/definitions/_10gen_default_defs
 
-sleep 5
 
 # Run webtest.
 cd $FULLSITE/test
@@ -125,10 +107,7 @@ if [ -z $NO_TEST_CONFIG ]
         fi
 fi
 
-# Bring down the db and appserver.
-kill -9 $db_pid || echo "failed to kill database"
-# Really hacky way to find the appserver pid
-http_pid=`ps -e -o pid,command | grep java | grep "ed.appserver.AppServer" | grep "port $http_port" | awk '{ print $1 }'`
-kill -9 $http_pid || echo "failed to kill appserver"
+kill_ed $http_pid
+kill_db $db_pid
 
 exit $STATUS
