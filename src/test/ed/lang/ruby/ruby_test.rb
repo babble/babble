@@ -17,12 +17,9 @@ require 'test/unit'
 class RubyTest < Test::Unit::TestCase
 
   def setup
-    @existing_keys = $scope.keys
   end
 
   def teardown
-    others = $scope.keys - @existing_keys
-    others.each { |k| $scope.remove(k) }
   end
 
   def run_js(js)
