@@ -32,7 +32,7 @@ class RubyTest < Test::Unit::TestCase
     rescue => ex
       fail(ex.to_s)
     ensure
-     File.delete(path) if File.exist?(path)
+      File.delete(path) if File.exist?(path)
     end
     return $scope['jsout']
   end
