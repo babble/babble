@@ -17,25 +17,24 @@ require 'test/unit'
 class RubyTest < Test::Unit::TestCase
 
   def setup
-    @existing_keys = $scope.keys
   end
 
   def teardown
-    others = $scope.keys - @existing_keys
-    others.each { |k| $scope.remove(k) }
   end
 
-  def run_js(js)
-    fname = '__temp_run_js' + rand(0xffffffff).to_s
-    path = File.join(File.dirname(__FILE__), fname + '.js')
+  # This will actually run JavaScript, PHP, or any language supported by the
+  # 10gen app server. It sets $scope['jsout'] to the code's output.
+  def run_js(code, lang_extension='js')
+    fname = '__temp_run_code_' + rand(0xffffffff).to_s
+    path = File.join(File.dirname(__FILE__), "#{fname}.#{lang_extension}")
     $scope['jsout'] = ''
     begin
-      File.open(path, 'w') { |f| f.puts js }
+      File.open(path, 'w') { |f| f.puts code }
       load "local/#{fname}"
     rescue => ex
       fail(ex.to_s)
     ensure
-     File.delete(path) if File.exist?(path)
+      File.delete(path) if File.exist?(path)
     end
     return $scope['jsout']
   end

@@ -110,7 +110,7 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
             t = result.getNewTemplate();
         }
         
-        if ( ! t.getExtension().equals( "js" ) )
+        if ( ! ( t.getExtension().equals( "js" ) || t.getExtension().equals( "ssjs" ) ) )
             throw new RuntimeException( "don't know what do do with : " + t.getExtension() );
         
         try {

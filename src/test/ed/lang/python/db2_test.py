@@ -66,7 +66,7 @@ x = t.findOne()
 
 _10gen.assert.eq(x.c[0].m1(), o.m1())
 
-t2 = db.pydb3
+t2 = db.pydb2_1
 t2.drop()
 t2.setConstructor(Thingy)
 
