@@ -191,6 +191,25 @@ public class Python extends Language {
 
         // FILL IN MORE HERE
 
+        if (o instanceof JSRegex) {
+            PyObject re = __builtin__.__import__("re");
+            JSRegex regex = (JSRegex)o;
+            ArrayList<PyObject> args = new ArrayList<PyObject>();
+
+            args.add(new PyString(regex.getPattern()));
+
+            if (regex.getFlags().contains("i")) {
+                args.add(re.__findattr__("I".intern()));
+            }
+            if (regex.getFlags().contains("m")) {
+                args.add(re.__findattr__("M".intern()));
+                args.add(re.__findattr__("S".intern()));
+            }
+
+            PyObject compile = re.__findattr__("compile".intern());
+            return compile.__call__(args.toArray(new PyObject[1]));
+        }
+
         if ( o instanceof JSArray ){
             return new PyJSArrayWrapper( (JSArray)o );
         }
