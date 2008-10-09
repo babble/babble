@@ -24,3 +24,4 @@ function testCursorCountVsArrLen(dbConn) {
 
 //db = connect("test")
 //testCursorCountVsArrLen(db);
+print("ed/db/cursor2.js:testCursorCountVsArrLen() - not run - BUG 884");
