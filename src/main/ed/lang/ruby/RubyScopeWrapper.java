@@ -30,7 +30,12 @@ import ed.js.engine.Scope;
 public class RubyScopeWrapper extends RubyJSObjectWrapper {
 
     public static Collection<? extends Object> jsKeySet(Scope s) {
-        return s.allKeys();
+        Set<String> keys = new HashSet<String>();
+        while (s != null) {
+            keys.addAll(s.keySet());
+            s = s.getParent();
+        }
+        return keys;
     }
 
     RubyScopeWrapper(Scope s, Ruby runtime, Scope obj) {
