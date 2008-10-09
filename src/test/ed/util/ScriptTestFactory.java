@@ -16,9 +16,10 @@
 
 package ed.util;
 
-import java.io.File;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.regex.Pattern;
 
 import org.testng.annotations.Factory;
@@ -36,17 +37,50 @@ import ed.js.engine.Scope;
  */
 public class ScriptTestFactory {
     
-    String _dir = null;
+    public static List<String> excludeList = new ArrayList<String>();
+    public static String baseDir = "";
+
+    static void addExcludeFiles( File f ) throws IOException {
+        if( f.isDirectory() ) {
+            for( File aFile : f.listFiles() ) {
+                addExcludeFiles( aFile );
+            }
+        }
+        else {
+            excludeList.add( f.getCanonicalPath() );
+        }
+    }
+
+    static {
+        try {
+            String root= System.getProperty("TESTNG:CODE_ROOT", "/data");
+            baseDir = (new File( root + "/qa/modules/mozilla/" )).getCanonicalPath();
+            Scanner sc = new Scanner( new File( baseDir + File.separator + "exclude" ) );
+            while( sc.hasNext() ) {
+                String s = sc.next();
+                if( s.startsWith( "#" ) ) {
+                    sc.nextLine();
+                    continue;
+                }
+                addExcludeFiles( new File( baseDir + File.separator + s ) );
+            }
+        }
+        catch( IOException e ) {
+            e.printStackTrace();
+        }
+    }
+
     
     /**
      *  Creates an array of ScriptTestInstance objects, each representing
      *  one script file in whatever directory we're targeted at
      */
-    @Parameters({ "test-class", "dir-name", "file-ending", "inc-regex", "ex-regex"})
+    @Parameters({ "test-class", "dir-name", "file-ending", "inc-regex", "ex-regex", "recursive"})
     @Factory
     public Object[] createTestInstances(String testClassName, String dirName, String fileEnding, 
                                         @Optional("") String inclusionRegex,
-                                        @Optional("") String exclusionRegex) throws Exception {
+                                        @Optional("") String exclusionRegex,
+                                        @Optional("false") String recursive) throws Exception {
 
 
         List<ScriptTestInstance> list = new ArrayList<ScriptTestInstance>();
@@ -105,33 +139,61 @@ public class ScriptTestFactory {
             exPattern = Pattern.compile(exclusionRegex);
         }
 
-        for (File f : dir.listFiles()) {
-            
-            boolean include = true;
-            
-            if (f.toString().endsWith(fileEnding)) {
-            
-                if (inPattern != null) {
-                    include = inPattern.matcher(f.toString()).matches();
-                }
-
-                if (exPattern != null) {
-
-                    if (exPattern.matcher(f.toString()).matches()) {
-                        System.out.println("JSTestFactory : regexp exclusion of " + f.toString());
-                        include = false;
-                    }
-                }
-                
-                if (include) {
-                    ScriptTestInstance testInstance = (ScriptTestInstance) Class.forName(testClassName).newInstance();
-                    testInstance.setTestScriptFile(f);
-                    list.add(testInstance);
-                }            
+        if( recursive.equals( "true" ) ) {
+            addFilesRecursively( dir, list, testClassName, fileEnding, inPattern, exPattern );
+        }
+        else {
+            for (File f : dir.listFiles()) {
+                addIfValid( f, list, testClassName, fileEnding, inPattern, exPattern );
             }
         }
-
         return list.toArray();
+    }
+
+    public void addFilesRecursively( File dir, List<ScriptTestInstance> list, 
+                                     String testClassName, String fileEnding, Pattern inPattern, Pattern exPattern ) 
+        throws Exception {
+
+        for ( File f : dir.listFiles() ){
+	    if ( f.isDirectory() ) {
+                addFilesRecursively( f, list, testClassName, fileEnding, inPattern, exPattern );
+            }
+            else {
+                addIfValid( f, list, testClassName, fileEnding, inPattern, exPattern );
+            }
+	}
+    }
+
+    public void addIfValid( File f, List<ScriptTestInstance> list, 
+                            String testClassName, String fileEnding, Pattern inPattern, Pattern exPattern ) 
+        throws Exception {
+
+        boolean include = true;
+        
+        if (f.toString().endsWith(fileEnding)) {
+            
+            if (inPattern != null) {
+                include = inPattern.matcher(f.toString()).matches();
+            }
+            
+            if (exPattern != null) {
+                
+                if (exPattern.matcher(f.toString()).matches()) {
+                    System.out.println("JSTestFactory : regexp exclusion of " + f.toString());
+                    include = false;
+                }
+            }
+            
+            if( excludeList.contains( f.getCanonicalPath() ) ) {
+                include = false;
+            }
+
+            if (include) {
+                ScriptTestInstance testInstance = (ScriptTestInstance) Class.forName(testClassName).newInstance();
+                testInstance.setTestScriptFile(f);
+                list.add(testInstance);
+            }            
+        }
     }
     
     /**
