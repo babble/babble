@@ -69,6 +69,7 @@ function run_ed {
     fi
     
     mkdir -p /tmp/$SITE/logs
+    rm /tmp/$SITE/logs/ed
     
     # Bring up the app server.
     pushd "$EDROOT" >> /dev/null
@@ -76,6 +77,8 @@ function run_ed {
     ./runAnt.bash ed.appserver.AppServer --port $http_port $FULLSITE | tee /tmp/$SITE/logs/ed &
     local script_pid=$!
     popd >> /dev/null
+
+    local ed_listening=0
 
     for ((i=0;i<60;i+=1)); do
         #started successfully?
@@ -96,7 +99,7 @@ function run_ed {
         sleep 5
     done
     
-    if [ $ed_listening ]
+    if [ $ed_listening -eq 0 ]
         then
             echo "Failed to start ed"
             return
