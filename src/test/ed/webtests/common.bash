@@ -22,7 +22,10 @@ if [ -z $PROOT ]
     then
         PROOT=$GITROOT/p
 fi
-
+if [ -z $COREJSROOT ]
+    then
+        COREJSROOT=$GITROOT/corejs
+fi
 
 function run_db {
     local DBNAME=$1

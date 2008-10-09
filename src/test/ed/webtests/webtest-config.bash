@@ -13,6 +13,7 @@ export http_port=8080
 GITROOT=~/10gen
 #PROOT=$GITROOT/p
 #EDROOT=$GITROOT/ed
+#COREJSROOT=$GITROOT/ed
 
 ##Uncomment to use the regular _config.js instead of the test version:
 ##e.g. uncomment to use site-name/_config.js instead of site-name/test/_config.js
