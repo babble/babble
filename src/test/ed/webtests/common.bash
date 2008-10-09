@@ -70,10 +70,34 @@ function run_ed {
     # Bring up the app server.
     pushd "$EDROOT" >> /dev/null
     ant compile
-    ./runAnt.bash ed.appserver.AppServer --port $http_port $FULLSITE &
+    ./runAnt.bash ed.appserver.AppServer --port $http_port $FULLSITE | tee /tmp/$SITE/logs/ed &
+    local script_pid=$!
     popd >> /dev/null
+
+    for ((i=0;i<60;i+=1)); do
+        #started successfully?
+        grep -q "^Listening on port" /tmp/$SITE/logs/ed
+        if [ $? -eq 0 ]
+        then
+            ed_listening=1
+            break
+        fi
+        
+        #died a painful death?
+        ps -x -o pid | grep -q "$script_pid"
+        if [ $? -ne 0 ]
+        then
+            break
+        fi 
+        
+        sleep 5
+    done
     
-    sleep 5
+    if [ $ed_listening ]
+        then
+            echo "Failed to start ed"
+            return
+    fi
     
     unset PID
     for ((i=0;i<10;i+=1)); do
