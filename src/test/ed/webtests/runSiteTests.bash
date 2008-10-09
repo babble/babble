@@ -30,6 +30,20 @@ if [ ! -d "$FULLSITE/test" ]
         exit 1
 fi
 
+# Start the servers
+if ! run_db $SITE
+    then      
+        exit 1
+fi
+db_pid=$PID
+
+if ! run_ed $FULLSITE
+    then
+        kill_db $db_pid
+        exit 1
+fi
+http_pid=$PID
+
 # Use the _config.js in the test directory if there is one.
 if [ -z $NO_TEST_CONFIG ]
     then
@@ -40,13 +54,6 @@ if [ -z $NO_TEST_CONFIG ]
                 cp $FULLSITE/test/_config.js $FULLSITE/_config.js
         fi
 fi
-
-# Start the servers
-run_db $SITE
-db_pid=$PID
-
-run_ed $FULLSITE
-http_pid=$PID
 
 # Populate the db with setup data.
 if [ -f $FULLSITE/test/setup.js ]
