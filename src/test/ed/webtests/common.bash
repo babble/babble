@@ -27,9 +27,9 @@ fi
 function run_db {
     local DBNAME=$1
     
-    if [ ! -d $EDROOT ]
+    if [ ! -d $PROOT ]
         then
-            echo "Environment variable EDROOT is not set correctly"
+            echo "Environment variable PROOT is not set correctly"
             return 0
     fi
     
@@ -37,11 +37,6 @@ function run_db {
         then
             echo "Environment variable db_port is not set correctly"
             return 0
-    fi
-    
-    if [ -z $EDROOT ]
-        then
-            EDROOT=$GITROOT/ed
     fi
        
     
@@ -60,9 +55,9 @@ function run_db {
 function run_ed {
     local FULLSITE=$1
     
-    if [ ! -d $PROOT -a ! -d $GITROOT ]
+    if [ ! -d $EDROOT ]
         then
-            echo "The environment variable PROOT is not set correctly"
+            echo "The environment variable EDROOT is not set correctly"
             return 0
     fi
     
@@ -70,11 +65,6 @@ function run_ed {
         then
             echo "Environment variable http_port is not set correctly"
             return 0
-    fi
-    
-    if [ -z $PROOT ]
-        then
-            PROOT=$GITROOT/p
     fi
     
     # Bring up the app server.
