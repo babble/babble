@@ -28,18 +28,18 @@ import ed.js.engine.*;
 import static ed.lang.python.Python.*;
 
 @ExposedType(name = "jsarraywrapper")
-public class PyJSArrayWrapper extends PySequence {
+public class PyJSArrayWrapper extends PyList {
 
-    static PyType TYPE = Python.exposeClass(PyJSArrayWrapper.class);
+    public static final PyType TYPE = Python.exposeClass(PyJSArrayWrapper.class);
 
     public PyJSArrayWrapper( JSArray jsA ){
-        super( );
+        super( TYPE );
         _js = jsA;
         if ( _js == null )
             throw new NullPointerException( "don't think you should create a PyJSObjectWrapper for null" );
     }
 
-    protected PyObject pyget(int index){
+    public PyObject pyget(int index){
         return toPython(_js.getInt(index));
     }
 
@@ -71,6 +71,11 @@ public class PyJSArrayWrapper extends PySequence {
         return _js.size();
     }
 
+    @ExposedMethod
+    public PyObject jsarraywrapper___iter__(){
+        return new PySequenceIter( this );
+    }
+
     @ExposedMethod(names={"__str__", "__repr__"})
     public PyObject jsarraywrapper___repr__(){
         return new PyString(toString());
@@ -100,8 +105,12 @@ public class PyJSArrayWrapper extends PySequence {
         return Py.None;
     }
 
-    @ExposedMethod
-    public PyObject jsarraywrapper_count(PyObject value){
+    public int count(PyObject o){
+        return jsarraywrapper_count(o);
+    }
+
+    @ExposedMethod()
+    final public int jsarraywrapper_count(PyObject value){
         Object jval = toJS(value);
         int n = __len__();
         int count = 0;
@@ -109,7 +118,7 @@ public class PyJSArrayWrapper extends PySequence {
             if(_js.getInt(i).equals(jval))
                 count++;
         }
-        return Py.newInteger(count);
+        return count;
     }
 
     @ExposedMethod()
