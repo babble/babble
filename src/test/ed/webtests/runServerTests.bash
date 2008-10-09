@@ -7,10 +7,17 @@ mkdir -p "$FULLSITE"
 rm -r "$FULLSITE/*"
 
 # Start the servers
-run_db $SITE
+if ! run_db $SITE
+    then      
+        exit 1
+fi
 db_pid=$PID
 
-run_ed $FULLSITE
+if ! run_ed $FULLSITE
+    then
+        kill_db $db_pid
+        exit 1
+fi
 http_pid=$PID
 
 #create an admin user
