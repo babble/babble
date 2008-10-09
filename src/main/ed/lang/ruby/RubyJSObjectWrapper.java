@@ -50,8 +50,8 @@ public class RubyJSObjectWrapper extends RubyHash {
     protected final JSObject _jsobj;
     protected int _size;
     protected RubyClass _eigenclass;
-    protected Map<String, Ruby> _jsIvars;
-    protected Map<String, Ruby> _jsFuncs;
+    protected Set<String> _jsIvars;
+    protected Map<String, RubyJSFunctionWrapper> _jsFuncs;
 
     public static synchronized RubyClass getJSObjectClass(Ruby runtime) {
         WeakReference<RubyClass> ref = klassDefs.get(runtime);
@@ -78,8 +78,8 @@ public class RubyJSObjectWrapper extends RubyHash {
         _scope = s;
         _jsobj = obj;
         _eigenclass = getSingletonClass();
-        _jsIvars = new HashMap<String, Ruby>();
-        _jsFuncs = new HashMap<String, Ruby>();
+        _jsIvars = new HashSet<String>();
+        _jsFuncs = new HashMap<String, RubyJSFunctionWrapper>();
         _createMethods();
     }
 
@@ -99,32 +99,47 @@ public class RubyJSObjectWrapper extends RubyHash {
 
         rebuild();
 
-        alreadyDefined.addAll(_jsIvars.keySet());
+        alreadyDefined.addAll(_jsIvars);
         alreadyDefined.addAll(_jsFuncs.keySet());
         RubyObjectWrapper.addJavaPublicMethodWrappers(_scope, _eigenclass, _jsobj, alreadyDefined);
     }
 
     /**
      * Scan the key set and (re)create or modify ivars and functions.
-     * <p>
-     * Right now, we do this the dumb way by deleting all information and
-     * re-creating it.
      */
     public void rebuild() {
-        Map<String, Ruby> map;
-        for (String name : new HashMap<String, Ruby>(_jsIvars).keySet())
-            _removeInstanceVariable(name);
-        for (String name : new HashMap<String, Ruby>(_jsFuncs).keySet())
-            _removeFunctionMethod(name);
-        for (final Object key : jsKeySet()) {
+        Set<String> oldIvars = new HashSet<String>(_jsIvars);
+        Set<String> oldFuncs = new HashSet<String>(_jsFuncs.keySet());
+        Set<String> newIvars = new HashSet<String>();
+        Set<String> newFuncs = new HashSet<String>();
+        for (Object key : jsKeySet()) {
+            String skey = key.toString();
             Object val = peek(key);
             if (val != null) {
-                if (isCallableJSFunction(val))
-                    _addFunctionMethod(key, (JSFunction)val);
-                else
-                    _addInstanceVariable(key);
+                if (isCallableJSFunction(val)) {
+                    if (oldIvars.contains(skey))
+                        _removeInstanceVariable(skey);
+                    if (oldFuncs.contains(skey))
+                        _replaceFunctionMethod(key, (JSFunction)val);
+                    else
+                        _addFunctionMethod(key, (JSFunction)val);
+                    newFuncs.add(skey);
+                }
+                else {
+                    if (oldFuncs.contains(skey))
+                        _removeFunctionMethod(skey);
+                    if (!oldIvars.contains(skey))
+                        _addInstanceVariable(key);
+                    newIvars.add(skey);
+                }
             }
         }
+        oldIvars.removeAll(newIvars);
+        oldFuncs.removeAll(newFuncs);
+        for (String key : oldIvars)
+            _removeInstanceVariable(key);
+        for (String key : oldFuncs)
+            _removeFunctionMethod(key);
     }
 
     public JSObject getJSObject() { return _jsobj; }
@@ -430,8 +445,16 @@ public class RubyJSObjectWrapper extends RubyHash {
         if (RubyObjectWrapper.DEBUG_CREATE)
             System.err.println("adding function method " + key);
         String skey = key.toString();
-        _jsFuncs.put(skey, getRuntime());
-        RubyObjectWrapper.createRubyMethod(_scope, getRuntime(), val, skey, _eigenclass, _jsobj);
+        RubyJSFunctionWrapper wrapper = (RubyJSFunctionWrapper)RubyObjectWrapper.createRubyMethod(_scope, getRuntime(), val, skey, _eigenclass, _jsobj);
+        _jsFuncs.put(skey, wrapper);
+    }
+
+    protected void _replaceFunctionMethod(Object key, JSFunction val) {
+        if (RubyObjectWrapper.DEBUG_CREATE)
+            System.err.println("replacing function method " + key);
+        String skey = key.toString();
+        RubyJSFunctionWrapper wrapper = _jsFuncs.get(skey);
+        wrapper.setFunction(val);
     }
 
     protected void _addInstanceVariable(Object key) {
@@ -441,7 +464,7 @@ public class RubyJSObjectWrapper extends RubyHash {
             return;
         if (RubyObjectWrapper.DEBUG_CREATE)
             System.err.println("adding ivar " + key);
-        _jsIvars.put(skey, runtime);
+        _jsIvars.add(skey);
 
         final IRubyObject rkey = toRuby(_scope, runtime, key);
         instance_variable_set(runtime.newString("@" + skey), runtime.getNil());
@@ -461,7 +484,7 @@ public class RubyJSObjectWrapper extends RubyHash {
         String skey = key.toString();
         if (RubyObjectWrapper.DEBUG_CREATE)
             System.err.println("removing function method " + skey);
-        Ruby runtime = _jsFuncs.get(skey);
+        Ruby runtime = getRuntime();
         _eigenclass.undef(runtime.getCurrentContext(), skey);
         _eigenclass.callMethod(runtime.getCurrentContext(), "method_removed", runtime.newSymbol(skey));
         _jsFuncs.remove(skey);
@@ -471,7 +494,7 @@ public class RubyJSObjectWrapper extends RubyHash {
         if (RubyObjectWrapper.DEBUG_CREATE)
             System.err.println("removing ivar " + key);
         String skey = key.toString();
-        Ruby runtime = _jsIvars.get(skey);
+        Ruby runtime = getRuntime();
         ThreadContext context = runtime.getCurrentContext();
         _eigenclass.undef(context, skey);
         _eigenclass.undef(context, skey + "=");
