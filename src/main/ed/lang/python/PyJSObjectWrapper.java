@@ -157,19 +157,33 @@ public class PyJSObjectWrapper extends PyDictionary {
         if( p != null )
             return p;
 
-        if( _js.containsKey( toJS( key ) ) ){
-            Object o = _js.get( toJS( key ) );
-            if( o == null )
-                return Py.None;
+        Object jkey = toJS( key );
+        String skey = jkey.toString();
 
-            return _fixReturn( o );
+        Object o = _js.get( jkey );
+        try {
+            if( o == null && _js.containsKey( skey ) ){
+                return Py.None;
+            }
+        }
+        catch(Exception e){
+            if(e.getMessage().contains("not sure this makes sense"))
+                ;
+            else
+                e.printStackTrace();
         }
 
-        // We return null to indicate that the JS object doesn't have the
-        // attribute. This is more of a Python "fail-fast" behavior, which is
-        // appropriate since if we're in this method, we're being called from
-        // Python.
-        return null;
+        // We tried to find and got a null -- maybe this means it's not
+        // contained in the object?
+        // (Or maybe it is contained and is set to null and we couldn't
+        // find out, because containsKey throws an exception or something.)
+        // We better "fail-fast", since we're in Python land.
+        // Returning null here means "we don't have it", and may raise
+        // an exception.
+        if( o == null )
+            return null;
+
+        return _fixReturn( o );
     }
 
     private PyObject _fixReturn( Object o ){
