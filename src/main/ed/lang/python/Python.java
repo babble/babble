@@ -97,6 +97,10 @@ public class Python extends Language {
         if ( p instanceof PyJSLogLevelWrapper )
             return ((PyJSLogLevelWrapper)p)._level;
 
+        if ( p instanceof PyJSArrayWrapper )
+            return  ((PyJSArrayWrapper)p)._js;
+
+
         if ( p instanceof PyBoolean )
             return ((PyBoolean)p).getValue() == 1;
 
