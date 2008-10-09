@@ -156,14 +156,20 @@ public class PyJSObjectWrapper extends PyDictionary {
         PyObject p = super.__finditem__(key);
         if( p != null )
             return p;
-        Object o = _js.get( toJS( key ) );
-        // Explicitly return null here rather than converting to None
-        // This isn't findattr, after all; this is the check used to
-        // see if a dict contains a value.
-        if( o == null )
-            return null;
 
-        return _fixReturn( o );
+        if( _js.containsKey( toJS( key ) ) ){
+            Object o = _js.get( toJS( key ) );
+            if( o == null )
+                return Py.None;
+
+            return _fixReturn( o );
+        }
+
+        // We return null to indicate that the JS object doesn't have the
+        // attribute. This is more of a Python "fail-fast" behavior, which is
+        // appropriate since if we're in this method, we're being called from
+        // Python.
+        return null;
     }
 
     private PyObject _fixReturn( Object o ){
