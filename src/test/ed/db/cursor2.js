@@ -6,6 +6,10 @@
  */
 function testCursorCountVsArrLen(dbConn) {
 
+    // uncomment when BUG 884 is fixed
+    print("ed/db/cursor2.js:testCursorCountVsArrLen() - not run - BUG 884");
+    return;
+
     var coll = dbConn.ed_db_cursor2_ccvsal;
 
     coll.drop();
@@ -20,8 +24,6 @@ function testCursorCountVsArrLen(dbConn) {
     assert(fromCount == fromArrLen, "count from cursor [" + fromCount + "] !=  count from arrlen [" + fromArrLen + "]");
 }
 
-// uncomment when BUG 884 is fixed
 
-//db = connect("test")
-//testCursorCountVsArrLen(db);
-print("ed/db/cursor2.js:testCursorCountVsArrLen() - not run - BUG 884");
+db = connect("test")
+testCursorCountVsArrLen(db);
