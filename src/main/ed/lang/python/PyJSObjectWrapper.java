@@ -161,7 +161,7 @@ public class PyJSObjectWrapper extends PyDictionary {
         // This isn't findattr, after all; this is the check used to
         // see if a dict contains a value.
         if( o == null )
-            return null;
+            return Py.None;
 
         return _fixReturn( o );
     }
