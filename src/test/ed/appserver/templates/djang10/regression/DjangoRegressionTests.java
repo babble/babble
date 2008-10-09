@@ -375,6 +375,11 @@ public class DjangoRegressionTests {
                 if(!r.test(log))
                     fail("Log message not found: " + r.toPrettyString() + ", actual messages:\n" + log);
             }
+            
+            for(JSRegex r : this.unexpectedLogMessages) {
+                if(r.test( log ))
+                    fail("Found unexpected log message: " + r.toPrettyString() + ", actual messages: \n" + log);
+            }
         }
         
         public String getTestName() {
