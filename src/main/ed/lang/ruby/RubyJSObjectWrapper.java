@@ -106,9 +106,6 @@ public class RubyJSObjectWrapper extends RubyHash {
 
     /**
      * Scan the key set and (re)create or modify ivars and functions.
-     * <p>
-     * Right now, we do this the dumb way by deleting all information and
-     * re-creating it.
      */
     public void rebuild() {
         Set<String> oldIvars = new HashSet<String>(_jsIvars);
