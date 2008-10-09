@@ -51,8 +51,8 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
         "Array", "Base64", "Class", "Date", "Exception", "Math", "Number", "Object", "ObjectId", "Regexp", "String", "XML"
     };
 
-    protected final JSFunction _func;
-    protected final JSObject _this;
+    protected JSFunction _func;
+    protected JSObject _this;
     protected RubyModule _module;
 
     public static synchronized RubyClass getJSFunctionClass(Ruby runtime) {
@@ -100,10 +100,18 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
     }
 
     /** For use by RubyJSFileLibraryWrapper subclass. */
-    protected RubyJSFunctionWrapper(Scope s, Ruby runtime, JSFunction obj, RubyClass klazz, JSObject jsThis) {
-        super(s, runtime, obj, klazz);
-        _func = obj;
+    protected RubyJSFunctionWrapper(Scope s, Ruby runtime, JSFunction func, RubyClass klazz, JSObject jsThis) {
+        super(s, runtime, func, klazz);
+        _func = func;
         _this = jsThis;
+    }
+
+    /**
+     * This is only used by {@link RubyJSObjectWrapper#_replaceFunctionMethod}
+     * when it is rebuilding an object.
+     */
+    void setFunction(JSFunction func) {
+        _func = func;
     }
 
     protected JavaMethod _makeCallMethod(RubyModule module) {
