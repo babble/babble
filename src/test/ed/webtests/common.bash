@@ -30,13 +30,13 @@ function run_db {
     if [ ! -d $PROOT ]
         then
             echo "Environment variable PROOT is not set correctly"
-            return 0
+            return 1
     fi
     
     if [ -z $db_port ]
         then
             echo "Environment variable db_port is not set correctly"
-            return 0
+            return 1
     fi
        
     
@@ -46,7 +46,13 @@ function run_db {
     
     
     pushd $PROOT/db > /dev/null
-    nohup ./db --port $db_port --dbpath /tmp/$DBNAME/db/ run > /tmp/$DBNAME/logs/db&
+    
+    if ! nohup ./db --port $db_port --dbpath /tmp/$DBNAME/db/ run > /tmp/$DBNAME/logs/db&
+        then
+            echo "db failed to start"
+            return 1
+    fi
+    
     PID=$!
     popd > /dev/null
 }
@@ -59,13 +65,13 @@ function run_ed {
     if [ ! -d $EDROOT ]
         then
             echo "The environment variable EDROOT is not set correctly"
-            return 0
+            return 1
     fi
     
     if [ -z $http_port ]
         then
             echo "Environment variable http_port is not set correctly"
-            return 0
+            return 1
     fi
     
     mkdir -p /tmp/$SITE/logs
@@ -73,7 +79,13 @@ function run_ed {
     
     # Bring up the app server.
     pushd "$EDROOT" >> /dev/null
-    ant compile
+    
+    if ! ant compile
+        then
+            echo "failed to compile"
+            return 1
+    fi
+
     ./runAnt.bash ed.appserver.AppServer --port $http_port $FULLSITE | tee /tmp/$SITE/logs/ed &
     local script_pid=$!
     popd >> /dev/null
@@ -82,18 +94,18 @@ function run_ed {
 
     for ((i=0;i<60;i+=1)); do
         #started successfully?
-        grep -q "^Listening on port" /tmp/$SITE/logs/ed
-        if [ $? -eq 0 ]
+        
+        if grep -q "^Listening on port" /tmp/$SITE/logs/ed
         then
             ed_listening=1
             break
         fi
         
         #died a painful death?
-        ps -x -o pid | grep -q "$script_pid"
-        if [ $? -ne 0 ]
+        if ! ps -x -o pid | grep -q "$script_pid"
         then
-            break
+            echo "ed unexpectedly died"
+            return 1
         fi 
         
         sleep 5
@@ -101,20 +113,11 @@ function run_ed {
     
     if [ $ed_listening -eq 0 ]
         then
-            echo "Failed to start ed"
-            return
+            echo "Timed out waiting for ed to start"
+            return 1
     fi
     
-    unset PID
-    for ((i=0;i<10;i+=1)); do
-        PID=`ps -a -x -e -o pid,command | grep java | grep -v "runAnt" | grep "ed.appserver.AppServer" |  awk '{ print $1 }'`
-        
-        if [ -n "$PID" ]
-            then
-                break
-        fi
-        sleep 1
-    done
+    PID=`ps -a -x -e -o pid,command | grep java | grep -v "runAnt" | grep "ed.appserver.AppServer" |  awk '{ print $1 }'`
 }
 
 
