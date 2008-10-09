@@ -418,7 +418,11 @@ public class JSObjectBase implements JSObject {
             return;
 
         _placesToLook[0] = __proto__;
-        _placesToLook[1] = (JSObject)_mapGet( "prototype" );
+        {
+            Object p = _mapGet( "prototype" );
+            if ( p instanceof JSObject )
+                _placesToLook[1] = (JSObject)p;
+        }
 
         if ( _constructor != null ){
             _placesToLook[2] = _constructor._prototype;
