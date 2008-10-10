@@ -64,9 +64,14 @@ public class RubyLanguage extends Language {
         }
     }
 
-    public void repl(Scope s) {
-        RubyJxpSource source = new RubyShellSource("require 'irb'\n" +
-                                                   "IRB.start");
+    public void repl(Scope s, String rubyFile) {
+        StringBuilder code = new StringBuilder();
+        code.append("require 'irb'\n")
+            .append("ARGV[0] = '--simple-prompt'\n");
+        if (rubyFile != null)
+            code.append("ARGV[1] = '").append(rubyFile).append("'\n");
+        code.append("IRB.start\n");
+        RubyJxpSource source = new RubyShellSource(code.toString());
         try {
             source._doCall(source._parseContent("(shell)"), s, RubyJxpSource.EMPTY_OBJECT_ARRAY);
         }
