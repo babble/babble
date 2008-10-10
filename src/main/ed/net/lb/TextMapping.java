@@ -89,6 +89,12 @@ public class TextMapping extends MappingBase {
                 continue;
             }
             
+            if ( line.startsWith( "default " ) ){
+                current = null;
+                setDefaultPool( line.substring( 8 ).trim() );
+                continue;
+            }
+
             if ( ! Character.isWhitespace( line.charAt(0) ) )
                 throw new RuntimeException( "invalid starting line [" + line + "]" );
             
