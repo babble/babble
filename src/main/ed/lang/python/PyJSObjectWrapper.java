@@ -185,6 +185,19 @@ public class PyJSObjectWrapper extends PyDictionary {
         return toPython( o , _js );
     }
 
+    public PyDictionary copy(){
+        return jswrapper_copy();
+    }
+
+    @ExposedMethod
+    final public PyDictionary jswrapper_copy(){
+        PyDictionary d = new PyDictionary();
+        for( String key : _js.keySet() ){
+            d.__setitem__( key.intern() , toPython( _js.get( key ) ) );
+        }
+        return d;
+    }
+
     // FIXME: why is this being unwrapped twice?
     // (i.e. once here, once in handleSet)
     // When I take it out, I get a bunch of test failures. Look into
