@@ -507,10 +507,7 @@ public class Expression extends JSObjectBase {
             // XXX: fallback on scope look ups
             if (use_fallabck && lookupValueDoesNotExist) {
                 lookupValue = scope.get(node.getString());
-                
-                lookupValueDoesNotExist = (lookupValue == null);
-                for(Scope s = scope; s != null && lookupValueDoesNotExist; s = s.getParent())
-                    lookupValueDoesNotExist = !s.keySet().contains(node.getString());
+                lookupValueDoesNotExist = (lookupValue == null) && !scope.containsKey(node.getString(), true);
             }
             if(lookupValueDoesNotExist) {
                 VariableDoesNotExist e = new VariableDoesNotExist("Failed to lookup variable", this, toString(node));

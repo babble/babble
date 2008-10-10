@@ -20,4 +20,5 @@ package ed.net.lb;
 
 public interface MappingFactory {
     public Mapping getMapping();
+    public long refreshRate();
 }

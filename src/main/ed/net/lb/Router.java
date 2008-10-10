@@ -22,6 +22,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+import ed.util.*;
 import ed.net.*;
 import ed.net.httpserver.*;
 import static ed.net.lb.Mapping.*;
@@ -112,6 +113,14 @@ public class Router {
     Set<String> getPoolNames(){
         return _pools.keySet();
     }
+    
+    void updateMapping(){
+        Mapping m = _mappingFactory.getMapping();
+        _mapping = m;
+        
+        for ( Pool p : _pools.values() )
+            p.update( _mapping.getAddressesForPool( p._name ) );
+    }
 
     class Pool {
 
@@ -121,10 +130,33 @@ public class Router {
                 throw new NullPointerException( "can't create a Pool with no addresses" );
 	    
             _name = name;
-	    _tracker = new HttpLoadTracker( name , 2 , 60 );
+	    _tracker = new HttpLoadTracker( name );
             _servers = new ArrayList<Server>();
             for ( InetSocketAddress addr : addrs )
                 _servers.add( getServer( addr ) );
+        }
+
+        void update( List<InetSocketAddress> addrs ){
+
+            Set<Server> newServers = new HashSet<Server>();
+
+            for ( InetSocketAddress addr : addrs ){
+                Server s = getServer( addr );
+                newServers.add( s );
+                
+                if ( _servers.contains( addr ) )
+                    continue;
+                
+                _servers.add( s );
+            }
+
+            for ( Iterator<Server> i = _servers.iterator(); i.hasNext(); ){
+                Server s = i.next();
+                if ( newServers.contains( s ) )
+                    continue;
+                i.remove();
+            }
+                
         }
 
         InetSocketAddress getAddress( Environment e , boolean doOrDie ){
@@ -170,6 +202,25 @@ public class Router {
 	final HttpLoadTracker _tracker;
     }
 
+    class MappingUpdater extends Thread {
+        MappingUpdater(){
+            super( "Router-MappingUpdater" );
+            setDaemon( true );
+            start();
+        }
+        
+        public void run(){
+            while ( true ){
+                ThreadUtil.sleep( _mappingFactory.refreshRate() );
+                try {
+                    updateMapping();
+                }
+                catch ( Exception e ){
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
     private final MappingFactory _mappingFactory;
     private final Map<String,Pool> _pools = Collections.synchronizedMap( new TreeMap<String,Pool>() );

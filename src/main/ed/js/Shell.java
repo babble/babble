@@ -29,8 +29,6 @@ import ed.db.*;
 import ed.io.*;
 import ed.lang.*;
 import ed.lang.python.*;
-import ed.lang.ruby.RubyErbSource;
-import ed.lang.ruby.RubyJxpSource;
 import ed.js.func.*;
 import ed.js.engine.*;
 import ed.appserver.*;
@@ -209,6 +207,7 @@ public class Shell {
         boolean exit = false;
 
         Language replLang = Language.JS;
+        String rubyFile = null;
 
         for ( String a : args ){
 
@@ -254,26 +253,7 @@ public class Shell {
                 }
             }
             else if ( a.endsWith( ".rb" ) ){
-                RubyJxpSource rbx = new RubyJxpSource( new File( a ) , ((JSFileLibrary)(s.get( "local" ) ) ) );
-                try {
-                    rbx.getFunction().call( s );
-                }
-                catch ( Exception e ){
-                    StackTraceHolder.getInstance().fix( e );
-                    e.printStackTrace();
-                    return;
-                }
-	    }
-            else if ( a.endsWith( ".erb" ) || a.endsWith( ".rhtml" ) ){
-                RubyErbSource rbx = new RubyErbSource( new File( a ) , ((JSFileLibrary)(s.get( "local" ) ) ) );
-                try {
-                    rbx.getFunction().call( s );
-                }
-                catch ( Exception e ){
-                    StackTraceHolder.getInstance().fix( e );
-                    e.printStackTrace();
-                    return;
-                }
+                rubyFile = a;
 	    }
             else if ( Language.find( a ) != null && Language.find( a ).isScriptable() ){
                 
@@ -316,6 +296,11 @@ public class Shell {
         if ( exit )
             return;
         
+        if ( replLang instanceof ed.lang.ruby.RubyLanguage ) {
+            ((ed.lang.ruby.RubyLanguage)replLang).repl(s, rubyFile);
+            return;
+        }
+
         String line;
         ConsoleReader console = new ConsoleReader();
         console.setHistory( new History( new File( ".jsshell" ) ) );

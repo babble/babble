@@ -63,4 +63,28 @@ public class RubyLanguage extends Language {
             return result;
         }
     }
+
+    /**
+     * Provides a Ruby REPL by running IRB.
+     */
+    public void repl(Scope s, String rubyFile) {
+        StringBuilder code = new StringBuilder();
+        code.append("require 'irb'\n")
+            .append("ARGV[0] = '--simple-prompt'\n");
+        if (rubyFile != null)
+            code.append("ARGV[1] = '").append(rubyFile).append("'\n");
+        code.append("IRB.start\n");
+        RubyJxpSource source = new RubyShellSource(code.toString());
+        try {
+            source._doCall(source._parseContent("(shell)"), s, RubyJxpSource.EMPTY_OBJECT_ARRAY);
+        }
+        catch (RaiseException re) {
+            re.printStackTrace();
+        }
+        catch (Exception e) {
+            System.err.println(e.toString());
+            if (DEBUG)
+                e.printStackTrace();
+        }
+    }
 }

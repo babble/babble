@@ -56,6 +56,10 @@ public class TextMapping extends MappingBase {
             return _mapping;
         }
 
+        public long refreshRate(){
+            return Long.MAX_VALUE;
+        }
+
         final File _file;
         final TextMapping _mapping;
     }

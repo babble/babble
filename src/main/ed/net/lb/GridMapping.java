@@ -40,6 +40,10 @@ public class GridMapping extends MappingBase {
             return new GridMapping( _cloud );
         }
 
+        public long refreshRate(){
+            return 1000 * 30;
+        }
+
         final Cloud _cloud;
     }
 

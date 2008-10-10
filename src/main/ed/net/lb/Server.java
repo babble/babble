@@ -81,6 +81,10 @@ public class Server {
     }
 
     public boolean equals( Object o ){
+        
+        if ( o == this )
+            return true;
+        
 	if ( ! ( o instanceof Server ) )
 	    return false;
 

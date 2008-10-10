@@ -69,6 +69,23 @@ public class LB extends NIOClient {
         _logger.debug( "Started" );
         super.run();
     }
+
+
+    protected void shutdown(){
+        _logger.error( "SHUTDOWN starting" );
+        _server.stopServer();
+        super.shutdown();
+        Thread t = new Thread(){
+                public void run(){
+                    try {
+                        Thread.sleep( 1000 * 60 );
+                    }
+                    catch ( Exception e ){}
+                    System.exit(0);
+                }
+            };
+        t.start();
+    }
     
     protected void serverError( InetSocketAddress addr , ServerErrorType type , Exception why ){
         // TODO: uh oh
@@ -365,10 +382,38 @@ public class LB extends NIOClient {
         HttpServer.addGlobalHandler( new WebViews.LBLast( this ) );
         
         HttpServer.addGlobalHandler( new WebViews.LoadMonitorWebView( this._loadMonitor ) );
-
+        
         HttpServer.addGlobalHandler( new WebViews.RouterPools( this._router ) );
 
-        
+        HttpServer.addGlobalHandler( new HttpHandler(){
+                public boolean handles( HttpRequest request , Info info ){
+                    if ( ! "/~kill".equals( request.getURI() ) )
+                        return false;
+                    
+                    if ( ! "127.0.0.1".equals( request.getRemoteIP() ) )
+                        return false;
+                
+                    info.fork = false;
+                    info.admin = true;
+    
+                    return true;
+                }
+                
+                public void handle( HttpRequest request , HttpResponse response ){
+                    JxpWriter out = response.getJxpWriter();
+                    if ( isShutDown() ){
+                        out.print( "alredy shutdown" );
+                        return;
+                    }
+                    LB.this.shutdown();
+                    out.print( "done" );
+                }
+                
+                public double priority(){
+                    return Double.MIN_VALUE;
+                }
+            } 
+            );
     }
     
     final int _port;
@@ -413,8 +458,32 @@ public class LB extends NIOClient {
         System.out.println( "\t port \t " + port  );
         System.out.println( "\t verbose \t " + verbose  );
         
-        LB lb = new LB( port , mf , verbose );
+        int retriesLeft = 2;
+        
+        LB lb = null;
+        
+        while ( retriesLeft-- > 0 ){
+            
+            try {
+                lb = new LB( port , mf , verbose );
+                break;
+            }
+            catch ( BindException be ){
+                be.printStackTrace();
+                System.out.println( "can't bind to port.  going to try to kill old one" );
+                HttpDownload.downloadToJS( new URL( "http://127.0.0.1:" + port + "/~kill" ) );
+                Thread.sleep( 100 );
+            }
+        }
+        
+        if ( lb == null ){
+            System.err.println( "couldn't ever bind" );
+            System.exit(-1);
+            return;
+        }
+        
         lb.start();
         lb.join();
+        System.exit(0);
     }
 }
