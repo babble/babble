@@ -21,6 +21,7 @@ package ed.appserver;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.*;
 import javax.servlet.*;
 import javax.servlet.http.*;
 
@@ -49,7 +50,7 @@ import ed.lang.python.*;
  * @expose
  * @docmodule system.system.__instance__
  */
-public class AppContext extends ServletContextBase implements Sizable {
+public class AppContext extends ServletContextBase implements JSObject , Sizable {
 
     /** @unexpose */
     static final boolean DEBUG = AppServer.D;
@@ -1095,11 +1096,68 @@ public class AppContext extends ServletContextBase implements Sizable {
     public boolean equals( Object o ){
         return o == this;
     }
+    
+    public void queueWork( String identifier , JSFunction work , Object ... params ){
+        queueWork( new AppWork.FunctionAppWork( this , identifier , work , params ) );
+    }
 
+    public void queueWork( AppWork work ){
+        if ( _workQueue == null ){
+            _workQueue = new ArrayBlockingQueue<AppWork>( 100 );
+            AppWork.addQueue( _workQueue );
+        }
+
+        if ( _workQueue.offer( work ) )
+            return;
+        
+        throw new RuntimeException( "work queue full!" ) ;
+    }
+    
+    // ----  START JSObject INTERFACE
+    
+    public Object get( Object n ){
+        return _scope.get( n );
+    }
+    public JSFunction getFunction( String name ){
+        return _scope.getFunction( name );
+    }
+    public final Collection<String> keySet(){
+        return _scope.keySet();
+    }
+    public Collection<String> keySet( boolean includePrototype ){
+        return _scope.keySet( includePrototype );
+    }
+    public boolean containsKey( String s ){
+        return _scope.containsKey( s );
+    }
+    public boolean containsKey( String s , boolean includePrototype ){
+        return _scope.containsKey( s , includePrototype );
+    }
+    public Object set( Object n , Object v ){
+        return _scope.putExplicit( n.toString() , v );
+    }
+    public Object setInt( int n , Object v ){
+        throw new RuntimeException( "not allowed" );
+    }
+    public Object getInt( int n ){
+        return _scope.getInt( n );
+    }
+    public Object removeField( Object n ){
+        return _scope.removeField( n );
+    }
+    public JSFunction getConstructor(){
+        return null;
+    }
+    public JSObject getSuper(){
+        return null;
+    }
+
+    // ----  END BROKEN JSOBJET INTERFACE
+    
     final String _name;
     final String _root;
     final File _rootFile;
-
+    
     private String _gitBranch;
     final String _environment;
     final boolean _admin;
@@ -1124,6 +1182,8 @@ public class AppContext extends ServletContextBase implements Sizable {
     private final Set<File> _initFlies = new HashSet<File>();
     private final Map<String,JxpSource> _httpServlets = Collections.synchronizedMap( new HashMap<String,JxpSource>() );
     private final JSObject _libraryVersions = new JSObjectBase();
+
+    private Queue<AppWork> _workQueue;
 
     boolean _scopeInited = false;
     boolean _inScopeSetup = false;

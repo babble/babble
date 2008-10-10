@@ -234,7 +234,7 @@ public final class Scope implements JSObject , Bindings {
         return _objects.remove( name );
     }
     
-    public void putExplicit( String name , Object o ){
+    public Object putExplicit( String name , Object o ){
 
         if ( _locked )
             throw new RuntimeException( "locked" );
@@ -245,6 +245,7 @@ public final class Scope implements JSObject , Bindings {
         _ensureObjectMap();
 
         _mapSet( name.hashCode() , name , o );
+        return o;
     }
     
     public Object put( String name , Object o ){

@@ -73,7 +73,7 @@ public class ObjectId {
         _new = false;
     }
     
-    private ObjectId(){
+    public ObjectId(){
         _base = ( ((long)_time) << 32) | _machine;
         
         if ( D ) System.out.println( "base : " + Long.toHexString( _base ) );

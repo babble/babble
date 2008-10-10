@@ -33,7 +33,7 @@ public abstract class MappingBase implements Mapping {
 
     protected MappingBase( String name ){
         _name = name;
-        _logger = Logger.getLogger( name );
+        _logger = Logger.getLogger( "LB" ).getChild( name );
     }
 
     public String getPool( HttpRequest request ){
@@ -60,10 +60,10 @@ public abstract class MappingBase implements Mapping {
     }
     
     public String getPool( Environment e ){
-
+        
         Map<String,String> m = _sites.get( e.site );
         if ( m == null ){
-            _logger.error( "no site for [" + e.site + "]" );
+            _logger.info( "no site for [" + e.site + "] return default pool [" + _defaultPool + "]" );
             return _defaultPool;
         }
         
