@@ -398,9 +398,12 @@ public class LB extends NIOClient {
                         mr.addTableCell( rr._lastWent );
                         mr.addTableCell( SHORT_TIME.format( new Date( rr.getStartedTime() ) ) );
                         if ( rr.isDone() ){
-                            mr.addTableCell( rr._response.getResponseCode() );
+                            int rc = rr._response.getResponseCode();
+                            mr.addTableCell( rc , rc >= 500 ? "error" : null );
                             mr.addTableCell( rr._response.getContentLength() );
-                            mr.addTableCell( rr.getTotalTime() );
+                            
+                            long tt = rr.getTotalTime();
+                            mr.addTableCell( tt , tt > 2000 ? "error" : ( tt > 300 ? "warn" : null ) );
                         }
                         out.print( "</tr>\n" );
                     }
