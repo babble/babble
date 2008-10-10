@@ -101,7 +101,7 @@ public class RubyJxpSource extends JxpSource {
     public static void createNewClasses(Scope scope, Ruby runtime) {
         if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
             System.err.println("about to create newly-defined classes");
-        for (Object key : RubyScopeWrapper.jsKeySet(scope)) {
+        for (Object key : RubyJSObjectWrapper.jsKeySet(scope)) {
             String skey = key.toString();
             if (RubyJSFunctionWrapper.canBeNewClass(runtime, skey)) {
                 Object o = scope.get(key);

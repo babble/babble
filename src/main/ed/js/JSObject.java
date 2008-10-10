@@ -64,6 +64,8 @@ public interface JSObject {
      */
     public boolean containsKey( String s );
 
+    public boolean containsKey( String s , boolean includePrototype );
+
     /** Returns this object's fields' names
      * @jskeyset
      * @return The names of the fields in this object

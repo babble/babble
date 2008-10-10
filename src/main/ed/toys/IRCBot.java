@@ -91,6 +91,10 @@ public class IRCBot extends PircBot implements JSObject {
     }
 
     public boolean containsKey( String s ){
+        return containsKey( s , true );
+    }
+    
+    public boolean containsKey( String s , boolean includePrototype ){
         return _things.containsKey( s );
     }
     

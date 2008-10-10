@@ -105,8 +105,6 @@ public abstract class RubyObjectWrapper extends RubyObject {
             wrapper = new RubyBigDecimal(runtime, (BigDecimal)obj);
         else if (obj instanceof BigInteger)
             wrapper = new RubyBignum(runtime, (BigInteger)obj);
-        else if (obj instanceof Scope)
-            wrapper = new RubyScopeWrapper(s, runtime, (Scope)obj);
         else if (obj instanceof ObjectId)
             wrapper = new RubyObjectIdWrapper(runtime, (ObjectId)obj);
         else if (obj instanceof JSObject)
