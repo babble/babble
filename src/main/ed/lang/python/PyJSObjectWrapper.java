@@ -161,16 +161,8 @@ public class PyJSObjectWrapper extends PyDictionary {
         String skey = jkey.toString();
 
         Object o = _js.get( jkey );
-        try {
-            if( o == null && _js.containsKey( skey ) ){
-                return Py.None;
-            }
-        }
-        catch(Exception e){
-            if(e.getMessage().contains("not sure this makes sense"))
-                ;
-            else
-                e.printStackTrace();
+        if( o == null && _js.containsKey( skey , true ) ){
+            return Py.None;
         }
 
         // We tried to find and got a null -- maybe this means it's not
