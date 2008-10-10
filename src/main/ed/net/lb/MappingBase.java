@@ -63,7 +63,10 @@ public abstract class MappingBase implements Mapping {
 
         Map<String,String> m = _sites.get( e.site );
         if ( m == null ){
-            _logger.error( "no site for [" + e.site + "]" );
+            _logger.error( "no site for [" + e.site + "] return default pool [" + _defaultPool + "]" );
+	    Throwable t = new Throwable();
+	    t.fillInStackTrace();
+	    t.printStackTrace();
             return _defaultPool;
         }
         
