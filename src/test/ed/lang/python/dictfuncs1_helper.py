@@ -52,14 +52,13 @@ _10gen.assert.throws(lambda:
 _10gen.assert.throws(lambda: 
                      compare_list_methods_by_sorted(d, jsMap, 'itervalues'))
 
-# not implemented yet
-#jsMap.update({'g': 91})
-#_10gen.jsCheck(jsMap, 'g', 91)
+jsMap.update({'g': 91})
+_10gen.jsCheck(jsMap, 'g', 91)
 
-#_10gen.assert.throws(lambda: jsMap.update(h=99))
-#jsMap.update(h=99)
-#_10gen.jsCheck(jsMap, 'h', 99)
+jsMap.update(h=99)
+_10gen.jsCheck(jsMap, 'h', 99)
 
+d = jsMap.copy()
 oldSize = len(jsMap)
 # not implemented yet
 #jsMap.clear()
