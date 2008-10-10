@@ -14,7 +14,7 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-jsMap = {a: 1, b: 4};
+jsMap = {a: 1, b: 4, n: null};
 
 jsCheck = function(map, key, value){
     assert.eq(map[key], value);

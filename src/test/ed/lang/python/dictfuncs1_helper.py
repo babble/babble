@@ -18,10 +18,12 @@ import _10gen
 from _10gen import jsMap
 assert jsMap.has_key('a')
 assert jsMap.has_key('b')
+assert jsMap.has_key('n')
 assert not jsMap.has_key('c')
 
 assert 'a' in jsMap
 assert 'b' in jsMap
+assert 'n' in jsMap
 assert 'c' not in jsMap
 
 d = jsMap.copy()
@@ -30,6 +32,8 @@ _10gen.assert.eq(len(jsMap), len(d))
 
 _10gen.assert.eq(d['a'], jsMap.a)
 _10gen.assert.eq(d['a'], jsMap['a'])
+_10gen.assert.eq(d['n'], jsMap.n)
+_10gen.assert.eq(d['n'], jsMap['n'])
 
 def compare_list_methods_by_sorted(d, j, meth):
     d_result = list(getattr(d, meth)())
