@@ -386,7 +386,34 @@ public class PyJSObjectWrapper extends PyDictionary {
                 return toPython( _js.get( jkey ) );
         }
         return default_object;
-    } 
+    }
+
+    public PyObject setdefault( PyObject key , PyObject default_object ){
+        return jswrapper_setdefault( key , default_object );
+    }
+
+    @ExposedMethod(defaults = "Py.None")
+    public final PyObject jswrapper_setdefault( PyObject key , PyObject default_object ){
+        throw new RuntimeException("not implemented");
+    }
+
+    public PyObject pop( PyObject key , PyObject default_object ){
+        return jswrapper_pop( key , default_object );
+    }
+
+    @ExposedMethod(defaults = "Py.None")
+    public final PyObject jswrapper_pop( PyObject key , PyObject default_object ){
+        throw new RuntimeException("not implemented");
+    }
+
+    public PyObject popitem(){
+        return jswrapper_popitem( key , default_object );
+    }
+
+    @ExposedMethod
+    public final PyObject jswrapper_popitem(){
+        throw new RuntimeException("not implemented");
+    }
 
     final JSObject _js;
     final boolean _returnPyNone;

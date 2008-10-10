@@ -57,6 +57,20 @@ _10gen.assert.throws(lambda:
 _10gen.assert.throws(lambda: 
                      compare_list_methods_by_sorted(d, jsMap, 'itervalues'))
 
+# not implemented yet
+_10gen.assert.throws(lambda: jsMap.setdefault('a', 9))
+#_10gen.assert.eq(jsMap.setdefault('a', 9), jsMap['a'])
+#_10gen.assert.eq(jsMap.setdefault('d', 9), 9)
+#_10gen.assert.eq(jsMap.setdefault('d', 10), jsMap['d'])
+#_10gen.assert.throws(lambda: jsMap.setdefault([], 9))  # can't store non-strings
+
+_10gen.assert.throws(lambda: jsMap.popitem())
+
+_10gen.assert.throws(lambda: jsMap.pop('d', 'default'))
+#_10gen.assert.eq(jsMap.pop('zzz', 'default'), 'default')
+#_10gen.assert.eq(jsMap.pop('d', 'zig'), 9)
+#_10gen.assert.eq(jsMap.pop('d', 'zig'), 'zig')
+
 jsMap.update({'g': 91})
 _10gen.jsCheck(jsMap, 'g', 91)
 
