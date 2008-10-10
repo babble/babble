@@ -17,6 +17,7 @@
 package ed.lang.ruby;
 
 import java.lang.ref.WeakReference;
+import java.io.*;
 import java.util.*;
 
 import org.jruby.*;
@@ -290,38 +291,12 @@ public class RubyDBCursorWrapper extends RubyArray {
         return notImplemented("concat");
     }
 
-    private IRubyObject inspectAry(ThreadContext context) {
-        ByteList buffer = new ByteList();
-        buffer.append('[');
-        boolean tainted = isTaint();
-
-        int realLength = _cursor.length();
-        for (int i = 0; i < realLength; i++) {
-            if (i > 0) buffer.append(',').append(' ');
-
-            RubyString str = getRuntime().newString(_at(i).toString());
-            if (str.isTaint()) tainted = true;
-            buffer.append(str.getByteList());
-        }
-        buffer.append(']');
-
-        RubyString str = getRuntime().newString(buffer);
-        if (tainted) str.setTaint(true);
-
-        return str;
-    }
-
     public IRubyObject inspect() {
-        int realLength = _cursor.length();
-        if (realLength == 0) return getRuntime().newString("[]");
-        if (getRuntime().isInspecting(this)) return  getRuntime().newString("[...]");
-
-        try {
-            getRuntime().registerInspecting(this);
-            return inspectAry(getRuntime().getCurrentContext());
-        } finally {
-            getRuntime().unregisterInspecting(this);
-        }
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PrintStream ps = new PrintStream(out);
+        ps.println();
+        ed.db.Shell.displayCursor(new PrintStream(out), _cursor);
+        return getRuntime().newString(out.toString());
     }
 
     public IRubyObject first() {
