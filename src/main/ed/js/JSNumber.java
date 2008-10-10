@@ -104,6 +104,10 @@ public class JSNumber extends Number implements JSObject {
 	return false;
     }
 
+    public boolean containsKey( String s , boolean includePrototype ){
+        return false;
+    }
+    
     public Collection<String> keySet(){
 	return new LinkedList();
     }

@@ -54,16 +54,16 @@ public class Router {
 	return getPool( pool ).getAddress( e , doOrDie );
     }
 
-    public void error( HttpRequest request , InetSocketAddress addr , NIOClient.ServerErrorType type , Exception what ){
+    public void error( HttpRequest request , HttpResponse response , InetSocketAddress addr , NIOClient.ServerErrorType type , Exception what ){
         final Environment e = _mapping.getEnvironment( request );
         if ( addr != null )
-            getServer( addr ).error( e , type , what );
-
+            getServer( addr ).error( e , type , what , request , response  );
+        
         // TODO: something with env?
     }
 
-    public void success( HttpRequest request , InetSocketAddress addr ){
-        getServer( addr ).success( _mapping.getEnvironment( request ) );
+    public void success( HttpRequest request , HttpResponse response , InetSocketAddress addr ){
+        getServer( addr ).success( _mapping.getEnvironment( request ) , request , response );
     }
 
     Pool getPool( HttpRequest request ){
@@ -109,6 +109,9 @@ public class Router {
         return s;
     }
 
+    Set<String> getPoolNames(){
+        return _pools.keySet();
+    }
 
     class Pool {
 
@@ -167,33 +170,6 @@ public class Router {
 	final HttpLoadTracker _tracker;
     }
 
-    void _addMonitors(){
-        HttpServer.addGlobalHandler( new HttpMonitor( "lb-pools" ){
-                public void handle( MonitorRequest request ){
-		    JxpWriter out = request.getWriter();
-
-                    out.print( "<ul>" );
-                    
-                    for ( String s : _pools.keySet() ){
-                        out.print( "<li>" );
-                        out.print( s );
-
-                        out.print( "<ul>" );
-                        for ( Server server : _pools.get( s )._servers ){
-                            out.print( "<li>" );
-                            out.print( server.toString() );
-                            out.print( "</li>" );
-                        }
-                        out.print( "</ul>" );
-
-                        out.print( "</li>" );
-                    }
-
-                    out.print( "</ul>" );
-                }
-            }
-            );
-    }
 
     private final MappingFactory _mappingFactory;
     private final Map<String,Pool> _pools = Collections.synchronizedMap( new TreeMap<String,Pool>() );

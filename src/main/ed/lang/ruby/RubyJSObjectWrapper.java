@@ -67,6 +67,18 @@ public class RubyJSObjectWrapper extends RubyHash {
         return ref.get();
     }
 
+    static Collection<? extends Object> jsKeySet(JSObject jsobj) {
+        try {
+            if (jsobj instanceof JSMap)
+                return (Collection<? extends Object>)((JSMap)jsobj).keys();
+            else
+                return jsobj.keySet(true);
+        }
+        catch (Exception e) {
+            return Collections.emptySet();
+        }
+    }
+
     RubyJSObjectWrapper(Scope s, Ruby runtime, JSObject obj) {
         this(s, runtime, obj, getJSObjectClass(runtime));
     }
@@ -430,15 +442,7 @@ public class RubyJSObjectWrapper extends RubyHash {
 //     }
 
     protected Collection<? extends Object> jsKeySet() {
-        try {
-            if (_jsobj instanceof JSMap)
-                return (Collection<? extends Object>)((JSMap)_jsobj).keys();
-            else
-                return _jsobj.keySet();
-        }
-        catch (Exception e) {
-            return Collections.emptySet();
-        }
+        return RubyJSObjectWrapper.jsKeySet(_jsobj);
     }
 
     protected void _addFunctionMethod(Object key, final JSFunction val) {

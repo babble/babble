@@ -98,7 +98,7 @@ public class LB extends NIOClient {
 
         void success(){
             done();
-            _router.success( _request , _lastWent );
+            _router.success( _request , _response , _lastWent );
 	    _loadMonitor.hit( _request , _response );
         }
         
@@ -107,9 +107,13 @@ public class LB extends NIOClient {
             return _lastWent;
         }
         
+        protected InetSocketAddress lastWent(){
+            return _lastWent;
+        }
+        
         protected void error( ServerErrorType type , Exception e ){
             _logger.debug( 1 , "backend error" , e );
-            _router.error( _request , _lastWent , type , e );
+            _router.error( _request , _response , _lastWent , type , e );
             
             if ( type != ServerErrorType.WEIRD && 
                  ( _state == State.WAITING || _state == State.IN_HEADER ) && 
@@ -355,62 +359,15 @@ public class LB extends NIOClient {
             return Double.MAX_VALUE;
         }
     }
-
+    
     void _addMonitors(){
-        HttpServer.addGlobalHandler( new HttpMonitor( "lb" ){
-                public void handle( MonitorRequest mr ){
-                    mr.getWriter().print( "overview" );
-                }
-            }
-            );
+        HttpServer.addGlobalHandler( new WebViews.LBOverview( this ) );
+        HttpServer.addGlobalHandler( new WebViews.LBLast( this ) );
+        
+        HttpServer.addGlobalHandler( new WebViews.LoadMonitorWebView( this._loadMonitor ) );
 
-        HttpServer.addGlobalHandler( new HttpMonitor( "lb-last" ){
-                public void handle( MonitorRequest mr ){
-		    JxpWriter out = mr.getWriter();
+        HttpServer.addGlobalHandler( new WebViews.RouterPools( this._router ) );
 
-                    out.print( "<table border='1' >" );
-                    
-                    out.print( "<tr>" );
-                    out.print( "<th>Host</th>" );
-                    out.print( "<th>URL</th>" );
-                    out.print( "<th>Server</th>" );
-                    out.print( "<th>Started</th>" );
-                    
-                    out.print( "<th>Code</th>" );
-                    out.print( "<th>Lenghth</th>" );
-                    out.print( "<th>time</th>" );
-
-                    out.print( "</tr>\n" );
-
-                    for ( int i=0; i<_lastCalls.length; i++ ){
-                        int pos = ( _lastCallsPos - i ) - 1;
-                        if ( pos < 0 )
-                            pos += 1000;
-
-                        RR rr = _lastCalls[pos];
-                        
-                        if ( rr == null )
-                            break;
-                        
-                        out.print( "<tr>" );
-                        mr.addTableCell( rr._request.getHost() );
-                        mr.addTableCell( rr._request.getURL() );
-                        mr.addTableCell( rr._lastWent );
-                        mr.addTableCell( SHORT_TIME.format( new Date( rr.getStartedTime() ) ) );
-                        if ( rr.isDone() ){
-                            mr.addTableCell( rr._response.getResponseCode() );
-                            mr.addTableCell( rr._response.getContentLength() );
-                            mr.addTableCell( rr.getTotalTime() );
-                        }
-                        out.print( "</tr>\n" );
-                    }
-                    out.print( "</table>" );
-                }
-            } 
-            );
-
-        _router._addMonitors();
-	_loadMonitor._addMonitors( _name );
         
     }
     

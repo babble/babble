@@ -154,21 +154,30 @@ public final class Scope implements JSObject , Bindings {
         throw new RuntimeException( "no" );
     }
 
+    public boolean containsKeyLocalOrGlobal( String name ){
+        Object o = _geti( name.hashCode() , name , null , null , false , 0 );
+        return o != null;
+    }
+
     public Set<String> keySet(){
         return keySet( false );
     }
 
-    public Set<String> keySet( boolean includePrototype ){
+    public Set<String> keySet( boolean walkUpStack ){
+        if ( walkUpStack )
+            return allKeys();
+        
         if ( _objects == null )
             return new HashSet<String>();
         return _objects.keySet( true );
     }
 
+
     public Set<String> allKeys(){
         HashSet<String> all = new HashSet<String>();
         Scope cur = this;
         while ( cur != null ){
-            if ( _objects != null )
+            if ( cur._objects != null )
                 all.addAll( cur._objects.keySet() );
             cur = cur._parent;
         }
@@ -188,11 +197,21 @@ public final class Scope implements JSObject , Bindings {
     }
 
     public boolean containsKey( Object o ){
+        if ( o == null )
+            return false;
         return containsKey( o.toString() );
     }
 
     public boolean containsKey( String s ){
-        throw new RuntimeException( "not sure this makes sense" );
+        if ( _objects == null )
+            return false;
+        return _objects.containsKey( s );
+    }
+    
+    public boolean containsKey( String s , boolean walkUpStack ){
+        if ( walkUpStack )
+            return containsKeyLocalOrGlobal( s );
+        return containsKey( s );
     }
 
     public boolean containsValue( Object o ){
@@ -348,19 +367,19 @@ public final class Scope implements JSObject , Bindings {
 	
 // 	if ( r != null && _warnedObject != null && _warnedObject.contains( name ) )
 // 	    ed.log.Logger.getRoot().getChild( "scope" ).warn( "using [" + name + "] in scope" );
-
-        return r;
+        
+        return _fixNull( r );
     }
     private Object _geti( final int nameHash , final String name , Scope alt , JSObject with[] , boolean noThis , int depth ){
 
         Scope pref = getTLPreferred();
         if ( pref != null && pref._objects.containsKey( nameHash , name ) ){
-            return _fixNull( pref._objects.get( nameHash , name ) );
+            return pref._objects.get( nameHash , name );
         }
         
         Object foo =  _killed || _objects  == null ? null : _objects.get( nameHash , name );
         if ( foo != null )
-            return _fixNull( foo );
+            return foo;
         
         // WITH
         if ( _with != null ){
@@ -370,7 +389,7 @@ public final class Scope implements JSObject , Bindings {
                 if ( temp.containsKey( name ) ){
                     if ( with != null && with.length > 0 )
                         with[0] = temp;
-                    return _fixNull( temp.get( name ) );
+                    return temp.get( name );
                 }
             }
         }
@@ -431,7 +450,7 @@ public final class Scope implements JSObject , Bindings {
 		return fg;
 	}
 
-        return _parent._get( nameHash , name , alt , with , noThis , depth + 1 );
+        return _parent._geti( nameHash , name , alt , with , noThis , depth + 1 );
     }
 
     private Object _getFromThis( JSObjectBase t , String name ){

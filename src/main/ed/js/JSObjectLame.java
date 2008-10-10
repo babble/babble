@@ -49,6 +49,10 @@ public class JSObjectLame implements JSObject {
         throw _getException();
     }
 
+    public boolean containsKey( String s , boolean includePrototype ){
+        throw _getException();
+    }
+
     public Object set( Object n , Object v ){
         throw _getException();
     }

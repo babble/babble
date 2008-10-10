@@ -22,6 +22,7 @@ import java.net.*;
 import java.util.*;
 
 import ed.net.*;
+import ed.net.httpserver.*;
 import static ed.net.lb.Mapping.*;
 
 public class Server {
@@ -30,6 +31,7 @@ public class Server {
             throw new NullPointerException( "addr can't be null" );
 	_addr = addr;
 	_monitor = ServerMonitor.register( this );
+        _tracker = new HttpLoadTracker( "Server : " + addr );
 	reset();
     }
     
@@ -39,12 +41,14 @@ public class Server {
 	_inErrorState = false;
     }
     
-    void error( Environment env , NIOClient.ServerErrorType type , Exception what ){
+    void error( Environment env , NIOClient.ServerErrorType type , Exception what , HttpRequest request , HttpResponse response ){
 	_inErrorState = true;
+        _tracker.hit( request , response );
     }
     
-    void success( Environment env ){
+    void success( Environment env , HttpRequest request , HttpResponse response ){
 	_environmentsWithTraffic.add( env );
+        _tracker.hit( request , response );
     }
     
     /**
@@ -90,6 +94,7 @@ public class Server {
     
     final InetSocketAddress _addr;
     final ServerMonitor.Monitor _monitor;
+    final HttpLoadTracker _tracker;
 
     final Set<Environment> _environmentsWithTraffic = Collections.synchronizedSet( new HashSet<Environment>() );
     long _serverStart;

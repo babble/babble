@@ -123,13 +123,13 @@ public class ByteEncoder extends Bytes {
         final int sizePos = _buf.position();
         _buf.putInt( 0 ); // leaving space for this.  set it at the end
 
-        Object possibleId = o.get( "_id" );
 	boolean skipId = true;
+        Object possibleId = o.get( "_id" );
         if ( possibleId != null ){
             if ( possibleId instanceof ObjectId )
 		putObjectId( "_id" , (ObjectId)possibleId );
-	    skipId = false;
-	    //throw new RuntimeException( "_id is not an ObjectId is a " + possibleId.getClass() );
+            else
+                skipId = false;
         }
             
         JSArray transientFields = null;

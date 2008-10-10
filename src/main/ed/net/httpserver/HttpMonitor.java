@@ -53,7 +53,7 @@ public abstract class HttpMonitor implements HttpHandler {
             buf.append( " th { backgroud: #dddddd; text-align:left; }\n" );
             buf.append( " .floatingList li { float: left; list-style-type:none; }\n" );
             buf.append( " bottomLine { border-bottom: 1px solid black; }\n" );
-	    buf.append( " .warn { color: orange; }\n" );
+	    buf.append( " .warn { color: #FF6600; }\n" );
 	    buf.append( " .error { color: red; font-decoration: bold; }\n" );
             addStyle( buf );
             buf.append( "</style>\n" );
@@ -305,8 +305,15 @@ public abstract class HttpMonitor implements HttpHandler {
 	}
 	
 	public void addTableCell( Object data ){
+            addTableCell( data , null );
+        }
+        
+	public void addTableCell( Object data , String cssClass ){
 	    _assertIfJson();
-	    _out.print( "<td>" );
+	    _out.print( "<td " );
+            if ( cssClass != null )
+                _out.print( " class='" + cssClass + "' " );
+            _out.print( ">" );
 	    if ( data == null )
 		_out.print( "null" );
 	    else 
