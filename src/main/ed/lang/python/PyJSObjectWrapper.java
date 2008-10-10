@@ -38,7 +38,7 @@ public class PyJSObjectWrapper extends PyDictionary {
     }
 
     public PyJSObjectWrapper( JSObject jsObject , boolean returnPyNone ){
-        super( );
+        super( TYPE );
         _js = jsObject;
         _returnPyNone = returnPyNone;
         if ( _js == null )
@@ -221,18 +221,32 @@ public class PyJSObjectWrapper extends PyDictionary {
         _js.set( toJS( key ) , toJS( value ) );
     }
 
-    public void __delitem__( String key ){
-        __delattr__( key );
+    public void remove( String key ){
+        // FIXME: check if the key exists and throw an error if not --
+        // this is Python after all.
+        try {
+            super.remove( key );
+        }
+        catch( PyException e ){
+            // Didn't have a cached Python value, no big deal.
+        }
+        _js.removeField( key.toString() );
+    }
+
+    @ExposedMethod
+    public void __delitem__( PyObject key ){
+        // Although we expose this, we don't use the customary
+        // jswrapper___delitem__ method name, because Jython evidently calls
+        // the PyObject.__delitem__ method which is intercepted by PyDictionary.
+        // In order to intercept it from there, we intercept the __delitem__
+        // method.
+
+        // FIXME: Maybe be more rigorous about casting to String here?
+        remove( key.toString() );
     }
 
     public void __delattr__( String key ){
-        try {
-            super.__delitem__( key );
-        }
-        catch( PyException e ){
-            // meh
-        }
-        _js.removeField( key );
+        remove( key );
     }
 
     @ExposedMethod(names = {"__repr__", "__str__"})

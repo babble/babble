@@ -33,3 +33,12 @@ pythonObj2.baz = "yo"
 def pythonDelete(o, attr):
     delattr(o, attr)
 _10gen.pythonDelete = pythonDelete
+
+def pythonDeleteItem(o, key):
+    del o[key]
+_10gen.pythonDeleteItem = pythonDeleteItem
+
+def pythonDeleteItem2(o, key):
+    # I don't expect anyone to ever actually do this, but hey!
+    o.__delitem__(key)
+_10gen.pythonDeleteItem2 = pythonDeleteItem2
