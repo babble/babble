@@ -9,3 +9,5 @@ catch ( e ){
     ok = true;
 }
 assert( ok , ". in names aren't allowed doesn't work" );
+
+connect( "test" ).foo.find( { "a.b" : 1 } ).length();

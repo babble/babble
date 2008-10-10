@@ -273,7 +273,7 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
         if ( checkReadOnly( true ) ) return jo;
         jo = _handleThis( s , jo );
 
-        _checkObject( jo , false );
+        _checkObject( jo , false , false );
 
         if ( s != null ){
             Object presaveObject = jo.get( "preSave" );
@@ -336,7 +336,7 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
                     _anyUpdateSave = true;
                     if ( o == null )
                         o = _handleThis( s , null );
-                    return save( s , _checkObject( o , false ) );
+                    return save( s , _checkObject( o , false , false ) );
                 }
             };
         _entries.put( "save" , _save );
@@ -348,8 +348,8 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
 
                     _anyUpdateSave = true;
 
-                    _checkObject( q , false );
-                    _checkObject( o , false );
+                    _checkObject( q , false , true );
+                    _checkObject( o , false , false );
 
                     if ( s != null )
                         _findSubObject( s , (JSObject)o , (IdentitySet)seen );
@@ -390,7 +390,7 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
                               
 			      o = _massageObjectToFilter( o , false , true );
 
-                              _checkObject( o , true );
+                              _checkObject( o , true , true );
 
                               JSObject jo = _handleThis( s , (JSObject)o );
 
@@ -407,7 +407,7 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
 
         _apply = new JSFunctionCalls1() {
                 public Object call( Scope s , Object o , Object foo[] ){
-                    return apply( _checkObject( o , false ) );
+                    return apply( _checkObject( o , false , false ) );
                 }
             };
         _entries.put( "apply" , _apply );
@@ -533,7 +533,7 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
         return (JSObject)t;
     }
 
-    private final JSObject _checkObject( Object o , boolean canBeNull ){
+    private final JSObject _checkObject( Object o , boolean canBeNull , boolean query ){
         if ( o == null ){
             if ( canBeNull )
                 return null;
@@ -546,8 +546,15 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
         if ( o instanceof JSObjectBase &&
              ((JSObjectBase)o).isPartialObject() )
             throw new IllegalArgumentException( "can't save partial objects" );
-        
-        return (JSObject)o;
+
+        JSObject jo = (JSObject)o;
+        if ( ! query ){
+            for ( String s : jo.keySet() ){
+                if ( s.contains( "." ) )
+                    throw new IllegalArgumentException( "fields stored in the db can't have . in them" );
+            }
+        }
+        return jo;
     }
 
     private void _findSubObject( Scope s , JSObject jo , IdentitySet seenSubs ){

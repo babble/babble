@@ -142,9 +142,6 @@ public class ByteEncoder extends Bytes {
 
         for ( String s : o.keySet( false ) ){
             
-            if ( s.contains( "." ) )
-                throw new IllegalArgumentException( "fields stored in the db can't have . in them" );
-
             if ( dbOnlyField( s ) || s.equals( "_transientFields" ) )
                 continue;
 
