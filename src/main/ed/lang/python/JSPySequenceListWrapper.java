@@ -232,7 +232,9 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
     }
     
     public Object removeField( Object n ){
-        _p.__delitem__( toPython( n ) );
+        // Provide JS-compatible semantics; deleting an element from an array
+        // replaces it with "undefined" :(
+        _p.__setitem__( toPython( n ) , Py.None );
         return null; // FIXME: we removed both of them, who cares
     }
     

@@ -40,3 +40,7 @@ var result = pyL2Numbers.reduce(function(x, y){
 }, 12);
 
 assert.eq( result, 15 );
+
+var len = pyL2Numbers.length;
+delete pyL2Numbers[0];
+assert.eq( pyL2Numbers.length , len );

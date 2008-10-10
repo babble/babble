@@ -46,3 +46,9 @@ _10gen.pyCheckEven = pyCheckEven
 def pyGetSecretLength():
     return len(__pyL)
 _10gen.pyGetSecretLength = pyGetSecretLength
+
+def pyDeleteItem(l):
+    n = len(l)
+    del l[0]
+    _10gen.assert.eq(len(l), n-1)
+_10gen.pyDeleteItem = pyDeleteItem

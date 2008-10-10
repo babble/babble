@@ -59,3 +59,5 @@ var flip = true;
 newL = pyL.filter(function(){ flip = !flip; return flip; });
 assert( newL[0] == pyL[1] );
 assert( newL.length == pyL.length/2 );
+
+pyDeleteItem( jsA );

@@ -60,7 +60,7 @@ public class PyJSArrayWrapper extends PyList {
     }
 
     protected void del(int i){
-        throw new RuntimeException("not implemented yet");
+        _js.remove( i );
     }
 
     protected void delRange(int start, int stop, int step){
