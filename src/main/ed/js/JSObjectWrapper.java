@@ -77,6 +77,10 @@ public class JSObjectWrapper implements JSObject {
         return _wrap.containsKey( s );
     }
 
+    public boolean containsKey( String s , boolean includePrototype ){
+        return _wrap.containsKey( s , includePrototype );
+    }
+
     /** Returns this object's fields' names
      * @return The names of the fields in this object
      */

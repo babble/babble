@@ -59,6 +59,10 @@ public class DBJSObject implements JSObject {
     }
 
     public boolean containsKey( String s ){
+        return containsKey( s , true );
+    }
+    
+    public boolean containsKey( String s , boolean includePrototype ){
         return findElement( s ) != null;
     }
 

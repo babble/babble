@@ -28,6 +28,10 @@ public abstract class JavaJSObject implements JSObject {
         return getWrapper().keySet();
     }
 
+    public boolean containsKey( String s , boolean includePrototype ){
+        return getWrapper().containsKey( s );
+    }
+
     public boolean containsKey( String s ){
         return getWrapper().containsKey( s );
     }

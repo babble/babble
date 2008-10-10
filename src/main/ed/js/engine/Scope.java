@@ -194,11 +194,21 @@ public final class Scope implements JSObject , Bindings {
     }
 
     public boolean containsKey( Object o ){
+        if ( o == null )
+            return false;
         return containsKey( o.toString() );
     }
 
     public boolean containsKey( String s ){
-        throw new RuntimeException( "not sure this makes sense" );
+        if ( _objects == null )
+            return false;
+        return _objects.containsKey( s );
+    }
+    
+    public boolean containsKey( String s , boolean walkUpStack ){
+        if ( walkUpStack )
+            return containsKeyLocalOrGlobal( s );
+        return containsKey( s );
     }
 
     public boolean containsValue( Object o ){

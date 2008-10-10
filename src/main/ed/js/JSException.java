@@ -182,6 +182,11 @@ public class JSException extends RuntimeException implements JSObject {
     }
 
     /** @unexpose */
+    public boolean containsKey( String s , boolean includePrototype ){
+        throw new UnsupportedOperationException();
+    }
+
+    /** @unexpose */
     public Object set( Object n , Object v ){
         throw new UnsupportedOperationException();
     }
