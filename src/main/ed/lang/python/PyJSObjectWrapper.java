@@ -185,19 +185,6 @@ public class PyJSObjectWrapper extends PyDictionary {
         return toPython( o , _js );
     }
 
-    public PyDictionary copy(){
-        return jswrapper_copy();
-    }
-
-    @ExposedMethod
-    final public PyDictionary jswrapper_copy(){
-        PyDictionary d = new PyDictionary();
-        for( String key : _js.keySet() ){
-            d.__setitem__( key.intern() , toPython( _js.get( key ) ) );
-        }
-        return d;
-    }
-
     // FIXME: why is this being unwrapped twice?
     // (i.e. once here, once in handleSet)
     // When I take it out, I get a bunch of test failures. Look into
@@ -258,6 +245,48 @@ public class PyJSObjectWrapper extends PyDictionary {
     public String toString(){
         return _js.toString();
     }
+
+    public void clear(){
+        jswrapper_clear();
+    }
+
+    @ExposedMethod
+    final public PyObject jswrapper_clear(){
+        throw new RuntimeException("not implemented yet");
+    }
+
+
+    public PyDictionary copy(){
+        return jswrapper_copy();
+    }
+
+    @ExposedMethod
+    final public PyDictionary jswrapper_copy(){
+        PyDictionary d = new PyDictionary();
+        for( String key : _js.keySet() ){
+            d.__setitem__( key.intern() , toPython( _js.get( key ) ) );
+        }
+        return d;
+    }
+
+    public PyList items(){
+        return jswrapper_items();
+    }
+
+    @ExposedMethod
+    final public PyList jswrapper_items(){
+        throw new RuntimeException("not implemented yet");
+    }
+
+    public PyList itervalues(){
+        return jswrapper_itervalues();
+    }
+
+    @ExposedMethod
+    final public PyList jswrapper_itervalues(){
+        throw new RuntimeException("not implemented yet");
+    }
+
 
     final JSObject _js;
     final boolean _returnPyNone;
