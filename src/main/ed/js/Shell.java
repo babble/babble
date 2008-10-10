@@ -316,6 +316,11 @@ public class Shell {
         if ( exit )
             return;
         
+        if ( replLang instanceof ed.lang.ruby.RubyLanguage ) {
+            ((ed.lang.ruby.RubyLanguage)replLang).repl(s);
+            return;
+        }
+
         String line;
         ConsoleReader console = new ConsoleReader();
         console.setHistory( new History( new File( ".jsshell" ) ) );

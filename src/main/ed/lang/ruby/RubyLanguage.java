@@ -63,4 +63,20 @@ public class RubyLanguage extends Language {
             return result;
         }
     }
+
+    public void repl(Scope s) {
+        RubyJxpSource source = new RubyShellSource("require 'irb'\n" +
+                                                   "IRB.start");
+        try {
+            source._doCall(source._parseContent("(shell)"), s, RubyJxpSource.EMPTY_OBJECT_ARRAY);
+        }
+        catch (RaiseException re) {
+            re.printStackTrace();
+        }
+        catch (Exception e) {
+            System.err.println(e.toString());
+            if (DEBUG)
+                e.printStackTrace();
+        }
+    }
 }
