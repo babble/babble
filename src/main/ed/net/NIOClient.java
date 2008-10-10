@@ -38,6 +38,7 @@ public abstract class NIOClient extends Thread {
     protected enum WhatToDo { CONTINUE , PAUSE , DONE_AND_CLOSE , DONE_AND_CONTINUE , ERROR };
 
     public static final SimpleDateFormat SHORT_TIME = new SimpleDateFormat( "MM/dd HH:mm:ss.S" );
+    static final long AFTER_SHUTDOWN_WAIT = 1000 * 60;
 
     public NIOClient( String name , int connectionsPerHost , int verboseLevel ){
         super( "NIOClient: " + name );
@@ -63,6 +64,12 @@ public abstract class NIOClient extends Thread {
     
     protected abstract void serverError( InetSocketAddress addr , ServerErrorType type , Exception why );
 
+    protected void shutdown(){
+        _shutdown = true;
+        _shutdownTime = System.currentTimeMillis();
+        _logger.error( "SHUTDOWN RECEIVED" );
+    }
+    
     public void run(){
         while ( true ){
             try {
@@ -71,6 +78,10 @@ public abstract class NIOClient extends Thread {
             catch ( Exception e ){
                 _logger.error( "error in run loop" , e );
             }
+
+            if ( _shutdown && ( System.currentTimeMillis() - _shutdownTime ) > AFTER_SHUTDOWN_WAIT )
+                break;
+            
         }
     }
     
@@ -182,6 +193,10 @@ public abstract class NIOClient extends Thread {
                 _loggerDrop.error( "couldn't push something back on to queue." );
             }
         }
+    }
+    
+    public boolean isShutDown(){
+        return _shutdown;
     }
 
     public ConnectionPool getConnectionPool( InetSocketAddress addr ){
@@ -559,6 +574,8 @@ public abstract class NIOClient extends Thread {
 
     final protected String _name;
     final protected int _connectionsPerHost;
+    private boolean _shutdown = false;
+    private long _shutdownTime = 0;
 
     final Logger _logger;
     final Logger _loggerOpen;
