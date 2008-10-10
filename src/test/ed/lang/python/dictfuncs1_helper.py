@@ -14,6 +14,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import _10gen
 from _10gen import jsMap
 assert jsMap.has_key('a')
 assert jsMap.has_key('b')
@@ -23,3 +24,9 @@ assert 'a' in jsMap
 assert 'b' in jsMap
 assert 'c' not in jsMap
 
+d = jsMap.copy()
+_10gen.assert.eq(len(jsMap.keys()), len(d.keys()))
+_10gen.assert.eq(len(jsMap), len(d))
+
+_10gen.assert.eq(d['a'], jsMap.a)
+_10gen.assert.eq(d['a'], jsMap['a'])

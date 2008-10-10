@@ -43,3 +43,14 @@ pythonDelete( y , '$foo' );
 
 assert( Object.keys(y).length == 0 );
 
+var z = { a: 5, b: 8 };
+
+assert( Object.keys(z).length == 2 );
+
+pythonDeleteItem( z , 'b' );
+
+assert( Object.keys(z).length == 1 );
+
+pythonDeleteItem2( z , 'a' );
+
+assert( Object.keys(z).length == 0 );

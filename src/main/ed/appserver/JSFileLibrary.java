@@ -203,6 +203,9 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
     public synchronized Object get( final Object n , final boolean doInit ){
         if ( doInit )
             _init();
+	
+	if ( "$".equals( n.toString() ) )
+	    return findPath();
 
         Object foo = _get( n );
         if ( foo instanceof JxpSource ){
