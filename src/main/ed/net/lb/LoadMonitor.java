@@ -42,15 +42,6 @@ public class LoadMonitor {
 	return _router.getPool( name )._tracker;
     }
     
-    void _addMonitors( String name ){
-	HttpServer.addGlobalHandler( new HttpMonitor( name + "-load" ){
-                public void handle( MonitorRequest request ){
-                    _all.displayGraph( request.getWriter() );
-                }
-            }
-            );
-    }
-    
     final Router _router;
     final HttpLoadTracker.Rolling _all = new HttpLoadTracker.Rolling( "lb traffic" );
 }

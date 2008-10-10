@@ -59,6 +59,10 @@ public class HttpLoadTracker {
         final HttpLoadTracker _minutes;
     }
     
+    public HttpLoadTracker( String name ){
+        this( name , 30 , 30 );
+    }
+
     public HttpLoadTracker( String name , int secondsInInterval , int minutesToGoBack ){
         _name = name;
         _sliceTime = 1000 * secondsInInterval;
@@ -70,7 +74,7 @@ public class HttpLoadTracker {
         _errors = new ThingsPerTimeTracker( _sliceTime , _intervals );
         _totalTime = new ThingsPerTimeTracker( _sliceTime , _intervals );
     }
-
+    
     public void hit( HttpRequest request , HttpResponse response ){
         _requests.hit();
 
