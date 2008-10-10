@@ -50,7 +50,7 @@ import ed.lang.python.*;
  * @expose
  * @docmodule system.system.__instance__
  */
-public class AppContext extends ServletContextBase implements Sizable {
+public class AppContext extends ServletContextBase implements JSObject , Sizable {
 
     /** @unexpose */
     static final boolean DEBUG = AppServer.D;
@@ -1112,6 +1112,47 @@ public class AppContext extends ServletContextBase implements Sizable {
         
         throw new RuntimeException( "work queue full!" ) ;
     }
+    
+    // ----  START JSObject INTERFACE
+    
+    public Object get( Object n ){
+        return _scope.get( n );
+    }
+    public JSFunction getFunction( String name ){
+        return _scope.getFunction( name );
+    }
+    public final Collection<String> keySet(){
+        return _scope.keySet();
+    }
+    public Collection<String> keySet( boolean includePrototype ){
+        return _scope.keySet( includePrototype );
+    }
+    public boolean containsKey( String s ){
+        return _scope.containsKey( s );
+    }
+    public boolean containsKey( String s , boolean includePrototype ){
+        return _scope.containsKey( s , includePrototype );
+    }
+    public Object set( Object n , Object v ){
+        return _scope.putExplicit( n.toString() , v );
+    }
+    public Object setInt( int n , Object v ){
+        throw new RuntimeException( "not allowed" );
+    }
+    public Object getInt( int n ){
+        return _scope.getInt( n );
+    }
+    public Object removeField( Object n ){
+        return _scope.removeField( n );
+    }
+    public JSFunction getConstructor(){
+        return null;
+    }
+    public JSObject getSuper(){
+        return null;
+    }
+
+    // ----  END BROKEN JSOBJET INTERFACE
     
     final String _name;
     final String _root;
