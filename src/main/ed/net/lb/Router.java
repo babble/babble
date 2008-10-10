@@ -148,7 +148,7 @@ public class Router {
                 Server s = getServer( addr );
                 newServers.add( s );
                 
-                if ( _servers.contains( addr ) )
+                if ( _servers.contains( s ) )
                     continue;
                 
                 _servers.add( s );
