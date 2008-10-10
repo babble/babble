@@ -16,5 +16,9 @@
 
 jsMap = {a: 1, b: 4};
 
+jsCheck = function(map, key, value){
+    assert.eq(map[key], value);
+};
+
 local.src.test.ed.lang.python.dictfuncs1_helper();
 
