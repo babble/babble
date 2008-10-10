@@ -187,7 +187,12 @@ public class ServerMonitor extends Thread {
         XMLHttpRequest x = new XMLHttpRequest( url );
         if ( x.send() == null )
             throw (IOException)(x.get( "error" ));
-        return (JSObject)(x.getJSON());
+	try {
+	    return (JSObject)(x.getJSON());
+	}
+	catch ( Exception e ){
+	    throw new IOException( "couldn't parse json from [" + url + "]" );
+	}
     }
 
     private Map<Server,Monitor> _monitors = Collections.synchronizedMap( new HashMap<Server,Monitor>() );
