@@ -407,7 +407,7 @@ public class PyJSObjectWrapper extends PyDictionary {
     }
 
     public PyObject popitem(){
-        return jswrapper_popitem( key , default_object );
+        return jswrapper_popitem();
     }
 
     @ExposedMethod
