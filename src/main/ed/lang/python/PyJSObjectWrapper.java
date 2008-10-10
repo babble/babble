@@ -374,6 +374,20 @@ public class PyJSObjectWrapper extends PyDictionary {
         }
     }
 
+    public PyObject get( PyObject key , PyObject default_object ){
+        return jswrapper_get( key , default_object );
+    }
+
+    @ExposedMethod(defaults = "Py.None")
+    public final PyObject jswrapper_get( PyObject key , PyObject default_object ){
+        if( key instanceof PyString ){
+            String jkey = key.toString();
+            if( _js.containsKey( jkey , true ) )
+                return toPython( _js.get( jkey ) );
+        }
+        return default_object;
+    } 
+
     final JSObject _js;
     final boolean _returnPyNone;
 

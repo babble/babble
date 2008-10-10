@@ -43,6 +43,11 @@ compare_list_methods_by_sorted(d, jsMap, 'keys')
 compare_list_methods_by_sorted(d, jsMap, 'values')
 compare_list_methods_by_sorted(d, jsMap, 'iterkeys')
 
+_10gen.assert.eq(jsMap.get('a'), jsMap['a'])
+_10gen.assert.eq(jsMap.get('a', 'default'), jsMap['a'])
+_10gen.assert.eq(jsMap.get('zzz', 'default'), 'default')
+_10gen.assert.eq(jsMap.get(dict(), 'default'), 'default')
+
 
 # not implemented yet
 #compare_list_methods_by_sorted(d, jsMap, 'items')
@@ -66,3 +71,7 @@ _10gen.assert.throws(lambda: jsMap.clear())
 #_10gen.assert.eq(len(jsMap.keys()), 0)
 #_10gen.assert.eq(len(jsMap), 0)
 _10gen.assert.eq(oldSize, len(d))
+
+# I can't think of a use case for this, so that it's broken is fine
+_10gen.assert.throws(lambda: jsMap.fromkeys(['a', 'b', 'c'], 24))
+
