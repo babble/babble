@@ -64,6 +64,9 @@ public class RubyLanguage extends Language {
         }
     }
 
+    /**
+     * Provides a Ruby REPL by running IRB.
+     */
     public void repl(Scope s, String rubyFile) {
         StringBuilder code = new StringBuilder();
         code.append("require 'irb'\n")

@@ -74,6 +74,7 @@ public class RubyJxpSource extends JxpSource {
         DO_NOT_LOAD_FUNCS.add("sleep");
         DO_NOT_LOAD_FUNCS.add("fork");
         DO_NOT_LOAD_FUNCS.add("eval");
+        DO_NOT_LOAD_FUNCS.add("exit");
         for (int i = 0; i < RubyJSFunctionWrapper.IGNORE_JS_CLASSES.length; ++i)
             DO_NOT_LOAD_FUNCS.add(RubyJSFunctionWrapper.IGNORE_JS_CLASSES[i]);
     }
