@@ -22,6 +22,8 @@ def getList():
 _10gen.getList = getList
 
 def pyManipList(l): # expecting [1, 3, 5]
+    assert isinstance(l, list)
+
     if len([x for x in l if x % 3 == 0]) != 1: return False
 
     if l.count(3) != 1: return False

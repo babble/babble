@@ -25,7 +25,7 @@ pushd $EDROOT > /dev/null
 $EDROOT/bin/scripts/adduser $SITE admin "admin@10gen.com" "password" "admin"
 popd > /dev/null
 
-tests=( "python $GITROOT/corejs/test/webdav_integration.py --host localhost --port $http_port --user admin --password password" )
+tests=( "python $COREJSROOT/test/webdav_integration.py --host localhost --port $http_port --user admin --password password" )
 
 #Run tests
 RC=0

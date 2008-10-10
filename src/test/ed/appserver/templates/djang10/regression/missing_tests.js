@@ -272,7 +272,7 @@ tests=[                                                                         
        { name: "expression-name02",        content: '{{ nonexistentVar }}',
                                            model: { },
                                            results: "",
-                                           logResults: [/^.*INFO.+Failed to lookup.+nonexistentVar.*$/m]},
+                                           unexpectedLogResults: [/^.*djang10\.FilterExpression.+INFO.+$/m] },
        
        //PROP lookups
        { name: "expression-prop01",        content: '{{ obj.nullProp }}',
@@ -288,7 +288,7 @@ tests=[                                                                         
        { name: "expression-prop03",        content: '{{ obj.nonexistentProp }}',
                                            model: { obj: { } },
                                            results: "",
-                                           logResults: [/^.*INFO.+Object doesn't contain the property.+nonexistentProp.+obj.nonexistentProp.*$/m] },
+                                           unexpectedLogResults: [/^.*djang10\.FilterExpression.+INFO.+$/m] },
 
        { name: "expression-prop04",        content: '{{ obj.nonexistentProp.other.stuff.that[matters.not] }}',
                                            model: { obj: { } },
@@ -319,7 +319,7 @@ tests=[                                                                         
        { name: "expression-elm-literal03", content: '{{ obj["nonexistentProp"] }}',
                                            model: { obj: {} },
                                            results: "",
-                                           logResults: [/^.*INFO.+Object doesn't contain the property.+nonexistentProp.+obj\["nonexistentProp"\].*$/m]},
+                                           unexpectedLogResults: [/^.*djang10\.FilterExpression.+INFO.+$/m] },
 
        { name: "expression-elm-literal04", content: '{{ obj["nonexistentProp"].other.stuff.that[matters.not] }}',
                                            model: { obj: {} },
@@ -360,7 +360,7 @@ tests=[                                                                         
        { name: "expression-elm-var05",     content: '{{ obj[var] }}',
                                            model: { obj: {}, "var":"nonexistent" },
                                            results: "",
-                                           logResults: [/^.*INFO.+Object doesn't contain the property.+nonexistent.+obj\[var\].*$/m]},
+                                           unexpectedLogResults: [/^.*djang10\.FilterExpression.+INFO.+$/m] },
 
         //CALL's
         { name: "expression-call01",        content: '{{ nullFunc() }}',

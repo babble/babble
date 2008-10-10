@@ -22,6 +22,33 @@ if [ -z $PROOT ]
     then
         PROOT=$GITROOT/p
 fi
+if [ -z $COREJSROOT ]
+    then
+        COREJSROOT=$GITROOT/corejs
+fi
+
+#make paths absolute
+function make_dir_path_abs {
+    if [ ! -d "$1" ]
+        then
+            echo "The directory $1, doesn't exist"
+            return 1
+    fi
+    
+    if ! pushd "$1" > /dev/null
+        then
+            echo "Failed to cd to $1"
+            return 1
+    fi
+    
+    pwd
+    popd > /dev/null
+}
+
+GITROOT=`make_dir_path_abs "$GITROOT"`
+EDROOT=`make_dir_path_abs "$EDROOT"`
+PROOT=`make_dir_path_abs "$PROOT"`
+COREJSROOT=`make_dir_path_abs "$COREJSROOT"`
 
 
 function run_db {

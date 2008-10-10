@@ -88,6 +88,8 @@ public abstract class ScriptTestInstanceBase extends MyAsserts implements Script
         }
         finally {
             scope.kill();
+            scope = null;
+            _file = null;
         }
     }
 }
