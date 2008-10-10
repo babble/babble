@@ -266,6 +266,10 @@ public class LB extends NIOClient {
             return buf.toString();
         }
         
+	public String toString(){
+	    return _request.getFullURL();
+	}
+
         final HttpRequest _request;
         final HttpResponse _response;
         

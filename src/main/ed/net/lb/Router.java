@@ -22,6 +22,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+import ed.log.*;
 import ed.util.*;
 import ed.net.*;
 import ed.net.httpserver.*;
@@ -32,6 +33,9 @@ public class Router {
     public Router( MappingFactory mappingFactory ){
         _mappingFactory = mappingFactory;
         _mapping = _mappingFactory.getMapping();
+	_logger = Logger.getLogger( "LB" ).getChild( "router" );
+
+	_mappingUpdater = new MappingUpdater();
     }
 
     public InetSocketAddress chooseAddress( HttpRequest request , boolean doOrDie ){
@@ -164,8 +168,9 @@ public class Router {
             final int size = _servers.size();
             _seen.add( e );
             
-	    if ( size == 1 )
+	    if ( size == 1 ){
 		return _servers.get(0)._addr;
+	    }
 
             Server best = null;
             double score = Double.MIN_VALUE;
@@ -187,11 +192,14 @@ public class Router {
             if ( best == null ){
                 if ( doOrDie )
                     throw new RuntimeException( "no server available for pool [" + _name + "]" );
+		_logger.info( "no viable server for pool [" + _name + "] waiting" );
                 return null;
             }
             
-            if ( score == 0 && ! doOrDie )
+            if ( score == 0 && ! doOrDie ){
+		_logger.info( "no good server (score > 0) for pool [" + _name + "] waiting" );
                 return null;
+	    }
 
             return best._addr;
         }
@@ -222,7 +230,11 @@ public class Router {
         }
     }
 
+    final Logger _logger;
+
     private final MappingFactory _mappingFactory;
+    private final MappingUpdater _mappingUpdater;
+    
     private final Map<String,Pool> _pools = Collections.synchronizedMap( new TreeMap<String,Pool>() );
     private final Map<InetSocketAddress,Server> _addressToServer = Collections.synchronizedMap( new HashMap<InetSocketAddress,Server>() );
     private Mapping _mapping;

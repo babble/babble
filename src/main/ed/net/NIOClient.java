@@ -153,6 +153,8 @@ public abstract class NIOClient extends Thread {
             InetSocketAddress addr = null;
             try {
                 addr = c.where();
+		_logger.debug( 2 , "address" , c , addr );
+
                 if ( addr == null ){
 		    pushBach.add( c );
                     continue;
@@ -355,7 +357,7 @@ public abstract class NIOClient extends Thread {
                 close();
 
             if ( _error == null ){
-                _logger.debug( "putting connection back in pool" );
+                _logger.debug( 2 , "putting connection back in pool" );
                 _pool.done( this );
             }
             _current = null;
@@ -373,7 +375,7 @@ public abstract class NIOClient extends Thread {
             
             if ( _toServer.position() == _toServer.limit() ){
                 _key.interestOps( _key.OP_READ );
-                _logger.debug( "finished writing" );
+                _logger.debug( 3 , "finished writing" );
                 return;
             }
             
