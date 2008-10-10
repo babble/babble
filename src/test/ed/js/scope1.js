@@ -1,6 +1,9 @@
 
 var x = 5;
 assert.eq( scope.keySet().length , 2 );
+assert.eq( scope.keySet( false ).length , 2 );
+assert( scope.keySet( true ).length > 2 )
+
 assert( scope.keySet().contains( "arguments" ) );
 assert( scope.keySet().contains( "x" ) );
 

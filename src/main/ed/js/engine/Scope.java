@@ -163,7 +163,10 @@ public final class Scope implements JSObject , Bindings {
         return keySet( false );
     }
 
-    public Set<String> keySet( boolean includePrototype ){
+    public Set<String> keySet( boolean walkUpStack ){
+        if ( walkUpStack )
+            return allKeys();
+        
         if ( _objects == null )
             return new HashSet<String>();
         return _objects.keySet( true );
@@ -174,7 +177,7 @@ public final class Scope implements JSObject , Bindings {
         HashSet<String> all = new HashSet<String>();
         Scope cur = this;
         while ( cur != null ){
-            if ( _objects != null )
+            if ( cur._objects != null )
                 all.addAll( cur._objects.keySet() );
             cur = cur._parent;
         }
