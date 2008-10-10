@@ -64,7 +64,7 @@ public class Session extends JSObjectBase implements HttpSession {
         ref.set( "_key" , s );
 
         final DBCollection coll = db.getCollection( DB_COLLECTION_NAME );
-        coll.ensureIndex( ref );
+        coll.ensureIndex( _indexToAdd );
 
         Iterator<JSObject> cursor = coll.find( ref , null , 0 , 1 );
         if ( cursor != null && cursor.hasNext() )
@@ -248,4 +248,10 @@ public class Session extends JSObjectBase implements HttpSession {
     final String _key;
     private boolean _isNew;
     private boolean _dirty = false;
+
+    static final JSObjectBase _indexToAdd = new JSObjectBase();
+    static {
+        _indexToAdd.set( "_key" , 1 );
+        _indexToAdd.lock();
+    }
 }
