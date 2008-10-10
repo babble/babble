@@ -103,24 +103,30 @@ public class WebViews {
         public void handle( MonitorRequest request ){
             JxpWriter out = request.getWriter();
             
-            out.print( "<ul>" );
+            out.print( "<table>" );
             
-            for ( String s : _router.getPoolNames() ){
-                out.print( "<li>" );
-                out.print( s );
+            for ( String poolName : _router.getPoolNames() ){
+                final Router.Pool p = _router.getPool( poolName );
+                out.print( "<tr><th colspan='2'>" + poolName + "</th></tr>" );
                 
-                out.print( "<ul>" );
-                for ( Server server : _router.getPool( s )._servers ){
+                out.print( "<tr>" );
+                
+                out.print( "<td><ul>" );
+                for ( Server server : p._servers ){
                     out.print( "<li>" );
                     out.print( server.toString() );
                     out.print( "</li>" );
                 }
-                out.print( "</ul>" );
+                out.print( "</ul></td>" );
                 
-                out.print( "</li>" );
+                out.print( "<td>" );
+                p._tracker.displayGraph( out );
+                out.print( "</td>" );
+                
+                out.print( "</tr>" );
             }
             
-            out.print( "</ul>" );
+            out.print( "</table>" );
         }
 
         final Router _router;

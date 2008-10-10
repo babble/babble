@@ -121,7 +121,7 @@ public class Router {
                 throw new NullPointerException( "can't create a Pool with no addresses" );
 	    
             _name = name;
-	    _tracker = new HttpLoadTracker( name , 2 , 60 );
+	    _tracker = new HttpLoadTracker( name );
             _servers = new ArrayList<Server>();
             for ( InetSocketAddress addr : addrs )
                 _servers.add( getServer( addr ) );

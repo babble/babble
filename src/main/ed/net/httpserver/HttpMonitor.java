@@ -57,6 +57,10 @@ public abstract class HttpMonitor implements HttpHandler {
 	    buf.append( " .error { color: red; font-decoration: bold; }\n" );
             addStyle( buf );
             buf.append( "</style>\n" );
+
+            buf.append( "<link rel=\"shortcut icon\" href=\"http://static.10gen.com/www.10gen.com/assets/images/favicon.ico\" />" );
+
+
             buf.append( "</head>" );            
             
             buf.append( "<body>" );

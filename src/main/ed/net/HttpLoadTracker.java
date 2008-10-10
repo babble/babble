@@ -89,11 +89,20 @@ public class HttpLoadTracker {
         }
     }
 
+    public void cycle(){
+        _requests.hit(0);
+        _dataIn.hit(0);
+        _dataOut.hit(0);
+        _errors.hit(0);
+        _totalTime.hit(0);
+    }
+
     public void displayGraph( JxpWriter out ){
         displayGraph( out , DEFAULTS );
     }
 
     public void displayGraph( JxpWriter out , GraphOptions options ){
+        cycle();
         out.print( "\n<div class='loadGraph' style='clear: both;'>\n" );
         
         out.print( "<h4>" );
