@@ -170,10 +170,10 @@ public class JSDate extends JSObjectBase implements Comparable {
                 set( "timeFunc" , new JSFunctionCalls2(){
                         public Object call( Scope s , Object func , Object numTimes , Object extra[] ){
                             if ( ! ( func instanceof JSFunction ) )
-                                throw new RuntimeException( "Date.timeFunc needs a function" );
+                                throw new RuntimeException( "Date.timeFunc needs a function not : " + func );
 
                             if ( ! ( numTimes instanceof Number ) )
-                                throw new RuntimeException( "Date.timeFunc needs a number" );
+				numTimes = 1;
 
                             JSFunction f = (JSFunction)func;
                             final int times = ((Number)numTimes).intValue();
