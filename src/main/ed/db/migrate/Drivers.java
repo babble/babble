@@ -23,12 +23,12 @@ public class Drivers {
     /** @unexpose */    
     public static void init( Scope s ){
 
-        s.put( "jdbc" , new JSFunctionCalls1(){
+        s.put( "jdbc" , new JSFunctionCalls3(){
 
-                public Object call( Scope s , Object nameObject , Object[] extra ){
+                public Object call( Scope s , Object nameObject , Object userObject , Object passObject , Object[] extra ){
                     String url = "jdbc:" + nameObject.toString();
-                    String user = extra != null && extra.length > 0 ? extra[0].toString() : null;
-                    String pass = extra != null && extra.length > 1 ? extra[1].toString() : null;
+                    String user = userObject == null ? "" : userObject.toString();
+                    String pass = passObject == null ? "" : passObject.toString();
 
                     try {
                         if ( nameObject.toString().startsWith( "mysql" ) ){
