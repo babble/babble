@@ -24,6 +24,7 @@ import java.util.*;
 import java.util.regex.*;
 import javax.servlet.*;
 
+import ed.io.*;
 import ed.js.*;
 import ed.util.*;
 
@@ -101,6 +102,28 @@ public abstract class PostData {
             int _pos;
         };
     }
+
+    public ByteStream getByteStream(){
+	final int max = _len;
+	return new ByteStream(){
+	    
+	    public boolean hasMore(){
+		return _pos < max;
+	    }
+
+	    public int write( ByteBuffer bb ){
+		final int toTransfer = Math.min( bb.remaining() , max - _pos );
+
+		fillIn( bb , _pos , _pos + toTransfer );
+
+		_pos += toTransfer;
+		return toTransfer;
+	    }
+
+	    private int _pos = 0;
+	};
+    }
+    
 
     int indexOf( byte b[] , int start ){
         

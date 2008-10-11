@@ -99,13 +99,17 @@ public class ServerMonitor extends Thread {
 	
 	void check(){
 	    
-	    final long now = System.currentTimeMillis();
+	    long now = System.currentTimeMillis();
 	    if ( now - _lastCheck < MS_BETWEEN_CHECKS )
 		return;
             
             Status s = null;
 	    try {
 		s = new Status( _base );
+	    }
+	    catch ( CantParse cp ){
+		_logger.error( cp.toString() + " PLEASE CHECK SECURITY" );
+		now += ( 1000 * 90 );
 	    }
 	    catch ( IOException ioe ){
 		_lastStatus = null;
@@ -191,7 +195,17 @@ public class ServerMonitor extends Thread {
 	    return (JSObject)(x.getJSON());
 	}
 	catch ( Exception e ){
-	    throw new IOException( "couldn't parse json from [" + url + "]" );
+	    throw new CantParse( url.toString() );
+	}
+    }
+    
+    static class CantParse extends IOException {
+	CantParse( String url ){
+	    super( "couldn't parse json from [" + url + "]" );
+	}
+
+	public String toString(){
+	    return getMessage();
 	}
     }
 

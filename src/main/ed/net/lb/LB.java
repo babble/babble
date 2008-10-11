@@ -26,6 +26,7 @@ import java.util.concurrent.*;
 
 import org.apache.commons.cli.*;
 
+import ed.io.*;
 import ed.js.*;
 import ed.log.*;
 import ed.net.*;
@@ -246,13 +247,16 @@ public class LB extends NIOClient {
             return WhatToDo.PAUSE;
         }
         
-        protected void fillInRequest( ByteBuffer buf ){
+        protected ByteStream fillInRequest( ByteBuffer buf ){
             buf.put( generateRequestHeader().getBytes() );
+	    if ( _request.getPostData() != null )
+		return _request.getPostData().getByteStream();
+	    return null;
         }
 
         String generateRequestHeader(){
             StringBuilder buf = new StringBuilder( _request.getRawHeader().length() + 200 );
-            buf.append( _request.getMethod() ).append( " " ).append( _request.getURL() ).append( " HTTP/1.0\r\n" );
+            buf.append( _request.getMethod().toUpperCase() ).append( " " ).append( _request.getURL() ).append( " HTTP/1.0\r\n" );
             buf.append( "Connection: keep-alive\r\n" );
             
             for ( String n : _request.getHeaderNameKeySet() ){

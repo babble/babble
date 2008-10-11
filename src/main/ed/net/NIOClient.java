@@ -26,6 +26,7 @@ import java.text.*;
 import java.util.*;
 import java.util.concurrent.*;
 
+import ed.io.*;
 import ed.log.*;
 import ed.util.*;
 import ed.net.httpserver.*;
@@ -374,6 +375,17 @@ public abstract class NIOClient extends Thread {
             }
             
             if ( _toServer.position() == _toServer.limit() ){
+		
+		if ( _extraDataToServer != null && _extraDataToServer.hasMore() ){
+		    _toServer.position(0);
+		    _toServer.limit( _toServer.capacity() );
+		    _extraDataToServer.write( _toServer );
+		    _toServer.flip();
+		    handleWrite();
+		    return;
+		}
+
+		_extraDataToServer = null;
                 _key.interestOps( _key.OP_READ );
                 _logger.debug( 3 , "finished writing" );
                 return;
@@ -404,9 +416,9 @@ public abstract class NIOClient extends Thread {
             _toServer.position( 0 );
             _toServer.limit( _toServer.capacity() );
             
-            _current.fillInRequest( _toServer );
+            _extraDataToServer = _current.fillInRequest( _toServer );
             if ( _toServer.position() == 0 ){
-                _userError( "trying to start a Call but already have one" );
+                _userError( "fillInRequest didn't give me any data" );
                 return;
             }
             
@@ -455,6 +467,7 @@ public abstract class NIOClient extends Thread {
 
         final ByteBuffer _toServer = ByteBuffer.allocateDirect( 1024 * 32 );
         final ByteBuffer _fromServer = ByteBuffer.allocateDirect( 1024 * 32 );
+	private ByteStream _extraDataToServer = null;
 
         final SocketChannel _sock;
         final SelectionKey _key;  
@@ -491,7 +504,7 @@ public abstract class NIOClient extends Thread {
         protected abstract InetSocketAddress where(); 
         protected abstract void error( ServerErrorType type , Exception e );
         
-        protected abstract void fillInRequest( ByteBuffer buf );
+        protected abstract ByteStream fillInRequest( ByteBuffer buf );
         protected abstract WhatToDo handleRead( ByteBuffer buf , Connection conn );
         
         protected void cancel(){
