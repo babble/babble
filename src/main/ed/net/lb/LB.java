@@ -215,7 +215,7 @@ public class LB extends NIOClient {
                                 _keepalive = ! value.toLowerCase().contains( "close" );
                             }
                             else {
-                                _response.setHeader( name , value );
+                                _response.addHeader( name , value );
                             }
 
                         }
