@@ -692,7 +692,7 @@ public class AppServer implements HttpHandler {
     
     boolean _administrativeAllowed( HttpRequest request ){
         return
-            request.getRemoteIP().equals( "127.0.0.1" ) &&
+            request.getPhysicalRemoteAddr().equals( "127.0.0.1" ) &&
             request.getHeader( "X-Cluster-Cluster-Ip" ) == null;
     }
 

@@ -258,8 +258,14 @@ public class LB extends NIOClient {
             StringBuilder buf = new StringBuilder( _request.getRawHeader().length() + 200 );
             buf.append( _request.getMethod().toUpperCase() ).append( " " ).append( _request.getURL() ).append( " HTTP/1.0\r\n" );
             buf.append( "Connection: keep-alive\r\n" );
-            
+	    buf.append( HttpRequest.REAL_IP_HEADER ).append( ": " ).append( _request.getRemoteIP() ).append( "\r\n" );
+
             for ( String n : _request.getHeaderNameKeySet() ){
+
+		if ( n.equalsIgnoreCase( "Connection" ) || 
+		     n.equalsIgnoreCase( HttpRequest.REAL_IP_HEADER ) )
+		    continue;
+		
                 String v = _request.getHeader( n );
                 buf.append( n ).append( ": " ).append( v ).append( "\r\n" );
             }
@@ -398,7 +404,7 @@ public class LB extends NIOClient {
                     if ( ! "/~kill".equals( request.getURI() ) )
                         return false;
                     
-                    if ( ! "127.0.0.1".equals( request.getRemoteIP() ) )
+                    if ( ! "127.0.0.1".equals( request.getPhysicalRemoteAddr() ) )
                         return false;
                 
                     info.fork = false;

@@ -38,6 +38,8 @@ import ed.appserver.*;
  */
 public class HttpRequest extends JSObjectLame implements HttpServletRequest {
     
+    public static final String REAL_IP_HEADER = "X-Cluster-Client-Ip";
+
     /**
      * Generate a "dummy" request, coming from a browser trying to access the
      * given URL.
@@ -1022,6 +1024,9 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest {
         return _range;
     }
 
+    public String getPhysicalRemoteAddr(){
+	return _handler.getInetAddress().getHostAddress();
+    }
 
     /**
      * Gets the ip of the client as a string.
@@ -1030,10 +1035,10 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest {
     public String getRemoteIP(){
         if ( _remoteIP != null )
             return _remoteIP;
-        
-        String ip = getHeader( "X-Cluster-Client-Ip" );
+	
+        String ip = getHeader( HttpRequest.REAL_IP_HEADER );
         if ( ip == null )
-            ip = _handler.getInetAddress().getHostAddress();
+            ip = getPhysicalRemoteAddr();
         
         _remoteIP = ip;
         return _remoteIP;
