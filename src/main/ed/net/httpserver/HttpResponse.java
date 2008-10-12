@@ -1,21 +1,3 @@
-/**
-*    Copyright (C) 2008 10gen Inc.
-*  
-*    This program is free software: you can redistribute it and/or  modify
-*    it under the terms of the GNU Affero General Public License, version 3,
-*    as published by the Free Software Foundation.
-*  
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU Affero General Public License for more details.
-*  
-*    You should have received a copy of the GNU Affero General Public License
-*    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-/* -*- mode: java; c-basic-offset: 4; indent-tabs-mode: nil -*- */
-
 // HttpResponse.java
 
 /**
@@ -46,6 +28,7 @@ import java.nio.charset.*;
 import javax.servlet.*;
 import javax.servlet.http.*;
 
+import ed.io.*;
 import ed.js.*;
 import ed.js.func.*;
 import ed.js.engine.*;
@@ -64,6 +47,15 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
 
     static final boolean USE_POOL = true;
     static final String DEFAULT_CHARSET = "utf-8";
+    static final Set<String> GZIP_MIME_TYPES;
+    static {
+	Set<String> s = new HashSet<String>();
+	s.add( "application/x-javascript" );
+	s.add( "text/css" );
+	s.add( "text/html" );
+	s.add( "text/plain" );
+	GZIP_MIME_TYPES = Collections.unmodifiableSet( s );
+    }
 
     public static final DateFormat HeaderTimeFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
     public static final String SERVER_HEADERS;
@@ -247,6 +239,18 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
     public String getContentType(){
         return getHeader( "Content-Type" );
     }
+    
+    public String getContentMimeType(){
+	String ct = getContentType();
+	if ( ct == null )
+	    return null;
+	
+	int idx = ct.indexOf( ";" );
+	if ( idx < 0 )
+	    return ct.trim();
+
+	return ct.substring( 0 , idx ).trim();
+    }
 
     public void clearHeaders(){
         _headers.clear();
@@ -369,13 +373,17 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
      */
     public boolean done()
         throws IOException {
-
+	
         if ( _cleaned )
             return true;
-
+	
         _done = true;
         if ( _doneTime <= 0 )
             _doneTime = System.currentTimeMillis();
+	
+	if ( ! _sentHeader )
+	    _gzip = useGZIP();
+
         boolean f = flush();
         if ( f )
             cleanup();
@@ -437,7 +445,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
 
         if ( _numDataThings() > 1 )
             throw new RuntimeException( "too much data" );
-        
+	
 	
         if ( ! _sentHeader ){
             final String header = _genHeader();
@@ -858,6 +866,44 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
         return end - _request._startTime;
     }
 
+    boolean useGZIP(){
+	if ( ! _done )
+	    return false;
+	
+	if ( ! _request.gzip() )
+	    return false;
+	
+	if ( ! GZIP_MIME_TYPES.contains( getContentMimeType() ) )
+	    return false;
+
+	if ( _stringContent != null && _stringContentSent == 0 && _stringContentPos == 0 ){
+
+	    if ( _writer != null ){
+		_writer._push();
+		_writer = null;
+	    }
+
+	    setHeader("Content-Encoding" , "gzip" );
+	    setHeader("Vary" , "Accept-Encoding" );
+	    
+	    List<ByteBuffer> zipped = ZipUtil.gzip( _stringContent , _bbPool );
+	    
+	    for ( ByteBuffer buf : _stringContent )
+		_bbPool.done( buf );
+	    _stringContent = zipped;
+	    _myStringContent = zipped;
+	    
+	    long length = 0;
+	    for ( ByteBuffer buf : _stringContent ){
+		length += buf.remaining();
+	    }
+	    setContentLength( length );
+	    return true;
+	}
+	
+	return false;
+    }
+
     final HttpRequest _request;
     final HttpServer.HttpSocketHandler _handler;
 
@@ -867,6 +913,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
     boolean _useDefaultHeaders = true;
     List<Cookie> _cookies = new ArrayList<Cookie>();
     boolean _sentHeader = false;
+    boolean _gzip = false;
 
     // data
     List<ByteBuffer> _stringContent = null;

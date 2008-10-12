@@ -261,6 +261,18 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest {
         return _http11;
     }
     
+    public boolean gzip(){
+	String ua = getHeader( "User-Agent" );
+	if ( ua == null )
+	    return false; // weird case, no gzip
+	
+	if ( ua.indexOf( "MSIE 4" ) >= 0 )
+	    return false;
+	
+	String ae = getHeader( "Accept-Encoding" );
+	return ae != null && ae.toLowerCase().contains( "gzip" );
+    }
+    
     // header stuff
 
     public String getReferer(){
