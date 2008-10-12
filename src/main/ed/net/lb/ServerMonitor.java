@@ -84,7 +84,7 @@ public class ServerMonitor extends Thread {
 	Monitor( Server s ){
 	    _server = s;
 	    String host = s._addr.getHostName();
-	    if ( host.indexOf( "." ) < 0 )
+	    if ( host.indexOf( "." ) < 0 && ! host.equalsIgnoreCase( "localhost" ) && ! host.equalsIgnoreCase( "local" ) )
 		host += "." + Config.getInternalDomain();
 	    else if ( ! host.contains( Config.getInternalDomain()  ) )
 		throw new RuntimeException( "invalid host [" + host + "]" );
