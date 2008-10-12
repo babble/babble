@@ -105,8 +105,10 @@ public class TextMapping extends MappingBase {
                 addSiteMapping( current , line.substring( 0 , idx ).trim() , line.substring( idx + 1 ).trim() );
                 continue;
             }
-            
-            addAddressToPool( current , line.trim() );
+	    
+	    line = line.trim();
+	    if ( line.length() > 0 )
+		addAddressToPool( current , line );
         }
     }
 
