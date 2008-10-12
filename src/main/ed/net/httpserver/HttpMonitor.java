@@ -155,8 +155,14 @@ public abstract class HttpMonitor implements HttpHandler {
                 out.print( element + "<br>\n" );
         }
 	
-        if ( html )
-            out.print( "</body></html>" );
+        if ( html ){
+	    
+	    int refresh = request.getInt( "refresh" , 0 );
+	    if ( refresh > 0 )
+		out.print( "\n<meta http-equiv='refresh' content='" + refresh + "'/>" );
+
+            out.print( "\n</body></html>" );
+	}
     }
     
     public double priority(){
