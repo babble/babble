@@ -68,7 +68,7 @@ public class ByteBufferOutputStream extends OutputStream  {
     
     private ByteBuffer _need( int space ){
 	if ( _lst.size() == 0 ){
-	    _lst.add( _factory.create() );
+	    _lst.add( _factory.get() );
 	    return _lst.get( 0 );
 	}
 
@@ -76,7 +76,7 @@ public class ByteBufferOutputStream extends OutputStream  {
 	if ( space <= cur.remaining() )
 	    return cur;
 
-	_lst.add( _factory.create() );
+	_lst.add( _factory.get() );
 	return _lst.get( _lst.size() - 1 );
     }
 

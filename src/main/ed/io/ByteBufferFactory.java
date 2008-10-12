@@ -21,14 +21,14 @@ package ed.io;
 import java.nio.*;
 
 public interface ByteBufferFactory {
-    public ByteBuffer create();
+    public ByteBuffer get();
 
     public static class SimpleHeapByteBufferFactory implements ByteBufferFactory {
 	public SimpleHeapByteBufferFactory( int size ){
 	    _size = size;
 	}
 	
-	public ByteBuffer create(){
+	public ByteBuffer get(){
 	    return ByteBuffer.wrap( new byte[_size] );
 	}
 

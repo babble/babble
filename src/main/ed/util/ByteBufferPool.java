@@ -20,8 +20,10 @@ package ed.util;
 
 import java.nio.*;
 
+import ed.io.*;
+
 /** @expose */
-public class ByteBufferPool extends SimplePool<ByteBuffer> {
+public class ByteBufferPool extends SimplePool<ByteBuffer> implements ByteBufferFactory {
 
     /** Initializes this pool with a given number of byte buffers to keep and size.
      * @param maxToKeep The number of byte buffers allowed
