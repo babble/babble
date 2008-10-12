@@ -65,6 +65,13 @@ public class ByteBufferOutputStream extends OutputStream  {
     public List<ByteBuffer> getBuffers(){
 	return _lst;
     }
+
+    public List<ByteBuffer> getBuffers( boolean flip ){
+	if ( flip )
+	    for ( ByteBuffer buf : _lst )
+		buf.flip();
+	return _lst;
+    }
     
     private ByteBuffer _need( int space ){
 	if ( _lst.size() == 0 ){

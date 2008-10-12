@@ -30,8 +30,9 @@ public class ByteBufferInputStream extends InputStream {
 
     public ByteBufferInputStream( List<ByteBuffer> lst , boolean flip ){
 	_lst = lst;
-	for ( ByteBuffer buf : _lst )
-	    buf.flip();
+	if ( flip )
+	    for ( ByteBuffer buf : _lst )
+		buf.flip();
     }
     
     public int available(){
