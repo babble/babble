@@ -66,6 +66,16 @@ public class URLFixerTest extends ed.TestCase {
         assertClose( "http://static.10gen.com/www.bar.com/www.foo.com/1.jpg?lm=1&ctxt=nullnull" , f.fix( "1.jpg?lm=1" ) );
     }    
     
+
+    @Test(groups = {"basic"})    
+    public void testWWW(){    
+	AppContext c = new AppContext( "/data/sites/www/www/" );
+	AppRequest r = new AppRequest( c , HttpRequest.getDummy( "/foo" , "Host: www.10gen.com" ) );
+	URLFixer f = new URLFixer( r._request , r );
+
+	assertClose( "http://static.10gen.com/www.10gen.com/1.jpg?ctxt=wwwnull&lm=doesntexist" , f.fix( "/1.jpg" ) );
+    }
+
     public static void main( String args[] ){
         (new URLFixerTest()).runConsole();
     }
