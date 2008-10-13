@@ -24,11 +24,16 @@ import java.text.*;
 public class PrintStreamAppender implements Appender {
 
     public PrintStreamAppender( PrintStream out ){
+        this( out , new EventFormatter.DefaultEventFormatter() );
+    }
+
+    public PrintStreamAppender( PrintStream out , EventFormatter formatter ){
         _out = out;
+        _formatter = formatter;
     }
 
     public void append( final Event e ){
-	String output = "[" + e._date.format( _format ) + "] " + e._thread.getName() + " || " + e._loggerName + " " + e._level + " >> " + e._msg + "\n";
+	String output = _formatter.format( e );
 	
         try {
             _out.write( output.getBytes( "utf8" ) );
@@ -41,5 +46,5 @@ public class PrintStreamAppender implements Appender {
     }
 
     final PrintStream _out;
-    static final SimpleDateFormat _format = new SimpleDateFormat( "MM/dd/yyyy hh:mm:ss.SSS z" );
+    final EventFormatter _formatter;
 }
