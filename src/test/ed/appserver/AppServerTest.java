@@ -30,7 +30,7 @@ public class AppServerTest extends ed.TestCase {
     public void testGetContext(){
         AppContextHolder as = new AppContextHolder( _root + "admin" , _root );
 
-        assertEquals( _root + "alleyinsider" , as.getContext( "alleyinsider.latenightcoders.com" , ""  ).getRoot() );
+        assertEquals( _root + "alleyinsider" , as.getContext( "alleyinsider.10gen.com" , ""  ).getRoot() );
         assertEquals( _root + "alleyinsider" , as.getContext( "alleyinsider.com" , ""  ).getRoot() );
         
         assertEquals( _root + "admin" , as.getContext( "sb1.latenightcoders.com" , ""  ).getRoot() );
