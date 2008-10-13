@@ -141,7 +141,7 @@ public abstract class HttpMonitor implements HttpHandler {
                     out.print( sc );
             }
         }
-
+	
         try {
             handle( mr );
 	    if ( mr.json() ){
@@ -157,9 +157,31 @@ public abstract class HttpMonitor implements HttpHandler {
 	
         if ( html ){
 	    
+	    out.print( "\n<hr>\n" );
+	    
+	    final String full = request.getFullURL();
+	    
 	    int refresh = request.getInt( "refresh" , 0 );
-	    if ( refresh > 0 )
-		out.print( "\n<meta http-equiv='refresh' content='" + refresh + "'/>" );
+	    if ( refresh > 0 ){
+		out.print( "<meta http-equiv='refresh' content='" + refresh + "'/>\n" );
+		out.print( "<br><a href=\"" );
+		out.print( full.replace( "refresh=\\d+" , "" ) );
+		out.print( "\">stop refresh</a>" );
+	    }
+	    else {
+		out.print( "<a href=\"" );
+		out.print( full );
+		if ( full.indexOf( "?" ) < 0 )
+		    out.print( "?" );
+		else 
+		    out.print( "&" );
+		out.print( "refresh=10\" >auto refresh this page</a>" );
+	    }
+		
+	    out.print("<br>" );
+	    out.print( (new java.util.Date()).toString() );
+	    out.print( "<bR>" );
+	    out.print( DNSUtil.getLocalHostString() );
 
             out.print( "\n</body></html>" );
 	}
