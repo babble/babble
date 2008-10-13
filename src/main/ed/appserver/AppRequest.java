@@ -26,8 +26,9 @@ import ed.net.httpserver.*;
 import ed.log.*;
 import ed.appserver.jxp.*;
 import ed.lang.*;
+import ed.util.*;
 
-public class AppRequest {
+public class AppRequest implements Sizable {
     
     AppRequest( AppContext context , HttpRequest request ) {
         this( context , request , request.getHost() , request.getURI() );
@@ -349,6 +350,14 @@ public class AppRequest {
         AppRequest ar = _tl.get();
         if ( ar != null )
             ar._somethingCompiled = true;
+    }
+
+    public long approxSize( IdentitySet seen ){
+        long s = 0;
+        s += JSObjectSize.size( _request , seen );
+        s += JSObjectSize.size( _scope , seen );
+        s += JSObjectSize.size( _response , seen );
+        return s;
     }
 
     final String _uri;

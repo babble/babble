@@ -36,7 +36,7 @@ import ed.appserver.*;
  * @expose
  * @docmodule system.HTTP.request
  */
-public class HttpRequest extends JSObjectLame implements HttpServletRequest {
+public class HttpRequest extends JSObjectLame implements HttpServletRequest , Sizable {
     
     public static final String REAL_IP_HEADER = "X-Cluster-Client-Ip";
 
@@ -227,6 +227,10 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest {
         int size = _rawHeader.length();
         size += getIntHeader( "Content-Length" , 0 );
         return size;
+    }
+
+    public long approxSize( IdentitySet seen ){
+        return totalSize();
     }
 
     /**
