@@ -8,6 +8,7 @@ import java.util.*;
 
 import ed.io.*;
 import ed.js.*;
+import ed.util.*;
 
 /**
  * @expose
@@ -166,7 +167,7 @@ public abstract class DBApiLayer extends DBBase {
 	    return getRootNamespacesLocal();
 
         if ( ip.indexOf( "." ) < 0 )
-            ip += ".10gen.cc";
+            ip += "." + Config.getInternalDomain();
 
         SysExec.Result r = SysExec.exec( "ssh -o StrictHostKeyChecking=no " + ip + " ls /data/db/" );
 
