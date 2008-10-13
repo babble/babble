@@ -129,7 +129,11 @@ public class ByteDecoder extends Bytes {
             double val = _buf.getDouble();
             o.set( name , val );
             break;
-
+	    
+	case NUMBER_INT:
+	    o.set( name , _buf.getInt() );
+	    break;
+	    
         case SYMBOL:
         case STRING:
             int size = _buf.getInt() - 1;

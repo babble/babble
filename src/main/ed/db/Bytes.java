@@ -41,6 +41,7 @@ public class Bytes {
     static final byte CODE = 13;
     static final byte SYMBOL = 14;
     static final byte CODE_W_SCOPE = 15;
+    static final byte NUMBER_INT = 16;
     
     
     /* 

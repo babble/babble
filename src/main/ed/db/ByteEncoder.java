@@ -271,8 +271,14 @@ public class ByteEncoder extends Bytes {
 
     protected int putNumber( String name , Number n ){
         int start = _buf.position();
-        _put( NUMBER , name );
-        _buf.putDouble( n.doubleValue() );
+	if ( n instanceof Integer ){
+	    _put( NUMBER_INT , name );
+	    _buf.putInt( n.intValue() );
+	}
+	else {
+	    _put( NUMBER , name );
+	    _buf.putDouble( n.doubleValue() );
+	}
         return _buf.position() - start;
     }
 
