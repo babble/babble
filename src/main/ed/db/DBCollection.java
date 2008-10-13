@@ -300,6 +300,7 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
 	    if ( temp != null && ! ( temp instanceof ObjectId ) )
 		throw new RuntimeException( "_id has to be an ObjectId" );
 	    id = (ObjectId)temp;
+            DBRef.objectSaved( id );
 	}
         if ( DEBUG ) System.out.println( "id : " + id );
 

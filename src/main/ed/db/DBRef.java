@@ -135,6 +135,17 @@ public class DBRef extends JSObjectBase {
     private JSObject _pointedTo;
     
 
+    static void objectSaved( ObjectId id ){
+        if ( id == null )
+            return;
+        
+        RefCache rc = getRefCache();
+        if ( rc == null )
+            return;
+
+        rc.remove( id );
+    }
+    
     private static RefCache getRefCache(){
         AppRequest r = AppRequest.getThreadLocal();
         if ( r == null )
