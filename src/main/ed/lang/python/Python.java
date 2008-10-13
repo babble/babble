@@ -171,6 +171,9 @@ public class Python extends Language {
         if ( o instanceof DBRef )
             o = ((DBRef)o).doLoad();
 
+        if ( o == null )
+            return Py.None;
+
         if ( o instanceof JSPyObjectWrapper )
             return ((JSPyObjectWrapper)o).getContained();
 
