@@ -290,9 +290,6 @@ public class Logger extends JSFunctionCalls2 {
 
         String msg = msgObject == null ? null : msgObject.toString();
 
-        JSDate date = new JSDate();
-        Thread thread = Thread.currentThread();
-        
         try {
             StackTraceHolder.getInstance().fix( throwable );
         }
@@ -300,11 +297,13 @@ public class Logger extends JSFunctionCalls2 {
             System.err.println( "couldn't fix stack trace" );
             t.printStackTrace();
         }
+
+        final Event e = new Event( _fullName , new JSDate() , level , msg , throwable , Thread.currentThread() );
         
         Appender tl = _tlAppender.get();
         if ( tl != null ){
             try {
-                tl.append( _fullName , date , level , msg , throwable , thread );
+                tl.append( e );
             }
             catch ( Throwable t ){
                 System.err.println( "error running tl appender" );
@@ -319,7 +318,7 @@ public class Logger extends JSFunctionCalls2 {
             if ( l._appenders != null ){
                 for ( int i=0; i < l._appenders.size(); i++ ){
                     try {
-                        l._appenders.get(i).append( _fullName , date , level , msg , throwable , thread );
+                        l._appenders.get(i).append( e );
                     }
                     catch ( Throwable t ){
                         System.err.println( "error running appender" );
@@ -335,12 +334,29 @@ public class Logger extends JSFunctionCalls2 {
                 }
             }
             
+            if ( ! l._inherit )
+                break;
+
             l = l._parent;
         }
     }
 
+    public void addAppender( Appender a ){
+        if ( _appenders == null )
+            _appenders = new ArrayList<Appender>();
+        _appenders.add( a );
+    }
+
     public void setLevel( Level l ){
         _level = l;
+    }
+
+    public void setInherit( boolean inherit ){
+        _inherit = inherit;
+    }
+
+    public boolean inherits(){
+        return _inherit;
     }
 
     public String getFullName(){
@@ -366,13 +382,15 @@ public class Logger extends JSFunctionCalls2 {
     final Logger _parent;
     final String _name;
     final String _fullName;
+
+    private boolean _inherit = true;
     private JSDate _sentEmail;
     List<Appender> _appenders;
     Level _level = null;
     final Map<Level,JSFunction> _levelLoggers = Collections.synchronizedMap( new TreeMap<Level,JSFunction>() );
-
+    
     static final ThreadLocal<Logger> _tl = new ThreadLocal<Logger>();
-
+    
     private final static Map<String,Logger> _fullNameToLogger = Collections.synchronizedMap( new HashMap<String,Logger>() );
     private final static List<Appender> _defaultAppenders;
     static {

@@ -28,11 +28,14 @@ public class JSAppender extends JSObjectWrapper implements Appender  {
         _func = func;
     }
 
-    public void append( String loggerName , JSDate date , Level level , String msg , Throwable throwable , Thread thread ){
-        _func.call( Scope.getThreadLocal() , loggerName , date , level , msg , throwable , thread , EMPTY );
+    public void append( Event e ){
+        if ( _func.getNumParameters() > 1 )
+            _func.call( Scope.getThreadLocal() , e._loggerName , e._date , e._level , e._msg , e._throwable , e._thread , EMPTY );
+        else 
+            _func.call( Scope.getThreadLocal() , e , EMPTY );
     }
 
     final JSFunction _func;
 
-    static Object[] EMPTY = new Object[0];
+    static final Object[] EMPTY = new Object[0];
 }

@@ -27,8 +27,8 @@ public class PrintStreamAppender implements Appender {
         _out = out;
     }
 
-    public void append( String loggerName , ed.js.JSDate date , Level level , String msg , Throwable throwable , Thread thread ){
-	String output = "[" + date.format( _format ) + "] " + thread.getName() + " || " + loggerName + " " + level + " >> " + msg + "\n";
+    public void append( final Event e ){
+	String output = "[" + e._date.format( _format ) + "] " + e._thread.getName() + " || " + e._loggerName + " " + e._level + " >> " + e._msg + "\n";
 	
         try {
             _out.write( output.getBytes( "utf8" ) );
@@ -36,8 +36,8 @@ public class PrintStreamAppender implements Appender {
         catch ( IOException encodingBad ){
             _out.print( output );
         }
-        if ( throwable != null )
-            throwable.printStackTrace( _out );
+        if ( e._throwable != null )
+            e._throwable.printStackTrace( _out );
     }
 
     final PrintStream _out;

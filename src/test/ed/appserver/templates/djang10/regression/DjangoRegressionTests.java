@@ -53,6 +53,7 @@ import ed.js.func.JSFunctionCalls2;
 import ed.log.Appender;
 import ed.log.Level;
 import ed.log.Logger;
+import ed.log.Event;
 
 public class DjangoRegressionTests {
     private static final String TEST_DIR =  "src/test/ed/appserver/templates/djang10/regression/";
@@ -121,10 +122,10 @@ public class DjangoRegressionTests {
 
         defaultAppenders.clear();
         defaultAppenders.add(new Appender() {
-            public void append(String loggerName, JSDate date, Level level, String msg, Throwable throwable, Thread thread) {
-                if(!loggerName.contains("djang10") || (Level.INFO.compareTo(level) < 0)) {
+            public void append(Event e) {
+                if(!e.getLoggerName().contains("djang10") || (Level.INFO.compareTo(e.getLevel()) < 0)) {
                     for(Appender appender : oldAppenders)
-                        appender.append(loggerName, date, level, msg, throwable, thread);
+                        appender.append(e);
                 }
             }
         });
@@ -396,17 +397,17 @@ public class DjangoRegressionTests {
             };
         };
         private final Appender appender = new Appender() {
-            public void append(String loggerName, JSDate date, Level level, String msg, Throwable throwable, Thread thread) {
-                logMessages.append(loggerName)
+            public void append(Event e) {
+                logMessages.append(e.getLoggerName())
                     .append(' ')
-                    .append(level)
+                    .append(e.getLevel())
                     .append(' ')
-                    .append(msg)
+                    .append(e.getMsg())
                     .append('\n');
                 
-                if(throwable != null) {
+                if(e.getThrowable() != null) {
                     StringWriter buffer = new StringWriter();
-                    throwable.printStackTrace(new PrintWriter(buffer));
+                    e.getThrowable().printStackTrace(new PrintWriter(buffer));
                     logMessages.append(buffer);
                 }
             };
