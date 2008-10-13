@@ -18,7 +18,14 @@ public class WebViews {
         }
         
         public void handle( MonitorRequest mr ){
-            mr.getWriter().print( "overview" );
+	    JxpWriter out = mr.getWriter();
+	    mr.addHeader( "overview" );
+
+	    out.print( "<div>" );
+            _lb._loadMonitor._all.getMinutes().displayGraph( out );
+	    out.print( "</div>" );
+
+	    displayLast( mr , _lb , 50 );
         }
         
         final LB _lb;
@@ -32,48 +39,7 @@ public class WebViews {
         }
         
         public void handle( MonitorRequest mr ){
-            JxpWriter out = mr.getWriter();
-            
-            out.print( "<table border='1' >" );
-            
-            out.print( "<tr>" );
-            out.print( "<th>Host</th>" );
-            out.print( "<th>URL</th>" );
-            out.print( "<th>Server</th>" );
-            out.print( "<th>Started</th>" );
-            
-            out.print( "<th>Code</th>" );
-            out.print( "<th>Lenghth</th>" );
-            out.print( "<th>time</th>" );
-            
-            out.print( "</tr>\n" );
-            
-            for ( int i=0; i<_lb._lastCalls.length; i++ ){
-                int pos = ( _lb._lastCallsPos - i ) - 1;
-                if ( pos < 0 )
-                    pos += 1000;
-                
-                LB.RR rr = _lb._lastCalls[pos];
-                
-                if ( rr == null )
-                    break;
-                
-                out.print( "<tr>" );
-                mr.addTableCell( rr._request.getHost() );
-                mr.addTableCell( rr._request.getURL() );
-                mr.addTableCell( rr.lastWent() );
-                mr.addTableCell( SHORT_TIME.format( new Date( rr.getStartedTime() ) ) );
-                if ( rr.isDone() ){
-                    int rc = rr._response.getResponseCode();
-                    mr.addTableCell( rc , rc >= 500 ? "error" : null );
-                    mr.addTableCell( rr._response.getContentLength() );
-                    
-                    long tt = rr.getTotalTime();
-                    mr.addTableCell( tt , tt > 2000 ? "error" : ( tt > 300 ? "warn" : null ) );
-                }
-                out.print( "</tr>\n" );
-            }
-            out.print( "</table>" );
+	    displayLast( mr , _lb );
         }
 
         final LB _lb;
@@ -87,7 +53,6 @@ public class WebViews {
         
         public void handle( MonitorRequest request ){
             _lm._all.displayGraph( request.getWriter() );
-
         }
         
         final LoadMonitor _lm;
@@ -130,6 +95,55 @@ public class WebViews {
         }
 
         final Router _router;
+    }
+
+    static void displayLast( HttpMonitor.MonitorRequest mr , LB lb ){
+	displayLast( mr , lb , lb._lastCalls.length );
+    }
+
+    static void displayLast( HttpMonitor.MonitorRequest mr , LB lb , int num ){
+	JxpWriter out = mr.getWriter();
+	
+	out.print( "<table border='1' >" );
+        
+	out.print( "<tr>" );
+	out.print( "<th>Host</th>" );
+	out.print( "<th>URL</th>" );
+	out.print( "<th>Server</th>" );
+	out.print( "<th>Started</th>" );
+        
+	out.print( "<th>Code</th>" );
+	out.print( "<th>Lenghth</th>" );
+	out.print( "<th>time</th>" );
+        
+	out.print( "</tr>\n" );
+        
+	for ( int i=0; i<num; i++ ){
+	    int pos = ( lb._lastCallsPos - i ) - 1;
+	    if ( pos < 0 )
+		pos += 1000;
+	    
+	    LB.RR rr = lb._lastCalls[pos];
+            
+	    if ( rr == null )
+		break;
+	    
+	    out.print( "<tr>" );
+	    mr.addTableCell( rr._request.getHost() );
+	    mr.addTableCell( rr._request.getURL() );
+	    mr.addTableCell( rr.lastWent() );
+	    mr.addTableCell( SHORT_TIME.format( new Date( rr.getStartedTime() ) ) );
+	    if ( rr.isDone() ){
+		int rc = rr._response.getResponseCode();
+		mr.addTableCell( rc , rc >= 500 ? "error" : null );
+		mr.addTableCell( rr._response.getContentLength() );
+                
+		long tt = rr.getTotalTime();
+		mr.addTableCell( tt , tt > 2000 ? "error" : ( tt > 300 ? "warn" : null ) );
+	    }
+	    out.print( "</tr>\n" );
+	}
+	out.print( "</table>" );
     }
 
     public static final SimpleDateFormat SHORT_TIME = new SimpleDateFormat( "MM/dd HH:mm:ss.S" );

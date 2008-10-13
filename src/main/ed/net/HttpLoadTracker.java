@@ -52,6 +52,18 @@ public class HttpLoadTracker {
             _short.displayGraph( out , options );
             _minutes.displayGraph( out , options );
         }
+
+	public HttpLoadTracker getSeconds(){
+	    return _seconds;
+	}
+
+	public HttpLoadTracker getShort(){
+	    return _short;
+	}
+
+	public HttpLoadTracker getMinutes(){
+	    return _minutes;
+	}
             
         final String _name;
         final HttpLoadTracker _seconds;
@@ -103,7 +115,7 @@ public class HttpLoadTracker {
 
     public void displayGraph( JxpWriter out , GraphOptions options ){
         cycle();
-        out.print( "\n<div class='loadGraph' style='clear: both;'>\n" );
+        out.print( "\n<div class='loadGraph' style='clear: both; height:" + ( ( options._height * 1.4 ) + 25 ) + ";'>\n" );
         
         out.print( "<h4>" );
         out.print( _name );
