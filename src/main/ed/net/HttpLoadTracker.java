@@ -43,6 +43,12 @@ public class HttpLoadTracker {
             _minutes.hit( request , response );
         }
 
+	public void networkEvent(){
+	    _seconds.networkEvent();
+	    _short.networkEvent();
+	    _minutes.networkEvent();
+	}
+
         public void displayGraph( JxpWriter out ){
             displayGraph( out , DEFAULTS );
         }
@@ -84,7 +90,12 @@ public class HttpLoadTracker {
         _dataIn = new ThingsPerTimeTracker( _sliceTime , _intervals );
         _dataOut = new ThingsPerTimeTracker( _sliceTime , _intervals );
         _errors = new ThingsPerTimeTracker( _sliceTime , _intervals );
+        _networkEvents = new ThingsPerTimeTracker( _sliceTime , _intervals );
         _totalTime = new ThingsPerTimeTracker( _sliceTime , _intervals );
+    }
+    
+    public void networkEvent(){
+	_networkEvents.hit();
     }
     
     public void hit( HttpRequest request , HttpResponse response ){
@@ -106,6 +117,7 @@ public class HttpLoadTracker {
         _dataIn.hit(0);
         _dataOut.hit(0);
         _errors.hit(0);
+	_networkEvents.hit(0);
         _totalTime.hit(0);
     }
 
@@ -204,11 +216,12 @@ public class HttpLoadTracker {
     final String _name;
     final long _sliceTime;
     final int _intervals;
-
+    
     final ThingsPerTimeTracker _requests;
     final ThingsPerTimeTracker _dataIn;
     final ThingsPerTimeTracker _dataOut;
     final ThingsPerTimeTracker _errors;
+    final ThingsPerTimeTracker _networkEvents;
     final ThingsPerTimeTracker _totalTime;
 
     public static class GraphOptions {
