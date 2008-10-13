@@ -396,6 +396,7 @@ public class Logger extends JSFunctionCalls2 {
     static {
         List<Appender> lst = new ArrayList<Appender>();
         lst.add( new ConsoleAppender() );
+        lst.add( InMemoryAppender.getInstance() );
         _defaultAppenders = Collections.unmodifiableList( lst );
     }
 }

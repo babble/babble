@@ -19,7 +19,7 @@
 package ed.util;
 
 public class CircularList<T> {
-    CircularList( int capactiy , boolean fifo ){
+    public CircularList( int capactiy , boolean fifo ){
         _array = (T[])(new Object[capactiy]);
         _pos = 0;
         _size = 0;
