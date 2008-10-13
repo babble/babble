@@ -22,7 +22,7 @@ public class WebViews {
 	    mr.addHeader( "overview" );
 
 	    out.print( "<div>" );
-            _lb._loadMonitor._all.getMinutes().displayGraph( out );
+            _lb._loadMonitor._all.getShort().displayGraph( out );
 	    out.print( "</div>" );
 
 	    displayLast( mr , _lb , 50 );
@@ -86,6 +86,37 @@ public class WebViews {
                 
                 out.print( "<td>" );
                 p._tracker.displayGraph( out );
+                out.print( "</td>" );
+                
+                out.print( "</tr>" );
+            }
+            
+            out.print( "</table>" );
+        }
+
+        final Router _router;
+    }
+
+    static class RouterServers extends HttpMonitor {
+        RouterServers( Router r ){
+            super( "lb-servers" );
+            _router = r;
+        }
+
+        
+        public void handle( MonitorRequest request ){
+	    List<Server> servers = _router.getServers();
+	    Collections.sort( servers );
+	    
+            JxpWriter out = request.getWriter();
+	    
+            out.print( "<table>" );
+            
+            for ( Server s : servers ){
+                out.print( "<tr>" );
+                
+                out.print( "<td>" );
+                s._tracker.displayGraph( out );
                 out.print( "</td>" );
                 
                 out.print( "</tr>" );

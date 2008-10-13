@@ -131,6 +131,7 @@ public class LB extends NIOClient {
         
         protected void error( ServerErrorType type , Exception e ){
             _logger.debug( 1 , "backend error" , e );
+	    _loadMonitor._all.networkEvent();
             _router.error( _request , _response , _lastWent , type , e );
             
             if ( type != ServerErrorType.WEIRD && 
@@ -394,10 +395,11 @@ public class LB extends NIOClient {
     void _addMonitors(){
         HttpServer.addGlobalHandler( new WebViews.LBOverview( this ) );
         HttpServer.addGlobalHandler( new WebViews.LBLast( this ) );
-        
+	
         HttpServer.addGlobalHandler( new WebViews.LoadMonitorWebView( this._loadMonitor ) );
         
         HttpServer.addGlobalHandler( new WebViews.RouterPools( this._router ) );
+        HttpServer.addGlobalHandler( new WebViews.RouterServers( this._router ) );
 
         HttpServer.addGlobalHandler( new HttpHandler(){
                 public boolean handles( HttpRequest request , Info info ){

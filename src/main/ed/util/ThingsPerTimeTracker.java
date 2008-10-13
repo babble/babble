@@ -26,9 +26,22 @@ public class ThingsPerTimeTracker {
      * @param intervalsBack the number of intervals to save
      */
     public ThingsPerTimeTracker( long interval , int intervalsBack ){
+	this( "unnamed" , interval , intervalsBack );
+    }
+
+    /** Initializes a new time tracker
+     * @param interval bucket size.  so for per second, use 1000
+     * @param intervalsBack the number of intervals to save
+     */
+    public ThingsPerTimeTracker( String name , long interval , int intervalsBack ){
+	_name = name;
         _interval = interval;
         _counts = new long[intervalsBack];
         _lastBucket = System.currentTimeMillis();
+    }
+
+    public String getName(){
+	return _name;
     }
 
     /** Add one to a bucket */
@@ -94,6 +107,8 @@ public class ThingsPerTimeTracker {
 	    max = Math.max( max , _counts[i] );
 	return max;
     }
+
+    final String _name;
 
     private long _lastBucket;
     private int _pos = 0;

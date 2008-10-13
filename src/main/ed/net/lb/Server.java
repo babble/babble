@@ -25,7 +25,7 @@ import ed.net.*;
 import ed.net.httpserver.*;
 import static ed.net.lb.Mapping.*;
 
-public class Server {
+public class Server implements Comparable<Server> {
     Server( InetSocketAddress addr ){
         if ( addr == null )
             throw new NullPointerException( "addr can't be null" );
@@ -43,6 +43,7 @@ public class Server {
     
     void error( Environment env , NIOClient.ServerErrorType type , Exception what , HttpRequest request , HttpResponse response ){
 	_inErrorState = true;
+	_tracker.networkEvent();
         _tracker.hit( request , response );
     }
     
@@ -73,7 +74,11 @@ public class Server {
 	}
 	
 	// TODO
-	
+       
+    }
+
+    public int compareTo( Server s ){
+	return this._addr.toString().compareTo( s._addr.toString() );
     }
 
     public int hashCode(){

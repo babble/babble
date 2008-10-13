@@ -61,6 +61,7 @@ public class Router {
 
     public void error( HttpRequest request , HttpResponse response , InetSocketAddress addr , NIOClient.ServerErrorType type , Exception what ){
         final Environment e = _mapping.getEnvironment( request );
+	getPool( _mapping.getPool( e ) )._tracker.networkEvent();
         if ( addr != null )
             getServer( addr ).error( e , type , what , request , response  );
         
@@ -92,6 +93,10 @@ public class Router {
             _pools.put( name , p );
         }
         return p;
+    }
+    
+    List<Server> getServers(){
+	return new ArrayList<Server>( _addressToServer.values() );
     }
     
     Server getServer( InetSocketAddress addr ){
