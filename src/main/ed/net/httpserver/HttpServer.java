@@ -58,10 +58,6 @@ public class HttpServer extends NIOServer {
         
         _numRequests++;
         _tracker.hit( null , null );
-        //_reqPerSecTracker.hit();
-        //_reqPerSmallTracker.hit();
-        //_reqPerMinTracker.hit();
-
         _requestPipe.write( request.getFullURL() );
 
         HttpHandler.Info info = new HttpHandler.Info();
@@ -388,11 +384,6 @@ public class HttpServer extends NIOServer {
 
     private static HttpLoadTracker.Rolling _tracker = new HttpLoadTracker.Rolling( "webserver" );
     private static HttpLoadTracker.GraphOptions _trackerOptions = new HttpLoadTracker.GraphOptions( 600 , 120 , true , false , false );
-
-    //private static ThingsPerTimeTracker _reqPerSecTracker = new ThingsPerTimeTracker( 1000  , 30 );
-    //private static ThingsPerTimeTracker _reqPerSmallTracker = new ThingsPerTimeTracker( 1000 * 10 , 30 );
-    //private static ThingsPerTimeTracker _reqPerMinTracker = new ThingsPerTimeTracker( 1000 * 60 , 30 );
-    
 
     // ---
 
