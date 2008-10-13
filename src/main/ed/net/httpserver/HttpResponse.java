@@ -44,9 +44,10 @@ import ed.appserver.*;
  * @docmodule system.HTTP.response
  */
 public class HttpResponse extends JSObjectBase implements HttpServletResponse {
-
+    
     static final boolean USE_POOL = true;
     static final String DEFAULT_CHARSET = "utf-8";
+    static final long MIN_GZIP_SIZE = 1000;
     static final Set<String> GZIP_MIME_TYPES;
     static {
 	Set<String> s = new HashSet<String>();
@@ -56,7 +57,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
 	s.add( "text/plain" );
 	GZIP_MIME_TYPES = Collections.unmodifiableSet( s );
     }
-
+    
     public static final DateFormat HeaderTimeFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
     public static final String SERVER_HEADERS;
 
@@ -882,6 +883,9 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
 		_writer._push();
 		_writer = null;
 	    }
+
+	    if ( _stringContent.get(0).limit() < MIN_GZIP_SIZE )
+		return false;
 
 	    setHeader("Content-Encoding" , "gzip" );
 	    setHeader("Vary" , "Accept-Encoding" );
