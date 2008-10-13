@@ -877,7 +877,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
 	if ( ! GZIP_MIME_TYPES.contains( getContentMimeType() ) )
 	    return false;
 
-	if ( _stringContent != null && _stringContentSent == 0 && _stringContentPos == 0 ){
+	if ( _stringContent != null && _stringContent.size() > 0 && _stringContentSent == 0 && _stringContentPos == 0 ){
 
 	    if ( _writer != null ){
 		_writer._push();
