@@ -144,6 +144,32 @@ public class PyJSArrayWrapper extends PyList {
         return toPython( _js.remove( i ) );
     }
 
+    @ExposedMethod
+    public PyObject jsarraywrapper_extend(PyObject extra){
+        throw new RuntimeException("not implemented yet");
+    }
+
+    @ExposedMethod
+    public PyObject jsarraywrapper_index(PyObject x){
+        throw new RuntimeException("not implemented yet");
+    }
+
+    @ExposedMethod
+    public PyObject jsarraywrapper_remove(PyObject x){
+        throw new RuntimeException("not implemented yet");
+    }
+
+    @ExposedMethod
+    public PyObject jsarraywrapper_reverse(){
+        throw new RuntimeException("not implemented yet");
+    }
+
+    @ExposedMethod
+    public PyObject jsarraywrapper_sort(PyObject[] args, String[] keywords){
+        // key seems to take precedence over cmp
+        throw new RuntimeException("not implemented yet");
+    }
+
     // eq, ne, lt, le, gt, ge, cmp
     // finditem, setitem, getslice, delslice -- handled for us?
     final JSArray _js;
