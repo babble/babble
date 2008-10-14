@@ -43,7 +43,12 @@ Cloud.Pool.prototype.toString = function(){
 db.pools.setConstructor( Cloud.Pool );
 
 if ( me.real ){
-    db.pools.ensureIndex( { name : 1 } );
+    try {
+        db.pools.ensureIndex( { name : 1 } );
+    }
+    catch ( e ){
+        log.error( "couldn't ensureIndex on pools : " + e );
+    }
 }
 
 // --- DB ----
@@ -77,5 +82,10 @@ Cloud.findDBByName = function( name ){
 db.dbs.setConstructor( Cloud.DB );
 
 if ( me.real ){
-    db.dbs.ensureIndex( { machine : 1 } );
+    try {
+        db.dbs.ensureIndex( { machine : 1 } );
+    }
+    catch ( e ){
+        log.error( "couldn't ensureIndex on dbs : " + e );
+    }
 }

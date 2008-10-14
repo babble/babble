@@ -554,5 +554,10 @@ Cloud.Site.forName = function( name , create ){
 
 db.sites.setConstructor( Cloud.Site );
 if ( me.real ){
-    db.sites.ensureIndex( { name : 1 } );
+    try {
+        db.sites.ensureIndex( { name : 1 } );
+    }
+    catch ( e ){
+        log.error( "couldn't ensureIndex on sites : " + e );
+    }
 }
