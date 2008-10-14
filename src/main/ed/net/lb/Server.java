@@ -111,6 +111,7 @@ public class Server implements Comparable<Server> {
     final InetSocketAddress _addr;
     final ServerMonitor.Monitor _monitor;
     final HttpLoadTracker _tracker;
+    final Logger _logger;
 
     final Set<Environment> _environmentsWithTraffic = Collections.synchronizedSet( new HashSet<Environment>() );
     long _serverStart;
