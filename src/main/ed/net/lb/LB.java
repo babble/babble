@@ -389,7 +389,9 @@ public class LB extends NIOClient {
         public void handle( HttpRequest request , HttpResponse response ){
 	    
 	    if ( request.getHeader( "X-fromlb" ) != null ){
-		_handleError( request , response , 500 , "load balancer loop?  (lb 34)" );
+		_handleError( request , response , 500 , "load balancer loop?  (lb 34)\n" + request.getFullURL() + "\n" + 
+                              "physical address:" + request.getPhysicalRemoteAddr() + "\n" +
+                              "remote address:" + request.getRemoteIP() );
 		return;
 	    }
 	    
