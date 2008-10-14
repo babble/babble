@@ -96,7 +96,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
      */
     public void setResponseCode( int rc ){
         if ( _sentHeader )
-            throw new RuntimeException( "already sent header " );
+            throw new RuntimeException( "already sent header : " + hashCode() );
         _responseCode = rc;
     }
 
@@ -477,6 +477,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
                 }
                 if ( _fileSent < _file.length() ){
                     if ( HttpServer.D ) System.out.println( "only sent : " + _fileSent );
+                    _handler._inFork = false;
                     _handler.registerForWrites();
                     return false;
                 }
@@ -492,6 +493,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
                     _stringContentPos += _handler.getChannel().write( bb );
                     if ( _stringContentPos < bb.limit() ){
                         if ( HttpServer.D ) System.out.println( "only wrote " + _stringContentPos + " out of " + bb );
+                        _handler._inFork = false;
                         _handler.registerForWrites();
                         return false;
                     }
@@ -501,10 +503,14 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
 
             if ( _jsfile != null ){
                 if ( ! _jsfile.write( _handler.getChannel() ) ){
+                    
+                    _handler._inFork = false;
+                    
                     if ( _jsfile.pause() )
                         _handler.pause();
                     else
                         _handler.registerForWrites();
+                    
                     return false;
                 }
             }

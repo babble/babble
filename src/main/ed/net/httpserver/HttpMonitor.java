@@ -114,7 +114,7 @@ public abstract class HttpMonitor implements HttpHandler {
         return true;
     }
     
-    public void handle( HttpRequest request , HttpResponse response ){
+    public boolean handle( HttpRequest request , HttpResponse response ){
 
         if ( AUTH_COOKIE != null && AUTH_COOKIE.equalsIgnoreCase( request.getParameter( "auth" ) ) ){
             Cookie c = new Cookie( "auth" , AUTH_COOKIE );
@@ -187,12 +187,14 @@ public abstract class HttpMonitor implements HttpHandler {
 
             out.print( "\n</body></html>" );
 	}
+        
+        return true;
     }
     
     public double priority(){
         return Double.MIN_VALUE;
     }
-
+    
     String _section(){
         return _section( _name );
     }
@@ -607,9 +609,10 @@ public abstract class HttpMonitor implements HttpHandler {
             return Character.isLetter( ref.charAt( idx + 2 ) );
         }
         
-        public void handle( HttpRequest request , HttpResponse response ){
+        public boolean handle( HttpRequest request , HttpResponse response ){
             response.setResponseCode( 404 );
             response.setCacheTime( 86400 );
+            return true;
         }
 
         public double priority(){
