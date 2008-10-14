@@ -93,7 +93,7 @@ public class DBRef extends JSObjectBase {
 	    return _pointedTo;
 
         if ( _db == null )
-            throw new RuntimeException( "db is null" );
+            return this;
 
         final RefCache rc = getRefCache();
         final DBCollection coll = _db.getCollectionFromString( _ns );
