@@ -63,9 +63,11 @@ public class HttpServer extends NIOServer {
         _requestPipe.write( request.getFullURL() );
 
         HttpHandler.Info info = new HttpHandler.Info();
-        for ( int i=0; i<_handlers.size(); i++ ){
+        List<HttpHandler> handlers = getHandlers();
+        for ( int i=0; i<handlers.size(); i++ ){
+            HttpHandler h = handlers.get(i);
             info.reset();
-            if ( _handlers.get( i ).handles( request , info ) ){
+            if ( h.handles( request , info ) ){
                 request._handler.pause();
                 if ( info.admin ) _numRequestsAdmin++;
 
@@ -74,7 +76,7 @@ public class HttpServer extends NIOServer {
                     
                     WorkerThreadPool tp = info.admin ? _forkThreadsAdmin : _forkThreads;
 
-                    if ( tp.offer( new Task( request , response , _handlers.get( i ) ) ) ){
+                    if ( tp.offer( new Task( request , response , h ) ) ){
                         if ( D ) System.out.println( "successfully gave thing to a forked thing" );
                         handler._inFork = true;
                         return false;
@@ -85,7 +87,7 @@ public class HttpServer extends NIOServer {
                     response.done();
                     return false;
                 }
-                if ( ! _handlers.get( i ).handle( request , response ) )
+                if ( ! h.handle( request , response ) )
                     handler._inFork = true;
                 if ( info.doneAfterHandles )
                     response.done();
@@ -322,6 +324,10 @@ public class HttpServer extends NIOServer {
         final HttpHandler _handler;
     }
 
+    private int _lastHandlerCacheSize = 0;
+    private List<HttpHandler> _lastHandlers;
+    
+    private final List<HttpHandler> _myHandlers = new ArrayList<HttpHandler>();
     private final WorkerThreadPool _forkThreads = new WorkerThreadPool( "main" , WORKER_THREADS , WORKER_THREAD_QUEUE_MAX );
     private final WorkerThreadPool _forkThreadsAdmin = new WorkerThreadPool( "admin" , ADMIN_WORKER_THREADS , ADMIN_THREAD_QUEUE_MAX );
     
@@ -367,15 +373,24 @@ public class HttpServer extends NIOServer {
 
     };
 
+    public void addHandler( HttpHandler h ){
+        _myHandlers.add( h );
+    }
+
+    List<HttpHandler> getHandlers(){
+        if ( _lastHandlers != null && _myHandlers.size() + _globalHandlers.size() == _lastHandlerCacheSize )
+            return _lastHandlers;
+     
+        List<HttpHandler> lst = new ArrayList<HttpHandler>();
+        lst.addAll( _myHandlers  );
+        lst.addAll( _globalHandlers );
+        Collections.sort( lst , _handlerComparator );
+        _lastHandlers = lst;
+        return lst;
+    }
+
     public static void addGlobalHandler( HttpHandler h ){
-        _handlers.add( h );
-        Collections.sort( _handlers , new Comparator<HttpHandler>(){
-                public int compare( HttpHandler a , HttpHandler b ){
-                    return a.priority() > b.priority() ? 1 : -1;
-                }
-            } 
-            );
-        
+        _globalHandlers.add( h );
     }
 
     static final HttpHandler _stats = new HttpMonitor( "stats" ){
@@ -418,8 +433,13 @@ public class HttpServer extends NIOServer {
             final long _startTime = System.currentTimeMillis();
         };
 
-    static List<HttpHandler> _handlers = new ArrayList<HttpHandler>();
-    
+    static final List<HttpHandler> _globalHandlers = new ArrayList<HttpHandler>();
+    static final Comparator _handlerComparator = new Comparator<HttpHandler>(){
+        public int compare( HttpHandler a , HttpHandler b ){
+            return a.priority() > b.priority() ? 1 : -1;
+        }
+    };
+
     static {
         DummyHttpHandler.setup();
         addGlobalHandler( _stats );
@@ -432,12 +452,12 @@ public class HttpServer extends NIOServer {
     private static int _numRequests = 0;
     private static int _numRequestsForked = 0;
     private static int _numRequestsAdmin = 0;
-
+    
     private static final int _trackerSmall = 10;
 
     private static HttpLoadTracker.Rolling _tracker = new HttpLoadTracker.Rolling( "webserver" );
     private static HttpLoadTracker.GraphOptions _trackerOptions = new HttpLoadTracker.GraphOptions( 600 , 120 , true , false , false );
-
+    
     // ---
 
     public static void main( String args[] )
