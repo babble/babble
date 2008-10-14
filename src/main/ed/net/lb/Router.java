@@ -197,7 +197,7 @@ public class Router {
             if ( best == null ){
                 if ( doOrDie )
                     throw new RuntimeException( "no server available for pool [" + _name + "]" );
-		_logger.info( "no viable server for pool [" + _name + "] waiting" );
+		_logger.debug( "no viable server for pool [" + _name + "] waiting" );
                 return null;
             }
             
