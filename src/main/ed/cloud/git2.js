@@ -110,5 +110,11 @@ Cloud.getModuleSymLink = function( moduleName , version ){
 }
 
 db.git.setConstructor( Cloud.Git.Repository );
-if ( me.real )
-    db.git.ensureIndex( { name : 1 } );
+if ( me.real ){
+    try {
+        db.git.ensureIndex( { name : 1 } );
+    }
+    catch ( e ){
+        log.error( "couldn't ensureIndex on git" );
+    }
+}

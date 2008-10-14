@@ -1041,7 +1041,14 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     }
 
     public String getPhysicalRemoteAddr(){
-	return _handler.getInetAddress().getHostAddress();
+        if ( _handler == null )
+            return null;
+        
+        InetAddress addr = _handler.getInetAddress();
+        if ( addr == null )
+            return null;
+        
+	return addr.getHostAddress();
     }
 
     /**

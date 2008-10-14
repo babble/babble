@@ -24,11 +24,16 @@ import java.util.*;
 import ed.net.*;
 import ed.net.httpserver.*;
 import static ed.net.lb.Mapping.*;
+import ed.log.*;
 
 public class Server implements Comparable<Server> {
+
+    static final Logger _serverLogger = Logger.getLogger( "lb.server" );
+
     Server( InetSocketAddress addr ){
         if ( addr == null )
             throw new NullPointerException( "addr can't be null" );
+        _logger = _serverLogger.getChild( addr.getHostName() );
 	_addr = addr;
 	_monitor = ServerMonitor.register( this );
         _tracker = new HttpLoadTracker( "Server : " + addr );
@@ -42,6 +47,7 @@ public class Server implements Comparable<Server> {
     }
     
     void error( Environment env , NIOClient.ServerErrorType type , Exception what , HttpRequest request , HttpResponse response ){
+        _logger.error( "into error state because of socket error" );
 	_inErrorState = true;
 	_tracker.networkEvent();
         _tracker.hit( request , response );
@@ -69,6 +75,7 @@ public class Server implements Comparable<Server> {
     
     void update( ServerMonitor.Status status ){
 	if ( status == null ){
+            _logger.error( "into error state because status was null" );
 	    _inErrorState = true;
 	    return;
 	}
@@ -104,6 +111,7 @@ public class Server implements Comparable<Server> {
     final InetSocketAddress _addr;
     final ServerMonitor.Monitor _monitor;
     final HttpLoadTracker _tracker;
+    final Logger _logger;
 
     final Set<Environment> _environmentsWithTraffic = Collections.synchronizedSet( new HashSet<Environment>() );
     long _serverStart;
