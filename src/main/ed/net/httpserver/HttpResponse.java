@@ -84,7 +84,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
 
         setContentType( "text/html;charset=" + getContentEncoding() );
         setDateHeader( "Date" , System.currentTimeMillis() );
-
+        
         set( "prototype" , _prototype );
     }
 
@@ -453,6 +453,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
             final byte[] bytes = header.getBytes();
             final ByteBuffer headOut = ByteBuffer.wrap( bytes );
             _handler.getChannel().write( headOut );
+            _keepAlive = keepAlive();
             _sentHeader = true;
         }
 
@@ -724,20 +725,27 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
      * @unexpose
      */
     public boolean keepAlive(){
-        if ( ! _request.keepAlive() )
-            return false;
 
-        if ( _headers.get( "Content-Length" ) != null )
+        if ( _sentHeader ){
+            return _keepAlive;
+        }
+        
+        if ( ! _request.keepAlive() ){
+            return false;
+        }
+        
+        if ( _headers.get( "Content-Length" ) != null ){
             return true;
+        }
 	
         if ( _stringContent != null ){
-            // TODO: chunking
+            // TODO: chunkinga
             return _done;
         }
 
         return false;
     }
-
+    
     /**
      * @unexpose
      */
@@ -866,6 +874,10 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
             end = System.currentTimeMillis();
         return end - _request._startTime;
     }
+    
+    public int hashCode( IdentitySet seen ){
+        return System.identityHashCode(this);
+    }
 
     boolean useGZIP(){
 	if ( ! _done )
@@ -917,6 +929,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
     boolean _useDefaultHeaders = true;
     List<Cookie> _cookies = new ArrayList<Cookie>();
     boolean _sentHeader = false;
+    private boolean _keepAlive = false;
     boolean _gzip = false;
 
     // data

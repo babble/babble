@@ -1260,6 +1260,10 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
         return System.currentTimeMillis() - _startTime;
     }
 
+    public int hashCode( IdentitySet seen ){
+        return System.identityHashCode(this);
+    }
+
     // ----
     
     final long _startTime = System.currentTimeMillis();
