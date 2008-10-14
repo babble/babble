@@ -40,7 +40,7 @@ class HttpConnection{
     public static boolean DUMP_HEADERS = false;
     public static int CONNECT_TIMEOUT_SECONDS = 60;
 
-    static boolean DEBUG = Boolean.getBoolean( "DEBUG.HTTP" );
+    static boolean DEBUG = Boolean.getBoolean( "DEBUG.HTTPC" );
     static int HTTP_CONNECTION_NUMBER = 1;
 
     static final Logger LOGGER = Logger.getLogger("ed.net.httpclient.HttpConnection" );
