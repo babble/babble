@@ -190,7 +190,8 @@ public abstract class NIOServer extends Thread {
                     
                     if ( key.isWritable() ){
                         i.remove();
-                        sh.writeMoreIfWant();
+                        if ( sh.writeMoreIfWant() )
+                            continue;
                     }
                     
                     if ( key.isReadable() ){
@@ -268,7 +269,10 @@ public abstract class NIOServer extends Thread {
         protected abstract boolean shouldClose()
             throws IOException ;
 
-        protected abstract void writeMoreIfWant() 
+        /**
+         * @return true if the selector thread should stop paying attention to this
+         */
+        protected abstract boolean writeMoreIfWant() 
             throws IOException;
         
         // other stuff
@@ -314,10 +318,11 @@ public abstract class NIOServer extends Thread {
         public void cancel(){
             _key.cancel();
         }
-
-        public void pause(){
+        
+        public void pause()
+            throws IOException {
             if ( D ) System.out.println( "pausing selector" );
-            _key.interestOps( 0 );
+            _register( 0 );
         }
         
         public InetAddress getInetAddress(){
