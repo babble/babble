@@ -172,9 +172,6 @@ public class URLFixer {
         if ( host == null )
             return "";
 
-        if ( host.indexOf( "." ) < 0 )
-            return "";
-        
         if ( request.getPort() > 0 )
             return "";
 
