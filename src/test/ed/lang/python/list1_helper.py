@@ -52,3 +52,12 @@ def pyDeleteItem(l):
     del l[0]
     _10gen.assert.eq(len(l), n-1)
 _10gen.pyDeleteItem = pyDeleteItem
+
+def pyMethCall(l, methname, *args):
+    f = getattr(l, methname)
+    if isinstance(args[-1], dict):
+        kwargs = args.pop()
+    else:
+        kwargs = {}
+    return f(*args, **kwargs)
+_10gen.pyMethCall = pyMethCall
