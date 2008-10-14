@@ -133,8 +133,9 @@ public class LB extends NIOClient {
             _logger.debug( 1 , "backend error" , e );
 	    _loadMonitor._all.networkEvent();
             _router.error( _request , _response , _lastWent , type , e );
-            
-            if ( type != ServerErrorType.WEIRD && 
+	    
+            if ( ! _response.isCommitted() && 
+		 type != ServerErrorType.WEIRD && 
                  ( _state == State.WAITING || _state == State.IN_HEADER ) && 
                  ++_numFails <= 3 ){
                 reset();
@@ -144,8 +145,10 @@ public class LB extends NIOClient {
             }
             
             try {
-                _response.setResponseCode( 500 );
-                _response.getJxpWriter().print( "backend error : " + e + "\n\n" );
+		if ( ! _response.isCommitted() ){
+		    _response.setResponseCode( 500 );
+		    _response.getJxpWriter().print( "backend error : " + e + "\n\n" );
+		}
                 _response.done();
                 _state = State.ERROR;
                 done();
@@ -155,7 +158,7 @@ public class LB extends NIOClient {
                 ioe2.printStackTrace();
             }
         }
-        
+	
         
         void backendError( ServerErrorType type , String msg ){
             backendError( type , new IOException( msg ) );
