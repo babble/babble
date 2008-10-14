@@ -386,18 +386,30 @@ public class LB extends NIOClient {
         }
         
         public void handle( HttpRequest request , HttpResponse response ){
+	    
+	    if ( request.getHeader( "X-lb" ) != null ){
+		_handleError( request , response , 500 , "load balancer loop?  (lb 34)" );
+		return;
+	    }
+	    
             if ( add( new RR( request , response ) ) )
                 return;
-            
+	    
+	    _handleError( request , response , 500 , "new request queue full  (lb 1)" );
+        }
+
+	private void _handleError( HttpRequest request , HttpResponse response , int code , String msg ){
+	    response.setResponseCode( code );
             JxpWriter out = response.getJxpWriter();
-            out.print( "new request queue full  (lb 1)" );
+	    out.print( msg );
+	    out.print( "\n" );
             try {
                 response.done();
             }
             catch ( IOException ioe ){
                 ioe.printStackTrace();
-            }
-        }
+            }	    
+	}
         
         public double priority(){
             return Double.MAX_VALUE;
