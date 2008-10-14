@@ -104,14 +104,23 @@ public class HttpServer extends NIOServer {
         
         protected boolean shouldClose()
             throws IOException {
+
+            if ( _bad )
+                return true;
+            
             if ( _inFork )
                 return false;
+
             writeMoreIfWant();
             return _done;
         }
         
         protected boolean writeMoreIfWant()
             throws IOException {
+
+            if ( _bad )
+                return false;
+            
             if ( _inFork )
                 return false;
             
@@ -229,6 +238,14 @@ public class HttpServer extends NIOServer {
             _endOfHeader = end;
             String header = new String( bb );
             
+            if ( header.trim().length() == 0 ){
+                // this means the socket is just dead
+                _bad = true;
+                _done = true;
+                registerForWrites();
+                return false;
+            }
+
             _lastRequest = new HttpRequest( this , header );
             _lastResponse = null;
             if ( D ) System.out.println( _lastRequest );
@@ -267,11 +284,12 @@ public class HttpServer extends NIOServer {
         protected Selector getSelector(){
             return _selector;
         }
-
+        
         final HttpServer _server;
         ByteBufferHolder _in = new ByteBufferHolder( 1024 * 1024 * 200 ); // 200 mb
         int _endOfHeader = 0;
         boolean _done = false;
+        boolean _bad = false;
         HttpRequest _lastRequest;
         HttpResponse _lastResponse;
         boolean _inFork = false;
