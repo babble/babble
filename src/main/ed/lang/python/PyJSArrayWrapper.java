@@ -149,9 +149,20 @@ public class PyJSArrayWrapper extends PyList {
         throw new RuntimeException("not implemented yet");
     }
 
-    @ExposedMethod
-    public PyObject jsarraywrapper_index(PyObject x){
-        throw new RuntimeException("not implemented yet");
+    @ExposedMethod(defaults={"null", "null"})
+    public PyObject jsarraywrapper_index(PyObject x, PyObject start, PyObject end){
+        Object jsX = toJS( x );
+        int i = 0;
+        if(start != null) i = calculateIndex(PySlice.calculateSliceIndex(start));
+        int j = _js.size();
+        if(end != null) j = calculateIndex(PySlice.calculateSliceIndex(end));
+
+        for(int n = i; n < j; ++n){
+            if(_js.getInt( n ).equals( jsX ))
+                return Py.newInteger( n );
+        }
+
+        throw Py.ValueError("list.index(x): x not in list");
     }
 
     @ExposedMethod

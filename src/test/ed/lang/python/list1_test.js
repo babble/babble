@@ -61,3 +61,15 @@ assert( newL[0] == pyL[1] );
 assert( newL.length == pyL.length/2 );
 
 pyDeleteItem( jsA );
+assert.eq( jsA.length , 3 );
+assert.eq( jsA[0] , 2 );
+
+assert.eq( pyMethCall( jsA , 'index' , 3 ) , 1 );
+assert.raises( function(){ pyMethCall( jsA, 'index', 3, 2 ); } );
+assert.raises( function(){ pyMethCall( jsA, 'index', 3, 0, 1 ); } );
+assert.eq( pyMethCall( jsA , 'index' , 3 , -2, -1 ) , 1 );
+assert.raises( function(){ pyMethCall( jsA, 'index', 3, -3, -2 ); } );
+assert.raises( function(){ pyMethCall( jsA, 'index', 3, -1, 3 ); } );
+jsA.push(3);
+assert.eq( pyMethCall( jsA , 'index' , 3 , 2 ), 3 );
+
