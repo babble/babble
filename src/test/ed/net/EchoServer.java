@@ -45,6 +45,10 @@ public class EchoServer extends NIOServer {
             return false;
         }
         
+        protected boolean shouldTimeout(){
+            return false;
+        }
+
         protected boolean writeMoreIfWant(){
             return false;
         }

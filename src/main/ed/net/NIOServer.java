@@ -24,6 +24,8 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
 
+import ed.log.*;
+
 public abstract class NIOServer extends Thread {
 
     final static boolean D = Boolean.getBoolean( "DEBUG.NIO" );
@@ -96,9 +98,17 @@ public abstract class NIOServer extends Thread {
         int emptyCycles = 0;
 
         while ( true ){
-
+            
             final int numKeys;
             final long selectTime;
+            
+            try {
+                _cleanOldConnections();
+            }
+            catch ( Exception e ){
+                _logger.error( "error _cleanOldConnections" , e );
+            }
+
 
             try {
                 final long start = System.currentTimeMillis();
@@ -106,7 +116,7 @@ public abstract class NIOServer extends Thread {
                 selectTime = System.currentTimeMillis() - start;
             }
             catch ( IOException ioe ){
-                ed.log.Logger.getLogger( "nio" ).error( "couldn't select on port : " + _port , ioe );
+                _logger.error( "couldn't select on port : " + _port , ioe );
                 continue;
             }
             
@@ -175,16 +185,11 @@ public abstract class NIOServer extends Thread {
                     sc = (SocketChannel)key.channel();
                     sh = (SocketHandler)key.attachment();
                     
-                    if ( sh.shouldClose() ){
+                    if ( sh._bad || sh.shouldClose() ){
                         i.remove();
 
                         if ( D ) System.out.println( "\t want to close : " + sc );
-                        Socket temp = sc.socket();
-                        temp.shutdownInput();
-                        temp.shutdownOutput();
-                        temp.close();
-                        sc.close();
-                        key.cancel();
+                        sh.close();
                         continue;
                     }
                     
@@ -240,7 +245,8 @@ public abstract class NIOServer extends Thread {
                     
                 }
                 
-            }
+            } // main selector loop
+            
         }
         
         try {
@@ -250,6 +256,34 @@ public abstract class NIOServer extends Thread {
             // don't care
         }
         
+    }
+
+    private void _cleanOldConnections(){
+        for ( SelectionKey key : _selector.keys() ){
+
+            if ( ! key.isValid() )
+                continue;
+            
+            if ( (key.interestOps() & key.OP_READ ) == 0 )
+                continue;
+            
+            Object attachment = key.attachment();
+            if ( attachment == null )
+                continue;
+            
+            SocketHandler handler = (SocketHandler)attachment;
+            if ( ! handler.shouldTimeout() )
+                continue;
+            
+            if ( D ) System.out.println( "timing out connection" );
+
+            handler._bad = true;
+            try {
+                handler.close();
+            }
+            catch ( Exception e ){}
+        }
+
     }
 
     protected abstract SocketHandler accept( SocketChannel sc );
@@ -268,6 +302,8 @@ public abstract class NIOServer extends Thread {
 
         protected abstract boolean shouldClose()
             throws IOException ;
+        
+        protected abstract boolean shouldTimeout();
 
         /**
          * @return true if the selector thread should stop paying attention to this
@@ -333,16 +369,42 @@ public abstract class NIOServer extends Thread {
             return _channel.socket().getPort();
         }
 
+        public void bad(){
+            _bad = true;
+        }
+        
+        public void close(){
+            try {
+                Socket temp = _channel.socket();
+                temp.shutdownInput();
+                temp.shutdownOutput();
+                temp.close();
+            }
+            catch ( IOException ioe ){
+            }
+
+            try {
+                _channel.close();
+            }
+            catch ( IOException ioe ){
+            }
+            
+            _key.cancel();
+        }
+
         protected final SocketChannel _channel;
         private SelectionKey _key = null;
-        
+        protected boolean _bad = false;
+        protected final long _created = System.currentTimeMillis();
     }
 
     protected final int _port;
     protected final ServerSocketChannel _ssChannel;    
 
     protected Selector _selector;
-
+    
     private boolean _didASelectorReset = false;
     private boolean _closed = false;
+    
+    Logger _logger = Logger.getLogger( "nioserver" );
 }

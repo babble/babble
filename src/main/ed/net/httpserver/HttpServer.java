@@ -37,6 +37,8 @@ public class HttpServer extends NIOServer {
     
     public static final int WORKER_THREAD_QUEUE_MAX = 200;
     public static final int ADMIN_THREAD_QUEUE_MAX = 10;
+
+    final static long CLIENT_READ_TIMEOUT = 1000 * 20;
     
     public static final boolean D = Boolean.getBoolean( "DEBUG.HTTP" );
     public static final Logger LOGGER = Logger.getLogger( "httpserver" );
@@ -103,6 +105,18 @@ public class HttpServer extends NIOServer {
             _server = server;
         }
         
+        protected boolean shouldTimeout(){
+            if ( _inFork ){
+                return false;
+            }
+            
+            if ( _lastResponse != null )
+                return false;
+
+            long timeSinceLastRead = System.currentTimeMillis() - _lastAction;
+            return timeSinceLastRead > CLIENT_READ_TIMEOUT;
+        }
+        
         protected boolean shouldClose()
             throws IOException {
 
@@ -118,19 +132,16 @@ public class HttpServer extends NIOServer {
         
         protected boolean writeMoreIfWant()
             throws IOException {
-
+            
             if ( _bad )
                 return false;
             
             if ( _inFork )
                 return false;
             
-            if ( _lastResponse == null )
+            if ( _lastResponse != null && ! _lastResponse.done() )
                 return false;
-            
-            if ( ! _lastResponse.done() )
-                return false;
-            
+
             _lastRequest = null;
             _lastResponse = null;
 
@@ -174,6 +185,8 @@ public class HttpServer extends NIOServer {
         protected boolean _gotData( ByteBuffer inBuf )
             throws IOException {
             
+            _lastAction = System.currentTimeMillis();
+
             if ( inBuf != null ){
 
 		if ( inBuf.capacity() > 1024 * 1024 * 500 )
@@ -287,10 +300,11 @@ public class HttpServer extends NIOServer {
         }
         
         final HttpServer _server;
+        long _lastAction = System.currentTimeMillis();
+
         ByteBufferHolder _in = new ByteBufferHolder( 1024 * 1024 * 200 ); // 200 mb
         int _endOfHeader = 0;
         boolean _done = false;
-        boolean _bad = false;
         HttpRequest _lastRequest;
         HttpResponse _lastResponse;
         boolean _inFork = false;

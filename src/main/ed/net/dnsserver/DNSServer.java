@@ -226,6 +226,10 @@ public class DNSServer extends Thread {
                 return _done;
             }
         
+            protected boolean shouldTimeout(){
+                return false;
+            }
+            
             protected boolean writeMoreIfWant() 
                 throws IOException {
                 // NO-OP
