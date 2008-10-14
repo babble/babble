@@ -1,4 +1,4 @@
-// JSAppender.java
+// InMemoryAppender.java
 
 /**
 *    Copyright (C) 2008 10gen Inc.
@@ -19,23 +19,26 @@
 package ed.log;
 
 import ed.js.*;
-import ed.js.engine.*;
+import ed.util.*;
+import ed.net.httpserver.*;
 
-public class JSAppender extends JSObjectWrapper implements Appender  {
+public class InMemoryAppender implements Appender {
 
-    public JSAppender( JSFunction func ){
-        super( func );
-        _func = func;
+    static final InMemoryAppender INSTANCE = new InMemoryAppender();
+    public static InMemoryAppender getInstance(){
+        return INSTANCE;
+    }
+
+    private InMemoryAppender(){
     }
 
     public void append( Event e ){
-        if ( _func.getNumParameters() > 1 )
-            _func.call( Scope.getThreadLocal() , e._loggerName , e._date , e._level , e._msg , e._throwable , e._thread , EMPTY );
-        else 
-            _func.call( Scope.getThreadLocal() , e , EMPTY );
+        _list.add( e );
     }
 
-    final JSFunction _func;
-
-    static final Object[] EMPTY = new Object[0];
+    public CircularList<Event> getRecent(){
+        return _list;
+    }
+    
+    private final CircularList<Event> _list = new CircularList<Event>( 1000 , true );
 }

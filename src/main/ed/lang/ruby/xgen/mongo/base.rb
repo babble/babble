@@ -12,6 +12,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+require 'xgen/mongo/oid'
 require 'xgen/mongo/cursor'
 require '/core/db/sql.js'
 
@@ -313,7 +314,7 @@ module XGen
         end
 
         def ids_clause(ids)
-          ids.length == 1 ? ids[0] : {:$in => ids.collect{|id| mongo_id(id)}}
+          ids.length == 1 ? ids[0] : {:$in => ids.collect{|id| id.to_oid}}
         end
 
         # Returns true if all field_names are in @field_names.
@@ -385,7 +386,7 @@ module XGen
           condition.each { |k,v|
             h[k] = case v
                    when Array
-                     {:$in => k == 'id' || k == '_id' ? v.collect{ |val| mongo_id(val)} : v} # if id, can't pass in string; must be ObjectId
+                     {:$in => k == 'id' || k == '_id' ? v.collect{ |val| val.to_oid} : v} # if id, can't pass in string; must be ObjectId
                    when Range
                      {:$gte => v.first, :$lte => v.last}
                    else
@@ -422,10 +423,6 @@ module XGen
         def quote(val) # :nodoc:
           return val unless val.is_a?(String)
           return "'#{val.gsub(/\'/, "\\\\'")}'" # " <= for Emacs font-lock
-        end
-
-        def mongo_id(val) # :nodoc:
-          return ObjectId(val.to_s)
         end
 
         def fields_from(a) # :nodoc:

@@ -37,7 +37,7 @@ Cloud.Server = function( name ){
 Cloud.Server.prototype.gridServer = function(){
     if ( this.bad )
         return null;
-    return this.location + "-" + this.provider + "-grid.10gen.cc";
+    return this.location + "-" + this.provider + "-grid." + javaStatic( "ed.util.Config" , "getInternalDomain" );
 };
 
 Cloud.Server.prototype.toString = function(){

@@ -25,7 +25,7 @@ public class WebViews {
             _lb._loadMonitor._all.getShort().displayGraph( out );
 	    out.print( "</div>" );
 
-	    displayLast( mr , _lb , 50 );
+	    displayLast( mr , _lb , 15 );
         }
         
         final LB _lb;

@@ -32,7 +32,7 @@ public class AppContextHolder {
 
     static boolean D = Boolean.getBoolean( "DEBUG.APP" );
 
-    static String OUR_DOMAINS[] = new String[]{ ".latenightcoders.com" , ".local.10gen.com" , ".10gen.com" };
+    static String OUR_DOMAINS[] = new String[]{ ".local." + Config.getExternalDomain() , "." + Config.getExternalDomain() };
     static String CDN_HOST[] = new String[]{ "origin." , "origin-local." , "static." , "static-local." , "secure." };
 
     static final Set<String> CDN_HOSTNAMES;

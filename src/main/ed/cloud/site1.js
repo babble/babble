@@ -503,7 +503,7 @@ Cloud.Site.prototype.updateEnvironment = function( envName , fullReset , dryRun 
 
     var threads = [];
     
-    var hostName = env.name + "." + this.name + ".10gen.com";
+    var hostName = env.name + "." + this.name + "." + javaStatic( "ed.util.Config" , "getExternalDomain" );
     
     var res = { ok : true };
     for ( var i=0; i<p.machines.length; i++ ){

@@ -22,6 +22,5 @@ import ed.js.*;
 
 public interface Appender {
 
-    public void append( String loggerName , JSDate date , Level level , String msg , Throwable throwable , Thread thread );
-
+    public void append( Event e );
 }

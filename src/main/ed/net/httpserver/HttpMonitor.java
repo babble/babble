@@ -22,6 +22,7 @@ import java.util.*;
 import javax.servlet.http.*;
 
 import ed.js.*;
+import ed.log.*;
 import ed.net.*;
 import ed.lang.*;
 import ed.util.*;
@@ -55,6 +56,7 @@ public abstract class HttpMonitor implements HttpHandler {
             buf.append( " bottomLine { border-bottom: 1px solid black; }\n" );
 	    buf.append( " .warn { color: #FF6600; }\n" );
 	    buf.append( " .error { color: red; font-decoration: bold; }\n" );
+	    buf.append( " .fatal { color: red; font-decoration: bold; }\n" );
             addStyle( buf );
             buf.append( "</style>\n" );
 
@@ -451,6 +453,42 @@ public abstract class HttpMonitor implements HttpHandler {
         final Runtime _r;
     }
 
+    public static final class LogMonitor extends HttpMonitor {
+        LogMonitor(){
+            super( "logs" );
+        }
+
+        public void handle( MonitorRequest mr ){
+            CircularList<Event> l = InMemoryAppender.getInstance().getRecent();
+            
+            JxpWriter out = mr.getWriter();
+
+            out.print( "<table border='1'>" );
+            
+            for ( int i=0; i<l.size(); i++ ){
+                Event e = l.get( i );
+                out.print( "<tr>" );
+                mr.addTableCell( e.getDate() );
+                mr.addTableCell( e.getLoggerName() );
+                mr.addTableCell( e.getLevel() , e.getLevel().toString().toLowerCase() );
+                mr.addTableCell( e.getMsg() );
+                out.print( "</tr>" );
+                
+                if ( e.getThrowable() != null ){
+                    out.print( "<tr><td colspan=4'>" );
+                    out.print( e.getThrowable() + "<BR>" );
+                    for ( StackTraceElement element : e.getThrowable().getStackTrace() )
+                        out.print( element + "<BR>\n" );
+                    out.print( "</td></tr>" );
+                }
+            }
+            
+            out.print( "</table>" );
+            
+        }        
+        
+    }
+    
     
     public static class ThreadMonitor extends HttpMonitor {
 

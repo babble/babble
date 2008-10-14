@@ -186,7 +186,7 @@ public class URLFixer {
         if ( host.indexOf( "local." ) >= 0 )
             prefix += "-local";
         
-        prefix += ".10gen.com/" + host;
+        prefix += "." + Config.getExternalDomain() + "/" + host;
         return prefix;
     }
 

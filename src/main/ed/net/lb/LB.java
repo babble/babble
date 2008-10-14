@@ -23,6 +23,7 @@ import java.net.*;
 import java.nio.*;
 import java.util.*;
 import java.util.concurrent.*;
+import java.text.*;
 
 import org.apache.commons.cli.*;
 
@@ -57,6 +58,9 @@ public class LB extends NIOClient {
 	_loadMonitor = new LoadMonitor( _router );
 
         _addMonitors();
+        
+        _httpLog = new AsyncAppender();
+        _httpLog.addAppender( new DailyFileAppender( new File( "logs/httplog/" ) , "lb" , new HttpLogEventFormatter() ) );
 
         setDaemon( true );
     }
@@ -118,6 +122,11 @@ public class LB extends NIOClient {
             done();
             _router.success( _request , _response , _lastWent );
 	    _loadMonitor.hit( _request , _response );
+        }
+
+        public void done(){
+            super.done();
+            log( this );
         }
         
         protected InetSocketAddress where(){
@@ -395,6 +404,10 @@ public class LB extends NIOClient {
         }
     }
     
+    void log( RR rr ){
+        _httpLog.append( new HttpEvent( rr ) );
+    }
+
     void _addMonitors(){
         HttpServer.addGlobalHandler( new WebViews.LBOverview( this ) );
         HttpServer.addGlobalHandler( new WebViews.LBLast( this ) );
@@ -435,6 +448,47 @@ public class LB extends NIOClient {
             );
     }
     
+    class HttpLogEventFormatter implements EventFormatter {
+        
+        public synchronized String format( Event old ){
+            HttpEvent e = (HttpEvent)old;
+            RR rr = e._rr;
+            
+            _buf.append( "[" ).append( e.getDate().format( _format ) ).append( "] " );
+            _buf.append( rr._request.getRemoteIP() );
+            _buf.append( " retry:" ).append( rr._numFails );
+            _buf.append( " went:" ).append( rr._lastWent );
+            _buf.append( " " ).append( rr._response.getResponseCode() );
+            _buf.append( " " ).append( rr._request.getMethod() );
+            _buf.append( " \"" ).append( rr._request.getFullURL() ).append( "\"" );
+            _buf.append( " " ).append( rr._response.handleTime() );
+            _buf.append( " \"" ).append( rr._request.getHeader( "User-Agent" ) ).append( "\"" );
+            _buf.append( " \"" ).append( rr._request.getHeader( "Referer" ) ).append( "\"" );
+            _buf.append( " \"" ).append( rr._request.getHeader( "Cookie" ) ).append( "\"" );
+            _buf.append( "\n" );
+
+            String s = _buf.toString();
+            if ( _buf.length() > _bufSize )
+                _buf = new StringBuilder( _bufSize );
+            else
+                _buf.setLength( 0 );
+            return s;
+        }
+        
+        final int _bufSize = 1024;
+        StringBuilder _buf = new StringBuilder( _bufSize );
+        final SimpleDateFormat _format = new SimpleDateFormat( "MM/dd/yyyy hh:mm:ss.SSS z" );
+    }
+    
+    class HttpEvent extends Event {
+        HttpEvent( RR rr ){
+            super( null , rr._request.getStart() , null , null , null , null );
+            _rr = rr;
+        }
+        
+        final RR _rr;
+    }
+
     final int _port;
     final LBHandler _handler;
     final HttpServer _server;
@@ -442,6 +496,7 @@ public class LB extends NIOClient {
     final LoadMonitor _loadMonitor;
     
     final Logger _logger;
+    final AsyncAppender _httpLog;
     
     final RR[] _lastCalls = new RR[1000];
     int _lastCallsPos = 0;
