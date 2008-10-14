@@ -272,6 +272,7 @@ public class LB extends NIOClient {
             buf.append( _request.getMethod().toUpperCase() ).append( " " ).append( _request.getURL() ).append( " HTTP/1.0\r\n" );
             buf.append( "Connection: keep-alive\r\n" );
 	    buf.append( HttpRequest.REAL_IP_HEADER ).append( ": " ).append( _request.getRemoteIP() ).append( "\r\n" );
+            buf.append( "X-fromlb: " ).append( LBIDENT ).append( "\r\n" );
 
             for ( String n : _request.getHeaderNameKeySet() ){
 
@@ -387,7 +388,7 @@ public class LB extends NIOClient {
         
         public void handle( HttpRequest request , HttpResponse response ){
 	    
-	    if ( request.getHeader( "X-lb" ) != null ){
+	    if ( request.getHeader( "X-fromlb" ) != null ){
 		_handleError( request , response , 500 , "load balancer loop?  (lb 34)" );
 		return;
 	    }
