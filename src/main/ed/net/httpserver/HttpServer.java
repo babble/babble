@@ -83,7 +83,8 @@ public class HttpServer extends NIOServer {
                     response.done();
                     return false;
                 }
-                _handlers.get( i ).handle( request , response );
+                if ( ! _handlers.get( i ).handle( request , response ) )
+                    handler._inFork = true;
                 if ( info.doneAfterHandles )
                     response.done();
                 return false;
@@ -317,11 +318,14 @@ public class HttpServer extends NIOServer {
         }
         
         public void handle( Task t ) throws IOException {
+            
+            boolean inForkWhenDone = false;
+
             try {
-                t._handler.handle( t._request , t._response );
+                inForkWhenDone = ! t._handler.handle( t._request , t._response );
             }
             finally {
-                t._request._handler._inFork = false;
+                t._request._handler._inFork = inForkWhenDone;
             }
                 
             try {

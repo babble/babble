@@ -29,11 +29,12 @@ public class DummyHttpHandler {
             return request.getURI().equals( "/~echo" );
         }
 
-        public void handle( HttpRequest request , HttpResponse response ){
+        public boolean handle( HttpRequest request , HttpResponse response ){
             JxpWriter w = response.getJxpWriter();
             int copies = request.getInt( "copies" , 1 );
             for ( int i=0; i<copies; i++ )
                 w.print( "abcdefghijklmnopqrstuvwxyv0123456789\n" );
+            return true;
         }
         
         public double priority(){

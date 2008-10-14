@@ -120,13 +120,14 @@ public class AppServer implements HttpHandler {
      * @param request HTTP request to handle
      * @param HTTP response to fill in
      */
-    public void handle( HttpRequest request , HttpResponse response ){
+    public boolean handle( HttpRequest request , HttpResponse response ){
         try {
             _handle( request , response );
         }
         catch ( Exception e ){
             handleError( request , response , e , null );
         }
+        return true;
     }
 
     private void _handle( HttpRequest request , HttpResponse response ){

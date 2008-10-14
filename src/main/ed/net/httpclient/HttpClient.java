@@ -40,7 +40,7 @@ public class HttpClient {
     private final static IntKeyDoubleMap USAGE = new IntKeyDoubleOpenHashMap();
 
     private final static Logger LOGGER = Logger.getLogger( "ed.net.httpclient.HttpClient" );
-    public final static boolean DEBUG = Boolean.getBoolean( "DEBUG.HTTP" );
+    public final static boolean DEBUG = Boolean.getBoolean( "DEBUG.HTTPC" );
     static Level DEBUG_LEVEL = DEBUG  ? Level.INFO : Level.DEBUG;
 
     public static String USER_AGENT = "10gen http client";

@@ -40,6 +40,7 @@ public abstract class NIOClient extends Thread {
 
     public static final SimpleDateFormat SHORT_TIME = new SimpleDateFormat( "MM/dd HH:mm:ss.S" );
     static final long AFTER_SHUTDOWN_WAIT = 1000 * 60;
+    static final long CONNECT_TIMEOUT = 1000 * 60;
 
     public NIOClient( String name , int connectionsPerHost , int verboseLevel ){
         super( "NIOClient: " + name );
@@ -274,7 +275,7 @@ public abstract class NIOClient extends Thread {
             if ( _error != null )
                 return false;
 
-            if ( System.currentTimeMillis() - _opened > 1000 * 60 )
+            if ( System.currentTimeMillis() - _opened > CONNECT_TIMEOUT )
                 return false;
             
             if ( _closed )

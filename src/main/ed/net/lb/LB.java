@@ -180,6 +180,7 @@ public class LB extends NIOClient {
 
         protected WhatToDo handleRead( ByteBuffer buf , Connection conn ){
 
+            _logger.debug( 3 , "handleRead  _state:" + _state );
             
             if ( _state == State.WAITING || _state == State.IN_HEADER ){
                 // TODO: should i read this all in at once                
@@ -386,19 +387,20 @@ public class LB extends NIOClient {
             return true;
         }
         
-        public void handle( HttpRequest request , HttpResponse response ){
+        public boolean handle( HttpRequest request , HttpResponse response ){
 	    
 	    if ( request.getHeader( "X-fromlb" ) != null ){
 		_handleError( request , response , 500 , "load balancer loop?  (lb 34)\n" + request.getFullURL() + "\n" + 
                               "physical address:" + request.getPhysicalRemoteAddr() + "\n" +
                               "remote address:" + request.getRemoteIP() );
-		return;
+		return true;
 	    }
 	    
             if ( add( new RR( request , response ) ) )
-                return;
+                return false;
 	    
 	    _handleError( request , response , 500 , "new request queue full  (lb 1)" );
+            return true;
         }
 
 	private void _handleError( HttpRequest request , HttpResponse response , int code , String msg ){
@@ -446,14 +448,15 @@ public class LB extends NIOClient {
                     return true;
                 }
                 
-                public void handle( HttpRequest request , HttpResponse response ){
+                public boolean handle( HttpRequest request , HttpResponse response ){
                     JxpWriter out = response.getJxpWriter();
                     if ( isShutDown() ){
                         out.print( "alredy shutdown" );
-                        return;
+                        return true;
                     }
                     LB.this.shutdown();
                     out.print( "done" );
+                    return true;
                 }
                 
                 public double priority(){
