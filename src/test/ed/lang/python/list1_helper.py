@@ -55,8 +55,9 @@ _10gen.pyDeleteItem = pyDeleteItem
 
 def pyMethCall(l, methname, *args):
     f = getattr(l, methname)
-    if isinstance(args[-1], dict):
-        kwargs = args.pop()
+    if args and isinstance(args[-1], dict):
+        kwargs = args[-1]
+        args = args[:-1]
     else:
         kwargs = {}
     return f(*args, **kwargs)

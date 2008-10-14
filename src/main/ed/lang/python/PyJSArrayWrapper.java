@@ -177,8 +177,21 @@ public class PyJSArrayWrapper extends PyList {
 
     @ExposedMethod
     public PyObject jsarraywrapper_sort(PyObject[] args, String[] keywords){
-        // key seems to take precedence over cmp
-        throw new RuntimeException("not implemented yet");
+        // Rather than reimplement sorting with Python semantics, I just copy
+        // the JSArray into a PyList and call sort on that, and extract
+        // the result.
+        PyList list = new PyList();
+        int n = _js.size();
+        for(int i = 0; i < n; ++i){
+            list.append( toPython( _js.getInt( i ) ) );
+        }
+
+        list.invoke("sort", args, keywords);
+        //int n = list.__len__();
+        for(int i = 0; i < n; ++i){
+            _js.setInt( i , toJS( list.__finditem__(i) ) );
+        }
+        return Py.None;
     }
 
     // eq, ne, lt, le, gt, ge, cmp
