@@ -31,6 +31,7 @@ public interface Mapping {
     public String getPool( HttpRequest request );
     public List<InetSocketAddress> getAddressesForPool( String poolName );
 
+    public String toFileConfig();
     
     public static class Environment {
         

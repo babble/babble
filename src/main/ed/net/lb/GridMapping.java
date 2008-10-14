@@ -18,6 +18,7 @@
 
 package ed.net.lb;
 
+import java.io.*;
 import java.net.*;
 import java.util.*;
 
@@ -34,17 +35,68 @@ public class GridMapping extends MappingBase {
     public static class Factory implements MappingFactory {
         Factory(){
             _cloud = Cloud.getInstanceIfOnGrid();
+            _logger = Logger.getLogger( "lb.gridmapping" );
+            _cacheFile = new File( "logs/gridmapcache" );
         }
         
         public Mapping getMapping(){
-            return new GridMapping( _cloud );
-        }
+            try {
+                GridMapping gm = new GridMapping( _cloud );
+                _prev = gm;
+                writeToCache( gm );
+                return gm;
+            }
+            catch ( RuntimeException e ){
+                _logger.error( "couldn't load new grid config" , e );
 
+                if ( _prev != null ){
+                    _logger.info( "using previously loaded config" );
+                    return _prev;
+                }
+                
+                if ( _cacheFile.exists() ){
+                    _logger.info( "trying old cache from disk [" + _cacheFile + "]" );
+                    try {
+                        return new TextMapping( _cacheFile );
+                    }
+                    catch ( IOException ioe ){
+                        _logger.error( "couldn't read old cache file [" + _cacheFile + "]" , ioe );
+                    }
+                }
+                
+                throw e;
+            }
+        }
+        
         public long refreshRate(){
             return 1000 * 30;
         }
+        
+        void writeToCache( GridMapping mapping ){
+            String s = mapping.toFileConfig();
 
+            int hash = s.hashCode();
+            if ( hash == _prevHash )
+                return;
+            _prevHash = hash;
+
+            try {
+                byte[] data = s.getBytes( "utf8" );
+                FileOutputStream out = new FileOutputStream( _cacheFile );
+                out.write( data );
+                out.close();
+            }
+            catch ( IOException ioe ){
+                _logger.error( "couldn't write gcache file" , ioe );
+            }
+        }
+        
         final Cloud _cloud;
+        final Logger _logger;
+        final File _cacheFile;
+
+        private GridMapping _prev;
+        private int _prevHash = 0;
     }
 
     GridMapping( Cloud c ){
