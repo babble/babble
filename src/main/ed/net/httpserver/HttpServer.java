@@ -53,7 +53,7 @@ public class HttpServer extends NIOServer {
         return new HttpSocketHandler( this , sc );
     }
     
-    protected boolean handle( HttpRequest request , HttpResponse response )
+    protected boolean handle( HttpSocketHandler handler , HttpRequest request , HttpResponse response )
         throws IOException {
         
         _numRequests++;
@@ -74,6 +74,7 @@ public class HttpServer extends NIOServer {
 
                     if ( tp.offer( new Task( request , response , _handlers.get( i ) ) ) ){
                         if ( D ) System.out.println( "successfully gave thing to a forked thing" );
+                        handler._inFork = true;
                         return false;
                     }
                     
@@ -103,24 +104,41 @@ public class HttpServer extends NIOServer {
         
         protected boolean shouldClose()
             throws IOException {
+
+            if ( _bad )
+                return true;
+            
+            if ( _inFork )
+                return false;
+
             writeMoreIfWant();
             return _done;
         }
         
-        protected void writeMoreIfWant()
+        protected boolean writeMoreIfWant()
             throws IOException {
+
+            if ( _bad )
+                return false;
+            
+            if ( _inFork )
+                return false;
+            
             if ( _lastResponse == null )
-                return;
+                return false;
             
             if ( ! _lastResponse.done() )
-                return;
+                return false;
             
             _lastRequest = null;
             _lastResponse = null;
 
-            if ( _in.position() > 0 )
-                gotData( null );
+            if ( _in.position() == 0 )
+                return false;
 
+            pause();
+            gotData( null );
+            return true;
         }
 
         boolean hasData(){
@@ -199,9 +217,9 @@ public class HttpServer extends NIOServer {
                 
                 _in.position( np );
                 _lastResponse = new HttpResponse( _lastRequest );
-                return handle( _lastRequest , _lastResponse );
+                return handle( this , _lastRequest , _lastResponse );
             }
-
+            
             int end = endOfHeader( _in , 0 );
             boolean finishedHeader = end >= 0;
             
@@ -220,6 +238,14 @@ public class HttpServer extends NIOServer {
             _endOfHeader = end;
             String header = new String( bb );
             
+            if ( header.trim().length() == 0 ){
+                // this means the socket is just dead
+                _bad = true;
+                _done = true;
+                registerForWrites();
+                return false;
+            }
+
             _lastRequest = new HttpRequest( this , header );
             _lastResponse = null;
             if ( D ) System.out.println( _lastRequest );
@@ -258,13 +284,15 @@ public class HttpServer extends NIOServer {
         protected Selector getSelector(){
             return _selector;
         }
-
+        
         final HttpServer _server;
         ByteBufferHolder _in = new ByteBufferHolder( 1024 * 1024 * 200 ); // 200 mb
         int _endOfHeader = 0;
         boolean _done = false;
+        boolean _bad = false;
         HttpRequest _lastRequest;
         HttpResponse _lastResponse;
+        boolean _inFork = false;
     }
 
     class Task {
@@ -289,14 +317,20 @@ public class HttpServer extends NIOServer {
         }
         
         public void handle( Task t ) throws IOException {
-            t._handler.handle( t._request , t._response );
-	    try {
-		t._response.done();
-	    }
-	    catch ( IOException ioe ){
-		if ( D ) ioe.printStackTrace();
-		t._response.cleanup();
-	    }
+            try {
+                t._handler.handle( t._request , t._response );
+            }
+            finally {
+                t._request._handler._inFork = false;
+            }
+                
+            try {
+                t._response.done();
+            }
+            catch ( IOException ioe ){
+                if ( D ) ioe.printStackTrace();
+                t._response.cleanup();
+            }
         }
         
         public void handleError( Task t , Exception e ){
