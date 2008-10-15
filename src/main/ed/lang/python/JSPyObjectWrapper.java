@@ -249,8 +249,8 @@ public class JSPyObjectWrapper extends JSFunctionCalls0 {
         return _p.__call__( pParams , pykeys );
     }
 
-    public Collection<String> keySet( boolean includePrototype ){
-        List<String> keys = new ArrayList<String>();
+    public Set<String> keySet( boolean includePrototype ){
+        Set<String> keys = new OrderedSet<String>();
     
         if ( _p instanceof PyDictionary ){
             for ( Object o : ((PyDictionary)_p).keySet() )

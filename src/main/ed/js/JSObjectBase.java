@@ -600,15 +600,15 @@ public class JSObjectBase implements JSObject {
     /** Returns a collection of all the keys for this object.
      * @return The keys for this object.
      */
-    public final Collection<String> keySet(){
+    public final Set<String> keySet(){
         return keySet( true );
     }
 
-    public Collection<String> keySet( boolean includePrototype ){
+    public Set<String> keySet( boolean includePrototype ){
         return keySet( includePrototype , false );
     }
     
-    public Collection<String> keySet( boolean includePrototype , boolean ignoreDontEnum ){
+    public Set<String> keySet( boolean includePrototype , boolean ignoreDontEnum ){
         prefunc();
 
         Set<String> keys = new OrderedSet<String>();
@@ -1428,7 +1428,7 @@ public class JSObjectBase implements JSObject {
 
         }
 
-        public Collection<String> keySet( boolean includePrototype ){
+        public Set<String> keySet( boolean includePrototype ){
             return _things.keySet();
         }
 

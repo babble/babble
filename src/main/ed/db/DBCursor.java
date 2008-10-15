@@ -304,9 +304,9 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
     /** Returns this array's keys.
      * @return a collection of keys
      */
-    public Collection<String> keySet( boolean includePrototype ){
+    public Set<String> keySet( boolean includePrototype ){
         _fill( Integer.MAX_VALUE );
-        return _nums;
+        return new OrderedSet( _nums );
     }
 
     /** Counts the number of elements in this cursor.

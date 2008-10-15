@@ -158,11 +158,11 @@ public class JSObjectWrapper implements JSObject {
             respondsToAndIsNotXGen(s);
     }
 
-    public Collection<String> keySet() {
+    public Set<String> keySet() {
         return keySet(true);
     }
 
-    public Collection<String> keySet(boolean includePrototype) {
+    public Set<String> keySet(boolean includePrototype) {
         Set<String> names = new HashSet<String>();
 
         // Add each ivar's name iff the ivar has a setter or a getter

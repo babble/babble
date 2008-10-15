@@ -36,7 +36,7 @@ public class TestDB extends DBBase {
         return c;
     }
     
-    public Collection<String> getCollectionNames(){
+    public Set<String> getCollectionNames(){
         return Collections.unmodifiableSet( _collections.keySet() );
     }
     

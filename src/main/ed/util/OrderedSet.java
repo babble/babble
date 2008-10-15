@@ -5,6 +5,12 @@ package ed.util;
 import java.util.*;
 
 public class OrderedSet<T> extends AbstractSet<T> {
+    
+    public OrderedSet( Collection<T> copy ){
+        this();
+        addAll( copy );
+    }
+
     public OrderedSet(){
         _list = new ArrayList<T>();
     }

@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
+import java.util.Set;
 
 import ed.js.JSFunction;
 import ed.js.JSObject;
@@ -29,6 +30,7 @@ import ed.js.JSObjectBase;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
 import ed.js.func.JSFunctionCalls1;
+import ed.util.OrderedSet;
 
 public class Context extends JSObjectBase {
     public static final String PUSH = "push";
@@ -118,8 +120,8 @@ public class Context extends JSObjectBase {
         return super._simpleGet(s);
     }
 
-    public Collection<String> keySet( boolean includePrototype ) {
-        ArrayList<String> compositeKeySet = new ArrayList<String>();
+    public Set<String> keySet( boolean includePrototype ) {
+        Set<String> compositeKeySet = new OrderedSet<String>();
 
         for (JSObject obj : objectStack) {
             compositeKeySet.addAll(obj.keySet());
