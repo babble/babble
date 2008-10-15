@@ -611,7 +611,7 @@ public class JSObjectBase implements JSObject {
     public Collection<String> keySet( boolean includePrototype , boolean ignoreDontEnum ){
         prefunc();
 
-        List<String> keys = new ArrayList<String>();
+        Set<String> keys = new OrderedSet<String>();
 
         if ( _keys != null )
             keys.addAll( _keys );
