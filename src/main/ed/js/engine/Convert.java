@@ -1518,14 +1518,19 @@ public class Convert {
         String f = getFunc( name , state , isClass , inc  );
         _append( ( inc[0] ? f : "" ) + ".call( scope" + ( isClass ? ".newThis( " + f + " )" : "" ) + " " , n );
 
+        int numParam = 0;
         Node param = name.getNext();
         while ( param != null ){
             _append( " , " , param );
             _add( param , state );
             param = param.getNext();
+            numParam++;
         }
 
-        _append( " , new Object[0] ) " , n );
+        if( numParam <= MAX_NUM_PARAMS ) {
+            _append( " , new Object[0] " , n );
+        }
+        _append( " ) " , n );
         if ( useThis )
             _append( " ) " , n );
     }
@@ -1905,6 +1910,8 @@ public class Convert {
     private boolean _loadOnce = false;
 
     private int _methodId = 0;
+    // There are JSFunctionCalls 0-28
+    private final int MAX_NUM_PARAMS = 28;
 
     private final static Map<Integer,String> _2ThingThings = new HashMap<Integer,String>();
     static {
