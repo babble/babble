@@ -1841,9 +1841,9 @@ public class ENode extends JSObjectBase {
             return null;
     }
 
-    public Collection<String> keySet( boolean includePrototype ) {
+    public Set<String> keySet( boolean includePrototype ) {
         XMLList list = ( this instanceof XMLList ) ? (XMLList)this : this.children;
-        Collection<String> c = new ArrayList<String>();
+        Set<String> c = new OrderedSet<String>();
         for( int i=0; list != null && i < list.size(); i++ ) {
             c.add( String.valueOf( i ) );
         }

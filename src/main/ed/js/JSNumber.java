@@ -108,12 +108,12 @@ public class JSNumber extends Number implements JSObject {
         return false;
     }
     
-    public Collection<String> keySet(){
-	return new LinkedList();
+    public Set<String> keySet(){
+	return new HashSet<String>();
     }
 
-    public Collection<String> keySet( boolean includePrototype ){
-	return new LinkedList();
+    public Set<String> keySet( boolean includePrototype ){
+	return new HashSet<String>();
     }
 
     public JSFunction getConstructor(){

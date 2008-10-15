@@ -57,10 +57,10 @@ public class Djang10Exception extends RuntimeException implements JSObject {
     public Object get( Object n ){
         return inner.get(n);
     }
-    public java.util.Collection<String> keySet(){
+    public java.util.Set<String> keySet(){
         return inner.keySet();
     }
-    public java.util.Collection<String> keySet( boolean includePrototype ){
+    public java.util.Set<String> keySet( boolean includePrototype ){
         return inner.keySet(includePrototype);
     }
     public boolean containsKey( String s ){

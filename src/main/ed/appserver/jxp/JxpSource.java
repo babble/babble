@@ -171,8 +171,8 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
         return ( _lastParse < lastUpdated(new HashSet<Dependency>()) );
     }
 
-    public Collection<String> keySet( boolean includePrototype ){
-        return new LinkedList<String>();
+    public Set<String> keySet( boolean includePrototype ){
+        return new HashSet<String>();
     }
 
     public String toString(){

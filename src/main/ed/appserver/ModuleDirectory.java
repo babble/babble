@@ -122,8 +122,8 @@ public class ModuleDirectory extends JSObjectLame implements JSLibrary {
         return lib.getFromPath( next , evalToFunction );
     }
 
-    public Collection<String> keySet( boolean includePrototype ){
-        return new ArrayList<String>();
+    public Set<String> keySet( boolean includePrototype ){
+        return new HashSet<String>();
     }
     
     final String _name;
