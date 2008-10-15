@@ -31,11 +31,13 @@ import static ed.net.lb.Mapping.*;
 public class Router {
     
     public Router( MappingFactory mappingFactory ){
+	_logger = Logger.getLogger( "LB" ).getChild( "router" );
+        
         _mappingFactory = mappingFactory;
         _mapping = _mappingFactory.getMapping();
-	_logger = Logger.getLogger( "LB" ).getChild( "router" );
 
 	_mappingUpdater = new MappingUpdater();
+        _initCheck();
     }
 
     public InetSocketAddress chooseAddress( HttpRequest request , boolean doOrDie ){
@@ -129,6 +131,13 @@ public class Router {
         
         for ( Pool p : _pools.values() )
             p.update( _mapping.getAddressesForPool( p._name ) );
+
+        _initCheck();
+    }
+    
+    void _initCheck(){
+        for ( String pool : _mapping.getPools() )
+            getPool( pool );
     }
 
     class Pool {

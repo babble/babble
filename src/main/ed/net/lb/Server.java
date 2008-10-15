@@ -80,8 +80,13 @@ public class Server implements Comparable<Server> {
 	    return;
 	}
 	
+        if ( _inErrorState )
+            _logger.error( "out of error state beacuse status not null" );
+        _inErrorState = false;
+
 	// TODO
-       
+        // look at memory, num request, etc...
+        
     }
 
     public int compareTo( Server s ){

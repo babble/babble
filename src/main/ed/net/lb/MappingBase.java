@@ -119,6 +119,10 @@ public abstract class MappingBase implements Mapping {
         _defaultPool = pool;
     }
 
+    public List<String> getPools(){
+        return new ArrayList<String>( _pools.keySet() );
+    }
+
     public String toFileConfig(){
 
         StringBuilder buf = new StringBuilder( 1024 );

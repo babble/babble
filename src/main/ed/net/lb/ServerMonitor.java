@@ -84,10 +84,14 @@ public class ServerMonitor extends Thread {
 	Monitor( Server s ){
 	    _server = s;
 	    String host = s._addr.getHostName();
-	    if ( host.indexOf( "." ) < 0 && ! host.equalsIgnoreCase( "localhost" ) && ! host.equalsIgnoreCase( "local" ) )
+            if ( host.equalsIgnoreCase( "localhost" ) ){
+            }
+	    else if ( host.indexOf( "." ) < 0  ){
 		host += "." + Config.getInternalDomain();
-	    else if ( ! host.contains( Config.getInternalDomain()  ) )
+            }
+	    else if ( ! host.contains( Config.getInternalDomain()  ) ){
 		throw new RuntimeException( "invalid host [" + host + "]" );
+            }
 	    
 	    try {
 		_base = new java.net.URL( "http://" + host + ":" + s._addr.getPort() + "/" );
@@ -106,14 +110,26 @@ public class ServerMonitor extends Thread {
             Status s = null;
 	    try {
 		s = new Status( _base );
+                _failsInARow = 0;
 	    }
 	    catch ( CantParse cp ){
 		_logger.error( cp.toString() + " PLEASE CHECK SECURITY" );
 		now += ( 1000 * 90 );
 	    }
 	    catch ( IOException ioe ){
+                
+                if ( _failsInARow % 50 == 0 )
+                    _logger.error( "error checking host [" + _base + "]" , ioe );
+                else if ( _failsInARow % 2 == 0 )
+                    _logger.error( "still having errors checking host [" + _base + "] : " + ioe );
+
+                _failsInARow++;
 		_lastStatus = null;
-		_logger.error( "error checking host [" + _base + "]" , ioe );
+
+                if ( _failsInARow > 10 )
+                    now += MS_BETWEEN_CHECKS;
+                if ( _failsInARow > 100 )
+                    now += MS_BETWEEN_CHECKS;
 	    }
             finally {
                 _lastCheck = now;
@@ -128,6 +144,7 @@ public class ServerMonitor extends Thread {
 
 	long _lastCheck = 0;
 	Status _lastStatus;
+        int _failsInARow = 0;
     }
 
     class Status {

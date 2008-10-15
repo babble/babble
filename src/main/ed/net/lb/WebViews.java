@@ -113,13 +113,18 @@ public class WebViews {
             out.print( "<table>" );
             
             for ( Server s : servers ){
+
                 out.print( "<tr>" );
-                
                 out.print( "<td>" );
                 s._tracker.displayGraph( out );
                 out.print( "</td>" );
-                
                 out.print( "</tr>" );
+
+                out.print( "<tr>" );
+                request.addTableCell( "in error state:" + s._inErrorState );
+                out.print( "</tr>" );
+
+                out.print( "<tr><td colspan='2'><hr></td></tr>" );
             }
             
             out.print( "</table>" );
