@@ -237,6 +237,15 @@ public class XMLHttpRequest extends JSObjectBase {
         return this;
     }
 
+    public IOException getError(){
+        Object err = get( "error" );
+        if ( err == null )
+            return null;
+        if ( err instanceof IOException )
+            return (IOException)err;
+        return new IOException( "weird XMLHttpRequest error : " + err );
+    }
+
     /** Gets the length of the header.
      * @param Buffer containing this request string.
      * @return The number of characters in first line of the request.
