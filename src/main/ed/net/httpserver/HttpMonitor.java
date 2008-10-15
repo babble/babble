@@ -34,40 +34,36 @@ public abstract class HttpMonitor implements HttpHandler {
     public HttpMonitor( String name ){
         this( name , false );
     }
-    
-    public HttpMonitor( String name , boolean plainText ){
+
+    public HttpMonitor( String name , boolean fork ){
         _name = name;
-        _plainText = plainText;
+        _fork = fork;
         _uri = "/~" + name;
 
-        if ( _plainText )
-            _header = null;
-        else {
-            StringBuilder buf = new StringBuilder();
-            buf.append( "<html>" );
-            
-            buf.append( "<head>" );
-            buf.append( "<title>" ).append( DNSUtil.getLocalHost() ).append( " " ).append( _name ).append( "</title>" );
-            buf.append( "<style>\n" );
-            buf.append( " body { font-size: .65em; font-family: Monaco; }\n" );
-            buf.append( " table { font-size: 10px; }\n" );
-            buf.append( " th { backgroud: #dddddd; text-align:left; }\n" );
-            buf.append( " .floatingList li { float: left; list-style-type:none; }\n" );
-            buf.append( " bottomLine { border-bottom: 1px solid black; }\n" );
-	    buf.append( " .warn { color: #FF6600; }\n" );
-	    buf.append( " .error { color: red; font-decoration: bold; }\n" );
-	    buf.append( " .fatal { color: red; font-decoration: bold; }\n" );
-            addStyle( buf );
-            buf.append( "</style>\n" );
-
-            buf.append( "<link rel=\"shortcut icon\" href=\"http://static.10gen.com/www.10gen.com/assets/images/favicon.ico\" />" );
-
-
-            buf.append( "</head>" );            
-            
-            buf.append( "<body>" );
-            _header = buf.toString();
-        }
+        StringBuilder buf = new StringBuilder();
+        buf.append( "<html>" );
+        
+        buf.append( "<head>" );
+        buf.append( "<title>" ).append( DNSUtil.getLocalHost() ).append( " " ).append( _name ).append( "</title>" );
+        buf.append( "<style>\n" );
+        buf.append( " body { font-size: .65em; font-family: Monaco; }\n" );
+        buf.append( " table { font-size: 10px; }\n" );
+        buf.append( " th { backgroud: #dddddd; text-align:left; }\n" );
+        buf.append( " .floatingList li { float: left; list-style-type:none; }\n" );
+        buf.append( " bottomLine { border-bottom: 1px solid black; }\n" );
+        buf.append( " .warn { color: #FF6600; }\n" );
+        buf.append( " .error { color: red; font-decoration: bold; }\n" );
+        buf.append( " .fatal { color: red; font-decoration: bold; }\n" );
+        addStyle( buf );
+        buf.append( "</style>\n" );
+        
+        buf.append( "<link rel=\"shortcut icon\" href=\"http://static.10gen.com/www.10gen.com/assets/images/favicon.ico\" />" );
+        
+        
+        buf.append( "</head>" );            
+        
+        buf.append( "<body>" );
+        _header = buf.toString();
         
         _addAll( name );
     }
@@ -108,7 +104,7 @@ public abstract class HttpMonitor implements HttpHandler {
         if ( ! allowed( request ) )
             return false;
 
-        info.fork = false;
+        info.fork = _fork;
         info.admin = true;
         
         return true;
@@ -129,9 +125,9 @@ public abstract class HttpMonitor implements HttpHandler {
         final JxpWriter out = response.getJxpWriter();
 	final MonitorRequest mr = new MonitorRequest( out , request , response );
 	
-	boolean html = mr.html() && ! _plainText;
+	boolean html = mr.html();
 
-        if ( _plainText )
+        if ( ! html )
             response.setHeader( "Content-Type" , "text/plain" );
         else if ( html ) {
             out.print( _header );
@@ -408,8 +404,8 @@ public abstract class HttpMonitor implements HttpHandler {
     }
 
     
-    final boolean _plainText;
     final String _name;
+    final boolean _fork;
     final String _uri;
     final String _header;
     
@@ -428,7 +424,7 @@ public abstract class HttpMonitor implements HttpHandler {
     public static final class MemMonitor extends HttpMonitor {
 
         MemMonitor(){
-            super( "mem" , false );
+            super( "mem" );
             _r = Runtime.getRuntime();
         }
 
@@ -495,7 +491,7 @@ public abstract class HttpMonitor implements HttpHandler {
     public static class ThreadMonitor extends HttpMonitor {
 
         ThreadMonitor(){
-            super( "threads" , false );
+            super( "threads" );
         }
 
         protected void addStyle( StringBuilder buf ){

@@ -433,6 +433,8 @@ public class LB extends NIOClient {
         
         HttpServer.addGlobalHandler( new WebViews.RouterPools( this._router ) );
         HttpServer.addGlobalHandler( new WebViews.RouterServers( this._router ) );
+        HttpServer.addGlobalHandler( new WebViews.MappingView( this._router ) );
+
 
         HttpServer.addGlobalHandler( new HttpHandler(){
                 public boolean handles( HttpRequest request , Info info ){

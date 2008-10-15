@@ -31,6 +31,39 @@ public class WebViews {
         final LB _lb;
     }
 
+    static class MappingView extends HttpMonitor {
+
+        MappingView( Router r ){
+            super( "lb-mapping" , true );
+            _router = r;
+        }
+        
+        public void handle( MonitorRequest mr ){
+	    JxpWriter out = mr.getWriter();
+	    mr.addHeader( "mapping" );
+            
+            if ( mr.getRequest().getBoolean( "update" , false ) ){
+                try {
+                    _router.updateMapping();
+                    out.print( "<b>updated mapping</b>" );
+                }
+                catch ( Exception e ){
+                    out.print( "couldn't update : " + e );
+                }
+                out.print( "<hr>" );
+            }
+
+            out.print( "<a href='/~lb-mapping?update=t'>update</a>" );
+
+	    out.print( "<pre>" );
+            out.print( _router._mapping.toFileConfig() );
+            out.print( "</pre>" );
+
+        }
+        
+        final Router _router;
+    }
+
 
     static class LBLast extends HttpMonitor {
         LBLast( LB lb ){

@@ -251,5 +251,5 @@ public class Router {
     
     private final Map<String,Pool> _pools = Collections.synchronizedMap( new TreeMap<String,Pool>() );
     private final Map<InetSocketAddress,Server> _addressToServer = Collections.synchronizedMap( new HashMap<InetSocketAddress,Server>() );
-    private Mapping _mapping;
+    Mapping _mapping;
 }
