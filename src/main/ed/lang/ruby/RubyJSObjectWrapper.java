@@ -537,7 +537,7 @@ public class RubyJSObjectWrapper extends RubyHash {
                             try {
                                 IRubyObject retval = toRuby(_scope, runtime, ((JSFunction)val).callAndSetThis(_scope, _jsobj, RubyObjectWrapper.toJSFunctionArgs(_scope, runtime, args, 1, block)));
                                 if (val instanceof JSFileLibrary)
-                                    RubyJxpSource.createNewClasses(_scope, runtime);
+                                    RubyJxpSource.createNewClassesAndXGenMethods(_scope, runtime);
                                 return retval;
                             }
                             catch (Exception e) {
