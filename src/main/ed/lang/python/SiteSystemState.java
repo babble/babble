@@ -499,18 +499,21 @@ public class SiteSystemState {
             PyObject __path__ = mod.__findattr__( "__path__".intern() );
             if( __path__ != null ) return mod;
 
+            PyObject pyName = mod.__findattr__( "__name__" );
             Object o = _root.getFromPath( _path , true );
+            PyList pathL = new PyList( );
             if( o instanceof JSFileLibrary ){
                 JSFileLibrary lib = (JSFileLibrary)o;
-                PyList pathL = new PyList( );
                 pathL.append( new PyString( lib.getRoot().toString() ) );
-                mod.__setattr__( "__path__".intern() , pathL );
             }
 
             if( o instanceof JSFunction && ((JSFunction)o).isCallable() ){
                 run( mod , (JSFunction)o );
             }
 
+            mod.__setattr__( "__file__".intern() , new PyString( _root + ":" + _path ) );
+            mod.__setattr__( "__path__".intern() , pathL );
+            mod.__setattr__( "__name__".intern() , pyName );
             return mod;
         }
 
