@@ -457,34 +457,43 @@ public abstract class HttpMonitor implements HttpHandler {
         }
 
         public void handle( MonitorRequest mr ){
-            CircularList<Event> l = InMemoryAppender.getInstance().getRecent();
-            
-            JxpWriter out = mr.getWriter();
-
-            out.print( "<table border='1'>" );
-            
-            for ( int i=0; i<l.size(); i++ ){
-                Event e = l.get( i );
-                out.print( "<tr>" );
-                mr.addTableCell( e.getDate() );
-                mr.addTableCell( e.getLoggerName() );
-                mr.addTableCell( e.getLevel() , e.getLevel().toString().toLowerCase() );
-                mr.addTableCell( e.getMsg() );
-                out.print( "</tr>" );
-                
-                if ( e.getThrowable() != null ){
-                    out.print( "<tr><td colspan=4'>" );
-                    out.print( e.getThrowable() + "<BR>" );
-                    for ( StackTraceElement element : e.getThrowable().getStackTrace() )
-                        out.print( element + "<BR>\n" );
-                    out.print( "</td></tr>" );
-                }
-            }
-            
-            out.print( "</table>" );
-            
+            printLastLogMessages( mr , -1 );
         }        
         
+    }
+    
+    /**
+     * @param max -1 means infinite
+     */
+    public static void printLastLogMessages( MonitorRequest mr , int max ){
+        CircularList<Event> l = InMemoryAppender.getInstance().getRecent();
+        int size = l.size();
+        if ( max > 0 )
+            size = Math.min( max , size );
+
+        JxpWriter out = mr.getWriter();
+        
+        out.print( "<table border='1'>" );
+        
+        for ( int i=0; i<size; i++ ){
+            Event e = l.get( i );
+            out.print( "<tr>" );
+            mr.addTableCell( e.getDate() );
+            mr.addTableCell( e.getLoggerName() );
+            mr.addTableCell( e.getLevel() , e.getLevel().toString().toLowerCase() );
+            mr.addTableCell( e.getMsg() );
+            out.print( "</tr>" );
+            
+            if ( e.getThrowable() != null ){
+                out.print( "<tr><td colspan=4'>" );
+                out.print( e.getThrowable() + "<BR>" );
+                for ( StackTraceElement element : e.getThrowable().getStackTrace() )
+                    out.print( element + "<BR>\n" );
+                out.print( "</td></tr>" );
+            }
+        }
+        
+        out.print( "</table>" );        
     }
     
     
