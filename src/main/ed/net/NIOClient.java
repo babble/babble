@@ -40,7 +40,8 @@ public abstract class NIOClient extends Thread {
 
     public static final SimpleDateFormat SHORT_TIME = new SimpleDateFormat( "MM/dd HH:mm:ss.S" );
     static final long AFTER_SHUTDOWN_WAIT = 1000 * 60;
-    static final long CONNECT_TIMEOUT = 1000 * 60;
+    static final long CONNECT_TIMEOUT = 1000 * 30;
+    static final long CLIENT_CONNECT_WAIT_TIMEOUT = 1000 * 15;
 
     public NIOClient( String name , int connectionsPerHost , int verboseLevel ){
         super( "NIOClient: " + name );
@@ -134,14 +135,21 @@ public abstract class NIOClient extends Thread {
     }
     
     private void _doNewRequests(){
+        long now = System.currentTimeMillis();
+        
         List<Call> pushBach = new LinkedList<Call>();
         
         for ( int i=0; i<20; i++ ){ // don't want to just handle new requests
-            
+
             Call c = _newRequests.poll();
             if ( c == null )
                 break;
-            
+
+            if ( now - c._started > CLIENT_CONNECT_WAIT_TIMEOUT ){
+                c.error( ServerErrorType.CONNECT , new CantOpen( null , null ) );
+                continue;
+            }
+
             if ( c._cancelled ){
 		pushBach.add( c );
                 continue;
@@ -151,7 +159,7 @@ public abstract class NIOClient extends Thread {
 		pushBach.add( c );
                 continue;
 	    }
-	    
+
             InetSocketAddress addr = null;
             try {
                 addr = c.where();
@@ -264,7 +272,7 @@ public abstract class NIOClient extends Thread {
 
             _error = err;            
             serverError( _addr , ServerErrorType.CONNECT , err );
-            _loggerOpen.error( "error opening connection to [" + _addr + "]" , _error );            
+            _loggerOpen.error( "error opening connection to [" + _addr + "] (" + this.hashCode() + ")" , _error );            
         }
         
         boolean ready(){
@@ -545,8 +553,9 @@ public abstract class NIOClient extends Thread {
         
         protected final long _started = System.currentTimeMillis();
         private long _doneTime = -1;
+        
     }
-
+    
     protected abstract class MyMonitor extends HttpMonitor {
         protected MyMonitor( String name ){
             super( _name + "-" + name );
