@@ -74,7 +74,13 @@ public class AppContextHolder {
                         mr.startData( ac.getName() + ":" + ac.getEnvironmentName() );
                         mr.addData( "Num Requests" , ac._numRequests );
                         mr.addData( "Created" , ac._created );
-                        mr.addData( "Memory (kb)" , ac.approxSize( seen ) / 1024 );
+                        try {
+                            mr.addData( "Memory (kb)" , ac.approxSize( seen ) / 1024 );
+                        }
+                        catch ( Exception e ){
+                            e.printStackTrace();
+                            mr.addData( "Memory" , "error getting size : " + e );
+                        }
                         mr.endData();
                     }
                 }
