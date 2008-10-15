@@ -1,4 +1,4 @@
-// Write
+/*// Write
 function writer() {
     pre = new Date();
 
@@ -102,3 +102,4 @@ if(top2.hasNext) {
         }
     }
 }
+*/
