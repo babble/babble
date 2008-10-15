@@ -108,3 +108,9 @@ sorted2(stringA);
 
 pyMethCall( stringA, 'sort', { key: key, reverse: true } );
 sorted1(stringA);
+
+var newList = pyList( jsA );
+assert.eq( jsA.length , newList.length );
+for( var i in jsA ){
+    assert.eq(jsA[i], newList[i]);
+}
