@@ -48,7 +48,6 @@ public class RubyJxpSource extends JxpSource {
 
     public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
     static final Map<Ruby, Set<IRubyObject>> _requiredJSFileLibFiles = new WeakHashMap<Ruby, Set<IRubyObject>>();
-    static final Map<Ruby, WeakReference<RubyModule>> _xgenModuleDefs = new WeakHashMap<Ruby, WeakReference<RubyModule>>();
     static final Map<AppContext, Ruby> _runtimes = new WeakHashMap<AppContext, Ruby>();
     static final Ruby PARSE_RUNTIME = Ruby.newInstance();
 
@@ -83,23 +82,15 @@ public class RubyJxpSource extends JxpSource {
     public static final boolean YARV_COMPILE = false;
 
     public static synchronized RubyModule xgenModule(Ruby runtime) {
-        RubyModule xgen = null;
-        WeakReference<RubyModule> ref = _xgenModuleDefs.get(runtime);
-        if (ref == null) {
-            xgen = runtime.defineModule("XGen");
-            _xgenModuleDefs.put(runtime, new WeakReference<RubyModule>(xgen));
-        }
-        else
-            xgen = ref.get();
-        return xgen;
+        return runtime.getOrCreateModule("XGen");
     }
 
     /**
-     * Creates Ruby classes from any new JavaScript classes found in the top
-     * level of <var>scope</var>. Called immediately after loading a file
-     * using a JSFileLibrary.
+     * Creates Ruby classes and XGen module methods from any new JavaScript
+     * classes and functions found in the top level of <var>scope</var>.
+     * Called immediately after loading a file using a JSFileLibrary.
      */
-    public static void createNewClasses(Scope scope, Ruby runtime) {
+    public static void createNewClassesAndXGenMethods(Scope scope, Ruby runtime) {
         if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
             System.err.println("about to create newly-defined classes");
         for (Object key : RubyJSObjectWrapper.jsKeySet(scope)) {
@@ -112,6 +103,31 @@ public class RubyJxpSource extends JxpSource {
                     toRuby(scope, runtime, (JSFunction)o, skey);
                 }
             }
+        }
+        addTopLevelMethodsToModule(scope, runtime, xgenModule(runtime));
+    }
+
+    /**
+     * Called by {@link _addTopLevelMethodsToXGenModule} and
+     * {@link createNewClassesAndXGenMethods}.
+     */
+    public static void addTopLevelMethodsToModule(Scope scope, Ruby runtime, RubyModule module) {
+        Set<String> alreadySeen = new HashSet<String>();
+        Scope s = scope;
+        while (s != null) {
+            for (String key : s.keySet()) {
+                if (alreadySeen.contains(key) || DO_NOT_LOAD_FUNCS.contains(key))
+                    continue;
+                final Object obj = s.get(key);
+                if (isCallableJSFunction(obj)) {
+                    if (DEBUG)
+                        System.err.println("adding top-level method " + key);
+                    alreadySeen.add(key);
+                    // Creates method and attaches to the module. Also creates a new Ruby class if appropriate.
+                    RubyObjectWrapper.createRubyMethod(scope, runtime, (JSFunction)obj, key, module, null);
+                }
+            }
+            s = s.getParent();
         }
     }
 
@@ -275,24 +291,7 @@ public class RubyJxpSource extends JxpSource {
         Ruby runtime = getRuntime(scope);
         RubyModule xgen = xgenModule(runtime);
         runtime.getObject().includeModule(xgen);
-
-        Set<String> alreadySeen = new HashSet<String>();
-        Scope s = scope;
-        while (s != null) {
-            for (String key : s.keySet()) {
-                if (alreadySeen.contains(key) || DO_NOT_LOAD_FUNCS.contains(key))
-                    continue;
-                final Object obj = s.get(key);
-                if (isCallableJSFunction(obj)) {
-                    if (DEBUG)
-                        System.err.println("adding top-level method " + key);
-                    alreadySeen.add(key);
-                    // Creates method and attaches to xgen. Also creates a new Ruby class if appropriate.
-                    RubyObjectWrapper.createRubyMethod(scope, runtime, (JSFunction)obj, key, xgen, null);
-                }
-            }
-            s = s.getParent();
-        }
+        addTopLevelMethodsToModule(scope, runtime, xgen);
     }
 
     protected void _patchRequireAndLoad(final Scope scope) {
@@ -350,7 +349,7 @@ public class RubyJxpSource extends JxpSource {
             if (isCallableJSFunction(o)) {
                 try {
                     ((JSFunction)o).call(scope, EMPTY_OBJECT_ARRAY);
-                    createNewClasses(scope, runtime);
+                    createNewClassesAndXGenMethods(scope, runtime);
                 }
                 catch (Exception e) {
                     if (DEBUG || RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
