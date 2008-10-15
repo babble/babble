@@ -426,6 +426,13 @@ public class SiteSystemState {
                 return new LibraryModuleLoader( _core );
             }
 
+            if( modName.startsWith("core.") ){
+                int period = modName.indexOf('.');
+                String path = modName.substring( period + 1 );
+                path = path.replaceAll( "\\." , "/" );
+                return new JSLibraryLoader( _core, path );
+            }
+
             if( DEBUG ){
                 System.out.println( "meta_path hook didn't match " + modName );
             }
@@ -474,6 +481,52 @@ public class SiteSystemState {
             mod.__setattr__( "__path__".intern() , pathL );
 
             return mod;
+        }
+    }
+
+    @ExposedType(name="_10gen_module_js_loader")
+    public class JSLibraryLoader extends PyObject {
+        JSLibrary _root;
+        String _path;
+        public JSLibraryLoader( JSLibrary root , String path ){
+            _root = root;
+            _path = path;
+        }
+
+        @ExposedMethod
+        public PyModule load_module( String name ){
+            PyModule mod = imp.addModule( name );
+            PyObject __path__ = mod.__findattr__( "__path__".intern() );
+            if( __path__ != null ) return mod;
+
+            Object o = _root.getFromPath( _path , true );
+            if( o instanceof JSFileLibrary ){
+                JSFileLibrary lib = (JSFileLibrary)o;
+                PyList pathL = new PyList( );
+                pathL.append( new PyString( lib.getRoot().toString() ) );
+                mod.__setattr__( "__path__".intern() , pathL );
+            }
+
+            if( o instanceof JSFunction && ((JSFunction)o).isCallable() ){
+                run( mod , (JSFunction)o );
+            }
+
+            return mod;
+        }
+
+        public void run( PyModule mod , JSFunction f ){
+            Scope pref = _scope.getTLPreferred();
+            Scope s = _scope.child();
+            s.setGlobal( true );
+
+            try {
+                _scope.setTLPreferred( null );
+                f.call( s );
+                mod.__dict__ = new PyJSObjectWrapper( s );
+            }
+            finally {
+                _scope.setTLPreferred( pref );
+            }
         }
     }
 

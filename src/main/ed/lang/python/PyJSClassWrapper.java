@@ -43,6 +43,9 @@ public class PyJSClassWrapper extends PyJSFunctionWrapper {
         // TODO: not sure what to do about scope yet, but its not this probably
         JSObject n = _func.newOne();
         Scope s = _func.getScope();
+	if ( s == null )
+	    s = Scope.getAScope();
+	s = s.child();
         s.setThis( n );
         _func.call( s , extra );
         s.clearThisNormal( null );
