@@ -27,6 +27,7 @@ import ed.js.*;
 import ed.js.func.*;
 import ed.js.engine.*;
 import static ed.lang.python.Python.*;
+import ed.util.*;
 
 /**
  * This class mainly exists to translate JS Array methods/attributes into 
@@ -238,8 +239,8 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
         return null; // FIXME: we removed both of them, who cares
     }
     
-    public Collection<String> keySet( boolean includePrototype ){
-        List<String> keys = new ArrayList<String>();
+    public Set<String> keySet( boolean includePrototype ){
+        Set<String> keys = new OrderedSet<String>();
 
         int n = _pSeq.__len__();
 

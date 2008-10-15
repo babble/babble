@@ -20,11 +20,11 @@ public abstract class JavaJSObject implements JSObject {
         return null;
     }
 
-    public final Collection<String> keySet(){
+    public final Set<String> keySet(){
         return keySet( true );
     }
 
-    public Collection<String> keySet( boolean includePrototype ){
+    public Set<String> keySet( boolean includePrototype ){
         return getWrapper().keySet();
     }
 

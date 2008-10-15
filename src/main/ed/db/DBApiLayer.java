@@ -111,16 +111,17 @@ public abstract class DBApiLayer extends DBBase {
         return base.doGetCollection( table );
     }
 
-    public Collection<String> getCollectionNames(){
-        List<String> tables = new ArrayList<String>();
-
+    public Set<String> getCollectionNames(){
+        
         DBCollection namespaces = getCollection( "system.namespaces" );
         if ( namespaces == null )
             throw new RuntimeException( "this is impossible" );
 
 	Iterator<JSObject> i = namespaces.find( new JSObjectBase() , null , 0 , 0 );
 	if ( i == null )
-	    return tables;
+	    return new HashSet<String>();
+
+        List<String> tables = new ArrayList<String>();
 
         for (  ; i.hasNext() ;  ){
             JSObject o = i.next();
@@ -142,7 +143,7 @@ public abstract class DBApiLayer extends DBBase {
 
         Collections.sort( tables );
 
-        return tables;
+        return new OrderedSet<String>( tables );
     }
 
     public static Collection<String> getRootNamespacesLocal(){

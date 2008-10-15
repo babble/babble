@@ -18,6 +18,8 @@
 
 package ed.js;
 
+import java.util.*;
+
 /** @expose */
 public class JSObjectWrapper implements JSObject {
     /** Initializes a new wrapper for an object
@@ -84,12 +86,12 @@ public class JSObjectWrapper implements JSObject {
     /** Returns this object's fields' names
      * @return The names of the fields in this object
      */
-    public java.util.Collection<String> keySet(){
+    public Set<String> keySet(){
         return _wrap.keySet();
     }
 
 
-    public java.util.Collection<String> keySet( boolean includePrototype ){
+    public Set<String> keySet( boolean includePrototype ){
         return _wrap.keySet( includePrototype );
     }
 

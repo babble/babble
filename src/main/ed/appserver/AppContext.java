@@ -1121,10 +1121,10 @@ public class AppContext extends ServletContextBase implements JSObject , Sizable
     public JSFunction getFunction( String name ){
         return _scope.getFunction( name );
     }
-    public final Collection<String> keySet(){
+    public final Set<String> keySet(){
         return _scope.keySet();
     }
-    public Collection<String> keySet( boolean includePrototype ){
+    public Set<String> keySet( boolean includePrototype ){
         return _scope.keySet( includePrototype );
     }
     public boolean containsKey( String s ){

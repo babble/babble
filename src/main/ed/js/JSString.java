@@ -716,8 +716,8 @@ public class JSString extends JSObjectBase implements Comparable {
         return _s.getBytes();
     }
 
-    public Collection<String> keySet( boolean includePrototype ){
-        List<String> keys = new ArrayList<String>();
+    public Set<String> keySet( boolean includePrototype ){
+        Set<String> keys = new OrderedSet<String>();
         for ( int i=0; i<_s.length(); i++ )
             keys.add( String.valueOf( i ) );
 

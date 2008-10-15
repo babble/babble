@@ -23,6 +23,7 @@ import java.util.*;
 import com.caucho.quercus.env.*;
 
 import ed.js.*;
+import ed.util.*;
 
 public class PHPWrapper extends JSObjectLame {
     
@@ -42,9 +43,8 @@ public class PHPWrapper extends JSObjectLame {
         throw new RuntimeException( "can't set something on a : " + _value.getClass().getName() );
     }
 
-    public Collection<String> keySet( boolean includePrototype ){
-        List<String> keys = new ArrayList<String>();
-
+    public Set<String> keySet( boolean includePrototype ){
+        Set<String> keys = new OrderedSet<String>();
         if ( _arrayValue != null )
             for ( Object foo : _arrayValue.keySet() )
                 keys.add( foo.toString() );

@@ -33,6 +33,7 @@ import ed.log.*;
 import ed.net.*;
 import ed.cloud.*;
 import ed.net.httpserver.*;
+import static ed.net.lb.Mapping.*;
 
 public class LB extends NIOClient {
 
@@ -105,10 +106,16 @@ public class LB extends NIOClient {
             reset();
 
             _lastCalls[_lastCallsPos] = this;
-
+            
             _lastCallsPos++;
             if ( _lastCallsPos >= _lastCalls.length )
                 _lastCallsPos = 0;
+
+            _environemnt = _router.getEnvironment( _request );
+            if ( _environemnt == null )
+                _loadMonitor.hitSite( "unknown" );
+            else
+                _loadMonitor.hitSite( _environemnt.site );
         }
         
         void reset(){
@@ -130,7 +137,7 @@ public class LB extends NIOClient {
         }
         
         protected InetSocketAddress where(){
-            _lastWent = _router.chooseAddress( _request , _request.elapsed() > WAIT_FOR_POOL_TIMEOUT );
+            _lastWent = _router.chooseAddress( _environemnt , _request , _request.elapsed() > WAIT_FOR_POOL_TIMEOUT );
             return _lastWent;
         }
         
@@ -297,6 +304,7 @@ public class LB extends NIOClient {
 
         final HttpRequest _request;
         final HttpResponse _response;
+        final Environment _environemnt;
         
         int _numFails = 0;
 

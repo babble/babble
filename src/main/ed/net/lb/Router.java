@@ -28,7 +28,7 @@ import ed.net.*;
 import ed.net.httpserver.*;
 import static ed.net.lb.Mapping.*;
 
-public class Router {
+public final class Router {
     
     public Router( MappingFactory mappingFactory ){
 	_logger = Logger.getLogger( "LB" ).getChild( "router" );
@@ -40,12 +40,26 @@ public class Router {
         _initCheck();
     }
 
+    public Environment getEnvironment( HttpRequest request  ){
+        final Environment e = _mapping.getEnvironment( request );
+        if ( e == null )
+            throw new IllegalArgumentException( "can't find env for [" + request.getFullURL() + "]" );
+        return e;
+    }
+    
     public InetSocketAddress chooseAddress( HttpRequest request , boolean doOrDie ){
         final Environment e = _mapping.getEnvironment( request );
         if ( e == null )
             throw new IllegalArgumentException( "can't find pool for [" + request.getFullURL() + "]" );
-        
+        return chooseAddress( e , request , doOrDie );
+    }
+    
+    public InetSocketAddress chooseAddress( final Environment e , final HttpRequest request , final boolean doOrDie ){
+        if ( e == null )
+            throw new NullPointerException( "can't call chooseAddress with a null environment" );
+
         final String p = _mapping.getPool( e );
+        
         if ( p == null )
             throw new IllegalArgumentException( "can't find pool for " + e + " from [" + request.getFullURL() + "]" );
         

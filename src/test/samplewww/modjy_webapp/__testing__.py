@@ -3,6 +3,8 @@ import sys
 import _10gen
 import foo
 import modjy_webapp.foo
+import core.user.auth
+
 
 foo.hello = 61
 print 'running me'
@@ -26,6 +28,10 @@ def handler(environ, start_response):
 
     environ['10gen.foo.hello'] = foo.hello
     environ['10gen.sitename.foo.hello'] = getattr(modjy_webapp.foo, 'hello', None)
+    environ['10gen.core.user.auth'] = core.user.auth
+    environ['10gen.core.user.auth.Auth'] = core.user.auth.Auth
+    environ['10gen.core.user.auth.request'] = core.user.auth.request
+
     keys = environ.keys()
     keys.sort()
     ix = 0

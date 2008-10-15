@@ -30,7 +30,7 @@ public abstract class DBBase extends JSObjectLame implements Sizable {
     
     public abstract DBCollection getCollectionFromFull( String fullNameSpace );
     protected abstract DBCollection doGetCollection( String name );
-    public abstract Collection<String> getCollectionNames();
+    public abstract Set<String> getCollectionNames();
 
     public abstract DBAddress getAddress();
     public abstract String getConnectPoint();
@@ -102,7 +102,7 @@ public abstract class DBBase extends JSObjectLame implements Sizable {
         return null;
     }
 
-    public Collection<String> keySet( boolean includePrototype ){
+    public Set<String> keySet( boolean includePrototype ){
         return getCollectionNames();
     }
 

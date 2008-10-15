@@ -714,6 +714,29 @@ public class JSArray extends JSObjectBase implements Iterable , List {
             return v;
         }
 
+        // set the length: truncate or add nulls
+        if ( n.toString().equals( "length" ) ) {
+            double newLen = JSNumber.getDouble( v );
+            if( newLen < 0 || 
+                Double.isInfinite( newLen ) || 
+                Double.isNaN( newLen ) ) {
+                throw new RuntimeException( "length must be a positive number." );
+            }
+            int startLen = _array.size();
+            for( int i=startLen-1; i >= newLen; i-- ) {
+                _array.remove( i );
+            }
+            int addLen = (int)newLen - startLen;
+            if( addLen > 0 ) {
+                Object o[] = new Object[addLen];
+                for( int i=0; i<o.length; i++) {
+                    o[i] = null;
+                }
+                Collections.addAll( _array, o );
+            }
+            return v;
+        }
+
 	return super.set( n , v );
     }
 
@@ -732,10 +755,10 @@ public class JSArray extends JSObjectBase implements Iterable , List {
     /** Returns an array of the indices for this array.
      * @return The indices for this array.
      */
-    public Collection<String> keySet( boolean includePrototype ){
-        Collection<String> p = super.keySet( includePrototype );
+    public Set<String> keySet( boolean includePrototype ){
+        Set<String> p = super.keySet( includePrototype );
 
-        List<String> keys = new ArrayList<String>( p.size() + _array.size() );
+        Set<String> keys = new OrderedSet<String>();
 
         for ( int i=0; i<_array.size(); i++ )
             keys.add( String.valueOf( i ) );

@@ -66,11 +66,11 @@ public class DBJSObject implements JSObject {
         return findElement( s ) != null;
     }
 
-    public Collection<String> keySet(){
+    public Set<String> keySet(){
         return keySet( true );
     }
 
-    public Collection<String> keySet( boolean includePrototype ){    
+    public Set<String> keySet( boolean includePrototype ){    
         Set<String> keys = new HashSet<String>();
         
         ElementIter i = new ElementIter();

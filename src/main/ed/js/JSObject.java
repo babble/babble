@@ -70,9 +70,9 @@ public interface JSObject {
      * @jskeyset
      * @return The names of the fields in this object
      */
-    public Collection<String> keySet();
+    public Set<String> keySet();
 
-    public Collection<String> keySet( boolean includePrototype );
+    public Set<String> keySet( boolean includePrototype );
 
     /** Finds the constructor for this object.
      * @return The constructor
