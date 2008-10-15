@@ -99,6 +99,8 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                         arr.setInt( 1 + i , extra[i] );
                 }
             }
+            _prototype.set( "length", arr._array.size() );
+            _prototype.setProperties( "length", JSObjectBase.DONT_ENUM | JSObjectBase.DONT_DELETE );
 
             return arr;
         }
@@ -734,6 +736,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                 }
                 Collections.addAll( _array, o );
             }
+            getConstructor()._prototype.set( "length", _array.size() );
             return v;
         }
 
