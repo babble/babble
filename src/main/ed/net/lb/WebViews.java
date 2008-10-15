@@ -26,6 +26,9 @@ public class WebViews {
 	    out.print( "</div>" );
 
 	    displayLast( mr , _lb , 15 );
+
+            out.print( "<hr>logs<br>" );
+            HttpMonitor.printLastLogMessages( mr , 10 );
         }
         
         final LB _lb;
