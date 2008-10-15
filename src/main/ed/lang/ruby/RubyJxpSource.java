@@ -274,8 +274,8 @@ public class RubyJxpSource extends JxpSource {
     }
 
     /**
-     * Creates the $scope global object and a method_missing method for the
-     * top-level object.
+     * Creates the $scope global object and sets up the XGen module with
+     * top-level functions defined in the scope.
      */
     protected void _exposeScopeFunctions(Scope scope) {
         Ruby runtime = getRuntime(scope);
