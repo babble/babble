@@ -182,7 +182,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
         if ( type == null )
             throw new NullPointerException( "type can't be null" );
 
-        if ( thing instanceof Number && !( thing instanceof JSNumber )){
+        if ( thing instanceof Number ){
             return false;
         }
 
@@ -444,16 +444,15 @@ public class JSInternalFunctions extends JSNumericFunctions {
             b = b.toString();
         }
         
-        if( a instanceof JSString ) 
-            a = a.toString();
-        if( b instanceof JSString ) 
-            b = b.toString();
-
         if ( a instanceof JSObject &&
              b instanceof JSObject ) {
             return false;
         }
 
+        if( a instanceof JSString ) 
+            a = a.toString();
+        if( b instanceof JSString ) 
+            b = b.toString();
         // "promote" booleans and strings to numbers
         if ( a instanceof JSBoolean || a instanceof Boolean ) {
             a = JSBoolean.booleanValue( a ) ? 1 : 0;
@@ -462,14 +461,14 @@ public class JSInternalFunctions extends JSNumericFunctions {
             b = JSBoolean.booleanValue( b ) ? 1 : 0;
         }
         if ( a instanceof Number && 
-             b instanceof String && 
-             ((String)b).matches( JSNumber.POSSIBLE_NUM ) ) {
+             ( b instanceof String ) && 
+             b.toString().matches( JSNumber.POSSIBLE_NUM ) ) {
             a = ((Number)a).doubleValue();
             b = StringParseUtil.parseStrict(b.toString()).doubleValue();
         }
         if ( b instanceof Number && 
-             a instanceof String &&
-             ((String)a).matches( JSNumber.POSSIBLE_NUM ) ) {
+             ( a instanceof String ) &&
+             a.toString().matches( JSNumber.POSSIBLE_NUM ) ) {
             a = StringParseUtil.parseStrict(a.toString()).doubleValue();
             b = ((Number)b).doubleValue();
         }

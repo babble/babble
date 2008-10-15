@@ -289,12 +289,7 @@ public class Convert {
             int rId = n.getIntProp( Node.REGEXP_PROP , -1 );
 
             _regex.add( new Pair<String,String>( parent.getRegexpString( rId ) , parent.getRegexpFlags( rId ) ) );
-            //            _append( " _regex(" + myId + ") " , n );
-            _append( "scope.clearThisNew( scope.getFunction( \"RegExp\" ).call( scope.newThis( scope.getFunction( \"RegExp\" ) )  , "+
-                     "\"" + parent.getRegexpString( rId ).replace("\\","\\\\").replace("\"", "\\\"") + "\"" +
-                     ", " + 
-                     "\"" + parent.getRegexpFlags( rId ) + "\"" +
-                     ", new Object[0] )  ) ", n );
+            _append( " _regex(" + myId + ") " , n );
             break;
 
         case Token.ARRAYLIT:
@@ -530,7 +525,6 @@ public class Convert {
             _append( " false " , n );
             break;
         case Token.NULL:
-        case Token.VOID:
             _append( " null " , n );
             break;
 

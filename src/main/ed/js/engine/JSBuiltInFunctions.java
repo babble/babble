@@ -411,64 +411,9 @@ public class JSBuiltInFunctions {
             set( "extend", new Prototype.Object_extend() );
             set( "values", new Prototype.Object_values() );
             set( "keys", new Prototype.Object_keys() );
-
-            /*
-            _prototype.set( "constructor" , _objCons );
-            _prototype.set( "toString" , new JSFunctionCalls0() {
-                    public Object call( Scope s, Object extra[] ) {
-                        Object o = s.getThis();
-                        if( !(o instanceof JSObject) )
-                            throw new JSException( "error: must be an object" );
-                        return "[object Object]";
-                    }
-                });
-            _prototype.set( "toLocaleString" , (JSFunction)_prototype.get( "toString" ) );
-            _prototype.set( "valueOf" , new JSFunctionCalls0() {
-                    public Object call( Scope s, Object extra[] ) {
-                        Object o = s.getThis();
-                        if( !(o instanceof JSObject) )
-                            throw new JSException( "error: must be an object" );
-                        return null;
-                    }
-                });
-            _prototype.set( "hasOwnProperty" , new JSFunctionCalls1() {
-                    public Object call( Scope s, Object prop, Object extra[] ) {
-                        Object o = s.getThis();
-                        if( !(o instanceof JSObject) )
-                            throw new JSException( "error: must be an object" );
-                        // this should call containsKey( prop.toString() , false );
-                        return ((JSObject)o).containsKey( prop.toString() );
-                    }
-                } );
-            _prototype.set( "propertyIsEnumerable" , new JSFunctionCalls1() {
-                    public Object call( Scope s, Object prop, Object extra[] ) {
-                        Object o = s.getThis();
-                        if( !(o instanceof JSObject) )
-                            throw new JSException( "error: must be an object" );
-                        return ((JSObject)o).keySet().contains( prop.toString() );
-                    }
-                } );
-            _prototype.set( "isPrototypeOf" , new JSFunctionCalls1() {
-                    public Object call( Scope s, Object cons, Object extra[] ) {
-                        Object o = s.getThis();
-                        if( !(o instanceof JSObject) )
-                            throw new JSException( "error: must be an object" );
-                        return ((JSObject)o).getConstructor().equals( cons );
-                    }
-                } );
-            _prototype.lockKey( "constructor" );
-            _prototype.lockKey( "toString" );
-            _prototype.lockKey( "toLocaleString" );
-            _prototype.lockKey( "valueOf" );
-            _prototype.lockKey( "hasOwnProperty" );
-            _prototype.lockKey( "propertyIsEnumerable" );
-            _prototype.lockKey( "isPrototypeOf" );
-            _prototype.dontEnumExisting();
-            */
         }
     };
 
-    //    public static JSFunction _objCons = new NewObject();
 
     public static class NewDate extends JSFunctionCalls1 {
         public Object call( Scope scope , Object t , Object extra[] ){
