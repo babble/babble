@@ -714,6 +714,29 @@ public class JSArray extends JSObjectBase implements Iterable , List {
             return v;
         }
 
+        // set the length: truncate or add nulls
+        if ( n.toString().equals( "length" ) ) {
+            double newLen = JSNumber.getDouble( v );
+            if( newLen < 0 || 
+                Double.isInfinite( newLen ) || 
+                Double.isNaN( newLen ) ) {
+                throw new RuntimeException( "length must be a positive number." );
+            }
+            int startLen = _array.size();
+            for( int i=startLen-1; i >= newLen; i-- ) {
+                _array.remove( i );
+            }
+            int addLen = (int)newLen - startLen;
+            if( addLen > 0 ) {
+                Object o[] = new Object[addLen];
+                for( int i=0; i<o.length; i++) {
+                    o[i] = null;
+                }
+                Collections.addAll( _array, o );
+            }
+            return v;
+        }
+
 	return super.set( n , v );
     }
 
