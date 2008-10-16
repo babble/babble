@@ -38,7 +38,7 @@ public class NodeList extends JSArray {
         for (Object nodeObj : this) {
             JSObject node = (JSObject) nodeObj;
             JSFunction fn = (JSFunction) node.get("__render");
-            fn.callAndSetThis(scope.child(), node, new Object[] { context, printer });
+            fn.callAndSetThis(scope, node, new Object[] { context, printer });
         }
     }
     public JSString render(Scope scope, Context context) {
@@ -53,7 +53,7 @@ public class NodeList extends JSArray {
         for (Object nodeObj : this) {
             JSObject node = (JSObject) nodeObj;
             JSFunction fn = (JSFunction) node.get("get_nodes_by_type");
-            JSArray childNodes = (JSArray) fn.callAndSetThis(scope.child(), node, new Object[] { constructor });
+            JSArray childNodes = (JSArray) fn.callAndSetThis(scope, node, new Object[] { constructor });
             nodelist.addAll((List) childNodes);
         }
         return nodelist;

@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -34,11 +33,11 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Factory;
 import org.testng.annotations.Test;
 
+import ed.appserver.AppContext;
 import ed.appserver.jxp.JxpSource;
 import ed.appserver.templates.djang10.Djang10Source;
 import ed.appserver.templates.djang10.JSHelper;
 import ed.db.JSHook;
-import ed.js.Encoding;
 import ed.js.JSArray;
 import ed.js.JSDate;
 import ed.js.JSException;
@@ -51,9 +50,9 @@ import ed.js.func.JSFunctionCalls0;
 import ed.js.func.JSFunctionCalls1;
 import ed.js.func.JSFunctionCalls2;
 import ed.log.Appender;
+import ed.log.Event;
 import ed.log.Level;
 import ed.log.Logger;
-import ed.log.Event;
 
 public class DjangoRegressionTests {
     private static final String TEST_DIR =  "src/test/ed/appserver/templates/djang10/regression/";
@@ -110,13 +109,15 @@ public class DjangoRegressionTests {
     }
     
     private Scope initScope() throws IOException {
-        Scope oldScope = Scope.getThreadLocal();
-        Scope globalScope = Scope.newGlobal().child();
-        globalScope.setGlobal(true);
-        globalScope.makeThreadLocal();
+        final Scope oldScope = Scope.getThreadLocal();
+        
+        AppContext appContext = new AppContext("tmp");
+        Logger appLogger = appContext.getLogger();
+        Scope appScope = appContext.getScope();
 
-        //Load native objects
-        Logger log = Logger.getRoot();
+        //config logger
+        appLogger.makeThreadLocal();
+
         JSArray defaultAppenders = ((JSArray) Logger.getRoot().get("appenders"));
         final List<Appender> oldAppenders = new ArrayList<Appender>(defaultAppenders);
 
@@ -130,109 +131,125 @@ public class DjangoRegressionTests {
             }
         });
         
-        globalScope.set("log", log);
-        log.makeThreadLocal();        
-        
-        //override the Date object
-        final long now_ms = System.currentTimeMillis();
-        globalScope.set("OldDate", globalScope.get("Date"));
-        globalScope.set("Date", new JSFunctionCalls0() {
-            public Object call(Scope scope, Object[] extra) {
-                Object thisObj = scope.getThis();
-                
-                if((extra != null && extra.length > 0) || !(thisObj instanceof JSDate))
-                    throw new IllegalStateException("Date has been intentionally crippled & can only be used as paramless constructor ");
-                
-                JSDate thisDate = (JSDate)thisObj;
-                thisDate.setTime(now_ms);
-                return null;
-            }
-            public JSObject newOne() {
-                return JSDate._cons.newOne();
-            }
-        });
-        
+        //config the request scope
+        Scope reqScope = appScope.child( "AppRequest" );
+        reqScope.setGlobal( true );
+        reqScope.makeThreadLocal();
+
         try {
-            Encoding.install(globalScope);
-            JSHelper.install(globalScope, Collections.EMPTY_MAP, Logger.getRoot());
+            //override the Date object
+            final long now_ms = System.currentTimeMillis();
+            reqScope.put("OldDate", reqScope.get("Date"), false);
+            reqScope.set("Date", new JSFunctionCalls0() {
+                public Object call(Scope scope, Object[] extra) {
+                    Object thisObj = scope.getThis();
+                    
+                    if((extra != null && extra.length > 0) || !(thisObj instanceof JSDate))
+                        throw new IllegalStateException("Date has been intentionally crippled & can only be used as paramless constructor ");
+                    
+                    JSDate thisDate = (JSDate)thisObj;
+                    thisDate.setTime(now_ms);
+                    return null;
+                }
+                public JSObject newOne() {
+                    return JSDate._cons.newOne();
+                }
+            });
             
+            //import common js
             JxpSource preambleSource = JxpSource.getSource(new File(getBasePath(), "preamble.js") , null , null );
-            preambleSource.getFunction().call(globalScope);
+            preambleSource.getFunction().call(reqScope);
         }
         finally {
             if(oldScope != null) oldScope.makeThreadLocal();
             else Scope.clearThreadLocal();
+            
+            //XXX: logger threadlocal is not cleaned up!!!
         }
         
-        log.getChild("djang10").setLevel(Level.DEBUG);
-        
-        return globalScope;
+        return reqScope;
     }
     
     @Factory
     public Object[] getAllTests()  throws IOException, ClassNotFoundException {
+        Scope oldScope = Scope.getThreadLocal();
+        
         Scope globalScope = initScope();
+        globalScope.makeThreadLocal();
         
-        //Load the test scripts & pull out variables
-        final List<TestCase> testCases = new ArrayList<TestCase>();
-        int count = 0, skipped = 0;
+        //Set the TLPreferred scope, so that the date hack will take affect 
+        Scope appContextScope = AppContext.findThreadLocal().getScope();
+        Scope oldTlPref = appContextScope.getTLPreferred();
+        appContextScope.setTLPreferred( globalScope );
         
-        
-        for(String testFilename : new String[] {"tests.js", "filter_tests.js", "missing_tests.js"}) {
-            String path = new File(getBasePath(), testFilename).getAbsolutePath();
-            JSTestScript testScript = new JSTestScript(globalScope, path);
+        try {
+            //Load the test scripts & pull out variables
+            final List<TestCase> testCases = new ArrayList<TestCase>();
+            int count = 0, skipped = 0;
             
-            for(Object jsTestObj : testScript.tests) {
-                JSObject jsTest = (JSObject)jsTestObj;
-                JSObject results = (JSObject)jsTest.get("results");
+            
+            for(String testFilename : new String[] {"tests.js", "filter_tests.js", "missing_tests.js"}) {
+                String path = new File(getBasePath(), testFilename).getAbsolutePath();
+                JSTestScript testScript = new JSTestScript(globalScope, path);
                 
-                TestCase testCase;
-                
-                try {
-                    if(results == null)
-                        throw new NullPointerException("Results were null");
-    
-                    else if(testScript.exceptionCons.values().contains(results) 
-                            || results.getConstructor() == testScript.nativeExceptionCons 
-                            || results.getConstructor() == testScript.exceptionStackCons)
-                        testCase = new ExpectedErrorTestCase(globalScope, testScript, jsTest);
+                for(Object jsTestObj : testScript.tests) {
+                    JSObject jsTest = (JSObject)jsTestObj;
+                    JSObject results = (JSObject)jsTest.get("results");
                     
-                    else
-                        testCase = new NormalTestCase(globalScope, testScript, jsTest);
-                }
-                catch(Exception e) {
-                    throw new RuntimeException("Failed to load test: " + jsTest.get("name") + ", in script: " + path, e);
-                }
-                
-                if(isSupported(testScript, testCase)) testCases.add(testCase);
-                else skipped++;
-                
-                count++;
-            }
-        }
-
-        //Create a custom template loader
-        JSFunctionCalls2 custom_loader = new JSFunctionCalls2() {
-            public Object call(Scope scope, Object templateNameObj, Object p1, Object[] extra) {
-                for(Object testObj : testCases) {
-                    TestCase testCase = (TestCase)testObj;
-                    if(templateNameObj.toString().equals(testCase.name))
-                        try {
-                            return (new Djang10Source(testCase.content)).getFunction();
-                        } catch(Throwable t) {
-                            throw new RuntimeException(t);
-                        }
-                }
-                return null;
-            }
-        };
+                    TestCase testCase;
+                    
+                    try {
+                        if(results == null)
+                            throw new NullPointerException("Results were null");
         
-        JSHelper jsHelper = JSHelper.get(globalScope);
-        JSArray loaders = (JSArray) jsHelper.get("TEMPLATE_LOADERS");
-        loaders.clear();
-        loaders.add(custom_loader);
-       
-        return testCases.toArray();
+                        else if(testScript.exceptionCons.values().contains(results) 
+                                || results.getConstructor() == testScript.nativeExceptionCons 
+                                || results.getConstructor() == testScript.exceptionStackCons)
+                            testCase = new ExpectedErrorTestCase(globalScope, testScript, jsTest);
+                        
+                        else
+                            testCase = new NormalTestCase(globalScope, testScript, jsTest);
+                    }
+                    catch(Exception e) {
+                        throw new RuntimeException("Failed to load test: " + jsTest.get("name") + ", in script: " + path, e);
+                    }
+                    
+                    if(isSupported(testScript, testCase)) testCases.add(testCase);
+                    else skipped++;
+                    
+                    count++;
+                }
+            }
+    
+            //Create a custom template loader
+            JSFunctionCalls2 custom_loader = new JSFunctionCalls2() {
+                public Object call(Scope scope, Object templateNameObj, Object p1, Object[] extra) {
+                    for(Object testObj : testCases) {
+                        TestCase testCase = (TestCase)testObj;
+                        if(templateNameObj.toString().equals(testCase.name))
+                            try {
+                                return (new Djang10Source(testCase.content)).getFunction();
+                            } catch(Throwable t) {
+                                throw new RuntimeException(t);
+                            }
+                    }
+                    return null;
+                }
+            };
+            
+            JSHelper jsHelper = JSHelper.get(globalScope);
+            JSArray loaders = (JSArray) jsHelper.get("TEMPLATE_LOADERS");
+            loaders.clear();
+            loaders.add(custom_loader);
+           
+            return testCases.toArray();
+        }
+        finally {
+            if(oldScope != null) oldScope.makeThreadLocal();
+            else Scope.clearThreadLocal();
+            
+            globalScope.setTLPreferred( oldTlPref );
+        }
     }
         
     
@@ -334,19 +351,23 @@ public class DjangoRegressionTests {
                 }
             }
         }
+
         @BeforeMethod
         public void setup() {
             preTestScope = Scope.getThreadLocal();
             testScope = globalScope.child();
             testScope.makeThreadLocal();
             
+            AppContext.findThreadLocal().getLogger().makeThreadLocal();
+            
             this.source = new Djang10Source(this.content);
             
             outputBuffer = new StringBuilder();
             testScope.set("print", printer);
             logMessages = new StringBuilder();
-            ((JSArray) Logger.getRoot().get("appenders")).add(appender);
+            Logger.setThreadLocalAppender( appender );
         }
+
         @AfterMethod
         public void teardown() {
             if(preTestScope != null) preTestScope.makeThreadLocal();
@@ -354,8 +375,8 @@ public class DjangoRegressionTests {
             testScope = null;
             
             this.source = null;
-            
-            ((JSArray) Logger.getRoot().get("appenders")).remove(appender);
+
+            Logger.setThreadLocalAppender( null );
             outputBuffer = null;
             logMessages = null;
         }

@@ -66,8 +66,11 @@ public class JSHelper extends JSObjectBase {
     
     WeakHashMap<JSCompiledScript, LoadedLibrary> libraryCache;
     WeakHashMap<JSCompiledScript, JSFunction> loaderCache;
+
+    private final Scope scope;
     
-    public JSHelper(Logger djang10Logger, Map<String, JSFileLibrary> fileRoots) {
+    public JSHelper(Scope scope, Logger djang10Logger, Map<String, JSFileLibrary> fileRoots) {
+        this.scope = scope;
         this.log = djang10Logger;
         this.fileRoots = Collections.unmodifiableMap(fileRoots);
         librarySearchPaths = new ArrayList<TemplateTagRoot>();
@@ -120,22 +123,24 @@ public class JSHelper extends JSObjectBase {
     }
        
     //Scope management ===================================================
-    public static JSHelper install(Scope scope, Map<String, JSFileLibrary> fileLibRoots, Logger siteLogger) {
+    public static JSHelper install(Scope appContextScope, Map<String, JSFileLibrary> fileLibRoots, Logger siteLogger) {
         //XXX: during appcontext init, the site loger hasn't been setup yet, so have to pull it out of the scope
         Logger djang10Logger = siteLogger.getChild("djang10");
         djang10Logger.setLevel(Level.INFO);
         
         fileLibRoots = new HashMap<String, JSFileLibrary>(fileLibRoots);
-        JSFileLibrary jsLib = JSFileLibrary.loadLibraryFromEd("ed/appserver/templates/djang10/js", "djang10", scope);
+        JSFileLibrary jsLib = JSFileLibrary.loadLibraryFromEd("ed/appserver/templates/djang10/js", "djang10", appContextScope);
         fileLibRoots.put("djang10js", jsLib);
         
-        JSHelper helper = new JSHelper(djang10Logger, fileLibRoots);
-        scope.set(NS, helper);
         
-        helper.addDefaultLibrary(scope, "djang10js.defaulttags");
-        helper.addDefaultLibrary(scope, "djang10js.defaultfilters");
-        helper.addDefaultLibrary(scope, "djang10js.loader_tags");
-        helper.addDefaultLibrary(scope, "djang10js.tengen_extras");
+        Scope scope = appContextScope.child("JSHelper");
+        JSHelper helper = new JSHelper(scope, djang10Logger, fileLibRoots);
+        appContextScope.set(NS, helper);
+        
+        helper.addDefaultLibrary("djang10js.defaulttags");
+        helper.addDefaultLibrary("djang10js.defaultfilters");
+        helper.addDefaultLibrary("djang10js.loader_tags");
+        helper.addDefaultLibrary("djang10js.tengen_extras");
         
         JSArray loaders = (JSArray)helper.get("TEMPLATE_LOADERS");
         
@@ -256,10 +261,10 @@ public class JSHelper extends JSObjectBase {
         return (Djang10CompiledScript)source.getFunction();
     }
     @Deprecated
-    public Djang10CompiledScript loadTemplate(Scope scope, JSString path, JSArray dirs) {
-        return get_template(scope, path, dirs);
+    public Djang10CompiledScript loadTemplate(JSString path, JSArray dirs) {
+        return get_template(path, dirs);
     }
-    public Djang10CompiledScript get_template(Scope scope, JSString path, JSArray dirs) {
+    public Djang10CompiledScript get_template(JSString path, JSArray dirs) {
         Logger log = this.log.getChild("loader");
         
         if(path == null)
@@ -293,7 +298,8 @@ public class JSHelper extends JSObjectBase {
                 
                 loader = loaderCache.get(file);
                 if(loader == null) {
-                    Scope childScope = scope.child();
+                    Scope childScope = scope.child("Scope for loading djang10 template loaders");
+                    childScope.setGlobal( true );
                     file.call(childScope);
                     loader = childScope.getFunctionFromScope(methodPart);
                     loaderCache.put(file, loader);
@@ -301,14 +307,11 @@ public class JSHelper extends JSObjectBase {
             }
             else
                 loader = (JSFunction)loaderObj;
-            
 
-            Scope childScope = scope.child();
-            childScope.setGlobal(true);
             Djang10CompiledScript template;
             
             try {
-                template = (Djang10CompiledScript)loader.call(childScope, path, dirs);
+                template = (Djang10CompiledScript)loader.call(scope, path, dirs);
             } catch(JSException e) {               
                 throw unnestJSException(e);
             }
@@ -330,7 +333,7 @@ public class JSHelper extends JSObjectBase {
     }
 
 
-    public void addTemplateRoot(Scope scope, Object newRoot) {
+    public void addTemplateRoot(Object newRoot) {
         Logger log = this.log.getChild("loader");
         
         JSArray template_dirs = (JSArray)get("TEMPLATE_DIRS");    
@@ -358,7 +361,7 @@ public class JSHelper extends JSObjectBase {
         librarySearchPaths.add(new TemplateTagFileLibRoot(newRoot));
     }
     
-    public LoadedLibrary loadLibrary(Scope scope, String name) {
+    public LoadedLibrary loadLibrary(String name) {
         log.debug("loading template tag library [" + name + "]");
         
         ListIterator<TemplateTagRoot> iter = librarySearchPaths.listIterator(librarySearchPaths.size());
@@ -369,7 +372,7 @@ public class JSHelper extends JSObjectBase {
             JSFileLibrary fileLib;
             
             try {
-                fileLib = templateTagRoot.resolve(scope);
+                fileLib = templateTagRoot.resolve();
             } catch(RuntimeException e) {
                 log.warn("failed to resolve templatetag root [" + templateTagRoot + "]. error [" + e.getMessage() + "]");
                 continue;
@@ -378,7 +381,7 @@ public class JSHelper extends JSObjectBase {
             Object file = fileLib.getFromPath(name);
             if (file instanceof JSCompiledScript) {
                 log.debug("loaded [" + fileLib + "/" + name + "]");
-                return loadLibrary(scope, (JSCompiledScript)file);
+                return loadLibrary((JSCompiledScript)file);
             }
             else if(file == null) {
                 log.debug("[" + fileLib + "/" + name + "] doesn't exist");
@@ -391,14 +394,14 @@ public class JSHelper extends JSObjectBase {
         throw new TemplateException("Failed to find module [" + name + "]");
     }
     
-    public LoadedLibrary loadLibrary(Scope scope, JSCompiledScript moduleFile) {
+    public LoadedLibrary loadLibrary(JSCompiledScript moduleFile) {
         log.debug("Processing [" + moduleFile + "]");
         
         LoadedLibrary library = libraryCache.get(moduleFile);
         if(library != null)
             return library;
         
-        Scope child = scope.child();
+        Scope child = scope.child("Module Loading Scope");
         child.setGlobal(true);
         
         try {
@@ -425,10 +428,10 @@ public class JSHelper extends JSObjectBase {
         return library;
     }
     
-    public void addDefaultLibrary(Scope scope, String name) {
+    public void addDefaultLibrary(String name) {
         log.debug("Adding default tag library from [" + name + "]");
         name = '/'+name.replace('.', '/');
-        LoadedLibrary lib = loadLibrary(scope, (JSCompiledScript)resolve_absolute_path(name));
+        LoadedLibrary lib = loadLibrary((JSCompiledScript)resolve_absolute_path(name));
         defaultLibraries.add(lib);
     }
     public List<LoadedLibrary> getDefaultLibraries() {
@@ -474,7 +477,7 @@ public class JSHelper extends JSObjectBase {
     
     
     private interface TemplateTagRoot {
-        public JSFileLibrary resolve(Scope scope);
+        public JSFileLibrary resolve();
     }
     private class TemplateTagStringRoot  implements TemplateTagRoot {
         private final String path;
@@ -485,7 +488,7 @@ public class JSHelper extends JSObjectBase {
 
             this.path = path;
         }
-        public JSFileLibrary resolve(Scope scope) {            
+        public JSFileLibrary resolve() {            
             Object temp = resolve_absolute_path(this.path);
 
             if(!(temp instanceof JSFileLibrary))
@@ -503,7 +506,7 @@ public class JSHelper extends JSObjectBase {
         public TemplateTagFileLibRoot(JSFileLibrary fileLib) {
             this.fileLib = fileLib;
         }
-        public JSFileLibrary resolve(Scope scope) {
+        public JSFileLibrary resolve() {
             return fileLib;
         }
         public String toString() {

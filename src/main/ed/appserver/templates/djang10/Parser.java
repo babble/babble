@@ -22,7 +22,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,8 +33,6 @@ import ed.js.JSObject;
 import ed.js.JSObjectBase;
 import ed.js.JSString;
 import ed.js.engine.Scope;
-import ed.js.func.JSFunctionCalls0;
-import ed.js.func.JSFunctionCalls1;
 
 public class Parser extends JSObjectBase{
 
@@ -69,6 +66,7 @@ public class Parser extends JSObjectBase{
     
 //==============================================================================================================================
     
+    private final Scope scope;
     private final LinkedList<Token> tokens;
     private final Set<Library> loadedLibraries;
     private final Map<String, JSFunction> filterMapping;
@@ -77,9 +75,8 @@ public class Parser extends JSObjectBase{
 
     private Token activeToken = null;
     
-    public Parser(String origin, String string) {
-        super(CONSTRUCTOR);
-
+    public Parser(Scope scope, String origin, String string) {
+        this.scope = scope.child( "Scope for Djang10 Template: " + origin );
         this.tokens = new LinkedList<Token>();
         loadedLibraries = new HashSet<Library>();
         this.filterMapping = new HashMap<String, JSFunction>();
@@ -110,7 +107,7 @@ public class Parser extends JSObjectBase{
         }
     }
  
-    public NodeList parse(Scope scope, JSArray untilTagsList ) {
+    public NodeList parse(JSArray untilTagsList ) {
         NodeList nodelist = create_nodelist();
 
         if(untilTagsList == null)
@@ -227,10 +224,11 @@ public class Parser extends JSObjectBase{
     public FilterExpression compile_filter(String str, Token token) {
         return new FilterExpression(this, str, token, isUsingLiteralEscapes());
     }
-
+    
     public void add_library(Library library) {
         add_library(library, true);
     }
+    
     public void add_library(Library library, boolean overwrite) {
         if(loadedLibraries.contains(library))
             return;
@@ -273,25 +271,7 @@ public class Parser extends JSObjectBase{
     }
     
     
-    private static class parseFunc extends JSFunctionCalls1 {
-        public Object call(Scope scope, Object p0, Object[] extra) {
-            Parser thisObj = (Parser)scope.getThis();
-
-            return thisObj.parse(scope, (JSArray)p0);
-        }
-    }
-
-    
-    public static final JSFunction CONSTRUCTOR = new JSFunctionCalls0() {
-        public Object call(Scope scope, Object[] extra) {
-            throw new UnsupportedOperationException();
-        }
-        protected void init() {
-            super.init();
-            _prototype.set("parse", new parseFunc());
-        }
-    };
-//==============================================================================================================================
+    //==============================================================================================================================
     
     
     public static class Token extends JSObjectBase {
@@ -302,7 +282,6 @@ public class Parser extends JSObjectBase{
         private int startLine;
 
         private Token() {
-            super(CONSTRUCTOR);
         }
         
         public Token(TagDelimiter.Type type, String origin, String contents, int startLine) {

@@ -369,7 +369,7 @@ public class Expression extends JSObjectBase {
             
             if (autoCall && (val instanceof JSFunction) && ((JSFunction)val).isCallable()) {
                 try {
-                    val = ((JSFunction)val).callAndSetThis(scope.child(), obj, new Object[0]);
+                    val = ((JSFunction)val).callAndSetThis(scope, obj, new Object[0]);
                 }
                 catch(JSException e) {
                     temp = e.getObject();
@@ -454,14 +454,11 @@ public class Expression extends JSObjectBase {
                 }
             }
 
-            Scope callScope = scope.child();
-            callScope.setGlobal(true);
-            
             try {
-                if(callThisObj != null)
-                    return callMethodObj.callAndSetThis(callScope, callThisObj, argList.toArray());
+                if(scope != null)
+                    return callMethodObj.callAndSetThis(scope, callThisObj, argList.toArray());
                 else
-                    return callMethodObj.call(callScope, argList.toArray());
+                    return callMethodObj.call(scope, argList.toArray());
             }
             catch(JSException e) {
                 temp = e.getObject();
@@ -526,7 +523,7 @@ public class Expression extends JSObjectBase {
                )
                 
                 try {
-                    lookupValue = ((JSFunction) lookupValue).call(scope.child());
+                    lookupValue = ((JSFunction) lookupValue).call(scope);
                 }
                 catch(JSException e) {
                     temp = e.getObject();

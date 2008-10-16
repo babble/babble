@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import ed.appserver.AppContext;
 import ed.appserver.JSFileLibrary;
 import ed.appserver.jxp.JxpSource;
 import ed.appserver.templates.djang10.JSHelper.LoadedLibrary;
@@ -78,14 +79,17 @@ public class Djang10Source extends JxpSource {
             String contents = getContent();
             
 
-            Parser parser = new Parser(content.getName(), contents);
-            JSHelper jsHelper = JSHelper.get(Scope.getThreadLocal());
+            AppContext cxt = AppContext.findThreadLocal();
+            Scope cxtScope = cxt.getScope();
+            Parser parser = new Parser(cxtScope, content.getName(), contents);
+            JSHelper jsHelper = JSHelper.get(cxtScope);
+
             for(LoadedLibrary lib : jsHelper.getDefaultLibraries()) {
                 parser.add_dependency(lib.getSource());
                 parser.add_library(lib.getLibrary());
             }
             
-            nodes = parser.parse(Scope.getThreadLocal(), new JSArray());
+            nodes = parser.parse(new JSArray());
             libraries = parser.getLoadedLibraries();
             
             _dependencies.addAll(parser.get_dependencies());
