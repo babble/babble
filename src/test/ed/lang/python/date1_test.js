@@ -21,4 +21,3 @@ var jsDate = new Date();
 assert( Math.abs(jsDate.getTime() - pyDate.getTime()) < 2000 ,
         'time zone changed' );
 
-print( Math.abs(jsDate.getTime() - pyDate.getTime() ) );
