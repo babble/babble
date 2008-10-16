@@ -41,6 +41,10 @@ Dispatcher.dispatch
 # (for example, you are running locally), then 'development' is used.
 ENV['RAILS_ENV'] = $scope['__instance__'].getEnvironmentName() || 'development'
 
+# The default production cloud environment name is "www". If we see that, use
+# "production" instead.
+ENV['RAILS_ENV'] = 'production' if ENV['RAILS_ENV'] == 'www'
+
 require 'xgen/mongo'
 require File.join($local.getRoot.getPath, "config/environment") unless defined?(RAILS_ROOT)
 require 'dispatcher'
