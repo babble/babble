@@ -146,7 +146,7 @@ public abstract class NIOClient extends Thread {
                 break;
 
             if ( now - c._started > CLIENT_CONNECT_WAIT_TIMEOUT ){
-                c.error( ServerErrorType.CONNECT , new CantOpen( null , null ) );
+                c.error( ServerErrorType.CONNECT , new IOException( "request timed out waiting for a connection (lb 51)" ) );
                 continue;
             }
 

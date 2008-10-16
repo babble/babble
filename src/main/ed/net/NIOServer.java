@@ -128,7 +128,7 @@ public abstract class NIOServer extends Thread {
                     deadSelectorCount++;
                     
                     if ( deadSelectorCount > DEAD_CYCLES_WARN ){
-                        System.err.println( "got 0 keys after waiting :" + selectTime + " " + deadSelectorCount + " in a row." );
+                        System.err.println( "got 0 keys after waiting " + selectTime + "ms " + deadSelectorCount + " in a row. total selectors: " + _selector.keys() );
                         
                         if ( deadSelectorCount > DEAD_CYCLES ){
                             System.err.println( "****  KILLING SELECTOR AND STARTING OVER - should be taking good channels " );
