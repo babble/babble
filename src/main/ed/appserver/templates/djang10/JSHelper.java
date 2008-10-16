@@ -47,7 +47,6 @@ import ed.js.JSObject;
 import ed.js.JSObjectBase;
 import ed.js.JSRegex;
 import ed.js.JSString;
-import ed.js.engine.JSCompiledScript;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls1;
 import ed.lang.python.Python;
@@ -64,8 +63,10 @@ public class JSHelper extends JSObjectBase {
     
     private final Map<String, JSFileLibrary> fileRoots;
     
-    WeakHashMap<JSCompiledScript, LoadedLibrary> libraryCache;
-    WeakHashMap<JSCompiledScript, JSFunction> loaderCache;
+    //file -> library
+    WeakHashMap<JSFunction, LoadedLibrary> libraryCache;
+    //file -> loader func
+    WeakHashMap<JSFunction, JSFunction> loaderCache;
 
     private final Scope scope;
     
@@ -76,8 +77,8 @@ public class JSHelper extends JSObjectBase {
         librarySearchPaths = new ArrayList<TemplateTagRoot>();
         defaultLibraries = new ArrayList<LoadedLibrary>();
 
-        libraryCache = new WeakHashMap<JSCompiledScript, LoadedLibrary>();
-        loaderCache = new WeakHashMap<JSCompiledScript, JSFunction>();
+        libraryCache = new WeakHashMap<JSFunction, LoadedLibrary>();
+        loaderCache = new WeakHashMap<JSFunction, JSFunction>();
         
         // add the basic helpers
         this.set("ALLOW_GLOBAL_FALLBACK", Boolean.TRUE);
@@ -290,11 +291,11 @@ public class JSHelper extends JSObjectBase {
                 String methodPart = loaderStr.substring(lastDot+1);
                 
                 Object temp = resolve_absolute_path(filePart);
-                if(!(temp instanceof JSCompiledScript)) {
+                if(!(temp instanceof JSFunction) || !((JSFunction)temp).isCallable()) {
                     log.error("Failed to locate the loader ["+loaderStr+"], the path [" + filePart + "] resolves to [" + temp +"] which isn't a script");
                     continue;
                 }
-                JSCompiledScript file = (JSCompiledScript)temp;
+                JSFunction file = (JSFunction)temp;
                 
                 loader = loaderCache.get(file);
                 if(loader == null) {
@@ -379,9 +380,9 @@ public class JSHelper extends JSObjectBase {
             }
             
             Object file = fileLib.getFromPath(name);
-            if (file instanceof JSCompiledScript) {
+            if (file instanceof JSFunction && ((JSFunction)file).isCallable()) {
                 log.debug("loaded [" + fileLib + "/" + name + "]");
-                return loadLibrary((JSCompiledScript)file);
+                return loadLibrary((JSFunction)file);
             }
             else if(file == null) {
                 log.debug("[" + fileLib + "/" + name + "] doesn't exist");
@@ -394,7 +395,7 @@ public class JSHelper extends JSObjectBase {
         throw new TemplateException("Failed to find module [" + name + "]");
     }
     
-    public LoadedLibrary loadLibrary(JSCompiledScript moduleFile) {
+    public LoadedLibrary loadLibrary(JSFunction moduleFile) {
         log.debug("Processing [" + moduleFile + "]");
         
         LoadedLibrary library = libraryCache.get(moduleFile);
@@ -431,7 +432,7 @@ public class JSHelper extends JSObjectBase {
     public void addDefaultLibrary(String name) {
         log.debug("Adding default tag library from [" + name + "]");
         name = '/'+name.replace('.', '/');
-        LoadedLibrary lib = loadLibrary((JSCompiledScript)resolve_absolute_path(name));
+        LoadedLibrary lib = loadLibrary((JSFunction)resolve_absolute_path(name));
         defaultLibraries.add(lib);
     }
     public List<LoadedLibrary> getDefaultLibraries() {
