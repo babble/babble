@@ -1,0 +1,3 @@
+{% load pytags %}
+
+{{ "_val"|pyfilter:"arg" }}

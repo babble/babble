@@ -60,9 +60,10 @@ public class NodeWrapper {
                 log.debug("Rendering: " + selfRepr + "(" + location + ")");
             }
             
-            scope = scope.child();
+            Object oldGlobalPrinter = scope.get( "print" );
             PrintWrapperFunc printWrapper = new PrintWrapperFunc();
-            scope.set("print", printWrapper);
+            scope.put("print", printWrapper, false);
+            
             
             Object ret;
             
@@ -86,6 +87,7 @@ public class NodeWrapper {
             }
             finally {
                 context.__end_render_node(thisObj);
+                scope.put( "print" , oldGlobalPrinter, false );
             }
             
             if(printWrapper.buffer.length() > 0)
@@ -118,9 +120,8 @@ public class NodeWrapper {
                 log.debug("__Rendering: " + selfRepr + "(" + location + ")");
             }
             
-            scope = scope.child();
-            scope.setGlobal(true);
-            scope.put("print", printer, true);
+            Object oldGlobalPrinter = scope.get( "print" );
+            scope.put("print", printer, false);
             
             context.__begin_render_node(thisObj);
             try {
@@ -142,6 +143,7 @@ public class NodeWrapper {
             }
             finally {
                 context.__end_render_node(thisObj);
+                scope.put( "print" , oldGlobalPrinter, false );
             }
             
             return null;
