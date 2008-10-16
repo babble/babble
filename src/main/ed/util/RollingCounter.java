@@ -52,8 +52,11 @@ public class RollingCounter {
             _lastBucket += _interval;
         }
 
-        if( thing != null )
+        if( thing != null ){
+	    if ( _slots[_pos] == null )
+		_slots[_pos] = new Slot();
             _slots[_pos].hit( thing , num );
+	}
         return;
     }
 

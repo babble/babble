@@ -62,3 +62,7 @@ def pyMethCall(l, methname, *args):
         kwargs = {}
     return f(*args, **kwargs)
 _10gen.pyMethCall = pyMethCall
+
+def pyList(l):
+    return list(l)
+_10gen.pyList = pyList

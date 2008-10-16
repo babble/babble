@@ -44,7 +44,13 @@ public class PyJSArrayWrapper extends PyList {
     }
 
     protected PyObject getslice(int start, int stop, int step){
-        throw new RuntimeException("not implemented yet");
+        PyList pyl = new PyList();
+        int i = start;
+        while( i < stop ){
+            pyl.append( toPython( _js.getInt( i ) ) );
+            i += step;
+        }
+        return pyl;
     }
 
     protected PyObject repeat(int count){
