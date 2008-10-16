@@ -29,25 +29,31 @@ public class JSRegex extends JSObjectBase {
 
     /** @unexpose */
     private final static JSFunction _cons = new Cons();
-    public static class Cons extends JSFunctionCalls2{
+    public static class Cons extends JSFunctionCalls1{
 
-            public JSObject newOne(){
-                return new JSRegex();
-            }
+        public JSObject newOne(){
+            return new JSRegex();
+        }
+        
+        public Object call( Scope s, Object[] args ) {
+            return new JSRegex();
+        }
 
-            public Object call( Scope s , Object a , Object b , Object[] args ){
+        public Object call( Scope s , Object a , Object[] args ){
 
-                String p = a.toString();
-                String f = b == null ? "" : b.toString();
-
-                Object o = s.getThis();
-                if ( o == null || ! ( o instanceof JSRegex ) )
-                    return new JSRegex( p , f );
-
-                JSRegex r = (JSRegex)o;
-                r.init( p , f );
-                return r;
-            }
+            String p = a.toString();
+            String f = "";
+            if( args != null && args.length > 0 )
+                f = args[0].toString();
+            
+            Object o = s.getThis();
+            if ( o == null || ! ( o instanceof JSRegex ) )
+                return new JSRegex( p , f );
+            
+            JSRegex r = (JSRegex)o;
+            r.init( p , f );
+            return r;
+        }
 
             protected void init(){
                 _prototype.set( "test" , new JSFunctionCalls1(){
