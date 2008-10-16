@@ -141,8 +141,13 @@ public class HttpServer extends NIOServer {
             if ( _inFork )
                 return false;
             
+	    if ( _lastRequest != null && _lastResponse == null )
+		return false;
+
             if ( _lastResponse != null && ! _lastResponse.done() )
                 return false;
+	    
+	    if ( D ) System.out.println( "writeMoreIfWant removing request/response" );
 
             _lastRequest = null;
             _lastResponse = null;
@@ -207,6 +212,7 @@ public class HttpServer extends NIOServer {
                 end++;
                                 
                 final int cl = _lastRequest.getIntHeader( "Content-Length" , 0 );
+		if ( D ) System.out.println( "got content length of : " + cl );
                 PostData pd = null;
 
                 if ( cl > 0 ){
@@ -219,6 +225,7 @@ public class HttpServer extends NIOServer {
                         pd.put( _in.get( end++ ) );
                     
                     if ( ! pd.done() ){
+			if ( D ) System.out.println( "only read " + pd.gotSoFar() + " out of " + cl );
                         _in.position( _endOfHeader + 1 );
                         return false;
                     }
@@ -264,7 +271,7 @@ public class HttpServer extends NIOServer {
 
             _lastRequest = new HttpRequest( this , header );
             _lastResponse = null;
-            if ( D ) System.out.println( _lastRequest );
+            if ( D ) System.out.println( "created new request : " + _lastRequest );
             
             return gotData( null );
         }
@@ -302,7 +309,8 @@ public class HttpServer extends NIOServer {
         }
         
         final HttpServer _server;
-        long _lastAction = System.currentTimeMillis();
+
+        private long _lastAction = System.currentTimeMillis();
 
         ByteBufferHolder _in = new ByteBufferHolder( 1024 * 1024 * 200 ); // 200 mb
         int _endOfHeader = 0;

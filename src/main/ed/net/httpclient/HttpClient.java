@@ -161,7 +161,7 @@ public class HttpClient {
 
         if ( handler == null )
             conn.setRequestMethod("HEAD");
-
+	
         // should these go before or after Page code.
         // basically, do we want Page do be able to override
         // if yes, then put before, if not, then put after
@@ -171,13 +171,16 @@ public class HttpClient {
         conn.setRequestProperty( "Accept-Language" , "en-US" );
 
         if ( handler != null ){
-
+	    
             if ( handler.getPostDataToSend() != null && number == 0 ){
                 conn.setRequestMethod("POST");
                 conn.setPostData( handler.getPostDataToSend() );
             } else {
                 conn.setPostData(null);
             }
+	    
+	    if ( handler.getDesiredTimeout() > 0 )
+		conn.setTimeOut( (int)(handler.getDesiredTimeout()) );
 
             // use the handler's method if it's set
             if (handler.getMethodToUse() != null) {
