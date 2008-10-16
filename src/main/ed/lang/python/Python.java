@@ -153,10 +153,16 @@ public class Python extends Language {
         }
 
         // Insufficiently Pythonic?
-        if ( p instanceof PyObjectDerived && ((PyObject)p).getType().fastGetName().equals( "datetime" ) ){
-            Object cal = ((PyObject)p).__tojava__( Calendar.class );
-            if( cal != Py.NoConversion ){
-                return new JSDate( (Calendar)cal );
+        if ( p instanceof PyObjectDerived ){
+            PyType type = ((PyObject)p).getType();
+            if( type != null && type.fastGetName() != null ){
+                String name = type.fastGetName();
+                if( name != null && name.equals( "datetime" ) ){
+                    Object cal = ((PyObject)p).__tojava__( Calendar.class );
+                    if( cal != Py.NoConversion ){
+                        return new JSDate( (Calendar)cal );
+                    }
+                }
             }
         }
 
