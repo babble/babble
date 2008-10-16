@@ -350,13 +350,22 @@ public class JSInternalFunctions extends JSNumericFunctions {
         return true;
     }
 
-    /** Checks if one object does not equal another object
+    /** Checks if one object does not equal another object exactly (!==)
      * @param a First object
      * @param b Second object
      * @return If <tt>a</tt> is not equal to <tt>b</tt>
      */
     public static Boolean JS_shne( Object a , Object b ){
         return ! JS_sheq( a , b );
+    }
+
+    /** Checks if one object does not equal another object (!=)
+     * @param a First object
+     * @param b Second object
+     * @return If <tt>a</tt> is not equal to <tt>b</tt>
+     */
+    public static Boolean JS_ne( Object a , Object b ){
+        return ! JS_eq( a , b );
     }
 
     /** Checks if one object equals another object
@@ -371,10 +380,8 @@ public class JSInternalFunctions extends JSNumericFunctions {
         if ( a == null || b == null )
             return false;
 
-        if ( a instanceof Boolean ||
-             b instanceof Boolean ) {
-            a = JSBoolean.booleanValue( a );
-            b = JSBoolean.booleanValue( b );
+        if ( a instanceof Boolean && b instanceof Boolean ) {
+            return a.equals( b );
         }
 
         if ( a instanceof Number || b instanceof Number ){
@@ -389,15 +396,9 @@ public class JSInternalFunctions extends JSNumericFunctions {
             }
             return ((Number)a).doubleValue() == ((Number)b).doubleValue();
         }
-
-        if ( a == b || a.equals(b) )
-            return true;
-
-        if ( a instanceof JSString )
-            a = a.toString();
-
-        if ( b instanceof JSString )
-            b = b.toString();
+        
+        if ( a instanceof JSString && b instanceof JSString )
+            return a.equals( b );
 
         if ( a instanceof String && b instanceof String )
             return a.equals( b );
@@ -405,7 +406,7 @@ public class JSInternalFunctions extends JSNumericFunctions {
         if ( _charEQ( a , b ) || _charEQ( b , a ) )
             return true;
 
-        return false;
+        return a == b;
     }
 
     /** @unexpose */
@@ -443,16 +444,17 @@ public class JSInternalFunctions extends JSNumericFunctions {
         if( b instanceof ENode ) { 
             b = b.toString();
         }
-        
+
         if ( a instanceof JSObject &&
              b instanceof JSObject ) {
-            return false;
+            return a.equals( b );
         }
 
         if( a instanceof JSString ) 
             a = a.toString();
         if( b instanceof JSString ) 
             b = b.toString();
+
         // "promote" booleans and strings to numbers
         if ( a instanceof JSBoolean || a instanceof Boolean ) {
             a = JSBoolean.booleanValue( a ) ? 1 : 0;
