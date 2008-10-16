@@ -150,7 +150,7 @@ public class JSRegex extends JSObjectBase {
 
             if ( c == '\\' ) {
                 int end = i+1;
-                while( end < p.length() && Character.isDigit( p.charAt( i + 1 ) ) ) {
+                while( end < p.length() && Character.isDigit( p.charAt( end ) ) ) {
                     end++;
                 }
                 // to octal
