@@ -154,7 +154,8 @@ public class JSRegex extends JSObjectBase {
                     end++;
                 }
                 // to octal
-                if( end - (i+1) > 1 ) {
+                // always escape in char classes
+                if( end - (i+1) > 1 || inCharClass ) {
                     buf.append( (char)Integer.parseInt( p.substring( i+1, end ) , 8 ) );
                     i = end - 1;
                 }
