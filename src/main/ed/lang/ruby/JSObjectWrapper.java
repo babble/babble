@@ -48,7 +48,7 @@ public class JSObjectWrapper implements JSObject {
     public JSObjectWrapper(Scope scope, RubyObject robj) {
         _scope = scope;
         _robj = robj;
-        _xgenModule = RubyJxpSource.xgenModule(_robj.getRuntime());
+        _xgenModule = _robj.getRuntime().getOrCreateModule(RubyJxpSource.XGEN_MODULE_NAME);
     }
 
     public RubyObject getRubyObject() { return _robj; }
