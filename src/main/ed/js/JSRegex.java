@@ -149,13 +149,17 @@ public class JSRegex extends JSObjectBase {
             char c = p.charAt( i );
 
             if ( c == '\\' ) {
+                boolean isOctal = ( i+1 < p.length() ) ? ( p.charAt( i+1 ) == '0' ) : false;
                 int end = i+1;
-                while( end < p.length() && Character.isDigit( p.charAt( end ) ) ) {
+                while( end < p.length() && 
+                       ( Character.isDigit( p.charAt( end ) ) && 
+                         ( !isOctal || ( isOctal && p.charAt( end ) < '8' ) ) ) ) {
                     end++;
                 }
                 // to octal
                 // always escape in char classes
-                if( end - (i+1) > 1 || inCharClass ) {
+                if( end - (i+1) > 1 || 
+                    ( end - (i+1) == 1 && ( inCharClass || isOctal ) ) ) {
                     buf.append( (char)Integer.parseInt( p.substring( i+1, end ) , 8 ) );
                     i = end - 1;
                 }
