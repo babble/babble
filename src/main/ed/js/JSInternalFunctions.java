@@ -98,10 +98,13 @@ public class JSInternalFunctions extends JSNumericFunctions {
                 argList = new String[0];
             }
 
+            final Object innerThis = s.getParent().getThis();
             // set the function length manually
             JSFunction func =  new JSFunctionCalls0( argList.length ){
                     public Object call( Scope s2 , Object extra2[] ){
                         Scope local = s2.child();
+                        local.setThis( innerThis );
+
                         // get any named arguments
                         if( this._arguments != null ) {
                             int namedArgs = Math.min( this._arguments.size(), extra2.length );
