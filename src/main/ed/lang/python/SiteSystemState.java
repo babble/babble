@@ -61,6 +61,7 @@ public class SiteSystemState {
         _context = ac;
         setupModules();
         ensureMetaPathHook( pyState , s );
+        replaceOutput();
 
         // Careful -- this is static PySystemState.builtins. We modify
         // it once to intercept imports for all sites. TrackImport
@@ -157,25 +158,27 @@ public class SiteSystemState {
      * Replace the Python sys.stdout with a file-like object which
      * actually prints to an AppRequest stream.
      */
-    public void setOutput( AppRequest ar ){
+    public void replaceOutput(){
         PyObject out = pyState.stdout;
-        if ( ! ( out instanceof MyStdoutFile ) || ((MyStdoutFile)out)._request != ar ){
-            pyState.stdout = new MyStdoutFile( ar );
+        if ( ! ( out instanceof MyStdoutFile ) ){
+            pyState.stdout = new MyStdoutFile();
         }
     }
 
     static class MyStdoutFile extends PyFile {
-        MyStdoutFile(AppRequest request){
-            _request = request;
+        MyStdoutFile(){
         }
         public void flush(){}
 
         public void write( String s ){
-            if( _request == null )
+            AppRequest request = AppRequest.getThreadLocal();
+
+            if( request == null )
                 // Log
                 _log.info( s );
-            else
-                _request.print( s );
+            else{
+                request.print( s );
+            }
         }
         AppRequest _request;
     }

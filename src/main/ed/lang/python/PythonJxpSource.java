@@ -86,8 +86,6 @@ public class PythonJxpSource extends JxpSource {
 
                 ss.flushOld();
 
-                ss.setOutput( ar );
-
                 addPath( ss.getPyState() , _lib.getRoot().toString() );
                 addPath( ss.getPyState() , _lib.getTopParent().getRoot().toString() );
 
