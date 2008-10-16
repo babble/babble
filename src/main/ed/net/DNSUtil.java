@@ -21,8 +21,16 @@ package ed.net;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.regex.*;
 
 public class DNSUtil {
+
+    public static final String IP_PATTERN = "(\\d+\\.\\d+\\.\\d+\\.\\d+)";
+    public static final Pattern IP_PATTERN_COMPILED = Pattern.compile( IP_PATTERN );
+    
+    public static final boolean isDottedQuad( String s ){
+        return IP_PATTERN_COMPILED.matcher( s ).matches();
+    }
 
     public static String getSubdomain( String host ){
         String domain = getDomain( host );

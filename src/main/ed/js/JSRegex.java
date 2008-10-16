@@ -145,27 +145,28 @@ public class JSRegex extends JSObjectBase {
         StringBuilder buf = new StringBuilder( p.length() + 10 );
 
         boolean inCharClass = false;
-
         for( int i=0; i<p.length(); i++ ){
             char c = p.charAt( i );
 
-            if ( c == '\\' &&
-                 i + 1 < p.length() &&
-                 Character.isDigit( p.charAt( i + 1 ) ) ){
-
-                // this is an escape sequence
-                int end = i + 1;
-                while ( end < p.length() &&
-                        Character.isDigit( p.charAt( end ) ) &&
-                        end - i < 3
-                        )
+            if ( c == '\\' ) {
+                boolean isOctal = ( i+1 < p.length() ) ? ( p.charAt( i+1 ) == '0' ) : false;
+                int end = i+1;
+                while( end < p.length() && 
+                       ( Character.isDigit( p.charAt( end ) ) && 
+                         ( !isOctal || ( isOctal && p.charAt( end ) < '8' ) ) ) ) {
                     end++;
-
-                int foo = Integer.parseInt( p.substring( i + 1 , end ) , 8 );
-                char myChar = (char)foo;
-
-                buf.append( myChar );
-                i = end - 1;
+                }
+                // to octal
+                // always escape in char classes
+                if( end - (i+1) > 1 || 
+                    ( end - (i+1) == 1 && ( inCharClass || isOctal ) ) ) {
+                    buf.append( (char)Integer.parseInt( p.substring( i+1, end ) , 8 ) );
+                    i = end - 1;
+                }
+                // back ref
+                else {
+                    buf.append( "\\" );
+                }
                 continue;
             }
 
@@ -206,7 +207,6 @@ public class JSRegex extends JSObjectBase {
             if ( f.contains( "i" ) )
                 compilePatterns |= Pattern.CASE_INSENSITIVE;
             if ( f.contains( "m" ) ){
-                compilePatterns |= Pattern.DOTALL;
                 compilePatterns |= Pattern.MULTILINE;
 	    }
             _compilePatterns = compilePatterns;

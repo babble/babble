@@ -146,7 +146,7 @@ public abstract class NIOClient extends Thread {
                 break;
 
             if ( now - c._started > CLIENT_CONNECT_WAIT_TIMEOUT ){
-                c.error( ServerErrorType.CONNECT , new CantOpen( null , null ) );
+                c.error( ServerErrorType.CONNECT , new IOException( "request timed out waiting for a connection (lb 51)" ) );
                 continue;
             }
 
@@ -365,12 +365,14 @@ public abstract class NIOClient extends Thread {
 
             if ( close )
                 close();
+            
+            _current = null;
 
             if ( _error == null ){
-                _logger.debug( 2 , "putting connection back in pool" );
                 _pool.done( this );
+                _logger.debug( 2 , "putting connection back in pool" );
             }
-            _current = null;
+
         }
 
         void handleWrite(){

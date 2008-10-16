@@ -317,6 +317,10 @@ public class AppServer implements HttpHandler {
         if ( response.getHeader( "Content-Type" ).indexOf( "text/html" ) < 0 )
             return;
 
+        // TODO: Eliot, be smarter about this
+        if ( response.getHeader( "Content-Length" ) != null )
+            return;
+
         final JSObject user; 
         {
             Object userMaybe = ar.getScope().get( "user" );
