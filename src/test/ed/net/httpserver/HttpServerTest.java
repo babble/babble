@@ -111,6 +111,33 @@ public class HttpServerTest extends TestCase {
 	assert( in.read() == -1 );
     }
     
+    public void testPost1()
+	throws IOException {
+	_testPost( 100 );
+    }
+
+    public void testPost2()
+	throws IOException {
+	_testPost( 3500 );
+    }
+
+    public void testPost3()
+	throws IOException {
+	_testPost( 50000 );
+    }
+
+    private void _testPost( int size )
+	throws IOException {
+	StringBuilder buf = headers( "POST" , "" , "Content-Length: " + size + "\nConnection: Close\n" );
+	appendRandomData( buf , size );
+	
+	Socket s = open();
+	s.getOutputStream().write( buf.toString().getBytes() );
+	InputStream in = s.getInputStream();
+	Response r = read( in );
+	assertEquals( PingHandler.DATA , r.body );
+    }
+    
     Socket open()
 	throws IOException {
 	return new Socket( "127.0.0.1" , _port );
@@ -186,6 +213,11 @@ public class HttpServerTest extends TestCase {
     
     protected void finalize(){
 	_server.stopServer();
+    }
+
+    void appendRandomData( StringBuilder buf , int length ){
+	for ( int i=0; i<length; i++ )
+	    buf.append( "f" );
     }
     
     class Response {
