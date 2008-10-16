@@ -525,6 +525,7 @@ public class Convert {
             _append( " false " , n );
             break;
         case Token.NULL:
+        case Token.VOID:
             _append( " null " , n );
             break;
 
