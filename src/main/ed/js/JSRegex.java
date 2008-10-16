@@ -156,12 +156,12 @@ public class JSRegex extends JSObjectBase {
                 // to octal
                 if( end - (i+1) > 1 ) {
                     buf.append( (char)Integer.parseInt( p.substring( i+1, end ) , 8 ) );
+                    i = end - 1;
                 }
                 // back ref
                 else {
                     buf.append( "\\" );
                 }
-                i = end - 1;
                 continue;
             }
 
