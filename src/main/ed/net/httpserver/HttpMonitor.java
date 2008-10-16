@@ -75,8 +75,8 @@ public abstract class HttpMonitor implements HttpHandler {
 	
 	if ( h.equals( "127.0.0.1" ) )
 	    return true;
-
-        if ( ! h.endsWith( "." + Config.getInternalDomain() ) )
+        
+        if ( ! acceptableHost( h ) )
             return false;
 
         if ( AUTH_COOKIE == null ){
@@ -90,6 +90,17 @@ public abstract class HttpMonitor implements HttpHandler {
         if ( AUTH_COOKIE.equalsIgnoreCase( request.getParameter( "auth" ) ) )
             return true;
 
+        return false;
+    }
+
+    protected boolean acceptableHost( String host ){
+        if (  host.endsWith( "." + Config.getInternalDomain() ) )
+            return true;
+        
+        if ( DNSUtil.isDottedQuad( host ) )
+            return true;
+
+        System.out.println( "bad host [" + host + "]" );
         return false;
     }
     

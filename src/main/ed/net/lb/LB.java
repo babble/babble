@@ -171,7 +171,7 @@ public class LB extends NIOClient {
 		_loadMonitor.hit( _request , _response );
             }
             catch ( IOException ioe2 ){
-                ioe2.printStackTrace();
+                _logger.debug( "error sending error mesasge to client" , ioe2 );
             }
         }
 	
