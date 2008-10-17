@@ -79,6 +79,7 @@ public class Python extends Language {
         if ( p instanceof JSObject ||
              p instanceof JSString ||
              p instanceof ed.log.Level ||
+             p instanceof Boolean ||
              p instanceof Number )
             return p;
 

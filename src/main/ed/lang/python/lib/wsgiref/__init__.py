@@ -14,21 +14,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-# Used by both expose1_test and expose2_test
-from _10gen import getglobal
-import _10gen
-_10gen.pyX = getglobal('x')
-_10gen.pyY = getglobal('y')
+import os
 
-def pythonAddAttr(obj, k, v):
-    setattr(obj, k, v)
+def exec_orig_wsgi(filename, globals):
+    d = os.path.dirname(__file__) # ../src/main/ed/lang/python/lib/wsgiref/
+    
+    for i in range(7):
+        d = os.path.dirname(d)
 
-def pythonAddFoo(obj):
-    obj.foo = "yippee"
+    # d = ../
+    execfile(os.path.join(d, 'include', 'jython', 'Lib', 'wsgiref', filename), globals)
 
-import _10gen
-_10gen.pythonAddAttr = pythonAddAttr
-_10gen.pythonAddFoo = pythonAddFoo
-
-if hasattr(_10gen, 'jsObj'):
-    _10gen.jsObj.pyBool = True
