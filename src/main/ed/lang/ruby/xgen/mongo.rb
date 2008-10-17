@@ -14,3 +14,4 @@
 
 require 'xgen/mongo/oid'
 require 'xgen/mongo/base'
+require 'xgen/mongo/log_device'
