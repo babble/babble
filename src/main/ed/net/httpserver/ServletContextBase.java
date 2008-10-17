@@ -24,6 +24,7 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 
 import ed.js.*;
+import ed.js.func.*;
 import ed.js.engine.*;
 import ed.log.*;
 import ed.util.*;
@@ -151,6 +152,24 @@ public abstract class ServletContextBase implements ServletContext {
 	public JSFunction getFunction(){
 	    return _func;
 	}
+        
+        public Object get( Object foo ){
+            if ( "service".equals( foo.toString() ) ){
+                return new JSFunctionCalls2(){
+                    public Object call( Scope s , Object req , Object res , Object[] extra ){
+                        try {
+                            _servlet.service( (HttpServletRequest)req , (HttpServletResponse)res );
+                            return null;
+                        }
+                        catch ( Exception e ){
+                            throw new RuntimeException( e );
+                        }
+                    }
+                    
+                };
+            }
+            return null;
+        }
 	
 	final HttpServlet _servlet;
 	final String _name;
