@@ -49,7 +49,8 @@ public class RubyJxpSource extends JxpSource {
     public static final String XGEN_MODULE_NAME = "XGen";
     public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
     static final Map<Ruby, Set<IRubyObject>> _requiredJSFileLibFiles = new WeakHashMap<Ruby, Set<IRubyObject>>();
-    static final Map<AppContext, Ruby> _runtimes = new WeakHashMap<AppContext, Ruby>();
+    static final Map<AppContext, WeakReference<Ruby>> _runtimes = new WeakHashMap<AppContext, WeakReference<Ruby>>();
+    static final Map<String, Long> _localFileLastModTimes = new HashMap<String, Long>();
     static final Ruby PARSE_RUNTIME = Ruby.newInstance();
 
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB");
@@ -111,12 +112,23 @@ public class RubyJxpSource extends JxpSource {
     public static synchronized Ruby getRuntimeInstance(AppContext ac) {
         if (ac == null)
             return Ruby.newInstance(config);
-        Ruby runtime = _runtimes.get(ac);
-        if (runtime == null) {
-            runtime = Ruby.newInstance(config);
-            _runtimes.put(ac, runtime);
+        WeakReference<Ruby> ref = null;
+        ref = _runtimes.get(ac);
+        if (ref == null) {
+            Ruby runtime = Ruby.newInstance(config);
+            _runtimes.put(ac, ref = new WeakReference<Ruby>(runtime));
         }
-        return runtime;
+        return ref.get();
+    }
+
+    public static synchronized void forgetRuntimeInstance(AppContext ac) {
+        if (ac != null) {
+            WeakReference<Ruby> ref = _runtimes.remove(ac);
+            if (ref != null) {
+                Ruby runtime = ref.get();
+                _requiredJSFileLibFiles.remove(runtime);
+            }
+        }
     }
 
     public RubyJxpSource(File f , JSFileLibrary lib) {
@@ -145,8 +157,14 @@ public class RubyJxpSource extends JxpSource {
      * {@link #getRuntime(AppContext)} unless you know that a runtime has
      * already been assigned.
      */
-    public Ruby getRuntime() {
+    protected Ruby getRuntime() {
         return getRuntime((AppContext)null);
+    }
+
+    protected void forgetRuntime(Scope s) {
+        _runtime = null;
+        if (s != null)
+            forgetRuntimeInstance((AppContext)s.get("__instance__"));
     }
 
     protected String getContent() throws IOException {
@@ -177,6 +195,12 @@ public class RubyJxpSource extends JxpSource {
     }
 
     protected IRubyObject _doCall(Node node, Scope s, Object unused[]) {
+        if (_anyLocalFileChanged(s)) {
+            if (DEBUG)
+                System.err.println("new file or file mod time changed; resetting Ruby runtime");
+            forgetRuntime(s);
+        }
+
         _addJSFileLibrariesToPath(s);
 
         Ruby runtime = getRuntime(s);
@@ -390,6 +414,34 @@ public class RubyJxpSource extends JxpSource {
             }
             reqs.add(arg);
         }
+    }
+
+    private boolean _anyLocalFileChanged(Scope s) {
+        if (s == null)
+            return false;
+        JSFileLibrary lib = (JSFileLibrary)s.get("local");
+        if (lib == null)
+            return false;
+        synchronized (_localFileLastModTimes) {
+            return _anyLocalFileChanged(lib.getRoot(), false);
+        }
+    }
+
+    private boolean _anyLocalFileChanged(File dir, boolean changed) {
+        for (File f : dir.listFiles()) {
+            if (f.isDirectory())
+                changed = _anyLocalFileChanged(f, changed);
+            else {
+                String path = f.getPath();
+                Long newModTime = new Long(f.lastModified());
+                Long oldModTime = _localFileLastModTimes.get(path);
+                if (oldModTime == null || !oldModTime.equals(newModTime)) {
+                    changed = true;
+                    _localFileLastModTimes.put(path, newModTime);
+                }
+            }
+        }
+        return changed;
     }
 
     protected final File _file;

@@ -86,8 +86,8 @@ public class PythonJxpSource extends JxpSource {
 
                 ss.flushOld();
 
-                addPath( ss.getPyState() , _lib.getRoot().toString() );
-                addPath( ss.getPyState() , _lib.getTopParent().getRoot().toString() );
+                ss.ensurePath( _lib.getRoot().toString() );
+                ss.ensurePath( _lib.getTopParent().getRoot().toString() );
 
                 PyObject globals = ss.globals;
                 PyObject oldFile = globals.__finditem__( "__file__" );
@@ -118,15 +118,6 @@ public class PythonJxpSource extends JxpSource {
             }
 
         };
-    }
-
-    static void addPath( PySystemState ss , String myPath ){
-
-        for ( Object o : ss.path )
-            if ( o.toString().equals( myPath ) )
-                return;
-        
-        ss.path.append( Py.newString( myPath ) );
     }
 
     private PyCode _getCode()
