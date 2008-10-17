@@ -554,6 +554,8 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                     }
                 } );
 
+            _prototype.set( "length", 0 );
+
             this.set( "createLinkedList", new JSFunctionCalls0(){
                     public Object call(Scope s, Object [] extra){
                         return new JSArray(new LinkedList());
@@ -562,6 +564,8 @@ public class JSArray extends JSObjectBase implements Iterable , List {
             
 
             _prototype.dontEnumExisting();
+            this.setProperties( "prototype", JSObjectBase.LOCK );
+            this.dontEnumExisting();
         }
     } // end CONS
 
