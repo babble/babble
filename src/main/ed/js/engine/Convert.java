@@ -109,6 +109,7 @@ public class Convert {
 
         D = DJS
             && ! name.contains( "src/main/ed/lang" )
+            && ! name.contains( "src/main/ed/appserver/" )
             && ! name.contains( "src_main_ed_lang" )
             ;
 
@@ -772,7 +773,11 @@ public class Convert {
                 throw new RuntimeException( "something is wrong" );
             break;
         case Token.DELPROP:
-            _addAsJSObject( n.getFirstChild() , state );
+
+            if ( n.getFirstChild().getType() == Token.BINDNAME )
+                _append( "scope" , n );
+            else 
+                _addAsJSObject( n.getFirstChild() , state );
             _append( ".removeField( "  , n );
             _add( n.getFirstChild().getNext() , state );
             _append( " ) " , n );
