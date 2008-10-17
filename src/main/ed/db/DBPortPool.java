@@ -75,6 +75,11 @@ class DBPortPool extends SimplePool<DBPort> {
     }
 
     void gotError( Exception e ){
+        if ( e instanceof java.nio.channels.ClosedByInterruptException ){
+            // this is probably a request that is taking too long
+            // so usually doesn't mean there is a real db problem
+            return;
+        }
         System.out.println( "emptying DBPortPool b/c of error" );
         e.printStackTrace();
         clear();
