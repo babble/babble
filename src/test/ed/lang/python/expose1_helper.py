@@ -29,3 +29,6 @@ def pythonAddFoo(obj):
 import _10gen
 _10gen.pythonAddAttr = pythonAddAttr
 _10gen.pythonAddFoo = pythonAddFoo
+
+if hasattr(_10gen, 'jsObj'):
+    _10gen.jsObj.pyBool = True
