@@ -39,8 +39,10 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
             throw new NullPointerException( "can't have null file" );
         
         JxpSource s = null;
-        if ( f.getName().endsWith(".djang10") )
-            s = new Djang10Source(f);
+        if ( f.getName().endsWith(".djang10") ) {
+            Scope parentScope = (context != null)? context.getScope() : Scope.getAScope();
+            s = new Djang10Source(parentScope.child( "Djang10 Scope for: " + f ), f);
+        }
         
         else if ( f.getName().endsWith( ".py" ) )
             s = new ed.lang.python.PythonJxpSource( f , lib );

@@ -206,7 +206,7 @@ public class Djang10TemplateTest {
         @Test
         public void test() throws Throwable {           
             try {
-                Djang10Source source = new Djang10Source(file);
+                Djang10Source source = new Djang10Source(AppContext.findThreadLocal().getScope().child( "Djang10 scope: " + file ), file);
                 Djang10CompiledScript compiled = (Djang10CompiledScript)source.getFunction();
                 compiled.call(scope.child(), context);
             } catch(Throwable t) {
