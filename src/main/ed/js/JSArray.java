@@ -59,7 +59,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
 
     /** @unexpose  */
     private final static JSFunction _cons = new JSArrayCons();
-    public static class JSArrayCons extends JSFunctionCalls0{
+    public static class JSArrayCons extends JSFunctionCalls1{
 
         public JSObject newOne(){
             JSArray a = new JSArray();
@@ -67,24 +67,20 @@ public class JSArray extends JSObjectBase implements Iterable , List {
             return a;
         }
 
-        public Object call( Scope scope , Object[] extra ){
-            Object t = scope.getThis();
-            if( extra == null || extra.length == 0) {
-                return t instanceof JSArray ? (JSArray)t : new JSArray();
-            }
+        public Object call( Scope scope , Object a , Object[] extra ){
 
-            Object a = extra[0];
             int len = 0;
-            if ( extra.length == 1 ) {
-                if( a instanceof Number ) {
+            if ( extra == null || extra.length == 0 ){
+                if ( a instanceof Number )
                     len = ((Number)a).intValue();
-                }
             }
             else {
-                len = extra.length;
+                len = 1 + extra.length;
             }
 
             JSArray arr = null;
+
+            Object t = scope.getThis();
             if ( t != null && t instanceof JSArray && ((JSArray)t)._new ){
                 arr = (JSArray)t;
                 if ( len > 0 )
@@ -96,10 +92,11 @@ public class JSArray extends JSObjectBase implements Iterable , List {
             }
 
             if ( ( a != null && ! ( a instanceof Number ) ) ||
-                 extra.length > 1 ){
+                 ( extra != null && extra.length > 0 ) ){
                 arr.setInt( 0 , a );
-                for ( int i=1; i < extra.length; i++) {
-                    arr.setInt( i , extra[i] );
+                if ( extra != null ){
+                    for ( int i=0; i<extra.length; i++)
+                        arr.setInt( 1 + i , extra[i] );
                 }
             }
             _prototype.set( "length", arr._array.size() );
@@ -565,8 +562,6 @@ public class JSArray extends JSObjectBase implements Iterable , List {
             
 
             _prototype.dontEnumExisting();
-            this.setProperties( "prototype", JSObjectBase.LOCK );
-            this.dontEnumExisting();
         }
     } // end CONS
 
