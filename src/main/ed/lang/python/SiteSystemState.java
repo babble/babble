@@ -77,6 +77,23 @@ public class SiteSystemState {
         return pyState;
     }
 
+    void ensurePath( String myPath ){
+        ensurePath( myPath , -1 );
+    }
+
+    void ensurePath( String myPath , int location ){
+
+        for ( Object o : pyState.path )
+            if ( o.toString().equals( myPath ) )
+                return;
+
+
+        if( location == -1 )
+            pyState.path.append( Py.newString( myPath ) );
+        else
+            pyState.path.insert( location , Py.newString( myPath ) );
+    }
+
     /**
      * Set up module interception code.
      *
