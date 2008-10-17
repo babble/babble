@@ -62,6 +62,7 @@ public class SiteSystemState {
         setupModules();
         ensureMetaPathHook( pyState , s );
         replaceOutput();
+        ensurePath( Config.get().getProperty("ED_HOME", "/data/ed")+"/src/main/ed/lang/python/lib" , 0 );
 
         // Careful -- this is static PySystemState.builtins. We modify
         // it once to intercept imports for all sites. TrackImport
