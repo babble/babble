@@ -65,6 +65,15 @@ public class JSRegex extends JSObjectBase {
                     }
                 } );
 
+            _prototype.set( "exec" , new JSFunctionCalls1(){
+                    public Object call( Scope s , Object o , Object foo[] ){
+                        if( o == null ) {
+                            return null;
+                        }
+                        return ((JSRegex)s.getThis()).exec( o.toString() );
+                    }
+                } );
+
             _prototype.set( "__rmatch" , new JSFunctionCalls1(){
                     public Object call( Scope s , Object o , Object foo[] ){
                         
@@ -147,6 +156,12 @@ public class JSRegex extends JSObjectBase {
         getConstructor()._prototype.dontEnumExisting();
     }
 
+    private static final boolean isHex( char c ) {
+        return (c >= '0' && c <= '9') || 
+            (c >= 'a' && c <= 'f') || 
+            (c >= 'A' && c <= 'F');
+    }
+
     /** @unexpose */
     static String _jsToJava( String p ){
         StringBuilder buf = new StringBuilder( p.length() + 10 );
@@ -156,8 +171,22 @@ public class JSRegex extends JSObjectBase {
             char c = p.charAt( i );
 
             if ( c == '\\' ) {
-                boolean isOctal = ( i+1 < p.length() ) ? ( p.charAt( i+1 ) == '0' ) : false;
                 int end = i+1;
+
+                // unicode
+                if ( i+1 < p.length() && p.charAt( i+1 ) == 'u' ) {
+                    end = end + 1;
+                    while( end < p.length() && isHex( p.charAt( end ) ) && end < i+6 )
+                        end++;
+
+                    // only escape unicode if it's valid
+                    if( end - (i+2) == 4 ) {
+                        buf.append( "\\" );
+                    }
+
+                    continue;
+                }
+                boolean isOctal = ( end < p.length() ) ? ( p.charAt( end ) == '0' ) : false;
                 while( end < p.length() && 
                        ( Character.isDigit( p.charAt( end ) ) && 
                          ( !isOctal || ( isOctal && p.charAt( end ) < '8' ) ) ) ) {
@@ -247,13 +276,15 @@ public class JSRegex extends JSObjectBase {
      * @return /expression/flags
      */
     public String toString(){
-        Object source = getConstructor()._prototype.get( "source" );
+        /*        Object source = getConstructor()._prototype.get( "source" );
         if( source == null || source.toString().equals( "" ) ) {
             source = "(?:)";
-        }
+            }*/
+        if( _p == null )
+            _p = "(?:)";
         if( _f == null )
             _f = "";
-        return "/" + source + "/" + _f;
+        return "/" + _p + "/" + _f;
     }
 
     /** The hash code value of this regular expression.
