@@ -14,21 +14,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-# Used by both expose1_test and expose2_test
-from _10gen import getglobal
-import _10gen
-_10gen.pyX = getglobal('x')
-_10gen.pyY = getglobal('y')
+import sys
+#print sys.path
 
-def pythonAddAttr(obj, k, v):
-    setattr(obj, k, v)
 
-def pythonAddFoo(obj):
-    obj.foo = "yippee"
+import os # Breaks if I don't import this first.. sigh :(
+import wsgiref.handlers
 
-import _10gen
-_10gen.pythonAddAttr = pythonAddAttr
-_10gen.pythonAddFoo = pythonAddFoo
-
-if hasattr(_10gen, 'jsObj'):
-    _10gen.jsObj.pyBool = True
+#print dir(wsgiref.handlers)
+assert hasattr(wsgiref.handlers, 'CGIHandler')
+assert hasattr(wsgiref.handlers, 'SECRET_10GEN_HACK')
