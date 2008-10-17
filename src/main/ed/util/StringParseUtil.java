@@ -227,6 +227,8 @@ public final class StringParseUtil {
             int exp = Integer.parseInt( s.substring( e + 1 ) );
             return num * Math.pow( 10 , exp );
         }
+        if ( s.length() > 10 )
+            return Long.parseLong(s);
         return Integer.parseInt(s);
     }
 

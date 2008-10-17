@@ -22,7 +22,7 @@ class JSFunctionTest < RubyTest
 JSFunctionTestJSClass = function(foo) {
   this.foo = foo;
 }
-JSFunctionTestJSClass.prototype.reverse_foo = function() {
+JSFunctionTestJSClass.prototype.reverseFoo = function() {
   return this.foo.reverse();
 }
 EOS
@@ -48,12 +48,18 @@ EOS
   def test_new_js_object_in_ruby
     x = JSFunctionTestJSClass.new('Ruby')
     assert_not_nil(x)
-    assert_equal("ybuR", x.reverse_foo)
+    assert_equal("ybuR", x.reverseFoo)
   end
 
   # Same as test_new_js_object_in_ruby but without an intermediary object.
   def test_new_js_object_in_ruby_inline
+    assert_equal("ybuR", JSFunctionTestJSClass.new('Ruby').reverseFoo)
+  end
+
+  def test_ruby_cased_name_alias
     assert_equal("ybuR", JSFunctionTestJSClass.new('Ruby').reverse_foo)
+  rescue => ex
+    fail(ex.to_s)
   end
 
 end
