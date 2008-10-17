@@ -245,9 +245,6 @@ public class JSRegex extends JSObjectBase {
             if ( f.contains( "m" ) ){
                 compilePatterns |= Pattern.MULTILINE;
 	    }
-            else {
-                compilePatterns |= Pattern.DOTALL;
-            }
             _compilePatterns = compilePatterns;
         }
 
