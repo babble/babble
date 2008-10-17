@@ -178,7 +178,7 @@ public class DjangoRegressionTests {
         globalScope.makeThreadLocal();
         
         //Set the TLPreferred scope, so that the date hack will take affect 
-        Scope appContextScope = AppContext.findThreadLocal().getScope();
+        final Scope appContextScope = AppContext.findThreadLocal().getScope();
         Scope oldTlPref = appContextScope.getTLPreferred();
         appContextScope.setTLPreferred( globalScope );
         
@@ -228,7 +228,7 @@ public class DjangoRegressionTests {
                         TestCase testCase = (TestCase)testObj;
                         if(templateNameObj.toString().equals(testCase.name))
                             try {
-                                return (new Djang10Source(testCase.content)).getFunction();
+                                return (new Djang10Source(appContextScope.child("Djang10 Scope for: " + testCase.name), testCase.content)).getFunction();
                             } catch(Throwable t) {
                                 throw new RuntimeException(t);
                             }
@@ -360,7 +360,7 @@ public class DjangoRegressionTests {
             
             AppContext.findThreadLocal().getLogger().makeThreadLocal();
             
-            this.source = new Djang10Source(this.content);
+            this.source = new Djang10Source(AppContext.findThreadLocal().getScope().child( "Djang10 Scope for: " + name ), this.content);
             
             outputBuffer = new StringBuilder();
             testScope.set("print", printer);

@@ -76,7 +76,7 @@ public class Parser extends JSObjectBase{
     private Token activeToken = null;
     
     public Parser(Scope scope, String origin, String string) {
-        this.scope = scope.child( "Scope for Djang10 Template: " + origin );
+        this.scope = scope;
         this.tokens = new LinkedList<Token>();
         loadedLibraries = new HashSet<Library>();
         this.filterMapping = new HashMap<String, JSFunction>();

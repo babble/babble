@@ -45,14 +45,17 @@ public class Djang10Source extends JxpSource {
     
     private final Djang10Content content;
     private Djang10CompiledScript compiledScript;
+    private final Scope scope;
 
-    public Djang10Source(File f) {
+    public Djang10Source(Scope scope, File f) {
         content = new Djang10File(f);
         compiledScript = null;
+        this.scope = scope;
     }
-    public Djang10Source(String content) {
+    public Djang10Source(Scope scope, String content) {
         this.content = new DJang10String(content);
         compiledScript = null;
+        this.scope = scope;
     }
 
     public JSFunction getFunction() throws IOException {
@@ -79,10 +82,8 @@ public class Djang10Source extends JxpSource {
             String contents = getContent();
             
 
-            AppContext cxt = AppContext.findThreadLocal();
-            Scope cxtScope = cxt.getScope();
-            Parser parser = new Parser(cxtScope, content.getName(), contents);
-            JSHelper jsHelper = JSHelper.get(cxtScope);
+            Parser parser = new Parser(scope, content.getName(), contents);
+            JSHelper jsHelper = JSHelper.get(scope);
 
             for(LoadedLibrary lib : jsHelper.getDefaultLibraries()) {
                 parser.add_dependency(lib.getSource());
