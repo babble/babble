@@ -15,7 +15,7 @@
 '''
 
 import sys
-#print sys.path
+print sys.path
 
 
 import os # Breaks if I don't import this first.. sigh :(
