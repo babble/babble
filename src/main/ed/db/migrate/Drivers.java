@@ -8,6 +8,7 @@ import java.util.*;
 import ed.js.*;
 import ed.js.func.*;
 import ed.js.engine.*;
+import ed.util.*;
 
 /**
  * @anonymous name : {jdbc}, desc : {Attempts to connect to a mySQL database using Java's database connector.}, param : {type : (string), name : (url), desc : (url of database to connect to)}, param : {type: (string) isOptional : (true), name : (username), desc : (username with which to connect to the database)},  param : {type: (string) isOptional : (true), name : (password), desc : (password with which to connect to the database)}, return : { type : (jdbcConnection), desc : (a conneection to the mySQL database specified)}
@@ -166,13 +167,13 @@ public class Drivers {
                 _addedBack = true;
             }
 
-            public Collection<String> keySet( boolean includePrototype ){
+            public Set<String> keySet( boolean includePrototype ){
                 return _fields;
             }
 
             private final Statement _stmt;
             private final ResultSet _res;
-            private final List<String> _fields = new ArrayList<String>();
+            private final Set<String> _fields = new OrderedSet<String>();
 
             private boolean _addedBack = false;
             private boolean _doneAnything = false;

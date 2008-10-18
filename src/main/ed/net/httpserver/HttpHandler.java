@@ -22,8 +22,16 @@ import ed.util.*;
 
 public interface HttpHandler {
 
+    /**
+     * @return true if this Handler wants to handle this request
+     */
     public boolean handles( HttpRequest request , Info info );
-    public void handle( HttpRequest request , HttpResponse response );
+    
+    /**
+     * @return return true this request is done.  
+              return false if this request is still being dealt with and the threading will be handled by someone else
+     */
+    public boolean handle( HttpRequest request , HttpResponse response );
 
     /** Returns the priority of an HTTP request.  The smaller the number returned, the higher the priority.
      * @return This HTTP handler's priority number

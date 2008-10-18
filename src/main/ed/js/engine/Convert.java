@@ -109,6 +109,7 @@ public class Convert {
 
         D = DJS
             && ! name.contains( "src/main/ed/lang" )
+            && ! name.contains( "src/main/ed/appserver/" )
             && ! name.contains( "src_main_ed_lang" )
             ;
 
@@ -525,6 +526,7 @@ public class Convert {
             _append( " false " , n );
             break;
         case Token.NULL:
+        case Token.VOID:
             _append( " null " , n );
             break;
 
@@ -656,15 +658,8 @@ public class Convert {
         case Token.LSH:
         case Token.MOD:
 
-            if ( n.getType() == Token.NE )
-                _append( " ! " , n );
-
-            _append( "JS_" , n );
-            String fooooo = _2ThingThings.get( n.getType() );
-            if ( fooooo == null )
-                throw new RuntimeException( "noting for : " + n );
-            _append( fooooo , n );
-            _append( "\n( " , n );
+            _append( "JS_" + Token.name( n.getType() ).toLowerCase(), n );
+            _append( "( " , n );
             _add( n.getFirstChild() , state );
             _append( " , " , n );
             _add( n.getFirstChild().getNext() , state );
@@ -778,7 +773,11 @@ public class Convert {
                 throw new RuntimeException( "something is wrong" );
             break;
         case Token.DELPROP:
-            _addAsJSObject( n.getFirstChild() , state );
+
+            if ( n.getFirstChild().getType() == Token.BINDNAME )
+                _append( "scope" , n );
+            else 
+                _addAsJSObject( n.getFirstChild() , state );
             _append( ".removeField( "  , n );
             _add( n.getFirstChild().getNext() , state );
             _append( " ) " , n );
@@ -1512,14 +1511,19 @@ public class Convert {
         String f = getFunc( name , state , isClass , inc  );
         _append( ( inc[0] ? f : "" ) + ".call( scope" + ( isClass ? ".newThis( " + f + " )" : "" ) + " " , n );
 
+        int numParam = 0;
         Node param = name.getNext();
         while ( param != null ){
             _append( " , " , param );
             _add( param , state );
             param = param.getNext();
+            numParam++;
         }
 
-        _append( " , new Object[0] ) " , n );
+        if( numParam <= MAX_NUM_PARAMS ) {
+            _append( " , new Object[0] " , n );
+        }
+        _append( " ) " , n );
         if ( useThis )
             _append( " ) " , n );
     }
@@ -1899,34 +1903,8 @@ public class Convert {
     private boolean _loadOnce = false;
 
     private int _methodId = 0;
-
-    private final static Map<Integer,String> _2ThingThings = new HashMap<Integer,String>();
-    static {
-        _2ThingThings.put( Token.ADD , "add" );
-        _2ThingThings.put( Token.MUL , "mul" );
-        _2ThingThings.put( Token.SUB , "sub" );
-        _2ThingThings.put( Token.DIV , "div" );
-
-        _2ThingThings.put( Token.SHEQ , "sheq" );
-        _2ThingThings.put( Token.SHNE , "shne" );
-        _2ThingThings.put( Token.EQ , "eq" );
-        _2ThingThings.put( Token.NE , "eq" );
-
-        _2ThingThings.put( Token.GE , "ge" );
-        _2ThingThings.put( Token.LE , "le" );
-        _2ThingThings.put( Token.LT , "lt" );
-        _2ThingThings.put( Token.GT , "gt" );
-
-        _2ThingThings.put( Token.BITOR , "bitor" );
-        _2ThingThings.put( Token.BITAND , "bitand" );
-        _2ThingThings.put( Token.BITXOR , "bitxor" );
-
-        _2ThingThings.put( Token.URSH , "ursh" );
-        _2ThingThings.put( Token.RSH , "rsh" );
-        _2ThingThings.put( Token.LSH , "lsh" );
-        _2ThingThings.put( Token.MOD , "mod" );
-
-    }
+    // There are JSFunctionCalls 0-28
+    private final int MAX_NUM_PARAMS = 28;
 
     private static final int _while1[] = new int[]{ Token.GOTO , Token.TARGET , 0 , 0 , Token.TARGET , Token.IFEQ , Token.TARGET };
     private static final int _doWhile1[] = new int[]{ Token.TARGET , 0 , Token.TARGET , Token.IFEQ , Token.TARGET };

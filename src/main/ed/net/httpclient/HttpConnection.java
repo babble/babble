@@ -40,7 +40,7 @@ class HttpConnection{
     public static boolean DUMP_HEADERS = false;
     public static int CONNECT_TIMEOUT_SECONDS = 60;
 
-    static boolean DEBUG = Boolean.getBoolean( "DEBUG.HTTP" );
+    static boolean DEBUG = Boolean.getBoolean( "DEBUG.HTTPC" );
     static int HTTP_CONNECTION_NUMBER = 1;
 
     static final Logger LOGGER = Logger.getLogger("ed.net.httpclient.HttpConnection" );
@@ -86,10 +86,11 @@ class HttpConnection{
         }
 
         _responseHeaders.clear();
-
+	
         _rc = -1;
         _httpVersion = -1;
         _message = null;
+	_timeout = CONNECT_TIMEOUT_SECONDS * 1000;
     }
 
     public void printHeaders() {
@@ -207,10 +208,8 @@ class HttpConnection{
 
             _sock = new Socket();
 
-            int timeOut = CONNECT_TIMEOUT_SECONDS;
-
-            _sock.connect( isa , timeOut * 1000 );
-            _sock.setSoTimeout( timeOut * 1000 * 5 );
+            _sock.connect( isa , _timeout );
+            _sock.setSoTimeout( _timeout * 5 );
 
             if ( _currentUrl.getProtocol().equalsIgnoreCase("https") ){
                 try {
@@ -505,6 +504,10 @@ class HttpConnection{
         return _postData;
     }
 
+    public void setTimeOut( int timeout ){
+	_timeout = timeout;
+    }
+
     private static int ID = 1;
     private int _id = ID++;
 
@@ -512,6 +515,7 @@ class HttpConnection{
     private HCKey _key;
 
     private String _requestMethod;
+    private int _timeout = CONNECT_TIMEOUT_SECONDS * 1000;
 
     private byte _postData[];
 

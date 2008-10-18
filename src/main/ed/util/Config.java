@@ -28,7 +28,11 @@ public class Config extends Properties {
     }
 
     public static String getInternalDomain(){
-        return "10gen.cc";
+        return get().getProperty( "internalDomain" , "10gen.cc" );
+    }
+
+    public static String getExternalDomain(){
+        return get().getProperty( "externalDomain" , "10gen.com" );
     }
     
     static String _placesToLook[] = new String[]{

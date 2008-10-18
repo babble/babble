@@ -61,3 +61,56 @@ assert( newL[0] == pyL[1] );
 assert( newL.length == pyL.length/2 );
 
 pyDeleteItem( jsA );
+assert.eq( jsA.length , 3 );
+assert.eq( jsA[0] , 2 );
+
+assert.eq( pyMethCall( jsA , 'index' , 3 ) , 1 );
+assert.raises( function(){ pyMethCall( jsA, 'index', 3, 2 ); } );
+assert.raises( function(){ pyMethCall( jsA, 'index', 3, 0, 1 ); } );
+assert.eq( pyMethCall( jsA , 'index' , 3 , -2, -1 ) , 1 );
+assert.raises( function(){ pyMethCall( jsA, 'index', 3, -3, -2 ); } );
+assert.raises( function(){ pyMethCall( jsA, 'index', 3, -1, 3 ); } );
+jsA.push(3);
+assert.eq( pyMethCall( jsA , 'index' , 3 , 2 ), 3 );
+
+var stringA = ['a', 'B'];
+
+var sorted1 = function(stringA){
+    assert.eq( stringA.length , 2 );
+    assert.eq( stringA[0] , 'B' );
+    assert.eq( stringA[1] , 'a' );
+};
+
+var sorted2 = function(stringA){
+    assert.eq( stringA.length , 2 );
+    assert.eq( stringA[0] , 'a' );
+    assert.eq( stringA[1] , 'B' );
+};
+
+var cmp = function(x, y){ if(x < y) return -1; if(x == y) return 0; return 1; };
+
+var key = function(x){ return x.toLowerCase(); };
+
+pyMethCall( stringA , 'sort' );
+sorted1(stringA);
+
+pyMethCall( stringA, 'sort', cmp , { reverse: true });
+sorted2(stringA);
+
+pyMethCall( stringA, 'sort', {cmp: cmp, reverse: true } );
+sorted2(stringA);
+
+pyMethCall( stringA, 'sort', {key: key } );
+sorted2(stringA);
+
+pyMethCall( stringA, 'sort', cmp, key , {});
+sorted2(stringA);
+
+pyMethCall( stringA, 'sort', { key: key, reverse: true } );
+sorted1(stringA);
+
+var newList = pyList( jsA );
+assert.eq( jsA.length , newList.length );
+for( var i in jsA ){
+    assert.eq(jsA[i], newList[i]);
+}

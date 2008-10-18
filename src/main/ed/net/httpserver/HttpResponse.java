@@ -44,9 +44,10 @@ import ed.appserver.*;
  * @docmodule system.HTTP.response
  */
 public class HttpResponse extends JSObjectBase implements HttpServletResponse {
-
+    
     static final boolean USE_POOL = true;
     static final String DEFAULT_CHARSET = "utf-8";
+    static final long MIN_GZIP_SIZE = 1000;
     static final Set<String> GZIP_MIME_TYPES;
     static {
 	Set<String> s = new HashSet<String>();
@@ -56,7 +57,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
 	s.add( "text/plain" );
 	GZIP_MIME_TYPES = Collections.unmodifiableSet( s );
     }
-
+    
     public static final DateFormat HeaderTimeFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
     public static final String SERVER_HEADERS;
 
@@ -83,7 +84,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
 
         setContentType( "text/html;charset=" + getContentEncoding() );
         setDateHeader( "Date" , System.currentTimeMillis() );
-
+        
         set( "prototype" , _prototype );
     }
 
@@ -95,7 +96,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
      */
     public void setResponseCode( int rc ){
         if ( _sentHeader )
-            throw new RuntimeException( "already sent header " );
+            throw new RuntimeException( "already sent header : " + hashCode() );
         _responseCode = rc;
     }
 
@@ -452,6 +453,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
             final byte[] bytes = header.getBytes();
             final ByteBuffer headOut = ByteBuffer.wrap( bytes );
             _handler.getChannel().write( headOut );
+            _keepAlive = keepAlive();
             _sentHeader = true;
         }
 
@@ -475,6 +477,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
                 }
                 if ( _fileSent < _file.length() ){
                     if ( HttpServer.D ) System.out.println( "only sent : " + _fileSent );
+                    _handler._inFork = false;
                     _handler.registerForWrites();
                     return false;
                 }
@@ -490,6 +493,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
                     _stringContentPos += _handler.getChannel().write( bb );
                     if ( _stringContentPos < bb.limit() ){
                         if ( HttpServer.D ) System.out.println( "only wrote " + _stringContentPos + " out of " + bb );
+                        _handler._inFork = false;
                         _handler.registerForWrites();
                         return false;
                     }
@@ -499,10 +503,14 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
 
             if ( _jsfile != null ){
                 if ( ! _jsfile.write( _handler.getChannel() ) ){
+                    
+                    _handler._inFork = false;
+                    
                     if ( _jsfile.pause() )
                         _handler.pause();
                     else
                         _handler.registerForWrites();
+                    
                     return false;
                 }
             }
@@ -723,20 +731,27 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
      * @unexpose
      */
     public boolean keepAlive(){
-        if ( ! _request.keepAlive() )
-            return false;
 
-        if ( _headers.get( "Content-Length" ) != null )
+        if ( _sentHeader ){
+            return _keepAlive;
+        }
+        
+        if ( ! _request.keepAlive() ){
+            return false;
+        }
+        
+        if ( _headers.get( "Content-Length" ) != null ){
             return true;
+        }
 	
         if ( _stringContent != null ){
-            // TODO: chunking
+            // TODO: chunkinga
             return _done;
         }
 
         return false;
     }
-
+    
     /**
      * @unexpose
      */
@@ -865,6 +880,10 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
             end = System.currentTimeMillis();
         return end - _request._startTime;
     }
+    
+    public int hashCode( IdentitySet seen ){
+        return System.identityHashCode(this);
+    }
 
     boolean useGZIP(){
 	if ( ! _done )
@@ -876,12 +895,15 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
 	if ( ! GZIP_MIME_TYPES.contains( getContentMimeType() ) )
 	    return false;
 
-	if ( _stringContent != null && _stringContentSent == 0 && _stringContentPos == 0 ){
+	if ( _stringContent != null && _stringContent.size() > 0 && _stringContentSent == 0 && _stringContentPos == 0 ){
 
 	    if ( _writer != null ){
 		_writer._push();
 		_writer = null;
 	    }
+
+	    if ( _stringContent.get(0).limit() < MIN_GZIP_SIZE )
+		return false;
 
 	    setHeader("Content-Encoding" , "gzip" );
 	    setHeader("Vary" , "Accept-Encoding" );
@@ -913,6 +935,7 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
     boolean _useDefaultHeaders = true;
     List<Cookie> _cookies = new ArrayList<Cookie>();
     boolean _sentHeader = false;
+    private boolean _keepAlive = false;
     boolean _gzip = false;
 
     // data

@@ -22,6 +22,7 @@ import java.util.*;
 import javax.servlet.http.*;
 
 import ed.js.*;
+import ed.log.*;
 import ed.net.*;
 import ed.lang.*;
 import ed.util.*;
@@ -33,39 +34,36 @@ public abstract class HttpMonitor implements HttpHandler {
     public HttpMonitor( String name ){
         this( name , false );
     }
-    
-    public HttpMonitor( String name , boolean plainText ){
+
+    public HttpMonitor( String name , boolean fork ){
         _name = name;
-        _plainText = plainText;
+        _fork = fork;
         _uri = "/~" + name;
 
-        if ( _plainText )
-            _header = null;
-        else {
-            StringBuilder buf = new StringBuilder();
-            buf.append( "<html>" );
-            
-            buf.append( "<head>" );
-            buf.append( "<title>" ).append( DNSUtil.getLocalHost() ).append( " " ).append( _name ).append( "</title>" );
-            buf.append( "<style>\n" );
-            buf.append( " body { font-size: .65em; font-family: Monaco; }\n" );
-            buf.append( " table { font-size: 10px; }\n" );
-            buf.append( " th { backgroud: #dddddd; text-align:left; }\n" );
-            buf.append( " .floatingList li { float: left; list-style-type:none; }\n" );
-            buf.append( " bottomLine { border-bottom: 1px solid black; }\n" );
-	    buf.append( " .warn { color: #FF6600; }\n" );
-	    buf.append( " .error { color: red; font-decoration: bold; }\n" );
-            addStyle( buf );
-            buf.append( "</style>\n" );
-
-            buf.append( "<link rel=\"shortcut icon\" href=\"http://static.10gen.com/www.10gen.com/assets/images/favicon.ico\" />" );
-
-
-            buf.append( "</head>" );            
-            
-            buf.append( "<body>" );
-            _header = buf.toString();
-        }
+        StringBuilder buf = new StringBuilder();
+        buf.append( "<html>" );
+        
+        buf.append( "<head>" );
+        buf.append( "<title>" ).append( DNSUtil.getLocalHost() ).append( " " ).append( _name ).append( "</title>" );
+        buf.append( "<style>\n" );
+        buf.append( " body { font-size: .65em; font-family: Monaco; }\n" );
+        buf.append( " table { font-size: 10px; }\n" );
+        buf.append( " th { backgroud: #dddddd; text-align:left; }\n" );
+        buf.append( " .floatingList li { float: left; list-style-type:none; }\n" );
+        buf.append( " bottomLine { border-bottom: 1px solid black; }\n" );
+        buf.append( " .warn { color: #FF6600; }\n" );
+        buf.append( " .error { color: red; font-decoration: bold; }\n" );
+        buf.append( " .fatal { color: red; font-decoration: bold; }\n" );
+        addStyle( buf );
+        buf.append( "</style>\n" );
+        
+        buf.append( "<link rel=\"shortcut icon\" href=\"http://static.10gen.com/www.10gen.com/assets/images/favicon.ico\" />" );
+        
+        
+        buf.append( "</head>" );            
+        
+        buf.append( "<body>" );
+        _header = buf.toString();
         
         _addAll( name );
     }
@@ -77,8 +75,8 @@ public abstract class HttpMonitor implements HttpHandler {
 	
 	if ( h.equals( "127.0.0.1" ) )
 	    return true;
-
-        if ( ! h.endsWith( "." + Config.getInternalDomain() ) )
+        
+        if ( ! acceptableHost( h ) )
             return false;
 
         if ( AUTH_COOKIE == null ){
@@ -94,6 +92,17 @@ public abstract class HttpMonitor implements HttpHandler {
 
         return false;
     }
+
+    protected boolean acceptableHost( String host ){
+        if (  host.endsWith( "." + Config.getInternalDomain() ) )
+            return true;
+        
+        if ( DNSUtil.isDottedQuad( host ) )
+            return true;
+
+        System.out.println( "bad host [" + host + "]" );
+        return false;
+    }
     
     protected void addStyle( StringBuilder buf ){}
     public abstract void handle( MonitorRequest request );
@@ -106,13 +115,13 @@ public abstract class HttpMonitor implements HttpHandler {
         if ( ! allowed( request ) )
             return false;
 
-        info.fork = false;
+        info.fork = _fork;
         info.admin = true;
         
         return true;
     }
     
-    public void handle( HttpRequest request , HttpResponse response ){
+    public boolean handle( HttpRequest request , HttpResponse response ){
 
         if ( AUTH_COOKIE != null && AUTH_COOKIE.equalsIgnoreCase( request.getParameter( "auth" ) ) ){
             Cookie c = new Cookie( "auth" , AUTH_COOKIE );
@@ -127,9 +136,9 @@ public abstract class HttpMonitor implements HttpHandler {
         final JxpWriter out = response.getJxpWriter();
 	final MonitorRequest mr = new MonitorRequest( out , request , response );
 	
-	boolean html = mr.html() && ! _plainText;
+	boolean html = mr.html();
 
-        if ( _plainText )
+        if ( ! html )
             response.setHeader( "Content-Type" , "text/plain" );
         else if ( html ) {
             out.print( _header );
@@ -141,7 +150,7 @@ public abstract class HttpMonitor implements HttpHandler {
                     out.print( sc );
             }
         }
-
+	
         try {
             handle( mr );
 	    if ( mr.json() ){
@@ -157,18 +166,42 @@ public abstract class HttpMonitor implements HttpHandler {
 	
         if ( html ){
 	    
+	    out.print( "\n<hr>\n" );
+	    
+	    final String full = request.getFullURL();
+	    
 	    int refresh = request.getInt( "refresh" , 0 );
-	    if ( refresh > 0 )
-		out.print( "\n<meta http-equiv='refresh' content='" + refresh + "'/>" );
+	    if ( refresh > 0 ){
+		out.print( "<meta http-equiv='refresh' content='" + refresh + "'/>\n" );
+		out.print( "<br><a href=\"" );
+		out.print( full.replace( "refresh=\\d+" , "" ) );
+		out.print( "\">stop refresh</a>" );
+	    }
+	    else {
+		out.print( "<a href=\"" );
+		out.print( full );
+		if ( full.indexOf( "?" ) < 0 )
+		    out.print( "?" );
+		else 
+		    out.print( "&" );
+		out.print( "refresh=10\" >auto refresh this page</a>" );
+	    }
+		
+	    out.print("<br>" );
+	    out.print( (new java.util.Date()).toString() );
+	    out.print( "<bR>" );
+	    out.print( DNSUtil.getLocalHostString() );
 
             out.print( "\n</body></html>" );
 	}
+        
+        return true;
     }
     
     public double priority(){
         return Double.MIN_VALUE;
     }
-
+    
     String _section(){
         return _section( _name );
     }
@@ -382,8 +415,8 @@ public abstract class HttpMonitor implements HttpHandler {
     }
 
     
-    final boolean _plainText;
     final String _name;
+    final boolean _fork;
     final String _uri;
     final String _header;
     
@@ -402,7 +435,7 @@ public abstract class HttpMonitor implements HttpHandler {
     public static final class MemMonitor extends HttpMonitor {
 
         MemMonitor(){
-            super( "mem" , false );
+            super( "mem" );
             _r = Runtime.getRuntime();
         }
 
@@ -429,11 +462,56 @@ public abstract class HttpMonitor implements HttpHandler {
         final Runtime _r;
     }
 
+    public static final class LogMonitor extends HttpMonitor {
+        LogMonitor(){
+            super( "logs" );
+        }
+
+        public void handle( MonitorRequest mr ){
+            printLastLogMessages( mr , -1 );
+        }        
+        
+    }
+    
+    /**
+     * @param max -1 means infinite
+     */
+    public static void printLastLogMessages( MonitorRequest mr , int max ){
+        CircularList<Event> l = InMemoryAppender.getInstance().getRecent();
+        int size = l.size();
+        if ( max > 0 )
+            size = Math.min( max , size );
+
+        JxpWriter out = mr.getWriter();
+        
+        out.print( "<table border='1'>" );
+        
+        for ( int i=0; i<size; i++ ){
+            Event e = l.get( i );
+            out.print( "<tr>" );
+            mr.addTableCell( e.getDate() );
+            mr.addTableCell( e.getLoggerName() );
+            mr.addTableCell( e.getLevel() , e.getLevel().toString().toLowerCase() );
+            mr.addTableCell( e.getMsg() );
+            out.print( "</tr>" );
+            
+            if ( e.getThrowable() != null ){
+                out.print( "<tr><td colspan=4'>" );
+                out.print( e.getThrowable() + "<BR>" );
+                for ( StackTraceElement element : e.getThrowable().getStackTrace() )
+                    out.print( element + "<BR>\n" );
+                out.print( "</td></tr>" );
+            }
+        }
+        
+        out.print( "</table>" );        
+    }
+    
     
     public static class ThreadMonitor extends HttpMonitor {
 
         ThreadMonitor(){
-            super( "threads" , false );
+            super( "threads" );
         }
 
         protected void addStyle( StringBuilder buf ){
@@ -547,9 +625,10 @@ public abstract class HttpMonitor implements HttpHandler {
             return Character.isLetter( ref.charAt( idx + 2 ) );
         }
         
-        public void handle( HttpRequest request , HttpResponse response ){
+        public boolean handle( HttpRequest request , HttpResponse response ){
             response.setResponseCode( 404 );
             response.setCacheTime( 86400 );
+            return true;
         }
 
         public double priority(){

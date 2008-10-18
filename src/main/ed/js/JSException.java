@@ -168,11 +168,11 @@ public class JSException extends RuntimeException implements JSObject {
     }
 
     /** @unexpose */
-    public java.util.Collection<String> keySet(){
+    public java.util.Set<String> keySet(){
         throw new UnsupportedOperationException();
     }
 
-    public java.util.Collection<String> keySet( boolean includePrototype ){
+    public java.util.Set<String> keySet( boolean includePrototype ){
         throw new UnsupportedOperationException();
     }
 

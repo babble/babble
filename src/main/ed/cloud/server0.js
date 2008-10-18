@@ -16,7 +16,9 @@
 */
 
 Cloud.Server = function( name ){
-    var r = /(\w\w\w)\-(\w\w+)\-n(\d+)\./.exec( name );
+    name = Cloud.Server._fixHostName( name );
+
+    var r = /^(\w{3,7})\-(\w\w+)\-n(\d+)\./.exec( name );
     
     if ( ! r ){
         this.bad = true;
@@ -37,11 +39,26 @@ Cloud.Server = function( name ){
 Cloud.Server.prototype.gridServer = function(){
     if ( this.bad )
         return null;
-    return this.location + "-" + this.provider + "-grid.10gen.cc";
+    return this.location + "-" + this.provider + "-grid." + javaStatic( "ed.util.Config" , "getInternalDomain" );
 };
 
 Cloud.Server.prototype.toString = function(){
     return "{Server.  location:" + this.location + " provider:" + this.provider + " n:" + this.number + "}";
+}
+
+Cloud.Server._fixHostName = function( host ){
+    
+    // special code for ec2
+    var r = /ip\-(\d+)\-(\d+)\-(\d+)\-(\d+)/.exec( host );
+    if ( r ){
+        // this is probably an ec2 machine
+        return javaStatic( "ed.util.Config" , "get" ).getProperty( "ZONE" , "use1c" ) + "-ec2-n" + r[1] + r[2] + r[3] + r[4] + ".";
+    }
+
+    if ( host.indexOf( "." ) < 0 )
+        host += ".";
+    
+    return host;
 }
 
 me = new Cloud.Server( SERVER_NAME );

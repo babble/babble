@@ -12,6 +12,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+require 'xgen/mongo/oid'
 require 'xgen/mongo/cursor'
 require '/core/db/sql.js'
 
@@ -165,7 +166,7 @@ module XGen
         #          string like "field1 asc, field2 desc, field3", then sorts
         #          those fields in the specified order (default is ascending).
         #          If an array, each element is either a field name or symbol
-        #          (which will be sorted in ascending order) or a hash where
+         #          (which will be sorted in ascending order) or a hash where
         #          key = field and value = 'asc' or 'desc' (case-insensitive),
         #          1 or -1, or if any other value then true == 1 and false/nil
         #          == -1.
@@ -279,7 +280,7 @@ module XGen
           # is not allowed).
           criteria = criteria_from(options[:conditions]).merge!(where_func(options[:where]))
           fields = fields_from(options[:select])
-          row = coll.findOne(criteria, fields)
+          row = coll.find_one(criteria, fields)
           (row.nil? || row['_id'] == nil) ? nil : self.new(row)
         end
 
@@ -313,7 +314,7 @@ module XGen
         end
 
         def ids_clause(ids)
-          ids.length == 1 ? ids[0] : {:$in => ids.collect{|id| mongo_id(id)}}
+          ids.length == 1 ? ids[0] : {:$in => ids.collect{|id| id.to_oid}}
         end
 
         # Returns true if all field_names are in @field_names.
@@ -376,7 +377,7 @@ module XGen
 
         # Turns a string into a Mongo search condition hash.
         def criteria_from_string(sql) # :nodoc:
-          $SQL.parseWhere(sql)
+          $SQL.parse_where(sql)
         end
 
         # Turns a hash that ActiveRecord would expect into one for Mongo.
@@ -385,7 +386,7 @@ module XGen
           condition.each { |k,v|
             h[k] = case v
                    when Array
-                     {:$in => k == 'id' || k == '_id' ? v.collect{ |val| mongo_id(val)} : v} # if id, can't pass in string; must be ObjectId
+                     {:$in => k == 'id' || k == '_id' ? v.collect{ |val| val.to_oid} : v} # if id, can't pass in string; must be ObjectId
                    when Range
                      {:$gte => v.first, :$lte => v.last}
                    else
@@ -424,10 +425,6 @@ module XGen
           return "'#{val.gsub(/\'/, "\\\\'")}'" # " <= for Emacs font-lock
         end
 
-        def mongo_id(val) # :nodoc:
-          return ObjectId(val.to_s)
-        end
-
         def fields_from(a) # :nodoc:
           return nil unless a
           a = [a] unless a.kind_of?(Array)
@@ -439,25 +436,25 @@ module XGen
 
         def sort_by_from(option) # :nodoc:
           return nil unless option
-          sort_by = {}
+          sort_by = []
           case option
           when Symbol           # Single value
-            sort_by[option.to_sym] = 1
+            sort_by << {option.to_sym => 1}
           when String
             # TODO order these by building an array of hashes
             fields = option.split(',')
             fields.each {|f|
               name, order = f.split
               order ||= 'asc'
-              sort_by[name.to_sym] = sort_value_from_arg(order)
+              sort_by << {name.to_sym => sort_value_from_arg(order)}
             }
           when Array            # Array of field names; assume ascending sort
             # TODO order these by building an array of hashes
-            option.each {|o| sort_by[o.to_sym] = 1}
+            sort_by = option.collect {|o| {o.to_sym => 1}}
           else                  # Hash (order of sorts is not guaranteed)
-            option.each {|k,v| sort_by[k.to_sym] = sort_value_from_arg(v) }
+            sort_by = option.collect {|k, v| {k.to_sym => sort_value_from_arg(v)}}
           end
-          return nil unless sort_by.keys.length > 0
+          return nil unless sort_by.length > 0
           sort_by
         end
 
@@ -469,7 +466,7 @@ module XGen
           when /^desc/i
             arg = -1
           when Number
-            arg.to_i == 1 ? 1 : -1
+            arg.to_i >= 0 ? 1 : -1
           else
             arg ? 1 : -1
           end

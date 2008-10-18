@@ -120,13 +120,14 @@ public class AppServer implements HttpHandler {
      * @param request HTTP request to handle
      * @param HTTP response to fill in
      */
-    public void handle( HttpRequest request , HttpResponse response ){
+    public boolean handle( HttpRequest request , HttpResponse response ){
         try {
             _handle( request , response );
         }
         catch ( Exception e ){
             handleError( request , response , e , null );
         }
+        return true;
     }
 
     private void _handle( HttpRequest request , HttpResponse response ){
@@ -314,6 +315,10 @@ public class AppServer implements HttpHandler {
     void _handleEndOfServlet( HttpRequest request , HttpResponse response , AppRequest ar ){
 
         if ( response.getHeader( "Content-Type" ).indexOf( "text/html" ) < 0 )
+            return;
+
+        // TODO: Eliot, be smarter about this
+        if ( response.getHeader( "Content-Length" ) != null )
             return;
 
         final JSObject user; 

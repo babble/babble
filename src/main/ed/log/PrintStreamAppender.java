@@ -24,11 +24,16 @@ import java.text.*;
 public class PrintStreamAppender implements Appender {
 
     public PrintStreamAppender( PrintStream out ){
-        _out = out;
+        this( out , new EventFormatter.DefaultEventFormatter() );
     }
 
-    public void append( String loggerName , ed.js.JSDate date , Level level , String msg , Throwable throwable , Thread thread ){
-	String output = "[" + date.format( _format ) + "] " + thread.getName() + " || " + loggerName + " " + level + " >> " + msg + "\n";
+    public PrintStreamAppender( PrintStream out , EventFormatter formatter ){
+        _out = out;
+        _formatter = formatter;
+    }
+
+    public void append( final Event e ){
+	String output = _formatter.format( e );
 	
         try {
             _out.write( output.getBytes( "utf8" ) );
@@ -36,10 +41,10 @@ public class PrintStreamAppender implements Appender {
         catch ( IOException encodingBad ){
             _out.print( output );
         }
-        if ( throwable != null )
-            throwable.printStackTrace( _out );
+        if ( e._throwable != null )
+            e._throwable.printStackTrace( _out );
     }
 
     final PrintStream _out;
-    static final SimpleDateFormat _format = new SimpleDateFormat( "MM/dd/yyyy hh:mm:ss.SSS z" );
+    final EventFormatter _formatter;
 }

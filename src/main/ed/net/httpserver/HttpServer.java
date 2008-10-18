@@ -37,6 +37,8 @@ public class HttpServer extends NIOServer {
     
     public static final int WORKER_THREAD_QUEUE_MAX = 200;
     public static final int ADMIN_THREAD_QUEUE_MAX = 10;
+
+    final static long CLIENT_READ_TIMEOUT = 1000 * 20;
     
     public static final boolean D = Boolean.getBoolean( "DEBUG.HTTP" );
     public static final Logger LOGGER = Logger.getLogger( "httpserver" );
@@ -53,21 +55,19 @@ public class HttpServer extends NIOServer {
         return new HttpSocketHandler( this , sc );
     }
     
-    protected boolean handle( HttpRequest request , HttpResponse response )
+    protected boolean handle( HttpSocketHandler handler , HttpRequest request , HttpResponse response )
         throws IOException {
         
         _numRequests++;
         _tracker.hit( null , null );
-        //_reqPerSecTracker.hit();
-        //_reqPerSmallTracker.hit();
-        //_reqPerMinTracker.hit();
-
         _requestPipe.write( request.getFullURL() );
 
         HttpHandler.Info info = new HttpHandler.Info();
-        for ( int i=0; i<_handlers.size(); i++ ){
+        List<HttpHandler> handlers = getHandlers();
+        for ( int i=0; i<handlers.size(); i++ ){
+            HttpHandler h = handlers.get(i);
             info.reset();
-            if ( _handlers.get( i ).handles( request , info ) ){
+            if ( h.handles( request , info ) ){
                 request._handler.pause();
                 if ( info.admin ) _numRequestsAdmin++;
 
@@ -76,8 +76,9 @@ public class HttpServer extends NIOServer {
                     
                     WorkerThreadPool tp = info.admin ? _forkThreadsAdmin : _forkThreads;
 
-                    if ( tp.offer( new Task( request , response , _handlers.get( i ) ) ) ){
+                    if ( tp.offer( new Task( request , response , h ) ) ){
                         if ( D ) System.out.println( "successfully gave thing to a forked thing" );
+                        handler._inFork = true;
                         return false;
                     }
                     
@@ -86,7 +87,8 @@ public class HttpServer extends NIOServer {
                     response.done();
                     return false;
                 }
-                _handlers.get( i ).handle( request , response );
+                if ( ! h.handle( request , response ) )
+                    handler._inFork = true;
                 if ( info.doneAfterHandles )
                     response.done();
                 return false;
@@ -105,26 +107,57 @@ public class HttpServer extends NIOServer {
             _server = server;
         }
         
+        protected boolean shouldTimeout(){
+            if ( _inFork ){
+                return false;
+            }
+            
+            if ( _lastResponse != null )
+                return false;
+
+            long timeSinceLastRead = System.currentTimeMillis() - _lastAction;
+            return timeSinceLastRead > CLIENT_READ_TIMEOUT;
+        }
+        
         protected boolean shouldClose()
             throws IOException {
+
+            if ( _bad )
+                return true;
+            
+            if ( _inFork )
+                return false;
+
             writeMoreIfWant();
             return _done;
         }
         
-        protected void writeMoreIfWant()
+        protected boolean writeMoreIfWant()
             throws IOException {
-            if ( _lastResponse == null )
-                return;
             
-            if ( ! _lastResponse.done() )
-                return;
+            if ( _bad )
+                return false;
             
+            if ( _inFork )
+                return false;
+            
+	    if ( _lastRequest != null && _lastResponse == null )
+		return false;
+
+            if ( _lastResponse != null && ! _lastResponse.done() )
+                return false;
+	    
+	    if ( D ) System.out.println( "writeMoreIfWant removing request/response" );
+
             _lastRequest = null;
             _lastResponse = null;
 
-            if ( _in.position() > 0 )
-                gotData( null );
+            if ( _in.position() == 0 )
+                return false;
 
+            pause();
+            gotData( null );
+            return true;
         }
 
         boolean hasData(){
@@ -159,6 +192,8 @@ public class HttpServer extends NIOServer {
         protected boolean _gotData( ByteBuffer inBuf )
             throws IOException {
             
+            _lastAction = System.currentTimeMillis();
+
             if ( inBuf != null ){
 
 		if ( inBuf.capacity() > 1024 * 1024 * 500 )
@@ -177,6 +212,7 @@ public class HttpServer extends NIOServer {
                 end++;
                                 
                 final int cl = _lastRequest.getIntHeader( "Content-Length" , 0 );
+		if ( D ) System.out.println( "got content length of : " + cl );
                 PostData pd = null;
 
                 if ( cl > 0 ){
@@ -189,6 +225,7 @@ public class HttpServer extends NIOServer {
                         pd.put( _in.get( end++ ) );
                     
                     if ( ! pd.done() ){
+			if ( D ) System.out.println( "only read " + pd.gotSoFar() + " out of " + cl );
                         _in.position( _endOfHeader + 1 );
                         return false;
                     }
@@ -203,9 +240,9 @@ public class HttpServer extends NIOServer {
                 
                 _in.position( np );
                 _lastResponse = new HttpResponse( _lastRequest );
-                return handle( _lastRequest , _lastResponse );
+                return handle( this , _lastRequest , _lastResponse );
             }
-
+            
             int end = endOfHeader( _in , 0 );
             boolean finishedHeader = end >= 0;
             
@@ -224,9 +261,17 @@ public class HttpServer extends NIOServer {
             _endOfHeader = end;
             String header = new String( bb );
             
+            if ( header.trim().length() == 0 ){
+                // this means the socket is just dead
+                _bad = true;
+                _done = true;
+                registerForWrites();
+                return false;
+            }
+
             _lastRequest = new HttpRequest( this , header );
             _lastResponse = null;
-            if ( D ) System.out.println( _lastRequest );
+            if ( D ) System.out.println( "created new request : " + _lastRequest );
             
             return gotData( null );
         }
@@ -262,13 +307,17 @@ public class HttpServer extends NIOServer {
         protected Selector getSelector(){
             return _selector;
         }
-
+        
         final HttpServer _server;
+
+        private long _lastAction = System.currentTimeMillis();
+
         ByteBufferHolder _in = new ByteBufferHolder( 1024 * 1024 * 200 ); // 200 mb
         int _endOfHeader = 0;
         boolean _done = false;
         HttpRequest _lastRequest;
         HttpResponse _lastResponse;
+        boolean _inFork = false;
     }
 
     class Task {
@@ -283,6 +332,10 @@ public class HttpServer extends NIOServer {
         final HttpHandler _handler;
     }
 
+    private int _lastHandlerCacheSize = 0;
+    private List<HttpHandler> _lastHandlers;
+    
+    private final List<HttpHandler> _myHandlers = new ArrayList<HttpHandler>();
     private final WorkerThreadPool _forkThreads = new WorkerThreadPool( "main" , WORKER_THREADS , WORKER_THREAD_QUEUE_MAX );
     private final WorkerThreadPool _forkThreadsAdmin = new WorkerThreadPool( "admin" , ADMIN_WORKER_THREADS , ADMIN_THREAD_QUEUE_MAX );
     
@@ -293,14 +346,23 @@ public class HttpServer extends NIOServer {
         }
         
         public void handle( Task t ) throws IOException {
-            t._handler.handle( t._request , t._response );
-	    try {
-		t._response.done();
-	    }
-	    catch ( IOException ioe ){
-		if ( D ) ioe.printStackTrace();
-		t._response.cleanup();
-	    }
+            
+            boolean inForkWhenDone = false;
+
+            try {
+                inForkWhenDone = ! t._handler.handle( t._request , t._response );
+            }
+            finally {
+                t._request._handler._inFork = inForkWhenDone;
+            }
+                
+            try {
+                t._response.done();
+            }
+            catch ( IOException ioe ){
+                if ( D ) ioe.printStackTrace();
+                t._response.cleanup();
+            }
         }
         
         public void handleError( Task t , Exception e ){
@@ -319,15 +381,24 @@ public class HttpServer extends NIOServer {
 
     };
 
+    public void addHandler( HttpHandler h ){
+        _myHandlers.add( h );
+    }
+
+    List<HttpHandler> getHandlers(){
+        if ( _lastHandlers != null && _myHandlers.size() + _globalHandlers.size() == _lastHandlerCacheSize )
+            return _lastHandlers;
+     
+        List<HttpHandler> lst = new ArrayList<HttpHandler>();
+        lst.addAll( _myHandlers  );
+        lst.addAll( _globalHandlers );
+        Collections.sort( lst , _handlerComparator );
+        _lastHandlers = lst;
+        return lst;
+    }
+
     public static void addGlobalHandler( HttpHandler h ){
-        _handlers.add( h );
-        Collections.sort( _handlers , new Comparator<HttpHandler>(){
-                public int compare( HttpHandler a , HttpHandler b ){
-                    return a.priority() > b.priority() ? 1 : -1;
-                }
-            } 
-            );
-        
+        _globalHandlers.add( h );
     }
 
     static final HttpHandler _stats = new HttpMonitor( "stats" ){
@@ -370,30 +441,31 @@ public class HttpServer extends NIOServer {
             final long _startTime = System.currentTimeMillis();
         };
 
-    static List<HttpHandler> _handlers = new ArrayList<HttpHandler>();
-    
+    static final List<HttpHandler> _globalHandlers = new ArrayList<HttpHandler>();
+    static final Comparator _handlerComparator = new Comparator<HttpHandler>(){
+        public int compare( HttpHandler a , HttpHandler b ){
+            return a.priority() > b.priority() ? 1 : -1;
+        }
+    };
+
     static {
         DummyHttpHandler.setup();
         addGlobalHandler( _stats );
         addGlobalHandler( new HttpMonitor.MemMonitor() );
         addGlobalHandler( new HttpMonitor.ThreadMonitor() );
         addGlobalHandler( new HttpMonitor.FavIconHack() );
+        addGlobalHandler( new HttpMonitor.LogMonitor() );
     }
     
     private static int _numRequests = 0;
     private static int _numRequestsForked = 0;
     private static int _numRequestsAdmin = 0;
-
+    
     private static final int _trackerSmall = 10;
 
     private static HttpLoadTracker.Rolling _tracker = new HttpLoadTracker.Rolling( "webserver" );
     private static HttpLoadTracker.GraphOptions _trackerOptions = new HttpLoadTracker.GraphOptions( 600 , 120 , true , false , false );
-
-    //private static ThingsPerTimeTracker _reqPerSecTracker = new ThingsPerTimeTracker( 1000  , 30 );
-    //private static ThingsPerTimeTracker _reqPerSmallTracker = new ThingsPerTimeTracker( 1000 * 10 , 30 );
-    //private static ThingsPerTimeTracker _reqPerMinTracker = new ThingsPerTimeTracker( 1000 * 60 , 30 );
     
-
     // ---
 
     public static void main( String args[] )

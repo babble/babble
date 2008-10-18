@@ -24,7 +24,7 @@ public class ByteTest extends TestCase {
         JSObject read = decoder.readObject();
         
         assertEquals( "horowitz" , read.get( "eliot" ).toString() );
-        assertEquals( 517.0 , ((Double)read.get( "num" )).doubleValue() );
+        assertEquals( 517.0 , ((Integer)read.get( "num" )).doubleValue() );
         
         assertEquals( encoder._buf.limit() , encoder._buf.position() );
     }
@@ -48,7 +48,7 @@ public class ByteTest extends TestCase {
         JSObject read = decoder.readObject();
         
         assertEquals( eliot , read.get( "eliot" ).toString() );
-        assertEquals( 517.0 , ((Double)read.get( "num" )).doubleValue() );
+        assertEquals( 517.0 , ((Integer)read.get( "num" )).doubleValue() );
         
         assertEquals( encoder._buf.limit() , encoder._buf.position() );
     }
@@ -59,7 +59,7 @@ public class ByteTest extends TestCase {
         
         JSObject o = new JSObjectBase();
         o.set( "eliot" , "horowitz" );
-        o.set( "num" , 517 );
+        o.set( "num" , 517.3 );
         o.set( "z" , "y" );
         o.set( "asd" , null );
         
@@ -76,7 +76,7 @@ public class ByteTest extends TestCase {
         JSObject read = decoder.readObject();
         
         assertEquals( "horowitz" , read.get( "eliot" ).toString() );
-        assertEquals( 517.0 , ((Double)read.get( "num" )).doubleValue() );
+        assertEquals( 517.3 , ((Double)read.get( "num" )).doubleValue() );
         assertEquals( "b" , ((JSObject)read.get( "next" ) ).get( "a" ).toString() );
         assertEquals( "a" , ((JSObject)read.get( "next" ) ).get( "b" ).toString() );
         assertEquals( "y" , read.get( "z" ).toString() );
@@ -114,7 +114,7 @@ public class ByteTest extends TestCase {
         JSObject read = decoder.readObject();
         
         assertEquals( "horowitz" , read.get( "eliot" ).toString() );
-        assertEquals( 517.0 , ((Double)read.get( "num" )).doubleValue() );
+        assertEquals( 517 , ((Integer)read.get( "num" )).intValue() );
         assertEquals( "y" , read.get( "z" ).toString() );
         assertEquals( o.keySet().size() , read.keySet().size() );
         assertEquals( 3 , a.size() );

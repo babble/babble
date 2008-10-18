@@ -36,7 +36,7 @@ import ed.appserver.*;
  * @expose
  * @docmodule system.HTTP.request
  */
-public class HttpRequest extends JSObjectLame implements HttpServletRequest {
+public class HttpRequest extends JSObjectLame implements HttpServletRequest , Sizable {
     
     public static final String REAL_IP_HEADER = "X-Cluster-Client-Ip";
 
@@ -227,6 +227,10 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest {
         int size = _rawHeader.length();
         size += getIntHeader( "Content-Length" , 0 );
         return size;
+    }
+
+    public long approxSize( IdentitySet seen ){
+        return totalSize();
     }
 
     /**
@@ -1037,7 +1041,14 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest {
     }
 
     public String getPhysicalRemoteAddr(){
-	return _handler.getInetAddress().getHostAddress();
+        if ( _handler == null )
+            return null;
+        
+        InetAddress addr = _handler.getInetAddress();
+        if ( addr == null )
+            return null;
+        
+	return addr.getHostAddress();
     }
 
     /**
@@ -1247,6 +1258,10 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest {
 
     public long elapsed(){
         return System.currentTimeMillis() - _startTime;
+    }
+
+    public int hashCode( IdentitySet seen ){
+        return System.identityHashCode(this);
     }
 
     // ----

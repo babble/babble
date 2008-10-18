@@ -17,13 +17,10 @@
 package ed.appserver.templates.djang10;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.testng.ITest;
 import org.testng.annotations.AfterClass;
@@ -32,19 +29,16 @@ import org.testng.annotations.Factory;
 import org.testng.annotations.Test;
 
 import ed.TestCase;
-import ed.appserver.JSFileLibrary;
+import ed.appserver.AppContext;
 import ed.io.StreamUtil;
-import ed.js.Encoding;
 import ed.js.JSArray;
 import ed.js.JSDate;
 import ed.js.JSFunction;
-import ed.js.JSLocalFile;
 import ed.js.JSObjectBase;
 import ed.js.JSString;
 import ed.js.engine.Scope;
 import ed.js.func.JSFunctionCalls0;
 import ed.js.func.JSFunctionCalls1;
-import ed.log.Level;
 import ed.log.Logger;
 
 
@@ -54,39 +48,24 @@ public class Djang10TemplateTest {
     @Factory
     public Object[] getAllTests(){
         //Initialize Scope ==================================
-        Scope oldScope = Scope.getThreadLocal();
-        Scope globalScope = Scope.newGlobal().child();
-        globalScope.setGlobal(true);
-        globalScope.makeThreadLocal();
+        final Scope oldScope = Scope.getThreadLocal();
         
+        AppContext appContext = new AppContext("src/test/ed/appserver/templates/djang10");
+        Logger appLogger = appContext.getLogger();
+        Scope appScope = appContext.getScope();
+        
+        //config logger
+        appLogger.makeThreadLocal();
+
+        //config the request scope
+        Scope reqScope = appScope.child( "AppRequest" );
+        reqScope.setGlobal( true );
+        reqScope.makeThreadLocal();
+        
+        JSHelper helper = JSHelper.get( reqScope );
         try {
-            //Load native objects
-            Logger logger = Logger.getRoot();
-            globalScope.set("log", logger);
-            logger.makeThreadLocal();
-            
-            Map<String, JSFileLibrary> rootFiles = new HashMap<String, JSFileLibrary>();
-            rootFiles.put("local", new JSFileLibrary(new File("src/test/ed/appserver/templates/djang10"), "local", globalScope));
-            for(Map.Entry<String, JSFileLibrary> rootFileLib : rootFiles.entrySet())
-                globalScope.set(rootFileLib.getKey(), rootFileLib.getValue());
-            
-            Encoding.install(globalScope);
-            JSHelper helper = JSHelper.install(globalScope, rootFiles, logger);
-    
-            globalScope.set("SYSOUT", new JSFunctionCalls1() {
-                public Object call(Scope scope, Object p0, Object[] extra) {
-                    System.out.println(p0);
-                    return null;
-                }
-            });
-            globalScope.put("openFile", new JSFunctionCalls1() {
-                public Object call(Scope s, Object name, Object extra[]) {
-                    return new JSLocalFile(new File("src/test/ed/appserver/templates/djang10"), name.toString());
-                }
-            }, true);
-            
             //configure Djang10 =====================================
-            helper.addTemplateRoot(globalScope, new JSString("/local"));
+            helper.addTemplateRoot(new JSString("/local"));
             helper.addTemplateTagsRoot("/local/support");
     
             
@@ -143,7 +122,7 @@ public class Djang10TemplateTest {
                }
             });
             
-            context.set("prototypedObj", globalScope.child().eval("var PrototypedClazz = function() {}; PrototypedClazz.prototype.getProp = function() { return 'moo'; }; return new PrototypedClazz();") );
+            context.set("prototypedObj", reqScope.child().eval("var PrototypedClazz = function() {}; PrototypedClazz.prototype.getProp = function() { return 'moo'; }; return new PrototypedClazz();") );
     
             JSArray regroup_list = new JSArray();
             for(int groupId=0; groupId<4; groupId ++) {
@@ -161,7 +140,7 @@ public class Djang10TemplateTest {
             final List<FileTest> tests = new ArrayList<FileTest>();
             for(File f : dir.listFiles()) { 
                 if(f.getPath().endsWith(".djang10")) {
-                    Scope testScope = globalScope.child();
+                    Scope testScope = reqScope.child();
                     testScope.setGlobal(true);
                     
                     FileTest fileTest = new FileTest(testScope, context, f);
@@ -201,6 +180,8 @@ public class Djang10TemplateTest {
             oldScope = Scope.getThreadLocal();
             scope.makeThreadLocal();
             
+            AppContext.findThreadLocal().getLogger().makeThreadLocal();
+            
             output = new StringBuilder();
             scope.set("print", new JSFunctionCalls1() {
                 public Object call(Scope scope, Object p0, Object[] extra) {
@@ -225,7 +206,7 @@ public class Djang10TemplateTest {
         @Test
         public void test() throws Throwable {           
             try {
-                Djang10Source source = new Djang10Source(file);
+                Djang10Source source = new Djang10Source(AppContext.findThreadLocal().getScope().child( "Djang10 scope: " + file ), file);
                 Djang10CompiledScript compiled = (Djang10CompiledScript)source.getFunction();
                 compiled.call(scope.child(), context);
             } catch(Throwable t) {

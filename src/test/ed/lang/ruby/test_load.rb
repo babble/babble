@@ -127,4 +127,10 @@ EOS
     assert_equal('2008-09-24T00:00:00+00:00', d.to_s)
   end
 
+  def test_func_exposed_after_load
+    assert !XGen.method_defined?(:new_func)
+    run_js 'function new_func() { return 1; }'
+    assert XGen.method_defined?(:new_func), "new_func defined in JS was not seen in Ruby after load"
+  end
+
 end

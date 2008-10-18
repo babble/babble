@@ -42,6 +42,11 @@ public class ByteBufferHolder {
         return _buffers.get( num ).get( pos );
     }
 
+    public void get( int pos , byte b[] ){
+        for ( int i=0; i<b.length; i++ )
+            b[i] = get( i + pos );
+    }
+
     public void put( int i , byte val ){
         if ( i >= _pos )
             throw new RuntimeException( "out of bounds" );

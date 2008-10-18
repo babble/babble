@@ -61,6 +61,8 @@ public class SiteSystemState {
         _context = ac;
         setupModules();
         ensureMetaPathHook( pyState , s );
+        replaceOutput();
+        ensurePath( Config.get().getProperty("ED_HOME", "/data/ed")+"/src/main/ed/lang/python/lib" , 0 );
 
         // Careful -- this is static PySystemState.builtins. We modify
         // it once to intercept imports for all sites. TrackImport
@@ -74,6 +76,23 @@ public class SiteSystemState {
 
     public PySystemState getPyState(){
         return pyState;
+    }
+
+    void ensurePath( String myPath ){
+        ensurePath( myPath , -1 );
+    }
+
+    void ensurePath( String myPath , int location ){
+
+        for ( Object o : pyState.path )
+            if ( o.toString().equals( myPath ) )
+                return;
+
+
+        if( location == -1 )
+            pyState.path.append( Py.newString( myPath ) );
+        else
+            pyState.path.insert( location , Py.newString( myPath ) );
     }
 
     /**
@@ -157,25 +176,27 @@ public class SiteSystemState {
      * Replace the Python sys.stdout with a file-like object which
      * actually prints to an AppRequest stream.
      */
-    public void setOutput( AppRequest ar ){
+    public void replaceOutput(){
         PyObject out = pyState.stdout;
-        if ( ! ( out instanceof MyStdoutFile ) || ((MyStdoutFile)out)._request != ar ){
-            pyState.stdout = new MyStdoutFile( ar );
+        if ( ! ( out instanceof MyStdoutFile ) ){
+            pyState.stdout = new MyStdoutFile();
         }
     }
 
     static class MyStdoutFile extends PyFile {
-        MyStdoutFile(AppRequest request){
-            _request = request;
+        MyStdoutFile(){
         }
         public void flush(){}
 
         public void write( String s ){
-            if( _request == null )
+            AppRequest request = AppRequest.getThreadLocal();
+
+            if( request == null )
                 // Log
                 _log.info( s );
-            else
-                _request.print( s );
+            else{
+                request.print( s );
+            }
         }
         AppRequest _request;
     }
@@ -426,6 +447,13 @@ public class SiteSystemState {
                 return new LibraryModuleLoader( _core );
             }
 
+            if( modName.startsWith("core.") ){
+                int period = modName.indexOf('.');
+                String path = modName.substring( period + 1 );
+                path = path.replaceAll( "\\." , "/" );
+                return new JSLibraryLoader( _core, path );
+            }
+
             if( DEBUG ){
                 System.out.println( "meta_path hook didn't match " + modName );
             }
@@ -474,6 +502,55 @@ public class SiteSystemState {
             mod.__setattr__( "__path__".intern() , pathL );
 
             return mod;
+        }
+    }
+
+    @ExposedType(name="_10gen_module_js_loader")
+    public class JSLibraryLoader extends PyObject {
+        JSLibrary _root;
+        String _path;
+        public JSLibraryLoader( JSLibrary root , String path ){
+            _root = root;
+            _path = path;
+        }
+
+        @ExposedMethod
+        public PyModule load_module( String name ){
+            PyModule mod = imp.addModule( name );
+            PyObject __path__ = mod.__findattr__( "__path__".intern() );
+            if( __path__ != null ) return mod;
+
+            PyObject pyName = mod.__findattr__( "__name__" );
+            Object o = _root.getFromPath( _path , true );
+            PyList pathL = new PyList( );
+            if( o instanceof JSFileLibrary ){
+                JSFileLibrary lib = (JSFileLibrary)o;
+                pathL.append( new PyString( lib.getRoot().toString() ) );
+            }
+
+            if( o instanceof JSFunction && ((JSFunction)o).isCallable() ){
+                run( mod , (JSFunction)o );
+            }
+
+            mod.__setattr__( "__file__".intern() , new PyString( _root + ":" + _path ) );
+            mod.__setattr__( "__path__".intern() , pathL );
+            mod.__setattr__( "__name__".intern() , pyName );
+            return mod;
+        }
+
+        public void run( PyModule mod , JSFunction f ){
+            Scope pref = _scope.getTLPreferred();
+            Scope s = _scope.child();
+            s.setGlobal( true );
+
+            try {
+                _scope.setTLPreferred( null );
+                f.call( s );
+                mod.__dict__ = new PyJSObjectWrapper( s );
+            }
+            finally {
+                _scope.setTLPreferred( pref );
+            }
         }
     }
 

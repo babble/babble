@@ -28,22 +28,38 @@ import ed.net.*;
 import ed.net.httpserver.*;
 import static ed.net.lb.Mapping.*;
 
-public class Router {
+public final class Router {
     
     public Router( MappingFactory mappingFactory ){
+	_logger = Logger.getLogger( "LB" ).getChild( "router" );
+        
         _mappingFactory = mappingFactory;
         _mapping = _mappingFactory.getMapping();
-	_logger = Logger.getLogger( "LB" ).getChild( "router" );
 
 	_mappingUpdater = new MappingUpdater();
+        _initCheck();
     }
 
+    public Environment getEnvironment( HttpRequest request  ){
+        final Environment e = _mapping.getEnvironment( request );
+        if ( e == null )
+            throw new IllegalArgumentException( "can't find env for [" + request.getFullURL() + "]" );
+        return e;
+    }
+    
     public InetSocketAddress chooseAddress( HttpRequest request , boolean doOrDie ){
         final Environment e = _mapping.getEnvironment( request );
         if ( e == null )
             throw new IllegalArgumentException( "can't find pool for [" + request.getFullURL() + "]" );
-        
+        return chooseAddress( e , request , doOrDie );
+    }
+    
+    public InetSocketAddress chooseAddress( final Environment e , final HttpRequest request , final boolean doOrDie ){
+        if ( e == null )
+            throw new NullPointerException( "can't call chooseAddress with a null environment" );
+
         final String p = _mapping.getPool( e );
+        
         if ( p == null )
             throw new IllegalArgumentException( "can't find pool for " + e + " from [" + request.getFullURL() + "]" );
         
@@ -61,6 +77,7 @@ public class Router {
 
     public void error( HttpRequest request , HttpResponse response , InetSocketAddress addr , NIOClient.ServerErrorType type , Exception what ){
         final Environment e = _mapping.getEnvironment( request );
+	getPool( _mapping.getPool( e ) )._tracker.networkEvent();
         if ( addr != null )
             getServer( addr ).error( e , type , what , request , response  );
         
@@ -94,6 +111,10 @@ public class Router {
         return p;
     }
     
+    List<Server> getServers(){
+	return new ArrayList<Server>( _addressToServer.values() );
+    }
+    
     Server getServer( InetSocketAddress addr ){
         if ( addr == null )
             throw new NullPointerException( "addr can't be null" );
@@ -124,6 +145,13 @@ public class Router {
         
         for ( Pool p : _pools.values() )
             p.update( _mapping.getAddressesForPool( p._name ) );
+
+        _initCheck();
+    }
+    
+    void _initCheck(){
+        for ( String pool : _mapping.getPools() )
+            getPool( pool );
     }
 
     class Pool {
@@ -190,9 +218,12 @@ public class Router {
             }
             
             if ( best == null ){
-                if ( doOrDie )
-                    throw new RuntimeException( "no server available for pool [" + _name + "]" );
-		_logger.info( "no viable server for pool [" + _name + "] waiting" );
+                if ( doOrDie ){
+                    String msg = "no server available for pool [" + _name + "]";
+                    _logger.fatal( msg );
+                    throw new RuntimeException( msg );
+                }
+		_logger.debug( "no viable server for pool [" + _name + "] waiting" );
                 return null;
             }
             
@@ -237,5 +268,5 @@ public class Router {
     
     private final Map<String,Pool> _pools = Collections.synchronizedMap( new TreeMap<String,Pool>() );
     private final Map<InetSocketAddress,Server> _addressToServer = Collections.synchronizedMap( new HashMap<InetSocketAddress,Server>() );
-    private Mapping _mapping;
+    Mapping _mapping;
 }

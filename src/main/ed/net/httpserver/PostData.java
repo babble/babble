@@ -145,6 +145,10 @@ public abstract class PostData {
         return pos == _len;
     }
 
+    int gotSoFar(){
+	return position();
+    }
+
     void go( HttpRequest req ){
         if ( ! _multipart ){
             addRegularParams( req );

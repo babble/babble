@@ -23,6 +23,7 @@ import java.net.*;
 import java.nio.*;
 import java.util.*;
 import java.util.concurrent.*;
+import java.text.*;
 
 import org.apache.commons.cli.*;
 
@@ -32,6 +33,7 @@ import ed.log.*;
 import ed.net.*;
 import ed.cloud.*;
 import ed.net.httpserver.*;
+import static ed.net.lb.Mapping.*;
 
 public class LB extends NIOClient {
 
@@ -57,6 +59,9 @@ public class LB extends NIOClient {
 	_loadMonitor = new LoadMonitor( _router );
 
         _addMonitors();
+        
+        _httpLog = new AsyncAppender();
+        _httpLog.addAppender( new DailyFileAppender( new File( "logs/httplog/" ) , "lb" , new HttpLogEventFormatter() ) );
 
         setDaemon( true );
     }
@@ -101,10 +106,16 @@ public class LB extends NIOClient {
             reset();
 
             _lastCalls[_lastCallsPos] = this;
-
+            
             _lastCallsPos++;
             if ( _lastCallsPos >= _lastCalls.length )
                 _lastCallsPos = 0;
+
+            _environemnt = _router.getEnvironment( _request );
+            if ( _environemnt == null )
+                _loadMonitor.hitSite( "unknown" );
+            else
+                _loadMonitor.hitSite( _environemnt.site );
         }
         
         void reset(){
@@ -119,9 +130,14 @@ public class LB extends NIOClient {
             _router.success( _request , _response , _lastWent );
 	    _loadMonitor.hit( _request , _response );
         }
+
+        public void done(){
+            super.done();
+            log( this );
+        }
         
         protected InetSocketAddress where(){
-            _lastWent = _router.chooseAddress( _request , _request.elapsed() > WAIT_FOR_POOL_TIMEOUT );
+            _lastWent = _router.chooseAddress( _environemnt , _request , _request.elapsed() > WAIT_FOR_POOL_TIMEOUT );
             return _lastWent;
         }
         
@@ -131,9 +147,11 @@ public class LB extends NIOClient {
         
         protected void error( ServerErrorType type , Exception e ){
             _logger.debug( 1 , "backend error" , e );
+	    _loadMonitor._all.networkEvent();
             _router.error( _request , _response , _lastWent , type , e );
-            
-            if ( type != ServerErrorType.WEIRD && 
+	    
+            if ( ! _response.isCommitted() && 
+		 type != ServerErrorType.WEIRD && 
                  ( _state == State.WAITING || _state == State.IN_HEADER ) && 
                  ++_numFails <= 3 ){
                 reset();
@@ -143,18 +161,20 @@ public class LB extends NIOClient {
             }
             
             try {
-                _response.setResponseCode( 500 );
-                _response.getJxpWriter().print( "backend error : " + e + "\n\n" );
+		if ( ! _response.isCommitted() ){
+		    _response.setResponseCode( 500 );
+		    _response.getJxpWriter().print( "backend error : " + e + "\n\n" );
+		}
                 _response.done();
                 _state = State.ERROR;
                 done();
 		_loadMonitor.hit( _request , _response );
             }
             catch ( IOException ioe2 ){
-                ioe2.printStackTrace();
+                _logger.debug( "error sending error mesasge to client" , ioe2 );
             }
         }
-        
+	
         
         void backendError( ServerErrorType type , String msg ){
             backendError( type , new IOException( msg ) );
@@ -167,6 +187,7 @@ public class LB extends NIOClient {
 
         protected WhatToDo handleRead( ByteBuffer buf , Connection conn ){
 
+            _logger.debug( 3 , "handleRead  _state:" + _state );
             
             if ( _state == State.WAITING || _state == State.IN_HEADER ){
                 // TODO: should i read this all in at once                
@@ -259,6 +280,7 @@ public class LB extends NIOClient {
             buf.append( _request.getMethod().toUpperCase() ).append( " " ).append( _request.getURL() ).append( " HTTP/1.0\r\n" );
             buf.append( "Connection: keep-alive\r\n" );
 	    buf.append( HttpRequest.REAL_IP_HEADER ).append( ": " ).append( _request.getRemoteIP() ).append( "\r\n" );
+            buf.append( "X-fromlb: " ).append( LBIDENT ).append( "\r\n" );
 
             for ( String n : _request.getHeaderNameKeySet() ){
 
@@ -282,6 +304,7 @@ public class LB extends NIOClient {
 
         final HttpRequest _request;
         final HttpResponse _response;
+        final Environment _environemnt;
         
         int _numFails = 0;
 
@@ -372,32 +395,54 @@ public class LB extends NIOClient {
             return true;
         }
         
-        public void handle( HttpRequest request , HttpResponse response ){
+        public boolean handle( HttpRequest request , HttpResponse response ){
+	    
+	    if ( request.getHeader( "X-fromlb" ) != null ){
+		_handleError( request , response , 500 , "load balancer loop?  (lb 34)\n" + request.getFullURL() + "\n" + 
+                              "physical address:" + request.getPhysicalRemoteAddr() + "\n" +
+                              "remote address:" + request.getRemoteIP() );
+		return true;
+	    }
+	    
             if ( add( new RR( request , response ) ) )
-                return;
-            
+                return false;
+	    
+	    _handleError( request , response , 500 , "new request queue full  (lb 1)" );
+            return true;
+        }
+
+	private void _handleError( HttpRequest request , HttpResponse response , int code , String msg ){
+	    response.setResponseCode( code );
             JxpWriter out = response.getJxpWriter();
-            out.print( "new request queue full  (lb 1)" );
+	    out.print( msg );
+	    out.print( "\n" );
             try {
                 response.done();
             }
             catch ( IOException ioe ){
                 ioe.printStackTrace();
-            }
-        }
+            }	    
+	}
         
         public double priority(){
             return Double.MAX_VALUE;
         }
     }
     
+    void log( RR rr ){
+        _httpLog.append( new HttpEvent( rr ) );
+    }
+
     void _addMonitors(){
         HttpServer.addGlobalHandler( new WebViews.LBOverview( this ) );
         HttpServer.addGlobalHandler( new WebViews.LBLast( this ) );
-        
+	
         HttpServer.addGlobalHandler( new WebViews.LoadMonitorWebView( this._loadMonitor ) );
         
         HttpServer.addGlobalHandler( new WebViews.RouterPools( this._router ) );
+        HttpServer.addGlobalHandler( new WebViews.RouterServers( this._router ) );
+        HttpServer.addGlobalHandler( new WebViews.MappingView( this._router ) );
+
 
         HttpServer.addGlobalHandler( new HttpHandler(){
                 public boolean handles( HttpRequest request , Info info ){
@@ -413,14 +458,15 @@ public class LB extends NIOClient {
                     return true;
                 }
                 
-                public void handle( HttpRequest request , HttpResponse response ){
+                public boolean handle( HttpRequest request , HttpResponse response ){
                     JxpWriter out = response.getJxpWriter();
                     if ( isShutDown() ){
                         out.print( "alredy shutdown" );
-                        return;
+                        return true;
                     }
                     LB.this.shutdown();
                     out.print( "done" );
+                    return true;
                 }
                 
                 public double priority(){
@@ -430,6 +476,47 @@ public class LB extends NIOClient {
             );
     }
     
+    class HttpLogEventFormatter implements EventFormatter {
+        
+        public synchronized String format( Event old ){
+            HttpEvent e = (HttpEvent)old;
+            RR rr = e._rr;
+            
+            _buf.append( "[" ).append( e.getDate().format( _format ) ).append( "] " );
+            _buf.append( rr._request.getRemoteIP() );
+            _buf.append( " retry:" ).append( rr._numFails );
+            _buf.append( " went:" ).append( rr._lastWent );
+            _buf.append( " " ).append( rr._response.getResponseCode() );
+            _buf.append( " " ).append( rr._request.getMethod() );
+            _buf.append( " \"" ).append( rr._request.getFullURL() ).append( "\"" );
+            _buf.append( " " ).append( rr._response.handleTime() );
+            _buf.append( " \"" ).append( rr._request.getHeader( "User-Agent" ) ).append( "\"" );
+            _buf.append( " \"" ).append( rr._request.getHeader( "Referer" ) ).append( "\"" );
+            _buf.append( " \"" ).append( rr._request.getHeader( "Cookie" ) ).append( "\"" );
+            _buf.append( "\n" );
+
+            String s = _buf.toString();
+            if ( _buf.length() > _bufSize )
+                _buf = new StringBuilder( _bufSize );
+            else
+                _buf.setLength( 0 );
+            return s;
+        }
+        
+        final int _bufSize = 1024;
+        StringBuilder _buf = new StringBuilder( _bufSize );
+        final SimpleDateFormat _format = new SimpleDateFormat( "MM/dd/yyyy hh:mm:ss.SSS z" );
+    }
+    
+    class HttpEvent extends Event {
+        HttpEvent( RR rr ){
+            super( null , rr._request.getStart() , null , null , null , null );
+            _rr = rr;
+        }
+        
+        final RR _rr;
+    }
+
     final int _port;
     final LBHandler _handler;
     final HttpServer _server;
@@ -437,6 +524,7 @@ public class LB extends NIOClient {
     final LoadMonitor _loadMonitor;
     
     final Logger _logger;
+    final AsyncAppender _httpLog;
     
     final RR[] _lastCalls = new RR[1000];
     int _lastCallsPos = 0;

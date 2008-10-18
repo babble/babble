@@ -43,6 +43,12 @@ public class HttpLoadTracker {
             _minutes.hit( request , response );
         }
 
+	public void networkEvent(){
+	    _seconds.networkEvent();
+	    _short.networkEvent();
+	    _minutes.networkEvent();
+	}
+
         public void displayGraph( JxpWriter out ){
             displayGraph( out , DEFAULTS );
         }
@@ -52,6 +58,18 @@ public class HttpLoadTracker {
             _short.displayGraph( out , options );
             _minutes.displayGraph( out , options );
         }
+
+	public HttpLoadTracker getSeconds(){
+	    return _seconds;
+	}
+
+	public HttpLoadTracker getShort(){
+	    return _short;
+	}
+
+	public HttpLoadTracker getMinutes(){
+	    return _minutes;
+	}
             
         final String _name;
         final HttpLoadTracker _seconds;
@@ -68,11 +86,18 @@ public class HttpLoadTracker {
         _sliceTime = 1000 * secondsInInterval;
         _intervals = ( minutesToGoBack * 60 ) / secondsInInterval;
 
-        _requests = new ThingsPerTimeTracker( _sliceTime , _intervals );
-        _dataIn = new ThingsPerTimeTracker( _sliceTime , _intervals );
-        _dataOut = new ThingsPerTimeTracker( _sliceTime , _intervals );
-        _errors = new ThingsPerTimeTracker( _sliceTime , _intervals );
-        _totalTime = new ThingsPerTimeTracker( _sliceTime , _intervals );
+        _requests = new ThingsPerTimeTracker( "requests" , _sliceTime , _intervals );
+        _errors = new ThingsPerTimeTracker( "errors" , _sliceTime , _intervals );
+        _networkEvents = new ThingsPerTimeTracker( "network events" , _sliceTime , _intervals );
+
+        _dataIn = new ThingsPerTimeTracker( "data in" , _sliceTime , _intervals );
+        _dataOut = new ThingsPerTimeTracker( "data out" , _sliceTime , _intervals );
+
+        _totalTime = new ThingsPerTimeTracker( "time" , _sliceTime , _intervals );
+    }
+    
+    public void networkEvent(){
+	_networkEvents.hit();
     }
     
     public void hit( HttpRequest request , HttpResponse response ){
@@ -94,6 +119,7 @@ public class HttpLoadTracker {
         _dataIn.hit(0);
         _dataOut.hit(0);
         _errors.hit(0);
+	_networkEvents.hit(0);
         _totalTime.hit(0);
     }
 
@@ -103,7 +129,7 @@ public class HttpLoadTracker {
 
     public void displayGraph( JxpWriter out , GraphOptions options ){
         cycle();
-        out.print( "\n<div class='loadGraph' style='clear: both;'>\n" );
+        out.print( "\n<div class='loadGraph' style='clear: both; height:" + ( ( options._height * 1.4 ) + 25 ) + ";'>\n" );
         
         out.print( "<h4>" );
         out.print( _name );
@@ -113,17 +139,17 @@ public class HttpLoadTracker {
         out.print( "<li>" );
 
         if ( options._requestsAndErrors ){
-            printGraph( out , "Requests" , options , _requests , _errors , "requests" , "errors" );
+            printGraph( out , "Requests" , options , _requests , _errors , _networkEvents );
             out.print( "</li><li>" );
         }
         
         if ( options._data ){
-            printGraph( out , "Data" , options , _dataOut , _dataIn , "data out" , "data in" );
+            printGraph( out , "Data" , options , _dataOut , _dataIn );
             out.print( "</li><li>" );
         }
         
         if ( options._time ){
-            printGraph( out , "Time" , options , _totalTime , null , "time" , null );
+            printGraph( out , "Time" , options , _totalTime );
             out.print( "</li><li>" );
         }
 
@@ -133,7 +159,7 @@ public class HttpLoadTracker {
         out.print( "\n</div>\n" );
     }
 
-    public static void printGraph( JxpWriter out , String name , GraphOptions options , ThingsPerTimeTracker t1 , ThingsPerTimeTracker t2 , String n1 , String n2 ){
+    public static void printGraph( JxpWriter out , String name , GraphOptions options , ThingsPerTimeTracker ... ts  ){
         if ( name != null ){
             out.print( "<h5>" );
             out.print( name );
@@ -142,35 +168,35 @@ public class HttpLoadTracker {
 	
         out.print( "<img width=" + options._width + " height=" + options._height + " src=\"http://chart.apis.google.com/chart?cht=lc&chd=t:" );
 	
-	double max = Math.max( t1.max() , t2 == null ? 0 : t2.max() );
+	double max = 0;
+	for ( ThingsPerTimeTracker t : ts )
+	    max = Math.max( max , t.max() );
 	
-	printGraphList( out , max , t1 );
 	
-        if ( t2 != null ){
-            out.print( "|" );
-	    printGraphList( out , max , t2 );
+	for ( int i=0; i<ts.length; i++ ){
+	    if ( i > 0 )
+		out.print( "|" );	
+	    printGraphList( out , max , ts[i] );
         }
         
         out.print( "&chs=" );
         out.print( options._width );
         out.print( "x" );
         out.print( options._height );
-	
-	if ( n1 != null ){
-	    out.print( "&chdl=" );
-	    out.print( n1 );
-	    if ( n2 != null ){
+
+	out.print( "&chdl=" );
+	for ( int i=0; i<ts.length; i++ ){
+	    if ( i > 0 )
 		out.print( "|" );
-		out.print( n2 );
-	    }
+	    out.print( ts[i].getName() );
 	}
 
 	if ( name != null && name.equalsIgnoreCase( "data" ) ){
 	    max = max / 1024;
 	}
 	
-        out.print( "&chm=r&chco=0000ff,00ff00&chxt=y,x&chg=10,25&" );
-	out.print( "chxl=0:|0|" + Math.round( max ) + "|1:|" +  _format( t1.beginning() )  + "|" + _format( t1.bucket() ) );
+        out.print( "&chm=r&chco=0000ff,00ff00,ff0000&chxt=y,x&chg=10,25&" );
+	out.print( "chxl=0:|0|" + Math.round( max ) + "|1:|" +  _format( ts[0].beginning() )  + "|" + _format( ts[0].bucket() ) );
 	out.print( "\" ><br>" );
     }
 
@@ -192,11 +218,12 @@ public class HttpLoadTracker {
     final String _name;
     final long _sliceTime;
     final int _intervals;
-
+    
     final ThingsPerTimeTracker _requests;
     final ThingsPerTimeTracker _dataIn;
     final ThingsPerTimeTracker _dataOut;
     final ThingsPerTimeTracker _errors;
+    final ThingsPerTimeTracker _networkEvents;
     final ThingsPerTimeTracker _totalTime;
 
     public static class GraphOptions {

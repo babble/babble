@@ -99,6 +99,8 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                         arr.setInt( 1 + i , extra[i] );
                 }
             }
+            _prototype.set( "length", arr._array.size() );
+            _prototype.setProperties( "length", JSObjectBase.DONT_ENUM | JSObjectBase.DONT_DELETE );
 
             return arr;
         }
@@ -430,7 +432,7 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                             start = ((Number)foo[0]).intValue();
 
                         for ( int i=start; i<a._array.size(); i++ )
-                            if ( JSInternalFunctions.JS_sheq( test , a._array.get( i )  ) )
+                            if ( JSInternalFunctions.JS_eq( test , a._array.get( i )  ) )
                                 return i;
 
                         return -1;
@@ -552,6 +554,8 @@ public class JSArray extends JSObjectBase implements Iterable , List {
                     }
                 } );
 
+            _prototype.set( "length", 0 );
+
             this.set( "createLinkedList", new JSFunctionCalls0(){
                     public Object call(Scope s, Object [] extra){
                         return new JSArray(new LinkedList());
@@ -560,6 +564,8 @@ public class JSArray extends JSObjectBase implements Iterable , List {
             
 
             _prototype.dontEnumExisting();
+            this.setProperties( "prototype", JSObjectBase.LOCK );
+            this.dontEnumExisting();
         }
     } // end CONS
 
@@ -714,6 +720,30 @@ public class JSArray extends JSObjectBase implements Iterable , List {
             return v;
         }
 
+        // set the length: truncate or add nulls
+        if ( n.toString().equals( "length" ) ) {
+            double newLen = JSNumber.getDouble( v );
+            if( newLen < 0 || 
+                Double.isInfinite( newLen ) || 
+                Double.isNaN( newLen ) ) {
+                throw new RuntimeException( "length must be a positive number." );
+            }
+            int startLen = _array.size();
+            for( int i=startLen-1; i >= newLen; i-- ) {
+                _array.remove( i );
+            }
+            int addLen = (int)newLen - startLen;
+            if( addLen > 0 ) {
+                Object o[] = new Object[addLen];
+                for( int i=0; i<o.length; i++) {
+                    o[i] = null;
+                }
+                Collections.addAll( _array, o );
+            }
+            getConstructor()._prototype.set( "length", _array.size() );
+            return v;
+        }
+
 	return super.set( n , v );
     }
 
@@ -732,10 +762,10 @@ public class JSArray extends JSObjectBase implements Iterable , List {
     /** Returns an array of the indices for this array.
      * @return The indices for this array.
      */
-    public Collection<String> keySet( boolean includePrototype ){
-        Collection<String> p = super.keySet( includePrototype );
+    public Set<String> keySet( boolean includePrototype ){
+        Set<String> p = super.keySet( includePrototype );
 
-        List<String> keys = new ArrayList<String>( p.size() + _array.size() );
+        Set<String> keys = new OrderedSet<String>();
 
         for ( int i=0; i<_array.size(); i++ )
             keys.add( String.valueOf( i ) );

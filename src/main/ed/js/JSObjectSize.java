@@ -101,11 +101,22 @@ public class JSObjectSize {
         }
 
         if ( o instanceof Collection ){
+	    Collection c = (Collection)o;
+	    Iterator i = c.iterator();
             long temp = 0;
             temp += 32;
-            for ( Object foo : (Collection)o ){
+
+	    if ( i == null )
+		return temp;
+	    
+	    while ( i.hasNext() ){
+                Object foo = i.next();
+                if ( foo == null )
+                    continue;
+                
                 if ( seen.contains( foo ) )
                     continue;
+                
                 temp += _size( foo , seen );
             }
             return temp;

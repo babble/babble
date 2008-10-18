@@ -48,7 +48,7 @@ public class JSObjectWrapper implements JSObject {
     public JSObjectWrapper(Scope scope, RubyObject robj) {
         _scope = scope;
         _robj = robj;
-        _xgenModule = RubyJxpSource.xgenModule(_robj.getRuntime());
+        _xgenModule = _robj.getRuntime().getOrCreateModule(RubyJxpSource.XGEN_MODULE_NAME);
     }
 
     public RubyObject getRubyObject() { return _robj; }
@@ -158,11 +158,11 @@ public class JSObjectWrapper implements JSObject {
             respondsToAndIsNotXGen(s);
     }
 
-    public Collection<String> keySet() {
+    public Set<String> keySet() {
         return keySet(true);
     }
 
-    public Collection<String> keySet(boolean includePrototype) {
+    public Set<String> keySet(boolean includePrototype) {
         Set<String> names = new HashSet<String>();
 
         // Add each ivar's name iff the ivar has a setter or a getter

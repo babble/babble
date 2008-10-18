@@ -50,6 +50,7 @@ EOS
     assert_not_nil(@coll)
     assert @coll.respond_to?(:findOne)
     assert @coll.respond_to?(:find)
+    assert @coll.respond_to?(:find_one, "automagical alias 'find_one' not created") # automagical alias
   end
 
   def test_find_any_one

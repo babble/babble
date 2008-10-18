@@ -8,6 +8,7 @@ import java.util.*;
 
 import ed.io.*;
 import ed.js.*;
+import ed.util.*;
 
 /**
  * @expose
@@ -110,16 +111,17 @@ public abstract class DBApiLayer extends DBBase {
         return base.doGetCollection( table );
     }
 
-    public Collection<String> getCollectionNames(){
-        List<String> tables = new ArrayList<String>();
-
+    public Set<String> getCollectionNames(){
+        
         DBCollection namespaces = getCollection( "system.namespaces" );
         if ( namespaces == null )
             throw new RuntimeException( "this is impossible" );
 
 	Iterator<JSObject> i = namespaces.find( new JSObjectBase() , null , 0 , 0 );
 	if ( i == null )
-	    return tables;
+	    return new HashSet<String>();
+
+        List<String> tables = new ArrayList<String>();
 
         for (  ; i.hasNext() ;  ){
             JSObject o = i.next();
@@ -141,7 +143,7 @@ public abstract class DBApiLayer extends DBBase {
 
         Collections.sort( tables );
 
-        return tables;
+        return new OrderedSet<String>( tables );
     }
 
     public static Collection<String> getRootNamespacesLocal(){
@@ -166,7 +168,7 @@ public abstract class DBApiLayer extends DBBase {
 	    return getRootNamespacesLocal();
 
         if ( ip.indexOf( "." ) < 0 )
-            ip += ".10gen.cc";
+            ip += "." + Config.getInternalDomain();
 
         SysExec.Result r = SysExec.exec( "ssh -o StrictHostKeyChecking=no " + ip + " ls /data/db/" );
 
@@ -358,9 +360,11 @@ public abstract class DBApiLayer extends DBBase {
         public JSObject update( JSObject query , JSObject o , boolean upsert , boolean apply ){
             if ( apply ){
                 apply( o );
-                ((ObjectId)o.get( "_id" ) )._new = false;
+                ObjectId id = ((ObjectId)o.get( "_id" ));
+                id._new = false;
+                DBRef.objectSaved( id );
             }
-
+            
             ByteEncoder encoder = ByteEncoder.get();
             encoder._buf.putInt( 0 ); // reserved
             encoder._put( _fullNameSpace );

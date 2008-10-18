@@ -121,7 +121,7 @@ public class XMLHttpRequest extends JSObjectBase {
      * @param url URL to which to send HTTP request.
      * @param aysnc If the request should be asynchronous.
      */
-    void open( Object method , Object url , Object async ){
+    public void open( Object method , Object url , Object async ){
         init( method.toString() , url.toString() , JSInternalFunctions.JS_evalToBool( async ) );
     }
 
@@ -235,6 +235,15 @@ public class XMLHttpRequest extends JSObjectBase {
         }
 
         return this;
+    }
+
+    public IOException getError(){
+        Object err = get( "error" );
+        if ( err == null )
+            return null;
+        if ( err instanceof IOException )
+            return (IOException)err;
+        return new IOException( "weird XMLHttpRequest error : " + err );
     }
 
     /** Gets the length of the header.

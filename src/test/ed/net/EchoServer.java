@@ -45,7 +45,12 @@ public class EchoServer extends NIOServer {
             return false;
         }
         
-        protected void writeMoreIfWant(){
+        protected boolean shouldTimeout(){
+            return false;
+        }
+
+        protected boolean writeMoreIfWant(){
+            return false;
         }
 
         protected boolean gotData( ByteBuffer inBuf )

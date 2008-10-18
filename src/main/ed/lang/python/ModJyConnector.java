@@ -68,7 +68,7 @@ public class ModJyConnector extends HttpServlet  {
 	    if (props.get("modjy_jar.location") != null)
 		sys.path.append(new PyString((String)props.get("modjy_jar.location")));
 	    else
-		sys.path.append(new PyString(getServletContext().getRealPath("/WEB-INF/lib/modjy.jar")));
+		sys.path.append(new PyString( "include/modjy.jar" ) );
 
             PySystemState oldState = Py.getSystemState();
 	    try{

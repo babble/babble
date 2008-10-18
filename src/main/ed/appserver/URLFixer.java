@@ -172,9 +172,6 @@ public class URLFixer {
         if ( host == null )
             return "";
 
-        if ( host.indexOf( "." ) < 0 )
-            return "";
-        
         if ( request.getPort() > 0 )
             return "";
 
@@ -186,7 +183,7 @@ public class URLFixer {
         if ( host.indexOf( "local." ) >= 0 )
             prefix += "-local";
         
-        prefix += ".10gen.com/" + host;
+        prefix += "." + Config.getExternalDomain() + "/" + host;
         return prefix;
     }
 

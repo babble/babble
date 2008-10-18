@@ -79,6 +79,7 @@ public class Python extends Language {
         if ( p instanceof JSObject ||
              p instanceof JSString ||
              p instanceof ed.log.Level ||
+             p instanceof Boolean ||
              p instanceof Number )
             return p;
 
@@ -152,6 +153,14 @@ public class Python extends Language {
             return new JSRegex(re.pattern.toString(), flags);
         }
 
+        // Insufficiently Pythonic?
+        if ( p instanceof PyObjectDerived && ((PyObject)p).getType().fastGetName().equals( "datetime" ) ){
+            Object cal = ((PyObject)p).__tojava__( Calendar.class );
+            if( cal != Py.NoConversion ){
+                return new JSDate( (Calendar)cal );
+            }
+        }
+
         // this needs to be last
         if ( p instanceof PyObject )
             return new JSPyObjectWrapper( (PyObject)p );
@@ -170,6 +179,9 @@ public class Python extends Language {
 
         if ( o instanceof DBRef )
             o = ((DBRef)o).doLoad();
+
+        if ( o == null )
+            return Py.None;
 
         if ( o instanceof JSPyObjectWrapper )
             return ((JSPyObjectWrapper)o).getContained();

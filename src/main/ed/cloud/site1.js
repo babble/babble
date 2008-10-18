@@ -503,7 +503,7 @@ Cloud.Site.prototype.updateEnvironment = function( envName , fullReset , dryRun 
 
     var threads = [];
     
-    var hostName = env.name + "." + this.name + ".10gen.com";
+    var hostName = env.name + "." + this.name + "." + javaStatic( "ed.util.Config" , "getExternalDomain" );
     
     var res = { ok : true };
     for ( var i=0; i<p.machines.length; i++ ){
@@ -554,5 +554,10 @@ Cloud.Site.forName = function( name , create ){
 
 db.sites.setConstructor( Cloud.Site );
 if ( me.real ){
-    db.sites.ensureIndex( { name : 1 } );
+    try {
+        db.sites.ensureIndex( { name : 1 } );
+    }
+    catch ( e ){
+        log.error( "couldn't ensureIndex on sites : " + e );
+    }
 }

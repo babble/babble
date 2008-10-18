@@ -119,9 +119,39 @@ public abstract class MappingBase implements Mapping {
         _defaultPool = pool;
     }
 
+    public List<String> getPools(){
+        return new ArrayList<String>( _pools.keySet() );
+    }
+
+    public String toFileConfig(){
+
+        StringBuilder buf = new StringBuilder( 1024 );
+
+        for ( String site : _sites.keySet() ){
+            buf.append( "site " ).append( site ).append( "\n" );
+            for ( Map.Entry<String,String> e : _sites.get( site ).entrySet() ){
+                buf.append( "\t" ).append( e.getKey() ).append( " : " ).append( e.getValue() ).append( "\n" );
+            }
+            buf.append( "\n" );
+        }
+
+        for ( String pool : _pools.keySet() ){
+            buf.append( "pool " ).append( pool ).append( "\n" );
+            for ( InetSocketAddress addr : _pools.get( pool ) ){
+                buf.append( "\t" ).append( addr.getHostName() ).append( "\n" );
+            }
+            buf.append( "\n" );
+        }
+        
+        if ( _defaultPool != null )
+            buf.append( "default " ).append( _defaultPool ).append( "\n\n" );
+        
+        return buf.toString();
+    }
+
     protected final String _name;
     final Logger _logger;
-
+    
 
     private String _defaultPool;
     final private Map<String,Map<String,String>> _sites = new HashMap<String,Map<String,String>>();

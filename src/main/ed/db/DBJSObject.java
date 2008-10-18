@@ -66,11 +66,11 @@ public class DBJSObject implements JSObject {
         return findElement( s ) != null;
     }
 
-    public Collection<String> keySet(){
+    public Set<String> keySet(){
         return keySet( true );
     }
 
-    public Collection<String> keySet( boolean includePrototype ){    
+    public Set<String> keySet( boolean includePrototype ){    
         Set<String> keys = new HashSet<String>();
         
         ElementIter i = new ElementIter();
@@ -175,6 +175,9 @@ public class DBJSObject implements JSObject {
             case NUMBER:
                 size += 8;
                 break;
+	    case NUMBER_INT:
+		size += 4;
+		break;
             case OID:
                 size += 12;
                 break;
@@ -224,6 +227,8 @@ public class DBJSObject implements JSObject {
             switch ( _type ){
             case NUMBER:
                 return _buf.getDouble( _dataStart );
+	    case NUMBER_INT:
+		return _buf.getInt( _dataStart );
 	    case OID:
 		return new ObjectId( _buf.getLong( _dataStart ) , _buf.getInt( _dataStart + 8 ) );
 	    case SYMBOL:

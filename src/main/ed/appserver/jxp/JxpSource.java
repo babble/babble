@@ -39,8 +39,10 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
             throw new NullPointerException( "can't have null file" );
         
         JxpSource s = null;
-        if ( f.getName().endsWith(".djang10") )
-            s = new Djang10Source(f);
+        if ( f.getName().endsWith(".djang10") ) {
+            Scope parentScope = (context != null)? context.getScope() : Scope.getAScope();
+            s = new Djang10Source(parentScope.child( "Djang10 Scope for: " + f ), f);
+        }
         
         else if ( f.getName().endsWith( ".py" ) )
             s = new ed.lang.python.PythonJxpSource( f , lib );
@@ -112,11 +114,13 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
         
         if ( ! ( t.getExtension().equals( "js" ) || t.getExtension().equals( "ssjs" ) ) )
             throw new RuntimeException( "don't know what do do with : " + t.getExtension() );
-        
+	
         try {
             Convert convert = new Convert( t.getName() , t.getContent() , false , t.getSourceLanguage() );
             _func = convert.get();
             _func.set(JXP_SOURCE_PROP, this);
+	    if ( _lib != null )
+		JSFileLibrary.addPath( _func , _lib );
             return _func;
         }
         catch ( JSCompileException jce ){
@@ -169,8 +173,8 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
         return ( _lastParse < lastUpdated(new HashSet<Dependency>()) );
     }
 
-    public Collection<String> keySet( boolean includePrototype ){
-        return new LinkedList<String>();
+    public Set<String> keySet( boolean includePrototype ){
+        return new HashSet<String>();
     }
 
     public String toString(){

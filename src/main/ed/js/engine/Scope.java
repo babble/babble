@@ -229,9 +229,24 @@ public final class Scope implements JSObject , Bindings {
     }
 
     public Object removeField( String name ){
-        if ( _objects == null )
+        return _removeField( name , name.hashCode() );
+    }
+    
+    
+    Object _removeField( String name , int hash ){
+
+        if ( _objects != null ){
+            if ( _objects.containsKey( hash , name ) ){
+                if ( _locked )
+                    throw new RuntimeException( "can't modify a locked scope" );
+                return _objects.remove( hash , name );
+            }
+        }
+        
+        if ( _parent == null )
             return null;
-        return _objects.remove( name );
+        
+        return _parent._removeField( name , hash );
     }
     
     public Object putExplicit( String name , Object o ){
