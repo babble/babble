@@ -18,7 +18,7 @@
 Cloud.Server = function( name ){
     name = Cloud.Server._fixHostName( name );
 
-    var r = /(\w\w\w)\-(\w\w+)\-n(\d+)\./.exec( name );
+    var r = /^(\w{3,7})\-(\w\w+)\-n(\d+)\./.exec( name );
     
     if ( ! r ){
         this.bad = true;
@@ -52,7 +52,7 @@ Cloud.Server._fixHostName = function( host ){
     var r = /ip\-(\d+)\-(\d+)\-(\d+)\-(\d+)/.exec( host );
     if ( r ){
         // this is probably an ec2 machine
-        return "ec2-ec2-n" + r[1] + r[2] + r[3] + r[4] + ".";
+        return javaStatic( "ed.util.Config" , "get" ).getProperty( "ZONE" , "use1c" ) + "-ec2-n" + r[1] + r[2] + r[3] + r[4] + ".";
     }
 
     if ( host.indexOf( "." ) < 0 )
