@@ -71,9 +71,11 @@ assert( ! s.upsertEnvironment( { id : s.environments[0].id } ) );
 assert( tojson( s.updateEnvironment( "dev" , false , true ) ).contains( "~update" ) );
 assert( tojson( s.updateEnvironment( "dev" , true , true ) ).contains( "~reset" ) );
 
-s.getDBForEnvironment( "dev" ).envParition = false;
+s.getDBForEnvironment( "dev" ).envPartition = false;
 assert.eq( "test1/mysite717" , s.getDBUrlForEnvironment( "dev" ) );
 
-s.getDBForEnvironment( "dev" ).envParition = true;
+s.getDBForEnvironment( "dev" ).envPartition = true;
 assert.eq( "test1/mysite717:dev" , s.getDBUrlForEnvironment( "dev" ) );
 
+s.getDBForEnvironment( "dev" ).envPartition = false;
+assert.eq( "test1/mysite717" , s.getDBUrlForEnvironment( "dev" ) );
