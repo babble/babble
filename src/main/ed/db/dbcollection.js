@@ -193,7 +193,7 @@ DBCollection.prototype.clean = function() {
  * </p>
  *
  *  <p>  You can specify a filter for counting through the optional  parameter.
- *      This parameter specifies condition that must be true for the objects to
+ *        This parameter specifies condition that must be true for the objects to
  *        be counted.  
  *  </p>
  *  <p>Example:</p>
@@ -217,6 +217,38 @@ DBCollection.prototype._dbCommand = function( cmdObj ) {
     return this.getDB().$cmd.findOne(cmdObj);
 }
 
+/** 
+ * <p>
+ * Append elements to existing objects in the collection.
+ * </p>
+ *
+ * @param {Object} criteria - query to match
+ * @param {Object} fields - fields to append
+ */
+DBCollection.prototype.append = function(criteria, fields) { 
+    assert( criteria );
+    assert( fields );
+    var coll = this.getName();
+    return this.getDB().eval( 
+		      function() {
+			  var n = 0;
+			  var f = fields;
+			  db[coll].find(criteria).forEach( 
+							  function(o) { 
+							      Object.extend(o, f);
+							      db[coll].save(o);
+							      n++;
+							  } );
+			  return n;
+		      }	      
+			    );
+}
+
+/**
+ * <p>
+ *  Calculate a checksum for all objects in this collection.
+ * </p>
+ */
 DBCollection.prototype.checksum = function(){ 
     var r = this.getDB().eval(
         function(){
