@@ -183,11 +183,16 @@ public class SiteSystemState {
         }
     }
 
-    static class MyStdoutFile extends PyFile {
+    @ExposedType(name="_10gen_stdout")
+    public static class MyStdoutFile extends PyFile {
+        static PyType TYPE = Python.exposeClass(MyStdoutFile.class);
         MyStdoutFile(){
+            super( TYPE );
         }
+        @ExposedMethod
         public void flush(){}
 
+        @ExposedMethod
         public void write( String s ){
             AppRequest request = AppRequest.getThreadLocal();
 
