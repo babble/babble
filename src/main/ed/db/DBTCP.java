@@ -16,7 +16,7 @@ public class DBTCP extends DBMessageLayer {
     static Logger _createLogger = _logger.getChild( "connect" );
     
     public DBTCP( DBAddress addr ){
-        super( addr._name );
+        super( _checkAddress( addr )._name );
 
         _createLogger.info( addr );
         
@@ -25,7 +25,7 @@ public class DBTCP extends DBMessageLayer {
     }
     
     public DBTCP( List<DBAddress> all ){
-        super( all.get(0)._name );
+        super( _checkAddress( all )._name );
 
         final String name = all.get(0)._name;
         for ( int i=1; i<all.size(); i++ ){
@@ -37,6 +37,20 @@ public class DBTCP extends DBMessageLayer {
         _pickInitial();
 
         _createLogger.info( all  + " -> " + _curAddress );
+    }
+
+    private static DBAddress _checkAddress( DBAddress addr ){
+        if ( addr == null )
+            throw new NullPointerException( "address can't be null" );
+        return addr;
+    }
+
+    private static DBAddress _checkAddress( List<DBAddress> addrs ){
+        if ( addrs == null )
+            throw new NullPointerException( "addresses can't be null" );
+        if ( addrs.size() == 0 )
+            throw new IllegalArgumentException( "need to specify at least 1 address" );
+        return addrs.get(0);
     }
 
     public void requestStart(){
