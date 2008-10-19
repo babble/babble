@@ -33,9 +33,9 @@ public class DBProvider {
             }
         }
 
-        final DBAddress addr = c.getDBAddressForSite( name , ctxt.getEnvironmentName() );
+        final DBAddress addr = c.getDBAddressForSite( name , env , true );
         if ( addr == null )
-            throw new RuntimeException( "can't find db host for site [" + ctxt.getName() + "] environment [" + env + "]" );
+            throw new RuntimeException( "can't find db address for site [" + ctxt.getName() + "] environment [" + env + "]" );
         return get( addr , false );
     }
 
