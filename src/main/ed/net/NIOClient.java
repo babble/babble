@@ -354,7 +354,7 @@ public abstract class NIOClient extends Thread {
                 return;
             case CLIENT_ERROR:
                 _error = new IOException( "downstream error so closing" );
-                close();
+                done( true );
                 return;
             case DONE_AND_CLOSE:
                 done( true );
@@ -368,14 +368,11 @@ public abstract class NIOClient extends Thread {
         public void done( boolean close ){
 
             if ( close )
-                close();
-            
-            _current = null;
+                _close( true );
+            else 
+                _putBackInPool();
 
-            if ( _error == null ){
-                _pool.done( this );
-                _logger.debug( 2 , "putting connection back in pool" );
-            }
+            _current = null;
 
         }
 
@@ -451,20 +448,31 @@ public abstract class NIOClient extends Thread {
             _error = e;
             if ( _current != null )
                 _current.error( type , e );
-            if ( _ready ){
-                close();
-            }
+
+            if ( _ready )
+                _close( true );
+
         }
 
         public String toString(){
             return _addr.toString();
         }
         
-        void close(){
+        void _putBackInPool(){
+            _pool.done( this );
+            _logger.debug( 2 , "putting connection back in pool" );
+        }
+
+        void _close( boolean putBackInBool ){
+
             if ( _closed )
                 return;
             
             _closed = true;
+            
+            if ( putBackInBool )
+                _putBackInPool();
+
             try {
                 _key.interestOps( 0 );
                 _key.attach( null );
