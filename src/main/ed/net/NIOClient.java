@@ -36,7 +36,7 @@ public abstract class NIOClient extends Thread {
 
     public enum ServerErrorType { WEIRD , INVALID , CONNECT , SOCK_TIMEOUT };
 
-    protected enum WhatToDo { CONTINUE , PAUSE , DONE_AND_CLOSE , DONE_AND_CONTINUE , ERROR };
+    protected enum WhatToDo { CONTINUE , PAUSE , DONE_AND_CLOSE , DONE_AND_CONTINUE , ERROR , CLIENT_ERROR };
 
     public static final SimpleDateFormat SHORT_TIME = new SimpleDateFormat( "MM/dd HH:mm:ss.S" );
     static final long AFTER_SHUTDOWN_WAIT = 1000 * 60;
@@ -350,7 +350,11 @@ public abstract class NIOClient extends Thread {
                 _key.interestOps( 0 );
                 return;
             case ERROR:
-                _userError( "unknown" );
+                _userError( "Call.handleRead returned ERROR" );
+                return;
+            case CLIENT_ERROR:
+                _error = new IOException( "downstream error so closing" );
+                close();
                 return;
             case DONE_AND_CLOSE:
                 done( true );
