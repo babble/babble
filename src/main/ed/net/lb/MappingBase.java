@@ -159,7 +159,10 @@ public abstract class MappingBase implements Mapping {
         for ( String pool : _pools.keySet() ){
             buf.append( "pool " ).append( pool ).append( "\n" );
             for ( InetSocketAddress addr : _pools.get( pool ) ){
-                buf.append( "\t" ).append( addr.getHostName() ).append( "\n" );
+                buf.append( "\t" ).append( addr.getHostName() );
+                if ( addr.getPort() != 8080 )
+                    buf.append( ":" ).append( addr.getPort() );
+                buf.append( "\n" );
             }
             buf.append( "\n" );
         }
