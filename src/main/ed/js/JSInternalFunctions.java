@@ -128,10 +128,16 @@ public class JSInternalFunctions extends JSNumericFunctions {
                 };
 
             if( extra.length > 0 ) {
-                func._arguments = new JSArray();
+                ArrayList<String> list = new ArrayList<String>();
                 for( String arg : argList ) {
-                    func._arguments.add( arg );
+                    if( list.contains( arg ) ) {
+                        int index = list.indexOf( arg );
+                        list.remove( index );
+                        list.add( index, arg + Math.floor( Math.random() * 100000 ) );
+                    }
+                    list.add( arg );
                 }
+                func._arguments = new JSArray( list );
             }
 
             Object o = s.getThis();

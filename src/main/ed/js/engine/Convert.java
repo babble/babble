@@ -1328,8 +1328,18 @@ public class Convert {
         String callLine = "public Object call( final Scope passedIn ";
         String varSetup = "";
 
+        ArrayList<String> paramNames = new ArrayList<String>();
         for ( int i=0; i<fn.getParamCount(); i++ ){
             final String foo = fn.getParamOrVarName( i );
+            if( paramNames.contains( foo ) ) {
+                int index = paramNames.indexOf( foo );
+                paramNames.remove( index );
+                paramNames.add( index, foo + _rand() );
+            }
+            paramNames.add( foo );
+        }
+
+        for ( String foo : paramNames ){
             callLine += " , ";
             callLine += " Object " + foo;
 
