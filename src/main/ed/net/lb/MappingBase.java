@@ -119,6 +119,27 @@ public abstract class MappingBase implements Mapping {
         _defaultPool = pool;
     }
 
+    protected void blockIp( String addr ){
+        _blockedIps.add( addr );
+    }
+
+    protected void blockUrl( String url ){
+        int idx = url.indexOf( "/" );
+        if ( idx < 0 )
+            blockUrl( url , "" );
+        else
+            blockUrl( url.substring( 0 , idx ) , url.substring( idx + 1 ) );
+    }
+
+    protected void blockUrl( String host , String uri ){
+        Set<String> s = _blockedUrls.get( host );
+        if ( s == null ){
+            s = new TreeSet<String>();
+            _blockedUrls.put( host , s );
+        }
+        s.add( uri );
+    }
+
     public List<String> getPools(){
         return new ArrayList<String>( _pools.keySet() );
     }
@@ -145,8 +166,40 @@ public abstract class MappingBase implements Mapping {
         
         if ( _defaultPool != null )
             buf.append( "default " ).append( _defaultPool ).append( "\n\n" );
+
+        for ( String addr : _blockedIps )
+            buf.append( "block ip " ).append( addr ).append( "\n\n" );
+
+        for ( String site : _blockedUrls.keySet() ){
+            for ( String uri : _blockedUrls.get( site ) )
+                buf.append( "block url " ).append( site ).append( "/" ).append( uri ).append( "\n\n" );
+        }
         
         return buf.toString();
+    }
+
+    public boolean reject( HttpRequest request ){
+        return 
+            rejectIp( request.getPhysicalRemoteAddr() ) ||
+            rejectUrl( request.getHost() , request.getURI() );
+    }
+
+    boolean rejectIp( String addr ){
+        return _blockedIps.contains( addr );
+    }
+
+    boolean rejectUrl( String url ){
+        int idx = url.indexOf( "/" );
+        if ( idx < 0 )
+            return rejectUrl( url , "" );
+        return rejectUrl( url.substring( 0 , idx ) , url.substring( idx + 1 ) );
+    }
+
+    boolean rejectUrl( String host , String uri ){
+        Set<String> s = _blockedUrls.get( host );
+        if ( s == null )
+            return false;
+        return s.contains( uri );
     }
 
     protected final String _name;
@@ -154,8 +207,11 @@ public abstract class MappingBase implements Mapping {
     
 
     private String _defaultPool;
-    final private Map<String,Map<String,String>> _sites = new HashMap<String,Map<String,String>>();
-    final private Map<String,List<InetSocketAddress>> _pools = new HashMap<String,List<InetSocketAddress>>();
+    final private Map<String,Map<String,String>> _sites = new TreeMap<String,Map<String,String>>();
+    final private Map<String,List<InetSocketAddress>> _pools = new TreeMap<String,List<InetSocketAddress>>();
+
+    final private Set<String> _blockedIps = new TreeSet<String>();
+    final private Map<String,Set<String>> _blockedUrls = new TreeMap<String,Set<String>>(); // host -> uris
 }
 
 

@@ -140,6 +140,14 @@ public class GridMapping extends MappingBase {
         }
         
         setDefaultPool( defaultPool );
+
+
+        for ( Iterator<JSObject> i = db.getCollection( "blocked_ips" ).find(); i.hasNext();  )
+            blockIp( i.next().get( "ip" ).toString() );
+
+        for ( Iterator<JSObject> i = db.getCollection( "blocked_urls" ).find(); i.hasNext();  )
+            blockUrl( i.next().get( "url" ).toString() );
+        
     }
 
     final Cloud _cloud;

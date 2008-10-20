@@ -672,6 +672,10 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
         return getCollection( s );
     }
 
+    public Object set( Object n , Object v ){
+        return _entries.put( n.toString() , v );
+    }
+
     public Set<String> keySet( boolean includePrototype ){
         Set<String> set = new HashSet<String>();
         

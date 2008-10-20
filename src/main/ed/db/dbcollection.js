@@ -230,18 +230,20 @@ DBCollection.prototype.append = function(criteria, fields) {
     assert( fields );
     var coll = this.getName();
     return this.getDB().eval( 
-		      function() {
-			  var n = 0;
-			  var f = fields;
-			  db[coll].find(criteria).forEach( 
-							  function(o) { 
-							      Object.extend(o, f);
-							      db[coll].save(o);
-							      n++;
-							  } );
-			  return n;
-		      }	      
-			    );
+	function() {
+            var start = (new Date()).getTime();
+	    var n = 0;
+	    var f = fields;
+	    db[coll].find(criteria).forEach( 
+		function(o) { 
+		    Object.extend(o, f);
+		    db[coll].save(o);
+		    n++;
+		} );
+            print( "append time : " + ( (new Date()).getTime() - start ) );
+	    return n;
+	}	      
+    );
 }
 
 /**
