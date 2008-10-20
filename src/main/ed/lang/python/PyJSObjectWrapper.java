@@ -215,7 +215,7 @@ public class PyJSObjectWrapper extends PyDictionary {
     }
 
     public void handleSet( Object key , Object value ){
-        _js.set( toJS( key ) , toJS( value ) );
+        _js.set( key , value );
     }
 
     public void remove( String key ){

@@ -92,7 +92,7 @@ public class Python extends Language {
 
         if ( p instanceof PyJSObjectWrapper ){
             if( D )
-                System.out.println( "unwrapping " + p );
+                System.out.println( "unwrapping " + p + " as " + ((PyJSObjectWrapper)p)._js.getClass());
             return ((PyJSObjectWrapper)p)._js;
         }
 
