@@ -155,8 +155,15 @@ public class HttpServerTest extends TestCase {
         assertEquals(PingHandler.DATA, r.body);
     }
 
-    protected Socket open()
+    protected final Socket open()
             throws IOException {
+        Socket s = getSocket();
+        s.setSoTimeout( 1000 );
+        return s;
+    }
+    
+    protected Socket getSocket()
+        throws IOException{
         return new Socket("127.0.0.1", _port);
     }
 
