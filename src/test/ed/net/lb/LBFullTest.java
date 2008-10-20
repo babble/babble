@@ -33,7 +33,7 @@ public class LBFullTest extends HttpServerTest {
     
     public LBFullTest()
         throws IOException {
-        super();
+        super( 10003 );
         _lb = new LB( _lbPort , new MyMappingFactory() , 0 );
         _lb.start();
     }

@@ -32,6 +32,12 @@ public class HttpServerTest extends TestCase {
 
     public HttpServerTest()
             throws IOException {
+        this( 15123 );
+    }
+    
+    public HttpServerTest( int port )
+            throws IOException {
+        _port = port;
         _server = new HttpServer(_port);
         _server.addHandler(new PingHandler());
         _server.start();
@@ -249,7 +255,7 @@ public class HttpServerTest extends TestCase {
     }
 
     HttpServer _server;
-    final protected int _port = 15123;
+    final protected int _port;
 
     public static void main(String args[])
             throws IOException {
