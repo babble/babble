@@ -22,9 +22,9 @@ _10gen.pyInt = 1254
 _10gen.pyString = 'hello this is a string'
 _10gen.pyString2 = _10gen.pyString + ' with some appended text'
 
+@_10gen.exposePy
 def pyFunction():
     return 15
-_10gen.pyFunction = pyFunction
 
 class pyClass(object):
     x = 14
@@ -34,10 +34,10 @@ _10gen.pyDict1 = {'a': 'b'}
 
 _10gen.pyDict2 = {_10gen.pyString : _10gen.pyString2}
 
+@_10gen.exposePy
 def pyModifyDict2():
     _10gen.pyDict2[_10gen.pyString] = _10gen.pyString2
 
+@_10gen.exposePy
 def pyModifyDict3():
     _10gen.pyDict2[_10gen.pyString2] = _10gen.pyString2
-_10gen.pyModifyDict2 = pyModifyDict2
-_10gen.pyModifyDict3 = pyModifyDict3

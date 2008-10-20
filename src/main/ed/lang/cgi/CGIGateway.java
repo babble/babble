@@ -48,7 +48,7 @@ public class CGIGateway extends JSFunctionCalls0 {
      *  being able to do CGI - needs to place this dictionary in the
      *  right place for the given langage, and process output e.g.
      *   ed.lang.python.PyCGIOutputHandler
-     * 
+     *
      * @param scope scope for call
      * @param extra stuff
      * @return whatever the target script returns
@@ -96,7 +96,7 @@ public class CGIGateway extends JSFunctionCalls0 {
         env.set("CONTENT_TYPE",req.getContentType());
         env.set("GATEWAY_INTERFACE","CGI/1.1");
 
-        env.set("PATH_INFO","/");  // TODO - fix
+        env.set("PATH_INFO", req.getPathInfo());
 
         env.set("PATH_TRANSLATED","/");   // TODO - fix
         env.set("QUERY_STRING",req.getQueryString());
