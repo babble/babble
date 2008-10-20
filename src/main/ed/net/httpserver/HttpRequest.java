@@ -1178,22 +1178,22 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
     // ---- User ---
     
     public String getAuthType(){
-	System.err.println( "ed.net.httpserver.HttpReuest : User stuff not really supported" );
+	System.err.println( "ed.net.httpserver.HttpRequest : User stuff not really supported" );
 	return null;
     }
 
     public String getRemoteUser(){
-	System.err.println( "ed.net.httpserver.HttpReuest : User stuff not really supported" );
+	System.err.println( "ed.net.httpserver.HttpRequest : User stuff not really supported" );
 	return null;
     }
     
     public java.security.Principal getUserPrincipal(){
-	System.err.println( "ed.net.httpserver.HttpReuest : User stuff not really supported" );
+	System.err.println( "ed.net.httpserver.HttpRequest : User stuff not really supported" );
 	return null;
     }
 
     public boolean isUserInRole( String role){
-	System.err.println( "ed.net.httpserver.HttpReuest : User stuff not really supported" );
+	System.err.println( "ed.net.httpserver.HttpRequest : User stuff not really supported" );
 	return false;
     }
 
