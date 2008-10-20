@@ -28,6 +28,7 @@ import org.python.modules.sre.PatternObject;
 import org.python.modules.sre.SRE_STATE;
 import org.python.expose.*;
 import org.python.expose.generate.*;
+import org.python.util.*;
 
 import ed.db.*;
 import ed.util.*;
@@ -154,10 +155,16 @@ public class Python extends Language {
         }
 
         // Insufficiently Pythonic?
-        if ( p instanceof PyObjectDerived && ((PyObject)p).getType().fastGetName().equals( "datetime" ) ){
-            Object cal = ((PyObject)p).__tojava__( Calendar.class );
-            if( cal != Py.NoConversion ){
-                return new JSDate( (Calendar)cal );
+        if ( p instanceof PyObjectDerived ){
+            PyType type = ((PyObject)p).getType();
+            if( type != null && type.fastGetName() != null ){
+                String name = type.fastGetName();
+                if( name != null && name.equals( "datetime" ) ){
+                    Object cal = ((PyObject)p).__tojava__( Calendar.class );
+                    if( cal != Py.NoConversion ){
+                        return new JSDate( (Calendar)cal );
+                    }
+                }
             }
         }
 
@@ -236,6 +243,14 @@ public class Python extends Language {
             return new PyJSLogLevelWrapper( (ed.log.Level)o );
         }
 
+        if ( o instanceof JSDate ){
+            String datetimeS = "datetime".intern();
+            PyModule mod = (PyModule)__builtin__.__import__( datetimeS );
+            PyObject datetime = mod.__finditem__( datetimeS );
+            PyObject fromtimestamp = datetime.__finditem__( "fromtimestamp".intern() );
+            return fromtimestamp.__call__( Py.newInteger( ((JSDate)o).getTime() ) );
+        }
+
         // these should be at the bottom
         if ( o instanceof JSFunction ){
             Object p = ((JSFunction)o).getPrototype();
@@ -293,6 +308,12 @@ public class Python extends Language {
         }
 
         return toJS( __builtin__.eval( pycode , globals ) );
+    }
+
+    public void repl( Scope s ){
+        PyObject globals = getGlobals( s );
+        InteractiveConsole ic = new InteractiveConsole(globals);
+        ic.interact(null, null);
     }
 
     public static PyObject getGlobals( Scope s ){

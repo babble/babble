@@ -127,6 +127,8 @@ public class AppContext extends ServletContextBase implements JSObject , Sizable
 
         _adminContext = _admin ? null : new AppContext( root , rootFile , name , environment , this );
 
+        _contextReachable = new IdentitySet();
+
         _logger.info( "Started Context.  root:" + _root + " environment:" + environment + " git branch: " + _gitBranch );
 
     }
@@ -226,7 +228,7 @@ public class AppContext extends ServletContextBase implements JSObject , Sizable
         ed.appserver.templates.djang10.JSHelper.install(_scope, rootFileMap, _logger);
         
 	_scope.lock( "user" ); // protection against global user object
-
+        
     }
 
     private void _loadConfig(){
@@ -429,15 +431,6 @@ public class AppContext extends ServletContextBase implements JSObject , Sizable
         if ( ! _knownInitScopeThings.contains( what ) )
             System.err.println( "*** Unkknow thing being request from initScope [" + what + "]" );
         return _initScope.get( what );
-    }
-
-    /** Returns a child scope for app requests.
-     * @return a child scope
-     */
-    Scope scopeChild(){
-        Scope s = _scope().child( "AppRequest" );
-        s.setGlobal( true );
-        return s;
     }
 
     void setTLPreferredScope( AppRequest req , Scope s ){
@@ -802,8 +795,10 @@ public class AppContext extends ServletContextBase implements JSObject , Sizable
 
             if ( saveTL != null )
                 saveTL.makeThreadLocal();
-        }
 
+            this.approxSize( _contextReachable );
+        }
+        
     }
 
     private void _runInitFiles( String[] files )
@@ -1176,6 +1171,7 @@ public class AppContext extends ServletContextBase implements JSObject , Sizable
     private JSFileLibrary _external;
 
     final Scope _scope;
+    final IdentitySet _contextReachable;
     final Scope _initScope;
     final UsageTracker _usage;
 

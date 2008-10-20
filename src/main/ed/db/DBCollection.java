@@ -553,6 +553,8 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
             for ( String s : jo.keySet() ){
                 if ( s.contains( "." ) )
                     throw new IllegalArgumentException( "fields stored in the db can't have . in them" );
+                if ( s.contains( "$" ) )
+                    throw new IllegalArgumentException( "fields stored in the db can't have $ in them" );
             }
         }
         return jo;

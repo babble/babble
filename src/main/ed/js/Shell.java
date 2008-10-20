@@ -162,6 +162,19 @@ public class Shell {
                 }
             } , true );
 
+        s.put( "exposePy", new JSFunctionCalls1() {
+                public Object call( Scope scope , Object f , Object extra[] ){
+                    if( ! ( f instanceof JSFunction ) )
+                        throw new RuntimeException( "first argument must be a Python function");
+                    JSFunction j = (JSFunction)f;
+                    Object name = j.get("func_name");
+                    if( name == null )
+                        throw new RuntimeException( "first argument must be a Python function" );
+                    scope.set( name , j );
+                    return f;
+                }
+            });
+
         Map<String, JSFileLibrary> rootFileMap = new HashMap<String, JSFileLibrary>();
         for(String rootKey : new String[] {"local", "core", "external"}) {
             Object temp = s.get(rootKey);
@@ -298,6 +311,10 @@ public class Shell {
         
         if ( replLang instanceof ed.lang.ruby.RubyLanguage ) {
             ((ed.lang.ruby.RubyLanguage)replLang).repl(s, rubyFile);
+            return;
+        }
+        if ( replLang instanceof ed.lang.python.Python ){
+            ((ed.lang.python.Python)replLang).repl(s);
             return;
         }
 

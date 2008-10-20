@@ -65,8 +65,9 @@ public class ScriptTestFactory {
                 addExcludeFiles( new File( baseDir + File.separator + s ) );
             }
         }
-        catch( IOException e ) {
-            e.printStackTrace();
+        catch( Exception e ) {
+            // catch IO and FileNotFound exceptions
+            // this is fine, exclude list will be empty
         }
     }
 

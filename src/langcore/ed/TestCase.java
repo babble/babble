@@ -82,12 +82,18 @@ public class TestCase extends MyAsserts {
     }
 
     public TestCase( String name ){
-        for ( Method m : getClass().getDeclaredMethods() ){
-            if ( m.getName().startsWith( "test" ) ){
-                Test t = new Test( this , m );
-                t._name = name;
-                _tests.add( t );
-            }
+        for ( Method m : getClass().getMethods() ){
+            
+            if ( ! m.getName().startsWith( "test" ) )
+                continue;
+            
+            if ( ( m.getModifiers() & Member.PUBLIC ) > 0 )
+                continue;
+
+            Test t = new Test( this , m );
+            t._name = name;
+            _tests.add( t );
+            
         }
     }
 

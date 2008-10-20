@@ -22,7 +22,7 @@ import ed.util.*;
 
 public class PingHandler implements HttpHandler {
 
-    static final String DATA = "abc123";
+    public static final String DATA = "abc123";
 
     public boolean handles( HttpRequest request , Info info ){
 	if ( ! request.getURI().equals( "/~ping" ) )
