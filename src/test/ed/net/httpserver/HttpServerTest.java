@@ -37,6 +37,8 @@ public class HttpServerTest extends TestCase {
         _server.start();
     }
 
+    protected void checkResponse( Response r ){}
+
     @Test
     public void testBasic1()
             throws IOException {
@@ -45,6 +47,7 @@ public class HttpServerTest extends TestCase {
         s.getOutputStream().write(headers("GET", "", "Connection: Close\r\n").toString().getBytes());
         InputStream in = s.getInputStream();
         Response r = read(in);
+        checkResponse( r );
         assertEquals(PingHandler.DATA, r.body);
     }
 
@@ -63,6 +66,7 @@ public class HttpServerTest extends TestCase {
 
         out.write(headers("GET", "", "Connection: Keep-Alive\r\n").toString().getBytes());
         r = read(in);
+        checkResponse( r );
         assertEquals(PingHandler.DATA, r.body);
 
         out.write(headers("GET", "", "Connection: Keep-Alive\r\n").toString().getBytes());
@@ -80,6 +84,7 @@ public class HttpServerTest extends TestCase {
         out.write(headers("GET", "", "Connection: Close\r\n").toString().getBytes());
         r = read(in);
         assertEquals(PingHandler.DATA, r.body);
+        checkResponse( r );
 
         assert (in.read() == -1);
     }
@@ -104,12 +109,13 @@ public class HttpServerTest extends TestCase {
         for (int i = 0; i < num; i++) {
             r = read(in);
             assertEquals(PingHandler.DATA, r.body);
+            checkResponse( r );
         }
 
         out.write(headers("GET", "", "Connection: Close\r\n").toString().getBytes());
         r = read(in);
         assertEquals(PingHandler.DATA, r.body);
-
+        checkResponse( r );
         assert (in.read() == -1);
     }
 
@@ -143,12 +149,12 @@ public class HttpServerTest extends TestCase {
         assertEquals(PingHandler.DATA, r.body);
     }
 
-    Socket open()
+    protected Socket open()
             throws IOException {
         return new Socket("127.0.0.1", _port);
     }
 
-    StringBuilder headers(String method, String params, String headers) {
+    public static StringBuilder headers(String method, String params, String headers) {
         StringBuilder buf = new StringBuilder();
         buf.append(method).append(" /~ping?").append(params).append(" HTTP/1.1\r\n");
         buf.append("Host: localhost\r\n");
@@ -157,7 +163,7 @@ public class HttpServerTest extends TestCase {
         return buf;
     }
 
-    Response read(InputStream in)
+    public static Response read(InputStream in)
             throws IOException {
 
         StringBuilder buf = new StringBuilder();
@@ -219,13 +225,13 @@ public class HttpServerTest extends TestCase {
         super.finalize();
         _server.stopServer();
     }
-
-    void appendRandomData(StringBuilder buf, int length) {
+    
+    public static void appendRandomData(StringBuilder buf, int length) {
         for (int i = 0; i < length; i++)
             buf.append("f");
     }
 
-    class Response {
+    public static class Response {
 
         Response(String fl, Map<String, String> h, byte[] data) {
             firstLine = fl;
@@ -237,13 +243,13 @@ public class HttpServerTest extends TestCase {
             return firstLine + " headers:" + headers + " [" + body + "]";
         }
 
-        final String firstLine;
-        final String body;
-        final Map<String, String> headers;
+        public final String firstLine;
+        public final String body;
+        public final Map<String, String> headers;
     }
 
     HttpServer _server;
-    final int _port = 15123;
+    final protected int _port = 15123;
 
     public static void main(String args[])
             throws IOException {
