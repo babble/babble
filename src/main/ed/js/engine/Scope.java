@@ -771,8 +771,8 @@ public final class Scope implements JSObject , Bindings {
     public Object eval( String code , String name , boolean hasReturn[] ){
         try {
 
-            if ( code.matches( "\\d+" ) )
-                return Integer.parseInt( code );
+            if ( code.matches( JSNumber.POSSIBLE_NUM ) )
+                return StringParseUtil.parseStrict( code );
 
             if ( code.matches( "\\w+(\\.\\w+)*" ) ) {
                 Object o = findObject( code );
