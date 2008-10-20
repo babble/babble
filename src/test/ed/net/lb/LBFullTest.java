@@ -52,6 +52,39 @@ public class LBFullTest extends HttpServerTest {
         throws IOException {
         return new Socket("127.0.0.1", _lbPort);
     }
+
+
+    @Test
+    public void testLoadSmall()
+        throws IOException {
+        _load( 1 );
+    }
+
+    @Test
+    public void testLoadMed()
+        throws IOException {
+        _load( 5 );
+    }
+
+    // explicitly left out of testng
+    // i guess we should add a "load" group
+    public void testLoadBig()
+        throws IOException {
+        _load( 100 );
+    }
+
+    public void _load( int num )
+        throws IOException {
+        for ( int i=0; i<num; i++ ){
+            if ( i % 5 == 1 )
+                System.out.print( "." );
+            testBasic1();
+            testKeepAlive1();
+            testPipeLine1();
+            testPost1();
+            testPost2();
+        }
+    }
         
     
     class MyMappingFactory implements MappingFactory {
