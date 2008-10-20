@@ -53,10 +53,31 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
         }
 
         protected void init() {
-            //(new ENode.Cons()).init();
+            final JSObjectBase thisPrototype = _prototype;
             _prototype.set( "child", new ENodeFunction() {
                     public Object call( Scope s,  Object foo[]) {
                         return ((XMLList)s.getThis()).child( ENode.getOneArg( foo ).toString() );
+                    }
+                });
+            _prototype.set( "hasSimpleContent", new ENodeFunction() {
+                    public Object call( Scope s,  Object foo[]) {
+                        return ((XMLList)s.getThis()).hasSimpleContent();
+                    }
+                });
+            _prototype.set( "hasComplexContent", new ENodeFunction() {
+                    public Object call( Scope s,  Object foo[]) {
+                        return ((XMLList)s.getThis()).hasComplexContent();
+                    }
+                });
+            _prototype.set( "hasOwnProperty", new ENodeFunction() {
+                    public Object call( Scope s,  Object foo[]) {
+                        Object o = s.getThis();
+                        if( o instanceof XMLList ) 
+                            return ((XMLList)s.getThis()).hasOwnProperty( ENode.getOneArg( foo ).toString() );
+                        else if( o == thisPrototype )
+                            return thisPrototype.get( ENode.getOneArg( foo ).toString() ) != null;
+                        else
+                            return false;
                     }
                 });
             _prototype.set( "length", new ENodeFunction() {
