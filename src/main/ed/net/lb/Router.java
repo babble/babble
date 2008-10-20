@@ -157,6 +157,10 @@ public final class Router {
             getPool( pool );
     }
 
+    boolean reject( HttpRequest request ){
+        return _mapping.reject( request );
+    }
+
     class Pool {
 
         Pool( String name , List<InetSocketAddress> addrs ){

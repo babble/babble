@@ -404,6 +404,11 @@ public class LB extends NIOClient {
 		return true;
 	    }
 	    
+            if ( _router.reject( request ) ){
+                _handleError( request , response , 403 , "request rejected" );
+                return true;
+            }
+
             if ( add( new RR( request , response ) ) )
                 return false;
 	    
