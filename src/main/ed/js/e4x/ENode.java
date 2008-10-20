@@ -1618,6 +1618,8 @@ public class ENode extends JSObjectBase {
             return buf.append( "<!--"+this.node.getNodeValue()+"-->" );
         case Node.PROCESSING_INSTRUCTION_NODE :
             return buf.append( "<?" + this.localName() + " " + ((ProcessingInstruction)this.node).getData() + "?>");
+        case Node.CDATA_SECTION_NODE :
+            return buf.append( "<![CDATA[" + ((CDATASection)this.node).getWholeText() + "]>" );
         }
 
         buf.append( "<" );
