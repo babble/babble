@@ -61,10 +61,10 @@ public class AppRequest implements Sizable {
         return _context;
     }
 
-    public Scope getScope(){
+    public RequestScope getScope(){
         
         if ( _scope == null ){
-            _scope = _context.scopeChild();
+            _scope = new RequestScope( _context , this );
 
             _scope.put( "request" , _request , true );
             _scope.lock( "request" );
@@ -288,6 +288,7 @@ public class AppRequest implements Sizable {
     void done( HttpResponse response ){
         _done = true;
         _context.setTLPreferredScope( this , null );
+        _scope.done();
         if ( _session.sync( _context.getDB() ) )
             response.addCookie( Session.COOKIE_NAME , _session.getCookie() );
     }
@@ -353,6 +354,10 @@ public class AppRequest implements Sizable {
     }
 
     public long approxSize( IdentitySet seen ){
+        
+        // we don't want to count stuff reaching from context here
+        seen.addAll( _context._contextReachable );
+        
         long s = 0;
         s += JSObjectSize.size( _request , seen );
         s += JSObjectSize.size( _scope , seen );
@@ -373,7 +378,7 @@ public class AppRequest implements Sizable {
     final URLFixer _fixer;
     final JSArray _head = new HeadArray();
     
-    private Scope _scope;
+    private RequestScope _scope;
     private Session _session;
     private boolean _done = false;
     

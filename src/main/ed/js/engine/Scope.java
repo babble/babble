@@ -30,7 +30,7 @@ import ed.lang.*;
 import ed.util.*;
 import ed.appserver.*;
 
-public final class Scope implements JSObject , Bindings {
+public class Scope implements JSObject , Bindings {
 
     static {
         JS._debugSIStart( "Scope" );
@@ -490,6 +490,10 @@ public final class Scope implements JSObject , Bindings {
         return _get( name.hashCode() , name , null , null , false , 0 );
     }
 
+    public Language getLanguage(){
+        return _lang;
+    }
+
     public boolean isRuby(){
         return _lang == Language.RUBY;
     }
@@ -771,8 +775,8 @@ public final class Scope implements JSObject , Bindings {
     public Object eval( String code , String name , boolean hasReturn[] ){
         try {
 
-            if ( code.matches( "\\d+" ) )
-                return Integer.parseInt( code );
+            if ( code.matches( JSNumber.POSSIBLE_NUM ) )
+                return StringParseUtil.parseStrict( code );
 
             if ( code.matches( "\\w+(\\.\\w+)*" ) ) {
                 Object o = findObject( code );

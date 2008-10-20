@@ -52,5 +52,10 @@ public class IdentitySet<T> implements Iterable<T> {
         }
     }
 
+    public void addAll( IdentitySet<T> c ){
+        for ( T t : c )
+            add( t );
+    }
+
     final IdentityHashMap<T,String> _map = new IdentityHashMap<T,String>();
 }
