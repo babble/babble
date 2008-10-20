@@ -313,6 +313,10 @@ public class Shell {
             ((ed.lang.ruby.RubyLanguage)replLang).repl(s, rubyFile);
             return;
         }
+        if ( replLang instanceof ed.lang.python.Python ){
+            ((ed.lang.python.Python)replLang).repl(s);
+            return;
+        }
 
         String line;
         ConsoleReader console = new ConsoleReader();

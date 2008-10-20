@@ -28,6 +28,7 @@ import org.python.modules.sre.PatternObject;
 import org.python.modules.sre.SRE_STATE;
 import org.python.expose.*;
 import org.python.expose.generate.*;
+import org.python.util.*;
 
 import ed.db.*;
 import ed.util.*;
@@ -307,6 +308,12 @@ public class Python extends Language {
         }
 
         return toJS( __builtin__.eval( pycode , globals ) );
+    }
+
+    public void repl( Scope s ){
+        PyObject globals = getGlobals( s );
+        InteractiveConsole ic = new InteractiveConsole(globals);
+        ic.interact(null, null);
     }
 
     public static PyObject getGlobals( Scope s ){
