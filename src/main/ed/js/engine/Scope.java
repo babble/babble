@@ -30,7 +30,7 @@ import ed.lang.*;
 import ed.util.*;
 import ed.appserver.*;
 
-public final class Scope implements JSObject , Bindings {
+public class Scope implements JSObject , Bindings {
 
     static {
         JS._debugSIStart( "Scope" );
@@ -488,6 +488,10 @@ public final class Scope implements JSObject , Bindings {
 
     public Object getOrThis( String name ){
         return _get( name.hashCode() , name , null , null , false , 0 );
+    }
+
+    public Language getLanguage(){
+        return _lang;
     }
 
     public boolean isRuby(){
