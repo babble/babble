@@ -117,6 +117,7 @@ public class LBFullTest extends HttpServerTest {
             checkResponse( r );
         }
 
+        s.close();
     }
     
     
@@ -177,7 +178,16 @@ public class LBFullTest extends HttpServerTest {
 
     public static void main(String args[])
             throws IOException {
-        (new LBFullTest()).runConsole();
+        LBFullTest ft = new LBFullTest();
+        ft.runConsole();
+        
+        
+        if ( args.length > 0 ){
+            int sleep = Integer.parseInt( args[0] );
+            System.out.println( "sleeping for " + sleep + " seconds" );
+            ThreadUtil.sleep( sleep * 1000 );
+        }
+        
     }
     
 }
