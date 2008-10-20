@@ -417,14 +417,18 @@ public class RubyJxpSource extends JxpSource {
     }
 
     private boolean _anyLocalFileChanged(Scope s) {
-        if (s == null)
-            return false;
-        JSFileLibrary lib = (JSFileLibrary)s.get("local");
-        if (lib == null)
-            return false;
-        synchronized (_localFileLastModTimes) {
-            return _anyLocalFileChanged(lib.getRoot(), false);
-        }
+        return false;
+        // This code is commented out for now because when run against an app
+        // with 1,000 froze Rails files, doing this for every request is too
+        // slow.
+//         if (s == null)
+//             return false;
+//         JSFileLibrary lib = (JSFileLibrary)s.get("local");
+//         if (lib == null)
+//             return false;
+//         synchronized (_localFileLastModTimes) {
+//             return _anyLocalFileChanged(lib.getRoot(), false);
+//         }
     }
 
     private boolean _anyLocalFileChanged(File dir, boolean changed) {
