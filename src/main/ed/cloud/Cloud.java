@@ -163,16 +163,26 @@ public class Cloud extends JSObjectBase {
     }
 
     public DBAddress getDBAddressForSite( String siteName , String environment ){
+        return getDBAddressForSite( siteName , environment , false );
+    }
+    
+    public DBAddress getDBAddressForSite( String siteName , String environment , boolean errorOrNotFound ){
         if ( _bad )
             return null;
 
         JSObject site = findSite( siteName , false );
-        if ( site == null )
+        if ( site == null ){
+            if ( errorOrNotFound )
+                throw new RuntimeException( "can't find site [" + siteName + "]" );
             return null;
+        }
         
         Object url = evalFunc( site , "getDBUrlForEnvironment" , environment );
-        if ( url == null )
+        if ( url == null ){
+            if ( errorOrNotFound )
+                throw new RuntimeException( "can't find environment [" + environment + "] in site [" + siteName + "]" );
             return null;
+        }
 
         try {
             return new DBAddress( url.toString() );

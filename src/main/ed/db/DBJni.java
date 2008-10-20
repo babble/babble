@@ -29,6 +29,8 @@ public class DBJni extends DBMessageLayer {
         b.out.put( dataOut );
 
         native_say( b.out );
+
+        _pool.done( b );
     }
 
     protected int call( int op , ByteBuffer dataOut , ByteBuffer dataIn ){
@@ -38,7 +40,7 @@ public class DBJni extends DBMessageLayer {
         
         m.putHeader( b.out );
         b.out.put( dataOut );
-                                
+        
         int len = native_call( b.out , b.in );
         b.in.limit( len );
 

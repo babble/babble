@@ -62,6 +62,7 @@ public class SiteSystemState {
         setupModules();
         ensureMetaPathHook( pyState , s );
         replaceOutput();
+        ensurePath( Config.get().getProperty("ED_HOME", "/data/ed")+"/src/main/ed/lang/python/lib" , 0 );
 
         // Careful -- this is static PySystemState.builtins. We modify
         // it once to intercept imports for all sites. TrackImport
@@ -75,6 +76,23 @@ public class SiteSystemState {
 
     public PySystemState getPyState(){
         return pyState;
+    }
+
+    void ensurePath( String myPath ){
+        ensurePath( myPath , -1 );
+    }
+
+    void ensurePath( String myPath , int location ){
+
+        for ( Object o : pyState.path )
+            if ( o.toString().equals( myPath ) )
+                return;
+
+
+        if( location == -1 )
+            pyState.path.append( Py.newString( myPath ) );
+        else
+            pyState.path.insert( location , Py.newString( myPath ) );
     }
 
     /**
@@ -165,12 +183,29 @@ public class SiteSystemState {
         }
     }
 
-    static class MyStdoutFile extends PyFile {
+    @ExposedType(name="_10gen_stdout")
+    public static class MyStdoutFile extends PyFile {
+        static PyType TYPE = Python.exposeClass(MyStdoutFile.class);
         MyStdoutFile(){
+            super( TYPE );
         }
+        @ExposedMethod
         public void flush(){}
 
-        public void write( String s ){
+        @ExposedMethod
+        public void _10gen_stdout_write( PyObject o ){
+            if ( o instanceof PyUnicode ){
+                _10gen_stdout_write(o.__str__().toString());
+            }
+            else if ( o instanceof PyString ){
+                _10gen_stdout_write(o.toString());
+            }
+            else {
+                throw Py.TypeError("write requires a string as its argument");
+            }
+        }
+
+        final public void _10gen_stdout_write( String s ){
             AppRequest request = AppRequest.getThreadLocal();
 
             if( request == null )
@@ -180,7 +215,10 @@ public class SiteSystemState {
                 request.print( s );
             }
         }
-        AppRequest _request;
+
+        public void write( String s ){
+            _10gen_stdout_write( s );
+        }
     }
 
 

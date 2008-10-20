@@ -21,6 +21,7 @@ import java.util.*;
 
 import org.jruby.*;
 import org.jruby.internal.runtime.methods.JavaMethod;
+import org.jruby.javasupport.JavaUtil;
 import org.jruby.runtime.*;
 import org.jruby.runtime.builtin.IRubyObject;
 import org.jruby.runtime.callback.Callback;
@@ -144,9 +145,14 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
     protected void _addMethod(String name, JavaMethod jm, RubyModule module) {
         if (RubyObjectWrapper.DEBUG_CREATE)
             System.err.println("adding method named " + name + " to module " + module.getName());
-        final String internedName = name.intern();
+        String internedName = name.intern();
+        RubySymbol sym = getRuntime().fastNewSymbol(internedName);
         module.addMethod(internedName, jm);
-        module.callMethod(getRuntime().getCurrentContext(), "method_added", getRuntime().fastNewSymbol(internedName));
+        module.callMethod(getRuntime().getCurrentContext(), "method_added", sym);
+
+        String rubyName = JavaUtil.getRubyCasedName(name);
+        if (!name.equals(rubyName))
+            module.alias_method(getRuntime().getCurrentContext(), getRuntime().fastNewSymbol(rubyName.intern()), sym);
     }
 
     /** An allocator for objects created using JSFunction constructors. */

@@ -66,6 +66,9 @@ Cloud.SiteDB = function( name , server ){
 Cloud.SiteDB.prototype.__defineGetter__( "did" , function(){ return this.id; } );
 Cloud.SiteDB.prototype.__defineSetter__( "did" , function( id ){ this.id = id; } );
 
+Cloud.SiteDB.prototype.__defineGetter__( "envPartition" , function(){ return this.envParition } );
+Cloud.SiteDB.prototype.__defineSetter__( "envPartition" , function( ep ){ this.envParition = ep; } );
+
 Cloud.Site = function( name ){
     this.name = name;
     this.created = new Date();

@@ -34,7 +34,7 @@ public abstract class Printer extends JSFunctionCalls1 {
         
         if((arg != null) && (arg instanceof JSObject) && (((JSObject)arg).get("toString") instanceof JSFunction) && !(arg instanceof JSString)) {
             JSFunction toStringFn = (JSFunction)((JSObject)arg).get("toString");
-            arg = toStringFn.callAndSetThis(scope.child(), arg, new Object[0]);
+            arg = toStringFn.callAndSetThis(scope, arg, new Object[0]);
         }
 
         Boolean arg_safety = JSHelper.is_safe(arg);
@@ -64,7 +64,7 @@ public abstract class Printer extends JSFunctionCalls1 {
         }
 
         protected void print(Scope scope, Object obj) {
-            inner.call(scope.child(), obj);
+            inner.call(scope, obj);
         }
     }
 

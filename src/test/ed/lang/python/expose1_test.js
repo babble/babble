@@ -20,8 +20,10 @@ getglobal = function(x){
     called[x] = true;
 };
 
+jsObj = {};
 
 local.src.test.ed.lang.python.expose1_helper();
 
 assert( called.x );
 assert( called.y );
+assert.eq( jsObj.pyBool , true );

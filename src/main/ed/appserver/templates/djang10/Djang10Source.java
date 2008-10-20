@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import ed.appserver.AppContext;
 import ed.appserver.JSFileLibrary;
 import ed.appserver.jxp.JxpSource;
 import ed.appserver.templates.djang10.JSHelper.LoadedLibrary;
@@ -44,14 +45,17 @@ public class Djang10Source extends JxpSource {
     
     private final Djang10Content content;
     private Djang10CompiledScript compiledScript;
+    private final Scope scope;
 
-    public Djang10Source(File f) {
+    public Djang10Source(Scope scope, File f) {
         content = new Djang10File(f);
         compiledScript = null;
+        this.scope = scope;
     }
-    public Djang10Source(String content) {
+    public Djang10Source(Scope scope, String content) {
         this.content = new DJang10String(content);
         compiledScript = null;
+        this.scope = scope;
     }
 
     public JSFunction getFunction() throws IOException {
@@ -78,14 +82,15 @@ public class Djang10Source extends JxpSource {
             String contents = getContent();
             
 
-            Parser parser = new Parser(content.getName(), contents);
-            JSHelper jsHelper = JSHelper.get(Scope.getThreadLocal());
+            Parser parser = new Parser(scope, content.getName(), contents);
+            JSHelper jsHelper = JSHelper.get(scope);
+
             for(LoadedLibrary lib : jsHelper.getDefaultLibraries()) {
                 parser.add_dependency(lib.getSource());
                 parser.add_library(lib.getLibrary());
             }
             
-            nodes = parser.parse(Scope.getThreadLocal(), new JSArray());
+            nodes = parser.parse(new JSArray());
             libraries = parser.getLoadedLibraries();
             
             _dependencies.addAll(parser.get_dependencies());

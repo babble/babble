@@ -36,16 +36,15 @@ public class JSRegex extends JSObjectBase {
         }
         
         public Object call( Scope s, Object[] args ) {
-            return new JSRegex();
+            return new JSRegex( "", "" );
         }
 
         public Object call( Scope s , Object a , Object[] args ){
-
             String p = a.toString();
             String f = "";
             if( args != null && args.length > 0 )
                 f = args[0].toString();
-            
+
             Object o = s.getThis();
             if ( o == null || ! ( o instanceof JSRegex ) )
                 return new JSRegex( p , f );
@@ -55,31 +54,42 @@ public class JSRegex extends JSObjectBase {
             return r;
         }
 
-            protected void init(){
-                _prototype.set( "test" , new JSFunctionCalls1(){
-                        public Object call( Scope s , Object o , Object foo[] ){
-                            if ( o == null )
-                                return false;
-                            return ((JSRegex)s.getThis()).test( o.toString() );
+        protected void init(){
+            _prototype.set( "lastIndex" , 0 );
+
+            _prototype.set( "test" , new JSFunctionCalls1(){
+                    public Object call( Scope s , Object o , Object foo[] ){
+                        if ( o == null )
+                            return false;
+                        return ((JSRegex)s.getThis()).test( o.toString() );
+                    }
+                } );
+
+            _prototype.set( "exec" , new JSFunctionCalls1(){
+                    public Object call( Scope s , Object o , Object foo[] ){
+                        if( o == null ) {
+                            return null;
                         }
-                    } );
+                        return ((JSRegex)s.getThis()).exec( o.toString() );
+                    }
+                } );
 
-                _prototype.set( "__rmatch" , new JSFunctionCalls1(){
-                        public Object call( Scope s , Object o , Object foo[] ){
-
-                            if ( o == null )
-                                return -1;
-
-                            String str = o.toString();
-
-                            JSRegex r = (JSRegex)s.getThis();
-                            JSArray a = r.exec( str );
-                            r._last.set( a );
-                            if ( a == null )
-                                return null;
-                            return a.get( "index" );
-                        }
-                    } );
+            _prototype.set( "__rmatch" , new JSFunctionCalls1(){
+                    public Object call( Scope s , Object o , Object foo[] ){
+                        
+                        if ( o == null )
+                            return -1;
+                        
+                        String str = o.toString();
+                        
+                        JSRegex r = (JSRegex)s.getThis();
+                        JSArray a = r.exec( str );
+                        r._last.set( a );
+                        if ( a == null )
+                            return null;
+                        return a.get( "index" );
+                    }
+                } );
 
                 _prototype.set( "match" , new JSFunctionCalls1(){
                         public Object call( Scope s , Object o , Object foo[] ){
@@ -138,6 +148,18 @@ public class JSRegex extends JSObjectBase {
     public JSRegex( String p , String f ){
         super( Scope.getThreadLocalFunction( "RegExp" , _cons ) );
         init( p , f );
+
+        getConstructor()._prototype.set( "source" , p );
+        getConstructor()._prototype.set( "global" , _f.indexOf( "g" ) >= 0 );
+        getConstructor()._prototype.set( "ignoreCase" , _f.indexOf( "i" ) >= 0 );
+        getConstructor()._prototype.set( "multiline" , _f.indexOf( "m" ) >= 0 );
+        getConstructor()._prototype.dontEnumExisting();
+    }
+
+    private static final boolean isHex( char c ) {
+        return (c >= '0' && c <= '9') || 
+            (c >= 'a' && c <= 'f') || 
+            (c >= 'A' && c <= 'F');
     }
 
     /** @unexpose */
@@ -149,8 +171,22 @@ public class JSRegex extends JSObjectBase {
             char c = p.charAt( i );
 
             if ( c == '\\' ) {
-                boolean isOctal = ( i+1 < p.length() ) ? ( p.charAt( i+1 ) == '0' ) : false;
                 int end = i+1;
+
+                // unicode
+                if ( i+1 < p.length() && p.charAt( i+1 ) == 'u' ) {
+                    end = end + 1;
+                    while( end < p.length() && isHex( p.charAt( end ) ) && end < i+6 )
+                        end++;
+
+                    // only escape unicode if it's valid
+                    if( end - (i+2) == 4 ) {
+                        buf.append( "\\" );
+                    }
+
+                    continue;
+                }
+                boolean isOctal = ( end < p.length() ) ? ( p.charAt( end ) == '0' ) : false;
                 while( end < p.length() && 
                        ( Character.isDigit( p.charAt( end ) ) && 
                          ( !isOctal || ( isOctal && p.charAt( end ) < '8' ) ) ) ) {
@@ -196,7 +232,7 @@ public class JSRegex extends JSObjectBase {
     /** Initialize a regular expression from the given string with options.  Valid option strings can be any combination of "i", for "case insensitive", "g", for "global", and "m" for "multiline input".
      * Using the "m" option causes ^ and $ to match the beginnning and end of a line, respectively, versus the beginning and end of the input they would match normally.
      * @param p Regular expression
-     * @param f Options
+     * @param f Flags
      */
     void init( String p , String f ){
         _p = _jsToJava( p );
@@ -240,6 +276,14 @@ public class JSRegex extends JSObjectBase {
      * @return /expression/flags
      */
     public String toString(){
+        /*        Object source = getConstructor()._prototype.get( "source" );
+        if( source == null || source.toString().equals( "" ) ) {
+            source = "(?:)";
+            }*/
+        if( _p == null )
+            _p = "(?:)";
+        if( _f == null )
+            _f = "";
         return "/" + _p + "/" + _f;
     }
 

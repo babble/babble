@@ -40,14 +40,14 @@ public class Node extends JSObjectBase {
     private static JSString render(Scope scope, JSObject thisObj, Context context) {
         Printer.RedirectedPrinter printer = new Printer.RedirectedPrinter();
         
-        ((JSFunction)thisObj.get("__render")).call(scope.child(), context, printer);
+        ((JSFunction)thisObj.get("__render")).call(scope, context, printer);
         
         return printer.getJSString();
     }
     private static void __render(Scope scope, JSObject thisObj, Context context, JSFunction printer) {
-        JSString result = (JSString) ((JSFunction)thisObj.get("render")).call(scope.child(), context);
+        JSString result = (JSString) ((JSFunction)thisObj.get("render")).call(scope, context);
         
-        printer.call(scope.child(), result);
+        printer.call(scope, result);
     }
     private static NodeList get_nodes_by_type(Scope scope, JSObject thisObj, JSFunction constructor) {
         NodeList nodelist = new NodeList();
@@ -66,7 +66,7 @@ public class Node extends JSObjectBase {
         if (children != null) {
             for (Object childObj : children) {
                 JSFunction child_fn = (JSFunction)((JSObject)childObj).get("get_nodes_by_type");
-                JSArray childNodes = (JSArray)child_fn.callAndSetThis(scope.child(), childObj, new Object[] { constructor });
+                JSArray childNodes = (JSArray)child_fn.callAndSetThis(scope, childObj, new Object[] { constructor });
                 nodelist.addAll(childNodes);
             }
         }
@@ -154,7 +154,7 @@ public class Node extends JSObjectBase {
                 _prototype.set("__render", new JSFunctionCalls2() {
                     public Object call(Scope scope, Object contextObj, Object printerObj, Object[] extra) {
                         JSObject thisObj = (JSObject)scope.getThis();
-                        ((JSFunction)printerObj).call(scope.child(), thisObj.get("text"));
+                        ((JSFunction)printerObj).call(scope, thisObj.get("text"));
                         return null;
                     }
                 });
@@ -187,16 +187,22 @@ public class Node extends JSObjectBase {
             this.set("expression", expression);
         }
         
-        private static void __render(Scope scope, JSObject thisObj, Context context, JSFunction oldPrinter) {
+        private static void __render(Scope scope, JSObject thisObj, Context context, JSFunction passedInPrinter) {
             FilterExpression expr = (FilterExpression)thisObj.get("expression");
             boolean isAutoEscape = context.get("autoescape") != Boolean.FALSE;
 
-            Printer.RedirectedPrinter printer = new Printer.RedirectedPrinter();                        
-            scope = scope.child();
-            scope.setGlobal(true);
-            scope.set("print", printer);
             
-            Object result = expr.resolve(scope, context);
+            Object oldGlobalPrinter = scope.get( "print" );
+            Printer.RedirectedPrinter printer = new Printer.RedirectedPrinter();                        
+            scope.put("print", printer, false);
+            
+            Object result;
+            try {
+                result = expr.resolve(scope, context);
+            }
+            finally {
+                scope.put( "print" , oldGlobalPrinter, false );
+            }
             
             if(result != null && !"".equals(result))
                 printer.call(scope, result);
@@ -209,7 +215,7 @@ public class Node extends JSObjectBase {
             if(needsEscape)
                 output = Encoding._escapeHTML(output);                                
 
-            oldPrinter.call(scope.child(), new JSString(output));
+            passedInPrinter.call(scope, new JSString(output));
         }
         
         private static String toString(JSObject thisObj) {

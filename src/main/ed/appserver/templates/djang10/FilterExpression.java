@@ -24,9 +24,7 @@ import ed.js.JSException;
 import ed.js.JSFunction;
 import ed.js.JSObject;
 import ed.js.JSObjectBase;
-import ed.js.JSString;
 import ed.js.engine.Scope;
-import ed.js.func.JSFunctionCalls1;
 import ed.js.func.JSFunctionCalls2;
 import ed.log.Level;
 import ed.log.Logger;
@@ -165,9 +163,9 @@ public class FilterExpression extends JSObjectBase {
             
             try {
                 if(filter.get("needs_autoescape") == Boolean.TRUE)
-                    new_obj = filter.call(scope.child(), value, context.get("autoescape") != Boolean.FALSE, paramValue);
+                    new_obj = filter.call(scope, value, context.get("autoescape") != Boolean.FALSE, paramValue);
                 else
-                    new_obj = filter.call(scope.child(), value, paramValue);
+                    new_obj = filter.call(scope, value, paramValue);
             }
             catch(JSException e) {
                 throw JSHelper.unnestJSException(e);

@@ -280,7 +280,7 @@ module XGen
           # is not allowed).
           criteria = criteria_from(options[:conditions]).merge!(where_func(options[:where]))
           fields = fields_from(options[:select])
-          row = coll.findOne(criteria, fields)
+          row = coll.find_one(criteria, fields)
           (row.nil? || row['_id'] == nil) ? nil : self.new(row)
         end
 
@@ -377,7 +377,7 @@ module XGen
 
         # Turns a string into a Mongo search condition hash.
         def criteria_from_string(sql) # :nodoc:
-          $SQL.parseWhere(sql)
+          $SQL.parse_where(sql)
         end
 
         # Turns a hash that ActiveRecord would expect into one for Mongo.

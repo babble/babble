@@ -2,6 +2,8 @@
 
 package ed;
 
+import java.util.regex.*;
+
 public class MyAsserts {
 
     public static class MyAssert extends RuntimeException {
@@ -85,14 +87,20 @@ public class MyAsserts {
 
         throw new MyAssert( tag +  "[" + a + "] != [" + b + "]" );
     }
-
+    
     public static boolean isClose(String a, String b) { 
-
-        a = a.trim().replaceAll( "\\s+" , " " );
-        b = b.trim().replaceAll( "\\s+" , " " );
-
+        a = _simplify( a );
+        b = _simplify( b );
         return a.equalsIgnoreCase(b);
     }
+
+    private static String _simplify( String s ){
+        s = s.trim();
+        s = _whiteSpace.matcher( s ).replaceAll( "" );
+        return s;
+    }
+    
+    private static Pattern _whiteSpace = Pattern.compile( "\\s+" , Pattern.DOTALL | Pattern.MULTILINE );
     
     public static void assertNull( Object foo ){
         if ( foo == null )

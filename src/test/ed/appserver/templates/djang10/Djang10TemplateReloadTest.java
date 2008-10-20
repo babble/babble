@@ -5,20 +5,15 @@ import static org.testng.AssertJUnit.assertEquals;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.testng.annotations.Test;
 
-import ed.js.Encoding;
+import ed.appserver.AppContext;
 import ed.appserver.JSFileLibrary;
 import ed.appserver.templates.djang10.Printer.RedirectedPrinter;
-import ed.js.JSLocalFile;
 import ed.js.JSObjectBase;
 import ed.js.JSString;
 import ed.js.engine.Scope;
-import ed.js.func.JSFunctionCalls1;
-import ed.log.Level;
 import ed.log.Logger;
 
 public class Djang10TemplateReloadTest {
@@ -125,46 +120,21 @@ public class Djang10TemplateReloadTest {
     }
     
     private Scope initScope() {
-        //Initialize Scope ==================================
-        Scope oldScope = Scope.getThreadLocal();
-        Scope globalScope = Scope.newGlobal().child();
-        globalScope.setGlobal(true);
-        globalScope.makeThreadLocal();
+        AppContext appContext = new AppContext(TEST_DIR);
+        Logger appLogger = appContext.getLogger();
+        Scope appScope = appContext.getScope();
         
-        try {
-            //Load native objects
-            Logger log = Logger.getRoot();
-            globalScope.set("log", log);
-            log.makeThreadLocal();
-            
-            Map<String, JSFileLibrary> rootFiles = new HashMap<String, JSFileLibrary>();
-            rootFiles.put("local", new JSFileLibrary(new File(TEST_DIR), "local", globalScope));
-            for(Map.Entry<String, JSFileLibrary> rootFileLib : rootFiles.entrySet())
-                globalScope.set(rootFileLib.getKey(), rootFileLib.getValue());
-            
-            Encoding.install(globalScope);
-            JSHelper helper = JSHelper.install(globalScope, rootFiles, log);
-    
-            globalScope.set("SYSOUT", new JSFunctionCalls1() {
-                public Object call(Scope scope, Object p0, Object[] extra) {
-                    System.out.println(p0);
-                    return null;
-                }
-            });
-            globalScope.put("openFile", new JSFunctionCalls1() {
-                public Object call(Scope s, Object name, Object extra[]) {
-                    return new JSLocalFile(new File(TEST_DIR), name.toString());
-                }
-            }, true);
-            
-            //configure Djang10 =====================================
-            helper.addTemplateRoot(globalScope, new JSString("/local"));
+        //config logger
+        appLogger.makeThreadLocal();
+        JSHelper helper = JSHelper.get( appScope );
 
-        }
-        finally {
-            if(oldScope != null) oldScope.makeThreadLocal();
-            else Scope.clearThreadLocal();
-        }
-        return globalScope;
+        //config the request scope
+        Scope reqScope = appScope.child( "AppRequest" );
+        reqScope.setGlobal( true );
+           
+        //configure Djang10 
+        helper.addTemplateRoot(new JSString("/local"));
+
+        return reqScope;
     }
 }

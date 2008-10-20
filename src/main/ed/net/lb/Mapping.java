@@ -34,6 +34,8 @@ public interface Mapping {
     public List<String> getPools();
 
     public String toFileConfig();
+
+    public boolean reject( HttpRequest request );
     
     public static class Environment {
         
