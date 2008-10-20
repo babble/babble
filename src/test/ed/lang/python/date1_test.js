@@ -14,10 +14,11 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+jsDate = new Date();
+
 local.src.test.ed.lang.python.date1_helper();
 
 assert( pyDate instanceof Date );
-var jsDate = new Date();
 assert( Math.abs(jsDate.getTime() - pyDate.getTime()) < 2000 ,
         'time zone changed' );
 
