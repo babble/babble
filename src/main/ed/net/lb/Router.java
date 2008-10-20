@@ -77,11 +77,14 @@ public final class Router {
 
     public void error( HttpRequest request , HttpResponse response , InetSocketAddress addr , NIOClient.ServerErrorType type , Exception what ){
         final Environment e = _mapping.getEnvironment( request );
-	getPool( _mapping.getPool( e ) )._tracker.networkEvent();
+	final String pool = e == null ? null :_mapping.getPool( e );
+	
+	if ( pool != null )
+	    getPool( pool )._tracker.networkEvent();
+	
         if ( addr != null )
             getServer( addr ).error( e , type , what , request , response  );
         
-        // TODO: something with env?
     }
 
     public void success( HttpRequest request , HttpResponse response , InetSocketAddress addr ){
@@ -152,6 +155,10 @@ public final class Router {
     void _initCheck(){
         for ( String pool : _mapping.getPools() )
             getPool( pool );
+    }
+
+    boolean reject( HttpRequest request ){
+        return _mapping.reject( request );
     }
 
     class Pool {
