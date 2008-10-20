@@ -25,6 +25,7 @@ import ed.io.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.lang.*;
+import ed.lang.cgi.CGISource;
 import ed.util.*;
 import ed.appserver.*;
 import ed.appserver.templates.*;
@@ -55,6 +56,9 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
 
         else if ( f.getName().endsWith( ".php" ) )
             s = new ed.lang.php.PHPJxpSource( f );
+
+        else if ( f.getName().endsWith( ".yaml" ) )
+            s = new CGISource( f , lib );
 
         if( s == null )
             s = new JxpFileSource( f );

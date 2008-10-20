@@ -25,12 +25,12 @@ import org.python.core.*;
 import org.python.Version;
 
 import ed.js.*;
-import ed.log.*;
 import ed.js.engine.*;
-import ed.lang.*;
+import ed.lang.cgi.EnvMap;
 import ed.util.*;
 import ed.appserver.*;
 import ed.appserver.jxp.*;
+import ed.log.Logger;
 
 public class PythonJxpSource extends JxpSource {
 
@@ -71,10 +71,23 @@ public class PythonJxpSource extends JxpSource {
         return new ed.js.func.JSFunctionCalls0(){
             public Object call( Scope s , Object extra[] ){
 
+                // --- start of modification for AE/CGI/etc discussion ---
+
+                EnvMap envMap = null;
+
                 PyObject args[] = new PyObject[ extra == null ? 0 : extra.length ];
-                for ( int i=0; i<args.length; i++ )
-                    args[i] = Python.toPython( extra[i] );
-                
+                for ( int i=0; i<args.length; i++ ) {
+
+                    if (extra[i] instanceof EnvMap) {
+                        envMap = (EnvMap) extra[i];
+                        continue;
+                    }
+
+                    args[i] = Python.toPython( extra[i] );  // TODO - do we really need this?  not used anywhere...
+                }
+
+                // --- start of modification for AE/CGI/etc discussion ---
+
                 final AppRequest ar = AppRequest.getThreadLocal();
                 final AppContext ac = getAppContext();
 
@@ -91,6 +104,24 @@ public class PythonJxpSource extends JxpSource {
 
                 PyObject globals = ss.globals;
                 PyObject oldFile = globals.__finditem__( "__file__" );
+
+                // --- start of modification for AE/CGI/etc discussion ---
+
+                /**
+                 *  if someone passed us an envMap, then we're CGI, so lets drop in the
+                 *  map, and re-route the output
+                 */
+                if (envMap != null) {
+                    PyObject environ = ss.getPyState().getEnviron();
+
+                    for (String key : envMap.keySet()) {
+                        environ.__setitem__( key.intern() , Py.newString(envMap.get(key)));
+                    }
+
+                    ss.getPyState().stdout = new PyCGIOutputHandler(_log); // TODO - do we have to put this back?
+                }
+
+                // --- end of modification for AE/CGI/etc discussion ---
 
                 try {
                     Py.setSystemState( ss.getPyState() );
