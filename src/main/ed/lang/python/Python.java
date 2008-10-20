@@ -77,6 +77,10 @@ public class Python extends Language {
         if ( p == null || p instanceof PyNone )
             return null;
 
+        if ( p instanceof Boolean ||
+             p instanceof Number )
+            return p;
+
         if ( p instanceof String )
             return new JSString( p.toString() );
 
