@@ -66,14 +66,17 @@ public class TextMapping extends MappingBase {
 
     TextMapping( File f )
         throws IOException {
+        this( new LineReader( f ) );
+    }
+
+    TextMapping( LineReader in )
+        throws IOException {
         super( "TextMapping" );
-        _file = f;
         
         String current = null;
         boolean site = false;
-            
-
-        for ( String line : new LineReader( _file ) ){
+        
+        for ( String line : in ){
             if ( line.length() == 0 )
                 continue;
 
@@ -94,14 +97,37 @@ public class TextMapping extends MappingBase {
                 setDefaultPool( line.substring( 8 ).trim() );
                 continue;
             }
+            
+            if ( line.startsWith( "block ip" ) ){
+                blockIp( line.substring( 8 ).trim() );
+                continue;
+            }
+
+            if ( line.startsWith( "block url" ) ){
+                line = line.substring( 9 ).trim();
+                int idx = line.indexOf( " " );
+                if ( idx < 0 ){
+                    idx = line.indexOf( "/" );
+                    if ( idx < 0 ){
+                        throw new RuntimeException( "bad block url line [" + line + "]" );
+                    }
+                }
+                
+                blockUrl( line.substring( 0 , idx ).trim() , line.substring( idx + 1 ).trim() );
+                continue;
+            }
 
             if ( ! Character.isWhitespace( line.charAt(0) ) )
                 throw new RuntimeException( "invalid starting line [" + line + "]" );
             
             if ( site ){
+                line = line.trim();
                 int idx = line.indexOf( ":" );
-                if ( idx < 0 )
-                    throw new RuntimeException( "illegel site line [" + line  + "] has to be <env> : <pool>" );
+                if ( idx < 0 ){
+                    idx = line.indexOf( " " );
+                    if ( idx < 0 )
+                        throw new RuntimeException( "illegel site line [" + line  + "] has to be <env> : <pool>" );
+                }
                 addSiteMapping( current , line.substring( 0 , idx ).trim() , line.substring( idx + 1 ).trim() );
                 continue;
             }
@@ -111,8 +137,6 @@ public class TextMapping extends MappingBase {
 		addAddressToPool( current , line );
         }
     }
-
-    final File _file;
 
     public static void main( String args[] )
         throws IOException {
