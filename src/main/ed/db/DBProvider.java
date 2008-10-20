@@ -33,7 +33,10 @@ public class DBProvider {
             }
         }
 
-        return get( c.getDBAddressForSite( name , ctxt.getEnvironmentName() ) , false );
+        final DBAddress addr = c.getDBAddressForSite( name , env , true );
+        if ( addr == null )
+            throw new RuntimeException( "can't find db address for site [" + ctxt.getName() + "] environment [" + env + "]" );
+        return get( addr , false );
     }
 
     public static DBApiLayer getSisterDB( DBBase base , String name ){

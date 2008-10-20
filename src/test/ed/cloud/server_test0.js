@@ -19,6 +19,7 @@ testServerParse( "iad-sb-n7" , "iad" , "sb" , 7 );
 testServerParse( "abc-def-n99.10gen.cc" , "abc" , "def" , 99 );
 
 testServerParse( "adasdsad" );
+testServerParse( "adasdsad-abc-n1" );
 
-testServerParse( "ip-10-251-170-224" , "ec2" , "ec2" , "10251170224" );
-testServerParse( "ip-10-251-170-224" , "ec2" , "ec2" , 10251170224 );
+testServerParse( "ip-10-251-170-224" , "use1c" , "ec2" , "10251170224" );
+testServerParse( "ip-10-251-170-224" , "use1c" , "ec2" , 10251170224 );

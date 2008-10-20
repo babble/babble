@@ -183,12 +183,29 @@ public class SiteSystemState {
         }
     }
 
-    static class MyStdoutFile extends PyFile {
+    @ExposedType(name="_10gen_stdout")
+    public static class MyStdoutFile extends PyFile {
+        static PyType TYPE = Python.exposeClass(MyStdoutFile.class);
         MyStdoutFile(){
+            super( TYPE );
         }
+        @ExposedMethod
         public void flush(){}
 
-        public void write( String s ){
+        @ExposedMethod
+        public void _10gen_stdout_write( PyObject o ){
+            if ( o instanceof PyUnicode ){
+                _10gen_stdout_write(o.__str__().toString());
+            }
+            else if ( o instanceof PyString ){
+                _10gen_stdout_write(o.toString());
+            }
+            else {
+                throw Py.TypeError("write requires a string as its argument");
+            }
+        }
+
+        final public void _10gen_stdout_write( String s ){
             AppRequest request = AppRequest.getThreadLocal();
 
             if( request == null )
@@ -198,7 +215,10 @@ public class SiteSystemState {
                 request.print( s );
             }
         }
-        AppRequest _request;
+
+        public void write( String s ){
+            _10gen_stdout_write( s );
+        }
     }
 
 
