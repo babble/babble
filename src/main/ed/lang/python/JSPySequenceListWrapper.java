@@ -61,8 +61,8 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
                         JSPySequenceListWrapper a = (JSPySequenceListWrapper)(s.getThis());
                         JSFunction f = (JSFunction)fo;
 
-                        for ( Object o : a._pSeq ){
-                            Object j = toJS( o );
+                        for ( int i = 0; i < a._pSeq.size(); i++ ){
+                            Object j = toJS( a._pSeq.pyget( i ) );
 
                             if ( JS_evalToBool( f.call( s , j ) ) )
                                 return true;
@@ -76,8 +76,8 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
                         JSPySequenceListWrapper a = (JSPySequenceListWrapper)(s.getThis());
                         JSFunction f = (JSFunction)fo;
 
-                        for ( Object o : a._pSeq ){
-                            Object j = toJS( o );
+                        for ( int i = 0; i < a._pSeq.size(); i++ ){
+                            Object j = toJS( a._pSeq.pyget( i ) );
 
                             if ( ! JS_evalToBool( f.call( s , j ) ) )
                                 return false;
@@ -106,10 +106,11 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
 
                         JSArray arr = new JSArray();
 
-                        for ( Object o : a._pSeq ){
-                            Object res = f.call( s , toJS( o ) );
+                        for ( int i = 0; i < a._pSeq.size(); i++ ){
+                            Object j = toJS( a._pSeq.pyget( i ) );
+                            Object res = f.call( s , j );
                             if( JS_evalToBool( res ) )
-                                arr.add( toJS( o ) );
+                                arr.add( j );
                         }
 
                         return arr;
@@ -124,8 +125,9 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
                         JSPySequenceListWrapper a = (JSPySequenceListWrapper)(s.getThis());
                         JSArray arr = new JSArray();
 
-                        for ( Object o : a._pSeq ){
-                            Object res  = f.call( s , toJS( o ) );
+                        for ( int i = 0; i < a._pSeq.size(); i++ ){
+                            Object j = toJS( a._pSeq.pyget( i ) );
+                            Object res  = f.call( s , j );
                             arr.add( res );
                         }
 
@@ -144,7 +146,7 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
                         Integer l = a._pSeq.size();
 
                         for ( int i = 0 ; i < l ; ++i ){
-                            val = f.call( s , val , toJS( a._pSeq.get(i) ) , i , l );
+                            val = f.call( s , val , toJS( a._pSeq.pyget(i) ) , i , l );
                         }
 
                         return val;
@@ -303,16 +305,15 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
     }
 
     public Object[] toArray(){
-        Object[] ary = _pSeq.toArray();
-        Object[] out = new Object[ ary.length ];
-        int i = 0;
-        for( Object o : ary ){
-            out[ i++ ] = toJS( o );
+        Object[] out = new Object[ _pSeq.size() ];
+        for( int i = 0 ; i < _pSeq.size() ; ++i ){
+            out[ i ] = toJS( _pSeq.pyget(i) );
         }
         return out;
     }
 
     public Object[] toArray( Object[] a ){
+        // Converted to JS by ary
         Object[] ary = toArray();
         int i = 0;
         Class c = a.getClass().getComponentType();
@@ -320,7 +321,7 @@ public class JSPySequenceListWrapper extends JSPyObjectWrapper
             a = (Object[])Array.newInstance( c, ary.length );
         }
         for( Object o : ary ){
-            a[ i++ ] = toJS( o );
+            a[ i++ ] = o;
         }
         return a;
     }
