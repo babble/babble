@@ -134,7 +134,7 @@ public abstract class MappingBase implements Mapping {
     protected void blockUrl( String host , String uri ){
         Set<String> s = _blockedUrls.get( host );
         if ( s == null ){
-            s = new HashSet<String>();
+            s = new TreeSet<String>();
             _blockedUrls.put( host , s );
         }
         s.add( uri );
@@ -207,11 +207,11 @@ public abstract class MappingBase implements Mapping {
     
 
     private String _defaultPool;
-    final private Map<String,Map<String,String>> _sites = new HashMap<String,Map<String,String>>();
-    final private Map<String,List<InetSocketAddress>> _pools = new HashMap<String,List<InetSocketAddress>>();
+    final private Map<String,Map<String,String>> _sites = new TreeMap<String,Map<String,String>>();
+    final private Map<String,List<InetSocketAddress>> _pools = new TreeMap<String,List<InetSocketAddress>>();
 
-    final private Set<String> _blockedIps = new HashSet<String>();
-    final private Map<String,Set<String>> _blockedUrls = new HashMap<String,Set<String>>(); // host -> uris
+    final private Set<String> _blockedIps = new TreeSet<String>();
+    final private Map<String,Set<String>> _blockedUrls = new TreeMap<String,Set<String>>(); // host -> uris
 }
 
 
