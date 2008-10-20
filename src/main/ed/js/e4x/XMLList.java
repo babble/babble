@@ -35,25 +35,46 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
     public static JSFunction c = new ListCons();
 
     public static class ListCons extends JSFunctionCalls0 {
-            public JSObject newOne(){
-                return new XMLList();
+        public JSObject newOne(){
+            return new XMLList();
+        }
+
+        public Object call( Scope scope , Object [] args){
+            ENode n = (ENode)(new ENode.Cons()).call( scope, args );
+            XMLList x = new XMLList( n );
+            
+            Object o = scope.getThis();
+            if( o instanceof XMLList ) {
+                ((XMLList)o).addAll( x );
+                return o;
             }
+            
+            return x;
+        }
 
-            public Object call( Scope scope , Object [] args){
-                ENode n = (ENode)(new ENode.Cons()).call( scope, args );
-                XMLList x = new XMLList( n );
+        protected void init() {
+            //(new ENode.Cons()).init();
+            _prototype.set( "child", new ENodeFunction() {
+                    public Object call( Scope s,  Object foo[]) {
+                        return ((XMLList)s.getThis()).child( ENode.getOneArg( foo ).toString() );
+                    }
+                });
+            _prototype.set( "length", new ENodeFunction() {
+                    public Object call( Scope s,  Object foo[]) {
+                        return ((XMLList)s.getThis()).length();
+                    }
+                });
+            _prototype.set( "toString", new ENodeFunction() {
+                    public Object call( Scope s,  Object foo[]) {
+                        return ((XMLList)s.getThis()).toString();
+                    }
+                });
+            _prototype.set( "toXMLString", new ENodeFunction() {
+                    public Object call( Scope s,  Object foo[]) {
+                        return ((XMLList)s.getThis()).toXMLString();
+                    }
+                });
 
-                Object o = scope.getThis();
-                if( o instanceof XMLList ) {
-                    ((XMLList)o).addAll( x );
-                    return o;
-                }
-
-                return x;
-            }
-
-            protected void init() {
-                (new ENode.Cons()).init();
             }
         };
 
@@ -113,6 +134,10 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
         if( this.equals( o ) ) 
             return true;
         return children.contains( o ); 
+    }
+
+    public int length() {
+        return this.size();
     }
 
     public XMLList text() {

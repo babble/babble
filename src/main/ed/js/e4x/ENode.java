@@ -1877,7 +1877,7 @@ public class ENode extends JSObjectBase {
         return n;
     }
 
-    private static ENode getENode( Scope s ) {
+    protected static ENode getENode( Scope s ) {
         Object obj = s.getThis();
         if ( obj instanceof ENode ) 
             return (ENode)obj;
@@ -1888,13 +1888,13 @@ public class ENode extends JSObjectBase {
         return textNodeFactory( "" );
     }
 
-    private static Object getOneArg( Object foo[] ) {
+    protected static Object getOneArg( Object foo[] ) {
         if( foo.length == 0 ) 
             throw new RuntimeException( "This method requires one argument." );
         return foo[0];
     }
 
-    private static Object[] getTwoArgs( Object foo[] ) {
+    protected static Object[] getTwoArgs( Object foo[] ) {
         Object[] o = new Object[2];
         if( foo.length < 2 ) 
             throw new RuntimeException( "This method requires two arguments." );
