@@ -242,6 +242,14 @@ public class Python extends Language {
             return new PyJSLogLevelWrapper( (ed.log.Level)o );
         }
 
+        if ( o instanceof JSDate ){
+            String datetimeS = "datetime".intern();
+            PyModule mod = (PyModule)__builtin__.__import__( datetimeS );
+            PyObject datetime = mod.__finditem__( datetimeS );
+            PyObject fromtimestamp = datetime.__finditem__( "fromtimestamp".intern() );
+            return fromtimestamp.__call__( Py.newInteger( ((JSDate)o).getTime() ) );
+        }
+
         // these should be at the bottom
         if ( o instanceof JSFunction ){
             Object p = ((JSFunction)o).getPrototype();
