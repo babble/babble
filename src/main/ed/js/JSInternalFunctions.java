@@ -387,12 +387,9 @@ public class JSInternalFunctions extends JSNumericFunctions {
             return a.equals( b );
         }
 
-        if ( a instanceof Number || b instanceof Number ){
+        if ( a instanceof Number && b instanceof Number ){
             a = _parseNumber( a );
             b = _parseNumber( b );
-        }
-
-        if ( a instanceof Number && b instanceof Number ){
             if( Double.isNaN( ((Number)a).doubleValue() ) ||
                 Double.isNaN( ((Number)b).doubleValue() ) ) {
                 return false;
@@ -405,9 +402,6 @@ public class JSInternalFunctions extends JSNumericFunctions {
 
         if ( a instanceof String && b instanceof String )
             return a.equals( b );
-
-        if ( _charEQ( a , b ) || _charEQ( b , a ) )
-            return true;
 
         return a == b;
     }

@@ -910,41 +910,47 @@ public class Convert {
 
     private void _addSwitch( Node n , State state ){
         _assertType( n , Token.SWITCH );
+        Node caseDefault = ((Node.Jump)n).getDefault();
 
-        String ft = "ft" + _rand();
-        String val = "val" + _rand();
-        _append( "boolean " + ft + " = false;\n" , n );
-        _append( "do { \n " , n );
-        _append( " if ( false ) break; \n" , n );
+        String switcherVar = "switcher" + _rand();
+        _append( "int " + switcherVar + " = -1;\n" , n );
 
         Node caseArea = n.getFirstChild();
+        String val = "val" + _rand();
         _append( "Object " + val + " = " , n );
         _add( caseArea , state );
         _append( " ; \n " , n );
 
+        n = n.getNext(); // this is default
+        _assertType( n , Token.GOTO ); 
         n = n.getNext();
-        _assertType( n , Token.GOTO ); // this is default ?
-        n = n.getNext().getNext();
 
         caseArea = caseArea.getNext();
         while ( caseArea != null ){
-            _append( "if ( " + ft + " || JS_eq( " + val + " , " , caseArea );
+            _append( "if ( JS_sheq( " + val + " , " , caseArea );
             _add( caseArea.getFirstChild() , state );
-            _append( " ) ){\n " + ft + " = true; \n " , caseArea );
-
-            _assertType( n , Token.BLOCK );
-            _add( n , state );
-            n = n.getNext().getNext();
-
+            _append( " ) ) {\n " + switcherVar + " = " + ((Node.Jump)caseArea).target.hashCode() + "; \n " , caseArea );
             _append( " } \n " , caseArea );
+
+            _append( "else ", caseArea );
             caseArea = caseArea.getNext();
         }
+        _append( "; // default: switcher set to -1 \n", n ); 
 
-        if ( n != null && n.getType() == Token.BLOCK ){
-            _add( n , state );
+        _append( "switch( " + switcherVar + " ) { \n" , n );
+        while( n != null && n.getNext() != null ) {
+            if( n == caseDefault ) {
+                _append( " default: \n" , n );
+            }
+            else {
+                _append( " case " + n.hashCode() + ": \n" , n );
+            }
+            n = n.getNext();
+            _assertType( n , Token.BLOCK );
+            _add( n, state );
+            n = n.getNext();
         }
-
-        _append(" } while ( false );" , n );
+        _append(" } \n" , n );
     }
 
     private void _createRef( Node n , State state ){
