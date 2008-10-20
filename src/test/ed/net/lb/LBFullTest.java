@@ -48,7 +48,7 @@ public class LBFullTest extends HttpServerTest {
         assert( r.headers.containsKey( "x-lb" ) );
     }
 
-    protected Socket open()
+    protected Socket getSocket()
         throws IOException {
         return new Socket("127.0.0.1", _lbPort);
     }
@@ -85,7 +85,41 @@ public class LBFullTest extends HttpServerTest {
             testPost2();
         }
     }
+
+    // explicitly left out of testng
+    public void testDroppedClients()
+        throws IOException {
+        for ( int i=0; i<200; i++ )
+            _drop();
+    }
+    
+    void _drop()
+        throws IOException {
         
+        int num = 2;
+        
+        StringBuilder buf = new StringBuilder();
+        for (int i = 0; i < num; i++)
+            buf.append(headers("GET", "", "Connection: Keep-Alive\r\n"));
+
+        Socket s = open();
+        Response r;
+
+        OutputStream out = s.getOutputStream();
+        InputStream in = s.getInputStream();
+
+        out.write(buf.toString().getBytes());
+
+        // starting at i=1 so that there is one left on the stream
+        for (int i = 1; i < num; i++) {
+            r = read(in);
+            assertEquals(PingHandler.DATA, r.body);
+            checkResponse( r );
+        }
+
+        s.close();
+    }
+    
     
     class MyMappingFactory implements MappingFactory {
         
@@ -144,7 +178,16 @@ public class LBFullTest extends HttpServerTest {
 
     public static void main(String args[])
             throws IOException {
-        (new LBFullTest()).runConsole();
+        LBFullTest ft = new LBFullTest();
+        ft.runConsole();
+        
+        
+        if ( args.length > 0 ){
+            int sleep = Integer.parseInt( args[0] );
+            System.out.println( "sleeping for " + sleep + " seconds" );
+            ThreadUtil.sleep( sleep * 1000 );
+        }
+        
     }
     
 }

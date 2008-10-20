@@ -37,11 +37,13 @@ public class MappingBaseTest extends TestCase {
             "pool prod1\n" + 
             "   n1\n" + 
             "pool prod2\n" + 
-            "   n2\n";
+            "   n2\n" +
+            "pool prod3\n" + 
+            "   n3:80\n";
 
         TextMapping tm = create( s );
         assertClose( s , tm.toFileConfig() );
-
+        
         assertEquals( "n1" , tm.getAddressesForPool( "prod1" ).get( 0 ).getHostName() );
         assertEquals( "n2" , tm.getAddressesForPool( "prod2" ).get( 0 ).getHostName() );
     }

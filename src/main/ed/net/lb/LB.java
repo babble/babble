@@ -181,7 +181,9 @@ public class LB extends NIOClient {
         }
         
         void backendError( ServerErrorType type , IOException ioe ){
-            _logger.debug( 1 , "backend error" , ioe );
+            ioe.printStackTrace();
+            System.out.println( "HERE" );
+            _logger.error( "backend error" , ioe );
             error( type , ioe );
         }
 
@@ -262,8 +264,8 @@ public class LB extends NIOClient {
                 _response.done();
             }
             catch ( IOException ioe ){
-                _logger.debug( 2 , "client error" , ioe );
-                return WhatToDo.ERROR;
+                _logger.debug( 1 , "client error" , ioe );
+                return WhatToDo.CLIENT_ERROR;
             }
             return WhatToDo.PAUSE;
         }

@@ -350,7 +350,7 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
                     _anyUpdateSave = true;
 
                     _checkObject( q , false , true );
-                    _checkObject( o , false , false );
+                    _checkObject( o , false , true ); // TODO: updates require special semantics
 
                     if ( s != null )
                         _findSubObject( s , (JSObject)o , (IdentitySet)seen );

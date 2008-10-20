@@ -36,7 +36,7 @@ public abstract class NIOClient extends Thread {
 
     public enum ServerErrorType { WEIRD , INVALID , CONNECT , SOCK_TIMEOUT };
 
-    protected enum WhatToDo { CONTINUE , PAUSE , DONE_AND_CLOSE , DONE_AND_CONTINUE , ERROR };
+    protected enum WhatToDo { CONTINUE , PAUSE , DONE_AND_CLOSE , DONE_AND_CONTINUE , ERROR , CLIENT_ERROR };
 
     public static final SimpleDateFormat SHORT_TIME = new SimpleDateFormat( "MM/dd HH:mm:ss.S" );
     static final long AFTER_SHUTDOWN_WAIT = 1000 * 60;
@@ -350,7 +350,11 @@ public abstract class NIOClient extends Thread {
                 _key.interestOps( 0 );
                 return;
             case ERROR:
-                _userError( "unknown" );
+                _userError( "Call.handleRead returned ERROR" );
+                return;
+            case CLIENT_ERROR:
+                _error = new IOException( "downstream error so closing" );
+                done( true );
                 return;
             case DONE_AND_CLOSE:
                 done( true );
@@ -364,14 +368,11 @@ public abstract class NIOClient extends Thread {
         public void done( boolean close ){
 
             if ( close )
-                close();
-            
-            _current = null;
+                _close( true );
+            else 
+                _putBackInPool();
 
-            if ( _error == null ){
-                _pool.done( this );
-                _logger.debug( 2 , "putting connection back in pool" );
-            }
+            _current = null;
 
         }
 
@@ -447,20 +448,31 @@ public abstract class NIOClient extends Thread {
             _error = e;
             if ( _current != null )
                 _current.error( type , e );
-            if ( _ready ){
-                close();
-            }
+
+            if ( _ready )
+                _close( true );
+
         }
 
         public String toString(){
             return _addr.toString();
         }
         
-        void close(){
+        void _putBackInPool(){
+            _pool.done( this );
+            _logger.debug( 2 , "putting connection back in pool" );
+        }
+
+        void _close( boolean putBackInBool ){
+
             if ( _closed )
                 return;
             
             _closed = true;
+            
+            if ( putBackInBool )
+                _putBackInPool();
+
             try {
                 _key.interestOps( 0 );
                 _key.attach( null );
