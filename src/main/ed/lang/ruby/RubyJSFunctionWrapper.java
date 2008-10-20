@@ -156,9 +156,11 @@ public class RubyJSFunctionWrapper extends RubyJSObjectWrapper {
         module.addMethod(internedName, jm);
         module.callMethod(getRuntime().getCurrentContext(), "method_added", sym);
 
-        String rubyName = JavaUtil.getRubyCasedName(name);
-        if (!name.equals(rubyName) && _okToAlias(rubyName))
-            module.alias_method(getRuntime().getCurrentContext(), getRuntime().fastNewSymbol(rubyName.intern()), sym);
+        if (!Character.isUpperCase(name.charAt(0))) { // don't alias class names (which can also be function names)
+            String rubyName = JavaUtil.getRubyCasedName(name);
+            if (!name.equals(rubyName) && _okToAlias(rubyName))
+                module.alias_method(getRuntime().getCurrentContext(), getRuntime().fastNewSymbol(rubyName.intern()), sym);
+        }
     }
 
     protected boolean _okToAlias(String rubyName) {
