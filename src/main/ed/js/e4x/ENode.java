@@ -1559,7 +1559,8 @@ public class ENode extends JSObjectBase {
         XMLList list = new XMLList();
         if( this.node.getNodeType() == Node.ELEMENT_NODE ) {
             for( ENode child : this.children ) {
-                if( child.node.getNodeType() == Node.TEXT_NODE ) {
+                if( child.node.getNodeType() == Node.TEXT_NODE || 
+                    child.node.getNodeType() == Node.CDATA_SECTION_NODE ) {
                     list.add( child );
                 }
             }
@@ -1577,14 +1578,18 @@ public class ENode extends JSObjectBase {
             if( singleNode.node.getNodeType() == Node.ELEMENT_NODE && ( kids == null || kids.size() == 0 ) )
                 return "";
 
-            if( singleNode.node.getNodeType() == Node.ATTRIBUTE_NODE || singleNode.node.getNodeType() == Node.TEXT_NODE )
+            if( singleNode.node.getNodeType() == Node.ATTRIBUTE_NODE || 
+                singleNode.node.getNodeType() == Node.TEXT_NODE )
                 return singleNode.node.getNodeValue();
 
             if ( singleNode.node.getNodeType() == Node.ELEMENT_NODE &&
                  singleNode.children != null &&
                  singleNode.childrenAreTextNodes() ) {
                 for( ENode n : kids )
-                    xml.append( n.node.getNodeValue() );
+                    if( XML.ignoreWhitespace )
+                        xml.append( n.node.getNodeValue().trim() );
+                    else 
+                        xml.append( n.node.getNodeValue() );
                 return xml.toString();
             }
 
@@ -1766,7 +1771,8 @@ public class ENode extends JSObjectBase {
     private boolean childrenAreTextNodes() {
         List<ENode> kids = this.printableChildren();
         for( ENode n : kids ) {
-            if( n.node.getNodeType() != Node.TEXT_NODE )
+            if( n.node.getNodeType() != Node.TEXT_NODE &&
+                n.node.getNodeType() != Node.CDATA_SECTION_NODE )
                 return false;
         }
         return true;
