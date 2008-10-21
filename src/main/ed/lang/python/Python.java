@@ -213,6 +213,10 @@ public class Python extends Language {
 
         // FILL IN MORE HERE
 
+        if (o instanceof InputStream) {
+            return new PyFile((java.io.InputStream)o);
+        }
+
         if (o instanceof JSRegex) {
             PyObject re = __builtin__.__import__("re");
             JSRegex regex = (JSRegex)o;

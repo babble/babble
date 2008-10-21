@@ -45,6 +45,12 @@ ENV['RAILS_ENV'] = $scope['__instance__'].getEnvironmentName() || 'development'
 # "production" instead.
 ENV['RAILS_ENV'] = 'production' if ENV['RAILS_ENV'] == 'www'
 
+# Logging
+require 'logger'
+require 'xgen/mongo/log_device'
+# Default LogDevice capped collection size is 10 Mb.
+RAILS_DEFAULT_LOGGER = Logger.new(XGen::Mongo::LogDevice.new("rails_log_#{ENV['RAILS_ENV']}"))
+
 require 'xgen/mongo'
 require File.join($local.getRoot.getPath, "config/environment") unless defined?(RAILS_ROOT)
 require 'dispatcher'
