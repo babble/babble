@@ -454,6 +454,9 @@ public abstract class JSFile extends JSObjectBase {
             return false;
         }
 
+        public void cancelled(){
+        }
+
         protected JSFileChunk _chunk;
         ByteBuffer _buf;
         long _bytesWritten = 0;

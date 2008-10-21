@@ -310,6 +310,13 @@ public class HttpServer extends NIOServer {
             return _selector;
         }
         
+        public void close(){
+            if ( _lastResponse != null )
+                _lastResponse.socketClosing();
+            super.close();
+        }
+        
+
         final HttpServer _server;
 
         ByteBufferHolder _in = new ByteBufferHolder( 1024 * 1024 * 200 ); // 200 mb

@@ -366,6 +366,12 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
             _writer._cur = null;
             _writer = null;
         }
+        
+        if ( _jsfile != null ){
+            if ( _jsfile.available() > 0 )
+                _jsfile.cancelled();
+            _jsfile = null;
+        }
 
     }
 
@@ -524,6 +530,14 @@ public class HttpResponse extends JSObjectBase implements HttpServletResponse {
             _handler.registerForWrites();
 
         return true;
+    }
+
+    void socketClosing(){
+        if ( _cleaned )
+            return;
+
+        // uh-oh
+        cleanup();
     }
 
     private String _genHeader()

@@ -400,8 +400,6 @@ public abstract class NIOServer extends Thread {
             return now - _lastAction > CLIENT_TIMEOUT;
         }
 
-        
-
         protected final SocketChannel _channel;
         private SelectionKey _key = null;
         protected boolean _bad = false;

@@ -448,10 +448,19 @@ public abstract class NIOClient extends Thread {
 
             handleWrite();
         }
+        
+        public void userError( String msg ){
+            _userError( msg , false );
+        }
 
         private void _userError( String msg ){
+            _userError( msg , true );
+        }
+        
+        private void _userError( String msg , boolean shouldThrow ){
             _error( ServerErrorType.WEIRD , new IOException( "User Error : " + msg ) );
-            throw new RuntimeException( msg );
+            if ( shouldThrow )
+                throw new RuntimeException( msg );
         }
 
         private void _error( ServerErrorType type , IOException e ){
