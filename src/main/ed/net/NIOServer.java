@@ -329,6 +329,8 @@ public abstract class NIOServer extends Thread {
         private void _register( int ops )
             throws IOException {
             
+            _lastAction = System.currentTimeMillis();
+    
             SelectionKey key = _channel.keyFor( _selector );
             if ( key == null ){
                 if ( ! _didASelectorReset )
