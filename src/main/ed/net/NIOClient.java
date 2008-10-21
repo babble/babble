@@ -54,15 +54,14 @@ public abstract class NIOClient extends Thread {
         _loggerOpen = _logger.getChild( "open" );
         _loggerDrop = _logger.getChild( "drop" );
         
-        _addMonitors();
-
         try {
             _selector = Selector.open();
         }
         catch ( IOException ioe ){
             throw new RuntimeException( "can't open selector" , ioe );
         }
-        
+
+        _addMonitors();
     }
     
     protected abstract void serverError( InetSocketAddress addr , ServerErrorType type , Exception why );
@@ -280,15 +279,12 @@ public abstract class NIOClient extends Thread {
         }
         
         boolean ok(){
-            if ( _error != null )
+            if ( _error != null || _closed )
                 return false;
 
             if ( System.currentTimeMillis() - _opened > CONNECT_TIMEOUT )
                 return false;
             
-            if ( _closed )
-                return false;
-
             return true;
         }
         
@@ -367,13 +363,12 @@ public abstract class NIOClient extends Thread {
         
         public void done( boolean close ){
 
+            _current = null;
+
             if ( close )
                 _close( true );
             else 
                 _putBackInPool();
-
-            _current = null;
-
         }
 
         void handleWrite(){
