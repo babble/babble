@@ -49,7 +49,7 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
             s = new ed.lang.python.PythonJxpSource( f , lib );
         
         else if ( f.getName().endsWith( ".rb" ) )
-            s = new ed.lang.ruby.RubyJxpSource( f , lib );
+            s = new ed.lang.ruby.RubyJxpSource( f , lib , false );
         
         else if ( f.getName().endsWith( ".erb" ) || f.getName().endsWith( ".rhtml" ) )
             s = new ed.lang.ruby.RubyErbSource( f , lib );
@@ -62,6 +62,9 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
 
         else if ( f.getName().endsWith( ".cgi" ) )
             s = new SysExecCGIGateway( f );
+
+        else if ( f.getName().endsWith( ".rbcgi" ) )
+            s = new ed.lang.ruby.RubyJxpSource( f , lib , true );
         
         if( s == null )
             s = new JxpFileSource( f );

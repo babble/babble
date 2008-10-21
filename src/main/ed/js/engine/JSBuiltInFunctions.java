@@ -169,9 +169,11 @@ public class JSBuiltInFunctions {
 			    return true;
 
                         String msg = "not the same [" + a + "] != [" + b + "]";
+                        //msg += " (" + _getClass( a ) + ") (" + _getClass(b) + ")";
+
                         if ( extraMsg != null )
                             msg += " " + extraMsg;
-
+                        
 			throw new JSException( msg );
 		    }
 		} );
@@ -188,6 +190,12 @@ public class JSBuiltInFunctions {
 			throw new JSException( msg );
 		    }
 		} );
+        }
+
+        static String _getClass( Object o ){
+            if ( o == null )
+                return null;
+            return o.getClass().getName();
         }
 
         public Object call( Scope scope , Object foo , Object extra[] ){
