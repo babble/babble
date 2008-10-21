@@ -289,8 +289,10 @@ public class LB extends NIOClient {
 		if ( n.equalsIgnoreCase( "Connection" ) || 
 		     n.equalsIgnoreCase( HttpRequest.REAL_IP_HEADER ) )
 		    continue;
-		
+                
                 String v = _request.getHeader( n );
+                v = _environemnt.replaceHeaderValue( n , v );
+                
                 buf.append( n ).append( ": " ).append( v ).append( "\r\n" );
             }
             buf.append( "\r\n" );

@@ -202,7 +202,10 @@ public class WebViews {
 	    
 	    out.print( "<tr>" );
 	    mr.addTableCell( rr._request.getHost() );
-	    mr.addTableCell( rr._request.getURL() );
+            String url = rr._request.getURL();
+            if ( url.length() > 100 )
+                url = url.substring( 0 , 100 ) + "...";
+	    mr.addTableCell( url );
 	    mr.addTableCell( rr.lastWent() );
 	    mr.addTableCell( SHORT_TIME.format( new Date( rr.getStartedTime() ) ) );
 	    if ( rr.isDone() ){

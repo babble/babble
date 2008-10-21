@@ -137,7 +137,7 @@ public class LBFullTest extends HttpServerTest {
             return new Mapping(){
 
                 public Environment getEnvironment( HttpRequest request ){
-                    return new Environment( "shopwiki" , "www" );
+                    return new Environment( "shopwiki" , "www" , null );
                 }
 
                 public String getPool( Environment e ){
