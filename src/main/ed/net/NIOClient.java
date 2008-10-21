@@ -53,6 +53,7 @@ public abstract class NIOClient extends Thread {
 
         _loggerOpen = _logger.getChild( "open" );
         _loggerDrop = _logger.getChild( "drop" );
+        _loggerLostConnection = _logger.getChild( "lost-connection" );
         
         try {
             _selector = Selector.open();
@@ -279,11 +280,25 @@ public abstract class NIOClient extends Thread {
         }
         
         boolean ok(){
-            if ( _error != null || _closed )
+            if ( _error != null ){
+                _loggerLostConnection.info( "error" );
                 return false;
+            }
 
-            if ( System.currentTimeMillis() - _opened > CONNECT_TIMEOUT )
+            if ( _closed ){
+                _loggerLostConnection.info( "closed" );
                 return false;
+            }
+            
+            if ( System.currentTimeMillis() - _opened > CONNECT_TIMEOUT ){
+                _loggerLostConnection.info( "connect timeout" );
+                return false;
+            }
+            
+            if ( _current != null && _current._done ){
+                _loggerLostConnection.info( "have call but its done" );
+                return false;
+            }
             
             return true;
         }
@@ -452,6 +467,22 @@ public abstract class NIOClient extends Thread {
         public String toString(){
             return _addr.toString();
         }
+
+        public String statusString(){
+            StringBuilder buf = new StringBuilder();
+            buf.append( "ready:" ).append( _ready ).append( " " );
+            buf.append( "error:" ).append( _error ).append( " " );
+            buf.append( "closed:" ).append( _closed ).append( " " );
+            buf.append( "has call:").append( _current != null ).append( " " );
+            
+            if ( _current != null ){
+                int ops = _key.interestOps();
+                buf.append( "waiting for read:" ).append( ( ops & _key.OP_READ ) > 0 ).append( " " );
+                buf.append( "waiting for write:" ).append( ( ops & _key.OP_WRITE ) > 0 ).append( " " );
+            }
+            
+            return buf.toString();
+        }
         
         void _putBackInPool(){
             _pool.done( this );
@@ -501,7 +532,7 @@ public abstract class NIOClient extends Thread {
     
     class ConnectionPool extends SimplePool<Connection> {
         ConnectionPool( InetSocketAddress addr ){
-            super( "ConnectionPool : " + addr , _connectionsPerHost , _connectionsPerHost );
+            super( "ConnectionPool : " + addr , _connectionsPerHost , _connectionsPerHost / 3 );
             _addr = addr;
         }
 
@@ -583,7 +614,11 @@ public abstract class NIOClient extends Thread {
 		    
 		    JxpWriter out = mr.getWriter();
                     
+                    out.print( "<ul>" );
+                    
                     for ( InetSocketAddress addr : getAllConnections() ){
+                        out.print( "<li>" );
+                        
                         out.print( "<b>"  );
                         out.print( addr.toString() );
                         out.print( "</b>   " );
@@ -601,10 +636,22 @@ public abstract class NIOClient extends Thread {
                         out.print( "everCreated: " );
                         out.print( pool.everCreated() );
                         out.print( "   " );
-
-                        out.print( "<br>" );
                         
+                        if ( mr.getRequest().getBoolean( "detail" , false ) ){
+                            out.print( "<ul>" );
+                            for ( Iterator<Connection> i = pool.getAll() ; i.hasNext(); ){
+                                Connection c = i.next();
+                                out.print( "<li>" );                                
+                                out.print( c.statusString() );
+                                out.print( "</li>" );                                
+                            }
+                            out.print( "</ul>" );
+                        }
+                        
+                        out.print( "</li>" );
                     }
+                    
+                    out.print( "</ul>" );
                 }
             };
         
@@ -620,6 +667,7 @@ public abstract class NIOClient extends Thread {
     final Logger _logger;
     final Logger _loggerOpen;
     final Logger _loggerDrop;
+    final Logger _loggerLostConnection;
 
     private Selector _selector;
     private final BlockingQueue<Call> _newRequests = new ArrayBlockingQueue<Call>( 1000 );

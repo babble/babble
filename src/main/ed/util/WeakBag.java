@@ -98,7 +98,23 @@ public class WeakBag<T> {
 
         return size;
     }
-
+    
+    public List<T> getAll(){
+    
+        List<T> l = new ArrayList<T>();
+        
+        for ( Iterator<MyRef> i = _set.iterator(); i.hasNext(); ){
+            MyRef ref = i.next();
+            T t = ref.get();
+            if ( t == null )
+                i.remove();
+            else
+                l.add( t );
+        }        
+        
+        return l;
+    }
+    
     class MyRef extends WeakReference<T> {
         MyRef( T t ){
             super( t );

@@ -64,7 +64,7 @@ public class JSHelper extends JSObjectBase {
     private final Map<String, JSFileLibrary> fileRoots;
     
     //file -> library
-    WeakHashMap<JSFunction, LoadedLibrary> libraryCache;
+    WeakHashMap<JSFunction, Library> libraryCache;
     //file -> loader func
     WeakHashMap<JSFunction, JSFunction> loaderCache;
 
@@ -77,7 +77,7 @@ public class JSHelper extends JSObjectBase {
         librarySearchPaths = new ArrayList<TemplateTagRoot>();
         defaultLibraries = new ArrayList<LoadedLibrary>();
 
-        libraryCache = new WeakHashMap<JSFunction, LoadedLibrary>();
+        libraryCache = new WeakHashMap<JSFunction, Library>();
         loaderCache = new WeakHashMap<JSFunction, JSFunction>();
         
         // add the basic helpers
@@ -236,7 +236,7 @@ public class JSHelper extends JSObjectBase {
         }
         return invalid_var_format_string;
     }
-    public Object resolve_absolute_path(String path) {
+    public Object resolve_absolute_path(String path, Boolean evalToFunction) {
         log.debug("resolving [" + path + "]");
 
         path = path.trim().replaceAll("/+", "/");
@@ -250,7 +250,7 @@ public class JSHelper extends JSObjectBase {
             return null;
 
         if (parts.length == 3 && parts[2].length() > 0)
-            return root.getFromPath(parts[2]);
+            return root.getFromPath(parts[2], evalToFunction != Boolean.FALSE);
         
         return root;
     }
@@ -290,7 +290,7 @@ public class JSHelper extends JSObjectBase {
                 String filePart = '/' + loaderStr.substring(0, lastDot).replace('.', '/');
                 String methodPart = loaderStr.substring(lastDot+1);
                 
-                Object temp = resolve_absolute_path(filePart);
+                Object temp = resolve_absolute_path(filePart, true);
                 if(!(temp instanceof JSFunction) || !((JSFunction)temp).isCallable()) {
                     log.error("Failed to locate the loader ["+loaderStr+"], the path [" + filePart + "] resolves to [" + temp +"] which isn't a script");
                     continue;
@@ -379,10 +379,19 @@ public class JSHelper extends JSObjectBase {
                 continue;
             }
             
-            Object file = fileLib.getFromPath(name);
-            if (file instanceof JSFunction && ((JSFunction)file).isCallable()) {
+            Object file = fileLib.getFromPath(name, false);
+            if(file instanceof JxpSource) {
+                JxpSource src = (JxpSource)file;
+                JSFunction fn;
+                try {
+                    fn = src.getFunction();
+                } catch (IOException e) {
+                    log.error("failed to read [" + fileLib + "/" + name + "]", e);
+                    throw new TemplateException("Failed to find module [" + name + "]", e);
+                }
+                
                 log.debug("loaded [" + fileLib + "/" + name + "]");
-                return loadLibrary((JSFunction)file);
+                return new LoadedLibrary(loadLibrary(fn), src);
             }
             else if(file == null) {
                 log.debug("[" + fileLib + "/" + name + "] doesn't exist");
@@ -395,10 +404,10 @@ public class JSHelper extends JSObjectBase {
         throw new TemplateException("Failed to find module [" + name + "]");
     }
     
-    public LoadedLibrary loadLibrary(JSFunction moduleFile) {
+    public Library loadLibrary(JSFunction moduleFile) {
         log.debug("Processing [" + moduleFile + "]");
         
-        LoadedLibrary library = libraryCache.get(moduleFile);
+        Library library = libraryCache.get(moduleFile);
         if(library != null)
             return library;
         
@@ -410,13 +419,14 @@ public class JSHelper extends JSObjectBase {
         } catch(Exception t) {
             throw new TemplateException("Failed to load library from file [" + moduleFile.get(JxpSource.JXP_SOURCE_PROP) + "]", t);
         }
+
         Object temp = child.get("register");
         if(!(temp instanceof Library))
             throw new TemplateException("Misconfigured library doesn't contain a correct register variable. file [" + moduleFile.get(JxpSource.JXP_SOURCE_PROP) + "]");
-        Library lib = (Library)temp;
+        library = (Library)temp;
 
         //wrap all the tag handlers
-        JSObject tagHandlers = lib.getTags();
+        JSObject tagHandlers = library.getTags();
         for(String tagName : tagHandlers.keySet()) {
             JSFunction tagHandler = (JSFunction)tagHandlers.get(tagName);
             tagHandlers.set(tagName, tagHandler);
@@ -424,7 +434,6 @@ public class JSHelper extends JSObjectBase {
         JxpSource source = (JxpSource)moduleFile.get(JxpSource.JXP_SOURCE_PROP);
         log.debug("done processing [" + moduleFile + "]");
 
-        library = new LoadedLibrary(lib, source);
         libraryCache.put(moduleFile, library);
         return library;
     }
@@ -432,8 +441,16 @@ public class JSHelper extends JSObjectBase {
     public void addDefaultLibrary(String name) {
         log.debug("Adding default tag library from [" + name + "]");
         name = '/'+name.replace('.', '/');
-        LoadedLibrary lib = loadLibrary((JSFunction)resolve_absolute_path(name));
-        defaultLibraries.add(lib);
+        JxpSource source = (JxpSource)resolve_absolute_path( name , false );
+        JSFunction fn;
+        try {
+            fn = source.getFunction();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        
+        Library lib = loadLibrary(fn);
+        defaultLibraries.add(new LoadedLibrary( lib, source ) );
     }
     public List<LoadedLibrary> getDefaultLibraries() {
         return defaultLibraries;
@@ -490,7 +507,7 @@ public class JSHelper extends JSObjectBase {
             this.path = path;
         }
         public JSFileLibrary resolve() {            
-            Object temp = resolve_absolute_path(this.path);
+            Object temp = resolve_absolute_path(this.path, true);
 
             if(!(temp instanceof JSFileLibrary))
                 throw new IllegalArgumentException("The path [" + path + "] is invalid, because its not a file library, but a: [" + ((temp == null)?"null":temp.getClass()) + "]");

@@ -30,6 +30,7 @@ public abstract class NIOServer extends Thread {
 
     final static boolean D = Boolean.getBoolean( "DEBUG.NIO" );
     final static long SELECT_TIMEOUT = 10;
+    final static long CLIENT_TIMEOUT = 1000 * 60 * 2;
     final static int DEAD_CYCLES = 10000;
     final static int DEAD_CYCLES_WARN = DEAD_CYCLES - 50;
     
@@ -184,7 +185,10 @@ public abstract class NIOServer extends Thread {
                     
                     sc = (SocketChannel)key.channel();
                     sh = (SocketHandler)key.attachment();
+
+                    sh._lastAction = System.currentTimeMillis();
                     
+
                     if ( sh._bad || sh.shouldClose() ){
                         i.remove();
 
@@ -259,6 +263,8 @@ public abstract class NIOServer extends Thread {
     }
 
     private void _cleanOldConnections(){
+        final long now = System.currentTimeMillis();
+        
         for ( SelectionKey key : _selector.keys() ){
 
             if ( ! key.isValid() )
@@ -272,7 +278,7 @@ public abstract class NIOServer extends Thread {
                 continue;
             
             SocketHandler handler = (SocketHandler)attachment;
-            if ( ! handler.shouldTimeout() )
+            if ( ! handler.shouldTimeout( now ) )
                 continue;
             
             if ( D ) System.out.println( "timing out connection" );
@@ -303,8 +309,6 @@ public abstract class NIOServer extends Thread {
         protected abstract boolean shouldClose()
             throws IOException ;
         
-        protected abstract boolean shouldTimeout();
-
         /**
          * @return true if the selector thread should stop paying attention to this
          */
@@ -392,10 +396,18 @@ public abstract class NIOServer extends Thread {
             _key.cancel();
         }
 
+        protected boolean shouldTimeout( long now ){
+            return now - _lastAction > CLIENT_TIMEOUT;
+        }
+
+        
+
         protected final SocketChannel _channel;
         private SelectionKey _key = null;
         protected boolean _bad = false;
         protected final long _created = System.currentTimeMillis();
+        
+        protected long _lastAction = _created;
     }
 
     protected final int _port;
