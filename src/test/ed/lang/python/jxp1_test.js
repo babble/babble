@@ -20,8 +20,8 @@ jScope = scope.child();
 assert.eq(jScope.pyFoo, null);
 assert.eq(scope.pyFoo, null);
 jScope.setGlobal(true);
-jxp.call(jScope);
+jScope.eval("jxp();");
 
 assert.eq(jScope.pyFoo, 13);
-assert.eq(scope.pyFoo, 13);
+assert.eq(scope.pyFoo, null);
 
