@@ -53,9 +53,9 @@ public class Environment {
         
         return site.equals( e.site ) && env.equals( e.env );
     }
-
+    
     public String replaceHeaderValue( String name , String value ){
-        if ( name.equalsIgnoreCase( "host" ) ){
+        if ( name.equalsIgnoreCase( "host" ) && host != null ){
             int idx = value == null ? -1 : value.indexOf( ":" );
             if ( idx > 0 )
                 return this.host + value.substring( idx );

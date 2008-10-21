@@ -56,7 +56,7 @@ public abstract class MappingBase implements Mapping {
         final String name = site.getHost();
         final String env = site.getEnvironment( info.getHost() );
         
-        return new Environment( name , env );
+        return new Environment( name , env , request.getHost() );
     }
     
     public String getPool( Environment e ){
