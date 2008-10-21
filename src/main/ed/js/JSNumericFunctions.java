@@ -19,6 +19,7 @@
 package ed.js;
 
 import ed.js.e4x.*;
+import ed.util.StringParseUtil;
 
 /** @expose
  */
@@ -316,11 +317,13 @@ public class JSNumericFunctions extends JSObjectBase {
         a = _parseNumber( a );
         b = _parseNumber( b );
 
-        if ( a != null && a instanceof Number &&
-             b != null && b instanceof Number )
-            return ((Number)a).intValue() % ((Number)b).intValue();
+        if ( Double.isNaN( ((Number)a).doubleValue() ) ||
+             Double.isNaN( ((Number)b).doubleValue() ) || 
+             Double.isInfinite( ((Number)a).doubleValue() ) ||
+             ((Number)b).intValue() == 0 )
+            return Double.NaN;
 
-        return Double.NaN;
+        return ((Number)a).intValue() % ((Number)b).intValue();
     }
 
     /** Performs a left shift on an object a given number of bits.
@@ -408,49 +411,17 @@ public class JSNumericFunctions extends JSObjectBase {
     }
 
     /** @unexpose */
-    static final Object _parseNumber( final Object orig ){
+    static final Number _parseNumber( final Object orig ){
         Object o = orig;
         if ( o == null )
-            return null;
+            return Double.NaN;
         
         if ( o instanceof Number )
-            return o;
+            return (Number)o;
 
         if ( o instanceof JSDate )
             return ((JSDate)o).getTime();
 
-        if ( o instanceof JSBoolean ||
-             o instanceof Boolean )
-            return JSBoolean.booleanValue( o ) ? 1 : 0;
-
-        String s = null;
-        if ( o instanceof JSString )
-            s = o.toString();
-        else if ( o instanceof String )
-            s = o.toString();
-        
-        if ( s == null )
-            return orig;
-
-        if ( s.length() == 0 || s.length() > 9 )
-            return 0;
-
-        boolean allDigits = true;
-        for ( int i=0; i<s.length(); i++ ){
-            final char c = s.charAt( i );
-            if ( ! Character.isDigit( c ) ){
-                allDigits = false;
-                if ( c != '.' )
-                    return orig;
-            }
-        }
-
-        if ( allDigits )
-            return Integer.parseInt( s );
-
-        if ( s.matches( "\\d+\\.\\d+" ) )
-            return Double.parseDouble( s );
-
-        return orig;
+        return JSNumber.getDouble( o );
     }
 }

@@ -624,7 +624,9 @@ public class Convert {
 
         case Token.POS:
             _assertOne( n );
+            _append( "JSNumber.getNumber( ", n );
             _add( n.getFirstChild() , state );
+            _append( " ) ", n );
             break;
 
 

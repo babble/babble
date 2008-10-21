@@ -368,23 +368,29 @@ public class JSNumber extends Number implements JSObject {
     }
 
     // matches negative, infinity, int, double, scientific notation, hex
-    public static String POSSIBLE_NUM = "(-?((Infinity)|(\\d*(\\.\\d+)?([eE]-?\\d+)?)|(0[xX][\\da-fA-F]+)))?";
+    public static String POSSIBLE_NUM = "\\s*((\\+|-)?((Infinity)|(\\d*(\\.\\d+)?([eE]-?\\d+)?)|(0[xX][\\da-fA-F]+)))?\\s*";
 
     public static double getDouble( Object a ) {
-        double d;
+        return getNumber( a ).doubleValue();
+    }
+
+    public static Number getNumber( Object a ) {
         if ( a == null ) {
             return 0;
         }
         else if( a instanceof Number ) {
-            return ((Number)a).doubleValue();
+            return ((Number)a);
         }
         else if( a instanceof Boolean || 
                  a instanceof JSBoolean ) {
             return JSBoolean.booleanValue( a ) ? 1 : 0;
         }
+        else if( a instanceof JSDate ) {
+            return ((JSDate)a).getTime();
+        }
         else if( ( a instanceof String || a instanceof JSString ) 
                  && a.toString().matches( POSSIBLE_NUM ) ) {
-            return StringParseUtil.parseStrict(a.toString()).doubleValue();
+            return StringParseUtil.parseStrict(a.toString().trim());
         }
         else {
             return Double.NaN;
