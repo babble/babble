@@ -316,6 +316,12 @@ public class HttpServer extends NIOServer {
             super.close();
         }
         
+        public String toString(){
+            String s = super.toString();
+            if ( _lastRequest != null )
+                s += " " + _lastRequest.getFullURL();
+            return s;
+        }
 
         final HttpServer _server;
 
