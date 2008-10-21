@@ -106,6 +106,12 @@ public class RubyObjectWrapperTest {
     }
 
     @Test(groups = {"r2js"})
+    public void testRubyBooleanToJSBoolean() {
+        assertEquals(Boolean.TRUE, toJS(s, r.getTrue()));
+        assertEquals(Boolean.FALSE, toJS(s, r.getFalse()));
+    }
+
+    @Test(groups = {"r2js"})
     public void testRubyStringToJSString() {
         Object o = toJS(s, RubyString.newString(r, "test string"));
         assertTrue(o instanceof JSString, "expected JSString, saw " + (o == null ? "null" : o.getClass().getName()));
@@ -173,6 +179,12 @@ public class RubyObjectWrapperTest {
     @Test(groups = {"js2r"})
     public void testNilToRuby() {
         assertEquals(toRuby(s, r, null), r.getNil());
+    }
+
+    @Test(groups = {"js2r"})
+    public void testBooleanToRuby() {
+        assertEquals(toRuby(s, r, Boolean.TRUE), r.getTrue());
+        assertEquals(toRuby(s, r, Boolean.FALSE), r.getFalse());
     }
 
     @Test(groups = {"js2r"})

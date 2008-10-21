@@ -71,6 +71,8 @@ public abstract class RubyObjectWrapper extends RubyObject {
             return (IRubyObject)obj;
         if (obj instanceof JSString)
             return runtime.newString(obj.toString());
+        if (obj instanceof Boolean)
+            return ((Boolean)obj).booleanValue() ? runtime.getTrue() : runtime.getFalse();
 
         IRubyObject wrapper = cachedWrapperFor(runtime, obj);
         if (wrapper != null) {
@@ -157,6 +159,8 @@ public abstract class RubyObjectWrapper extends RubyObject {
             return null;
         if (r instanceof JSObject)
             return r;
+        if (r instanceof RubyBoolean)
+            return r.isTrue() ? Boolean.TRUE : Boolean.FALSE;
         if (r instanceof RubyString)
             return new JSString(((RubyString)r).toString());
         if (r instanceof RubyObjectWrapper)
