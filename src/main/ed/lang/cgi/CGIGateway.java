@@ -40,7 +40,7 @@ public abstract class CGIGateway extends JxpSource {
 
     public abstract void handle( EnvMap env , InputStream stdin , OutputStream stdout , AppRequest ar );
     
-    public JSFunction getFunction(){
+    public JSFunction getFunction() throws IOException {
         return _dontCall;
     }
 
@@ -218,11 +218,11 @@ public abstract class CGIGateway extends JxpSource {
         }
     }
 
-    protected String getContent(){
+    protected String getContent() throws IOException {
         throw new RuntimeException( "not supported" );
     }
     
-    protected InputStream getInputStream(){
+    protected InputStream getInputStream() throws IOException {
         throw new RuntimeException( "not supported" );
     }
 
