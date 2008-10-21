@@ -34,7 +34,7 @@ import ed.security.*;
 
 /** The server to handle HTTP requests.
  */
-public class AppServer implements HttpHandler {
+public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
 
     /** This appserver's default port, 8080 */
     private static final int DEFAULT_PORT = 8080;
@@ -214,6 +214,7 @@ public class AppServer implements HttpHandler {
 
     private void _handle( HttpRequest request , HttpResponse response , AppRequest ar ){
 
+        _currentRequests.add( ar );
         try {
 
             JSString jsURI = new JSString( ar.getURI() );
@@ -310,6 +311,9 @@ public class AppServer implements HttpHandler {
             handleError( request , response , e , ar.getContext() );
             return;
         }
+        finally {
+            _currentRequests.remove( ar );
+        }
     }
     
     void _handleEndOfServlet( HttpRequest request , HttpResponse response , AppRequest ar ){
@@ -402,7 +406,7 @@ public class AppServer implements HttpHandler {
         // 2 choices here, this request caused all sorts of problems
         // or the server is screwed.
 
-        MemUtil.checkMemoryAndHalt( "AppServer" , oom );
+        MemUtil.checkMemoryAndHalt( "AppServer" , oom , this );
 
         // either this thread was the problem, or whatever
 
@@ -721,10 +725,23 @@ public class AppServer implements HttpHandler {
         return t;
     }
 
+    public void printMemInfo(){
+        System.out.println( "AppServer.printMemInfo" );
+        for ( AppRequest ar : _currentRequests ){
+            System.err.print( "\t" );
+            System.err.print( ar._host );
+            System.err.print( "\t" );
+            System.err.print( ar._uri );
+            System.err.println();
+        }
+            
+    }
+
     private final AppContextHolder _contextHolder;
     private final Map<String,HttpLoadTracker> _stats = Collections.synchronizedMap( new StringMap<HttpLoadTracker>() );
     private final RequestMonitor _requestMonitor = RequestMonitor.getInstance();
     private final HttpLoadTracker.GraphOptions _displayOptions = new HttpLoadTracker.GraphOptions( 400 , 100 , true , true , true );
+    private final IdentitySet<AppRequest> _currentRequests = new IdentitySet<AppRequest>();
 
     // ---------
 

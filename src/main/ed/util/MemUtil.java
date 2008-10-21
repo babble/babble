@@ -39,7 +39,11 @@ public class MemUtil {
     /** Value is 1024^3 */
     public static final long GBYTE = 1024 * MBYTE;
 
-    public static final synchronized void checkMemoryAndHalt( String location , OutOfMemoryError oom  ){
+    public static interface MemHaltDisplay {
+        public void printMemInfo();
+    }
+
+    public static final synchronized void checkMemoryAndHalt( String location , OutOfMemoryError oom , MemHaltDisplay display ){
 
         long before = MemUtil.bytesAvailable();
         System.gc();
@@ -56,10 +60,12 @@ public class MemUtil {
                 System.err.println( "after : " + ( after / MemUtil.MBYTE ) );
                 ed.lang.StackTraceHolder.getInstance().fix( oom );
                 oom.printStackTrace();
+                if ( display != null )
+                    display.printMemInfo();
             }
             catch ( Exception e ){
             }
-
+            
             Runtime.getRuntime().halt( -3 );
         }
 

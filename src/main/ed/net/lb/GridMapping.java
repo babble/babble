@@ -116,8 +116,16 @@ public class GridMapping extends MappingBase {
                 continue;
             
             for ( Object eo : ((JSArray)site.get( "environments" ) ) ){
-                JSObject e = (JSObject)eo;
-                addSiteMapping( name , e.get( "name" ).toString().toLowerCase() , e.get( "pool" ).toString().toLowerCase() );
+                final JSObject e = (JSObject)eo;
+
+                final String env = e.get( "name" ).toString().toLowerCase();
+                final String pool = e.get( "pool" ).toString().toLowerCase();
+                
+                addSiteMapping( name , env , pool );
+
+                if ( e.get( "aliases" ) instanceof List )
+                    for ( Object a : (List)(e.get( "aliases" )) )
+                        addSiteMapping( name , a.toString().toLowerCase() , pool );
             }
             
         }
