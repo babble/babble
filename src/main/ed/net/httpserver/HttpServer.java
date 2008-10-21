@@ -401,6 +401,19 @@ public class HttpServer extends NIOServer {
         _globalHandlers.add( h );
     }
 
+    public static boolean removeGlobalHandler( HttpHandler toRemove ){
+        for ( Iterator<HttpHandler> i = _globalHandlers.iterator(); i.hasNext(); ){
+            HttpHandler h = i.next();
+            if ( h != toRemove )
+                continue;
+            
+            i.remove();
+            return true;
+        }
+        
+        return false;
+    }
+
     static final HttpHandler _stats = new HttpMonitor( "stats" ){
 
             public void handle( MonitorRequest mr ){
