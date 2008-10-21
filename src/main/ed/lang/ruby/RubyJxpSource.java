@@ -32,18 +32,20 @@ import org.jruby.util.KCode;
 import static org.jruby.runtime.Visibility.PUBLIC;
 
 import ed.appserver.AppContext;
+import ed.appserver.AppRequest;
 import ed.appserver.JSFileLibrary;
-import ed.appserver.jxp.JxpSource;
 import ed.io.StreamUtil;
 import ed.js.JSFunction;
 import ed.js.engine.Scope;
+import ed.lang.cgi.CGIGateway;
+import ed.lang.cgi.EnvMap;
 import ed.net.httpserver.HttpResponse;
 import ed.util.Dependency;
 import static ed.lang.ruby.RubyObjectWrapper.toJS;
 import static ed.lang.ruby.RubyObjectWrapper.toRuby;
 import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
 
-public class RubyJxpSource extends JxpSource {
+public class RubyJxpSource extends CGIGateway {
 
     public static final String XGEN_MODULE_NAME = "XGen";
     public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
@@ -130,14 +132,15 @@ public class RubyJxpSource extends JxpSource {
         }
     }
 
-    public RubyJxpSource(File f , JSFileLibrary lib) {
-        this(f, lib, null);
+    public RubyJxpSource(File f , JSFileLibrary lib, boolean isCGI) {
+        this(f, lib, isCGI, null);
     }
 
     /** For testing and {@link RubyLanguage} use. */
-    protected RubyJxpSource(File f, JSFileLibrary lib, Ruby runtime) {
+    protected RubyJxpSource(File f, JSFileLibrary lib, boolean isCGI, Ruby runtime) {
         _file = f;
         _lib = lib;
+        _isCGI = isCGI;
         _runtime = runtime;
     }
 
@@ -170,7 +173,7 @@ public class RubyJxpSource extends JxpSource {
         return StreamUtil.readFully(_file);
     }
 
-    protected InputStream getInputStream() throws FileNotFoundException {
+    protected InputStream getInputStream() throws IOException {
         return new FileInputStream(_file);
     }
 
@@ -187,6 +190,9 @@ public class RubyJxpSource extends JxpSource {
     }
 
     public JSFunction getFunction() throws IOException {
+        if (_isCGI)
+            return super.getFunction();
+
         final Node node = _parseCode();
         return new ed.js.func.JSFunctionCalls0() {
             public Object call(Scope s, Object unused[]) { return RubyObjectWrapper.toJS(s, _doCall(node, s, unused)); }
@@ -217,6 +223,43 @@ public class RubyJxpSource extends JxpSource {
             context.setFileAndLine(node.getPosition().getFile(), node.getPosition().getStartLine());
             return runtime.runNormally(node, YARV_COMPILE);
         } finally {
+            context.setFile(oldFile);
+            context.setLine(oldLine);
+        }
+    }
+
+    public void handle(EnvMap env, InputStream stdin, OutputStream stdout, AppRequest ar) {
+        Scope s = ar.getScope();
+
+        if (_anyLocalFileChanged(s)) {
+            if (DEBUG)
+                System.err.println("new file or file mod time changed; resetting Ruby runtime");
+            forgetRuntime(s);
+        }
+
+        _addJSFileLibrariesToPath(s);
+        _addCGIEnv(s, env);
+
+        Ruby runtime = getRuntime(s);
+        runtime.setGlobalVariables(new ScopeGlobalVariables(s, runtime));
+        _setIO(s, stdin, stdout);
+        _exposeScopeFunctions(s);
+        _patchRequireAndLoad(s);
+
+        // See the second part of JRuby's Ruby.executeScript(String, String)
+        ThreadContext context = runtime.getCurrentContext();
+
+        String oldFile = context.getFile();
+        int oldLine = context.getLine();
+        try {
+            Node node = _parseCode();
+            context.setFileAndLine(node.getPosition().getFile(), node.getPosition().getStartLine());
+            runtime.runNormally(node, YARV_COMPILE);
+        }
+        catch (IOException e) {
+            System.err.println("RubyJxpSonrce.handle: " + e);
+        }
+        finally {
             context.setFile(oldFile);
             context.setLine(oldLine);
         }
@@ -260,6 +303,15 @@ public class RubyJxpSource extends JxpSource {
         }
     }
 
+    /** Copies <var>env</var> into ENV[]. */
+    protected void _addCGIEnv(Scope s, EnvMap env) {
+        Ruby runtime = getRuntime(s);
+        ThreadContext context = runtime.getCurrentContext();
+        RubyHash envHash = (RubyHash)runtime.getObject().fastGetConstant("ENV");
+        for (String key : env.keySet())
+            envHash.op_aset(context, runtime.newString(key), runtime.newString(env.get(key).toString()));
+    }
+
     /**
      * Set Ruby's $stdout so that print/puts statements output to the right
      * place. If we have no HttpResponse (for example, we're being run outside
@@ -270,6 +322,20 @@ public class RubyJxpSource extends JxpSource {
         if (response != null) {
             Ruby runtime = getRuntime(s);
             runtime.getGlobalVariables().set("$stdout", new RubyIO(runtime, new RubyJxpOutputStream(response.getJxpWriter())));
+        }
+    }
+
+    /**
+     * Set Ruby's $stdin and $stdout so that reading and writing go to the
+     * right place. Called from {@link handle} which is called from the CGI
+     * gateway.
+     */
+    protected void _setIO(Scope s, InputStream stdin, OutputStream stdout) {
+        HttpResponse response = (HttpResponse)s.get("response");
+        if (response != null) {
+            Ruby runtime = getRuntime(s);
+            runtime.getGlobalVariables().set("$stdin", new RubyIO(runtime, stdin));
+            runtime.getGlobalVariables().set("$stdout", new RubyIO(runtime, stdout));
         }
     }
 
@@ -449,6 +515,7 @@ public class RubyJxpSource extends JxpSource {
 
     protected final File _file;
     protected final JSFileLibrary _lib;
+    protected final boolean _isCGI;
     protected Ruby _runtime;
 
     protected Node _node;
