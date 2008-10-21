@@ -9,6 +9,8 @@ import ed.js.*;
 import ed.js.engine.*;
 import ed.js.func.*;
 import ed.util.*;
+import ed.security.*;
+import ed.cloud.*;
 
 public abstract class DBBase extends JSObjectLame implements Sizable {
 
@@ -125,12 +127,15 @@ public abstract class DBBase extends JSObjectLame implements Sizable {
     }
 
     public boolean allowedToAccess( String other ){
-        if ( ed.security.Security.isCoreJS() )
+        if ( Security.isCoreJS() )
             return true;
 
         // if you're running not in production, you can do whatever you want
-        if ( ed.cloud.Cloud.getInstanceIfOnGrid() == null )
+        if ( Cloud.getInstanceIfOnGrid() == null )
             return true;
+
+	if ( Security.isAllowedSite( _name ) )
+	    return true;
 
         return false;
     }
