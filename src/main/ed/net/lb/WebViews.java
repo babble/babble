@@ -183,6 +183,8 @@ public class WebViews {
 	out.print( "<th>URL</th>" );
 	out.print( "<th>Server</th>" );
 	out.print( "<th>Started</th>" );
+
+	out.print( "<th>state</th>" );
         
 	out.print( "<th>Code</th>" );
 	out.print( "<th>Lenghth</th>" );
@@ -208,6 +210,9 @@ public class WebViews {
 	    mr.addTableCell( url );
 	    mr.addTableCell( rr.lastWent() );
 	    mr.addTableCell( SHORT_TIME.format( new Date( rr.getStartedTime() ) ) );
+            
+            mr.addTableCell( rr.getStateString() );
+            
 	    if ( rr.isDone() ){
 		int rc = rr._response.getResponseCode();
 		mr.addTableCell( rc , rc >= 500 ? "error" : null );
@@ -216,6 +221,7 @@ public class WebViews {
 		long tt = rr.getTotalTime();
 		mr.addTableCell( tt , tt > 2000 ? "error" : ( tt > 300 ? "warn" : null ) );
 	    }
+
 	    out.print( "</tr>\n" );
 	}
 	out.print( "</table>" );

@@ -44,7 +44,7 @@ public class LB extends NIOClient {
 
     public LB( int port , MappingFactory mappingFactory , int verbose )
         throws IOException {
-        super( "LB" , 15 , verbose );
+        super( "LB" , HttpServer.WORKER_THREADS , verbose );
         
         _port = port;
         _handler = new LBHandler();
@@ -305,6 +305,12 @@ public class LB extends NIOClient {
 	public String toString(){
 	    return _request.getFullURL();
 	}
+
+        public String getStateString(){
+            if ( isDone() )
+                return "DONE";
+            return _state.toString();
+        }
 
         final HttpRequest _request;
         final HttpResponse _response;

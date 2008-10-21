@@ -223,7 +223,8 @@ public abstract class HttpMonitor implements HttpHandler {
                 sub = new ArrayList<String>();
                 _subs.put( section , sub );
             }
-            sub.add( name );
+            if ( ! sub.contains( name ) )
+                sub.add( name );
             Collections.sort( sub );
 
             StringBuilder buf = new StringBuilder( section + " : " );

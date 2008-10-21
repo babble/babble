@@ -123,6 +123,7 @@ public class PythonJxpSource extends JxpSource {
 
                 // --- end of modification for AE/CGI/etc discussion ---
 
+                PyObject result = null;
                 try {
                     Py.setSystemState( ss.getPyState() );
 
@@ -132,7 +133,7 @@ public class PythonJxpSource extends JxpSource {
                     PyModule module = new PyModule( "__main__" , globals );
 
                     PyObject locals = module.__dict__;
-                    return Py.runCode( code, locals, globals );
+                    result = Py.runCode( code, locals, globals );
                 }
                 finally {
                     if( oldFile != null ){
@@ -146,6 +147,25 @@ public class PythonJxpSource extends JxpSource {
                     }
                     Py.setSystemState( pyOld );
                 }
+
+                if( usePassedInScope() ){
+                    PyObject keys = globals.invoke("keys");
+                    if( ! ( keys instanceof PyList ) ){
+                        throw new RuntimeException("couldn't use passed in scope: keys not dictionary [" + keys.getClass() + "]");
+                    }
+
+                    PyList keysL = (PyList)keys;
+                    for(int i = 0; i < keysL.size(); i++){
+                        PyObject key = keysL.pyget(i);
+                        if( ! ( key instanceof PyString ) ){
+                            System.out.println("Non-string key in globals : " + key + " [skipping]");
+                            continue;
+                        }
+
+                        s.put( key.toString(), Python.toJS( globals.__finditem__(key) ) , true );
+                    }
+                }
+                return Python.toJS( result );
             }
 
         };

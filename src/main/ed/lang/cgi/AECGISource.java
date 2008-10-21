@@ -42,14 +42,14 @@ import ed.util.Dependency;
  *   and it's getFunction() method called.  We need to find a better
  *   way to do this - this could be used more generally for CGI
  */
-public class CGISource extends JxpSource {
+public class AECGISource extends JxpSource {
 
     final File _file;
     final JSFileLibrary _lib;
     final static Logger _log = Logger.getLogger("CGISource");
     protected final List<MapEntry> _handlerList = new ArrayList<MapEntry>();
     
-    public CGISource(File f , JSFileLibrary lib){
+    public AECGISource(File f , JSFileLibrary lib){
         _file = f;
         _lib = lib;
 
@@ -116,7 +116,8 @@ public class CGISource extends JxpSource {
                     Matcher matcher = p.matcher(extra[0].toString());
 
                     if (matcher.matches()) {
-                        return new CGIGateway(m.script, _lib);
+                        //return new CGIGateway(m.script, _lib);
+                        throw new RuntimeException( "blah" );
                     }
                 }
                         
