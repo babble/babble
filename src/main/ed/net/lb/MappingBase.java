@@ -54,20 +54,36 @@ public abstract class MappingBase implements Mapping {
         }
 
         final String name = site.getHost();
-        final String env = site.getEnvironment( info.getHost() );
         
-        return new Environment( name , env , request.getHost() );
+        String env = site.getEnvironment( info.getHost() );
+        String useHost = request.getHost();
+        
+        final SiteInfo si = _sites.get( name );
+        if ( si != null ){
+            String real = si.getAlias( env );
+            if ( real != null ){
+                if ( useHost.startsWith( env + "." ) ){
+                    int idx = useHost.indexOf( "." );
+                    
+                    useHost = real + useHost.substring( idx );
+                    env = real;
+                }
+                
+            }
+        }
+
+        return new Environment( name , env , useHost );
     }
     
     public String getPool( Environment e ){
         
-        Map<String,String> m = _sites.get( e.site );
-        if ( m == null ){
+        SiteInfo si = _sites.get( e.site );
+        if ( si == null ){
             _logger.info( "no site for [" + e.site + "] return default pool [" + _defaultPool + "]" );
             return _defaultPool;
         }
         
-        final String pool = m.get( e.env );
+        final String pool = si.getPool( e.env );
         
         if ( pool == null ){
             _logger.error( "no env [" + e.env + "] for site [" + e.site + "]" );
@@ -107,12 +123,12 @@ public abstract class MappingBase implements Mapping {
     
     protected void addSiteMapping( String site , String env , String pool ){
         _logger.debug( "Adding mapping for site [" + site + "] [" + env + "] -> [" + pool + "]" );
-        Map<String,String> m = _sites.get( site );
-        if ( m == null ){
-            m = new TreeMap<String,String>();
-            _sites.put( site , m );
-        }
-        m.put( env , pool );
+        getSiteInfo( site ).addEnv( env , pool );
+    }
+
+    protected void addSiteAlias( String site , String alias , String real ){
+        _logger.debug( "Adding alias for site [" + site + "] [" + alias + "] -> [" + real + "]" );
+        getSiteInfo( site ).addAlias( alias , real );
     }
 
     protected void setDefaultPool( String pool ){
@@ -149,11 +165,20 @@ public abstract class MappingBase implements Mapping {
         StringBuilder buf = new StringBuilder( 1024 );
 
         for ( String site : _sites.keySet() ){
+            SiteInfo si = _sites.get( site );
+            
             buf.append( "site " ).append( site ).append( "\n" );
-            for ( Map.Entry<String,String> e : _sites.get( site ).entrySet() ){
+            for ( Map.Entry<String,String> e : si._environmentsToPools.entrySet() )
                 buf.append( "\t" ).append( e.getKey() ).append( " : " ).append( e.getValue() ).append( "\n" );
+
+            if ( si._aliases.size() > 0 ){
+                buf.append( "site-alias " ).append( site ).append( "\n" );
+                for ( Map.Entry<String,String> e : si._aliases.entrySet() )
+                    buf.append( "\t" ).append( e.getKey() ).append( " : " ).append( e.getValue() ).append( "\n" );
             }
+
             buf.append( "\n" );
+
         }
 
         for ( String pool : _pools.keySet() ){
@@ -204,13 +229,43 @@ public abstract class MappingBase implements Mapping {
             return false;
         return s.contains( uri );
     }
+    
+    SiteInfo getSiteInfo( String site ){
+        SiteInfo si = _sites.get( site );
+        if ( si == null ){
+            si = new SiteInfo();
+            _sites.put( site , si );
+        }
+        return si;
+    }
+    
+    class SiteInfo {
+        
+        String getPool( String env ){
+            return _environmentsToPools.get( env );
+        }
+        
+        void addEnv( String env , String pool ){
+            _environmentsToPools.put( env , pool );
+        }
+        
+        void addAlias( String alias , String real ){
+            _aliases.put( alias , real );
+        }
 
+        String getAlias( String alias ){
+            return _aliases.get( alias );
+        }
+
+        final Map<String,String> _environmentsToPools = new TreeMap<String,String>();
+        final Map<String,String> _aliases = new TreeMap<String,String>();
+    }
+    
     protected final String _name;
     final Logger _logger;
-    
 
     private String _defaultPool;
-    final private Map<String,Map<String,String>> _sites = new TreeMap<String,Map<String,String>>();
+    final private Map<String,SiteInfo> _sites = new TreeMap<String,SiteInfo>();
     final private Map<String,List<InetSocketAddress>> _pools = new TreeMap<String,List<InetSocketAddress>>();
 
     final private Set<String> _blockedIps = new TreeSet<String>();

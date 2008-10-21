@@ -28,8 +28,9 @@ import ed.db.*;
 import ed.log.*;
 import ed.net.*;
 import ed.net.httpserver.*;
+import ed.util.*;
 import ed.cloud.*;
-import static ed.appserver.AppContextHolder.*;
+
 
 public class TextMapping extends MappingBase {
 
@@ -74,20 +75,26 @@ public class TextMapping extends MappingBase {
         super( "TextMapping" );
         
         String current = null;
-        boolean site = false;
+        String type = null;
         
         for ( String line : in ){
             if ( line.length() == 0 )
                 continue;
-
+            
             if ( line.startsWith( "site " ) ){
-                site = true;
+                type = "site";
                 current = line.substring( 5 ).trim();
+                continue;
+            }
+
+            if ( line.startsWith( "site-alias " ) ){
+                type = "site-alias";
+                current = line.substring( 10 ).trim();
                 continue;
             }
             
             if ( line.startsWith( "pool " ) ){
-                site = false;
+                type = "pool";
                 current = line.substring( 5 ).trim();
                 continue;
             }
@@ -120,22 +127,36 @@ public class TextMapping extends MappingBase {
             if ( ! Character.isWhitespace( line.charAt(0) ) )
                 throw new RuntimeException( "invalid starting line [" + line + "]" );
             
-            if ( site ){
-                line = line.trim();
-                int idx = line.indexOf( ":" );
-                if ( idx < 0 ){
-                    idx = line.indexOf( " " );
-                    if ( idx < 0 )
-                        throw new RuntimeException( "illegel site line [" + line  + "] has to be <env> : <pool>" );
-                }
-                addSiteMapping( current , line.substring( 0 , idx ).trim() , line.substring( idx + 1 ).trim() );
+            if ( type.equals( "site" ) ){
+                Pair<String,String> p = parseNameValue( line );
+                addSiteMapping( current , p.first , p.second );
                 continue;
             }
-	    
+            
+            if ( type.equals( "site-alias" ) ){
+                Pair<String,String> p = parseNameValue( line );
+                addSiteAlias( current , p.first , p.second );
+                continue;                
+            }
+            
 	    line = line.trim();
 	    if ( line.length() > 0 )
 		addAddressToPool( current , line );
         }
+    }
+
+    static Pair<String,String> parseNameValue( String line ){
+        line = line.trim();
+        
+        int idx = line.indexOf( ":" );
+        if ( idx < 0 ){
+            idx = line.indexOf( " " );
+            if ( idx < 0 )
+                throw new RuntimeException( "illegel site line [" + line  + "] has to be <env> : <pool>" );
+        }        
+        
+        return new Pair<String,String>( line.substring( 0 , idx ).trim() , 
+                                        line.substring( idx + 1 ).trim() );
     }
 
     public static void main( String args[] )

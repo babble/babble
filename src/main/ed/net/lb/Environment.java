@@ -25,7 +25,11 @@ import ed.net.*;
 import ed.net.httpserver.*;
 
 public class Environment {
-    
+
+    public Environment( String site , String env ){    
+        this( site , env , null );
+    }
+
     public Environment( String site , String env , String host ){
         this.site = site;
         this.env = env;
