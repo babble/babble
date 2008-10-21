@@ -25,26 +25,37 @@ module XGen
     # records are deleted when new ones are inserted. See the Mongo
     # documentation for details.
     #
-    # The default
-    #
     # Example:
     #
     #   logger = Logger.new(XGen::Mongo::LogDevice('my_log_name'))
-    module LogDevice
+    class LogDevice
 
-      DEFAULT_CAP_SIZE = (1024 * 1024)
+      DEFAULT_CAP_SIZE = (10 * 1024 * 1024)
 
       # +name+ is the name of the Mongo database collection that will hold all
-      # log messages. +cap_size+ is the max size of the collection. If it is
-      # nil, not a number, or negative then +DEFAULT_CAP_SIZE+ is used.
-      def inititalize(name, cap_size=nil)
+      # log messages. +options+ is a hash that may have the following entries:
+      #
+      # :size:: Optional. The max size of the collection, in bytes. If it is
+      #         nil or negative then +DEFAULT_CAP_SIZE+ is used.
+      #
+      # :max:: Optional. Specifies the maximum number of log records, after
+      #        which the oldest items are deleted as new ones are inserted.
+      #
+      # Note: a non-nil :max_records requires a :size value. The collection
+      # will never grow above :size. If you leave :size nil then it will be
+      # +DEFAULT_CAP_SIZE+.
+      #
+      # Note: once a capped collection has been created, you can't redefine
+      # the size or max falues for that collection. To do so, you must drop
+      # and recreate (or let a LogDevice object recreate) the collection.
+      def initialize(name, options)
         @collection_name = name
-
-        cap_size ||= DEFAULT_CAP_SIZE
-        cap_size = cap_size.to_i
-        cap_size = DEFAULT_CAP_SIZE if cap_size <= 0
-        # It's OK to call create_collection if the collection already exists
-        $db.create_collection(@collection_name, {:size => 1_000_000, :capped => true})
+        options[:size] ||= DEFAULT_CAP_SIZE
+        options[:size] = DEFAULT_CAP_SIZE if options[:size] <= 0
+        options[:capped] = true
+        # It's OK to call createCollection if the collection already exists.
+        # Size and max won't change, though.
+        $db.createCollection(@collection_name, options)
       end
 
       def write(str)
@@ -53,7 +64,6 @@ module XGen
 
       def close
       end
-
     end
   end
 end
