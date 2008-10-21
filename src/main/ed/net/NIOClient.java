@@ -573,11 +573,16 @@ public abstract class NIOClient extends Thread {
     }
 
     void _addMonitors(){
-        HttpServer.addGlobalHandler( new MyMonitor( "serverConnPools" ){
+        
+        for ( MyMonitor m : _previousMonitors )
+            HttpServer.removeGlobalHandler( m );
+        _previousMonitors.clear();
+
+        MyMonitor m = new MyMonitor( "serverConnPools" ){
                 public void handle( MonitorRequest mr ){
 		    
 		    JxpWriter out = mr.getWriter();
-
+                    
                     for ( InetSocketAddress addr : getAllConnections() ){
                         out.print( "<b>"  );
                         out.print( addr.toString() );
@@ -588,7 +593,7 @@ public abstract class NIOClient extends Thread {
                         out.print( "total: " );
                         out.print( pool.total() );
                         out.print( "   " );
-
+                        
                         out.print( "inUse: " );
                         out.print( pool.inUse() );
                         out.print( "   " );
@@ -601,9 +606,10 @@ public abstract class NIOClient extends Thread {
                         
                     }
                 }
-            }
-            );
+            };
         
+        HttpServer.addGlobalHandler( m );
+        _previousMonitors.add( m );
     }
 
     final protected String _name;
@@ -619,4 +625,5 @@ public abstract class NIOClient extends Thread {
     private final BlockingQueue<Call> _newRequests = new ArrayBlockingQueue<Call>( 1000 );
     private final Map<InetSocketAddress,ConnectionPool> _connectionPools = new HashMap<InetSocketAddress,ConnectionPool>();
     
+    private static final List<MyMonitor> _previousMonitors = new ArrayList<MyMonitor>();
 }
