@@ -53,8 +53,13 @@ module XGen
         options[:size] ||= DEFAULT_CAP_SIZE
         options[:size] = DEFAULT_CAP_SIZE if options[:size] <= 0
         options[:capped] = true
+
         # It's OK to call createCollection if the collection already exists.
         # Size and max won't change, though.
+        #
+        # Note we can't use the name "create_collection" because a DB JSObject
+        # does not have normal keys and returns collection objects as the
+        # value of all unknown names.
         $db.createCollection(@collection_name, options)
       end
 
