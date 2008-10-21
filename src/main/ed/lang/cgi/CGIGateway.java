@@ -197,10 +197,26 @@ public abstract class CGIGateway extends JxpSource {
             if ( idx < 0 )
                 throw new RuntimeException( "invalid cgi header line [" + s + "]" );
             
-            _response.addHeader( s.substring( 0 , idx ).trim() , s.substring( idx + 1 ).trim() );
+            String key = s.substring( 0 , idx ).trim();
+            String val = s.substring( idx + 1 ).trim();
+            _response.addHeader( key , val );
+            if ("status".equals(key.toLowerCase()))
+                _setStatus( val );
+
             _line.setLength( 0 );
         }
         
+        protected void _setStatus( String val ) {
+            String[] words = val.split(" ");
+            if (words.length > 0 && Character.isDigit(words[0].charAt(0))) {
+                try {
+                    int status = Integer.parseInt(words[0]);
+                    _response.setStatus(status);
+                }
+                catch (NumberFormatException e) {}
+            }
+        }
+
         final OutputStream _body;
         final HttpResponse _response;
 
