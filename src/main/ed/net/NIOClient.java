@@ -532,7 +532,7 @@ public abstract class NIOClient extends Thread {
     
     class ConnectionPool extends SimplePool<Connection> {
         ConnectionPool( InetSocketAddress addr ){
-            super( "ConnectionPool : " + addr , _connectionsPerHost , _connectionsPerHost );
+            super( "ConnectionPool : " + addr , _connectionsPerHost , _connectionsPerHost / 3 );
             _addr = addr;
         }
 

@@ -44,7 +44,7 @@ public class LB extends NIOClient {
 
     public LB( int port , MappingFactory mappingFactory , int verbose )
         throws IOException {
-        super( "LB" , HttpServer.WORKER_THREADS , verbose );
+        super( "LB" , HttpServer.WORKER_THREADS * 10 , verbose );
         
         _port = port;
         _handler = new LBHandler();
