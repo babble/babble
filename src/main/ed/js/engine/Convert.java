@@ -472,15 +472,13 @@ public class Convert {
             break;
 
         case Token.REF_MEMBER :
-            _append( "\"" , n );
             final int memberTypeFlags = n.getIntProp(Node.MEMBER_TYPE_PROP, 0);
             if ( ( memberTypeFlags & Node.DESCENDANTS_FLAG ) != 0 )
-                _append( ".." , n );
+                _append( "\"..\" + " , n );
             if ( ( memberTypeFlags & Node.ATTRIBUTE_FLAG ) != 0 )
-                _append( "@" , n );
+                _append( "\"@\" + " , n );
 
-            _append( n.getFirstChild().getNext().getString() , n );
-            _append( "\"" , n );
+            _add( n.getFirstChild().getNext(), state );
             break;
 
         case Token.REF_NS_MEMBER :
