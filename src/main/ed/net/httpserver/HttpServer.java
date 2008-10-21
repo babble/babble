@@ -332,7 +332,7 @@ public class HttpServer extends NIOServer {
         final HttpHandler _handler;
     }
 
-    private int _lastHandlerCacheSize = 0;
+    private int _lastHandlerHash = 0;
     private List<HttpHandler> _lastHandlers;
     
     private final List<HttpHandler> _myHandlers = new ArrayList<HttpHandler>();
@@ -384,24 +384,39 @@ public class HttpServer extends NIOServer {
     public void addHandler( HttpHandler h ){
         _myHandlers.add( h );
     }
-
+    
     List<HttpHandler> getHandlers(){
-        if ( _lastHandlers != null && _myHandlers.size() + _globalHandlers.size() == _lastHandlerCacheSize )
+
+        int curHash = handlerHash();
+        if ( _lastHandlers != null && _lastHandlerHash == curHash )
             return _lastHandlers;
-     
+        
         List<HttpHandler> lst = new ArrayList<HttpHandler>();
         lst.addAll( _myHandlers  );
         lst.addAll( _globalHandlers );
         Collections.sort( lst , _handlerComparator );
+
         _lastHandlers = lst;
+        _lastHandlerHash = curHash;
+
         return lst;
     }
 
+    int handlerHash(){
+        int h = 0;
+        h += _myHandlers.size();
+        h += ( 100 * _globalHandlers.size() );
+        h += ( 1000 * _globalHandlersMods );
+        return h;
+    }
+
     public static void addGlobalHandler( HttpHandler h ){
+        _globalHandlersMods++;
         _globalHandlers.add( h );
     }
 
     public static boolean removeGlobalHandler( HttpHandler toRemove ){
+        _globalHandlersMods++;
         for ( Iterator<HttpHandler> i = _globalHandlers.iterator(); i.hasNext(); ){
             HttpHandler h = i.next();
             if ( h != toRemove )
@@ -455,6 +470,7 @@ public class HttpServer extends NIOServer {
         };
 
     static final List<HttpHandler> _globalHandlers = new ArrayList<HttpHandler>();
+    static int _globalHandlersMods = 0;
     static final Comparator _handlerComparator = new Comparator<HttpHandler>(){
         public int compare( HttpHandler a , HttpHandler b ){
             return a.priority() > b.priority() ? 1 : -1;
