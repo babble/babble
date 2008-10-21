@@ -26,9 +26,10 @@ import ed.net.httpserver.*;
 
 public class Environment {
     
-    public Environment( String site , String env ){
+    public Environment( String site , String env , String host ){
         this.site = site;
         this.env = env;
+        this.host = host;
     }
     
     public int hashCode(){
@@ -54,6 +55,12 @@ public class Environment {
     }
 
     public String replaceHeaderValue( String name , String value ){
+        if ( name.equalsIgnoreCase( "host" ) ){
+            int idx = value == null ? -1 : value.indexOf( ":" );
+            if ( idx > 0 )
+                return this.host + value.substring( idx );
+            return this.host;
+        }
         return value;
     }
     
@@ -63,4 +70,5 @@ public class Environment {
     
     public final String site;
     public final String env;
+    public final String host;
 }

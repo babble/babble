@@ -73,6 +73,14 @@ public class MappingBaseTest extends TestCase {
         assert( ! tm.rejectUrl( "www.alleyinsider.com/bla" ) );
         assert( ! tm.rejectUrl( "www.alleyinside.com/blah" ) );
     }
+
+    @Test(groups = {"basic"})
+    public void testEnv(){
+        Environment e = new Environment( "a" , "b" , "c" );
+        assertEquals( "c" , e.replaceHeaderValue( "host" , null ) );
+        assertEquals( "c" , e.replaceHeaderValue( "host" , "c" ) );
+        assertEquals( "c:8080" , e.replaceHeaderValue( "host" , "c:8080" ) );
+    }
     
     TextMapping create( String content )
         throws IOException {
