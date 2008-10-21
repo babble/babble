@@ -173,6 +173,10 @@ public abstract class SimplePool<T> {
         return _all.size() - _avail.size();
     }
 
+    public Iterator<T> getAll(){
+        return _all.getAll().iterator();
+    }
+
     public int everCreated(){
         return _everCreated;
     }
