@@ -48,7 +48,7 @@ module XGen
       # Note: once a capped collection has been created, you can't redefine
       # the size or max falues for that collection. To do so, you must drop
       # and recreate (or let a LogDevice object recreate) the collection.
-      def initialize(name, options)
+      def initialize(name, options = {})
         @collection_name = name
         options[:size] ||= DEFAULT_CAP_SIZE
         options[:size] = DEFAULT_CAP_SIZE if options[:size] <= 0
