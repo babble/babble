@@ -206,8 +206,10 @@ public final class StringParseUtil {
     public static Number parseStrict( String s ){
         if( s.length() == 0 )
             return 0;
+        if( s.charAt(0) == '+' ) 
+            s = s.substring( 1 );
 
-        if( s.matches( "-?Infinity" ) ) {
+        if( s.matches( "(\\+|-)?Infinity" ) ) {
             if( s.startsWith( "-" ) ) {
                 return Double.NEGATIVE_INFINITY;
             }

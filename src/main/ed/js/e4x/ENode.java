@@ -419,6 +419,11 @@ public class ENode extends JSObjectBase {
         nodeSetup( null );
     }
 
+    // for XMLList, to set constructor
+    public ENode( JSFunction f ) {
+        super( f );
+    }
+
     private ENode( Cons c, Namespace ns ) {
         super( _getCons() );
         XML = c;
