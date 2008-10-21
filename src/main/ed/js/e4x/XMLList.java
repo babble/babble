@@ -36,14 +36,32 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
 
     public static class ListCons extends JSFunctionCalls0 {
         public JSObject newOne(){
+            _new = true;
             return new XMLList();
         }
 
         public Object call( Scope scope , Object [] args){
+            Object o = scope.getThis();
+
+            if ( o != null && o instanceof XMLList ) {
+                XMLList list = (XMLList)o;
+                if( args.length > 0 && args[0] != null && args[0] instanceof XMLList ) {
+                    if( _new ) {
+                        _new = false;
+                        list.init( args[0] );
+                        return list;
+                    }
+                    else {
+                        return (XMLList)args[0];
+                    }
+                }
+                else if( args.length == 0 ) {
+                    return new XMLList();
+                }
+            }
             ENode n = (ENode)(new ENode.Cons()).call( scope, args );
             XMLList x = new XMLList( n );
             
-            Object o = scope.getThis();
             if( o instanceof XMLList ) {
                 ((XMLList)o).addAll( x );
                 return o;
@@ -51,6 +69,8 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
             
             return x;
         }
+
+        private boolean _new = false;
 
         protected void init() {
             final JSObjectBase thisPrototype = _prototype;
@@ -87,7 +107,7 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
                 });
             _prototype.set( "toString", new ENodeFunction() {
                     public Object call( Scope s,  Object foo[]) {
-                        return ((XMLList)s.getThis()).toString();
+                        return new JSString(((XMLList)s.getThis()).toString());
                     }
                 });
             _prototype.set( "toXMLString", new ENodeFunction() {
@@ -99,34 +119,48 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
             }
         };
 
+    public static JSFunction _getListCons() {
+        return Scope.getThreadLocalFunction( "XMLList" , c );
+    }
+
     public List<ENode> children;
 
     public XMLList() {
+        super( _getListCons() );
         children = new LinkedList<ENode>();
     }
 
     public XMLList( ENode node ) {
+        super( _getListCons() );
         this.children = new LinkedList<ENode>();
-        if( node == null ) {
+        init( node );
+    }
+
+    public XMLList( List<ENode> list ) {
+        super( _getListCons() );
+        children = list;
+    }
+
+    public void init( Object nodes ) {
+        if( nodes == null ) {
             return;
         }
         // make a copy of an existing xmllist
-        else if( node instanceof XMLList ) {
-            for( ENode child : (XMLList)node ) {
+        else if( nodes instanceof XMLList ) {
+            for( ENode child : (XMLList)nodes ) {
                 ENode temp = child.copy();
                 this.add( temp );
             }
         }
-        else if( node.node == null && node.children().size() > 0 ) {
-            this.addAll( node.children() );
+        else if( nodes instanceof ENode ) {
+            if( ((ENode)nodes).node == null && 
+                ((ENode)nodes).children().size() > 0 ) {
+                this.addAll( ((ENode)nodes).children() );
+            }
+            else if( ((ENode)nodes).node != null ) {
+                this.add( (ENode)nodes );
+            }
         }
-        else if( node.node != null ) {
-            this.add( node );
-        }
-    }
-
-    public XMLList( List<ENode> list ) {
-        children = list;
     }
 
     public Iterator<ENode> iterator() {
@@ -170,25 +204,21 @@ public class XMLList extends ENode implements List<ENode>, Iterable<ENode> {
     }
 
     public String toString() {
-        StringBuilder xml = new StringBuilder();
         if( children.size() == 1 ) {
             return children.get(0).toString();
         }
-        for( ENode n : this ) {
-            xml.append( n.toXMLString().toString() );
-            if( this.hasComplexContent() && ((Cons)this._getCons()).prettyPrinting )
-                xml.append( "\n" );
-        }
-        if( xml.length() > 0 && xml.charAt(xml.length() - 1) == '\n' ) {
-            xml.deleteCharAt(xml.length()-1);
-        }
-        return xml.toString();
+        return this.toXMLString();
     }
 
     public String toXMLString() {
         StringBuilder xml = new StringBuilder();
         for( ENode n : this ) {
             xml.append( n.append( new StringBuilder(), 0, new ArrayList<Namespace>() ).toString() );
+            if( this.hasComplexContent() && ((Cons)this._getCons()).prettyPrinting )
+                xml.append( "\n" );
+        }
+        if( xml.length() > 0 && xml.charAt(xml.length() - 1) == '\n' ) {
+            xml.deleteCharAt(xml.length()-1);
         }
         return xml.toString();
     }
