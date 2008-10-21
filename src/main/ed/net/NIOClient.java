@@ -53,6 +53,7 @@ public abstract class NIOClient extends Thread {
 
         _loggerOpen = _logger.getChild( "open" );
         _loggerDrop = _logger.getChild( "drop" );
+        _loggerLostConnection = _logger.getChild( "lost-connection" );
         
         try {
             _selector = Selector.open();
@@ -279,11 +280,25 @@ public abstract class NIOClient extends Thread {
         }
         
         boolean ok(){
-            if ( _error != null || _closed )
+            if ( _error != null ){
+                _loggerLostConnection.info( "error" );
                 return false;
+            }
 
-            if ( System.currentTimeMillis() - _opened > CONNECT_TIMEOUT )
+            if ( _closed ){
+                _loggerLostConnection.info( "closed" );
                 return false;
+            }
+            
+            if ( System.currentTimeMillis() - _opened > CONNECT_TIMEOUT ){
+                _loggerLostConnection.info( "connect timeout" );
+                return false;
+            }
+            
+            if ( _current != null && _current._done ){
+                _loggerLostConnection.info( "have call but its done" );
+                return false;
+            }
             
             return true;
         }
@@ -652,6 +667,7 @@ public abstract class NIOClient extends Thread {
     final Logger _logger;
     final Logger _loggerOpen;
     final Logger _loggerDrop;
+    final Logger _loggerLostConnection;
 
     private Selector _selector;
     private final BlockingQueue<Call> _newRequests = new ArrayBlockingQueue<Call>( 1000 );
