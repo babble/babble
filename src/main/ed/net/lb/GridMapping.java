@@ -125,7 +125,7 @@ public class GridMapping extends MappingBase {
 
                 if ( e.get( "aliases" ) instanceof List )
                     for ( Object a : (List)(e.get( "aliases" )) )
-                        addSiteAlias( name , a.toString().toLowerCase() , pool );
+                        addSiteAlias( name , a.toString().toLowerCase() , env );
             }
             
         }
