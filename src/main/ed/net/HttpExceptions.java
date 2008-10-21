@@ -40,4 +40,10 @@ public class HttpExceptions {
 
         IOException _ioe;
     }
+
+    public static class ClientError extends IOException {
+        ClientError( String msg ){
+            super( "ClientError : " + msg );
+        }
+    }
 }

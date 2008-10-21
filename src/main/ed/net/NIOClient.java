@@ -450,7 +450,7 @@ public abstract class NIOClient extends Thread {
         }
         
         public void userError( String msg ){
-            _userError( msg , false );
+            _error( ServerErrorType.WEIRD , new ClientError( msg ) );
         }
 
         private void _userError( String msg ){

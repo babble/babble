@@ -47,6 +47,8 @@ public class Server implements Comparable<Server> {
     }
     
     void error( Environment env , NIOClient.ServerErrorType type , Exception what , HttpRequest request , HttpResponse response ){
+        if ( what instanceof HttpExceptions.ClientError )
+            return;
         _logger.error( "into error state because of socket error" , what );
 	_inErrorState = true;
 	_tracker.networkEvent();
