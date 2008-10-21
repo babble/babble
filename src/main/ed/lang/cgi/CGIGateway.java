@@ -108,6 +108,8 @@ public abstract class CGIGateway extends JxpSource {
         // "REMOTE_IDENT" => "NYI"
         env.set("REMOTE_USER",req.getRemoteUser());
         env.set("REQUEST_METHOD",req.getMethod());
+        env.set("REQUEST_URI", req.getURI());
+        env.set("REQUEST_URL", req.getURL());
         env.set("SCRIPT_NAME","");       // TODO - fix
 
         env.set("SCRIPT_FILENAME","###FIXME2###");   // TODO -fix
