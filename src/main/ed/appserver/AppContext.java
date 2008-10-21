@@ -224,6 +224,18 @@ public class AppContext extends ServletContextBase implements JSObject , Sizable
             if(temp instanceof JSFileLibrary)
                 rootFileMap.put(rootKey, (JSFileLibrary)temp);
         }
+
+        _scope.put( "fork" , new JSFunctionCalls1(){
+                public Object call( final Scope scope , final Object funcJS , final Object extra[] ){
+                    
+                    if ( ! ( funcJS instanceof JSFunction ) )
+                        throw new JSException( "fork has to take a function" );
+                    
+                    return queueWork( "forked" , (JSFunction)funcJS , extra );
+                }
+            } 
+            );
+        _scope.lock( "fork" );
         
         ed.appserver.templates.djang10.JSHelper.install(_scope, rootFileMap, _logger);
         
@@ -1096,20 +1108,24 @@ public class AppContext extends ServletContextBase implements JSObject , Sizable
         return o == this;
     }
     
-    public void queueWork( String identifier , JSFunction work , Object ... params ){
-        queueWork( new AppWork.FunctionAppWork( this , identifier , work , params ) );
+    public AppWork queueWork( String identifier , JSFunction work , Object ... params ){
+        return queueWork( new AppWork.FunctionAppWork( this , identifier , work , params ) );
     }
 
-    public void queueWork( AppWork work ){
+    public AppWork queueWork( AppWork work ){
         if ( _workQueue == null ){
             _workQueue = new ArrayBlockingQueue<AppWork>( 100 );
             AppWork.addQueue( _workQueue );
         }
 
         if ( _workQueue.offer( work ) )
-            return;
+            return work;
         
         throw new RuntimeException( "work queue full!" ) ;
+    }
+
+    public Logger getLogger( String sub ){
+        return _logger.getChild( sub );
     }
     
     // ----  START JSObject INTERFACE

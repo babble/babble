@@ -18,17 +18,80 @@ public abstract class AppWork implements Comparable<AppWork> {
         _id = new ObjectId();
     }
     
-    public abstract void run();
+    public abstract Object run();
     
     public int compareTo( AppWork other ){
         return (int)(this._created - other._created);
+    }
+
+    public boolean isDone(){
+        return _done;
+    }
+    
+    public Object returnData(){
+        return getResult( true );
+    }
+    
+    public Object getResult(){
+        return getResult( true );
+    }
+
+    public Object getResult( boolean block ){
+        
+        boolean added = false;
+        while ( ! _done && block ){
+            if ( ! added ){
+                _waiters.add( Thread.currentThread() );
+                added = true;
+            }
+            
+            try {
+                Thread.sleep( 100 );
+            }
+            catch ( InterruptedException ie ){
+            }
+        }
+        
+        if ( ! _done )
+            throw new RuntimeException( "not done yet" );
+
+        if ( _error != null )
+            throw _error;
+
+        return _result;
+    }
+
+    public void start(){
+    }
+    
+    void done( Object result ){
+        _result = result;
+        _done();
+    }
+
+    void error( RuntimeException re ){
+        _error = re;
+        _context.getLogger( "queuework" ).error( _name , re );
+        _done();
+    }
+    
+    private void _done(){
+        _done = true;
+        for ( Thread t : _waiters )
+            t.interrupt();
+        _waiters.clear();
     }
 
     final protected AppContext _context;
     final protected String _name;
     final protected ObjectId _id;
     final protected long _created = System.currentTimeMillis();
-    
+
+    final private List<Thread> _waiters = new LinkedList<Thread>();
+    private boolean _done = false;
+    private Object _result = null;
+    private RuntimeException _error;
+
     public static class FunctionAppWork extends AppWork {
 
         public FunctionAppWork( AppContext context , String name , JSFunction func , Object ... args  ){
@@ -37,8 +100,8 @@ public abstract class AppWork implements Comparable<AppWork> {
             _args = args;
         }
         
-        public void run(){
-            _func.call( _context.getScope() , _args );
+        public Object run(){
+            return _func.call( _context.getScope() , _args );
         }
         
         final JSFunction _func;
@@ -58,7 +121,12 @@ public abstract class AppWork implements Comparable<AppWork> {
         
         public void handle( AppWork work )
             throws Exception{
-            work.run();
+            try {
+                work.done( work.run() );
+            }
+            catch ( RuntimeException re ){
+                work.error( re );                
+            }
         }
         
         public void handleError( AppWork work , Exception e ){
