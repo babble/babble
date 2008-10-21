@@ -51,6 +51,25 @@ public class ObjectId {
 
         return true;
     }
+    
+    /**
+     * @return an ObjectId if it can be massages, null otherwise.  if you pass in null get null 
+     */
+    public static ObjectId massageToObjectId( Object o ){
+        if ( o == null )
+            return null;
+        
+        if ( o instanceof ObjectId )
+            return (ObjectId)o;
+
+        if ( o instanceof String || o instanceof ed.js.JSString ){
+            String s = o.toString();
+            if ( isValid( s ) )
+                return new ObjectId( s );
+        }
+        
+        return null;
+    }
 
     public ObjectId( String s ){
 
@@ -100,10 +119,10 @@ public class ObjectId {
         if ( this == o )
             return true;
 
-        if  ( ! ( o instanceof ObjectId ) )
+        ObjectId other = massageToObjectId( o );
+        if ( other == null )
             return false;
         
-        ObjectId other = (ObjectId)o;
         return 
             _base == other._base && 
             _inc == other._inc;
