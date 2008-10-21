@@ -482,6 +482,9 @@ public class JSInternalFunctions extends JSNumericFunctions {
              ( b instanceof Number && Double.isNaN( ((Number)b).doubleValue() ) ) )
             return false;
 
+        if ( a instanceof String )
+            return a.equals( b.toString() );
+
 	return a.equals( b );
     }
 

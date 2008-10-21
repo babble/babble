@@ -23,10 +23,10 @@ public class DBAddress {
         if ( idx < 0 ){
             _host = defaultHost();
             _port = defaultPort();
-            _name = urlFormat;
+            _name = _fixName( urlFormat );
         }
         else {
-            _name = urlFormat.substring( idx + 1 ).trim();
+            _name = _fixName( urlFormat.substring( idx + 1 ).trim() );
             urlFormat = urlFormat.substring( 0 , idx ).trim();
             idx = urlFormat.indexOf( ":" );
             if ( idx < 0 ){
@@ -42,9 +42,11 @@ public class DBAddress {
         _check( _host , "host" );
         _check( _name , "name" );
         _addr = _getAddress( _host );
-
-        if ( _name.contains( "." ) )
-            throw new RuntimeException( "db names can't have periods in them [" + _name + "]" );
+    }
+    
+    static String _fixName( String name ){
+        name = name.replace( '.' , '-' );
+        return name;
     }
 
     public DBAddress( DBAddress other , String name )
