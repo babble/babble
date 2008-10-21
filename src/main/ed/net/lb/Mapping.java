@@ -37,42 +37,4 @@ public interface Mapping {
 
     public boolean reject( HttpRequest request );
     
-    public static class Environment {
-        
-        public Environment( String site , String env ){
-            this.site = site;
-            this.env = env;
-        }
-        
-        public int hashCode(){
-            int h = 0;
-            if ( site != null )
-                h += site.hashCode();
-            if ( env != null )
-                h += env.hashCode();
-            return h;
-        }
-
-        public boolean equals( Object o ){
-            if ( ! ( o instanceof Environment ) )
-                return false;
-
-            Environment e = (Environment)o;
-            if ( site == null && e.site != null )
-                return false;
-            if ( env == null && e.env != null )
-                return false;
-            
-            return site.equals( e.site ) && env.equals( e.env );
-        }
-
-        public String toString(){
-            return "site: [" + site + "] env: [" + env + "]";
-        }
-                
-        public final String site;
-        public final String env;
-        
-    }
-    
 }
