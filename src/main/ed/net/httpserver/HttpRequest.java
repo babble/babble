@@ -855,6 +855,10 @@ public class HttpRequest extends JSObjectLame implements HttpServletRequest , Si
 	    _postParameters.containsKey( s );
     }
 
+    public boolean containsKey( String s , boolean includePrototype ){
+        return containsKey( s );
+    }
+
     /** 
      * Get the names of all the parameters in the URL.
      * @return the names of all the parameters in the URL
