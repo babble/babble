@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -107,7 +108,7 @@ public class Parser extends JSObjectBase{
         }
     }
  
-    public NodeList parse(JSArray untilTagsList ) {
+    public NodeList parse(List untilTagsList ) {
         NodeList nodelist = create_nodelist();
 
         if(untilTagsList == null)
