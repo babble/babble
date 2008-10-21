@@ -306,6 +306,12 @@ public class LB extends NIOClient {
 	    return _request.getFullURL();
 	}
 
+        public String getStateString(){
+            if ( isDone() )
+                return "DONE";
+            return _state.toString();
+        }
+
         final HttpRequest _request;
         final HttpResponse _response;
         final Environment _environemnt;
