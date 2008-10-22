@@ -35,7 +35,7 @@ import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
  */
 public class Loader {
 
-    static final Map<Ruby, Set<IRubyObject>> _requiredJSFileLibFiles = new WeakHashMap<Ruby, Set<IRubyObject>>();
+    static final Map<Ruby, Set<String>> _requiredJSFileLibFiles = new WeakHashMap<Ruby, Set<String>>();
 
     private Scope _scope;
 
@@ -54,8 +54,6 @@ public class Loader {
         if (RubyObjectWrapper.DEBUG_FCALL)
             System.err.println("require " + file);
         try {
-            if (_forceReload(file))
-                file = _uniqueReloadName(file);
             return runtime.getLoadService().require(file) ? runtime.getTrue() : runtime.getFalse();
         }
         catch (RaiseException re) {
@@ -81,20 +79,6 @@ public class Loader {
         catch (RaiseException re) {
             return loadLibraryFile(_scope, runtime, self, file.toString(), re);
         }
-    }
-
-    /**
-     * Returns <code>true</code> if <var>file</var> refers to a local file and
-     * its mod time has changed.
-     */
-    protected boolean _forceReload(String file) {
-        return false;
-    }
-
-    /**
-     */
-    protected String _uniqueReloadName(String file) {
-        return "";
     }
 
     protected IRubyObject loadLibraryFile(Scope scope, Ruby runtime, IRubyObject recv, String path, RaiseException re) {
@@ -165,21 +149,21 @@ public class Loader {
         return (loc == -1) ? "" : path.substring(loc + 1);
     }
 
-    protected boolean _notAlreadyRequired(Ruby runtime, IRubyObject arg) {
+    protected boolean _notAlreadyRequired(Ruby runtime, String file) {
         synchronized (_requiredJSFileLibFiles) {
-            Set<IRubyObject> reqs = _requiredJSFileLibFiles.get(runtime);
-            return reqs == null || !reqs.contains(arg);
+            Set<String> reqs = _requiredJSFileLibFiles.get(runtime);
+            return reqs == null || !reqs.contains(file);
         }
     }
 
-    protected void _rememberAlreadyRequired(Ruby runtime, IRubyObject arg) {
+    protected void _rememberAlreadyRequired(Ruby runtime, String file) {
         synchronized (_requiredJSFileLibFiles) {
-            Set<IRubyObject> reqs = _requiredJSFileLibFiles.get(runtime);
+            Set<String> reqs = _requiredJSFileLibFiles.get(runtime);
             if (reqs == null) {
-                reqs = new HashSet<IRubyObject>();
+                reqs = new HashSet<String>();
                 _requiredJSFileLibFiles.put(runtime, reqs);
             }
-            reqs.add(arg);
+            reqs.add(file);
         }
     }
 
