@@ -5,6 +5,7 @@ package ed.db;
 import java.nio.*;
 import java.nio.charset.*;
 
+import ed.lang.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.util.*;
@@ -92,8 +93,8 @@ public class ByteDecoder extends Bytes {
 
     private JSObject _create( JSFunction cons ){
         if ( cons == null )
-            return new JSObjectBase();
-
+            return new JSDict();
+        
         JSObject o = cons.newOne();
         if ( o instanceof JSObjectBase )
             ((JSObjectBase)o).setConstructor( cons , true );
