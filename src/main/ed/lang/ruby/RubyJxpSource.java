@@ -32,18 +32,20 @@ import org.jruby.util.KCode;
 import static org.jruby.runtime.Visibility.PUBLIC;
 
 import ed.appserver.AppContext;
+import ed.appserver.AppRequest;
 import ed.appserver.JSFileLibrary;
-import ed.appserver.jxp.JxpSource;
 import ed.io.StreamUtil;
 import ed.js.JSFunction;
 import ed.js.engine.Scope;
+import ed.lang.cgi.CGIGateway;
+import ed.lang.cgi.EnvMap;
 import ed.net.httpserver.HttpResponse;
 import ed.util.Dependency;
 import static ed.lang.ruby.RubyObjectWrapper.toJS;
 import static ed.lang.ruby.RubyObjectWrapper.toRuby;
 import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
 
-public class RubyJxpSource extends JxpSource {
+public class RubyJxpSource extends CGIGateway {
 
     public static final String XGEN_MODULE_NAME = "XGen";
     public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
@@ -130,14 +132,15 @@ public class RubyJxpSource extends JxpSource {
         }
     }
 
-    public RubyJxpSource(File f , JSFileLibrary lib) {
-        this(f, lib, null);
+    public RubyJxpSource(File f , JSFileLibrary lib, boolean isCGI) {
+        this(f, lib, isCGI, null);
     }
 
     /** For testing and {@link RubyLanguage} use. */
-    protected RubyJxpSource(File f, JSFileLibrary lib, Ruby runtime) {
+    protected RubyJxpSource(File f, JSFileLibrary lib, boolean isCGI, Ruby runtime) {
         _file = f;
         _lib = lib;
+        _isCGI = isCGI;
         _runtime = runtime;
     }
 
@@ -151,15 +154,6 @@ public class RubyJxpSource extends JxpSource {
         return _runtime;
     }
 
-    /**
-     * Really only for testing. Always use {@link #getRuntime(Scope)} or
-     * {@link #getRuntime(AppContext)} unless you know that a runtime has
-     * already been assigned.
-     */
-    protected Ruby getRuntime() {
-        return getRuntime((AppContext)null);
-    }
-
     protected void forgetRuntime(Scope s) {
         _runtime = null;
         if (s != null)
@@ -170,7 +164,7 @@ public class RubyJxpSource extends JxpSource {
         return StreamUtil.readFully(_file);
     }
 
-    protected InputStream getInputStream() throws FileNotFoundException {
+    protected InputStream getInputStream() throws IOException {
         return new FileInputStream(_file);
     }
 
@@ -187,6 +181,9 @@ public class RubyJxpSource extends JxpSource {
     }
 
     public JSFunction getFunction() throws IOException {
+        if (_isCGI)
+            return super.getFunction();
+
         final Node node = _parseCode();
         return new ed.js.func.JSFunctionCalls0() {
             public Object call(Scope s, Object unused[]) { return RubyObjectWrapper.toJS(s, _doCall(node, s, unused)); }
@@ -194,21 +191,37 @@ public class RubyJxpSource extends JxpSource {
     }
 
     protected IRubyObject _doCall(Node node, Scope s, Object unused[]) {
-        if (_anyLocalFileChanged(s)) {
-            if (DEBUG)
-                System.err.println("new file or file mod time changed; resetting Ruby runtime");
-            forgetRuntime(s);
-        }
+        _setOutput(s);
+        _commonSetup(s);
+        return _commonRun(node, s);
+    }
 
+    public void handle(EnvMap env, InputStream stdin, OutputStream stdout, AppRequest ar) {
+        Scope s = ar.getScope();
+        _addCGIEnv(s, env);
+        _setIO(s, stdin, stdout);
+        _commonSetup(s);
+        try {
+            _commonRun(_parseCode(), s);
+        }
+        catch (IOException e) {
+            System.err.println("RubyJxpSource.handle: " + e);
+        }
+    }
+
+    protected void _commonSetup(Scope s) {
+        _resetOnFileChange(s);
         _addJSFileLibrariesToPath(s);
 
         Ruby runtime = getRuntime(s);
         runtime.setGlobalVariables(new ScopeGlobalVariables(s, runtime));
-        _setOutput(s);
         _exposeScopeFunctions(s);
         _patchRequireAndLoad(s);
+    }
 
+    protected IRubyObject _commonRun(Node node, Scope s) {
         // See the second part of JRuby's Ruby.executeScript(String, String)
+        Ruby runtime = getRuntime(s);
         ThreadContext context = runtime.getCurrentContext();
 
         String oldFile = context.getFile();
@@ -260,6 +273,15 @@ public class RubyJxpSource extends JxpSource {
         }
     }
 
+    /** Copies <var>env</var> into ENV[]. */
+    protected void _addCGIEnv(Scope s, EnvMap env) {
+        Ruby runtime = getRuntime(s);
+        ThreadContext context = runtime.getCurrentContext();
+        RubyHash envHash = (RubyHash)runtime.getObject().fastGetConstant("ENV");
+        for (String key : env.keySet())
+            envHash.op_aset(context, runtime.newString(key), runtime.newString(env.get(key).toString()));
+    }
+
     /**
      * Set Ruby's $stdout so that print/puts statements output to the right
      * place. If we have no HttpResponse (for example, we're being run outside
@@ -271,6 +293,17 @@ public class RubyJxpSource extends JxpSource {
             Ruby runtime = getRuntime(s);
             runtime.getGlobalVariables().set("$stdout", new RubyIO(runtime, new RubyJxpOutputStream(response.getJxpWriter())));
         }
+    }
+
+    /**
+     * Set Ruby's $stdin and $stdout so that reading and writing go to the
+     * right place. Called from {@link handle} which is called from the CGI
+     * gateway.
+     */
+    protected void _setIO(Scope s, InputStream stdin, OutputStream stdout) {
+        Ruby runtime = getRuntime(s);
+        runtime.getGlobalVariables().set("$stdin", new RubyIO(runtime, stdin));
+        runtime.getGlobalVariables().set("$stdout", new RubyIO(runtime, stdout));
     }
 
     /**
@@ -415,6 +448,27 @@ public class RubyJxpSource extends JxpSource {
         }
     }
 
+    /**
+     * Resets runtime if any local file changed. This is a simple, dumb,
+     * stupid way of making sure that files are re-required if they changed.
+     * <p>
+     * What we really want is a way to find out which file is really required
+     * by "require 'foo'" so we can check at the time of the require instead
+     * of up front for all files. There is no way to find 'foo' now without a
+     * change to JRuby (which I'm working on).
+     */    
+    private void _resetOnFileChange(Scope s) {
+        return;
+        // This code is commented out for now because when run against an app
+        // with 1,000 froze Rails files, calling _anyLocalFileChanged for
+        // every request is too slow.
+//         if (_anyLocalFileChanged(s)) {
+//             if (DEBUG)
+//                 System.err.println("new file or file mod time changed; resetting Ruby runtime");
+//             forgetRuntime(s);
+//         }
+    }
+
     private boolean _anyLocalFileChanged(Scope s) {
         return false;
         // This code is commented out for now because when run against an app
@@ -449,6 +503,7 @@ public class RubyJxpSource extends JxpSource {
 
     protected final File _file;
     protected final JSFileLibrary _lib;
+    protected final boolean _isCGI;
     protected Ruby _runtime;
 
     protected Node _node;

@@ -36,7 +36,8 @@ public class Security {
 	s.add( "admin" );
 	s.add( "www" );
 	s.add( "grid" );
-	allowedSites = Collections.synchronizedSet( s );
+	s.add( "mongo" );
+	allowedSites = Collections.unmodifiableSet( s );
     }
 
     public final static boolean isAllowedSite( String siteName ){

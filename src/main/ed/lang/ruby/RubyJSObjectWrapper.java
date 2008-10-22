@@ -554,9 +554,16 @@ public class RubyJSObjectWrapper extends RubyHash {
                             return toRuby(_scope, runtime, val);
                         }
                     }
-                    if (RubyObjectWrapper.DEBUG_FCALL)
-                        System.err.println("method_missing: turning " + key + "; returning it");
-                    return toRuby(_scope, runtime, val);
+                    if (args.length > 1) { // we have function arguments but this is not a function
+                        if (RubyObjectWrapper.DEBUG_FCALL)
+                            System.err.println("method_missing: the non-function " + key + " was called with arguments; calling super.method_missing");
+                        return RuntimeHelpers.invokeAs(context, _eigenclass.getSuperClass(), RubyJSObjectWrapper.this, "method_missing", args, CallType.SUPER, block);
+                    }
+                    else {
+                        if (RubyObjectWrapper.DEBUG_FCALL)
+                            System.err.println("method_missing: found " + key + "; it is a " + val.getClass().getName() + "; returning it");
+                        return toRuby(_scope, runtime, val);
+                    }
                 }
             });
     }

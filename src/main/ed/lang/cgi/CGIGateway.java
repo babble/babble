@@ -1,3 +1,5 @@
+// CGIGateway.java
+
 /**
 *    Copyright (C) 2008 10gen Inc.
 *
@@ -16,54 +18,50 @@
 
 package ed.lang.cgi;
 
-import ed.js.func.JSFunctionCalls0;
-import ed.js.engine.Scope;
-import ed.js.JSFunction;
-import ed.net.httpserver.HttpRequest;
-import ed.net.httpserver.HttpResponse;
-import ed.appserver.jxp.ServletWriter;
-import ed.appserver.JSFileLibrary;
+import java.io.*;
+import java.util.*;
 
-import java.util.Enumeration;
+import ed.js.*;
+import ed.js.func.*;
+import ed.js.engine.*;
+import ed.net.httpserver.*;
+import ed.appserver.jxp.*;
+import ed.appserver.*;
+
 
 /**
  *  Utility class that invokes a Babble-supported
  *  script in a CGI environment.
  */
-public class CGIGateway extends JSFunctionCalls0 {
+public abstract class CGIGateway extends JxpSource {
 
-    protected final String _script;
-    protected final JSFileLibrary _lib;
-
-    public CGIGateway(String script, JSFileLibrary lib) {
-        _script = script;
-        _lib = lib;
+    public CGIGateway(){
     }
 
-    /**
-     *  Called on script invocation (e.g. JxpServlet line 39)
-     *
-     *  Creates a CGI dictionary and invokes the specified script with
-     *  it as an additional parameter.  Depends on target script on
-     *  being able to do CGI - needs to place this dictionary in the
-     *  right place for the given langage, and process output e.g.
-     *   ed.lang.python.PyCGIOutputHandler
-     *
-     * @param scope scope for call
-     * @param extra stuff
-     * @return whatever the target script returns
-     */
-    public Object call(Scope scope, Object[] extra) {
+    public abstract void handle( EnvMap env , InputStream stdin , OutputStream stdout , AppRequest ar );
+    
+    public JSFunction getFunction() throws IOException {
+        return _dontCall;
+    }
 
-        HttpRequest req = (HttpRequest) extra[0];
-        HttpResponse resp = (HttpResponse) extra[1];
-        ServletWriter writer = (ServletWriter) extra[2];
+    public JxpServlet getServlet( AppContext context ){
+        if ( _servlet == null )
+            _servlet = new MyServlet( context );
+        return _servlet;
+    }
 
-        JSFunction f = _lib.getFunction(_script);
+    public void handle( AppRequest ar ){
+        EnvMap env = makeCGIDict( ar.getRequest() );
 
-        EnvMap cgiEnv = makeCGIDict(req);
+        InputStream stdin = null;
+        if ( ar.getRequest().getPostData() != null )
+            stdin = ar.getRequest().getPostData().getInputStream();
+        else 
+            stdin = new ByteArrayInputStream( new byte[0] );
+        
+        OutputStream stdout = new CGIOutputStream( ar.getResponse() , ar.getResponse().getOutputStream() );
 
-        return f.call(scope, req, resp, writer, cgiEnv);
+        handle( env , stdin , stdout , ar );
     }
 
     /**
@@ -110,6 +108,8 @@ public class CGIGateway extends JSFunctionCalls0 {
         // "REMOTE_IDENT" => "NYI"
         env.set("REMOTE_USER",req.getRemoteUser());
         env.set("REQUEST_METHOD",req.getMethod());
+        env.set("REQUEST_URI", req.getURI());
+        env.set("REQUEST_URL", req.getURL());
         env.set("SCRIPT_NAME","");       // TODO - fix
 
         env.set("SCRIPT_FILENAME","###FIXME2###");   // TODO -fix
@@ -141,4 +141,111 @@ public class CGIGateway extends JSFunctionCalls0 {
 
         return env;
     }
+
+
+    public static class CGIOutputStream extends OutputStream {
+        
+        public CGIOutputStream( HttpResponse response ){
+            this( response , response.getOutputStream() );
+        }
+        
+        public CGIOutputStream( HttpResponse response , OutputStream body ){
+            _response = response;
+            _body = body;
+        }
+        
+        public void write(byte[] b)
+            throws IOException {
+            if ( _inHeader )
+                super.write( b );
+            else 
+                _body.write( b );
+        }
+        
+        public void write(byte[] b, int off, int len)
+            throws IOException {
+            if ( _inHeader )
+                super.write( b , off , len );
+            else 
+                _body.write( b , off , len );
+        }
+
+        public void write( int i )
+            throws IOException {
+
+            if ( ! _inHeader ){
+                _body.write( i );
+                return;
+            }
+            
+            byte b = (byte)(i & 0xFF);
+            if ( b == '\r' )
+                return;
+            
+            if ( b != '\n' ){
+                _line.append( (char)b );
+                return;
+            }
+            
+            if ( _line.length() == 0 ){
+                _inHeader = false;
+                return;
+            }
+            
+            String s = _line.toString();
+            int idx = s.indexOf( ":" );
+            if ( idx < 0 )
+                throw new RuntimeException( "invalid cgi header line [" + s + "]" );
+            
+            String key = s.substring( 0 , idx ).trim();
+            String val = s.substring( idx + 1 ).trim();
+            _response.addHeader( key , val );
+            if ("status".equals(key.toLowerCase()))
+                _setStatus( val );
+
+            _line.setLength( 0 );
+        }
+        
+        protected void _setStatus( String val ) {
+            String[] words = val.split(" ");
+            if (words.length > 0 && Character.isDigit(words[0].charAt(0))) {
+                try {
+                    int status = Integer.parseInt(words[0]);
+                    _response.setStatus(status);
+                }
+                catch (NumberFormatException e) {}
+            }
+        }
+
+        final OutputStream _body;
+        final HttpResponse _response;
+
+        private boolean _inHeader = true;
+        private StringBuilder _line = new StringBuilder();
+    }
+    
+    class MyServlet extends JxpServlet {
+        MyServlet( AppContext context ){
+            super( context , _dontCall );
+        }
+
+        public void handle( HttpRequest request , HttpResponse response , AppRequest ar ){
+            CGIGateway.this.handle( ar );
+        }
+    }
+
+    protected String getContent() throws IOException {
+        throw new RuntimeException( "not supported" );
+    }
+    
+    protected InputStream getInputStream() throws IOException {
+        throw new RuntimeException( "not supported" );
+    }
+
+    private MyServlet _servlet = null;
+    private static final JSFunction _dontCall = new JSFunctionCalls0(){
+            public Object call( Scope s , Object extra[] ){
+                throw new RuntimeException( "don't call me" );
+            }
+        };
 }

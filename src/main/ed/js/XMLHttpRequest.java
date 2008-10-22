@@ -121,7 +121,7 @@ public class XMLHttpRequest extends JSObjectBase {
      * @param url URL to which to send HTTP request.
      * @param aysnc If the request should be asynchronous.
      */
-    public void open( Object method , Object url , Object async ){
+    void open( Object method , Object url , Object async ){
         init( method.toString() , url.toString() , JSInternalFunctions.JS_evalToBool( async ) );
     }
 

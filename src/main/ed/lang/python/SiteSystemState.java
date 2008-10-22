@@ -79,7 +79,7 @@ public class SiteSystemState {
     }
 
     void ensurePath( String myPath ){
-        ensurePath( myPath , -1 );
+        ensurePath( myPath , 0 );
     }
 
     void ensurePath( String myPath , int location ){

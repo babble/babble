@@ -176,7 +176,7 @@ public class JSObjectBase implements JSObject {
         }
     }
 
-    private void _checkMap(){
+    protected void _checkMap(){
         if ( _map == null ){
             //_map = new HashMap<String,Object>();
             _map = new FastStringMap();
@@ -506,6 +506,13 @@ public class JSObjectBase implements JSObject {
     // inheritnace jit END
     // ----
 
+    public void clear(){
+        if ( _map != null )
+            _map.clear();
+        if ( _keys != null )
+            _keys.clear();
+    }
+    
     /** Given a field name in this object, remove it.
      * @param n The name of the field to be removed.
      * @return The removed value, if successful, otherwise null.
@@ -549,6 +556,10 @@ public class JSObjectBase implements JSObject {
     public Object getInt( int n ){
         prefunc();
         return get( String.valueOf( n ) );
+    }
+
+    public boolean containsKey( Object o ){
+        return containsKey( o.toString() , true );
     }
 
     /** Tests if the specified string is a key in this object.
@@ -768,6 +779,17 @@ public class JSObjectBase implements JSObject {
     protected void addAll( Map other ){
         for ( Object key : other.keySet() )
             set( key , other.get( key ) );
+    }
+
+    public Object put( String key , Object v ){
+        Object prev = get( key );
+        set( key , v );
+        return prev;
+    }
+
+    public void putAll( Map<? extends String,? extends Object> m ){
+        for ( String key : m.keySet() )
+            put( key , m.get( key ) );
     }
 
     private Object _call( JSFunction func , Object ... params ){

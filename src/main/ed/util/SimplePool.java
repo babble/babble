@@ -75,8 +75,12 @@ public abstract class SimplePool<T> {
         }
 
         synchronized ( _avail ){
-            if ( _maxToKeep < 0 || _avail.size() < _maxToKeep )
+            if ( _maxToKeep < 0 || _avail.size() < _maxToKeep ){
+                for ( int i=0; i<_avail.size(); i++ )
+                    if ( _avail.get( i ) == t )
+                        throw new RuntimeException( "trying to put something back in the pool that's already there" );
                 _avail.add( t );
+            }
         }
     }
 
@@ -171,6 +175,10 @@ public abstract class SimplePool<T> {
     
     public int inUse(){
         return _all.size() - _avail.size();
+    }
+
+    public Iterator<T> getAll(){
+        return _all.getAll().iterator();
     }
 
     public int everCreated(){

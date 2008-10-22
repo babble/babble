@@ -25,14 +25,13 @@ $mapUrlToJxpFile = Proc.new do |uri, req|
   if File.exist?(File.join($local.getRoot.getPath, 'public', uri[1..-1]))
     "/public" + uri
   else
-    "public/xgen_dispatch.rb"
+    "public/xgen_dispatch.rbcgi"
   end
 end
 
-Next, add public/xgen_dispatch.rb:
+Next, add public/xgen_dispatch.rbcgi:
 
 require 'xgen/rails'
-load 'xgen/rails/cgi_env.rb'
 Dispatcher.dispatch
 =end
 
@@ -45,7 +44,12 @@ ENV['RAILS_ENV'] = $scope['__instance__'].getEnvironmentName() || 'development'
 # "production" instead.
 ENV['RAILS_ENV'] = 'production' if ENV['RAILS_ENV'] == 'www'
 
+# Logging
+require 'logger'
+require 'xgen/mongo/log_device'
+# Default LogDevice capped collection size is 10 Mb.
+RAILS_DEFAULT_LOGGER = Logger.new(XGen::Mongo::LogDevice.new("rails_log_#{ENV['RAILS_ENV']}"))
+
 require 'xgen/mongo'
 require File.join($local.getRoot.getPath, "config/environment") unless defined?(RAILS_ROOT)
 require 'dispatcher'
-require 'xgen/rails/dispatcher'

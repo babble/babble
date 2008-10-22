@@ -12,14 +12,23 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-class Object
-  def to_oid
-    ObjectId(self.to_s)
-  end
-end
+=begin
+This file is a typical _init.rb file for a Rails site running on Babble. You
+can use this file by making your _init.rb file contain
 
-class ObjectId
-  def to_oid
-    self
+  require 'xgen/rails/init'
+
+You don't have to use this file---you can copy and modify the code below
+and put it in your _init.rb instead.
+=end
+
+# Look for the requested URI in the public directory. If not found, pass it on
+# to the 10gen Rails dispatcher.
+$mapUrlToJxpFile = Proc.new do |uri, req|
+  uri = '/index.html' if uri == '/'
+  if File.exist?(File.join($local.getRoot.getPath, 'public', uri[1..-1]))
+    "/public" + uri
+  else
+    "public/xgen_dispatch.rbcgi"
   end
 end

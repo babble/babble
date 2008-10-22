@@ -225,13 +225,12 @@ DBCollection.prototype._dbCommand = function( cmdObj ) {
  * @param {Object} criteria - query to match
  * @param {Object} fields - fields to append
  */
-DBCollection.prototype.append = function(criteria, fields) { 
+DBCollection.prototype.extend = function(criteria, fields) { 
     assert( criteria );
     assert( fields );
     var coll = this.getName();
     return this.getDB().eval( 
 	function() {
-            var start = (new Date()).getTime();
 	    var n = 0;
 	    var f = fields;
 	    db[coll].find(criteria).forEach( 
@@ -240,7 +239,6 @@ DBCollection.prototype.append = function(criteria, fields) {
 		    db[coll].save(o);
 		    n++;
 		} );
-            print( "append time : " + ( (new Date()).getTime() - start ) );
 	    return n;
 	}	      
     );

@@ -44,7 +44,7 @@ public class LB extends NIOClient {
 
     public LB( int port , MappingFactory mappingFactory , int verbose )
         throws IOException {
-        super( "LB" , HttpServer.WORKER_THREADS , verbose );
+        super( "LB" , HttpServer.WORKER_THREADS * 10 , verbose );
         
         _port = port;
         _handler = new LBHandler();
@@ -306,6 +306,12 @@ public class LB extends NIOClient {
 	    return _request.getFullURL();
 	}
 
+        public String getStateString(){
+            if ( isDone() )
+                return "DONE";
+            return _state.toString();
+        }
+
         final HttpRequest _request;
         final HttpResponse _response;
         final Environment _environemnt;
@@ -322,7 +328,14 @@ public class LB extends NIOClient {
     class MySender extends JSFile.Sender {
         MySender( MyChunk chunk ){
             super( chunk , chunk._length );
+            _chunk = chunk;
         }
+
+        public void cancelled(){
+            _chunk.cancelled();
+        }
+
+        final MyChunk _chunk;
     }
 
     class MyChunk extends JSFileChunk {
@@ -355,6 +368,10 @@ public class LB extends NIOClient {
             _last = _data.length();
             _logger.debug( _last == 0 ? 4 : 3 , "sent " + _sent + "/" + _length );
             return this;
+        }
+
+        void cancelled(){
+            _conn.userError( "file transfer cancelled" );
         }
         
         long _sent = 0;

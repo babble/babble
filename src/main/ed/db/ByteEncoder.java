@@ -141,54 +141,14 @@ public class ByteEncoder extends Bytes {
         
 
         for ( String s : o.keySet( false ) ){
-            
-            if ( dbOnlyField( s ) || s.equals( "_transientFields" ) )
-                continue;
 
-	    if ( skipId && s.equals( "_id" ) )
-		continue;
+            if ( skipId && s.equals( "_id" ) )
+                continue;
             
             if ( transientFields != null && transientFields.contains( s ) )
                 continue;
 
-            if ( DEBUG ) System.out.println( "\t put thing : " + s );
-	    
-            Object val = o.get( s );
-            
-	    if ( s.equals( "$where") && ( val instanceof String || val instanceof JSString ) ){
-		_put( CODE , s );
-		_putValueString( val.toString() );
-		continue;
-	    }
-
-            if ( val instanceof JSFunction ){
-                JSFunction func = (JSFunction)val;
-                if ( func.isCallable() ){
-                    if ( s.startsWith( "$" ) && func.getSourceCode() != null )
-                        putFunction( s , func );
-                    continue;
-                }
-            }
-
-
-            if ( val == null )
-                putNull( s );
-            else if ( val instanceof Number )
-                putNumber( s , (Number)val );
-            else if ( val instanceof JSString.Symbol )
-                putSymbol( s , val.toString() );
-            else if ( val instanceof String || val instanceof JSString )
-                putString( s , val.toString() );
-            else if ( val instanceof ObjectId )
-                putObjectId( s , (ObjectId)val );
-            else if ( val instanceof JSObject )
-                putObject( s , (JSObject)val );
-            else if ( val instanceof Boolean )
-                putBoolean( s , (Boolean)val );
-            else if ( val instanceof JSBinaryData )
-                putBinary( s , (JSBinaryData)val );
-            else 
-                throw new RuntimeException( "can't serialize " + val.getClass() );
+            _putObjectField( s , o.get( s ) );
 
         }
         _buf.put( EOO );
@@ -197,8 +157,67 @@ public class ByteEncoder extends Bytes {
         return _buf.position() - start;
     }
 
-    private boolean _handleSpecialObjects( String name , JSObject o ){
+    private void _putObjectField( String name , Object val ){
 
+        if ( dbOnlyField( name ) || name.equals( "_transientFields" ) )
+            return;
+        
+        if ( DEBUG ) System.out.println( "\t put thing : " + name );
+        
+        if ( name.equals( "$where") && ( val instanceof String || val instanceof JSString ) ){
+            _put( CODE , name );
+            _putValueString( val.toString() );
+            return;
+        }
+        
+        if ( val instanceof JSFunction ){
+            JSFunction func = (JSFunction)val;
+            if ( func.isCallable() ){
+                if ( name.startsWith( "$" ) && func.getSourceCode() != null )
+                    putFunction( name , func );
+                return;
+            }
+        }
+        
+        
+        if ( val == null )
+            putNull(name);
+        else if ( val instanceof Number )
+            putNumber(name, (Number)val );
+        else if ( val instanceof JSString.Symbol )
+            putSymbol(name, val.toString() );
+        else if ( val instanceof String || val instanceof JSString )
+            putString(name, val.toString() );
+        else if ( val instanceof ObjectId )
+            putObjectId(name, (ObjectId)val );
+        else if ( val instanceof JSObject )
+            putObject(name, (JSObject)val );
+        else if ( val instanceof Boolean )
+            putBoolean(name, (Boolean)val );
+        else if ( val instanceof JSBinaryData )
+            putBinary(name, (JSBinaryData)val );
+        else if ( val instanceof Map )
+            putMap( name , (Map)val );
+        else 
+            throw new RuntimeException( "can't serialize " + val.getClass() );
+        
+    }
+    
+    private void putMap( String name , Map m ){
+        _put( OBJECT , name );
+        final int sizePos = _buf.position();
+        _buf.putInt( 0 );
+        
+        for ( Object key : m.keySet() )
+            _putObjectField( key.toString() , m.get( key ) );
+
+        _buf.put( EOO );
+        _buf.putInt( sizePos , _buf.position() - sizePos );
+    }
+    
+
+    private boolean _handleSpecialObjects( String name , JSObject o ){
+        
         if ( o == null )
             return false;
 

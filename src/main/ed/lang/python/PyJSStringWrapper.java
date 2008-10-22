@@ -101,5 +101,13 @@ public class PyJSStringWrapper extends PyString {
         _p.__delattr__(key);
     }
 
+    public boolean equals( Object other ){
+        // FIXME: ????
+        if( other instanceof String ){
+            return super.equals( new PyString( (String)other ) );
+        }
+        return super.equals( other );
+    }
+
     PyJSObjectWrapper _p;
 }

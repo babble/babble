@@ -78,7 +78,7 @@ public class CompileUtil {
         
         final boolean D = convert.D;
 
-        if ( CD ) System.err.println( "compile called" );
+        if ( CD ) System.err.println( "compile called on : " + pack + " " + c );
         if ( D ) System.out.println( source );
         
         File dir = new File( getCompileSrcDir( pack ) );
@@ -88,6 +88,7 @@ public class CompileUtil {
         
         File f = new File( dir , c + ".java" );
         File output = new File( f.getAbsolutePath().replaceAll( "java$" , "class" ) );
+        File marker = new File( f.getAbsolutePath().replaceAll( "java$" , "marker" ) );
 
         synchronized( output.toString().intern() ){
             long depend = getDependencyLastTime();
@@ -99,13 +100,15 @@ public class CompileUtil {
             final boolean oldSourceSame = source.equals( old );
             final boolean oldExists = output.exists();
             final boolean oldDepends = output.lastModified() > depend;
-
-            boolean oldOK = oldExists && oldSourceSame && oldDepends;
+            
+            final boolean markerOk = marker.exists() && marker.lastModified() >= output.lastModified();
+            
+            boolean oldOK = oldExists && oldSourceSame && oldDepends && markerOk;
             
             if ( ! oldOK ){
                 
                 _rollingLog.write( f.toString() );
-                if ( D ) System.out.println( " compiling  oldSourceSame: " + oldSourceSame + " oldExists:" + oldExists + " oldDepends:" + oldDepends + "\t" + f );
+                if ( CD ) System.out.println( " compiling  oldSourceSame: " + oldSourceSame + " oldExists:" + oldExists + " oldDepends:" + oldDepends + " markerOk:" + markerOk + "\t" + f );
                 
                 FileOutputStream fout = new FileOutputStream( f );
                 fout.write( source.getBytes() );
@@ -136,7 +139,9 @@ public class CompileUtil {
                 
             }
             
-            return _loader.loadClass( pack + "." + c );
+            Class result = _loader.loadClass( pack + "." + c );
+            FileUtil.touch( marker );
+            return result;
         }
     }
 

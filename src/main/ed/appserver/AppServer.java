@@ -245,11 +245,6 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             if ( response.getResponseCode() >= 300 )
                 return;
 
-            if ( f.toString().endsWith( ".cgi" ) ){
-                handleCGI( request , response , ar , f );
-                return;
-            }
-
             if ( ar.isStatic() && f.exists() ){
                 if ( D ) System.out.println( f );
 
@@ -519,79 +514,6 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
             return 3600;
 
         return -1;
-    }
-
-    /** Processes a request for a .cgi script.  This checks if the site allows access to cgi scripts and
-     * if the script exists.  If the request passes both tests, this function sets up an environment and
-     * sysexecs the script and sets the response based on its output.
-     * @param request The HTTP request
-     * @param response The HTTP response to set
-     * @param ar The app request, used to get the site's name to determine whether cgi scripts are allowed
-     * @param f The cgi file to execute
-     */
-    void handleCGI( HttpRequest request , HttpResponse response , AppRequest ar , File f ){
-
-        try {
-
-            if ( ! Security.isAllowedSite( ar.getContext().getName() ) ){
-                response.setResponseCode( 501 );
-                response.getJxpWriter().print( "you are not allowed to run cgi programs" );
-                return;
-            }
-
-
-            if ( ! f.exists() ){
-		handle404( ar , request , response , null );
-                return;
-            }
-
-            List<String> env = new ArrayList<String>();
-            env.add( "REQUEST_METHOD=" + request.getMethod() );
-            env.add( "SCRIPT_NAME=" + request.getURI() );
-            env.add( "QUERY_STRING=" + request.getQueryString() );
-	    env.add( "SERVER_NAME=" + request.getHost() );
-
-            String envarr[] = new String[env.size()];
-            env.toArray( envarr );
-
-            Process p = Runtime.getRuntime().exec( new String[]{ f.getAbsolutePath() } , envarr , f.getParentFile() );
-
-            boolean inHeader = true;
-
-            BufferedReader in = new BufferedReader( new InputStreamReader( p.getInputStream() ) );
-            String line;
-            while ( ( line = in.readLine() ) != null ){
-                if ( inHeader ){
-                    if ( line.trim().length() == 0 ){
-                        inHeader = false;
-                        continue;
-                    }
-
-                    line = line.trim();
-                    final int idx = line.indexOf( ":" );
-                    if ( idx > 0 ){
-                        final String name = line.substring( 0 , idx ).trim();
-                        final String val = line.substring( idx + 1 ).trim();
-                        response.setHeader( name , val );
-                    }
-                    continue;
-                }
-                response.getJxpWriter().print( line );
-                response.getJxpWriter().print( "\n" );
-            }
-
-            in = new BufferedReader( new InputStreamReader( p.getErrorStream() ) );
-            while ( ( line = in.readLine() ) != null ){
-                response.getJxpWriter().print( line );
-                response.getJxpWriter().print( "\n" );
-            }
-        }
-        catch ( Exception e ){
-            ar.getContext().getLogger().error( request.getURL() , e );
-            response.setResponseCode( 500 );
-            response.getJxpWriter().print( "<br><br><hr>" );
-            response.getJxpWriter().print( e.toString() );
-        }
     }
 
     /** This appserver's priority for the HTTP request handler.
