@@ -96,12 +96,17 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
         if ( _collection != null && _query != null ){
             JSObject foo = _query;
             if ( _orderBy != null && _orderBy.keySet( false ).size() > 0 ){
+
                 foo = new JSObjectBase();
+
                 if ( _query != null ){
-                    _query.set( Bytes.NO_REF_HACK , "z" );
+                    _noRefCheck( _query );
                     foo.set( "query" , _query );
                 }
+                
+                _noRefCheck( _orderBy );
                 foo.set( "orderby" , _orderBy );
+
             }
 
             final long start = System.currentTimeMillis();
@@ -114,6 +119,13 @@ public class DBCursor extends JSObjectLame implements Iterator<JSObject> {
 
         if ( _it == null )
             _it = (new LinkedList<JSObject>()).iterator();
+    }
+
+    void _noRefCheck( JSObject o ){
+        if ( ! Bytes.cameFromDB( o ) )
+            return;
+        
+        o.set( Bytes.NO_REF_HACK , "z" );
     }
 
     /** @unexpose */

@@ -32,7 +32,9 @@ def pyManipList(l): # expecting [1, 3, 5]
     l.append(4)
     _10gen.assert.eq( l.pop() , 4 )
     l.append(4)
-    return l.pop(-2)
+    val = l.pop(-2)
+    assert None == l.extend([5, 6])
+    return val
 _10gen.pyManipList = pyManipList
 
 def pyGetLength(l):

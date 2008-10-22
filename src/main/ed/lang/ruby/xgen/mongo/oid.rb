@@ -18,7 +18,7 @@ class Object
   end
 end
 
-class Objectid
+class ObjectId
   def to_oid
     self
   end

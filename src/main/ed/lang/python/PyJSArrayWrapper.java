@@ -98,9 +98,11 @@ public class PyJSArrayWrapper extends PyList {
             foo.append(repr.toString());
             foo.append(", ");
         }
-        PyObject p = toPython(_js.getInt(n-1));
-        PyObject repr = p.__repr__();
-        foo.append(repr.toString());
+        if( n >= 1 ){
+            PyObject p = toPython(_js.getInt(n-1));
+            PyObject repr = p.__repr__();
+            foo.append(repr.toString());
+        }
         foo.append("]");
         return foo.toString();
     }
@@ -152,7 +154,19 @@ public class PyJSArrayWrapper extends PyList {
 
     @ExposedMethod
     public PyObject jsarraywrapper_extend(PyObject extra){
-        throw new RuntimeException("not implemented yet");
+        PyObject iter = extra.__iter__();
+        try {
+            do {
+                PyObject next = iter.invoke("next");
+                _js.add( toJS( next ) );
+            } while(true);
+        }
+        catch( PyException e ){
+            if( ! Py.matchException(e, Py.StopIteration) ){
+                throw e;
+            }
+        }
+        return Py.None;
     }
 
     @ExposedMethod(defaults={"null", "null"})

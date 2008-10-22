@@ -55,12 +55,17 @@ public class QName extends JSObjectBase {
                 e.init( args[0] );
             }
             else if( args.length > 1 ) {
-                e.init( new Namespace( args[0] ), args[1] );
+                if( args[0] == null )
+                    e.init( (Namespace)args[0], args[1] );
+                else
+                    e.init( new Namespace( args[0] ), args[1] );
             }
             return e;
         }
 
         protected void init() {
+            _prototype.set( "localName", null );
+            _prototype.set( "uri", null );
             _prototype.set( "hasOwnProperty" , new JSFunctionCalls1() {
                     public Object call( Scope s, Object foo, Object extra[] ) {
                         if( foo == null )
@@ -88,7 +93,11 @@ public class QName extends JSObjectBase {
 
 
     void init( Object s ) {
-        init( null, s );
+        Namespace param = null;
+        if( s == null || ( ( s instanceof String || s instanceof JSString ) 
+                           && !s.equals( "*" ) ) )
+            param = ENode.getDefaultNamespace();
+        init( param, s );
     }
 
     void init( Namespace namespace, Object name ) {
@@ -96,26 +105,28 @@ public class QName extends JSObjectBase {
             if ( namespace == null ) {
                 this.localName = ((QName)name).localName;
                 this.uri = ((QName)name).uri;
+                this.prefix = ((QName)name).prefix;
                 return;
             }
             else {
                 name = ((QName)name).localName;
             }
         }
-        this.localName = name == null ? "" : name.toString();
+        // convert null to "null" as a local name
+        this.localName = new JSString( name + "" );
         if( namespace != null ) {
-            this.uri = namespace.uri;
-            this.prefix = namespace.prefix;
+            this.uri = new JSString( namespace.uri );
+            this.prefix = new JSString( namespace.prefix == null ? "" : namespace.prefix );
         }
         else {
-            this.uri = "";
-            this.prefix = "";
+            this.uri = null;
+            this.prefix = new JSString( "" );
         }
     }
 
-    public String localName;
-    public String uri;
-    public String prefix;
+    public JSString localName;
+    public JSString uri;
+    public JSString prefix;
 
     private static String localNameStr = "localName";
     private static String uriStr = "uri";
@@ -182,13 +193,13 @@ public class QName extends JSObjectBase {
             return objFromProto;
         }
         else if( str.equals( uriStr ) ) {
-            return new JSString(this.uri);
+            return this.uri;
         }
         else if ( str.equals( prefixStr ) ) {
-            return new JSString(this.prefix);
+            return this.prefix;
         }
         else if ( str.equals( localNameStr ) ) {
-            return new JSString(this.localName);
+            return this.localName;
         }
         else 
             return null;

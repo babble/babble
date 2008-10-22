@@ -4,7 +4,6 @@
 
   <test name="main tests">
     <classes>
-      <class name="ed.db.ByteTest" />
       <class name="ed.appserver.AppServerTest" />
       <class name="ed.appserver.jxp.JxpServletTest" />
       <class name="ed.appserver.jxp.JxpSourceTest" />

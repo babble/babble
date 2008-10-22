@@ -42,6 +42,7 @@ public abstract class NIOClient extends Thread {
     static final long AFTER_SHUTDOWN_WAIT = 1000 * 60;
     static final long CONNECT_TIMEOUT = 1000 * 30;
     static final long CLIENT_CONNECT_WAIT_TIMEOUT = 1000 * 15;
+    static final long CONN_TIMEOUT = 1000 * 60 * 4;
 
     public NIOClient( String name , int connectionsPerHost , int verboseLevel ){
         super( "NIOClient: " + name );
@@ -95,6 +96,7 @@ public abstract class NIOClient extends Thread {
     private void _run(){
         _doNewRequests();
         _doOldStuff();
+        _checkForTimedOutStuff();
     }
     
     private void _doOldStuff(){
@@ -207,6 +209,15 @@ public abstract class NIOClient extends Thread {
         }
     }
     
+    private void _checkForTimedOutStuff(){
+        List<ConnectionPool> pools = new LinkedList<ConnectionPool>( _connectionPools.values() );
+        
+        for ( ConnectionPool pool : pools )
+            for ( Iterator<Connection> i = pool.getAll() ; i.hasNext(); )
+                i.next().checkForTimeOut();
+        
+    }
+    
     public boolean isShutDown(){
         return _shutdown;
     }
@@ -250,6 +261,7 @@ public abstract class NIOClient extends Thread {
         }
         
         void handleConnect(){
+            _event();
             IOException err = null;
             try {
                 if ( ! _sock.finishConnect() ){
@@ -311,6 +323,8 @@ public abstract class NIOClient extends Thread {
 
             try {
                 read = _sock.read( _fromServer );
+                if ( read > 0 )
+                    _event();
             }
             catch ( IOException ioe ){
                 _error( ServerErrorType.SOCK_TIMEOUT , ioe );
@@ -390,6 +404,8 @@ public abstract class NIOClient extends Thread {
             int wrote = 0;
             try {
                 wrote = _sock.write( _toServer );
+                if ( wrote > 0 )
+                    _event();
             }
             catch ( IOException ioe ){
                 _error( ServerErrorType.SOCK_TIMEOUT , ioe );
@@ -434,7 +450,8 @@ public abstract class NIOClient extends Thread {
             }
             
             _current = c;
-            
+            _event();
+
             _toServer.position( 0 );
             _toServer.limit( _toServer.capacity() );
             
@@ -445,12 +462,12 @@ public abstract class NIOClient extends Thread {
             }
             
             _toServer.flip();
-
+            
             handleWrite();
         }
         
         public void userError( String msg ){
-            _userError( msg , false );
+            _error( ServerErrorType.WEIRD , new ClientError( msg ) );
         }
 
         private void _userError( String msg ){
@@ -519,6 +536,20 @@ public abstract class NIOClient extends Thread {
             }
         }
 
+        void _event(){
+            _lastEvent = System.currentTimeMillis();
+        }
+        
+        void checkForTimeOut(){
+            if ( _closed )
+                return;
+                    
+            if ( System.currentTimeMillis() - _lastEvent < CONN_TIMEOUT )
+                return;
+
+            _close( true );
+        }
+
         final ConnectionPool _pool;
         final InetSocketAddress _addr;
         final long _opened = System.currentTimeMillis();
@@ -527,16 +558,16 @@ public abstract class NIOClient extends Thread {
         final ByteBuffer _fromServer = ByteBuffer.allocateDirect( 1024 * 32 );
 	private ByteStream _extraDataToServer = null;
 
-        final SocketChannel _sock;
-        final SelectionKey _key;  
+        private final SocketChannel _sock;
+        private final SelectionKey _key;  
         
         private boolean _ready = false;
         private IOException _error = null;
         private boolean _closed = false;
         
         private Call _current = null;
-
         
+        private long _lastEvent = _opened;
     }
     
     class ConnectionPool extends SimplePool<Connection> {

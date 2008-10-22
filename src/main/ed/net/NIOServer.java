@@ -270,9 +270,6 @@ public abstract class NIOServer extends Thread {
             if ( ! key.isValid() )
                 continue;
             
-            if ( (key.interestOps() & key.OP_READ ) == 0 )
-                continue;
-            
             Object attachment = key.attachment();
             if ( attachment == null )
                 continue;
@@ -332,6 +329,8 @@ public abstract class NIOServer extends Thread {
         private void _register( int ops )
             throws IOException {
             
+            _lastAction = System.currentTimeMillis();
+    
             SelectionKey key = _channel.keyFor( _selector );
             if ( key == null ){
                 if ( ! _didASelectorReset )
@@ -398,6 +397,10 @@ public abstract class NIOServer extends Thread {
 
         protected boolean shouldTimeout( long now ){
             return now - _lastAction > CLIENT_TIMEOUT;
+        }
+
+        public String toString(){
+            return "SocketHandler: " + _channel;
         }
 
         protected final SocketChannel _channel;

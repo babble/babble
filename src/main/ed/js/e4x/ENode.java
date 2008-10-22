@@ -183,7 +183,7 @@ public class ENode extends JSObjectBase {
             _prototype.set( "length", new ENodeFunction() {
                     public Object call(Scope s, Object foo[]) {
                         ENode enode = getENode( s );
-                        return enode instanceof XMLList ? ((XMLList)enode).size() : ( enode.node != null ? 1 : enode.children.size() );
+                        return enode.isDummy() ? 0 : ( enode instanceof XMLList ) ? ((XMLList)enode).length() : 1;
                     }
                 });
             _prototype.set( "localName", new ENodeFunction() {
@@ -1309,7 +1309,7 @@ public class ENode extends JSObjectBase {
         // comments and text nodes don't have local names
         if( this.name == null ) 
             return null;
-        return this.name.localName;
+        return this.name.localName.toString();
     }
 
     public QName name() {
@@ -1495,7 +1495,7 @@ public class ENode extends JSObjectBase {
             this.node.getNodeType() == Node.TEXT_NODE ||
             this.node.getNodeType() == Node.COMMENT_NODE )
             return;
-        this.name.localName = ( name instanceof QName ) ? ((QName)name).localName : name.toString();
+        this.name.localName = ( name instanceof QName ) ? ((QName)name).localName : new JSString( name.toString() );
     }
 
     /** Set the name (uri:localName) of this.  
@@ -1522,10 +1522,10 @@ public class ENode extends JSObjectBase {
         n = new QName( XML.defaultNamespace, name );
 
         if( this.node.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE )
-            n.uri = "";
+            n.uri = new JSString( "" );
         this.name = n;
 
-        Namespace ns = n.uri == null ? XML.defaultNamespace : new Namespace( n.prefix, n.uri );
+        Namespace ns = n.uri == null ? XML.defaultNamespace : new Namespace( n.prefix.toString(), n.uri.toString() );
         if( this.node.getNodeType() == Node.ATTRIBUTE_NODE ) {
             if( this.parent == null )
                 return;
@@ -1959,6 +1959,10 @@ public class ENode extends JSObjectBase {
         }
 
         ENode cnode;
+    }
+
+    public static Namespace getDefaultNamespace() {
+        return ((Cons)_cons).getDefaultNamespace();
     }
 
 

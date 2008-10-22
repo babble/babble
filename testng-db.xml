@@ -2,6 +2,14 @@
   
 <suite name="db" >
 
+  <test name="db">
+    <classes>
+      <class name="ed.db.ByteTest" />
+<!--      <class name="ed.db.JavaClientTest" /> -->
+    </classes>
+  </test>
+
+
     <test name="db js tests">
 	  <parameter name="test-class"  value="ed.js.engine.JSTestInstance"/>
 	  <parameter name="dir-name"  value="ed/src/test/ed/db/"/>

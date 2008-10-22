@@ -49,7 +49,6 @@ public class RubyJxpSource extends CGIGateway {
 
     public static final String XGEN_MODULE_NAME = "XGen";
     public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
-    static final Map<Ruby, Set<IRubyObject>> _requiredJSFileLibFiles = new WeakHashMap<Ruby, Set<IRubyObject>>();
     static final Map<AppContext, WeakReference<Ruby>> _runtimes = new WeakHashMap<AppContext, WeakReference<Ruby>>();
     static final Map<String, Long> _localFileLastModTimes = new HashMap<String, Long>();
     static final Ruby PARSE_RUNTIME = Ruby.newInstance();
@@ -127,7 +126,7 @@ public class RubyJxpSource extends CGIGateway {
             WeakReference<Ruby> ref = _runtimes.remove(ac);
             if (ref != null) {
                 Ruby runtime = ref.get();
-                _requiredJSFileLibFiles.remove(runtime);
+                Loader.removeLoadedFiles(runtime);
             }
         }
     }
@@ -152,15 +151,6 @@ public class RubyJxpSource extends CGIGateway {
         if (_runtime == null)
             _runtime = getRuntimeInstance(ac);
         return _runtime;
-    }
-
-    /**
-     * Really only for testing. Always use {@link #getRuntime(Scope)} or
-     * {@link #getRuntime(AppContext)} unless you know that a runtime has
-     * already been assigned.
-     */
-    protected Ruby getRuntime() {
-        return getRuntime((AppContext)null);
     }
 
     protected void forgetRuntime(Scope s) {
@@ -200,21 +190,37 @@ public class RubyJxpSource extends CGIGateway {
     }
 
     protected IRubyObject _doCall(Node node, Scope s, Object unused[]) {
-        if (_anyLocalFileChanged(s)) {
-            if (DEBUG)
-                System.err.println("new file or file mod time changed; resetting Ruby runtime");
-            forgetRuntime(s);
-        }
+        _setOutput(s);
+        _commonSetup(s);
+        return _commonRun(node, s);
+    }
 
+    public void handle(EnvMap env, InputStream stdin, OutputStream stdout, AppRequest ar) {
+        Scope s = ar.getScope();
+        _addCGIEnv(s, env);
+        _setIO(s, stdin, stdout);
+        _commonSetup(s);
+        try {
+            _commonRun(_parseCode(), s);
+        }
+        catch (IOException e) {
+            System.err.println("RubyJxpSource.handle: " + e);
+        }
+    }
+
+    protected void _commonSetup(Scope s) {
+        _resetOnFileChange(s);
         _addJSFileLibrariesToPath(s);
 
         Ruby runtime = getRuntime(s);
         runtime.setGlobalVariables(new ScopeGlobalVariables(s, runtime));
-        _setOutput(s);
         _exposeScopeFunctions(s);
         _patchRequireAndLoad(s);
+    }
 
+    protected IRubyObject _commonRun(Node node, Scope s) {
         // See the second part of JRuby's Ruby.executeScript(String, String)
+        Ruby runtime = getRuntime(s);
         ThreadContext context = runtime.getCurrentContext();
 
         String oldFile = context.getFile();
@@ -223,43 +229,6 @@ public class RubyJxpSource extends CGIGateway {
             context.setFileAndLine(node.getPosition().getFile(), node.getPosition().getStartLine());
             return runtime.runNormally(node, YARV_COMPILE);
         } finally {
-            context.setFile(oldFile);
-            context.setLine(oldLine);
-        }
-    }
-
-    public void handle(EnvMap env, InputStream stdin, OutputStream stdout, AppRequest ar) {
-        Scope s = ar.getScope();
-
-        if (_anyLocalFileChanged(s)) {
-            if (DEBUG)
-                System.err.println("new file or file mod time changed; resetting Ruby runtime");
-            forgetRuntime(s);
-        }
-
-        _addJSFileLibrariesToPath(s);
-        _addCGIEnv(s, env);
-
-        Ruby runtime = getRuntime(s);
-        runtime.setGlobalVariables(new ScopeGlobalVariables(s, runtime));
-        _setIO(s, stdin, stdout);
-        _exposeScopeFunctions(s);
-        _patchRequireAndLoad(s);
-
-        // See the second part of JRuby's Ruby.executeScript(String, String)
-        ThreadContext context = runtime.getCurrentContext();
-
-        String oldFile = context.getFile();
-        int oldLine = context.getLine();
-        try {
-            Node node = _parseCode();
-            context.setFileAndLine(node.getPosition().getFile(), node.getPosition().getStartLine());
-            runtime.runNormally(node, YARV_COMPILE);
-        }
-        catch (IOException e) {
-            System.err.println("RubyJxpSonrce.handle: " + e);
-        }
-        finally {
             context.setFile(oldFile);
             context.setLine(oldLine);
         }
@@ -331,12 +300,9 @@ public class RubyJxpSource extends CGIGateway {
      * gateway.
      */
     protected void _setIO(Scope s, InputStream stdin, OutputStream stdout) {
-        HttpResponse response = (HttpResponse)s.get("response");
-        if (response != null) {
-            Ruby runtime = getRuntime(s);
-            runtime.getGlobalVariables().set("$stdin", new RubyIO(runtime, stdin));
-            runtime.getGlobalVariables().set("$stdout", new RubyIO(runtime, stdout));
-        }
+        Ruby runtime = getRuntime(s);
+        runtime.getGlobalVariables().set("$stdin", new RubyIO(runtime, stdin));
+        runtime.getGlobalVariables().set("$stdout", new RubyIO(runtime, stdout));
     }
 
     /**
@@ -359,126 +325,35 @@ public class RubyJxpSource extends CGIGateway {
         RubyModule kernel = getRuntime(scope).getKernel();
         kernel.addMethod("require", new JavaMethod(kernel, PUBLIC) {
                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
-                    Ruby runtime = self.getRuntime();
-                    String file = args[0].convertToString().toString();
-
-                    if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
-                        System.err.println("require " + file);
-                    try {
-                        return runtime.getLoadService().require(file) ? runtime.getTrue() : runtime.getFalse();
-                    }
-                    catch (RaiseException re) {
-                        if (_notAlreadyRequired(runtime, args[0])) {
-                            loadLibraryFile(scope, runtime, self, file, re);
-                            _rememberAlreadyRequired(runtime, args[0]);
-                        }
-                        return runtime.getTrue();
-                    }
+                    return new Loader(scope).require(context, self, module, name, args, block);
                 }
             });
         kernel.addMethod("load", new JavaMethod(kernel, PUBLIC) {
                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
-                    Ruby runtime = self.getRuntime();
-                    RubyString file = args[0].convertToString();
-                    boolean wrap = args.length == 2 ? args[1].isTrue() : false;
-
-                    if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
-                        System.err.println("load " + file);
-                    try {
-                        runtime.getLoadService().load(file.getByteList().toString(), wrap);
-                        return runtime.getTrue();
-                    }
-                    catch (RaiseException re) {
-                        return loadLibraryFile(scope, runtime, self, file.toString(), re);
-                    }
+                    return new Loader(scope).load(context, self, module, name, args, block);
                 }
             });
     }
 
-    protected IRubyObject loadLibraryFile(Scope scope, Ruby runtime, IRubyObject recv, String path, RaiseException re) {
-        if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
-            System.err.println("going to compile and run library file " + path + "; runtime = " + runtime);
-
-        JSFileLibrary lib = getLibFromPath(path, scope);
-        if (lib == null)
-            lib = (JSFileLibrary)scope.get("local");
-        else
-            path = removeLibName(path);
-
-        try {
-            Object o = lib.getFromPath(path);
-            if (isCallableJSFunction(o)) {
-                try {
-                    ((JSFunction)o).call(scope, EMPTY_OBJECT_ARRAY);
-                    createNewClassesAndXGenMethods(scope, runtime);
-                }
-                catch (Exception e) {
-                    if (DEBUG || RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
-                        System.err.println("problem loading JSFileLibrary file: " + e + "; going to raise Ruby error after printing the stack trace here");
-                        e.printStackTrace();
-                    }
-                    recv.callMethod(runtime.getCurrentContext(), "raise", new IRubyObject[] {runtime.newString(e.toString())}, Block.NULL_BLOCK);
-                }
-                return runtime.getTrue();
-            }
-        }
-        catch (Exception e) {
-            if (DEBUG || RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
-                System.err.println("problem loading JSFileLibrary file: " + e + "; going to re-throw original Ruby RaiseException after printing the stack trace here");
-                e.printStackTrace();
-            }
-            /* fall through to throw re */
-        }
-        if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
-            System.err.println("problem loading file " + path + " from lib " + lib + "; throwing original Ruby error " + re);
-        throw re;
-    }
-
     /**
-     * Returns a JSFileLibrary named at the start of <var>path</var>, which is
-     * something like "local/foo" or "/core/core/routes". The first word
-     * ("local" or "core") must be the name of a JSFileLibrary that is in the
-     * scope. Returns <code>null</code> if no library is found.
-     */
-    public JSFileLibrary getLibFromPath(String path, Scope scope) {
-        String libName = libNameFromPath(path);
-        return (JSFileLibrary)scope.get(libName);
-    }
-
-    public String libNameFromPath(String path) {
-        if (path.startsWith("/"))
-            path = path.substring(1);
-        int loc = path.indexOf("/");
-        return (loc == -1) ? path : path.substring(0, loc);
-    }
-
-    /**
-     * Returns a new copy of <var>path</var> with the first part of the path
-     * stripped off.
-     */
-    public String removeLibName(String path) {
-        if (path.startsWith("/"))
-            path = path.substring(1);
-        int loc = path.indexOf("/");
-        return (loc == -1) ? "" : path.substring(loc + 1);
-    }
-
-    protected boolean _notAlreadyRequired(Ruby runtime, IRubyObject arg) {
-        synchronized (_requiredJSFileLibFiles) {
-            Set<IRubyObject> reqs = _requiredJSFileLibFiles.get(runtime);
-            return reqs == null || !reqs.contains(arg);
-        }
-    }
-
-    protected void _rememberAlreadyRequired(Ruby runtime, IRubyObject arg) {
-        synchronized (_requiredJSFileLibFiles) {
-            Set<IRubyObject> reqs = _requiredJSFileLibFiles.get(runtime);
-            if (reqs == null) {
-                reqs = new HashSet<IRubyObject>();
-                _requiredJSFileLibFiles.put(runtime, reqs);
-            }
-            reqs.add(arg);
-        }
+     * Resets runtime if any local file changed. This is a simple, dumb,
+     * stupid way of making sure that files are re-required if they changed.
+     * <p>
+     * What we really want is a way to find out which file is really required
+     * by "require 'foo'" so we can check at the time of the require instead
+     * of up front for all files. There is no way to find 'foo' now without a
+     * change to JRuby (which I'm working on).
+     */    
+    private void _resetOnFileChange(Scope s) {
+        return;
+        // This code is commented out for now because when run against an app
+        // with 1,000 froze Rails files, calling _anyLocalFileChanged for
+        // every request is too slow.
+//         if (_anyLocalFileChanged(s)) {
+//             if (DEBUG)
+//                 System.err.println("new file or file mod time changed; resetting Ruby runtime");
+//             forgetRuntime(s);
+//         }
     }
 
     private boolean _anyLocalFileChanged(Scope s) {

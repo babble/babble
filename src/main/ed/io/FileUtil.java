@@ -21,6 +21,13 @@ package ed.io;
 import java.io.*;
 
 public class FileUtil {
+
+    public static void touch( File f )
+        throws IOException {
+        if ( f.createNewFile() )
+            return;
+        f.setLastModified( System.currentTimeMillis() );
+    }
     
     public static String toString( File f ){
 	return clean( f.toString() );
