@@ -30,7 +30,7 @@ import ed.util.*;
 
 public class CompileUtil {
     
-    static boolean CD = true;
+    static boolean CD = false;
     
     static final String TMP_DIR = WorkingFiles.TMP_DIR;
 
