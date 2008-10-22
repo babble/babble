@@ -93,7 +93,7 @@ public class ByteDecoder extends Bytes {
 
     private JSObject _create( JSFunction cons ){
         if ( cons == null )
-            return new JSDict();
+            return new JSObjectBase();
         
         JSObject o = cons.newOne();
         if ( o instanceof JSObjectBase )

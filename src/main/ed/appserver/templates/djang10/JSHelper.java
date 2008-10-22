@@ -414,10 +414,13 @@ public class JSHelper extends JSObjectBase {
         Scope child = scope.child("Module Loading Scope");
         child.setGlobal(true);
         
+        Boolean oldPassedinScopeValue = moduleFile.setUsePassedInScopeTL( true );
         try {
             moduleFile.call(child);
         } catch(Exception t) {
             throw new TemplateException("Failed to load library from file [" + moduleFile.get(JxpSource.JXP_SOURCE_PROP) + "]", t);
+        } finally {
+            moduleFile.setUsePassedInScopeTL( oldPassedinScopeValue );
         }
 
         Object temp = child.get("register");
