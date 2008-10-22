@@ -205,6 +205,11 @@ public class SiteSystemState {
             }
         }
 
+        @ExposedMethod(names={"__str__", "__repr__"})
+        public String toString(){
+            return "<open file '_10gen.apprequest', mode 'w'>";
+        }
+
         final public void _10gen_stdout_write( String s ){
             AppRequest request = AppRequest.getThreadLocal();
 
