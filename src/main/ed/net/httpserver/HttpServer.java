@@ -310,6 +310,19 @@ public class HttpServer extends NIOServer {
             return _selector;
         }
         
+        public void close(){
+            if ( _lastResponse != null )
+                _lastResponse.socketClosing();
+            super.close();
+        }
+        
+        public String toString(){
+            String s = super.toString();
+            if ( _lastRequest != null )
+                s += " " + _lastRequest.getFullURL();
+            return s;
+        }
+
         final HttpServer _server;
 
         ByteBufferHolder _in = new ByteBufferHolder( 1024 * 1024 * 200 ); // 200 mb
