@@ -57,9 +57,9 @@ public class Loader {
             return runtime.getLoadService().require(file) ? runtime.getTrue() : runtime.getFalse();
         }
         catch (RaiseException re) {
-            if (_notAlreadyRequired(runtime, args[0])) {
+            if (_notAlreadyRequired(runtime, file)) {
                 loadLibraryFile(_scope, runtime, self, file, re);
-                _rememberAlreadyRequired(runtime, args[0]);
+                _rememberAlreadyRequired(runtime, file);
             }
             return runtime.getTrue();
         }
