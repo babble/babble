@@ -100,6 +100,12 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
         return ret;
     }
 
+    public final JSObject find( String id ){
+        if ( ! ObjectId.isValid( id ) )
+            throw new IllegalArgumentException( "invalid object id [" + id + "]" );
+        return find( new ObjectId( id ) );
+    }
+
     /** Ensures an index on the id field, if one does not already exist.
      * @param key an object with an _id field.
      */
@@ -262,6 +268,13 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
     public final Object save( JSObject o ){
         if ( checkReadOnly( true ) ) return null;
         return save( null , o );
+    }
+
+    public final void save( Map m ){
+        JSDict d = new JSDict( m );
+        save( null , d );
+        if ( m.get( "_id" ) == null && d.get( "_id" ) != null )
+            m.put( "_id" , d.get( "_id" ) );
     }
 
     /** Saves an object to this collection executing the preSave function in a given scope.
