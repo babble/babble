@@ -520,6 +520,10 @@ public class JSFileLibrary extends JSFunctionCalls0 implements JSLibrary {
         return _base;
     }
 
+    public String getAbsolutePath() {
+        return _base.getAbsolutePath();
+    }
+
     public String getName(){
         if ( _mySource != null )
             return _mySource.getName();
