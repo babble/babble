@@ -101,7 +101,7 @@ public class Namespace extends JSObjectBase {
                 this.uri = ((Namespace)uri).uri;
             }
             else if( uri instanceof QName ) {
-                this.uri = ((QName)uri).uri;
+                this.uri = ((QName)uri).uri.toString();
             }
             else {
                 this.uri = uri.toString();
@@ -110,7 +110,7 @@ public class Namespace extends JSObjectBase {
         }
         else {
             if( uri instanceof QName && ((QName)uri).uri != null) {
-                this.uri = ((QName)uri).uri;
+                this.uri = ((QName)uri).uri.toString();
             }
             else {
                 this.uri = uri == null ? "" : uri.toString();
