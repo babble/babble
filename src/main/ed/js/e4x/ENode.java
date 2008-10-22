@@ -183,7 +183,7 @@ public class ENode extends JSObjectBase {
             _prototype.set( "length", new ENodeFunction() {
                     public Object call(Scope s, Object foo[]) {
                         ENode enode = getENode( s );
-                        return enode instanceof XMLList ? ((XMLList)enode).size() : ( enode.node != null ? 1 : enode.children.size() );
+                        return enode.isDummy() ? 0 : ( enode instanceof XMLList ) ? ((XMLList)enode).length() : 1;
                     }
                 });
             _prototype.set( "localName", new ENodeFunction() {
