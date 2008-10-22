@@ -40,8 +40,8 @@ public class RubyFileRunnerTest {
         Scope s = createScope(f.getParentFile());
 
         RubyJxpSource source = new RubyJxpSource(f, null, false, Ruby.newInstance());
-        addRubyLoadPath(source, new File(edHome, "build").getPath()); // for xgen.rb and files it includes
-        addRubyLoadPath(source, here.getPath());
+        addRubyLoadPath(s, source, new File(edHome, "build").getPath()); // for xgen.rb and files it includes
+        addRubyLoadPath(s, source, here.getPath());
 
         try {
             source.getFunction().call(s, new Object[0]);
@@ -71,8 +71,8 @@ public class RubyFileRunnerTest {
         return s;
     }
 
-    protected void addRubyLoadPath(RubyJxpSource source, String path) {
-        Ruby runtime = source.getRuntime();
+    protected void addRubyLoadPath(Scope s, RubyJxpSource source, String path) {
+        Ruby runtime = source.getRuntime(s);
         RubyString rpath = RubyString.newString(runtime, path.replace('\\', '/'));
         RubyArray loadPath = (RubyArray)runtime.getLoadService().getLoadPath();
         if (loadPath.include_p(runtime.getCurrentContext(), rpath).isFalse())

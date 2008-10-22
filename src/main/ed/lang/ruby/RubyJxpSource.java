@@ -154,15 +154,6 @@ public class RubyJxpSource extends CGIGateway {
         return _runtime;
     }
 
-    /**
-     * Really only for testing. Always use {@link #getRuntime(Scope)} or
-     * {@link #getRuntime(AppContext)} unless you know that a runtime has
-     * already been assigned.
-     */
-    protected Ruby getRuntime() {
-        return getRuntime((AppContext)null);
-    }
-
     protected void forgetRuntime(Scope s) {
         _runtime = null;
         if (s != null)
