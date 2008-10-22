@@ -34,17 +34,18 @@ import static org.jruby.runtime.Visibility.PUBLIC;
 import ed.appserver.AppContext;
 import ed.appserver.AppRequest;
 import ed.appserver.JSFileLibrary;
-import ed.appserver.jxp.JxpSource;
 import ed.io.StreamUtil;
 import ed.js.JSFunction;
 import ed.js.engine.Scope;
+import ed.lang.cgi.CGIGateway;
+import ed.lang.cgi.EnvMap;
 import ed.net.httpserver.HttpResponse;
 import ed.util.Dependency;
 import static ed.lang.ruby.RubyObjectWrapper.toJS;
 import static ed.lang.ruby.RubyObjectWrapper.toRuby;
 import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
 
-public class RubyJxpSource extends JxpSource {
+public class RubyCGIGateway extends CGIGateway {
 
     public static final String XGEN_MODULE_NAME = "XGen";
     public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
@@ -130,12 +131,12 @@ public class RubyJxpSource extends JxpSource {
         }
     }
 
-    public RubyJxpSource(File f , JSFileLibrary lib) {
+    public RubyCGIGateway(File f , JSFileLibrary lib) {
         this(f, lib, null);
     }
 
     /** For testing and {@link RubyLanguage} use. */
-    protected RubyJxpSource(File f, JSFileLibrary lib, Ruby runtime) {
+    protected RubyCGIGateway(File f, JSFileLibrary lib, Ruby runtime) {
         _file = f;
         _lib = lib;
         _runtime = runtime;
@@ -177,17 +178,17 @@ public class RubyJxpSource extends JxpSource {
         return _file;
     }
 
-    public JSFunction getFunction() throws IOException {
-        final Node node = _parseCode();
-        return new ed.js.func.JSFunctionCalls0() {
-            public Object call(Scope s, Object unused[]) { return RubyObjectWrapper.toJS(s, _doCall(node, s, unused)); }
-        };
-    }
-
-    protected IRubyObject _doCall(Node node, Scope s, Object unused[]) {
-        _setOutput(s);
+    public void handle(EnvMap env, InputStream stdin, OutputStream stdout, AppRequest ar) {
+        Scope s = ar.getScope();
+        _addCGIEnv(s, env);
+        _setIO(s, stdin, stdout);
         _commonSetup(s);
-        return _commonRun(node, s);
+        try {
+            _commonRun(_parseCode(), s);
+        }
+        catch (IOException e) {
+            System.err.println("RubyCGIGateway.handle: " + e);
+        }
     }
 
     protected void _commonSetup(Scope s) {
@@ -254,17 +255,24 @@ public class RubyJxpSource extends JxpSource {
         }
     }
 
+    /** Copies <var>env</var> into ENV[]. */
+    protected void _addCGIEnv(Scope s, EnvMap env) {
+        Ruby runtime = getRuntime(s);
+        ThreadContext context = runtime.getCurrentContext();
+        RubyHash envHash = (RubyHash)runtime.getObject().fastGetConstant("ENV");
+        for (String key : env.keySet())
+            envHash.op_aset(context, runtime.newString(key), runtime.newString(env.get(key).toString()));
+    }
+
     /**
-     * Set Ruby's $stdout so that print/puts statements output to the right
-     * place. If we have no HttpResponse (for example, we're being run outside
-     * the app server), then nothing happens.
+     * Set Ruby's $stdin and $stdout so that reading and writing go to the
+     * right place. Called from {@link handle} which is called from the CGI
+     * gateway.
      */
-    protected void _setOutput(Scope s) {
-        HttpResponse response = (HttpResponse)s.get("response");
-        if (response != null) {
-            Ruby runtime = getRuntime(s);
-            runtime.getGlobalVariables().set("$stdout", new RubyIO(runtime, new RubyJxpOutputStream(response.getJxpWriter())));
-        }
+    protected void _setIO(Scope s, InputStream stdin, OutputStream stdout) {
+        Ruby runtime = getRuntime(s);
+        runtime.getGlobalVariables().set("$stdin", new RubyIO(runtime, stdin));
+        runtime.getGlobalVariables().set("$stdout", new RubyIO(runtime, stdout));
     }
 
     /**

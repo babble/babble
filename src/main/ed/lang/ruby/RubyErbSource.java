@@ -61,12 +61,12 @@ public class RubyErbSource extends RubyJxpSource {
     }
 
     public RubyErbSource(File f , JSFileLibrary lib) {
-        super(f, lib, false);
+        super(f, lib);
     }
 
     /** For testing. */
     protected RubyErbSource(File f, JSFileLibrary lib, Ruby runtime) {
-        super(f, lib, false, runtime);
+        super(f, lib, runtime);
     }
     
     /**
