@@ -49,7 +49,6 @@ public class RubyJxpSource extends CGIGateway {
 
     public static final String XGEN_MODULE_NAME = "XGen";
     public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
-    static final Map<Ruby, Set<IRubyObject>> _requiredJSFileLibFiles = new WeakHashMap<Ruby, Set<IRubyObject>>();
     static final Map<AppContext, WeakReference<Ruby>> _runtimes = new WeakHashMap<AppContext, WeakReference<Ruby>>();
     static final Map<String, Long> _localFileLastModTimes = new HashMap<String, Long>();
     static final Ruby PARSE_RUNTIME = Ruby.newInstance();
@@ -127,7 +126,7 @@ public class RubyJxpSource extends CGIGateway {
             WeakReference<Ruby> ref = _runtimes.remove(ac);
             if (ref != null) {
                 Ruby runtime = ref.get();
-                _requiredJSFileLibFiles.remove(runtime);
+                Loader.removeLoadedFiles(runtime);
             }
         }
     }
@@ -326,126 +325,14 @@ public class RubyJxpSource extends CGIGateway {
         RubyModule kernel = getRuntime(scope).getKernel();
         kernel.addMethod("require", new JavaMethod(kernel, PUBLIC) {
                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
-                    Ruby runtime = self.getRuntime();
-                    String file = args[0].convertToString().toString();
-
-                    if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
-                        System.err.println("require " + file);
-                    try {
-                        return runtime.getLoadService().require(file) ? runtime.getTrue() : runtime.getFalse();
-                    }
-                    catch (RaiseException re) {
-                        if (_notAlreadyRequired(runtime, args[0])) {
-                            loadLibraryFile(scope, runtime, self, file, re);
-                            _rememberAlreadyRequired(runtime, args[0]);
-                        }
-                        return runtime.getTrue();
-                    }
+                    return new Loader(scope).require(context, self, module, name, args, block);
                 }
             });
         kernel.addMethod("load", new JavaMethod(kernel, PUBLIC) {
                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
-                    Ruby runtime = self.getRuntime();
-                    RubyString file = args[0].convertToString();
-                    boolean wrap = args.length == 2 ? args[1].isTrue() : false;
-
-                    if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
-                        System.err.println("load " + file);
-                    try {
-                        runtime.getLoadService().load(file.getByteList().toString(), wrap);
-                        return runtime.getTrue();
-                    }
-                    catch (RaiseException re) {
-                        return loadLibraryFile(scope, runtime, self, file.toString(), re);
-                    }
+                    return new Loader(scope).load(context, self, module, name, args, block);
                 }
             });
-    }
-
-    protected IRubyObject loadLibraryFile(Scope scope, Ruby runtime, IRubyObject recv, String path, RaiseException re) {
-        if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
-            System.err.println("going to compile and run library file " + path + "; runtime = " + runtime);
-
-        JSFileLibrary lib = getLibFromPath(path, scope);
-        if (lib == null)
-            lib = (JSFileLibrary)scope.get("local");
-        else
-            path = removeLibName(path);
-
-        try {
-            Object o = lib.getFromPath(path);
-            if (isCallableJSFunction(o)) {
-                try {
-                    ((JSFunction)o).call(scope, EMPTY_OBJECT_ARRAY);
-                    createNewClassesAndXGenMethods(scope, runtime);
-                }
-                catch (Exception e) {
-                    if (DEBUG || RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
-                        System.err.println("problem loading JSFileLibrary file: " + e + "; going to raise Ruby error after printing the stack trace here");
-                        e.printStackTrace();
-                    }
-                    recv.callMethod(runtime.getCurrentContext(), "raise", new IRubyObject[] {runtime.newString(e.toString())}, Block.NULL_BLOCK);
-                }
-                return runtime.getTrue();
-            }
-        }
-        catch (Exception e) {
-            if (DEBUG || RubyObjectWrapper.DEBUG_SEE_EXCEPTIONS) {
-                System.err.println("problem loading JSFileLibrary file: " + e + "; going to re-throw original Ruby RaiseException after printing the stack trace here");
-                e.printStackTrace();
-            }
-            /* fall through to throw re */
-        }
-        if (DEBUG || RubyObjectWrapper.DEBUG_FCALL)
-            System.err.println("problem loading file " + path + " from lib " + lib + "; throwing original Ruby error " + re);
-        throw re;
-    }
-
-    /**
-     * Returns a JSFileLibrary named at the start of <var>path</var>, which is
-     * something like "local/foo" or "/core/core/routes". The first word
-     * ("local" or "core") must be the name of a JSFileLibrary that is in the
-     * scope. Returns <code>null</code> if no library is found.
-     */
-    public JSFileLibrary getLibFromPath(String path, Scope scope) {
-        String libName = libNameFromPath(path);
-        return (JSFileLibrary)scope.get(libName);
-    }
-
-    public String libNameFromPath(String path) {
-        if (path.startsWith("/"))
-            path = path.substring(1);
-        int loc = path.indexOf("/");
-        return (loc == -1) ? path : path.substring(0, loc);
-    }
-
-    /**
-     * Returns a new copy of <var>path</var> with the first part of the path
-     * stripped off.
-     */
-    public String removeLibName(String path) {
-        if (path.startsWith("/"))
-            path = path.substring(1);
-        int loc = path.indexOf("/");
-        return (loc == -1) ? "" : path.substring(loc + 1);
-    }
-
-    protected boolean _notAlreadyRequired(Ruby runtime, IRubyObject arg) {
-        synchronized (_requiredJSFileLibFiles) {
-            Set<IRubyObject> reqs = _requiredJSFileLibFiles.get(runtime);
-            return reqs == null || !reqs.contains(arg);
-        }
-    }
-
-    protected void _rememberAlreadyRequired(Ruby runtime, IRubyObject arg) {
-        synchronized (_requiredJSFileLibFiles) {
-            Set<IRubyObject> reqs = _requiredJSFileLibFiles.get(runtime);
-            if (reqs == null) {
-                reqs = new HashSet<IRubyObject>();
-                _requiredJSFileLibFiles.put(runtime, reqs);
-            }
-            reqs.add(arg);
-        }
     }
 
     /**
