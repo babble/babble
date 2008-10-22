@@ -191,21 +191,37 @@ public class RubyJxpSource extends CGIGateway {
     }
 
     protected IRubyObject _doCall(Node node, Scope s, Object unused[]) {
-        if (_anyLocalFileChanged(s)) {
-            if (DEBUG)
-                System.err.println("new file or file mod time changed; resetting Ruby runtime");
-            forgetRuntime(s);
-        }
+        _setOutput(s);
+        _commonSetup(s);
+        return _commonRun(node, s);
+    }
 
+    public void handle(EnvMap env, InputStream stdin, OutputStream stdout, AppRequest ar) {
+        Scope s = ar.getScope();
+        _addCGIEnv(s, env);
+        _setIO(s, stdin, stdout);
+        _commonSetup(s);
+        try {
+            _commonRun(_parseCode(), s);
+        }
+        catch (IOException e) {
+            System.err.println("RubyJxpSource.handle: " + e);
+        }
+    }
+
+    protected void _commonSetup(Scope s) {
+        _resetOnFileChange(s);
         _addJSFileLibrariesToPath(s);
 
         Ruby runtime = getRuntime(s);
         runtime.setGlobalVariables(new ScopeGlobalVariables(s, runtime));
-        _setOutput(s);
         _exposeScopeFunctions(s);
         _patchRequireAndLoad(s);
+    }
 
+    protected IRubyObject _commonRun(Node node, Scope s) {
         // See the second part of JRuby's Ruby.executeScript(String, String)
+        Ruby runtime = getRuntime(s);
         ThreadContext context = runtime.getCurrentContext();
 
         String oldFile = context.getFile();
@@ -214,43 +230,6 @@ public class RubyJxpSource extends CGIGateway {
             context.setFileAndLine(node.getPosition().getFile(), node.getPosition().getStartLine());
             return runtime.runNormally(node, YARV_COMPILE);
         } finally {
-            context.setFile(oldFile);
-            context.setLine(oldLine);
-        }
-    }
-
-    public void handle(EnvMap env, InputStream stdin, OutputStream stdout, AppRequest ar) {
-        Scope s = ar.getScope();
-
-        if (_anyLocalFileChanged(s)) {
-            if (DEBUG)
-                System.err.println("new file or file mod time changed; resetting Ruby runtime");
-            forgetRuntime(s);
-        }
-
-        _addJSFileLibrariesToPath(s);
-        _addCGIEnv(s, env);
-
-        Ruby runtime = getRuntime(s);
-        runtime.setGlobalVariables(new ScopeGlobalVariables(s, runtime));
-        _setIO(s, stdin, stdout);
-        _exposeScopeFunctions(s);
-        _patchRequireAndLoad(s);
-
-        // See the second part of JRuby's Ruby.executeScript(String, String)
-        ThreadContext context = runtime.getCurrentContext();
-
-        String oldFile = context.getFile();
-        int oldLine = context.getLine();
-        try {
-            Node node = _parseCode();
-            context.setFileAndLine(node.getPosition().getFile(), node.getPosition().getStartLine());
-            runtime.runNormally(node, YARV_COMPILE);
-        }
-        catch (IOException e) {
-            System.err.println("RubyJxpSonrce.handle: " + e);
-        }
-        finally {
             context.setFile(oldFile);
             context.setLine(oldLine);
         }
@@ -467,6 +446,27 @@ public class RubyJxpSource extends CGIGateway {
             }
             reqs.add(arg);
         }
+    }
+
+    /**
+     * Resets runtime if any local file changed. This is a simple, dumb,
+     * stupid way of making sure that files are re-required if they changed.
+     * <p>
+     * What we really want is a way to find out which file is really required
+     * by "require 'foo'" so we can check at the time of the require instead
+     * of up front for all files. There is no way to find 'foo' now without a
+     * change to JRuby (which I'm working on).
+     */    
+    private void _resetOnFileChange(Scope s) {
+        return;
+        // This code is commented out for now because when run against an app
+        // with 1,000 froze Rails files, calling _anyLocalFileChanged for
+        // every request is too slow.
+//         if (_anyLocalFileChanged(s)) {
+//             if (DEBUG)
+//                 System.err.println("new file or file mod time changed; resetting Ruby runtime");
+//             forgetRuntime(s);
+//         }
     }
 
     private boolean _anyLocalFileChanged(Scope s) {
