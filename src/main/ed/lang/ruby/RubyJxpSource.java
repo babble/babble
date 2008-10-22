@@ -322,12 +322,9 @@ public class RubyJxpSource extends CGIGateway {
      * gateway.
      */
     protected void _setIO(Scope s, InputStream stdin, OutputStream stdout) {
-        HttpResponse response = (HttpResponse)s.get("response");
-        if (response != null) {
-            Ruby runtime = getRuntime(s);
-            runtime.getGlobalVariables().set("$stdin", new RubyIO(runtime, stdin));
-            runtime.getGlobalVariables().set("$stdout", new RubyIO(runtime, stdout));
-        }
+        Ruby runtime = getRuntime(s);
+        runtime.getGlobalVariables().set("$stdin", new RubyIO(runtime, stdin));
+        runtime.getGlobalVariables().set("$stdout", new RubyIO(runtime, stdout));
     }
 
     /**
