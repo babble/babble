@@ -53,7 +53,7 @@ import ed.appserver.jxp.*;
  */
 public class SiteSystemState {
     static final boolean DEBUG = Boolean.getBoolean( "DEBUG.SITESYSTEMSTATE" );
-    
+
     SiteSystemState( AppContext ac , PyObject newGlobals , Scope s){
         pyState = new PySystemState();
         globals = newGlobals;
@@ -126,7 +126,7 @@ public class SiteSystemState {
             if( pyState.modules.__finditem__( modName ) == null ){
                 PyModule siteMod = new PyModule( modName );
                 pyState.modules.__setitem__( modName , siteMod );
-                // Make sure it's not a real package module that can 
+                // Make sure it's not a real package module that can
                 // actually cause imports. This should only happen virtually.
                 siteMod.__dict__.__setitem__( "__path__", Py.None );
             }
@@ -156,7 +156,7 @@ public class SiteSystemState {
             if( p instanceof ModuleFinder )
                 return;
         }
-        
+
         ss.meta_path.append( new ModuleFinder( scope ) );
     }
 
@@ -328,7 +328,7 @@ public class SiteSystemState {
             }
 
             // We have to return m, but that might not be the module itself.
-            // If we got "import foo.bar", m = foo, but we want to get 
+            // If we got "import foo.bar", m = foo, but we want to get
             // bar.__name__. So we have to search through modules to get to the
             // innermost.
             // But if we got "from foo import bar", m = bar, and we don't want
@@ -339,7 +339,7 @@ public class SiteSystemState {
             else {
                 innerMod = m;
                 String [] modNames = target.split("\\.");
-                
+
                 for( int i = 1; i < modNames.length; ++i ){
                     innerMod = innerMod.__findattr__( modNames[i].intern() );
                 }
