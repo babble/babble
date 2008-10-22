@@ -54,22 +54,51 @@ public class JSRegex extends JSObjectBase {
             return r;
         }
 
+        public Object get( Object o ) {
+            if( o == null )
+                return null;
+            
+            String s = o.toString();
+            if( s.startsWith( "$" ) ) {
+                int m = Integer.parseInt( s.substring( 1 ) );
+                Object obj = matchArray.get( m );
+                return obj == null ? "" : obj.toString();
+            }
+            else if( o.equals( "input" ) ) {
+                return JSRegex.input;
+            }
+
+            return super.get( o );
+        }
+
+        public Object set( Object n, Object v ) {
+            if( n == null ) 
+                return false;
+            if( v == null )
+                v = "";
+
+            if( n.toString().equals( "input" ) ) {
+                JSRegex.input = v.toString();
+                return v;
+            }
+            return super.set( n,v );
+        }
+
         protected void init(){
             _prototype.set( "lastIndex" , 0 );
 
             _prototype.set( "test" , new JSFunctionCalls1(){
                     public Object call( Scope s , Object o , Object foo[] ){
                         if ( o == null )
-                            return false;
+                            return ((JSRegex)s.getThis()).test( (String)o );
                         return ((JSRegex)s.getThis()).test( o.toString() );
                     }
                 } );
 
             _prototype.set( "exec" , new JSFunctionCalls1(){
                     public Object call( Scope s , Object o , Object foo[] ){
-                        if( o == null ) {
-                            return null;
-                        }
+                        if( o == null ) 
+                            return ((JSRegex)s.getThis()).exec( (String)o );
                         return ((JSRegex)s.getThis()).exec( o.toString() );
                     }
                 } );
@@ -323,6 +352,8 @@ public class JSRegex extends JSObjectBase {
      * @return If the given string contained a match for this pattern.
      */
     public boolean test( String s ){
+        if( s == null )
+            s = JSRegex.input;
         Matcher m = _patt.matcher( s );
         return m.find();
     }
@@ -341,6 +372,9 @@ public class JSRegex extends JSObjectBase {
      * @return Array of matches.
      */
     public JSArray exec( String s , boolean canUseOld ){
+        if( s == null ) {
+            s = input;
+        }
         JSArray a = _last.get();
         String oldString = a == null ? null : a.get( "input" ).toString();
         Matcher m = null;
@@ -373,6 +407,7 @@ public class JSRegex extends JSObjectBase {
         else
             _last.set( null );
         _lastRegex.set( this );
+        matchArray = new JSArray( a );
 
         return a;
     }
@@ -414,6 +449,9 @@ public class JSRegex extends JSObjectBase {
         }
         return buf.toString();
     }
+
+    static JSArray matchArray = new JSArray();
+    static String input = "";
 
     /** @unexpose */
     String _p;
