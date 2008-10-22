@@ -607,9 +607,6 @@ public class ENode extends JSObjectBase {
     /** Turns a string into a DOM.
      */
     void init( String s ){
-        if( XML.ignoreWhitespace ) 
-            s = s.trim();
-
         Node temp;
         try {
             /* Some XML has the stupid form
@@ -629,6 +626,21 @@ public class ENode extends JSObjectBase {
         }
 
         NodeList kids = temp.getChildNodes();
+        for( int i=0; i<kids.getLength(); ) {
+            Node k = kids.item(i);
+            if( ( k.getNodeType() == Node.TEXT_NODE && 
+                  k.getTextContent().matches( "\\s*" ) &&
+                  XML.ignoreWhitespace ) ||
+                ( k.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE &&
+                  XML.ignoreProcessingInstructions ) ||
+                ( k.getNodeType() == Node.COMMENT_NODE &&
+                  XML.ignoreComments ) ) {
+                temp.removeChild( k );
+                continue;
+            }
+            i++;
+        }
+
         if( kids.getLength() > 1 ) {
             children = new XMLList();
             for( int i=0; i < kids.getLength(); i++ ) {
