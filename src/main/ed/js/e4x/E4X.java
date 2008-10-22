@@ -84,11 +84,17 @@ public class E4X {
 
                 for ( int i=0; i<kids.size(); i++ ){
                     ENode c = kids.get(i);
-                    if ( !attr && c.node.getNodeType() != Node.ATTRIBUTE_NODE && 
+                    if ( !attr && 
+                         c.node.getNodeType() != Node.ATTRIBUTE_NODE &&
                          ( all || 
-                           ( ( c.node.getNodeType() == Node.TEXT_NODE && c.text().equals( s ) ) || c.node.getNodeType() != Node.TEXT_NODE ) &&
-                           ( ( ( qualified && c.name().uri.equals( uri ) ) || !qualified ) && 
-                             ( c.localName() != null && c.localName().equals( s ) ) ) ) ) {
+                           ( ( c.node.getNodeType() == Node.TEXT_NODE && 
+                               c.text().equals( s ) ) || 
+                             c.node.getNodeType() != Node.TEXT_NODE ) &&
+                           ( ( ( qualified && 
+                                 c.name().uri.equals( uri ) ) || 
+                               !qualified ) && 
+                             ( c.localName() != null && 
+                               c.localName().equals( s ) ) ) ) ) {
                         res.add( c );
                     }
 
@@ -176,7 +182,7 @@ public class E4X {
             return false;
 
         QName q = new QName( o );
-        if( q.localName.matches( "[A-Za-z_][\\w\\.\\-]*" ) )
+        if( q.localName.toString().matches( "[A-Za-z_][\\w\\.\\-]*" ) )
             return true;
         return false;
     }
