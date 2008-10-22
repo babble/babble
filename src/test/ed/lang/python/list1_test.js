@@ -48,7 +48,9 @@ assert.eq( jsA[0] , 1 );
 assert.eq( jsA[1] , 2 );
 assert.eq( jsA[2] , 3 );
 assert.eq( jsA[3] , 4 );
-assert.eq( jsA.length , 4 );
+assert.eq( jsA[4] , 5 );
+assert.eq( jsA[5] , 6 );
+assert.eq( jsA.length , 6 );
 
 newL = pyL.filter(function(x){ return x % 2;});
 assert( newL[0] == 1 );
@@ -60,6 +62,7 @@ newL = pyL.filter(function(){ flip = !flip; return flip; });
 assert( newL[0] == pyL[1] );
 assert( newL.length == pyL.length/2 );
 
+jsA = [1, 2, 3, 4];
 pyDeleteItem( jsA );
 assert.eq( jsA.length , 3 );
 assert.eq( jsA[0] , 2 );
