@@ -97,6 +97,18 @@ public class Bytes {
         return 0;
     }
 
+    public static boolean cameFromDB( JSObject o ){
+        if ( o == null )
+            return false;
+
+        if ( o.get( "_id" ) == null )
+            return false;
+
+        if ( o.get( "_ns" ) == null )
+            return false;
+        
+        return true;
+    }
 
     static final String NO_REF_HACK = "_____nodbref_____";
 }

@@ -98,7 +98,7 @@ public class PyJSArrayWrapper extends PyList {
             foo.append(repr.toString());
             foo.append(", ");
         }
-        if( n > 1 ){
+        if( n >= 1 ){
             PyObject p = toPython(_js.getInt(n-1));
             PyObject repr = p.__repr__();
             foo.append(repr.toString());
