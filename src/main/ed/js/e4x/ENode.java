@@ -495,11 +495,17 @@ public class ENode extends JSObjectBase {
         this.parent = parent;
         this.XML = this.parent == null ? (Cons)this._getCons() : this.parent.XML;
 
+        getNamespace();
         if( this.node != null && 
             this.node.getNodeType() == Node.ATTRIBUTE_NODE ) {
             ((Attr)this.node).setValue( E4X.escapeAttributeValue( ((Attr)this.node).getValue() ) );
+            for( ENode n : parent.children ) {
+                if( n.node.getNodeType() == Node.ATTRIBUTE_NODE &&
+                    n.name().toString().equals( this.name.toString() ) ) {
+                    throw new JSException( "TypeError: duplicate XML attribute "+this.name() );
+                }
+            }
         }
-        getNamespace();
         addAttributes();
     }
 
