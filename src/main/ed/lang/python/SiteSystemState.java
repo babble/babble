@@ -210,6 +210,10 @@ public class SiteSystemState {
             return "<open file '_10gen.apprequest', mode 'w'>";
         }
 
+        public Object __tojava__( Class cls ){
+            return this;
+        }
+
         final public void _10gen_stdout_write( String s ){
             AppRequest request = AppRequest.getThreadLocal();
 
