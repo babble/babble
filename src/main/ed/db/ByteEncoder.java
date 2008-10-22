@@ -248,8 +248,7 @@ public class ByteEncoder extends Bytes {
 
         if ( ! _dontRefContains( o ) && 
 	     name != null && 
-             ( o.get( "_id" ) != null && 
-               o.get( "_ns" ) != null ) ){ 
+             cameFromDB( o ) ){
             putDBRef( name , o.get( "_ns" ).toString() , (ObjectId)(o.get( "_id" ) ) );
             return true;
         }

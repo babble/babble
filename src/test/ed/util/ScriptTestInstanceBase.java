@@ -86,6 +86,10 @@ public abstract class ScriptTestInstanceBase extends MyAsserts implements Script
         catch (RuntimeException re) { 
             throw new Exception("For file " + _file.toString(), re);
         }
+        catch( Error e ){
+            System.err.println( "error : " + e + " for : " + _file );
+            throw e;
+        }
         finally {
             scope.kill();
             scope = null;

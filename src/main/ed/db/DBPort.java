@@ -81,6 +81,9 @@ public class DBPort {
         while ( response.remaining() > 0 )
             _sock.read( response );
         
+        if ( response.position() < response.limit() )
+            throw new RuntimeException( "buffer not fully filled" );
+
         return msgResponse;
     }
 

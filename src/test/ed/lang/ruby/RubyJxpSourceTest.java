@@ -211,38 +211,4 @@ public class RubyJxpSourceTest extends SourceRunner {
                          "end",
                          "bar\nfoo\nfoo");
     }
-
-//     public void testLibPathAdditions() {
-//         s.put("local", new JSFileLibrary(new File("/foo/bar/local"), null, s));
-//         s.put("core", new JSFileLibrary(new File("/foo/bar/core"), null, s));
-//         s.put("external", new JSFileLibrary(new File("/foo/bar/external"), null, s));
-//         runRuby("puts $:.join(',')");
-//         assertTrue(rubyOutput.contains("/foo/bar/local"));
-//         assertTrue(rubyOutput.contains("/foo/bar/core"));
-//         assertTrue(rubyOutput.contains("/foo/bar/external"));
-//     }
-
-    public void testLibNameFromPath() {
-        assertEquals(source.libNameFromPath("local"), "local");
-        assertEquals(source.libNameFromPath("/local"), "local");
-        assertEquals(source.libNameFromPath("local/foo"), "local");
-        assertEquals(source.libNameFromPath("/local/foo"), "local");
-    }
-
-    public void testRemoveLibName() {
-        assertEquals(source.removeLibName(""), "");
-        assertEquals(source.removeLibName("local"), "");
-        assertEquals(source.removeLibName("/local"), "");
-        assertEquals(source.removeLibName("local/foo"), "foo");
-        assertEquals(source.removeLibName("/local/foo"), "foo");
-    }
-
-    public void testGetLibFromPath() {
-        Object local = s.get("local");
-        assertSame(source.getLibFromPath("local", s), local);
-        assertSame(source.getLibFromPath("local", s), local);
-        assertSame(source.getLibFromPath("/local", s), local);
-        assertSame(source.getLibFromPath("/local/foo", s), local);
-        assertNull(source.getLibFromPath("no/such/lib/name", s));
-    }
 }
