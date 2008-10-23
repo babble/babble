@@ -110,5 +110,14 @@ public class Bytes {
         return true;
     }
 
+    static boolean isLowestLevelObject( final Object o ){
+        if ( o == null )
+            return false;
+        return isLowestLevelObject( o.getClass() );
+    }
+    
+    static boolean isLowestLevelObject( final Class c ){
+        return c == JSObjectBase.class || c == JSDict.class;
+    }
     static final String NO_REF_HACK = "_____nodbref_____";
 }
