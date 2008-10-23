@@ -96,6 +96,16 @@ public class JS extends Language {
         return o.toString();
     }
 
+    public static boolean isBaseObject( Object o ){
+        if ( o == null )
+            return false;
+        return isBaseObject( o.getClass() );
+    }
+    
+    public static boolean isBaseObject( Class c ){
+        return c == JSObjectBase.class || c == JSDict.class;
+    }
+    
     public static void main( String args[] )
         throws Exception {
 

@@ -35,7 +35,7 @@ public class DBRef extends JSObjectBase {
 
     public JSObject getRealObject(){
         final JSObject o = _getPointedTo();
-        if ( Bytes.isLowestLevelObject( o ) )
+        if ( JS.isBaseObject( o ) )
             return this;
         return o;
 
@@ -68,7 +68,7 @@ public class DBRef extends JSObjectBase {
         
         Object ret = this;
 
-        if ( ! Bytes.isLowestLevelObject( o ) ){
+        if ( ! JS.isBaseObject( o ) ){
             _parent.set( _fieldName , o );
             ret = o;
         }
