@@ -195,13 +195,14 @@ public class ServletWriter extends JSFunctionCalls1 {
             }
         }
 
+        int prevNestLevel = this._nestedScriptLevel;
         if (tag.equalsIgnoreCase("script")) {
             this._nestedScriptLevel += 1;
         } else if (tag.equalsIgnoreCase("/script")) {
             this._nestedScriptLevel = (this._nestedScriptLevel == 0) ? 0 : this._nestedScriptLevel - 1;
         }
 
-        if (this._nestedScriptLevel == 0) { // CDN stuff
+        if (prevNestLevel == 0) { // CDN stuff
             String srcName = null;
             if ( tag.equalsIgnoreCase( "img" ) ||
                  tag.equalsIgnoreCase( "script" ) )

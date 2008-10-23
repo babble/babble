@@ -158,8 +158,8 @@ public class JxpServletTest extends ed.TestCase {
     public void testScript(){
         JxpWriter w = new JxpWriter.Basic();
         ServletWriter p = new ServletWriter( w , STATIC , SUFFIX , CONTEXT   );
-        p.print( "abc <script src='/a.js' > 123"  );
-        //assertClose( "abc <script src='" + STATIC + "/a.js' > 123" , w.getContent() );
+        p.print( "abc <script src='/1.jpg' > 123"  );
+        assertClose( "abc <script src='" + STATIC + "/1.jpg?lm=" + one.lastModified() + "' > 123" , w.getContent() );
     }
 
     @Test(groups = {"basic"})
