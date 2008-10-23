@@ -45,6 +45,20 @@ public class URLFixer {
     }
 
     public void fix( String url , Appendable a ){
+        // don't rewrite w/in js files
+        if (_ar != null && _ar.getResponse() != null && _ar.getResponse().getContentType() != null) {
+            String content_type = _ar.getResponse().getContentType();
+            if (content_type.indexOf("javascript") != -1 || content_type.indexOf("ecmascript") != -1) {
+                try {
+                    a.append(url);
+                }
+                catch (IOException ioe) {
+                    throw new RuntimeException("couldn't append", ioe);
+                }
+
+                return;
+            }
+        }
 
         if ( url == null )
             return;
