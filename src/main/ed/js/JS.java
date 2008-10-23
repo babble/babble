@@ -22,6 +22,10 @@ import java.io.*;
 
 import ed.lang.*;
 import ed.js.engine.*;
+import ed.appserver.jxp.JxpSource;
+import ed.appserver.adapter.AdapterType;
+import ed.appserver.AppContext;
+import ed.appserver.JSFileLibrary;
 
 public class JS extends Language {
 
@@ -33,6 +37,11 @@ public class JS extends Language {
         return Convert.makeAnon( source , true );
     }
 
+    public JxpSource getAdapter(AdapterType type, File f, AppContext context, JSFileLibrary lib) {
+        // TODO - fix me
+        return null;
+    }
+    
     public Object eval( Scope scope , String code , boolean[] hasReturn ){
         return scope.eval( code , "eval" , hasReturn );
     }
