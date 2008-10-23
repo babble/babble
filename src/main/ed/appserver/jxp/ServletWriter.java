@@ -144,6 +144,18 @@ public class ServletWriter extends JSFunctionCalls1 {
                 _extra.setLength( 0 );
             }
 
+            // if it's in a script tag just print it.
+            if (this._inScript) {
+                _closeScriptMatcher.reset(s);
+                if (!_closeScriptMatcher.find()) {
+                    _writer.print(s);
+                    return;
+                }
+                this._inScript = false;
+                _writer.print(s.substring(0, _closeScriptMatcher.start()));
+                s = s.substring(_closeScriptMatcher.start());
+            }
+
             _matcher.reset( s );
             if ( ! _matcher.find() ){
                 _writer.print( s );
@@ -201,14 +213,11 @@ public class ServletWriter extends JSFunctionCalls1 {
             }
         }
 
-        int prevNestLevel = this._nestedScriptLevel;
         if (tag.equalsIgnoreCase("script") && !isClosed) {
-            this._nestedScriptLevel += 1;
-        } else if (tag.equalsIgnoreCase("/script")) {
-            this._nestedScriptLevel = (this._nestedScriptLevel == 0) ? 0 : this._nestedScriptLevel - 1;
+            this._inScript = true;
         }
 
-        if (prevNestLevel == 0) { // CDN stuff
+        { // CDN stuff
             String srcName = null;
             if ( tag.equalsIgnoreCase( "img" ) ||
                  tag.equalsIgnoreCase( "script" ) )
@@ -317,6 +326,8 @@ public class ServletWriter extends JSFunctionCalls1 {
     static final Pattern _tagPattern = Pattern.compile( "<(/?\\w+)[ >]" , Pattern.CASE_INSENSITIVE );
     static final Map<String,Pattern> _attPatternCache = Collections.synchronizedMap( new HashMap<String,Pattern>() );
     final Matcher _matcher = _tagPattern.matcher("");
+    final Matcher _closeScriptMatcher = Pattern.compile("</\\s*script\\s*>", Pattern.CASE_INSENSITIVE).matcher("");
+
     final StringBuilder _extra = new StringBuilder();
 
     final JxpWriter _writer;
@@ -326,7 +337,8 @@ public class ServletWriter extends JSFunctionCalls1 {
     String _formInputPrefix = null;
 
     int _writtenLength = 0;
-    int _nestedScriptLevel = 0;
+
+    boolean _inScript = false;
 
     Map<String,JSFunction> _tagHandlers;
 }
