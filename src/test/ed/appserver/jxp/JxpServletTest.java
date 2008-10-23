@@ -129,7 +129,7 @@ public class JxpServletTest extends ed.TestCase {
 
     @Test(groups = {"basic"})
     public void testLink(){
-
+        
         JxpWriter w = new JxpWriter.Basic();
         ServletWriter p = new ServletWriter( w , STATIC , SUFFIX , CONTEXT   );
         String s = "a <link href='/1.jpg' >";
@@ -144,6 +144,17 @@ public class JxpServletTest extends ed.TestCase {
         
     }
 
+    @Test(groups = {"basic"})
+    public void testsInScript(){
+
+        JxpWriter w = new JxpWriter.Basic();
+        ServletWriter p = new ServletWriter( w , STATIC , SUFFIX , CONTEXT   );
+        String s = "<script> s = '<script src=\"/foo\"></script>' </script>";
+        p.print( s );
+        //assertClose( s , w.getContent() );
+        
+    }
+    
     
     public static void main( String args[] ){
         (new JxpServletTest()).runConsole();
