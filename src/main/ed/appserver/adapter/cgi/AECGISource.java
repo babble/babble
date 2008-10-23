@@ -14,7 +14,7 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ed.lang.cgi;
+package ed.appserver.adapter.cgi;
 
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
@@ -26,13 +26,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 import org.jvyamlb.YAML;
 
 import ed.js.JSFunction;
 import ed.js.engine.Scope;
 import ed.appserver.JSFileLibrary;
-import ed.appserver.jxp.JxpSource;
+import ed.appserver.AppRequest;
 import ed.log.Logger;
 import ed.util.Dependency;
 
@@ -42,7 +43,7 @@ import ed.util.Dependency;
  *   and it's getFunction() method called.  We need to find a better
  *   way to do this - this could be used more generally for CGI
  */
-public class AECGISource extends JxpSource {
+public class AECGISource  {
 
     final File _file;
     final JSFileLibrary _lib;
@@ -87,6 +88,27 @@ public class AECGISource extends JxpSource {
         catch(Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void handle(EnvMap env, InputStream stdin, OutputStream stdout, AppRequest ar) {
+
+        // TODO - examine the yaml Map to see if it specifies a script or
+        // if we should just return a null and let the rest of the appserver
+        // handle the request - IOW, deal with "static_dir" ...
+
+        for(MapEntry m : _handlerList) {
+            Pattern p = m.uriPattern;
+
+            Matcher matcher = p.matcher(env.get("PATH_INFO"));
+
+            if (matcher.matches()) {
+
+                
+                //return new CGIGateway(m.script, _lib);
+                throw new RuntimeException( "blah" );
+            }
+        }
+
     }
 
     /**

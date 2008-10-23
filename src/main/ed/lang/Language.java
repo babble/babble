@@ -22,13 +22,21 @@ import javax.script.*;
 
 import ed.js.*;
 import ed.js.engine.*;
+import ed.appserver.AppContext;
+import ed.appserver.JSFileLibrary;
+import ed.appserver.adapter.AdapterType;
+import ed.appserver.jxp.JxpSource;
+
+import java.io.File;
 
 public abstract class Language {
     
     protected Language( String name ){
         _name = name;
     }
-    
+
+    public abstract JxpSource getAdapter(AdapterType type, File f , AppContext context , JSFileLibrary lib );
+
     public boolean isScriptable(){
         return false;
     }

@@ -25,9 +25,10 @@ import ed.io.*;
 import ed.js.*;
 import ed.js.engine.*;
 import ed.lang.*;
-import ed.lang.cgi.*;
 import ed.util.*;
 import ed.appserver.*;
+import ed.appserver.adapter.cgi.SysExecCGIAdapter;
+import ed.appserver.adapter.AdapterType;
 import ed.appserver.templates.*;
 import ed.appserver.templates.djang10.Djang10Source;
 
@@ -40,32 +41,43 @@ public abstract class JxpSource extends JSObjectLame implements Dependency , Dep
             throw new NullPointerException( "can't have null file" );
         
         JxpSource s = null;
+
+        AdapterType adapterType = AdapterType.DIRECT_10GEN;
+
+        if (context != null) {
+            adapterType = context.getAdapterType();
+        }
+
         if ( f.getName().endsWith(".djang10") ) {
             Scope parentScope = (context != null)? context.getScope() : Scope.getAScope();
             s = new Djang10Source(parentScope.child( "Djang10 Scope for: " + f ), f);
         }
-        
-        else if ( f.getName().endsWith( ".py" ) )
-            s = new ed.lang.python.PythonJxpSource( f , lib );
-        
+        else if ( f.getName().endsWith( ".py" ) ) {
+            s = Language.PYTHON.getAdapter(adapterType, f, context, lib);
+
+            if (s == null) {
+                s = new ed.lang.python.PythonJxpSource( f , lib );
+            }
+        }
         else if ( f.getName().endsWith( ".rb" ) )
             s = new ed.lang.ruby.RubyJxpSource( f );
-        
+
         else if ( f.getName().endsWith( ".erb" ) || f.getName().endsWith( ".rhtml" ) )
             s = new ed.lang.ruby.RubyErbSource( f );
 
         else if ( f.getName().endsWith( ".php" ) )
             s = new ed.lang.php.PHPJxpSource( f );
 
-        else if ( f.getName().endsWith( ".yaml" ) )
-            s = new AECGISource( f , lib );
+        else if ( f.getName().endsWith( ".yaml" ) ) {
+            //s = new AECGISource( f , lib );
+        }
 
         else if ( f.getName().endsWith( ".cgi" ) )
-            s = new SysExecCGIGateway( f );
+            s = new SysExecCGIAdapter( f );
 
         else if ( f.getName().endsWith( ".rbcgi" ) )
             s = new ed.lang.ruby.RubyCGIGateway( f );
-        
+
         if( s == null )
             s = new JxpFileSource( f );
         s._lib = lib;

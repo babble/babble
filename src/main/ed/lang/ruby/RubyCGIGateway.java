@@ -22,30 +22,26 @@ import java.util.*;
 
 import org.jruby.*;
 import org.jruby.ast.Node;
-import org.jruby.exceptions.RaiseException;
-import org.jruby.internal.runtime.GlobalVariables;
 import org.jruby.internal.runtime.methods.JavaMethod;
 import org.jruby.runtime.*;
 import org.jruby.runtime.builtin.IRubyObject;
-import org.jruby.util.IdUtil;
 import org.jruby.util.KCode;
 import static org.jruby.runtime.Visibility.PUBLIC;
 
 import ed.appserver.AppContext;
 import ed.appserver.AppRequest;
 import ed.appserver.JSFileLibrary;
+import ed.appserver.adapter.cgi.EnvMap;
 import ed.io.StreamUtil;
 import ed.js.JSFunction;
 import ed.js.engine.Scope;
-import ed.lang.cgi.CGIGateway;
-import ed.lang.cgi.EnvMap;
-import ed.net.httpserver.HttpResponse;
+import ed.appserver.adapter.cgi.CGIAdapter;
 import ed.util.Dependency;
 import static ed.lang.ruby.RubyObjectWrapper.toJS;
 import static ed.lang.ruby.RubyObjectWrapper.toRuby;
 import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
 
-public class RubyCGIGateway extends CGIGateway {
+public class RubyCGIGateway extends CGIAdapter {
 
     protected RuntimeEnvironment runenv;
     protected File file;
@@ -82,7 +78,7 @@ public class RubyCGIGateway extends CGIGateway {
         return file;
     }
 
-    public void handle(EnvMap env, InputStream stdin, OutputStream stdout, AppRequest ar) {
+    public void handleCGI(EnvMap env, InputStream stdin, OutputStream stdout, AppRequest ar) {
         Scope s = ar.getScope();
         runenv.addCGIEnv(s, env);
         runenv.commonSetup(s);
@@ -110,7 +106,7 @@ public class RubyCGIGateway extends CGIGateway {
 
     /**
      * Set Ruby's $stdin and $stdout so that reading and writing go to the
-     * right place. Called from {@link handle} which is called from the CGI
+     * right place. Called from {@link handleCGI} which is called from the CGI
      * gateway.
      */
     protected void setIO(Scope s, InputStream stdin, OutputStream stdout) {

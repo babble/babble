@@ -16,7 +16,7 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ed.lang.cgi;
+package ed.appserver.adapter.cgi;
 
 import java.io.*;
 import java.util.*;
@@ -33,12 +33,12 @@ import ed.appserver.*;
  *  Utility class that invokes a Babble-supported
  *  script in a CGI environment.
  */
-public abstract class CGIGateway extends JxpSource {
+public abstract class CGIAdapter extends JxpSource {
 
-    public CGIGateway(){
+    public CGIAdapter(){
     }
 
-    public abstract void handle( EnvMap env , InputStream stdin , OutputStream stdout , AppRequest ar );
+    public abstract void handleCGI( EnvMap env , InputStream stdin , OutputStream stdout , AppRequest ar );
     
     public JSFunction getFunction() throws IOException {
         return _dontCall;
@@ -61,7 +61,7 @@ public abstract class CGIGateway extends JxpSource {
         
         OutputStream stdout = new CGIOutputStream( ar.getResponse() , ar.getResponse().getOutputStream() );
 
-        handle( env , stdin , stdout , ar );
+        handleCGI( env , stdin , stdout , ar );
     }
 
     /**
@@ -230,7 +230,7 @@ public abstract class CGIGateway extends JxpSource {
         }
 
         public void handle( HttpRequest request , HttpResponse response , AppRequest ar ){
-            CGIGateway.this.handle( ar );
+            CGIAdapter.this.handle( ar );
         }
     }
 
