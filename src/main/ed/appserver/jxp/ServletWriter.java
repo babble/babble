@@ -161,7 +161,9 @@ public class ServletWriter extends JSFunctionCalls1 {
 
             String wholeTag = s.substring( 0 , end + 1 );
 
-            if ( ! printTag( _matcher.group(1) , wholeTag , allowTagHandlers ) )
+            boolean isClosed = (wholeTag.charAt(end - 1) == '/');
+
+            if ( ! printTag( _matcher.group(1) , wholeTag , allowTagHandlers , isClosed ) )
                 _writer.print( wholeTag );
 
             s = s.substring( end + 1 );
@@ -169,10 +171,14 @@ public class ServletWriter extends JSFunctionCalls1 {
 
     }
 
+    boolean printTag(String tag, String s, boolean allowTagHandlers) {
+        return printTag(tag, s, allowTagHandlers, false);
+    }
+
     /**
      * @return true if i printed tag so you should not
      */
-    boolean printTag( String tag , String s , boolean allowTagHandlers ){
+    boolean printTag( String tag , String s , boolean allowTagHandlers , boolean isClosed ){
 
         if ( tag == null )
             throw new NullPointerException( "tag can't be null" );
@@ -196,7 +202,7 @@ public class ServletWriter extends JSFunctionCalls1 {
         }
 
         int prevNestLevel = this._nestedScriptLevel;
-        if (tag.equalsIgnoreCase("script")) {
+        if (tag.equalsIgnoreCase("script") && !isClosed) {
             this._nestedScriptLevel += 1;
         } else if (tag.equalsIgnoreCase("/script")) {
             this._nestedScriptLevel = (this._nestedScriptLevel == 0) ? 0 : this._nestedScriptLevel - 1;
