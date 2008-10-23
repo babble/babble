@@ -27,6 +27,10 @@ public abstract class AppWork implements Comparable<AppWork> {
     public boolean isDone(){
         return _done;
     }
+
+    public void join(){
+        getResult( true );
+    }
     
     public Object returnData(){
         return getResult( true );
