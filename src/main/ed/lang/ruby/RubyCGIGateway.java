@@ -88,14 +88,14 @@ public class RubyCGIGateway extends CGIGateway {
         runenv.commonSetup(s);
         setIO(s, stdin, stdout);
         try {
-            runenv.commonRun(parseCode(), s);
+            runenv.commonRun(getAST(), s);
         }
         catch (IOException e) {
             System.err.println("RubyCGIGateway.handle: " + e);
         }
     }
 
-    protected synchronized Node parseCode() throws IOException {
+    protected synchronized Node getAST() throws IOException {
         final long lastModified = file.lastModified();
         if (node == null || lastCompile < lastModified) {
             node = parseContent(file.getPath());

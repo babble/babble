@@ -63,7 +63,7 @@ public class RubyJxpSource extends JxpSource.JxpFileSource {
     public Ruby getRuntime(Scope s) { return runenv.getRuntime(s); }
 
     public JSFunction getFunction() throws IOException {
-        final Node node = parseCode();
+        final Node node = getAST();
         return new ed.js.func.JSFunctionCalls0() {
             public Object call(Scope s, Object unused[]) { return RubyObjectWrapper.toJS(s, _doCall(node, s, unused)); }
         };
@@ -75,7 +75,7 @@ public class RubyJxpSource extends JxpSource.JxpFileSource {
         return runenv.commonRun(node, s);
     }
 
-    protected synchronized Node parseCode() throws IOException {
+    protected synchronized Node getAST() throws IOException {
         final long lastModified = getFile().lastModified();
         if (node == null || lastCompile < lastModified) {
             node = parseContent(getFile().getPath());
