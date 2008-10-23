@@ -16,6 +16,7 @@
       <class name="ed.net.httpserver.HttpServerTest"/>
       <class name="ed.net.lb.MappingBaseTest"/>
       <class name="ed.util.FastStringMapTest"/>
+      <class name="ed.util.FastStackTest"/>
       <class name="ed.util.CircularListTest"/>
       <class name="ed.io.ByteBufferStreamTest"/>
       <class name="ed.appserver.AppContextTestNG" />
