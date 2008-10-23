@@ -544,10 +544,10 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
         if ( ! ( t instanceof JSObject ) )
             return null;
 
-        if ( t.getClass() != JSObjectBase.class )
-            return null;
+        if ( JS.isBaseObject( t ) )
+            return (JSObject)t;
 
-        return (JSObject)t;
+        return null;
     }
 
     private final JSObject _checkObject( Object o , boolean canBeNull , boolean query ){
