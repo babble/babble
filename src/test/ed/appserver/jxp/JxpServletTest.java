@@ -151,7 +151,7 @@ public class JxpServletTest extends ed.TestCase {
         ServletWriter p = new ServletWriter( w , STATIC , SUFFIX , CONTEXT   );
         String s = "<script> s = '<script src=\"/foo\"></script>' </script>";
         p.print( s );
-        //assertClose( s , w.getContent() );
+        assertClose( s , w.getContent() );
     }
 
     @Test(groups = {"basic"})
@@ -169,7 +169,7 @@ public class JxpServletTest extends ed.TestCase {
         ServletWriter p = new ServletWriter(w, STATIC, SUFFIX, CONTEXT);
         String s = "<script>abc <img src='/1.jpg' > 123</script>";
         p.print(s);
-        //assertClose(s, w.getContent());
+        assertClose(s, w.getContent());
     }
 
     @Test(groups = {"basic"})
