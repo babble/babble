@@ -5,7 +5,7 @@
   <test name="db">
     <classes>
       <class name="ed.db.ByteTest" />
-<!--      <class name="ed.db.JavaClientTest" /> -->
+      <class name="ed.db.JavaClientTest" />
     </classes>
   </test>
 
