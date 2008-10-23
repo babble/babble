@@ -168,7 +168,7 @@ public class JxpServletTest extends ed.TestCase {
         ServletWriter p = new ServletWriter(w, STATIC, SUFFIX, CONTEXT);
         String s = "<script>'<script type=\"text/javascript\" src=\"/foo\"></script>'";
         p.print(s);
-        //assertClose(s, w.getContent());
+        assertClose(s, w.getContent());
     }
 
     @Test(groups = {"basic"})
@@ -202,9 +202,18 @@ public class JxpServletTest extends ed.TestCase {
     public void testInAndOutOfScript3 () {
         JxpWriter w = new JxpWriter.Basic();
         ServletWriter p = new ServletWriter(w, STATIC, SUFFIX, CONTEXT);
-        String s = "<script>a = \"<script>\"; img = \"<img src='/1.jpg'/>\"</script><img src='/1.jpg'> 123";
+        String s = "abc <script>a = \"<script>\"; img = \"<img src='/1.jpg'/>\"</script><img src='/1.jpg'> 123";
         p.print(s);
-        //assertClose("abc <script>a = \"<script>\"; img = \"<img src='/1.jpg'/>\"</script> <img src='" + STATIC + "/1.jpg?lm=" + one.lastModified() + "'> 123", w.getContent());
+        assertClose("abc <script>a = \"<script>\"; img = \"<img src='/1.jpg'/>\"</script> <img src='" + STATIC + "/1.jpg?lm=" + one.lastModified() + "'> 123", w.getContent());
+    }
+
+    @Test(groups = {"basic"})
+    public void testInAndOutOfScript4 () {
+        JxpWriter w = new JxpWriter.Basic();
+        ServletWriter p = new ServletWriter(w, STATIC, SUFFIX, CONTEXT);
+        String s = "abc <script>a = \"</script>\"; img = \"<img src='/1.jpg'/>\"</script><img src='/1.jpg'> 123";
+        p.print(s);
+        // assertClose("abc <script>a = \"</script>\"; img = \"<img src='/1.jpg'/>\"</script> <img src='" + STATIC + "/1.jpg?lm=" + one.lastModified() + "'> 123", w.getContent());
     }
 
     public static void main( String args[] ){
