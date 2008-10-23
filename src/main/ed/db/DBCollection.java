@@ -265,16 +265,19 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
      * @param o the object to save
      * @return the new object from the collection
      */
-    public final Object save( JSObject o ){
+    public final JSObject save( JSObject o ){
         if ( checkReadOnly( true ) ) return null;
         return save( null , o );
     }
 
-    public final void save( Map m ){
+    public final Map save( Map m ){
+        if ( m instanceof JSObject )
+            return (Map)( save( null , (JSObject)m ) );
         JSDict d = new JSDict( m );
         save( null , d );
         if ( m.get( "_id" ) == null && d.get( "_id" ) != null )
             m.put( "_id" , d.get( "_id" ) );
+        return m;
     }
 
     /** Saves an object to this collection executing the preSave function in a given scope.
@@ -282,7 +285,7 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
      * @param o the object to save
      * @return the new object from the collection
      */
-    public final Object save( Scope s , JSObject jo ){
+    public final JSObject save( Scope s , JSObject jo ){
         if ( checkReadOnly( true ) ) return jo;
         jo = _handleThis( s , jo );
 
@@ -328,7 +331,7 @@ public abstract class DBCollection extends JSObjectLame implements Sizable {
         if ( DEBUG ) System.out.println( "doing implicit upsert : " + jo.get( "_id" ) );
         JSObject q = new JSObjectBase();
         q.set( "_id" , id );
-        return _update.call( s , q , jo , _upsertOptions );
+        return (JSObject)(_update.call( s , q , jo , _upsertOptions ));
     }
 
     // ------
