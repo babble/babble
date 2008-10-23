@@ -213,7 +213,42 @@ public class JxpServletTest extends ed.TestCase {
         ServletWriter p = new ServletWriter(w, STATIC, SUFFIX, CONTEXT);
         String s = "abc <script>a = \"</script>\"; img = \"<img src='/1.jpg'/>\"</script><img src='/1.jpg'> 123";
         p.print(s);
-        // assertClose("abc <script>a = \"</script>\"; img = \"<img src='/1.jpg'/>\"</script> <img src='" + STATIC + "/1.jpg?lm=" + one.lastModified() + "'> 123", w.getContent());
+        assertClose("abc <script>a = \"</script>\"; img = \"<img src='/1.jpg'/>\"</script> <img src='" + STATIC + "/1.jpg?lm=" + one.lastModified() + "'> 123", w.getContent());
+    }
+
+    @Test(groups = {"basic"})
+    public void testQuotesInScriptTag () {
+        JxpWriter w = new JxpWriter.Basic();
+        ServletWriter p = new ServletWriter(w, STATIC, SUFFIX, CONTEXT);
+        p.print("abc <script> \"'\\\"''\" </ script ><img src='/1.jpg'>");
+        assertClose("abc <script> \"'\\\"''\" </ script ><img src='" + STATIC + "/1.jpg?lm=" + one.lastModified() + "'>", w.getContent());
+    }
+
+    @Test(groups = {"basic"})
+    public void testQuotesInScriptTag2 () {
+        JxpWriter w = new JxpWriter.Basic();
+        ServletWriter p = new ServletWriter(w, STATIC, SUFFIX, CONTEXT);
+        String s = "abc <script> \"'\\\"''\"' </ script ><img src='/1.jpg'>";
+        p.print(s);
+        assertClose(s, w.getContent());
+    }
+
+    @Test(groups = {"basic"})
+    public void testQuotesInScriptTag3 () {
+        JxpWriter w = new JxpWriter.Basic();
+        ServletWriter p = new ServletWriter(w, STATIC, SUFFIX, CONTEXT);
+        String s = "abc <script> \"'\\\"''\"\" </ script ><img src='/1.jpg'>";
+        p.print(s);
+        assertClose(s, w.getContent());
+    }
+
+    @Test(groups = {"basic"})
+    public void testQuotesInScriptTag4 () {
+        JxpWriter w = new JxpWriter.Basic();
+        ServletWriter p = new ServletWriter(w, STATIC, SUFFIX, CONTEXT);
+        String s = "abc <script> \"</script><img src='/1.jpg'>'</script><img src='/1.jpg'>\\\"''\"'<img src=\'/1.jpg\'>' </ script ><img src='/1.jpg'>";
+        p.print(s);
+        assertClose("abc <script> \"</script><img src='/1.jpg'>'</script><img src='/1.jpg'>\\\"''\"'<img src=\'/1.jpg\'>' </ script ><img src='" + STATIC + "/1.jpg?lm=" + one.lastModified() + "'>", w.getContent());
     }
 
     public static void main( String args[] ){
