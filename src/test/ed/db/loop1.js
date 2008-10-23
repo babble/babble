@@ -62,8 +62,8 @@ b.z = 5;
 tb.save( b );
 ta.save( a );
 
-assert.eq( 5 , tb.findOne().z );
-assert.eq( 5 , ta.findOne().b.z );
+assert.eq( 5 , tb.findOne().z , "tb" );
+assert.eq( 5 , ta.findOne().b.z , "ta" );
 
 assert.eq( 4 , ta.findOne().z );
 assert.eq( 4 , tb.findOne().a.z );
