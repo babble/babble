@@ -132,7 +132,7 @@ class RuntimeEnvironment {
         }
     }
 
-    protected RuntimeEnvironment(Ruby runtime) {
+    RuntimeEnvironment(Ruby runtime) {
         this.runtime = runtime;
     }
 
@@ -146,13 +146,13 @@ class RuntimeEnvironment {
         return runtime;
     }
 
-    protected void forgetRuntime(Scope s) {
+    void forgetRuntime(Scope s) {
         runtime = null;
         if (s != null)
             forgetRuntimeInstance((AppContext)s.get("__instance__"));
     }
 
-    protected void commonSetup(Scope s) {
+    void commonSetup(Scope s) {
         resetOnFileChange(s);
         addJSFileLibrariesToPath(s);
 
@@ -162,7 +162,7 @@ class RuntimeEnvironment {
         patchRequireAndLoad(s);
     }
 
-    protected IRubyObject commonRun(Node node, Scope s) {
+    IRubyObject commonRun(Node node, Scope s) {
         // See the second part of JRuby's Ruby.executeScript(String, String)
         Ruby runtime = getRuntime(s);
         ThreadContext context = runtime.getCurrentContext();
@@ -178,7 +178,7 @@ class RuntimeEnvironment {
         }
     }
 
-    protected void addCGIEnv(Scope s, EnvMap env) {
+    void addCGIEnv(Scope s, EnvMap env) {
         Ruby runtime = getRuntime(s);
         ThreadContext context = runtime.getCurrentContext();
         RubyHash envHash = (RubyHash)runtime.getObject().fastGetConstant("ENV");
@@ -186,7 +186,7 @@ class RuntimeEnvironment {
             envHash.op_aset(context, runtime.newString(key), runtime.newString(env.get(key).toString()));
     }
 
-    protected void addJSFileLibrariesToPath(Scope s) {
+    void addJSFileLibrariesToPath(Scope s) {
         Ruby runtime = getRuntime(s);
         RubyArray loadPath = (RubyArray)runtime.getLoadService().getLoadPath();
         for (String libName : BUILTIN_JS_FILE_LIBRARIES) {
@@ -207,7 +207,7 @@ class RuntimeEnvironment {
      * Creates the $scope global object and sets up the XGen module with
      * top-level functions defined in the scope.
      */
-    protected void exposeScopeFunctions(Scope scope) {
+    void exposeScopeFunctions(Scope scope) {
         Ruby runtime = getRuntime(scope);
         runtime.getGlobalVariables().set("$scope", toRuby(scope, runtime, scope));
 
@@ -219,7 +219,7 @@ class RuntimeEnvironment {
         createNewClassesAndXGenMethods(scope, runtime);
     }
 
-    protected void patchRequireAndLoad(final Scope scope) {
+    void patchRequireAndLoad(final Scope scope) {
         RubyModule kernel = getRuntime(scope).getKernel();
         kernel.addMethod("require", new JavaMethod(kernel, PUBLIC) {
                 public IRubyObject call(ThreadContext context, IRubyObject self, RubyModule module, String name, IRubyObject[] args, Block block) {
