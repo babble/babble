@@ -14,7 +14,7 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ed.lang.cgi;
+package ed.appserver.adapter.cgi;
 
 import java.util.HashMap;
 

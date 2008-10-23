@@ -37,6 +37,8 @@ import ed.js.engine.*;
 import ed.js.func.*;
 import ed.lang.*;
 import ed.appserver.*;
+import ed.appserver.adapter.AdapterType;
+import ed.appserver.jxp.JxpSource;
 
 import static ed.lang.python.PythonSmallWrappers.*;
 
@@ -269,6 +271,20 @@ public class Python extends Language {
             return new PyJSObjectWrapper( (JSObject)o );
 
         throw new RuntimeException( "can't convert [" + o.getClass().getName() + "] from js to py" );
+    }
+
+    public JxpSource getAdapter(AdapterType type, File f, AppContext context, JSFileLibrary lib) {
+
+        switch(type) {
+            case CGI :
+                // return CGI source at some point
+                return new ed.lang.python.PythonJxpSource(f, lib);
+            case DIRECT_10GEN :
+                return new ed.lang.python.PythonJxpSource(f, lib);
+            case WSGI :
+            default :
+                throw new RuntimeException("ERROR : unsupported AdapterType : " + type);
+        }
     }
 
     public JSFunction compileLambda( final String source ){

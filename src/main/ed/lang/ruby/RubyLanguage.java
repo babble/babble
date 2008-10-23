@@ -22,6 +22,12 @@ import org.jruby.runtime.builtin.IRubyObject;
 
 import ed.lang.Language;
 import ed.js.engine.Scope;
+import ed.appserver.jxp.JxpSource;
+import ed.appserver.adapter.AdapterType;
+import ed.appserver.AppContext;
+import ed.appserver.JSFileLibrary;
+
+import java.io.File;
 
 class RubyShellSource extends RubyJxpSource {
 
@@ -43,6 +49,12 @@ public class RubyLanguage extends Language {
     static final boolean DEBUG = Boolean.getBoolean("DEBUG.RB");
 
     public RubyLanguage() { super("ruby"); }
+
+    public JxpSource getAdapter(AdapterType type, File f, AppContext context, JSFileLibrary lib) {
+
+        
+        return null;
+    }
 
     public Object eval(Scope s, String code, boolean[] hasReturn) {
         RubyJxpSource source = new RubyShellSource(code);

@@ -978,17 +978,18 @@ public class JSObjectBase implements JSObject {
             seen = new IdentitySet();
             seen.add( this );
         }
-
+        
         for ( Map.Entry<String,Object> e : _map.entrySet() ){
             final String key = e.getKey();
-
+            
             if ( JSON.IGNORE_NAMES.contains( key ) )
                 continue;
 
             hash += ( 3 * key.hashCode() );
 
             final Object value = e.getValue();
-            hash += _hash( seen , value );
+            final int myHash = _hash( seen , value );
+            hash += myHash;
 
         }
 
@@ -1004,11 +1005,11 @@ public class JSObjectBase implements JSObject {
                 return 0;
             seen.add( value );
         }
-
+        
         if ( value instanceof JSObjectBase )
             return ( 7 * ((JSObjectBase)value).hashCode( seen ) );
 
-        return 7 * value.hashCode();
+        return 91 * ( 123 + value.hashCode() );
 
     }
 

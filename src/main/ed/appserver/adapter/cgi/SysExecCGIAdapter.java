@@ -16,10 +16,9 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package ed.lang.cgi;
+package ed.appserver.adapter.cgi;
 
 import java.io.*;
-import java.net.*;
 import java.util.*;
 
 import ed.io.*;
@@ -28,13 +27,13 @@ import ed.net.httpserver.*;
 import ed.appserver.*;
 import ed.util.*;
 
-public class SysExecCGIGateway extends CGIGateway {
+public class SysExecCGIAdapter extends CGIAdapter {
     
-    public SysExecCGIGateway( File f ){
+    public SysExecCGIAdapter( File f ){
         _file = f;
     }
     
-    public void handle( EnvMap env , InputStream stdin , OutputStream stdout , AppRequest ar ){
+    public void handleCGI( EnvMap env , InputStream stdin , OutputStream stdout , AppRequest ar ){
         
         if ( ! Security.isAllowedSite( ar.getContext().getName() ) ){
             HttpResponse response = ar.getResponse();

@@ -145,15 +145,53 @@ public class ServletWriter extends JSFunctionCalls1 {
             }
 
             // if it's in a script tag just print it.
+            // to find the end of the script tag we have to
+            // ignore anything in quotes
             if (this._inScript) {
+                if (this._inDoubleQuote) {
+                    int dq = findDoubleQuote(s);
+                    if (dq == -1) {
+                        _writer.print(s);
+                        return;
+                    }
+                    this._inDoubleQuote = false;
+                    _writer.print(s.substring(0, dq + 2));
+                    s = s.substring(dq + 2);
+                } else if (this._inSingleQuote) {
+                    int sq = findSingleQuote(s);
+                    if (sq == -1) {
+                        _writer.print(s);
+                        return;
+                    }
+                    this._inSingleQuote = false;
+                    _writer.print(s.substring(0, sq + 2));
+                    s = s.substring(sq + 2);
+                }
+
+                int doubleQuote = s.indexOf('"');
+                int singleQuote = s.indexOf('\'');
+
+                int quoteMin = singleQuote;
+                if (doubleQuote != -1) {
+                    quoteMin = (singleQuote == -1 || doubleQuote < singleQuote) ? doubleQuote : singleQuote;
+                }
+
                 _closeScriptMatcher.reset(s);
                 if (!_closeScriptMatcher.find()) {
+                    setQuoteState(doubleQuote, singleQuote);
                     _writer.print(s);
                     return;
                 }
-                this._inScript = false;
-                _writer.print(s.substring(0, _closeScriptMatcher.start()));
-                s = s.substring(_closeScriptMatcher.start());
+                if (_closeScriptMatcher.start() < quoteMin || quoteMin == -1) {
+                    this._inScript = false;
+                    _writer.print(s.substring(0, _closeScriptMatcher.start()));
+                    s = s.substring(_closeScriptMatcher.start());
+                } else {
+                    setQuoteState(doubleQuote, singleQuote);
+                    _writer.print(s.substring(0, quoteMin));
+                    s = s.substring(quoteMin);
+                    continue;
+                }
             }
 
             _matcher.reset( s );
@@ -181,6 +219,34 @@ public class ServletWriter extends JSFunctionCalls1 {
             s = s.substring( end + 1 );
         }
 
+    }
+
+    private void setQuoteState (int doubleQuote, int singleQuote) {
+        if (doubleQuote != -1) {
+            if (singleQuote != -1 && singleQuote < doubleQuote) {
+                this._inSingleQuote = true;
+            } else {
+                this._inDoubleQuote = true;
+            }
+        } else if (singleQuote != -1) {
+            this._inSingleQuote = true;
+        }
+    }
+
+    private int findDoubleQuote (String s) {
+        this._closeDoubleQuoteMatcher.reset(s);
+        if (!_closeDoubleQuoteMatcher.find()) {
+            return -1;
+        }
+        return _closeDoubleQuoteMatcher.start();
+    }
+
+    private int findSingleQuote (String s) {
+        this._closeSingleQuoteMatcher.reset(s);
+        if (!_closeSingleQuoteMatcher.find()) {
+            return -1;
+        }
+        return _closeSingleQuoteMatcher.start();
     }
 
     boolean printTag(String tag, String s, boolean allowTagHandlers) {
@@ -327,6 +393,8 @@ public class ServletWriter extends JSFunctionCalls1 {
     static final Map<String,Pattern> _attPatternCache = Collections.synchronizedMap( new HashMap<String,Pattern>() );
     final Matcher _matcher = _tagPattern.matcher("");
     final Matcher _closeScriptMatcher = Pattern.compile("</\\s*script\\s*>", Pattern.CASE_INSENSITIVE).matcher("");
+    final Matcher _closeDoubleQuoteMatcher = Pattern.compile("[^\\\\]\"").matcher("");
+    final Matcher _closeSingleQuoteMatcher = Pattern.compile("[^\\\\]'").matcher("");
 
     final StringBuilder _extra = new StringBuilder();
 
@@ -339,6 +407,8 @@ public class ServletWriter extends JSFunctionCalls1 {
     int _writtenLength = 0;
 
     boolean _inScript = false;
+    boolean _inDoubleQuote = false;
+    boolean _inSingleQuote = false;
 
     Map<String,JSFunction> _tagHandlers;
 }
