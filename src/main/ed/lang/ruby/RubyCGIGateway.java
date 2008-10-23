@@ -48,9 +48,9 @@ import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
 public class RubyCGIGateway extends CGIGateway {
 
     protected RuntimeEnvironment runenv;
-    protected File _file;
-    protected Node _node;
-    protected long _lastCompile;
+    protected File file;
+    protected Node node;
+    protected long lastCompile;
 
     public RubyCGIGateway(File f) {
         this(f, null);
@@ -58,53 +58,53 @@ public class RubyCGIGateway extends CGIGateway {
 
     /** For testing and {@link RubyLanguage} use. */
     protected RubyCGIGateway(File f, Ruby runtime) {
-        _file = f;
+        file = f;
         runenv = new RuntimeEnvironment(runtime);
     }
 
     protected String getContent() throws IOException {
-        return StreamUtil.readFully(_file);
+        return StreamUtil.readFully(file);
     }
 
     protected InputStream getInputStream() throws IOException {
-        return new FileInputStream(_file);
+        return new FileInputStream(file);
     }
 
     public long lastUpdated(Set<Dependency> visitedDeps) {
-        return _file.lastModified();
+        return file.lastModified();
     }
 
     public String getName() {
-        return _file.toString();
+        return file.toString();
     }
 
     public File getFile() {
-        return _file;
+        return file;
     }
 
     public void handle(EnvMap env, InputStream stdin, OutputStream stdout, AppRequest ar) {
         Scope s = ar.getScope();
         runenv.addCGIEnv(s, env);
         runenv.commonSetup(s);
-        _setIO(s, stdin, stdout);
+        setIO(s, stdin, stdout);
         try {
-            runenv.commonRun(_parseCode(), s);
+            runenv.commonRun(parseCode(), s);
         }
         catch (IOException e) {
             System.err.println("RubyCGIGateway.handle: " + e);
         }
     }
 
-    protected synchronized Node _parseCode() throws IOException {
-        final long lastModified = _file.lastModified();
-        if (_node == null || _lastCompile < lastModified) {
-            _node = _parseContent(_file.getPath());
-            _lastCompile = lastModified;
+    protected synchronized Node parseCode() throws IOException {
+        final long lastModified = file.lastModified();
+        if (node == null || lastCompile < lastModified) {
+            node = parseContent(file.getPath());
+            lastCompile = lastModified;
         }
-        return _node;
+        return node;
     }
 
-    protected Node _parseContent(String filePath) throws IOException {
+    protected Node parseContent(String filePath) throws IOException {
         // See the first part of JRuby's Ruby.executeScript(String, String)
         String script = getContent();
         byte[] bytes;
@@ -121,7 +121,7 @@ public class RubyCGIGateway extends CGIGateway {
      * right place. Called from {@link handle} which is called from the CGI
      * gateway.
      */
-    protected void _setIO(Scope s, InputStream stdin, OutputStream stdout) {
+    protected void setIO(Scope s, InputStream stdin, OutputStream stdout) {
         Ruby runtime = runenv.getRuntime(s);
         runtime.getGlobalVariables().set("$stdin", new RubyIO(runtime, stdin));
         runtime.getGlobalVariables().set("$stdout", new RubyIO(runtime, stdout));

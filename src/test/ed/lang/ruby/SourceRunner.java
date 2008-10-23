@@ -40,7 +40,7 @@ class TestRubyJxpSource extends RubyJxpSource {
         super(null, runtime);
     }
     protected String getContent() { return _content; }
-    protected Node _parseCode() throws IOException { return _parseContent("fake_file_path"); }
+    protected Node parseCode() throws IOException { return parseContent("fake_file_path"); }
     protected void _setOutput(Scope s) {
         _writer = new JxpWriter.Basic();
         Ruby runtime = runenv.getRuntime(s);

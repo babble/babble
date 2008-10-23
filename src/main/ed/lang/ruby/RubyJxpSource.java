@@ -63,7 +63,7 @@ public class RubyJxpSource extends JxpSource.JxpFileSource {
     public Ruby getRuntime(Scope s) { return runenv.getRuntime(s); }
 
     public JSFunction getFunction() throws IOException {
-        final Node node = _parseCode();
+        final Node node = parseCode();
         return new ed.js.func.JSFunctionCalls0() {
             public Object call(Scope s, Object unused[]) { return RubyObjectWrapper.toJS(s, _doCall(node, s, unused)); }
         };
@@ -71,20 +71,20 @@ public class RubyJxpSource extends JxpSource.JxpFileSource {
 
     protected IRubyObject _doCall(Node node, Scope s, Object unused[]) {
         runenv.commonSetup(s);
-        _setOutput(s);
+        setOutput(s);
         return runenv.commonRun(node, s);
     }
 
-    protected synchronized Node _parseCode() throws IOException {
+    protected synchronized Node parseCode() throws IOException {
         final long lastModified = getFile().lastModified();
         if (node == null || lastCompile < lastModified) {
-            node = _parseContent(getFile().getPath());
+            node = parseContent(getFile().getPath());
             lastCompile = lastModified;
         }
         return node;
     }
 
-    protected Node _parseContent(String filePath) throws IOException {
+    protected Node parseContent(String filePath) throws IOException {
         // See the first part of JRuby's Ruby.executeScript(String, String)
         String script = getContent();
         byte[] bytes;
@@ -101,7 +101,7 @@ public class RubyJxpSource extends JxpSource.JxpFileSource {
      * place. If we have no HttpResponse (for example, we're being run outside
      * the app server), then nothing happens.
      */
-    protected void _setOutput(Scope s) {
+    protected void setOutput(Scope s) {
         HttpResponse response = (HttpResponse)s.get("response");
         if (response != null) {
             Ruby runtime = runenv.getRuntime(s);
