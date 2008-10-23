@@ -171,24 +171,14 @@ public class ServletWriter extends JSFunctionCalls1 {
                 int doubleQuote = s.indexOf('"');
                 int singleQuote = s.indexOf('\'');
 
-                int quoteMin;
+                int quoteMin = singleQuote;
                 if (doubleQuote != -1) {
-                    quoteMin = (singleQuote != -1 && singleQuote < doubleQuote) ? singleQuote : doubleQuote;
-                } else {
-                    quoteMin = singleQuote;
+                    quoteMin = (singleQuote == -1 || doubleQuote < singleQuote) ? doubleQuote : singleQuote;
                 }
 
                 _closeScriptMatcher.reset(s);
                 if (!_closeScriptMatcher.find()) {
-                    if (doubleQuote != -1) {
-                        if (singleQuote != -1 && singleQuote < doubleQuote) {
-                            this._inSingleQuote = true;
-                        } else {
-                            this._inDoubleQuote = true;
-                        }
-                    } else if (singleQuote != -1) {
-                        this._inSingleQuote = true;
-                    }
+                    setQuoteState(doubleQuote, singleQuote);
                     _writer.print(s);
                     return;
                 }
@@ -197,15 +187,7 @@ public class ServletWriter extends JSFunctionCalls1 {
                     _writer.print(s.substring(0, _closeScriptMatcher.start()));
                     s = s.substring(_closeScriptMatcher.start());
                 } else {
-                    if (doubleQuote != -1) {
-                        if (singleQuote != -1 && singleQuote < doubleQuote) {
-                            this._inSingleQuote = true;
-                        } else {
-                            this._inDoubleQuote = true;
-                        }
-                    } else if (singleQuote != -1) {
-                        this._inSingleQuote = true;
-                    }
+                    setQuoteState(doubleQuote, singleQuote);
                     _writer.print(s.substring(0, quoteMin));
                     s = s.substring(quoteMin);
                     continue;
@@ -239,7 +221,19 @@ public class ServletWriter extends JSFunctionCalls1 {
 
     }
 
-    int findDoubleQuote (String s) {
+    private void setQuoteState (int doubleQuote, int singleQuote) {
+        if (doubleQuote != -1) {
+            if (singleQuote != -1 && singleQuote < doubleQuote) {
+                this._inSingleQuote = true;
+            } else {
+                this._inDoubleQuote = true;
+            }
+        } else if (singleQuote != -1) {
+            this._inSingleQuote = true;
+        }
+    }
+
+    private int findDoubleQuote (String s) {
         this._closeDoubleQuoteMatcher.reset(s);
         if (!_closeDoubleQuoteMatcher.find()) {
             return -1;
@@ -247,7 +241,7 @@ public class ServletWriter extends JSFunctionCalls1 {
         return _closeDoubleQuoteMatcher.start();
     }
 
-    int findSingleQuote (String s) {
+    private int findSingleQuote (String s) {
         this._closeSingleQuoteMatcher.reset(s);
         if (!_closeSingleQuoteMatcher.find()) {
             return -1;
