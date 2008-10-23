@@ -178,6 +178,17 @@ class RuntimeEnvironment {
         }
     }
 
+    Node parse(String script, String filePath) {
+        // See the first part of JRuby's Ruby.executeScript(String, String)
+        byte[] bytes;
+        try {
+            bytes = script.getBytes(KCode.NONE.getKCode());
+        } catch (UnsupportedEncodingException e) {
+            bytes = script.getBytes();
+        }
+        return RuntimeEnvironment.PARSE_RUNTIME.parseFile(new ByteArrayInputStream(bytes), filePath, null);
+    }
+
     void addCGIEnv(Scope s, EnvMap env) {
         Ruby runtime = getRuntime(s);
         ThreadContext context = runtime.getCurrentContext();

@@ -85,15 +85,7 @@ public class RubyJxpSource extends JxpSource.JxpFileSource {
     }
 
     protected Node parseContent(String filePath) throws IOException {
-        // See the first part of JRuby's Ruby.executeScript(String, String)
-        String script = getContent();
-        byte[] bytes;
-        try {
-            bytes = script.getBytes(KCode.NONE.getKCode());
-        } catch (UnsupportedEncodingException e) {
-            bytes = script.getBytes();
-        }
-        return RuntimeEnvironment.PARSE_RUNTIME.parseFile(new ByteArrayInputStream(bytes), filePath, null);
+        return runenv.parse(getContent(), filePath);
     }
 
     /**
