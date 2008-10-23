@@ -95,6 +95,8 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
      */
     AppRequest createRequest( HttpRequest request ){
         AppContextHolder.Result r = _contextHolder.getContext( request );
+        if ( r == null || r.context == null )
+            return null;
         return r.context.createRequest( request , r.host , r.uri );
     }
 
@@ -137,6 +139,10 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         AppRequest ar = request.getAppRequest();
         if ( ar == null ){
             ar = createRequest( request );
+            if ( ar == null ){
+                handleNoSite( request , response );
+                return;
+            }
             request.setAppRequest( ar );
         }
 
@@ -490,7 +496,10 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         }
     }
     
-    
+    void handleNoSite( HttpRequest request , HttpResponse response ){
+        response.setResponseCode( 404 );
+        response.getJxpWriter().print( "No site for <b>" + request.getHost() + "</b>" );
+    }
 
     /** Determines how long this response should be cached for.
         result is to set Cache-Time and Expires
@@ -672,7 +681,7 @@ public class AppServer implements HttpHandler , MemUtil.MemHaltDisplay {
         throws Exception {
 
 
-        String webRoot = "/data/sites/admin/";
+        String webRoot = null;
         String sitesRoot = "/data/sites";
         
         int portNum = DEFAULT_PORT;
