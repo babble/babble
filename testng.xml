@@ -18,6 +18,7 @@
       <class name="ed.util.FastStringMapTest"/>
       <class name="ed.util.FastStackTest"/>
       <class name="ed.util.CircularListTest"/>
+      <class name="ed.util.ThreadPoolTest"/>
       <class name="ed.io.ByteBufferStreamTest"/>
       <class name="ed.appserver.AppContextTestNG" />
       <class name="ed.appserver.JSFileLibraryTest" />

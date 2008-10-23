@@ -42,6 +42,7 @@ public abstract class ThreadPool<T> {
         _name = name;
         _maxThreads = numThreads;
         _queue = new LinkedBlockingQueue<T>( maxQueueSize );
+        _myThreadGroup = new MyThreadGroup();
         _threads.add( new MyThread() );
     }
 
@@ -80,9 +81,30 @@ public abstract class ThreadPool<T> {
 	return _inProgress.get();
     }
 
+    public int numThreads(){
+        return _threads.size();
+    }
+
+    class MyThreadGroup extends ThreadGroup {
+        MyThreadGroup(){
+            super( "ThreadPool.MyThreadGroup:" + _name );
+        }
+
+        public void uncaughtException( Thread t, Throwable e ){
+            System.err.println( "ThreadPool [" + _name + "] uncaughtException" );
+            e.printStackTrace();
+            for ( int i=0; i<_threads.size(); i++ ){
+                if ( _threads.get( i ) == t ){
+                    _threads.remove( i );
+                    break;
+                }
+            }
+        }
+    }
+
     class MyThread extends Thread {
         MyThread(){
-            super( "ThreadPool.MyThread:" + _name + ":" + _threads.size() );
+            super( _myThreadGroup , "ThreadPool.MyThread:" + _name + ":" + _threads.size() );
             setDaemon( true );
             start();
         }
@@ -120,5 +142,5 @@ public abstract class ThreadPool<T> {
     private final AtomicInteger _inProgress = new AtomicInteger(0);
     private final List<MyThread> _threads = new Vector<MyThread>();
     private final BlockingQueue<T> _queue;
-
+    private final MyThreadGroup _myThreadGroup;
 }
