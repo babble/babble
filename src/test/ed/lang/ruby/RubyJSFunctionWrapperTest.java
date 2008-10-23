@@ -106,7 +106,7 @@ public class RubyJSFunctionWrapperTest extends SourceRunner {
         JSObject jo = (JSObject)o;
         Object reverse = jo.getFunction("reverse");
         assertTrue(reverse instanceof JSFunction, "expected JSFunction, saw " + (reverse == null ? "null" : reverse.getClass().getName()));
-        assertEquals(((JSFunction)reverse).callAndSetThis(s, jo, RubyJxpSource.EMPTY_OBJECT_ARRAY).toString(), "rab");
+        assertEquals(((JSFunction)reverse).callAndSetThis(s, jo, RuntimeEnvironment.EMPTY_OBJECT_ARRAY).toString(), "rab");
 
         assertNotNull(r.getModule("MyJSClass")); // Ruby class was created
     }
@@ -129,7 +129,7 @@ public class RubyJSFunctionWrapperTest extends SourceRunner {
 
         Object reverse = wrapper.getFunction("reverse");
         assertTrue(reverse instanceof JSFunction, "expected JSFunction, saw " + (reverse == null ? "null" : reverse.getClass().getName()));
-        assertEquals(((JSFunction)reverse).callAndSetThis(s, wrapper, RubyJxpSource.EMPTY_OBJECT_ARRAY).toString(), "eulav_wen");
+        assertEquals(((JSFunction)reverse).callAndSetThis(s, wrapper, RuntimeEnvironment.EMPTY_OBJECT_ARRAY).toString(), "eulav_wen");
     }
 
     public void testCallJSObjectFunction() {

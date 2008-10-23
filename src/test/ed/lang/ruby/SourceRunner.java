@@ -18,6 +18,7 @@ package ed.lang.ruby;
 
 import java.io.IOException;
 
+import org.jruby.Ruby;
 import org.jruby.RubyIO;
 import org.jruby.ast.Node;
 
@@ -42,7 +43,8 @@ class TestRubyJxpSource extends RubyJxpSource {
     protected Node _parseCode() throws IOException { return _parseContent("fake_file_path"); }
     protected void _setOutput(Scope s) {
         _writer = new JxpWriter.Basic();
-        _runtime.getGlobalVariables().set("$stdout", new RubyIO(_runtime, new RubyJxpOutputStream(_writer)));
+        Ruby runtime = runenv.getRuntime(s);
+        runtime.getGlobalVariables().set("$stdout", new RubyIO(runtime, new RubyJxpOutputStream(_writer)));
     }
     protected String getOutput() { return _writer.getContent(); }
 }

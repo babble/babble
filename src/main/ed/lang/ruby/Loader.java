@@ -27,7 +27,7 @@ import org.jruby.runtime.builtin.IRubyObject;
 import ed.appserver.JSFileLibrary;
 import ed.js.JSFunction;
 import ed.js.engine.Scope;
-import static ed.lang.ruby.RubyJxpSource.createNewClassesAndXGenMethods;
+import static ed.lang.ruby.RuntimeEnvironment.createNewClassesAndXGenMethods;
 import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
 
 /**
@@ -95,7 +95,7 @@ public class Loader {
             Object o = lib.getFromPath(path);
             if (isCallableJSFunction(o)) {
                 try {
-                    ((JSFunction)o).call(_scope, RubyJxpSource.EMPTY_OBJECT_ARRAY);
+                    ((JSFunction)o).call(_scope, RuntimeEnvironment.EMPTY_OBJECT_ARRAY);
                     createNewClassesAndXGenMethods(_scope, runtime);
                 }
                 catch (Exception e) {

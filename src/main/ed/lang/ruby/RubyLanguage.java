@@ -25,7 +25,7 @@ import ed.js.engine.Scope;
 
 class RubyShellSource extends RubyJxpSource {
 
-    static final Ruby RUNTIME = Ruby.newInstance(RubyJxpSource.config);
+    static final Ruby RUNTIME = Ruby.newInstance(RuntimeEnvironment.config);
 
     protected String _code;
     RubyShellSource(String code) {
@@ -48,7 +48,7 @@ public class RubyLanguage extends Language {
         RubyJxpSource source = new RubyShellSource(code);
         Object result = null;
         try {
-            result = RubyObjectWrapper.toJS(s, source._doCall(source._parseContent("(shell)"), s, RubyJxpSource.EMPTY_OBJECT_ARRAY));
+            result = RubyObjectWrapper.toJS(s, source._doCall(source._parseContent("(shell)"), s, RuntimeEnvironment.EMPTY_OBJECT_ARRAY));
             hasReturn[0] = true;
         }
         catch (RaiseException re) {
@@ -76,7 +76,7 @@ public class RubyLanguage extends Language {
         code.append("IRB.start\n");
         RubyJxpSource source = new RubyShellSource(code.toString());
         try {
-            source._doCall(source._parseContent("(shell)"), s, RubyJxpSource.EMPTY_OBJECT_ARRAY);
+            source._doCall(source._parseContent("(shell)"), s, RuntimeEnvironment.EMPTY_OBJECT_ARRAY);
         }
         catch (RaiseException re) {
             re.printStackTrace();
