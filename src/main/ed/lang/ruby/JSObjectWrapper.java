@@ -124,10 +124,14 @@ public class JSObjectWrapper implements JSObject {
         String skey = n.toString();
         if (_robj.respondsTo(skey))
             return toJS(_scope, _robj.callMethod(context(), skey, JSFunctionWrapper.EMPTY_IRUBY_OBJECT_ARRAY, Block.NULL_BLOCK));
+        else if (skey.equals("_id")) {
+            IRubyObject val = _robj.instance_variable_get(context(), ivarName(skey));
+            return (val == null || val.isNil()) ? toJS(_scope, null) : new ObjectId(val.toString());
+        }
         else if (skey.startsWith("_")) // Assume it's an internal field; return the ivar value
             return toJS(_scope, _robj.instance_variable_get(context(), ivarName(skey)));
         else
-            throw new IllegalArgumentException("no such method: " + skey);
+            return toJS(_scope, null);
     }
 
     public Object setInt(int n, Object v) {
