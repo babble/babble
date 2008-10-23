@@ -155,6 +155,14 @@ public class JxpServletTest extends ed.TestCase {
     }
 
     @Test(groups = {"basic"})
+    public void testScript(){
+        JxpWriter w = new JxpWriter.Basic();
+        ServletWriter p = new ServletWriter( w , STATIC , SUFFIX , CONTEXT   );
+        p.print( "abc <script src='/a.js' > 123"  );
+        //assertClose( "abc <script src='" + STATIC + "/a.js' > 123" , w.getContent() );
+    }
+
+    @Test(groups = {"basic"})
     public void testInQuote () {
         JxpWriter w = new JxpWriter.Basic();
         ServletWriter p = new ServletWriter(w, STATIC, SUFFIX, CONTEXT);
