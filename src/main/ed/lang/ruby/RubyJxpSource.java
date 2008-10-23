@@ -44,7 +44,7 @@ import static ed.lang.ruby.RubyObjectWrapper.toJS;
 import static ed.lang.ruby.RubyObjectWrapper.toRuby;
 import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
 
-public class RubyJxpSource extends JxpSource {
+public class RubyJxpSource extends JxpSource.JxpFileSource {
 
     public static final String XGEN_MODULE_NAME = "XGen";
     public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
@@ -136,7 +136,7 @@ public class RubyJxpSource extends JxpSource {
 
     /** For testing and {@link RubyLanguage} use. */
     protected RubyJxpSource(File f, Ruby runtime) {
-        _file = f;
+        super(f);
         _runtime = runtime;
     }
 
@@ -154,26 +154,6 @@ public class RubyJxpSource extends JxpSource {
         _runtime = null;
         if (s != null)
             forgetRuntimeInstance((AppContext)s.get("__instance__"));
-    }
-
-    protected String getContent() throws IOException {
-        return StreamUtil.readFully(_file);
-    }
-
-    protected InputStream getInputStream() throws IOException {
-        return new FileInputStream(_file);
-    }
-
-    public long lastUpdated(Set<Dependency> visitedDeps) {
-        return _file.lastModified();
-    }
-
-    public String getName() {
-        return _file.toString();
-    }
-
-    public File getFile() {
-        return _file;
     }
 
     public JSFunction getFunction() throws IOException {
@@ -216,9 +196,9 @@ public class RubyJxpSource extends JxpSource {
     }
 
     protected synchronized Node _parseCode() throws IOException {
-        final long lastModified = _file.lastModified();
+        final long lastModified = getFile().lastModified();
         if (_node == null || _lastCompile < lastModified) {
-            _node = _parseContent(_file.getPath());
+            _node = _parseContent(getFile().getPath());
             _lastCompile = lastModified;
         }
         return _node;
@@ -350,7 +330,6 @@ public class RubyJxpSource extends JxpSource {
     }
 
     protected Ruby _runtime;
-    protected File _file;
     protected Node _node;
     protected long _lastCompile;
 }
