@@ -131,14 +131,13 @@ public class RubyCGIGateway extends CGIGateway {
         }
     }
 
-    public RubyCGIGateway(File f , JSFileLibrary lib) {
-        this(f, lib, null);
+    public RubyCGIGateway(File f) {
+        this(f, null);
     }
 
     /** For testing and {@link RubyLanguage} use. */
-    protected RubyCGIGateway(File f, JSFileLibrary lib, Ruby runtime) {
+    protected RubyCGIGateway(File f, Ruby runtime) {
         _file = f;
-        _lib = lib;
         _runtime = runtime;
     }
 
@@ -359,7 +358,6 @@ public class RubyCGIGateway extends CGIGateway {
     }
 
     protected final File _file;
-    protected final JSFileLibrary _lib;
     protected Ruby _runtime;
 
     protected Node _node;

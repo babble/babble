@@ -130,14 +130,13 @@ public class RubyJxpSource extends JxpSource {
         }
     }
 
-    public RubyJxpSource(File f , JSFileLibrary lib) {
-        this(f, lib, null);
+    public RubyJxpSource(File f) {
+        this(f, null);
     }
 
     /** For testing and {@link RubyLanguage} use. */
-    protected RubyJxpSource(File f, JSFileLibrary lib, Ruby runtime) {
+    protected RubyJxpSource(File f, Ruby runtime) {
         _file = f;
-        _lib = lib;
         _runtime = runtime;
     }
 
@@ -350,10 +349,8 @@ public class RubyJxpSource extends JxpSource {
         return changed;
     }
 
-    protected final File _file;
-    protected final JSFileLibrary _lib;
     protected Ruby _runtime;
-
+    protected File _file;
     protected Node _node;
     protected long _lastCompile;
 }

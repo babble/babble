@@ -23,7 +23,6 @@ import org.jruby.Ruby;
 import org.jruby.ast.Node;
 import org.jruby.runtime.builtin.IRubyObject;
 
-import ed.appserver.JSFileLibrary;
 import ed.js.engine.Scope;
 
 /**
@@ -60,13 +59,13 @@ public class RubyErbSource extends RubyJxpSource {
             "puts template.result(binding)\n";
     }
 
-    public RubyErbSource(File f , JSFileLibrary lib) {
-        super(f, lib);
+    public RubyErbSource(File f) {
+        super(f);
     }
 
     /** For testing. */
-    protected RubyErbSource(File f, JSFileLibrary lib, Ruby runtime) {
-        super(f, lib, runtime);
+    protected RubyErbSource(File f, Ruby runtime) {
+        super(f, runtime);
     }
     
     /**
