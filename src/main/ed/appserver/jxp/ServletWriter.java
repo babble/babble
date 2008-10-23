@@ -2,16 +2,16 @@
 
 /**
  *    Copyright (C) 2008 10gen Inc.
- *  
+ *
  *    This program is free software: you can redistribute it and/or  modify
  *    it under the terms of the GNU Affero General Public License, version 3,
  *    as published by the Free Software Foundation.
- *  
+ *
  *    This program is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU Affero General Public License for more details.
- *  
+ *
  *    You should have received a copy of the GNU Affero General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -42,30 +42,30 @@ public class ServletWriter extends JSFunctionCalls1 {
     public ServletWriter( JxpWriter writer , String cdnPrefix , String cdnSuffix , AppContext context ){
         this( writer , new URLFixer( cdnPrefix , cdnSuffix , context ) );
     }
-    
+
     public ServletWriter( JxpWriter writer , URLFixer fixer ){
         _writer = writer;
         _fixer = fixer;
-            
+
         if ( _writer == null )
             throw new NullPointerException( "writer can't be null" );
 
-        set( "setFormObject" , new JSFunctionCalls1(){ 
+        set( "setFormObject" , new JSFunctionCalls1(){
                 public Object call( Scope scope , Object o , Object extra[] ){
                     if ( o == null ){
                         _formInput = null;
                         return null;
                     }
-                        
+
                     if ( ! ( o instanceof JSObject ) )
                         throw new RuntimeException( "must be a JSObject" );
-                        
+
                     _formInput = (JSObject)o;
                     _formInputPrefix = null;
-                        
+
                     if ( extra != null && extra.length > 0 )
                         _formInputPrefix = extra[0].toString();
-                        
+
                     return o;
                 }
             } );
@@ -76,17 +76,17 @@ public class ServletWriter extends JSFunctionCalls1 {
             public void close(){
                 return;
             }
-            
+
             public void flush(){
                 return;
             }
-            
+
             public void write(char[] cbuf, int off, int len){
                 ServletWriter.this.print( new String( cbuf , off , len ) );
             }
         };
     }
-    
+
     public Object get( Object n ){
         if ( "cdnPrefix".equals( n ) )
             return _fixer.getCDNPrefix();
@@ -102,13 +102,13 @@ public class ServletWriter extends JSFunctionCalls1 {
             return _fixer.setCDNSuffix( v.toString() );
         return super.set( n  , v );
     }
-        
+
     public Object call( Scope scope , Object o , Object extra[] ){
         if ( o == null )
             print( "null" );
         else
             print( JSInternalFunctions.JS_toString( o ) );
-            
+
         return null;
     }
 
@@ -129,44 +129,44 @@ public class ServletWriter extends JSFunctionCalls1 {
     }
 
     public void print( String s , boolean allowTagHandlers ){
-            
+
         if ( ( _writtenLength += s.length() ) > MAX_WRITTEN_LENGTH )
             throw new RuntimeException( "trying to write a dynamic page more than " + MAX_WRITTEN_LENGTH + " chars long" );
 
         if ( _writer.closed() )
             throw new RuntimeException( "output closed.  are you using an old print function" );
-            
+
         while ( s.length() > 0 ){
-                
+
             if ( _extra.length() > 0 ){
                 _extra.append( s );
                 s = _extra.toString();
                 _extra.setLength( 0 );
             }
-                
+
             _matcher.reset( s );
             if ( ! _matcher.find() ){
                 _writer.print( s );
                 return;
             }
-                
+
             _writer.print( s.substring( 0 , _matcher.start() ) );
-                
+
             s = s.substring( _matcher.start() );
             int end = endOfTag( s );
             if ( end == -1 ){
                 _extra.append( s );
                 return;
             }
-                
+
             String wholeTag = s.substring( 0 , end + 1 );
-                
+
             if ( ! printTag( _matcher.group(1) , wholeTag , allowTagHandlers ) )
                 _writer.print( wholeTag );
-                
+
             s = s.substring( end + 1 );
         }
-            
+
     }
 
     /**
@@ -209,48 +209,48 @@ public class ServletWriter extends JSFunctionCalls1 {
                         srcName = null;
                 }
             }
-                
+
             if ( srcName != null ){
-                    
+
                 s = s.substring( 2 + tag.length() );
-                    
+
                 Matcher m = _attributeMatcher( srcName , s );
                 if ( ! m.find() )
                     return false;
-                    
+
                 _writer.print( "<" );
                 _writer.print( tag );
                 _writer.print( " " );
-                    
+
                 _writer.print( s.substring( 0 , m.start(1) ) );
                 String src = m.group(1);
-                    
+
                 printSRC( src );
-                    
+
                 _writer.print( s.substring( m.end(1) ) );
 
                 return true;
             }
-                
+
         }
-            
+
         if ( _formInput != null && tag.equalsIgnoreCase( "input" ) ){
             Matcher m = Pattern.compile( "\\bname *= *['\"](.+?)[\"']" ).matcher( s );
 
             if ( ! m.find() )
                 return false;
-                
+
             String name = m.group(1);
             if ( name.length() == 0 )
                 return false;
-                
+
             if ( _formInputPrefix != null )
                 name = name.substring( _formInputPrefix.length() );
-                
+
             Object val = _formInput.get( name );
             if ( val == null )
                 return false;
-                
+
             if ( s.toString().matches( "value *=" ) )
                 return false;
 
@@ -258,7 +258,7 @@ public class ServletWriter extends JSFunctionCalls1 {
             _writer.print( " value=\"" );
             _writer.print( HtmlEscape.escape( val.toString() ) );
             _writer.print( "\" >" );
-                
+
             return true;
         }
 
@@ -270,10 +270,10 @@ public class ServletWriter extends JSFunctionCalls1 {
      * i.e. /foo -> static.com/foo
      */
     void printSRC( String src ){
-            
+
         if ( src == null || src.length() == 0 )
             return;
-	    
+
         _fixer.fix( src , _writer );
     }
 
@@ -282,7 +282,7 @@ public class ServletWriter extends JSFunctionCalls1 {
             char c = s.charAt( i );
             if ( c == '>' )
                 return i;
-                
+
             if ( c == '"' || c == '\'' ){
                 for ( ; i<s.length(); i++)
                     if ( c == s.charAt( i ) )
@@ -291,7 +291,7 @@ public class ServletWriter extends JSFunctionCalls1 {
         }
         return -1;
     }
-     
+
     static Matcher _attributeMatcher( String name , String tag ){
         Pattern p = _attPatternCache.get( name );
         if ( p == null ){
@@ -300,7 +300,7 @@ public class ServletWriter extends JSFunctionCalls1 {
         }
         return p.matcher( tag );
     }
-   
+
     static final Pattern _tagPattern = Pattern.compile( "<(/?\\w+)[ >]" , Pattern.CASE_INSENSITIVE );
     static final Map<String,Pattern> _attPatternCache = Collections.synchronizedMap( new HashMap<String,Pattern>() );
     final Matcher _matcher = _tagPattern.matcher("");
@@ -311,7 +311,7 @@ public class ServletWriter extends JSFunctionCalls1 {
 
     JSObject _formInput = null;
     String _formInputPrefix = null;
-    
+
     int _writtenLength = 0;
 
     Map<String,JSFunction> _tagHandlers;
