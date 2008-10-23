@@ -1107,7 +1107,8 @@ public class JSArray extends JSObjectBase implements Iterable , List {
         int hash = super.hashCode( seen );
         if ( _array != null )
             for ( Object foo : _array )
-                hash += _hash( seen , foo );
+                hash += 17 + _hash( seen , foo );
+
         return hash;
     }
 
