@@ -284,12 +284,12 @@ public class Python extends Language {
         if (context != null && context.inScopeSetup()) {
             return new ed.lang.python.PythonJxpSource(f, lib);
         }
-        
+
         switch(type) {
             case CGI :
-                return new ed.lang.python.PythonCGIAdapter(f, lib);
+                return new PythonCGIAdapter(f, lib);
             case DIRECT_10GEN :
-                return new ed.lang.python.PythonJxpSource(f, lib);
+                return new PythonJxpSource(f, lib);
             case WSGI :
             default :
                 throw new RuntimeException("ERROR : unsupported AdapterType : " + type);
