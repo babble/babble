@@ -50,6 +50,14 @@ require 'xgen/mongo/log_device'
 # Default LogDevice capped collection size is 10 Mb.
 RAILS_DEFAULT_LOGGER = Logger.new(XGen::Mongo::LogDevice.new("rails_log_#{ENV['RAILS_ENV']}"))
 
+# XGen::Mongo classes
 require 'xgen/mongo'
+
+# Normal Rails configuration
 require File.join($local.getRoot.getPath, "config/environment") unless defined?(RAILS_ROOT)
 require 'dispatcher'
+
+# Session
+require 'xgen/rails/mongo_session'
+# TODO
+# ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS[:database_manager] = XGen::Rails::MongoSession
