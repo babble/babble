@@ -16,30 +16,18 @@
 
 package ed.lang.ruby;
 
-import java.lang.ref.WeakReference;
 import java.io.*;
 import java.util.*;
 
 import org.jruby.*;
 import org.jruby.ast.Node;
-import org.jruby.internal.runtime.methods.JavaMethod;
-import org.jruby.runtime.*;
-import org.jruby.runtime.builtin.IRubyObject;
-import org.jruby.util.KCode;
-import static org.jruby.runtime.Visibility.PUBLIC;
 
-import ed.appserver.AppContext;
 import ed.appserver.AppRequest;
-import ed.appserver.JSFileLibrary;
 import ed.appserver.adapter.cgi.EnvMap;
 import ed.io.StreamUtil;
-import ed.js.JSFunction;
 import ed.js.engine.Scope;
 import ed.appserver.adapter.cgi.CGIAdapter;
 import ed.util.Dependency;
-import static ed.lang.ruby.RubyObjectWrapper.toJS;
-import static ed.lang.ruby.RubyObjectWrapper.toRuby;
-import static ed.lang.ruby.RubyObjectWrapper.isCallableJSFunction;
 
 public class RubyCGIGateway extends CGIAdapter {
 
@@ -106,8 +94,7 @@ public class RubyCGIGateway extends CGIAdapter {
 
     /**
      * Set Ruby's $stdin and $stdout so that reading and writing go to the
-     * right place. Called from {@link handleCGI} which is called from the CGI
-     * gateway.
+     * right place. Called from {@link ed.appserver.adapter.cgi.CGIAdapter#handleCGI}
      */
     protected void setIO(Scope s, InputStream stdin, OutputStream stdout) {
         Ruby runtime = runenv.getRuntime(s);
